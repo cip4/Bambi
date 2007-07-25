@@ -83,6 +83,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StatusCounter;
 
 /**
@@ -93,9 +94,10 @@ public class StatusListener implements IStatusListener
 {
 
     private static Log log = LogFactory.getLog(StatusListener.class.getName());
-    private HashMap queueEntryMap;
     private ISignalDispatcher dispatcher;
-    private StatusCounter lastCounter; // for time based subscriptions ...
+    private StatusCounter theCounter;
+    protected String activeQueueEntryID;
+    protected String activeWorkStepID;
     
     /**
      * 
@@ -111,8 +113,8 @@ public class StatusListener implements IStatusListener
         {
             if(!EnumFamily.Query.equals(inputMessage.getFamily()))
                 return false;
-
-            StatusCounter sc=getSU(queueEntryID, workstepID);
+            
+            StatusCounter sc=getStatusCounter(queueEntryID, workstepID);
             if(sc==null)
             {
                 if( queueEntryID!=null)
@@ -125,7 +127,7 @@ public class StatusListener implements IStatusListener
                 return true;
             }
             JDFDoc doc=sc.getDocJMFPhaseTime();
-
+//TODO continue here
             return false;
         }
 
@@ -165,7 +167,7 @@ public class StatusListener implements IStatusListener
             if(!EnumFamily.Query.equals(inputMessage.getFamily()))
                 return false;
 
-            StatusCounter sc=getSU(queueEntryID, workstepID);
+            StatusCounter sc=getStatusCounter(queueEntryID, workstepID);
             //TODO handle resource query
 
             return false;
@@ -194,9 +196,8 @@ public class StatusListener implements IStatusListener
     
     public StatusListener(ISignalDispatcher dispatch)
     {
-        queueEntryMap=new HashMap();
         dispatcher=dispatch;
-        lastCounter=null;
+        theCounter=null;
        
     }
     /* (non-Javadoc)
@@ -205,7 +206,7 @@ public class StatusListener implements IStatusListener
     public void signalStatus(String queueEntryID, String workstepID, EnumDeviceStatus deviceStatus,
             String deviceStatusDetails, EnumNodeStatus nodeStatus, String nodeStatusDetails)
     {
-       StatusCounter su=getSU(queueEntryID,workstepID);
+       StatusCounter su=getStatusCounter(queueEntryID,workstepID);
        if(su==null)
        {
            log.error("updating null status tracker: "+queueEntryID+" "+workstepID);
@@ -221,24 +222,20 @@ public class StatusListener implements IStatusListener
      * @param workstepID
      * @return
      */
-    private StatusCounter getSU(String queueEntryID, String workstepID)
+    private StatusCounter getStatusCounter(String queueEntryID, String workstepID)
     {
-        if(queueEntryID==null)
-            return lastCounter;
-        HashMap m=(HashMap) queueEntryMap.get(queueEntryID);
-        if(m==null)
+        if(!ContainerUtil.equals(queueEntryID,activeQueueEntryID))
             return null;
-        final StatusCounter statusCounter = (StatusCounter) m.get(workstepID);
-        if(statusCounter!=null)
-            lastCounter=statusCounter;
-        return statusCounter;
+        if(!ContainerUtil.equals(workstepID,activeWorkStepID))
+            return null;
+        return theCounter;
     }
     /* (non-Javadoc)
      * @see org.cip4.bambi.IStatusListener#updateAmount(java.lang.String, java.lang.String, java.lang.String, double, double)
      */
     public void updateAmount(String queueEntryID, String workstepID, String resID, double good, double waste)
     {
-        StatusCounter su=getSU(queueEntryID, workstepID);
+        StatusCounter su=getStatusCounter(queueEntryID, workstepID);
         if(su==null)
             return;
         su.addPhase(resID, good, waste);
@@ -251,59 +248,13 @@ public class StatusListener implements IStatusListener
      * @see org.cip4.bambi.IStatusListener#setNode(java.lang.String, org.cip4.jdflib.node.JDFNode)
      */
     public void setNode(String queueEntryID, String workStepID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID)
-    {
-       if(queueEntryID==null)
-       {
-           log.info("Clearing hashmap");
-           queueEntryMap.clear();
-           return;
-       }
-       if(node==null)
-       {
-           queueEntryMap.remove(queueEntryID);
-           return;
-       }
-       
-       updateQEMap(queueEntryID, workStepID, node, vPartMap, trackResourceID);
-        
-    }
-    private void updateQEMap(String queueEntryID, String workStepID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID)
-    {
-        HashMap workMap=(HashMap) queueEntryMap.get(queueEntryID);
-        if(workMap==null)
-        {
-            workMap=new HashMap();
-            queueEntryMap.put(queueEntryID, workMap);
-        }
-        workMap.put(workStepID, createSU(queueEntryID,workStepID,node,vPartMap,trackResourceID));
-    }
-    /**
-     * @param node
-     * @return
-     */
-    private StatusCounter createSU(String queueEntryID, String workStepID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID)
-    {
-        if(node==null)
-            return null;
-        
-        JDFNodeInfo ni = node.getCreateNodeInfo();
-        if(vPartMap==null || vPartMap.size()==0)
-        {
-            ni.setWorkStepID(workStepID);
-        }
-        else
-        {
-            for(int i=0;i<vPartMap.size();i++)
-            {
-                final JDFNodeInfo createPartition = (JDFNodeInfo) ni.getCreatePartition(vPartMap.elementAt(i), null);
-                createPartition.setWorkStepID(workStepID);                
-            }
-        }
-        StatusCounter su=new StatusCounter(node,vPartMap,null);
-        // "" switches off the automagical resource generation
-        su.setFirstRefID(trackResourceID==null ? "" : trackResourceID);
-        su.setQueueEntryID(queueEntryID);
-        return su;
+    {       
+        theCounter.setActiveNode(node, vPartMap, null);
+        theCounter.setFirstRefID(trackResourceID);
+        activeQueueEntryID=queueEntryID;
+        activeWorkStepID=workStepID;
+        theCounter.setQueueEntryID(queueEntryID);
+        theCounter.setWorkStepID(workStepID);
     }
 
     /**

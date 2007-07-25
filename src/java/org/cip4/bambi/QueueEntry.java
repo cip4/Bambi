@@ -10,7 +10,7 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 
 /**
  * @author prosirai
- *
+ * simple QueueEntry / JDF Pair
  */
 public class QueueEntry implements IQueueEntry
 {

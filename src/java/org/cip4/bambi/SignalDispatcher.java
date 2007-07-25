@@ -93,6 +93,7 @@ import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.VectorMap;
 
 /**
@@ -105,11 +106,13 @@ public class SignalDispatcher implements ISignalDispatcher
 {
 
     protected static Log log = LogFactory.getLog(SignalDispatcher.class.getName());
-    protected HashMap subscriptionMap;
-    protected VectorMap queueEntryMap;
+    protected HashMap subscriptionMap; // map of channelID / Subscription
+    protected VectorMap queueEntryMap; // map of queueEntryID / vector of channelIDS
     protected IMessageHandler messageHandler;
     protected VectorMap triggers;
     protected Object mutex;
+    protected Trigger activeTrigger;
+
 
     
     /////////////////////////////////////////////////////////////
@@ -136,10 +139,10 @@ public class SignalDispatcher implements ISignalDispatcher
                 return false;
             Trigger t=(Trigger) arg0;
             
-            boolean bQE=queueEntryID==null && t.queueEntryID==null || queueEntryID!=null && queueEntryID.equals(t.queueEntryID);
+            boolean bQE=ContainerUtil.equals(queueEntryID, t.queueEntryID);
             if(!bQE)
                 return false;
-            return workStepID==null && t.workStepID==null || workStepID!=null && workStepID.equals(t.workStepID);            
+            return ContainerUtil.equals(workStepID, t.workStepID);            
         }
 
         /* (non-Javadoc)
@@ -156,6 +159,21 @@ public class SignalDispatcher implements ISignalDispatcher
         public String toString()
         {
             return "Trigger: queueEntryID: "+queueEntryID+" workStepID: "+workStepID+ "amount: "+amount;
+        }
+
+        /**
+         * @param testTrigger the trigger filter that this should correspond to
+         * @return
+         */
+        public boolean triggeredBy(Trigger testTrigger)
+        {
+            if(testTrigger==null)
+                return true;
+            if(testTrigger.queueEntryID!=null && !testTrigger.queueEntryID.equals(queueEntryID))
+                return false;
+            if(testTrigger.workStepID!=null && !testTrigger.workStepID.equals(workStepID))
+                return false;
+            return true;
         }
         
         
@@ -212,16 +230,14 @@ public class SignalDispatcher implements ISignalDispatcher
         private Vector getTriggerSubscriptions()
         {
             Vector v = new Vector();
-            Iterator it=subscriptionMap.entrySet().iterator(); // subscriptions
+            Iterator it=triggers.keySet().iterator(); // active triggers
             while(it.hasNext())
             {
-                MsgSubscription sub=(MsgSubscription)it.next();
-                String channelID=sub.channelID;
+                String channelID=(String)it.next();
+                MsgSubscription sub=(MsgSubscription)subscriptionMap.get(channelID);
                 int siz=triggers.size(channelID);
                 for(int i=0;i<siz;i++)
                 {
-
-
                     Trigger t= (Trigger) triggers.getOne(channelID,i);
                     MsgSubscription subClone=(MsgSubscription) sub.clone();
                     subClone.trigger=t;
@@ -245,10 +261,11 @@ public class SignalDispatcher implements ISignalDispatcher
                     }
                 }
             }
+            // remove active triggers that will be returned
             for(int j=0;j<v.size();j++)
             {
                 MsgSubscription sub=(MsgSubscription)v.elementAt(j);                
-                triggers.remove(sub.trigger);
+                triggers.removeOne(sub.channelID,sub.trigger);
             }
             return v;                
         }
@@ -263,7 +280,7 @@ public class SignalDispatcher implements ISignalDispatcher
                 while(it.hasNext())
                 {
                     MsgSubscription sub=(MsgSubscription) it.next();
-                    if(sub.bActive && sub.repeatTime>0)
+                    if( sub.repeatTime>0 && sub.trigger.triggeredBy(activeTrigger))
                     {
                         if(sub.lastTime-now>sub.repeatTime)
                         {
@@ -281,7 +298,6 @@ public class SignalDispatcher implements ISignalDispatcher
     
     private class MsgSubscription implements Cloneable
     {
-        protected boolean bActive;
         protected String channelID;
         protected String url;
         protected int repeatAmount, lastAmount;
@@ -305,7 +321,6 @@ public class SignalDispatcher implements ISignalDispatcher
              lastTime=0;
              repeatTime=(long)sub.getRepeatTime();
              theMessage=(m instanceof JDFMessage) ? theMessage : null;
-             bActive=false;
              trigger=new Trigger(null,null,0);
              //TODO observation targets
         }
@@ -326,6 +341,7 @@ public class SignalDispatcher implements ISignalDispatcher
             q=(JDFQuery) jmf.copyElement(q, null);
             q.removeChild(ElementName.SUBSCRIPTION, null, 0);
             
+            // this is the handling of the actual message
             boolean b=messageHandler.handleMessage(q, r, trigger.queueEntryID, trigger.workStepID);
             if(!b)
             {
@@ -354,13 +370,13 @@ public class SignalDispatcher implements ISignalDispatcher
             {
                 return null;
             }
-            c.bActive=bActive;
             c.channelID=channelID;
             c.lastAmount=lastAmount;
             c.repeatAmount=repeatAmount;
             c.repeatTime=repeatTime;
             c.theMessage=theMessage; // ref only NOT Cloned (!!!)
             c.url=url;
+            c.trigger=trigger; // ref only NOT Cloned (!!!)
             return c;
         }
     }
@@ -453,7 +469,7 @@ public class SignalDispatcher implements ISignalDispatcher
             queueEntryMap.putOne(queueEntryID, sub.channelID);
         else
             queueEntryMap.putOne("*", sub.channelID);
-        
+        sub.trigger.queueEntryID=queueEntryID;
         return sub.channelID;
     }
     
@@ -522,7 +538,7 @@ public class SignalDispatcher implements ISignalDispatcher
         {
             t.amount+=amount; 
         }
-        if(amount<0)
+        if(amount!=0)
         {
             synchronized (mutex)
             {
@@ -557,5 +573,13 @@ public class SignalDispatcher implements ISignalDispatcher
     public void addHandlers(IJMFHandler jmfHandler)
     {
         jmfHandler.addHandler(this.new StopPersistentChannelHandler());        
+    }
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.ISignalDispatcher#setActiveIDs(java.lang.String, java.lang.String)
+     */
+    public void setActiveIDs(String queueEntryID, String workStepID)
+    {
+        activeTrigger=new Trigger(queueEntryID,workStepID,0);      
     }
 }
