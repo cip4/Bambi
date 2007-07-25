@@ -1,0 +1,1 @@
+see /Bambi/WebContent/lib/DEPENDENCIES.TXT

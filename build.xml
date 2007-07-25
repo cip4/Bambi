@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<!-- <!DOCTYPE project SYSTEM "file:/Developer/Applications/apache-ant-1.6.2/dtd/ant.dtd"> -->
+<project name="Bambi" default="war" basedir=".">
+	<description>A lightweight JDF device</description>
+	<!-- Initializes -->
+	<target name="-init" description="Initializes the build. This task is automatically run before building.">
+		<echo>Initializing. Using build settings from ./build.properties...</echo>
+		<!-- Sets properties -->
+		<tstamp />
+   	<property name="Bambi.name" value="Bambi" />
+		<property file="version.properties"/>
+		<property name="src.dir" value="./src" />
+		<property name="java.src.dir" value="${src.dir}/java" />
+		<property name="web.src.dir" value="./WebContent" />
+		<property name="test.src.dir" value="${src.dir}/test" />
+		<property name="sendjmf.src.dir" value="${src.dir}/sendjmf" />
+		<property name="lib.dir" value="${src.dir}/lib" />
+		<property name="bin.dir" value="./bin" />
+		<property name="dist.dir" value="./dist" />
+		<property name="build.debug" value="true" />
+		<property name="base.filename" value="${Bambi.name}-${DSTAMP}" />
+		<property name="major.filename" value="${Bambi.name}-${major.version}" />		
+
+		<property name="verbose" value="true" />
+		<!-- Sets class path -->
+		<path id="project.class.path">
+			<pathelement path="${java.class.path}" />
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar" />
+			</fileset>
+		</path>
+		<!-- Creates directories -->
+		<mkdir dir="${bin.dir}" />
+		<mkdir dir="${dist.dir}" />
+	</target>
+	<target name="compile" depends="-init" description="Compiles source code.">
+		<echo>Compiling...</echo>
+		<javac destdir="${bin.dir}" debug="${build.debug}">
+			<src path="${java.src.dir}" />
+			<classpath refid="project.class.path" />
+			<include name="**/*.java" />
+		</javac>
+		<copy todir="${bin.dir}">
+			<fileset dir="${java.src.dir}">
+				<include name="**/*.properties" />
+				<include name="**/*.xml" />
+			</fileset>
+		</copy>
+	</target>
+	<target name="jar" depends="compile" description="Bundles source code into a JAR file.">
+		<echo>Building JAR file...</echo>
+		<jar jarfile="${dist.dir}/${base.filename}.jar" basedir="${bin.dir}" />
+	</target>
+	<target name="major_jar" depends="jar" description="Builds a JAR archive containing the JDFLib-J binaries.">
+		<echo>Copying JAR file: ${dist.dir}/${major.filename}.jar</echo>
+		<copy file="${dist.dir}/${base.filename}.jar" tofile="${dist.dir}/${major.filename}.jar"/>
+	</target>
+
+	<target name="clean" depends="-init" description="Cleans the build.">
+		<echo>Cleaning...</echo>
+		<delete dir="${bin.dir}" />
+		<delete dir="${dist.dir}" />
+	</target>
+	<target name="war" depends="jar" description="Builds web application.">
+		<echo>Building the reference device web application...</echo>
+		<buildnumber />
+		<echo>Build number: ${build.number}</echo>
+		<!-- Builds exploded WAR file -->
+		<property name="war.dir" value="${dist.dir}/${base.filename}-war" />
+		<mkdir dir="${war.dir}" />
+		<copy todir="${war.dir}">
+			<fileset dir="${web.src.dir}">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+		<copy todir="${war.dir}/WEB-INF">
+			<fileset dir="${web.src.dir}/WEB-INF">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+		<copy todir="${war.dir}/WEB-INF/lib" flatten="true">
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar" />
+				<exclude name="servletapi-2.3.jar" />
+				<exclude name="junit-3.8.1.jar" />
+				<exclude name="httpunit-1.5.4.jar" />
+			</fileset>
+			<fileset dir="${dist.dir}">
+				<include name="${base.filename}.jar" />
+			</fileset>
+		</copy>
+		<!-- Update build number and timestamp in index.jsp -->
+		<replace file="${war.dir}/index.html">
+			<replacefilter token="@build.number@" value="${build.number}" />
+			<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
+		</replace>		
+		<!-- Builds compressed WAR file -->
+		<jar basedir="${war.dir}" destfile="${dist.dir}/${Bambi.name}.war" filesonly="false"/>
+	</target>
+		<target name="-tomcat-init" depends="-init">
+		<echo>Initializing optional targets for deploying directly into Tomcat...</echo>
+		<!-- Tomcat tasks -->
+		<!-- Configure the context path for this application -->
+		<property name="path" value="/${Bambi.name}" />
+		<!-- Configure properties to access the Manager application -->
+		<property name="tomcat.url" value="http://localhost:8080/manager" />
+		<property name="username" value="tomcat" />
+		<property name="password" value="tomcat" />
+		<echo>Web app Context Path: ${path}</echo>
+		<echo>Tomcat Manager URL: ${tomcat.url}</echo>
+		<echo>Tomcat Manager Login: ${username}/${password}</echo>
+		<echo>Loading Tomcat's Ant tasks. Make sure you have copied TOMCAT_HOME/server/lib/catalina-ant.jar to ANT_HOME/lib</echo>
+		<!-- Configure the custom Ant tasks for the Manager application -->
+		<taskdef name="deploy" classname="org.apache.catalina.ant.DeployTask" />
+		<taskdef name="install" classname="org.apache.catalina.ant.InstallTask" />
+		<taskdef name="list" classname="org.apache.catalina.ant.ListTask" />
+		<taskdef name="reload" classname="org.apache.catalina.ant.ReloadTask" />
+		<taskdef name="remove" classname="org.apache.catalina.ant.RemoveTask" />
+		<taskdef name="resources" classname="org.apache.catalina.ant.ResourcesTask" />
+		<taskdef name="roles" classname="org.apache.catalina.ant.RolesTask" />
+		<taskdef name="start" classname="org.apache.catalina.ant.StartTask" />
+		<taskdef name="stop" classname="org.apache.catalina.ant.StopTask" />
+		<taskdef name="undeploy" classname="org.apache.catalina.ant.UndeployTask" />
+	</target>
+	<target name="install" description="Install web application" depends="-tomcat-init,war">
+		<!-- tomcat's server need to be running for this task to complete succesfully -->
+		<install url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${Bambi.name}.war" />
+	</target>
+	<target name="redeploy" depends="-tomcat-init,war" description="Undeploys and redeploys the web application">
+		<!-- tomcat's server need to be running for this task to complete succesfully -->
+		<echo> Undeploys and Deploys the reference web application... </echo>
+		<undeploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}" />
+		<deploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${Bambi.name}.war" />
+	</target>
+</project>
