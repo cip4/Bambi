@@ -80,6 +80,7 @@ import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessageService;
@@ -88,6 +89,8 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.resource.JDFDevice;
+import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.ContainerUtil;
 
 
@@ -179,13 +182,64 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
         }
     }
     
-    public JMFHandler()
+    /**
+	 * 
+	 * handler for the knowndevices query
+	 */
+	private class KnownDevicesHandler implements IMessageHandler
+	{
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+	     */
+	    public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+	    {
+	        if(m==null || resp==null)
+	        {
+	            return false;
+	        }
+	        log.debug("Handling"+m.getType());
+	        EnumType typ=m.getEnumType();
+	        if(EnumType.KnownDevices.equals(typ))
+	        {
+	        	// TODO put device info in property file. Multiple devices?
+	            JDFDeviceList dl = resp.appendDeviceList();
+	            JDFDeviceInfo info = dl.appendDeviceInfo();
+	            JDFDevice dev = info.appendDevice();
+	            dev.setDeviceID("Sample Device");
+	            dev.setDeviceType("Generic Bambi Device");
+	            return true;
+	        }
+	        
+	        return false;
+	    }
+	    	     
+	    	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getFamilies()
+	     */
+	    public EnumFamily[] getFamilies()
+	    {
+	        return new EnumFamily[]{EnumFamily.Query};
+	    }
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getMessageType()
+	     */
+	    public EnumType getMessageType()
+	    {
+	         return EnumType.KnownDevices;
+	    }
+	}
+
+	public JMFHandler()
     {
         super();
         messageMap=new HashMap();
         familyMap=new HashMap();
         subscriptionMap=new HashMap();
-        addHandler(this.new KnownMessagesHandler());
+        addHandler( this.new KnownMessagesHandler() );
+        addHandler( this.new KnownDevicesHandler() );
     }
     
     /**

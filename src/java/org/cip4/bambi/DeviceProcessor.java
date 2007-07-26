@@ -240,7 +240,7 @@ public class DeviceProcessor implements IDeviceProcessor
         statusListener.signalStatus(queueEntryID, workStepID, EnumDeviceStatus.Idle,"device completed", EnumNodeStatus.Completed, "done");
         StatusCounter.sleep(1000);
         //TODO more
-        //TODO better cleanup fuctionality - us cleanup thread
+        //TODO better cleanup functionality - use cleanup thread
         log.info("Completed processing queueentry"+queueEntryID);
 
         return EnumQueueEntryStatus.Completed;

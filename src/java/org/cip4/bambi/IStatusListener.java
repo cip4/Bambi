@@ -83,10 +83,10 @@ public interface IStatusListener
 {
     /**
      * updates the amount for a given resource
-     * the amounts are collected but not signalled until setstatus is called
+     * the amounts are collected but not signaled until setstatus is called
      * 
-     * @param queueEntryID the queuentry id of the process stepp being processed
-     * @param workstepID the workstep id of the process stepp being processed, 
+     * @param queueEntryID the queueentry id of the process step being processed
+     * @param workstepID the workstep id of the process step being processed, 
      * set to null if the all partitions of the root are being processed
      * @param resID the resource id of the tracked resource
      * @param good the number of good copies
@@ -98,8 +98,8 @@ public interface IStatusListener
      * update the status information by starting a new phase
      * all amounts that have been accumulated are linked to the prior phase
      * should be called after all amounts have been appropriately set
-     * @param queueEntryID the queuentry id of the process stepp being processed
-     * @param workstepID the workstep id of the process stepp being processed, 
+     * @param queueEntryID the queueentry id of the process step being processed
+     * @param workstepID the workstep id of the process step being processed, 
      * set to null if the all partitions of the root are being processed
      * @param deviceStatus
      * @param deviceStatusDetails
@@ -114,11 +114,11 @@ public interface IStatusListener
      * @param queueEntryID the queueentryid is associated to the node
      * if {@link QueueEntry}==null, the entire list is cleared
      * @param workStepID the workstep id that is being tracked
-     * @param vPartMap the vector of partitions taht are being tracked
+     * @param vPartMap the vector of partitions that are being tracked
      * @param trackResourceID the id of the "major" resource to be counted for phasetimes
-     * @param node the jfd node that will be processed. this may be a group node with 
+     * @param node the jdf node that will be processed. this may be a group node with 
      * additional sub nodes
-     * if node==null the queuentryid is removed from the map
+     * if node==null the queueentryid is removed from the map
      */
      public void setNode(String queueEntryID, String workStepID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID);
 }

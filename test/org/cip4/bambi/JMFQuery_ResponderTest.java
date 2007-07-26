@@ -71,13 +71,13 @@ package org.cip4.bambi;
 * 
 */
 
+import junit.framework.TestCase;
+
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFQuery;
 
-import junit.framework.TestCase;
-
+// TODO create parent class for all bambi tests
 public class JMFQuery_ResponderTest extends TestCase {
 	
 	private String BAMBI_URL = "http://localhost:8080/Bambi/jmf";
@@ -94,10 +94,33 @@ public class JMFQuery_ResponderTest extends TestCase {
 	{
 		JDFDoc doc=new JDFDoc("JMF");
         JDFJMF jmf=doc.getJMFRoot();
-        JDFQuery query=(JDFQuery) jmf.appendMessageElement(JDFMessage.EnumFamily.Query, JDFMessage.EnumType.KnownMessages);
+        jmf.appendMessageElement(JDFMessage.EnumFamily.Query, JDFMessage.EnumType.KnownMessages);
         JDFDoc resp=doc.write2URL( BAMBI_URL );
         
         assertTrue( !resp.isNull() );
+        assertEquals( 0,resp.getJMFRoot().getResponse(0).getReturnCode() );
+	}
+	
+	public void testStatus()
+	{
+		JDFDoc doc=new JDFDoc("JMF");
+        JDFJMF jmf=doc.getJMFRoot();
+        jmf.appendMessageElement(JDFMessage.EnumFamily.Query, JDFMessage.EnumType.Status);
+        JDFDoc resp=doc.write2URL( BAMBI_URL );
+        
+        assertTrue( !resp.isNull() );
+        assertEquals( 0,resp.getJMFRoot().getResponse(0).getReturnCode() );
+	}
+	
+	public void testKnownDevices()
+	{
+		JDFDoc doc=new JDFDoc("JMF");
+        JDFJMF jmf=doc.getJMFRoot();
+        jmf.appendMessageElement(JDFMessage.EnumFamily.Query, JDFMessage.EnumType.KnownDevices);
+        JDFDoc resp=doc.write2URL( BAMBI_URL );
+        
+        assertTrue( !resp.isNull() );
+        assertEquals( 0,resp.getJMFRoot().getResponse(0).getReturnCode() );
 	}
 
 }
