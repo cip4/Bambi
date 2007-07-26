@@ -199,6 +199,7 @@ public class QueueProcessor implements IQueueProcessor
         JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
         final String workStepID = node.getWorkStepID(partMap);
         final String queueEntryID = newQE.getQueueEntryID();
+        // TODO move to processor device
         statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);        
         if(queueEntryID!=null)
         {

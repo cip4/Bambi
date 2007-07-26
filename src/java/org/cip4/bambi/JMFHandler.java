@@ -226,10 +226,10 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
         subscriptionMap.put(typ, handler);
     }
     /**
-     * the big processing dipatcher
+     * the big processing dispatcher
      * 
-     * @param doc
-     * @return
+     * @param doc the JDFDoc holding the JMF which is to be processed
+     * @return the JDFDoc holding the JMF response
      */
     public JDFDoc processJMF(JDFDoc doc)
     {

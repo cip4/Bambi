@@ -284,7 +284,8 @@ public class SignalDispatcher implements ISignalDispatcher
                     {
                         if(sub.lastTime-now>sub.repeatTime)
                         {
-                            sub.lastTime=now;
+                        	// todo keine fehlerfortpflanzung
+                            sub.lastTime=now; 
                             sub=(MsgSubscription) sub.clone();
                             subVector.add(sub);
                         }

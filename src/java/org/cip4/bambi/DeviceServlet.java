@@ -143,7 +143,8 @@ public class DeviceServlet extends HttpServlet
         
         log.info("Initializing DeviceServlet");
         theQueue=new QueueProcessor(theStatusListener, theSignalDispatcher);
-        StatusListener statusListener=new StatusListener(theSignalDispatcher);
+//TODO        theQueue.addHandlers(jmfHandler);
+       StatusListener statusListener=new StatusListener(theSignalDispatcher);
         theStatusListener=statusListener;
         statusListener.addHandlers(jmfHandler);
          
@@ -232,7 +233,7 @@ public class DeviceServlet extends HttpServlet
      */
     private void processJMFRequest(HttpServletRequest request, HttpServletResponse response,InputStream inStream) throws IOException
     {
-        System.out.println("processJMFRequest");
+        log.debug("processJMFRequest");
         JDFParser p=new JDFParser();
         if(inStream==null)
             inStream=request.getInputStream();
@@ -256,6 +257,8 @@ public class DeviceServlet extends HttpServlet
         response.setContentType(MimeUtil.VND_JMF);
     }
     /**
+     * http hotfolder processor
+     * 
      * @param request
      * @param response
      * @throws IOException 

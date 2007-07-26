@@ -127,6 +127,7 @@ public class StatusListener implements IStatusListener
                 return true;
             }
             JDFDoc doc=sc.getDocJMFPhaseTime();
+           // response.set)
 //TODO continue here
             return false;
         }
