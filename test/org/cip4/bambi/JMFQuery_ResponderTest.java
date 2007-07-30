@@ -90,7 +90,7 @@ public class JMFQuery_ResponderTest extends TestCase {
 		super.tearDown();
 	}
 	
-	public void testKnownMessages()
+	public void testKnownMessages() 
 	{
 		JDFDoc doc=new JDFDoc("JMF");
         JDFJMF jmf=doc.getJMFRoot();

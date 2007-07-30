@@ -103,6 +103,7 @@ public class DeviceProcessor implements IDeviceProcessor
     private IQueueProcessor queueProcessor;
     private IStatusListener statusListener;
     private Object myListener; // the mutex for waiting and reawakening
+
     
     /**
      * 
