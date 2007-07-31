@@ -12,7 +12,7 @@ import org.cip4.jdflib.node.JDFNode;
  * @author prosirai
  *
  */
-public interface ISignalDispatcher
+public interface ISignalDispatcher extends IMultiJMFHandler
 {
 
     /**

@@ -82,7 +82,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
  * @author prosirai
  *
  */
-public interface IQueueProcessor
+public interface IQueueProcessor extends IMultiJMFHandler
 {
     /**
      * get the next waiting entry

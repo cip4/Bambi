@@ -127,7 +127,7 @@ public class DeviceServlet extends HttpServlet
 	 * 
 	 * handler for the knowndevices query
 	 */
-	private class KnownDevicesHandler implements IMessageHandler
+	protected class KnownDevicesHandler implements IMessageHandler
 	{
 	
 		/* (non-Javadoc)
@@ -174,8 +174,7 @@ public class DeviceServlet extends HttpServlet
 			return EnumType.KnownDevices;
 		}
 	}
-
-	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
+    private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
 	public static final String baseDir=System.getProperty("catalina.base")+"/webapps/Bambi/"+"jmb"+File.separator;
 	public static final String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/"+"config"+File.separator;
 	
@@ -204,16 +203,15 @@ public class DeviceServlet extends HttpServlet
 		_jmfHandler.addHandler( new KnownDevicesHandler() );
 		
 		
-		SignalDispatcher tmpDisp=new SignalDispatcher(_jmfHandler);
-		_theSignalDispatcher=tmpDisp;
-		tmpDisp.addHandlers(_jmfHandler);
+		_theSignalDispatcher=new SignalDispatcher(_jmfHandler);
+		_theSignalDispatcher.addHandlers(_jmfHandler);
 
-		StatusListener statusListener=new StatusListener(_theSignalDispatcher);
-		_theStatusListener=statusListener;
-		statusListener.addHandlers(_jmfHandler);
+        _theStatusListener=new StatusListener(_theSignalDispatcher);
+        _theStatusListener.addHandlers(_jmfHandler);
 		
-		_theQueue=new QueueProcessor(_theStatusListener, _theSignalDispatcher);
-		
+        _theQueue = new QueueProcessor(_theStatusListener, _theSignalDispatcher);
+        _theQueue.addHandlers(_jmfHandler);
+        
 		log.info("Initializing DeviceServlet");
 		loadBambiProperties();
 		createDevicesFromFile(configDir+"devices.txt");

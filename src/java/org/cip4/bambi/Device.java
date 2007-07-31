@@ -36,15 +36,13 @@ public class Device {
 		_deviceID = deviceID;
 		_jmfHandler = jmfHandler;
 
-		SignalDispatcher tmpDisp=new SignalDispatcher(_jmfHandler);
-		_theSignalDispatcher=tmpDisp;
-		tmpDisp.addHandlers(_jmfHandler);
+        _theSignalDispatcher=new SignalDispatcher(_jmfHandler);
+        _theSignalDispatcher.addHandlers(_jmfHandler);
 
 		_theQueue=new QueueProcessor(_theStatusListener, _theSignalDispatcher,deviceID);
-		//TODO        theQueue.addHandlers(jmfHandler);
-		StatusListener statusListener=new StatusListener(_theSignalDispatcher);
-		_theStatusListener=statusListener;
-		statusListener.addHandlers(_jmfHandler);
+        _theQueue.addHandlers(jmfHandler);
+        _theStatusListener=new StatusListener(_theSignalDispatcher);
+        _theStatusListener.addHandlers(_jmfHandler);
 
 		_theDevice=new DeviceProcessor(_theQueue, _theStatusListener);
 		log.info("Starting device thread");

@@ -76,6 +76,7 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.SignalDispatcher.StopPersistentChannelHandler;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
@@ -83,10 +84,13 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFCommand;
+import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.UrlUtil;
 
@@ -100,7 +104,64 @@ import org.cip4.jdflib.util.UrlUtil;
 public class QueueProcessor implements IQueueProcessor
 {
 
-    private static Log log = LogFactory.getLog(QueueProcessor.class.getName());
+    protected class SubmitQueueEntryHandler implements IMessageHandler
+    {
+    
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+         */
+        public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+        {
+            if(m==null || resp==null)
+            {
+                return false;
+            }
+            log.debug("Handling"+m.getType());
+            EnumType typ=m.getEnumType();
+            //TODO handle errors
+            if(EnumType.SubmitQueueEntry.equals(typ))
+            {
+                JDFQueueSubmissionParams qsp=m.getQueueSubmissionParams(0);
+                if(qsp!=null)
+                {
+                    JDFDoc doc=qsp.getURLDoc();
+                    if(doc!=null)
+                    {
+                        JDFResponse r2=addEntry((JDFCommand)m, doc);
+                        if(r2!=null)
+                        {
+                            resp.mergeElement(r2, false);
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;        
+        }
+    
+    
+    
+    
+    
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#getFamilies()
+         */
+        public EnumFamily[] getFamilies()
+        {
+            return new EnumFamily[]{EnumFamily.Command};
+        }
+    
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#getMessageType()
+         */
+        public EnumType getMessageType()
+        {
+            return EnumType.SubmitQueueEntry;
+        }
+    }
+
+    protected static Log log = LogFactory.getLog(QueueProcessor.class.getName());
     private File queueFile;
     private static final long serialVersionUID = -876551736245089033L;
     private JDFQueue myQueue;
@@ -124,6 +185,14 @@ public class QueueProcessor implements IQueueProcessor
 		this.init(_statusListener, _signalDispatcher, deviceID);
     }
     
+    /**
+     * @param jmfHandler
+     */
+    public void addHandlers(IJMFHandler jmfHandler)
+    {
+        jmfHandler.addHandler(this.new SubmitQueueEntryHandler());        
+    }
+
     private void init(IStatusListener _statusListener,
 			ISignalDispatcher _signalDispatcher, String deviceID) {
     	
@@ -175,7 +244,7 @@ public class QueueProcessor implements IQueueProcessor
         listeners.add(o);        
     }
 
-    /* (non-Javadoc)
+     /* (non-Javadoc)
      * @see org.cip4.bambi.IQueueProcessor#addEntry(org.cip4.jdflib.jmf.JDFCommand, org.cip4.jdflib.core.JDFDoc)
      */
     public JDFResponse addEntry(JDFCommand submitQueueEntry, JDFDoc theJDF)
@@ -214,6 +283,7 @@ public class QueueProcessor implements IQueueProcessor
         JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
         final String workStepID = node.getWorkStepID(partMap);
         final String queueEntryID = newQE.getQueueEntryID();
+        //TODO erst beim statrten - nicht schon beim einqueuen
         statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);        
         if(queueEntryID!=null)
         {
