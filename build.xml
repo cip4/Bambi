@@ -89,7 +89,7 @@
 				<include name="${base.filename}.jar" />
 			</fileset>
 		</copy>
-		<!-- Update build number and timestamp in index.jsp -->
+		<!-- Update build number and timestamp in index.html -->
 		<replace file="${war.dir}/index.html">
 			<replacefilter token="@build.number@" value="${build.number}" />
 			<replacefilter token="@build.timestamp@" value="${DSTAMP}" />

@@ -5,11 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.resource.JDFDevice;
-import org.cip4.bambi.IQueueProcessor;
-import org.cip4.bambi.IDeviceProcessor;
-import org.cip4.bambi.IStatusListener;
-import org.cip4.bambi.ISignalDispatcher;
-import org.cip4.bambi.JMFHandler;
+import org.cip4.jdflib.resource.JDFDeviceList;
 
 /**
  * a JDF device
@@ -35,6 +31,7 @@ public class Device {
 	 */
 	public Device(String deviceName, String deviceID, JMFHandler jmfHandler)
 	{
+		log.info("creating device with name='" + deviceName + "', deviceID='"+deviceID+"'");
 		_deviceName = deviceName;
 		_deviceID = deviceID;
 		_jmfHandler = jmfHandler;
@@ -67,6 +64,7 @@ public class Device {
 
 	public JDFDoc processJMF(JDFDoc doc)
 	{
+		log.debug("JMF processed by "+_deviceID);
 		return _jmfHandler.processJMF(doc);
 	}
 
@@ -75,8 +73,9 @@ public class Device {
 		return ("[org.cip4.bambi.Device: DeviceID=" + _deviceID + ", DeviceName=" + _deviceName + "]");
 	}
 	
-	public boolean getDeviceInfo(JDFDeviceInfo info)
+	public boolean getDeviceInfo(JDFDeviceList dl)
 	{
+		JDFDeviceInfo info = dl.appendDeviceInfo();
 		JDFDevice dev = info.appendDevice();
 		dev.setDeviceID(_deviceID);
 		dev.setDeviceType(_deviceName);

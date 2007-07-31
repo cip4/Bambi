@@ -71,7 +71,10 @@ package org.cip4.bambi;
  *  
  * 
  */
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -94,7 +97,6 @@ import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFCommand;
-import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
@@ -104,9 +106,6 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
-
-import org.cip4.bambi.IMessageHandler;
-import org.cip4.bambi.JMFHandler;
 
 
 /**
@@ -143,13 +142,12 @@ public class DeviceServlet extends HttpServlet
 			if(EnumType.KnownDevices.equals(typ))
 			{
 				JDFDeviceList dl = resp.appendDeviceList();
-				JDFDeviceInfo info = dl.appendDeviceInfo();
 				Set keys = _devices.keySet();
 				Object[] strKeys = keys.toArray();
 				for (int i=0; i<keys.size();i++)
 				{
 					String key = (String)strKeys[i];
-					((Device)_devices.get(key)).getDeviceInfo(info);
+					((Device)_devices.get(key)).getDeviceInfo(dl);
 				}
 				return true;
 			}
@@ -195,31 +193,13 @@ public class DeviceServlet extends HttpServlet
 		super.init(config);
 		new File(baseDir).mkdirs();
 		_devices = new HashMap();
-		_devices.clear(); // _NB_ remove after debugging
 		// TODO make configurable
 		_jmfHandler=new JMFHandler();
 		JDFJMF.setTheSenderID("bambi");
 		_jmfHandler.addHandler( new KnownDevicesHandler() );
 
-//		SignalDispatcher tmpDisp=new SignalDispatcher(_jmfHandler);
-//		theSignalDispatcher=tmpDisp;
-//		tmpDisp.addHandlers(_jmfHandler);
-
 		log.info("Initializing DeviceServlet");
-		createDevice("Generic Bambi Device", "Device001");
-//		_devices.put( new Device("Generic Bambi Device", "Device001", _jmfHandler),"Device001" );
-////		_NB_ moved to Device, from here...
-//		theQueue=new QueueProcessor(theStatusListener, theSignalDispatcher);
-////		TODO        theQueue.addHandlers(jmfHandler);
-//		StatusListener statusListener=new StatusListener(theSignalDispatcher);
-//		theStatusListener=statusListener;
-//		statusListener.addHandlers(_jmfHandler);
-//
-//		theDevice=new DeviceProcessor(theQueue, theStatusListener);
-//		log.info("Starting device thread");
-//		new Thread(theDevice).start();
-//		log.info("device thread started");
-////		_NB_ ... to here
+		createDevicesFromFile(System.getProperty("catalina.base")+"/webapps/Bambi/devices.txt");
 	}
 
 	/** Destroys the servlet.
@@ -485,12 +465,12 @@ public class DeviceServlet extends HttpServlet
 
 	/**
 	 * create a new device and add it to the map of devices.
-	 * @param deviceName
 	 * @param deviceID
+	 * @param deviceType
 	 * @return true, if device has been created. 
 	 * False, if not (maybe device with deviceID is already present)
 	 */
-	public boolean createDevice(String deviceName, String deviceID)
+	public boolean createDevice(String deviceID, String deviceType)
 	{
 		if (_devices == null)
 		{
@@ -505,7 +485,7 @@ public class DeviceServlet extends HttpServlet
 				log.warn("JMFHandler is null, creating new handler...");
 				_jmfHandler = new JMFHandler();
 			}
-			Device dev = new Device(deviceName, deviceID, _jmfHandler);
+			Device dev = new Device(deviceType, deviceID, _jmfHandler);
 			_devices.put(deviceID,dev);
 			return true;
 		}
@@ -559,4 +539,29 @@ public class DeviceServlet extends HttpServlet
 		return (Device)_devices.get(deviceID);
 	}
 
+	private boolean createDevicesFromFile(String fileName)
+	{
+		try 
+		{
+			BufferedReader in = new BufferedReader(new FileReader(fileName));
+			String str;
+			while((str=in.readLine())!=null)
+			{
+				if (!str.startsWith("#")) // is no comment
+				{
+					String deviceID = StringUtil.token(str, 0, ";");
+					String deviceType = StringUtil.token(str, 1, ";");
+					createDevice(deviceID, deviceType);
+				}
+			}
+			in.close();
+		} catch (FileNotFoundException e) {
+			log.error(fileName+" not found");
+			return false;
+		} catch (Exception e) { 
+			log.error("unable to parse "+fileName);
+			return false;
+		}
+		return true;
+	}
 }
