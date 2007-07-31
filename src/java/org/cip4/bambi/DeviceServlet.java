@@ -73,12 +73,14 @@ package org.cip4.bambi;
  */
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.Set;
 
 import javax.mail.BodyPart;
@@ -196,10 +198,10 @@ public class DeviceServlet extends HttpServlet
 		_devices = new HashMap();
 		// TODO make configurable
 		_jmfHandler=new JMFHandler();
-		JDFJMF.setTheSenderID("bambi");
 		_jmfHandler.addHandler( new KnownDevicesHandler() );
-
+		
 		log.info("Initializing DeviceServlet");
+		loadBambiProperties();
 		createDevicesFromFile(configDir+"devices.txt");
 	}
 
@@ -561,6 +563,24 @@ public class DeviceServlet extends HttpServlet
 			return false;
 		} catch (Exception e) { 
 			log.error("unable to parse "+fileName);
+			return false;
+		}
+		return true;
+	}
+	
+	private boolean loadBambiProperties()
+	{
+		log.debug("loading Bambi properties");
+		try {
+			Properties properties = new Properties();
+			properties.load(new FileInputStream(configDir+"Bambi.properties"));
+			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
+			
+		} catch (FileNotFoundException e) {
+			log.fatal("Bambi.properties not found");
+			return false;
+		} catch (IOException e) {
+			log.fatal("Error while applying Bambi.properties");
 			return false;
 		}
 		return true;
