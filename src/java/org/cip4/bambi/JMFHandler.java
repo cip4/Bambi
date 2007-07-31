@@ -119,7 +119,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
      * 
      * handler for the knownmessages query
      */
-    private class KnownMessagesHandler implements IMessageHandler
+    protected class KnownMessagesHandler implements IMessageHandler
     {
 
         /* (non-Javadoc)

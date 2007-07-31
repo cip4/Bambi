@@ -73,6 +73,7 @@ package org.cip4.bambi;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
+import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -233,7 +234,8 @@ public class SignalDispatcher implements ISignalDispatcher
             Iterator it=triggers.keySet().iterator(); // active triggers
             while(it.hasNext())
             {
-                String channelID=(String)it.next();
+                final Entry nxt = (Entry) it.next();
+                String channelID=(String)nxt.getKey();
                 MsgSubscription sub=(MsgSubscription)subscriptionMap.get(channelID);
                 int siz=triggers.size(channelID);
                 for(int i=0;i<siz;i++)
@@ -279,10 +281,11 @@ public class SignalDispatcher implements ISignalDispatcher
                 long now=System.currentTimeMillis()/1000;
                 while(it.hasNext())
                 {
-                    MsgSubscription sub=(MsgSubscription) it.next();
+                    final Entry next = (Entry) it.next();
+                    MsgSubscription sub=(MsgSubscription) next.getValue();
                     if( sub.repeatTime>0 && sub.trigger.triggeredBy(activeTrigger))
                     {
-                        if(sub.lastTime-now>sub.repeatTime)
+                        if(now-sub.lastTime>sub.repeatTime)
                         {
                         	// todo keine fehlerfortpflanzung
                             sub.lastTime=now; 
@@ -323,6 +326,7 @@ public class SignalDispatcher implements ISignalDispatcher
              repeatTime=(long)sub.getRepeatTime();
              theMessage=(m instanceof JDFMessage) ? theMessage : null;
              trigger=new Trigger(null,null,0);
+             theMessage=(JDFMessage)m;
              //TODO observation targets
         }
         /**
@@ -379,6 +383,14 @@ public class SignalDispatcher implements ISignalDispatcher
             c.url=url;
             c.trigger=trigger; // ref only NOT Cloned (!!!)
             return c;
+        }
+        public String toString()
+        {
+            return "[MsgSubscription: channelID="+channelID+
+            " lastAmount="+lastAmount+
+            " repeatAmount="+repeatAmount+
+            " repeatTime="+repeatTime+
+            " lastTime="+lastTime+"]";
         }
     }
     
@@ -442,7 +454,7 @@ public class SignalDispatcher implements ISignalDispatcher
         messageHandler=_messageHandler;
         triggers=new VectorMap();
         mutex = new Object();
-         
+        log.info("Starting dispatcher thread"); 
         new Thread(new Dispatcher()).start();
     }
 
