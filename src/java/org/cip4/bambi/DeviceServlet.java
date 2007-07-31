@@ -175,6 +175,7 @@ public class DeviceServlet extends HttpServlet
 
 	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
 	public static final String baseDir=System.getProperty("catalina.base")+"/webapps/Bambi/"+"jmb"+File.separator;
+	public static final String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/"+"config"+File.separator;
 
 
 	/**
@@ -199,7 +200,7 @@ public class DeviceServlet extends HttpServlet
 		_jmfHandler.addHandler( new KnownDevicesHandler() );
 
 		log.info("Initializing DeviceServlet");
-		createDevicesFromFile(System.getProperty("catalina.base")+"/webapps/Bambi/devices.txt");
+		createDevicesFromFile(configDir+"devices.txt");
 	}
 
 	/** Destroys the servlet.

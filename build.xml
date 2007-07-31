@@ -12,6 +12,7 @@
 		<property name="src.dir" value="./src" />
 		<property name="java.src.dir" value="${src.dir}/java" />
 		<property name="web.src.dir" value="./WebContent" />
+		<property name="web.config.dir" value="${web.src.dir}/config" />
 		<property name="test.src.dir" value="./test" />
 		<property name="sendjmf.src.dir" value="${src.dir}/sendjmf" />
 		<property name="lib.dir" value="${src.dir}/lib" />
@@ -44,6 +45,7 @@
 			<fileset dir="${java.src.dir}">
 				<include name="**/*.properties" />
 				<include name="**/*.xml" />
+				<includesfile name="${web.config.dir}/devices.txt"/>
 			</fileset>
 		</copy>
 	</target>
