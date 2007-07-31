@@ -40,7 +40,7 @@ public class Device {
 		_theSignalDispatcher=tmpDisp;
 		tmpDisp.addHandlers(_jmfHandler);
 
-		_theQueue=new QueueProcessor(_theStatusListener, _theSignalDispatcher);
+		_theQueue=new QueueProcessor(_theStatusListener, _theSignalDispatcher,deviceID);
 		//TODO        theQueue.addHandlers(jmfHandler);
 		StatusListener statusListener=new StatusListener(_theSignalDispatcher);
 		_theStatusListener=statusListener;

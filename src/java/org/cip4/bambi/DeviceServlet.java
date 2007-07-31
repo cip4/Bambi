@@ -91,7 +91,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.fileupload.FileUploadBase;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.JDFDoc;
@@ -178,6 +178,7 @@ public class DeviceServlet extends HttpServlet
 	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
 	public static final String baseDir=System.getProperty("catalina.base")+"/webapps/Bambi/"+"jmb"+File.separator;
 	public static final String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/"+"config"+File.separator;
+	
 
 
 	/**
@@ -185,8 +186,10 @@ public class DeviceServlet extends HttpServlet
 	 */
 	private static final long serialVersionUID = -8902151736245089036L;
 	private JMFHandler _jmfHandler=null;
-	private IQueueProcessor theQueue=null;
 	private HashMap _devices = null;
+	private ISignalDispatcher _theSignalDispatcher=null;
+	private IQueueProcessor _theQueue=null;
+	private IStatusListener _theStatusListener=null;
 
 
 	/** Initializes the servlet.
@@ -199,6 +202,17 @@ public class DeviceServlet extends HttpServlet
 		// TODO make configurable
 		_jmfHandler=new JMFHandler();
 		_jmfHandler.addHandler( new KnownDevicesHandler() );
+		
+		
+		SignalDispatcher tmpDisp=new SignalDispatcher(_jmfHandler);
+		_theSignalDispatcher=tmpDisp;
+		tmpDisp.addHandlers(_jmfHandler);
+
+		StatusListener statusListener=new StatusListener(_theSignalDispatcher);
+		_theStatusListener=statusListener;
+		statusListener.addHandlers(_jmfHandler);
+		
+		_theQueue=new QueueProcessor(_theStatusListener, _theSignalDispatcher);
 		
 		log.info("Initializing DeviceServlet");
 		loadBambiProperties();
@@ -253,7 +267,7 @@ public class DeviceServlet extends HttpServlet
 		}
 		else 
 		{
-			boolean isMultipart = FileUploadBase.isMultipartContent(request);
+			boolean isMultipart = ServletFileUpload.isMultipartContent(request);
 			if (isMultipart)
 			{
 				log.info("Processing multipart request..."+contentType);
@@ -353,7 +367,7 @@ public class DeviceServlet extends HttpServlet
 			// create a simple dummy sqe and submit to myself
 			JDFQueueSubmissionParams qsp=command.getCreateQueueSubmissionParams(0);
 			qsp.setPriority(50);
-			JDFResponse r=theQueue.addEntry(command, doc);
+			JDFResponse r=_theQueue.addEntry(command, doc);
 		}
 	}
 
@@ -418,7 +432,7 @@ public class DeviceServlet extends HttpServlet
 			return;
 		}
 		final JDFCommand command = docJDF[0].getJMFRoot().getCommand(0);
-		JDFResponse r=theQueue.addEntry(command, docJDF[1]);
+		JDFResponse r=_theQueue.addEntry(command, docJDF[1]);
 		if(r==null)
 		{
 			processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- queue rejected submission");

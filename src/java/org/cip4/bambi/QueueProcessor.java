@@ -114,11 +114,25 @@ public class QueueProcessor implements IQueueProcessor
      */
     public QueueProcessor(IStatusListener _statusListener, ISignalDispatcher _signalDispatcher)
     {
-        super();
+    	super();
+    	this.init(_statusListener, _signalDispatcher, "");
+    }
+    
+    public QueueProcessor(IStatusListener _statusListener, ISignalDispatcher _signalDispatcher, String deviceID)
+    {
+		super();
+		this.init(_statusListener, _signalDispatcher, deviceID);
+    }
+    
+    private void init(IStatusListener _statusListener,
+			ISignalDispatcher _signalDispatcher, String deviceID) {
+    	
         statusListener=_statusListener;
         signalDispatcher=_signalDispatcher;
         log.info("QueueProcessor construct");
-        queueFile=new File(DeviceServlet.baseDir+File.separator+"theQueue.xml");
+        if (deviceID != "")
+        	deviceID = "_" + deviceID;
+        queueFile=new File(DeviceServlet.baseDir+File.separator+"theQueue"+deviceID+".xml");
         queueFile.getParentFile().mkdirs();
         new File(jdfDir).mkdirs();
         JDFDoc d=JDFDoc.parseFile(queueFile.getAbsolutePath());
@@ -136,7 +150,8 @@ public class QueueProcessor implements IQueueProcessor
         }
         myQueue.setAutomated(true);
         listeners=new Vector();
-    }
+		
+	}
 
     public IQueueEntry getNextEntry()
     {
@@ -199,7 +214,6 @@ public class QueueProcessor implements IQueueProcessor
         JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
         final String workStepID = node.getWorkStepID(partMap);
         final String queueEntryID = newQE.getQueueEntryID();
-        // TODO move to processor device
         statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);        
         if(queueEntryID!=null)
         {
