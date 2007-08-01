@@ -71,6 +71,8 @@ package org.cip4.bambi;
 * 
 */
 
+
+
 import java.io.File;
 import java.net.MalformedURLException;
 
@@ -78,7 +80,6 @@ import org.cip4.jdflib.util.UrlUtil;
 
 import junit.framework.TestCase;
 
-// TODO create parent class for all bambi tests
 public class BambiTestCase extends TestCase {
 	
     static protected final String sm_dirTestData     = "test" + File.separator + "data" + File.separator;

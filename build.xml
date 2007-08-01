@@ -45,7 +45,6 @@
 			<fileset dir="${java.src.dir}">
 				<include name="**/*.properties" />
 				<include name="**/*.xml" />
-				<includesfile name="${web.config.dir}/devices.txt"/>
 			</fileset>
 		</copy>
 	</target>

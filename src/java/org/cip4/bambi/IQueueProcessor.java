@@ -1,15 +1,4 @@
 /**
- * 
- */
-package org.cip4.bambi;
-
-import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.jmf.JDFCommand;
-import org.cip4.jdflib.jmf.JDFQueue;
-import org.cip4.jdflib.jmf.JDFResponse;
-
-/**
  * The CIP4 Software License, Version 1.0
  *
  *
@@ -78,6 +67,15 @@ import org.cip4.jdflib.jmf.JDFResponse;
  *  
  * 
  */
+
+package org.cip4.bambi;
+
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.jmf.JDFCommand;
+import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFResponse;
+
 /**
  * @author prosirai
  *

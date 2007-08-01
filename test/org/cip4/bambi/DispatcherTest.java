@@ -80,8 +80,8 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.bambi.BambiTestCase;
 
-// TODO create parent class for all bambi tests
 public class DispatcherTest extends BambiTestCase {
 	
 
@@ -99,8 +99,7 @@ public class DispatcherTest extends BambiTestCase {
         s.setURL(getTestURL()+"subscriptions.jmf");
         d.addSubscription(q, null);
         StatusCounter.sleep(2222);
-        assertTrue(new File(sm_dirTestData+"subscriptions.jmf").exists());
-        
+        assertTrue(new File(sm_dirTestData+"subscriptions.jmf").exists());   
     }
 
  }

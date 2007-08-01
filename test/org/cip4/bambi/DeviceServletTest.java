@@ -1,5 +1,3 @@
-package org.cip4.bambi;
-
 /*
 *
 * The CIP4 Software License, Version 1.0
@@ -71,19 +69,10 @@ package org.cip4.bambi;
 * 
 */
 
-import junit.framework.TestCase;
+package org.cip4.bambi;
 
-// TODO create parent class for all bambi tests
-public class DeviceServletTest extends TestCase {
-	
-	protected void setUp() throws Exception {
-		super.setUp();
-	}
+public class DeviceServletTest extends BambiTestCase {
 
-	protected void tearDown() throws Exception {
-		super.tearDown();
-	}
-	
 	public void testAddDevice()
 	{
 		DeviceServlet d = new DeviceServlet();

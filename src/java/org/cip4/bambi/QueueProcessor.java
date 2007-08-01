@@ -76,7 +76,6 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.SignalDispatcher.StopPersistentChannelHandler;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
@@ -161,7 +160,7 @@ public class QueueProcessor implements IQueueProcessor
         }
     }
 
-    protected static Log log = LogFactory.getLog(QueueProcessor.class.getName());
+    private static Log log = LogFactory.getLog(QueueProcessor.class.getName());
     private File queueFile;
     private static final long serialVersionUID = -876551736245089033L;
     private JDFQueue myQueue;
@@ -190,7 +189,7 @@ public class QueueProcessor implements IQueueProcessor
      */
     public void addHandlers(IJMFHandler jmfHandler)
     {
-        jmfHandler.addHandler(this.new SubmitQueueEntryHandler());        
+        jmfHandler.addHandler(this.new SubmitQueueEntryHandler());
     }
 
     private void init(IStatusListener _statusListener,
@@ -219,7 +218,6 @@ public class QueueProcessor implements IQueueProcessor
         }
         myQueue.setAutomated(true);
         listeners=new Vector();
-		
 	}
 
     public IQueueEntry getNextEntry()
@@ -283,11 +281,11 @@ public class QueueProcessor implements IQueueProcessor
         JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
         final String workStepID = node.getWorkStepID(partMap);
         final String queueEntryID = newQE.getQueueEntryID();
-        //TODO erst beim statrten - nicht schon beim einqueuen
+        //TODO erst beim starten - nicht schon beim einqueuen
         statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);        
         if(queueEntryID!=null)
         {
-            signalDispatcher.addSubscriptions(node,queueEntryID);
+            signalDispatcher.addSubscriptions(node,queueEntryID); 
         }
         notifyListeners();
 

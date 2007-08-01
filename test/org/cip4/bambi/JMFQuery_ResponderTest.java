@@ -71,24 +71,14 @@ package org.cip4.bambi;
 * 
 */
 
-import junit.framework.TestCase;
-
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.bambi.BambiTestCase;
 
-// TODO create parent class for all bambi tests
-public class JMFQuery_ResponderTest extends TestCase {
+public class JMFQuery_ResponderTest extends BambiTestCase {
 	
 	private String BAMBI_URL = "http://localhost:8080/Bambi/jmf";
-
-	protected void setUp() throws Exception {
-		super.setUp();
-	}
-
-	protected void tearDown() throws Exception {
-		super.tearDown();
-	}
 	
 	public void testKnownMessages() 
 	{

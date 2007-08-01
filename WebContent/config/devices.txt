@@ -1,5 +1,0 @@
-# list of JDF devices simulated by Bambi
-# Syntax: 
-#	DeviceID;DeviceType;
-Device001;Generic Bambi Device;
-Device002;Generic Bambi Device No. 2;

@@ -1,6 +1,3 @@
-
-package org.cip4.bambi;
-
 /*
  *
  * The CIP4 Software License, Version 1.0
@@ -71,6 +68,9 @@ package org.cip4.bambi;
  *  
  * 
  */
+
+package org.cip4.bambi;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -97,10 +97,12 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -108,6 +110,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
+import org.w3c.dom.Element;
 
 
 /**
@@ -174,7 +177,61 @@ public class DeviceServlet extends HttpServlet
 			return EnumType.KnownDevices;
 		}
 	}
-    private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
+    protected class QueueStatusHandler implements IMessageHandler
+	{
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+	     */
+	    public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+	    {
+	        if(m==null || resp==null)
+	        {
+	            return false;
+	        }
+	        log.debug("Handling "+m.getType());
+	        EnumType typ=m.getEnumType();
+	        if(EnumType.QueueStatus.equals(typ))
+	        {
+	        	JDFQueue q = resp.appendQueue();
+	        	q.setDeviceID("Bambi root device");
+	        	if (_theQueue != null)
+	        	{
+	        		q.setQueueStatus(_theQueue.getQueue().getQueueStatus());
+	        		return true;
+	        	}
+	        	else 
+	        	{
+	        		log.warn("queue is null");
+	        		return false;
+	        	}
+	        }
+	
+	        return false;        
+	    }
+	
+	
+	
+	
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getFamilies()
+	     */
+	    public EnumFamily[] getFamilies()
+	    {
+	        return new EnumFamily[]{EnumFamily.Command};
+	    }
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getMessageType()
+	     */
+	    public EnumType getMessageType()
+	    {
+	        return EnumType.QueueStatus;
+	    }
+	
+	}
+	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
 	public static final String baseDir=System.getProperty("catalina.base")+"/webapps/Bambi/"+"jmb"+File.separator;
 	public static final String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/"+"config"+File.separator;
 	
@@ -200,7 +257,8 @@ public class DeviceServlet extends HttpServlet
 		_devices = new HashMap();
 		// TODO make configurable
 		_jmfHandler=new JMFHandler();
-		_jmfHandler.addHandler( new KnownDevicesHandler() );
+		_jmfHandler.addHandler( new DeviceServlet.KnownDevicesHandler() );
+		_jmfHandler.addHandler( new DeviceServlet.QueueStatusHandler() );
 		
 		
 		_theSignalDispatcher=new SignalDispatcher(_jmfHandler);
@@ -214,7 +272,7 @@ public class DeviceServlet extends HttpServlet
         
 		log.info("Initializing DeviceServlet");
 		loadBambiProperties();
-		createDevicesFromFile(configDir+"devices.txt");
+		createDevicesFromFile(configDir+"devices.xml");
 	}
 
 	/** Destroys the servlet.
@@ -497,7 +555,7 @@ public class DeviceServlet extends HttpServlet
 		{	
 			if (_jmfHandler == null)
 			{
-				log.warn("JMFHandler is null, creating new handler...");
+				log.warn("JMFHandler is null, creating new handler..."); // needed for JUnit tests
 				_jmfHandler = new JMFHandler();
 			}
 			Device dev = new Device(deviceType, deviceID, _jmfHandler);
@@ -556,27 +614,27 @@ public class DeviceServlet extends HttpServlet
 
 	private boolean createDevicesFromFile(String fileName)
 	{
-		try 
-		{
-			BufferedReader in = new BufferedReader(new FileReader(fileName));
-			String str;
-			while((str=in.readLine())!=null)
-			{
-				if (!str.startsWith("#")) // is no comment
-				{
-					String deviceID = StringUtil.token(str, 0, ";");
-					String deviceType = StringUtil.token(str, 1, ";");
-					createDevice(deviceID, deviceType);
-				}
-			}
-			in.close();
-		} catch (FileNotFoundException e) {
-			log.error(fileName+" not found");
-			return false;
-		} catch (Exception e) { 
-			log.error("unable to parse "+fileName);
-			return false;
-		}
+		JDFParser p = new JDFParser();
+	    JDFDoc doc = p.parseFile(fileName);
+	    if (doc == null)
+	    {
+	    	log.error( fileName+" not found, no devices created" );
+	    	return false;
+	    }
+	    
+	    KElement e = doc.getRoot();
+	    VElement v = e.getXPathElementVector("//devices/*", 99);
+	    for (int i = 0; i < v.size(); i++)
+	    {
+	    	KElement device = (KElement)v.elementAt(i);
+	    	String deviceID = device.getXPathAttribute("@DeviceID", "");
+	    	String deviceType = device.getXPathAttribute("@DeviceType", "");
+	    	if (deviceID != "")
+	    		createDevice(deviceID,deviceType);
+	    	else
+	    		log.warn("cannot create device without device ID");
+	    }
+		
 		return true;
 	}
 	
