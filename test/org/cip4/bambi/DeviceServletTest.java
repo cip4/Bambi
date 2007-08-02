@@ -1,3 +1,5 @@
+package org.cip4.bambi;
+
 /*
 *
 * The CIP4 Software License, Version 1.0
@@ -69,14 +71,14 @@
 * 
 */
 
-package org.cip4.bambi;
+import org.cip4.bambi.BambiTestCase;
 
 public class DeviceServletTest extends BambiTestCase {
 
 	public void testAddDevice()
 	{
 		DeviceServlet d = new DeviceServlet();
-		assertEquals( 0,d.getDeviceQuantity() );
+		assertEquals( 0,d.getDeviceQuantity() ); 
 		assertTrue( d.createDevice("device one", "my device") );
 		assertTrue( d.createDevice("device two", "my device") );
 		assertFalse( d.createDevice("device two", "my device") );

@@ -89,7 +89,7 @@ import org.cip4.jdflib.resource.JDFDeviceList;
  * @author boegerni
  * 
  */
-public class Device {
+public class Device implements IDevice {
 	protected class QueueStatusHandler implements IMessageHandler
 	{
 	
@@ -145,7 +145,6 @@ public class Device {
 
 	}
 
-	// TODO create interface IDevice
 	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
 	private String _deviceName = "";
 	private String _deviceID = "";
@@ -183,27 +182,42 @@ public class Device {
 		_jmfHandler.addHandler( this.new QueueStatusHandler() );
 	}
 
-	public String getDeviceName()
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.IDevice#getDeviceName()
+	 */
+	public String getDeviceType()
 	{
 		return _deviceName;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.IDevice#getDeviceID()
+	 */
 	public String getDeviceID()
 	{
 		return _deviceID;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.IDevice#processJMF(org.cip4.jdflib.core.JDFDoc)
+	 */
 	public JDFDoc processJMF(JDFDoc doc)
 	{
 		log.debug("JMF processed by "+_deviceID);
 		return _jmfHandler.processJMF(doc);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.IDevice#toString()
+	 */
 	public String toString()
 	{
 		return ("[org.cip4.bambi.Device: DeviceID=" + _deviceID + ", DeviceName=" + _deviceName + "]");
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.IDevice#getDeviceInfo(org.cip4.jdflib.resource.JDFDeviceList)
+	 */
 	public boolean getDeviceInfo(JDFDeviceList dl)
 	{
 		JDFDeviceInfo info = dl.appendDeviceInfo();

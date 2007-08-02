@@ -71,11 +71,9 @@
 
 package org.cip4.bambi;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -110,7 +108,6 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
-import org.w3c.dom.Element;
 
 
 /**
@@ -152,7 +149,7 @@ public class DeviceServlet extends HttpServlet
 				for (int i=0; i<keys.size();i++)
 				{
 					String key = (String)strKeys[i];
-					((Device)_devices.get(key)).getDeviceInfo(dl);
+					((IDevice)_devices.get(key)).getDeviceInfo(dl);
 				}
 				return true;
 			}
@@ -367,7 +364,7 @@ public class DeviceServlet extends HttpServlet
 		{
 			// switch: sends the jmfDoc to correct device
 			JDFDoc responseJMF = null;
-			Device targetDevice = getTargetDevice(request);
+			IDevice targetDevice = getTargetDevice(request);
 			if (targetDevice != null) {
 				log.info( "request forwarded to "+targetDevice.getDeviceID() );
 				responseJMF=targetDevice.processJMF(jmfDoc);
@@ -388,14 +385,14 @@ public class DeviceServlet extends HttpServlet
 		}
 	}
 
-	private Device getTargetDevice(HttpServletRequest request) {
+	private IDevice getTargetDevice(HttpServletRequest request) {
 		String deviceID = request.getPathInfo();
 		if (deviceID == null)
 			return null; // root folder
 		deviceID = StringUtil.token(request.getPathInfo(), 1, "/");
 		if (deviceID == null)
 			return null; // device not found
-		return( (Device)_devices.get(deviceID) );
+		return( (IDevice)_devices.get(deviceID) );
 	}
 	
 	/**
@@ -558,7 +555,7 @@ public class DeviceServlet extends HttpServlet
 				log.warn("JMFHandler is null, creating new handler..."); // needed for JUnit tests
 				_jmfHandler = new JMFHandler();
 			}
-			Device dev = new Device(deviceType, deviceID, _jmfHandler);
+			IDevice dev = new Device(deviceType, deviceID, _jmfHandler);
 			_devices.put(deviceID,dev);
 			return true;
 		}
@@ -601,7 +598,7 @@ public class DeviceServlet extends HttpServlet
 			return _devices.size();
 	}
 
-	public Device getDevice(String deviceID)
+	public IDevice getDevice(String deviceID)
 	{
 		if (_devices == null)
 		{
@@ -609,7 +606,7 @@ public class DeviceServlet extends HttpServlet
 			return null;
 		}
 
-		return (Device)_devices.get(deviceID);
+		return (IDevice)_devices.get(deviceID);
 	}
 
 	private boolean createDevicesFromFile(String fileName)
