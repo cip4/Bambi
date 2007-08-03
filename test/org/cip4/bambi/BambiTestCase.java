@@ -9,6 +9,7 @@ import junit.framework.TestCase;
 
 public class BambiTestCase extends TestCase {
 	
+	// TODO fix: sm_dirTestData is pointing to nirvana (Bambi/null/WebApps/...)
     static protected final String sm_dirTestData     = "test" + File.separator + "data" + File.separator;
     static protected final String sm_UrlTestData     = "File:test/data/";
     final static protected String cwd =System.getProperty("user.dir");

@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<BambiJob><JobPhase1 Duration="2000" Good="0" Status="Setup"
-      StatusDetails="setting up" Waste="0"/><JobPhase2 Duration="5000"
-      Good="120" Status="Running" StatusDetails="producing good"
-      Waste="0"/><JobPhase3 Duration="2000" Good="0" Status="Cleanup"
-      StatusDetails="cleaning" Waste="0"/></BambiJob>
+<BambiJob>
+	<JobPhase1 Duration="2000" Good="0" Waste="0" 
+		DeviceStatus="Setup" DeviceStatusDetails="setting up" 
+		NodeStatus="Setup" NodeStatusDetails="node setup" />
+	<JobPhase2 Duration="5000" Good="120" Waste="0" 
+		DeviceStatus="Running" DeviceStatusDetails="producing good" 
+		NodeStatus="InProgress" NodeStatusDetails="executing node" />
+	<JobPhase3 Duration="2000" Good="0" Waste="0" 
+		DeviceStatus="Cleanup" DeviceStatusDetails="cleaning after production" 
+		NodeStatus="Cleanup" NodeStatusDetails="cleaning up" />
+</BambiJob>

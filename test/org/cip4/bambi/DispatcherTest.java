@@ -73,12 +73,6 @@ package org.cip4.bambi;
 
 import java.io.File;
 
-import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
-import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.VElement;
-import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFSubscription;
@@ -106,34 +100,5 @@ public class DispatcherTest extends BambiTestCase {
         StatusCounter.sleep(2222);
         assertTrue(new File(sm_dirTestData+"subscriptions.jmf").exists());   
     }
-
-	public void loadBambiJobFromFile()
-	{
-		String fileName = "E:/WorkingCopy/Bambi/WebContent/config/example_job.xml";
-		
-		
-		JDFParser p = new JDFParser();
-	    JDFDoc doc = p.parseFile(fileName);
-	    if (doc == null)
-	    {
-	    //	log.error( fileName+" not found, list of job phases remains empty" );
-	    	return;
-	    }
-	    
-	    KElement e = doc.getRoot();
-	    VElement v = e.getXPathElementVector("//BambiJob/*", 99);
-	    for (int i = 0; i < v.size(); i++)
-	    {
-	    	KElement job = (KElement)v.elementAt(i);
-	    	EnumDeviceStatus status = EnumDeviceStatus.getEnum(job.getXPathAttribute("@Status", "Idle"));
-	    	String statusDetails = job.getXPathAttribute("@StatusDetails", "");
-	    	int duration = Integer.valueOf( job.getXPathAttribute("@Duration", "0") ).intValue();
-	    	int good = Integer.valueOf( job.getXPathAttribute("@Good", "0") ).intValue();
-	    	int waste = Integer.valueOf( job.getXPathAttribute("@Waste", "0") ).intValue();
-	    		System.out.println();
-	    }
-		
-		return;
-	}
 	
 }
