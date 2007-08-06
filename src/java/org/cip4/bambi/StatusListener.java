@@ -182,12 +182,12 @@ public class StatusListener implements IStatusListener
             if(!EnumFamily.Query.equals(inputMessage.getFamily()))
                 return false;
 
-            StatusCounter sc=getStatusCounter(queueEntryID, workstepID);
-            //TODO handle resource query
             
-            JDFResourceInfo ri = response.appendResourceInfo();
-
-            return false;
+            JDFResourceInfo ri = response.appendResourceInfo();            
+            StatusCounter sc=getStatusCounter(queueEntryID, workstepID);
+            if (sc != null)
+            	ri.copyElement( sc.getDocJMFResource().getJMFRoot(),null );
+            return true;
         }
 
 

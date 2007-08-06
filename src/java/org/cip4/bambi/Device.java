@@ -74,6 +74,7 @@ package org.cip4.bambi;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
@@ -231,6 +232,7 @@ public class Device implements IDevice {
 		JDFDevice dev = info.appendDevice();
 		dev.setDeviceID(_deviceID);
 		dev.setDeviceType(_deviceName);
+		dev.setJDFVersions( EnumVersion.Version_1_3.getName() );
 		return true;
 	}
 
