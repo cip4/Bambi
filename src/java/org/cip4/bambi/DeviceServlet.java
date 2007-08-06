@@ -149,7 +149,7 @@ public class DeviceServlet extends HttpServlet
 				for (int i=0; i<keys.size();i++)
 				{
 					String key = (String)strKeys[i];
-					((IDevice)_devices.get(key)).getDeviceInfo(dl);
+					((IDevice)_devices.get(key)).appendDeviceInfo(dl);
 				}
 				return true;
 			}
@@ -264,7 +264,7 @@ public class DeviceServlet extends HttpServlet
         _theStatusListener=new StatusListener(_theSignalDispatcher);
         _theStatusListener.addHandlers(_jmfHandler);
 		
-        _theQueue = new QueueProcessor(_theStatusListener, _theSignalDispatcher);
+        _theQueue = new QueueProcessor(_theSignalDispatcher,"");
         _theQueue.addHandlers(_jmfHandler);
         
 		log.info("Initializing DeviceServlet");
@@ -540,7 +540,7 @@ public class DeviceServlet extends HttpServlet
 	 * @return true, if device has been created. 
 	 * False, if not (maybe device with deviceID is already present)
 	 */
-	public boolean createDevice(String deviceID, String deviceType)
+	public boolean createDevice(String deviceID, String deviceType, String deviceClass)
 	{
 		if (_devices == null)
 		{
@@ -555,7 +555,7 @@ public class DeviceServlet extends HttpServlet
 				log.warn("JMFHandler is null, creating new handler..."); // needed for JUnit tests
 				_jmfHandler = new JMFHandler();
 			}
-			IDevice dev = new Device(deviceType, deviceID, _jmfHandler);
+			IDevice dev = new Device(deviceType, deviceID, deviceClass, _jmfHandler);
 			_devices.put(deviceID,dev);
 			return true;
 		}
@@ -626,8 +626,9 @@ public class DeviceServlet extends HttpServlet
 	    	KElement device = (KElement)v.elementAt(i);
 	    	String deviceID = device.getXPathAttribute("@DeviceID", "");
 	    	String deviceType = device.getXPathAttribute("@DeviceType", "");
+	    	String deviceClass = device.getXPathAttribute("@DeviceClass", "org.cip.bambi.DeviceServlet");
 	    	if (deviceID != "")
-	    		createDevice(deviceID,deviceType);
+	    		createDevice(deviceID,deviceType,deviceClass);
 	    	else
 	    		log.warn("cannot create device without device ID");
 	    }

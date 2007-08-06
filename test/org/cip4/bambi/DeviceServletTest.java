@@ -79,9 +79,9 @@ public class DeviceServletTest extends BambiTestCase {
 	{
 		DeviceServlet d = new DeviceServlet();
 		assertEquals( 0,d.getDeviceQuantity() ); 
-		assertTrue( d.createDevice("device one", "my device") );
-		assertTrue( d.createDevice("device two", "my device") );
-		assertFalse( d.createDevice("device two", "my device") );
+		assertTrue( d.createDevice("device one", "my device", "org.cip4.bambi.DeviceServlet") );
+		assertTrue( d.createDevice("device two", "my device", "org.cip4.bambi.DeviceServlet") );
+		assertFalse( d.createDevice("device two", "my device", "org.cip4.bambi.DeviceServlet") );
 		assertEquals( 2,d.getDeviceQuantity() );
 		assertNotNull( d.getDevice("device one") );
 	}
@@ -90,8 +90,8 @@ public class DeviceServletTest extends BambiTestCase {
 	{
 		DeviceServlet d = new DeviceServlet();
 		assertEquals( 0,d.getDeviceQuantity() );
-		assertTrue( d.createDevice("device one", "my device") );
-		assertTrue( d.createDevice("device two", "my device") );
+		assertTrue( d.createDevice("device one", "my device", "org.cip4.bambi.DeviceServlet") );
+		assertTrue( d.createDevice("device two", "my device", "org.cip4.bambi.DeviceServlet") );
 		assertEquals( 2,d.getDeviceQuantity() );
 		assertTrue( d.removeDevice("device one") );
 		assertNull( d.getDevice("device one") );

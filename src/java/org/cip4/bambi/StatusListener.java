@@ -75,8 +75,12 @@ import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
+import org.cip4.jdflib.jmf.JDFDeviceInfo;
+import org.cip4.jdflib.jmf.JDFJobPhase;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFResourceInfo;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
@@ -124,9 +128,17 @@ public class StatusListener implements IStatusListener
                 return true;
             }
             JDFDoc doc=sc.getDocJMFPhaseTime();
-           // response.set)
-//TODO continue here
-            return false;
+            JDFResponse sig =(JDFResponse) doc.getJMFRoot().getMessageElement(EnumFamily.Response, EnumType.Status, 0);
+            JDFJobPhase jp = sig.getDeviceInfo(0).getJobPhase(0);
+            JDFStatusQuParams sqp =  response.appendStatusQuParams();
+            sqp.copyElement( jp.getStatusQuParams(),null );
+            
+            JDFDeviceInfo di = response.appendDeviceInfo();
+            di.copyElement(inputMessage.getDeviceInfo(0), null);
+            
+            JDFJobPhase rjp = response.appendJobPhase();
+            rjp.copyElement(jp, null);
+            return true;
         }
 
 
@@ -162,11 +174,18 @@ public class StatusListener implements IStatusListener
          */
         public boolean handleMessage(JDFMessage inputMessage, JDFResponse response, String queueEntryID, String workstepID)
         {
+        	if(inputMessage==null || response==null)
+	        {
+	            return false;
+	        }
+        	
             if(!EnumFamily.Query.equals(inputMessage.getFamily()))
                 return false;
 
             StatusCounter sc=getStatusCounter(queueEntryID, workstepID);
             //TODO handle resource query
+            
+            JDFResourceInfo ri = response.appendResourceInfo();
 
             return false;
         }

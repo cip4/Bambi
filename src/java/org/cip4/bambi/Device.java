@@ -98,6 +98,7 @@ public class Device implements IDevice {
 	     */
 	    public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
 	    {
+	    	// Queue --> handleMessage
 	        if(m==null || resp==null)
 	        {
 	            return false;
@@ -159,7 +160,7 @@ public class Device implements IDevice {
 	 * @param deviceName
 	 * @param deviceID
 	 */
-	public Device(String deviceName, String deviceID, JMFHandler jmfHandler)
+	public Device(String deviceName, String deviceID, String deviceClass, JMFHandler jmfHandler)
 	{
 		log.info("creating device with name='" + deviceName + "', deviceID='"+deviceID+"'");
 		_deviceName = deviceName;
@@ -169,11 +170,17 @@ public class Device implements IDevice {
         _theSignalDispatcher=new SignalDispatcher(_jmfHandler);
         _theSignalDispatcher.addHandlers(_jmfHandler);
 
-		_theQueue=new QueueProcessor(_theStatusListener, _theSignalDispatcher,deviceID);
+		_theQueue=new QueueProcessor(_theSignalDispatcher,deviceID);
         _theQueue.addHandlers(jmfHandler);
         _theStatusListener=new StatusListener(_theSignalDispatcher);
         _theStatusListener.addHandlers(_jmfHandler);
-
+        
+        try {
+			_theDevice=(IDeviceProcessor) Class.forName(deviceClass).newInstance();
+			log.debug("created device from class name "+deviceClass);
+		} catch (Exception e) {
+			log.error("failed to create device from class name "+deviceClass);
+		}
 		_theDevice=new DeviceProcessor(_theQueue, _theStatusListener);
 		log.info("Starting device thread");
 		new Thread(_theDevice).start();
@@ -218,12 +225,17 @@ public class Device implements IDevice {
 	/* (non-Javadoc)
 	 * @see org.cip4.bambi.IDevice#getDeviceInfo(org.cip4.jdflib.resource.JDFDeviceList)
 	 */
-	public boolean getDeviceInfo(JDFDeviceList dl)
+	public boolean appendDeviceInfo(JDFDeviceList dl)
 	{
 		JDFDeviceInfo info = dl.appendDeviceInfo();
 		JDFDevice dev = info.appendDevice();
 		dev.setDeviceID(_deviceID);
 		dev.setDeviceType(_deviceName);
 		return true;
+	}
+
+	public void addHandler(IMessageHandler handler) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -165,23 +165,14 @@ public class QueueProcessor implements IQueueProcessor
     private static final long serialVersionUID = -876551736245089033L;
     private JDFQueue myQueue;
     private Vector listeners;
-    private IStatusListener statusListener;
+ //   private IStatusListener statusListener;
     private ISignalDispatcher signalDispatcher;
     private static final String jdfDir=DeviceServlet.baseDir+"JDFDir"+File.separator;
-    /**
-     * 
-     *
-     */
-    public QueueProcessor(IStatusListener _statusListener, ISignalDispatcher _signalDispatcher)
-    {
-    	super();
-    	this.init(_statusListener, _signalDispatcher, "");
-    }
-    
-    public QueueProcessor(IStatusListener _statusListener, ISignalDispatcher _signalDispatcher, String deviceID)
+     
+    public QueueProcessor(ISignalDispatcher _signalDispatcher, String deviceID)
     {
 		super();
-		this.init(_statusListener, _signalDispatcher, deviceID);
+		this.init(_signalDispatcher, deviceID);
     }
     
     /**
@@ -192,10 +183,8 @@ public class QueueProcessor implements IQueueProcessor
         jmfHandler.addHandler(this.new SubmitQueueEntryHandler());
     }
 
-    private void init(IStatusListener _statusListener,
-			ISignalDispatcher _signalDispatcher, String deviceID) {
+    private void init(ISignalDispatcher _signalDispatcher, String deviceID) {
     	
-        statusListener=_statusListener;
         signalDispatcher=_signalDispatcher;
         log.info("QueueProcessor construct");
         if (deviceID != "")
@@ -282,7 +271,7 @@ public class QueueProcessor implements IQueueProcessor
         final String workStepID = node.getWorkStepID(partMap);
         final String queueEntryID = newQE.getQueueEntryID();
         //TODO erst beim starten - nicht schon beim einqueuen
-        statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);        
+        //statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);        
         if(queueEntryID!=null)
         {
             signalDispatcher.addSubscriptions(node,queueEntryID); 
