@@ -90,7 +90,7 @@ import org.cip4.jdflib.resource.JDFDeviceList;
  * @author boegerni
  * 
  */
-public class Device implements IDevice {
+public class Device implements IJMFHandler  {
 	protected class QueueStatusHandler implements IMessageHandler
 	{
 	
@@ -134,7 +134,7 @@ public class Device implements IDevice {
 	     */
 	    public EnumFamily[] getFamilies()
 	    {
-	        return new EnumFamily[]{EnumFamily.Command};
+	        return new EnumFamily[]{EnumFamily.Query};
 	    }
 	
 	    /* (non-Javadoc)
@@ -151,7 +151,7 @@ public class Device implements IDevice {
 	private String _deviceName = "";
 	private String _deviceID = "";
 	private IQueueProcessor _theQueue=null;
-	private IDeviceProcessor _theDevice=null;
+	private IDeviceProcessor _theDeviceProcessor=null;
 	private IStatusListener _theStatusListener=null;
 	private ISignalDispatcher _theSignalDispatcher=null;
 	private JMFHandler _jmfHandler = null ;
@@ -173,18 +173,18 @@ public class Device implements IDevice {
 
 		_theQueue=new QueueProcessor(_theSignalDispatcher,deviceID);
         _theQueue.addHandlers(jmfHandler);
-        _theStatusListener=new StatusListener(_theSignalDispatcher);
+        _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
         _theStatusListener.addHandlers(_jmfHandler);
         
         try {
-			_theDevice=(IDeviceProcessor) Class.forName(deviceClass).newInstance();
+			_theDeviceProcessor=(IDeviceProcessor) Class.forName(deviceClass).newInstance();
 			log.debug("created device from class name "+deviceClass);
 		} catch (Exception e) {
 			log.error("failed to create device from class name "+deviceClass);
 		}
-		_theDevice=new DeviceProcessor(_theQueue, _theStatusListener);
+		_theDeviceProcessor=new DeviceProcessor(_theQueue, _theStatusListener);
 		log.info("Starting device thread");
-		new Thread(_theDevice).start();
+		new Thread(_theDeviceProcessor).start();
 		log.info("device thread started");
 		
 		_jmfHandler.addHandler( this.new QueueStatusHandler() );
@@ -237,7 +237,7 @@ public class Device implements IDevice {
 	}
 
 	public void addHandler(IMessageHandler handler) {
-		// TODO Auto-generated method stub
+		_jmfHandler.addHandler(handler);
 		
 	}
 }

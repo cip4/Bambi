@@ -100,7 +100,7 @@ import org.cip4.jdflib.util.ContainerUtil;
  *									value=""
  *									description=""
  *
- * @web:servlet-mapping url-pattern="/FixJDFServlet"
+ * @web:servlet-mapping url-pattern="/jmf"
  */
 public class JMFHandler implements IMessageHandler, IJMFHandler
 {

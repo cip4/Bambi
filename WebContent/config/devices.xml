@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <devices>
-  <device001 DeviceID="device001" DeviceType="Generic Bambi device" DeviceClass="org.cip4.bambi.SimuJobProcessor" />
-  <device002 DeviceID="device002" DeviceType="Generic Bambi device no. 2" DeviceClass="org.cip4.bambi.SimuJobProcessor" />
+  <device001 DeviceID="device001" DeviceType="Generic Bambi device" DeviceClass="org.cip4.bambi.SimJobProcessor" />
+  <device002 DeviceID="device002" DeviceType="Generic Bambi device no. 2" DeviceClass="org.cip4.bambi.SimJobProcessor" />
 </devices>

@@ -127,17 +127,6 @@ public class StatusListener implements IStatusListener
                 response.appendDeviceInfo().setDeviceStatus(EnumDeviceStatus.Idle);
                 return true;
             }
-            JDFDoc doc=sc.getDocJMFPhaseTime();
-            JDFResponse sig =(JDFResponse) doc.getJMFRoot().getMessageElement(EnumFamily.Response, EnumType.Status, 0);
-            JDFJobPhase jp = sig.getDeviceInfo(0).getJobPhase(0);
-            JDFStatusQuParams sqp =  response.appendStatusQuParams();
-            sqp.copyElement( jp.getStatusQuParams(),null );
-            
-            JDFDeviceInfo di = response.appendDeviceInfo();
-            di.copyElement(inputMessage.getDeviceInfo(0), null);
-            
-            JDFJobPhase rjp = response.appendJobPhase();
-            rjp.copyElement(jp, null);
             return true;
         }
 
@@ -211,11 +200,11 @@ public class StatusListener implements IStatusListener
     
     ////////////////////////////////////////////////////////////////////////
     
-    public StatusListener(ISignalDispatcher dispatch)
+    public StatusListener(ISignalDispatcher dispatch, String deviceID)
     {
         dispatcher=dispatch;
-        theCounter=null;
-       
+        theCounter=new StatusCounter(null,null,null);
+        theCounter.setDeviceID(deviceID);
     }
     /* (non-Javadoc)
      * @see org.cip4.bambi.IStatusListener#signalStatus(java.lang.String, java.lang.String, org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus, java.lang.String, org.cip4.jdflib.core.JDFElement.EnumNodeStatus, java.lang.String)

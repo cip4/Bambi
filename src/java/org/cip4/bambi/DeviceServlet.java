@@ -149,7 +149,7 @@ public class DeviceServlet extends HttpServlet
 				for (int i=0; i<keys.size();i++)
 				{
 					String key = (String)strKeys[i];
-					((IDevice)_devices.get(key)).appendDeviceInfo(dl);
+					((Device)_devices.get(key)).appendDeviceInfo(dl);
 				}
 				return true;
 			}
@@ -216,7 +216,7 @@ public class DeviceServlet extends HttpServlet
 	     */
 	    public EnumFamily[] getFamilies()
 	    {
-	        return new EnumFamily[]{EnumFamily.Command};
+	        return new EnumFamily[]{EnumFamily.Query};
 	    }
 	
 	    /* (non-Javadoc)
@@ -243,6 +243,7 @@ public class DeviceServlet extends HttpServlet
 	private ISignalDispatcher _theSignalDispatcher=null;
 	private IQueueProcessor _theQueue=null;
 	private IStatusListener _theStatusListener=null;
+	private String _deviceID = "Bambi root device";
 
 
 	/** Initializes the servlet.
@@ -261,7 +262,7 @@ public class DeviceServlet extends HttpServlet
 		_theSignalDispatcher=new SignalDispatcher(_jmfHandler);
 		_theSignalDispatcher.addHandlers(_jmfHandler);
 
-        _theStatusListener=new StatusListener(_theSignalDispatcher);
+        _theStatusListener=new StatusListener(_theSignalDispatcher,_deviceID);
         _theStatusListener.addHandlers(_jmfHandler);
 		
         _theQueue = new QueueProcessor(_theSignalDispatcher,"");
@@ -364,7 +365,7 @@ public class DeviceServlet extends HttpServlet
 		{
 			// switch: sends the jmfDoc to correct device
 			JDFDoc responseJMF = null;
-			IDevice targetDevice = getTargetDevice(request);
+			Device targetDevice = getTargetDevice(request);
 			if (targetDevice != null) {
 				log.info( "request forwarded to "+targetDevice.getDeviceID() );
 				responseJMF=targetDevice.processJMF(jmfDoc);
@@ -385,14 +386,14 @@ public class DeviceServlet extends HttpServlet
 		}
 	}
 
-	private IDevice getTargetDevice(HttpServletRequest request) {
+	private Device getTargetDevice(HttpServletRequest request) {
 		String deviceID = request.getPathInfo();
 		if (deviceID == null)
 			return null; // root folder
 		deviceID = StringUtil.token(request.getPathInfo(), 1, "/");
 		if (deviceID == null)
 			return null; // device not found
-		return( (IDevice)_devices.get(deviceID) );
+		return( (Device)_devices.get(deviceID) );
 	}
 	
 	/**
@@ -555,7 +556,7 @@ public class DeviceServlet extends HttpServlet
 				log.warn("JMFHandler is null, creating new handler..."); // needed for JUnit tests
 				_jmfHandler = new JMFHandler();
 			}
-			IDevice dev = new Device(deviceType, deviceID, deviceClass, _jmfHandler);
+			Device dev = new Device(deviceType, deviceID, deviceClass, _jmfHandler);
 			_devices.put(deviceID,dev);
 			return true;
 		}
@@ -598,7 +599,7 @@ public class DeviceServlet extends HttpServlet
 			return _devices.size();
 	}
 
-	public IDevice getDevice(String deviceID)
+	public Device getDevice(String deviceID)
 	{
 		if (_devices == null)
 		{
@@ -606,7 +607,7 @@ public class DeviceServlet extends HttpServlet
 			return null;
 		}
 
-		return (IDevice)_devices.get(deviceID);
+		return (Device)_devices.get(deviceID);
 	}
 
 	private boolean createDevicesFromFile(String fileName)

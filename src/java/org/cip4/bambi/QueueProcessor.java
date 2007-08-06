@@ -197,6 +197,7 @@ public class QueueProcessor implements IQueueProcessor
         {
             log.info("refreshing queue");
             myQueue=(JDFQueue) d.getRoot();
+            
         }
         else
         {
@@ -206,6 +207,7 @@ public class QueueProcessor implements IQueueProcessor
             myQueue.setQueueStatus(EnumQueueStatus.Waiting);
         }
         myQueue.setAutomated(true);
+        myQueue.setDeviceID(deviceID);
         listeners=new Vector();
 	}
 
