@@ -168,12 +168,13 @@ public class Device implements IJMFHandler  {
         _theStatusListener.addHandlers(_jmfHandler);
         
         try {
-			_theDeviceProcessor=(IDeviceProcessor) Class.forName(deviceClass).newInstance();
+        	
+			_theDeviceProcessor= (IDeviceProcessor) Class.forName(deviceClass).newInstance();
+			_theDeviceProcessor.init(_theQueue, _theStatusListener);
 			log.debug("created device from class name "+deviceClass);
 		} catch (Exception e) {
 			log.error("failed to create device from class name "+deviceClass);
 		}
-		_theDeviceProcessor=new DeviceProcessor(_theQueue, _theStatusListener);
 		log.info("Starting device thread");
 		new Thread(_theDeviceProcessor).start();
 		log.info("device thread started");

@@ -100,8 +100,8 @@ public class DeviceProcessor implements IDeviceProcessor
     private static Log log = LogFactory.getLog(DeviceProcessor.class.getName());
     private static final long serialVersionUID = -876551736245089033L;
     private boolean bCancel=false;
-    private IQueueProcessor queueProcessor;
-    private IStatusListener statusListener;
+    private IQueueProcessor _queueProcessor;
+    private IStatusListener _statusListener;
     private Object myListener; // the mutex for waiting and reawakening
 
     
@@ -109,14 +109,10 @@ public class DeviceProcessor implements IDeviceProcessor
      * 
      *
      */
-    public DeviceProcessor(IQueueProcessor _queueProcessor, IStatusListener _statusListener)
+    public DeviceProcessor(IQueueProcessor queueProcessor, IStatusListener statusListener)
     {
         super();
-        log.info("DeviceProcessor construct");
-        queueProcessor=_queueProcessor;
-        myListener=new Object();
-        queueProcessor.addListener(myListener);
-        statusListener=_statusListener;
+        init(queueProcessor,statusListener);
     }
 
     /* (non-Javadoc)
@@ -153,7 +149,7 @@ public class DeviceProcessor implements IDeviceProcessor
      */
     private boolean processQueueEntry()
     {
-        IQueueEntry iqe=queueProcessor.getNextEntry();
+        IQueueEntry iqe=_queueProcessor.getNextEntry();
         if (log != null) // dirty hack, static log gets trashed too soon on Tomcat undeploy
         	log.debug("processing:"+((iqe==null) ? " nothing " : iqe.getQueueEntry()==null ? "nothing" : iqe.getQueueEntry().getQueueEntryID()));
         if(iqe==null)
@@ -166,21 +162,21 @@ public class DeviceProcessor implements IDeviceProcessor
             return false;
         qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
         final String queueEntryID = qe.getQueueEntryID();
-        queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Running);
+        _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Running);
         EnumQueueEntryStatus qes=null;
         try
         {
             log.info("processing JDF: ");
             qes=processDoc(doc,qe);
             qe.setQueueEntryStatus(qes);
-            queueProcessor.updateEntry(queueEntryID, qes);
+            _queueProcessor.updateEntry(queueEntryID, qes);
             log.info("finalized processing JDF: ");
         }
         catch(Exception x)
         {
             log.error("error processing JDF: "+x);
             qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
-            queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Aborted);
+            _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Aborted);
         }
         
         return true;
@@ -230,17 +226,17 @@ public class DeviceProcessor implements IDeviceProcessor
         VJDFAttributeMap vPartMap=qe.getPartMapVector();
         JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
         final String workStepID = node.getWorkStepID(partMap);
-        statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
-        statusListener.signalStatus(EnumDeviceStatus.Setup, "setup", EnumNodeStatus.Setup,"node steup");
+        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
+        _statusListener.signalStatus(EnumDeviceStatus.Setup, "setup", EnumNodeStatus.Setup,"node steup");
         StatusCounter.sleep(1000);
         for(int i=0;i<5;i++)
         {
-            statusListener.signalStatus(EnumDeviceStatus.Running, "device running", EnumNodeStatus.InProgress,"moving");
+            _statusListener.signalStatus(EnumDeviceStatus.Running, "device running", EnumNodeStatus.InProgress,"moving");
             StatusCounter.sleep(1000);
-            statusListener.signalStatus(EnumDeviceStatus.Running, "device running", EnumNodeStatus.Stopped,"paused");
+            _statusListener.signalStatus(EnumDeviceStatus.Running, "device running", EnumNodeStatus.Stopped,"paused");
             StatusCounter.sleep(1000);
         }
-        statusListener.signalStatus(EnumDeviceStatus.Idle, "device completed", EnumNodeStatus.Completed,"done");
+        _statusListener.signalStatus(EnumDeviceStatus.Idle, "device completed", EnumNodeStatus.Completed,"done");
         StatusCounter.sleep(1000);
         //TODO more
         //TODO better cleanup functionality - use cleanup thread
@@ -257,5 +253,14 @@ public class DeviceProcessor implements IDeviceProcessor
     {
         bCancel = true;
     }
+
+	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener) {
+        log.info("DeviceProcessor construct");
+        _queueProcessor=queueProcessor;
+        myListener=new Object();
+        _queueProcessor.addListener(myListener);
+        _statusListener=statusListener;
+		
+	}
 
 }

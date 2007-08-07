@@ -99,5 +99,12 @@ public interface IDeviceProcessor extends Runnable
      * @param cancel the bCancel to set
      */
     public abstract void cancel();
+    
+    /**
+     * initialize the IDeviceProcessor
+     * @param _queueProcessor
+     * @param _statusListener
+     */
+    public void init(IQueueProcessor _queueProcessor, IStatusListener _statusListener);
 
 }

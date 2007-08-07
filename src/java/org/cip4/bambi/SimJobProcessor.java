@@ -141,22 +141,32 @@ public class SimJobProcessor implements IDeviceProcessor
 	private List jobPhases;
 	private static final long serialVersionUID = -256551569245084031L;
 	private boolean bCancel=false;
-	private IQueueProcessor queueProcessor;
-	private IStatusListener statusListener;
+	private IQueueProcessor _queueProcessor;
+	private IStatusListener _statusListener;
 	private Object myListener; // the mutex for waiting and reawakening
 	
     /**
      * constructor
      */
-    public SimJobProcessor(IQueueProcessor _queueProcessor, IStatusListener _statusListener)
+    public SimJobProcessor(IQueueProcessor queueProcessor, IStatusListener statusListener)
     {
         super();
-        log.info("SimJobProcessor construct");
-        queueProcessor=_queueProcessor;
-        myListener=new Object();
-        queueProcessor.addListener(myListener);
-        statusListener=_statusListener;
+        init(queueProcessor, statusListener);
     }
+
+
+	/**
+	 * @param queueProcessor
+	 * @param statusListener
+	 */
+	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener) 
+	{
+		log.info("SimJobProcessor construct");
+        _queueProcessor=queueProcessor;
+        myListener=new Object();
+        _queueProcessor.addListener(myListener);
+        _statusListener=statusListener;
+	}
 	
 	
 	/**
@@ -304,7 +314,7 @@ public class SimJobProcessor implements IDeviceProcessor
         VJDFAttributeMap vPartMap=qe.getPartMapVector();
         JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
         final String workStepID = node.getWorkStepID(partMap);
-        statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
+        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
         		
 		if ( jobPhases.isEmpty() )
 		{
@@ -314,7 +324,7 @@ public class SimJobProcessor implements IDeviceProcessor
 		for (int i=0;i<jobPhases.size();i++)
 		{
 			JobPhase phase = (JobPhase)jobPhases.get(i);
-			statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, 
+			_statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, 
 					phase.nodeStatus,phase.nodeStatusDetails);
 			try {
 				Thread.sleep(phase.duration);
@@ -350,7 +360,7 @@ public class SimJobProcessor implements IDeviceProcessor
 	
 	private boolean processQueueEntry()
     {
-        IQueueEntry iqe=queueProcessor.getNextEntry();
+        IQueueEntry iqe=_queueProcessor.getNextEntry();
         log.debug("processing:"+((iqe==null) ? " nothing " : iqe.getQueueEntry()==null ? "nothing" : iqe.getQueueEntry().getQueueEntryID()));
         if(iqe==null)
             return false;
@@ -362,24 +372,25 @@ public class SimJobProcessor implements IDeviceProcessor
             return false;
         qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
         final String queueEntryID = qe.getQueueEntryID();
-        queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Running);
+        _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Running);
         EnumQueueEntryStatus qes=null;
         try
         {
             log.info("processing JDF: ");
             qes=processDoc(doc,qe);
             qe.setQueueEntryStatus(qes);
-            queueProcessor.updateEntry(queueEntryID, qes);
+            _queueProcessor.updateEntry(queueEntryID, qes);
             log.info("finalized processing JDF: ");
         }
         catch(Exception x)
         {
             log.error("error processing JDF: "+x);
             qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
-            queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Aborted);
+            _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Aborted);
         }
         
         return true;
     }
+
 
 }
