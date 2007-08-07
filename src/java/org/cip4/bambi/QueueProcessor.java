@@ -268,7 +268,8 @@ public class QueueProcessor implements IQueueProcessor
 
     public IQueueEntry getNextEntry()
     {
-        log.debug("getNextEntry");
+    	if (log != null) // dirty hack, static log gets trashed too soon on Tomcat undeploy
+    		log.debug("getNextEntry");
         JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
         if(qe==null)
             return null;
