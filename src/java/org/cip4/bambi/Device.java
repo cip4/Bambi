@@ -77,7 +77,6 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -168,9 +167,10 @@ public class Device implements IJMFHandler  {
         _theStatusListener.addHandlers(_jmfHandler);
         
         try {
-        	
-			_theDeviceProcessor= (IDeviceProcessor) Class.forName(deviceClass).newInstance();
-			_theDeviceProcessor.init(_theQueue, _theStatusListener);
+        	final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        	final Class configClass = classLoader.loadClass(deviceClass);
+        	_theDeviceProcessor= (IDeviceProcessor) configClass.newInstance();
+			_theDeviceProcessor.init(_theQueue, _theStatusListener, _deviceID);
 			log.debug("created device from class name "+deviceClass);
 		} catch (Exception e) {
 			log.error("failed to create device from class name "+deviceClass);

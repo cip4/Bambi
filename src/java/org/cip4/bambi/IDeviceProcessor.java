@@ -104,7 +104,8 @@ public interface IDeviceProcessor extends Runnable
      * initialize the IDeviceProcessor
      * @param _queueProcessor
      * @param _statusListener
+     * @param deviceID TODO
      */
-    public void init(IQueueProcessor _queueProcessor, IStatusListener _statusListener);
+    public void init(IQueueProcessor _queueProcessor, IStatusListener _statusListener, String deviceID);
 
 }

@@ -75,6 +75,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
@@ -133,39 +134,62 @@ public class SimJobProcessor implements IDeviceProcessor
 		 * waste to be produced in this job phase
 		 */
 		public double Output_Waste=0;
+		
+		public String toString()
+		{
+			return ("[JobPhase: Duration="+duration+", DeviceStatus="+deviceStatus.getName()
+					+", DeviceStatusDetails="+deviceStatusDetails
+					+", NodeStatus="+nodeStatus.getName()
+					+", NodeStatusDetails="+nodeStatusDetails
+					+", Good="+Output_Good+", Waste="+Output_Waste+"]");
+		}
 
 	}
 
 	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
-	public static final String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/"+"config"+File.separator;
-	private List jobPhases;
+	public static final String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/config"+File.separator;
+	private List _jobPhases = null;
 	private static final long serialVersionUID = -256551569245084031L;
 	private boolean bCancel=false;
 	private IQueueProcessor _queueProcessor;
 	private IStatusListener _statusListener;
-	private Object myListener; // the mutex for waiting and reawakening
+	private Object _myListener; // the mutex for waiting and reawakening
 	
     /**
      * constructor
      */
-    public SimJobProcessor(IQueueProcessor queueProcessor, IStatusListener statusListener)
+    public SimJobProcessor(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID)
     {
         super();
-        init(queueProcessor, statusListener);
+        init(queueProcessor, statusListener, deviceID);
+    }
+    
+    public SimJobProcessor()
+    {
+    	super();
     }
 
 
 	/**
+	 * initialize the SimJobProcessor and load the default sim phases from "job_$(DeviceID).xml"
 	 * @param queueProcessor
 	 * @param statusListener
 	 */
-	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener) 
+	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID) 
 	{
 		log.info("SimJobProcessor construct");
         _queueProcessor=queueProcessor;
-        myListener=new Object();
-        _queueProcessor.addListener(myListener);
+        _myListener=new Object();
+        _queueProcessor.addListener(_myListener);
         _statusListener=statusListener;
+        
+        // try to load default a default job
+        
+        boolean hasLoaded = loadBambiJobFromFile("job_"+deviceID+".xml");
+        if (hasLoaded)
+        	randomizeJobPhases(10.0, 30.0);
+        else
+        	log.error("no default job defined for SimJobProcessor of "+deviceID);
 	}
 	
 	
@@ -179,10 +203,10 @@ public class SimJobProcessor implements IDeviceProcessor
 	{
 		// if fileName has no "/" or "\" it is assumed to be on the server and 
 		// needs the config dir to be added
-		if ( fileName.contains(File.separator) )  
+		if ( !fileName.contains(File.separator) )  
 			fileName = configDir+fileName;
 		
-		jobPhases = new ArrayList();
+		_jobPhases = new ArrayList();
 		JDFParser p = new JDFParser();
 		JDFDoc doc = p.parseFile(fileName);
 		if (doc == null)
@@ -208,14 +232,14 @@ public class SimJobProcessor implements IDeviceProcessor
 				phase.Output_Good = StringUtil.parseDouble( job.getXPathAttribute("@Good", "0"),0.0 );
 				phase.Output_Waste = StringUtil.parseDouble( job.getXPathAttribute("@Waste", "0"),0.0 );
 
-				jobPhases.add(phase);
+				_jobPhases.add(phase);
 				counter++;
 			}
 		}
 		catch (Exception ex)
 		{
 			log.warn("error in importing jobs");
-			jobPhases.clear();
+			_jobPhases.clear();
 			return false;
 		}
 
@@ -240,19 +264,19 @@ public class SimJobProcessor implements IDeviceProcessor
 	{
 		if (randomTime > 0.0)
 		{
-			for (int i=0;i<jobPhases.size();i++)
+			for (int i=0;i<_jobPhases.size();i++)
 			{
-				double varyBy = Math.random()*randomTime*10.0;
-				if (Math.random()<0)
-					varyBy=varyBy*-1.0;
-				JobPhase phase=(JobPhase)jobPhases.get(i);
-				phase.duration=(int)(phase.duration*varyBy);
+				double varyBy = Math.random()*randomTime/100.0;
+				if (Math.random() < 0.5)
+					varyBy *= -1.0;
+				JobPhase phase=(JobPhase)_jobPhases.get(i);
+				phase.duration=phase.duration+(int)(phase.duration*varyBy);
 			}
 		}
 		
 		if (errorPoss > 0.0)
 		{
-			int numberOfErrors = (int) Math.round(errorPoss*jobPhases.size());
+			int numberOfErrors = (int)((errorPoss/100.0)*_jobPhases.size());
 			JobPhase errorPhase = new JobPhase();
 			errorPhase.deviceStatus = EnumDeviceStatus.Down;
 			errorPhase.deviceStatusDetails = "Random Bambi Error Phase";
@@ -262,11 +286,11 @@ public class SimJobProcessor implements IDeviceProcessor
 			for (int i=0;i<numberOfErrors;i++)
 			{
 				double rand = Math.random();
-				int insertErrorAtPos = (int)(rand*jobPhases.size());
+				int insertErrorAtPos = (int)(rand*_jobPhases.size());
 				errorPhase.duration=(int)(5000*rand);
 				if (Math.random()>0.5)
-					errorPhase.Output_Waste=(int)(100*rand);
-				jobPhases.add(insertErrorAtPos, errorPhase);
+					errorPhase.Output_Waste=100.0*rand;
+				_jobPhases.add(insertErrorAtPos, errorPhase);
 			}
 		}
 	}
@@ -316,14 +340,14 @@ public class SimJobProcessor implements IDeviceProcessor
         final String workStepID = node.getWorkStepID(partMap);
         _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
         		
-		if ( jobPhases.isEmpty() )
+		if ( _jobPhases.isEmpty() )
 		{
 			log.warn("unable to start the job, no job loaded");
 			return EnumQueueEntryStatus.Aborted;
 		}
-		for (int i=0;i<jobPhases.size();i++)
+		for (int i=0;i<_jobPhases.size();i++)
 		{
-			JobPhase phase = (JobPhase)jobPhases.get(i);
+			JobPhase phase = (JobPhase)_jobPhases.get(i);
 			_statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, 
 					phase.nodeStatus,phase.nodeStatusDetails);
 			try {
@@ -345,9 +369,9 @@ public class SimJobProcessor implements IDeviceProcessor
                 try
                 {
                     log.debug("waiting");
-                    synchronized (myListener)
+                    synchronized (_myListener)
                     {
-                        myListener.wait(10000); // just in case                        
+                        _myListener.wait(10000); // just in case                        
                     }
                 }
                 catch (InterruptedException x)

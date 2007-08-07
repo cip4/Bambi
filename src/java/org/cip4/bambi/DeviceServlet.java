@@ -100,7 +100,6 @@ import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -301,6 +300,17 @@ public class DeviceServlet extends HttpServlet
 		if(inStream==null)
 			inStream=request.getInputStream();
 		JDFDoc jmfDoc=p.parseStream(inStream);
+		processJMFDoc(request, response, jmfDoc);
+	}
+
+	/**
+	 * @param request
+	 * @param response
+	 * @param jmfDoc
+	 * @throws IOException
+	 */
+	private void processJMFDoc(HttpServletRequest request,
+			HttpServletResponse response, JDFDoc jmfDoc) {
 		if(jmfDoc==null)
 		{
 			processError(request, response, null, 3, "Error Parsing JMF");
@@ -317,7 +327,11 @@ public class DeviceServlet extends HttpServlet
 			if(responseJMF!=null)
 			{
 				response.setContentType(MimeUtil.VND_JMF);
-				responseJMF.write2Stream(response.getOutputStream(), 0, true);
+				try {
+					responseJMF.write2Stream(response.getOutputStream(), 0, true);
+				} catch (IOException e) {
+					log.error("cannot write to stream: ",e);
+				}
 			}
 			else
 			{
@@ -428,22 +442,7 @@ public class DeviceServlet extends HttpServlet
 			processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- not enough parts, bailing out ");
 			return;
 		}
-		final JDFCommand command = docJDF[0].getJMFRoot().getCommand(0);
-		JDFResponse r=_theQueue.addEntry(command, docJDF[1]);
-		if(r==null)
-		{
-			processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- queue rejected submission");
-			return;
-		}
-
-		try
-		{
-			r.getOwnerDocument_KElement().write2Stream(response.getOutputStream(),2,true);
-		}
-		catch (IOException x)
-		{
-			processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- error writing\n"+x.getMessage());
-		}
+		processJMFDoc(request, response, docJDF[0]);
 	}
 
 	/**

@@ -112,7 +112,7 @@ public class DeviceProcessor implements IDeviceProcessor
     public DeviceProcessor(IQueueProcessor queueProcessor, IStatusListener statusListener)
     {
         super();
-        init(queueProcessor,statusListener);
+        init(queueProcessor,statusListener, "");
     }
 
     /* (non-Javadoc)
@@ -254,7 +254,7 @@ public class DeviceProcessor implements IDeviceProcessor
         bCancel = true;
     }
 
-	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener) {
+	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID) {
         log.info("DeviceProcessor construct");
         _queueProcessor=queueProcessor;
         myListener=new Object();
