@@ -115,8 +115,8 @@ public class StatusListener implements IStatusListener
             if(!EnumFamily.Query.equals(inputMessage.getFamily()))
                 return false;
             
-            StatusCounter sc=getStatusCounter(queueEntryID, workstepID);
-            if(sc==null)
+            StatusCounter sc=getStatusCounter();
+            if(sc!=null)
             {
                 if( queueEntryID!=null)
                 {
@@ -127,7 +127,7 @@ public class StatusListener implements IStatusListener
                 response.appendDeviceInfo().setDeviceStatus(EnumDeviceStatus.Idle);
                 return true;
             }
-            return true;
+            return false;
         }
 
 
@@ -173,7 +173,7 @@ public class StatusListener implements IStatusListener
 
             
             JDFResourceInfo ri = response.appendResourceInfo();            
-            StatusCounter sc=getStatusCounter(queueEntryID, workstepID);
+            StatusCounter sc=getStatusCounter();
             if (sc != null)
             	ri.copyElement( sc.getDocJMFResource().getJMFRoot(),null );
             return true;
@@ -209,44 +209,38 @@ public class StatusListener implements IStatusListener
     /* (non-Javadoc)
      * @see org.cip4.bambi.IStatusListener#signalStatus(java.lang.String, java.lang.String, org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus, java.lang.String, org.cip4.jdflib.core.JDFElement.EnumNodeStatus, java.lang.String)
      */
-    public void signalStatus(String queueEntryID, String workstepID, EnumDeviceStatus deviceStatus,
-            String deviceStatusDetails, EnumNodeStatus nodeStatus, String nodeStatusDetails)
+    public void signalStatus(EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus,
+            String nodeStatusDetails)
     {
-       StatusCounter su=getStatusCounter(queueEntryID,workstepID);
+       StatusCounter su=getStatusCounter();
        if(su==null)
        {
-           log.error("updating null status tracker: "+queueEntryID+" "+workstepID);
+           log.error("updating null status tracker");
            return;
        }
        boolean bMod=su.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
        if(bMod)
-           dispatcher.triggerQueueEntry(queueEntryID, workstepID, -1);
+           dispatcher.triggerQueueEntry(su.getQueueEntryID(), su.getWorkStepID(), -1);
     }
 
     /**
-     * @param queueEntryID
-     * @param workstepID
      * @return
      */
-    private StatusCounter getStatusCounter(String queueEntryID, String workstepID)
+    private StatusCounter getStatusCounter()
     {
-        if(!ContainerUtil.equals(queueEntryID,activeQueueEntryID))
-            return null;
-        if(!ContainerUtil.equals(workstepID,activeWorkStepID))
-            return null;
         return theCounter;
     }
     /* (non-Javadoc)
      * @see org.cip4.bambi.IStatusListener#updateAmount(java.lang.String, java.lang.String, java.lang.String, double, double)
      */
-    public void updateAmount(String queueEntryID, String workstepID, String resID, double good, double waste)
+    public void updateAmount(String resID, double good, double waste)
     {
-        StatusCounter su=getStatusCounter(queueEntryID, workstepID);
+        StatusCounter su=getStatusCounter();
         if(su==null)
             return;
         su.addPhase(resID, good, waste);
         if(good>0)
-            dispatcher.triggerQueueEntry(queueEntryID, workstepID, (int)good);
+            dispatcher.triggerQueueEntry(su.getQueueEntryID(), su.getWorkStepID(), (int)good);
 
     }
 

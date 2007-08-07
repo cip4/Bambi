@@ -1,5 +1,7 @@
 package org.cip4.bambi;
 
+import org.cip4.jdflib.core.JDFDoc;
+
 /*--------------------------------------------------------------------------------------------------
  * The CIP4 Software License, Version 1.0
  *
@@ -82,5 +84,12 @@ public interface IJMFHandler
      * @param handler the handler associated with the event
      */
     public void addHandler(IMessageHandler handler);
-
+    
+    /**
+     * the big processing dispatcher
+     * 
+     * @param doc the JDFDoc holding the JMF which is to be processed
+     * @return the JDFDoc holding the JMF response
+     */
+    public JDFDoc processJMF(JDFDoc doc);
 }

@@ -91,60 +91,51 @@ import org.cip4.jdflib.resource.JDFDeviceList;
  * 
  */
 public class Device implements IJMFHandler  {
-	protected class QueueStatusHandler implements IMessageHandler
+	/**
+	 * 
+	 * handler for the knowndevices query
+	 */
+	protected class KnownDevicesHandler implements IMessageHandler
 	{
 	
-	    /* (non-Javadoc)
-	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-	     */
-	    public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
-	    {
-	    	// Queue --> handleMessage
-	        if(m==null || resp==null)
-	        {
-	            return false;
-	        }
-	        log.debug("Handling "+m.getType());
-	        EnumType typ=m.getEnumType();
-	        if(EnumType.QueueStatus.equals(typ))
-	        {
-	        	JDFQueue q = resp.appendQueue();
-	        	q.setDeviceID(_deviceID);
-	        	if (_theQueue != null)
-	        	{
-	        		q.setQueueStatus(_theQueue.getQueue().getQueueStatus());
-	        		return true;
-	        	}
-	        	else 
-	        	{
-	        		log.warn("queue is null");
-	        		return false;
-	        	}
-	        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 */
+		public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+		{
+			// "I am the known device"
+			if(m==null || resp==null)
+			{
+				return false;
+			}
+			log.debug("Handling"+m.getType());
+			EnumType typ=m.getEnumType();
+			if(EnumType.KnownDevices.equals(typ))
+			{
+				JDFDeviceList dl = resp.appendDeviceList();
+				appendDeviceInfo(dl);
+				return true;
+			}
 	
-	        return false;        
-	    }
+			return false;
+		}
 	
 	
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#getFamilies()
+		 */
+		public EnumFamily[] getFamilies()
+		{
+			return new EnumFamily[]{EnumFamily.Query};
+		}
 	
-	
-	
-	    /* (non-Javadoc)
-	     * @see org.cip4.bambi.IMessageHandler#getFamilies()
-	     */
-	    public EnumFamily[] getFamilies()
-	    {
-	        return new EnumFamily[]{EnumFamily.Query};
-	    }
-	
-	    /* (non-Javadoc)
-	     * @see org.cip4.bambi.IMessageHandler#getMessageType()
-	     */
-	    public EnumType getMessageType()
-	    {
-	        return EnumType.QueueStatus;
-	    }
-
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#getMessageType()
+		 */
+		public EnumType getMessageType()
+		{
+			return EnumType.KnownDevices;
+		}
 	}
 
 	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
@@ -161,18 +152,18 @@ public class Device implements IJMFHandler  {
 	 * @param deviceName
 	 * @param deviceID
 	 */
-	public Device(String deviceName, String deviceID, String deviceClass, JMFHandler jmfHandler)
+	public Device(String deviceName, String deviceID, String deviceClass)
 	{
 		log.info("creating device with name='" + deviceName + "', deviceID='"+deviceID+"'");
 		_deviceName = deviceName;
 		_deviceID = deviceID;
-		_jmfHandler = jmfHandler;
+		_jmfHandler = new JMFHandler();
 
         _theSignalDispatcher=new SignalDispatcher(_jmfHandler);
         _theSignalDispatcher.addHandlers(_jmfHandler);
 
 		_theQueue=new QueueProcessor(_theSignalDispatcher,deviceID);
-        _theQueue.addHandlers(jmfHandler);
+        _theQueue.addHandlers(_jmfHandler);
         _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
         _theStatusListener.addHandlers(_jmfHandler);
         
@@ -187,7 +178,11 @@ public class Device implements IJMFHandler  {
 		new Thread(_theDeviceProcessor).start();
 		log.info("device thread started");
 		
-		_jmfHandler.addHandler( this.new QueueStatusHandler() );
+		addHandlers();
+	}
+
+	private void addHandlers() {
+		_jmfHandler.addHandler( this.new KnownDevicesHandler() );
 	}
 
 	/* (non-Javadoc)
@@ -239,5 +234,9 @@ public class Device implements IJMFHandler  {
 	public void addHandler(IMessageHandler handler) {
 		_jmfHandler.addHandler(handler);
 		
+	}
+
+	public IJMFHandler getHandler() {
+		return _jmfHandler;
 	}
 }

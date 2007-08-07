@@ -84,29 +84,22 @@ public interface IStatusListener extends IMultiJMFHandler
     /**
      * updates the amount for a given resource
      * the amounts are collected but not signaled until setstatus is called
-     * 
-     * @param queueEntryID the queueentry id of the process step being processed
-     * @param workstepID the workstep id of the process step being processed, 
-     * set to null if the all partitions of the root are being processed
      * @param resID the resource id of the tracked resource
      * @param good the number of good copies
      * @param waste the number of waste copies, negative values specify that waste should be ignored
      */
-    void updateAmount(String queueEntryID,String workstepID, String resID, double good, double waste);
+    void updateAmount(String resID,double good, double waste);
     
     /**
      * update the status information by starting a new phase
      * all amounts that have been accumulated are linked to the prior phase
      * should be called after all amounts have been appropriately set
-     * @param queueEntryID the queueentry id of the process step being processed
-     * @param workstepID the workstep id of the process step being processed, 
-     * set to null if the all partitions of the root are being processed
      * @param deviceStatus
      * @param deviceStatusDetails
      * @param nodeStatus
      * @param nodeStatusDetails
      */
-    void signalStatus(String queueEntryID, String workstepID, EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus, String nodeStatusDetails);
+    void signalStatus(EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus, String nodeStatusDetails);
 
     /**
      * setup the map of queueentryid and node

@@ -314,9 +314,8 @@ public class SimJobProcessor implements IDeviceProcessor
 		for (int i=0;i<jobPhases.size();i++)
 		{
 			JobPhase phase = (JobPhase)jobPhases.get(i);
-			statusListener.signalStatus(queueEntryID, workStepID, 
-					phase.deviceStatus,phase.deviceStatusDetails,
-					phase.nodeStatus, phase.nodeStatusDetails);
+			statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, 
+					phase.nodeStatus,phase.nodeStatusDetails);
 			try {
 				Thread.sleep(phase.duration);
 			} catch (InterruptedException e) {

@@ -160,13 +160,69 @@ public class QueueProcessor implements IQueueProcessor
         }
     }
 
-    private static Log log = LogFactory.getLog(QueueProcessor.class.getName());
-    private File queueFile;
+    protected class QueueStatusHandler implements IMessageHandler
+	{
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+	     */
+	    public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+	    {
+	        if(m==null || resp==null)
+	        {
+	            return false;
+	        }
+	        log.debug("Handling "+m.getType());
+	        EnumType typ=m.getEnumType();
+	        if(EnumType.QueueStatus.equals(typ))
+	        {
+	        	JDFQueue q = resp.appendQueue();
+	        	
+	        	if (_theQueue != null)
+	        	{
+	        		q.setDeviceID( _theQueue.getDeviceID() );
+	        		q.setQueueStatus(_theQueue.getQueueStatus());
+	        		return true;
+	        	}
+	        	else 
+	        	{
+	        		log.error("queue is null");
+	        		return false;
+	        	}
+	        }
+	
+	        return false;        
+	    }
+	
+	
+	
+	
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getFamilies()
+	     */
+	    public EnumFamily[] getFamilies()
+	    {
+	        return new EnumFamily[]{EnumFamily.Query};
+	    }
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getMessageType()
+	     */
+	    public EnumType getMessageType()
+	    {
+	        return EnumType.QueueStatus;
+	    }
+	
+	}
+
+	private static Log log = LogFactory.getLog(QueueProcessor.class.getName());
+    private File _queueFile;
     private static final long serialVersionUID = -876551736245089033L;
-    private JDFQueue myQueue;
-    private Vector listeners;
+    private JDFQueue _theQueue;
+    private Vector _listeners;
  //   private IStatusListener statusListener;
-    private ISignalDispatcher signalDispatcher;
+    private ISignalDispatcher _signalDispatcher;
     private static final String jdfDir=DeviceServlet.baseDir+"JDFDir"+File.separator;
      
     public QueueProcessor(ISignalDispatcher _signalDispatcher, String deviceID)
@@ -181,40 +237,39 @@ public class QueueProcessor implements IQueueProcessor
     public void addHandlers(IJMFHandler jmfHandler)
     {
         jmfHandler.addHandler(this.new SubmitQueueEntryHandler());
+        jmfHandler.addHandler(this.new QueueStatusHandler());
     }
 
-    private void init(ISignalDispatcher _signalDispatcher, String deviceID) {
+    private void init(ISignalDispatcher signalDispatcher, String deviceID) {
     	
-        signalDispatcher=_signalDispatcher;
+        _signalDispatcher=signalDispatcher;
         log.info("QueueProcessor construct");
-        if (deviceID != "")
-        	deviceID = "_" + deviceID;
-        queueFile=new File(DeviceServlet.baseDir+File.separator+"theQueue"+deviceID+".xml");
-        queueFile.getParentFile().mkdirs();
+      	_queueFile=new File(DeviceServlet.baseDir+File.separator+"theQueue_"+deviceID+".xml");       
+        _queueFile.getParentFile().mkdirs();
         new File(jdfDir).mkdirs();
-        JDFDoc d=JDFDoc.parseFile(queueFile.getAbsolutePath());
+        JDFDoc d=JDFDoc.parseFile(_queueFile.getAbsolutePath());
         if(d!=null)
         {
             log.info("refreshing queue");
-            myQueue=(JDFQueue) d.getRoot();
+            _theQueue=(JDFQueue) d.getRoot();
             
         }
         else
         {
             d=new JDFDoc(ElementName.QUEUE);
             log.info("creating new queue");
-            myQueue=(JDFQueue) d.getRoot();
-            myQueue.setQueueStatus(EnumQueueStatus.Waiting);
+            _theQueue=(JDFQueue) d.getRoot();
+            _theQueue.setQueueStatus(EnumQueueStatus.Waiting);
         }
-        myQueue.setAutomated(true);
-        myQueue.setDeviceID(deviceID);
-        listeners=new Vector();
+        _theQueue.setAutomated(true);
+        _theQueue.setDeviceID(deviceID);
+        _listeners=new Vector();
 	}
 
     public IQueueEntry getNextEntry()
     {
         log.debug("getNextEntry");
-        JDFQueueEntry qe=myQueue.getNextExecutableQueueEntry();
+        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
         if(qe==null)
             return null;
         String docURL=BambiNSExtension.getDocURL(qe);
@@ -230,7 +285,7 @@ public class QueueProcessor implements IQueueProcessor
     public void addListener(Object o)
     {
         log.info("adding new listener");
-        listeners.add(o);        
+        _listeners.add(o);        
     }
 
      /* (non-Javadoc)
@@ -243,7 +298,7 @@ public class QueueProcessor implements IQueueProcessor
             log.error("error submitting new queueentry");
             return null;
         }
-        if(!myQueue.canAccept())
+        if(!_theQueue.canAccept())
             return null;
         
         JDFQueueSubmissionParams qsp=submitQueueEntry.getQueueSubmissionParams(0);
@@ -253,7 +308,7 @@ public class QueueProcessor implements IQueueProcessor
             return null;
         }
         
-        JDFResponse r=qsp.addEntry(myQueue, null);
+        JDFResponse r=qsp.addEntry(_theQueue, null);
         JDFQueueEntry newQE=r.getQueueEntry(0);
         if(r.getReturnCode()!=0 || newQE==null)
         {
@@ -276,7 +331,7 @@ public class QueueProcessor implements IQueueProcessor
         //statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);        
         if(queueEntryID!=null)
         {
-            signalDispatcher.addSubscriptions(node,queueEntryID); 
+            _signalDispatcher.addSubscriptions(node,queueEntryID); 
         }
         notifyListeners();
 
@@ -295,7 +350,7 @@ public class QueueProcessor implements IQueueProcessor
             return false;
         }
         String newQEID=newQE.getQueueEntryID();
-        newQE=myQueue.getEntry(newQEID);
+        newQE=_theQueue.getEntry(newQEID);
         if(newQE==null)
         {
             log.error("error fetching queueentry: QueueEntryID="+newQEID);
@@ -316,9 +371,9 @@ public class QueueProcessor implements IQueueProcessor
 
     private void notifyListeners()
     {
-        for(int i=0;i<listeners.size();i++)
+        for(int i=0;i<_listeners.size();i++)
         {
-            final Object elementAt = listeners.elementAt(i);
+            final Object elementAt = _listeners.elementAt(i);
             synchronized (elementAt)
             {
                 elementAt.notifyAll();               
@@ -332,8 +387,8 @@ public class QueueProcessor implements IQueueProcessor
      */
     private synchronized void persist()
     {
-        log.info("persisting queue to"+queueFile.getAbsolutePath());
-        myQueue.getOwnerDocument_KElement().write2File(queueFile.getAbsolutePath(), 0, true);
+        log.info("persisting queue to"+_queueFile.getAbsolutePath());
+        _theQueue.getOwnerDocument_KElement().write2File(_queueFile.getAbsolutePath(), 0, true);
     }
 
     /* (non-Javadoc)
@@ -341,7 +396,7 @@ public class QueueProcessor implements IQueueProcessor
      */
     public JDFQueue getQueue()
     {
-        return myQueue;
+        return _theQueue;
     }
 
     /* (non-Javadoc)
@@ -351,7 +406,7 @@ public class QueueProcessor implements IQueueProcessor
     {
         if(queueEntryID==null)
             return;
-        JDFQueueEntry qe=myQueue.getEntry(queueEntryID);
+        JDFQueueEntry qe=_theQueue.getEntry(queueEntryID);
         qe.setQueueEntryStatus(status);
         persist();
         notifyListeners();
@@ -362,8 +417,8 @@ public class QueueProcessor implements IQueueProcessor
      */
     public String toString()
     {
-        String s="[QueueProcessor: ] Status= "+myQueue.getQueueStatus().getName()+" Num Entries: "+myQueue.numEntries(null)+"\n Queue:\n";
-        s+=myQueue.toString();
+        String s="[QueueProcessor: ] Status= "+_theQueue.getQueueStatus().getName()+" Num Entries: "+_theQueue.numEntries(null)+"\n Queue:\n";
+        s+=_theQueue.toString();
         return s;
     }
 }

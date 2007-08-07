@@ -229,16 +229,16 @@ public class DeviceProcessor implements IDeviceProcessor
         JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
         final String workStepID = node.getWorkStepID(partMap);
         statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
-        statusListener.signalStatus(queueEntryID, workStepID, EnumDeviceStatus.Setup,"setup", EnumNodeStatus.Setup, "node steup");
+        statusListener.signalStatus(EnumDeviceStatus.Setup, "setup", EnumNodeStatus.Setup,"node steup");
         StatusCounter.sleep(1000);
         for(int i=0;i<5;i++)
         {
-            statusListener.signalStatus(queueEntryID, workStepID, EnumDeviceStatus.Running,"device running", EnumNodeStatus.InProgress, "moving");
+            statusListener.signalStatus(EnumDeviceStatus.Running, "device running", EnumNodeStatus.InProgress,"moving");
             StatusCounter.sleep(1000);
-            statusListener.signalStatus(queueEntryID, workStepID, EnumDeviceStatus.Running,"device running", EnumNodeStatus.Stopped, "paused");
+            statusListener.signalStatus(EnumDeviceStatus.Running, "device running", EnumNodeStatus.Stopped,"paused");
             StatusCounter.sleep(1000);
         }
-        statusListener.signalStatus(queueEntryID, workStepID, EnumDeviceStatus.Idle,"device completed", EnumNodeStatus.Completed, "done");
+        statusListener.signalStatus(EnumDeviceStatus.Idle, "device completed", EnumNodeStatus.Completed,"done");
         StatusCounter.sleep(1000);
         //TODO more
         //TODO better cleanup functionality - use cleanup thread

@@ -174,61 +174,7 @@ public class DeviceServlet extends HttpServlet
 			return EnumType.KnownDevices;
 		}
 	}
-    protected class QueueStatusHandler implements IMessageHandler
-	{
-	
-	    /* (non-Javadoc)
-	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-	     */
-	    public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
-	    {
-	        if(m==null || resp==null)
-	        {
-	            return false;
-	        }
-	        log.debug("Handling "+m.getType());
-	        EnumType typ=m.getEnumType();
-	        if(EnumType.QueueStatus.equals(typ))
-	        {
-	        	JDFQueue q = resp.appendQueue();
-	        	q.setDeviceID("Bambi root device");
-	        	if (_theQueue != null)
-	        	{
-	        		q.setQueueStatus(_theQueue.getQueue().getQueueStatus());
-	        		return true;
-	        	}
-	        	else 
-	        	{
-	        		log.warn("queue is null");
-	        		return false;
-	        	}
-	        }
-	
-	        return false;        
-	    }
-	
-	
-	
-	
-	
-	    /* (non-Javadoc)
-	     * @see org.cip4.bambi.IMessageHandler#getFamilies()
-	     */
-	    public EnumFamily[] getFamilies()
-	    {
-	        return new EnumFamily[]{EnumFamily.Query};
-	    }
-	
-	    /* (non-Javadoc)
-	     * @see org.cip4.bambi.IMessageHandler#getMessageType()
-	     */
-	    public EnumType getMessageType()
-	    {
-	        return EnumType.QueueStatus;
-	    }
-	
-	}
-	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
+    private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
 	public static final String baseDir=System.getProperty("catalina.base")+"/webapps/Bambi/"+"jmb"+File.separator;
 	public static final String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/"+"config"+File.separator;
 	
@@ -243,7 +189,7 @@ public class DeviceServlet extends HttpServlet
 	private ISignalDispatcher _theSignalDispatcher=null;
 	private IQueueProcessor _theQueue=null;
 	private IStatusListener _theStatusListener=null;
-	private String _deviceID = "Bambi root device";
+	public static String bambiRootDeviceID = "BambiRootDevice";
 
 
 	/** Initializes the servlet.
@@ -255,17 +201,15 @@ public class DeviceServlet extends HttpServlet
 		_devices = new HashMap();
 		// TODO make configurable
 		_jmfHandler=new JMFHandler();
-		_jmfHandler.addHandler( new DeviceServlet.KnownDevicesHandler() );
-		_jmfHandler.addHandler( new DeviceServlet.QueueStatusHandler() );
-		
+		addHandlers();
 		
 		_theSignalDispatcher=new SignalDispatcher(_jmfHandler);
 		_theSignalDispatcher.addHandlers(_jmfHandler);
 
-        _theStatusListener=new StatusListener(_theSignalDispatcher,_deviceID);
+        _theStatusListener=new StatusListener(_theSignalDispatcher,bambiRootDeviceID);
         _theStatusListener.addHandlers(_jmfHandler);
 		
-        _theQueue = new QueueProcessor(_theSignalDispatcher,"");
+        _theQueue = new QueueProcessor(_theSignalDispatcher,bambiRootDeviceID);
         _theQueue.addHandlers(_jmfHandler);
         
 		log.info("Initializing DeviceServlet");
@@ -365,14 +309,10 @@ public class DeviceServlet extends HttpServlet
 		{
 			// switch: sends the jmfDoc to correct device
 			JDFDoc responseJMF = null;
-			Device targetDevice = getTargetDevice(request);
-			if (targetDevice != null) {
-				log.info( "request forwarded to "+targetDevice.getDeviceID() );
-				responseJMF=targetDevice.processJMF(jmfDoc);
-			} else {
-				log.info( "request forwarded to root device" );
-				responseJMF=_jmfHandler.processJMF(jmfDoc);
-			}
+			IJMFHandler handler = getTargetHandler(request);
+			if (handler != null) {
+				responseJMF=handler.processJMF(jmfDoc);
+			} 
 			
 			if(responseJMF!=null)
 			{
@@ -386,14 +326,17 @@ public class DeviceServlet extends HttpServlet
 		}
 	}
 
-	private Device getTargetDevice(HttpServletRequest request) {
+	private IJMFHandler getTargetHandler(HttpServletRequest request) {
 		String deviceID = request.getPathInfo();
 		if (deviceID == null)
-			return null; // root folder
-		deviceID = StringUtil.token(request.getPathInfo(), 1, "/");
+			return _jmfHandler; // root folder
+		deviceID = StringUtil.token(deviceID, 0, "/");
 		if (deviceID == null)
-			return null; // device not found
-		return( (Device)_devices.get(deviceID) );
+			return _jmfHandler; // device not found
+		Device device = (Device)_devices.get(deviceID);
+		if (device == null)
+			return _jmfHandler; // device not found
+		return( device.getHandler() );
 	}
 	
 	/**
@@ -551,18 +494,13 @@ public class DeviceServlet extends HttpServlet
 		
 		if (_devices.get(deviceID) == null)
 		{	
-			if (_jmfHandler == null)
-			{
-				log.warn("JMFHandler is null, creating new handler..."); // needed for JUnit tests
-				_jmfHandler = new JMFHandler();
-			}
-			Device dev = new Device(deviceType, deviceID, deviceClass, _jmfHandler);
+			Device dev = new Device(deviceType, deviceID, deviceClass);
 			_devices.put(deviceID,dev);
 			return true;
 		}
 		else
 		{
-			log.debug("device already existing");
+			log.warn("device "+deviceID+" already existing");
 			return false;
 		}
 	}
@@ -653,5 +591,10 @@ public class DeviceServlet extends HttpServlet
 			return false;
 		}
 		return true;
+	}
+	
+	private void addHandlers()
+	{
+		_jmfHandler.addHandler( new DeviceServlet.KnownDevicesHandler() );
 	}
 }
