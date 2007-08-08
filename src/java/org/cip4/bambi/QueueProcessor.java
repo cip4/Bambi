@@ -80,8 +80,6 @@ import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.datatypes.JDFAttributeMap;
-import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
@@ -90,7 +88,6 @@ import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.UrlUtil;
 
 
@@ -182,6 +179,11 @@ public class QueueProcessor implements IQueueProcessor
 	        	{
 	        		q.setDeviceID( _theQueue.getDeviceID() );
 	        		q.setQueueStatus(_theQueue.getQueueStatus());
+	        		for (int i=0;i<_theQueue.getEntryCount();i++)
+	        		{
+	        			q.copyElement(_theQueue.getEntry(i), null);
+	        		}
+	        		
 	        		return true;
 	        	}
 	        	else 
@@ -221,14 +223,12 @@ public class QueueProcessor implements IQueueProcessor
     private static final long serialVersionUID = -876551736245089033L;
     private JDFQueue _theQueue;
     private Vector _listeners;
- //   private IStatusListener statusListener;
-    private ISignalDispatcher _signalDispatcher;
     private static final String jdfDir=DeviceServlet.baseDir+"JDFDir"+File.separator;
      
     public QueueProcessor(ISignalDispatcher _signalDispatcher, String deviceID)
     {
 		super();
-		this.init(_signalDispatcher, deviceID);
+		this.init(deviceID);
     }
     
     /**
@@ -240,9 +240,8 @@ public class QueueProcessor implements IQueueProcessor
         jmfHandler.addHandler(this.new QueueStatusHandler());
     }
 
-    private void init(ISignalDispatcher signalDispatcher, String deviceID) {
-    	
-        _signalDispatcher=signalDispatcher;
+    private void init(String deviceID) 
+    {
         log.info("QueueProcessor construct");
       	_queueFile=new File(DeviceServlet.baseDir+File.separator+"theQueue_"+deviceID+".xml");       
         _queueFile.getParentFile().mkdirs();
@@ -322,20 +321,7 @@ public class QueueProcessor implements IQueueProcessor
             log.error("error storing queueentry: "+r.getReturnCode());
         }
         persist();
-
-        VJDFAttributeMap vPartMap=newQE.getPartMapVector();
-        JDFNode node=theJDF.getJDFRoot();
-        JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
-        final String workStepID = node.getWorkStepID(partMap);
-        final String queueEntryID = newQE.getQueueEntryID();
-        //TODO erst beim starten - nicht schon beim einqueuen
-        //statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);        
-        if(queueEntryID!=null)
-        {
-            _signalDispatcher.addSubscriptions(node,queueEntryID); 
-        }
         notifyListeners();
-
         return r;
     }
 

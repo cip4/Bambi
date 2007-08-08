@@ -89,9 +89,9 @@ import org.cip4.jdflib.util.StatusCounter;
 
 
 /**
- *
+ * Rainers device processor. Use SimJobProcessor for sim jobs.
  * @author  rainer
- *
+ * @see org.cip4.bambi.SimJopProcessor
  *
  */
 public class DeviceProcessor implements IDeviceProcessor 

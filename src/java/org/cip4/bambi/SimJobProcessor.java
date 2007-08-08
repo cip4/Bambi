@@ -308,6 +308,11 @@ public class SimJobProcessor implements IDeviceProcessor
         final String queueEntryID = qe.getQueueEntryID();
         log.info("Processing queueentry"+queueEntryID);
         JDFNode node=doc.getJDFRoot();
+        VJDFAttributeMap vPartMap=qe.getPartMapVector();
+        JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
+        final String workStepID = node.getWorkStepID(partMap);
+        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);
+
         VElement v=node.getResourceLinks(null);
         int vSiz=v==null ? 0 : v.size();
         String inConsume=null;
@@ -335,9 +340,6 @@ public class SimJobProcessor implements IDeviceProcessor
 
         }
         String trackResourceID= inConsume !=null ? inConsume : outQuantity;
-        VJDFAttributeMap vPartMap=qe.getPartMapVector();
-        JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
-        final String workStepID = node.getWorkStepID(partMap);
         _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
         		
 		if ( _jobPhases.isEmpty() )
@@ -368,7 +370,8 @@ public class SimJobProcessor implements IDeviceProcessor
             {
                 try
                 {
-                    log.debug("waiting");
+                	if (log!=null)
+                		log.debug("waiting");
                     synchronized (_myListener)
                     {
                         _myListener.wait(10000); // just in case                        
@@ -385,7 +388,11 @@ public class SimJobProcessor implements IDeviceProcessor
 	private boolean processQueueEntry()
     {
         IQueueEntry iqe=_queueProcessor.getNextEntry();
-        log.debug("processing:"+((iqe==null) ? " nothing " : iqe.getQueueEntry()==null ? "nothing" : iqe.getQueueEntry().getQueueEntryID()));
+        if (iqe!=null)
+        	if (iqe.getQueueEntry() != null)
+        		if (iqe.getQueueEntry().getQueueEntryID() != null)
+        			log.debug("processing: "+iqe.getQueueEntry().getQueueEntryID());
+       
         if(iqe==null)
             return false;
         JDFDoc doc=iqe.getJDF();
@@ -404,6 +411,7 @@ public class SimJobProcessor implements IDeviceProcessor
             qes=processDoc(doc,qe);
             qe.setQueueEntryStatus(qes);
             _queueProcessor.updateEntry(queueEntryID, qes);
+            returnQueueEntry(iqe);
             log.info("finalized processing JDF: ");
         }
         catch(Exception x)
@@ -416,5 +424,8 @@ public class SimJobProcessor implements IDeviceProcessor
         return true;
     }
 
-
+	private void returnQueueEntry(IQueueEntry iqe)
+	{
+		
+	}
 }

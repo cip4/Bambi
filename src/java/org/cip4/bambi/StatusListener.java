@@ -255,6 +255,8 @@ public class StatusListener implements IStatusListener
         activeWorkStepID=workStepID;
         theCounter.setQueueEntryID(queueEntryID);
         theCounter.setWorkStepID(workStepID);
+        // TODO alte Subscriptions löschen!
+        dispatcher.addSubscriptions(node,queueEntryID);
     }
 
     /**
