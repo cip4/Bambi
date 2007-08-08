@@ -365,7 +365,6 @@ public class SignalDispatcher implements ISignalDispatcher
          */
         public Object clone()
         {
-            // TODO Auto-generated method stub
             MsgSubscription c;
             try
             {

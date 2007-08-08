@@ -71,6 +71,7 @@
 package org.cip4.bambi;
 
 import java.io.File;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.util.Vector;
 
@@ -353,7 +354,6 @@ public class QueueProcessor implements IQueueProcessor
             return false;
         }
         String theDocFile=DeviceServlet.jdfDir+newQEID+".jdf";
-        // TODO _NB_ set attrib first, then write to file
         theJDF.write2File(theDocFile, 0, true);
         try
         {
@@ -440,8 +440,11 @@ public class QueueProcessor implements IQueueProcessor
         JDFDoc docJDF = p.parseFile( BambiNSExtension.getDocURL(qe) );
         Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
         try {
-			if (MimeUtil.writeToURL(mp, returnURL ) != null)
-				log.info("returnQueueEntry for "+qe.getQueueEntryID()+" has been send.");
+        	HttpURLConnection response = MimeUtil.writeToURL(mp, returnURL);
+        	if (response.getResponseCode() == 200)
+        		log.info("returnQueueEntry for "+qe.getQueueEntryID()+" has been send.");
+        	else
+        		log.error("failed to send RequestQueueEntry. Response: "+response.toString());
 		} catch (Exception e) {
 			log.error("failed to send ReturnQueueEntry: "+e);
 		}
