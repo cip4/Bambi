@@ -83,5 +83,4 @@ public interface IQueueEntry
 
     public JDFDoc getJDF();
     public JDFQueueEntry getQueueEntry();
-    
 }

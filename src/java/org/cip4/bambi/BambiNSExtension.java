@@ -108,6 +108,26 @@ public class BambiNSExtension
         return getMyNSAttribute(qe,docURL);
     }
         
+    public static String returnURL="ReturnURL";
+    /**
+      * 
+      * @param qe the JDFQueueEntry to set
+      * @param theReturnURL the queuentryid within the prinect system
+      */
+     public static void setReturnURL(JDFQueueEntry qe, String theReturnURL)
+     {
+         setMyNSAttribute(qe,returnURL,theReturnURL);       
+     }
+     
+     /**
+      * @param qe the JDFQueueEntry to work on
+      * @return
+      */
+     public static String getReturnURL(JDFQueueEntry qe)
+     {
+         return getMyNSAttribute(qe,returnURL);
+     }
+    
     /**
      * 
      * @param e the element to work on

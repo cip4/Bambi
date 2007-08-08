@@ -75,7 +75,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
@@ -147,7 +146,6 @@ public class SimJobProcessor implements IDeviceProcessor
 	}
 
 	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
-	public static final String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/config"+File.separator;
 	private List _jobPhases = null;
 	private static final long serialVersionUID = -256551569245084031L;
 	private boolean bCancel=false;
@@ -204,7 +202,7 @@ public class SimJobProcessor implements IDeviceProcessor
 		// if fileName has no "/" or "\" it is assumed to be on the server and 
 		// needs the config dir to be added
 		if ( !fileName.contains(File.separator) )  
-			fileName = configDir+fileName;
+			fileName = DeviceServlet.configDir+fileName;
 		
 		_jobPhases = new ArrayList();
 		JDFParser p = new JDFParser();
@@ -403,7 +401,7 @@ public class SimJobProcessor implements IDeviceProcessor
             return false;
         qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
         final String queueEntryID = qe.getQueueEntryID();
-        _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Running);
+         _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Running);
         EnumQueueEntryStatus qes=null;
         try
         {
@@ -411,7 +409,6 @@ public class SimJobProcessor implements IDeviceProcessor
             qes=processDoc(doc,qe);
             qe.setQueueEntryStatus(qes);
             _queueProcessor.updateEntry(queueEntryID, qes);
-            returnQueueEntry(iqe);
             log.info("finalized processing JDF: ");
         }
         catch(Exception x)
@@ -423,9 +420,4 @@ public class SimJobProcessor implements IDeviceProcessor
         
         return true;
     }
-
-	private void returnQueueEntry(IQueueEntry iqe)
-	{
-		
-	}
 }

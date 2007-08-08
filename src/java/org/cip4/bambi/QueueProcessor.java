@@ -74,20 +74,28 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Vector;
 
+import javax.mail.Multipart;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
+import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFCommand;
+import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 
@@ -121,9 +129,10 @@ public class QueueProcessor implements IQueueProcessor
                 if(qsp!=null)
                 {
                     JDFDoc doc=qsp.getURLDoc();
+
                     if(doc!=null)
                     {
-                        JDFResponse r2=addEntry((JDFCommand)m, doc);
+                        JDFResponse r2=addEntry((JDFCommand)m, doc, qsp.getReturnJMF());
                         if(r2!=null)
                         {
                             resp.mergeElement(r2, false);
@@ -223,7 +232,6 @@ public class QueueProcessor implements IQueueProcessor
     private static final long serialVersionUID = -876551736245089033L;
     private JDFQueue _theQueue;
     private Vector _listeners;
-    private static final String jdfDir=DeviceServlet.baseDir+"JDFDir"+File.separator;
      
     public QueueProcessor(ISignalDispatcher _signalDispatcher, String deviceID)
     {
@@ -245,7 +253,7 @@ public class QueueProcessor implements IQueueProcessor
         log.info("QueueProcessor construct");
       	_queueFile=new File(DeviceServlet.baseDir+File.separator+"theQueue_"+deviceID+".xml");       
         _queueFile.getParentFile().mkdirs();
-        new File(jdfDir).mkdirs();
+        new File(DeviceServlet.jdfDir).mkdirs();
         JDFDoc d=JDFDoc.parseFile(_queueFile.getAbsolutePath());
         if(d!=null)
         {
@@ -291,7 +299,7 @@ public class QueueProcessor implements IQueueProcessor
      /* (non-Javadoc)
      * @see org.cip4.bambi.IQueueProcessor#addEntry(org.cip4.jdflib.jmf.JDFCommand, org.cip4.jdflib.core.JDFDoc)
      */
-    public JDFResponse addEntry(JDFCommand submitQueueEntry, JDFDoc theJDF)
+    public JDFResponse addEntry(JDFCommand submitQueueEntry, JDFDoc theJDF, String returnURL)
     {
         if(submitQueueEntry==null || theJDF==null)
         {
@@ -310,13 +318,14 @@ public class QueueProcessor implements IQueueProcessor
         
         JDFResponse r=qsp.addEntry(_theQueue, null);
         JDFQueueEntry newQE=r.getQueueEntry(0);
+       
         if(r.getReturnCode()!=0 || newQE==null)
         {
             log.error("error submitting queueentry: "+r.getReturnCode());
             return r;
         }
         //       myQueue.replaceElement(r.getQueue(0));   // copy the updated queue  
-        if(!storeDoc(newQE,theJDF))
+        if(!storeDoc(newQE,theJDF,returnURL))
         {
             log.error("error storing queueentry: "+r.getReturnCode());
         }
@@ -329,7 +338,7 @@ public class QueueProcessor implements IQueueProcessor
      * @param newQE
      * @param theJDF
      */
-    private boolean storeDoc(JDFQueueEntry newQE, JDFDoc theJDF)
+    private boolean storeDoc(JDFQueueEntry newQE, JDFDoc theJDF, String returnURL)
     {
         if(newQE==null || theJDF==null)
         {
@@ -343,16 +352,19 @@ public class QueueProcessor implements IQueueProcessor
             log.error("error fetching queueentry: QueueEntryID="+newQEID);
             return false;
         }
-        String theDocFile=jdfDir+newQEID+".jdf";
+        String theDocFile=DeviceServlet.jdfDir+newQEID+".jdf";
+        // TODO _NB_ set attrib first, then write to file
         theJDF.write2File(theDocFile, 0, true);
         try
         {
-            BambiNSExtension.setDocURL(newQE, UrlUtil.fileToUrl(new File(theDocFile), false));
+        	BambiNSExtension.setDocURL( newQE,UrlUtil.fileToUrl(new File(theDocFile),false) );
+        	BambiNSExtension.setReturnURL(newQE, returnURL);
         }
         catch (MalformedURLException x)
         {
             log.error("invalid file name: "+theDocFile);
         }
+
         return true;
     }
 
@@ -369,12 +381,12 @@ public class QueueProcessor implements IQueueProcessor
     }
 
     /**
-     * make the memory queue persistant
+     * make the memory queue persistent
      *
      */
     private synchronized void persist()
     {
-        log.info("persisting queue to"+_queueFile.getAbsolutePath());
+        log.info("persisting queue to "+_queueFile.getAbsolutePath());
         _theQueue.getOwnerDocument_KElement().write2File(_queueFile.getAbsolutePath(), 0, true);
     }
 
@@ -395,6 +407,8 @@ public class QueueProcessor implements IQueueProcessor
             return;
         JDFQueueEntry qe=_theQueue.getEntry(queueEntryID);
         qe.setQueueEntryStatus(status);
+        if (status == EnumQueueEntryStatus.Completed || status == EnumQueueEntryStatus.Aborted)
+        	returnQueueEntry(qe);
         persist();
         notifyListeners();
     }
@@ -408,4 +422,28 @@ public class QueueProcessor implements IQueueProcessor
         s+=_theQueue.toString();
         return s;
     }
+    
+    private void returnQueueEntry(JDFQueueEntry qe)
+	{
+		JDFDoc docJMF=new JDFDoc("JMF");
+        JDFJMF jmf=docJMF.getJMFRoot();
+        JDFCommand com=(JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.ReturnQueueEntry);
+        JDFReturnQueueEntryParams qerp = com.appendReturnQueueEntryParams();
+        // TODO set real node IDs
+        if (qe.getStatus() == EnumNodeStatus.Completed)
+        	qerp.setCompleted( new VString("root",null) );
+        else if (qe.getStatus() == EnumNodeStatus.Aborted)
+        	qerp.setAborted( new VString("root",null) );
+        String returnURL=BambiNSExtension.getReturnURL(qe);
+        qerp.setURL(returnURL);
+        JDFParser p = new JDFParser();
+        JDFDoc docJDF = p.parseFile( BambiNSExtension.getDocURL(qe) );
+        Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
+        try {
+			if (MimeUtil.writeToURL(mp, returnURL ) != null)
+				log.info("returnQueueEntry for "+qe.getQueueEntryID()+" has been send.");
+		} catch (Exception e) {
+			log.error("failed to send ReturnQueueEntry: "+e);
+		}
+	}
 }

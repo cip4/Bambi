@@ -174,8 +174,9 @@ public class DeviceServlet extends HttpServlet
 		}
 	}
     private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
-	public static final String baseDir=System.getProperty("catalina.base")+"/webapps/Bambi/"+"jmb"+File.separator;
-	public static final String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/"+"config"+File.separator;
+	public static final String baseDir=System.getProperty("catalina.base")+"/webapps/Bambi/jmb"+File.separator;
+	public static final String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/config"+File.separator;
+	public static final String jdfDir=baseDir+"JDFDir"+File.separator;
 	
 
 
@@ -378,7 +379,9 @@ public class DeviceServlet extends HttpServlet
 			// create a simple dummy sqe and submit to myself
 			JDFQueueSubmissionParams qsp=command.getCreateQueueSubmissionParams(0);
 			qsp.setPriority(50);
-			JDFResponse r=_theQueue.addEntry(command, doc);
+			JDFResponse r=_theQueue.addEntry(command, doc, qsp.getReturnURL());
+			if (r == null)
+				log.warn("_theQueue.addEntry returned null");
 		}
 	}
 
