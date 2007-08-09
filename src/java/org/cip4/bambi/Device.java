@@ -137,7 +137,7 @@ public class Device implements IJMFHandler  {
 		}
 	}
 
-	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
+	private static Log log = LogFactory.getLog(Device.class.getName());
 	private String _deviceName = "";
 	private String _deviceID = "";
 	private IQueueProcessor _theQueue=null;

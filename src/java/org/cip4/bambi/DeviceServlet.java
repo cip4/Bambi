@@ -187,7 +187,7 @@ public class DeviceServlet extends HttpServlet
 	private JMFHandler _jmfHandler=null;
 	private HashMap _devices = null;
 	private ISignalDispatcher _theSignalDispatcher=null;
-	private IQueueProcessor _theQueue=null;
+	private IQueueProcessor _theQueueProcessor=null;
 	private IStatusListener _theStatusListener=null;
 	public static String bambiRootDeviceID = "BambiRootDevice";
 
@@ -209,8 +209,8 @@ public class DeviceServlet extends HttpServlet
         _theStatusListener=new StatusListener(_theSignalDispatcher,bambiRootDeviceID);
         _theStatusListener.addHandlers(_jmfHandler);
 		
-        _theQueue = new QueueProcessor(_theSignalDispatcher,bambiRootDeviceID);
-        _theQueue.addHandlers(_jmfHandler);
+        _theQueueProcessor = new QueueProcessor(_theSignalDispatcher,bambiRootDeviceID);
+        _theQueueProcessor.addHandlers(_jmfHandler);
         
 		log.info("Initializing DeviceServlet");
 		loadBambiProperties();
@@ -379,7 +379,7 @@ public class DeviceServlet extends HttpServlet
 			// create a simple dummy sqe and submit to myself
 			JDFQueueSubmissionParams qsp=command.getCreateQueueSubmissionParams(0);
 			qsp.setPriority(50);
-			JDFResponse r=_theQueue.addEntry(command, doc, qsp.getReturnURL());
+			JDFResponse r=_theQueueProcessor.addEntry(command, doc, qsp.getReturnURL());
 			if (r == null)
 				log.warn("_theQueue.addEntry returned null");
 		}
@@ -488,6 +488,7 @@ public class DeviceServlet extends HttpServlet
 	 */
 	public boolean createDevice(String deviceID, String deviceType, String deviceClass)
 	{
+		log.debug("created device");
 		if (_devices == null)
 		{
 			log.warn("map of devices is null, re-initialising map...");

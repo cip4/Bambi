@@ -91,6 +91,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.jmf.JDFQueueEntryDef;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
@@ -228,6 +229,75 @@ public class QueueProcessor implements IQueueProcessor
 	
 	}
 
+	protected class AbortQueueEntryHandler implements IMessageHandler
+	{
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+	     */
+	    public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+	    {
+	        if(m==null || resp==null)
+	        {
+	            return false;
+	        }
+	        log.debug("Handling"+m.getType());
+	        EnumType typ=m.getEnumType();
+	        //TODO handle errors
+	        if(EnumType.AbortQueueEntry.equals(typ))
+	        {
+	            JDFQueueEntryDef def = m.getQueueEntryDef(0);
+	            if (m == null)
+	            	log.error("AbortQueueEntry contains no QueueEntryDef");
+	            	
+	            String qeid = def.getQueueEntryID();
+	            if (qeid == null)
+	            	log.error("QueueEntryID does not contain any QueueEntryID");	            
+	            log.debug("processing AbortQueueEntry for "+qeid);
+	            
+	            for (int i=0;i<_theQueue.getEntryCount();i++)
+	    		{
+	    			JDFQueueEntry qe =_theQueue.getEntry(i);
+	      			if (qe.getQueueEntryID().equals(qeid))
+	    			{
+	    				qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
+	    				JDFQueue q = resp.appendQueue();
+	    				q.copyElement(qe, null);
+	    				log.debug("aborted QueueEntry with ID="+qeid); 				
+	    				return true;
+	    			}
+	    		}
+	            
+	            log.error("failed to abort QueueEntry with ID="+qeid+", QueueEntry does not exist.");
+	            resp.setReturnCode(105);
+	            resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
+	            return true;
+	        }
+	
+	        return false;        
+	    }
+	
+	
+	
+	
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getFamilies()
+	     */
+	    public EnumFamily[] getFamilies()
+	    {
+	        return new EnumFamily[]{EnumFamily.Command};
+	    }
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getMessageType()
+	     */
+	    public EnumType getMessageType()
+	    {
+	        return EnumType.AbortQueueEntry;
+	    }
+	}
+
 	private static Log log = LogFactory.getLog(QueueProcessor.class.getName());
     private File _queueFile;
     private static final long serialVersionUID = -876551736245089033L;
@@ -247,6 +317,7 @@ public class QueueProcessor implements IQueueProcessor
     {
         jmfHandler.addHandler(this.new SubmitQueueEntryHandler());
         jmfHandler.addHandler(this.new QueueStatusHandler());
+        jmfHandler.addHandler(this.new AbortQueueEntryHandler());
     }
 
     private void init(String deviceID) 
@@ -280,7 +351,10 @@ public class QueueProcessor implements IQueueProcessor
     		log.debug("getNextEntry");
         JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
         if(qe==null)
+        {
+        	// TODO query parent device for next qe
             return null;
+        }
         String docURL=BambiNSExtension.getDocURL(qe);
         docURL=UrlUtil.urlToFile(docURL).getAbsolutePath();
         JDFDoc doc=JDFDoc.parseFile(docURL);

@@ -145,13 +145,13 @@ public class SimJobProcessor implements IDeviceProcessor
 
 	}
 
-	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
+	private static Log log = LogFactory.getLog(SimJobProcessor.class.getName());
 	private List _jobPhases = null;
 	private static final long serialVersionUID = -256551569245084031L;
-	private boolean bCancel=false;
 	private IQueueProcessor _queueProcessor;
 	private IStatusListener _statusListener;
 	private Object _myListener; // the mutex for waiting and reawakening
+	public boolean isPaused=false;
 	
     /**
      * constructor
@@ -293,10 +293,6 @@ public class SimJobProcessor implements IDeviceProcessor
 		}
 	}
 
-	public void cancel() {
-		bCancel = true;
-	}
-
 	public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
 		if(qe==null || doc==null)
         {
@@ -351,19 +347,46 @@ public class SimJobProcessor implements IDeviceProcessor
 			_statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, 
 					phase.nodeStatus,phase.nodeStatusDetails);
 			try {
-				Thread.sleep(phase.duration);
+				int repeats = (int)(phase.duration/1000);
+				int remainder = phase.duration % 1000;
+				for (int j=0;j < repeats; j++)
+				{
+					if (qe.getStatus()==EnumNodeStatus.Aborted)
+						return abortQueueEntry();
+					else
+						Thread.sleep(1000);
+				}
+				if (qe.getStatus()==EnumNodeStatus.Aborted)
+					return abortQueueEntry();
+				else
+					Thread.sleep(remainder);
+				
 			} catch (InterruptedException e) {
 				log.warn("interrupted while sleeping");
 			}
-			// TODO update output
+			// TODO update amount
+//			_statusListener.updateAmount(resID, good, waste)
 			
 		}
 		return EnumQueueEntryStatus.Completed;
 	}
 
+	/**
+	 * @return
+	 */
+	private EnumQueueEntryStatus abortQueueEntry() {
+		_statusListener.signalStatus(EnumDeviceStatus.Cleanup, "cleaning up the aborted job", EnumNodeStatus.Cleanup, "cleaning up the aborted job");
+		try {
+			Thread.sleep(1500);
+		} catch (InterruptedException e) {
+			log.error("interrupted while cleaning up the aborted job");
+		}
+		return EnumQueueEntryStatus.Aborted;
+	}
+
 	public void run() {
-		while(!bCancel)
-        {
+		while (true)
+		{
             if(!processQueueEntry())
             {
                 try
@@ -377,16 +400,16 @@ public class SimJobProcessor implements IDeviceProcessor
                 }
                 catch (InterruptedException x)
                 {
-                    bCancel=true;
+                    log.error("interrupted while idle");
                 }
             }
-        }
+		}
 	}
 	
 	private boolean processQueueEntry()
     {
         IQueueEntry iqe=_queueProcessor.getNextEntry();
-        if (iqe!=null)
+        if (iqe!=null) // is there a new  QueueEntry to process?
         	if (iqe.getQueueEntry() != null)
         		if (iqe.getQueueEntry().getQueueEntryID() != null)
         			log.debug("processing: "+iqe.getQueueEntry().getQueueEntryID());
@@ -420,4 +443,9 @@ public class SimJobProcessor implements IDeviceProcessor
         
         return true;
     }
+
+	public void cancel() {
+		// TODO Auto-generated method stub
+		
+	}
 }
