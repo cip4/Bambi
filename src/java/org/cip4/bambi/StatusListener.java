@@ -110,21 +110,16 @@ public class StatusListener implements IStatusListener
             if(!EnumFamily.Query.equals(inputMessage.getFamily()))
                 return false;
             
-            StatusCounter sc=theCounter;
-            if(sc!=null)
-            {
-                if( !KElement.isWildCard(queueEntryID) && queueEntryID.equals(sc.getQueueEntryID()))
+                if( !KElement.isWildCard(queueEntryID) && queueEntryID.equals(theCounter.getQueueEntryID()))
                 {
                     response.setErrorText("No matching queuentry found");
                     log.error("No matching queuentry found");
                     return true;
                 }
-                JDFDoc docJMF=sc.getDocJMFPhaseTime();
+                JDFDoc docJMF=theCounter.getDocJMFPhaseTime();
                 JDFResponse r=docJMF.getJMFRoot().getResponse(0);
                 response.mergeElement(r, false);
                 return true;
-            }
-            return false;
         }
 
 

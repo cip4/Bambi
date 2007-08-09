@@ -101,7 +101,7 @@ public interface IQueueProcessor extends IMultiJMFHandler
      * @param theJDF the referenced jdf doc
      * @return 
      */
-    public JDFResponse addEntry(JDFCommand sumitQueueEntry, JDFDoc theJDF, String returnURL);
+    public JDFResponse addEntry(JDFCommand sumitQueueEntry, JDFDoc theJDF);
     
     /**
      * updated an entry in the queue 

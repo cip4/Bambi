@@ -127,6 +127,26 @@ public class BambiNSExtension
      {
          return getMyNSAttribute(qe,returnURL);
      }
+     
+     public static String returnJMF="ReturnJMF";
+     /**
+       * 
+       * @param qe the JDFQueueEntry to set
+       * @param theReturnJMF the queuentryid within the prinect system
+       */
+      public static void setReturnJMF(JDFQueueEntry qe, String theReturnJMF)
+      {
+          setMyNSAttribute(qe,returnJMF,theReturnJMF);       
+      }
+      
+      /**
+       * @param qe the JDFQueueEntry to work on
+       * @return
+       */
+      public static String getReturnJMF(JDFQueueEntry qe)
+      {
+          return getMyNSAttribute(qe,returnJMF);
+      }
     
     /**
      * 

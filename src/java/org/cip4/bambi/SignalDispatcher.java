@@ -357,6 +357,11 @@ public class SignalDispatcher implements ISignalDispatcher
             JDFSignal s=jmf.getSignal(0);
             s.convertResponse(r, q);
             JDFDoc resp=new JDFDoc(jmf.getOwnerDocument()).write2URL(url);
+            if (resp==null)
+            {
+            	log.error("failed to write to "+url);
+            	return;
+            }
             // TODO error handling
             
         }

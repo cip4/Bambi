@@ -379,7 +379,7 @@ public class DeviceServlet extends HttpServlet
 			// create a simple dummy sqe and submit to myself
 			JDFQueueSubmissionParams qsp=command.getCreateQueueSubmissionParams(0);
 			qsp.setPriority(50);
-			JDFResponse r=_theQueueProcessor.addEntry(command, doc, qsp.getReturnURL());
+			JDFResponse r=_theQueueProcessor.addEntry(command, doc);
 			if (r == null)
 				log.warn("_theQueue.addEntry returned null");
 		}

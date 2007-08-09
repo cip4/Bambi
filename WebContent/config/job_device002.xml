@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <BambiJob>
 	<JobPhase Duration="7500" Good="0" Waste="0" 
-		DeviceStatus="Setup" DeviceStatusDetails="setting up" 
+		DeviceStatus="Setup" DeviceStatusDetails="WarmingUp" 
 		NodeStatus="Setup" NodeStatusDetails="node setup" />
 	<JobPhase Duration="15000" Good="120" Waste="0" 
-		DeviceStatus="Running" DeviceStatusDetails="producing good" 
-		NodeStatus="InProgress" NodeStatusDetails="executing node" />
+		DeviceStatus="Running" DeviceStatusDetails="Good" 
+		NodeStatus="InProgress" NodeStatusDetails="producing good" />
 	<JobPhase Duration="8000" Good="0" Waste="80" 
-		DeviceStatus="Running" DeviceStatusDetails="producing waste" 
-		NodeStatus="InProgress" NodeStatusDetails="executing node" />
+		DeviceStatus="Running" DeviceStatusDetails="Waste" 
+		NodeStatus="InProgress" NodeStatusDetails="producing waste" />
 	<JobPhase Duration="12000" Good="90" Waste="0" 
-		DeviceStatus="Running" DeviceStatusDetails="producing good" 
-		NodeStatus="InProgress" NodeStatusDetails="executing node" />
+		DeviceStatus="Running" DeviceStatusDetails="Good" 
+		NodeStatus="InProgress" NodeStatusDetails="producing good" />
 	<JobPhase Duration="5000" Good="0" Waste="0" 
-		DeviceStatus="Cleanup" DeviceStatusDetails="cleaning after production" 
+		DeviceStatus="Cleanup" DeviceStatusDetails="WashUp" 
 		NodeStatus="Cleanup" NodeStatusDetails="cleaning up" />
 </BambiJob>

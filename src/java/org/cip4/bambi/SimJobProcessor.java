@@ -351,7 +351,10 @@ public class SimJobProcessor implements IDeviceProcessor
 				int remainder = phase.duration % 1000;
 				for (int j=0;j < repeats; j++)
 				{
-					if (qe.getStatus()==EnumNodeStatus.Aborted)
+					EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+					if (status==EnumQueueEntryStatus.Suspended)
+						suspendQueueEntry(qe);
+					else if (status==EnumQueueEntryStatus.Aborted)
 						return abortQueueEntry();
 					else
 						Thread.sleep(1000);
@@ -368,6 +371,8 @@ public class SimJobProcessor implements IDeviceProcessor
 //			_statusListener.updateAmount(resID, good, waste)
 			
 		}
+		_statusListener.signalStatus(EnumDeviceStatus.Idle, "Idle", EnumNodeStatus.Completed, "job completed");
+		_statusListener.setNode(null, null, null, null, null);
 		return EnumQueueEntryStatus.Completed;
 	}
 
@@ -375,13 +380,25 @@ public class SimJobProcessor implements IDeviceProcessor
 	 * @return
 	 */
 	private EnumQueueEntryStatus abortQueueEntry() {
-		_statusListener.signalStatus(EnumDeviceStatus.Cleanup, "cleaning up the aborted job", EnumNodeStatus.Cleanup, "cleaning up the aborted job");
+		_statusListener.signalStatus(EnumDeviceStatus.Cleanup, "WashUp", EnumNodeStatus.Cleanup, "cleaning up the aborted job");
 		try {
 			Thread.sleep(1500);
 		} catch (InterruptedException e) {
 			log.error("interrupted while cleaning up the aborted job");
 		}
+		_statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCanceledByUser", EnumNodeStatus.Aborted, "job canceled by user");
+		_statusListener.setNode(null, null, null, null, null);
 		return EnumQueueEntryStatus.Aborted;
+	}
+	
+	private void suspendQueueEntry(JDFQueueEntry qe)
+	{
+		while (qe.getQueueEntryStatus()==EnumQueueEntryStatus.Suspended)
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				log.error("interrupted QueueEntry while waiting for ");
+			}
 	}
 
 	public void run() {
