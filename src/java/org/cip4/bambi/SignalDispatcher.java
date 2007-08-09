@@ -231,7 +231,7 @@ public class SignalDispatcher implements ISignalDispatcher
         private Vector getTriggerSubscriptions()
         {
             Vector v = new Vector();
-            Iterator it=triggers.keySet().iterator(); // active triggers
+            Iterator it=triggers.entrySet().iterator(); // active triggers
             while(it.hasNext())
             {
                 final Entry nxt = (Entry) it.next();

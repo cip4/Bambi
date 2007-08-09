@@ -72,6 +72,8 @@ package org.cip4.bambi;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -91,9 +93,7 @@ public class StatusListener implements IStatusListener
 
     private static Log log = LogFactory.getLog(StatusListener.class.getName());
     private ISignalDispatcher dispatcher;
-    private StatusCounter theCounter;
-    protected String activeQueueEntryID;
-    protected String activeWorkStepID;
+    protected StatusCounter theCounter;
     
     /**
      * 
@@ -110,16 +110,18 @@ public class StatusListener implements IStatusListener
             if(!EnumFamily.Query.equals(inputMessage.getFamily()))
                 return false;
             
-            StatusCounter sc=getStatusCounter();
+            StatusCounter sc=theCounter;
             if(sc!=null)
             {
-                if( queueEntryID!=null)
+                if( !KElement.isWildCard(queueEntryID) && queueEntryID.equals(sc.getQueueEntryID()))
                 {
                     response.setErrorText("No matching queuentry found");
                     log.error("No matching queuentry found");
                     return true;
                 }
-                response.appendDeviceInfo().setDeviceStatus(EnumDeviceStatus.Idle);
+                JDFDoc docJMF=sc.getDocJMFPhaseTime();
+                JDFResponse r=docJMF.getJMFRoot().getResponse(0);
+                response.mergeElement(r, false);
                 return true;
             }
             return false;
@@ -168,7 +170,7 @@ public class StatusListener implements IStatusListener
 
             
             JDFResourceInfo ri = response.appendResourceInfo();            
-            StatusCounter sc=getStatusCounter();
+            StatusCounter sc=theCounter;
             if (sc != null)
             	ri.copyElement( sc.getDocJMFResource().getJMFRoot(),null );
             return true;
@@ -207,7 +209,7 @@ public class StatusListener implements IStatusListener
     public void signalStatus(EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus,
             String nodeStatusDetails)
     {
-       StatusCounter su=getStatusCounter();
+       StatusCounter su=theCounter;
        if(su==null)
        {
            log.error("updating null status tracker");
@@ -218,19 +220,12 @@ public class StatusListener implements IStatusListener
            dispatcher.triggerQueueEntry(su.getQueueEntryID(), su.getWorkStepID(), -1);
     }
 
-    /**
-     * @return
-     */
-    private StatusCounter getStatusCounter()
-    {
-        return theCounter;
-    }
     /* (non-Javadoc)
      * @see org.cip4.bambi.IStatusListener#updateAmount(java.lang.String, java.lang.String, java.lang.String, double, double)
      */
     public void updateAmount(String resID, double good, double waste)
     {
-        StatusCounter su=getStatusCounter();
+        StatusCounter su=theCounter;
         if(su==null)
             return;
         su.addPhase(resID, good, waste);
@@ -244,14 +239,21 @@ public class StatusListener implements IStatusListener
      */
     public void setNode(String queueEntryID, String workStepID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID)
     {       
+        String oldQEID=theCounter.getQueueEntryID();
+        if(!KElement.isWildCard(oldQEID))
+        {
+            log.info("removing subscription for: "+oldQEID);
+            dispatcher.removeSubScription(queueEntryID);
+        }
         theCounter.setActiveNode(node, vPartMap, null);
         theCounter.setFirstRefID(trackResourceID);
-        activeQueueEntryID=queueEntryID;
-        activeWorkStepID=workStepID;
         theCounter.setQueueEntryID(queueEntryID);
         theCounter.setWorkStepID(workStepID);
-        // TODO alte Subscriptions löschen!
-        dispatcher.addSubscriptions(node,queueEntryID);
+        if(node!=null)
+        {
+            log.info("adding subscription for: "+queueEntryID);
+            dispatcher.addSubscriptions(node,queueEntryID);
+        }
     }
 
     /**
