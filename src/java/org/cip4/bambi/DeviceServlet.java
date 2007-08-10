@@ -223,6 +223,8 @@ public class DeviceServlet extends HttpServlet
 //		foo		
 	}
 
+    //TODO device liste, queues,  und stati über get seiten darstellen
+    // technologie nach gusto - xslt des jdf, jsp, xmldoc to html, ... whatever
 	/** Handles the HTTP <code>GET</code> method.
 	 * @param request servlet request
 	 * @param response servlet response
@@ -273,6 +275,7 @@ public class DeviceServlet extends HttpServlet
 			}
 			else
 			{
+                //TODO device manipulation über post von html seiten
 				log.warn("Unknown ContentType:"+contentType);
 				response.setContentType("text/plain");
 				OutputStream os=response.getOutputStream();

@@ -74,6 +74,12 @@ import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 
+//TODO: pull device implementieren
+/*
+ * handleMessage für requestQueueEntry
+ * kein automatisches auspicken aus der queue
+ * weitere messages an das geforwarded device leiten
+ */
 
 /**
  * @author prosirai

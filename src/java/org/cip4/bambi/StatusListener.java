@@ -166,6 +166,8 @@ public class StatusListener implements IStatusListener
             
             JDFResourceInfo ri = response.appendResourceInfo();            
             StatusCounter sc=theCounter;
+            //TODO richtiges element kopieren (nicht ein jmf in ein ri hinein...
+            //TODO npe abfangen
             if (sc != null)
             	ri.copyElement( sc.getDocJMFResource().getJMFRoot(),null );
             return true;

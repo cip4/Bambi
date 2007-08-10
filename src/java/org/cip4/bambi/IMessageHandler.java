@@ -84,6 +84,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
  */
 public interface IMessageHandler
 {
+    //TODO queuntryid und wsID aus interface + implementierungen entfernen
     /**
      * handle the message specified in inputMessage
      * 
