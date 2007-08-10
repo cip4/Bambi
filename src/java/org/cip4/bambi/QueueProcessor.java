@@ -122,9 +122,8 @@ public class QueueProcessor implements IQueueProcessor
             {
                 return false;
             }
-            log.debug("Handling "+m.getType());
             EnumType typ=m.getEnumType();
-            //TODO handle errors
+            log.debug( "Handling "+typ.getName() );
             if(EnumType.SubmitQueueEntry.equals(typ))
             {
                 JDFQueueSubmissionParams qsp=m.getQueueSubmissionParams(0);
@@ -142,6 +141,10 @@ public class QueueProcessor implements IQueueProcessor
                         }
                     }
                 }
+                log.error("QueueSubmissionParams missing or invalid");
+                resp.setErrorText("QueueSubmissionParams missing or invalid");
+                resp.setReturnCode(9);
+                return true;
             }
 
             return false;        

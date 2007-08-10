@@ -363,12 +363,11 @@ public class SimJobProcessor implements IDeviceProcessor
 					return abortQueueEntry();
 				else
 					Thread.sleep(remainder);
+				_statusListener.updateAmount(trackResourceID, phase.Output_Good, phase.Output_Waste);
 				
 			} catch (InterruptedException e) {
 				log.warn("interrupted while sleeping");
 			}
-			// TODO update amount
-//			_statusListener.updateAmount(resID, good, waste)
 			
 		}
 		_statusListener.signalStatus(EnumDeviceStatus.Idle, "Idle", EnumNodeStatus.Completed, "job completed");
