@@ -84,18 +84,14 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
  */
 public interface IMessageHandler
 {
-    //TODO queuntryid und wsID aus interface + implementierungen entfernen
     /**
      * handle the message specified in inputMessage
      * 
      * @param inputMessage the input message to handle
      * @param response the response to fill
-     * @param queueEntryID the queuentryid of the active queueentry
-     * @param workStepID the workStepID of the active task
-     * 
      * @return true if the message was handled, else false
      */
-     public boolean handleMessage(JDFMessage inputMessage, JDFResponse response, String queueEntryID, String workStepID);
+     public boolean handleMessage(JDFMessage inputMessage, JDFResponse response);
 
     /**
      * @return handled message type

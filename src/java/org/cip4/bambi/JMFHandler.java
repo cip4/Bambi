@@ -125,7 +125,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
-        public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+        public boolean handleMessage(JDFMessage m, JDFResponse resp)
         {
             if(m==null || resp==null)
             {
@@ -244,7 +244,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
            JDFResponse mResp=(JDFResponse) (id==null ? null : jmfResp.getChildWithAttribute(ElementName.RESPONSE,AttributeName.REFID, null, id, 0, true));
            if(mResp==null)
                log.error("??? "+id+" "+jmfResp);
-           handleMessage(m, mResp, null,null);
+           handleMessage(m, mResp);
        }   
        return new JDFDoc(jmfResp.getOwnerDocument());
     }
@@ -293,7 +293,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
     /**
      * the handler implements itself as a generic handler
      */
-    public boolean handleMessage(JDFMessage inputMessage, JDFResponse response, String queueEntryID, String workStepID)
+    public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
     {
        if(inputMessage==null)
            return false;
@@ -312,7 +312,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
         IMessageHandler handler=getHandler(typ, family);
         boolean handled=handler!=null;
        if(handler!=null)
-           handled=handler.handleMessage(inputMessage, response, queueEntryID, workStepID);
+           handled=handler.handleMessage(inputMessage, response);
        if(!handled)
        {
            unhandledMessage(inputMessage,response);

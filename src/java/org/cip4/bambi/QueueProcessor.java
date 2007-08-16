@@ -117,7 +117,7 @@ public class QueueProcessor implements IQueueProcessor
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
-        public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+        public boolean handleMessage(JDFMessage m, JDFResponse resp)
         {
             if(m==null || resp==null)
             {
@@ -174,7 +174,7 @@ public class QueueProcessor implements IQueueProcessor
 	    /* (non-Javadoc)
 	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 	     */
-	    public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+	    public boolean handleMessage(JDFMessage m, JDFResponse resp)
 	    {
 	        if(m==null || resp==null)
 	        {
@@ -231,7 +231,7 @@ public class QueueProcessor implements IQueueProcessor
 	    /* (non-Javadoc)
 	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 	     */
-	    public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+	    public boolean handleMessage(JDFMessage m, JDFResponse resp)
 	    {
 	        if(m==null || resp==null)
 	        {
@@ -302,7 +302,7 @@ public class QueueProcessor implements IQueueProcessor
 	    /* (non-Javadoc)
 	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 	     */
-	    public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+	    public boolean handleMessage(JDFMessage m, JDFResponse resp)
 	    {
 	    	if(m==null || resp==null)
 	        {
@@ -321,6 +321,7 @@ public class QueueProcessor implements IQueueProcessor
 	                if (status==EnumQueueEntryStatus.Running)
 	                {
                         //TODO ein running job muss dann auch im device angehalten werden
+	                	
                         
 	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
 	                    JDFQueue q = resp.appendQueue();
@@ -390,7 +391,7 @@ public class QueueProcessor implements IQueueProcessor
 	    /* (non-Javadoc)
 	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 	     */
-	    public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+	    public boolean handleMessage(JDFMessage m, JDFResponse resp)
 	    {
 	    	if(m==null || resp==null)
 	        {
@@ -460,6 +461,79 @@ public class QueueProcessor implements IQueueProcessor
 	    }
 	}
 
+	protected class RemoveQueueEntryHandler implements IMessageHandler
+	{
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+	     */
+	    public boolean handleMessage(JDFMessage m, JDFResponse resp)
+	    {
+	    	if(m==null || resp==null)
+	        {
+	            return false;
+	        }
+	        log.debug("Handling "+m.getType());
+	        EnumType typ=m.getEnumType();
+	        if(EnumType.RemoveQueueEntry.equals(typ))
+	        {
+	            String qeid = getMessageQueueEntryID(m);
+	            JDFQueueEntry qe =_theQueue.getEntry(qeid);
+	            if (qe.getQueueEntryID()!=null)
+	            {
+	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+	
+	                if (status==EnumQueueEntryStatus.Running || status==EnumQueueEntryStatus.Held
+	                		|| status==EnumQueueEntryStatus.Completed || status==EnumQueueEntryStatus.Aborted)
+	                {
+	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Removed);
+	                    JDFQueue q = resp.appendQueue();
+	                    q.copyElement(qe, null);
+	                    // TODO delete from queue?
+	                    log.debug("removed QueueEntry with ID="+qeid);
+	                    return true;
+	                }
+	
+	                if (status==EnumQueueEntryStatus.Running || status==EnumQueueEntryStatus.Suspended)
+	                {
+	                	String statName = status.getName();
+	                    log.error("cannot remove QueueEntry with ID="+qeid+", it is "+statName);
+	                    resp.setReturnCode(106);
+	                    resp.setErrorText("QueueEntry is "+statName);
+	                    return true;
+	                }
+	            }
+	
+	            log.error("failed to remove QueueEntry with ID="+qeid+", QueueEntry does not exist.");
+	            resp.setReturnCode(105);
+	            resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
+	            return true;
+	        }
+	
+	        return false;       
+	    }
+	
+	
+	
+	
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getFamilies()
+	     */
+	    public EnumFamily[] getFamilies()
+	    {
+	        return new EnumFamily[]{EnumFamily.Command};
+	    }
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getMessageType()
+	     */
+	    public EnumType getMessageType()
+	    {
+	        return EnumType.RemoveQueueEntry;
+	    }
+	}
+
 	protected static Log log = LogFactory.getLog(QueueProcessor.class.getName());
     private File _queueFile;
     private static final long serialVersionUID = -876551736245089033L;
@@ -482,6 +556,7 @@ public class QueueProcessor implements IQueueProcessor
         jmfHandler.addHandler(this.new AbortQueueEntryHandler());
         jmfHandler.addHandler(this.new SuspendQueueEntryHandler());
         jmfHandler.addHandler(this.new ResumeQueueEntryHandler());
+        jmfHandler.addHandler(this.new RemoveQueueEntryHandler());
     }
 
     private void init(String deviceID) 
@@ -694,7 +769,7 @@ public class QueueProcessor implements IQueueProcessor
         JDFQueueEntryDef def = m.getQueueEntryDef(0);
         if (def == null)
         {
-        	log.error("ResumeQueueEntry contains no QueueEntryDef");
+        	log.error("Message contains no QueueEntryDef");
             return null;
         }
         	

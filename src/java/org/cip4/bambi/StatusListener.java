@@ -77,6 +77,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQueueEntryDef;
 import org.cip4.jdflib.jmf.JDFResourceInfo;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -105,21 +106,16 @@ public class StatusListener implements IStatusListener
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
-        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response, String queueEntryID, String workstepID)
+        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
         {
             if(!EnumFamily.Query.equals(inputMessage.getFamily()))
                 return false;
             
-                if( !KElement.isWildCard(queueEntryID) && queueEntryID.equals(theCounter.getQueueEntryID()))
-                {
-                    response.setErrorText("No matching queuentry found");
-                    log.error("No matching queuentry found");
-                    return true;
-                }
-                JDFDoc docJMF=theCounter.getDocJMFPhaseTime();
-                JDFResponse r=docJMF.getJMFRoot().getResponse(0);
-                response.mergeElement(r, false);
-                return true;
+            // TODO bug: attribute "StartTime" is not allowed in element DeviceInfo
+            JDFDoc docJMF=theCounter.getDocJMFPhaseTime();
+            JDFResponse r=docJMF.getJMFRoot().getResponse(0);
+            response.mergeElement(r, false);
+            return true;
         }
 
 
@@ -153,7 +149,7 @@ public class StatusListener implements IStatusListener
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
-        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response, String queueEntryID, String workstepID)
+        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
         {
         	if(inputMessage==null || response==null)
 	        {
@@ -167,9 +163,14 @@ public class StatusListener implements IStatusListener
             JDFResourceInfo ri = response.appendResourceInfo();            
             StatusCounter sc=theCounter;
             //TODO richtiges element kopieren (nicht ein jmf in ein ri hinein...
-            //TODO npe abfangen
-            if (sc != null)
+            try
+            {
             	ri.copyElement( sc.getDocJMFResource().getJMFRoot(),null );
+            }
+            catch (NullPointerException ex)
+            {
+            	log.error("hit an npe while trying to add resources: "+ex);
+            }
             return true;
         }
 
@@ -261,6 +262,5 @@ public class StatusListener implements IStatusListener
         jmfHandler.addHandler(this.new ResourceHandler());        
         jmfHandler.addHandler(this.new StatusHandler());        
     }
-
 
 }

@@ -77,6 +77,7 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -100,7 +101,7 @@ public class Device implements IJMFHandler  {
 		/* (non-Javadoc)
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
-		public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+		public boolean handleMessage(JDFMessage m, JDFResponse resp)
 		{
 			// "I am the known device"
 			if(m==null || resp==null)
@@ -138,7 +139,7 @@ public class Device implements IJMFHandler  {
 	}
 
 	private static Log log = LogFactory.getLog(Device.class.getName());
-	private String _deviceName = "";
+	private String _deviceType = "";
 	private String _deviceID = "";
 	private IQueueProcessor _theQueue=null;
 	private IDeviceProcessor _theDeviceProcessor=null;
@@ -148,13 +149,13 @@ public class Device implements IJMFHandler  {
 
 	/**
 	 * constructor
-	 * @param deviceName
+	 * @param deviceType
 	 * @param deviceID
 	 */
-	public Device(String deviceName, String deviceID, String deviceClass)
+	public Device(String deviceType, String deviceID, String deviceClass)
 	{
-		log.info("creating device with name='" + deviceName + "', deviceID='"+deviceID+"'");
-		_deviceName = deviceName;
+		log.info("creating device with type='" + deviceType + "', deviceID='"+deviceID+"'");
+		_deviceType = deviceType;
 		_deviceID = deviceID;
 		_jmfHandler = new JMFHandler();
 
@@ -191,7 +192,7 @@ public class Device implements IJMFHandler  {
 	 */
 	public String getDeviceType()
 	{
-		return _deviceName;
+		return _deviceType;
 	}
 
 	/* (non-Javadoc)
@@ -216,7 +217,7 @@ public class Device implements IJMFHandler  {
 	 */
 	public String toString()
 	{
-		return ("[org.cip4.bambi.Device: DeviceID=" + _deviceID + ", DeviceName=" + _deviceName + "]");
+		return ("[org.cip4.bambi.Device: DeviceID=" + _deviceID + ", DeviceType=" + _deviceType + "]");
 	}
 	
 	/* (non-Javadoc)
@@ -227,7 +228,7 @@ public class Device implements IJMFHandler  {
 		JDFDeviceInfo info = dl.appendDeviceInfo();
 		JDFDevice dev = info.appendDevice();
 		dev.setDeviceID(_deviceID);
-		dev.setDeviceType(_deviceName);
+		dev.setDeviceType(_deviceType);
 		dev.setJDFVersions( EnumVersion.Version_1_3.getName() );
 		return true;
 	}
@@ -239,5 +240,10 @@ public class Device implements IJMFHandler  {
 
 	public IJMFHandler getHandler() {
 		return _jmfHandler;
+	}
+	
+	public JDFQueue getQueue()
+	{
+		return _theQueue.getQueue();
 	}
 }

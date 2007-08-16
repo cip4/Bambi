@@ -347,7 +347,7 @@ public class SignalDispatcher implements ISignalDispatcher
             q.removeChild(ElementName.SUBSCRIPTION, null, 0);
             
             // this is the handling of the actual message
-            boolean b=messageHandler.handleMessage(q, r, trigger.queueEntryID, trigger.workStepID);
+            boolean b=messageHandler.handleMessage(q, r);
             if(!b)
             {
                 log.error("Unhandled message: "+q.getType());
@@ -408,7 +408,7 @@ public class SignalDispatcher implements ISignalDispatcher
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
-        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response, String s1, String s2)
+        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
         {
             if(!EnumType.StopPersistentChannel.equals(inputMessage.getEnumType()))
                 return false;

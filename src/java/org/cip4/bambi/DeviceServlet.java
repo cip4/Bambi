@@ -96,7 +96,6 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
-import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -118,7 +117,7 @@ import org.cip4.jdflib.util.StringUtil;
  *									value=""
  *									description=""
  *
- * @web:servlet-mapping url-pattern="/FixJDFServlet"
+ * @web:servlet-mapping url-pattern="/BambiRootDevice"
  */
 public class DeviceServlet extends HttpServlet 
 {
@@ -132,7 +131,7 @@ public class DeviceServlet extends HttpServlet
 		/* (non-Javadoc)
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
-		public boolean handleMessage(JDFMessage m, JDFResponse resp, String queueEntryID, String workstepID)
+		public boolean handleMessage(JDFMessage m, JDFResponse resp)
 		{
 			if(m==null || resp==null)
 			{
@@ -197,6 +196,11 @@ public class DeviceServlet extends HttpServlet
 	public void init(ServletConfig config) throws ServletException 
 	{
 		super.init(config);
+		
+		/*** uncomment to set the log level to debug: ***/
+		//System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
+		//System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "debug");
+
 		new File(baseDir).mkdirs();
 		_devices = new HashMap();
 		// TODO make configurable
@@ -215,6 +219,8 @@ public class DeviceServlet extends HttpServlet
 		log.info("Initializing DeviceServlet");
 		loadBambiProperties();
 		createDevicesFromFile(configDir+"devices.xml");
+		
+		
 	}
 
 	/** Destroys the servlet.
@@ -223,8 +229,6 @@ public class DeviceServlet extends HttpServlet
 //		foo		
 	}
 
-    //TODO device liste, queues,  und stati über get seiten darstellen
-    // technologie nach gusto - xslt des jdf, jsp, xmldoc to html, ... whatever
 	/** Handles the HTTP <code>GET</code> method.
 	 * @param request servlet request
 	 * @param response servlet response
@@ -232,18 +236,37 @@ public class DeviceServlet extends HttpServlet
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 	{
 		log.debug("Processing get request...");
-		XMLDoc d=new XMLDoc("html",null);
-		KElement root=d.getRoot();
-		root.appendElement("head").appendElement("title").appendText("DeviceServlet generic page");
-		root.appendElement("h1").setText("Unknown URL:"+request.getPathInfo());
-		response.setContentType("text/html;charset=utf-8");
-		try
+		String command = request.getParameter("cmd");
+
+		if (command == null || command.length() == 0) {
+			request.setAttribute("devices", getDevices());
+			try {
+				request.getRequestDispatcher("/overview.jsp").forward(request, response);
+			} catch (Exception e) {
+				log.error(e);
+			} 
+		} else if ( command.equals("showDevice") )
 		{
-			response.getOutputStream().print(root.toString());
-		}
-		catch (IOException x)
-		{
-			log.error(x);
+			String deviceID = request.getParameter("id");
+			if (deviceID == null)
+			{
+				log.error("invalid request: device ID is missing");
+				return;
+			}
+			Device dev = getDevice(deviceID);
+			if (dev == null)
+			{
+				log.error("invalid request: device with id="+deviceID+" not found");
+				return;
+			}
+				
+			request.setAttribute("device", dev);
+			try {
+				request.getRequestDispatcher("/DeviceInfo").forward(request, response);
+			} catch (Exception e) {
+				log.error(e);
+			}
+			
 		}
 
 	}
@@ -255,7 +278,7 @@ public class DeviceServlet extends HttpServlet
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 	throws ServletException, IOException
 	{
-		log.info("Processing post request for: "+request.getPathInfo());
+		log.debug("Processing post request for: "+request.getPathInfo());
 		String contentType=request.getContentType();
 		if(MimeUtil.VND_JMF.equals(contentType))
 		{
@@ -602,5 +625,10 @@ public class DeviceServlet extends HttpServlet
 	private void addHandlers()
 	{
 		_jmfHandler.addHandler( new DeviceServlet.KnownDevicesHandler() );
+	}
+	
+	public HashMap getDevices()
+	{
+		return _devices;
 	}
 }
