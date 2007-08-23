@@ -107,7 +107,7 @@ public class SimJobProcessor implements IDeviceProcessor
 	 * @author boegerni
 	 *
 	 */
-	public class JobPhase {
+	public static class JobPhase {
 		/**
 		 * status to be displayed for this job phase
 		 */
@@ -459,9 +459,4 @@ public class SimJobProcessor implements IDeviceProcessor
         
         return true;
     }
-
-	public void cancel() {
-		// TODO Auto-generated method stub
-		
-	}
 }

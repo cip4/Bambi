@@ -105,7 +105,7 @@ import org.cip4.jdflib.util.ContainerUtil;
 public class JMFHandler implements IMessageHandler, IJMFHandler
 {
     
-    protected static Log log = LogFactory.getLog(JMFHandler.class.getName());
+    protected static final Log log = LogFactory.getLog(JMFHandler.class.getName());
 
     /**
      * 

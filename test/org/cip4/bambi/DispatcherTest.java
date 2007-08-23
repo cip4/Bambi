@@ -1,4 +1,3 @@
-package org.cip4.bambi;
 
 /*
 *

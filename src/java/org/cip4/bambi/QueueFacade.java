@@ -71,106 +71,70 @@
 
 package org.cip4.bambi;
 
+import java.util.Vector;
 
-import org.cip4.jdflib.core.JDFException;
-import org.cip4.jdflib.core.KElement;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 
+
 /**
- * @author prosirai
- *
+ * facade for JDFQueue in Bambi, used for reliable displaying Queues in JSP
+ * 
+ * @author boegerni
+ * 
  */
-public class BambiNSExtension
-{
+public class QueueFacade {
+	public class BambiQueueEntry 
+	{
+		public String QueueEntryID="";
+		public String QueueStatus="";
+		public int QueuePriority=0;
+		
+		protected BambiQueueEntry(String qEntryID, String qStatus, int qPriority)
+		{
+			QueueEntryID = qEntryID;
+			QueueStatus = qStatus;
+			QueuePriority = qPriority;
+		}
+	}
+	
 
-    private BambiNSExtension(){/* never construct - static class */}
-   
-    public static final String MY_NS = "www.cip4.org/Bambi";
-    public static final String MY_NS_PREFIX = "bambi:";
+	private static Log log = LogFactory.getLog(QueueFacade.class.getName());
+	private JDFQueue _theQueue = null;
 
-    public static final String docURL="DocURL";
-   /**
-     * 
-     * @param qe the JDFQueueEntry to set
-     * @param docURL the queuentryid within the prinect system
-     */
-    public static void setDocURL(JDFQueueEntry qe, String _docURL)
-    {
-        setMyNSAttribute(qe,docURL,_docURL);       
-    }
-    
-    /**
-     * @param qe the JDFQueueEntry to work on
-     * @return
-     */
-    public static String getDocURL(JDFQueueEntry qe)
-    {
-        return getMyNSAttribute(qe,docURL);
-    }
-        
-    public static final String returnURL="ReturnURL";
-    /**
-      * 
-      * @param qe the JDFQueueEntry to set
-      * @param theReturnURL the queuentryid within the prinect system
-      */
-     public static void setReturnURL(JDFQueueEntry qe, String theReturnURL)
-     {
-         setMyNSAttribute(qe,returnURL,theReturnURL);       
-     }
-     
-     /**
-      * @param qe the JDFQueueEntry to work on
-      * @return
-      */
-     public static String getReturnURL(JDFQueueEntry qe)
-     {
-         return getMyNSAttribute(qe,returnURL);
-     }
-     
-     public static final String returnJMF="ReturnJMF";
-     /**
-       * 
-       * @param qe the JDFQueueEntry to set
-       * @param theReturnJMF the queuentryid within the prinect system
-       */
-      public static void setReturnJMF(JDFQueueEntry qe, String theReturnJMF)
-      {
-          setMyNSAttribute(qe,returnJMF,theReturnJMF);       
-      }
-      
-      /**
-       * @param qe the JDFQueueEntry to work on
-       * @return
-       */
-      public static String getReturnJMF(JDFQueueEntry qe)
-      {
-          return getMyNSAttribute(qe,returnJMF);
-      }
-    
-    /**
-     * 
-     * @param e the element to work on
-     * @param attName the local attribute name to set
-     * @param attVal the attribute value to set
-     */
-    private static void setMyNSAttribute(KElement e, String attName,String attVal)
-    {
-        if(e==null)
-        {
-            throw new JDFException("setMyNSAttribute: setting on null element");
-        }
-        e.setAttribute(MY_NS_PREFIX+attName,attVal,MY_NS);       
-    }
-    
-    /**
-     * @param e the element to work on
-     * @param attName the local attribute name to set
-     * @return the attribute value, null if none exists
-     * 
-     */
-    private static String getMyNSAttribute(KElement e, String attName)
-    {
-        return e==null ? null : e.getAttribute(attName, MY_NS, null);
-    }
+	/**
+	 * constructor
+	 */
+	public QueueFacade(JDFQueue queue)
+	{
+		_theQueue = queue;
+	}
+
+	public String toString()
+	{
+		return ( _theQueue.toString() );
+	}
+	
+	public String getQueueStatus()
+	{
+		return _theQueue.getQueueStatus().getName();
+	}
+	
+	public Vector getBambiQueueEntryVector()
+	{
+		log.info("building BambieQueueEntryVector");
+		Vector qes = new Vector();
+		for (int i = 0; i<_theQueue.getQueueSize();i++)
+		{
+			JDFQueueEntry jqe = _theQueue.getQueueEntry(0);
+			BambiQueueEntry bqe = new BambiQueueEntry( jqe.getQueueEntryID(),
+					jqe.getQueueEntryStatus().getName(),jqe.getPriority() );
+			qes.add(bqe);
+		}
+			
+		return qes;
+	}
+
 }

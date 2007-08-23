@@ -69,108 +69,101 @@
 * 
 */
 
-package org.cip4.bambi;
+package org.cip4.bambi.messaging;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 
-import org.cip4.jdflib.core.JDFException;
-import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.DeviceServlet;
+import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.w3c.dom.Document;
 
 /**
- * @author prosirai
- *
+ * factory for creating JMF messages
+ * 
+ * @author boegerni
+ * 
  */
-public class BambiNSExtension
-{
+public class JMFFactory {
+	
+	private static Log log = LogFactory.getLog(JMFFactory.class.getName());
+	
+	private static JDFJMF createJMF(EnumFamily family, EnumType type)
+	{
+		JDFDoc doc = new JDFDoc(ElementName.JMF);
+		JDFJMF jmf = doc.getJMFRoot();
 
-    private BambiNSExtension(){/* never construct - static class */}
-   
-    public static final String MY_NS = "www.cip4.org/Bambi";
-    public static final String MY_NS_PREFIX = "bambi:";
-
-    public static final String docURL="DocURL";
-   /**
-     * 
-     * @param qe the JDFQueueEntry to set
-     * @param docURL the queuentryid within the prinect system
-     */
-    public static void setDocURL(JDFQueueEntry qe, String _docURL)
-    {
-        setMyNSAttribute(qe,docURL,_docURL);       
-    }
-    
-    /**
-     * @param qe the JDFQueueEntry to work on
-     * @return
-     */
-    public static String getDocURL(JDFQueueEntry qe)
-    {
-        return getMyNSAttribute(qe,docURL);
-    }
-        
-    public static final String returnURL="ReturnURL";
-    /**
-      * 
-      * @param qe the JDFQueueEntry to set
-      * @param theReturnURL the queuentryid within the prinect system
-      */
-     public static void setReturnURL(JDFQueueEntry qe, String theReturnURL)
-     {
-         setMyNSAttribute(qe,returnURL,theReturnURL);       
-     }
-     
-     /**
-      * @param qe the JDFQueueEntry to work on
-      * @return
-      */
-     public static String getReturnURL(JDFQueueEntry qe)
-     {
-         return getMyNSAttribute(qe,returnURL);
-     }
-     
-     public static final String returnJMF="ReturnJMF";
-     /**
-       * 
-       * @param qe the JDFQueueEntry to set
-       * @param theReturnJMF the queuentryid within the prinect system
-       */
-      public static void setReturnJMF(JDFQueueEntry qe, String theReturnJMF)
-      {
-          setMyNSAttribute(qe,returnJMF,theReturnJMF);       
-      }
-      
-      /**
-       * @param qe the JDFQueueEntry to work on
-       * @return
-       */
-      public static String getReturnJMF(JDFQueueEntry qe)
-      {
-          return getMyNSAttribute(qe,returnJMF);
-      }
-    
-    /**
-     * 
-     * @param e the element to work on
-     * @param attName the local attribute name to set
-     * @param attVal the attribute value to set
-     */
-    private static void setMyNSAttribute(KElement e, String attName,String attVal)
-    {
-        if(e==null)
-        {
-            throw new JDFException("setMyNSAttribute: setting on null element");
-        }
-        e.setAttribute(MY_NS_PREFIX+attName,attVal,MY_NS);       
-    }
-    
-    /**
-     * @param e the element to work on
-     * @param attName the local attribute name to set
-     * @return the attribute value, null if none exists
-     * 
-     */
-    private static String getMyNSAttribute(KElement e, String attName)
-    {
-        return e==null ? null : e.getAttribute(attName, MY_NS, null);
-    }
+		if (family==EnumFamily.Command)
+		{
+			jmf.appendCommand(type);
+		} else if (family==EnumFamily.Query)
+		{
+			jmf.appendQuery(type); 
+		} 
+		
+		return jmf;
+	}
+	
+	public static JDFJMF buildSuspendQueueEntry(String queueEntryId)
+	{
+		JDFJMF jmf = createJMF(EnumFamily.Command, EnumType.SuspendQueueEntry);
+		jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
+		return jmf;
+	}
+	
+	public static JDFJMF buildResumeQueueEntry(String queueEntryId)
+	{
+		JDFJMF jmf = createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry);
+		jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
+		return jmf;
+	}
+	
+	public static JDFJMF buildStatus()
+	{
+		JDFJMF jmf = createJMF(EnumFamily.Query, EnumType.Status);
+		return jmf;
+	}
+	
+	/**
+	 * send a message to Bambi
+	 * @param jmf the message to send
+	 * @param subDeviceId the Bambi sub-device (null for root device, "device001" for BambiRootDevice/device001 etc.)
+	 * @return the response
+	 */
+	public static JDFResponse send2Bambi(JDFJMF jmf, String subDeviceId)
+	{
+		Properties properties = new Properties();
+		FileInputStream in=null;
+		String targetURL=null;
+		try {
+			in = new FileInputStream(DeviceServlet.configDir+"Bambi.properties");
+			properties.load(in);
+			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
+			targetURL= properties.getProperty("BambiURL")+"/"+properties.getProperty("RootDeviceID");
+			if (subDeviceId!=null && subDeviceId.length()>0)
+				targetURL += "/"+subDeviceId;
+			in.close();
+		} catch (IOException e) {
+			log.error("failed to load Bambi properties: \r\n"+e.getMessage());
+			return null;
+		}
+		Document dd = jmf.getOwnerDocument();
+		JDFDoc doc = new JDFDoc(dd);
+		JDFDoc respDoc = doc.write2URL(targetURL);
+		if (respDoc==null || respDoc.toString().length()<10)
+		{
+			log.error("no response received");
+			return null;
+		}
+		return respDoc.getJMFRoot().getResponse(0);
+	}
+	
 }

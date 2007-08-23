@@ -77,7 +77,6 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFQueueEntryDef;
 import org.cip4.jdflib.jmf.JDFResourceInfo;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -111,7 +110,7 @@ public class StatusListener implements IStatusListener
             if(!EnumFamily.Query.equals(inputMessage.getFamily()))
                 return false;
             
-            // TODO bug: attribute "StartTime" is not allowed in element DeviceInfo
+            // TODO bug in JDFLib/StatusCounter: attribute "StartTime" is not allowed in element DeviceInfo
             JDFDoc docJMF=theCounter.getDocJMFPhaseTime();
             JDFResponse r=docJMF.getJMFRoot().getResponse(0);
             response.mergeElement(r, false);

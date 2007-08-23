@@ -99,12 +99,6 @@ public interface IDeviceProcessor extends Runnable
      * @return EnumQueueEntryStatus the final status of the queuentry 
      */
     public abstract EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe);
-
-    /**
-     * cancel this thread
-     * @param cancel the bCancel to set
-     */
-    public abstract void cancel();
     
     /**
      * initialize the IDeviceProcessor

@@ -77,7 +77,6 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -89,8 +88,11 @@ import org.cip4.jdflib.resource.JDFDeviceList;
  * 
  * @author boegerni
  * 
+ * class should remain final, because if it is ever subclassed the DeviceProcessor thread would be started 
+ * before the constructor from the subclass has a chance to fire off.
+ * 
  */
-public class Device implements IJMFHandler  {
+public final class Device implements IJMFHandler  {
 	/**
 	 * 
 	 * handler for the knowndevices query
@@ -167,16 +169,34 @@ public class Device implements IJMFHandler  {
         _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
         _theStatusListener.addHandlers(_jmfHandler);
         
+        final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        Class configClass;
+        boolean clFailed = false;
+        Exception caughtEx = null;
         try {
-        	final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        	final Class configClass = classLoader.loadClass(deviceClass);
+        	// warning: ClassNotFoundException might not be caught sometimes
+        	configClass = classLoader.loadClass(deviceClass);
         	_theDeviceProcessor= (IDeviceProcessor) configClass.newInstance();
-			_theDeviceProcessor.init(_theQueue, _theStatusListener, _deviceID);
-			log.debug("created device from class name "+deviceClass);
-		} catch (Exception e) {
-			log.error("failed to create device from class name "+deviceClass);
-		}
-		log.info("Starting device thread");
+        } catch (ClassNotFoundException e) {
+        	clFailed = true;
+        	caughtEx = e;
+        } catch (InstantiationException e) {
+        	clFailed = true;
+        	caughtEx = e;
+        } catch (IllegalAccessException e) {
+        	clFailed = true;
+        	caughtEx = e;
+        }
+        if (clFailed)
+        {
+        	log.error("failed to create device from class name "+deviceClass+":\r\n"+caughtEx);
+        	return;
+        }
+        
+        _theDeviceProcessor.init(_theQueue, _theStatusListener, _deviceID);
+        log.debug("created device from class name "+deviceClass);
+
+        log.info("Starting device thread");
 		new Thread(_theDeviceProcessor).start();
 		log.info("device thread started");
 		
@@ -217,7 +237,8 @@ public class Device implements IJMFHandler  {
 	 */
 	public String toString()
 	{
-		return ("[org.cip4.bambi.Device: DeviceID=" + _deviceID + ", DeviceType=" + _deviceType + "]");
+		return ("[org.cip4.bambi.Device: DeviceID=" + _deviceID + ", DeviceType=" + _deviceType + ", " +
+				"Queue: " + _theQueue + "]");
 	}
 	
 	/* (non-Javadoc)
@@ -242,8 +263,19 @@ public class Device implements IJMFHandler  {
 		return _jmfHandler;
 	}
 	
-	public JDFQueue getQueue()
+	public QueueFacade getQueueFacade()
 	{
-		return _theQueue.getQueue();
+		return (new QueueFacade(_theQueue.getQueue()) );
+	}
+	
+	
+	public boolean suspend()
+	{
+		return false;
+	}
+	
+	public boolean resume()
+	{
+		return false;	
 	}
 }

@@ -1,3 +1,5 @@
+package org.cip4.bambi;
+
 /*
 *
 * The CIP4 Software License, Version 1.0
@@ -69,108 +71,39 @@
 * 
 */
 
-package org.cip4.bambi;
+import org.cip4.bambi.BambiTestCase;
+import org.cip4.bambi.messaging.JMFFactory;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFResponse;
 
-
-import org.cip4.jdflib.core.JDFException;
-import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.jmf.JDFQueueEntry;
-
-/**
- * @author prosirai
- *
- */
-public class BambiNSExtension
-{
-
-    private BambiNSExtension(){/* never construct - static class */}
-   
-    public static final String MY_NS = "www.cip4.org/Bambi";
-    public static final String MY_NS_PREFIX = "bambi:";
-
-    public static final String docURL="DocURL";
-   /**
-     * 
-     * @param qe the JDFQueueEntry to set
-     * @param docURL the queuentryid within the prinect system
-     */
-    public static void setDocURL(JDFQueueEntry qe, String _docURL)
-    {
-        setMyNSAttribute(qe,docURL,_docURL);       
-    }
-    
-    /**
-     * @param qe the JDFQueueEntry to work on
-     * @return
-     */
-    public static String getDocURL(JDFQueueEntry qe)
-    {
-        return getMyNSAttribute(qe,docURL);
-    }
+public class JMFFactoryTest extends BambiTestCase {
+	
+	public void testGetStatus() 
+	{
+		JDFJMF jmf = JMFFactory.buildStatus();
+		JDFResponse resp = JMFFactory.send2Bambi(jmf,null);
+        assertTrue( resp!=null );
+        assertEquals( 0,resp.getReturnCode() );
         
-    public static final String returnURL="ReturnURL";
-    /**
-      * 
-      * @param qe the JDFQueueEntry to set
-      * @param theReturnURL the queuentryid within the prinect system
-      */
-     public static void setReturnURL(JDFQueueEntry qe, String theReturnURL)
-     {
-         setMyNSAttribute(qe,returnURL,theReturnURL);       
-     }
-     
-     /**
-      * @param qe the JDFQueueEntry to work on
-      * @return
-      */
-     public static String getReturnURL(JDFQueueEntry qe)
-     {
-         return getMyNSAttribute(qe,returnURL);
-     }
-     
-     public static final String returnJMF="ReturnJMF";
-     /**
-       * 
-       * @param qe the JDFQueueEntry to set
-       * @param theReturnJMF the queuentryid within the prinect system
-       */
-      public static void setReturnJMF(JDFQueueEntry qe, String theReturnJMF)
-      {
-          setMyNSAttribute(qe,returnJMF,theReturnJMF);       
-      }
-      
-      /**
-       * @param qe the JDFQueueEntry to work on
-       * @return
-       */
-      public static String getReturnJMF(JDFQueueEntry qe)
-      {
-          return getMyNSAttribute(qe,returnJMF);
-      }
-    
-    /**
-     * 
-     * @param e the element to work on
-     * @param attName the local attribute name to set
-     * @param attVal the attribute value to set
-     */
-    private static void setMyNSAttribute(KElement e, String attName,String attVal)
-    {
-        if(e==null)
-        {
-            throw new JDFException("setMyNSAttribute: setting on null element");
-        }
-        e.setAttribute(MY_NS_PREFIX+attName,attVal,MY_NS);       
-    }
-    
-    /**
-     * @param e the element to work on
-     * @param attName the local attribute name to set
-     * @return the attribute value, null if none exists
-     * 
-     */
-    private static String getMyNSAttribute(KElement e, String attName)
-    {
-        return e==null ? null : e.getAttribute(attName, MY_NS, null);
-    }
+        jmf = JMFFactory.buildStatus();
+        resp = JMFFactory.send2Bambi(jmf, "device001");
+        assertTrue( resp!=null );
+        assertEquals( 0,resp.getReturnCode() );
+	}
+	
+	public void testSuspendQueueEntry()
+	{
+		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry("12345");
+		JDFResponse resp = JMFFactory.send2Bambi(jmf, "device001");
+        assertTrue( resp!=null );
+        assertEquals( 105,resp.getReturnCode() );
+	}
+	
+	public void testResumeQueueEntry()
+	{
+		JDFJMF jmf = JMFFactory.buildResumeQueueEntry("12345");
+		JDFResponse resp = JMFFactory.send2Bambi(jmf, "device001");
+        assertTrue( resp!=null );
+        assertEquals( 105,resp.getReturnCode() );
+	}
 }

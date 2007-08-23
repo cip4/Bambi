@@ -85,6 +85,7 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFCommand;
@@ -243,8 +244,12 @@ public class QueueProcessor implements IQueueProcessor
 	        {
                 String qeid = getMessageQueueEntryID(m);
 	            JDFQueueEntry qe =_theQueue.getEntry(qeid);
-	            if (qe!=null)
+	            if (qe==null)
 	            {
+	            	resp.setReturnCode(105);
+	            	resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
+	            	return true;
+	            } else {
 	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 	                if (status==EnumQueueEntryStatus.Completed)
 	                {
@@ -266,14 +271,10 @@ public class QueueProcessor implements IQueueProcessor
 	                qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
 	                JDFQueue q = resp.appendQueue();
 	                q.copyElement(qe, null);
+                    // TODO set device id and status
 	                log.debug("aborted QueueEntry with ID="+qeid); 				
 	                return true;
 	            }
-	            
-	            log.error("failed to abort QueueEntry with ID="+qeid+", QueueEntry does not exist.");
-	            resp.setReturnCode(105);
-	            resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
-	            return true;
 	        }
 	
 	        return false;
@@ -314,18 +315,22 @@ public class QueueProcessor implements IQueueProcessor
 	        {
 	            String qeid = getMessageQueueEntryID(m);
 	            JDFQueueEntry qe =_theQueue.getEntry(qeid);
-	            if (qe.getQueueEntryID()!=null)
+	            if (qe==null)
 	            {
+	            	resp.setReturnCode(105);
+	            	resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
+	            	return true;
+	            } else {
+	            	String qeID = qe.getQueueEntryID();
 	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 
 	                if (status==EnumQueueEntryStatus.Running)
 	                {
-                        //TODO ein running job muss dann auch im device angehalten werden
-	                	
-                        
 	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
 	                    JDFQueue q = resp.appendQueue();
+	                    // TODO set device id and status
 	                    q.copyElement(qe, null);
+	                    updateEntry(qeID,EnumQueueEntryStatus.Suspended);
 	                    log.debug("suspended QueueEntry with ID="+qeid); 				
 	                    return true;
 	                }
@@ -354,11 +359,6 @@ public class QueueProcessor implements IQueueProcessor
 	                    return true;
 	                }
 	            }
-
-	            log.error("failed to suspend QueueEntry with ID="+qeid+", QueueEntry does not exist.");
-	            resp.setReturnCode(105);
-	            resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
-	            return true;
 	        }
 	
 	        return false;       
@@ -404,16 +404,22 @@ public class QueueProcessor implements IQueueProcessor
 	            String qeid = getMessageQueueEntryID(m);
 
 	            JDFQueueEntry qe =_theQueue.getEntry(qeid);
-	            if (qe.getQueueEntryID()!=null)
+	            if (qe==null)
 	            {
+	            	resp.setReturnCode(105);
+	            	resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
+	            	return true;
+	            } else {
+	            	String qeID = qe.getQueueEntryID();
 	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 
 	                if (status==EnumQueueEntryStatus.Suspended || status==EnumQueueEntryStatus.Held)
 	                {
-                        //TODO ein running job muss dann auch im device wieder angefahren werden
 	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
 	                    JDFQueue q = resp.appendQueue();
 	                    q.copyElement(qe, null);
+	                    // TODO set device id and status
+	                    updateEntry(qeID,EnumQueueEntryStatus.Running);
 	                    log.debug("resumed QueueEntry with ID="+qeid); 				
 	                    return true;
 	                }
@@ -434,11 +440,6 @@ public class QueueProcessor implements IQueueProcessor
 	                    return true;
 	                }
 	            }
-
-	            log.error("failed to suspend QueueEntry with ID="+qeid+", QueueEntry does not exist.");
-	            resp.setReturnCode(105);
-	            resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
-	            return true;
 	        }
 	
 	        return false;       
@@ -479,8 +480,12 @@ public class QueueProcessor implements IQueueProcessor
 	        {
 	            String qeid = getMessageQueueEntryID(m);
 	            JDFQueueEntry qe =_theQueue.getEntry(qeid);
-	            if (qe.getQueueEntryID()!=null)
+	            if (qe==null)
 	            {
+	            	resp.setReturnCode(105);
+	            	resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
+	            	return true;
+	            } else {
 	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 	
 	                if (status==EnumQueueEntryStatus.Running || status==EnumQueueEntryStatus.Held
@@ -489,7 +494,8 @@ public class QueueProcessor implements IQueueProcessor
 	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Removed);
 	                    JDFQueue q = resp.appendQueue();
 	                    q.copyElement(qe, null);
-	                    // TODO delete from queue?
+	                    // TODO set device id and status
+	                    // TODO delete from queue
 	                    log.debug("removed QueueEntry with ID="+qeid);
 	                    return true;
 	                }
@@ -534,11 +540,12 @@ public class QueueProcessor implements IQueueProcessor
 	    }
 	}
 
-	protected static Log log = LogFactory.getLog(QueueProcessor.class.getName());
+	protected static final Log log = LogFactory.getLog(QueueProcessor.class.getName());
     private File _queueFile;
     private static final long serialVersionUID = -876551736245089033L;
     protected JDFQueue _theQueue;
     private Vector _listeners;
+    private String currentQueueEntryID="";
      
     public QueueProcessor(ISignalDispatcher _signalDispatcher, String deviceID)
     {
@@ -591,9 +598,11 @@ public class QueueProcessor implements IQueueProcessor
         JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
         if(qe==null)
         {
+        	currentQueueEntryID = "";
         	// TODO query parent device for next qe
             return null;
         }
+        currentQueueEntryID=qe.getQueueEntryID();
         String docURL=BambiNSExtension.getDocURL(qe);
         docURL=UrlUtil.urlToFile(docURL).getAbsolutePath();
         JDFDoc doc=JDFDoc.parseFile(docURL);
@@ -782,4 +791,41 @@ public class QueueProcessor implements IQueueProcessor
         log.debug("processing getMessageQueueEntryID for "+qeid);
         return qeid;
     }
+    
+    public VElement getQueueEntryVector()
+    {
+    	return _theQueue.getQueueEntryVector();
+    }
+
+	public boolean resume() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public boolean suspend() {
+		JDFQueueEntry qe = getCurrentQueueEntry();
+		if (qe.getQueueEntryStatus() == EnumQueueEntryStatus.Running)
+		{
+			qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
+			return true;
+		}
+		log.error("cannot suspend current QueueEntry, it is "+qe.getQueueEntryStatus().getName());
+		return false;
+	}
+
+	/**
+	 * 
+	 */
+	private JDFQueueEntry getCurrentQueueEntry() {
+		VElement qev = _theQueue.getQueueEntryVector();
+		for (int i=0;i<qev.size();i++)
+		{
+			JDFQueueEntry qe = _theQueue.getQueueEntry(i);
+			if (qe.getQueueEntryID() == currentQueueEntryID)
+				return qe;
+		}
+		log.error("current QueueEntry not found");
+	
+		return null;
+	}
 }

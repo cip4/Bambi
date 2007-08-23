@@ -174,8 +174,8 @@ public class DeviceServlet extends HttpServlet
 	}
     private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
 	public static final String baseDir=System.getProperty("catalina.base")+"/webapps/Bambi/jmb"+File.separator;
-	public static final String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/config"+File.separator;
-	public static final String jdfDir=baseDir+"JDFDir"+File.separator;
+	public static String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/config"+File.separator;
+	public static String jdfDir=baseDir+"JDFDir"+File.separator;
 	
 
 
@@ -188,7 +188,7 @@ public class DeviceServlet extends HttpServlet
 	private ISignalDispatcher _theSignalDispatcher=null;
 	private IQueueProcessor _theQueueProcessor=null;
 	private IStatusListener _theStatusListener=null;
-	public static String bambiRootDeviceID = "BambiRootDevice";
+	public static final String bambiRootDeviceID = "BambiRootDevice";
 
 
 	/** Initializes the servlet.
@@ -237,7 +237,7 @@ public class DeviceServlet extends HttpServlet
 	{
 		log.debug("Processing get request...");
 		String command = request.getParameter("cmd");
-
+		
 		if (command == null || command.length() == 0) {
 			request.setAttribute("devices", getDevices());
 			try {
@@ -247,28 +247,38 @@ public class DeviceServlet extends HttpServlet
 			} 
 		} else if ( command.equals("showDevice") )
 		{
-			String deviceID = request.getParameter("id");
-			if (deviceID == null)
+			Device dev=getDeviceFromRequest(request);
+			if (dev!=null)
 			{
-				log.error("invalid request: device ID is missing");
-				return;
+				request.setAttribute("device", dev);
+				try {
+					request.getRequestDispatcher("/DeviceInfo").forward(request, response);
+				} catch (Exception e) {
+					log.error(e);
+				}
 			}
-			Device dev = getDevice(deviceID);
-			if (dev == null)
-			{
-				log.error("invalid request: device with id="+deviceID+" not found");
-				return;
-			}
-				
-			request.setAttribute("device", dev);
-			try {
-				request.getRequestDispatcher("/DeviceInfo").forward(request, response);
-			} catch (Exception e) {
-				log.error(e);
-			}
-			
 		}
+		
+	}
 
+	/**
+	 * @param request
+	 */
+	private Device getDeviceFromRequest(HttpServletRequest request) {
+		String deviceID = request.getParameter("id");
+		if (deviceID == null)
+		{
+			log.error("invalid request: device ID is missing");
+			return null;
+		}
+		Device dev = getDevice(deviceID);
+		if (dev == null)
+		{
+			log.error("invalid request: device with id="+deviceID+" not found");
+			return null;
+		}
+		
+		return dev;
 	}
 
 	/** Handles the HTTP <code>POST</code> method.
@@ -607,11 +617,13 @@ public class DeviceServlet extends HttpServlet
 	private boolean loadBambiProperties()
 	{
 		log.debug("loading Bambi properties");
-		try {
+		try 
+		{
 			Properties properties = new Properties();
-			properties.load(new FileInputStream(configDir+"Bambi.properties"));
+			FileInputStream in = new FileInputStream(configDir+"Bambi.properties");
+			properties.load(in);
 			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
-			
+			in.close();
 		} catch (FileNotFoundException e) {
 			log.fatal("Bambi.properties not found");
 			return false;

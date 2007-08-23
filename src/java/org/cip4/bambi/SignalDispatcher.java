@@ -101,12 +101,15 @@ import org.cip4.jdflib.util.VectorMap;
  * 
  * this class handles subscriptions
  * @author prosirai
+ * 
+ * class should remain final, because if it is ever subclassed the dispactcher thread would be started 
+ * before the constructor from the subclass has a chance to fire off.
  *
  */
-public class SignalDispatcher implements ISignalDispatcher 
+public final class SignalDispatcher implements ISignalDispatcher 
 {
 
-    protected static Log log = LogFactory.getLog(SignalDispatcher.class.getName());
+    protected static final Log log = LogFactory.getLog(SignalDispatcher.class.getName());
     protected HashMap subscriptionMap; // map of channelID / Subscription
     protected VectorMap queueEntryMap; // map of queueEntryID / vector of channelIDS
     protected IMessageHandler messageHandler;
@@ -117,7 +120,7 @@ public class SignalDispatcher implements ISignalDispatcher
 
     
     /////////////////////////////////////////////////////////////
-    protected class Trigger
+    protected static class Trigger
     {
         protected String queueEntryID;
         protected String workStepID;
@@ -302,12 +305,12 @@ public class SignalDispatcher implements ISignalDispatcher
     
     private class MsgSubscription implements Cloneable
     {
-        protected String channelID;
-        protected String url;
-        protected int repeatAmount, lastAmount;
-        protected long repeatTime, lastTime;
-        protected JDFMessage theMessage;
-        protected Trigger trigger;
+        protected String channelID = "";
+        protected String url = "";
+        protected int repeatAmount, lastAmount = 0;;
+        protected long repeatTime, lastTime = 0;
+        protected JDFMessage theMessage = null;
+        protected Trigger trigger = null;
         
         MsgSubscription(IJMFSubscribable m)
         {

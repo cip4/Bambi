@@ -36,7 +36,7 @@
 	</target>
 	<target name="compile" depends="-init" description="Compiles source code.">
 		<echo>Compiling...</echo>
-		<javac destdir="${bin.dir}" debug="${build.debug}">
+		<javac destdir="${bin.dir}" debug="${build.debug}" target="1.4" source="1.4">
 			<src path="${java.src.dir}" />
 			<classpath refid="project.class.path" />
 			<include name="**/*.java" />

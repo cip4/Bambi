@@ -27,21 +27,20 @@ public class DeviceInfoServlet extends HttpServlet {
 	
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
+
 		Device dev = (Device) request.getAttribute("device");
 		if (dev == null) {
 			log.error("cannot display info for null device");
 			return;
 		}
-		
-		request.setAttribute("qu", dev.getQueue());
+
 		request.setAttribute("device", dev);
+		request.setAttribute("bqu", dev.getQueueFacade());
 		try {
-			request.getRequestDispatcher("/showDevice.jsp").forward(request,
-					response);
+			request.getRequestDispatcher("/showDevice.jsp").forward(request,response);
 		} catch (Exception e) {
 			log.error(e);
-		}
-
+			}
 	}
 	
 	
@@ -49,6 +48,5 @@ public class DeviceInfoServlet extends HttpServlet {
 	throws ServletException, IOException {
 		log.info("called doPost");
 	}
-
 
 }
