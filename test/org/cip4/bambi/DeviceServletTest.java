@@ -1,4 +1,4 @@
-package org.cip4.bambi;
+
 
 /*
 *
@@ -70,8 +70,7 @@ package org.cip4.bambi;
 *  
 * 
 */
-
-import org.cip4.bambi.BambiTestCase;
+package org.cip4.bambi;
 
 public class DeviceServletTest extends BambiTestCase {
 

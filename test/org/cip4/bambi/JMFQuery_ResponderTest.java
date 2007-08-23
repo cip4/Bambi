@@ -71,10 +71,10 @@ package org.cip4.bambi;
 * 
 */
 
+import org.cip4.bambi.BambiTestCase;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.bambi.BambiTestCase;
 
 public class JMFQuery_ResponderTest extends BambiTestCase {
 	
