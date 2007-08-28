@@ -181,17 +181,11 @@ public class DeviceServlet extends AbstractBambiServlet
 			return EnumType.KnownDevices;
 		}
 	}
-    private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
+	private static final long serialVersionUID = -8902151736245089036L;
+	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
 	public static final String baseDir=System.getProperty("catalina.base")+"/webapps/Bambi/jmb"+File.separator;
 	public static String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/config"+File.separator;
 	public static String jdfDir=baseDir+"JDFDir"+File.separator;
-	
-
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8902151736245089036L;
 	private JMFHandler _jmfHandler=null;
 	private HashMap _devices = null;
 	private ISignalDispatcher _theSignalDispatcher=null;

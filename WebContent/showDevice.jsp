@@ -13,8 +13,10 @@
 	
 	<body>
 		<% Device dev = (Device) request.getAttribute("device"); %>
-		// <a href="BambiRootDevice<%=dev.getDeviceID()%>">back to root device</a> //
+		<p align="center">
+		// <a href="BambiRootDevice">back to root device</a> //
 		<a href="BambiRootDevice?cmd=showDevice&id=<%=dev.getDeviceID()%>">reload this page</a> //
+		</p>
 		
 		<h3>General Info:</h3>
 		<% String bambiUrl = "http://"+request.getServerName()+":"+request.getServerPort()+request.getContextPath() +"/"; %>

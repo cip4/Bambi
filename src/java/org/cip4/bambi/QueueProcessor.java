@@ -493,10 +493,11 @@ public class QueueProcessor implements IQueueProcessor
 	                		|| status==EnumQueueEntryStatus.Completed || status==EnumQueueEntryStatus.Aborted)
 	                {
 	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Removed);
+	                    _theQueue.cleanup();
 	                    JDFQueue q = resp.appendQueue();
 	                    q.copyElement(qe, null);
-	                    // TODO set device id and status
-	                    // TODO delete from queue
+	                    q.setDeviceID( _theQueue.getDeviceID() );
+	                    q.setStatus( _theQueue.getStatus() );
 	                    log.debug("removed QueueEntry with ID="+qeid);
 	                    return true;
 	                }
@@ -730,6 +731,8 @@ public class QueueProcessor implements IQueueProcessor
         if(queueEntryID==null)
             return;
         JDFQueueEntry qe=_theQueue.getEntry(queueEntryID);
+        if (qe == null)
+        	return;
         qe.setQueueEntryStatus(status);
         if (status == EnumQueueEntryStatus.Completed || status == EnumQueueEntryStatus.Aborted)
         	returnQueueEntry(qe);
@@ -799,7 +802,13 @@ public class QueueProcessor implements IQueueProcessor
     }
 
 	public boolean resume() {
-		// TODO Auto-generated method stub
+		JDFQueueEntry qe = getCurrentQueueEntry();
+		if (qe.getQueueEntryStatus() == EnumQueueEntryStatus.Suspended)
+		{
+			qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
+			return true;
+		}
+		log.error("cannot resume current QueueEntry, it is "+qe.getQueueEntryStatus().getName());
 		return false;
 	}
 

@@ -11,7 +11,10 @@
 			<b>Origin: </b><%= request.getAttribute("errorOrigin") %> <br>
 			<b>Query String: </b><%= request.getQueryString() %> <br>
 			<b>Message: </b><%= request.getAttribute("errorMsg") %> <br>
-			<b>Details: </b><%= request.getAttribute("errorDetails") %> <br>
+			<b>Details: </b> <br>
+			<code>
+				<%= request.getAttribute("errorDetails") %>
+			</code>
 		</p>
 	</body>
 </html>
