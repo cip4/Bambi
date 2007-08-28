@@ -1,24 +1,17 @@
-<%@ page contentType="text/html;charset=windows-1252" isErrorPage="true"  
-	import="java.io.CharArrayWriter, java.io.PrintWriter, java.util.StringTokenizer"%>
+<%@ page contentType="text/html;charset=windows-1252" isErrorPage="false"%>
+
 <html>
+	<!-- This is not an JSP error page, just a simple means of displaying Bambi errors -->
 	<head>
 		<title>Bambi - Error</title>
 	</head>
 	<body>
-	<h2>Error Page</h2>
-		Oops! Bambi ran into an exception...<br>
-		<b>Class: </b><%= exception.getClass() %> <br>
-		<b>Message: </b><%= exception.getMessage() %> <br>
-		<b>Stack Trace: </b> <br>
-		<% 
-			CharArrayWriter charArrayWriter = new CharArrayWriter(); 
-			PrintWriter printWriter = new PrintWriter(charArrayWriter, true); 
-			exception.printStackTrace(printWriter);
-			StringTokenizer st = new StringTokenizer(charArrayWriter.toString(),"");
-			while(st.hasMoreTokens()){
-		  		out.println(st.nextToken());
-		  		out.println("\n");
-			}
-		%>
+		<h2>Oops! Bambi is unable to process your request...</h2>
+		<p>
+			<b>Origin: </b><%= request.getAttribute("errorOrigin") %> <br>
+			<b>Query String: </b><%= request.getQueryString() %> <br>
+			<b>Message: </b><%= request.getAttribute("errorMsg") %> <br>
+			<b>Details: </b><%= request.getAttribute("errorDetails") %> <br>
+		</p>
 	</body>
 </html>

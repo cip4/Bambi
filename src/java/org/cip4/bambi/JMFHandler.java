@@ -94,13 +94,6 @@ import org.cip4.jdflib.util.ContainerUtil;
 /**
  *
  * @author  rainer
- *
- *
- * @web:servlet-init-param	name="" 
- *									value=""
- *									description=""
- *
- * @web:servlet-mapping url-pattern="/jmf"
  */
 public class JMFHandler implements IMessageHandler, IJMFHandler
 {

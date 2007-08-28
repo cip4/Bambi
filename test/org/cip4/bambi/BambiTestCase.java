@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Properties;
 
+import org.cip4.bambi.servlets.DeviceServlet;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.util.UrlUtil;
 import junit.framework.TestCase;

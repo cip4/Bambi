@@ -77,6 +77,7 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -84,12 +85,13 @@ import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.resource.JDFDeviceList;
 
 /**
- * a JDF device
+ * a JDF device. <br>
+ * class should remain final: if it is ever subclassed, the DeviceProcessor thread would be started 
+ * before the constructor from the subclass has a chance to fire off.
  * 
  * @author boegerni
  * 
- * class should remain final, because if it is ever subclassed the DeviceProcessor thread would be started 
- * before the constructor from the subclass has a chance to fire off.
+ 
  * 
  */
 public final class Device implements IJMFHandler  {
@@ -266,6 +268,11 @@ public final class Device implements IJMFHandler  {
 	public QueueFacade getQueueFacade()
 	{
 		return (new QueueFacade(_theQueue.getQueue()) );
+	}
+	
+	public JDFQueue getQueue()
+	{
+		return _theQueue.getQueue();
 	}
 	
 	

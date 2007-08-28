@@ -69,7 +69,7 @@
  * 
  */
 
-package org.cip4.bambi;
+package org.cip4.bambi.servlets;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -85,13 +85,22 @@ import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.Device;
+import org.cip4.bambi.IJMFHandler;
+import org.cip4.bambi.IMessageHandler;
+import org.cip4.bambi.IQueueProcessor;
+import org.cip4.bambi.ISignalDispatcher;
+import org.cip4.bambi.IStatusListener;
+import org.cip4.bambi.JMFHandler;
+import org.cip4.bambi.QueueProcessor;
+import org.cip4.bambi.SignalDispatcher;
+import org.cip4.bambi.StatusListener;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
@@ -119,7 +128,7 @@ import org.cip4.jdflib.util.StringUtil;
  *
  * @web:servlet-mapping url-pattern="/BambiRootDevice"
  */
-public class DeviceServlet extends HttpServlet 
+public class DeviceServlet extends AbstractBambiServlet 
 {
 	/**
 	 * 
@@ -235,7 +244,7 @@ public class DeviceServlet extends HttpServlet
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 	{
-		log.debug("Processing get request...");
+		log.info("Processing get request...");
 		String command = request.getParameter("cmd");
 		
 		if (command == null || command.length() == 0) {
@@ -245,7 +254,7 @@ public class DeviceServlet extends HttpServlet
 			} catch (Exception e) {
 				log.error(e);
 			} 
-		} else if ( command.equals("showDevice") )
+		} else if ( command.equals("showDevice") ) // show a device
 		{
 			Device dev=getDeviceFromRequest(request);
 			if (dev!=null)
@@ -256,6 +265,23 @@ public class DeviceServlet extends HttpServlet
 				} catch (Exception e) {
 					log.error(e);
 				}
+			} else {
+				showErrorPage("can't show device info", "device ID missing or unknown", request, response);
+				return;
+			}
+		} else if ( command.endsWith("QueueEntry") ) 
+		{
+			Device dev=getDeviceFromRequest(request);
+			if (dev!=null)
+			{
+				request.setAttribute("device", dev);
+				try {
+					request.getRequestDispatcher("QueueEntry").forward(request, response);
+				} catch (Exception e) {
+					log.error(e);
+				}
+			} else {
+				log.error("can't get device, device ID is missing or unknown");
 			}
 		}
 		
@@ -643,4 +669,27 @@ public class DeviceServlet extends HttpServlet
 	{
 		return _devices;
 	}
+	
+//	/**
+//	 * show error.jsp
+//	 * @param errorMsg short message describing the error
+//	 * @param errorDetails detailed error info
+//	 * @param request required to forward the page
+//	 * @param response required to forward the page
+//	 */
+//	private void showErrorPage(String errorMsg, String errorDetails, HttpServletRequest request, HttpServletResponse response)
+//	{
+//		request.setAttribute("errorOrigin", this.getClass().getName());
+//		request.setAttribute("errorMsg", errorMsg);
+//		request.setAttribute("errorDetails", errorDetails);
+//		try {
+//			request.getRequestDispatcher("/error.jsp").forward(request, response);
+//		} catch (ServletException e) {
+//			log.error("failed to show error.jsp");
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			log.error("failed to show error.jsp");
+//			e.printStackTrace();
+//		}
+//	}
 }

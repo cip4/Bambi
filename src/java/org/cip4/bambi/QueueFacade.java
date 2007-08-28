@@ -86,17 +86,17 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
  * 
  */
 public class QueueFacade {
-	public class BambiQueueEntry 
+	public static class BambiQueueEntry 
 	{
-		public String QueueEntryID="";
-		public String QueueStatus="";
-		public int QueuePriority=0;
+		public String queueEntryID="";
+		public String queueStatus="";
+		public int queuePriority=0;
 		
 		protected BambiQueueEntry(String qEntryID, String qStatus, int qPriority)
 		{
-			QueueEntryID = qEntryID;
-			QueueStatus = qStatus;
-			QueuePriority = qPriority;
+			queueEntryID = qEntryID;
+			queueStatus = qStatus;
+			queuePriority = qPriority;
 		}
 	}
 	
@@ -128,7 +128,7 @@ public class QueueFacade {
 		Vector qes = new Vector();
 		for (int i = 0; i<_theQueue.getQueueSize();i++)
 		{
-			JDFQueueEntry jqe = _theQueue.getQueueEntry(0);
+			JDFQueueEntry jqe = _theQueue.getQueueEntry(i);
 			BambiQueueEntry bqe = new BambiQueueEntry( jqe.getQueueEntryID(),
 					jqe.getQueueEntryStatus().getName(),jqe.getPriority() );
 			qes.add(bqe);

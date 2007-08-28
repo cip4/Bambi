@@ -99,12 +99,12 @@ import org.cip4.jdflib.util.VectorMap;
 
 /**
  * 
- * this class handles subscriptions
- * @author prosirai
- * 
+ * this class handles subscriptions <br>
  * class should remain final, because if it is ever subclassed the dispactcher thread would be started 
  * before the constructor from the subclass has a chance to fire off.
- *
+ * 
+ * @author prosirai
+ * 
  */
 public final class SignalDispatcher implements ISignalDispatcher 
 {

@@ -11,17 +11,18 @@
 	</context-param>
 	<servlet>
 		<servlet-name>Bambi</servlet-name>
-		<display-name>Bambi </display-name>
-		<description >Bambi Root Device</description>
-		<servlet-class>org.cip4.bambi.DeviceServlet</servlet-class>
+		<servlet-class>org.cip4.bambi.servlets.DeviceServlet</servlet-class>
 		<load-on-startup>10</load-on-startup>
 	</servlet>
 	<servlet>
 		<servlet-name>DeviceInfo</servlet-name>
-		<display-name>Bambi - Device Info</display-name>
-		<description >Bambi Device Info</description>
 		<servlet-class>org.cip4.bambi.servlets.DeviceInfoServlet</servlet-class>
 		<load-on-startup>20</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>QueueEntry</servlet-name>
+		<servlet-class>org.cip4.bambi.servlets.QueueEntryServlet</servlet-class>
+		<load-on-startup>30</load-on-startup>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Bambi</servlet-name>
@@ -31,10 +32,22 @@
 		<servlet-name>DeviceInfo</servlet-name>
 		<url-pattern>/DeviceInfo</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>QueueEntry</servlet-name>
+		<url-pattern>/QueueEntry</url-pattern>
+	</servlet-mapping>
 	<session-config>
 		<session-timeout>120</session-timeout>
 	</session-config>
 	<welcome-file-list>
-		<welcome-file>index.jsp</welcome-file>
+		<welcome-file>/index.jsp</welcome-file>
 	</welcome-file-list>
+	<error-page>
+    	<exception-type>java.lang.Throwable</exception-type>
+    	<location>/exception.jsp</location>
+  	</error-page>
+  	<error-page>
+    	<error-code>500</error-code>
+    	<location>/exception.jsp</location>
+  	</error-page>
 </web-app>

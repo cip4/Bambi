@@ -79,6 +79,7 @@ import javax.mail.Multipart;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.servlets.DeviceServlet;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
@@ -821,7 +822,7 @@ public class QueueProcessor implements IQueueProcessor
 		for (int i=0;i<qev.size();i++)
 		{
 			JDFQueueEntry qe = _theQueue.getQueueEntry(i);
-			if (qe.getQueueEntryID() == currentQueueEntryID)
+			if ( qe.getQueueEntryID().equals(currentQueueEntryID) )
 				return qe;
 		}
 		log.error("current QueueEntry not found");
