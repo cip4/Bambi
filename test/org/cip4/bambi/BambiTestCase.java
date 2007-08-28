@@ -57,4 +57,9 @@ public class BambiTestCase extends TestCase {
 	    }
 	    return url+"/test/data/";
 	}
+    // dummy so that we can simply run the directory as a test
+    public void testNothing() 
+    {
+        assertTrue(1==1);
+    }
 }

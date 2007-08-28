@@ -1,5 +1,6 @@
 package org.cip4.bambi;
 
+
 /*
 *
 * The CIP4 Software License, Version 1.0

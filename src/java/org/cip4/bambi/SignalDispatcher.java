@@ -307,7 +307,7 @@ public final class SignalDispatcher implements ISignalDispatcher
     {
         protected String channelID = "";
         protected String url = "";
-        protected int repeatAmount, lastAmount = 0;;
+        protected int repeatAmount, lastAmount = 0;
         protected long repeatTime, lastTime = 0;
         protected JDFMessage theMessage = null;
         protected Trigger trigger = null;
