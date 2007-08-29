@@ -112,10 +112,10 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public class QueueProcessor implements IQueueProcessor
 {
-
+	// TODO add HoldQueueEntryHandler
+	
     protected class SubmitQueueEntryHandler implements IMessageHandler
     {
-    
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
@@ -194,6 +194,7 @@ public class QueueProcessor implements IQueueProcessor
 	        		q.setQueueStatus(_theQueue.getQueueStatus());
 	        		for (int i=0;i<_theQueue.getEntryCount();i++)
 	        		{
+	        			// extract method / apply filters / allow adding multiple queues
 	        			q.copyElement(_theQueue.getEntry(i), null);
 	        		}
 	        		
@@ -252,15 +253,13 @@ public class QueueProcessor implements IQueueProcessor
 	            	return true;
 	            } else {
 	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-	                if (status==EnumQueueEntryStatus.Completed)
+	                if ( EnumQueueEntryStatus.Completed.equals(status) )
 	                {
 	                    log.error("cannot abort QueueEntry with ID="+qeid+", it is already completed");
 	                    resp.setReturnCode(114);
 	                    resp.setErrorText("job is already completed");
 	                    return true;
-	                }
-
-	                if (status==EnumQueueEntryStatus.Aborted)
+	                } else if ( EnumQueueEntryStatus.Aborted.equals(status) )
 	                {
 	                    log.error("cannot abort QueueEntry with ID="+qeid+", it is already aborted");
 	                    resp.setReturnCode(113);
@@ -272,7 +271,8 @@ public class QueueProcessor implements IQueueProcessor
 	                qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
 	                JDFQueue q = resp.appendQueue();
 	                q.copyElement(qe, null);
-                    // TODO set device id and status
+	                q.setDeviceID( _theQueue.getDeviceID() );
+                    q.setStatus( _theQueue.getStatus() );
 	                log.debug("aborted QueueEntry with ID="+qeid); 				
 	                return true;
 	            }
@@ -325,18 +325,19 @@ public class QueueProcessor implements IQueueProcessor
 	            	String qeID = qe.getQueueEntryID();
 	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 
-	                if (status==EnumQueueEntryStatus.Running)
+	                if ( EnumQueueEntryStatus.Running.equals(status) )
 	                {
 	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
 	                    JDFQueue q = resp.appendQueue();
-	                    // TODO set device id and status
+	                    q.setDeviceID( _theQueue.getDeviceID() );
+	                    q.setStatus( _theQueue.getStatus() );
 	                    q.copyElement(qe, null);
 	                    updateEntry(qeID,EnumQueueEntryStatus.Suspended);
 	                    log.debug("suspended QueueEntry with ID="+qeid); 				
 	                    return true;
 	                }
 
-	                if (status==EnumQueueEntryStatus.Suspended)
+	                if ( EnumQueueEntryStatus.Suspended.equals(status) )
 	                {
 	                    log.error("cannot suspend QueueEntry with ID="+qeid+", it is already suspended");
 	                    resp.setReturnCode(113);
@@ -344,7 +345,7 @@ public class QueueProcessor implements IQueueProcessor
 	                    return true;
 	                }
 
-	                if (status==EnumQueueEntryStatus.Waiting || status==EnumQueueEntryStatus.Held)
+	                if ( EnumQueueEntryStatus.Waiting.equals(status)  || EnumQueueEntryStatus.Held.equals(status) )
 	                {
 	                    log.error("cannot abort QueueEntry with ID="+qeid+", it is "+status.getName());
 	                    resp.setReturnCode(115);
@@ -352,7 +353,7 @@ public class QueueProcessor implements IQueueProcessor
 	                    return true;
 	                }
 
-	                if (status==EnumQueueEntryStatus.Completed || status==EnumQueueEntryStatus.Aborted)
+	                if ( EnumQueueEntryStatus.Completed.equals(status)  || EnumQueueEntryStatus.Aborted.equals(status) )
 	                {
 	                    log.error("cannot suspend QueueEntry with ID="+qeid+", it is already "+status.getName());
 	                    resp.setReturnCode(115);
@@ -414,18 +415,20 @@ public class QueueProcessor implements IQueueProcessor
 	            	String qeID = qe.getQueueEntryID();
 	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 
-	                if (status==EnumQueueEntryStatus.Suspended || status==EnumQueueEntryStatus.Held)
+	                if ( EnumQueueEntryStatus.Suspended.equals(status) || EnumQueueEntryStatus.Held.equals(status) )
 	                {
 	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
 	                    JDFQueue q = resp.appendQueue();
 	                    q.copyElement(qe, null);
-	                    // TODO set device id and status
+	                    q.setDeviceID( _theQueue.getDeviceID() );
+	                    q.setStatus( _theQueue.getStatus() );
+	                    // TODO should be waiting
 	                    updateEntry(qeID,EnumQueueEntryStatus.Running);
 	                    log.debug("resumed QueueEntry with ID="+qeid); 				
 	                    return true;
 	                }
 
-	                if (status==EnumQueueEntryStatus.Running )
+	                if ( EnumQueueEntryStatus.Running.equals(status) )
 	                {
 	                    log.error("cannot resume QueueEntry with ID="+qeid+", it is "+status.getName());
 	                    resp.setReturnCode(113);
@@ -433,7 +436,7 @@ public class QueueProcessor implements IQueueProcessor
 	                    return true;
 	                }
 
-	                if (status==EnumQueueEntryStatus.Completed || status==EnumQueueEntryStatus.Aborted)
+	                if ( EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status) )
 	                {
 	                    log.error("cannot resume QueueEntry with ID="+qeid+", it is already "+status.getName());
 	                    resp.setReturnCode(115);
@@ -483,14 +486,15 @@ public class QueueProcessor implements IQueueProcessor
 	            JDFQueueEntry qe =_theQueue.getEntry(qeid);
 	            if (qe==null)
 	            {
-	            	resp.setReturnCode(105);
-	            	resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
+	            	log.error("failed to remove QueueEntry with ID="+qeid+", QueueEntry does not exist.");
+		            resp.setReturnCode(105);
+		            resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
 	            	return true;
 	            } else {
 	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 	
-	                if (status==EnumQueueEntryStatus.Running || status==EnumQueueEntryStatus.Held
-	                		|| status==EnumQueueEntryStatus.Completed || status==EnumQueueEntryStatus.Aborted)
+	                if ( EnumQueueEntryStatus.Held.equals(status) || 
+	                		EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
 	                {
 	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Removed);
 	                    _theQueue.cleanup();
@@ -500,10 +504,7 @@ public class QueueProcessor implements IQueueProcessor
 	                    q.setStatus( _theQueue.getStatus() );
 	                    log.debug("removed QueueEntry with ID="+qeid);
 	                    return true;
-	                }
-	
-	                if (status==EnumQueueEntryStatus.Running || status==EnumQueueEntryStatus.Suspended)
-	                {
+	                } else {
 	                	String statName = status.getName();
 	                    log.error("cannot remove QueueEntry with ID="+qeid+", it is "+statName);
 	                    resp.setReturnCode(106);
@@ -511,11 +512,6 @@ public class QueueProcessor implements IQueueProcessor
 	                    return true;
 	                }
 	            }
-	
-	            log.error("failed to remove QueueEntry with ID="+qeid+", QueueEntry does not exist.");
-	            resp.setReturnCode(105);
-	            resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
-	            return true;
 	        }
 	
 	        return false;       

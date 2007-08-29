@@ -2,9 +2,11 @@
 <%@ page import="org.cip4.bambi.Device"%>
 <%@ page import="org.cip4.bambi.QueueFacade"%>
 <%@ page import="org.cip4.bambi.QueueFacade.BambiQueueEntry"%>
+<%@ page import="org.cip4.bambi.servlets.DeviceServlet"%>
 <%@ page import="java.util.Vector"%>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
@@ -19,7 +21,7 @@
 		</p>
 		
 		<h3>General Info:</h3>
-		<% String bambiUrl = "http://"+request.getServerName()+":"+request.getServerPort()+request.getContextPath() +"/"; %>
+		<% String bambiUrl = "http://"+request.getServerName()+":"+request.getServerPort()+request.getContextPath() +"/" + DeviceServlet.bambiRootDeviceID + "/"; %>
 
 		<p>
 			<b>Device ID: </b> <%=dev.getDeviceID()%> <br/>
@@ -65,7 +67,7 @@
             %>
             				<a href="BambiRootDevice?cmd=suspendQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">suspend</a>
             <%
-            			} else if ( bqe.queueEntryID.equals("Suspended") )
+            			} else if ( bqe.queueStatus.equals("Suspended") )
             			{
             %>
             	           	<a href="BambiRootDevice?cmd=resumeQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">resume</a>				

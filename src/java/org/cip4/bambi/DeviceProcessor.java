@@ -126,8 +126,7 @@ public class DeviceProcessor implements IDeviceProcessor
             {
                 try
                 {
-                	if (log != null) // // dirty hack, static log gets trashed too soon on Tomcat undeploy
-                		log.debug("waiting");
+               		log.debug("waiting");
                     synchronized (myListener)
                     {
                         myListener.wait(10000); // just in case                        
@@ -150,8 +149,7 @@ public class DeviceProcessor implements IDeviceProcessor
     private boolean processQueueEntry()
     {
         IQueueEntry iqe=_queueProcessor.getNextEntry();
-        if (log != null) // dirty hack, static log gets trashed too soon on Tomcat undeploy
-        	log.debug("processing:"+((iqe==null) ? " nothing " : iqe.getQueueEntry()==null ? "nothing" : iqe.getQueueEntry().getQueueEntryID()));
+      	log.debug("processing:"+((iqe==null) ? " nothing " : iqe.getQueueEntry()==null ? "nothing" : iqe.getQueueEntry().getQueueEntryID()));
         if(iqe==null)
             return false;
         JDFDoc doc=iqe.getJDF();
