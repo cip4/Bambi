@@ -1,6 +1,31 @@
 package org.cip4.bambi;
 
+import java.io.File;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+
+import javax.mail.Multipart;
+
 import org.cip4.bambi.servlets.DeviceServlet;
+import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
+import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.JDFResourceLink.EnumUsage;
+import org.cip4.jdflib.jmf.JDFCommand;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.node.JDFNode.EnumType;
+import org.cip4.jdflib.resource.process.JDFFileSpec;
+import org.cip4.jdflib.resource.process.JDFRunList;
+import org.cip4.jdflib.resource.process.prepress.JDFColorSpaceConversionParams;
+import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 /*
 *
@@ -99,5 +124,48 @@ public class DeviceServletTest extends BambiTestCase {
 		assertEquals(1, d.getDeviceQuantity() );
 		assertFalse( d.removeDevice("device one") );
 	}
+    
+    public void testMimeSubmit() throws Exception
+    {
+        JDFDoc d1=new JDFDoc("JMF");
+        d1.setOriginalFileName("JMF.jmf");
+        JDFJMF jmf=d1.getJMFRoot();
+        JDFCommand com=(JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
+      
+        com.appendQueueSubmissionParams().setURL("TheJDF");
+        
+        JDFDoc doc=new JDFDoc("JDF");
+        doc.setOriginalFileName("JDF.jdf");  
+        JDFNode n=doc.getJDFRoot();
+        n.setType(EnumType.ColorSpaceConversion);
+        JDFColorSpaceConversionParams cscp=(JDFColorSpaceConversionParams) n.addResource(ElementName.COLORSPACECONVERSIONPARAMS, null, EnumUsage.Input, null, null, null, null);
+        JDFFileSpec fs0=cscp.appendFinalTargetDevice();
+        fs0.setURL(StringUtil.uncToUrl(sm_dirTestData+File.separator+"test.icc",true));
+        JDFRunList rl=(JDFRunList)n.addResource(ElementName.RUNLIST, null, EnumUsage.Input, null, null, null, null);
+        rl.addPDF(StringUtil.uncToUrl(sm_dirTestData+File.separator+"url3.pdf",false), 0, -1);
 
+        Multipart m=MimeUtil.buildMimePackage(d1,doc);
+        
+        JDFDoc[] d2=MimeUtil.getJMFSubmission(m);
+        assertNotNull(d2);
+        assertEquals(d2[0].getJMFRoot().getCommand(0).getQueueSubmissionParams(0).getURL(), "cid:JDF.jdf");
+        assertEquals(d2[1].getJDFRoot().getEnumType(),EnumType.ColorSpaceConversion);
+        
+        // now serialize to file and reread - should still work
+        HttpURLConnection uc=MimeUtil.writeToURL(m, BambiUrl);
+        MimeUtil.writeToFile(m, sm_dirTestData+"testMime.mjm");
+        assertEquals(uc.getResponseCode(), 200);
+        UrlUtil.UrlPart[] parts=UrlUtil.getURLParts(uc);
+        assertEquals(parts.length, 1);
+        InputStream is=parts[0].inStream;
+        JDFDoc docResp=new JDFParser().parseStream(is);
+        assertNotNull(docResp);
+        JDFJMF jmf2=docResp.getJMFRoot();
+        assertNotNull(jmf2);
+        JDFResponse r=(JDFResponse) jmf2.getMessageElement(EnumFamily.Response,JDFMessage.EnumType.SubmitQueueEntry,0);
+        assertNotNull(r);
+        JDFQueueEntry qe=r.getQueueEntry(0);
+        String devQEntryID=qe.getQueueEntryID();
+        assertNotSame(devQEntryID,"");
+    }
 }

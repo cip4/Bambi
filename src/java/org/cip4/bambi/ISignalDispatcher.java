@@ -106,7 +106,7 @@ public interface ISignalDispatcher extends IMultiJMFHandler
     public void removeSubScription(String channelID);
 
     /**
-     * remove a know subscription by channelid
+     * remove a know subscription by queueEntryID
      * @param queueEntryID the queueEntryID of the subscriptions to remove
      */
     public void removeSubScriptions(String queueEntryID);

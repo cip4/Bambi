@@ -492,13 +492,13 @@ public class DeviceServlet extends AbstractBambiServlet
 		log.info("proccessMultipleDocuments- parts: "+(bp==null ? 0 : bp.length));
 		if(bp==null || bp.length<2)
 		{
-			processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- not enough parts, bailing out ");
+			processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- not enough parts, bailing out:"+bp.length);
 			return;
 		}
 		JDFDoc docJDF[]=MimeUtil.getJMFSubmission(bp[0].getParent());
 		if(docJDF==null)
 		{
-			processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- not enough parts, bailing out ");
+			processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
 			return;
 		}
 		processJMFDoc(request, response, docJDF[0]);
