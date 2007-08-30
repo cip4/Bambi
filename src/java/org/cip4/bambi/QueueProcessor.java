@@ -86,7 +86,6 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFCommand;
@@ -186,18 +185,12 @@ public class QueueProcessor implements IQueueProcessor
 	        EnumType typ=m.getEnumType();
 	        if(EnumType.QueueStatus.equals(typ))
 	        {
-	        	JDFQueue q = resp.appendQueue();
+	        	
 	        	
 	        	if (_theQueue != null)
 	        	{
-	        		q.setDeviceID( _theQueue.getDeviceID() );
-	        		q.setQueueStatus(_theQueue.getQueueStatus());
-	        		for (int i=0;i<_theQueue.getEntryCount();i++)
-	        		{
-	        			// extract method / apply filters / allow adding multiple queues
-	        			q.copyElement(_theQueue.getEntry(i), null);
-	        		}
-	        		
+                    JDFQueue q = (JDFQueue) resp.copyElement(_theQueue, null);
+                    //TODO filter some stuff?
 	        		return true;
 	        	}
 	        	else 
@@ -542,10 +535,11 @@ public class QueueProcessor implements IQueueProcessor
     private File _queueFile;
     private static final long serialVersionUID = -876551736245089033L;
     protected JDFQueue _theQueue;
+    private IQueueProcessor fallBackQProcessor=null;
     private Vector _listeners;
-    private String currentQueueEntryID="";
+    private String currentQueueEntryID=null;
      
-    public QueueProcessor(ISignalDispatcher _signalDispatcher, String deviceID)
+    public QueueProcessor(String deviceID)
     {
 		super();
 		this.init(deviceID);
@@ -594,9 +588,12 @@ public class QueueProcessor implements IQueueProcessor
     	if (log != null) // dirty hack, static log gets trashed too soon on Tomcat undeploy
     		log.debug("getNextEntry");
         JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
+        if(qe==null && fallBackQProcessor!=null)
+            return fallBackQProcessor.getNextEntry();
+        
         if(qe==null)
         {
-        	currentQueueEntryID = "";
+        	currentQueueEntryID = null;
         	// TODO query parent device for next qe
             return null;
         }
@@ -674,7 +671,7 @@ public class QueueProcessor implements IQueueProcessor
             return false;
         }
         String theDocFile=DeviceServlet.jdfDir+newQEID+".jdf";
-        theJDF.write2File(theDocFile, 0, true);
+        boolean ok=theJDF.write2File(theDocFile, 0, true);
         try
         {
         	BambiNSExtension.setDocURL( newQE,UrlUtil.fileToUrl(new File(theDocFile),false) );
@@ -686,7 +683,7 @@ public class QueueProcessor implements IQueueProcessor
             log.error("invalid file name: "+theDocFile);
         }
 
-        return true;
+        return ok;
     }
 
     private void notifyListeners()
@@ -726,7 +723,7 @@ public class QueueProcessor implements IQueueProcessor
     {
         if(queueEntryID==null)
             return;
-        JDFQueueEntry qe=_theQueue.getEntry(queueEntryID);
+        JDFQueueEntry qe=getEntry(queueEntryID);
         if (qe == null)
         	return;
         qe.setQueueEntryStatus(status);
@@ -792,11 +789,6 @@ public class QueueProcessor implements IQueueProcessor
         return qeid;
     }
     
-    public VElement getQueueEntryVector()
-    {
-    	return _theQueue.getQueueEntryVector();
-    }
-
 	public boolean resume() {
 		JDFQueueEntry qe = getCurrentQueueEntry();
 		if (qe.getQueueEntryStatus() == EnumQueueEntryStatus.Suspended)
@@ -822,16 +814,27 @@ public class QueueProcessor implements IQueueProcessor
 	/**
 	 * 
 	 */
-	private JDFQueueEntry getCurrentQueueEntry() {
-		VElement qev = _theQueue.getQueueEntryVector();
-		for (int i=0;i<qev.size();i++)
-		{
-			JDFQueueEntry qe = _theQueue.getQueueEntry(i);
-			if ( qe.getQueueEntryID().equals(currentQueueEntryID) )
-				return qe;
-		}
-		log.error("current QueueEntry not found");
-	
-		return null;
+	private JDFQueueEntry getCurrentQueueEntry() 
+    {
+		return getEntry(currentQueueEntryID);
 	}
+
+    private JDFQueueEntry getEntry(String queueEntryID)
+    {
+        JDFQueueEntry qe=_theQueue.getEntry(queueEntryID);
+        if(qe==null && fallBackQProcessor!=null)
+        {
+            qe=fallBackQProcessor.getQueue().getEntry(queueEntryID);
+        }
+        return qe;
+    }
+
+
+    /**
+     * @param fallBackQProcessor the fallBackQProcessor to set
+     */
+    public void setFallBackQProcessor(IQueueProcessor _fallBackQProcessor)
+    {
+        this.fallBackQProcessor = _fallBackQProcessor;
+    }
 }

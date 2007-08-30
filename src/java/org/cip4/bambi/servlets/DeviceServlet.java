@@ -216,7 +216,7 @@ public class DeviceServlet extends AbstractBambiServlet
         _theStatusListener=new StatusListener(_theSignalDispatcher,bambiRootDeviceID);
         _theStatusListener.addHandlers(_jmfHandler);
 		
-        _theQueueProcessor = new QueueProcessor(_theSignalDispatcher,bambiRootDeviceID);
+        _theQueueProcessor = new QueueProcessor(bambiRootDeviceID);
         _theQueueProcessor.addHandlers(_jmfHandler);
         
 		log.info("Initializing DeviceServlet");
@@ -539,10 +539,10 @@ public class DeviceServlet extends AbstractBambiServlet
 	 * create a new device and add it to the map of devices.
 	 * @param deviceID
 	 * @param deviceType
-	 * @return true, if device has been created. 
-	 * False, if not (maybe device with deviceID is already present)
+	 * @return the Device, if device has been created. 
+	 * null, if not (maybe device with deviceID is already present)
 	 */
-	public boolean createDevice(String deviceID, String deviceType, String deviceClass)
+	public Device createDevice(String deviceID, String deviceType, String deviceClass)
 	{
 		log.debug("created device");
 		if (_devices == null)
@@ -555,12 +555,12 @@ public class DeviceServlet extends AbstractBambiServlet
 		{	
 			Device dev = new Device(deviceType, deviceID, deviceClass);
 			_devices.put(deviceID,dev);
-			return true;
+			return dev;
 		}
 		else
 		{
 			log.warn("device "+deviceID+" already existing");
-			return false;
+			return null;
 		}
 	}
 	
@@ -622,13 +622,20 @@ public class DeviceServlet extends AbstractBambiServlet
 	    for (int i = 0; i < v.size(); i++)
 	    {
 	    	KElement device = (KElement)v.elementAt(i);
-	    	String deviceID = device.getXPathAttribute("@DeviceID", "");
-	    	String deviceType = device.getXPathAttribute("@DeviceType", "");
+	    	String deviceID = device.getXPathAttribute("@DeviceID", null);
+	    	String deviceType = device.getXPathAttribute("@DeviceType", null);
 	    	String deviceClass = device.getXPathAttribute("@DeviceClass", "org.cip.bambi.DeviceServlet");
-	    	if (deviceID != "")
-	    		createDevice(deviceID,deviceType,deviceClass);
+	    	if (deviceID != null)
+            {
+	    		Device dev=createDevice(deviceID,deviceType,deviceClass);
+                IQueueProcessor qp=dev.getQueueProcessor();
+                qp.setFallBackQProcessor(_theQueueProcessor);
+              
+            }
 	    	else
+            {
 	    		log.warn("cannot create device without device ID");
+            }
 	    }
 		
 		return true;

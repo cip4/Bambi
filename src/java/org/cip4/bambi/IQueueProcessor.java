@@ -124,4 +124,11 @@ public interface IQueueProcessor extends IMultiJMFHandler
      */
     public boolean resume();
 
+    /**
+     * set the secondary queueprocessor to another queueprocessor
+     * not that these must not be chained and must not be circular
+     * @param queueProcessor
+     */
+    public void setFallBackQProcessor(IQueueProcessor queueProcessor);
+
 }

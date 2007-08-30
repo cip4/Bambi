@@ -10,7 +10,6 @@ import org.cip4.bambi.servlets.DeviceServlet;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
-import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFResourceLink.EnumUsage;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -105,9 +104,9 @@ public class DeviceServletTest extends BambiTestCase {
 	{
 		DeviceServlet d = new DeviceServlet();
 		assertEquals( 0,d.getDeviceQuantity() ); 
-		assertTrue( d.createDevice("device one", "my device", "org.cip4.bambi.SimJobProcessor") );
-		assertTrue( d.createDevice("device two", "my device", "org.cip4.bambi.SimJobProcessor") );
-		assertFalse( d.createDevice("device two", "my device", "org.cip4.bambi.SimJobProcessor") );
+		assertNotNull( d.createDevice("device one", "my device", "org.cip4.bambi.SimJobProcessor") );
+        assertNotNull( d.createDevice("device two", "my device", "org.cip4.bambi.SimJobProcessor") );
+		assertNull( d.createDevice("device two", "my device", "org.cip4.bambi.SimJobProcessor") );
 		assertEquals( 2,d.getDeviceQuantity() );
 		assertNotNull( d.getDevice("device one") );
 	}
@@ -116,8 +115,8 @@ public class DeviceServletTest extends BambiTestCase {
 	{
 		DeviceServlet d = new DeviceServlet();
 		assertEquals( 0,d.getDeviceQuantity() );
-		assertTrue( d.createDevice("device one", "my device", "org.cip4.bambi.SimJobProcessor") );
-		assertTrue( d.createDevice("device two", "my device", "org.cip4.bambi.SimJobProcessor") );
+        assertNotNull( d.createDevice("device one", "my device", "org.cip4.bambi.SimJobProcessor") );
+        assertNotNull( d.createDevice("device two", "my device", "org.cip4.bambi.SimJobProcessor") );
 		assertEquals( 2,d.getDeviceQuantity() );
 		assertTrue( d.removeDevice("device one") );
 		assertNull( d.getDevice("device one") );

@@ -166,7 +166,7 @@ public final class Device implements IJMFHandler  {
         _theSignalDispatcher=new SignalDispatcher(_jmfHandler);
         _theSignalDispatcher.addHandlers(_jmfHandler);
 
-		_theQueue=new QueueProcessor(_theSignalDispatcher,deviceID);
+		_theQueue=new QueueProcessor(deviceID);
         _theQueue.addHandlers(_jmfHandler);
         _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
         _theStatusListener.addHandlers(_jmfHandler);
@@ -270,10 +270,19 @@ public final class Device implements IJMFHandler  {
 		return (new QueueFacade(_theQueue.getQueue()) );
 	}
 	
-	public JDFQueue getQueue()
-	{
-		return _theQueue.getQueue();
-	}
+    public JDFQueue getQueue()
+    {
+        return _theQueue.getQueue();
+    }
+    
+    /**
+     * get the queprocessor
+     * @return
+     */
+    public IQueueProcessor getQueueProcessor()
+    {
+        return _theQueue;
+    }
 	
 	
 	public boolean suspend()
