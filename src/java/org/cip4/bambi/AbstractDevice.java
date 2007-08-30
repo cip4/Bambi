@@ -218,7 +218,12 @@ public class AbstractDevice implements IJMFHandler{
     
     public EnumDeviceStatus getDeviceStatus()
     {
-    	return _theStatusListener.getDeviceStatus();
+    	EnumDeviceStatus status = _theStatusListener.getDeviceStatus();
+    	if (status == null) {
+    		log.error("StatusListener returned a null device status");
+    		status = EnumDeviceStatus.Unknown;
+    	}
+    	return status;
     }
 
 }
