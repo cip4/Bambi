@@ -815,7 +815,7 @@ public class QueueProcessor implements IQueueProcessor
 	 * 
 	 */
 	private JDFQueueEntry getCurrentQueueEntry() 
-    {
+		{
 		return getEntry(currentQueueEntryID);
 	}
 
@@ -826,9 +826,9 @@ public class QueueProcessor implements IQueueProcessor
         {
             qe=fallBackQProcessor.getQueue().getEntry(queueEntryID);
         }
-        return qe;
-    }
-
+				return qe;
+		}
+	
 
     /**
      * @param fallBackQProcessor the fallBackQProcessor to set
@@ -836,5 +836,5 @@ public class QueueProcessor implements IQueueProcessor
     public void setFallBackQProcessor(IQueueProcessor _fallBackQProcessor)
     {
         this.fallBackQProcessor = _fallBackQProcessor;
-    }
+	}
 }

@@ -8,7 +8,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.Device;
+import org.cip4.bambi.AbstractDevice;
+import org.cip4.bambi.SimDevice;
 import org.cip4.bambi.messaging.JMFFactory;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
@@ -145,14 +146,14 @@ public class QueueEntryServlet extends AbstractBambiServlet {
 		_queueEntryID = request.getParameter("qeid");
 		if (_deviceID == null || _deviceID.length() == 0 || _queueEntryID == null || _queueEntryID.length() == 0)
 		{
-			String errorMsg = "can't suspend QueueEntry with DeviceID ="+_deviceID+" and QueueEntryID="+
-				_queueEntryID+", either DeviceID or QueueEntryID is missing.";
+			String errorMsg = "can't change status of QueueEntry with DeviceID='"+_deviceID+"' and QueueEntryID='"+
+				_queueEntryID+"', either DeviceID or QueueEntryID is missing.";
 			showError("missing DeviceID/QueueEntryID", errorMsg, request, response);
 			return false;
 		}
 		
 		// get the matching device
-		Device dev = (Device)request.getAttribute("device");
+		AbstractDevice dev = getDeviceFromObject( request.getAttribute("device") );
 		// if dev is null, try to get it from the root device
 		if (dev == null) {
 			try {

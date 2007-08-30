@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
-<%@ page import="org.cip4.bambi.Device"%>
+<%@ page import="org.cip4.bambi.AbstractDevice"%>
 <%@ page import="org.cip4.bambi.QueueFacade"%>
 <%@ page import="org.cip4.bambi.QueueFacade.BambiQueueEntry"%>
 <%@ page import="org.cip4.bambi.servlets.DeviceServlet"%>
@@ -14,7 +14,7 @@
 	</head>
 	
 	<body>
-		<% Device dev = (Device) request.getAttribute("device"); %>
+		<% AbstractDevice dev = (AbstractDevice) request.getAttribute("device"); %>
 		<p align="center">
 		// <a href="BambiRootDevice">back to root device</a> //
 		<a href="BambiRootDevice?cmd=showDevice&id=<%=dev.getDeviceID()%>">reload this page</a> //

@@ -68,44 +68,121 @@
  *  
  * 
  */
+
 package org.cip4.bambi;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 
-//TODO: pull device implementieren
-/*
- * handleMessage für requestQueueEntry
- * kein automatisches auspicken aus der queue
- * weitere messages an das geforwarded device leiten
- */
-
 /**
- * @author prosirai
+ * simulates processing of manually and on the fly designed tasks
+ * ("now run this phase, stop, and now do that")
+ * 
+ * @author boegerni
  *
  */
-public interface IDeviceProcessor extends Runnable
+public class CustomDeviceProcessor extends AbstractDeviceProcessor
 {
+	private static Log log = LogFactory.getLog(CustomDeviceProcessor.class.getName());
+	private static final long serialVersionUID = -384123589645081254L;
+	private boolean isQueueEntryFinished = false;
+	private boolean doNextPhase = false;
 
-    /**
-     * this is the device processor loop
-     * whenever the 
-     */
-    public abstract void run();
+	public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) 
+	{
+		super.processDoc(doc, qe);
+		
+        isQueueEntryFinished = false;
+		while ( !isQueueEntryFinished ) {
+			if ( _jobPhases.isEmpty() )
+			{
+				JobPhase p = new JobPhase();
+				p.deviceStatus=EnumDeviceStatus.Idle;
+				p.deviceStatusDetails="Waiting";
+				p.nodeStatus=EnumNodeStatus.Waiting;
+				p.nodeStatusDetails="Waiting";
+				_jobPhases.add(p);
+			}
+			
+			if (doNextPhase)
+			{
+				_jobPhases.remove(0);
+				doNextPhase = false;
+			}
+			JobPhase phase = (JobPhase)_jobPhases.get(0);
+			
+			if (phase == null) {
+				log.fatal("job phase is null");
+				return EnumQueueEntryStatus.Aborted;
+			}
+			
+			log.info("processing new job phase: "+phase.toString());
+			_statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, 
+					phase.nodeStatus,phase.nodeStatusDetails);
+			
+			
+			while ( !doNextPhase )
+			try {
+				EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+				if (status==EnumQueueEntryStatus.Suspended)
+					suspendQueueEntry(qe);
+				else if (status==EnumQueueEntryStatus.Aborted)
+					return abortQueueEntry();
+				else
+					Thread.sleep(1000);
+				
+				_statusListener.updateAmount(_trackResourceID, phase.Output_Good, phase.Output_Waste);
+				
+			} catch (InterruptedException e) {
+				log.warn("interrupted while sleeping");
+			}
 
-    /**
-     * @param doc
-     * @return EnumQueueEntryStatus the final status of the queuentry 
-     */
-    public abstract EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe);
-    
-    /**
-     * initialize the IDeviceProcessor
-     * @param _queueProcessor
-     * @param _statusListener
-     * @param deviceID 
-     */
-    public void init(IQueueProcessor _queueProcessor, IStatusListener _statusListener, String deviceID);
+		}
+		
+		return finalizeProcessDoc();
+	}
 
+//	private void idlePhase() {
+//		_statusListener.signalStatus(EnumDeviceStatus.Running,"Idling",EnumNodeStatus.Stopped,"Stopped");
+//		try {
+//			Thread.sleep(750);
+//		} catch (InterruptedException e) {
+//			log.error("interrupted thread while idling");
+//		}
+//	}
+	
+	/**
+	 * proceed to the next job phase
+	 * @param newPhase the next job phase to process.<br>
+	 * Phase duration is ignored in this class, it is advancing to the next phase 
+	 * solely by doNextPhase().
+	 */
+	public void doNextPhase(JobPhase nextPhase)
+	{
+		_jobPhases.add(nextPhase);
+		doNextPhase = true;
+	}
+	
+	/**
+	 * finish processing the current QueueEntry
+	 */
+	public void finishQueueEntry()
+	{
+		isQueueEntryFinished = true;
+	}
+	
+	public JobPhase getCurrentJobPhase()
+	{
+		if ( _jobPhases != null && _jobPhases.size() > 0)
+			return (JobPhase)_jobPhases.get(0);
+		else 
+			return null;
+	}
+	
+	
 }

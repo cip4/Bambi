@@ -73,7 +73,6 @@ package org.cip4.bambi;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -82,91 +81,23 @@ import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
-import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
-import org.cip4.jdflib.core.JDFResourceLink.EnumUsage;
-import org.cip4.jdflib.datatypes.JDFAttributeMap;
-import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
-import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.resource.JDFResource;
-import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
 import org.cip4.jdflib.util.StringUtil;
 
 /**
- * a simulated job for Bambi
+ * a simulated device processor for Bambi
  * @author boegerni
  *
  */
-public class SimJobProcessor implements IDeviceProcessor
+public class SimDeviceProcessor extends AbstractDeviceProcessor
 {
-	/**
-	 * a single job phase
-	 * 
-	 * @author boegerni
-	 *
-	 */
-	public static class JobPhase {
-		/**
-		 * status to be displayed for this job phase
-		 */
-		public EnumDeviceStatus deviceStatus=EnumDeviceStatus.Idle;
-		/**
-		 * device status details
-		 */
-		public String deviceStatusDetails = "";
-
-		public EnumNodeStatus nodeStatus=EnumNodeStatus.Waiting;
-		public String nodeStatusDetails="";
-		
-		/**
-		 * duration of job phase in milliseconds
-		 */
-		public int  duration=0;
-
-		/**
-		 * output to be produced in this job phase
-		 */
-		public double Output_Good=0;
-		/**
-		 * waste to be produced in this job phase
-		 */
-		public double Output_Waste=0;
-		
-		public String toString()
-		{
-			return ("[JobPhase: Duration="+duration+", DeviceStatus="+deviceStatus.getName()
-					+", DeviceStatusDetails="+deviceStatusDetails
-					+", NodeStatus="+nodeStatus.getName()
-					+", NodeStatusDetails="+nodeStatusDetails
-					+", Good="+Output_Good+", Waste="+Output_Waste+"]");
-		}
-
-	}
-
-	private static Log log = LogFactory.getLog(SimJobProcessor.class.getName());
-	private List _jobPhases = null;
+	private static Log log = LogFactory.getLog(SimDeviceProcessor.class.getName());	
 	private static final long serialVersionUID = -256551569245084031L;
-	private IQueueProcessor _queueProcessor;
-	private IStatusListener _statusListener;
-	private Object _myListener; // the mutex for waiting and reawakening
 	public boolean isPaused=false;
-	
-    /**
-     * constructor
-     */
-    public SimJobProcessor(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID)
-    {
-        super();
-        init(queueProcessor, statusListener, deviceID);
-    }
-    
-    public SimJobProcessor()
-    {
-    	super();
-    }
+	JobPhase _currentPhase = null;
 
 
 	/**
@@ -176,14 +107,9 @@ public class SimJobProcessor implements IDeviceProcessor
 	 */
 	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID) 
 	{
-		log.info("SimJobProcessor construct");
-        _queueProcessor=queueProcessor;
-        _myListener=new Object();
-        _queueProcessor.addListener(_myListener);
-        _statusListener=statusListener;
+		super.init(queueProcessor, statusListener, deviceID);
         
         // try to load default a default job
-        
         boolean hasLoaded = loadBambiJobFromFile("job_"+deviceID+".xml");
         if (hasLoaded)
         	randomizeJobPhases(10.0, 30.0);
@@ -200,12 +126,12 @@ public class SimJobProcessor implements IDeviceProcessor
 	 */
 	public boolean loadBambiJobFromFile(String fileName)
 	{
-		// if fileName has no "/" or "\" it is assumed to be on the server and 
+		// if fileName has no file separator it is assumed to be on the server and 
 		// needs the config dir to be added
 		if ( !fileName.contains(File.separator) )  
 			fileName = DeviceServlet.configDir+fileName;
 		
-		_jobPhases = new ArrayList();
+		_jobPhases.clear();
 		JDFParser p = new JDFParser();
 		JDFDoc doc = p.parseFile(fileName);
 		if (doc == null)
@@ -295,47 +221,7 @@ public class SimJobProcessor implements IDeviceProcessor
 	}
 
 	public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
-		if(qe==null || doc==null)
-        {
-            log.error("proccessing null job");
-            return EnumQueueEntryStatus.Aborted;
-        }
-        final String queueEntryID = qe.getQueueEntryID();
-        log.info("Processing queueentry"+queueEntryID);
-        JDFNode node=doc.getJDFRoot();
-        VJDFAttributeMap vPartMap=qe.getPartMapVector();
-        JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
-        final String workStepID = node.getWorkStepID(partMap);
-        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);
-
-        VElement v=node.getResourceLinks(null);
-        int vSiz=v==null ? 0 : v.size();
-        String inConsume=null;
-        String outQuantity=null;
-        for(int i=0;i<vSiz;i++)
-        {
-            JDFResourceLink rl=(JDFResourceLink) v.elementAt(i);
-            JDFResource r=rl.getLinkRoot();
-            EnumResourceClass c=r.getResourceClass();
-            if(EnumResourceClass.Consumable.equals(c)
-                    || EnumResourceClass.Handling.equals(c)
-                    || EnumResourceClass.Quantity.equals(c) )
-            {
-                EnumUsage inOut=rl.getUsage();
-                if(EnumUsage.Input.equals(inOut))
-                {
-                    if(EnumResourceClass.Consumable.equals(c))
-                        inConsume=rl.getrRef();
-                }
-                else
-                {
-                    outQuantity=rl.getrRef();
-                }
-            }
-
-        }
-        String trackResourceID= inConsume !=null ? inConsume : outQuantity;
-        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
+		super.processDoc(doc, qe);
         		
 		if ( _jobPhases.isEmpty() )
 		{
@@ -344,12 +230,12 @@ public class SimJobProcessor implements IDeviceProcessor
 		}
 		for (int i=0;i<_jobPhases.size();i++)
 		{
-			JobPhase phase = (JobPhase)_jobPhases.get(i);
-			_statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, 
-					phase.nodeStatus,phase.nodeStatusDetails);
+			_currentPhase = (JobPhase)_jobPhases.get(i);
+			_statusListener.signalStatus(_currentPhase.deviceStatus, _currentPhase.deviceStatusDetails, 
+					_currentPhase.nodeStatus,_currentPhase.nodeStatusDetails);
 			try {
-				int repeats = (int)(phase.duration/1000);
-				int remainder = phase.duration % 1000;
+				int repeats = (int)(_currentPhase.duration/1000);
+				int remainder = _currentPhase.duration % 1000;
 				for (int j=0;j < repeats; j++)
 				{
 					EnumQueueEntryStatus status = qe.getQueueEntryStatus();
@@ -364,100 +250,18 @@ public class SimJobProcessor implements IDeviceProcessor
 					return abortQueueEntry();
 				else
 					Thread.sleep(remainder);
-				_statusListener.updateAmount(trackResourceID, phase.Output_Good, phase.Output_Waste);
+				_statusListener.updateAmount(_trackResourceID, _currentPhase.Output_Good, _currentPhase.Output_Waste);
 				
 			} catch (InterruptedException e) {
 				log.warn("interrupted while sleeping");
 			}
-			
 		}
-		_statusListener.signalStatus(EnumDeviceStatus.Idle, "Idle", EnumNodeStatus.Completed, "job completed");
-		_statusListener.setNode(null, null, null, null, null);
-		return EnumQueueEntryStatus.Completed;
+		
+		return finalizeProcessDoc();
 	}
 
-	/**
-	 * @return
-	 */
-	private EnumQueueEntryStatus abortQueueEntry() {
-		_statusListener.signalStatus(EnumDeviceStatus.Cleanup, "WashUp", EnumNodeStatus.Cleanup, "cleaning up the aborted job");
-		try {
-			Thread.sleep(1500);
-		} catch (InterruptedException e) {
-			log.error("interrupted while cleaning up the aborted job");
-		}
-		_statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCanceledByUser", EnumNodeStatus.Aborted, "job canceled by user");
-		_statusListener.setNode(null, null, null, null, null);
-		return EnumQueueEntryStatus.Aborted;
-	}
-	
-	private void suspendQueueEntry(JDFQueueEntry qe)
-	{
-		while (qe.getQueueEntryStatus()==EnumQueueEntryStatus.Suspended)
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				log.error("interrupted QueueEntry while waiting for ");
-			}
-	}
 
-	public void run() {
-		while (true)
-		{
-            if(!processQueueEntry())
-            {
-                try
-                {
-                	if (log!=null)
-                		log.debug("waiting");
-                    synchronized (_myListener)
-                    {
-                        _myListener.wait(10000); // just in case                        
-                    }
-                }
-                catch (InterruptedException x)
-                {
-                    log.error("interrupted while idle");
-                }
-            }
-		}
-	}
-	
-	private boolean processQueueEntry()
-    {
-        IQueueEntry iqe=_queueProcessor.getNextEntry();
-        if (iqe!=null) // is there a new  QueueEntry to process?
-        	if (iqe.getQueueEntry() != null)
-        		if (iqe.getQueueEntry().getQueueEntryID() != null)
-        			log.debug("processing: "+iqe.getQueueEntry().getQueueEntryID());
-       
-        if(iqe==null)
-            return false;
-        JDFDoc doc=iqe.getJDF();
-        if(doc==null)
-            return false;
-        JDFQueueEntry qe=iqe.getQueueEntry();
-        if(qe==null)
-            return false;
-        qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
-        final String queueEntryID = qe.getQueueEntryID();
-         _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Running);
-        EnumQueueEntryStatus qes=null;
-        try
-        {
-            log.info("processing JDF: ");
-            qes=processDoc(doc,qe);
-            qe.setQueueEntryStatus(qes);
-            _queueProcessor.updateEntry(queueEntryID, qes);
-            log.info("finalized processing JDF: ");
-        }
-        catch(Exception x)
-        {
-            log.error("error processing JDF: "+x);
-            qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
-            _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Aborted);
-        }
-        
-        return true;
-    }
+	public JobPhase getCurrentJobPhase() {
+		return _currentPhase;
+	}	
 }

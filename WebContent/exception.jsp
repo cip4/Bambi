@@ -6,14 +6,13 @@
 		<title>Bambi - Error</title>
 	</head>
 	<body>
-	<h2>Error Page</h2>
-		Oops! Bambi ran into an exception...<br>
-		<b>Request that failed: </b>${pageContext.errorData.requestURI}
+	<h2>Oops! Bambi ran into an exception...</h2>
+		<b>Query String: </b><%= request.getQueryString() %> <br>
 		<b>Status Code: </b>${pageContext.errorData.statusCode} <br>
-		<b>Class: </b><%= exception.getClass() %> <br>
+		<b>Exception: </b><%= exception.getClass() %> <br>
 		<b>Message: </b><%= exception.getMessage() %> <br>
 		<b>Stack Trace: </b> <br>
-		<code>
+		<code style="margin-left: 40px">
 			<% 
 				CharArrayWriter charArrayWriter = new CharArrayWriter(); 
 				PrintWriter printWriter = new PrintWriter(charArrayWriter, true); 

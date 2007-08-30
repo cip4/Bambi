@@ -11,6 +11,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.cip4.bambi.AbstractDevice;
+import org.cip4.bambi.CustomDevice;
+import org.cip4.bambi.SimDevice;
+
 /**
  * mother of all Bambi servlets
  * @author boegerni
@@ -24,7 +28,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	}
 	
 	/**
-	 * show error.jsp
+	 * display an error on  error.jsp
 	 * @param errorMsg short message describing the error
 	 * @param errorDetails detailed error info
 	 * @param request required to forward the page
@@ -45,5 +49,24 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 			System.err.println("failed to show error.jsp");
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * get a Device instance from a given object
+	 * @param oDev
+	 * @return null if oDev is null or invalid, otherwise the SimDevice or CustomDevice.
+	 */
+	protected AbstractDevice getDeviceFromObject(Object oDev) {
+		if (oDev == null)
+			return null;
+			
+		AbstractDevice dev;
+		if (oDev instanceof SimDevice)
+			dev = (SimDevice)oDev;
+		else if (oDev instanceof CustomDevice)
+			dev = (CustomDevice)oDev;
+		else		
+			return null;
+		return dev;
 	}
 }

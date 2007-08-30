@@ -1,7 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.Set" %>
-<%@ page import="org.cip4.bambi.Device" %>
+<%@ page import="java.util.SortedSet" %>
+<%@ page import="java.util.TreeSet" %>
+<%@ page import="org.cip4.bambi.AbstractDevice" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
@@ -26,11 +28,12 @@
 		
 			<% 
 				HashMap devices = (HashMap)request.getAttribute("devices");
-				Set keys = devices.keySet();
+				SortedSet keys = new TreeSet();
+				keys.addAll( devices.keySet() );
 				java.util.Iterator it = keys.iterator();
 				while (it.hasNext()) {
 					String key = it.next().toString();
-					Device dev = (Device)devices.get(key);
+					AbstractDevice dev = (AbstractDevice)devices.get(key);
 		  	%>
 				<tr>
 					<td><%=dev.getDeviceID()%></td>

@@ -70,6 +70,9 @@
  */
 package org.cip4.bambi;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
@@ -85,71 +88,138 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
-import org.cip4.jdflib.util.StatusCounter;
 
+//TODO: pull device implementieren
+/*
+ * handleMessage für requestQueueEntry
+ * kein automatisches auspicken aus der queue
+ * weitere messages an das geforwarded device leiten
+ */
 
 /**
- * Rainers device processor. Use SimJobProcessor for sim jobs.
- * @author  rainer
- * @see org.cip4.bambi.SimJopProcessor
+ * abstract parent class for simu job processors
+ * @author boegerni
  *
  */
-public class DeviceProcessor implements IDeviceProcessor 
+public abstract class AbstractDeviceProcessor implements Runnable
 {
+	private static Log log = LogFactory.getLog(AbstractDeviceProcessor.class.getName());
+	protected List _jobPhases = null;
+	protected IQueueProcessor _queueProcessor;
+	protected IStatusListener _statusListener;
+	protected Object _myListener; // the mutex for waiting and reawakening
+	protected String _trackResourceID="";
+	
+	/**
+	 * a single job phase
+	 * 
+	 * @author boegerni
+	 *
+	 */
+	public static class JobPhase {
+		/**
+		 * status to be displayed for this job phase
+		 */
+		public EnumDeviceStatus deviceStatus=EnumDeviceStatus.Idle;
+		/**
+		 * device status details
+		 */
+		public String deviceStatusDetails = "";
 
-    private static Log log = LogFactory.getLog(DeviceProcessor.class.getName());
-    private static final long serialVersionUID = -876551736245089033L;
-    private boolean bCancel=false;
-    private IQueueProcessor _queueProcessor;
-    private IStatusListener _statusListener;
-    private Object myListener; // the mutex for waiting and reawakening
+		public EnumNodeStatus nodeStatus=EnumNodeStatus.Waiting;
+		public String nodeStatusDetails="";
+		
+		/**
+		 * duration of job phase in milliseconds
+		 */
+		public int  duration=0;
 
-    
+		/**
+		 * output to be produced in this job phase
+		 */
+		public double Output_Good=0;
+		/**
+		 * waste to be produced in this job phase
+		 */
+		public double Output_Waste=0;
+		
+		public String toString()
+		{
+			return ("[JobPhase: Duration="+duration+", DeviceStatus="+deviceStatus.getName()
+					+", DeviceStatusDetails="+deviceStatusDetails
+					+", NodeStatus="+nodeStatus.getName()
+					+", NodeStatusDetails="+nodeStatusDetails
+					+", Good="+Output_Good+", Waste="+Output_Waste+"]");
+		}
+
+	}
+	
+	/**
+     * constructor
+     */
+	public AbstractDeviceProcessor(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID)
+	{
+		super();
+        init(queueProcessor, statusListener, deviceID);
+	}
+	
+	/**
+     * constructor
+     */
+	public AbstractDeviceProcessor()
+	{
+		super();
+	}
+	
     /**
-     * 
-     *
+     * this is the device processor loop
      */
-    public DeviceProcessor(IQueueProcessor queueProcessor, IStatusListener statusListener)
-    {
-        super();
-        init(queueProcessor,statusListener, "");
-    }
-
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.IDeviceProcessor#run()
-     */
-    public void run()
-    {
-        while(!bCancel)
-        {
+	public void run() {
+		while (true)
+		{
             if(!processQueueEntry())
             {
                 try
                 {
-               		log.debug("waiting");
-                    synchronized (myListener)
+                	if (log!=null)
+                		log.debug("waiting");
+                    synchronized (_myListener)
                     {
-                        myListener.wait(10000); // just in case                        
+                        _myListener.wait(10000); // just in case                        
                     }
                 }
                 catch (InterruptedException x)
                 {
-                    bCancel=true;
+                    log.error("interrupted while idle");
                 }
             }
-        }
-    }
-
+		}
+	}
+   
     /**
-     * check the queue for any waiting entries and process the first
-     * waiting entry in the queue
-     * 
-     * @return true if an entry was processed, false if no waiting qe is found
+     * initialize the IDeviceProcessor
+     * @param _queueProcessor
+     * @param _statusListener
+     * @param deviceID 
      */
-    private boolean processQueueEntry()
+    public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID)
+    {
+    	log.info(this.getClass().getName()+" construct");
+        _queueProcessor=queueProcessor;
+        _myListener=new Object();
+        _queueProcessor.addListener(_myListener);
+        _statusListener=statusListener;
+        _jobPhases = new ArrayList();
+    }
+    
+    protected boolean processQueueEntry()
     {
         IQueueEntry iqe=_queueProcessor.getNextEntry();
-      	log.debug("processing:"+((iqe==null) ? " nothing " : iqe.getQueueEntry()==null ? "nothing" : iqe.getQueueEntry().getQueueEntryID()));
+        if (iqe!=null) // is there a new  QueueEntry to process?
+        	if (iqe.getQueueEntry() != null)
+        		if (iqe.getQueueEntry().getQueueEntryID() != null)
+        			log.debug("processing: "+iqe.getQueueEntry().getQueueEntryID());
+       
         if(iqe==null)
             return false;
         JDFDoc doc=iqe.getJDF();
@@ -160,7 +230,7 @@ public class DeviceProcessor implements IDeviceProcessor
             return false;
         qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
         final String queueEntryID = qe.getQueueEntryID();
-        _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Running);
+         _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Running);
         EnumQueueEntryStatus qes=null;
         try
         {
@@ -180,13 +250,37 @@ public class DeviceProcessor implements IDeviceProcessor
         return true;
     }
 
-
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.IDeviceProcessor#processDoc(org.cip4.jdflib.core.JDFDoc, org.cip4.jdflib.jmf.JDFQueueEntry)
+    protected void suspendQueueEntry(JDFQueueEntry qe)
+	{
+		// TODO process next qe instead of waiting
+		while (qe.getQueueEntryStatus()==EnumQueueEntryStatus.Suspended)
+		{
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				log.error("interrupted QueueEntry while waiting for ");
+			}
+		}
+	}
+    
+	protected EnumQueueEntryStatus abortQueueEntry() {
+		_statusListener.signalStatus(EnumDeviceStatus.Cleanup, "WashUp", EnumNodeStatus.Cleanup, "cleaning up the aborted job");
+		try {
+			Thread.sleep(1500);
+		} catch (InterruptedException e) {
+			log.error("interrupted while cleaning up the aborted job");
+		}
+		_statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCanceledByUser", EnumNodeStatus.Aborted, "job canceled by user");
+		_statusListener.setNode(null, null, null, null, null);
+		return EnumQueueEntryStatus.Aborted;
+	}
+	
+    /**
+     * @param doc
+     * @return EnumQueueEntryStatus the final status of the queuentry 
      */
-    public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe)
-    {
-        if(qe==null || doc==null)
+	public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
+		if(qe==null || doc==null)
         {
             log.error("proccessing null job");
             return EnumQueueEntryStatus.Aborted;
@@ -194,6 +288,11 @@ public class DeviceProcessor implements IDeviceProcessor
         final String queueEntryID = qe.getQueueEntryID();
         log.info("Processing queueentry"+queueEntryID);
         JDFNode node=doc.getJDFRoot();
+        VJDFAttributeMap vPartMap=qe.getPartMapVector();
+        JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
+        final String workStepID = node.getWorkStepID(partMap);
+        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);
+
         VElement v=node.getResourceLinks(null);
         int vSiz=v==null ? 0 : v.size();
         String inConsume=null;
@@ -218,47 +317,25 @@ public class DeviceProcessor implements IDeviceProcessor
                     outQuantity=rl.getrRef();
                 }
             }
-
         }
-        String trackResourceID= inConsume !=null ? inConsume : outQuantity;
-        VJDFAttributeMap vPartMap=qe.getPartMapVector();
-        JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
-        final String workStepID = node.getWorkStepID(partMap);
-        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
-        _statusListener.signalStatus(EnumDeviceStatus.Setup, "setup", EnumNodeStatus.Setup,"node steup");
-        StatusCounter.sleep(1000);
-        for(int i=0;i<5;i++)
-        {
-            _statusListener.signalStatus(EnumDeviceStatus.Running, "device running", EnumNodeStatus.InProgress,"moving");
-            StatusCounter.sleep(1000);
-            _statusListener.signalStatus(EnumDeviceStatus.Running, "device running", EnumNodeStatus.Stopped,"paused");
-            StatusCounter.sleep(1000);
-        }
-        _statusListener.signalStatus(EnumDeviceStatus.Idle, "device completed", EnumNodeStatus.Completed,"done");
-        StatusCounter.sleep(1000);
-        //TODO more
-        //TODO better cleanup functionality - use cleanup thread
-        log.info("Completed processing queueentry"+queueEntryID);
-
-        return EnumQueueEntryStatus.Completed;
-
-    }
-
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.IDeviceProcessor#cancel()
-     */
-    public void cancel()
-    {
-        bCancel = true;
-    }
-
-	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID) {
-        log.info("DeviceProcessor construct");
-        _queueProcessor=queueProcessor;
-        myListener=new Object();
-        _queueProcessor.addListener(myListener);
-        _statusListener=statusListener;
-		
+        
+        _trackResourceID= inConsume !=null ? inConsume : outQuantity;
+        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, _trackResourceID);
+        
+        // remember to call finalizeProcessDoc() at the of derived processDoc implementations
+		return null;
 	}
 
+	/**
+	 * signal that processing has finished and ready the StatusCounter for the next process
+	 * @return EnumQueueEntryStatus.Completed
+	 */
+	protected EnumQueueEntryStatus finalizeProcessDoc()
+	{
+		_statusListener.signalStatus(EnumDeviceStatus.Idle, "Idle", EnumNodeStatus.Completed, "job completed");
+		_statusListener.setNode(null, null, null, null, null);
+		return EnumQueueEntryStatus.Completed;
+	}
+	
+	public abstract JobPhase getCurrentJobPhase();
 }

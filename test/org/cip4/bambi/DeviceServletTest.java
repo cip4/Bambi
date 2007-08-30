@@ -104,9 +104,9 @@ public class DeviceServletTest extends BambiTestCase {
 	{
 		DeviceServlet d = new DeviceServlet();
 		assertEquals( 0,d.getDeviceQuantity() ); 
-		assertNotNull( d.createDevice("device one", "my device", "org.cip4.bambi.SimJobProcessor") );
-        assertNotNull( d.createDevice("device two", "my device", "org.cip4.bambi.SimJobProcessor") );
-		assertNull( d.createDevice("device two", "my device", "org.cip4.bambi.SimJobProcessor") );
+		assertNotNull( d.createDevice("device one", "my device", "org.cip4.bambi.SimDevice") );
+        assertNotNull( d.createDevice("device two", "my device", "org.cip4.bambi.SimDevice") );
+		assertNull( d.createDevice("device two", "my device", "org.cip4.bambi.SimDevice") );
 		assertEquals( 2,d.getDeviceQuantity() );
 		assertNotNull( d.getDevice("device one") );
 	}
@@ -115,15 +115,15 @@ public class DeviceServletTest extends BambiTestCase {
 	{
 		DeviceServlet d = new DeviceServlet();
 		assertEquals( 0,d.getDeviceQuantity() );
-        assertNotNull( d.createDevice("device one", "my device", "org.cip4.bambi.SimJobProcessor") );
-        assertNotNull( d.createDevice("device two", "my device", "org.cip4.bambi.SimJobProcessor") );
+        assertNotNull( d.createDevice("device one", "my device", "org.cip4.bambi.SimDevice") );
+        assertNotNull( d.createDevice("device two", "my device", "org.cip4.bambi.SimDevice") );
 		assertEquals( 2,d.getDeviceQuantity() );
 		assertTrue( d.removeDevice("device one") );
 		assertNull( d.getDevice("device one") );
 		assertEquals(1, d.getDeviceQuantity() );
 		assertFalse( d.removeDevice("device one") );
 	}
-    
+
     public void testMimeSubmit() throws Exception
     {
         JDFDoc d1=new JDFDoc("JMF");

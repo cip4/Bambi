@@ -243,8 +243,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
     }
 
  
-      /**
-       * standard handler for unimplemented messages
+    /**
+     * standard handler for unimplemented messages
      * @param m
      * @param resp
      */

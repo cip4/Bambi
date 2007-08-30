@@ -16,26 +16,26 @@ public class QueueEntry implements IQueueEntry
 {
     private static Log log = LogFactory.getLog(QueueEntry.class.getName());
    
-    private JDFDoc theDoc;
-    private JDFQueueEntry theQueueEntry;
+    private JDFDoc _theDoc;
+    private JDFQueueEntry _theQueueEntry;
     
     public QueueEntry(JDFDoc doc, JDFQueueEntry qe)
     {
         super();
         log.info("constructing new QueueEntry");
-        theDoc=doc;
-        theQueueEntry=qe;
-        if(theDoc==null || theQueueEntry==null)
+        _theDoc=doc;
+        _theQueueEntry=qe;
+        if(_theDoc==null || _theQueueEntry==null)
             log.error("null elements in queuentry");
     }
 
     public JDFDoc getJDF()
     {
-        return theDoc;
+        return _theDoc;
     }
     public JDFQueueEntry getQueueEntry()
     {
-        return theQueueEntry;
+        return _theQueueEntry;
     }
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
@@ -43,8 +43,8 @@ public class QueueEntry implements IQueueEntry
     public String toString()
     {
         String s="[QueueEntry: ] \nQueueEntry : ";
-        s+=theQueueEntry==null ?"null \n" : theQueueEntry.getQueueEntryID() + "\n"+theQueueEntry.toString();
-        s+="\n Doc: "+theDoc==null ?"null \n": theDoc.toString();
+        s+=_theQueueEntry==null ?"null \n" : _theQueueEntry.getQueueEntryID() + "\n"+_theQueueEntry.toString();
+        s+="\n Doc: "+_theDoc==null ?"null \n": _theDoc.toString();
         return s;
     }
     

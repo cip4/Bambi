@@ -91,7 +91,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.Device;
+import org.cip4.bambi.AbstractDevice;
+import org.cip4.bambi.CustomDevice;
+import org.cip4.bambi.SimDevice;
 import org.cip4.bambi.IJMFHandler;
 import org.cip4.bambi.IMessageHandler;
 import org.cip4.bambi.IQueueProcessor;
@@ -156,7 +158,11 @@ public class DeviceServlet extends AbstractBambiServlet
 				for (int i=0; i<keys.size();i++)
 				{
 					String key = (String)strKeys[i];
-					((Device)_devices.get(key)).appendDeviceInfo(dl);
+					AbstractDevice dev = getDeviceFromObject(_devices.get(key));
+					if (dev == null)
+						log.error("device with key '"+key+"'not found");
+					else
+						dev.appendDeviceInfo(dl);
 				}
 				return true;
 			}
@@ -250,7 +256,7 @@ public class DeviceServlet extends AbstractBambiServlet
 			} 
 		} else if ( command.equals("showDevice") ) // show a device
 		{
-			Device dev=getDeviceFromRequest(request);
+			AbstractDevice dev=getDeviceFromRequest(request);
 			if (dev!=null)
 			{
 				request.setAttribute("device", dev);
@@ -265,12 +271,26 @@ public class DeviceServlet extends AbstractBambiServlet
 			}
 		} else if ( command.endsWith("QueueEntry") ) 
 		{
-			Device dev=getDeviceFromRequest(request);
+			AbstractDevice dev=getDeviceFromRequest(request);
 			if (dev!=null)
 			{
 				request.setAttribute("device", dev);
 				try {
 					request.getRequestDispatcher("QueueEntry").forward(request, response);
+				} catch (Exception e) {
+					log.error(e);
+				}
+			} else {
+				log.error("can't get device, device ID is missing or unknown");
+			}
+		} else if ( command.equals("processNextPhase") ) 
+		{
+			AbstractDevice dev=getDeviceFromRequest(request);
+			if (dev!=null)
+			{
+				request.setAttribute("device", dev);
+				try {
+					request.getRequestDispatcher("DeviceInfo").forward(request, response);
 				} catch (Exception e) {
 					log.error(e);
 				}
@@ -284,14 +304,14 @@ public class DeviceServlet extends AbstractBambiServlet
 	/**
 	 * @param request
 	 */
-	private Device getDeviceFromRequest(HttpServletRequest request) {
+	private AbstractDevice getDeviceFromRequest(HttpServletRequest request) {
 		String deviceID = request.getParameter("id");
 		if (deviceID == null)
 		{
 			log.error("invalid request: device ID is missing");
 			return null;
 		}
-		Device dev = getDevice(deviceID);
+		AbstractDevice dev = getDevice(deviceID);
 		if (dev == null)
 		{
 			log.error("invalid request: device with id="+deviceID+" not found");
@@ -404,7 +424,7 @@ public class DeviceServlet extends AbstractBambiServlet
 		deviceID = StringUtil.token(deviceID, 0, "/");
 		if (deviceID == null)
 			return _jmfHandler; // device not found
-		Device device = (Device)_devices.get(deviceID);
+		AbstractDevice device = getDeviceFromObject( _devices.get(deviceID) );
 		if (device == null)
 			return _jmfHandler; // device not found
 		return( device.getHandler() );
@@ -542,7 +562,7 @@ public class DeviceServlet extends AbstractBambiServlet
 	 * @return the Device, if device has been created. 
 	 * null, if not (maybe device with deviceID is already present)
 	 */
-	public Device createDevice(String deviceID, String deviceType, String deviceClass)
+	public AbstractDevice createDevice(String deviceID, String deviceType, String deviceClass)
 	{
 		log.debug("created device");
 		if (_devices == null)
@@ -553,7 +573,18 @@ public class DeviceServlet extends AbstractBambiServlet
 		
 		if (_devices.get(deviceID) == null)
 		{	
-			Device dev = new Device(deviceType, deviceID, deviceClass);
+			AbstractDevice dev;
+			if (deviceClass.equals("org.cip4.bambi.SimDevice"))
+			{
+				dev = new SimDevice(deviceType, deviceID, deviceClass);
+			} else if (deviceClass.equals("org.cip4.bambi.CustomDevice"))
+			{
+				dev = new CustomDevice(deviceType, deviceID, deviceClass);
+			} else
+			{
+				log.fatal("unknown device class: "+deviceClass);
+				return null;
+			}
 			_devices.put(deviceID,dev);
 			return dev;
 		}
@@ -596,7 +627,7 @@ public class DeviceServlet extends AbstractBambiServlet
 			return _devices.size();
 	}
 
-	public Device getDevice(String deviceID)
+	public AbstractDevice getDevice(String deviceID)
 	{
 		if (_devices == null)
 		{
@@ -604,7 +635,7 @@ public class DeviceServlet extends AbstractBambiServlet
 			return null;
 		}
 
-		return (Device)_devices.get(deviceID);
+		return (AbstractDevice)_devices.get(deviceID);
 	}
 
 	private boolean createDevicesFromFile(String fileName)
@@ -627,7 +658,7 @@ public class DeviceServlet extends AbstractBambiServlet
 	    	String deviceClass = device.getXPathAttribute("@DeviceClass", "org.cip.bambi.DeviceServlet");
 	    	if (deviceID != null)
             {
-	    		Device dev=createDevice(deviceID,deviceType,deviceClass);
+	    		AbstractDevice dev=createDevice(deviceID,deviceType,deviceClass);
                 IQueueProcessor qp=dev.getQueueProcessor();
                 qp.setFallBackQProcessor(_theQueueProcessor);
               
@@ -670,27 +701,4 @@ public class DeviceServlet extends AbstractBambiServlet
 	{
 		return _devices;
 	}
-	
-//	/**
-//	 * show error.jsp
-//	 * @param errorMsg short message describing the error
-//	 * @param errorDetails detailed error info
-//	 * @param request required to forward the page
-//	 * @param response required to forward the page
-//	 */
-//	private void showErrorPage(String errorMsg, String errorDetails, HttpServletRequest request, HttpServletResponse response)
-//	{
-//		request.setAttribute("errorOrigin", this.getClass().getName());
-//		request.setAttribute("errorMsg", errorMsg);
-//		request.setAttribute("errorDetails", errorDetails);
-//		try {
-//			request.getRequestDispatcher("/error.jsp").forward(request, response);
-//		} catch (ServletException e) {
-//			log.error("failed to show error.jsp");
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			log.error("failed to show error.jsp");
-//			e.printStackTrace();
-//		}
-//	}
 }
