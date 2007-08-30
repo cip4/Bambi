@@ -30,24 +30,6 @@ public class DeviceInfoServlet extends AbstractBambiServlet {
 
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		String qCommand = request.getParameter("qcmd");
-		if (qCommand != null && qCommand.equals("suspendQueue"))
-		{
-			String devID = request.getParameter("id");
-			String qeID = request.getParameter("qeid");
-			if (devID == null || devID.length() == 0 || qeID == null || qeID.length() == 0)
-			{
-				log.error("can't suspend QueueEntry with DeviceID ="+devID+" and QueueEntryID="+
-						qeID+", either DeviceID or QueueEntryID is missing.");
-				showErrorPage("can't suspend QueueEntry", "either DeviceID or QueueEntryID is missing", request, response);
-				return;
-			}
-			else
-			{
-
-			}
-		}
-
 		String command = request.getParameter("cmd");
 		if (command == null)
 		{
@@ -121,7 +103,22 @@ public class DeviceInfoServlet extends AbstractBambiServlet {
 			JobPhase currentPhase = ((CustomDevice)dev).getCurrentJobPhase();
 			request.setAttribute("currentPhase", currentPhase);
 			request.getRequestDispatcher("/showCustomDevice.jsp").forward(request, response);
+		} else if ( command.equals("finalizeCurrentQE") )
+		{
+			if ( !(dev instanceof CustomDevice) )
+			{
+				String errorDetails="command 'finalizeCurrentQE' is not supported for "+dev.getDeviceType();
+				showErrorPage("invalid command", errorDetails, request, response);
+				return;
+			}
+			
+			((CustomDevice)dev).finalizeCurrentQueueEntry();
+			
+			JobPhase currentPhase = ((CustomDevice)dev).getCurrentJobPhase();
+			request.setAttribute("currentPhase", currentPhase);
+			request.getRequestDispatcher("/showCustomDevice.jsp").forward(request, response);
 		}
+		
 
 	}
 

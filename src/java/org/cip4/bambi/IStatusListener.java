@@ -114,4 +114,10 @@ public interface IStatusListener extends IMultiJMFHandler
      * if node==null the queueentryid is removed from the map
      */
      public void setNode(String queueEntryID, String workStepID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID);
+     
+     /**
+      * get the device status
+      * @return
+      */
+     public EnumDeviceStatus getDeviceStatus();
 }

@@ -261,5 +261,10 @@ public class StatusListener implements IStatusListener
         jmfHandler.addHandler(this.new ResourceHandler());        
         jmfHandler.addHandler(this.new StatusHandler());        
     }
+	public EnumDeviceStatus getDeviceStatus() {
+		JDFDoc docJMF=theCounter.getDocJMFPhaseTime();
+        JDFResponse r=docJMF.getJMFRoot().getResponse(0);
+        return r.getDeviceInfo(0).getDeviceStatus();
+	}
 
 }

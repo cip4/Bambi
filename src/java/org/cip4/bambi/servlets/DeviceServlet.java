@@ -212,7 +212,6 @@ public class DeviceServlet extends AbstractBambiServlet
 
 		new File(baseDir).mkdirs();
 		_devices = new HashMap();
-		// TODO make configurable
 		_jmfHandler=new JMFHandler();
 		addHandlers();
 		
@@ -254,19 +253,20 @@ public class DeviceServlet extends AbstractBambiServlet
 			} catch (Exception e) {
 				log.error(e);
 			} 
-		} else if ( command.equals("showDevice") ) // show a device
+		} else if ( command.equals("showDevice") || 
+				command.equals("processNextPhase") || command.equals("finalizeCurrentQE") )
 		{
 			AbstractDevice dev=getDeviceFromRequest(request);
 			if (dev!=null)
 			{
 				request.setAttribute("device", dev);
 				try {
-					request.getRequestDispatcher("/DeviceInfo").forward(request, response);
+					request.getRequestDispatcher("DeviceInfo").forward(request, response);
 				} catch (Exception e) {
 					log.error(e);
 				}
 			} else {
-				showErrorPage("can't show device info", "device ID missing or unknown", request, response);
+				showErrorPage("can't get device", "device ID missing or unknown", request, response);
 				return;
 			}
 		} else if ( command.endsWith("QueueEntry") ) 
@@ -283,22 +283,7 @@ public class DeviceServlet extends AbstractBambiServlet
 			} else {
 				log.error("can't get device, device ID is missing or unknown");
 			}
-		} else if ( command.equals("processNextPhase") ) 
-		{
-			AbstractDevice dev=getDeviceFromRequest(request);
-			if (dev!=null)
-			{
-				request.setAttribute("device", dev);
-				try {
-					request.getRequestDispatcher("DeviceInfo").forward(request, response);
-				} catch (Exception e) {
-					log.error(e);
-				}
-			} else {
-				log.error("can't get device, device ID is missing or unknown");
-			}
 		}
-		
 	}
 
 	/**
@@ -348,7 +333,6 @@ public class DeviceServlet extends AbstractBambiServlet
 			}
 			else
 			{
-                //TODO device manipulation über post von html seiten
 				log.warn("Unknown ContentType:"+contentType);
 				response.setContentType("text/plain");
 				OutputStream os=response.getOutputStream();

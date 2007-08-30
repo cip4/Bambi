@@ -26,8 +26,8 @@
 		<p>
 			<b>Device ID: </b> <%=dev.getDeviceID()%> <br/>
 			<b>Device Type: </b> <%=dev.getDeviceType()%><br/>
-			<b>Device URL: </b> <%= bambiUrl + dev.getDeviceID()%>
-			<!-- TODO: show device status -->
+			<b>Device URL: </b> <%= bambiUrl + dev.getDeviceID()%><br/>
+			<b>Status: </b> <%= dev.getDeviceStatus().getName() %>
 		</p>
 
 		<h3>Queue:</h3>

@@ -90,15 +90,15 @@ public class CustomDeviceProcessor extends AbstractDeviceProcessor
 {
 	private static Log log = LogFactory.getLog(CustomDeviceProcessor.class.getName());
 	private static final long serialVersionUID = -384123589645081254L;
-	private boolean isQueueEntryFinished = false;
+	private boolean doFinalizeQE = false;
 	private boolean doNextPhase = false;
 
 	public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) 
 	{
 		super.processDoc(doc, qe);
 		
-        isQueueEntryFinished = false;
-		while ( !isQueueEntryFinished ) {
+        doFinalizeQE = false;
+		while ( !doFinalizeQE ) {
 			if ( _jobPhases.isEmpty() )
 			{
 				JobPhase p = new JobPhase();
@@ -127,19 +127,25 @@ public class CustomDeviceProcessor extends AbstractDeviceProcessor
 			
 			
 			while ( !doNextPhase )
-			try {
-				EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-				if (status==EnumQueueEntryStatus.Suspended)
-					suspendQueueEntry(qe);
-				else if (status==EnumQueueEntryStatus.Aborted)
-					return abortQueueEntry();
-				else
-					Thread.sleep(1000);
-				
-				_statusListener.updateAmount(_trackResourceID, phase.Output_Good, phase.Output_Waste);
-				
-			} catch (InterruptedException e) {
-				log.warn("interrupted while sleeping");
+			{
+				if (doFinalizeQE) {
+					break;
+				}
+					
+				try {
+					EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+					if (status==EnumQueueEntryStatus.Suspended)
+						suspendQueueEntry(qe);
+					else if (status==EnumQueueEntryStatus.Aborted)
+						return abortQueueEntry();
+					else
+						Thread.sleep(1000);
+					
+					_statusListener.updateAmount(_trackResourceID, phase.Output_Good, phase.Output_Waste);
+					
+				} catch (InterruptedException e) {
+					log.warn("interrupted while sleeping");
+				}
 			}
 
 		}
@@ -171,9 +177,9 @@ public class CustomDeviceProcessor extends AbstractDeviceProcessor
 	/**
 	 * finish processing the current QueueEntry
 	 */
-	public void finishQueueEntry()
+	public void finalizeQueueEntry()
 	{
-		isQueueEntryFinished = true;
+		doFinalizeQE = true;
 	}
 	
 	public JobPhase getCurrentJobPhase()

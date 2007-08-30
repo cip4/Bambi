@@ -2,6 +2,7 @@ package org.cip4.bambi;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
@@ -213,6 +214,11 @@ public class AbstractDevice implements IJMFHandler{
     public IQueueProcessor getQueueProcessor()
     {
         return _theQueue;
+    }
+    
+    public EnumDeviceStatus getDeviceStatus()
+    {
+    	return _theStatusListener.getDeviceStatus();
     }
 
 }

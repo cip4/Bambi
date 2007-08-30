@@ -101,9 +101,11 @@ public final class CustomDevice extends AbstractDevice   {
 	
 	public void doNextJobPhase(JobPhase nextPhase)
 	{
-		log.info("ordering next job phase: "+nextPhase.toString());
 		if (_theDeviceProcessor instanceof  CustomDeviceProcessor)
+		{
+			log.info("ordering next job phase: "+nextPhase.toString());
 			((CustomDeviceProcessor)_theDeviceProcessor).doNextPhase(nextPhase);
+		}
 		else
 		{
 			String errorMsg = "device processor has wrong type\r\n"+
@@ -111,5 +113,23 @@ public final class CustomDevice extends AbstractDevice   {
 				"actual: " +_theDeviceProcessor.getClass().getName();
 			log.fatal(errorMsg);
 		}
+	}
+	
+	public void finalizeCurrentQueueEntry()
+	{
+		if (_theDeviceProcessor instanceof  CustomDeviceProcessor)
+		{
+			log.info("processing of the current QueueEntry on device "+_deviceID+" is being finished");
+			((CustomDeviceProcessor)_theDeviceProcessor).finalizeQueueEntry();
+		}
+		else
+		{
+			String errorMsg = "device processor has wrong type\r\n"+
+				"expected: org.cip4.Bambi.CustomDeviceProcessor\r\n" +
+				"actual: " +_theDeviceProcessor.getClass().getName();
+			log.fatal(errorMsg);
+		}
+		
+		
 	}
 }
