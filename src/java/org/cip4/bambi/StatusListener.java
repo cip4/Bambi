@@ -110,9 +110,18 @@ public class StatusListener implements IStatusListener
             if(!EnumFamily.Query.equals(inputMessage.getFamily()))
                 return false;
             
-            // TODO bug in JDFLib/StatusCounter: attribute "StartTime" is not allowed in element DeviceInfo
             JDFDoc docJMF=theCounter.getDocJMFPhaseTime();
+            if(docJMF==null)
+            {
+                log.warn("StatusHandler.handleMessage: StatusCounter-phasetime = null");
+                return false;
+            }
             JDFResponse r=docJMF.getJMFRoot().getResponse(0);
+            if(r==null)
+            {
+                log.error("StatusHandler.handleMessage: StatusCounter response = null");
+                return false;
+            }
             response.mergeElement(r, false);
             return true;
         }
@@ -240,7 +249,7 @@ public class StatusListener implements IStatusListener
         if(!KElement.isWildCard(oldQEID))
         {
             log.info("removing subscription for: "+oldQEID);
-            dispatcher.removeSubScription(queueEntryID);
+            dispatcher.removeSubScriptions(oldQEID);
         }
         theCounter.setActiveNode(node, vPartMap, null);
         theCounter.setFirstRefID(trackResourceID);

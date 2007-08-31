@@ -129,11 +129,4 @@ public interface ISignalDispatcher extends IMultiJMFHandler
      */
     public void triggerChannel(String channelID, String queueEntryID, String workStepID, int amount);
     
-    /**
-     * set the active filter ids to workstepid and queuentryid, 
-     * @param queueEntryID the active queuentry to set, may be null=no filter
-     * @param workStepID the active workstepid to set, may be null=no filter
-     */
-    public void setActiveIDs(String queueEntryID, String workStepID);
-
 }

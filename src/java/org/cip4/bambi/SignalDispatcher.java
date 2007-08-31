@@ -89,6 +89,7 @@ import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
+import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFStopPersChParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -115,8 +116,7 @@ public final class SignalDispatcher implements ISignalDispatcher
     protected IMessageHandler messageHandler;
     protected VectorMap triggers;
     protected Object mutex;
-    protected Trigger activeTrigger;
-
+ 
 
     
     /////////////////////////////////////////////////////////////
@@ -172,7 +172,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         public boolean triggeredBy(Trigger testTrigger)
         {
             if(testTrigger==null)
-                return true;
+                return queueEntryID==null && workStepID==null;
             if(testTrigger.queueEntryID!=null && !testTrigger.queueEntryID.equals(queueEntryID))
                 return false;
             if(testTrigger.workStepID!=null && !testTrigger.workStepID.equals(workStepID))
@@ -286,7 +286,7 @@ public final class SignalDispatcher implements ISignalDispatcher
                 {
                     final Entry next = (Entry) it.next();
                     MsgSubscription sub=(MsgSubscription) next.getValue();
-                    if( sub.repeatTime>0 && sub.trigger.triggeredBy(activeTrigger))
+                    if( sub.repeatTime>0)
                     {
                         if(now-sub.lastTime>sub.repeatTime)
                         {
@@ -305,8 +305,8 @@ public final class SignalDispatcher implements ISignalDispatcher
     
     private class MsgSubscription implements Cloneable
     {
-        protected String channelID = "";
-        protected String url = "";
+        protected String channelID = null;
+        protected String url = null;
         protected int repeatAmount, lastAmount = 0;
         protected long repeatTime, lastTime = 0;
         protected JDFMessage theMessage = null;
@@ -399,6 +399,24 @@ public final class SignalDispatcher implements ISignalDispatcher
             " repeatTime="+repeatTime+
             " lastTime="+lastTime+"]";
         }
+        /**
+         * @param queueEntryID
+         */
+        protected void setQueueEntryID(String queueEntryID)
+        {
+            if(queueEntryID==null)
+                return;
+            if(theMessage==null)
+                return;
+            EnumType typ=theMessage.getEnumType();
+            //TODO more message types
+            if(EnumType.Status.equals(typ))
+            {
+                JDFStatusQuParams sqp=theMessage.getCreateStatusQuParams(0);
+                sqp.setQueueEntryID(queueEntryID);
+            }
+            
+        }
     }
     
     /**
@@ -471,6 +489,7 @@ public final class SignalDispatcher implements ISignalDispatcher
     public String addSubscription(IJMFSubscribable subMess, String queueEntryID)
     {
         MsgSubscription sub=new MsgSubscription(subMess);
+        sub.setQueueEntryID(queueEntryID);
         if(sub.channelID==null)
         {
             return null;
@@ -528,18 +547,26 @@ public final class SignalDispatcher implements ISignalDispatcher
      */
     public void removeSubScription(String channelID)
     {
+        if(channelID==null)
+            return;
         subscriptionMap.remove(channelID);
         triggers.remove(channelID);
+        log.debug("removing subscription for channelid="+channelID);
     }
     /* (non-Javadoc)
      * @see org.cip4.bambi.ISignalDispatcher#removeSubScription(java.lang.String)
      */
     public void removeSubScriptions(String queueEntryID)
     {
+        if(queueEntryID==null)
+            return;
+        
         Vector v=(Vector)queueEntryMap.get(queueEntryID);
         int siz= v==null ? 0 : v.size();
         for(int i=0;i<siz;i++)
+        {
             removeSubScription((String)v.get(i));
+        }
         queueEntryMap.remove(queueEntryID);
     }
 
@@ -595,11 +622,4 @@ public final class SignalDispatcher implements ISignalDispatcher
         jmfHandler.addHandler(this.new StopPersistentChannelHandler());        
     }
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.ISignalDispatcher#setActiveIDs(java.lang.String, java.lang.String)
-     */
-    public void setActiveIDs(String queueEntryID, String workStepID)
-    {
-        activeTrigger=new Trigger(queueEntryID,workStepID,0);      
-    }
 }

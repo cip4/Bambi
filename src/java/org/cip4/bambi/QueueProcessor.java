@@ -679,9 +679,11 @@ public class QueueProcessor implements IQueueProcessor
         boolean ok=theJDF.write2File(theDocFile, 0, true);
         try
         {
-        	BambiNSExtension.setDocURL( newQE,UrlUtil.fileToUrl(new File(theDocFile),false) );
-        	BambiNSExtension.setReturnURL(newQE, returnURL);
-        	BambiNSExtension.setReturnURL(newQE, returnJMF);
+            BambiNSExtension.setDocURL( newQE,UrlUtil.fileToUrl(new File(theDocFile),false) );
+            if(!KElement.isWildCard(returnJMF))
+                BambiNSExtension.setReturnURL(newQE, returnJMF);
+            else if(!KElement.isWildCard(returnURL))
+                BambiNSExtension.setReturnURL(newQE, returnURL);
         }
         catch (MalformedURLException x)
         {
@@ -711,6 +713,10 @@ public class QueueProcessor implements IQueueProcessor
     {
         log.info("persisting queue to "+_queueFile.getAbsolutePath());
         _theQueue.getOwnerDocument_KElement().write2File(_queueFile.getAbsolutePath(), 0, true);
+        if(fallBackQProcessor instanceof QueueProcessor)
+        {
+            ((QueueProcessor)fallBackQProcessor).persist();
+        }
     }
 
     /* (non-Javadoc)
@@ -760,19 +766,29 @@ public class QueueProcessor implements IQueueProcessor
         else if (qe.getStatus() == EnumNodeStatus.Aborted)
         	qerp.setAborted( new VString("root",null) );
         String returnURL=BambiNSExtension.getReturnURL(qe);
-        qerp.setURL(returnURL);
+        qerp.setURL("cid:dummy"); // will be overwritten by buildMimePackage
+        final String queueEntryID = qe.getQueueEntryID();
+        qerp.setQueueEntryID(queueEntryID);
         JDFParser p = new JDFParser();
         JDFDoc docJDF = p.parseFile( BambiNSExtension.getDocURL(qe) );
         Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
-        try {
-        	HttpURLConnection response = MimeUtil.writeToURL(mp, returnURL);
-        	if (response.getResponseCode() == 200)
-        		log.info("returnQueueEntry for "+qe.getQueueEntryID()+" has been send.");
-        	else
-        		log.error("failed to send RequestQueueEntry. Response: "+response.toString());
-		} catch (Exception e) {
-			log.error("failed to send ReturnQueueEntry: "+e);
-		}
+        if(returnURL!=null)
+        {
+            try {
+                HttpURLConnection response = MimeUtil.writeToURL(mp, returnURL);
+                if (response.getResponseCode() == 200)
+                    log.info("returnQueueEntry for "+queueEntryID+" has been sent.");
+                else
+                    log.error("failed to send RequestQueueEntry. Response: "+response.toString());
+            } catch (Exception e) {
+                log.error("failed to send ReturnQueueEntry: "+e);
+            }
+        }
+        else
+        {
+            // TODO write to default output
+            log.warn("No return URL specified");
+        }
 	}
 
     protected String getMessageQueueEntryID(JDFMessage m)
