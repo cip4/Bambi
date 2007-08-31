@@ -189,8 +189,9 @@ public class QueueProcessor implements IQueueProcessor
 	        	
 	        	if (_theQueue != null)
 	        	{
-                    JDFQueue q = (JDFQueue) resp.copyElement(_theQueue, null);
-                    //TODO filter some stuff?
+	        		JDFQueue q = (JDFQueue) resp.copyElement(_theQueue, null);
+	        		//TODO filter some stuff?
+	        		removeBambiNSExtensions(q);
 	        		return true;
 	        	}
 	        	else 
@@ -266,6 +267,7 @@ public class QueueProcessor implements IQueueProcessor
 	                q.copyElement(qe, null);
 	                q.setDeviceID( _theQueue.getDeviceID() );
                     q.setStatus( _theQueue.getStatus() );
+                    removeBambiNSExtensions(q);
 	                log.debug("aborted QueueEntry with ID="+qeid); 				
 	                return true;
 	            }
@@ -325,6 +327,7 @@ public class QueueProcessor implements IQueueProcessor
 	                    q.setDeviceID( _theQueue.getDeviceID() );
 	                    q.setStatus( _theQueue.getStatus() );
 	                    q.copyElement(qe, null);
+	                    removeBambiNSExtensions(q);
 	                    updateEntry(qeID,EnumQueueEntryStatus.Suspended);
 	                    log.debug("suspended QueueEntry with ID="+qeid); 				
 	                    return true;
@@ -417,6 +420,7 @@ public class QueueProcessor implements IQueueProcessor
 	                    q.setStatus( _theQueue.getStatus() );
 	                    // TODO should be waiting
 	                    updateEntry(qeID,EnumQueueEntryStatus.Running);
+	                    removeBambiNSExtensions(q);
 	                    log.debug("resumed QueueEntry with ID="+qeid); 				
 	                    return true;
 	                }
@@ -495,6 +499,7 @@ public class QueueProcessor implements IQueueProcessor
 	                    q.copyElement(qe, null);
 	                    q.setDeviceID( _theQueue.getDeviceID() );
 	                    q.setStatus( _theQueue.getStatus() );
+	                    removeBambiNSExtensions(q);
 	                    log.debug("removed QueueEntry with ID="+qeid);
 	                    return true;
 	                } else {
@@ -837,4 +842,16 @@ public class QueueProcessor implements IQueueProcessor
     {
         this.fallBackQProcessor = _fallBackQProcessor;
 	}
+    
+    /**
+     * remove all Bambi namespace extensions from a given queue
+     * @param queue the queue to filter
+     * @return a queue without Bambi namespaces 
+     */
+    private void removeBambiNSExtensions(JDFQueue queue)
+    {   		
+    	for (int i=0;i<queue.getQueueSize();i++) {
+    		BambiNSExtension.removeBambiExtensions( queue.getQueueEntry(i) );
+    	}
+    }
 }

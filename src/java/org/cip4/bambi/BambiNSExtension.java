@@ -173,4 +173,25 @@ public class BambiNSExtension
     {
         return e==null ? null : e.getAttribute(attName, MY_NS, null);
     }
+    
+    /**
+     * 
+     * @param e the element to work on
+     * @param attName the local attribute name to remove
+     */
+    private static void removeMyNSAttribute(KElement e, String attName)
+    {
+        if(e==null)
+        {
+            throw new JDFException("setMyNSAttribute: setting on null element");
+        }
+        e.removeAttribute(MY_NS_PREFIX+attName,MY_NS);       
+    }
+    
+    public static void removeBambiExtensions(JDFQueueEntry qe)
+    {
+    	removeMyNSAttribute(qe, returnJMF);
+    	removeMyNSAttribute(qe, returnURL);
+    	removeMyNSAttribute(qe, docURL);
+    }
 }
