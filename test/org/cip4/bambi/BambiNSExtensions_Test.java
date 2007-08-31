@@ -71,55 +71,43 @@ package org.cip4.bambi;
 * 
 */
 
-import org.cip4.bambi.BambiTestCase;
-import org.cip4.bambi.messaging.JMFFactory;
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
 
-public class JMFFactoryTest extends BambiTestCase {
+public class BambiNSExtensions_Test extends BambiTestCase {
 	
-	public void testStatus() 
+	private JDFQueueEntry buildQueueEntry() {
+		JDFDoc doc = new JDFDoc("JMF");
+		JDFJMF root = doc.getJMFRoot();
+		JDFResponse resp = root.appendResponse();
+		resp.setType("Status");
+		JDFQueueEntry qe = resp.getCreateQueue(0).getCreateQueueEntry(0);
+		BambiNSExtension.setDocURL(qe, "foo");
+		BambiNSExtension.setReturnJMF(qe, "bar");
+		BambiNSExtension.setReturnURL(qe, "someURL");
+		return qe;
+	}
+	
+	public void testAddBambiExtensions()
 	{
-		JDFJMF jmf = JMFFactory.buildStatus();
-		JDFResponse resp = JMFFactory.send2Bambi(jmf,null);
-        assertTrue( resp!=null );
-        assertEquals( 0,resp.getReturnCode() );
+		JDFQueueEntry qe = buildQueueEntry();
+		assertEquals( "foo",BambiNSExtension.getDocURL(qe) );
+		assertEquals( "bar",BambiNSExtension.getReturnJMF(qe) );
+		assertEquals( "someURL",BambiNSExtension.getReturnURL(qe) );
+	}
+	
+	public void testRemoveBambiExtensions()
+	{
+		JDFQueueEntry qe = buildQueueEntry();
+		BambiNSExtension.removeBambiExtensions(qe);
         
-        jmf = JMFFactory.buildStatus();
-        resp = JMFFactory.send2Bambi(jmf, "device001");
-        assertTrue( resp!=null );
-        assertEquals( 0,resp.getReturnCode() );
+        assertFalse( qe.hasAttributeNS(BambiNSExtension.MY_NS, BambiNSExtension.docURL) );
+        assertFalse( qe.hasAttributeNS(BambiNSExtension.MY_NS, BambiNSExtension.returnJMF) );
+        assertFalse( qe.hasAttributeNS(BambiNSExtension.MY_NS, BambiNSExtension.returnURL) );
 	}
+
 	
-	public void testSuspendQueueEntry()
-	{
-		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry("12345");
-		JDFResponse resp = JMFFactory.send2Bambi(jmf, "device001");
-        assertTrue( resp!=null );
-        assertEquals( 105,resp.getReturnCode() );
-	}
-	
-	public void testResumeQueueEntry()
-	{
-		JDFJMF jmf = JMFFactory.buildResumeQueueEntry("12345");
-		JDFResponse resp = JMFFactory.send2Bambi(jmf, "device001");
-        assertTrue( resp!=null );
-        assertEquals( 105,resp.getReturnCode() );
-	}
-	
-	public void testAbortQueueEntry()
-	{
-		JDFJMF jmf = JMFFactory.buildAbortQueueEntry("12345");
-		JDFResponse resp = JMFFactory.send2Bambi(jmf, "device001");
-        assertTrue( resp!=null );
-        assertEquals( 105,resp.getReturnCode() );
-	}
-	
-	public void testRemoveQueueEntry()
-	{
-		JDFJMF jmf = JMFFactory.buildRemoveQueueEntry("12345");
-		JDFResponse resp = JMFFactory.send2Bambi(jmf, "device001");
-        assertTrue( resp!=null );
-        assertEquals( 105,resp.getReturnCode() );
-	}
+
 }
