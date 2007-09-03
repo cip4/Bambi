@@ -12,16 +12,14 @@ import org.cip4.jdflib.util.UrlUtil;
 import junit.framework.TestCase;
 
 public class BambiTestCase extends TestCase {
-	
-	// TODO fix: sm_dirTestData is pointing to nirvana (Bambi/null/WebApps/...)
-	protected final static String sm_dirTestData     = "test" + File.separator + "data" + File.separator;
-    protected final static String sm_UrlTestData     = "File:test/data/";
+	protected final static String sm_dirTestData = "test" + File.separator + "data" + File.separator;
+    protected final static String sm_UrlTestData = "File:test/data/";
     protected final static String cwd =System.getProperty("user.dir");
     protected static String BambiUrl="";
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		DeviceServlet.configDir=cwd+File.separator+".."+File.separator+"WebContent"+File.separator+"config"+File.separator;
+		DeviceServlet.configDir=cwd+File.separator+"WebContent"+File.separator+"config"+File.separator;
 		DeviceServlet.jdfDir=cwd+File.separator+"test"+File.separator+"data"+File.separator;
 		
 		Properties properties = new Properties();

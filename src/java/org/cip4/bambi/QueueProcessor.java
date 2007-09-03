@@ -267,6 +267,7 @@ public class QueueProcessor implements IQueueProcessor
 	                q.copyElement(qe, null);
 	                q.setDeviceID( _theQueue.getDeviceID() );
                     q.setStatus( _theQueue.getStatus() );
+                    updateEntry(qeid, EnumQueueEntryStatus.Aborted);
                     removeBambiNSExtensions(q);
 	                log.debug("aborted QueueEntry with ID="+qeid); 				
 	                return true;
@@ -500,6 +501,7 @@ public class QueueProcessor implements IQueueProcessor
 	                    q.setDeviceID( _theQueue.getDeviceID() );
 	                    q.setStatus( _theQueue.getStatus() );
 	                    removeBambiNSExtensions(q);
+	                    updateEntry(qeid, EnumQueueEntryStatus.Removed);
 	                    log.debug("removed QueueEntry with ID="+qeid);
 	                    return true;
 	                } else {
@@ -585,6 +587,7 @@ public class QueueProcessor implements IQueueProcessor
         }
         _theQueue.setAutomated(true);
         _theQueue.setDeviceID(deviceID);
+        _theQueue.maxCompletedEntries = 100; // remove just the selected QE when RemoveQE is called 
         _listeners=new Vector();
 	}
 

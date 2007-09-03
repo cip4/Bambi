@@ -96,6 +96,7 @@
 						     	<form action="BambiRootDevice">
 						 			<input type="hidden" name="cmd" value="finalizeCurrentQE" />
 						 			<input type="hidden" name="id" value="<%=dev.getDeviceID() %>" />
+						 			<input type="hidden" name="show" value="true" />
 						 			<input type="hidden" name="qeid" value="<%=bqe.queueEntryID %>" />
 									<input type="submit" value="finish processing current QueueEntry"/>
 								</form>
@@ -121,6 +122,7 @@
  			<input type="hidden" name="cmd" value="processNextPhase" />
  			<input type="hidden" name="id" value="<%=dev.getDeviceID() %>" />
  			<input type="hidden" name="qeid" value="<%=bqe.queueEntryID %>" />
+ 			<input type="hidden" name="show" value="true" />
      	<% 
      		JobPhase currentPhase = (JobPhase)request.getAttribute("currentPhase");
      		if (currentPhase == null)

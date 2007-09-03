@@ -99,6 +99,22 @@ import org.cip4.jdflib.util.UrlUtil;
 
 
 public class DeviceServletTest extends BambiTestCase {
+	
+	private boolean removeDir(File path)
+	{
+		if( path.exists() ) {
+		      File[] files = path.listFiles();
+		      for(int i=0; i<files.length; i++) {
+		         if(files[i].isDirectory()) {
+		           removeDir( files[i] );
+		         }
+		         else {
+		           files[i].delete();
+		         }
+		      }
+		    }
+		    return( path.delete() );
+	}
 
 	public void testAddDevice()
 	{
@@ -109,6 +125,8 @@ public class DeviceServletTest extends BambiTestCase {
 		assertNull( d.createDevice("device002", "my device", "org.cip4.bambi.SimDevice") );
 		assertEquals( 2,d.getDeviceQuantity() );
 		assertNotNull( d.getDevice("device001") );
+		
+		removeDir( new File("null") );
 	}
 	
 	public void testRemoveDevice()
@@ -122,6 +140,8 @@ public class DeviceServletTest extends BambiTestCase {
 		assertNull( d.getDevice("device001") );
 		assertEquals(1, d.getDeviceQuantity() );
 		assertFalse( d.removeDevice("device001") );
+		
+		removeDir( new File("null") );
 	}
 
     public void testMimeSubmit() throws Exception

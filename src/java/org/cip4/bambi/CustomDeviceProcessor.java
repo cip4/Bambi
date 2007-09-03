@@ -152,15 +152,6 @@ public class CustomDeviceProcessor extends AbstractDeviceProcessor
 		
 		return finalizeProcessDoc();
 	}
-
-//	private void idlePhase() {
-//		_statusListener.signalStatus(EnumDeviceStatus.Running,"Idling",EnumNodeStatus.Stopped,"Stopped");
-//		try {
-//			Thread.sleep(750);
-//		} catch (InterruptedException e) {
-//			log.error("interrupted thread while idling");
-//		}
-//	}
 	
 	/**
 	 * proceed to the next job phase

@@ -76,7 +76,10 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.AbstractDeviceProcessor.JobPhase;
 
 /**
- * a simple JDF device. It has no real need to override parent methods or create own ones.<br>
+ * a simple JDF device with a fixed list of job phases. <br>
+ * Job phases are defined in <code>/WebContend/config/devices.xml</code> and loaded in the constructor. 
+ * They can be randomized, and random error phases can be added. 
+ * An example job phase is provided in <code>example_job.xml</code>.<br>
  * This class should remain final: if it is ever subclassed, the DeviceProcessor thread 
  * would be started before the constructor from the subclass has a chance to fire.
  * 

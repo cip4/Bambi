@@ -77,8 +77,12 @@ import org.cip4.bambi.AbstractDeviceProcessor.JobPhase;
 
 /**
  * a simple JDF device.<br>
+ * A CustomDevice does not contain a fixed list of JobPhases. After a QueueEntry has been 
+ * submitted, it starts with an idle job phase. Following job phases have to be added via 
+ * the web interface. Processing of the QueueEntry finishes when ordered by the user. <br>
  * This class should remain final: if it is ever subclassed, the DeviceProcessor thread 
  * would be started before the constructor from the subclass has a chance to fire.
+ * 
  * 
  * @author boegerni
  * 

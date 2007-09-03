@@ -16,7 +16,8 @@ import org.cip4.jdflib.resource.JDFDeviceList;
 
 /**
  * basis for JDF devices in Bambi. <br>
- * derived classes should be final: if they were ever subclassed, the DeviceProcessor thread 
+ * Bambis devices are defined in /WebContent/config/devices.xml<br>
+ * Derived classes should be final: if they were ever subclassed, the DeviceProcessor thread 
  * would be started before the constructor from the subclass has a chance to fire.
  * 
  * @author boegerni

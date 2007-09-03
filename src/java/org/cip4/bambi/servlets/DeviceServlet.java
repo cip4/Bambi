@@ -120,7 +120,9 @@ import org.cip4.jdflib.util.StringUtil;
 
 
 /**
- *
+ * This is Bambi main entrance point and "root device". <br>
+ * It does not process QueueEntries, it just collects them. Processing is done by
+ * the worker devices defined in <code>/WebContent/config/devices.xml</code>.
  * @author  rainer
  *
  *

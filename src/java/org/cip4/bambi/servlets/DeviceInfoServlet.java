@@ -15,13 +15,18 @@ import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 
 /**
- * takes care of the needs of showDevices.jsp
+ * processes commands and view requests for the worker devices
  * @author boegerni
- *
+ * @see SimDevice
+ * @see CustomDevice
  */
 public class DeviceInfoServlet extends AbstractBambiServlet {
 
 	private static Log log = LogFactory.getLog(DeviceInfoServlet.class.getName());
+	/**
+	 * show web page after processing command
+	 */
+	private boolean _displayPage = false;
 
 	/**
 	 * 
@@ -37,13 +42,17 @@ public class DeviceInfoServlet extends AbstractBambiServlet {
 			showErrorPage("mandatory parameter 'cmd' missing or null", errDetails, request, response);
 			return;
 		}
+		
+		String showDevice = request.getParameter("show");
+		if ( showDevice != null && showDevice.equals("true") ) 
+			_displayPage = true;
+		
 		Object oDev = request.getAttribute("device");
 		// if dev is null, try to get it from the root device
 		if (oDev == null) {
 			try {
 				response.reset();
-				request.getRequestDispatcher("/BambiRootDevice").forward(
-						request, response);
+				forwardVisiblePage("/BambiRootDevice", request, response);
 			} catch (Exception e) {
 				log.error(e);
 			}
@@ -99,10 +108,23 @@ public class DeviceInfoServlet extends AbstractBambiServlet {
 			
 			JobPhase nextPhase = buildJobPhaseFromRequest(request);
 			((CustomDevice)dev).doNextJobPhase(nextPhase);
+			try {
+				Thread.sleep(750);
+			} catch (InterruptedException e) {
+				if (_displayPage)
+				{
+					String errDetails = "DeviceInfoServlet was intterupted while waiting "+
+						"for the next job phase to be initialized: \r\n"+e.getMessage();
+					showErrorPage("interrupted while sleeping", errDetails, request, response);
+					log.error(errDetails);
+					return;
+				}
+					
+			} // allow device to proceed to next phase
 			
 			JobPhase currentPhase = ((CustomDevice)dev).getCurrentJobPhase();
 			request.setAttribute("currentPhase", currentPhase);
-			request.getRequestDispatcher("/showCustomDevice.jsp").forward(request, response);
+			forwardVisiblePage("/showCustomDevice.jsp", request, response);
 		} else if ( command.equals("finalizeCurrentQE") )
 		{
 			if ( !(dev instanceof CustomDevice) )
@@ -116,10 +138,25 @@ public class DeviceInfoServlet extends AbstractBambiServlet {
 			
 			JobPhase currentPhase = ((CustomDevice)dev).getCurrentJobPhase();
 			request.setAttribute("currentPhase", currentPhase);
-			request.getRequestDispatcher("/showCustomDevice.jsp").forward(request, response);
+			forwardVisiblePage("/showCustomDevice.jsp", request, response);
 		}
 		
 
+	}
+
+
+	/**
+	 * send request to the target, if <code>_displayPage</code> is true
+	 * @param target the target to forward the request to
+	 * @param request
+	 * @param response
+	 * @throws ServletException
+	 * @throws IOException
+	 */
+	private void forwardVisiblePage(String target, HttpServletRequest request, 
+			HttpServletResponse response) throws ServletException, IOException {
+		if (_displayPage)
+			request.getRequestDispatcher(target).forward(request, response);
 	}
 
 
