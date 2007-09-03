@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" errorPage="exception.jsp"%>
 <%@ page import="org.cip4.bambi.CustomDevice"%>
 <%@ page import="org.cip4.bambi.QueueFacade"%>
 <%@ page import="org.cip4.bambi.QueueFacade.BambiQueueEntry"%>
@@ -12,13 +12,13 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html>
+	<% CustomDevice dev = (CustomDevice) request.getAttribute("device"); %>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
-		<title>Bambi - DeviceInfo</title>
+		<title>Bambi - Device "<%=dev.getDeviceID()%>"</title>
 	</head>
 	
 	<body>
-		<% CustomDevice dev = (CustomDevice) request.getAttribute("device"); %>
 		<p align="center">
 			// <a href="BambiRootDevice">back to root device</a> //
 			<a href="BambiRootDevice?cmd=showDevice&id=<%=dev.getDeviceID()%>">reload this page</a> //
@@ -117,8 +117,10 @@
 		
      	<br/>
      	<h3>Job Phase</h3>
-     	<b>Current Job Phase:</b> <br/>
-     	<div style="margin-left: 20px">
+		<form action="BambiRootDevice" style="margin-left: 20px">
+ 			<input type="hidden" name="cmd" value="processNextPhase" />
+ 			<input type="hidden" name="id" value="<%=dev.getDeviceID() %>" />
+ 			<input type="hidden" name="qeid" value="<%=bqe.queueEntryID %>" />
      	<% 
      		JobPhase currentPhase = (JobPhase)request.getAttribute("currentPhase");
      		if (currentPhase == null)
@@ -128,71 +130,96 @@
  		<%
      		} else {
  		%>
- 				Device Status: <%=currentPhase.deviceStatus.getName() %> <br/>
- 				Device Status Details: <%=currentPhase.deviceStatusDetails %> <br/>
- 				Node Status: <%=currentPhase.nodeStatus.getName() %> <br/>
- 				Node Status Details: <%=currentPhase.nodeStatusDetails %> <br/>
- 				Good to be produced: <%=currentPhase.Output_Good %> <br/>
- 				Waste to be produced: <%=currentPhase.Output_Waste %> <br/>
- 		<%
+     	
+	     	<table>
+	     		<tr>
+	     			<th></th> <!-- description -->
+	     			<th align="left">Current Job Phase</th>
+	     			<th align="left">Next Job Phase</th>
+	     		</tr>
+	     		<tr>
+	     			<td><b>Device Status</b></td>
+	     			<td><%=currentPhase.deviceStatus.getName() %></td>
+	     			<td>
+		     			<select name="DeviceStatus" size="1">
+			 			<%
+			 				Iterator devIter = EnumDeviceStatus.iterator();
+			 				while (devIter.hasNext())
+			 				{
+			 					String devStatus = ((EnumDeviceStatus)devIter.next()).getName();
+			 					if (devStatus.equals(currentPhase.deviceStatus.getName())) {
+			 			%>
+			 					<option selected="selected"><%=devStatus %></option>
+			 			<%
+			 					} else {
+			 			%>
+			 					<option><%=devStatus %></option>
+			 			<%
+			 					}
+			 				}
+			 			%>
+			 			</select>
+	     			</td>
+	     		</tr>
+	     		<tr>
+	     			<td><b>Device Status Details</b></td>
+	     			<td><%=currentPhase.deviceStatusDetails %></td>
+	     			<td>
+	     				<input name="DeviceStatusDetails" type="text" size="30" maxlength="30" value="<%=currentPhase.deviceStatusDetails %>"/>
+	     			</td>
+	     		</tr>
+	     		<tr>
+	     			<td><b>Node Status</b></td>
+	     			<td><%=currentPhase.nodeStatus.getName() %></td>
+	     			<td>
+	     				<select name="NodeStatus" size="1">
+			 			<%
+			 				Iterator nodeIter = EnumNodeStatus.iterator();
+			 				while (nodeIter.hasNext())
+			 				{
+			 					String nodeStatus = ((EnumNodeStatus)nodeIter.next()).getName();
+			 					if (nodeStatus.equals(currentPhase.nodeStatus.getName())) {
+			 			%>
+			 					<option selected="selected"><%=nodeStatus %></option>
+			 			<%
+			 					} else {
+			 			%>
+			 					<option><%=nodeStatus %></option>
+			 			<%
+			 					}
+			 				}
+			 			%>
+		 				</select>
+	     			</td>
+	     		</tr>
+	     		<tr>
+	     			<td><b>Node Status Details</b></td>
+	     			<td><%=currentPhase.nodeStatusDetails %></td>
+	     			<td>
+	     				<input name="NodeStatusDetails" type="text" size="30" maxlength="30" value="<%=currentPhase.nodeStatusDetails %>"/>
+	     			</td>
+	     		</tr>
+	     		<tr>
+	     			<td><b>Good to be produced</b></td>
+	     			<td><%=currentPhase.Output_Good %></td>
+	     			<td>
+	     				<input name="Good" type="text" size="10" maxlength="10" value="<%=currentPhase.Output_Good %>"/> 
+	     			</td>
+	     		</tr>
+	     		<tr>
+	     			<td><b>Waste to be produced</b></td>
+	     			<td><%=currentPhase.Output_Waste %></td>
+	     			<td>
+	     				<input name="Waste" type="text" size="10" maxlength="10" value="<%=currentPhase.Output_Waste %>"/> 
+	     			</td>
+	     		</tr>
+	     	</table>
+     	
+     	<%
      		}
  		%>
- 		</div>
- 		
- 		<br/>
- 		<b>Next Job Phase:</b>
- 		<form action="BambiRootDevice">
- 			<input type="hidden" name="cmd" value="processNextPhase" />
- 			<input type="hidden" name="id" value="<%=dev.getDeviceID() %>" />
- 			<input type="hidden" name="qeid" value="<%=bqe.queueEntryID %>" />
- 		
- 			Device Status: <br/>
-	 		<p style="margin-left: 20px">
-	 			<%
-	 				Iterator devIter = EnumDeviceStatus.iterator();
-	 				while (devIter.hasNext())
-	 				{
-	 					String devStatus = ((EnumDeviceStatus)devIter.next()).getName();
-	 					if (devStatus.equals(currentPhase.deviceStatus.getName())) {
-	 			%>
-	 					<input type="radio" name="DeviceStatus" value="<%=devStatus %>" checked="checked"/> <%=devStatus %> <br/>
-	 			<%
-	 					} else {
-	 			%>
-	 					<input type="radio" name="DeviceStatus" value="<%=devStatus %>"/> <%=devStatus %> <br/>
-	 			<%
-	 					}
-	 				}
-	 			%>
-	 		
-	 			Device Status Details:  <input name="DeviceStatusDetails" type="text" size="30" maxlength="30" value="<%=currentPhase.deviceStatusDetails %>"/><br/>
-	 		</p>
-
-			Node Status: <br/>
-			<p style="margin-left: 20px">
-	 			<%
-	 				Iterator nodeIter = EnumNodeStatus.iterator();
-	 				while (nodeIter.hasNext())
-	 				{
-	 					String nodeStatus = ((EnumNodeStatus)nodeIter.next()).getName();
-	 					if (nodeStatus.equals(currentPhase.nodeStatus.getName())) {
-	 			%>
-	 					<input type="radio" name="NodeStatus" value="<%=nodeStatus %>" checked="checked"/> <%=nodeStatus %> <br/>
-	 			<%
-	 					} else {
-	 			%>
-	 					<input type="radio" name="NodeStatus" value="<%=nodeStatus %>"/> <%=nodeStatus %> <br/>
-	 			<%
-	 					}
-	 				}
-	 			%>
-	 			Node Status Details: <input name="NodeStatusDetails" type="text" size="30" maxlength="30" value="<%=currentPhase.nodeStatusDetails %>"/>
-	 		</p>
-
-	 		Good: <input name="Good" type="text" size="10" maxlength="10" value="<%=currentPhase.Output_Good %>"/> <br/>
-	 		Waste: <input name="Waste" type="text" size="10" maxlength="10" value="<%=currentPhase.Output_Waste %>"/> <br/>
-			<input type="submit" value="process new phase"/>
+ 			<input type="submit" value="process next phase phase"/>
  		</form>
-
+ 		
 	</body>
 </html>

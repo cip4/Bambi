@@ -101,7 +101,7 @@ import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
  * @author boegerni
  *
  */
-public abstract class AbstractDeviceProcessor implements Runnable
+public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 {
 	private static Log log = LogFactory.getLog(AbstractDeviceProcessor.class.getName());
 	protected List _jobPhases = null;

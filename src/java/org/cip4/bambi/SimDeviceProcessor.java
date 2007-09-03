@@ -72,7 +72,6 @@
 package org.cip4.bambi;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

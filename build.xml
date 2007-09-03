@@ -63,7 +63,7 @@
 		<delete dir="${dist.dir}" />
 	</target>
 	<target name="war" depends="jar" description="Builds web application.">
-		<echo>Building the reference device web application...</echo>
+		<echo>Building Bambi...</echo>
 		<buildnumber />
 		<echo>Build number: ${build.number}</echo>
 		<!-- Builds exploded WAR file -->
