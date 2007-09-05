@@ -78,7 +78,6 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.servlets.DeviceServlet;
-import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -96,22 +95,6 @@ public class JMFFactory {
 	
 	private static Log log = LogFactory.getLog(JMFFactory.class.getName());
 	
-	private static JDFJMF createJMF(EnumFamily family, EnumType type)
-	{
-		JDFDoc doc = new JDFDoc(ElementName.JMF);
-		JDFJMF jmf = doc.getJMFRoot();
-
-		if (family==EnumFamily.Command)
-		{
-			jmf.appendCommand(type);
-		} else if (family==EnumFamily.Query)
-		{
-			jmf.appendQuery(type); 
-		} 
-		
-		return jmf;
-	}
-	
 	/**
 	 * build a JMF SuspendQueueEntry command
 	 * @param queueEntryId queue entry ID of the queue to suspend
@@ -119,7 +102,7 @@ public class JMFFactory {
 	 */
 	public static JDFJMF buildSuspendQueueEntry(String queueEntryId)
 	{
-		JDFJMF jmf = createJMF(EnumFamily.Command, EnumType.SuspendQueueEntry);
+		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.SuspendQueueEntry);
 		jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
 		return jmf;
 	}
@@ -131,7 +114,7 @@ public class JMFFactory {
 	 */
 	public static JDFJMF buildResumeQueueEntry(String queueEntryId)
 	{
-		JDFJMF jmf = createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry);
+		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry);
 		jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
 		return jmf;
 	}
@@ -143,7 +126,7 @@ public class JMFFactory {
 	 */
 	public static JDFJMF buildAbortQueueEntry(String queueEntryId)
 	{
-		JDFJMF jmf = createJMF(EnumFamily.Command, EnumType.AbortQueueEntry);
+		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.AbortQueueEntry);
 		jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
 		return jmf;
 	}
@@ -155,7 +138,7 @@ public class JMFFactory {
 	 */
 	public static JDFJMF buildRemoveQueueEntry(String queueEntryId)
 	{
-		JDFJMF jmf = createJMF(EnumFamily.Command, EnumType.RemoveQueueEntry);
+		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.RemoveQueueEntry);
 		jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
 		return jmf;
 	}
@@ -166,7 +149,7 @@ public class JMFFactory {
 	 */
 	public static JDFJMF buildStatus()
 	{
-		JDFJMF jmf = createJMF(EnumFamily.Query, EnumType.Status);
+		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Status);
 		return jmf;
 	}
 	
@@ -176,7 +159,7 @@ public class JMFFactory {
 	 */
 	public static JDFJMF buildQueueStatus()
 	{
-		JDFJMF jmf = createJMF(EnumFamily.Query, EnumType.QueueStatus);
+		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.QueueStatus);
 		return jmf;
 	}
 	
