@@ -70,6 +70,14 @@
  */
 package org.cip4.bambi;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,7 +124,11 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	 * @author boegerni
 	 *
 	 */
-	public static class JobPhase {
+	public static class JobPhase implements Serializable{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 2262422293566643131L;
 		/**
 		 * status to be displayed for this job phase
 		 */
@@ -250,18 +262,24 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         return true;
     }
 
-    protected void suspendQueueEntry(JDFQueueEntry qe)
+    protected EnumQueueEntryStatus suspendQueueEntry(JDFQueueEntry qe, int currentPhase, int remainingPhaseTime)
 	{
-		// TODO process next qe instead of waiting
-		while (qe.getQueueEntryStatus()==EnumQueueEntryStatus.Suspended)
-		{
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				log.error("interrupted QueueEntry while waiting for ");
-			}
-		}
+    	if (qe!=null) {
+    		persistRemainingPhases(qe.getQueueEntryID(), currentPhase, 0);
+    	}
+    	finalizeProcessDoc();
+    	return EnumQueueEntryStatus.Suspended;
 	}
+    
+    /**
+     * check whether qe has been suspended before, and load its remaining job phases if required.
+     * @param qe the QueueEntry to look for
+     * @return the list of loaded phases, null if none has been found.
+     */
+    protected List resumeQueueEntry(JDFQueueEntry qe)
+    {
+    	return loadRemainingPhases( qe.getQueueEntryID(), true );
+    }
     
 	protected EnumQueueEntryStatus abortQueueEntry() {
 		_statusListener.signalStatus(EnumDeviceStatus.Cleanup, "WashUp", EnumNodeStatus.Cleanup, "cleaning up the aborted job");
@@ -322,7 +340,9 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         _trackResourceID= inConsume !=null ? inConsume : outQuantity;
         _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, _trackResourceID);
         
-        // remember to call finalizeProcessDoc() at the of derived processDoc implementations
+        
+        
+        // remember to call finalizeProcessDoc() at the end of derived processDoc implementations
 		return null;
 	}
 
@@ -338,4 +358,97 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	}
 	
 	public abstract JobPhase getCurrentJobPhase();
+	
+	/**
+	 * remember where we stopped, so we can resume later
+	 * @param queueEntryID the ID of the queue we are talking about
+	 * @param currentPhase the last phase that has been processed
+	 * @param remainingPhaseTime how long is the first phase to run after resuming
+	 */
+	protected void persistRemainingPhases(String queueEntryID, int currentPhase, int remainingPhaseTime)
+	{
+		if ( queueEntryID==null || queueEntryID.equals("") ) {
+			log.error("missing QueueEntry ID, aborting persist");
+			return;
+		}
+		
+		// make sure there are remaining phases left
+		if ( currentPhase >= _jobPhases.size() ) {
+			log.info("no more phases remaning, stopping persist");
+			return;
+		}
+		
+		// add all remaining phases to a new list
+		List phases = new ArrayList();
+		for (int i=currentPhase;i<_jobPhases.size();i++) {
+			phases.add( _jobPhases.get(i) );
+		}
+		
+		// adjust the time of the first job phase
+		JobPhase firstPhase = (JobPhase) phases.get(0);
+		firstPhase.duration = remainingPhaseTime;
+		phases.set(0, firstPhase);
+		
+		// serialize the remaining job phases
+		String fileName = org.cip4.bambi.servlets.DeviceServlet.baseDir+queueEntryID+".phases";
+		FileOutputStream f_out=null;
+		try {
+			f_out = new FileOutputStream(fileName);
+		} catch (FileNotFoundException e) {
+			log.error( "serialization of the remaining job phases failed: \r\n"+e.getMessage() );
+		}
+		if (f_out == null) {
+			log.error( "serialization of the remaining job phases failed: FileOutputStream is null");
+			return;
+		}
+		
+		ObjectOutputStream obj_out=null;
+		try {
+			obj_out = new ObjectOutputStream (f_out);
+			obj_out.writeObject ( phases );
+		} catch (IOException e) {
+			log.error( "serialization of the remaining job phases failed: \r\n"+e.getMessage() );
+		}
+		log.info("remaining phases have been saved to "+fileName);
+	}
+	
+	/**
+	 * get are remaining job phases for the given QueueEntry.
+	 * @param queueEntryID the ID of the Queue to load the phases for
+	 * @param doDeleteFile delete the file with the list of remaining phases, after they have been loaded successfully
+	 * @return a {@link List} of {@link JobPhase}, null of no remaining phases have been found
+	 */
+	protected List loadRemainingPhases(String queueEntryID, boolean doDeleteFile)
+	{
+		String fileName = org.cip4.bambi.servlets.DeviceServlet.baseDir+queueEntryID+".phases";
+		// Read from disk using FileInputStream
+		FileInputStream f_in;
+		try {
+			f_in = new FileInputStream(fileName);
+		} catch (FileNotFoundException e2) {
+			log.info( "no remaining job phases found for QueueEntry with ID="+queueEntryID );
+			return null;
+		}
+
+		Object obj=null;
+		try {
+			ObjectInputStream obj_in = new ObjectInputStream (f_in);
+			obj = obj_in.readObject();
+		} catch (Exception e) {
+			log.error( "failed to load remaining phases for QueueEntry with ID="
+					+queueEntryID+": "+e.getMessage() );
+		}
+
+		List phases = null;
+		if (obj instanceof List)
+		{
+			phases = (List) obj;
+			if (doDeleteFile) {
+				(new File(fileName)).delete();
+			}
+			return phases;
+		} else {
+			return null;
+		}
+	}
 }

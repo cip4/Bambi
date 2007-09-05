@@ -112,6 +112,11 @@ public class JMFFactory {
 		return jmf;
 	}
 	
+	/**
+	 * build a JMF SuspendQueueEntry command
+	 * @param queueEntryId queue entry ID of the queue to suspend
+	 * @return the message
+	 */
 	public static JDFJMF buildSuspendQueueEntry(String queueEntryId)
 	{
 		JDFJMF jmf = createJMF(EnumFamily.Command, EnumType.SuspendQueueEntry);
@@ -119,13 +124,23 @@ public class JMFFactory {
 		return jmf;
 	}
 	
+	/**
+	 * build a JMF ResumeQueueEntry command
+	 * @param queueEntryId queue entry ID of the queue to resume
+	 * @return the message
+	 */
 	public static JDFJMF buildResumeQueueEntry(String queueEntryId)
 	{
 		JDFJMF jmf = createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry);
 		jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
 		return jmf;
 	}
-	
+
+	/**
+	 * build a JMF AbortQueueEntry command
+	 * @param queueEntryId queue entry ID of the queue to abort
+	 * @return the message
+	 */
 	public static JDFJMF buildAbortQueueEntry(String queueEntryId)
 	{
 		JDFJMF jmf = createJMF(EnumFamily.Command, EnumType.AbortQueueEntry);
@@ -133,6 +148,11 @@ public class JMFFactory {
 		return jmf;
 	}
 	
+	/**
+	 * build a JMF RemoveQueueEntry command
+	 * @param queueEntryId queue entry ID of the queue to remove
+	 * @return the message
+	 */
 	public static JDFJMF buildRemoveQueueEntry(String queueEntryId)
 	{
 		JDFJMF jmf = createJMF(EnumFamily.Command, EnumType.RemoveQueueEntry);
@@ -140,6 +160,10 @@ public class JMFFactory {
 		return jmf;
 	}
 	
+	/**
+	 * build a JMF Status query
+	 * @return the message
+	 */
 	public static JDFJMF buildStatus()
 	{
 		JDFJMF jmf = createJMF(EnumFamily.Query, EnumType.Status);
@@ -147,7 +171,17 @@ public class JMFFactory {
 	}
 	
 	/**
-	 * send a message to Bambi
+	 * build a JMF QueueStatus query
+	 * @return the message
+	 */
+	public static JDFJMF buildQueueStatus()
+	{
+		JDFJMF jmf = createJMF(EnumFamily.Query, EnumType.QueueStatus);
+		return jmf;
+	}
+	
+	/**
+	 * send a JMF message to Bambi
 	 * @param jmf the message to send
 	 * @param subDeviceId the Bambi sub-device (null for root device, "device001" for BambiRootDevice/device001 etc.)
 	 * @return the response

@@ -116,11 +116,18 @@ public class StatusListener implements IStatusListener
                 log.warn("StatusHandler.handleMessage: StatusCounter-phasetime = null");
                 return false;
             }
-            JDFResponse r=docJMF.getJMFRoot().getResponse(0);
+            // TODO change interface to public int handleMessage(JDFMessage inputMessage, JDFJMF responses)
+            JDFResponse r=docJMF.getJMFRoot().getResponse(-1);
             if(r==null)
             {
                 log.error("StatusHandler.handleMessage: StatusCounter response = null");
                 return false;
+            }
+            try {
+            	// JDFDevice d = r.getDeviceInfo(0).getDevice();
+            	// TODO insert more Bambi info from properties file
+            } catch (NullPointerException e) {
+            	log.error("failed to insert further info in Status response");
             }
             response.mergeElement(r, false);
             return true;
@@ -270,10 +277,20 @@ public class StatusListener implements IStatusListener
         jmfHandler.addHandler(this.new ResourceHandler());        
         jmfHandler.addHandler(this.new StatusHandler());        
     }
+    
+    
 	public EnumDeviceStatus getDeviceStatus() {
-		JDFDoc docJMF=theCounter.getDocJMFPhaseTime();
-        JDFResponse r=docJMF.getJMFRoot().getResponse(0);
-        return r.getDeviceInfo(0).getDeviceStatus();
+		JDFDoc docJMF=null;
+		try {
+			docJMF=theCounter.getDocJMFPhaseTime();
+			JDFResponse r=docJMF.getJMFRoot().getResponse(0);
+			return r.getDeviceInfo(-1).getDeviceStatus();
+		}
+		catch (NullPointerException e)
+		{
+			log.fatal("StatusCounter returned an illegal doc: \r\n"+docJMF);
+			return EnumDeviceStatus.Unknown;
+		}
 	}
 
 }

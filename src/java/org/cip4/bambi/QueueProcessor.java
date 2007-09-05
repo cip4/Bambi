@@ -414,13 +414,12 @@ public class QueueProcessor implements IQueueProcessor
 
 	                if ( EnumQueueEntryStatus.Suspended.equals(status) || EnumQueueEntryStatus.Held.equals(status) )
 	                {
-	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
+	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
 	                    JDFQueue q = resp.appendQueue();
 	                    q.copyElement(qe, null);
 	                    q.setDeviceID( _theQueue.getDeviceID() );
 	                    q.setStatus( _theQueue.getStatus() );
-	                    // TODO should be waiting
-	                    updateEntry(qeID,EnumQueueEntryStatus.Running);
+	                    updateEntry(qeID,EnumQueueEntryStatus.Waiting);
 	                    removeBambiNSExtensions(q);
 	                    log.debug("resumed QueueEntry with ID="+qeid); 				
 	                    return true;

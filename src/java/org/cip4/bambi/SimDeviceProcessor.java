@@ -72,6 +72,8 @@
 package org.cip4.bambi;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -94,6 +96,7 @@ import org.cip4.jdflib.util.StringUtil;
 public class SimDeviceProcessor extends AbstractDeviceProcessor
 {
 	private static Log log = LogFactory.getLog(SimDeviceProcessor.class.getName());	
+	private List _originalPhases = null;
 	private static final long serialVersionUID = -256551569245084031L;
 	public boolean isPaused=false;
 	JobPhase _currentPhase = null;
@@ -129,8 +132,8 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		// needs the config dir to be added
 		if ( !fileName.contains(File.separator) )  
 			fileName = DeviceServlet.configDir+fileName;
-		
-		_jobPhases.clear();
+		_originalPhases = new ArrayList();
+		_originalPhases.clear();
 		JDFParser p = new JDFParser();
 		JDFDoc doc = p.parseFile(fileName);
 		if (doc == null)
@@ -156,14 +159,17 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 				phase.Output_Good = StringUtil.parseDouble( job.getXPathAttribute("@Good", "0"),0.0 );
 				phase.Output_Waste = StringUtil.parseDouble( job.getXPathAttribute("@Waste", "0"),0.0 );
 
-				_jobPhases.add(phase);
+				_originalPhases.add(phase);
 				counter++;
 			}
+			
+			_jobPhases = new ArrayList();
+			_jobPhases.addAll(_originalPhases);
 		}
 		catch (Exception ex)
 		{
 			log.warn("error in importing jobs");
-			_jobPhases.clear();
+			_originalPhases = new ArrayList();
 			return false;
 		}
 
@@ -193,14 +199,14 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 				double varyBy = Math.random()*randomTime/100.0;
 				if (Math.random() < 0.5)
 					varyBy *= -1.0;
-				JobPhase phase=(JobPhase)_jobPhases.get(i);
+				JobPhase phase=(JobPhase)_originalPhases.get(i);
 				phase.duration=phase.duration+(int)(phase.duration*varyBy);
 			}
 		}
 		
 		if (errorPoss > 0.0)
 		{
-			int numberOfErrors = (int)((errorPoss/100.0)*_jobPhases.size());
+			int numberOfErrors = (int)((errorPoss/100.0)*_originalPhases.size());
 			JobPhase errorPhase = new JobPhase();
 			errorPhase.deviceStatus = EnumDeviceStatus.Down;
 			errorPhase.deviceStatusDetails = "Random Bambi Error Phase";
@@ -210,17 +216,26 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			for (int i=0;i<numberOfErrors;i++)
 			{
 				double rand = Math.random();
-				int insertErrorAtPos = (int)(rand*_jobPhases.size());
+				int insertErrorAtPos = (int)(rand*_originalPhases.size());
 				errorPhase.duration=(int)(5000*rand);
 				if (Math.random()>0.5)
 					errorPhase.Output_Waste=100.0*rand;
-				_jobPhases.add(insertErrorAtPos, errorPhase);
+				_originalPhases.add(insertErrorAtPos, errorPhase);
 			}
 		}
 	}
 
 	public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
 		super.processDoc(doc, qe);
+		
+		// try to load a list of remaining phases for qe
+		_jobPhases = new ArrayList();
+		List phases = resumeQueueEntry(qe);
+		if (phases != null) {
+			_jobPhases.addAll(phases);
+		} else {
+			_jobPhases.addAll(_originalPhases);
+		}
         		
 		if ( _jobPhases.isEmpty() )
 		{
@@ -238,19 +253,24 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 				for (int j=0;j < repeats; j++)
 				{
 					EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-					if (status==EnumQueueEntryStatus.Suspended)
-						suspendQueueEntry(qe);
-					else if (status==EnumQueueEntryStatus.Aborted)
+					if (status==EnumQueueEntryStatus.Suspended) {
+						return suspendQueueEntry(qe,i+1, remainder);
+					} else if (status==EnumQueueEntryStatus.Aborted) {
 						return abortQueueEntry();
-					else
+					} else {
 						Thread.sleep(1000);
+					}
 				}
-				if (qe.getStatus()==EnumNodeStatus.Aborted)
-					return abortQueueEntry();
-				else
-					Thread.sleep(remainder);
-				_statusListener.updateAmount(_trackResourceID, _currentPhase.Output_Good, _currentPhase.Output_Waste);
 				
+				// bail out if current QueueEntry is finished
+				if (qe.getStatus()==EnumNodeStatus.Aborted) {
+					return abortQueueEntry();
+				} else if ( qe.getQueueEntryStatus()==EnumQueueEntryStatus.Completed ) {
+					Thread.sleep(remainder);
+					_statusListener.updateAmount(_trackResourceID, _currentPhase.Output_Good, _currentPhase.Output_Waste);
+				} else if (qe.getStatus()==EnumNodeStatus.Suspended) {
+					return suspendQueueEntry(null, 0, 0);
+				}
 			} catch (InterruptedException e) {
 				log.warn("interrupted while sleeping");
 			}

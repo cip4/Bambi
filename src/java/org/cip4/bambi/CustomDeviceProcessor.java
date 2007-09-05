@@ -134,12 +134,16 @@ public class CustomDeviceProcessor extends AbstractDeviceProcessor
 					
 				try {
 					EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-					if (status==EnumQueueEntryStatus.Suspended)
-						suspendQueueEntry(qe);
-					else if (status==EnumQueueEntryStatus.Aborted)
+					if (status==EnumQueueEntryStatus.Suspended) {
+						while ( qe.getQueueEntryStatus()==EnumQueueEntryStatus.Suspended ) {
+							Thread.sleep(5000);
+						}
+						qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
+					} else if (status==EnumQueueEntryStatus.Aborted) {
 						return abortQueueEntry();
-					else
+					} else {
 						Thread.sleep(1000);
+					}
 					
 					_statusListener.updateAmount(_trackResourceID, phase.Output_Good, phase.Output_Waste);
 					

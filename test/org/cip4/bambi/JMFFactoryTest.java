@@ -71,10 +71,22 @@ package org.cip4.bambi;
 * 
 */
 
-import org.cip4.bambi.BambiTestCase;
+import java.net.HttpURLConnection;
+
+import javax.mail.Multipart;
+
 import org.cip4.bambi.messaging.JMFFactory;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
+import org.cip4.jdflib.jmf.JDFCommand;
+import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.util.MimeUtil;
 
 public class JMFFactoryTest extends BambiTestCase {
 	
@@ -84,11 +96,15 @@ public class JMFFactoryTest extends BambiTestCase {
 		JDFResponse resp = JMFFactory.send2Bambi(jmf,null);
         assertTrue( resp!=null );
         assertEquals( 0,resp.getReturnCode() );
+        JDFDeviceInfo di = resp.getDeviceInfo(0);
+        assertTrue( di!=null );
         
         jmf = JMFFactory.buildStatus();
         resp = JMFFactory.send2Bambi(jmf, "device001");
         assertTrue( resp!=null );
         assertEquals( 0,resp.getReturnCode() );
+        resp.getDeviceInfo(0);
+        assertTrue( di!=null );
 	}
 	
 	public void testSuspendQueueEntry()
@@ -121,5 +137,61 @@ public class JMFFactoryTest extends BambiTestCase {
 		JDFResponse resp = JMFFactory.send2Bambi(jmf, "device001");
         assertTrue( resp!=null );
         assertEquals( 105,resp.getReturnCode() );
+	}
+	
+	public void testQueueStatus()
+	{
+		JDFJMF jmf = JMFFactory.buildQueueStatus();
+		JDFResponse resp = JMFFactory.send2Bambi(jmf, "device001");
+		assertTrue( resp!=null );
+		assertEquals( 0,resp.getReturnCode() );
+		JDFQueue q = resp.getQueue(0);
+		assertTrue( q!=null );
+		int qSize = q.getQueueSize();
+		if (qSize > 0)
+		{
+			JDFQueueEntry qe = q.getQueueEntry(0);
+			assertTrue( qe!=null );
+		}
+	}
+	
+	public void testSubmitQueueEntry_MIME()
+	{
+		// get number of QueueEntries before submitting
+		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
+		JDFResponse resp = JMFFactory.send2Bambi(jmfStat, "device001");
+		assertTrue( resp!=null );
+		assertEquals( 0,resp.getReturnCode() );
+		JDFQueue q = resp.getQueue(0);
+		assertTrue( q!=null );
+		int qSize_old = q.getQueueEntryVector().size();
+		
+		// build SubmitQueueEntry
+		JDFDoc docJMF=new JDFDoc("JMF");
+        JDFJMF jmf=docJMF.getJMFRoot();
+        JDFCommand com = (JDFCommand)jmf.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
+        JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
+        qsp.setURL( "cid:"+sm_dirTestData+"Elk_ConventionalPrinting.jdf" );
+	
+		JDFParser p = new JDFParser();
+        JDFDoc docJDF = p.parseFile( sm_dirTestData+"Elk_ConventionalPrinting.jdf" );
+        Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
+
+        try {
+        	HttpURLConnection response = MimeUtil.writeToURL( mp,BambiUrl+"/device001" );
+        	assertEquals( 200,response.getResponseCode() );
+        } catch (Exception e) {
+        	System.err.println( e.getMessage() );
+        	assertTrue( false ); // fail on exception
+        }
+        
+        // there should be one more QueueEntry
+		resp = JMFFactory.send2Bambi(jmfStat, "device001");
+		assertTrue( resp!=null );
+		assertEquals( 0,resp.getReturnCode() );
+		q = resp.getQueue(0);
+		assertTrue( q!=null );
+		int qSize = q.getQueueEntryVector().size();
+		assertEquals( qSize_old+1,qSize );
 	}
 }
