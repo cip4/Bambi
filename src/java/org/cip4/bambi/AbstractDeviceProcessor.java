@@ -446,6 +446,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			if (doDeleteFile) {
 				(new File(fileName)).delete();
 			}
+			log.info( "successfully loaded remaining phases from "+fileName );
 			return phases;
 		} else {
 			return null;

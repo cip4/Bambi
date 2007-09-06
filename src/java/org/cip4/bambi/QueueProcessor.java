@@ -776,15 +776,17 @@ public class QueueProcessor implements IQueueProcessor
         Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
         if(returnURL!=null)
         {
+        	HttpURLConnection response = null;
             try {
-                HttpURLConnection response = MimeUtil.writeToURL(mp, returnURL);
+                response = MimeUtil.writeToURL(mp, returnURL);
                 if (response.getResponseCode() == 200)
-                    log.info("returnQueueEntry for "+queueEntryID+" has been sent.");
+                    log.info("ReturnQueueEntry for "+queueEntryID+" has been sent.");
                 else
-                    log.error("failed to send RequestQueueEntry. Response: "+response.toString());
+                    log.error("failed to send ReturnQueueEntry. Response: "+response.toString());
             } catch (Exception e) {
                 log.error("failed to send ReturnQueueEntry: "+e);
             }
+            response = null;
         }
         else
         {
