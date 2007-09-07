@@ -239,7 +239,7 @@ public class QueueProcessor implements IQueueProcessor
 	        if(EnumType.AbortQueueEntry.equals(typ))
 	        {
                 String qeid = getMessageQueueEntryID(m);
-	            JDFQueueEntry qe =_theQueue.getEntry(qeid);
+	            JDFQueueEntry qe =_theQueue.getQueueEntry(qeid);
 	            if (qe==null)
 	            {
 	            	resp.setReturnCode(105);
@@ -311,7 +311,7 @@ public class QueueProcessor implements IQueueProcessor
 	        if(EnumType.SuspendQueueEntry.equals(typ))
 	        {
 	            String qeid = getMessageQueueEntryID(m);
-	            JDFQueueEntry qe =_theQueue.getEntry(qeid);
+	            JDFQueueEntry qe =_theQueue.getQueueEntry(qeid);
 	            if (qe==null)
 	            {
 	            	resp.setReturnCode(105);
@@ -402,7 +402,7 @@ public class QueueProcessor implements IQueueProcessor
 	        {
 	            String qeid = getMessageQueueEntryID(m);
 
-	            JDFQueueEntry qe =_theQueue.getEntry(qeid);
+	            JDFQueueEntry qe =_theQueue.getQueueEntry(qeid);
 	            if (qe==null)
 	            {
 	            	resp.setReturnCode(105);
@@ -480,7 +480,7 @@ public class QueueProcessor implements IQueueProcessor
 	        if(EnumType.RemoveQueueEntry.equals(typ))
 	        {
 	            String qeid = getMessageQueueEntryID(m);
-	            JDFQueueEntry qe =_theQueue.getEntry(qeid);
+	            JDFQueueEntry qe =_theQueue.getQueueEntry(qeid);
 	            if (qe==null)
 	            {
 	            	log.error("failed to remove QueueEntry with ID="+qeid+", QueueEntry does not exist.");
@@ -671,7 +671,7 @@ public class QueueProcessor implements IQueueProcessor
             return false;
         }
         String newQEID=newQE.getQueueEntryID();
-        newQE=_theQueue.getEntry(newQEID);
+        newQE=_theQueue.getQueueEntry(newQEID);
         if(newQE==null)
         {
             log.error("error fetching queueentry: QueueEntryID="+newQEID);
@@ -846,10 +846,10 @@ public class QueueProcessor implements IQueueProcessor
 
     private JDFQueueEntry getEntry(String queueEntryID)
     {
-        JDFQueueEntry qe=_theQueue.getEntry(queueEntryID);
+        JDFQueueEntry qe=_theQueue.getQueueEntry(queueEntryID);
         if(qe==null && fallBackQProcessor!=null)
         {
-            qe=fallBackQProcessor.getQueue().getEntry(queueEntryID);
+            qe=fallBackQProcessor.getQueue().getQueueEntry(queueEntryID);
         }
 				return qe;
 		}
