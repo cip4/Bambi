@@ -77,6 +77,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.Set;
@@ -103,6 +104,7 @@ import org.cip4.bambi.JMFHandler;
 import org.cip4.bambi.QueueProcessor;
 import org.cip4.bambi.SignalDispatcher;
 import org.cip4.bambi.StatusListener;
+import org.cip4.bambi.QueueFacade;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
@@ -193,9 +195,10 @@ public class DeviceServlet extends AbstractBambiServlet
 	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
 	public static final String baseDir=System.getProperty("catalina.base")+"/webapps/Bambi/jmb"+File.separator;
 	public static String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/config"+File.separator;
+	public static final String xslDir="./xslt/";
 	public static String jdfDir=baseDir+"JDFDir"+File.separator;
 	private JMFHandler _jmfHandler=null;
-	private HashMap _devices = null;
+	private static HashMap _devices = null;
 	private ISignalDispatcher _theSignalDispatcher=null;
 	private IQueueProcessor _theQueueProcessor=null;
 	private IStatusListener _theStatusListener=null;
@@ -285,6 +288,21 @@ public class DeviceServlet extends AbstractBambiServlet
 			} else {
 				log.error("can't get device, device ID is missing or unknown");
 			}
+		} else if ( command.equals("showQueue") ) 
+		{	
+			QueueFacade bqu = new QueueFacade( _theQueueProcessor.getQueue() );
+			String quStr = bqu.toHTML();
+			PrintWriter out=null;
+			try {
+				out = response.getWriter();
+				out.println(quStr);
+		        out.flush();
+		        out.close();
+			} catch (IOException e) {
+				showErrorPage("failed to show queue", e.getMessage(), request, response);
+				log.error("failed to show Queue: "+e.getMessage());
+			}
+	        
 		}
 	}
 
@@ -613,7 +631,7 @@ public class DeviceServlet extends AbstractBambiServlet
 			return _devices.size();
 	}
 
-	public AbstractDevice getDevice(String deviceID)
+	public static AbstractDevice getDevice(String deviceID)
 	{
 		if (_devices == null)
 		{

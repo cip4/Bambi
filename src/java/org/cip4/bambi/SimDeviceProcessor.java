@@ -245,34 +245,37 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		for (int i=0;i<_jobPhases.size();i++)
 		{
 			_currentPhase = (JobPhase)_jobPhases.get(i);
-			_statusListener.signalStatus(_currentPhase.deviceStatus, _currentPhase.deviceStatusDetails, 
-					_currentPhase.nodeStatus,_currentPhase.nodeStatusDetails);
-			try {
-				int repeats = (int)(_currentPhase.duration/1000);
-				int remainder = _currentPhase.duration % 1000;
-				for (int j=0;j < repeats; j++)
-				{
-					EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-					if (status==EnumQueueEntryStatus.Suspended) {
-						return suspendQueueEntry(qe,i+1, remainder);
-					} else if (status==EnumQueueEntryStatus.Aborted) {
-						return abortQueueEntry();
-					} else {
-						Thread.sleep(1000);
+			if (_currentPhase!=null && _currentPhase.duration>0) 
+			{
+				_statusListener.signalStatus(_currentPhase.deviceStatus, _currentPhase.deviceStatusDetails, 
+						_currentPhase.nodeStatus,_currentPhase.nodeStatusDetails);
+				try {
+					int repeats = (int)(_currentPhase.duration/1000);
+					int remainder = _currentPhase.duration % 1000;
+					for (int j=0;j < repeats; j++)
+					{
+						int reqSize=_updateStatusReqs.size();
+						if (reqSize>0) {
+							for (int reqNo=0;reqNo<reqSize;reqNo++) {
+								ChangeQueueEntryStatusRequest request=(ChangeQueueEntryStatusRequest) _updateStatusReqs.get(reqNo);
+								if ( !request.queueEntryID.equals(qe.getQueueEntryID()) ) {	
+									_updateStatusReqs.remove(reqNo);
+									log.error("failed to change status of QueueEntry, it is not running");
+								} else if (request.newStatus.equals(EnumQueueEntryStatus.Suspended)) {
+									_updateStatusReqs.remove(reqNo);
+									return suspendQueueEntry(qe,i+1, remainder);
+								} else if (request.newStatus.equals(EnumQueueEntryStatus.Aborted)) {
+									_updateStatusReqs.remove(reqNo);
+									return abortQueueEntry();
+								}
+							}					
+						} else {
+							Thread.sleep(1000);
+						}
 					}
+				} catch (InterruptedException e) {
+					log.warn("interrupted while sleeping");
 				}
-				
-				// bail out if current QueueEntry is finished
-				if (qe.getStatus()==EnumNodeStatus.Aborted) {
-					return abortQueueEntry();
-				} else if ( qe.getQueueEntryStatus()==EnumQueueEntryStatus.Completed ) {
-					Thread.sleep(remainder);
-					_statusListener.updateAmount(_trackResourceID, _currentPhase.Output_Good, _currentPhase.Output_Waste);
-				} else if (qe.getStatus()==EnumNodeStatus.Suspended) {
-					return suspendQueueEntry(null, 0, 0);
-				}
-			} catch (InterruptedException e) {
-				log.warn("interrupted while sleeping");
 			}
 		}
 		

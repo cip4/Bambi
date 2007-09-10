@@ -73,6 +73,7 @@ package org.cip4.bambi;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.AbstractDeviceProcessor.ChangeQueueEntryStatusRequest;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
@@ -80,7 +81,7 @@ import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 
 /**
- * simulates processing of manually and on the fly designed tasks
+ * simulates processing of manually and on the fly designed job phases
  * ("now run this phase, stop, and now do that")
  * 
  * @author boegerni
@@ -133,14 +134,21 @@ public class CustomDeviceProcessor extends AbstractDeviceProcessor
 				}
 					
 				try {
-					EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-					if (status==EnumQueueEntryStatus.Suspended) {
-						while ( qe.getQueueEntryStatus()==EnumQueueEntryStatus.Suspended ) {
-							Thread.sleep(5000);
-						}
-						qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
-					} else if (status==EnumQueueEntryStatus.Aborted) {
-						return abortQueueEntry();
+					int reqSize=_updateStatusReqs.size();
+					if (reqSize>0) {
+						for (int reqNo=0;reqNo<reqSize;reqNo++) {
+							ChangeQueueEntryStatusRequest request=(ChangeQueueEntryStatusRequest) _updateStatusReqs.get(reqNo);
+							if ( !request.queueEntryID.equals(qe.getQueueEntryID()) ) {	
+								_updateStatusReqs.remove(reqNo);
+								log.error("failed to change status of QueueEntry, it is not running");
+							} else if (request.newStatus.equals(EnumQueueEntryStatus.Suspended)) {
+								_updateStatusReqs.remove(reqNo);
+								return suspendQueueEntry(qe,0, 0);
+							} else if (request.newStatus.equals(EnumQueueEntryStatus.Aborted)) {
+								_updateStatusReqs.remove(reqNo);
+								return abortQueueEntry();
+							}
+						}					
 					} else {
 						Thread.sleep(1000);
 					}

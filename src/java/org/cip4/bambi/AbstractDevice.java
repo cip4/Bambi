@@ -3,11 +3,13 @@ package org.cip4.bambi;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -84,9 +86,10 @@ public class AbstractDevice implements IJMFHandler{
 	protected JMFHandler _jmfHandler = null ;
 	
 	/**
-	 * constructor
-	 * @param deviceType
-	 * @param deviceID
+	 * creates a new Bambi device instance from a given class
+	 * @param deviceType the device type as defined in the JDF spec, e.g. "Generic Bambi Stitcher"
+	 * @param deviceID the individual device ID, as defined in the JDF spec
+	 * @param deviceClass the name of the Java class of the instance, e.g. "org.cip4.bambi.SimDevice"
 	 */
 	public AbstractDevice(String deviceType, String deviceID, String deviceClass)
 	{
@@ -131,7 +134,7 @@ public class AbstractDevice implements IJMFHandler{
         log.debug("created device from class name "+deviceClass);
 
         log.info("Starting device thread");
-		new Thread(_theDeviceProcessor).start();
+		new Thread(_theDeviceProcessor,"DeviceProcessor_"+_deviceID).start();
 		log.info("device thread started");
 		
 		addHandlers();
@@ -225,6 +228,29 @@ public class AbstractDevice implements IJMFHandler{
     		status = EnumDeviceStatus.Unknown;
     	}
     	return status;
+    }
+    
+    /**
+     * stop processing the given QueueEntry
+     * @param queueEntryID the ID of the QueueEntry to stop
+     * @param status target status of the QueueEntry (Suspended,Aborted,Held)
+     * @return the updated QueueEntry
+     */
+    public JDFQueueEntry stopProcessing(String queueEntryID,EnumQueueEntryStatus status)
+    {
+    	JDFQueue q=_theQueue.getQueue();
+    	if (q==null) {
+    		log.fatal("queue of device "+_deviceID+"is null");
+    		return null;
+    	}
+    	JDFQueueEntry qe=q.getQueueEntry(queueEntryID);
+    	if (qe==null) {
+    		log.fatal("QueueEntry with ID="+queueEntryID+" is null on device "+_deviceID);
+    		return null;
+    	}
+    	
+    	_theDeviceProcessor.stopProcessing(qe, status);
+    	return qe;
     }
 
 }

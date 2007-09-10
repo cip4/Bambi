@@ -111,18 +111,6 @@ public interface IQueueProcessor extends IMultiJMFHandler
     public void updateEntry(String queueEntryID, EnumQueueEntryStatus status);
     
     public void addListener(Object o);
-    
-    /**
-     * suspend processing
-     * @return true, if successful
-     */
-    public boolean suspend();
-    
-    /**
-     * resume processing
-     * @return true, if successful
-     */
-    public boolean resume();
 
     /**
      * set the secondary queueprocessor to another queueprocessor

@@ -72,9 +72,9 @@
 package org.cip4.bambi;
 
 import java.util.Vector;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.servlets.DeviceServlet;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 
@@ -135,6 +135,16 @@ public class QueueFacade {
 		}
 			
 		return qes;
+	}
+	
+	public String toHTML()
+	{
+		String quStr = _theQueue.toXML();
+		int pos = quStr.indexOf(">");
+		quStr = quStr.substring(pos+2);
+		String xsltHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n"
+			+ "<?xml-stylesheet type=\"text/xsl\" href=\""+DeviceServlet.xslDir+"queue2html.xsl\"?> \r\n";
+		return (xsltHeader+quStr);
 	}
 
 }

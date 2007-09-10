@@ -120,24 +120,20 @@ public class QueueProcessor implements IQueueProcessor
          */
         public boolean handleMessage(JDFMessage m, JDFResponse resp)
         {
-            if(m==null || resp==null)
-            {
+            if(m==null || resp==null) {
                 return false;
             }
             EnumType typ=m.getEnumType();
-            log.debug( "Handling "+typ.getName() );
+            log.info( "Handling "+typ.getName() );
             if(EnumType.SubmitQueueEntry.equals(typ))
             {
                 JDFQueueSubmissionParams qsp=m.getQueueSubmissionParams(0);
-                if(qsp!=null)
-                {
+                if(qsp!=null) {
                     JDFDoc doc=qsp.getURLDoc();
 
-                    if(doc!=null)
-                    {
+                    if(doc!=null) {
                         JDFResponse r2=addEntry((JDFCommand)m, doc);
-                        if(r2!=null)
-                        {
+                        if(r2!=null) {
                             resp.mergeElement(r2, false);
                             return true;
                         }
@@ -181,7 +177,7 @@ public class QueueProcessor implements IQueueProcessor
 	        {
 	            return false;
 	        }
-	        log.debug("Handling "+m.getType());
+	        log.info("Handling "+m.getType());
 	        EnumType typ=m.getEnumType();
 	        if(EnumType.QueueStatus.equals(typ))
 	        {
@@ -234,7 +230,7 @@ public class QueueProcessor implements IQueueProcessor
 	        {
 	            return false;
 	        }
-	        log.debug("Handling "+m.getType());
+	        log.info("Handling "+m.getType());
 	        EnumType typ=m.getEnumType();
 	        if(EnumType.AbortQueueEntry.equals(typ))
 	        {
@@ -262,14 +258,20 @@ public class QueueProcessor implements IQueueProcessor
 	                }
 
 	                // has to be waiting, held, running or suspended: abort it!
-	                qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
+	                EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Aborted);
+                	if (newStatus==null) {
+                		// got no response
+                		updateEntry(qeid,EnumQueueEntryStatus.Aborted);
+                		log.error("failed to suspend QueueEntry with ID="+qeid); 
+                	} else {
+                		updateEntry(qeid,newStatus);
+                	}
 	                JDFQueue q = resp.appendQueue();
 	                q.copyElement(qe, null);
 	                q.setDeviceID( _theQueue.getDeviceID() );
                     q.setStatus( _theQueue.getStatus() );
-                    updateEntry(qeid, EnumQueueEntryStatus.Aborted);
                     removeBambiNSExtensions(q);
-	                log.debug("aborted QueueEntry with ID="+qeid); 				
+	                log.info("aborted QueueEntry with ID="+qeid); 				
 	                return true;
 	            }
 	        }
@@ -306,7 +308,7 @@ public class QueueProcessor implements IQueueProcessor
 	        {
 	            return false;
 	        }
-	        log.debug("Handling "+m.getType());
+	        log.info("Handling "+m.getType());
 	        EnumType typ=m.getEnumType();
 	        if(EnumType.SuspendQueueEntry.equals(typ))
 	        {
@@ -318,19 +320,24 @@ public class QueueProcessor implements IQueueProcessor
 	            	resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
 	            	return true;
 	            } else {
-	            	String qeID = qe.getQueueEntryID();
 	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 
 	                if ( EnumQueueEntryStatus.Running.equals(status) )
 	                {
-	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
+	                	EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Suspended);
+	                	if (newStatus==null) {
+	                		// got no response
+	                		updateEntry(qeid,EnumQueueEntryStatus.Aborted);
+	                		log.error("failed to suspend QueueEntry with ID="+qeid); 
+	                	} else {
+	                		updateEntry(qeid,newStatus);
+	                	}
 	                    JDFQueue q = resp.appendQueue();
 	                    q.setDeviceID( _theQueue.getDeviceID() );
 	                    q.setStatus( _theQueue.getStatus() );
 	                    q.copyElement(qe, null);
 	                    removeBambiNSExtensions(q);
-	                    updateEntry(qeID,EnumQueueEntryStatus.Suspended);
-	                    log.debug("suspended QueueEntry with ID="+qeid); 				
+	                    log.info("suspended QueueEntry with ID="+qeid); 				
 	                    return true;
 	                }
 
@@ -396,7 +403,7 @@ public class QueueProcessor implements IQueueProcessor
 	        {
 	            return false;
 	        }
-	        log.debug("Handling "+m.getType());
+	        log.info("Handling "+m.getType());
 	        EnumType typ=m.getEnumType();
 	        if(EnumType.ResumeQueueEntry.equals(typ))
 	        {
@@ -414,14 +421,13 @@ public class QueueProcessor implements IQueueProcessor
 
 	                if ( EnumQueueEntryStatus.Suspended.equals(status) || EnumQueueEntryStatus.Held.equals(status) )
 	                {
-	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+	                	updateEntry(qeID,EnumQueueEntryStatus.Waiting);
 	                    JDFQueue q = resp.appendQueue();
 	                    q.copyElement(qe, null);
 	                    q.setDeviceID( _theQueue.getDeviceID() );
 	                    q.setStatus( _theQueue.getStatus() );
-	                    updateEntry(qeID,EnumQueueEntryStatus.Waiting);
 	                    removeBambiNSExtensions(q);
-	                    log.debug("resumed QueueEntry with ID="+qeid); 				
+	                    log.info("resumed QueueEntry with ID="+qeid); 				
 	                    return true;
 	                }
 
@@ -475,7 +481,7 @@ public class QueueProcessor implements IQueueProcessor
 	        {
 	            return false;
 	        }
-	        log.debug("Handling "+m.getType());
+	        log.info("Handling "+m.getType());
 	        EnumType typ=m.getEnumType();
 	        if(EnumType.RemoveQueueEntry.equals(typ))
 	        {
@@ -501,7 +507,7 @@ public class QueueProcessor implements IQueueProcessor
 	                    q.setStatus( _theQueue.getStatus() );
 	                    removeBambiNSExtensions(q);
 	                    updateEntry(qeid, EnumQueueEntryStatus.Removed);
-	                    log.debug("removed QueueEntry with ID="+qeid);
+	                    log.info("removed QueueEntry with ID="+qeid);
 	                    return true;
 	                } else {
 	                	String statName = status.getName();
@@ -543,7 +549,6 @@ public class QueueProcessor implements IQueueProcessor
     protected JDFQueue _theQueue;
     private IQueueProcessor fallBackQProcessor=null;
     private Vector _listeners;
-    private String currentQueueEntryID=null;
      
     public QueueProcessor(String deviceID)
     {
@@ -592,19 +597,16 @@ public class QueueProcessor implements IQueueProcessor
 
     public IQueueEntry getNextEntry()
     {
-    	if (log != null) // dirty hack, static log gets trashed too soon on Tomcat undeploy
-    		log.debug("getNextEntry");
+   		log.debug("getNextEntry");
         JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
         if(qe==null && fallBackQProcessor!=null)
             return fallBackQProcessor.getNextEntry();
         
         if(qe==null)
         {
-        	currentQueueEntryID = null;
         	// TODO query parent device for next qe
             return null;
         }
-        currentQueueEntryID=qe.getQueueEntryID();
         String docURL=BambiNSExtension.getDocURL(qe);
         docURL=UrlUtil.urlToFile(docURL).getAbsolutePath();
         JDFDoc doc=JDFDoc.parseFile(docURL);
@@ -740,8 +742,9 @@ public class QueueProcessor implements IQueueProcessor
         if (qe == null)
         	return;
         qe.setQueueEntryStatus(status);
-        if (status == EnumQueueEntryStatus.Completed || status == EnumQueueEntryStatus.Aborted)
+        if (status == EnumQueueEntryStatus.Completed || status == EnumQueueEntryStatus.Aborted) {
         	returnQueueEntry(qe);
+        }
         persist();
         notifyListeners();
     }
@@ -810,49 +813,18 @@ public class QueueProcessor implements IQueueProcessor
         	log.error("QueueEntryID does not contain any QueueEntryID");	
             return null;
         }
-        log.debug("processing getMessageQueueEntryID for "+qeid);
+        log.info("processing getMessageQueueEntryID for "+qeid);
         return qeid;
     }
-    
-	public boolean resume() {
-		JDFQueueEntry qe = getCurrentQueueEntry();
-		if (qe.getQueueEntryStatus() == EnumQueueEntryStatus.Suspended)
-		{
-			qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
-			return true;
-		}
-		log.error("cannot resume current QueueEntry, it is "+qe.getQueueEntryStatus().getName());
-		return false;
-	}
-
-	public boolean suspend() {
-		JDFQueueEntry qe = getCurrentQueueEntry();
-		if (qe.getQueueEntryStatus() == EnumQueueEntryStatus.Running)
-		{
-			qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
-			return true;
-		}
-		log.error("cannot suspend current QueueEntry, it is "+qe.getQueueEntryStatus().getName());
-		return false;
-	}
-
-	/**
-	 * 
-	 */
-	private JDFQueueEntry getCurrentQueueEntry() 
-		{
-		return getEntry(currentQueueEntryID);
-	}
 
     private JDFQueueEntry getEntry(String queueEntryID)
     {
         JDFQueueEntry qe=_theQueue.getQueueEntry(queueEntryID);
-        if(qe==null && fallBackQProcessor!=null)
-        {
+        if(qe==null && fallBackQProcessor!=null) {
             qe=fallBackQProcessor.getQueue().getQueueEntry(queueEntryID);
         }
-				return qe;
-		}
+		return qe;
+	}
 	
 
     /**
@@ -873,5 +845,40 @@ public class QueueProcessor implements IQueueProcessor
     	for (int i=0;i<queue.getQueueSize();i++) {
     		BambiNSExtension.removeBambiExtensions( queue.getQueueEntry(i) );
     	}
+    }
+    
+    /**
+     * stop processing the given {@link JDFQueueEntry}
+     * @param qe the {@link JDFQueueEntry} to work on
+     * @param status the targeted {@link EnumQueueEntryStatus} for qe (Aborted, Suspended, Held)
+     * @return the new status of qe
+     */
+    private EnumQueueEntryStatus stopOnDevice(JDFQueueEntry qe,EnumQueueEntryStatus status)
+    {
+    	String queueEntryID=qe.getQueueEntryID();
+    	String deviceID=BambiNSExtension.getDeviceID(qe);
+    	if (deviceID==null) {
+    		log.error("no device found for "+queueEntryID);
+    		return null;
+    	}
+    	if ( !deviceID.equals(_theQueue.getDeviceID()) ) {
+    		log.error("the queue entry is not processed on the this device");
+    		return null;
+    	}
+    	AbstractDevice device = DeviceServlet.getDevice(deviceID);
+    	if (device==null) {
+    		log.fatal("device with DeviceID '"+deviceID+"' not found.");
+    		return null;
+    	}
+    	
+    	JDFQueueEntry returnQE=device.stopProcessing(queueEntryID, status);
+    	if (returnQE==null) {
+    		log.fatal("device '"+deviceID+"' returned a null QueueEntry");
+    		return null;
+    	}
+    	
+    	EnumQueueEntryStatus newStatus=qe.getQueueEntryStatus();
+    	log.info("QueueEntry with ID="+queueEntryID+" is now "+newStatus.getName());
+    	return newStatus;
     }
 }

@@ -45,6 +45,11 @@
 			%>
 		</table>
 		
+		<h3>Queue:</h3>
+		<iframe src="BambiRootDevice?cmd=showQueue" width="350" height="200">
+			  <a href="BambiRootDevice?cmd=showQueue">show queue</a>
+		</iframe>
+		
 		<br>
 		<p>Build @build.number@, @build.timestamp@</p>
 	</body>

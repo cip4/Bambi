@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry including="org/cip4/bambi/*.java" kind="src" output="bin" path="test"/>
+	<classpathentry including="org/cip4/bambi/*.java|org/cip4/bambi/messaging/*.java|org/cip4/bambi/servlets/*.java" kind="src" path="src/java"/>
+	<classpathentry kind="lib" path="src/lib/commons-lang-2.1.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/servlet-api-2.4.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/xercesImpl.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/xml-apis.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/activation-1.0.2.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/commons-fileupload-1.2.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/commons-io-1.2.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/JDFLib-J"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/commons-logging-1.1.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/mail-1.3.2.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

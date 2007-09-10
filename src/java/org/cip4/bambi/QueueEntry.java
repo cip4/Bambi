@@ -9,8 +9,9 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 
 /**
+ * simple QueueEntry / JDF pair
  * @author prosirai
- * simple QueueEntry / JDF Pair
+ * 
  */
 public class QueueEntry implements IQueueEntry
 {

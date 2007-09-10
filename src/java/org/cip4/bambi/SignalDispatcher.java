@@ -480,7 +480,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         triggers=new VectorMap();
         mutex = new Object();
         log.info("Starting dispatcher thread"); 
-        new Thread(new Dispatcher()).start();
+        new Thread(new Dispatcher(),"SignalDispatcher").start();
     }
 
     /* (non-Javadoc)

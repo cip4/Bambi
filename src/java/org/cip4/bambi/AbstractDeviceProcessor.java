@@ -105,19 +105,37 @@ import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
  */
 
 /**
- * abstract parent class for simu job processors
+ * abstract parent class for device processors <br>
+ * The device processor is the actual working part of a device. The individual job phases of
+ * the job are executed here. 
  * @author boegerni
  *
  */
 public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 {
+	
+	
 	private static Log log = LogFactory.getLog(AbstractDeviceProcessor.class.getName());
 	protected List _jobPhases = null;
+	/**
+	 * note: the queue processor points to the queue processor of the device, 
+	 * it !does not! copy it
+	 */
 	protected IQueueProcessor _queueProcessor;
 	protected IStatusListener _statusListener;
 	protected Object _myListener; // the mutex for waiting and reawakening
-	protected String _trackResourceID="";
-	
+	protected String _trackResourceID=null;
+	protected String _deviceID=null;
+	protected List _updateStatusReqs=null;
+
+	protected class ChangeQueueEntryStatusRequest {
+		public String queueEntryID=null;
+		public EnumQueueEntryStatus newStatus=null;
+		public ChangeQueueEntryStatusRequest(String qeid, EnumQueueEntryStatus status) {
+			queueEntryID=qeid;
+			newStatus=status;
+		}
+	}
 	/**
 	 * a single job phase
 	 * 
@@ -222,6 +240,8 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         _queueProcessor.addListener(_myListener);
         _statusListener=statusListener;
         _jobPhases = new ArrayList();
+        _deviceID=deviceID;
+        _updateStatusReqs=new ArrayList();
     }
     
     protected boolean processQueueEntry()
@@ -237,7 +257,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         JDFDoc doc=iqe.getJDF();
         if(doc==null)
             return false;
-        JDFQueueEntry qe=iqe.getQueueEntry();
+        JDFQueueEntry qe=iqe.getQueueEntry();         
         if(qe==null)
             return false;
         qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
@@ -267,27 +287,52 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     	if (qe!=null) {
     		persistRemainingPhases(qe.getQueueEntryID(), currentPhase, 0);
     	}
-    	finalizeProcessDoc();
+    	_statusListener.signalStatus(EnumDeviceStatus.Idle, "Idle", EnumNodeStatus.Suspended, "job suspended");
+		_statusListener.setNode(null, null, null, null, null);
     	return EnumQueueEntryStatus.Suspended;
 	}
     
     /**
-     * check whether qe has been suspended before, and load its remaining job phases if required.
+     * check whether qe has been suspended before, and get its remaining job phases if there are any.
      * @param qe the QueueEntry to look for
-     * @return the list of loaded phases, null if none has been found.
+     * @return a {@link List} of {@link JobPhase}. Returns null if no remaining phases have been found
      */
     protected List resumeQueueEntry(JDFQueueEntry qe)
     {
-    	return loadRemainingPhases( qe.getQueueEntryID(), true );
+    	String queueEntryID=qe.getQueueEntryID();
+    	String fileName = org.cip4.bambi.servlets.DeviceServlet.baseDir+queueEntryID+".phases";
+		FileInputStream f_in=null;
+		try {
+			f_in = new FileInputStream(fileName);
+		} catch (FileNotFoundException e2) {
+			log.info( "no remaining job phases found for QueueEntry with ID="+queueEntryID );
+			return null;
+		}
+
+		Object obj=null;
+		try {
+			ObjectInputStream obj_in = new ObjectInputStream (f_in);
+			obj = obj_in.readObject();
+			obj_in.close();
+			f_in.close();
+		} catch (Exception e) {
+			log.error( "failed to load remaining phases for QueueEntry with ID="
+					+queueEntryID+": "+e.getMessage() );
+		}
+
+		if (obj instanceof List)
+		{
+			List phases = (List) obj;
+			// delete file with remaining phases after loading
+			(new File(fileName)).delete();
+			log.info( "successfully loaded remaining phases from "+fileName );
+			return phases;
+		} else {
+			return null;
+		}
     }
     
 	protected EnumQueueEntryStatus abortQueueEntry() {
-		_statusListener.signalStatus(EnumDeviceStatus.Cleanup, "WashUp", EnumNodeStatus.Cleanup, "cleaning up the aborted job");
-		try {
-			Thread.sleep(1500);
-		} catch (InterruptedException e) {
-			log.error("interrupted while cleaning up the aborted job");
-		}
 		_statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCanceledByUser", EnumNodeStatus.Aborted, "job canceled by user");
 		_statusListener.setNode(null, null, null, null, null);
 		return EnumQueueEntryStatus.Aborted;
@@ -303,8 +348,9 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             log.error("proccessing null job");
             return EnumQueueEntryStatus.Aborted;
         }
+		BambiNSExtension.setDeviceID(qe, _deviceID);
         final String queueEntryID = qe.getQueueEntryID();
-        log.info("Processing queueentry"+queueEntryID);
+        log.info("Processing queueentry "+queueEntryID);
         JDFNode node=doc.getJDFRoot();
         VJDFAttributeMap vPartMap=qe.getPartMapVector();
         JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
@@ -406,50 +452,29 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		try {
 			obj_out = new ObjectOutputStream (f_out);
 			obj_out.writeObject ( phases );
+			
+			obj_out.close();
+			f_out.close();
 		} catch (IOException e) {
 			log.error( "serialization of the remaining job phases failed: \r\n"+e.getMessage() );
 		}
 		log.info("remaining phases have been saved to "+fileName);
 	}
 	
-	/**
-	 * get are remaining job phases for the given QueueEntry.
-	 * @param queueEntryID the ID of the Queue to load the phases for
-	 * @param doDeleteFile delete the file with the list of remaining phases, after they have been loaded successfully
-	 * @return a {@link List} of {@link JobPhase}, null of no remaining phases have been found
-	 */
-	protected List loadRemainingPhases(String queueEntryID, boolean doDeleteFile)
-	{
-		String fileName = org.cip4.bambi.servlets.DeviceServlet.baseDir+queueEntryID+".phases";
-		// Read from disk using FileInputStream
-		FileInputStream f_in;
-		try {
-			f_in = new FileInputStream(fileName);
-		} catch (FileNotFoundException e2) {
-			log.info( "no remaining job phases found for QueueEntry with ID="+queueEntryID );
-			return null;
-		}
-
-		Object obj=null;
-		try {
-			ObjectInputStream obj_in = new ObjectInputStream (f_in);
-			obj = obj_in.readObject();
-		} catch (Exception e) {
-			log.error( "failed to load remaining phases for QueueEntry with ID="
-					+queueEntryID+": "+e.getMessage() );
-		}
-
-		List phases = null;
-		if (obj instanceof List)
-		{
-			phases = (List) obj;
-			if (doDeleteFile) {
-				(new File(fileName)).delete();
-			}
-			log.info( "successfully loaded remaining phases from "+fileName );
-			return phases;
+	public EnumQueueEntryStatus stopProcessing(JDFQueueEntry qe,EnumQueueEntryStatus newStatus) {
+		EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+		
+		if (status.equals(EnumQueueEntryStatus.Running)) {
+			ChangeQueueEntryStatusRequest newReq = new ChangeQueueEntryStatusRequest(qe.getQueueEntryID(),newStatus);
+			_updateStatusReqs.add(newReq);
+			return status;
+		} else if (status.equals(EnumQueueEntryStatus.Waiting) || status.equals(EnumQueueEntryStatus.Suspended)) {
+			qe.setQueueEntryStatus(newStatus);
+			return newStatus;
 		} else {
-			return null;
+			// cannot change status
+			return status;
 		}
 	}
+	
 }

@@ -87,66 +87,6 @@ public class BambiNSExtension
    
     public static final String MY_NS = "www.cip4.org/Bambi";
     public static final String MY_NS_PREFIX = "bambi:";
-
-    public static final String docURL="DocURL";
-   /**
-     * 
-     * @param qe the JDFQueueEntry to set
-     * @param docURL the queuentryid within the prinect system
-     */
-    public static void setDocURL(JDFQueueEntry qe, String _docURL)
-    {
-        setMyNSAttribute(qe,docURL,_docURL);       
-    }
-    
-    /**
-     * @param qe the JDFQueueEntry to work on
-     * @return
-     */
-    public static String getDocURL(JDFQueueEntry qe)
-    {
-        return getMyNSAttribute(qe,docURL);
-    }
-        
-    public static final String returnURL="ReturnURL";
-    /**
-      * 
-      * @param qe the JDFQueueEntry to set
-      * @param theReturnURL the queuentryid within the prinect system
-      */
-     public static void setReturnURL(JDFQueueEntry qe, String theReturnURL)
-     {
-         setMyNSAttribute(qe,returnURL,theReturnURL);       
-     }
-     
-     /**
-      * @param qe the JDFQueueEntry to work on
-      * @return
-      */
-     public static String getReturnURL(JDFQueueEntry qe)
-     {
-         return getMyNSAttribute(qe,returnURL);
-     }
-     
-     public static final String returnJMF="ReturnJMF";
-     /**
-       * 
-       * @param qe the JDFQueueEntry to set
-       * @param theReturnJMF the queuentryid within the prinect system
-       */
-      public static void setReturnJMF(JDFQueueEntry qe, String theReturnJMF)
-      {
-          setMyNSAttribute(qe,returnJMF,theReturnJMF);       
-      }
-      
-      /**
-       * @param qe the JDFQueueEntry to work on
-       * @return
-       */
-      public static String getReturnJMF(JDFQueueEntry qe)
-      {
-          return getMyNSAttribute(qe,returnJMF);
-      }
     
     /**
      * 
@@ -188,10 +128,104 @@ public class BambiNSExtension
         e.removeAttribute(MY_NS_PREFIX+attName,MY_NS);       
     }
     
+    /**
+     * remove all Bambi specific attributes from the given QueueEntry
+     * @param qe the QueueEntry to clean up
+     */
     public static void removeBambiExtensions(JDFQueueEntry qe)
     {
     	removeMyNSAttribute(qe, returnJMF);
     	removeMyNSAttribute(qe, returnURL);
     	removeMyNSAttribute(qe, docURL);
+    	removeMyNSAttribute(qe, deviceID);
     }
+
+    /*** docURL *************************************************************/
+    
+    public static final String docURL="DocURL";
+   /**
+     * 
+     * @param qe the JDFQueueEntry to set
+     * @param docURL location of the JDF
+     */
+    public static void setDocURL(JDFQueueEntry qe, String _docURL)
+    {
+        setMyNSAttribute(qe,docURL,_docURL);       
+    }
+    
+    /**
+     * @param qe the JDFQueueEntry to work on
+     * @return docURL location of the JDF
+     */
+    public static String getDocURL(JDFQueueEntry qe)
+    {
+        return getMyNSAttribute(qe,docURL);
+    }
+        
+    /*** returnURL **********************************************************/
+    
+    public static final String returnURL="ReturnURL";
+    /**
+      * 
+      * @param qe the JDFQueueEntry to set
+      * @param theReturnURL the location to send the ReturnQueueEntry to
+      */
+     public static void setReturnURL(JDFQueueEntry qe, String theReturnURL)
+     {
+         setMyNSAttribute(qe,returnURL,theReturnURL);       
+     }
+     
+     /**
+      * @param qe the JDFQueueEntry to work on
+      * @return the location of the JDF
+      */
+     public static String getReturnURL(JDFQueueEntry qe)
+     {
+         return getMyNSAttribute(qe,returnURL);
+     }
+     
+     /*** returnJMF *********************************************************/
+     
+     public static final String returnJMF="ReturnJMF";
+     /**
+       * 
+       * @param qe the JDFQueueEntry to set
+       * @param theReturnJMF the location to send the ReturnJMF to
+       */
+      public static void setReturnJMF(JDFQueueEntry qe, String theReturnJMF)
+      {
+          setMyNSAttribute(qe,returnJMF,theReturnJMF);       
+      }
+      
+      /**
+       * @param qe the JDFQueueEntry to work on
+       * @return
+       */
+      public static String getReturnJMF(JDFQueueEntry qe)
+      {
+          return getMyNSAttribute(qe,returnJMF);
+      }
+    
+      /*** deviceID *********************************************************/
+      
+      public static final String deviceID="DeviceID";
+      /**
+        * 
+        * @param qe the JDFQueueEntry to set
+        * @param theDeviceID the ID of the device processing the QueueEntry
+        */
+       public static void setDeviceID(JDFQueueEntry qe, String theDeviceID)
+       {
+           setMyNSAttribute(qe,deviceID,theDeviceID);       
+       }
+       
+       /**
+        * @param qe the JDFQueueEntry to work on
+        * @return the ID of the device processing the QueueEntry
+        */
+       public static String getDeviceID(JDFQueueEntry qe)
+       {
+           return getMyNSAttribute(qe,deviceID);
+       }
+   
 }
