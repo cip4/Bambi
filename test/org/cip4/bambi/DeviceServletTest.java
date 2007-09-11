@@ -1,9 +1,12 @@
 package org.cip4.bambi;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 
+import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
 import org.cip4.bambi.servlets.DeviceServlet;
@@ -146,6 +149,11 @@ public class DeviceServletTest extends BambiTestCase {
 
     public void testMimeSubmit() throws Exception
     {
+        singleMIMESubmit("SingleMIME");
+    }
+
+    private JDFResponse singleMIMESubmit(String jobID) throws MalformedURLException, IOException, MessagingException
+    {
         JDFDoc d1=new JDFDoc("JMF");
         d1.setOriginalFileName("JMF.jmf");
         JDFJMF jmf=d1.getJMFRoot();
@@ -156,6 +164,7 @@ public class DeviceServletTest extends BambiTestCase {
         JDFDoc doc=new JDFDoc("JDF");
         doc.setOriginalFileName("JDF.jdf");  
         JDFNode n=doc.getJDFRoot();
+        n.setJobID(jobID);
         n.setType(EnumType.ColorSpaceConversion);
         JDFColorSpaceConversionParams cscp=(JDFColorSpaceConversionParams) n.addResource(ElementName.COLORSPACECONVERSIONPARAMS, null, EnumUsage.Input, null, null, null, null);
         JDFFileSpec fs0=cscp.appendFinalTargetDevice();
@@ -186,5 +195,20 @@ public class DeviceServletTest extends BambiTestCase {
         JDFQueueEntry qe=r.getQueueEntry(0);
         String devQEntryID=qe.getQueueEntryID();
         assertNotSame(devQEntryID,"");
+        return r;
     }
-}
+    
+    public void testMultiSubmit() throws Exception
+    {
+        long t=System.currentTimeMillis();
+        for(int i=0;i<55;i++)
+        {
+            long t1=System.currentTimeMillis();
+            System.out.println("Pre submit,"+i);
+            singleMIMESubmit("Job"+i);
+            long t2=System.currentTimeMillis();
+           System.out.println("Post submit,"+i+" single: "+(t2-t1)+" total: "+(t2-t));
+             
+        }
+    }
+ }
