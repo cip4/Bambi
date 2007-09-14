@@ -95,7 +95,7 @@ public final class CustomDevice extends AbstractDevice   {
 	public CustomDevice(String deviceType, String deviceID, String deviceClass)
 	{
 		super(deviceType, deviceID, deviceClass);
-		log.info("created CustomDevice");
+		log.info("created CustomDevice '"+deviceID+"'");
 	}
 
 	public JobPhase getCurrentJobPhase()

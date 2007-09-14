@@ -94,17 +94,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.AbstractDevice;
 import org.cip4.bambi.CustomDevice;
-import org.cip4.bambi.SimDevice;
 import org.cip4.bambi.IJMFHandler;
 import org.cip4.bambi.IMessageHandler;
 import org.cip4.bambi.IQueueProcessor;
 import org.cip4.bambi.ISignalDispatcher;
 import org.cip4.bambi.IStatusListener;
 import org.cip4.bambi.JMFHandler;
-import org.cip4.bambi.QueueProcessor;
-import org.cip4.bambi.SignalDispatcher;
-import org.cip4.bambi.StatusListener;
 import org.cip4.bambi.QueueFacade;
+import org.cip4.bambi.RootQueueProcessor;
+import org.cip4.bambi.SignalDispatcher;
+import org.cip4.bambi.SimDevice;
+import org.cip4.bambi.StatusListener;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
@@ -198,7 +198,7 @@ public class DeviceServlet extends AbstractBambiServlet
 	public static final String xslDir="./xslt/";
 	public static String jdfDir=baseDir+"JDFDir"+File.separator;
 	private JMFHandler _jmfHandler=null;
-	private static HashMap _devices = null;
+	private HashMap _devices = null;
 	private ISignalDispatcher _theSignalDispatcher=null;
 	private IQueueProcessor _theQueueProcessor=null;
 	private IStatusListener _theStatusListener=null;
@@ -210,23 +210,18 @@ public class DeviceServlet extends AbstractBambiServlet
 	public void init(ServletConfig config) throws ServletException 
 	{
 		super.init(config);
-		
-		/*** uncomment to set the log level to debug: ***/
-		//System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
-		//System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "debug");
-
 		new File(baseDir).mkdirs();
 		_devices = new HashMap();
 		_jmfHandler=new JMFHandler();
 		addHandlers();
 		
-		_theSignalDispatcher=new SignalDispatcher(_jmfHandler);
+		_theSignalDispatcher=new SignalDispatcher(_jmfHandler, bambiRootDeviceID);
 		_theSignalDispatcher.addHandlers(_jmfHandler);
 
         _theStatusListener=new StatusListener(_theSignalDispatcher,bambiRootDeviceID);
         _theStatusListener.addHandlers(_jmfHandler);
 		
-        _theQueueProcessor = new QueueProcessor(bambiRootDeviceID);
+        _theQueueProcessor = new RootQueueProcessor(bambiRootDeviceID, null);
         _theQueueProcessor.addHandlers(_jmfHandler);
         
 		log.info("Initializing DeviceServlet");
@@ -253,6 +248,8 @@ public class DeviceServlet extends AbstractBambiServlet
 		
 		if (command == null || command.length() == 0) {
 			request.setAttribute("devices", getDevices());
+			QueueFacade qf = new QueueFacade( _theQueueProcessor.getQueue() );
+			request.setAttribute("qf", qf);
 			try {
 				request.getRequestDispatcher("/overview.jsp").forward(request, response);
 			} catch (Exception e) {
@@ -459,7 +456,7 @@ public class DeviceServlet extends AbstractBambiServlet
 			// create a simple dummy sqe and submit to myself
 			JDFQueueSubmissionParams qsp=command.getCreateQueueSubmissionParams(0);
 			qsp.setPriority(50);
-			JDFResponse r=_theQueueProcessor.addEntry(command, doc);
+			JDFResponse r=_theQueueProcessor.addEntry(command, doc, false);
 			if (r == null)
 				log.warn("_theQueue.addEntry returned null");
 		}
@@ -631,7 +628,7 @@ public class DeviceServlet extends AbstractBambiServlet
 			return _devices.size();
 	}
 
-	public static AbstractDevice getDevice(String deviceID)
+	public AbstractDevice getDevice(String deviceID)
 	{
 		if (_devices == null)
 		{
@@ -662,9 +659,10 @@ public class DeviceServlet extends AbstractBambiServlet
 	    	String deviceClass = device.getXPathAttribute("@DeviceClass", "org.cip.bambi.DeviceServlet");
 	    	if (deviceID != null)
             {
-	    		AbstractDevice dev=createDevice(deviceID,deviceType,deviceClass);
-                IQueueProcessor qp=dev.getQueueProcessor();
-                qp.setFallBackQProcessor(_theQueueProcessor);
+	    		createDevice(deviceID,deviceType,deviceClass);
+//	    		AbstractDevice dev=createDevice(deviceID,deviceType,deviceClass);
+//                IQueueProcessor qp=dev.getQueueProcessor();
+//                qp.setFallBackQProcessor(_theQueueProcessor);
               
             }
 	    	else

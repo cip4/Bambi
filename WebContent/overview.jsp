@@ -4,6 +4,8 @@
 <%@ page import="java.util.SortedSet" %>
 <%@ page import="java.util.TreeSet" %>
 <%@ page import="org.cip4.bambi.AbstractDevice" %>
+<%@ page import="org.cip4.bambi.QueueFacade" %>
+<%@ page import="org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
@@ -46,7 +48,11 @@
 		</table>
 		
 		<h3>Queue:</h3>
-		<iframe src="BambiRootDevice?cmd=showQueue" width="350" height="200">
+		<% QueueFacade qf=(QueueFacade)request.getAttribute("qf"); %>
+		Waiting: <%= qf.count(EnumQueueEntryStatus.Waiting)%>, Running: <%= qf.count(EnumQueueEntryStatus.Running)%>, 
+		Completed: <%= qf.count(EnumQueueEntryStatus.Completed)%>, Aborted: <%= qf.count(EnumQueueEntryStatus.Aborted)%>, 
+		Total: <%= qf.countAll()%> <br>
+		<iframe src="BambiRootDevice?cmd=showQueue" width="400" height="200">
 			  <a href="BambiRootDevice?cmd=showQueue">show queue</a>
 		</iframe>
 		

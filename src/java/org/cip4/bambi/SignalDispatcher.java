@@ -472,15 +472,21 @@ public final class SignalDispatcher implements ISignalDispatcher
         }
     }
 
-    public SignalDispatcher(IMessageHandler _messageHandler)
+    /**
+     * constructor
+     * @param _messageHandler message handler
+     * @param deviceID ID of the device this SignalHandler is working for. 
+     * 			       Required for debugging purposes only. 
+     */
+    public SignalDispatcher(IMessageHandler _messageHandler, String deviceID)
     {        
         subscriptionMap=new HashMap();
         queueEntryMap=new VectorMap();
         messageHandler=_messageHandler;
         triggers=new VectorMap();
         mutex = new Object();
-        log.info("Starting dispatcher thread"); 
-        new Thread(new Dispatcher(),"SignalDispatcher").start();
+        new Thread(new Dispatcher(),"SignalDispatcher_"+deviceID).start();
+        log.info("dispatcher thread 'SignalDispatcher_"+deviceID+"' started");
     }
 
     /* (non-Javadoc)

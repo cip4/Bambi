@@ -99,6 +99,6 @@ public final class SimDevice extends AbstractDevice   {
 	public SimDevice(String deviceType, String deviceID, String deviceClass)
 	{
 		super(deviceType, deviceID, deviceClass);
-		log.info("created SimDevice");
+		log.info("created SimDevice '"+deviceID+"'");
 	}
 }

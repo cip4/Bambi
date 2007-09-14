@@ -129,7 +129,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 	private EnumQueueEntryStatus getQueueEntryStatus(String queueEntryID)
 	{
 		JDFQueue qu = getQueue();
-		JDFQueueEntry que = qu.getEntry(queueEntryID);
+		JDFQueueEntry que = qu.getQueueEntry(queueEntryID);
 		if ( que==null) {
 		return null;
 		} else {

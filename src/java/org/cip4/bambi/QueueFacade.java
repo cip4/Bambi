@@ -75,6 +75,8 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.servlets.DeviceServlet;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 
@@ -146,5 +148,33 @@ public class QueueFacade {
 			+ "<?xml-stylesheet type=\"text/xsl\" href=\""+DeviceServlet.xslDir+"queue2html.xsl\"?> \r\n";
 		return (xsltHeader+quStr);
 	}
+	
+	/**
+	 * count all QueueEntries
+	 * @return
+	 */
+	public int countAll() {
+		return _theQueue.getQueueSize();
+	}
+	
+	/**
+	 * count all QueueEntries which have the given {@link QueueEntryStatus} 
+	 * @param status
+	 * @return
+	 */
+	public int count(EnumQueueEntryStatus status) {
+		VElement qev = _theQueue.getQueueEntryVector();
+		int count=0;
+		for (int i=0;i<qev.size();i++) {
+			JDFQueueEntry qe = (JDFQueueEntry) qev.elementAt(i);
+			if ( qe!=null&&qe.getQueueEntryStatus().equals(status) ) {
+				count++;
+			}
+		}
+		
+		return count;
+	}
+	
+	
 
 }

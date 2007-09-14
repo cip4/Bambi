@@ -97,13 +97,6 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
 
-//TODO: pull device implementieren
-/*
- * handleMessage für requestQueueEntry
- * kein automatisches auspicken aus der queue
- * weitere messages an das geforwarded device leiten
- */
-
 /**
  * abstract parent class for device processors <br>
  * The device processor is the actual working part of a device. The individual job phases of
@@ -127,6 +120,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	protected String _trackResourceID=null;
 	protected String _deviceID=null;
 	protected List _updateStatusReqs=null;
+	protected Object parent=null;
 
 	protected class ChangeQueueEntryStatusRequest {
 		public String queueEntryID=null;
@@ -185,8 +179,11 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	}
 	
 	/**
-     * constructor
-     */
+	 * constructor
+	 * @param queueProcessor points to the QueueProcessor
+	 * @param statusListener points to the StatusListener
+	 * @param deviceID       ID of the device to be created
+	 */
 	public AbstractDeviceProcessor(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID)
 	{
 		super();

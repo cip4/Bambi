@@ -111,7 +111,7 @@ public class QueueEntryServlet extends AbstractBambiServlet {
 			showError("failed to send JMF command", errorMsg, request, response);
 			return false;
 		}
-		if (resp.getReturnCode()!=0)
+		if (resp.getReturnCode()!=0 && type!=EnumType.AbortQueueEntry)
 		{
 			String errorMsg=type.getName()+" with ID="+_queueEntryID+" on device "+_deviceID+" failed.";
 			errorMsg += "\r\nResponse: "+resp.toString();

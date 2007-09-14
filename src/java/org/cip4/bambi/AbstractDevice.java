@@ -1,12 +1,18 @@
 package org.cip4.bambi;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.servlets.DeviceServlet;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
+import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -84,6 +90,7 @@ public class AbstractDevice implements IJMFHandler{
 	protected IStatusListener _theStatusListener=null;
 	protected ISignalDispatcher _theSignalDispatcher=null;
 	protected JMFHandler _jmfHandler = null ;
+	protected String _deviceURL=null;
 	
 	/**
 	 * creates a new Bambi device instance from a given class
@@ -98,10 +105,10 @@ public class AbstractDevice implements IJMFHandler{
 		_deviceID = deviceID;
 		_jmfHandler = new JMFHandler();
 
-        _theSignalDispatcher=new SignalDispatcher(_jmfHandler);
+        _theSignalDispatcher=new SignalDispatcher(_jmfHandler, deviceID);
         _theSignalDispatcher.addHandlers(_jmfHandler);
 
-		_theQueue=new QueueProcessor(deviceID);
+		_theQueue=new SubdeviceQueueProcessor(deviceID, this);
         _theQueue.addHandlers(_jmfHandler);
         _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
         _theStatusListener.addHandlers(_jmfHandler);
@@ -131,11 +138,12 @@ public class AbstractDevice implements IJMFHandler{
         }
         
         _theDeviceProcessor.init(_theQueue, _theStatusListener, _deviceID);
-        log.debug("created device from class name "+deviceClass);
+        log.info("created device from class name "+deviceClass);
 
-        log.info("Starting device thread");
 		new Thread(_theDeviceProcessor,"DeviceProcessor_"+_deviceID).start();
-		log.info("device thread started");
+		log.info("device thread started: DeviceProcessor_"+_deviceID);
+		
+		_deviceURL = createDeviceURL(_deviceID);
 		
 		addHandlers();
 	}
@@ -253,4 +261,36 @@ public class AbstractDevice implements IJMFHandler{
     	return qe;
     }
 
+    /**
+	 * build the URL of this device
+	 * @param deviceID the ID of the device to get the URL for. Use "" for the Bambi Root Device.
+	 * @return
+	 */
+	public static String createDeviceURL(String deviceID) {
+		Properties properties = new Properties();
+		FileInputStream in=null;
+		String deviceURL=null;
+		try {
+			in = new FileInputStream(DeviceServlet.configDir+"Bambi.properties");
+			properties.load(in);
+			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
+			deviceURL= properties.getProperty("BambiURL")+"/"+properties.getProperty("RootDeviceID");
+			if (deviceID!=null && deviceID.length()>0)
+				deviceURL += "/"+deviceID;
+			in.close();
+		} catch (IOException e) {
+			log.error("failed to load Bambi properties: \r\n"+e.getMessage());
+			return null;
+		}
+		return deviceURL;
+	}
+	
+	/**
+	 * return the URL of this device
+	 * @return
+	 */
+	public String getDeviceURL() {
+		return _deviceURL;
+	}
+	
 }

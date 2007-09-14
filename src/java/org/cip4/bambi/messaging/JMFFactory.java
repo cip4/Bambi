@@ -71,16 +71,14 @@
 
 package org.cip4.bambi.messaging;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Properties;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.servlets.DeviceServlet;
+import org.cip4.bambi.AbstractDevice;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.w3c.dom.Document;
@@ -164,6 +162,43 @@ public class JMFFactory {
 	}
 	
 	/**
+	 * build a JMF RequestQueueEntry command
+	 * @param deviceID the ID of the device sending the command
+	 * @return the message
+	 */
+	public static JDFJMF buildRequestQueueEntry(String deviceID)
+	{
+		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.RequestQueueEntry);
+		String queueURL = AbstractDevice.createDeviceURL(deviceID);
+		jmf.getCommand(0).appendRequestQueueEntryParams().setQueueURL(queueURL);
+		return jmf;
+	}
+	
+	/**
+	 * build a JMF ReturnQueueEntry command
+	 * @param queueEntryID ID of the QueueEntry that has been processed
+	 * @param url       location of the JDF to be returned
+	 * @param aborted   ID of the JDF nodes that have been executed and aborted
+	 * @param completed ID of the JDF nodes that have been executed and completed
+	 * @return the message
+	 */
+	public static JDFJMF buildReturnQueueEntry(String queueEntryID, 
+			String url, VString aborted, VString completed)
+	{
+		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
+		JDFReturnQueueEntryParams qep=jmf.getCommand(0).appendReturnQueueEntryParams();
+		qep.setURL(url);
+		qep.setQueueEntryID(queueEntryID);
+		if ( aborted!=null&&aborted.size()>0 ) {
+			qep.setAborted(aborted);
+		}
+		else if ( completed!=null&&completed.size()>0 ) {
+			qep.setCompleted(completed);
+		}
+		return jmf;
+	}
+	
+	/**
 	 * send a JMF message to Bambi
 	 * @param jmf the message to send
 	 * @param subDeviceId the Bambi sub-device (null for root device, "device001" for BambiRootDevice/device001 etc.)
@@ -171,24 +206,14 @@ public class JMFFactory {
 	 */
 	public static JDFResponse send2Bambi(JDFJMF jmf, String subDeviceId)
 	{
-		Properties properties = new Properties();
-		FileInputStream in=null;
-		String targetURL=null;
-		try {
-			in = new FileInputStream(DeviceServlet.configDir+"Bambi.properties");
-			properties.load(in);
-			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
-			targetURL= properties.getProperty("BambiURL")+"/"+properties.getProperty("RootDeviceID");
-			if (subDeviceId!=null && subDeviceId.length()>0)
-				targetURL += "/"+subDeviceId;
-			in.close();
-		} catch (IOException e) {
-			log.error("failed to load Bambi properties: \r\n"+e.getMessage());
-			return null;
-		}
+		String url = AbstractDevice.createDeviceURL(subDeviceId);
+		return send2URL(jmf, url);
+	}
+	
+	public static JDFResponse send2URL(JDFJMF jmf, String url) {
 		Document dd = jmf.getOwnerDocument();
 		JDFDoc doc = new JDFDoc(dd);
-		JDFDoc respDoc = doc.write2URL(targetURL);
+		JDFDoc respDoc = doc.write2URL(url);
 		if (respDoc==null || respDoc.toString().length()<10)
 		{
 			log.error("no response received");
@@ -196,5 +221,4 @@ public class JMFFactory {
 		}
 		return respDoc.getJMFRoot().getResponse(0);
 	}
-	
 }
