@@ -232,7 +232,7 @@ public class JMFFactoryTest extends BambiTestCase {
         	assertEquals( 200,response.getResponseCode() );
         } catch (Exception e) {
         	System.err.println( e.getMessage() );
-        	assertTrue( false ); // fail on exception
+        	fail(); // fail on exception
         }
         
         // there should be one more QueueEntry

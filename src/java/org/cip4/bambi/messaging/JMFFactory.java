@@ -75,10 +75,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.AbstractDevice;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.w3c.dom.Document;
@@ -171,30 +169,6 @@ public class JMFFactory {
 		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.RequestQueueEntry);
 		String queueURL = AbstractDevice.createDeviceURL(deviceID);
 		jmf.getCommand(0).appendRequestQueueEntryParams().setQueueURL(queueURL);
-		return jmf;
-	}
-	
-	/**
-	 * build a JMF ReturnQueueEntry command
-	 * @param queueEntryID ID of the QueueEntry that has been processed
-	 * @param url       location of the JDF to be returned
-	 * @param aborted   ID of the JDF nodes that have been executed and aborted
-	 * @param completed ID of the JDF nodes that have been executed and completed
-	 * @return the message
-	 */
-	public static JDFJMF buildReturnQueueEntry(String queueEntryID, 
-			String url, VString aborted, VString completed)
-	{
-		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
-		JDFReturnQueueEntryParams qep=jmf.getCommand(0).appendReturnQueueEntryParams();
-		qep.setURL(url);
-		qep.setQueueEntryID(queueEntryID);
-		if ( aborted!=null&&aborted.size()>0 ) {
-			qep.setAborted(aborted);
-		}
-		else if ( completed!=null&&completed.size()>0 ) {
-			qep.setCompleted(completed);
-		}
 		return jmf;
 	}
 	

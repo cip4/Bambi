@@ -99,12 +99,12 @@ public class SubdeviceQueueProcessor extends AbstractQueueProcessor
 	}
 	public IQueueEntry getNextEntry()
     {
-   		log.debug("getNextEntry");
+   		//log.debug("getNextEntry");
         JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
         
         if(qe==null)
         {
-        	log.info("sending RequestQueueEntry to root device");
+        	//log.info("sending RequestQueueEntry to root device");
         	JDFJMF jmf = JMFFactory.buildRequestQueueEntry( _theQueue.getDeviceID() );
         	JMFFactory.send2Bambi(jmf,"");
             return null;

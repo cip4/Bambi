@@ -112,7 +112,7 @@ public class RootQueueProcessor extends AbstractQueueProcessor
 	        {
 	            return false;
 	        }
-	        log.info("Handling "+m.getType());
+	        //log.info("Handling "+m.getType());
 	        EnumType typ=m.getEnumType();
 	        if(EnumType.RequestQueueEntry.equals(typ))
 	        {
@@ -147,7 +147,7 @@ public class RootQueueProcessor extends AbstractQueueProcessor
 	        		{
 	        			submitQueueEntry( qe.getQueueEntry(),qep.getQueueURL() );
 	        		} else {
-	        			log.info("RequestQueueEntry won't trigger Submit: no QueueEntries waiting in root device");
+	        			//log.info("RequestQueueEntry won't trigger Submit: no QueueEntries waiting in root device");
 	        		}
 	        		return true;
 	        	} 
@@ -195,45 +195,45 @@ public class RootQueueProcessor extends AbstractQueueProcessor
 	        		log.error("ReturnQueueEntryParams missing in ReturnQueueEntry message");
 	        		return false;
 	        	}
-	        	String outgoingQEID=qep.getQueueEntryID();
-	        	if (outgoingQEID==null || outgoingQEID.length()<1) {
+	        	
+	        	String outQEID=qep.getQueueEntryID();
+	        	if (outQEID==null || outQEID.length()<1) {
 	        		log.error("ReturnQueueEntryParams is missing QueueEntry ID ");
 	        		return false;
 	        	}
-	        	String inQEID = tracker.getIncomingQEID(outgoingQEID);
+	        	
+	        	String inQEID = tracker.getIncomingQEID(outQEID);
 	        	if (inQEID==null || inQEID.equals("")) {
-	        		log.error("QueueEntry with ID="+outgoingQEID+" is not tracked by "+parent.getDeviceID());
+	        		log.error("QueueEntry with ID="+outQEID+" is not tracked by "+parent.getDeviceID());
 	        		return false;
 	        	}
+	        	
 	        	JDFQueueEntry qe= _theQueue.getQueueEntry(inQEID);
 	        	if (qe==null) {
-	        		log.error("QueueEntry with ID="+outgoingQEID+" is missing in local"
+	        		log.error("QueueEntry with ID="+outQEID+" is missing in local"
 	        				+" queue, but known by the QueueTracker: "+tracker.getQueueEntryString(inQEID));
 	        		tracker.removeEntry(inQEID);
+	        		return false;
+	        	}
+	        	
+	        	// get the returned JDFDoc from the incoming ReturnQE command and pack it in the outgoing
+	        	JDFDoc doc = qep.getURLDoc();
+	        	if (doc==null) {
+	        		log.error("failed to parse the JDFDoc from the incoming "
+	        				+ "ReturnQueueEntry with QueueEntryID="+inQEID);
 	        		return false;
 	        	}
 	        	
 	        	VString aborted = qep.getAborted();
 	        	if (aborted!=null && aborted.size()!=0) {
 	        		qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
-	        	}
-	        	VString completed = qep.getCompleted();
-	        	if (completed!=null && completed.size()!=0) {
-	        		qe.setQueueEntryStatus(EnumQueueEntryStatus.Completed);
-	        	} 
-	        	
-	        	String jdfURL = qep.getURL();
-	        	if (jdfURL==null || jdfURL.equals("")) {
-	        		log.error("ReturnQueueEntryParams are missing the URL of the JDF to be returned");
-	        		return false;
-	        	}
-	        	
-	        	JDFJMF jmf = JMFFactory.buildReturnQueueEntry( inQEID,jdfURL,aborted, completed );
-	        	String returnURL=tracker.getReturnURL(inQEID);
-	        	JDFResponse misResp = JMFFactory.send2URL(jmf, returnURL);
-	        	if (misResp==null || misResp.getReturnCode()!=0) {
-	        		log.error("failed to send ReturnQueueEntry to "+returnURL);
-	        		return false;
+	        		returnQueueEntry(qe, aborted);
+	        	} else {
+	        		VString completed = qep.getCompleted();
+	        		if (completed!=null && completed.size()!=0) {
+	        			qe.setQueueEntryStatus(EnumQueueEntryStatus.Completed);
+	        		} 
+	        		returnQueueEntry(qe, completed);
 	        	}
 	        	
 	        	tracker.removeEntry(inQEID);

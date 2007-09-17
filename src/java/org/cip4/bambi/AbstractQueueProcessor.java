@@ -708,7 +708,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         	return;
         qe.setQueueEntryStatus(status);
         if (status == EnumQueueEntryStatus.Completed || status == EnumQueueEntryStatus.Aborted) {
-        	returnQueueEntry(qe);
+        	returnQueueEntry( qe,new VString("root",null) );
         }
         persist();
         notifyListeners();
@@ -724,17 +724,22 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         return s;
     }
     
-    private void returnQueueEntry(JDFQueueEntry qe)
+    protected void returnQueueEntry(JDFQueueEntry qe, VString finishedNodes)
 	{
 		JDFDoc docJMF=new JDFDoc("JMF");
         JDFJMF jmf=docJMF.getJMFRoot();
         JDFCommand com=(JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.ReturnQueueEntry);
         JDFReturnQueueEntryParams qerp = com.appendReturnQueueEntryParams();
-        // TODO set real node IDs
-        if (qe.getStatus() == EnumNodeStatus.Completed)
-        	qerp.setCompleted( new VString("root",null) );
-        else if (qe.getStatus() == EnumNodeStatus.Aborted)
-        	qerp.setAborted( new VString("root",null) );
+
+        if (finishedNodes==null) {
+        	finishedNodes=new VString("root",null);
+        }
+        
+        if (qe.getStatus() == EnumNodeStatus.Completed) {
+        	qerp.setCompleted( finishedNodes );
+        } else if (qe.getStatus() == EnumNodeStatus.Aborted) {
+        	qerp.setAborted( finishedNodes );
+        }
         String returnURL=BambiNSExtension.getReturnURL(qe);
         qerp.setURL("cid:dummy"); // will be overwritten by buildMimePackage
         final String queueEntryID = qe.getQueueEntryID();
