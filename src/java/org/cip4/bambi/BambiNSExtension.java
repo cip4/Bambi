@@ -77,6 +77,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 
 /**
+ * provides Bambi specific XML extensions for JDF and JMF
  * @author prosirai
  *
  */

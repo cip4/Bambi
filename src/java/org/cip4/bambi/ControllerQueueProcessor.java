@@ -97,7 +97,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
  *
  *
  */
-public class RootQueueProcessor extends AbstractQueueProcessor
+public class ControllerQueueProcessor extends AbstractQueueProcessor
 {	
 	
 	protected class RequestQueueEntryHandler implements IMessageHandler
@@ -204,7 +204,7 @@ public class RootQueueProcessor extends AbstractQueueProcessor
 	        	
 	        	String inQEID = tracker.getIncomingQEID(outQEID);
 	        	if (inQEID==null || inQEID.equals("")) {
-	        		log.error("QueueEntry with ID="+outQEID+" is not tracked by "+parent.getDeviceID());
+	        		log.error("QueueEntry with ID="+outQEID+" is not tracked");
 	        		return false;
 	        	}
 	        	
@@ -261,11 +261,11 @@ public class RootQueueProcessor extends AbstractQueueProcessor
 	    }
 	}
 
-	protected static final Log log = LogFactory.getLog(RootQueueProcessor.class.getName());
+	protected static final Log log = LogFactory.getLog(ControllerQueueProcessor.class.getName());
 	protected String rootURL=null;
 	protected QueueEntryTracker tracker=null;
 
-	public RootQueueProcessor(String deviceID, AbstractDevice theParent) {
+	public ControllerQueueProcessor(String deviceID, AbstractDevice theParent) {
 		super(deviceID,theParent);
 		tracker=new QueueEntryTracker();
 	}
@@ -304,13 +304,17 @@ public class RootQueueProcessor extends AbstractQueueProcessor
         String parentURL = AbstractDevice.createDeviceURL(null); 
         qsp.setURL( BambiNSExtension.getDocURL(qe) );
         String returnURL = BambiNSExtension.getReturnURL(qe);
-        if (returnURL!=null && returnURL.length()>0)
-        {
+        // QueueSubmitParams need either ReturnJMF or ReturnURL
+        if (returnURL!=null && returnURL.length()>0) {
         	qsp.setReturnURL( parentURL );
         } else {
+        	returnURL=parentURL;
         	String returnJMF = BambiNSExtension.getReturnJMF(qe); 
-        	if (returnJMF!=null && returnJMF.length()>0)
-        		qsp.setReturnJMF( parentURL );
+        	if (returnJMF!=null && returnJMF.length()>0) {
+        		qsp.setReturnJMF( returnJMF );
+        	} else {
+        		qsp.setReturnJMF(parentURL);
+        	}
         }
         
         JDFResponse resp = JMFFactory.send2Bambi(jmf, deviceID);

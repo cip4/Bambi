@@ -75,6 +75,7 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.servlets.DeviceServlet;
+import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFQueue;
@@ -90,14 +91,14 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 public class QueueFacade {
 	public static class BambiQueueEntry 
 	{
-		public String queueEntryID="";
-		public String queueStatus="";
+		public String queueEntryID=null;
+		public EnumQueueEntryStatus queueEntryStatus=null;
 		public int queuePriority=0;
 		
-		protected BambiQueueEntry(String qEntryID, String qStatus, int qPriority)
+		protected BambiQueueEntry(String qEntryID, EnumQueueEntryStatus qStatus, int qPriority)
 		{
 			queueEntryID = qEntryID;
-			queueStatus = qStatus;
+			queueEntryStatus = qStatus;
 			queuePriority = qPriority;
 		}
 	}
@@ -119,9 +120,13 @@ public class QueueFacade {
 		return ( _theQueue.toString() );
 	}
 	
-	public String getQueueStatus()
+	public String getQueueStatusString()
 	{
 		return _theQueue.getQueueStatus().getName();
+	}
+	
+	public EnumQueueStatus getQueueStatus() {
+		return _theQueue.getQueueStatus();
 	}
 	
 	public Vector getBambiQueueEntryVector()
@@ -132,7 +137,7 @@ public class QueueFacade {
 		{
 			JDFQueueEntry jqe = _theQueue.getQueueEntry(i);
 			BambiQueueEntry bqe = new BambiQueueEntry( jqe.getQueueEntryID(),
-					jqe.getQueueEntryStatus().getName(),jqe.getPriority() );
+					jqe.getQueueEntryStatus(),jqe.getPriority() );
 			qes.add(bqe);
 		}
 			

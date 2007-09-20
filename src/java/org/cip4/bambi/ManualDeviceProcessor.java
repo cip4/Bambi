@@ -86,9 +86,9 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
  * @author boegerni
  *
  */
-public class CustomDeviceProcessor extends AbstractDeviceProcessor
+public class ManualDeviceProcessor extends AbstractDeviceProcessor
 {
-	private static Log log = LogFactory.getLog(CustomDeviceProcessor.class.getName());
+	private static Log log = LogFactory.getLog(ManualDeviceProcessor.class.getName());
 	private static final long serialVersionUID = -384123589645081254L;
 	private boolean doFinalizeQE = false;
 	private boolean doNextPhase = false;

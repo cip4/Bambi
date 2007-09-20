@@ -1,3 +1,74 @@
+/*
+ *
+ * The CIP4 Software License, Version 1.0
+ *
+ *
+ * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer. 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * 3. The end-user documentation included with the redistribution,
+ *    if any, must include the following acknowledgment:  
+ *       "This product includes software developed by the
+ *        The International Cooperation for the Integration of 
+ *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
+ *    Alternately, this acknowledgment may appear in the software itself,
+ *    if and wherever such third-party acknowledgments normally appear.
+ *
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ *    Processes in  Prepress, Press and Postpress" must
+ *    not be used to endorse or promote products derived from this
+ *    software without prior written permission. For written 
+ *    permission, please contact info@cip4.org.
+ *
+ * 5. Products derived from this software may not be called "CIP4",
+ *    nor may "CIP4" appear in their name, without prior written
+ *    permission of the CIP4 organization
+ *
+ * Usage of this software in commercial products is subject to restrictions. For
+ * details please consult info@cip4.org.
+ *
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
+ * THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
+ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the The International Cooperation for the Integration 
+ * of Processes in Prepress, Press and Postpress and was
+ * originally based on software 
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
+ *  
+ * For more information on The International Cooperation for the 
+ * Integration of Processes in  Prepress, Press and Postpress , please see
+ * <http://www.cip4.org/>.
+ *  
+ * 
+ */
+
 package org.cip4.bambi;
 
 import java.io.FileInputStream;
@@ -6,6 +77,7 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.servlets.DeviceServlet;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -31,7 +103,7 @@ import org.cip4.jdflib.resource.JDFDeviceList;
  * @author boegerni
  * 
  */
-public class AbstractDevice implements IJMFHandler{
+public class AbstractDevice implements IDevice, IJMFHandler{
 	/**
 	 * 
 	 * handler for the knowndevices query
@@ -91,6 +163,7 @@ public class AbstractDevice implements IJMFHandler{
 	protected ISignalDispatcher _theSignalDispatcher=null;
 	protected JMFHandler _jmfHandler = null ;
 	protected String _deviceURL=null;
+	protected String _controllerURL=null;
 	
 	/**
 	 * creates a new Bambi device instance from a given class
@@ -100,7 +173,6 @@ public class AbstractDevice implements IJMFHandler{
 	 */
 	public AbstractDevice(String deviceType, String deviceID, String deviceClass)
 	{
-		log.info("creating device with type='" + deviceType + "', deviceID='"+deviceID+"'");
 		_deviceType = deviceType;
 		_deviceID = deviceID;
 		_jmfHandler = new JMFHandler();
@@ -138,7 +210,59 @@ public class AbstractDevice implements IJMFHandler{
         }
         
         _theDeviceProcessor.init(_theQueue, _theStatusListener, _deviceID);
-        log.info("created device from class name "+deviceClass);
+
+		new Thread(_theDeviceProcessor,"DeviceProcessor_"+_deviceID).start();
+		log.info("device thread started: DeviceProcessor_"+_deviceID);
+		
+		_deviceURL = createDeviceURL(_deviceID);
+		
+		addHandlers();
+	}
+	
+	/**
+	 * create a device from properties
+	 * @param prop the properties for the device
+	 */
+	public AbstractDevice(DeviceProperties prop) {
+		_deviceType = prop.getDeviceType();
+		_deviceID = prop.getDeviceID();
+		_deviceURL=prop.getDeviceURL();
+		_controllerURL=prop.getControllerURL();
+		_jmfHandler = new JMFHandler();
+
+        _theSignalDispatcher=new SignalDispatcher(_jmfHandler, _deviceID);
+        _theSignalDispatcher.addHandlers(_jmfHandler);
+
+		_theQueue=new SubdeviceQueueProcessor(_deviceID, this);
+        _theQueue.addHandlers(_jmfHandler);
+        _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
+        _theStatusListener.addHandlers(_jmfHandler);
+        
+        final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        Class configClass;
+        boolean clFailed = false;
+        Exception caughtEx = null;
+        try {
+        	// warning: ClassNotFoundException might not be caught sometimes
+        	configClass = classLoader.loadClass(prop.getDeviceClass()+"Processor");
+        	_theDeviceProcessor= (AbstractDeviceProcessor) configClass.newInstance();
+        } catch (ClassNotFoundException e) {
+        	clFailed = true;
+        	caughtEx = e;
+        } catch (InstantiationException e) {
+        	clFailed = true;
+        	caughtEx = e;
+        } catch (IllegalAccessException e) {
+        	clFailed = true;
+        	caughtEx = e;
+        }
+        if (clFailed)
+        {
+        	log.error("failed to create device from class name "+prop.getDeviceClass()+":\r\n"+caughtEx);
+        	return;
+        }
+        
+        _theDeviceProcessor.init(_theQueue, _theStatusListener, _deviceID);
 
 		new Thread(_theDeviceProcessor,"DeviceProcessor_"+_deviceID).start();
 		log.info("device thread started: DeviceProcessor_"+_deviceID);
@@ -157,6 +281,9 @@ public class AbstractDevice implements IJMFHandler{
 		return _deviceType;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.IDevice#getDeviceID()
+	 */
 	public String getDeviceID()
 	{
 		return _deviceID;
@@ -285,9 +412,8 @@ public class AbstractDevice implements IJMFHandler{
 		return deviceURL;
 	}
 	
-	/**
-	 * return the URL of this device
-	 * @return
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.IDevice#getDeviceURL()
 	 */
 	public String getDeviceURL() {
 		return _deviceURL;

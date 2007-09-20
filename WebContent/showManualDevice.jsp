@@ -1,10 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" errorPage="exception.jsp"%>
-<%@ page import="org.cip4.bambi.CustomDevice"%>
+<%@ page import="org.cip4.bambi.ManualDevice"%>
 <%@ page import="org.cip4.bambi.QueueFacade"%>
 <%@ page import="org.cip4.bambi.QueueFacade.BambiQueueEntry"%>
 <%@ page import="org.cip4.bambi.servlets.DeviceServlet"%>
 <%@ page import="org.cip4.bambi.AbstractDeviceProcessor.JobPhase"%>
 <%@ page import="org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus"%>
+<%@ page import="org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus"%>
 <%@ page import="org.cip4.jdflib.core.JDFElement.EnumNodeStatus"%>
 <%@ page import="java.util.Vector"%>
 <%@ page import="java.util.Iterator"%>
@@ -12,13 +13,16 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html>
-	<% CustomDevice dev = (CustomDevice) request.getAttribute("device"); %>
+	<% ManualDevice dev = (ManualDevice) request.getAttribute("device"); %>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+		<link rel="stylesheet" type="text/css" href="http://www.cip4.org/css/styles_pc.css"/>
 		<title>Bambi - Device "<%=dev.getDeviceID()%>"</title>
 	</head>
 	
 	<body>
+		<h1>Bambi - Device "<%=dev.getDeviceID() %>"</h1>
+		
 		<p align="center">
 			// <a href="BambiRootDevice">back to root device</a> //
 			<a href="BambiRootDevice?cmd=showDevice&id=<%=dev.getDeviceID()%>">reload this page</a> //
@@ -30,10 +34,9 @@
 
 		<h3>Device</h3>
 		<div style="margin-left: 20px">
-			<% String bambiUrl = "http://"+request.getServerName()+":"+request.getServerPort()+request.getContextPath() +"/" + DeviceServlet.bambiRootDeviceID + "/"; %>
 			<b>ID: </b> <%= dev.getDeviceID() %> <br/>
 			<b>Class: </b> <%= dev.getDeviceType() %><br/>
-			<b>URL: </b> <%= bambiUrl + dev.getDeviceID() %> <br/>
+			<b>URL: </b> <%= dev.getDeviceURL() %> <br/>
 			<b>Status: </b> <%= dev.getDeviceStatus().getName() %>
 		</div>
 
@@ -45,7 +48,7 @@
 		<div style="margin-left: 20px">
 			<% 
 				QueueFacade bqu = (QueueFacade)request.getAttribute("bqu");
-				String qStat = bqu.getQueueStatus();
+				String qStat = bqu.getQueueStatusString();
 			%>
 			<b>Queue Status: </b> <%=qStat %><br/>
 	
@@ -59,39 +62,39 @@
 			<b>QueueEntry Details:</b> <br />
 			<div style="margin-left: 20px">
 				ID: <%= bqe.queueEntryID %> <br/>                     
-	        	Status: <%= bqe.queueStatus %> <br/>
+	        	Status: <%= bqe.queueEntryStatus.getName() %> <br/>
 	        	Priority: <%= bqe.queuePriority %>  <br/>
 			</div>
 				
 			<b>Queue Control: </b>
 			    <%
-	            			if ( bqe.queueStatus.equals("Running") )
+	            			if ( bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Running) )
 	            			{
 	            %>
 	            				<a href="BambiRootDevice?cmd=suspendQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">suspend</a> &nbsp; 
 	            <%
-	            			} else if ( bqe.queueStatus.equals("Suspended") )
+	            			} else if ( bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Suspended) )
 	            			{
 	            %>
 	            	           	<a href="BambiRootDevice?cmd=resumeQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">resume</a> &nbsp;
 	            <%
 	            	        }
 	
-	            			if ( !bqe.queueStatus.equals("Completed") && !bqe.queueStatus.equals("Aborted") && !bqe.queueEntryID.equals("Removed") )
+	            			if ( !bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Completed) && !bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Aborted) && !bqe.queueEntryID.equals(EnumQueueEntryStatus.Removed) )
 	            			{
 	            %>
 	            				<a href="BambiRootDevice?cmd=abortQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">abort</a> &nbsp;
 	            <%
 	            			}
 	
-	            			if ( !bqe.queueStatus.equals("Running") && !bqe.queueStatus.equals("Suspended")  && !bqe.queueStatus.equals("Removed") )
+	            			if ( !bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Running) && !bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Suspended)  && !bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Removed) )
 	            			{
 	            %>
 	            				<a href="BambiRootDevice?cmd=removeQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">remove</a>  &nbsp;
 	            <%
 	            			}
 	            			
-	          				if ( bqe.queueStatus.equals("Running") ) {
+	          				if ( bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Running) ) {
 	     		%>
 						     	<form action="BambiRootDevice">
 						 			<input type="hidden" name="cmd" value="finalizeCurrentQE" />
@@ -107,7 +110,7 @@
 		
 		
 		<%
-			if  (bqe.queueStatus.equals("Completed")) {
+			if  ( !bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Running.getName()) ) {
 				return;
 			}
 		%>

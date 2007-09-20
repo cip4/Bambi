@@ -74,10 +74,11 @@ package org.cip4.bambi;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.AbstractDeviceProcessor.JobPhase;
+import org.cip4.bambi.MultiDeviceProperties.DeviceProperties;
 
 /**
  * a simple JDF device.<br>
- * A CustomDevice does not contain a fixed list of JobPhases. After a QueueEntry has been 
+ * A ManualDevice does not contain a fixed list of JobPhases. After a QueueEntry has been 
  * submitted, it starts with an idle job phase. Following job phases have to be added via 
  * the web interface. Processing of the QueueEntry finishes when ordered by the user. <br>
  * This class should remain final: if it is ever subclassed, the DeviceProcessor thread 
@@ -87,15 +88,21 @@ import org.cip4.bambi.AbstractDeviceProcessor.JobPhase;
  * @author boegerni
  * 
  */
-public final class CustomDevice extends AbstractDevice   {
+public final class ManualDevice extends AbstractDevice   {
 	
 
-	private static Log log = LogFactory.getLog(CustomDevice.class.getName());
+	private static Log log = LogFactory.getLog(ManualDevice.class.getName());
 	
-	public CustomDevice(String deviceType, String deviceID, String deviceClass)
+	public ManualDevice(String deviceType, String deviceID, String deviceClass)
 	{
 		super(deviceType, deviceID, deviceClass);
-		log.info("created CustomDevice '"+deviceID+"'");
+		log.info("created ManualDevice '"+deviceID+"'");
+	}
+	
+	public ManualDevice(DeviceProperties prop)
+	{
+		super(prop);
+		log.info("created ManualDevice '"+prop.getDeviceID()+"'");
 	}
 
 	public JobPhase getCurrentJobPhase()
@@ -105,10 +112,10 @@ public final class CustomDevice extends AbstractDevice   {
 	
 	public void doNextJobPhase(JobPhase nextPhase)
 	{
-		if (_theDeviceProcessor instanceof  CustomDeviceProcessor)
+		if (_theDeviceProcessor instanceof  ManualDeviceProcessor)
 		{
 			log.info("ordering next job phase: "+nextPhase.toString());
-			((CustomDeviceProcessor)_theDeviceProcessor).doNextPhase(nextPhase);
+			((ManualDeviceProcessor)_theDeviceProcessor).doNextPhase(nextPhase);
 		}
 		else
 		{
@@ -121,10 +128,10 @@ public final class CustomDevice extends AbstractDevice   {
 	
 	public void finalizeCurrentQueueEntry()
 	{
-		if (_theDeviceProcessor instanceof  CustomDeviceProcessor)
+		if (_theDeviceProcessor instanceof  ManualDeviceProcessor)
 		{
 			log.info("processing of the current QueueEntry on device "+_deviceID+" is being finished");
-			((CustomDeviceProcessor)_theDeviceProcessor).finalizeQueueEntry();
+			((ManualDeviceProcessor)_theDeviceProcessor).finalizeQueueEntry();
 		}
 		else
 		{

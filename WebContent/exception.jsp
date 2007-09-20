@@ -3,10 +3,13 @@
 
 <html>
 	<head>
-		<title>Bambi - Error</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+		<link rel="stylesheet" type="text/css" href="./css/styles_pc.css"/>
+		<title>Bambi - Exception</title>
 	</head>
 	<body>
-	<h2>Oops! Bambi ran into an exception...</h2>
+		<h1>Bambi - Exception</h1>
+		<h2>Oops! Bambi ran into an exception...</h2>
 		<b>Query String: </b><%= request.getQueryString() %> <br>
 		<b>Status Code: </b>${pageContext.errorData.statusCode} <br>
 		<b>Exception: </b><%= exception.getClass() %> <br>

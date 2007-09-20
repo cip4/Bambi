@@ -1,0 +1,325 @@
+BODY  {
+        margin-top: 0px;
+	background-color : white;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+        background-repeat: repeat-x;
+        background-image: url(frame_background.gif);
+	/* Hier werden die Hintergrundfarbe  und die Schriftart des gesamten Dokumentes definiert */ 
+}
+
+H1 {
+	font-size : 8mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+H2 {
+	font-size : 6mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+H3 {
+	font-size : 5mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+H4 {
+	font-size : 4mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+H5 {
+	font-size : 3mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+P {
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+}
+
+UL {
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+}
+
+LI {
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+}
+
+TH {
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+}
+
+TD {
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+}
+
+
+PRE, TT, CODE, KBD, SAMP { font-family: monospace }
+
+
+.navigation, .navigation A:link, .navigation A:visited {
+	color: #000000;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	font-size : 3mm;
+	font-weight: bold;
+	text-decoration: none;
+	background-color: #FF9933;
+	/* Klasse fuer linke Navigationsleiste (inkl. darin enthaltene Links) */ 
+}
+
+.small {
+	font-size : 3.5mm;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	/* Klasse mit kleiner Schrift */ 
+}
+
+.formheader {
+	font-size : 3.5mm;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+        font-weight: bold;
+        background-color: #66CCCC;
+	/* Klasse fuer Headerzelle in Formularen, meist die linke Spalte */ 
+}
+
+.formcell {
+	font-size : 3.5mm;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+        background-color: #EEEEEE;
+	/* Klasse fuer normale Zelle in Formularen, meist die rechten Spalten */ 
+}
+
+.listheader {
+	font-size : 3.5mm;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+        background-color: #FFCC66;
+        background-position: left;
+        font-weight: bold;
+	/* Klasse fuer Ueberschrift in tabellarischen Listen */ 
+}
+
+.footer { font-size : 3.5mm; font-family: Geneva, Arial, Helvetica, sans-serif; ; color: #666666}
+
+.emptybody {  background-color: #FFFFFF; background-image: url(transparent8.gif); background-repeat: no-repeat}
+.verysmall { font-size : 2.7mm; font-family: Geneva, Arial, Helvetica, sans-serif; }
+.homepage {  padding-bottom: 8px}
+
+
+.bulletin_h1 {
+	font-size : 5mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+.bulletin_h2 {
+	font-size : 4.5mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+.bulletin.h3 {
+	font-size : 4mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+.bulletin.h4 {
+	font-size : 3.5mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+
+/* ----------------------- CIP4 Menue --------------------------------------- */
+
+/*  Verwendete Farben
+#FFCC66;  hell-orange, wie CIP4 frame background
+#FF9933;  dunkel-orange
+#FFFF66;  hellgelb, background fuer Highlighting
+#FF6600;  dunkelorange fuer Pfeile
+#FF0000;  rot fuer intere Menueeintraege
+white
+black
+*/
+
+.CM_top-title {
+ border:1px solid #FFCC66;
+ vertical-align: middle; 
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 3mm;
+ font-weight: bold;
+ text-decoration: none;
+ background-color: #FF9933;
+}
+
+.CM_top-title A:link, .CM_top-title A:visited {
+ vertical-align: inherit; 
+ color: #000000;
+ font-family: inherit;
+ font-size : inherit;
+ font-weight: inherit;
+ text-decoration: none;
+ background-color:inherit;
+}
+
+.CM_top-high {
+ border:1px solid #FFCC66;
+ cursor: pointer; 
+ vertical-align: middle; 
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 3mm;
+ font-weight: bold;
+ text-decoration: none;
+ background-color: #FFFF66;
+}
+
+.CM_top-high A:link, .CM_top-high A:visited, .CM_top-high A:hover, .CM_top-high A:active {
+ cursor: pointer;
+ vertical-align: middle; 
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 3mm;
+ font-weight: bold;
+ text-decoration: none;
+ background-color: #FFFF66;
+}
+
+.CM_menue {
+ position: absolute; visibility: hidden; 
+ top: 52px; left:-100px;
+ text-align: left;
+}
+
+.CM_item { 
+ border:1px solid #FFCC66;
+ position: relative;
+ visibility: inherit; 
+ padding-left: 5px; padding-right:0px; padding-top:1px; padding-bottom:1px; 
+ vertical-align: middle;
+ width: inherit;
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 3mm;
+ font-weight: bold;
+ text-decoration: none;
+ background-color: #FF9933;
+}
+
+.CM_item A:link, .CM_item A:visited { 
+ position: relative;
+ visibility: inherit; 
+ vertical-align: middle;
+ width: inherit;
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 3mm;
+ font-weight: bold;
+ text-decoration: none;
+ background-color: #FF9933;
+}
+
+.CM_item-selected {
+ border:1px solid #FFCC66;
+ position: relative;
+ visibility: inherit; 
+ padding-left: 5px; padding-right:0px; padding-top:1px; padding-bottom:1px; 
+ vertical-align: middle;
+ width: inherit;
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 3mm;
+ font-weight: bold;
+ text-decoration: none;
+ background-color: #FFFF66;
+}
+
+.CM_item-selected a:link, .CM_item-selected a:visited, .CM_item-selected a:hover, .CM_item-selected A:active {
+ position: relative; visibility: inherit; 
+ cursor: pointer;
+ vertical-align: middle;
+ width: inherit;
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 3mm;
+ font-weight: bold;
+ text-decoration: none;
+ background-color: #FFFF66;
+}
+
+
+.CM_item img, .CM_intern-item img {
+ width: 14px;
+ height: 12px;
+ /* float: right;*/
+ border:0px solid #FF9933;
+	background-color: #FF9933;
+}
+
+.CM_item-selected img, .CM_intern-item-selected img {
+ width: 14px;
+ height: 12px;
+ /* float: right; */
+ border:0px solid #FFFF66;
+	background-color: #FFFF66;
+}
+
+
+.CM_pfeilr {
+ width: 14px;
+ height: 12px;
+ /* float: right; */
+	border-style: none;
+	background-color: transparent;
+}
+
+.CM_pfeilb {
+ width: 14px;
+ height: 12px;
+ /* float: right; */
+	visibility: hidden;
+	border-style: none;
+	vertical-align: middle;
+	background-color: transparent;
+}
+
+.wide_list {
+ padding-bottom: 8px
+}
+
+.redarrowlist {
+ list-style-image: url(arrow_right.gif);
+ margin-left: 23px;
+ padding-left: 0px;
+ list-style-position: outside
+}
+
+.disabled_option {
+ color: #999999;
+}
+.grayheader { font-size : 3.5mm; font-family: Geneva, Arial, Helvetica, sans-serif; background-color: #CCCCCC; font-weight: bold; }

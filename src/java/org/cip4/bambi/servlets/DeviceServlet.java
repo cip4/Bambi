@@ -79,6 +79,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
 
@@ -93,7 +94,9 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.AbstractDevice;
-import org.cip4.bambi.CustomDevice;
+import org.cip4.bambi.ManualDevice;
+import org.cip4.bambi.IDevice;
+import org.cip4.bambi.MultiDeviceProperties;
 import org.cip4.bambi.IJMFHandler;
 import org.cip4.bambi.IMessageHandler;
 import org.cip4.bambi.IQueueProcessor;
@@ -101,14 +104,13 @@ import org.cip4.bambi.ISignalDispatcher;
 import org.cip4.bambi.IStatusListener;
 import org.cip4.bambi.JMFHandler;
 import org.cip4.bambi.QueueFacade;
-import org.cip4.bambi.RootQueueProcessor;
+import org.cip4.bambi.ControllerQueueProcessor;
 import org.cip4.bambi.SignalDispatcher;
 import org.cip4.bambi.SimDevice;
 import org.cip4.bambi.StatusListener;
+import org.cip4.bambi.MultiDeviceProperties.DeviceProperties;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
-import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -134,7 +136,7 @@ import org.cip4.jdflib.util.StringUtil;
  *
  * @web:servlet-mapping url-pattern="/BambiRootDevice"
  */
-public class DeviceServlet extends AbstractBambiServlet 
+public class DeviceServlet extends AbstractBambiServlet implements IDevice 
 {
 	/**
 	 * 
@@ -197,12 +199,14 @@ public class DeviceServlet extends AbstractBambiServlet
 	public static String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/config"+File.separator;
 	public static final String xslDir="./xslt/";
 	public static String jdfDir=baseDir+"JDFDir"+File.separator;
+	public static String bambiRootDeviceID = "BambiRootDevice";
 	private JMFHandler _jmfHandler=null;
 	private HashMap _devices = null;
 	private ISignalDispatcher _theSignalDispatcher=null;
 	private IQueueProcessor _theQueueProcessor=null;
 	private IStatusListener _theStatusListener=null;
-	public static final String bambiRootDeviceID = "BambiRootDevice";
+	private String _bambiURL=null;
+	
 
 
 	/** Initializes the servlet.
@@ -221,7 +225,7 @@ public class DeviceServlet extends AbstractBambiServlet
         _theStatusListener=new StatusListener(_theSignalDispatcher,bambiRootDeviceID);
         _theStatusListener.addHandlers(_jmfHandler);
 		
-        _theQueueProcessor = new RootQueueProcessor(bambiRootDeviceID, null);
+        _theQueueProcessor = new ControllerQueueProcessor(bambiRootDeviceID, null);
         _theQueueProcessor.addHandlers(_jmfHandler);
         
 		log.info("Initializing DeviceServlet");
@@ -258,7 +262,7 @@ public class DeviceServlet extends AbstractBambiServlet
 		} else if ( command.equals("showDevice") || 
 				command.equals("processNextPhase") || command.equals("finalizeCurrentQE") )
 		{
-			AbstractDevice dev=getDeviceFromRequest(request);
+			IDevice dev=getDeviceFromRequest(request);
 			if (dev!=null)
 			{
 				request.setAttribute("device", dev);
@@ -273,7 +277,7 @@ public class DeviceServlet extends AbstractBambiServlet
 			}
 		} else if ( command.endsWith("QueueEntry") ) 
 		{
-			AbstractDevice dev=getDeviceFromRequest(request);
+			IDevice dev=getDeviceFromRequest(request);
 			if (dev!=null)
 			{
 				request.setAttribute("device", dev);
@@ -306,14 +310,14 @@ public class DeviceServlet extends AbstractBambiServlet
 	/**
 	 * @param request
 	 */
-	private AbstractDevice getDeviceFromRequest(HttpServletRequest request) {
+	private IDevice getDeviceFromRequest(HttpServletRequest request) {
 		String deviceID = request.getParameter("id");
 		if (deviceID == null)
 		{
 			log.error("invalid request: device ID is missing");
 			return null;
 		}
-		AbstractDevice dev = getDevice(deviceID);
+		IDevice dev = getDevice(deviceID);
 		if (dev == null)
 		{
 			log.error("invalid request: device with id="+deviceID+" not found");
@@ -563,7 +567,7 @@ public class DeviceServlet extends AbstractBambiServlet
 	 * @return the Device, if device has been created. 
 	 * null, if not (maybe device with deviceID is already present)
 	 */
-	public AbstractDevice createDevice(String deviceID, String deviceType, String deviceClass)
+	public IDevice createDevice(DeviceProperties prop)
 	{
 		log.debug("created device");
 		if (_devices == null)
@@ -572,26 +576,26 @@ public class DeviceServlet extends AbstractBambiServlet
 			_devices = new HashMap();
 		}
 		
-		if (_devices.get(deviceID) == null)
+		if (_devices.get(prop.getDeviceID()) == null)
 		{	
-			AbstractDevice dev;
-			if (deviceClass.equals("org.cip4.bambi.SimDevice"))
+			IDevice dev;
+			if (prop.getDeviceClass().equals("org.cip4.bambi.SimDevice"))
 			{
-				dev = new SimDevice(deviceType, deviceID, deviceClass);
-			} else if (deviceClass.equals("org.cip4.bambi.CustomDevice"))
+				dev = new SimDevice(prop);
+			} else if (prop.getDeviceClass().equals("org.cip4.bambi.ManualDevice"))
 			{
-				dev = new CustomDevice(deviceType, deviceID, deviceClass);
+				dev = new ManualDevice(prop);
 			} else
 			{
-				log.fatal("unknown device class: "+deviceClass);
+				log.fatal("unknown device class: "+prop.getDeviceClass());
 				return null;
 			}
-			_devices.put(deviceID,dev);
+			_devices.put(prop.getDeviceID(),dev);
 			return dev;
 		}
 		else
 		{
-			log.warn("device "+deviceID+" already existing");
+			log.warn("device "+prop.getDeviceID()+" is already existing");
 			return null;
 		}
 	}
@@ -628,7 +632,7 @@ public class DeviceServlet extends AbstractBambiServlet
 			return _devices.size();
 	}
 
-	public AbstractDevice getDevice(String deviceID)
+	public IDevice getDevice(String deviceID)
 	{
 		if (_devices == null)
 		{
@@ -636,41 +640,25 @@ public class DeviceServlet extends AbstractBambiServlet
 			return null;
 		}
 
-		return (AbstractDevice)_devices.get(deviceID);
+		return (IDevice)_devices.get(deviceID);
 	}
 
 	private boolean createDevicesFromFile(String fileName)
 	{
-		JDFParser p = new JDFParser();
-	    JDFDoc doc = p.parseFile(fileName);
-	    if (doc == null)
-	    {
-	    	log.error( fileName+" not found, no devices created" );
-	    	return false;
-	    }
-	    
-	    KElement e = doc.getRoot();
-	    VElement v = e.getXPathElementVector("//devices/*", 99);
-	    for (int i = 0; i < v.size(); i++)
-	    {
-	    	KElement device = (KElement)v.elementAt(i);
-	    	String deviceID = device.getXPathAttribute("@DeviceID", null);
-	    	String deviceType = device.getXPathAttribute("@DeviceType", null);
-	    	String deviceClass = device.getXPathAttribute("@DeviceClass", "org.cip.bambi.DeviceServlet");
-	    	if (deviceID != null)
-            {
-	    		createDevice(deviceID,deviceType,deviceClass);
-//	    		AbstractDevice dev=createDevice(deviceID,deviceType,deviceClass);
-//                IQueueProcessor qp=dev.getQueueProcessor();
-//                qp.setFallBackQProcessor(_theQueueProcessor);
-              
-            }
-	    	else
-            {
-	    		log.warn("cannot create device without device ID");
-            }
-	    }
+		MultiDeviceProperties dv = new MultiDeviceProperties(fileName);
+		if (dv.count()==0) {
+			log.error("failed to load device properties from "+fileName);
+			return false;
+		}
 		
+		Set keys=dv.getDeviceIDs();
+		Iterator iter=keys.iterator();
+		while (iter.hasNext()) {
+			String devID=iter.next().toString();
+			DeviceProperties prop=dv.getDevice(devID);
+			createDevice(prop);
+		}
+
 		return true;
 	}
 	
@@ -682,7 +670,11 @@ public class DeviceServlet extends AbstractBambiServlet
 			Properties properties = new Properties();
 			FileInputStream in = new FileInputStream(configDir+"Bambi.properties");
 			properties.load(in);
+			
 			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
+			bambiRootDeviceID=properties.getProperty("RootDeviceID");
+			_bambiURL = properties.getProperty("BambiURL");
+			
 			in.close();
 		} catch (FileNotFoundException e) {
 			log.fatal("Bambi.properties not found");
@@ -702,5 +694,13 @@ public class DeviceServlet extends AbstractBambiServlet
 	public HashMap getDevices()
 	{
 		return _devices;
+	}
+
+	public String getDeviceID() {
+		return bambiRootDeviceID;
+	}
+
+	public String getDeviceURL() {
+		return _bambiURL+bambiRootDeviceID;
 	}
 }

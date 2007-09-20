@@ -74,6 +74,7 @@ package org.cip4.bambi;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.AbstractDeviceProcessor.JobPhase;
+import org.cip4.bambi.MultiDeviceProperties.DeviceProperties;
 
 /**
  * a simple JDF device with a fixed list of job phases. <br>
@@ -100,5 +101,11 @@ public final class SimDevice extends AbstractDevice   {
 	{
 		super(deviceType, deviceID, deviceClass);
 		log.info("created SimDevice '"+deviceID+"'");
+	}
+	
+	public SimDevice(DeviceProperties prop)
+	{
+		super(prop);
+		log.info("created SimDevice '"+prop.getDeviceID()+"'");
 	}
 }

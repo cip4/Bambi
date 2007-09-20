@@ -112,8 +112,7 @@ public class DeviceServletTest extends BambiTestCase {
 		      for(int i=0; i<files.length; i++) {
 		         if(files[i].isDirectory()) {
 		           removeDir( files[i] );
-		         }
-		         else {
+		         } else {
 		           files[i].delete();
 		         }
 		      }
@@ -125,9 +124,10 @@ public class DeviceServletTest extends BambiTestCase {
 	{
 		DeviceServlet d = new DeviceServlet();
 		assertEquals( 0,d.getDeviceQuantity() ); 
-		assertNotNull( d.createDevice("device001", "my device", "org.cip4.bambi.SimDevice") );
-        assertNotNull( d.createDevice("device002", "my device", "org.cip4.bambi.SimDevice") );
-		assertNull( d.createDevice("device002", "my device", "org.cip4.bambi.SimDevice") );
+		MultiDeviceProperties dp = new MultiDeviceProperties(sm_dirTestData+"test_devices.xml");
+		assertNotNull( d.createDevice(dp.getDevice("device001")) );
+        assertNotNull( d.createDevice(dp.getDevice("device002")) );
+		assertNull( d.createDevice(dp.getDevice("device002")) );
 		assertEquals( 2,d.getDeviceQuantity() );
 		assertNotNull( d.getDevice("device001") );
 		
@@ -138,8 +138,9 @@ public class DeviceServletTest extends BambiTestCase {
 	{
 		DeviceServlet d = new DeviceServlet();
 		assertEquals( 0,d.getDeviceQuantity() );
-        assertNotNull( d.createDevice("device001", "my device", "org.cip4.bambi.SimDevice") );
-        assertNotNull( d.createDevice("device002", "my device", "org.cip4.bambi.SimDevice") );
+		MultiDeviceProperties dp = new MultiDeviceProperties(sm_dirTestData+"test_devices.xml");
+		assertNotNull( d.createDevice(dp.getDevice("device001")) );
+        assertNotNull( d.createDevice(dp.getDevice("device002")) );
 		assertEquals( 2,d.getDeviceQuantity() );
 		assertTrue( d.removeDevice("device001") );
 		assertNull( d.getDevice("device001") );

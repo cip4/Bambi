@@ -12,10 +12,11 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+		<link rel="stylesheet" type="text/css" href="./css/styles_pc.css"/>
 		<title>Bambi</title>
 	</head>
 	<body>
-		<h1>Bambi - A lightweight JDF Device</h1>
+		<h1>Bambi - Overview</h1>
 		
 		use <strong>http://<%=request.getServerName() + ":" + request.getServerPort() + request.getContextPath()%>/BambiRootDevice </strong> to connect your MIS/Alces <br>
 		

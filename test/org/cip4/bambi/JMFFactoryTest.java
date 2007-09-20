@@ -193,8 +193,9 @@ public class JMFFactoryTest extends BambiTestCase {
 
             jmf = JMFFactory.buildRemoveQueueEntry(qeID);
             resp = JMFFactory.send2Bambi(jmf, null);
-            assertEquals( 0,resp.getReturnCode() );
             long t2=System.currentTimeMillis();
+            Thread.sleep(500);
+            assertEquals( 0,resp.getReturnCode() );
             System.out.println("Post abort,"+i+" single: "+(t2-t1)+" total: "+(t2-t));
         }
         jmf = JMFFactory.buildQueueStatus();

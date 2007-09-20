@@ -110,9 +110,14 @@ public class SubdeviceQueueProcessor extends AbstractQueueProcessor
             return null;
         }
         String docURL=BambiNSExtension.getDocURL(qe);
-        docURL=UrlUtil.urlToFile(docURL).getAbsolutePath();
-        JDFDoc doc=JDFDoc.parseFile(docURL);
-        return new QueueEntry(doc,qe);        
+        if (docURL!=null && !docURL.equals("")) {
+        	docURL=UrlUtil.urlToFile(docURL).getAbsolutePath();
+            JDFDoc doc=JDFDoc.parseFile(docURL);
+            return new QueueEntry(doc,qe);
+        } else {
+        	log.error("DocURL is missing");
+        	return null;
+        }
     }
 	
 	protected void handleAbortQueueEntry(JDFResponse resp, String qeid,
