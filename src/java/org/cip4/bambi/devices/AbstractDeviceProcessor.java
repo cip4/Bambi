@@ -68,7 +68,7 @@
  *  
  * 
  */
-package org.cip4.bambi;
+package org.cip4.bambi.devices;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -83,6 +83,11 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.BambiNSExtension;
+import org.cip4.bambi.queues.IQueueEntry;
+import org.cip4.bambi.IQueueProcessor;
+import org.cip4.bambi.IStatusListener;
+import org.cip4.bambi.devices.IDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
@@ -122,7 +127,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	protected List _updateStatusReqs=null;
 	protected Object parent=null;
 
-	protected class ChangeQueueEntryStatusRequest {
+	protected static class ChangeQueueEntryStatusRequest {
 		public String queueEntryID=null;
 		public EnumQueueEntryStatus newStatus=null;
 		public ChangeQueueEntryStatusRequest(String qeid, EnumQueueEntryStatus status) {
@@ -182,7 +187,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	 * constructor
 	 * @param queueProcessor points to the QueueProcessor
 	 * @param statusListener points to the StatusListener
-	 * @param deviceID       ID of the device to be created
+	 * @param deviceID       ID of the device this DeviceProcessor belogs to
 	 */
 	public AbstractDeviceProcessor(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID)
 	{

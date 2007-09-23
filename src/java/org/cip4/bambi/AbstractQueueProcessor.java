@@ -79,6 +79,10 @@ import javax.mail.Multipart;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.messaging.IJMFHandler;
+import org.cip4.bambi.messaging.IMessageHandler;
+import org.cip4.bambi.queues.IQueueEntry;
+import org.cip4.bambi.queues.QueueEntry;
 import org.cip4.bambi.servlets.DeviceServlet;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -102,6 +106,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
+import org.cip4.bambi.devices.AbstractDevice;
 
 /**
  *

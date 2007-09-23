@@ -69,7 +69,7 @@
  * 
  */
 
-package org.cip4.bambi;
+package org.cip4.bambi.queues;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -82,7 +82,7 @@ import java.util.Map;
  *
  */
 public class QueueEntryTracker {
-	protected class OutgoingQE {
+	protected static class OutgoingQE {
 		private String _qeid=null;
 		private String _deviceID=null;
 		private String _deviceURL=null;

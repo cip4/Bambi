@@ -1,4 +1,4 @@
-package org.cip4.bambi;
+package org.cip4.bambi.messaging;
 
 /*
 *

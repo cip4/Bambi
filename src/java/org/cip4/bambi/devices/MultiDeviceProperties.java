@@ -68,7 +68,7 @@
  *  
  * 
  */
-package org.cip4.bambi;
+package org.cip4.bambi.devices;
 
 import java.io.File;
 import java.util.HashMap;
@@ -85,7 +85,6 @@ import org.cip4.jdflib.core.VElement;
 
 /**
  * container for the properties of Bambi devices
- * <p>
  * 
  * @author boegerni
  */
@@ -96,7 +95,7 @@ public class MultiDeviceProperties
 	 * @author boegerni
 	 *
 	 */
-	public class DeviceProperties {
+	public static class DeviceProperties {
 		private String deviceID=null;
 		private String deviceURL=null;
 		private String controllerURL=null;
@@ -202,9 +201,14 @@ public class MultiDeviceProperties
 	    JDFDoc doc = p.parseFile(fileName);
 	    if (doc == null) {
 	    	log.fatal( "failed to parse "+fileName );
+	    	return;
 	    }
 	    
 	    KElement e = doc.getRoot();
+	    if (e==null) {
+	    	log.fatal( "failed to parse "+fileName+", root is null" );
+	    	return;
+	    }
 	    VElement v = e.getXPathElementVector("//devices/*", 99);
 	    for (int i = 0; i < v.size(); i++)
 	    {

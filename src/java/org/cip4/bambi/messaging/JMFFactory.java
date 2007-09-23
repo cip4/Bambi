@@ -73,7 +73,7 @@ package org.cip4.bambi.messaging;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.AbstractDevice;
+import org.cip4.bambi.devices.AbstractDevice;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -166,7 +166,13 @@ public class JMFFactory {
 	 */
 	public static JDFJMF buildRequestQueueEntry(String deviceID)
 	{
-		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.RequestQueueEntry);
+		JDFJMF jmf=null;
+		try {
+			jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.RequestQueueEntry);
+		} catch (NullPointerException ex) {
+			log.error("caught an NPE while trying to build the JMF: "+ex.getMessage());
+			return null;
+		}
 		String queueURL = AbstractDevice.createDeviceURL(deviceID);
 		jmf.getCommand(0).appendRequestQueueEntryParams().setQueueURL(queueURL);
 		return jmf;
@@ -185,6 +191,12 @@ public class JMFFactory {
 	}
 	
 	public static JDFResponse send2URL(JDFJMF jmf, String url) {
+		if (jmf==null || url==null) {
+			if (log!=null) {
+				log.error("failed to send JDFMessage, message and/or URL is null");
+			}
+			return null;
+		}
 		Document dd = jmf.getOwnerDocument();
 		JDFDoc doc = new JDFDoc(dd);
 		JDFDoc respDoc = doc.write2URL(url);
@@ -195,4 +207,5 @@ public class JMFFactory {
 		}
 		return respDoc.getJMFRoot().getResponse(0);
 	}
+	
 }

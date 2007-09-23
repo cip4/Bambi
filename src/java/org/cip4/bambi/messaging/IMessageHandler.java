@@ -68,37 +68,39 @@
  *  
  * 
  */
-package org.cip4.bambi;
 
-import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.jmf.JDFQueueEntry;
+package org.cip4.bambi.messaging;
+
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 
 /**
+ * IMessageHandler is the interface for a generic message handler
+ * 
  * @author prosirai
  *
  */
-public interface IDeviceProcessor extends Runnable
+public interface IMessageHandler
 {
+    /**
+     * handle the message specified in inputMessage
+     * 
+     * @param inputMessage the input message to handle
+     * @param response the response to fill
+     * @return true if the message was handled, else false
+     */
+     public boolean handleMessage(JDFMessage inputMessage, JDFResponse response);
 
     /**
-     * this is the device processor loop
-     * whenever the 
+     * @return handled message type
      */
-    public abstract void run();
+    public EnumType getMessageType();
 
     /**
-     * @param doc
-     * @return EnumQueueEntryStatus the final status of the queuentry 
+     * @param typ
+     * @return
      */
-    public abstract EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe);
-    
-    /**
-     * initialize the IDeviceProcessor
-     * @param _queueProcessor
-     * @param _statusListener
-     * @param deviceID 
-     */
-    public void init(IQueueProcessor _queueProcessor, IStatusListener _statusListener, String deviceID);
-
+    public EnumFamily[] getFamilies();
 }

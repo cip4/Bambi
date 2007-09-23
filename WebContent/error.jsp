@@ -1,5 +1,7 @@
 <%@ page contentType="text/html;charset=windows-1252" isErrorPage="false"%>
 
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
 <html>
 	<!-- This is not an JSP error page, just a simple means of displaying Bambi errors -->
 	<head>

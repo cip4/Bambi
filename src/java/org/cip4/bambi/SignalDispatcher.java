@@ -77,6 +77,8 @@ import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.messaging.IJMFHandler;
+import org.cip4.bambi.messaging.IMessageHandler;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFNodeInfo;
@@ -109,7 +111,7 @@ import org.cip4.jdflib.util.VectorMap;
  */
 public final class SignalDispatcher implements ISignalDispatcher 
 {
-
+	// TODO send kill signal when Bambi is shutting down
     protected static final Log log = LogFactory.getLog(SignalDispatcher.class.getName());
     protected HashMap subscriptionMap; // map of channelID / Subscription
     protected VectorMap queueEntryMap; // map of queueEntryID / vector of channelIDS

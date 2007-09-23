@@ -69,7 +69,7 @@
  * 
  */
 
-package org.cip4.bambi;
+package org.cip4.bambi.devices;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -77,7 +77,16 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.messaging.IJMFHandler;
+import org.cip4.bambi.messaging.IMessageHandler;
+import org.cip4.bambi.IQueueProcessor;
+import org.cip4.bambi.ISignalDispatcher;
+import org.cip4.bambi.IStatusListener;
+import org.cip4.bambi.messaging.JMFHandler;
+import org.cip4.bambi.queues.QueueFacade;
+import org.cip4.bambi.SignalDispatcher;
+import org.cip4.bambi.StatusListener;
+import org.cip4.bambi.devices.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.servlets.DeviceServlet;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -103,7 +112,7 @@ import org.cip4.jdflib.resource.JDFDeviceList;
  * @author boegerni
  * 
  */
-public class AbstractDevice implements IDevice, IJMFHandler{
+public abstract class AbstractDevice implements IDevice, IJMFHandler{
 	/**
 	 * 
 	 * handler for the knowndevices query
@@ -166,64 +175,15 @@ public class AbstractDevice implements IDevice, IJMFHandler{
 	protected String _controllerURL=null;
 	
 	/**
-	 * creates a new Bambi device instance from a given class
-	 * @param deviceType the device type as defined in the JDF spec, e.g. "Generic Bambi Stitcher"
-	 * @param deviceID the individual device ID, as defined in the JDF spec
-	 * @param deviceClass the name of the Java class of the instance, e.g. "org.cip4.bambi.SimDevice"
-	 */
-	public AbstractDevice(String deviceType, String deviceID, String deviceClass)
-	{
-		_deviceType = deviceType;
-		_deviceID = deviceID;
-		_jmfHandler = new JMFHandler();
-
-        _theSignalDispatcher=new SignalDispatcher(_jmfHandler, deviceID);
-        _theSignalDispatcher.addHandlers(_jmfHandler);
-
-		_theQueue=new SubdeviceQueueProcessor(deviceID, this);
-        _theQueue.addHandlers(_jmfHandler);
-        _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
-        _theStatusListener.addHandlers(_jmfHandler);
-        
-        final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Class configClass;
-        boolean clFailed = false;
-        Exception caughtEx = null;
-        try {
-        	// warning: ClassNotFoundException might not be caught sometimes
-        	configClass = classLoader.loadClass(deviceClass+"Processor");
-        	_theDeviceProcessor= (AbstractDeviceProcessor) configClass.newInstance();
-        } catch (ClassNotFoundException e) {
-        	clFailed = true;
-        	caughtEx = e;
-        } catch (InstantiationException e) {
-        	clFailed = true;
-        	caughtEx = e;
-        } catch (IllegalAccessException e) {
-        	clFailed = true;
-        	caughtEx = e;
-        }
-        if (clFailed)
-        {
-        	log.error("failed to create device from class name "+deviceClass+":\r\n"+caughtEx);
-        	return;
-        }
-        
-        _theDeviceProcessor.init(_theQueue, _theStatusListener, _deviceID);
-
-		new Thread(_theDeviceProcessor,"DeviceProcessor_"+_deviceID).start();
-		log.info("device thread started: DeviceProcessor_"+_deviceID);
-		
-		_deviceURL = createDeviceURL(_deviceID);
-		
-		addHandlers();
-	}
-	
-	/**
-	 * create a device from properties
+	 * creates a new Bambi device instance
 	 * @param prop the properties for the device
 	 */
 	public AbstractDevice(DeviceProperties prop) {
+		super();
+		init(prop);
+	}
+
+	protected void init(DeviceProperties prop) {
 		_deviceType = prop.getDeviceType();
 		_deviceID = prop.getDeviceID();
 		_deviceURL=prop.getDeviceURL();
@@ -240,23 +200,18 @@ public class AbstractDevice implements IDevice, IJMFHandler{
         
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         Class configClass;
-        boolean clFailed = false;
         Exception caughtEx = null;
         try {
-        	// warning: ClassNotFoundException might not be caught sometimes
         	configClass = classLoader.loadClass(prop.getDeviceClass()+"Processor");
         	_theDeviceProcessor= (AbstractDeviceProcessor) configClass.newInstance();
         } catch (ClassNotFoundException e) {
-        	clFailed = true;
         	caughtEx = e;
         } catch (InstantiationException e) {
-        	clFailed = true;
         	caughtEx = e;
         } catch (IllegalAccessException e) {
-        	clFailed = true;
         	caughtEx = e;
         }
-        if (clFailed)
+        if (caughtEx!=null)
         {
         	log.error("failed to create device from class name "+prop.getDeviceClass()+":\r\n"+caughtEx);
         	return;

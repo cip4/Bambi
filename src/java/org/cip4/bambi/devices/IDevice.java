@@ -69,7 +69,7 @@
  * 
  */
 
-package org.cip4.bambi;
+package org.cip4.bambi.devices;
 
 /**
  * interface for all devices in Bambi

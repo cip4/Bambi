@@ -69,78 +69,117 @@
 * 
 */
 
-package org.cip4.bambi;
+package org.cip4.bambi.queues;
 
+import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.AbstractDeviceProcessor.JobPhase;
-import org.cip4.bambi.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.servlets.DeviceServlet;
+import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
+
 
 /**
- * a simple JDF device.<br>
- * A ManualDevice does not contain a fixed list of JobPhases. After a QueueEntry has been 
- * submitted, it starts with an idle job phase. Following job phases have to be added via 
- * the web interface. Processing of the QueueEntry finishes when ordered by the user. <br>
- * This class should remain final: if it is ever subclassed, the DeviceProcessor thread 
- * would be started before the constructor from the subclass has a chance to fire.
- * 
+ * facade for JDFQueue in Bambi, used for reliable displaying Queues in JSP
  * 
  * @author boegerni
  * 
  */
-public final class ManualDevice extends AbstractDevice   {
+public class QueueFacade {
+	public static class BambiQueueEntry 
+	{
+		public String queueEntryID=null;
+		public EnumQueueEntryStatus queueEntryStatus=null;
+		public int queuePriority=0;
+		
+		protected BambiQueueEntry(String qEntryID, EnumQueueEntryStatus qStatus, int qPriority)
+		{
+			queueEntryID = qEntryID;
+			queueEntryStatus = qStatus;
+			queuePriority = qPriority;
+		}
+	}
 	
 
-	private static Log log = LogFactory.getLog(ManualDevice.class.getName());
-	
-	public ManualDevice(String deviceType, String deviceID, String deviceClass)
+	private static Log log = LogFactory.getLog(QueueFacade.class.getName());
+	private JDFQueue _theQueue = null;
+
+	/**
+	 * constructor
+	 */
+	public QueueFacade(JDFQueue queue)
 	{
-		super(deviceType, deviceID, deviceClass);
-		log.info("created ManualDevice '"+deviceID+"'");
-	}
-	
-	public ManualDevice(DeviceProperties prop)
-	{
-		super(prop);
-		log.info("created ManualDevice '"+prop.getDeviceID()+"'");
+		_theQueue = queue;
 	}
 
-	public JobPhase getCurrentJobPhase()
+	public String toString()
 	{
-		return _theDeviceProcessor.getCurrentJobPhase();
+		return ( _theQueue.toString() );
 	}
 	
-	public void doNextJobPhase(JobPhase nextPhase)
+	public String getQueueStatusString()
 	{
-		if (_theDeviceProcessor instanceof  ManualDeviceProcessor)
-		{
-			log.info("ordering next job phase: "+nextPhase.toString());
-			((ManualDeviceProcessor)_theDeviceProcessor).doNextPhase(nextPhase);
-		}
-		else
-		{
-			String errorMsg = "device processor has wrong type\r\n"+
-				"expected: org.cip4.Bambi.CustomDeviceProcessor\r\n" +
-				"actual: " +_theDeviceProcessor.getClass().getName();
-			log.fatal(errorMsg);
-		}
+		return _theQueue.getQueueStatus().getName();
 	}
 	
-	public void finalizeCurrentQueueEntry()
-	{
-		if (_theDeviceProcessor instanceof  ManualDeviceProcessor)
-		{
-			log.info("processing of the current QueueEntry on device "+_deviceID+" is being finished");
-			((ManualDeviceProcessor)_theDeviceProcessor).finalizeQueueEntry();
-		}
-		else
-		{
-			String errorMsg = "device processor has wrong type\r\n"+
-				"expected: org.cip4.Bambi.CustomDeviceProcessor\r\n" +
-				"actual: " +_theDeviceProcessor.getClass().getName();
-			log.fatal(errorMsg);
-		}
-		
-		
+	public EnumQueueStatus getQueueStatus() {
+		return _theQueue.getQueueStatus();
 	}
+	
+	public Vector getBambiQueueEntryVector()
+	{
+		log.info("building BambieQueueEntryVector");
+		Vector qes = new Vector();
+		for (int i = 0; i<_theQueue.getQueueSize();i++)
+		{
+			JDFQueueEntry jqe = _theQueue.getQueueEntry(i);
+			BambiQueueEntry bqe = new BambiQueueEntry( jqe.getQueueEntryID(),
+					jqe.getQueueEntryStatus(),jqe.getPriority() );
+			qes.add(bqe);
+		}
+			
+		return qes;
+	}
+	
+	public String toHTML()
+	{
+		String quStr = _theQueue.toXML();
+		int pos = quStr.indexOf(">");
+		quStr = quStr.substring(pos+2);
+		String xsltHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n"
+			+ "<?xml-stylesheet type=\"text/xsl\" href=\""+DeviceServlet.xslDir+"queue2html.xsl\"?> \r\n";
+		return (xsltHeader+quStr);
+	}
+	
+	/**
+	 * count all QueueEntries
+	 * @return
+	 */
+	public int countAll() {
+		return _theQueue.getQueueSize();
+	}
+	
+	/**
+	 * count all QueueEntries which have the given {@link QueueEntryStatus} 
+	 * @param status
+	 * @return
+	 */
+	public int count(EnumQueueEntryStatus status) {
+		VElement qev = _theQueue.getQueueEntryVector();
+		int count=0;
+		for (int i=0;i<qev.size();i++) {
+			JDFQueueEntry qe = (JDFQueueEntry) qev.elementAt(i);
+			if ( qe!=null&&qe.getQueueEntryStatus().equals(status) ) {
+				count++;
+			}
+		}
+		
+		return count;
+	}
+	
+	
+
 }

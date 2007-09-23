@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.cip4.bambi;
+package org.cip4.bambi.queues;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

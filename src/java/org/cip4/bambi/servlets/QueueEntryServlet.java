@@ -79,7 +79,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.AbstractDevice;
+import org.cip4.bambi.devices.AbstractDevice;
 import org.cip4.bambi.messaging.JMFFactory;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
@@ -228,10 +228,10 @@ public class QueueEntryServlet extends AbstractBambiServlet {
 		if (dev == null) {
 			try {
 				request.getRequestDispatcher("/BambiRootDevice");
-				return false;
 			} catch (Exception e) {
 				log.error(e);
 			}
+			return false;
 		}
 		
 		JDFQueue qu = dev.getQueue();

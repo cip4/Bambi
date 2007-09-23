@@ -1,5 +1,3 @@
-package org.cip4.bambi;
-
 /*
 *
 * The CIP4 Software License, Version 1.0
@@ -71,16 +69,38 @@ package org.cip4.bambi;
 * 
 */
 
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.jmf.JDFQueueEntry;
+package org.cip4.bambi.devices.sim;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.devices.AbstractDeviceProcessor.JobPhase;
+import org.cip4.bambi.devices.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.devices.AbstractDevice;
 
 /**
- * @author prosirai
- *
+ * a simple JDF device with a fixed list of job phases. <br>
+ * Job phases are defined in <code>/WebContend/config/devices.xml</code> and loaded in the constructor. 
+ * They can be randomized, and random error phases can be added. 
+ * An example job phase is provided in <code>example_job.xml</code>.<br>
+ * This class should remain final: if it is ever subclassed, the DeviceProcessor thread 
+ * would be started before the constructor from the subclass has a chance to fire.
+ * 
+ * @author boegerni
+ * 
  */
-public interface IQueueEntry
-{
+public final class SimDevice extends AbstractDevice   {
+	
 
-    public JDFDoc getJDF();
-    public JDFQueueEntry getQueueEntry();
+	private static Log log = LogFactory.getLog(SimDevice.class.getName());
+
+	public JobPhase getCurrentJobPhase()
+	{
+		return _theDeviceProcessor.getCurrentJobPhase();
+	}
+
+	public SimDevice(DeviceProperties prop)
+	{
+		super(prop);
+		log.info("created SimDevice '"+prop.getDeviceID()+"'");
+	}
 }

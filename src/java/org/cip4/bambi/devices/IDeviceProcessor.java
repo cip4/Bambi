@@ -68,107 +68,39 @@
  *  
  * 
  */
-package org.cip4.bambi;
+package org.cip4.bambi.devices;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.messaging.JMFFactory;
+import org.cip4.bambi.IQueueProcessor;
+import org.cip4.bambi.IStatusListener;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
-import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.util.UrlUtil;
-
-
-
 
 /**
- * QueueProcessor for devices attached to the Bambi root device
- * @author  niels
- *
+ * @author prosirai
  *
  */
-public class SubdeviceQueueProcessor extends AbstractQueueProcessor
+public interface IDeviceProcessor extends Runnable
 {
-	protected static final Log log = LogFactory.getLog(SubdeviceQueueProcessor.class.getName());
 
-	public SubdeviceQueueProcessor(String deviceID, AbstractDevice theParent) {
-		super(deviceID, theParent);
-	}
-	public IQueueEntry getNextEntry()
-    {
-   		//log.debug("getNextEntry");
-        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
-        
-        if(qe==null)
-        {
-        	//log.info("sending RequestQueueEntry to root device");
-        	JDFJMF jmf = JMFFactory.buildRequestQueueEntry( _theQueue.getDeviceID() );
-        	JMFFactory.send2Bambi(jmf,"");
-            return null;
-        }
-        String docURL=BambiNSExtension.getDocURL(qe);
-        if (docURL!=null && !docURL.equals("")) {
-        	docURL=UrlUtil.urlToFile(docURL).getAbsolutePath();
-            JDFDoc doc=JDFDoc.parseFile(docURL);
-            return new QueueEntry(doc,qe);
-        } else {
-        	log.error("DocURL is missing");
-        	return null;
-        }
-    }
-	
-	protected void handleAbortQueueEntry(JDFResponse resp, String qeid,
-			JDFQueueEntry qe) {
-		EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Aborted);
-		if (newStatus==null) {
-			// got no response
-			updateEntry(qeid,EnumQueueEntryStatus.Aborted);
-			log.error("failed to suspend QueueEntry with ID="+qeid); 
-		} else {
-			updateEntry(qeid,newStatus);
-		}
-		JDFQueue q = resp.appendQueue();
-		q.copyElement(qe, null);
-		q.setDeviceID( _theQueue.getDeviceID() );
-		q.setStatus( _theQueue.getStatus() );
-		removeBambiNSExtensions(q);
-		log.info("aborted QueueEntry with ID="+qeid);
-	}
-	
-	protected void handleQueueStatus(JDFQueue q) {
-		// nothing to do
-	}
-	
-	protected void handleSuspendQueueEntry(JDFResponse resp, String qeid,
-			JDFQueueEntry qe) {
-		EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Suspended);
-		if (newStatus==null) {
-			// got no response
-			updateEntry(qeid,EnumQueueEntryStatus.Aborted);
-			log.error("failed to suspend QueueEntry with ID="+qeid); 
-		} else {
-			updateEntry(qeid,newStatus);
-		}
-		JDFQueue q = resp.appendQueue();
-		q.setDeviceID( _theQueue.getDeviceID() );
-		q.setStatus( _theQueue.getStatus() );
-		q.copyElement(qe, null);
-		removeBambiNSExtensions(q);
-		log.info("suspended QueueEntry with ID="+qeid);
-	}
-	
-	protected void handleResumeQueueEntry(JDFResponse resp, String qeid,
-			JDFQueueEntry qe) {
-		updateEntry(qeid,EnumQueueEntryStatus.Waiting);
-		JDFQueue q = resp.appendQueue();
-		q.copyElement(qe, null);
-		q.setDeviceID( _theQueue.getDeviceID() );
-		q.setStatus( _theQueue.getStatus() );
-		removeBambiNSExtensions(q);
-		log.info("resumed QueueEntry with ID="+qeid);
-	}
-	
+    /**
+     * this is the device processor loop
+     * whenever the 
+     */
+    public abstract void run();
+
+    /**
+     * @param doc
+     * @return EnumQueueEntryStatus the final status of the queuentry 
+     */
+    public abstract EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe);
+    
+    /**
+     * initialize the IDeviceProcessor
+     * @param _queueProcessor
+     * @param _statusListener
+     * @param deviceID 
+     */
+    public void init(IQueueProcessor _queueProcessor, IStatusListener _statusListener, String deviceID);
+
 }

@@ -72,7 +72,6 @@ package org.cip4.bambi;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VString;
@@ -87,8 +86,12 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-
-
+import org.cip4.bambi.messaging.IJMFHandler;
+import org.cip4.bambi.messaging.IMessageHandler;
+import org.cip4.bambi.messaging.JMFFactory;
+import org.cip4.bambi.queues.IQueueEntry;
+import org.cip4.bambi.queues.QueueEntryTracker;
+import org.cip4.bambi.devices.AbstractDevice;
 
 /**
  *

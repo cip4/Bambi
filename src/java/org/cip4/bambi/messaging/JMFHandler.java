@@ -68,7 +68,7 @@
  *  
  * 
  */
-package org.cip4.bambi;
+package org.cip4.bambi.messaging;
 
 import java.util.HashMap;
 import java.util.Iterator;

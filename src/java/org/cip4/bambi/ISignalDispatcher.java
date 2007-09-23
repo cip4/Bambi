@@ -69,6 +69,7 @@
 
 package org.cip4.bambi;
 
+import org.cip4.bambi.messaging.IMultiJMFHandler;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.ifaces.IJMFSubscribable;
 import org.cip4.jdflib.node.JDFNode;

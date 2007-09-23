@@ -79,9 +79,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.AbstractDevice;
-import org.cip4.bambi.ManualDevice;
-import org.cip4.bambi.AbstractDeviceProcessor.JobPhase;
+import org.cip4.bambi.devices.AbstractDevice;
+import org.cip4.bambi.devices.manual.ManualDevice;
+import org.cip4.bambi.devices.AbstractDeviceProcessor.JobPhase;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 
@@ -150,9 +150,9 @@ public class DeviceInfoServlet extends AbstractBambiServlet {
 		{
 			try {
 				String devProcClass = dev.getClass().getName();
-				if ( ("org.cip4.bambi.SimDevice").equals(devProcClass) )
+				if ( ("org.cip4.bambi.devices.sim.SimDevice").equals(devProcClass) )
 					request.getRequestDispatcher("/showSimDevice.jsp").forward(request, response);
-				else if ( ("org.cip4.bambi.ManualDevice").equals(devProcClass) )
+				else if ( ("org.cip4.bambi.devices.manual.ManualDevice").equals(devProcClass) )
 				{
 					JobPhase currentPhase = ((ManualDevice)dev).getCurrentJobPhase();
 					request.setAttribute("currentPhase", currentPhase);
@@ -195,7 +195,7 @@ public class DeviceInfoServlet extends AbstractBambiServlet {
 			
 			JobPhase currentPhase = ((ManualDevice)dev).getCurrentJobPhase();
 			request.setAttribute("currentPhase", currentPhase);
-			forwardVisiblePage("/showCustomDevice.jsp", request, response);
+			forwardVisiblePage("/showManualDevice.jsp", request, response);
 		} else if ( command.equals("finalizeCurrentQE") )
 		{
 			if ( !(dev instanceof ManualDevice) )
@@ -209,7 +209,7 @@ public class DeviceInfoServlet extends AbstractBambiServlet {
 			
 			JobPhase currentPhase = ((ManualDevice)dev).getCurrentJobPhase();
 			request.setAttribute("currentPhase", currentPhase);
-			forwardVisiblePage("/showCustomDevice.jsp", request, response);
+			forwardVisiblePage("/showManualDevice.jsp", request, response);
 		}
 		
 
@@ -234,7 +234,7 @@ public class DeviceInfoServlet extends AbstractBambiServlet {
 	/**
 	 * build a new job phase with info from a given request. 
 	 * JobPhase parameter 'duration' will remain with its default value 0, since it
-	 * is not used in the context of CustomDevice.doNextJobPhase()
+	 * is not used in the context of ManualDevice.doNextJobPhase()
 	 * @param request request to get the job phase info from
 	 * @return the new JobPhase
 	 */

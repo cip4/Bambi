@@ -1,4 +1,5 @@
-/**
+/*
+ *
  * The CIP4 Software License, Version 1.0
  *
  *
@@ -38,7 +39,7 @@
  *
  * Usage of this software in commercial products is subject to restrictions. For
  * details please consult info@cip4.org.
-  *
+ *
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -58,7 +59,7 @@
  * individuals on behalf of the The International Cooperation for the Integration 
  * of Processes in Prepress, Press and Postpress and was
  * originally based on software 
- * copyright (c) 1999-2006, Heidelberger Druckmaschinen AG 
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
  * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
  *  
  * For more information on The International Cooperation for the 
@@ -67,52 +68,111 @@
  *  
  * 
  */
+package org.cip4.bambi.devices;
 
-package org.cip4.bambi;
-
-import org.cip4.bambi.messaging.IMultiJMFHandler;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.AbstractQueueProcessor;
+import org.cip4.bambi.BambiNSExtension;
 import org.cip4.bambi.queues.IQueueEntry;
+import org.cip4.bambi.queues.QueueEntry;
+import org.cip4.bambi.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.jmf.JDFCommand;
+import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.util.UrlUtil;
+
+
+
 
 /**
- * @author prosirai
+ * QueueProcessor for devices attached to the Bambi root device
+ * @author  niels
+ *
  *
  */
-public interface IQueueProcessor extends IMultiJMFHandler
+public class SubdeviceQueueProcessor extends AbstractQueueProcessor
 {
-    /**
-     * get the next waiting entry
-     * @return
-     */
-    public IQueueEntry getNextEntry();
-    
-    /**
-     * get the jdf representation of this queue
-     * @return JDFQueue the jdf representation of this queue
-     */
-    public JDFQueue getQueue();
-    
-    /**
-     * add a new entry to the queue
-     * 
-     * @param sumitQueueEntry queuesubmission command
-     * @param theJDF the referenced jdf doc
-     * @param hold if true, the initial QeueEntryStatus is Held
-     * @return 
-     */
-    public JDFResponse addEntry(JDFCommand sumitQueueEntry, JDFDoc theJDF, boolean hold);
-    
-    /**
-     * updated an entry in the queue 
-     * @param queueEntryID the queuentryid to update
-     * @param status the queuentry status
-     */
-    public void updateEntry(String queueEntryID, EnumQueueEntryStatus status);
-    
-    public void addListener(Object o);
+	protected static final Log log = LogFactory.getLog(SubdeviceQueueProcessor.class.getName());
 
+	public SubdeviceQueueProcessor(String deviceID, AbstractDevice theParent) {
+		super(deviceID, theParent);
+	}
+	public IQueueEntry getNextEntry()
+    {
+   		//log.debug("getNextEntry");
+        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
+        
+        if(qe==null)
+        {
+        	//log.info("sending RequestQueueEntry to root device");
+        	JDFJMF jmf = JMFFactory.buildRequestQueueEntry( _theQueue.getDeviceID() );
+        	JMFFactory.send2Bambi(jmf,"");
+            return null;
+        }
+        String docURL=BambiNSExtension.getDocURL(qe);
+        if (docURL!=null && !docURL.equals("")) {
+        	docURL=UrlUtil.urlToFile(docURL).getAbsolutePath();
+            JDFDoc doc=JDFDoc.parseFile(docURL);
+            return new QueueEntry(doc,qe);
+        } else {
+        	log.error("DocURL is missing");
+        	return null;
+        }
+    }
+	
+	protected void handleAbortQueueEntry(JDFResponse resp, String qeid,
+			JDFQueueEntry qe) {
+		EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Aborted);
+		if (newStatus==null) {
+			// got no response
+			updateEntry(qeid,EnumQueueEntryStatus.Aborted);
+			log.error("failed to suspend QueueEntry with ID="+qeid); 
+		} else {
+			updateEntry(qeid,newStatus);
+		}
+		JDFQueue q = resp.appendQueue();
+		q.copyElement(qe, null);
+		q.setDeviceID( _theQueue.getDeviceID() );
+		q.setStatus( _theQueue.getStatus() );
+		removeBambiNSExtensions(q);
+		log.info("aborted QueueEntry with ID="+qeid);
+	}
+	
+	protected void handleQueueStatus(JDFQueue q) {
+		// nothing to do
+	}
+	
+	protected void handleSuspendQueueEntry(JDFResponse resp, String qeid,
+			JDFQueueEntry qe) {
+		EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Suspended);
+		if (newStatus==null) {
+			// got no response
+			updateEntry(qeid,EnumQueueEntryStatus.Aborted);
+			log.error("failed to suspend QueueEntry with ID="+qeid); 
+		} else {
+			updateEntry(qeid,newStatus);
+		}
+		JDFQueue q = resp.appendQueue();
+		q.setDeviceID( _theQueue.getDeviceID() );
+		q.setStatus( _theQueue.getStatus() );
+		q.copyElement(qe, null);
+		removeBambiNSExtensions(q);
+		log.info("suspended QueueEntry with ID="+qeid);
+	}
+	
+	protected void handleResumeQueueEntry(JDFResponse resp, String qeid,
+			JDFQueueEntry qe) {
+		updateEntry(qeid,EnumQueueEntryStatus.Waiting);
+		JDFQueue q = resp.appendQueue();
+		q.copyElement(qe, null);
+		q.setDeviceID( _theQueue.getDeviceID() );
+		q.setStatus( _theQueue.getStatus() );
+		removeBambiNSExtensions(q);
+		log.info("resumed QueueEntry with ID="+qeid);
+	}
+	
 }

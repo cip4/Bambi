@@ -1,8 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" errorPage="exception.jsp"%>
 <%@ page import="org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus"%>
-<%@ page import="org.cip4.bambi.AbstractDevice"%>
-<%@ page import="org.cip4.bambi.QueueFacade"%>
-<%@ page import="org.cip4.bambi.QueueFacade.BambiQueueEntry"%>
+<%@ page import="org.cip4.bambi.devices.AbstractDevice"%>
+<%@ page import="org.cip4.bambi.queues.QueueFacade"%>
+<%@ page import="org.cip4.bambi.queues.QueueFacade.BambiQueueEntry"%>
 <%@ page import="org.cip4.bambi.servlets.DeviceServlet"%>
 <%@ page import="java.util.Vector"%>
 

@@ -79,9 +79,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.cip4.bambi.AbstractDevice;
-import org.cip4.bambi.ManualDevice;
-import org.cip4.bambi.SimDevice;
+import org.cip4.bambi.devices.AbstractDevice;
+import org.cip4.bambi.devices.manual.ManualDevice;
+import org.cip4.bambi.devices.sim.SimDevice;
 
 /**
  * mother of all Bambi servlets

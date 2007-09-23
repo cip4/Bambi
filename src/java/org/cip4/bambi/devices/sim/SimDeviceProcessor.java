@@ -69,7 +69,7 @@
  * 
  */
 
-package org.cip4.bambi;
+package org.cip4.bambi.devices.sim;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -77,6 +77,9 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.IQueueProcessor;
+import org.cip4.bambi.IStatusListener;
+import org.cip4.bambi.devices.AbstractDeviceProcessor;
 import org.cip4.bambi.servlets.DeviceServlet;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;

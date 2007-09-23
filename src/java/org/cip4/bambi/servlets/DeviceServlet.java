@@ -93,22 +93,22 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.AbstractDevice;
-import org.cip4.bambi.ManualDevice;
-import org.cip4.bambi.IDevice;
-import org.cip4.bambi.MultiDeviceProperties;
-import org.cip4.bambi.IJMFHandler;
-import org.cip4.bambi.IMessageHandler;
+import org.cip4.bambi.ControllerQueueProcessor;
+import org.cip4.bambi.messaging.IJMFHandler;
+import org.cip4.bambi.messaging.IMessageHandler;
 import org.cip4.bambi.IQueueProcessor;
 import org.cip4.bambi.ISignalDispatcher;
 import org.cip4.bambi.IStatusListener;
-import org.cip4.bambi.JMFHandler;
-import org.cip4.bambi.QueueFacade;
-import org.cip4.bambi.ControllerQueueProcessor;
+import org.cip4.bambi.messaging.JMFHandler;
+import org.cip4.bambi.queues.QueueFacade;
 import org.cip4.bambi.SignalDispatcher;
-import org.cip4.bambi.SimDevice;
 import org.cip4.bambi.StatusListener;
-import org.cip4.bambi.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.devices.AbstractDevice;
+import org.cip4.bambi.devices.IDevice;
+import org.cip4.bambi.devices.MultiDeviceProperties;
+import org.cip4.bambi.devices.manual.ManualDevice;
+import org.cip4.bambi.devices.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.devices.sim.SimDevice;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.jmf.JDFCommand;
@@ -195,11 +195,11 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 	}
 	private static final long serialVersionUID = -8902151736245089036L;
 	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
-	public static final String baseDir=System.getProperty("catalina.base")+"/webapps/Bambi/jmb"+File.separator;
-	public static String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/config"+File.separator;
+	public static final String baseDir=System.getProperty("catalina.base")+"/webapps/Bambi/jmb/";
+	public static String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/config/";
 	public static final String xslDir="./xslt/";
 	public static String jdfDir=baseDir+"JDFDir"+File.separator;
-	public static String bambiRootDeviceID = "BambiRootDevice";
+	static String bambiRootDeviceID = "BambiRootDevice";
 	private JMFHandler _jmfHandler=null;
 	private HashMap _devices = null;
 	private ISignalDispatcher _theSignalDispatcher=null;
@@ -484,7 +484,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 		{
 			if(bp.length>1)
 			{
-				proccessMultipleDocuments(request,response,bp);
+				processMultipleDocuments(request,response,bp);
 			}
 			else
 			{
@@ -512,12 +512,12 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 	 * @param request
 	 * @param response
 	 */
-	private void proccessMultipleDocuments(HttpServletRequest request, HttpServletResponse response,BodyPart[] bp)
+	private void processMultipleDocuments(HttpServletRequest request, HttpServletResponse response,BodyPart[] bp)
 	{
-		log.info("proccessMultipleDocuments- parts: "+(bp==null ? 0 : bp.length));
+		log.info("processMultipleDocuments- parts: "+(bp==null ? 0 : bp.length));
 		if(bp==null || bp.length<2)
 		{
-			processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- not enough parts, bailing out:"+bp.length);
+			processError(request, response, EnumType.Notification, 2,"processMultipleDocuments- not enough parts, bailing out");
 			return;
 		}
 		JDFDoc docJDF[]=MimeUtil.getJMFSubmission(bp[0].getParent());
@@ -569,7 +569,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 	 */
 	public IDevice createDevice(DeviceProperties prop)
 	{
-		log.debug("created device");
+		log.info("created device");
 		if (_devices == null)
 		{
 			log.warn("map of devices is null, re-initialising map...");
@@ -579,10 +579,10 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 		if (_devices.get(prop.getDeviceID()) == null)
 		{	
 			IDevice dev;
-			if (prop.getDeviceClass().equals("org.cip4.bambi.SimDevice"))
+			if (prop.getDeviceClass().equals("org.cip4.bambi.devices.sim.SimDevice"))
 			{
 				dev = new SimDevice(prop);
-			} else if (prop.getDeviceClass().equals("org.cip4.bambi.ManualDevice"))
+			} else if (prop.getDeviceClass().equals("org.cip4.bambi.devices.manual.ManualDevice"))
 			{
 				dev = new ManualDevice(prop);
 			} else

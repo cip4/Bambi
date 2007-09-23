@@ -80,6 +80,7 @@ import java.net.MalformedURLException;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
+import org.cip4.bambi.devices.MultiDeviceProperties;
 import org.cip4.bambi.servlets.DeviceServlet;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;

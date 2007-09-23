@@ -74,6 +74,7 @@ package org.cip4.bambi;
 
 import java.io.File;
 
+import org.cip4.bambi.messaging.JMFHandler;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFSubscription;

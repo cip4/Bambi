@@ -69,10 +69,13 @@
  * 
  */
 
-package org.cip4.bambi;
+package org.cip4.bambi.devices.manual;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.IQueueProcessor;
+import org.cip4.bambi.IStatusListener;
+import org.cip4.bambi.devices.AbstractDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
@@ -92,7 +95,27 @@ public class ManualDeviceProcessor extends AbstractDeviceProcessor
 	private static final long serialVersionUID = -384123589645081254L;
 	private boolean doFinalizeQE = false;
 	private boolean doNextPhase = false;
+	private JobPhase firstPhase=null;
 
+	public ManualDeviceProcessor() {
+		super();
+		initManualDeviceProcessor();
+	}
+	
+	public ManualDeviceProcessor(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID)
+	{
+		super(queueProcessor, statusListener, deviceID);
+		initManualDeviceProcessor();
+	}
+	
+	private void initManualDeviceProcessor() {
+		firstPhase = new JobPhase();
+		firstPhase.deviceStatus=EnumDeviceStatus.Idle;
+		firstPhase.deviceStatusDetails="Waiting";
+		firstPhase.nodeStatus=EnumNodeStatus.Waiting;
+		firstPhase.nodeStatusDetails="Waiting";
+	}
+		
 	public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) 
 	{
 		super.processDoc(doc, qe);
@@ -101,11 +124,7 @@ public class ManualDeviceProcessor extends AbstractDeviceProcessor
 		while ( !doFinalizeQE ) {
 			if ( _jobPhases.isEmpty() )
 			{
-				JobPhase p = new JobPhase();
-				p.deviceStatus=EnumDeviceStatus.Idle;
-				p.deviceStatusDetails="Waiting";
-				p.nodeStatus=EnumNodeStatus.Waiting;
-				p.nodeStatusDetails="Waiting";
+				JobPhase p = firstPhase;
 				_jobPhases.add(p);
 			}
 			
@@ -126,8 +145,7 @@ public class ManualDeviceProcessor extends AbstractDeviceProcessor
 					phase.nodeStatus,phase.nodeStatusDetails);
 			
 			
-			while ( !doNextPhase )
-			{
+			while ( !doNextPhase ) {
 				if (doFinalizeQE) {
 					break;
 				}
@@ -145,6 +163,7 @@ public class ManualDeviceProcessor extends AbstractDeviceProcessor
 								return suspendQueueEntry(qe,0, 0);
 							} else if (request.newStatus.equals(EnumQueueEntryStatus.Aborted)) {
 								_updateStatusReqs.remove(reqNo);
+								doNextPhase(firstPhase);
 								return abortQueueEntry();
 							}
 						}					
@@ -161,6 +180,7 @@ public class ManualDeviceProcessor extends AbstractDeviceProcessor
 
 		}
 		
+		doNextPhase(firstPhase);
 		return finalizeProcessDoc();
 	}
 	
