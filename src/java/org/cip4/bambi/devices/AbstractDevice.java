@@ -374,4 +374,12 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler{
 		return _deviceURL;
 	}
 	
+	/**
+	 * stop the signal dispatcher and device processor
+	 */
+	public void shutdown() {
+		_theSignalDispatcher.shutdown();
+		_theDeviceProcessor.shutdown();
+	}
+	
 }

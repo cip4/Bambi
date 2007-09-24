@@ -100,7 +100,8 @@ public class DispatcherTest extends BambiTestCase {
         s.setURL(getTestURL()+"subscriptions.jmf");
         d.addSubscription(q, null);
         StatusCounter.sleep(2222);
-        assertTrue(new File(sm_dirTestData+"subscriptions.jmf").exists());   
+        assertTrue(new File(sm_dirTestData+"subscriptions.jmf").exists()); 
+        d.shutdown();
     }
 	
 }

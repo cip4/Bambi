@@ -130,4 +130,9 @@ public interface ISignalDispatcher extends IMultiJMFHandler
      */
     public void triggerChannel(String channelID, String queueEntryID, String workStepID, int amount);
     
+    /**
+     * stop the dispatcher thread
+     */
+    public void shutdown();
+    
 }

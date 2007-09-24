@@ -76,6 +76,7 @@ import java.net.HttpURLConnection;
 import javax.mail.Multipart;
 
 import org.cip4.bambi.messaging.JMFFactory;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VElement;
@@ -183,7 +184,6 @@ public class JMFFactoryTest extends BambiTestCase {
         assertNotNull(q);
         int queueSize = q.getQueueSize();
         VElement v=q.getQueueEntryVector();
-        int runningQEs=0;
         for(int i=0;i<v.size();i++)
         {
             long t1=System.currentTimeMillis();
@@ -201,9 +201,6 @@ public class JMFFactoryTest extends BambiTestCase {
             if (retCode!=0 && retCode!=106) {
             	fail("RemoveQueueEntry failed, return code is "+retCode);
             }
-            if (retCode==106) {
-            	runningQEs++;
-            }
             System.out.println("Post abort,"+i+" single: "+(t2-t1)+" total: "+(t2-t));
         }
         jmf = JMFFactory.buildQueueStatus();
@@ -213,7 +210,12 @@ public class JMFFactoryTest extends BambiTestCase {
         queueSize = q.getQueueSize();
         // only the running QueueEntries are allowed to remain, all others should 
         // be aborted
-        assertEquals(runningQEs,queueSize);
+        for (int i=0;i<queueSize;i++) {
+        	JDFQueueEntry qe = q.getQueueEntry(i);
+        	if (qe.getQueueEntryStatus()!=EnumQueueEntryStatus.Running) {
+        		fail();
+        	}
+        }
     }
 	
 	public void testSubmitQueueEntry_MIME()

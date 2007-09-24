@@ -84,8 +84,7 @@ public interface IDeviceProcessor extends Runnable
 {
 
     /**
-     * this is the device processor loop
-     * whenever the 
+     * this is the device processor loop 
      */
     public abstract void run();
 
@@ -102,5 +101,10 @@ public interface IDeviceProcessor extends Runnable
      * @param deviceID 
      */
     public void init(IQueueProcessor _queueProcessor, IStatusListener _statusListener, String deviceID);
+    
+    /**
+     * stop the device processor loop
+     */
+    public void shutdown();
 
 }

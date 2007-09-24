@@ -238,7 +238,15 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 	/** Destroys the servlet.
 	 */
 	public void destroy() {
-//		foo		
+		Set keys=_devices.keySet();
+		Iterator it=keys.iterator();
+		while (it.hasNext()) {
+			String devID=it.next().toString();
+			AbstractDevice dev=(AbstractDevice) _devices.get(devID);
+			dev.shutdown();
+		}
+
+		_theSignalDispatcher.shutdown();
 	}
 
 	/** Handles the HTTP <code>GET</code> method.

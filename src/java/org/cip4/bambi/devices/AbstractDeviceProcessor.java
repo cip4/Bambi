@@ -126,6 +126,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	protected String _deviceID=null;
 	protected List _updateStatusReqs=null;
 	protected Object parent=null;
+	protected boolean doShutdown=false;
 
 	protected static class ChangeQueueEntryStatusRequest {
 		public String queueEntryID=null;
@@ -207,7 +208,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
      * this is the device processor loop
      */
 	public void run() {
-		while (true)
+		while (!doShutdown)
 		{
             if(!processQueueEntry())
             {
@@ -477,6 +478,10 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			// cannot change status
 			return status;
 		}
+	}
+	
+	public void shutdown() {
+		doShutdown=true;
 	}
 	
 }

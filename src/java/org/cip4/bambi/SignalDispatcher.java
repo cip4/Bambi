@@ -111,13 +111,13 @@ import org.cip4.jdflib.util.VectorMap;
  */
 public final class SignalDispatcher implements ISignalDispatcher 
 {
-	// TODO send kill signal when Bambi is shutting down
     protected static final Log log = LogFactory.getLog(SignalDispatcher.class.getName());
-    protected HashMap subscriptionMap; // map of channelID / Subscription
-    protected VectorMap queueEntryMap; // map of queueEntryID / vector of channelIDS
-    protected IMessageHandler messageHandler;
-    protected VectorMap triggers;
-    protected Object mutex;
+    protected HashMap subscriptionMap=null; // map of channelID / Subscription
+    protected VectorMap queueEntryMap=null; // map of queueEntryID / vector of channelIDS
+    protected IMessageHandler messageHandler=null;
+    protected VectorMap triggers=null;
+    protected Object mutex=null;
+    protected boolean doShutdown=false;
  
 
     
@@ -193,7 +193,7 @@ public final class SignalDispatcher implements ISignalDispatcher
          */
         public void run()
         {
-            while(true)
+            while(!doShutdown)
             {
                 final Vector triggerVector = getTriggerSubscriptions();
                 // spam them out
@@ -628,6 +628,10 @@ public final class SignalDispatcher implements ISignalDispatcher
     public void addHandlers(IJMFHandler jmfHandler)
     {
         jmfHandler.addHandler(this.new StopPersistentChannelHandler());        
+    }
+    
+    public void shutdown() {
+    	doShutdown=true;
     }
 
 }
