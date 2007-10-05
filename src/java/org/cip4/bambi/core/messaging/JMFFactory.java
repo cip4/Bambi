@@ -207,8 +207,8 @@ public class JMFFactory {
 			}
 			return null;
 		}
-		Document dd = jmf.getOwnerDocument();
-		JDFDoc doc = new JDFDoc(dd);
+
+		JDFDoc doc = jmf.getOwnerDocument_JDFElement();
 		JDFDoc respDoc = doc.write2URL(url);
 		if (respDoc==null || respDoc.toString().length()<10)
 		{

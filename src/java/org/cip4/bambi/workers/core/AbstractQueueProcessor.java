@@ -565,7 +565,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         }
         _theQueue.setAutomated(true);
         _theQueue.setDeviceID(deviceID);
-        _theQueue.maxCompletedEntries = 100; // remove just the selected QE when RemoveQE is called 
+        _theQueue.setMaxCompletedEntries(100); // remove just the selected QE when RemoveQE is called 
         _listeners=new Vector();
 	}
 

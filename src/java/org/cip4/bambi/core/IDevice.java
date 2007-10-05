@@ -78,7 +78,17 @@ package org.cip4.bambi.core;
  */
 public interface IDevice {
 
-	public abstract String getDeviceID();
+    /**
+     * return the unique ID of this device
+     * @return
+     */
+    public abstract String getDeviceID();
+    
+    /**
+     * return the type of this device
+     * @return
+     */
+    public abstract String getDeviceType();
 
 	/**
 	 * return the URL of this device

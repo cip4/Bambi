@@ -180,7 +180,8 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	protected String _configDir=null;
 	protected String _xslDir="./xslt/";
 	protected String _jdfDir=null; // remove ? 
-	protected String _deviceID=null;
+    protected String _deviceID=null;
+    protected String _deviceType=null;
 	protected HashMap _devices = null;
 	protected String _deviceURL=null;
 	protected JMFHandler _jmfHandler=null;
@@ -452,9 +453,13 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 		return _devices;
 	}
 
-	public String getDeviceID() {
-		return _deviceID;
-	}
+    public String getDeviceID() {
+        return _deviceID;
+    }
+    
+    public String getDeviceType() {
+        return _deviceType;
+    }
 
 	public String getDeviceURL() {
 		return _deviceURL;

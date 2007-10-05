@@ -163,8 +163,8 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 				JDFDeviceList dl = resp.appendDeviceList();
 				JDFDeviceInfo info = dl.appendDeviceInfo();
 				JDFDevice dev = info.appendDevice();
-				dev.setDeviceID("Controller");
-				dev.setDeviceType("Bambi Controller");
+				dev.setDeviceID(getDeviceID());
+				dev.setDeviceType(getDeviceType());
 				dev.setJDFVersions( EnumVersion.Version_1_3.getName() );
 				return true;
 			}
@@ -190,18 +190,19 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 		}
 	}
 	private static final long serialVersionUID = -8902151736245089036L;
-	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
+	protected static Log log = LogFactory.getLog(DeviceServlet.class.getName());
 	public static final String baseDir=System.getProperty("catalina.base")+"/webapps/Bambi/jmb/";
 	public static String configDir=System.getProperty("catalina.base")+"/webapps/Bambi/config/";
 	public static final String xslDir="./xslt/";
 	public static String jdfDir=baseDir+"JDFDir"+File.separator;
-	static String bambiRootDeviceID = "BambiRootDevice";
-	private JMFHandler _jmfHandler=null;
-	private HashMap _devices = null;
-	private ISignalDispatcher _theSignalDispatcher=null;
-	private IQueueProcessor _theQueueProcessor=null;
-	private IStatusListener _theStatusListener=null;
-	private String _bambiURL=null;
+    static String bambiRootDeviceID = "BambiRootDevice";
+    static String bambiRootDeviceType = "Bambi Root Device";
+    protected JMFHandler _jmfHandler=null;
+    protected HashMap _devices = null;
+    protected ISignalDispatcher _theSignalDispatcher=null;
+    protected IQueueProcessor _theQueueProcessor=null;
+    protected IStatusListener _theStatusListener=null;
+    protected String _bambiURL=null;
 	
 
 
@@ -379,7 +380,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 	 * @param request
 	 * @param response
 	 */
-	private void processJMFRequest(HttpServletRequest request, HttpServletResponse response,InputStream inStream) throws IOException
+	protected void processJMFRequest(HttpServletRequest request, HttpServletResponse response,InputStream inStream) throws IOException
 	{
 		log.debug("processJMFRequest");
 		JDFParser p=new JDFParser();
@@ -395,7 +396,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 	 * @param jmfDoc
 	 * @throws IOException
 	 */
-	private void processJMFDoc(HttpServletRequest request,
+    protected void processJMFDoc(HttpServletRequest request,
 			HttpServletResponse response, JDFDoc jmfDoc) {
 		if(jmfDoc==null)
 		{
@@ -433,7 +434,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 	 * @param response
 	 * @throws IOException 
 	 */
-	private void processJDFRequest(HttpServletRequest request, HttpServletResponse response, InputStream inStream) throws IOException
+    protected void processJDFRequest(HttpServletRequest request, HttpServletResponse response, InputStream inStream) throws IOException
 	{
 		log.info("processJDFRequest");
 		JDFParser p=new JDFParser();
@@ -460,7 +461,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 	/**
 	 * Parses a multipart request.
 	 */
-	private void processMultipartRequest(HttpServletRequest request, HttpServletResponse response)
+	protected void processMultipartRequest(HttpServletRequest request, HttpServletResponse response)
 	throws IOException
 	{
 		InputStream inStream=request.getInputStream();
@@ -524,7 +525,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 	 * @param request
 	 * @param response
 	 */
-	private void processError(HttpServletRequest request, HttpServletResponse response, EnumType messageType, int returnCode, String notification)
+    protected void processError(HttpServletRequest request, HttpServletResponse response, EnumType messageType, int returnCode, String notification)
 	{
 		log.warn("processError- rc: "+returnCode+" "+notification==null ? "" : notification);
 		JDFJMF error=JDFJMF.createJMF(EnumFamily.Response, messageType);
@@ -636,7 +637,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 		return (IDevice)_devices.get(deviceID);
 	}
 
-	private boolean createDevicesFromFile(String fileName)
+	protected boolean createDevicesFromFile(String fileName)
 	{
 		MultiDeviceProperties dv = new MultiDeviceProperties(null, fileName);
 		if (dv.count()==0) {
@@ -655,7 +656,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 		return true;
 	}
 	
-	private boolean loadProperties()
+	protected boolean loadProperties()
 	{
 		log.debug("loading Bambi properties");
 		try 
@@ -679,7 +680,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 		return true;
 	}
 	
-	private void addHandlers()
+	protected void addHandlers()
 	{
 		_jmfHandler.addHandler( new DeviceServlet.KnownDevicesHandler() );
 	}
@@ -689,9 +690,13 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 		return _devices;
 	}
 
-	public String getDeviceID() {
-		return bambiRootDeviceID;
-	}
+    public String getDeviceID() {
+        return bambiRootDeviceID;
+    }
+    
+    public String getDeviceType() {
+        return bambiRootDeviceType;
+    }
 
 	public String getDeviceURL() {
 		return _bambiURL+bambiRootDeviceID;
