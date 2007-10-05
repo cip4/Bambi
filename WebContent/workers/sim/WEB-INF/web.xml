@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="SimWorker" version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
+	http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+	<description>A Bambi worker with fixed job phases</description>
+	<display-name>SimWorker</display-name>
+	<distributable/>
+	<!-- enable debugging -->
+	<context-param>
+		<param-name>debug</param-name>
+		<param-value>2</param-value>
+	</context-param>
+	<servlet>
+		<servlet-name>SimWorkerServlet</servlet-name>
+		<servlet-class>org.cip4.bambi.workers.sim.SimWorkerServlet</servlet-class>
+		<load-on-startup>10</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>QueueEntryController</servlet-name>
+		<servlet-class>org.cip4.bambi.workers.core.QEControllerServlet</servlet-class>
+		<load-on-startup>20</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>DeviceInfoServlet</servlet-name>
+		<servlet-class>org.cip4.bambi.workers.sim.SimDeviceInfoServlet</servlet-class>
+		<load-on-startup>10</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<!-- the entrance point of the application -->
+		<servlet-name>SimWorkerServlet</servlet-name>
+		<url-pattern>/overview/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+	 	<!-- the entrance point for child devices -->
+		<servlet-name>SimWorkerServlet</servlet-name>
+		<url-pattern>/devices/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<!-- entrance point for manipulating QueueEntries -->
+		<servlet-name>QueueEntryController</servlet-name>
+		<url-pattern>/QEController</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<!-- entrance point for showing device info -->
+		<servlet-name>DeviceInfoServlet</servlet-name>
+		<url-pattern>/DeviceInfo</url-pattern>
+	</servlet-mapping>
+	<session-config>
+		<session-timeout>120</session-timeout>
+	</session-config>
+	<welcome-file-list>
+		<welcome-file>/index.jsp</welcome-file>
+	</welcome-file-list>
+	<error-page>
+    	<exception-type>java.lang.Throwable</exception-type>
+    	<location>/exception.jsp</location>
+  	</error-page>
+  	<error-page>
+    	<error-code>500</error-code>
+    	<location>/exception.jsp</location>
+  	</error-page>
+</web-app>

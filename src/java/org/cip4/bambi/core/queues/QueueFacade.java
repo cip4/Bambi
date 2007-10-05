@@ -1,6 +1,3 @@
-package org.cip4.bambi;
-
-
 /*
 *
 * The CIP4 Software License, Version 1.0
@@ -72,37 +69,116 @@ package org.cip4.bambi;
 * 
 */
 
-import java.io.File;
+package org.cip4.bambi.core.queues;
 
-import org.cip4.bambi.core.SignalDispatcher;
-import org.cip4.bambi.messaging.JMFHandler;
-import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFQuery;
-import org.cip4.jdflib.jmf.JDFSubscription;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.util.StatusCounter;
-import org.cip4.jdflib.util.UrlUtil;
+import java.util.Vector;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 
-public class DispatcherTest extends BambiTestCase {
+
+/**
+ * facade for JDFQueue in Bambi, used for reliable displaying Queues in JSP
+ * 
+ * @author boegerni
+ * 
+ */
+public class QueueFacade {
+	public static class BambiQueueEntry 
+	{
+		public String queueEntryID=null;
+		public EnumQueueEntryStatus queueEntryStatus=null;
+		public int queuePriority=0;
+		
+		protected BambiQueueEntry(String qEntryID, EnumQueueEntryStatus qStatus, int qPriority)
+		{
+			queueEntryID = qEntryID;
+			queueEntryStatus = qStatus;
+			queuePriority = qPriority;
+		}
+	}
 	
 
-	public void testAddSubscription()
-    {
-	    JMFHandler h=new JMFHandler();
-	    SignalDispatcher d=new SignalDispatcher(h, "Test");
-        
-        d.addHandlers(h);
-        JDFJMF jmf=JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
-        JDFQuery q=jmf.getQuery(0);
-        JDFSubscription s=q.appendSubscription();
-        s.setRepeatTime(1.0);
-        UrlUtil.urlToFile(getTestURL()).mkdirs();
-        s.setURL(getTestURL()+"subscriptions.jmf");
-        d.addSubscription(q, null);
-        StatusCounter.sleep(2222);
-        assertTrue(new File(sm_dirTestData+"subscriptions.jmf").exists()); 
-        d.shutdown();
-    }
+	private static Log log = LogFactory.getLog(QueueFacade.class.getName());
+	private JDFQueue _theQueue = null;
+
+	/**
+	 * constructor
+	 */
+	public QueueFacade(JDFQueue queue)
+	{
+		_theQueue = queue;
+	}
+
+	public String toString()
+	{
+		return ( _theQueue.toString() );
+	}
 	
+	public String getQueueStatusString()
+	{
+		return _theQueue.getQueueStatus().getName();
+	}
+	
+	public EnumQueueStatus getQueueStatus() {
+		return _theQueue.getQueueStatus();
+	}
+	
+	public Vector getBambiQueueEntryVector()
+	{
+		log.info("building BambieQueueEntryVector");
+		Vector qes = new Vector();
+		for (int i = 0; i<_theQueue.getQueueSize();i++)
+		{
+			JDFQueueEntry jqe = _theQueue.getQueueEntry(i);
+			BambiQueueEntry bqe = new BambiQueueEntry( jqe.getQueueEntryID(),
+					jqe.getQueueEntryStatus(),jqe.getPriority() );
+			qes.add(bqe);
+		}
+			
+		return qes;
+	}
+	
+	public String toHTML()
+	{
+		String quStr = _theQueue.toXML();
+		int pos = quStr.indexOf(">");
+		quStr = quStr.substring(pos+2);
+		String xsltHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n"
+			+ "<?xml-stylesheet type=\"text/xsl\" href=\"/xslt/queue2html.xsl\"?> \r\n";
+		return (xsltHeader+quStr);
+	}
+	
+	/**
+	 * count all QueueEntries
+	 * @return
+	 */
+	public int countAll() {
+		return _theQueue.getQueueSize();
+	}
+	
+	/**
+	 * count all QueueEntries which have the given {@link QueueEntryStatus} 
+	 * @param status
+	 * @return
+	 */
+	public int count(EnumQueueEntryStatus status) {
+		VElement qev = _theQueue.getQueueEntryVector();
+		int count=0;
+		for (int i=0;i<qev.size();i++) {
+			JDFQueueEntry qe = (JDFQueueEntry) qev.elementAt(i);
+			if ( qe!=null&&qe.getQueueEntryStatus().equals(status) ) {
+				count++;
+			}
+		}
+		
+		return count;
+	}
+	
+	
+
 }

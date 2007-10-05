@@ -72,9 +72,7 @@ package org.cip4.bambi;
 */
 
 import java.net.HttpURLConnection;
-
 import javax.mail.Multipart;
-
 import org.cip4.bambi.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;

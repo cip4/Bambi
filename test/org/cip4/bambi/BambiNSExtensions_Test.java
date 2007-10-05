@@ -71,6 +71,7 @@ package org.cip4.bambi;
 * 
 */
 
+import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueueEntry;

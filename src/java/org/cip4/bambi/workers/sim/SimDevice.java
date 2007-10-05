@@ -1,6 +1,3 @@
-package org.cip4.bambi;
-
-
 /*
 *
 * The CIP4 Software License, Version 1.0
@@ -72,37 +69,42 @@ package org.cip4.bambi;
 * 
 */
 
-import java.io.File;
+package org.cip4.bambi.workers.sim;
 
-import org.cip4.bambi.core.SignalDispatcher;
-import org.cip4.bambi.messaging.JMFHandler;
-import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFQuery;
-import org.cip4.jdflib.jmf.JDFSubscription;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.util.StatusCounter;
-import org.cip4.jdflib.util.UrlUtil;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.workers.core.AbstractDevice;
+import org.cip4.bambi.workers.core.AbstractDeviceProcessor.JobPhase;
+import org.cip4.bambi.workers.core.MultiDeviceProperties.DeviceProperties;
 
-public class DispatcherTest extends BambiTestCase {
+/**
+ * a simple JDF device with a fixed list of job phases. <br>
+ * Job phases are defined in <code>/WebContend/config/devices.xml</code> and loaded in the constructor. 
+ * They can be randomized, and random error phases can be added. 
+ * An example job phase is provided in <code>example_job.xml</code>.<br>
+ * This class should remain final: if it is ever subclassed, the DeviceProcessor thread 
+ * would be started before the constructor from the subclass has a chance to fire.
+ * 
+ * @author boegerni
+ * 
+ */
+public final class SimDevice extends AbstractDevice   {
 	
 
-	public void testAddSubscription()
-    {
-	    JMFHandler h=new JMFHandler();
-	    SignalDispatcher d=new SignalDispatcher(h, "Test");
-        
-        d.addHandlers(h);
-        JDFJMF jmf=JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
-        JDFQuery q=jmf.getQuery(0);
-        JDFSubscription s=q.appendSubscription();
-        s.setRepeatTime(1.0);
-        UrlUtil.urlToFile(getTestURL()).mkdirs();
-        s.setURL(getTestURL()+"subscriptions.jmf");
-        d.addSubscription(q, null);
-        StatusCounter.sleep(2222);
-        assertTrue(new File(sm_dirTestData+"subscriptions.jmf").exists()); 
-        d.shutdown();
-    }
-	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8412710163767830461L;
+	private static Log log = LogFactory.getLog(SimDevice.class.getName());
+
+	public JobPhase getCurrentJobPhase()
+	{
+		return _theDeviceProcessor.getCurrentJobPhase();
+	}
+
+	public SimDevice(DeviceProperties prop)
+	{
+		super(prop);
+		log.info("created SimDevice '"+prop.getDeviceID()+"'");
+	}
 }

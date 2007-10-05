@@ -80,7 +80,7 @@ import java.net.MalformedURLException;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
-import org.cip4.bambi.devices.MultiDeviceProperties;
+import org.cip4.bambi.devices.devcore.MultiDeviceProperties;
 import org.cip4.bambi.servlets.DeviceServlet;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -101,9 +101,6 @@ import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
-
-
-
 public class DeviceServletTest extends BambiTestCase {
 	
 	private boolean removeDir(File path)
@@ -123,9 +120,9 @@ public class DeviceServletTest extends BambiTestCase {
 
 	public void testAddDevice()
 	{
-		DeviceServlet d = new DeviceServlet();
+		AbstractWorkerServlet d = new AbstractWorkerServlet();
 		assertEquals( 0,d.getDeviceQuantity() ); 
-		MultiDeviceProperties dp = new MultiDeviceProperties(sm_dirTestData+"test_devices.xml");
+		MultiDeviceProperties dp = new MultiDeviceProperties(null, sm_dirTestData+"test_devices.xml");
 		assertNotNull( d.createDevice(dp.getDevice("device001")) );
         assertNotNull( d.createDevice(dp.getDevice("device002")) );
 		assertNull( d.createDevice(dp.getDevice("device002")) );
@@ -137,9 +134,9 @@ public class DeviceServletTest extends BambiTestCase {
 	
 	public void testRemoveDevice()
 	{
-		DeviceServlet d = new DeviceServlet();
+		AbstractWorkerServlet d = new AbstractWorkerServlet();
 		assertEquals( 0,d.getDeviceQuantity() );
-		MultiDeviceProperties dp = new MultiDeviceProperties(sm_dirTestData+"test_devices.xml");
+		MultiDeviceProperties dp = new MultiDeviceProperties(null, sm_dirTestData+"test_devices.xml");
 		assertNotNull( d.createDevice(dp.getDevice("device001")) );
         assertNotNull( d.createDevice(dp.getDevice("device002")) );
 		assertEquals( 2,d.getDeviceQuantity() );

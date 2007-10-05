@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="Bambi" version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
+	http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+	<description>A lightweight JDF device</description>
+	<display-name>A lightweight JDF device</display-name>
+	<distributable/>
+	<!-- enable debugging -->
+	<context-param>
+		<param-name>debug</param-name>
+		<param-value>2</param-value>
+	</context-param>
+	<servlet>
+		<servlet-name>Bambi</servlet-name>
+		<servlet-class>org.cip4.bambi.servlets.DeviceServlet</servlet-class>
+		<load-on-startup>10</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>DeviceInfo</servlet-name>
+		<servlet-class>org.cip4.bambi.servlets.DeviceInfoServlet</servlet-class>
+		<load-on-startup>20</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>QueueEntry</servlet-name>
+		<servlet-class>org.cip4.bambi.servlets.QueueEntryServlet</servlet-class>
+		<load-on-startup>30</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Bambi</servlet-name>
+		<url-pattern>/BambiRootDevice/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>DeviceInfo</servlet-name>
+		<url-pattern>/DeviceInfo</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>QueueEntry</servlet-name>
+		<url-pattern>/QueueEntry</url-pattern>
+	</servlet-mapping>
+	<session-config>
+		<session-timeout>120</session-timeout>
+	</session-config>
+	<welcome-file-list>
+		<welcome-file>/index.jsp</welcome-file>
+	</welcome-file-list>
+	<error-page>
+    	<exception-type>java.lang.Throwable</exception-type>
+    	<location>/exception.jsp</location>
+  	</error-page>
+  	<error-page>
+    	<error-code>500</error-code>
+    	<location>/exception.jsp</location>
+  	</error-page>
+</web-app>

@@ -19,13 +19,13 @@ public class BambiTestCase extends TestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		DeviceServlet.configDir=cwd+File.separator+"WebContent"+File.separator+"config"+File.separator;
-		DeviceServlet.jdfDir=cwd+File.separator+"test"+File.separator+"data"+File.separator;
+		AbstractWorkerServlet.configDir=cwd+File.separator+"WebContent"+File.separator+"config"+File.separator;
+		AbstractWorkerServlet.jdfDir=cwd+File.separator+"test"+File.separator+"data"+File.separator;
 		
 		Properties properties = new Properties();
 		FileInputStream in=null;
 		try {
-			in = new FileInputStream(DeviceServlet.configDir+"Bambi.properties");
+			in = new FileInputStream(AbstractWorkerServlet.configDir+"Bambi.properties");
 			properties.load(in);
 			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
 			BambiUrl= properties.getProperty("BambiURL")+"/"+properties.getProperty("RootDeviceID");
