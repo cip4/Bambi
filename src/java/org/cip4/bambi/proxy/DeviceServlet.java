@@ -138,6 +138,7 @@ import org.cip4.jdflib.util.MimeUtil;
  */
 public class DeviceServlet extends AbstractBambiServlet implements IDevice 
 {
+    
 	/**
 	 * 
 	 * handler for the knowndevices query
@@ -613,7 +614,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 		}
 		else
 		{
-			log.debug("tried to removing non-existing device");
+			log.warn("tried to removing non-existing device");
 			return false;
 		}
 	}
@@ -626,16 +627,33 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 			return _devices.size();
 	}
 
-	public IDevice getDevice(String deviceID)
-	{
-		if (_devices == null)
-		{
-			log.debug("list of devices is null");
-			return null;
-		}
+    public IDevice getDevice(String deviceID)
+    {
+        if (_devices == null)
+        {
+            log.debug("list of devices is null");
+            return null;
+        }
 
-		return (IDevice)_devices.get(deviceID);
-	}
+        return (IDevice)_devices.get(deviceID);
+    }
+    
+    /**
+     * add or replace a device in the devicemap
+     * 
+     * @param deviceID
+     * @param device
+     */
+    public void addDevice(String deviceID, IDevice device)
+    {
+        if (_devices == null)
+        {
+            log.debug("list of devices is null");
+            _devices=new HashMap();
+        }
+
+        _devices.put(deviceID, device);
+    }
 
 	protected boolean createDevicesFromFile(String fileName)
 	{

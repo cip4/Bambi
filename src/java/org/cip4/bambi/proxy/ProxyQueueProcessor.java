@@ -110,6 +110,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	    /* (non-Javadoc)
 	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 	     */
+        //TODO fill response e.g. on error
 	    public boolean handleMessage(JDFMessage m, JDFResponse resp)
 	    {
 	        if(m==null)

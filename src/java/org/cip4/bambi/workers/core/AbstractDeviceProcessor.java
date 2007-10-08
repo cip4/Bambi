@@ -253,21 +253,20 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     protected boolean processQueueEntry()
     {
         IQueueEntry iqe=_queueProcessor.getNextEntry();
-        if (iqe!=null) // is there a new  QueueEntry to process?
-        	if (iqe.getQueueEntry() != null)
-        		if (iqe.getQueueEntry().getQueueEntryID() != null)
-        			log.debug("processing: "+iqe.getQueueEntry().getQueueEntryID());
-       
         if(iqe==null)
-            return false;
-        JDFDoc doc=iqe.getJDF();
-        if(doc==null)
             return false;
         JDFQueueEntry qe=iqe.getQueueEntry();         
         if(qe==null)
             return false;
-        qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
         final String queueEntryID = qe.getQueueEntryID();
+        if (queueEntryID != null)
+            log.debug("processing: "+queueEntryID);
+
+        JDFDoc doc=iqe.getJDF();
+        if(doc==null)
+            return false;
+                
+        qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
          _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Running);
         EnumQueueEntryStatus qes=null;
         try
@@ -410,8 +409,10 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		return EnumQueueEntryStatus.Completed;
 	}
 	
+    // TODO remove from abstract device - this is purely simulation
 	public abstract JobPhase getCurrentJobPhase();
 	
+    // TODO remove from abstract device - this is purely simulation
 	/**
 	 * remember where we stopped, so we can resume later
 	 * @param queueEntryID the ID of the queue we are talking about

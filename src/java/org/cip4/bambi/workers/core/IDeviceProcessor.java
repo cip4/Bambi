@@ -99,6 +99,7 @@ public interface IDeviceProcessor extends Runnable
      * @param queueProcessor the queueprocessor
      * @param statusListener the status listener
      * @param deviceID       the device ID
+     *TODO remove appDir - why is it needed?
      * @param appDir         the location of the web application on the disk
      */
     public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, 

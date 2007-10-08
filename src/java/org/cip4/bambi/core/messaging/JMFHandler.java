@@ -266,9 +266,11 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
         resp.setErrorText("Message not implemented: "+m.getType()+"; Family: "+m.getFamily().getName());        
     }
     /**
-     * @param q
-     * @param resp
-     * @param subscript
+     * add tis subscription to the list of known subscriptions
+     * 
+     * @param q the query with subscription
+     * @param resp the response to fill in
+     * @param subscript the subscription
      */
     private void processSubscription(JDFQuery q, JDFMessage resp, JDFSubscription subscript)
     {
@@ -304,6 +306,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
         {
             JDFQuery q=(JDFQuery)inputMessage;
             JDFSubscription subscript=q.getSubscription();
+            // subscriptions are added to the subscription list rather than immediately answered
             if(subscript!=null)
             {
                 processSubscription(q,response,subscript);

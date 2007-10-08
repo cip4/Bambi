@@ -82,7 +82,10 @@ import java.util.Map;
  *
  */
 public class QueueEntryTracker {
-	// TODO persist (SOAP?)
+	// TODO persist (SOAP?) - 
+    // I suggest you simply add the values as privat ns to the queue - 
+    // that way any persistence of the queue also persists the tracker 
+    // TODO make this an interface
 	protected static class OutgoingQE {
 		private String _qeid=null;
 		private String _deviceID=null;
