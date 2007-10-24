@@ -98,231 +98,231 @@ import org.cip4.jdflib.util.ContainerUtil;
 public class JMFHandler implements IMessageHandler, IJMFHandler
 {
 
-    protected static final Log log = LogFactory.getLog(JMFHandler.class.getName());
+	protected static final Log log = LogFactory.getLog(JMFHandler.class.getName());
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = -8902151736245089033L;
-    protected HashMap messageMap; // key = type , value = IMessageHandler
-    protected HashMap familyMap; // key = type , value = families handled
-    protected HashMap subscriptionMap; // key = type , value = subscriptions handled
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8902151736245089033L;
+	protected HashMap<EnumType,IMessageHandler> messageMap; // key = type , value = IMessageHandler
+	protected HashMap<EnumType,EnumFamily[]> familyMap; // key = type , value = families handled
+	protected HashMap<EnumType,IMessageHandler> subscriptionMap; // key = type , value = subscriptions handled
 
-    /**
-     * 
-     * handler for the knownmessages query
-     */
-    private class KnownMessagesHandler implements IMessageHandler
-    {
+	/**
+	 * 
+	 * handler for the knownmessages query
+	 */
+	private class KnownMessagesHandler implements IMessageHandler
+	{
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-         */
-        public boolean handleMessage(JDFMessage m, JDFResponse resp)
-        {
-            if(m==null || resp==null)
-            {
-                return false;
-            }
-            log.debug("Handling"+m.getType());
-            EnumType typ=m.getEnumType();
-            if(EnumType.KnownMessages.equals(typ))
-                return handleKnownMessages(m, resp);
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 */
+		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		{
+			if(m==null || resp==null)
+			{
+				return false;
+			}
+			log.debug("Handling"+m.getType());
+			EnumType typ=m.getEnumType();
+			if(EnumType.KnownMessages.equals(typ))
+				return handleKnownMessages(m, resp);
 
-            return false;
-        }
-        /**
-         * @return
-         */
-        private boolean handleKnownMessages(JDFMessage m, JDFMessage resp)
-        {
-            if(m==null)
-                return false;
-            if(!EnumFamily.Query.equals(m.getFamily()))
-                return false;
+			return false;
+		}
+		/**
+		 * @return
+		 */
+		private boolean handleKnownMessages(JDFMessage m, JDFMessage resp)
+		{
+			if(m==null)
+				return false;
+			if(!EnumFamily.Query.equals(m.getFamily()))
+				return false;
 
-            Iterator it=messageMap.keySet().iterator();
-            while(it.hasNext())
-            {
-                EnumType typ=(EnumType)it.next();
-                log.debug("Known Message: "+typ.getName());
-                JDFMessageService ms=resp.appendMessageService();
-                ms.setType(typ);
-                ms.setFamilies(ContainerUtil.toVector((EnumFamily[])familyMap.get(typ)));     
-                if(subscriptionMap.get(typ)!=null)
-                    ms.setPersistent(true);
-            }
-            return true;
-        }
+			Iterator<EnumType> it=messageMap.keySet().iterator();
+			while(it.hasNext())
+			{
+				EnumType typ=(EnumType)it.next();
+				log.debug("Known Message: "+typ.getName());
+				JDFMessageService ms=resp.appendMessageService();
+				ms.setType(typ);
+				ms.setFamilies(ContainerUtil.toVector((EnumFamily[])familyMap.get(typ)));     
+				if(subscriptionMap.get(typ)!=null)
+					ms.setPersistent(true);
+			}
+			return true;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Query};
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#getFamilies()
+		 */
+		public EnumFamily[] getFamilies()
+		{
+			return new EnumFamily[]{EnumFamily.Query};
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.KnownMessages;
-        }
-    }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#getMessageType()
+		 */
+		public EnumType getMessageType()
+		{
+			return EnumType.KnownMessages;
+		}
+	}
 
-    public JMFHandler()
-    {
-        super();
-        messageMap=new HashMap();
-        familyMap=new HashMap();
-        subscriptionMap=new HashMap();
-        addHandler( this.new KnownMessagesHandler() );
-    }
-   
-    public JMFHandler(JMFHandler oldHandler)
-    {
-        super();
-        messageMap=new HashMap(oldHandler.messageMap);
-        familyMap=new HashMap(oldHandler.familyMap);
-        subscriptionMap=new HashMap(oldHandler.subscriptionMap);
-        addHandler( this.new KnownMessagesHandler() );
-    }
+	public JMFHandler()
+	{
+		super();
+		messageMap=new HashMap<EnumType, IMessageHandler>();
+		familyMap=new HashMap<EnumType, EnumFamily[]>();
+		subscriptionMap=new HashMap<EnumType, IMessageHandler>();
+		addHandler( this.new KnownMessagesHandler() );
+	}
 
-    /**
-     * add a message handler
-     * @param handler the handler associated with the event
-     */
-    public void addHandler(IMessageHandler handler)
-    {
-        EnumType typ=handler.getMessageType();
-        messageMap.put(typ, handler);
-        EnumFamily[] families = handler.getFamilies();
-        familyMap.put(typ, families);
-    }
+	public JMFHandler(JMFHandler oldHandler)
+	{
+		super();
+		messageMap=new HashMap(oldHandler.messageMap);
+		familyMap=new HashMap(oldHandler.familyMap);
+		subscriptionMap=new HashMap(oldHandler.subscriptionMap);
+		addHandler( this.new KnownMessagesHandler() );
+	}
 
-    /**
-     * @param typ the message type
-     * @param family the family
-     * @return the handler, null if none exists
-     */
-    private IMessageHandler getHandler(EnumType typ, EnumFamily family)
-    {
-        IMessageHandler messageHandler=(IMessageHandler) messageMap.get(typ);
-        if(messageHandler!=null)
-        {
-            EnumFamily[]fams=(EnumFamily[]) familyMap.get(typ);
-            if(fams==null || !ArrayUtils.contains(fams, family))
-                messageHandler=null;
-        }
-        return messageHandler;
-    }
-    /**
-     * @param knownMessages
-     * @param families
-     * @param handler
-     */
-    public void addSubscriptionHandler(EnumType typ, IMessageHandler handler)
-    {
-        subscriptionMap.put(typ, handler);
-    }
-    /**
-     * the big processing dispatcher
-     * 
-     * @param doc the JDFDoc holding the JMF which is to be processed
-     * @return the JDFDoc holding the JMF response
-     */
-    public JDFDoc processJMF(JDFDoc doc)
-    {
-        JDFJMF jmf=doc.getJMFRoot();
-        JDFJMF jmfResp=jmf.createResponse();
-        VElement vMess=jmf.getMessageVector(null,null);
-        for(int i=0;i<vMess.size();i++)
-        {
-            JDFMessage m=(JDFMessage) vMess.elementAt(i);
-            String id=m.getID();
+	/**
+	 * add a message handler
+	 * @param handler the handler associated with the event
+	 */
+	public void addHandler(IMessageHandler handler)
+	{
+		EnumType typ=handler.getMessageType();
+		messageMap.put(typ, handler);
+		EnumFamily[] families = handler.getFamilies();
+		familyMap.put(typ, families);
+	}
 
-            JDFResponse mResp=(JDFResponse) (id==null ? null : jmfResp.getChildWithAttribute(ElementName.RESPONSE,AttributeName.REFID, null, id, 0, true));
-            if(mResp==null)
-                log.error("??? "+id+" "+jmfResp);
-            handleMessage(m, mResp);
-        }   
-        return new JDFDoc(jmfResp.getOwnerDocument());
-    }
+	/**
+	 * @param typ the message type
+	 * @param family the family
+	 * @return the handler, null if none exists
+	 */
+	private IMessageHandler getHandler(EnumType typ, EnumFamily family)
+	{
+		IMessageHandler messageHandler=(IMessageHandler) messageMap.get(typ);
+		if(messageHandler!=null)
+		{
+			EnumFamily[]fams=(EnumFamily[]) familyMap.get(typ);
+			if(fams==null || !ArrayUtils.contains(fams, family))
+				messageHandler=null;
+		}
+		return messageHandler;
+	}
+	/**
+	 * @param knownMessages
+	 * @param families
+	 * @param handler
+	 */
+	public void addSubscriptionHandler(EnumType typ, IMessageHandler handler)
+	{
+		subscriptionMap.put(typ, handler);
+	}
+	/**
+	 * the big processing dispatcher
+	 * 
+	 * @param doc the JDFDoc holding the JMF which is to be processed
+	 * @return the JDFDoc holding the JMF response
+	 */
+	public JDFDoc processJMF(JDFDoc doc)
+	{
+		JDFJMF jmf=doc.getJMFRoot();
+		JDFJMF jmfResp=jmf.createResponse();
+		VElement vMess=jmf.getMessageVector(null,null);
+		for(int i=0;i<vMess.size();i++)
+		{
+			JDFMessage m=(JDFMessage) vMess.elementAt(i);
+			String id=m.getID();
+
+			JDFResponse mResp=(JDFResponse) (id==null ? null : jmfResp.getChildWithAttribute(ElementName.RESPONSE,AttributeName.REFID, null, id, 0, true));
+			if(mResp==null)
+				log.error("??? "+id+" "+jmfResp);
+			handleMessage(m, mResp);
+		}   
+		return new JDFDoc(jmfResp.getOwnerDocument());
+	}
 
 
-    /**
-     * standard handler for unimplemented messages
-     * @param m
-     * @param resp
-     */
-    private void unhandledMessage(JDFMessage m, JDFResponse resp)
-    {
-        log.info("unhandled Message: "+m.getType());
-        if(resp==null)
-            return;
-        resp.setReturnCode(5);
-        resp.setErrorText("Message not implemented: "+m.getType()+"; Family: "+m.getFamily().getName());        
-    }
-    /**
+	/**
+	 * standard handler for unimplemented messages
+	 * @param m
+	 * @param resp
+	 */
+	private void unhandledMessage(JDFMessage m, JDFResponse resp)
+	{
+		log.info("unhandled Message: "+m.getType());
+		if(resp==null)
+			return;
+		resp.setReturnCode(5);
+		resp.setErrorText("Message not implemented: "+m.getType()+"; Family: "+m.getFamily().getName());        
+	}
+
+	/**
      * add tis subscription to the list of known subscriptions
      * 
      * @param q the query with subscription
      * @param resp the response to fill in
      * @param subscript the subscription
      */
-    private void processSubscription(JDFQuery q, JDFMessage resp, JDFSubscription subscript)
-    {
-        // TODO Auto-generated method stub
+	private void processSubscription(JDFQuery q, JDFMessage resp, JDFSubscription subscript)
+	{
+		// TODO Auto-generated method stub
 
-    }
+	}
 
-    /** 
-     * we do not call these for ourselves...
-     */
-    public EnumFamily[] getFamilies()
-    {
-        return null;
-    }
+	/** 
+	 * we do not call these for ourselves...
+	 */
+	public EnumFamily[] getFamilies()
+	{
+		return null;
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.IMessageHandler#getMessageType()
-     */
-    public EnumType getMessageType()
-    {
-        return null;
-    }
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.IMessageHandler#getMessageType()
+	 */
+	public EnumType getMessageType()
+	{
+		return null;
+	}
 
-    /**
-     * the handler implements itself as a generic handler
-     */
-    public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
-    {
-        if(inputMessage==null)
-            return false;
-        EnumFamily family=inputMessage.getFamily();
-        if(EnumFamily.Query.equals(family))
-        {
-            JDFQuery q=(JDFQuery)inputMessage;
-            JDFSubscription subscript=q.getSubscription();
-            // subscriptions are added to the subscription list rather than immediately answered
-            if(subscript!=null)
-            {
-                processSubscription(q,response,subscript);
-                return true;
-            }
-        }
-        EnumType typ=inputMessage.getEnumType();
-        IMessageHandler handler=getHandler(typ, family);
-        boolean handled=handler!=null;
-        if(handler!=null)
-            handled=handler.handleMessage(inputMessage, response);
-        if(!handled)
-        {
-            unhandledMessage(inputMessage,response);
-        }
-        return handled;
-    }
+	/**
+	 * the handler implements itself as a generic handler
+	 */
+	public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+	{
+		if(inputMessage==null)
+			return false;
+		EnumFamily family=inputMessage.getFamily();
+		if(EnumFamily.Query.equals(family))
+		{
+			JDFQuery q=(JDFQuery)inputMessage;
+			JDFSubscription subscript=q.getSubscription();
+			// subscriptions are added to the subscription list rather than immediately answered
+			if(subscript!=null) {
+				processSubscription(q,response,subscript);
+				return true;
+			}
+		}
+		EnumType typ=inputMessage.getEnumType();
+		IMessageHandler handler=getHandler(typ, family);
+		boolean handled=handler!=null;
+		if(handler!=null)
+			handled=handler.handleMessage(inputMessage, response);
+		if(!handled)
+		{
+			unhandledMessage(inputMessage,response);
+		}
+		return handled;
+	}
 
 }

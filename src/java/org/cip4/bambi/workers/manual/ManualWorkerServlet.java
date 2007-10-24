@@ -1,4 +1,4 @@
-package org.cip4.bambi.workers.sim;
+package org.cip4.bambi.workers.manual;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -10,12 +10,12 @@ import org.cip4.bambi.core.IDevice;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.workers.core.AbstractWorkerServlet;
 
-public class SimWorkerServlet extends AbstractWorkerServlet {
-	protected static Log log = LogFactory.getLog(SimWorkerServlet.class.getName());
+public class ManualWorkerServlet extends AbstractWorkerServlet {
+	protected static Log log = LogFactory.getLog(ManualWorkerServlet.class.getName());
 	private static final long serialVersionUID = 431025409853435322L;
 	
 	protected IDevice buildDevice(DeviceProperties prop) {
-		SimDevice dev=new SimDevice(prop);
+		ManualDevice dev=new ManualDevice(prop);
 		return dev;
 	}
 
@@ -27,10 +27,10 @@ public class SimWorkerServlet extends AbstractWorkerServlet {
 			log.error(e);
 		}
 	}
-
+	
 	protected AbstractDevice getDeviceFromObject(Object dev) {
 		if (dev!=null) {
-			return (SimDevice)dev;
+			return (ManualDevice)dev;
 		} else {
 			return null;
 		}

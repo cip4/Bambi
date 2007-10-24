@@ -1,9 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" errorPage="exception.jsp"%>
-<%@ page import="org.cip4.bambi.devices.manual.ManualDevice"%>
-<%@ page import="org.cip4.bambi.queues.QueueFacade"%>
-<%@ page import="org.cip4.bambi.queues.QueueFacade.BambiQueueEntry"%>
-<%@ page import="org.cip4.bambi.servlets.DeviceServlet"%>
-<%@ page import="org.cip4.bambi.devices.devcore.AbstractDeviceProcessor.JobPhase"%>
+<%@ page import="org.cip4.bambi.workers.manual.ManualDevice"%>
+<%@ page import="org.cip4.bambi.core.queues.QueueFacade"%>
+<%@ page import="org.cip4.bambi.core.queues.QueueFacade.BambiQueueEntry"%>
+<%@ page import="org.cip4.bambi.workers.core.AbstractBambiDeviceProcessor.JobPhase"%>
 <%@ page import="org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus"%>
 <%@ page import="org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus"%>
 <%@ page import="org.cip4.jdflib.core.JDFElement.EnumNodeStatus"%>
@@ -25,8 +24,8 @@
 		<h1>Bambi - Device "<%=dev.getDeviceID()%>"</h1>
 		
 		<p align="center">
-			// <a href="BambiRootDevice">back to root device</a> //
-			<a href="BambiRootDevice?cmd=showDevice&id=<%=dev.getDeviceID()%>">reload this page</a> //
+			// <a href="overview">back to root device</a> //
+			<a href="overview?cmd=showDevice&id=<%=dev.getDeviceID()%>">reload this page</a> //
 		</p>
 
 		
@@ -37,7 +36,7 @@
 		<div style="margin-left: 20px">
 			<b>ID: </b> <%=dev.getDeviceID()%> <br/>
 			<b>Class: </b> <%=dev.getDeviceType()%><br/>
-			<b>URL: </b> <%=dev.getDeviceURL()%> <br/>
+			<b>URL: </b> http://<%=request.getLocalAddr() + ":" + request.getServerPort() + request.getContextPath()+"/devices/"+dev.getDeviceID()%><br/>
 			<b>Status: </b> <%=dev.getDeviceStatus().getName()%>
 		</div>
 
@@ -66,7 +65,7 @@
 		        <tbody>
 				
 				<%
-					Vector bqEntries = bqu.getBambiQueueEntryVector();
+					Vector<BambiQueueEntry> bqEntries = bqu.getBambiQueueEntryVector();
 					for (int i=0; i<bqEntries.size();i++)
 					{
 						QueueFacade.BambiQueueEntry bqe = (QueueFacade.BambiQueueEntry)bqEntries.get(i);
@@ -80,12 +79,12 @@
 	            			if ( bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Running) )
 	            			{
 	            %>
-	            				<a href="BambiRootDevice?cmd=suspendQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">suspend</a>
+	            				<a href="overview?cmd=suspendQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">suspend</a>
 	            <%
 	            			} else if ( bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Suspended) )
 	            			{
 	            %>
-	            	           	<a href="BambiRootDevice?cmd=resumeQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">resume</a>				
+	            	           	<a href="overview?cmd=resumeQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">resume</a>				
 	            <%
 	            	        }
 	            %>
@@ -95,7 +94,7 @@
 	            			if ( ! bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Completed) && ! bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Aborted) && ! bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Removed) )
 	            			{
 	            %>
-	            				<a href="BambiRootDevice?cmd=abortQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">abort</a>
+	            				<a href="overview?cmd=abortQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">abort</a>
 	            <%
 	            			}
 	            %>
@@ -105,7 +104,7 @@
 	            			if ( ! bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Running) && ! bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Suspended)  && ! bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Removed) )
 	            			{
 	            %>
-	            				<a href="BambiRootDevice?cmd=removeQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">remove</a>
+	            				<a href="overview?cmd=removeQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">remove</a>
 	            <%
 	            			}
 	            %>
@@ -118,7 +117,7 @@
 		        </tbody>
 	     	</table>
 	     	<%
-				Vector bqEntry = bqu.getBambiQueueEntryVector();
+				Vector<BambiQueueEntry> bqEntry = bqu.getBambiQueueEntryVector();
 				if (bqEntry.size() == 0)
 					return;
 				
@@ -127,7 +126,7 @@
 					return;
 				}
 			%>
-			<form action="BambiRootDevice">
+			<form action="overview">
 				<input type="hidden" name="cmd"	value="finalizeCurrentQE" /> 
 				<input type="hidden" name="id" value="<%=dev.getDeviceID() %>" /> 
 				<input type="hidden" name="show" value="true" /> 
@@ -141,7 +140,7 @@
 		
      	<br/>
      	<h3>Job Phase</h3>
-		<form action="BambiRootDevice" style="margin-left: 20px">
+		<form action="overview" style="margin-left: 20px">
  			<input type="hidden" name="cmd" value="processNextPhase" />
  			<input type="hidden" name="id" value="<%=dev.getDeviceID() %>" />
  			<input type="hidden" name="qeid" value="<%=currentBQE.queueEntryID %>" />
@@ -170,17 +169,16 @@
 			 			<%
 			 					Iterator devIter = EnumDeviceStatus.iterator();
 			 					while (devIter.hasNext()) {
-			 						String devStatus = ((EnumDeviceStatus) devIter.next())
-			 						.getName();
+			 						String devStatus = ((EnumDeviceStatus) devIter.next()).getName();
 			 						if (devStatus.equals(currentPhase.deviceStatus.getName())) {
 			 			%>
 			 					<option selected="selected"><%=devStatus%></option>
 			 			<%
-			 			} else {
+			 						} else {
 			 			%>
 			 					<option><%=devStatus%></option>
 			 			<%
-			 					}
+			 						}
 			 					}
 			 			%>
 			 			</select>
@@ -207,11 +205,11 @@
 			 			%>
 			 					<option selected="selected"><%=nodeStatus%></option>
 			 			<%
-			 			} else {
+			 						} else {
 			 			%>
 			 					<option><%=nodeStatus%></option>
 			 			<%
-			 					}
+			 						}
 			 					}
 			 			%>
 		 				</select>
@@ -240,7 +238,7 @@
 	     		</tr>
 	     	</table>
      	
-     	<%
+     			<%
      	     	}
      	     	%>
  			<input type="submit" value="process next phase phase"/>

@@ -73,15 +73,15 @@ package org.cip4.bambi.workers.manual;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.workers.manual.ManualDeviceProcessor;
-import org.cip4.bambi.workers.core.AbstractDevice;
-import org.cip4.bambi.workers.core.AbstractDeviceProcessor.JobPhase;
-import org.cip4.bambi.workers.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.core.AbstractDeviceProcessor;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.workers.core.AbstractWorkerDevice;
+import org.cip4.bambi.workers.core.AbstractBambiDeviceProcessor.JobPhase;
 
 /**
  * a simple JDF device.<br>
  * A ManualDevice does not contain a fixed list of JobPhases. After a QueueEntry has been 
- * submitted, it starts with an idle job phase. Following job phases have to be added via 
+ * submitted, it starts with an idle job phase. Additional Job phases may be added via 
  * the web interface. Processing of the QueueEntry finishes when ordered by the user. <br>
  * This class should remain final: if it is ever subclassed, the DeviceProcessor thread 
  * would be started before the constructor from the subclass has a chance to fire.
@@ -90,7 +90,7 @@ import org.cip4.bambi.workers.core.MultiDeviceProperties.DeviceProperties;
  * @author boegerni
  * 
  */
-public final class ManualDevice extends AbstractDevice   {
+public final class ManualDevice extends AbstractWorkerDevice   {
 	
 
 	/**
@@ -112,35 +112,16 @@ public final class ManualDevice extends AbstractDevice   {
 	
 	public void doNextJobPhase(JobPhase nextPhase)
 	{
-		if (_theDeviceProcessor instanceof  ManualDeviceProcessor)
-		{
-			log.info("ordering next job phase: "+nextPhase.toString());
-			((ManualDeviceProcessor)_theDeviceProcessor).doNextPhase(nextPhase);
-		}
-		else
-		{
-			String errorMsg = "device processor has wrong type\r\n"+
-				"expected: org.cip4.Bambi.devices.CustomDeviceProcessor\r\n" +
-				"actual: " +_theDeviceProcessor.getClass().getName();
-			log.fatal(errorMsg);
-		}
+		((ManualDeviceProcessor)_theDeviceProcessor).doNextPhase(nextPhase);
 	}
 	
 	public void finalizeCurrentQueueEntry()
 	{
-		if (_theDeviceProcessor instanceof  ManualDeviceProcessor)
-		{
-			log.info("processing of the current QueueEntry on device "+_deviceID+" is being finished");
-			((ManualDeviceProcessor)_theDeviceProcessor).finalizeQueueEntry();
-		}
-		else
-		{
-			String errorMsg = "device processor has wrong type\r\n"+
-				"expected: org.cip4.Bambi.devices.ManualDeviceProcessor\r\n" +
-				"actual: " +_theDeviceProcessor.getClass().getName();
-			log.fatal(errorMsg);
-		}
-		
-		
+		log.info("processing of the current QueueEntry on device "+_devProperties.getDeviceID()+" is being finalized");
+		((ManualDeviceProcessor)_theDeviceProcessor).finalizeQueueEntry();
+	}
+
+	protected AbstractDeviceProcessor buildDeviceProcessor() {
+		return new ManualDeviceProcessor(_theQueueProcessor, _theStatusListener, _devProperties.getDeviceID(), _devProperties.getAppDir());
 	}
 }

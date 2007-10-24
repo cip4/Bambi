@@ -1,27 +1,26 @@
 <?xml version="1.0"?>
 <!-- <!DOCTYPE project SYSTEM "file:/Developer/Applications/apache-ant-1.6.2/dtd/ant.dtd"> -->
-<project name="SimWorker" default="war" basedir=".">
+<project name="BambiProxy" default="war" basedir=".">
 	<description>Bambi's sim worker</description>
 	<!-- Initializes -->
 	<target name="-init" description="Initializes the build. This task is automatically run before building.">
 		<echo>Initializing. Using build settings from ./build.properties...</echo>
 		<!-- Sets properties -->
 		<tstamp/>
-   		<property name="SimWorker.name" value="SimWorker" />
+   		<property name="BambiProxy.name" value="BambiProxy" />
 		<property file="version.properties"/>
 		<property name="src.dir" value="./src" />
-		<property name="sim.src.dir" value="${src.dir}/java/org/cip4/bambi/workers/sim" />
-		<property name="workerscore.src.dir" value="${src.dir}/java/org/cip4/bambi/workers/core" />
-		<property name="web.src.dir" value="./WebContent/workers/sim" />
+		<property name="proxy.src.dir" value="${src.dir}/java/org/cip4/bambi/proxy" />
+		<property name="web.src.dir" value="./WebContent/proxy" />
 		<property name="webcore.src.dir" value="./WebContent/core" />
 		<property name="web.config.dir" value="${web.src.dir}/config" />
 		<property name="test.src.dir" value="./test" />
 		<property name="lib.dir" value="${src.dir}/lib" />
-		<property name="bin.dir" value="./bin/simworker" />
-		<property name="dist.dir" value="./dist/simworker" />
+		<property name="bin.dir" value="./bin/BambiProxy" />
+		<property name="dist.dir" value="./dist/BambiProxy" />
 		<property name="build.debug" value="true" />
-		<property name="base.filename" value="${SimWorker.name}-${DSTAMP}" />
-		<property name="major.filename" value="${SimWorker.name}" />		
+		<property name="base.filename" value="${BambiProxy.name}-${DSTAMP}" />
+		<property name="major.filename" value="${BambiProxy.name}" />		
 
 		<property name="verbose" value="true" />
 		<!-- Sets class path -->
@@ -38,12 +37,7 @@
 	<target name="compile" depends="-init" description="Compiles source code.">
 		<echo>Compiling...</echo>
 		<javac destdir="${bin.dir}" debug="${build.debug}">
-			<src path="${workerscore.src.dir}" />
-			<classpath refid="project.class.path" />
-			<include name="**/*.java" />
-		</javac>
-		<javac destdir="${bin.dir}" debug="${build.debug}">
-			<src path="${sim.src.dir}" />
+			<src path="${proxy.src.dir}" />
 			<classpath refid="project.class.path" />
 			<include name="**/*.java" />
 		</javac>
@@ -52,7 +46,7 @@
 		<echo>Building JAR file...</echo>
 		<jar jarfile="${dist.dir}/${base.filename}.jar" basedir="${bin.dir}" />
 	</target>
-	<target name="major_jar" depends="jar" description="Builds a JAR archive containing the SimWorker binaries.">
+	<target name="major_jar" depends="jar" description="Builds a JAR archive containing the BambiProxy binaries.">
 		<echo>Copying JAR file: ${dist.dir}/${major.filename}.jar</echo>
 		<copy file="${dist.dir}/${base.filename}.jar" tofile="${dist.dir}/${major.filename}.jar"/>
 	</target>
@@ -98,13 +92,13 @@
 			<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
 		</replace>		
 		<!-- Builds compressed WAR file -->
-		<jar basedir="${war.dir}" destfile="${dist.dir}/${SimWorker.name}.war" filesonly="false"/>
+		<jar basedir="${war.dir}" destfile="${dist.dir}/${BambiProxy.name}.war" filesonly="false"/>
 	</target>
 		<target name="-tomcat-init" depends="-init">
 		<echo>Initializing optional targets for deploying directly into Tomcat...</echo>
 		<!-- Tomcat tasks -->
 		<!-- Configure the context path for this application -->
-		<property name="path" value="/${SimWorker.name}" />
+		<property name="path" value="/${BambiProxy.name}" />
 		<!-- Configure properties to access the Manager application -->
 		<property name="tomcat.url" value="http://localhost:8080/manager" />
 		<property name="username" value="tomcat" />
@@ -127,13 +121,13 @@
 	</target>
 	<target name="install" description="Install web application" depends="-tomcat-init,war">
 		<!-- tomcat's server need to be running for this task to complete succesfully -->
-		<install url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${SimWorker.name}.war" />
+		<install url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${BambiProxy.name}.war" />
 	</target>
 	<target name="redeploy" depends="-tomcat-init,war" description="Undeploys and redeploys the web application">
 		<!-- tomcat's server need to be running for this task to complete succesfully -->
 		<echo> Undeploys and Deploys the reference web application... </echo>
 		<undeploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}" />
-		<deploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${SimWorker.name}.war" />
+		<deploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${BambiProxy.name}.war" />
 	</target>
 	<target name="test" description="Runs JUnit tests." depends="compile">
 			<property name="test.bin.dir" value="${bin.dir}/test" />

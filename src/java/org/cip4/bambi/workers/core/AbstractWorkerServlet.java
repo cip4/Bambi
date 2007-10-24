@@ -71,39 +71,29 @@
 
 package org.cip4.bambi.workers.core;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Properties;
 import java.util.Set;
 
-import javax.mail.BodyPart;
-import javax.mail.MessagingException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractBambiServlet;
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IDevice;
+import org.cip4.bambi.core.MultiDeviceProperties;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
-import org.cip4.bambi.core.messaging.IMessageHandler;
-import org.cip4.bambi.core.messaging.JMFHandler;
-import org.cip4.bambi.workers.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
-import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
@@ -118,98 +108,24 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public abstract class AbstractWorkerServlet extends AbstractBambiServlet implements IDevice 
 {
-	/**
-	 * 
-	 * handler for the knowndevices query
-	 */
-	protected class KnownDevicesHandler implements IMessageHandler
-	{
-	
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-		 */
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
-		{
-			if(m==null || resp==null)
-			{
-				return false;
-			}
-//			log.info("Handling "+m.getType());
-			EnumType typ=m.getEnumType();
-			if(EnumType.KnownDevices.equals(typ))
-			{
-				JDFDeviceList dl = resp.appendDeviceList();
-				Set keys = _devices.keySet();
-				Object[] strKeys = keys.toArray();
-				for (int i=0; i<keys.size();i++)
-				{
-					String key = (String)strKeys[i];
-					AbstractDevice dev = getDeviceFromObject(_devices.get(key));
-					if (dev == null)
-						log.error("device with key '"+key+"'not found");
-					else
-						dev.appendDeviceInfo(dl);
-				}
-				return true;
-			}
-	
-			return false;
-		}
-	
-	
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.IMessageHandler#getFamilies()
-		 */
-		public EnumFamily[] getFamilies()
-		{
-			return new EnumFamily[]{EnumFamily.Query};
-		}
-	
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.IMessageHandler#getMessageType()
-		 */
-		public EnumType getMessageType()
-		{
-			return EnumType.KnownDevices;
-		}
-	}
 	protected static final long serialVersionUID = -8902151736245089036L;
 	protected static Log log = LogFactory.getLog(AbstractWorkerServlet.class.getName());
-	protected String _appDir=null;
-	protected String _baseDir=null;
-	protected String _configDir=null;
-	protected String _xslDir="./xslt/";
-	protected String _jdfDir=null; // remove ? 
-    protected String _deviceID=null;
-    protected String _deviceType=null;
-	protected HashMap _devices = null;
-	protected String _deviceURL=null;
-	protected JMFHandler _jmfHandler=null;
+	protected HashMap<String,IDevice> _devices = null;
 
 	/** Initializes the servlet.
 	 */
 	public void init(ServletConfig config) throws ServletException 
 	{
 		super.init(config);
-		setAppDir();
-		_baseDir=_appDir+"jmb";
-		_configDir=_appDir+"config/";
-		_jdfDir=_appDir+"JDFDir/";
-		new File(_baseDir).mkdirs();
-		new File(_jdfDir).mkdirs();
-		_devices = new HashMap();
-		_jmfHandler=new JMFHandler();
-		log.info("Initializing servlet");
-		loadProperties();
+		_devices = new HashMap<String, IDevice>();
 		createDevicesFromFile(_configDir+"devices.xml");
-		addHandlers();
 	}
 
 	/** Destroys the servlet.
 	 */
 	public void destroy() {
-		Set keys=_devices.keySet();
-		Iterator it=keys.iterator();
+		Set<String> keys=_devices.keySet();
+		Iterator<String> it=keys.iterator();
 		while (it.hasNext()) {
 			String devID=it.next().toString();
 			AbstractDevice dev=(AbstractDevice) _devices.get(devID);
@@ -224,6 +140,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 	{
 		log.info("Processing get request...");
+		
 		String command = request.getParameter("cmd");
 		
 		if (command == null || command.length() == 0) {
@@ -282,48 +199,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 		return dev;
 	}
 
-	/** Handles the HTTP <code>POST</code> method.
-	 * @param request servlet request
-	 * @param response servlet response
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-	throws ServletException, IOException
-	{
-		log.debug("Processing post request for: "+request.getPathInfo());
-		String contentType=request.getContentType();
-		if(MimeUtil.VND_JMF.equals(contentType))
-		{
-			processJMFRequest(request,response,null);
-		}
-		else if(MimeUtil.VND_JDF.equals(contentType))
-		{
-			processJDFRequest(request,response,null);
-		}
-		else 
-		{
-			boolean isMultipart = ServletFileUpload.isMultipartContent(request);
-			if (isMultipart)
-			{
-				log.info("Processing multipart request..."+contentType);
-				processMultipartRequest(request, response);
-			}
-			else
-			{
-				log.warn("Unknown ContentType:"+contentType);
-				response.setContentType("text/plain");
-				OutputStream os=response.getOutputStream();
-				InputStream is=request.getInputStream();
-				byte[] b=new byte[1000];
-				while(true)
-				{
-					int l=is.read(b);
-					if(l<=0)
-						break;
-					os.write(b,0,l);
-				}
-			}
-		}
-	}
+	
 
 	/** 
 	 * Returns a short description of the servlet.
@@ -346,7 +222,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 		if (_devices == null)
 		{
 			log.warn("map of devices is null, re-initialising map...");
-			_devices = new HashMap();
+			_devices = new HashMap<String, IDevice>();
 		}
 		
 		if (_devices.get(prop.getDeviceID()) == null)
@@ -367,43 +243,62 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	 * @param deviceID ID of the device to be removed
 	 * @return
 	 */
-	public boolean removeDevice(String deviceID)
-	{
-		if (_devices == null)
-		{
+	public boolean removeDevice(String deviceID) {
+		if (_devices == null) {
 			log.error("list of devices is null");
 			return false;
 		}
-		if (_devices.get(deviceID) != null)
-		{	
+		if (_devices.get(deviceID) != null) {	
 			_devices.remove(deviceID);
 			return true;
-		}
-		else
-		{
-			log.debug("tried to removing non-existing device");
+		} else {
+			log.warn("tried to removing non-existing device");
 			return false;
 		}
 	}
 
-	public int getDeviceQuantity()
-	{
-		if (_devices == null)
-			return 0;
-		else
+	/**
+	 * get the number of devices
+	 * @return
+	 */
+	public int getDeviceQuantity() {
+		if (_devices == null) {
+			return 0; 
+		} else {
 			return _devices.size();
+		}
 	}
 
+	/**
+	 * get a device
+	 * @param deviceID ID of the device to get
+	 * @return
+	 */
 	public IDevice getDevice(String deviceID)
 	{
-		if (_devices == null)
-		{
-			log.debug("list of devices is null");
+		if (_devices == null) {
+			log.warn("list of devices is null");
 			return null;
 		}
 
 		return (IDevice)_devices.get(deviceID);
 	}
+	
+	/**
+     * add or replace a device in the devicemap
+     * 
+     * @param deviceID
+     * @param device
+     */
+    public void addDevice(String deviceID, IDevice device)
+    {
+        if (_devices == null) {
+            log.debug("list of devices is null");
+            _devices=new HashMap();
+        }
+
+        _devices.put(deviceID, device);
+    }
 
 	protected boolean createDevicesFromFile(String fileName)
 	{
@@ -413,8 +308,8 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 			return false;
 		}
 		
-		Set keys=dv.getDeviceIDs();
-		Iterator iter=keys.iterator();
+		Set<String> keys=dv.getDeviceIDs();
+		Iterator<String> iter=keys.iterator();
 		while (iter.hasNext()) {
 			String devID=iter.next().toString();
 			DeviceProperties prop=dv.getDevice(devID);
@@ -424,84 +319,18 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 
 		return true;
 	}
-	
-	protected boolean loadProperties()
-	{
-		log.debug("loading properties");
-		try 
-		{
-			Properties properties = new Properties();
-			FileInputStream in = new FileInputStream(_configDir+"device.properties");
-			properties.load(in);
-			
-			_deviceID=properties.getProperty("DeviceID");
-			_deviceURL = properties.getProperty("DeviceURL");
-			
-			in.close();
-		} catch (FileNotFoundException e) {
-			log.fatal("SimWorker.properties not found");
-			return false;
-		} catch (IOException e) {
-			log.fatal("Error while applying SimWorker.properties");
-			return false;
-		}
-		return true;
-	}
-	
-	public HashMap getDevices()
+		
+	public HashMap<String, IDevice> getDevices()
 	{
 		return _devices;
-	}
-
-    public String getDeviceID() {
-        return _deviceID;
-    }
-    
-    public String getDeviceType() {
-        return _deviceType;
-    }
-
-	public String getDeviceURL() {
-		return _deviceURL;
 	}
 	
 	protected abstract IDevice buildDevice(DeviceProperties prop);
 	
 	protected abstract void showDevice(HttpServletRequest request, HttpServletResponse response);
-	
-	protected abstract void setAppDir();
 
-	/**
-	 * @param request
-	 * @param response
-	 */
-	private void processError(HttpServletRequest request, HttpServletResponse response, EnumType messageType, int returnCode, String notification)
-	{
-		log.warn("processError- rc: "+returnCode+" "+notification==null ? "" : notification);
-		JDFJMF error=JDFJMF.createJMF(EnumFamily.Response, messageType);
-		JDFResponse r=error.getResponse(0);
-		r.setReturnCode(returnCode);
-		r.setErrorText(notification);
-		response.setContentType(MimeUtil.VND_JMF);
-		try
-		{
-			error.getOwnerDocument_KElement().write2Stream(response.getOutputStream(), 0, true);
-		}
-		catch (IOException x)
-		{
-			log.error("processError: cannot write response\n"+x.getMessage());
-		}
 	
-	}
-
-	/**
-	 * http hotfolder processor
-	 * 
-	 * @param request
-	 * @param response
-	 * @throws IOException 
-	 */
-	private void processJDFRequest(HttpServletRequest request, 
+	protected void processJDFRequest(HttpServletRequest request, 
 			HttpServletResponse response, InputStream inStream) throws IOException
 	{
 		log.info("processJDFRequest");
@@ -526,13 +355,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 //		}
 	}
 
-	/**
-	 * @param request
-	 * @param response
-	 * @param jmfDoc
-	 * @throws IOException
-	 */
-	private void processJMFDoc(HttpServletRequest request,
+	protected void processJMFDoc(HttpServletRequest request,
 			HttpServletResponse response, JDFDoc jmfDoc) {
 		if(jmfDoc==null)
 		{
@@ -563,76 +386,6 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 		}
 	}
 
-	/**
-	 * @param request
-	 * @param response
-	 */
-	private void processJMFRequest(HttpServletRequest request, HttpServletResponse response,InputStream inStream) throws IOException
-	{
-		log.debug("processJMFRequest");
-		JDFParser p=new JDFParser();
-		if(inStream==null)
-			inStream=request.getInputStream();
-		JDFDoc jmfDoc=p.parseStream(inStream);
-		processJMFDoc(request, response, jmfDoc);
-	}
-
-	/**
-	 * Parses a multipart request.
-	 */
-	private void processMultipartRequest(HttpServletRequest request, HttpServletResponse response)
-	throws IOException {
-		InputStream inStream=request.getInputStream();
-		BodyPart bp[]=MimeUtil.extractMultipartMime(inStream);
-		log.info("Body Parts: "+((bp==null) ? 0 : bp.length));
-		if(bp==null || bp.length==0) {
-			processError(request,response,null,9,"No body parts in mime package");
-			return;
-		}
-		try  {// messaging exceptions
-			if(bp.length>1) {
-				processMultipleDocuments(request,response,bp);
-			} else {
-				String s=bp[0].getContentType();
-				if(MimeUtil.VND_JDF.equalsIgnoreCase(s)) {
-					processJDFRequest(request, response, bp[0].getInputStream());            
-				}
-				if(MimeUtil.VND_JMF.equalsIgnoreCase(s)) {
-					processJMFRequest(request, response, bp[0].getInputStream());            
-				}
-			}
-		} catch (MessagingException x) {
-			processError(request, response, null, 9, "Messaging exception\n"+x.getLocalizedMessage());
-		}
-	}
-
-	/**
-	 * process a multipart request - including job submission
-	 * @param request
-	 * @param response
-	 */
-	private void processMultipleDocuments(HttpServletRequest request, HttpServletResponse response,BodyPart[] bp)
-	{
-		log.info("processMultipleDocuments- parts: "+(bp==null ? 0 : bp.length));
-		if(bp==null || bp.length<2)
-		{
-			processError(request, response, EnumType.Notification, 2,"processMultipleDocuments- not enough parts, bailing out");
-			return;
-		}
-		JDFDoc docJDF[]=MimeUtil.getJMFSubmission(bp[0].getParent());
-		if(docJDF==null)
-		{
-			processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
-			return;
-		}
-		processJMFDoc(request, response, docJDF[0]);
-	}
-	
-	protected void addHandlers()
-	{
-		_jmfHandler.addHandler( new AbstractWorkerServlet.KnownDevicesHandler() );
-	}
-	
 	protected abstract AbstractDevice getDeviceFromObject(Object dev);
 	
 	private IJMFHandler getTargetHandler(HttpServletRequest request) {
@@ -646,5 +399,32 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 		if (device == null)
 			return _jmfHandler; // device not found
 		return( device.getHandler() );
+	}
+	
+	protected boolean handleKnownDevices(JDFMessage m, JDFResponse resp) {
+		if(m==null || resp==null)
+		{
+			return false;
+		}
+//		log.info("Handling "+m.getType());
+		EnumType typ=m.getEnumType();
+		if(EnumType.KnownDevices.equals(typ))
+		{
+			JDFDeviceList dl = resp.appendDeviceList();
+			Set<String> keys = _devices.keySet();
+			Object[] strKeys = keys.toArray();
+			for (int i=0; i<keys.size();i++)
+			{
+				String key = (String)strKeys[i];
+				AbstractDevice dev = getDeviceFromObject(_devices.get(key));
+				if (dev == null)
+					log.error("device with key '"+key+"'not found");
+				else
+					dev.appendDeviceInfo(dl);
+			}
+			return true;
+		}
+
+		return false;
 	}
 }

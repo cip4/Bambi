@@ -74,12 +74,13 @@ package org.cip4.bambi.workers.core;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.AbstractBambiServlet;
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
@@ -93,7 +94,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
  * @author boegerni
  *
  */
-public class QEControllerServlet extends AbstractBambiServlet {
+public class QEControllerServlet extends HttpServlet {
 	private String _command=null;
 	private String _queueEntryID = null;
 	private String _deviceID = null;
@@ -131,16 +132,13 @@ public class QEControllerServlet extends AbstractBambiServlet {
 			hasSend = sendJMF(request, response, EnumType.AbortQueueEntry); 
 		} else if ( _command.equals("removeQueueEntry") ) {
 			hasSend = sendJMF(request, response, EnumType.RemoveQueueEntry);	
-		}
-		else
-		{
+		} else {
 			showError("command not implemented", "the command "+_command+" is not implemented",
 						request, response);
 			return;
 		}
 		
-		if (hasSend)
-		{
+		if (hasSend) {
 			log.info("successfully sent "+_command);
 			if (_displayPage)
 				request.getRequestDispatcher("overview?cmd=showDevice&id="+_deviceID).forward(request, response);
@@ -256,7 +254,7 @@ public class QEControllerServlet extends AbstractBambiServlet {
 		if (qe == null)
 			showError("QueueEntry with ID="+_queueEntryID+" is null", qu.toString(), request, response);
 		
-		_deviceURL = dev.getDeviceURL();
+		_deviceURL=dev.getDeviceURL();
 		
 		return true;
 	}
@@ -272,5 +270,29 @@ public class QEControllerServlet extends AbstractBambiServlet {
 		log.error(errorMsg+":\r\n"+errorDetails);
 		if (_displayPage)
 			showErrorPage(errorMsg, errorDetails, request, response);
+	}
+	
+	/**
+	 * display an error on  error.jsp
+	 * @param errorMsg short message describing the error
+	 * @param errorDetails detailed error info
+	 * @param request required to forward the page
+	 * @param response required to forward the page
+	 */
+	protected void showErrorPage(String errorMsg, String errorDetails, HttpServletRequest request, HttpServletResponse response)
+	{
+		request.setAttribute("errorOrigin", this.getClass().getName());
+		request.setAttribute("errorMsg", errorMsg);
+		request.setAttribute("errorDetails", errorDetails);
+
+		try {
+			request.getRequestDispatcher("/error.jsp").forward(request, response);
+		} catch (ServletException e) {
+			System.err.println("failed to show error.jsp");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println("failed to show error.jsp");
+			e.printStackTrace();
+		}
 	}
 }

@@ -1,7 +1,9 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <devices>
-  <device001 DeviceID="device001" DeviceType="Generic Bambi device no. 1"
-  	DeviceProcessorClass="org.cip4.bambi.workers.sim.SimDeviceProcessor" />
-  <device002 DeviceID="device002" DeviceType="Generic Bambi device no. 2" 
-  	DeviceProcessorClass="org.cip4.bambi.workers.sim.SimDeviceProcessor" />
+  <device001 DeviceID="sim001" DeviceType="Bambi Sim device no. 1"
+  	ProxyURL="http://127.0.0.1:8080/BambiProxy/devices" 
+  	DeviceURL="http://127.0.0.1:8080/ManualWorker/devices/sim002" />
+  <device002 DeviceID="sim002" DeviceType="Bambi Sim device no. 2" 
+  	ProxyURL="http://127.0.0.1:8080/BambiProxy/devices" 
+  	DeviceURL="http://127.0.0.1:8080/ManualWorker/devices/sim002" />
 </devices>

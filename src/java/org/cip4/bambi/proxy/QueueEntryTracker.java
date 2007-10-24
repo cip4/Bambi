@@ -76,16 +76,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-/**
- * maps the "incoming" QueueEntries to the "outgoing" QueueEntries
- * @author boegerni
- *
- */
-public class QueueEntryTracker {
-	// TODO persist (SOAP?) - 
-    // I suggest you simply add the values as privat ns to the queue - 
-    // that way any persistence of the queue also persists the tracker 
-    // TODO make this an interface
+public class QueueEntryTracker implements IQueueEntryTracker {
+	// TODO persist (SOAP?)
 	protected static class OutgoingQE {
 		private String _qeid=null;
 		private String _deviceID=null;
@@ -121,13 +113,13 @@ public class QueueEntryTracker {
 		}
 	}
 	
-	Map _tracker = null;
+	Map<String, OutgoingQE> _tracker = null;
 	
 	/**
 	 * constructor
 	 */
 	public QueueEntryTracker() {
-		_tracker = new HashMap();
+		_tracker = new HashMap<String, OutgoingQE>();
 	}
 	
 	/**
@@ -144,39 +136,30 @@ public class QueueEntryTracker {
 		}
 	}
 	
-	/**
-	 * add a new pair
-	 * @param inputQEID  ID of the incoming QueueEntry
-	 * @param outputQEID ID of the outgoing QueueEntry
-	 * @param deviceID   ID of the device where the output QueueEntry is being processed
-	 * @param deviceURL  URL of the device where the output QueueEntry is being processed
-	 * @param returnURL  URL of the orginal sender of the QueueEntry
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.proxy.IQueueEntryTracker#addEntry(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
 	 */
 	public void addEntry(String inputQEID, String outputQEID, String deviceID, String deviceURL, String returnURL) {
 		OutgoingQE qe = new OutgoingQE(outputQEID,deviceID,deviceURL,returnURL);
 		_tracker.put(inputQEID, qe);
 	}
 	
-	/**
-	 * check whether the incomong QueueEntry has been forwarded to a worker  
-	 * @param qeid ID of the incoming QueueEntry
-	 * @return true, if the QueueEntry has been forwarded
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.proxy.IQueueEntryTracker#hasIncomingQE(java.lang.String)
 	 */
 	public boolean hasIncomingQE(String qeid) {
 		return _tracker.containsKey(qeid);
 	}
 	
-	/**
-	 * get the ID of the incoming QueueEntry matchingthe given outgoing QueueEntry ID  
-	 * @param qeid ID of the outgoing QueueEntry
-	 * @return the ID of the incoming QueueEntry, null if not found
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.proxy.IQueueEntryTracker#getIncomingQEID(java.lang.String)
 	 */
 	public String getIncomingQEID(String qeid) {
-		Collection keys = _tracker.keySet();
-		Iterator it = keys.iterator();
+		Collection<String> keys = _tracker.keySet();
+		Iterator<String> it = keys.iterator();
 		while (it.hasNext()) {
 			String inQEID = it.next().toString();
-			OutgoingQE out = (OutgoingQE) _tracker.get(inQEID);
+			OutgoingQE out = _tracker.get(inQEID);
 			if (out.getQueueEntryID().equals(qeid)) {
 				return inQEID;
 			}
@@ -185,10 +168,8 @@ public class QueueEntryTracker {
 		return null;
 	}
 	
-	/**
-	 * get the output QueueEntryID
-	 * @param qeid the ID of the input QueueEntry to look for
-	 * @return the ID of the output QueueEntry
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.proxy.IQueueEntryTracker#getOutgoingQEID(java.lang.String)
 	 */
 	public String getOutgoingQEID(String qeid) {
 		OutgoingQE qe = getOutputQE(qeid);
@@ -199,26 +180,22 @@ public class QueueEntryTracker {
 		}
 	}
 	
-	/**
-	 * remove a QueueEntry by ID
-	 * @param qeid the incoming QueueEntry ID
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.proxy.IQueueEntryTracker#removeEntry(java.lang.String)
 	 */
 	public void removeEntry(String qeid) {
 		_tracker.remove(qeid);
 	}
 	
-	/**
-	 * the number of QueueEntries forwarded
-	 * @return
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.proxy.IQueueEntryTracker#count()
 	 */
 	public int count() {
 		return _tracker.size();
 	}
 	
-	/**
-	 * get the ID of the device where the given QueueEntry is being processed 
-	 * @param qeid the incoming QueueEntry ID
-	 * @return the ID of the device where the given QueueEntry is being processed
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.proxy.IQueueEntryTracker#getDeviceID(java.lang.String)
 	 */
 	public String getDeviceID(String qeid) {
 		OutgoingQE qe = getOutputQE(qeid);
@@ -229,13 +206,11 @@ public class QueueEntryTracker {
 		}
 	}
 
-	/**
-	 * get the URL of the device where the given QueueEntry is being processed 
-	 * @param qeid the incoming QueueEntry ID
-	 * @return the URL of the device where the given QueueEntry is being processed
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.proxy.IQueueEntryTracker#getDeviceURL(java.lang.String)
 	 */
 	public String getDeviceURL(String qeid) {
-		OutgoingQE qe = (OutgoingQE)_tracker.get(qeid);
+		OutgoingQE qe = _tracker.get(qeid);
 		if (qe!=null) {
 			return qe.getDeviceURL();
 		} else {
@@ -243,13 +218,11 @@ public class QueueEntryTracker {
 		}
 	}
 	
-	/**
-	 * get the URL of the of the originator of the given QueueEntry (e.g. the MIS) 
-	 * @param qeid the incoming QueueEntry ID
-	 * @return the URL of the of the originator of the given QueueEntry (e.g. the MIS) 
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.proxy.IQueueEntryTracker#getReturnURL(java.lang.String)
 	 */
 	public String getReturnURL(String qeid) {
-		OutgoingQE qe = (OutgoingQE)_tracker.get(qeid);
+		OutgoingQE qe = _tracker.get(qeid);
 		if (qe!=null) {
 			return qe.getReturnURL();
 		} else {
@@ -258,13 +231,11 @@ public class QueueEntryTracker {
 	}
 	
 	
-	/**
-	 * get the String representation of a tracked entry
-	 * @param qeid the ID of the incoming QueueEntry
-	 * @return
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.proxy.IQueueEntryTracker#getQueueEntryString(java.lang.String)
 	 */
 	public String getQueueEntryString(String qeid) {
-		OutgoingQE qe = (OutgoingQE) _tracker.get(qeid);
+		OutgoingQE qe = _tracker.get(qeid);
 		String ret="[ key="+qeid+", value=";
 		if (qe!=null) {
 			ret += qe.toString();

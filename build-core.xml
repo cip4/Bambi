@@ -30,7 +30,7 @@
 	</target>
 	<target name="compile" depends="-init" description="Compiles source code.">
 		<echo>Compiling BambiCore...</echo>
-		<javac destdir="${bin.dir}" debug="${build.debug}" target="1.4" source="1.4">
+		<javac destdir="${bin.dir}" debug="${build.debug}">
 			<src path="${core.src.dir}" />
 			<classpath refid="project.class.path" />
 			<include name="**/*.java" />

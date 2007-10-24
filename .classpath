@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" output="bin" path="java"/>
-	<classpathentry kind="src" path="test"/>
-	<classpathentry kind="var" path="JRE_LIB" sourcepath="JRE_SRC"/>
-	<classpathentry kind="lib" path="src/lib/commons-fileupload-1.1.1.jar"/>
-	<classpathentry kind="lib" path="src/lib/commons-io-1.1.jar"/>
-	<classpathentry kind="lib" path="src/lib/commons-lang-2.1.jar"/>
-	<classpathentry kind="lib" path="src/lib/commons-logging-1.0.4.jar"/>
-	<classpathentry kind="lib" path="src/lib/log4j-1.2.8.jar"/>
-	<classpathentry kind="lib" path="src/lib/mailapi.jar"/>
-	<classpathentry kind="lib" path="src/lib/servletapi-2.3.jar"/>
-	<classpathentry kind="lib" path="src/lib/xercesImpl-2.7.1.jar"/>
-	<classpathentry kind="lib" path="src/lib/xml-apis-2.0.2.jar"/>
+	<classpathentry excluding="**/.svn/*" including="org/cip4/bambi/core/*.java|org/cip4/bambi/core/messaging/*.java|org/cip4/bambi/core/queues/|org/cip4/bambi/proxy/|org/cip4/bambi/workers/|org/cip4/bambi/workers/core/*.java|org/cip4/bambi/workers/manual/|org/cip4/bambi/workers/sim/" kind="src" path="src/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/JDFLibJ"/>
-	<classpathentry kind="lib" path="src/lib/junit.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/activation-1.0.2.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/commons-fileupload-1.2.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/commons-io-1.2.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/commons-lang-2.1.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/commons-logging-1.0.4.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/JDFLibJ-2.1.3.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/mail-1.3.3.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/servlet-api-2.4.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/xercesImpl.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/xml-apis.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

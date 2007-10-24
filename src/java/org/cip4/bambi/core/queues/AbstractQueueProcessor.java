@@ -68,7 +68,7 @@
  *  
  * 
  */
-package org.cip4.bambi.workers.core;
+package org.cip4.bambi.core.queues;
 
 import java.io.File;
 import java.net.HttpURLConnection;
@@ -80,11 +80,8 @@ import javax.mail.Multipart;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
-import org.cip4.bambi.core.IQueueProcessor;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
-import org.cip4.bambi.core.queues.IQueueEntry;
-import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
@@ -177,26 +174,19 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	     */
 	    public boolean handleMessage(JDFMessage m, JDFResponse resp)
 	    {
-	        if(m==null || resp==null)
-	        {
+	        if(m==null || resp==null) {
 	            return false;
 	        }
 	        log.info("Handling "+m.getType());
 	        EnumType typ=m.getEnumType();
-	        if(EnumType.QueueStatus.equals(typ))
-	        {
-	        	
-	        	
-	        	if (_theQueue != null)
-	        	{
+	        if(EnumType.QueueStatus.equals(typ)) {
+	        	if (_theQueue != null) {
 	        		JDFQueue q = (JDFQueue) resp.copyElement(_theQueue, null);
 	        		//TODO filter some stuff?
 	        		handleQueueStatus(q);
 	        		removeBambiNSExtensions(q);
 	        		return true;
-	        	}
-	        	else 
-	        	{
+	        	} else {
 	        		log.error("queue is null");
 	        		return false;
 	        	}
@@ -204,22 +194,18 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	
 	        return false;        
 	    }
-
-		
 	
 	    /* (non-Javadoc)
 	     * @see org.cip4.bambi.IMessageHandler#getFamilies()
 	     */
-	    public EnumFamily[] getFamilies()
-	    {
+	    public EnumFamily[] getFamilies() {
 	        return new EnumFamily[]{EnumFamily.Query};
 	    }
 	
 	    /* (non-Javadoc)
 	     * @see org.cip4.bambi.IMessageHandler#getMessageType()
 	     */
-	    public EnumType getMessageType()
-	    {
+	    public EnumType getMessageType() {
 	        return EnumType.QueueStatus;
 	    }
 	
@@ -519,13 +505,13 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     private File _queueFile;
     private static final long serialVersionUID = -876551736245089033L;
     protected JDFQueue _theQueue;
-    protected AbstractDevice parent=null;
-    private Vector _listeners;
+    private Vector<Object> _listeners;
+    protected String _appDir=null;
      
-    public AbstractQueueProcessor(String deviceID, AbstractDevice theParent)
+    public AbstractQueueProcessor(String deviceID, String appDir)
     {
 		super();
-		parent = theParent;
+		_appDir=appDir;
 		this.init(deviceID);
     }
     
@@ -545,19 +531,15 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     private void init(String deviceID) 
     {
         log.info("QueueProcessor construct for device '"+deviceID+"'");
-        String baseDir=System.getProperty("catalina.base")+"/webapps/"+parent.getDeviceType()+"/jmb/";
+        String baseDir=_appDir+"jmb/";
       	_queueFile=new File(baseDir+"theQueue_"+deviceID+".xml");       
         _queueFile.getParentFile().mkdirs();
         new File(baseDir+"JDFDir"+File.separator).mkdirs();
         JDFDoc d=JDFDoc.parseFile(_queueFile.getAbsolutePath());
-        if(d!=null)
-        {
+        if(d!=null) {
             log.info("refreshing queue");
             _theQueue=(JDFQueue) d.getRoot();
-            
-        }
-        else
-        {
+        } else {
             d=new JDFDoc(ElementName.QUEUE);
             log.info("creating new queue");
             _theQueue=(JDFQueue) d.getRoot();
@@ -566,7 +548,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         _theQueue.setAutomated(true);
         _theQueue.setDeviceID(deviceID);
         _theQueue.setMaxCompletedEntries(100); // remove just the selected QE when RemoveQE is called 
-        _listeners=new Vector();
+        _listeners=new Vector<Object>();
 	}
 
     public IQueueEntry getNextEntry()
@@ -641,33 +623,27 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
      */
     private boolean storeDoc(JDFQueueEntry newQE, JDFDoc theJDF, String returnURL, String returnJMF)
     {
-        if(newQE==null || theJDF==null)
-        {
+        if(newQE==null || theJDF==null) {
             log.error("error storing queueentry");
             return false;
         }
         String newQEID=newQE.getQueueEntryID();
         newQE=_theQueue.getQueueEntry(newQEID);
-        if(newQE==null)
-        {
+        if(newQE==null) {
             log.error("error fetching queueentry: QueueEntryID="+newQEID);
             return false;
         }
-        // TODO
-        String baseDir=System.getProperty("catalina.base")+"/webapps/"+parent.getDeviceType()+"/jmb/";
-        String jdfDir=baseDir+"JDFDir"+File.separator;
+        String baseDir=_appDir+"jmb/";
+        String jdfDir=baseDir+"JDFDir/";
         String theDocFile=jdfDir+newQEID+".jdf";
         boolean ok=theJDF.write2File(theDocFile, 0, true);
-        try
-        {
+        try {
             BambiNSExtension.setDocURL( newQE,UrlUtil.fileToUrl(new File(theDocFile),false) );
             if(!KElement.isWildCard(returnJMF))
                 BambiNSExtension.setReturnURL(newQE, returnJMF);
             else if(!KElement.isWildCard(returnURL))
                 BambiNSExtension.setReturnURL(newQE, returnURL);
-        }
-        catch (MalformedURLException x)
-        {
+        } catch (MalformedURLException x) {
             log.error("invalid file name: "+theDocFile);
         }
 
@@ -676,11 +652,9 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 
     private void notifyListeners()
     {
-        for(int i=0;i<_listeners.size();i++)
-        {
+        for(int i=0;i<_listeners.size();i++) {
             final Object elementAt = _listeners.elementAt(i);
-            synchronized (elementAt)
-            {
+            synchronized (elementAt) {
                 elementAt.notifyAll();               
             }
          }
@@ -755,8 +729,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         JDFParser p = new JDFParser();
         JDFDoc docJDF = p.parseFile( BambiNSExtension.getDocURL(qe) );
         Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
-        if(returnURL!=null)
-        {
+        if(returnURL!=null) {
         	HttpURLConnection response = null;
             try {
                 response = MimeUtil.writeToURL(mp, returnURL);
@@ -768,9 +741,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
                 log.error("failed to send ReturnQueueEntry: "+e);
             }
             response = null;
-        }
-        else
-        {
+        } else {
             // TODO write to default output
             log.warn("No return URL specified");
         }
@@ -779,15 +750,13 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     protected String getMessageQueueEntryID(JDFMessage m)
     {
         JDFQueueEntryDef def = m.getQueueEntryDef(0);
-        if (def == null)
-        {
+        if (def == null) {
         	log.error("Message contains no QueueEntryDef");
             return null;
         }
         	
         String qeid = def.getQueueEntryID();
-        if (KElement.isWildCard(qeid))
-        {
+        if ( KElement.isWildCard(qeid) )  {
         	log.error("QueueEntryID does not contain any QueueEntryID");	
             return null;
         }
@@ -795,8 +764,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         return qeid;
     }
 
-    private JDFQueueEntry getEntry(String queueEntryID)
-    {
+    private JDFQueueEntry getEntry(String queueEntryID) {
         JDFQueueEntry qe=_theQueue.getQueueEntry(queueEntryID);
 		return qe;
 	}
@@ -806,47 +774,13 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
      * @param queue the queue to filter
      * @return a queue without Bambi namespaces 
      */
-    protected void removeBambiNSExtensions(JDFQueue queue)
-    {   		
+    protected void removeBambiNSExtensions(JDFQueue queue) {   		
     	for (int i=0;i<queue.getQueueSize();i++) {
     		BambiNSExtension.removeBambiExtensions( queue.getQueueEntry(i) );
     	}
     }
     
-    /**
-     * stop processing the given {@link JDFQueueEntry} on the parent device
-     * @param qe the {@link JDFQueueEntry} to work on
-     * @param status the targeted {@link EnumQueueEntryStatus} for qe (Aborted, Suspended, Held)
-     * @return the new status of qe, null if unable to forwared stop request<br>
-     *         Note that it might take some time for the status request to be put in action.
-     */
-    protected EnumQueueEntryStatus stopOnDevice(JDFQueueEntry qe,EnumQueueEntryStatus status)
-    {
-    	String queueEntryID=qe.getQueueEntryID();
-    	String deviceID=BambiNSExtension.getDeviceID(qe);
-    	if (deviceID==null) {
-    		log.error("no device ID supplied for "+queueEntryID);
-    		return null;
-    	}
-    	if ( !deviceID.equals(_theQueue.getDeviceID()) ) {
-    		log.error("the queue entry is not processed on the this device");
-    		return null;
-    	}
-    	
-    	if (parent == null) {
-    		log.error("cannot stop on parent device, parent is null");
-    		return null;
-    	}
-    	JDFQueueEntry returnQE=parent.stopProcessing(queueEntryID, status);
-    	if (returnQE==null) {
-    		log.fatal("device '"+deviceID+"' returned a null QueueEntry");
-    		return null;
-    	}
-    	
-    	EnumQueueEntryStatus newStatus=qe.getQueueEntryStatus();
-    	log.info("QueueEntry with ID="+queueEntryID+" is now "+newStatus.getName());
-    	return newStatus;
-    }
+    
     
     protected abstract void handleAbortQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe);
@@ -859,7 +793,4 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     protected abstract void handleResumeQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe);
     
-    protected String getDeviceURL() {
-    	return parent.getDeviceURL();
-    }
 }

@@ -113,15 +113,13 @@ public class StatusListener implements IStatusListener
                 return false;
             
             JDFDoc docJMF=theCounter.getDocJMFPhaseTime();
-            if(docJMF==null)
-            {
+            if(docJMF==null) {
                 log.warn("StatusHandler.handleMessage: StatusCounter-phasetime = null");
                 return false;
             }
             // TODO change interface to public int handleMessage(JDFMessage inputMessage, JDFJMF responses)
             JDFResponse r=docJMF.getJMFRoot().getResponse(-1);
-            if(r==null)
-            {
+            if(r==null) {
                 log.error("StatusHandler.handleMessage: StatusCounter response = null");
                 return false;
             }
@@ -168,24 +166,21 @@ public class StatusListener implements IStatusListener
          */
         public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
         {
-        	if(inputMessage==null || response==null)
-	        {
+        	if(inputMessage==null || response==null) {
 	            return false;
 	        }
         	
-            if(!EnumFamily.Query.equals(inputMessage.getFamily()))
+            if(!EnumFamily.Query.equals(inputMessage.getFamily())) {
                 return false;
+            }
 
             
             JDFResourceInfo ri = response.appendResourceInfo();            
             StatusCounter sc=theCounter;
             //TODO richtiges element kopieren (nicht ein jmf in ein ri hinein...
-            try
-            {
+            try {
             	ri.copyElement( sc.getDocJMFResource().getJMFRoot(),null );
-            }
-            catch (NullPointerException ex)
-            {
+            } catch (NullPointerException ex) {
             	log.error("hit an npe while trying to add resources: "+ex);
             }
             return true;
@@ -218,6 +213,7 @@ public class StatusListener implements IStatusListener
         theCounter=new StatusCounter(null,null,null);
         theCounter.setDeviceID(deviceID);
     }
+    
     /* (non-Javadoc)
      * @see org.cip4.bambi.IStatusListener#signalStatus(java.lang.String, java.lang.String, org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus, java.lang.String, org.cip4.jdflib.core.JDFElement.EnumNodeStatus, java.lang.String)
      */
@@ -225,14 +221,14 @@ public class StatusListener implements IStatusListener
             String nodeStatusDetails)
     {
        StatusCounter su=theCounter;
-       if(su==null)
-       {
+       if(su==null) {
            log.error("updating null status tracker");
            return;
        }
        boolean bMod=su.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
-       if(bMod)
+       if(bMod) {
            dispatcher.triggerQueueEntry(su.getQueueEntryID(), su.getWorkStepID(), -1);
+       }
     }
 
     /* (non-Javadoc)
@@ -244,8 +240,9 @@ public class StatusListener implements IStatusListener
         if(su==null)
             return;
         su.addPhase(resID, good, waste);
-        if(good>0)
+        if(good>0) {
             dispatcher.triggerQueueEntry(su.getQueueEntryID(), su.getWorkStepID(), (int)good);
+        }
 
     }
 
@@ -264,8 +261,7 @@ public class StatusListener implements IStatusListener
         theCounter.setFirstRefID(trackResourceID);
         theCounter.setQueueEntryID(queueEntryID);
         theCounter.setWorkStepID(workStepID);
-        if(node!=null)
-        {
+        if(node!=null) {
             log.info("adding subscription for: "+queueEntryID);
             dispatcher.addSubscriptions(node,queueEntryID);
         }
@@ -287,9 +283,7 @@ public class StatusListener implements IStatusListener
 			docJMF=theCounter.getDocJMFPhaseTime();
 			JDFResponse r=docJMF.getJMFRoot().getResponse(0);
 			return r.getDeviceInfo(-1).getDeviceStatus();
-		}
-		catch (NullPointerException e)
-		{
+		} catch (NullPointerException e) {
 			log.fatal("StatusCounter returned an illegal doc: \r\n"+docJMF);
 			return EnumDeviceStatus.Unknown;
 		}

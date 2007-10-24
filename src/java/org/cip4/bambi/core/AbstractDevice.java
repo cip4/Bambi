@@ -69,7 +69,7 @@
  * 
  */
 
-package org.cip4.bambi.workers.core;
+package org.cip4.bambi.core;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -81,24 +81,19 @@ import java.util.Properties;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.AbstractBambiServlet;
-import org.cip4.bambi.core.IDevice;
-import org.cip4.bambi.core.IQueueProcessor;
-import org.cip4.bambi.core.ISignalDispatcher;
-import org.cip4.bambi.core.IStatusListener;
-import org.cip4.bambi.core.SignalDispatcher;
-import org.cip4.bambi.core.StatusListener;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.core.queues.QueueFacade;
-import org.cip4.bambi.workers.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
@@ -119,7 +114,7 @@ import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
 
 /**
- * basis for JDF devices in Bambi. <br>
+ * basis for JDF devices. <br>
  * Devices are defined in /WebContent/config/devices.xml<br>
  * Derived classes should be final: if they were ever subclassed, the DeviceProcessor thread 
  * would be started before the constructor from the subclass has a chance to fire.
@@ -127,10 +122,11 @@ import org.cip4.jdflib.util.MimeUtil;
  * @author boegerni
  * 
  */
-public abstract class AbstractDevice extends AbstractBambiServlet implements IDevice, IJMFHandler{
+public abstract class AbstractDevice extends HttpServlet implements IDevice, IJMFHandler
+{
 	/**
 	 * 
-	 * handler for the knowndevices query
+	 * handler for the KnownDevices query
 	 */
 	protected class KnownDevicesHandler implements IMessageHandler
 	{
@@ -175,16 +171,12 @@ public abstract class AbstractDevice extends AbstractBambiServlet implements IDe
 		}
 	}
 	private static Log log = LogFactory.getLog(AbstractDevice.class.getName());
-	protected String _deviceType = "";
-	protected String _deviceID = "";
-	protected IQueueProcessor _theQueue=null;
+	protected IQueueProcessor _theQueueProcessor=null;
 	protected AbstractDeviceProcessor _theDeviceProcessor=null;
 	protected IStatusListener _theStatusListener=null;
 	protected ISignalDispatcher _theSignalDispatcher=null;
 	protected JMFHandler _jmfHandler = null ;
-	protected String _deviceURL=null;
-	protected String _controllerURL=null;
-	protected String _appDir=null;
+	protected DeviceProperties _devProperties=null;
 
 	/**
 	 * creates a new device instance
@@ -203,48 +195,25 @@ public abstract class AbstractDevice extends AbstractBambiServlet implements IDe
 	}
 
 	protected void init(DeviceProperties prop) {
-		// TODO use prop instead of split variables
-		_deviceType = prop.getDeviceType();
-		_deviceID = prop.getDeviceID();
-		_deviceURL=prop.getDeviceURL();
-		_controllerURL=prop.getProxyURL();
-		_appDir=prop.getAppDir();
+		_devProperties = prop;
 		_jmfHandler = new JMFHandler();
 
-        _theSignalDispatcher=new SignalDispatcher(_jmfHandler, _deviceID);
+        _theSignalDispatcher=new SignalDispatcher(_jmfHandler, _devProperties.getDeviceID());
         _theSignalDispatcher.addHandlers(_jmfHandler);
 
-		_theQueue=new WorkerQueueProcessor(_deviceID, this);
-        _theQueue.addHandlers(_jmfHandler);
+        _theQueueProcessor = buildQueueProcessor( );
+        _theQueueProcessor.addHandlers(_jmfHandler);
         _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
         _theStatusListener.addHandlers(_jmfHandler);
         
-        final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Class configClass;
-        Exception caughtEx = null;
-        String deviceProcessorClass=prop.getDeviceProcessorClass();
-        try {
-        	configClass = classLoader.loadClass(deviceProcessorClass);
-        	_theDeviceProcessor= (AbstractDeviceProcessor) configClass.newInstance();
-        } catch (ClassNotFoundException e) {
-        	caughtEx = e;
-        } catch (InstantiationException e) {
-        	caughtEx = e;
-        } catch (IllegalAccessException e) {
-        	caughtEx = e;
-        }
-        if (caughtEx!=null)
-        {
-        	log.error("failed to create device with device processor "+deviceProcessorClass+":\r\n"+caughtEx);
-        	return;
-        }
-        
-        _theDeviceProcessor.init(_theQueue, _theStatusListener, _deviceID, _appDir);
-
-		new Thread(_theDeviceProcessor,deviceProcessorClass+"_"+_deviceID).start();
-		log.info("device thread started: "+deviceProcessorClass+"_"+_deviceID);
+        String deviceID=_devProperties.getDeviceID();
+        _theDeviceProcessor = buildDeviceProcessor();
+        _theDeviceProcessor.init(_theQueueProcessor, _theStatusListener, deviceID, prop.getAppDir());
+        String deviceProcessorClass=_theDeviceProcessor.getClass().getSimpleName();
+		new Thread(_theDeviceProcessor,deviceProcessorClass+"_"+deviceID).start();
+		log.info("device thread started: "+deviceProcessorClass+"_"+deviceID);
 		
-		_deviceURL = createDeviceURL(_deviceID);
+		_devProperties.setDeviceURL( createDeviceURL(deviceID) );
 		
 		addHandlers();
 	}
@@ -253,53 +222,72 @@ public abstract class AbstractDevice extends AbstractBambiServlet implements IDe
 		_jmfHandler.addHandler( this.new KnownDevicesHandler() );
 	}
 
+	/**
+	 * get the device type of this device
+	 * @return
+	 */
 	public String getDeviceType()
 	{
-		return _deviceType;
+		return _devProperties.getDeviceType();
 	}
 
 	/* (non-Javadoc)
 	 * @see org.cip4.bambi.IDevice#getDeviceID()
 	 */
-	public String getDeviceID()
-	{
-		return _deviceID;
+	public String getDeviceID() {
+		return _devProperties.getDeviceID();
 	}
 
-	public JDFDoc processJMF(JDFDoc doc)
-	{
-		log.debug("JMF processed by "+_deviceID);
+	public JDFDoc processJMF(JDFDoc doc) {
+		log.info("JMF processed by "+_devProperties.getDeviceID());
 		return _jmfHandler.processJMF(doc);
 	}
 
-	public String toString()
-	{
-		return ("["+this.getClass().getName()+" DeviceID=" + _deviceID + ", DeviceType=" + _deviceType + ", " +
-				"Queue: " + _theQueue + "]");
+	/**
+	 * get a String representation of this device
+	 */
+	public String toString() {
+		return ("["+this.getClass().getName()+" Properties="+ _devProperties.toString() +"]");
 	}
 	
-	public boolean appendDeviceInfo(JDFDeviceList dl)
-	{
+	/**
+	 * append the JDFDeviceInfo of this device to a given JDFDeviceList
+	 * @param dl the JDFDeviceList, where the JDFDeviceInfo will be appended
+	 * @return true, if successful
+	 */
+	public boolean appendDeviceInfo(JDFDeviceList dl) {
 		JDFDeviceInfo info = dl.appendDeviceInfo();
 		JDFDevice dev = info.appendDevice();
-		dev.setDeviceID(_deviceID);
-		dev.setDeviceType(_deviceType);
+		dev.setDeviceID(_devProperties.getDeviceID());
+		dev.setDeviceType( _devProperties.getDeviceType() );
 		dev.setJDFVersions( EnumVersion.Version_1_3.getName() );
+		info.setDeviceStatus( getDeviceStatus() );
 		return true;
 	}
 
+	/**
+	 * add a MessageHandler to this devices JMFHandler
+	 * @param handler the MessageHandler to add
+	 */
 	public void addHandler(IMessageHandler handler) {
 		_jmfHandler.addHandler(handler);
-		
 	}
 
+	/**
+	 * get the JMFHandler of this device
+	 * @return
+	 */
 	public IJMFHandler getHandler() {
 		return _jmfHandler;
 	}
 	
+	/**
+	 * get a facade of this devices Queue
+	 * @return
+	 */
 	public QueueFacade getQueueFacade()
 	{
-		return (new QueueFacade(_theQueue.getQueue()) );
+		return (new QueueFacade(_theQueueProcessor.getQueue()) );
 	}
 	
 	/**
@@ -308,7 +296,7 @@ public abstract class AbstractDevice extends AbstractBambiServlet implements IDe
 	 */
 	public JDFQueue getQueue()
 	{
-		return _theQueue.getQueue();
+		return _theQueueProcessor.getQueue();
 	}
 	
 	/**
@@ -329,9 +317,13 @@ public abstract class AbstractDevice extends AbstractBambiServlet implements IDe
      */
     public IQueueProcessor getQueueProcessor()
     {
-        return _theQueue;
+        return _theQueueProcessor;
     }
     
+    /**
+     * get the DeviceStatus of this device
+     * @return
+     */
     public EnumDeviceStatus getDeviceStatus()
     {
     	EnumDeviceStatus status = _theStatusListener.getDeviceStatus();
@@ -348,16 +340,16 @@ public abstract class AbstractDevice extends AbstractBambiServlet implements IDe
      * @param status target status of the QueueEntry (Suspended,Aborted,Held)
      * @return the updated QueueEntry
      */
-    public JDFQueueEntry stopProcessing(String queueEntryID,EnumQueueEntryStatus status)
+    public JDFQueueEntry stopProcessing(String queueEntryID, EnumQueueEntryStatus status)
     {
-    	JDFQueue q=_theQueue.getQueue();
+    	JDFQueue q=_theQueueProcessor.getQueue();
     	if (q==null) {
-    		log.fatal("queue of device "+_deviceID+"is null");
+    		log.fatal("queue of device "+_devProperties.getDeviceID()+"is null");
     		return null;
     	}
     	JDFQueueEntry qe=q.getQueueEntry(queueEntryID);
     	if (qe==null) {
-    		log.fatal("QueueEntry with ID="+queueEntryID+" is null on device "+_deviceID);
+    		log.fatal("QueueEntry with ID="+queueEntryID+" is null on device "+_devProperties.getDeviceID());
     		return null;
     	}
     	
@@ -375,13 +367,12 @@ public abstract class AbstractDevice extends AbstractBambiServlet implements IDe
 		FileInputStream in=null;
 		String deviceURL=null;
 		try {
-			// FIXME
-			in = new FileInputStream(_appDir+"/config/device.properties");
+			in = new FileInputStream(_devProperties.getAppDir()+"config/device.properties");
 			properties.load(in);
 			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
 			deviceURL= properties.getProperty("DeviceURL");
 			if (deviceID!=null && deviceID.length()>0)
-				deviceURL += "devices/"+deviceID;
+				deviceURL += "/"+deviceID;
 			in.close();
 		} catch (IOException e) {
 			log.error("failed to load properties: \r\n"+e.getMessage());
@@ -394,7 +385,19 @@ public abstract class AbstractDevice extends AbstractBambiServlet implements IDe
 	 * @see org.cip4.bambi.IDevice#getDeviceURL()
 	 */
 	public String getDeviceURL() {
-		return _deviceURL;
+		return _devProperties.getDeviceURL();
+	}
+	
+	public void setDeviceURL(String theURL) {
+		_devProperties.setDeviceURL(theURL);
+	}
+	
+	/**
+	 * get the URL of the proxy device for this device
+	 * @return
+	 */
+	public String getProxyURL() {
+		return _devProperties.getProxyURL();
 	}
 	
 	/**
@@ -453,7 +456,7 @@ public abstract class AbstractDevice extends AbstractBambiServlet implements IDe
 			// create a simple dummy sqe and submit to myself
 			JDFQueueSubmissionParams qsp=command.getCreateQueueSubmissionParams(0);
 			qsp.setPriority(50);
-			JDFResponse r=_theQueue.addEntry(command, doc, false);
+			JDFResponse r=_theQueueProcessor.addEntry(command, doc, false);
 			if (r == null)
 				log.warn("_theQueue.addEntry returned null");
 		}
@@ -640,7 +643,7 @@ public abstract class AbstractDevice extends AbstractBambiServlet implements IDe
 				log.error(e);
 			}
 		} else if ( command.equals("showQueue") ) {	
-			QueueFacade bqu = new QueueFacade( _theQueue.getQueue() );
+			QueueFacade bqu = new QueueFacade( _theQueueProcessor.getQueue() );
 			String quStr = bqu.toHTML();
 			PrintWriter out=null;
 			try {
@@ -654,4 +657,47 @@ public abstract class AbstractDevice extends AbstractBambiServlet implements IDe
 			}
 		}
 	}
+	
+	/**
+	 * display an error on error.jsp
+	 * @param errorMsg short message describing the error
+	 * @param errorDetails detailed error info
+	 * @param request required to forward the page
+	 * @param response required to forward the page
+	 */
+	protected void showErrorPage(String errorMsg, String errorDetails, HttpServletRequest request, HttpServletResponse response)
+	{
+		request.setAttribute("errorOrigin", this.getClass().getName());
+		request.setAttribute("errorMsg", errorMsg);
+		request.setAttribute("errorDetails", errorDetails);
+
+		try {
+			request.getRequestDispatcher("/error.jsp").forward(request, response);
+		} catch (ServletException e) {
+			System.err.println("failed to show error.jsp");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println("failed to show error.jsp");
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * get the directory of the web application this device belongs to
+	 * @return the path of the app dir on the filesystem
+	 */
+	public String getAppDir() {
+		return _devProperties.getAppDir();
+	}
+	/**
+	 * build a new QueueProcessor
+	 * @return
+	 */
+	protected abstract IQueueProcessor buildQueueProcessor();
+	
+	/**
+	 * build a new DeviceProcessor
+	 * @return
+	 */
+	protected abstract AbstractDeviceProcessor buildDeviceProcessor();
 }

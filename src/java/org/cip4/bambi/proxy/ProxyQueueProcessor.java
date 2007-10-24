@@ -70,15 +70,19 @@
  */
 package org.cip4.bambi.proxy;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.bambi.core.queues.AbstractQueueProcessor;
 import org.cip4.bambi.core.queues.IQueueEntry;
-import org.cip4.bambi.workers.core.AbstractDevice;
-import org.cip4.bambi.workers.core.AbstractQueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VString;
@@ -110,17 +114,14 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	    /* (non-Javadoc)
 	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 	     */
-        //TODO fill response e.g. on error
 	    public boolean handleMessage(JDFMessage m, JDFResponse resp)
 	    {
-	        if(m==null)
-	        {
+	        if(m==null) {
 	            return false;
 	        }
 	        //log.info("Handling "+m.getType());
 	        EnumType typ=m.getEnumType();
-	        if(EnumType.RequestQueueEntry.equals(typ))
-	        {
+	        if(EnumType.RequestQueueEntry.equals(typ)) {
 	        	// check for valid RequestQueueEntryParams
 	        	JDFRequestQueueEntryParams qep = m.getRequestQueueEntryParams(0);
 	        	String queueURL=null;
@@ -139,7 +140,14 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        		// submit a specific QueueEntry
 	        		JDFQueueEntry qe = _theQueue.getQueueEntry(queueEntryID);
 	        		if (qe!=null && qe.getQueueEntryStatus()==EnumQueueEntryStatus.Waiting) {
-	        			submitQueueEntry(qe, queueURL);
+	        			// mark QueueEntry as "Running" before submitting, so it won't be
+	        			// submitted twice. If SubmitQE fails, mark it as waiting so other workers
+	        			// can grab it.
+	        			qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
+	        			boolean submitted=submitQueueEntry(qe, queueURL);
+	        			if (!submitted) {
+	        				qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+	        			}
 	        		} else {
 	        			String qeStatus = qe==null ? "null" : qe.getQueueEntryStatus().getName();
 	        			log.error("requested QueueEntry is "+qeStatus);
@@ -148,8 +156,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        	} else {
 	        		// submit the next QueueEntry available
 	        		IQueueEntry qe = getNextEntry();
-	        		if (qe!=null)
-	        		{
+	        		if (qe!=null) {
 	        			submitQueueEntry( qe.getQueueEntry(),qep.getQueueURL() );
 	        		} else {
 	        			//log.info("RequestQueueEntry won't trigger Submit: no QueueEntries waiting in root device");
@@ -165,16 +172,14 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	    /* (non-Javadoc)
 	     * @see org.cip4.bambi.IMessageHandler#getFamilies()
 	     */
-	    public EnumFamily[] getFamilies()
-	    {
+	    public EnumFamily[] getFamilies() {
 	        return new EnumFamily[]{EnumFamily.Command};
 	    }
 	
 	    /* (non-Javadoc)
 	     * @see org.cip4.bambi.IMessageHandler#getMessageType()
 	     */
-	    public EnumType getMessageType()
-	    {
+	    public EnumType getMessageType() {
 	        return EnumType.RequestQueueEntry;
 	    }
 	}
@@ -187,8 +192,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	     */
 	    public boolean handleMessage(JDFMessage m, JDFResponse resp)
 	    {
-	        if(m==null)
-	        {
+	        if(m==null) {
 	            return false;
 	        }
 	        log.info("Handling "+m.getType());
@@ -207,7 +211,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        		return false;
 	        	}
 	        	
-	        	String inQEID = tracker.getIncomingQEID(outQEID);
+	        	String inQEID = _tracker.getIncomingQEID(outQEID);
 	        	if (inQEID==null || inQEID.equals("")) {
 	        		log.error("QueueEntry with ID="+outQEID+" is not tracked");
 	        		return false;
@@ -216,8 +220,8 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        	JDFQueueEntry qe= _theQueue.getQueueEntry(inQEID);
 	        	if (qe==null) {
 	        		log.error("QueueEntry with ID="+outQEID+" is missing in local"
-	        				+" queue, but known by the QueueTracker: "+tracker.getQueueEntryString(inQEID));
-	        		tracker.removeEntry(inQEID);
+	        				+" queue, but known by the QueueTracker: "+_tracker.getQueueEntryString(inQEID));
+	        		_tracker.removeEntry(inQEID);
 	        		return false;
 	        	}
 	        	
@@ -241,7 +245,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        		returnQueueEntry(qe, completed);
 	        	}
 	        	
-	        	tracker.removeEntry(inQEID);
+	        	_tracker.removeEntry(inQEID);
 	        	return true;
 	        }
 	        
@@ -267,12 +271,15 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	}
 
 	protected static final Log log = LogFactory.getLog(ProxyQueueProcessor.class.getName());
-	protected String rootURL=null;
-	protected QueueEntryTracker tracker=null;
+	protected IQueueEntryTracker _tracker=null;
+	private String _configDir=null;
+	private String _deviceURL=null;
 
-	public ProxyQueueProcessor(String deviceID, AbstractDevice theParent) {
-		super(deviceID,theParent);
-		tracker=new QueueEntryTracker();
+	public ProxyQueueProcessor(String deviceID, String appDir) {
+		super(deviceID, appDir);
+		_configDir=_appDir+"config/";
+		_tracker=new QueueEntryTracker();
+		loadProperties();
 	}
 	
 	public void addHandlers(IJMFHandler jmfHandler)
@@ -300,33 +307,33 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 		// set device ID
 		String deviceID = targetURL.substring(targetURL.lastIndexOf("/"));
 		BambiNSExtension.setDeviceID(qe, deviceID);
+		BambiNSExtension.setDeviceURL(qe,targetURL);
 		
 		// build SubmitQueueEntry
 		JDFDoc docJMF=new JDFDoc("JMF");
         JDFJMF jmf=docJMF.getJMFRoot();
         JDFCommand com = (JDFCommand)jmf.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
         JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
-        String parentURL = getDeviceURL(); 
         qsp.setURL( BambiNSExtension.getDocURL(qe) );
         String returnURL = BambiNSExtension.getReturnURL(qe);
         // QueueSubmitParams need either ReturnJMF or ReturnURL
         if (returnURL!=null && returnURL.length()>0) {
-        	qsp.setReturnURL( parentURL );
+        	qsp.setReturnURL( _deviceURL );
         } else {
-        	returnURL=parentURL;
+        	returnURL=_deviceURL;
         	String returnJMF = BambiNSExtension.getReturnJMF(qe); 
         	if (returnJMF!=null && returnJMF.length()>0) {
         		qsp.setReturnJMF( returnJMF );
         	} else {
-        		qsp.setReturnJMF(parentURL);
+        		qsp.setReturnJMF( _deviceURL );
         	}
         }
         
-        JDFResponse resp = JMFFactory.send2Bambi(jmf, deviceID);
+        JDFResponse resp = JMFFactory.send2URL(jmf, targetURL);
         if (resp!=null && resp.getReturnCode()==0) {
         	JDFQueueEntry newQE = resp.getQueueEntry(0);
         	 qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
-     		tracker.addEntry(qe.getQueueEntryID(), newQE.getQueueEntryID(), deviceID, targetURL, returnURL);
+     		_tracker.addEntry(qe.getQueueEntryID(), newQE.getQueueEntryID(), deviceID, targetURL, returnURL);
      		return true;
         } else {
         	String respError = resp==null ? "response is null" : "ReturnCode is "+resp.getReturnCode();  
@@ -340,9 +347,9 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	protected void handleAbortQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
 		// check if the QueueEntry has already been forwarded
-		if ( tracker.hasIncomingQE(qeid) ) {
+		if ( _tracker.hasIncomingQE(qeid) ) {
 			JDFJMF jmf = JMFFactory.buildAbortQueueEntry(qeid);
-			JMFFactory.send2Bambi(jmf, tracker.getDeviceID(qeid));
+			JMFFactory.send2URL(jmf, _tracker.getDeviceURL(qeid));
 		} else {
 			qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
 		}
@@ -350,17 +357,15 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	}
 
 	protected void handleQueueStatus(JDFQueue q) {
-		// get QE status for each QE
-		
-		
+		// FIXME get QE status for each QE	
 	}
 
 	protected void handleResumeQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
 		// check if the QueueEntry has already been forwarded
-		if ( tracker.hasIncomingQE(qeid) ) {
+		if ( _tracker.hasIncomingQE(qeid) ) {
 			JDFJMF jmf = JMFFactory.buildResumeQueueEntry(qeid);
-			JMFFactory.send2Bambi(jmf, tracker.getDeviceID(qeid));
+			JMFFactory.send2URL(jmf, _tracker.getDeviceURL(qeid));
 		} else {
 			qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
 		}
@@ -370,13 +375,35 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	protected void handleSuspendQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
 		// check if the QueueEntry has already been forwarded
-		if ( tracker.hasIncomingQE(qeid) ) {
+		if ( _tracker.hasIncomingQE(qeid) ) {
 			JDFJMF jmf = JMFFactory.buildSuspendQueueEntry(qeid);
-			JMFFactory.send2Bambi(jmf, tracker.getDeviceID(qeid));
+			JMFFactory.send2URL(jmf, _tracker.getDeviceURL(qeid));
 		} else {
 			qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
 		}
 		
+	}
+	
+	private boolean loadProperties() {
+		log.debug("loading properties");
+		try 
+		{
+			Properties properties = new Properties();
+			FileInputStream in = new FileInputStream(_configDir+"device.properties");
+			properties.load(in);
+			
+			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
+			_deviceURL=properties.getProperty("DeviceURL");
+			
+			in.close();
+		} catch (FileNotFoundException e) {
+			log.fatal("device.properties not found");
+			return false;
+		} catch (IOException e) {
+			log.fatal("Error while applying device.properties");
+			return false;
+		}
+		return true;
 	}
 	
 }

@@ -1,5 +1,4 @@
-/*
- *
+/**
  * The CIP4 Software License, Version 1.0
  *
  *
@@ -39,7 +38,7 @@
  *
  * Usage of this software in commercial products is subject to restrictions. For
  * details please consult info@cip4.org.
- *
+  *
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -59,7 +58,7 @@
  * individuals on behalf of the The International Cooperation for the Integration 
  * of Processes in Prepress, Press and Postpress and was
  * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
+ * copyright (c) 1999-2006, Heidelberger Druckmaschinen AG 
  * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
  *  
  * For more information on The International Cooperation for the 
@@ -69,31 +68,50 @@
  * 
  */
 
-package org.cip4.bambi.core;
+package org.cip4.bambi.core.queues;
+
+import org.cip4.bambi.core.messaging.IMultiJMFHandler;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.jmf.JDFCommand;
+import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFResponse;
 
 /**
- * interface for all devices in Bambi
- * @author boegerni
+ * @author prosirai
  *
  */
-public interface IDevice {
-
-	/**
-     * return the unique ID of this device
+public interface IQueueProcessor extends IMultiJMFHandler
+{
+    /**
+     * get the next waiting entry
      * @return
      */
-    public abstract String getDeviceID();
+    public IQueueEntry getNextEntry();
     
     /**
-     * return the type of this device
-     * @return
+     * get the jdf representation of this queue
+     * @return JDFQueue the jdf representation of this queue
      */
-    public abstract String getDeviceType();
-
-	/**
-	 * return the URL of this device
-	 * @return
-	 */
-	public abstract String getDeviceURL();
+    public JDFQueue getQueue();
+    
+    /**
+     * add a new entry to the queue
+     * 
+     * @param sumitQueueEntry queuesubmission command
+     * @param theJDF the referenced jdf doc
+     * @param hold if true, the initial QeueEntryStatus is Held
+     * @return 
+     */
+    public JDFResponse addEntry(JDFCommand sumitQueueEntry, JDFDoc theJDF, boolean hold);
+    
+    /**
+     * updated an entry in the queue 
+     * @param queueEntryID the queuentryid to update
+     * @param status the queuentry status
+     */
+    public void updateEntry(String queueEntryID, EnumQueueEntryStatus status);
+    
+    public void addListener(Object o);
 
 }

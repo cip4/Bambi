@@ -68,46 +68,88 @@
  *  
  * 
  */
-package org.cip4.bambi.workers.core;
 
-import org.cip4.bambi.core.IQueueProcessor;
-import org.cip4.bambi.core.IStatusListener;
-import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.jmf.JDFQueueEntry;
+package org.cip4.bambi.proxy;
 
 /**
- * @author prosirai
+ * maps the "incoming" QueueEntries to the "outgoing" QueueEntries <br/>
+ * incoming - the MIS who submitted the QueueEntry to the proxy <br/>
+ * outgoing - the worker who is processing the QueueEntry
+ * @author boegerni
  *
  */
-public interface IDeviceProcessor extends Runnable
-{
+public interface IQueueEntryTracker {
 
-    /**
-     * this is the device processor loop 
-     */
-    public abstract void run();
+	/**
+	 * add a new pair
+	 * @param inputQEID  ID of the incoming QueueEntry
+	 * @param outputQEID ID of the outgoing QueueEntry
+	 * @param deviceID   ID of the device where the output QueueEntry is being processed
+	 * @param deviceURL  URL of the device where the output QueueEntry is being processed
+	 * @param returnURL  URL of the orginal sender of the QueueEntry
+	 */
+	public abstract void addEntry(String inputQEID, String outputQEID,
+			String deviceID, String deviceURL, String returnURL);
 
-    /**
-     * @param doc
-     * @return EnumQueueEntryStatus the final status of the queuentry 
-     */
-    public abstract EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe);
-    
-    /**
-     * initialize the IDeviceProcessor
-     * @param queueProcessor the queueprocessor
-     * @param statusListener the status listener
-     * @param deviceID       the device ID
-     *TODO remove appDir - why is it needed?
-     * @param appDir         the location of the web application on the disk
-     */
-    public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, 
-    		String deviceID, String appDir);
-    
-    /**
-     * stop the device processor loop
-     */
-    public void shutdown();
+	/**
+	 * check whether the incomong QueueEntry has been forwarded to a worker  
+	 * @param qeid ID of the incoming QueueEntry
+	 * @return true, if the QueueEntry has been forwarded
+	 */
+	public abstract boolean hasIncomingQE(String qeid);
+
+	/**
+	 * get the ID of the incoming QueueEntry matchingthe given outgoing QueueEntry ID  
+	 * @param qeid ID of the outgoing QueueEntry
+	 * @return the ID of the incoming QueueEntry, null if not found
+	 */
+	public abstract String getIncomingQEID(String qeid);
+
+	/**
+	 * get the output QueueEntryID
+	 * @param qeid the ID of the input QueueEntry to look for
+	 * @return the ID of the output QueueEntry
+	 */
+	public abstract String getOutgoingQEID(String qeid);
+
+	/**
+	 * remove a QueueEntry by ID
+	 * @param qeid the incoming QueueEntry ID
+	 */
+	public abstract void removeEntry(String qeid);
+
+	/**
+	 * the number of QueueEntries forwarded
+	 * @return
+	 */
+	public abstract int count();
+
+	/**
+	 * get the ID of the device where the given QueueEntry is being processed 
+	 * @param qeid the incoming QueueEntry ID
+	 * @return the ID of the device where the given QueueEntry is being processed
+	 */
+	public abstract String getDeviceID(String qeid);
+
+	/**
+	 * get the URL of the device where the given QueueEntry is being processed 
+	 * @param qeid the incoming QueueEntry ID
+	 * @return the URL of the device where the given QueueEntry is being processed
+	 */
+	public abstract String getDeviceURL(String qeid);
+
+	/**
+	 * get the URL of the of the originator of the given QueueEntry (e.g. the MIS) 
+	 * @param qeid the incoming QueueEntry ID
+	 * @return the URL of the of the originator of the given QueueEntry (e.g. the MIS) 
+	 */
+	public abstract String getReturnURL(String qeid);
+
+	/**
+	 * get the String representation of a tracked entry
+	 * @param qeid the ID of the incoming QueueEntry
+	 * @return
+	 */
+	public abstract String getQueueEntryString(String qeid);
 
 }

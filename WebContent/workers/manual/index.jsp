@@ -2,5 +2,5 @@
 
 <%
 	//redirect to the BambiRootDevice servlet
-	response.sendRedirect("BambiRootDevice");
+	response.sendRedirect("overview");
 %>

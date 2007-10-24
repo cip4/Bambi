@@ -128,10 +128,10 @@ public class QueueFacade {
 		return _theQueue.getQueueStatus();
 	}
 	
-	public Vector getBambiQueueEntryVector()
+	public Vector<BambiQueueEntry> getBambiQueueEntryVector()
 	{
 		log.info("building BambieQueueEntryVector");
-		Vector qes = new Vector();
+		Vector<BambiQueueEntry> qes = new Vector<BambiQueueEntry>();
 		for (int i = 0; i<_theQueue.getQueueSize();i++)
 		{
 			JDFQueueEntry jqe = _theQueue.getQueueEntry(i);
@@ -149,7 +149,7 @@ public class QueueFacade {
 		int pos = quStr.indexOf(">");
 		quStr = quStr.substring(pos+2);
 		String xsltHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \r\n"
-			+ "<?xml-stylesheet type=\"text/xsl\" href=\"/xslt/queue2html.xsl\"?> \r\n";
+			+ "<?xml-stylesheet type=\"text/xsl\" href=\"./xslt/queue2html.xsl\"?> \r\n";
 		return (xsltHeader+quStr);
 	}
 	

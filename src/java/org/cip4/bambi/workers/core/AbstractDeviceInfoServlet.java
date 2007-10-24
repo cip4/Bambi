@@ -74,18 +74,19 @@ package org.cip4.bambi.workers.core;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.AbstractBambiServlet;
+import org.cip4.bambi.core.AbstractDevice;
 
 /**
  * processes commands and view requests for the worker devices
  * @author boegerni
  */
-public abstract class AbstractDeviceInfoServlet extends AbstractBambiServlet {
+public abstract class AbstractDeviceInfoServlet extends HttpServlet {
 
 	private static Log log = LogFactory.getLog(AbstractDeviceInfoServlet.class.getName());
 	/**
@@ -123,88 +124,20 @@ public abstract class AbstractDeviceInfoServlet extends AbstractBambiServlet {
 		
 		AbstractDevice dev = (AbstractDevice) oDev;
 		if (dev==null) {
-			String errDetails = "Mandatory parameter 'dev' is not a Bambi device. "+
+			String errDetails = "Mandatory parameter 'dev' is null or missing. "+
 			"The servlet needs a device to continue.";
-			showErrorPage("mandatory parameter 'dev' is not a device", errDetails, request, response);
+			showErrorPage("mandatory parameter 'dev' is null or missing", errDetails, request, response);
 			return;
 		}
 		request.setAttribute("device", dev);
 		request.setAttribute("bqu", dev.getQueueFacade());
 
-		if ( command.equals("showDevice") )
-		{
+		if ( command.equals("showDevice") ) {
 			showDevice(request,response);
-//			try {
-//				String devProcClass = dev.getClass().getName();
-//				if ( ("org.cip4.bambi.devices.sim.SimDevice").equals(devProcClass) )
-//					request.getRequestDispatcher("/showSimDevice.jsp").forward(request, response);
-//				else if ( ("org.cip4.bambi.devices.manual.ManualDevice").equals(devProcClass) )
-//				{
-//					JobPhase currentPhase = ((ManualDevice)dev).getCurrentJobPhase();
-//					request.setAttribute("currentPhase", currentPhase);
-//					request.getRequestDispatcher("/showManualDevice.jsp").forward(request, response);
-//				}
-//				else
-//				{
-//					String errorDetails = "the Device Processor class is '"+devProcClass+
-//					"', this class is not known by the DeviceInfoServlet";
-//					showErrorPage("class of device processor is unknown", errorDetails, request, response);
-//				}
-//
-//			} catch (Exception e) {
-//				log.error(e);
-//			}
-//		} else if ( command.equals("processNextPhase") )
-//		{
-//			if ( !(dev instanceof ManualDevice) )
-//			{
-//				String errorDetails="command 'processNextPhase' is not supported for "+dev.getDeviceType();
-//				showErrorPage("invalid command", errorDetails, request, response);
-//				return;
-//			}
-//			
-//			JobPhase nextPhase = buildJobPhaseFromRequest(request);
-//			((ManualDevice)dev).doNextJobPhase(nextPhase);
-//			try {
-//				Thread.sleep(750);
-//			} catch (InterruptedException e) {
-//				if (_displayPage)
-//				{
-//					String errDetails = "DeviceInfoServlet was intterupted while waiting "+
-//						"for the next job phase to be initialized: \r\n"+e.getMessage();
-//					showErrorPage("interrupted while sleeping", errDetails, request, response);
-//					log.error(errDetails);
-//					return;
-//				}
-//					
-//			} // allow device to proceed to next phase
-//			
-//			JobPhase currentPhase = ((ManualDevice)dev).getCurrentJobPhase();
-//			request.setAttribute("currentPhase", currentPhase);
-//			forwardVisiblePage("/showManualDevice.jsp", request, response);
-//		} else if ( command.equals("finalizeCurrentQE") )
-//		{
-//			if ( !(dev instanceof ManualDevice) )
-//			{
-//				String errorDetails="command 'finalizeCurrentQE' is not supported for "+dev.getDeviceType();
-//				showErrorPage("invalid command", errorDetails, request, response);
-//				return;
-//			}
-//			
-//			((ManualDevice)dev).finalizeCurrentQueueEntry();
-//			
-//			JobPhase currentPhase = ((ManualDevice)dev).getCurrentJobPhase();
-//			request.setAttribute("currentPhase", currentPhase);
-//			forwardVisiblePage("/showManualDevice.jsp", request, response);
-//		}
 		} else {
 			handleCommand(command,request,response);
 		}
-		
-		
-
 	}
-
 
 	/**
 	 * send request to the target, if <code>_displayPage</code> is true
@@ -220,65 +153,32 @@ public abstract class AbstractDeviceInfoServlet extends AbstractBambiServlet {
 			request.getRequestDispatcher(target).forward(request, response);
 	}
 
-
-//	/**
-//	 * build a new job phase with info from a given request. 
-//	 * JobPhase parameter 'duration' will remain with its default value 0, since it
-//	 * is not used in the context of ManualDevice.doNextJobPhase()
-//	 * @param request request to get the job phase info from
-//	 * @return the new JobPhase
-//	 */
-//	private JobPhase buildJobPhaseFromRequest(HttpServletRequest request) {
-//		JobPhase newPhase = new JobPhase();
-//		
-//		Object devStatus = request.getParameter("DeviceStatus");
-//		if (devStatus != null) {
-//			newPhase.deviceStatus = EnumDeviceStatus.getEnum( devStatus.toString() );
-//		}
-//		Object devStatusDetails = request.getParameter("DeviceStatusDetails");
-//		if (devStatusDetails != null) {
-//			newPhase.deviceStatusDetails = devStatusDetails.toString();
-//		}
-//		
-//		Object nodeStatus = request.getParameter("NodeStatus");
-//		if (devStatus != null) {
-//			newPhase.nodeStatus = EnumNodeStatus.getEnum( nodeStatus.toString() );
-//		}
-//		Object nodeStatusDetails = request.getParameter("NodeStatusDetails");
-//		if (nodeStatusDetails != null) {
-//			newPhase.nodeStatusDetails = nodeStatusDetails.toString();
-//		}
-//		
-//		newPhase.Output_Good = getDoubleFromRequest(request, "Good");
-//		newPhase.Output_Waste = getDoubleFromRequest(request, "Waste");
-//		
-//		return newPhase;
-//	}
-
-//	/**
-//	 * extract a double attribute from a given request
-//	 * @param request
-//	 * @param param
-//	 * @return
-//	 */
-//	private double getDoubleFromRequest(HttpServletRequest request, String param)
-//	{
-//		double d = 0.0;
-//		Object dObj = request.getParameter(param);
-//		if (dObj != null) {
-//			try {
-//				d = Double.valueOf( dObj.toString() ).doubleValue();
-//			} catch (NumberFormatException ex) {
-//				log.error("value of attribute '"+param+"' is not a valid double: "+dObj.toString());
-//			}
-//			
-//		}	
-//		return d;
-//	}
-
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 	throws ServletException, IOException {
 		log.info("called doPost");
+	}
+	/**
+	 * display an error on  error.jsp
+	 * @param errorMsg short message describing the error
+	 * @param errorDetails detailed error info
+	 * @param request required to forward the page
+	 * @param response required to forward the page
+	 */
+	protected void showErrorPage(String errorMsg, String errorDetails, HttpServletRequest request, HttpServletResponse response)
+	{
+		request.setAttribute("errorOrigin", this.getClass().getName());
+		request.setAttribute("errorMsg", errorMsg);
+		request.setAttribute("errorDetails", errorDetails);
+
+		try {
+			request.getRequestDispatcher("/error.jsp").forward(request, response);
+		} catch (ServletException e) {
+			System.err.println("failed to show error.jsp");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println("failed to show error.jsp");
+			e.printStackTrace();
+		}
 	}
 	
 	protected abstract void showDevice(HttpServletRequest request, HttpServletResponse response);

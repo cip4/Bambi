@@ -73,9 +73,10 @@ package org.cip4.bambi.workers.sim;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.workers.core.AbstractDevice;
-import org.cip4.bambi.workers.core.AbstractDeviceProcessor.JobPhase;
-import org.cip4.bambi.workers.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.core.AbstractDeviceProcessor;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.workers.core.AbstractWorkerDevice;
+import org.cip4.bambi.workers.core.AbstractBambiDeviceProcessor.JobPhase;
 
 /**
  * a simple JDF device with a fixed list of job phases. <br>
@@ -88,7 +89,7 @@ import org.cip4.bambi.workers.core.MultiDeviceProperties.DeviceProperties;
  * @author boegerni
  * 
  */
-public final class SimDevice extends AbstractDevice   {
+public final class SimDevice extends AbstractWorkerDevice   {
 	
 
 	/**
@@ -106,5 +107,9 @@ public final class SimDevice extends AbstractDevice   {
 	{
 		super(prop);
 		log.info("created SimDevice '"+prop.getDeviceID()+"'");
+	}
+
+	protected AbstractDeviceProcessor buildDeviceProcessor() {
+		return new SimDeviceProcessor();
 	}
 }

@@ -68,10 +68,11 @@
  *  
  * 
  */
-package org.cip4.bambi.workers.core;
+package org.cip4.bambi.core;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -84,7 +85,7 @@ import org.cip4.jdflib.core.VElement;
 
 
 /**
- * container for the properties of Bambi devices
+ * container for the properties of several Bambi devices
  * 
  * @author boegerni
  */
@@ -100,7 +101,6 @@ public class MultiDeviceProperties
 		private String deviceURL=null;
 		private String proxyURL=null;
 		private String deviceType=null;
-		private String deviceProcessorClass=null;
 		private String appDir=null;
 		
 		/**
@@ -113,12 +113,11 @@ public class MultiDeviceProperties
 		 * @param theAppDir     the location of the web app (e.g. "C:/tomcat/webapps/bambi")
 		 */
 		public DeviceProperties(String theDeviceID, String theDeviceURL, String theProxyURL,
-				String theDeviceType, String theDeviceProcessorClass, String theAppDir) {
+				String theDeviceType, String theAppDir) {
 			setDeviceID(theDeviceID);
 			setDeviceURL(theDeviceURL);
 			setProxyURL(theProxyURL);
 			setDeviceType(theDeviceType);
-			setDeviceProcessorClass(theDeviceProcessorClass);
 			setAppDir(theAppDir);
 		}
 
@@ -179,23 +178,9 @@ public class MultiDeviceProperties
 		}
 
 		/**
-		 * @param deviceProcessorClass the deviceProcessorClass to set
-		 */
-		private void setDeviceProcessorClass(String deviceProcessorClass) {
-			this.deviceProcessorClass = deviceProcessorClass;
-		}
-
-		/**
-		 * @return the deviceProcessorClass
-		 */
-		public String getDeviceProcessorClass() {
-			return deviceProcessorClass;
-		}
-
-		/**
 		 * @param appDir the location of the web application on the hard disk
 		 */
-		private void setAppDir(String appDir) {
+		public void setAppDir(String appDir) {
 			this.appDir = appDir;
 		}
 
@@ -205,18 +190,28 @@ public class MultiDeviceProperties
 		public String getAppDir() {
 			return appDir;
 		}
+		
+		/**
+		 * get the String representation of this DeviceProperty
+		 */
+		public String toString() {
+			String ret="["+this.getClass().getName()+" application directory="+appDir+", device ID="+
+				deviceID+", device type="+deviceType+
+				", device URL="+deviceURL+", proxy URL="+proxyURL+"]";
+			return ret;
+		}
 	}
 	
 	protected static final Log log = LogFactory.getLog(MultiDeviceProperties.class.getName());
-	private Map _devices=null;
+	private Map<String, DeviceProperties> _devices=null;
 
 	/**
 	 * create device properties for the devices defined in the config file
-	 * @param appDir TODO
+	 * @param appDir   the location of the web application in the server
 	 * @param fileName full path to the config file
 	 */
 	public MultiDeviceProperties(String appDir, String fileName) {
-		_devices = new HashMap();
+		_devices = new HashMap<String, DeviceProperties>();
 		
 		File f = new File(fileName);
 		if (f==null || !f.exists()) {
@@ -245,12 +240,11 @@ public class MultiDeviceProperties
 	    		break;
 	    	}
 	    	String deviceType = device.getXPathAttribute("@DeviceType", null);
-	    	String deviceURL = device.getXPathAttribute("@DeviceURL", "");
-	    	String controllerURL = device.getXPathAttribute("@ControllerURL", "");
-	    	String deviceProcessorClass = device.getXPathAttribute("@DeviceProcessorClass", "");
+	    	String proxyURL = device.getXPathAttribute("@ProxyURL", null);
+	    	String deviceURL= device.getXPathAttribute("@DeviceURL", null);
 
-	    	DeviceProperties dev = new DeviceProperties(deviceID,deviceURL,controllerURL,
-	    			deviceType,deviceProcessorClass, appDir);
+	    	DeviceProperties dev = new DeviceProperties(deviceID,deviceURL,proxyURL,
+	    			deviceType,appDir);
 	    	_devices.put(deviceID, dev);
 	    }
 	}
@@ -267,7 +261,7 @@ public class MultiDeviceProperties
 	 * get the a Set with the device IDs of all device properties stored
 	 * @return a Set of device IDs, an empty set of nothing has been found
 	 */
-	public Set getDeviceIDs() {
+	public Set<String> getDeviceIDs() {
 		return _devices.keySet();
 	}
 	
@@ -277,7 +271,25 @@ public class MultiDeviceProperties
 	 * @return the device properties, null if not found
 	 */
 	public DeviceProperties getDevice(String deviceID) {
-		return (DeviceProperties)_devices.get(deviceID);
+		return _devices.get(deviceID);
+	}
+	
+	/**
+	 * get the String representation of this MultiDeviceProperties
+	 */
+	public String toString() {
+		String ret="["+this.getClass().getName()+" Size="+_devices.size()+" DeviceProperties=[";
+		
+		Set<String> keys=_devices.keySet();
+		Iterator<String> it=keys.iterator();
+		while (it.hasNext()) {
+			String key=it.next().toString();
+			DeviceProperties prop=_devices.get(key);
+			ret+=prop.toString()+" ";
+		}
+		
+		ret+="] ]";
+		return ret;
 	}
 
 }

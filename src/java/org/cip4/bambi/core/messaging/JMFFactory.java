@@ -78,7 +78,6 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.w3c.dom.Document;
 
 /**
  * factory for creating JMF messages
@@ -160,10 +159,11 @@ public class JMFFactory {
 	
 	/**
 	 * build a JMF RequestQueueEntry command
-	 * @param deviceID the ID of the device sending the command
+	 * @param queueURL the queue URL of the device sending the command
+	 * 				   ("where do you want your SubmitQE's delivered to?")
 	 * @return the message
 	 */
-	public static JDFJMF buildRequestQueueEntry(String deviceID)
+	public static JDFJMF buildRequestQueueEntry(String queueURL)
 	{
 		JDFJMF jmf=null;
 		try {
@@ -173,22 +173,9 @@ public class JMFFactory {
 			return null;
 		}
 		// TODO refactor to buildRequestQueueEntry(String deviceID,String queueURL)
-		String queueURL = "AbstractDevice.createDeviceURL(deviceID)";
+		// FIXME fix QueueURL
 		jmf.getCommand(0).appendRequestQueueEntryParams().setQueueURL(queueURL);
 		return jmf;
-	}
-	
-	/**
-	 * send a JMF message to Bambi
-	 * @param jmf the message to send
-	 * @param subDeviceId the Bambi sub-device (null for root device, "device001" for BambiRootDevice/device001 etc.)
-	 * @return the response if successful, otherwise null
-	 */
-	public static JDFResponse send2Bambi(JDFJMF jmf, String subDeviceId)
-	{
-		// TODO refactor to buildRequestQueueEntry(String deviceID,String queueURL)
-		String url = "AbstractDevice.createDeviceURL(subDeviceId)";
-		return send2URL(jmf, url);
 	}
 	
 	/**
@@ -207,7 +194,6 @@ public class JMFFactory {
 			}
 			return null;
 		}
-
 		JDFDoc doc = jmf.getOwnerDocument_JDFElement();
 		JDFDoc respDoc = doc.write2URL(url);
 		if (respDoc==null || respDoc.toString().length()<10)

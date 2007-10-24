@@ -112,7 +112,7 @@ import org.cip4.jdflib.util.VectorMap;
 public final class SignalDispatcher implements ISignalDispatcher 
 {
     protected static final Log log = LogFactory.getLog(SignalDispatcher.class.getName());
-    protected HashMap subscriptionMap=null; // map of channelID / Subscription
+    protected HashMap<String, MsgSubscription> subscriptionMap=null; // map of channelID / Subscription
     protected VectorMap queueEntryMap=null; // map of queueEntryID / vector of channelIDS
     protected IMessageHandler messageHandler=null;
     protected VectorMap triggers=null;
@@ -195,21 +195,21 @@ public final class SignalDispatcher implements ISignalDispatcher
         {
             while(!doShutdown)
             {
-                final Vector triggerVector = getTriggerSubscriptions();
+                final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
                 // spam them out
                 for(int i=0;i<triggerVector.size();i++)
                 {
-                    final MsgSubscription sub=(MsgSubscription) triggerVector.elementAt(i);
+                    final MsgSubscription sub=triggerVector.elementAt(i);
                     log.debug("Trigger Signalling :"+i+" channelID="+sub.channelID);
                     // TODO think about new threads here
                     sub.signalJMF();
                 }
                // select pending time subscriptions
-                final Vector subVector = getTimeSubscriptions();
+                final Vector<MsgSubscription> subVector = getTimeSubscriptions();
                 // spam them out
                 for(int i=0;i<subVector.size();i++)
                 {
-                    final MsgSubscription sub=(MsgSubscription) subVector.elementAt(i);
+                    final MsgSubscription sub=subVector.elementAt(i);
                     log.debug("Time Signalling :"+i+" channelID="+sub.channelID);
                     // TODO think about new threads here
                     sub.signalJMF();
@@ -233,15 +233,17 @@ public final class SignalDispatcher implements ISignalDispatcher
          * get the triggered subscriptions, either forced (amount=-1) or by amount
          * @return the vector of triggered subscriptions
          */
-        private Vector getTriggerSubscriptions()
+        @SuppressWarnings("unchecked")
+		private Vector<MsgSubscription> getTriggerSubscriptions()
         {
-            Vector v = new Vector();
-            Iterator it=triggers.entrySet().iterator(); // active triggers
+            Vector<MsgSubscription> v = new Vector<MsgSubscription>();
+            Iterator<Entry<String,MsgSubscription>> it
+            	= (Iterator<Entry<String,MsgSubscription>>)triggers.entrySet().iterator(); // active triggers
             while(it.hasNext())
             {
-                final Entry nxt = (Entry) it.next();
-                String channelID=(String)nxt.getKey();
-                MsgSubscription sub=(MsgSubscription)subscriptionMap.get(channelID);
+                final Entry<String,MsgSubscription> nxt = it.next();
+                String channelID=nxt.getKey();
+                MsgSubscription sub=subscriptionMap.get(channelID);
                 int siz=triggers.size(channelID);
                 for(int i=0;i<siz;i++)
                 {
@@ -271,23 +273,24 @@ public final class SignalDispatcher implements ISignalDispatcher
             // remove active triggers that will be returned
             for(int j=0;j<v.size();j++)
             {
-                MsgSubscription sub=(MsgSubscription)v.elementAt(j);                
+                MsgSubscription sub=v.elementAt(j);                
                 triggers.removeOne(sub.channelID,sub.trigger);
             }
             return v;                
         }
 
-        private Vector getTimeSubscriptions()
+        private Vector<MsgSubscription> getTimeSubscriptions()
         {
-            Vector subVector=new Vector();
+            Vector<MsgSubscription> subVector=new Vector<MsgSubscription>();
             synchronized(subscriptionMap)
             {
-                Iterator it=subscriptionMap.entrySet().iterator();
+                Iterator<Entry<String, MsgSubscription>> it=subscriptionMap.entrySet().iterator();
                 long now=System.currentTimeMillis()/1000;
                 while(it.hasNext())
                 {
-                    final Entry next = (Entry) it.next();
-                    MsgSubscription sub=(MsgSubscription) next.getValue();
+                    final Entry<String, MsgSubscription> next = 
+                    	it.next();
+                    MsgSubscription sub=next.getValue();
                     if( sub.repeatTime>0)
                     {
                         if(now-sub.lastTime>sub.repeatTime)
@@ -482,7 +485,7 @@ public final class SignalDispatcher implements ISignalDispatcher
      */
     public SignalDispatcher(IMessageHandler _messageHandler, String deviceID)
     {        
-        subscriptionMap=new HashMap();
+        subscriptionMap=new HashMap<String, MsgSubscription>();
         queueEntryMap=new VectorMap();
         messageHandler=_messageHandler;
         triggers=new VectorMap();
@@ -564,16 +567,17 @@ public final class SignalDispatcher implements ISignalDispatcher
     /* (non-Javadoc)
      * @see org.cip4.bambi.ISignalDispatcher#removeSubScription(java.lang.String)
      */
-    public void removeSubScriptions(String queueEntryID)
+    @SuppressWarnings("unchecked")
+	public void removeSubScriptions(String queueEntryID)
     {
         if(queueEntryID==null)
             return;
         
-        Vector v=(Vector)queueEntryMap.get(queueEntryID);
+        Vector<String> v=(Vector<String>)queueEntryMap.get(queueEntryID);
         int siz= v==null ? 0 : v.size();
         for(int i=0;i<siz;i++)
         {
-            removeSubScription((String)v.get(i));
+            removeSubScription(v.get(i));
         }
         queueEntryMap.remove(queueEntryID);
     }
@@ -605,20 +609,21 @@ public final class SignalDispatcher implements ISignalDispatcher
     /* (non-Javadoc)
      * @see org.cip4.bambi.ISignalDispatcher#triggerQueueEntry(java.lang.String)
      */
-    public void triggerQueueEntry(String queueEntryID,  String workStepID, int amount)
+    @SuppressWarnings("unchecked")
+	public void triggerQueueEntry(String queueEntryID,  String workStepID, int amount)
     {
-        Vector v=(Vector) queueEntryMap.get(queueEntryID);
+        Vector<String> v=(Vector<String>) queueEntryMap.get(queueEntryID);
         int si=v==null ? 0 : v.size();
         for(int i=0;i<si;i++)
         {
-            triggerChannel((String)v.get(i),queueEntryID, workStepID, amount);
+            triggerChannel(v.get(i),queueEntryID, workStepID, amount);
         }
         // now the global queries
-        v=(Vector) queueEntryMap.get("*");
+        v=(Vector<String>) queueEntryMap.get("*");
         si=v==null ? 0 : v.size();
         for(int i=0;i<si;i++)
         {
-            triggerChannel((String)v.get(i),queueEntryID, workStepID, amount);
+            triggerChannel(v.get(i),queueEntryID, workStepID, amount);
         }
     }
 

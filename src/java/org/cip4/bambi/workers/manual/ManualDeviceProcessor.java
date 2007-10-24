@@ -73,9 +73,9 @@ package org.cip4.bambi.workers.manual;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.IQueueProcessor;
 import org.cip4.bambi.core.IStatusListener;
-import org.cip4.bambi.workers.core.AbstractDeviceProcessor;
+import org.cip4.bambi.core.queues.IQueueProcessor;
+import org.cip4.bambi.workers.core.AbstractBambiDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
@@ -89,18 +89,13 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
  * @author boegerni
  *
  */
-public class ManualDeviceProcessor extends AbstractDeviceProcessor
+public class ManualDeviceProcessor extends AbstractBambiDeviceProcessor
 {
 	private static Log log = LogFactory.getLog(ManualDeviceProcessor.class.getName());
 	private static final long serialVersionUID = -384123589645081254L;
 	private boolean doFinalizeQE = false;
 	private boolean doNextPhase = false;
 	private JobPhase firstPhase=null;
-
-	public ManualDeviceProcessor() {
-		super();
-		initManualDeviceProcessor();
-	}
 	
 	public ManualDeviceProcessor(IQueueProcessor queueProcessor, 
 			IStatusListener statusListener, String deviceID, String appDir) {
@@ -121,14 +116,11 @@ public class ManualDeviceProcessor extends AbstractDeviceProcessor
 		
         doFinalizeQE = false;
 		while ( !doFinalizeQE ) {
-			if ( _jobPhases.isEmpty() )
-			{
-				JobPhase p = firstPhase;
-				_jobPhases.add(p);
+			if ( _jobPhases==null || _jobPhases.isEmpty() ) {
+				_jobPhases.add(firstPhase);
 			}
 			
-			if (doNextPhase)
-			{
+			if (doNextPhase) {
 				_jobPhases.remove(0);
 				doNextPhase = false;
 			}
@@ -142,7 +134,6 @@ public class ManualDeviceProcessor extends AbstractDeviceProcessor
 			log.info("processing new job phase: "+phase.toString());
 			_statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, 
 					phase.nodeStatus,phase.nodeStatusDetails);
-			
 			
 			while ( !doNextPhase ) {
 				if (doFinalizeQE) {
@@ -169,7 +160,6 @@ public class ManualDeviceProcessor extends AbstractDeviceProcessor
 					} else {
 						Thread.sleep(1000);
 					}
-					
 					_statusListener.updateAmount(_trackResourceID, phase.Output_Good, phase.Output_Waste);
 					
 				} catch (InterruptedException e) {
@@ -179,6 +169,7 @@ public class ManualDeviceProcessor extends AbstractDeviceProcessor
 
 		}
 		
+		// processing has finished
 		doNextPhase(firstPhase);
 		return finalizeProcessDoc();
 	}
@@ -207,6 +198,5 @@ public class ManualDeviceProcessor extends AbstractDeviceProcessor
 		else 
 			return null;
 	}
-	
-	
+
 }

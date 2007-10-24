@@ -1,4 +1,5 @@
-/**
+/*
+ *
  * The CIP4 Software License, Version 1.0
  *
  *
@@ -38,7 +39,7 @@
  *
  * Usage of this software in commercial products is subject to restrictions. For
  * details please consult info@cip4.org.
-  *
+ *
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -58,7 +59,7 @@
  * individuals on behalf of the The International Cooperation for the Integration 
  * of Processes in Prepress, Press and Postpress and was
  * originally based on software 
- * copyright (c) 1999-2006, Heidelberger Druckmaschinen AG 
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
  * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
  *  
  * For more information on The International Cooperation for the 
@@ -67,52 +68,46 @@
  *  
  * 
  */
-
 package org.cip4.bambi.core;
 
-import org.cip4.bambi.core.messaging.IMultiJMFHandler;
-import org.cip4.bambi.core.queues.IQueueEntry;
+import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.jmf.JDFCommand;
-import org.cip4.jdflib.jmf.JDFQueue;
-import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 
 /**
  * @author prosirai
  *
  */
-public interface IQueueProcessor extends IMultiJMFHandler
+public interface IDeviceProcessor extends Runnable
 {
+
     /**
-     * get the next waiting entry
-     * @return
+     * this is the device processor loop 
      */
-    public IQueueEntry getNextEntry();
+    public abstract void run();
+
+    /**
+     * @param doc
+     * @return EnumQueueEntryStatus the final status of the queuentry 
+     */
+    public abstract EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe);
     
     /**
-     * get the jdf representation of this queue
-     * @return JDFQueue the jdf representation of this queue
+     * initialize the IDeviceProcessor
+     * @param queueProcessor the queueprocessor
+     * @param statusListener the status listener
+     * @param deviceID       the device ID
+     * @param appDir         the location of the web application on the disk 
+     *                       (required for loading the config files without relying 
+     *                        on Tomcat-specific system properties)
      */
-    public JDFQueue getQueue();
+    public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, 
+    		String deviceID, String appDir);
     
     /**
-     * add a new entry to the queue
-     * 
-     * @param sumitQueueEntry queuesubmission command
-     * @param theJDF the referenced jdf doc
-     * @param hold if true, the initial QeueEntryStatus is Held
-     * @return 
+     * stop the device processor loop
      */
-    public JDFResponse addEntry(JDFCommand sumitQueueEntry, JDFDoc theJDF, boolean hold);
-    
-    /**
-     * updated an entry in the queue 
-     * @param queueEntryID the queuentryid to update
-     * @param status the queuentry status
-     */
-    public void updateEntry(String queueEntryID, EnumQueueEntryStatus status);
-    
-    public void addListener(Object o);
+    public void shutdown();
 
 }

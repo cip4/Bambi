@@ -3,8 +3,8 @@
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.SortedSet" %>
 <%@ page import="java.util.TreeSet" %>
-<%@ page import="org.cip4.bambi.devices.AbstractDevice" %>
-<%@ page import="org.cip4.bambi.queues.QueueFacade" %>
+<%@ page import="org.cip4.bambi.core.AbstractDevice" %>
+<%@ page import="org.cip4.bambi.core.queues.QueueFacade" %>
 <%@ page import="org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -16,45 +16,19 @@
 		<title>Bambi</title>
 	</head>
 	<body>
-		<h1>Bambi - Overview</h1>
+		<h1>Bambi Proxy - Overview</h1>
 		
-		use <strong>http://<%=request.getServerName() + ":" + request.getServerPort() + request.getContextPath()%>/BambiRootDevice </strong> to connect your MIS/Alces <br>
+		use <strong>http://<%=request.getLocalAddr() + ":" + request.getServerPort() + request.getContextPath()%>/devices</strong> to connect your MIS/Alces <br>
 		
 		<br>
-		<h3>Known Devices:</h3>
-		<table>
-			<tr>
-				<th align="left"> Device ID </th>
-				<th align="left"> Device Type </th>
-				<th align="left"> </th>
-			</tr>
-		
-			<% 
-				HashMap devices = (HashMap)request.getAttribute("devices");
-				SortedSet keys = new TreeSet();
-				keys.addAll( devices.keySet() );
-				java.util.Iterator it = keys.iterator();
-				while (it.hasNext()) {
-					String key = it.next().toString();
-					AbstractDevice dev = (AbstractDevice)devices.get(key);
-		  	%>
-				<tr>
-					<td><%=dev.getDeviceID()%></td>
-					<td><%=dev.getDeviceType()%></td>
-					<td><a href="BambiRootDevice?cmd=showDevice&id=<%=dev.getDeviceID()%>">show</a></td>
-				</tr>
-			<%
-				}
-			%>
-		</table>
 		
 		<h3>Queue:</h3>
 		<% QueueFacade qf=(QueueFacade)request.getAttribute("qf"); %>
 		Waiting: <%= qf.count(EnumQueueEntryStatus.Waiting)%>, Running: <%= qf.count(EnumQueueEntryStatus.Running)%>, 
 		Completed: <%= qf.count(EnumQueueEntryStatus.Completed)%>, Aborted: <%= qf.count(EnumQueueEntryStatus.Aborted)%>, 
 		Total: <%= qf.countAll()%> <br>
-		<iframe src="BambiRootDevice?cmd=showQueue" width="450" height="200">
-			  <a href="BambiRootDevice?cmd=showQueue">show queue</a>
+		<iframe src="overview?cmd=showQueue" width="450" height="200">
+			  <a href="overview?cmd=showQueue">show queue</a>
 		</iframe>
 		
 		<br>

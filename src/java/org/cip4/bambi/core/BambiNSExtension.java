@@ -139,15 +139,16 @@ public class BambiNSExtension
     	removeMyNSAttribute(qe, returnURL);
     	removeMyNSAttribute(qe, docURL);
     	removeMyNSAttribute(qe, deviceID);
+    	removeMyNSAttribute(qe, deviceURL);
     }
 
     /*** docURL *************************************************************/
     
     public static final String docURL="DocURL";
    /**
-     * 
+     * set the location of the JDF
      * @param qe the JDFQueueEntry to set
-     * @param docURL location of the JDF
+     * @param docURL the location of the JDF
      */
     public static void setDocURL(JDFQueueEntry qe, String _docURL)
     {
@@ -155,8 +156,9 @@ public class BambiNSExtension
     }
     
     /**
+     * get the location of the JDF
      * @param qe the JDFQueueEntry to work on
-     * @return docURL location of the JDF
+     * @return docURL the location of the JDF
      */
     public static String getDocURL(JDFQueueEntry qe)
     {
@@ -167,7 +169,7 @@ public class BambiNSExtension
     
     public static final String returnURL="ReturnURL";
     /**
-      * 
+      * set the location to send the ReturnQueueEntry to
       * @param qe the JDFQueueEntry to set
       * @param theReturnURL the location to send the ReturnQueueEntry to
       */
@@ -177,8 +179,9 @@ public class BambiNSExtension
      }
      
      /**
+      * get the location to send the ReturnQueueEntry to
       * @param qe the JDFQueueEntry to work on
-      * @return the location of the JDF
+      * @return the location to send the ReturnQueueEntry to
       */
      public static String getReturnURL(JDFQueueEntry qe)
      {
@@ -189,7 +192,7 @@ public class BambiNSExtension
      
      public static final String returnJMF="ReturnJMF";
      /**
-       * 
+       * set the location to send the ReturnJMF to
        * @param qe the JDFQueueEntry to set
        * @param theReturnJMF the location to send the ReturnJMF to
        */
@@ -199,8 +202,9 @@ public class BambiNSExtension
       }
       
       /**
+       * get the location to send the ReturnJMF to
        * @param qe the JDFQueueEntry to work on
-       * @return
+       * @return the location to send the ReturnJMF to
        */
       public static String getReturnJMF(JDFQueueEntry qe)
       {
@@ -211,7 +215,7 @@ public class BambiNSExtension
       
       public static final String deviceID="DeviceID";
       /**
-        * 
+        * set the ID of the device processing the QueueEntry
         * @param qe the JDFQueueEntry to set
         * @param theDeviceID the ID of the device processing the QueueEntry
         */
@@ -221,6 +225,7 @@ public class BambiNSExtension
        }
        
        /**
+        * get the ID of the device processing the QueueEntry
         * @param qe the JDFQueueEntry to work on
         * @return the ID of the device processing the QueueEntry
         */
@@ -228,5 +233,28 @@ public class BambiNSExtension
        {
            return getMyNSAttribute(qe,deviceID);
        }
+       
+       /*** deviceURL *********************************************************/
+       
+       public static final String deviceURL="DeviceURL";
+       /**
+         * set the URL of the device processing the QueueEntry
+         * @param qe the JDFQueueEntry to set
+         * @param theDeviceID the URL of the device processing the QueueEntry
+         */
+        public static void setDeviceURL(JDFQueueEntry qe, String theDeviceURL)
+        {
+            setMyNSAttribute(qe,deviceURL,theDeviceURL);       
+        }
+        
+        /**
+         * get the URL of the device processing the QueueEntry
+         * @param qe the JDFQueueEntry to work on
+         * @return the URL of the device processing the QueueEntry
+         */
+        public static String getDeviceURL(JDFQueueEntry qe)
+        {
+            return getMyNSAttribute(qe,deviceURL);
+        }
    
 }

@@ -88,7 +88,7 @@ public class SimDeviceInfoServlet extends AbstractDeviceInfoServlet {
 	protected void handleCommand(String command, HttpServletRequest request,
 			HttpServletResponse response) {
 		log.info("unknown command: "+command);
-		
+		showDevice(request, response);
 	}
 
 	protected void showDevice(HttpServletRequest request,

@@ -69,31 +69,31 @@
  * 
  */
 
-package org.cip4.bambi.core;
+package org.cip4.bambi.workers.core;
+
+import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.core.queues.IQueueProcessor;
+
 
 /**
- * interface for all devices in Bambi
+ * basis for JDF devices in Bambi. It uses an AbstractBambiDeviceProcessor instead of an BambiDeviceProcessor<br>
+ * Devices are defined in /WebContent/config/devices.xml<br>
+ * Derived classes should be final: if they were ever subclassed, the DeviceProcessor thread 
+ * would be started before the constructor from the subclass has a chance to fire.
+ * 
  * @author boegerni
- *
+ * 
  */
-public interface IDevice {
-
-	/**
-     * return the unique ID of this device
-     * @return
-     */
-    public abstract String getDeviceID();
-    
-    /**
-     * return the type of this device
-     * @return
-     */
-    public abstract String getDeviceType();
-
-	/**
-	 * return the URL of this device
-	 * @return
-	 */
-	public abstract String getDeviceURL();
-
+public abstract class AbstractWorkerDevice extends AbstractDevice {
+	protected AbstractBambiDeviceProcessor _theDeviceProcessor=null;
+	
+	public AbstractWorkerDevice(DeviceProperties prop) {
+		super(prop);
+		this._theDeviceProcessor=(AbstractBambiDeviceProcessor) super._theDeviceProcessor;
+	}
+	
+	protected IQueueProcessor buildQueueProcessor() {
+		return new WorkerQueueProcessor(_devProperties.getDeviceID(), this, _devProperties.getAppDir());
+	}
 }

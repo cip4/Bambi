@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
 Class-Path: 
-Bundle-Name: Bambi
+Bundle-Name: Manual Worker
 Bundle-Vendor: CIP4
 

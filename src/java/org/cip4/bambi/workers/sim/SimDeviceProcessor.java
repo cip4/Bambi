@@ -77,9 +77,9 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.IQueueProcessor;
 import org.cip4.bambi.core.IStatusListener;
-import org.cip4.bambi.workers.core.AbstractDeviceProcessor;
+import org.cip4.bambi.core.queues.IQueueProcessor;
+import org.cip4.bambi.workers.core.AbstractBambiDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
@@ -91,14 +91,14 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.util.StringUtil;
 
 /**
- * a simulated device processor for Bambi
+ * A simulated device processor for Bambi. It processes a fixed List of JobPhases.
  * @author boegerni
  *
  */
-public class SimDeviceProcessor extends AbstractDeviceProcessor
+public class SimDeviceProcessor extends AbstractBambiDeviceProcessor
 {
 	private static Log log = LogFactory.getLog(SimDeviceProcessor.class.getName());	
-	private List _originalPhases = null;
+	private List<JobPhase> _originalPhases = null;
 	private static final long serialVersionUID = -256551569245084031L;
 	public boolean isPaused=false;
 	JobPhase _currentPhase = null;
@@ -127,7 +127,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		// needs the config dir to be added
 		if ( !fileName.contains(File.separator) )  
 			fileName = _appDir+fileName;
-		_originalPhases = new ArrayList();
+		_originalPhases = new ArrayList<JobPhase>();
 		_originalPhases.clear();
 		JDFParser p = new JDFParser();
 		JDFDoc doc = p.parseFile(fileName);
@@ -158,13 +158,13 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 				counter++;
 			}
 			
-			_jobPhases = new ArrayList();
+			_jobPhases = new ArrayList<JobPhase>();
 			_jobPhases.addAll(_originalPhases);
 		}
 		catch (Exception ex)
 		{
 			log.warn("error in importing jobs");
-			_originalPhases = new ArrayList();
+			_originalPhases = new ArrayList<JobPhase>();
 			return false;
 		}
 
@@ -194,7 +194,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 				double varyBy = Math.random()*randomTime/100.0;
 				if (Math.random() < 0.5)
 					varyBy *= -1.0;
-				JobPhase phase=(JobPhase)_originalPhases.get(i);
+				JobPhase phase=_originalPhases.get(i);
 				phase.duration=phase.duration+(int)(phase.duration*varyBy);
 			}
 		}
@@ -224,8 +224,8 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		super.processDoc(doc, qe);
 		
 		// try to load a list of remaining phases for qe
-		_jobPhases = new ArrayList();
-		List phases = resumeQueueEntry(qe);
+		_jobPhases = new ArrayList<JobPhase>();
+		List<JobPhase> phases = resumeQueueEntry(qe);
 		if (phases != null) {
 			_jobPhases.addAll(phases);
 		} else {
@@ -239,7 +239,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		}
 		for (int i=0;i<_jobPhases.size();i++)
 		{
-			_currentPhase = (JobPhase)_jobPhases.get(i);
+			_currentPhase = _jobPhases.get(i);
 			if (_currentPhase!=null && _currentPhase.duration>0) 
 			{
 				_statusListener.signalStatus(_currentPhase.deviceStatus, _currentPhase.deviceStatusDetails, 

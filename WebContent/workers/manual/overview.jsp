@@ -13,10 +13,10 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 		<link rel="stylesheet" type="text/css" href="./css/styles_pc.css"/>
-		<title>SimDevice - Overview</title>
+		<title>ManualDevice - OverView</title>
 	</head>
 	<body>
-		<h1>SimDevice - Overview</h1>
+		<h1>ManualDevice - Overview</h1>
 		
 		use <b>http://<%=request.getLocalAddr() + ":" + request.getServerPort() + request.getContextPath()%>/devices</b> to connect your MIS/Alces<br>
 		

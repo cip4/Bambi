@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" errorPage="exception.jsp"%>
 <%@ page import="org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus"%>
-<%@ page import="org.cip4.bambi.workers.core.AbstractDevice"%>
+<%@ page import="org.cip4.bambi.core.AbstractDevice"%>
 <%@ page import="org.cip4.bambi.core.queues.QueueFacade"%>
 <%@ page import="org.cip4.bambi.core.queues.QueueFacade.BambiQueueEntry"%>
 <%@ page import="java.util.Vector"%>
@@ -30,7 +30,7 @@
 		<div style="margin-left: 20px">
 			<b>ID: </b> <%= dev.getDeviceID() %> <br/>
 			<b>Class: </b> <%= dev.getDeviceType() %><br/>
-			<b>URL: </b> <%= dev.getDeviceURL() %> <br/>
+			<b>URL: </b> http://<%=request.getLocalAddr() + ":" + request.getServerPort() + request.getContextPath()+"/devices/"+dev.getDeviceID()%><br/>
 			<b>Status: </b> <%= dev.getDeviceStatus().getName() %>
 		</div>
 		
@@ -60,7 +60,7 @@
 		        <tbody>
 				
 				<%
-					Vector bqEntries = bqu.getBambiQueueEntryVector();
+					Vector<BambiQueueEntry> bqEntries = bqu.getBambiQueueEntryVector();
 					for (int i=0; i<bqEntries.size();i++)
 					{
 						QueueFacade.BambiQueueEntry bqe = (QueueFacade.BambiQueueEntry)bqEntries.get(i);

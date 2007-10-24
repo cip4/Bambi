@@ -72,8 +72,10 @@ package org.cip4.bambi.workers.core;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.bambi.core.queues.AbstractQueueProcessor;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -93,20 +95,26 @@ import org.cip4.jdflib.util.UrlUtil;
 public class WorkerQueueProcessor extends AbstractQueueProcessor
 {
 	protected static final Log log = LogFactory.getLog(WorkerQueueProcessor.class.getName());
+	protected AbstractDevice _parent=null;
 
-	public WorkerQueueProcessor(String deviceID, AbstractDevice theParent) {
-		super(deviceID, theParent);
+	public WorkerQueueProcessor(String deviceID, AbstractDevice theParent, String appDir) {
+		super(deviceID, appDir);
+		_parent = theParent;
 	}
+	
 	public IQueueEntry getNextEntry()
     {
-   		//log.debug("getNextEntry");
         JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
         
         if(qe==null)
         {
-        	//log.info("sending RequestQueueEntry to root device");
-        	JDFJMF jmf = JMFFactory.buildRequestQueueEntry( _theQueue.getDeviceID() );
-        	JMFFactory.send2Bambi(jmf,"");
+        	//log.info("sending RequestQueueEntry to proxy device");
+        	String queueURL=_parent.getDeviceURL();
+        	JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL );
+        	String proxyURL=_parent.getProxyURL();
+        	if (proxyURL!=null && proxyURL.length()>0) {
+        		JMFFactory.send2URL(jmf,_parent.getProxyURL());
+        	}
             return null;
         }
         String docURL=BambiNSExtension.getDocURL(qe);
@@ -133,7 +141,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		JDFQueue q = resp.appendQueue();
 		q.copyElement(qe, null);
 		q.setDeviceID( _theQueue.getDeviceID() );
-		q.setStatus( _theQueue.getStatus() );
+		q.setQueueStatus( _theQueue.getQueueStatus() );
 		removeBambiNSExtensions(q);
 		log.info("aborted QueueEntry with ID="+qeid);
 	}
@@ -154,7 +162,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		}
 		JDFQueue q = resp.appendQueue();
 		q.setDeviceID( _theQueue.getDeviceID() );
-		q.setStatus( _theQueue.getStatus() );
+		q.setQueueStatus( _theQueue.getQueueStatus() );
 		q.copyElement(qe, null);
 		removeBambiNSExtensions(q);
 		log.info("suspended QueueEntry with ID="+qeid);
@@ -166,9 +174,43 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		JDFQueue q = resp.appendQueue();
 		q.copyElement(qe, null);
 		q.setDeviceID( _theQueue.getDeviceID() );
-		q.setStatus( _theQueue.getStatus() );
+		q.setQueueStatus( _theQueue.getQueueStatus() );
 		removeBambiNSExtensions(q);
 		log.info("resumed QueueEntry with ID="+qeid);
 	}
 	
+	/**
+     * stop processing the given {@link JDFQueueEntry} on the parent device
+     * @param qe the {@link JDFQueueEntry} to work on
+     * @param status the targeted {@link EnumQueueEntryStatus} for qe (Aborted, Suspended, Held)
+     * @return the new status of qe, null if unable to forwared stop request<br>
+     *         Note that it might take some time for the status request to be put in action.
+     */
+    protected EnumQueueEntryStatus stopOnDevice(JDFQueueEntry qe,EnumQueueEntryStatus status)
+    {
+    	String queueEntryID=qe.getQueueEntryID();
+    	String deviceID=BambiNSExtension.getDeviceID(qe);
+    	if (deviceID==null) {
+    		log.error("no device ID supplied for "+queueEntryID);
+    		return null;
+    	}
+    	if ( !deviceID.equals(_theQueue.getDeviceID()) ) {
+    		log.error("the queue entry is not processed on the this device");
+    		return null;
+    	}
+    	
+    	if (_parent == null) {
+    		log.error("cannot stop on parent device, parent is null");
+    		return null;
+    	}
+    	JDFQueueEntry returnQE=_parent.stopProcessing(queueEntryID, status);
+    	if (returnQE==null) {
+    		log.fatal("device '"+deviceID+"' returned a null QueueEntry");
+    		return null;
+    	}
+    	
+    	EnumQueueEntryStatus newStatus=qe.getQueueEntryStatus();
+    	log.info("QueueEntry with ID="+queueEntryID+" is now "+newStatus.getName());
+    	return newStatus;
+    }
 }

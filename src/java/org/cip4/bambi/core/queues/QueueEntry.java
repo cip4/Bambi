@@ -20,29 +20,27 @@ public class QueueEntry implements IQueueEntry
     private JDFDoc _theDoc;
     private JDFQueueEntry _theQueueEntry;
     
-    public QueueEntry(JDFDoc doc, JDFQueueEntry qe)
-    {
+    public QueueEntry(JDFDoc doc, JDFQueueEntry qe) {
         super();
         log.info("constructing new QueueEntry");
         _theDoc=doc;
         _theQueueEntry=qe;
         if(_theDoc==null || _theQueueEntry==null)
-            log.error("null elements in queuentry");
+            log.error("null elements in QueueEntry");
     }
 
-    public JDFDoc getJDF()
-    {
+    public JDFDoc getJDF() {
         return _theDoc;
     }
-    public JDFQueueEntry getQueueEntry()
-    {
+    
+    public JDFQueueEntry getQueueEntry() {
         return _theQueueEntry;
     }
+    
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
-    public String toString()
-    {
+    public String toString() {
         String s="[QueueEntry: ] \nQueueEntry : ";
         s+=_theQueueEntry==null ?"null \n" : _theQueueEntry.getQueueEntryID() + "\n"+_theQueueEntry.toString();
         s+="\n Doc: "+_theDoc==null ?"null \n": _theDoc.toString();

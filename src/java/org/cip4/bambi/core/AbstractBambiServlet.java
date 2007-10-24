@@ -71,13 +71,38 @@
 
 package org.cip4.bambi.core;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.util.Properties;
 
+import javax.mail.BodyPart;
+import javax.mail.MessagingException;
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.core.messaging.IMessageHandler;
+import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.util.MimeUtil;
 
 /**
  * mother of all Bambi servlets
@@ -86,11 +111,74 @@ import javax.servlet.http.HttpServletResponse;
  */
 public abstract class AbstractBambiServlet extends HttpServlet {
 	
-	public void init(ServletConfig config) throws ServletException 
+	/**
+	 * 
+	 * handler for the knowndevices query
+	 */
+	protected class KnownDevicesHandler implements IMessageHandler
+	{
+		public KnownDevicesHandler() {
+			super();
+		}
+		
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 */
+		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		{
+			return handleKnownDevices(m, resp);
+		}
+	
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#getFamilies()
+		 */
+		public EnumFamily[] getFamilies()
+		{
+			return new EnumFamily[]{EnumFamily.Query};
+		}
+	
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#getMessageType()
+		 */
+		public EnumType getMessageType()
+		{
+			return EnumType.KnownDevices;
+		}
+	}
+
+	protected DeviceProperties _devProperties=null;
+	protected String _appDir=null;
+	protected String _baseDir=null;
+	protected String _configDir=null;
+	protected String _jdfDir=null;
+	protected String _xslDir="./xslt/";
+	protected String _deviceID=null;
+	protected String _deviceType=null;
+	protected String _deviceURL=null;
+	protected JMFHandler _jmfHandler=null;
+	private static Log log = LogFactory.getLog(AbstractBambiServlet.class.getName());
+	
+	/** Initializes the servlet.
+	 * @throws MalformedURLException 
+	 */
+	public void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
+		ServletContext context = config.getServletContext();
+		log.info( "Initializing servlet for "+context.getServletContextName() );
+		_appDir=context.getRealPath("")+"/";
+		_baseDir=_appDir+"jmb/";
+		_configDir=_appDir+"config/";
+		_jdfDir=_appDir+"JDFDir/";
+		loadProperties();
+		new File(_baseDir).mkdirs();
+		new File(_jdfDir).mkdirs();
+		_jmfHandler=new JMFHandler();
+		addHandlers();
 	}
 	
+	protected abstract boolean handleKnownDevices(JDFMessage m, JDFResponse resp);
+
 	/**
 	 * display an error on  error.jsp
 	 * @param errorMsg short message describing the error
@@ -114,4 +202,181 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * @param request
+	 * @param response
+	 */
+	protected void processError(HttpServletRequest request, HttpServletResponse response, EnumType messageType, int returnCode, String notification)
+	{
+		log.warn("processError- rc: "+returnCode+" "+notification==null ? "" : notification);
+		JDFJMF error=JDFJMF.createJMF(EnumFamily.Response, messageType);
+		JDFResponse r=error.getResponse(0);
+		r.setReturnCode(returnCode);
+		r.setErrorText(notification);
+		response.setContentType(MimeUtil.VND_JMF);
+		try {
+			error.getOwnerDocument_KElement().write2Stream(response.getOutputStream(), 0, true);
+		} catch (IOException x) {
+			log.error("processError: cannot write response\n"+x.getMessage());
+		}
+	}
+	
+	/**
+	 * process a multipart request - including job submission
+	 * @param request
+	 * @param response
+	 */
+	protected void processMultipleDocuments(HttpServletRequest request, HttpServletResponse response,BodyPart[] bp)
+	{
+		log.info("processMultipleDocuments- parts: "+(bp==null ? 0 : bp.length));
+		if(bp==null || bp.length<2) {
+			processError(request, response, EnumType.Notification, 2,"processMultipleDocuments- not enough parts, bailing out");
+			return;
+		}
+		JDFDoc docJDF[]=MimeUtil.getJMFSubmission(bp[0].getParent());
+		if(docJDF==null) {
+			processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
+			return;
+		}
+		processJMFDoc(request, response, docJDF[0]);
+	}
+	
+	/**
+	 * 
+	 * @param request
+	 * @param response
+	 * @param jmfDoc
+	 */
+	protected abstract void processJMFDoc(HttpServletRequest request,
+			HttpServletResponse response, JDFDoc jmfDoc);
+	
+	/**
+	 * Parses a multipart request.
+	 */
+	protected void processMultipartRequest(HttpServletRequest request, HttpServletResponse response)
+	throws IOException {
+		InputStream inStream=request.getInputStream();
+		BodyPart bp[]=MimeUtil.extractMultipartMime(inStream);
+		log.info("Body Parts: "+((bp==null) ? 0 : bp.length));
+		if(bp==null || bp.length==0) {
+			processError(request,response,null,9,"No body parts in mime package");
+			return;
+		}
+		try  {// messaging exceptions
+			if(bp.length>1) {
+				processMultipleDocuments(request,response,bp);
+			} else {
+				String s=bp[0].getContentType();
+				if(MimeUtil.VND_JDF.equalsIgnoreCase(s)) {
+					processJDFRequest(request, response, bp[0].getInputStream());            
+				}
+				if(MimeUtil.VND_JMF.equalsIgnoreCase(s)) {
+					processJMFRequest(request, response, bp[0].getInputStream());            
+				}
+			}
+		} catch (MessagingException x) {
+			processError(request, response, null, 9, "Messaging exception\n"+x.getLocalizedMessage());
+		}
+	}
+	
+	/** Handles the HTTP <code>POST</code> method.
+	 * @param request servlet request
+	 * @param response servlet response
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+	throws ServletException, IOException
+	{
+		log.debug("Processing post request for: "+request.getPathInfo());
+		String contentType=request.getContentType();
+		if(MimeUtil.VND_JMF.equals(contentType)) {
+			processJMFRequest(request,response,null);
+		} else if(MimeUtil.VND_JDF.equals(contentType)) {
+			processJDFRequest(request,response,null);
+		} else {
+			boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+			if (isMultipart) {
+				log.info("Processing multipart request..."+contentType);
+				processMultipartRequest(request, response);
+			} else {
+				log.warn("Unknown ContentType:"+contentType);
+				response.setContentType("text/plain");
+				OutputStream os=response.getOutputStream();
+				InputStream is=request.getInputStream();
+				byte[] b=new byte[1000];
+				while(true) {
+					int l=is.read(b);
+					if(l<=0)
+						break;
+					os.write(b,0,l);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * @param request
+	 * @param response
+	 */
+	private void processJMFRequest(HttpServletRequest request, HttpServletResponse response,InputStream inStream) throws IOException
+	{
+		log.debug("processJMFRequest");
+		JDFParser p=new JDFParser();
+		if(inStream==null)
+			inStream=request.getInputStream();
+		JDFDoc jmfDoc=p.parseStream(inStream);
+		processJMFDoc(request, response, jmfDoc);
+	}
+	
+	/**
+	 * http hotfolder processor
+	 * 
+	 * @param request
+	 * @param response
+	 * @throws IOException 
+	 */
+	protected abstract void processJDFRequest(HttpServletRequest request, HttpServletResponse response, 
+			InputStream inStream) throws IOException;
+	
+	protected boolean loadProperties()
+	{
+		log.debug("loading properties");
+		try 
+		{
+			Properties properties = new Properties();
+			FileInputStream in = new FileInputStream(_configDir+"device.properties");
+			properties.load(in);
+			
+			_deviceID=properties.getProperty("DeviceID");
+			_deviceType=properties.getProperty("DeviceType");
+			_deviceURL=properties.getProperty("DeviceURL");
+			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
+			
+			in.close();
+		} catch (FileNotFoundException e) {
+			log.fatal("device.properties not found");
+			return false;
+		} catch (IOException e) {
+			log.fatal("Error while applying device.properties");
+			return false;
+		}
+		return true;
+	}
+	
+	protected void addHandlers() {
+		_jmfHandler.addHandler( new AbstractBambiServlet.KnownDevicesHandler() );
+	}
+	
+	public String getDeviceID() {
+		return _deviceID;
+	}
+
+	public String getDeviceURL() {
+		return _deviceURL;
+	}
+	
+	public String getDeviceType() {
+        return _deviceType;
+    }
+
 }
