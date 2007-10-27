@@ -121,10 +121,10 @@ import org.cip4.jdflib.util.MimeUtil;
  *
  * @web:servlet-mapping url-pattern="/BambiRootDevice"
  */
-public class DeviceServlet extends AbstractBambiServlet implements IDevice 
+public class ProxyServlet extends AbstractBambiServlet implements IDevice 
 {
 	private static final long serialVersionUID = -8902151736245089036L;
-	private static Log log = LogFactory.getLog(DeviceServlet.class.getName());
+	private static Log log = LogFactory.getLog(ProxyServlet.class.getName());
 	private ISignalDispatcher _theSignalDispatcher=null;
 	private IQueueProcessor _theQueueProcessor=null;
 	private IStatusListener _theStatusListener=null;
@@ -155,6 +155,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 		_theSignalDispatcher.shutdown();
 	}
 
+
 	/** Handles the HTTP <code>GET</code> method.
 	 * @param request servlet request
 	 * @param response servlet response
@@ -164,7 +165,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 		log.info("Processing get request...");
 		String command = request.getParameter("cmd");
 		
-		if (command == null || command.length() == 0) {
+		if ( command==null||command.length()==0 )  {
 			QueueFacade qf = new QueueFacade( _theQueueProcessor.getQueue() );
 			request.setAttribute("qf", qf);
 			try {
@@ -173,6 +174,7 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 				log.error(e);
 			} 
 // TODO allow proxy to send AbortQE to workers?
+// FIXME remove Suspend/ResumeQE			
 //		} else if ( command.endsWith("QueueEntry") ) 
 //		{
 //			IDevice dev=getDeviceFromRequest(request);
@@ -190,16 +192,33 @@ public class DeviceServlet extends AbstractBambiServlet implements IDevice
 		} else if ( command.equals("showQueue") )  {	
 			QueueFacade bqu = new QueueFacade( _theQueueProcessor.getQueue() );
 			String quStr = bqu.toHTML();
-			PrintWriter out=null;
-			try {
-				out = response.getWriter();
-				out.println(quStr);
-		        out.flush();
-		        out.close();
-			} catch (IOException e) {
-				showErrorPage("failed to show queue", e.getMessage(), request, response);
-				log.error("failed to show Queue: "+e.getMessage());
+			writeRawResponse(request, response, quStr);
+		} else if ( command.equals("showJDFDoc") ) {
+			String qeid=request.getParameter("qeid");
+			if ( (qeid!=null&&qeid.length()>0) ) {
+				String filePath=_jdfDir+qeid+".jdf";
+				JDFDoc theDoc=JDFDoc.parseFile(filePath);
+				if (theDoc!=null) {
+					writeRawResponse( request,response,theDoc.toXML() );
+				} else {
+					log.error( "cannot parse '"+filePath+"'" );
+					return;
+				}
 			}
+		}
+	}
+
+	private void writeRawResponse(HttpServletRequest request,
+			HttpServletResponse response, String theStr) {
+		PrintWriter out=null;
+		try {
+			out = response.getWriter();
+			out.println(theStr);
+		    out.flush();
+		    out.close();
+		} catch (IOException e) {
+			showErrorPage("failed to response", e.getMessage(), request, response);
+			log.error("failed to write response: "+e.getMessage());
 		}
 	}
 

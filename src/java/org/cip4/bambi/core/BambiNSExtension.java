@@ -74,7 +74,6 @@ package org.cip4.bambi.core;
 
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.jmf.JDFQueueEntry;
 
 /**
  * provides Bambi specific XML extensions for JDF and JMF
@@ -130,131 +129,141 @@ public class BambiNSExtension
     }
     
     /**
-     * remove all Bambi specific attributes from the given QueueEntry
-     * @param qe the QueueEntry to clean up
+     * remove all Bambi specific attributes from the given KElement
+     * @param ke the KElement to clean up
      */
-    public static void removeBambiExtensions(JDFQueueEntry qe)
+    public static void removeBambiExtensions(KElement ke)
     {
-    	removeMyNSAttribute(qe, returnJMF);
-    	removeMyNSAttribute(qe, returnURL);
-    	removeMyNSAttribute(qe, docURL);
-    	removeMyNSAttribute(qe, deviceID);
-    	removeMyNSAttribute(qe, deviceURL);
+    	removeMyNSAttribute(ke, returnJMF);
+    	removeMyNSAttribute(ke, returnURL);
+    	removeMyNSAttribute(ke, docURL);
+    	removeMyNSAttribute(ke, deviceID);
+    	removeMyNSAttribute(ke, deviceURL);
     }
 
     /*** docURL *************************************************************/
-    
+    /**
+     * the URL where the JDFDoc can be grabbed
+     */
     public static final String docURL="DocURL";
    /**
      * set the location of the JDF
-     * @param qe the JDFQueueEntry to set
+     * @param ke the KElement to work on
      * @param docURL the location of the JDF
      */
-    public static void setDocURL(JDFQueueEntry qe, String _docURL)
+    public static void setDocURL(KElement ke, String _docURL)
     {
-        setMyNSAttribute(qe,docURL,_docURL);       
+        setMyNSAttribute(ke,docURL,_docURL);       
     }
     
     /**
      * get the location of the JDF
-     * @param qe the JDFQueueEntry to work on
+     * @param ke the KElement to work on
      * @return docURL the location of the JDF
      */
-    public static String getDocURL(JDFQueueEntry qe)
+    public static String getDocURL(KElement ke)
     {
-        return getMyNSAttribute(qe,docURL);
+        return getMyNSAttribute(ke,docURL);
     }
         
     /*** returnURL **********************************************************/
-    
+    /**
+     * the URL to send the JDFDoc back to after processing
+     */
     public static final String returnURL="ReturnURL";
     /**
       * set the location to send the ReturnQueueEntry to
-      * @param qe the JDFQueueEntry to set
+      * @param ke the KElement to work on
       * @param theReturnURL the location to send the ReturnQueueEntry to
       */
-     public static void setReturnURL(JDFQueueEntry qe, String theReturnURL)
+     public static void setReturnURL(KElement ke, String theReturnURL)
      {
-         setMyNSAttribute(qe,returnURL,theReturnURL);       
+         setMyNSAttribute(ke,returnURL,theReturnURL);       
      }
      
      /**
       * get the location to send the ReturnQueueEntry to
-      * @param qe the JDFQueueEntry to work on
+      * @param ke the KElement to work on
       * @return the location to send the ReturnQueueEntry to
       */
-     public static String getReturnURL(JDFQueueEntry qe)
+     public static String getReturnURL(KElement ke)
      {
-         return getMyNSAttribute(qe,returnURL);
+         return getMyNSAttribute(ke,returnURL);
      }
      
      /*** returnJMF *********************************************************/
-     
+     /**
+      * the URL to send the ReturnJMF to
+      */
      public static final String returnJMF="ReturnJMF";
      /**
        * set the location to send the ReturnJMF to
-       * @param qe the JDFQueueEntry to set
+       * @param ke the KElement to work on
        * @param theReturnJMF the location to send the ReturnJMF to
        */
-      public static void setReturnJMF(JDFQueueEntry qe, String theReturnJMF)
+      public static void setReturnJMF(KElement ke, String theReturnJMF)
       {
-          setMyNSAttribute(qe,returnJMF,theReturnJMF);       
+          setMyNSAttribute(ke,returnJMF,theReturnJMF);       
       }
       
       /**
        * get the location to send the ReturnJMF to
-       * @param qe the JDFQueueEntry to work on
+       * @param ke the KElement to work on
        * @return the location to send the ReturnJMF to
        */
-      public static String getReturnJMF(JDFQueueEntry qe)
+      public static String getReturnJMF(KElement ke)
       {
-          return getMyNSAttribute(qe,returnJMF);
+          return getMyNSAttribute(ke,returnJMF);
       }
     
       /*** deviceID *********************************************************/
-      
+      /**
+       * the ID of the device processing the QueueEntry
+       */
       public static final String deviceID="DeviceID";
       /**
         * set the ID of the device processing the QueueEntry
-        * @param qe the JDFQueueEntry to set
+        * @param ke the KElement to work on
         * @param theDeviceID the ID of the device processing the QueueEntry
         */
-       public static void setDeviceID(JDFQueueEntry qe, String theDeviceID)
+       public static void setDeviceID(KElement ke, String theDeviceID)
        {
-           setMyNSAttribute(qe,deviceID,theDeviceID);       
+           setMyNSAttribute(ke,deviceID,theDeviceID);       
        }
        
        /**
         * get the ID of the device processing the QueueEntry
-        * @param qe the JDFQueueEntry to work on
+        * @param ke the KElement to work on
         * @return the ID of the device processing the QueueEntry
         */
-       public static String getDeviceID(JDFQueueEntry qe)
+       public static String getDeviceID(KElement ke)
        {
-           return getMyNSAttribute(qe,deviceID);
+           return getMyNSAttribute(ke,deviceID);
        }
        
        /*** deviceURL *********************************************************/
-       
+       /**
+        * the URL of the device processing the QueueEntry
+        */
        public static final String deviceURL="DeviceURL";
        /**
          * set the URL of the device processing the QueueEntry
-         * @param qe the JDFQueueEntry to set
+         * @param ke the KElement to work on
          * @param theDeviceID the URL of the device processing the QueueEntry
          */
-        public static void setDeviceURL(JDFQueueEntry qe, String theDeviceURL)
+        public static void setDeviceURL(KElement ke, String theDeviceURL)
         {
-            setMyNSAttribute(qe,deviceURL,theDeviceURL);       
+            setMyNSAttribute(ke,deviceURL,theDeviceURL);       
         }
         
         /**
          * get the URL of the device processing the QueueEntry
-         * @param qe the JDFQueueEntry to work on
+         * @param ke the KElement to work on
          * @return the URL of the device processing the QueueEntry
          */
-        public static String getDeviceURL(JDFQueueEntry qe)
+        public static String getDeviceURL(KElement ke)
         {
-            return getMyNSAttribute(qe,deviceURL);
+            return getMyNSAttribute(ke,deviceURL);
         }
    
 }

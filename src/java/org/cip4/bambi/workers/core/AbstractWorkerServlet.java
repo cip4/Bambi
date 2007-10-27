@@ -71,6 +71,7 @@
 
 package org.cip4.bambi.workers.core;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -118,7 +119,8 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	{
 		super.init(config);
 		_devices = new HashMap<String, IDevice>();
-		createDevicesFromFile(_configDir+"devices.xml");
+		File configFile=new File(_configDir+"devices.xml");
+		createDevicesFromFile(configFile);
 	}
 
 	/** Destroys the servlet.
@@ -218,22 +220,19 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	 */
 	public IDevice createDevice(DeviceProperties prop)
 	{
-		log.info("created device");
-		if (_devices == null)
-		{
+		if (_devices == null) {
 			log.warn("map of devices is null, re-initialising map...");
 			_devices = new HashMap<String, IDevice>();
 		}
 		
-		if (_devices.get(prop.getDeviceID()) == null)
-		{	
+		String devID=prop.getDeviceID();
+		if (_devices.get(prop.getDeviceID()) == null) {	
 			IDevice dev = buildDevice(prop);
-			_devices.put(prop.getDeviceID(),dev);
+			_devices.put(devID,dev);
+			log.info("created device "+devID);
 			return dev;
-		}
-		else
-		{
-			log.warn("device "+prop.getDeviceID()+" is already existing");
+		} else {
+			log.warn("device "+devID+" is already existing");
 			return null;
 		}
 	}
@@ -300,11 +299,16 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
         _devices.put(deviceID, device);
     }
 
-	protected boolean createDevicesFromFile(String fileName)
+    /**
+     * create devices based on the list of devices given in a file
+     * @param configFile the file containing the list of devices 
+     * @return true if successfull, otherwise false
+     */
+	protected boolean createDevicesFromFile(File configFile)
 	{
-		MultiDeviceProperties dv = new MultiDeviceProperties(_appDir, fileName);
+		MultiDeviceProperties dv = new MultiDeviceProperties(_appDir, configFile);
 		if (dv.count()==0) {
-			log.error("failed to load device properties from "+fileName);
+			log.error("failed to load device properties from "+configFile);
 			return false;
 		}
 		
@@ -325,8 +329,18 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 		return _devices;
 	}
 	
+	/**
+	 * build a new device instance
+	 * @param prop
+	 * @return
+	 */
 	protected abstract IDevice buildDevice(DeviceProperties prop);
 	
+	/**
+	 * display the device on a web page
+	 * @param request
+	 * @param response
+	 */
 	protected abstract void showDevice(HttpServletRequest request, HttpServletResponse response);
 
 	
@@ -386,6 +400,11 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 		}
 	}
 
+	/**
+	 * get a device instance from a given Object
+	 * @param dev
+	 * @return
+	 */
 	protected abstract AbstractDevice getDeviceFromObject(Object dev);
 	
 	private IJMFHandler getTargetHandler(HttpServletRequest request) {

@@ -70,11 +70,6 @@
  */
 package org.cip4.bambi.proxy;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Properties;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
@@ -272,14 +267,12 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 
 	protected static final Log log = LogFactory.getLog(ProxyQueueProcessor.class.getName());
 	protected IQueueEntryTracker _tracker=null;
-	private String _configDir=null;
-	private String _deviceURL=null;
+
 
 	public ProxyQueueProcessor(String deviceID, String appDir) {
 		super(deviceID, appDir);
 		_configDir=_appDir+"config/";
 		_tracker=new QueueEntryTracker();
-		loadProperties();
 	}
 	
 	public void addHandlers(IJMFHandler jmfHandler)
@@ -357,7 +350,14 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	}
 
 	protected void handleQueueStatus(JDFQueue q) {
-		// FIXME get QE status for each QE	
+		int siz=_theQueue.getQueueSize();
+		for (int i=0;i<siz;i++) {
+			JDFQueueEntry newQE=q.appendQueueEntry();
+			newQE.copyElement(_theQueue.getQueueEntry(i).getFirstChildElement(), null);
+			BambiNSExtension.removeBambiExtensions(newQE);
+		}
+		//remove the last QueueEntry, it will be empty
+		q.removeChild("QueueEntry", "", siz);
 	}
 
 	protected void handleResumeQueueEntry(JDFResponse resp, String qeid,
@@ -384,26 +384,6 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 		
 	}
 	
-	private boolean loadProperties() {
-		log.debug("loading properties");
-		try 
-		{
-			Properties properties = new Properties();
-			FileInputStream in = new FileInputStream(_configDir+"device.properties");
-			properties.load(in);
-			
-			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
-			_deviceURL=properties.getProperty("DeviceURL");
-			
-			in.close();
-		} catch (FileNotFoundException e) {
-			log.fatal("device.properties not found");
-			return false;
-		} catch (IOException e) {
-			log.fatal("Error while applying device.properties");
-			return false;
-		}
-		return true;
-	}
+
 	
 }

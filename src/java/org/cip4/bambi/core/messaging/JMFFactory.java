@@ -73,8 +73,10 @@ package org.cip4.bambi.core.messaging;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFRequestQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -158,13 +160,17 @@ public class JMFFactory {
 	}
 	
 	/**
-	 * build a JMF RequestQueueEntry command
+	 * build a JMF RequestQueueEntry command <br/>
+	 *    default: JMFFactory.buildRequestQueueEntry(theQueueURL,null)
 	 * @param queueURL the queue URL of the device sending the command
 	 * 				   ("where do you want your SubmitQE's delivered to?")
+	 * @param deviceID the DeviceID of the worker requesting the QE (default=null)
 	 * @return the message
 	 */
-	public static JDFJMF buildRequestQueueEntry(String queueURL)
+	public static JDFJMF buildRequestQueueEntry(String queueURL, String deviceID)
 	{
+		// maybe replace DeviceID with DeviceType, just to be able to decrease the 
+		// Proxy's knowledge about querying devices?
 		JDFJMF jmf=null;
 		try {
 			jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.RequestQueueEntry);
@@ -172,9 +178,11 @@ public class JMFFactory {
 			log.error("caught an NPE while trying to build the JMF: "+ex.getMessage());
 			return null;
 		}
-		// TODO refactor to buildRequestQueueEntry(String deviceID,String queueURL)
-		// FIXME fix QueueURL
-		jmf.getCommand(0).appendRequestQueueEntryParams().setQueueURL(queueURL);
+		JDFRequestQueueEntryParams qep=jmf.getCommand(0).appendRequestQueueEntryParams();
+		qep.setQueueURL(queueURL);
+		if (deviceID!=null && !deviceID.equals("")) {
+			BambiNSExtension.setDeviceID(qep, deviceID);
+		}
 		return jmf;
 	}
 	

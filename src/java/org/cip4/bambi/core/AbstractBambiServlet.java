@@ -169,7 +169,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		_appDir=context.getRealPath("")+"/";
 		_baseDir=_appDir+"jmb/";
 		_configDir=_appDir+"config/";
-		_jdfDir=_appDir+"JDFDir/";
+		_jdfDir=_baseDir+"JDFDir/";
 		loadProperties();
 		new File(_baseDir).mkdirs();
 		new File(_jdfDir).mkdirs();

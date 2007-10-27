@@ -70,9 +70,18 @@
  */
 package org.cip4.bambi.core.queues;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Properties;
 import java.util.Vector;
 
 import javax.mail.Multipart;
@@ -507,6 +516,9 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     protected JDFQueue _theQueue;
     private Vector<Object> _listeners;
     protected String _appDir=null;
+    protected String _configDir=null;
+    protected String _deviceURL=null;
+    protected String _jdfDir=null;
      
     public AbstractQueueProcessor(String deviceID, String appDir)
     {
@@ -532,6 +544,10 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     {
         log.info("QueueProcessor construct for device '"+deviceID+"'");
         String baseDir=_appDir+"jmb/";
+        _configDir=_appDir+"config/";
+        _jdfDir=_appDir+"jmb/JDFDir/";
+        loadProperties();
+        
       	_queueFile=new File(baseDir+"theQueue_"+deviceID+".xml");       
         _queueFile.getParentFile().mkdirs();
         new File(baseDir+"JDFDir"+File.separator).mkdirs();
@@ -547,7 +563,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         }
         _theQueue.setAutomated(true);
         _theQueue.setDeviceID(deviceID);
-        _theQueue.setMaxCompletedEntries(100); // remove just the selected QE when RemoveQE is called 
+        _theQueue.setMaxCompletedEntries( 100 ); // remove just the selected QE when RemoveQE is called 
         _listeners=new Vector<Object>();
 	}
 
@@ -559,16 +575,95 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         	return null;
         }
         
-        String docURL=BambiNSExtension.getDocURL(qe);
-        if(docURL==null || docURL.length()<1) {
-        	return null;
+        // try to load from local file system first, then try URL
+        String file=_jdfDir+qe.getQueueEntryID()+".jdf";
+        if ( new File(file).canRead() ) {
+        	JDFDoc doc=loadDocFromFile(file);
+    		if ( doc!=null ) {
+    			return new QueueEntry(doc,qe);
+    		} else {
+    			return null;
+    		}
+        } else {
+            String docURL=BambiNSExtension.getDocURL(qe);
+            if(docURL==null || docURL.length()<1) {
+            	return null;
+            }
+        	JDFDoc theDoc = loadDocFromURL(docURL);
+        	return new QueueEntry(theDoc,qe);      
         }
-        
-        docURL=UrlUtil.urlToFile(docURL).getAbsolutePath();
-        JDFDoc doc=JDFDoc.parseFile(docURL);
-        return new QueueEntry(doc,qe);        
     }
 
+    /**
+     * get and parse a JDFDoc from an URL
+     * @param docURL the location of the JDFDoc to get and parse. 
+     *               May point to an HTTP URL or to a file.
+     * @return a JDFDoc if successful, null if not
+     */
+	protected JDFDoc loadDocFromURL(String docURL) {
+		JDFDoc theDoc=null;
+        if (UrlUtil.isHttp(docURL)) {
+        	String docStr="";
+        	URL url;
+        	BufferedReader br=null;
+        	InputStream is=null;
+			try {
+				url = new URL(docURL);
+				if (url==null) {
+					log.error("can't create URL from String '"+docURL+"'");
+				}
+			
+				URLConnection conn = (URLConnection) url.openConnection();
+        		is=conn.getInputStream();
+        		br=new BufferedReader( new InputStreamReader(is) );
+        		String read=br.readLine();
+        		while ( read!=null ) {
+        			docStr+=read;
+        			read=br.readLine();
+        		}
+        		
+        		br.close();
+        		is.close();   		
+			} catch (MalformedURLException e) {
+				log.error("failed to download file, invalid URL '"+docURL+"'");
+			} catch (IOException e) {
+				log.error("failed to download file from URL '"+docURL+"'. Error: "
+						+e.getMessage());
+			} finally {		
+				try {
+					if (is!=null) {
+						is.close();
+					}
+					if (br!=null) {
+						br.close();
+					}
+				} catch (IOException e) {
+					log.error("failed to download file from URL '"+docURL+"'. Error: "
+							+e.getMessage());
+				}
+			}
+			
+			JDFParser p=new JDFParser();
+			theDoc=p.parseString(docStr);
+        } else {
+        	theDoc=JDFDoc.parseFile(docURL);
+        }
+		return theDoc;
+	}
+	
+	/**
+	 * get and parse a JDFDoc from a given file 
+	 * @param file the full path of the  file to load the JDFDoc from
+	 * @return a JDFDoc, null if the file could notbe read or an error occured
+	 */
+	protected JDFDoc loadDocFromFile(String file) {
+		if ( !new File(file).canRead() ) {
+			log.warn( "failed to load JDFDoc from file "+file );
+			return null;
+		}
+		JDFDoc doc=JDFDoc.parseFile(file);
+		return doc;
+	}
 
     /* (non-Javadoc)
      * @see org.cip4.bambi.IQueueProcessor#addListener(java.lang.Object)
@@ -637,14 +732,13 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         String jdfDir=baseDir+"JDFDir/";
         String theDocFile=jdfDir+newQEID+".jdf";
         boolean ok=theJDF.write2File(theDocFile, 0, true);
-        try {
-            BambiNSExtension.setDocURL( newQE,UrlUtil.fileToUrl(new File(theDocFile),false) );
-            if(!KElement.isWildCard(returnJMF))
-                BambiNSExtension.setReturnURL(newQE, returnJMF);
-            else if(!KElement.isWildCard(returnURL))
-                BambiNSExtension.setReturnURL(newQE, returnURL);
-        } catch (MalformedURLException x) {
-            log.error("invalid file name: "+theDocFile);
+        // FIXME
+        String docURL=_deviceURL+"?cmd=showJDFDoc&qeid="+newQEID;
+        BambiNSExtension.setDocURL( newQE,docURL );
+        if(!KElement.isWildCard(returnJMF)) {
+        	BambiNSExtension.setReturnURL(newQE, returnJMF);
+        } else if(!KElement.isWildCard(returnURL)) {
+        	BambiNSExtension.setReturnURL(newQE, returnURL);
         }
 
         return ok;
@@ -726,8 +820,13 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         qerp.setURL("cid:dummy"); // will be overwritten by buildMimePackage
         final String queueEntryID = qe.getQueueEntryID();
         qerp.setQueueEntryID(queueEntryID);
-        JDFParser p = new JDFParser();
-        JDFDoc docJDF = p.parseFile( BambiNSExtension.getDocURL(qe) );
+        // FIXME load doc from correct location
+        String docFile=_jdfDir+qe.getQueueEntryID()+".jdf";
+        JDFDoc docJDF = loadDocFromFile(docFile);
+        if ( docJDF==null ) {
+        	log.equals("cannot load the JDFDoc from "+docFile);
+        	return;
+        }
         Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
         if(returnURL!=null) {
         	HttpURLConnection response = null;
@@ -792,5 +891,27 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     
     protected abstract void handleResumeQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe);
+    
+	protected boolean loadProperties() {
+		log.debug("loading properties");
+		String configPath=_configDir+"device.properties";
+		try  {
+			Properties properties = new Properties();
+			FileInputStream in = new FileInputStream(configPath);
+			properties.load(in);
+			
+			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
+			_deviceURL=properties.getProperty("DeviceURL");
+			
+			in.close();
+		} catch (FileNotFoundException e) {
+			log.fatal("properties not found at location "+configPath);
+			return false;
+		} catch (IOException e) {
+			log.fatal("Error while loading properties from "+configPath);
+			return false;
+		}
+		return true;
+	}
     
 }

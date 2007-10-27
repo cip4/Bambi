@@ -77,14 +77,11 @@ import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.queues.AbstractQueueProcessor;
 import org.cip4.bambi.core.queues.IQueueEntry;
-import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * QueueProcessor for devices attached to the Bambi root device
@@ -106,25 +103,19 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
     {
         JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
         
-        if(qe==null)
-        {
+        if(qe==null) {
         	//log.info("sending RequestQueueEntry to proxy device");
         	String queueURL=_parent.getDeviceURL();
-        	JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL );
+        	// DeviceID is not needed for the RequestQE in the current implementation
+        	//JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,_parent.getDeviceID() );
+        	JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,null );
         	String proxyURL=_parent.getProxyURL();
         	if (proxyURL!=null && proxyURL.length()>0) {
         		JMFFactory.send2URL(jmf,_parent.getProxyURL());
         	}
             return null;
-        }
-        String docURL=BambiNSExtension.getDocURL(qe);
-        if (docURL!=null && !docURL.equals("")) {
-        	docURL=UrlUtil.urlToFile(docURL).getAbsolutePath();
-            JDFDoc doc=JDFDoc.parseFile(docURL);
-            return new QueueEntry(doc,qe);
         } else {
-        	log.error("DocURL is missing");
-        	return null;
+        	return super.getNextEntry();
         }
     }
 	

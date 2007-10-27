@@ -190,7 +190,7 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 	/* (non-Javadoc)
 	 * @see org.cip4.bambi.proxy.IQueueEntryTracker#count()
 	 */
-	public int count() {
+	public int countTracked() {
 		return _tracker.size();
 	}
 	

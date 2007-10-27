@@ -207,27 +207,27 @@ public class MultiDeviceProperties
 
 	/**
 	 * create device properties for the devices defined in the config file
-	 * @param appDir   the location of the web application in the server
-	 * @param fileName full path to the config file
+	 * @param appDir     the location of the web application in the server
+	 * @param configFile the config file
 	 */
-	public MultiDeviceProperties(String appDir, String fileName) {
+	public MultiDeviceProperties(String appDir, File configFile) {
 		_devices = new HashMap<String, DeviceProperties>();
 		
-		File f = new File(fileName);
-		if (f==null || !f.exists()) {
-			log.fatal("config file '"+fileName+"' does not exist");
+		if (configFile==null || !configFile.exists()) {
+			log.fatal("config file '"+configFile+"' does not exist");
 		}
 		
 		JDFParser p = new JDFParser();
-	    JDFDoc doc = p.parseFile(fileName);
+		String path=configFile.getAbsolutePath();
+	    JDFDoc doc = p.parseFile(path);
 	    if (doc == null) {
-	    	log.fatal( "failed to parse "+fileName );
+	    	log.fatal( "failed to parse "+path );
 	    	return;
 	    }
 	    
 	    KElement e = doc.getRoot();
 	    if (e==null) {
-	    	log.fatal( "failed to parse "+fileName+", root is null" );
+	    	log.fatal( "failed to parse "+path+", root is null" );
 	    	return;
 	    }
 	    VElement v = e.getXPathElementVector("//devices/*", 99);

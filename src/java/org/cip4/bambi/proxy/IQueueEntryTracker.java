@@ -71,6 +71,7 @@
 
 package org.cip4.bambi.proxy;
 
+
 /**
  * maps the "incoming" QueueEntries to the "outgoing" QueueEntries <br/>
  * incoming - the MIS who submitted the QueueEntry to the proxy <br/>
@@ -119,10 +120,10 @@ public interface IQueueEntryTracker {
 	public abstract void removeEntry(String qeid);
 
 	/**
-	 * the number of QueueEntries forwarded
+	 * the number of tracked QueueEntries
 	 * @return
 	 */
-	public abstract int count();
+	public abstract int countTracked();
 
 	/**
 	 * get the ID of the device where the given QueueEntry is being processed 

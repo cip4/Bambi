@@ -11,7 +11,7 @@
 	</context-param>
 	<servlet>
 		<servlet-name>Bambi</servlet-name>
-		<servlet-class>org.cip4.bambi.proxy.DeviceServlet</servlet-class>
+		<servlet-class>org.cip4.bambi.proxy.ProxyServlet</servlet-class>
 		<load-on-startup>10</load-on-startup>
 	</servlet>
 	<servlet-mapping>

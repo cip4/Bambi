@@ -124,7 +124,7 @@ public class StatusListener implements IStatusListener
                 return false;
             }
             try {
-            	// JDFDevice d = r.getDeviceInfo(0).getDevice();
+            	//JDFDevice d = r.getDeviceInfo(0).getDevice();
             	// TODO insert more Bambi info from properties file
             } catch (NullPointerException e) {
             	log.error("failed to insert further info in Status response");
