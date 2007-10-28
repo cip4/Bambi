@@ -8,7 +8,7 @@
 	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/commons-fileupload-1.2.jar"/>
 	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/commons-io-1.2.jar"/>
 	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/commons-lang-2.1.jar"/>
-	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/commons-logging-1.0.4.jar"/>
+	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/commons-logging-1.1.jar"/>
 	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/JDFLibJ-2.1.3.jar"/>
 	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/mail-1.3.3.jar"/>
 	<classpathentry kind="lib" path="E:/WorkingCopy/Bambi/src/lib/servlet-api-2.4.jar"/>
