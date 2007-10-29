@@ -173,8 +173,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 			} catch (Exception e) {
 				log.error(e);
 			} 
-// TODO allow proxy to send AbortQE to workers?
-// FIXME remove Suspend/ResumeQE			
+// TODO allow proxy to send AbortQE to workers via web interface?		
 //		} else if ( command.endsWith("QueueEntry") ) 
 //		{
 //			IDevice dev=getDeviceFromRequest(request);
@@ -227,7 +226,6 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 		if(jmfDoc==null) {
 			processError(request, response, null, 3, "Error Parsing JMF");
 		} else {
-			// TODO corresponding devices to be selected when incoming JMF is handled
 			// switch: sends the jmfDoc to correct device
 			JDFDoc responseJMF = null;
 			IJMFHandler handler = _jmfHandler;

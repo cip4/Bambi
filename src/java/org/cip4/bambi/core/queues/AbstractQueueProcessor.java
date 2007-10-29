@@ -192,6 +192,11 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	        	if (_theQueue != null) {
 	        		JDFQueue q = (JDFQueue) resp.copyElement(_theQueue, null);
 	        		//TODO filter some stuff?
+//	        		JDFQueueFilter qf=m.getQueueFilter(0);
+//	        		if (qf==null)
+//	        			log.info("qf is null");
+//	        		else 
+//	        			log.info(qf.toString());
 	        		handleQueueStatus(q);
 	        		removeBambiNSExtensions(q);
 	        		return true;
@@ -732,7 +737,6 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         String jdfDir=baseDir+"JDFDir/";
         String theDocFile=jdfDir+newQEID+".jdf";
         boolean ok=theJDF.write2File(theDocFile, 0, true);
-        // FIXME
         String docURL=_deviceURL+"?cmd=showJDFDoc&qeid="+newQEID;
         BambiNSExtension.setDocURL( newQE,docURL );
         if(!KElement.isWildCard(returnJMF)) {
@@ -820,7 +824,6 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         qerp.setURL("cid:dummy"); // will be overwritten by buildMimePackage
         final String queueEntryID = qe.getQueueEntryID();
         qerp.setQueueEntryID(queueEntryID);
-        // FIXME load doc from correct location
         String docFile=_jdfDir+qe.getQueueEntryID()+".jdf";
         JDFDoc docJDF = loadDocFromFile(docFile);
         if ( docJDF==null ) {

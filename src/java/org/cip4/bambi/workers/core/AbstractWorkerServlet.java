@@ -118,7 +118,6 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	public void init(ServletConfig config) throws ServletException 
 	{
 		super.init(config);
-		_devices = new HashMap<String, IDevice>();
 		File configFile=new File(_configDir+"devices.xml");
 		createDevicesFromFile(configFile);
 	}
@@ -293,7 +292,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
     {
         if (_devices == null) {
             log.debug("list of devices is null");
-            _devices=new HashMap();
+            _devices=new HashMap<String, IDevice>();
         }
 
         _devices.put(deviceID, device);

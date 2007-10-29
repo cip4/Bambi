@@ -6,6 +6,7 @@
 <%@ page import="org.cip4.bambi.core.AbstractDevice" %>
 <%@ page import="org.cip4.bambi.core.queues.QueueFacade" %>
 <%@ page import="org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus" %>
+<%@ page import="org.cip4.bambi.core.IDevice" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
@@ -13,10 +14,10 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 		<link rel="stylesheet" type="text/css" href="./css/styles_pc.css"/>
-		<title>SimDevice - Overview</title>
+		<title>SimWorker - Overview</title>
 	</head>
 	<body>
-		<h1>SimDevice - Overview</h1>
+		<h1>SimWorker - Overview</h1>
 		
 		use <b>http://<%=request.getLocalAddr() + ":" + request.getServerPort() + request.getContextPath()%>/devices</b> to connect your MIS/Alces<br>
 		
@@ -30,13 +31,13 @@
 			</tr>
 		
 			<% 
-				HashMap devices = (HashMap)request.getAttribute("devices");
+				HashMap<String, IDevice> devices = (HashMap<String, IDevice>)request.getAttribute("devices");
 				if (devices==null) {
 					return;
 				}
-				SortedSet keys = new TreeSet();
+				SortedSet<String> keys = (SortedSet<String>)new TreeSet();
 				keys.addAll( devices.keySet() );
-				java.util.Iterator it = keys.iterator();
+				java.util.Iterator<String> it = keys.iterator();
 				while (it.hasNext()) {
 					String key = it.next().toString();
 					AbstractDevice dev = (AbstractDevice)devices.get(key);

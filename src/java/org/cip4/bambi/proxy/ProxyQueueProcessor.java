@@ -241,6 +241,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        	}
 	        	
 	        	_tracker.removeEntry(inQEID);
+	        	persist();
 	        	return true;
 	        }
 	        
@@ -272,7 +273,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	public ProxyQueueProcessor(String deviceID, String appDir) {
 		super(deviceID, appDir);
 		_configDir=_appDir+"config/";
-		_tracker=new QueueEntryTracker();
+		_tracker=new QueueEntryTracker(_configDir);
 	}
 	
 	public void addHandlers(IJMFHandler jmfHandler)

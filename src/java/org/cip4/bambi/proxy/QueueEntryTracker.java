@@ -71,14 +71,26 @@
 
 package org.cip4.bambi.proxy;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 public class QueueEntryTracker implements IQueueEntryTracker {
-	// TODO persist (SOAP?)
-	protected static class OutgoingQE {
+	protected static class OutgoingQE implements Serializable {
+		private static final long serialVersionUID = 4586978931L;
 		private String _qeid=null;
 		private String _deviceID=null;
 		private String _deviceURL=null;
@@ -114,12 +126,21 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 	}
 	
 	Map<String, OutgoingQE> _tracker = null;
+	protected static final Log log = LogFactory.getLog(QueueEntryTracker.class.getName());
+	private String _configFile=null;
 	
 	/**
 	 * constructor
+	 * @param configPath the path to the config folder of the web application
 	 */
-	public QueueEntryTracker() {
-		_tracker = new HashMap<String, OutgoingQE>();
+	public QueueEntryTracker(String configPath) {
+		_configFile=configPath+"tracker.bin";
+		if (loadTracker()==true) {
+			log.info("loaded QueueEntryTracker from "+_configFile);
+		} else {
+			_tracker = new HashMap<String, OutgoingQE>();
+			log.info("initialised new QueueEntryTracker");
+		}
 	}
 	
 	/**
@@ -142,6 +163,7 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 	public void addEntry(String inputQEID, String outputQEID, String deviceID, String deviceURL, String returnURL) {
 		OutgoingQE qe = new OutgoingQE(outputQEID,deviceID,deviceURL,returnURL);
 		_tracker.put(inputQEID, qe);
+		persist();
 	}
 	
 	/* (non-Javadoc)
@@ -185,6 +207,7 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 	 */
 	public void removeEntry(String qeid) {
 		_tracker.remove(qeid);
+		persist();
 	}
 	
 	/* (non-Javadoc)
@@ -242,6 +265,66 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 		}
 		ret += " ]";
 		return ret;
+	}
+	
+	/**
+	 * persist the QueueEntrytracker to a file
+	 * @return true is successful, false if not
+	 */
+	private boolean persist() {
+		boolean succeeded=true;
+		OutputStream fos = null; 
+		try { 
+		  fos = new FileOutputStream( _configFile ); 
+		  ObjectOutputStream o = new ObjectOutputStream( fos ); 
+		  o.writeObject( _tracker );  
+		} catch ( IOException e ) { 
+			log.error("failed to persist QueueEntryTracker to "+_configFile);
+			succeeded=false;
+		} finally { 
+			try { 
+				fos.close(); 
+			} catch ( Exception e ) { 
+				log.error("failed to persist QueueEntryTracker to "+_configFile);
+				succeeded=false;
+			} 
+		}
+
+		 return succeeded;
+	}
+	
+	/**
+	 * load the tracker from a config file
+	 * @return true if successful, false if not
+	 */
+	@SuppressWarnings("unchecked")
+	private boolean loadTracker() {
+		if ( !new File(_configFile).canRead() ) {
+			return false;
+		}
+		
+		boolean succeeded=true;
+		InputStream fis = null; 
+		try { 
+		  fis = new FileInputStream( _configFile ); 
+		  ObjectInputStream o = new ObjectInputStream( fis ); 
+		  _tracker = (Map<String, OutgoingQE>) o.readObject();  
+		}  catch ( IOException e ) { 
+			log.error("failed to load QueueEntryTracker from "+_configFile); 
+			succeeded=false;
+		}  catch ( ClassNotFoundException e ) { 
+			log.error( "failed to import file '"+_configFile+"'" );
+			succeeded=false;
+		} finally { 
+			try { 
+				fis.close(); 
+			} catch ( Exception e ) {
+				log.error("failed to load QueueEntryTracker from "+_configFile);
+				succeeded=false;
+			} 
+		}
+		
+		return succeeded;
 	}
 	
 }

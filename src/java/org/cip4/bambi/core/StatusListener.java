@@ -78,6 +78,7 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
+import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResourceInfo;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -124,7 +125,10 @@ public class StatusListener implements IStatusListener
                 return false;
             }
             try {
-            	//JDFDevice d = r.getDeviceInfo(0).getDevice();
+            	JDFDeviceInfo di=r.getDeviceInfo(0);
+            	di.setDeviceID( theCounter.getDeviceID() );
+            	di.setDeviceStatus( getDeviceStatus() );
+//            	JDFDevice d = r.getDeviceInfo(0).getDevice();
             	// TODO insert more Bambi info from properties file
             } catch (NullPointerException e) {
             	log.error("failed to insert further info in Status response");
