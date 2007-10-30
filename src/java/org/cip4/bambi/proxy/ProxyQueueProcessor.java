@@ -385,6 +385,4 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 		
 	}
 	
-
-	
 }

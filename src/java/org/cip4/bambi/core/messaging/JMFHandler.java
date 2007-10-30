@@ -184,9 +184,9 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	public JMFHandler(JMFHandler oldHandler)
 	{
 		super();
-		messageMap=new HashMap(oldHandler.messageMap);
-		familyMap=new HashMap(oldHandler.familyMap);
-		subscriptionMap=new HashMap(oldHandler.subscriptionMap);
+		messageMap=new HashMap<EnumType, IMessageHandler>(oldHandler.messageMap);
+		familyMap=new HashMap<EnumType, EnumFamily[]>(oldHandler.familyMap);
+		subscriptionMap=new HashMap<EnumType, IMessageHandler>(oldHandler.subscriptionMap);
 		addHandler( this.new KnownMessagesHandler() );
 	}
 

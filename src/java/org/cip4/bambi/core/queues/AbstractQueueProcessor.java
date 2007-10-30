@@ -121,8 +121,6 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public abstract class AbstractQueueProcessor implements IQueueProcessor
 {
-	// TODO add HoldQueueEntryHandler
-	
     protected class SubmitQueueEntryHandler implements IMessageHandler
     {
         /* (non-Javadoc)
@@ -488,7 +486,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	                if ( EnumQueueEntryStatus.Completed.equals(status)  || EnumQueueEntryStatus.Aborted.equals(status) )
 	                {
 	                    log.error("cannot suspend QueueEntry with ID="+qeid+", it is already "+status.getName());
-	                    resp.setReturnCode(115);
+	                    resp.setReturnCode(114);
 	                    resp.setErrorText("QueueEntry is already "+status.getName());
 	                    return true;
 	                }
@@ -515,6 +513,85 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	    }
 	}
 
+	protected class HoldQueueEntryHandler implements IMessageHandler
+	{
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+	     */
+	    public boolean handleMessage(JDFMessage m, JDFResponse resp)
+	    {
+	    	if(m==null || resp==null)
+	        {
+	            return false;
+	        }
+	        log.info("Handling "+m.getType());
+	        EnumType typ=m.getEnumType();
+	        if(EnumType.HoldQueueEntry.equals(typ))
+	        {
+	            String qeid = getMessageQueueEntryID(m);
+	            JDFQueueEntry qe =_theQueue.getQueueEntry(qeid);
+	            if (qe==null) {
+	            	resp.setReturnCode(105);
+	            	resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
+	            	return true;
+	            } else {
+	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+	
+	                if ( EnumQueueEntryStatus.Waiting.equals(status) ) {
+	                	updateEntry(qe.getQueueEntryID(), EnumQueueEntryStatus.Held);
+	                	JDFQueue q = resp.appendQueue();
+	            		q.setDeviceID( _theQueue.getDeviceID() );
+	            		q.setQueueStatus( _theQueue.getQueueStatus() );
+	            		q.copyElement(qe, null);
+	            		removeBambiNSExtensions(q);
+	            		log.info("held QueueEntry with ID="+qeid);
+	                    return true;
+	                }
+	
+	                if ( EnumQueueEntryStatus.Held.equals(status) ) {
+	                    log.error("cannot suspend QueueEntry with ID="+qeid+", it is already held");
+	                    resp.setReturnCode(113);
+	                    resp.setErrorText("QueueEntry is already held");
+	                    return true;
+	                }
+	
+	                if ( EnumQueueEntryStatus.Running.equals(status)  || EnumQueueEntryStatus.Suspended.equals(status) ) {
+	                    log.error("cannot hold QueueEntry with ID="+qeid+", it is "+status.getName());
+	                    resp.setReturnCode(106);
+	                    resp.setErrorText("QueueEntry is "+status.getName());
+	                    return true;
+	                }
+	
+	                if ( EnumQueueEntryStatus.Completed.equals(status)  || EnumQueueEntryStatus.Aborted.equals(status) ) {
+	                    log.error("cannot hold QueueEntry with ID="+qeid+", it is already "+status.getName());
+	                    resp.setReturnCode(114);
+	                    resp.setErrorText("QueueEntry is already "+status.getName());
+	                    return true;
+	                }
+	            }
+	        }
+	
+	        return false;       
+	    }
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getFamilies()
+	     */
+	    public EnumFamily[] getFamilies()
+	    {
+	        return new EnumFamily[]{EnumFamily.Command};
+	    }
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getMessageType()
+	     */
+	    public EnumType getMessageType()
+	    {
+	        return EnumType.HoldQueueEntry;
+	    }
+	}
+
 	protected static final Log log = LogFactory.getLog(AbstractQueueProcessor.class.getName());
     private File _queueFile;
     private static final long serialVersionUID = -876551736245089033L;
@@ -535,18 +612,17 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     /**
      * @param jmfHandler
      */
-    public void addHandlers(IJMFHandler jmfHandler)
-    {
+    public void addHandlers(IJMFHandler jmfHandler) {
         jmfHandler.addHandler(this.new SubmitQueueEntryHandler());
         jmfHandler.addHandler(this.new QueueStatusHandler());
         jmfHandler.addHandler(this.new AbortQueueEntryHandler());
         jmfHandler.addHandler(this.new RemoveQueueEntryHandler());
         jmfHandler.addHandler(this.new SuspendQueueEntryHandler());
         jmfHandler.addHandler(this.new ResumeQueueEntryHandler());
+        jmfHandler.addHandler(this.new HoldQueueEntryHandler());
     }
 
-    private void init(String deviceID) 
-    {
+    private void init(String deviceID) {
         log.info("QueueProcessor construct for device '"+deviceID+"'");
         String baseDir=_appDir+"jmb/";
         _configDir=_appDir+"config/";
@@ -572,8 +648,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         _listeners=new Vector<Object>();
 	}
 
-    public IQueueEntry getNextEntry()
-    {
+    public IQueueEntry getNextEntry() {
         JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
 
         if(qe==null) {

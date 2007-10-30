@@ -110,8 +110,7 @@ public class QEControllerServlet extends HttpServlet {
 	
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {		
-		if (!checkInit(request, response))
-		{
+		if (!checkInit(request, response)) {
 			log.error("failed on checkInit()");
 			return;
 		}
@@ -123,8 +122,7 @@ public class QEControllerServlet extends HttpServlet {
 		
 		// note: presence of _command is checked in checkInit()
 		boolean hasSend = false;
-		if ( _command.equals("suspendQueueEntry") )
-		{
+		if ( _command.equals("suspendQueueEntry") ) {
 			hasSend = sendJMF(request, response, EnumType.SuspendQueueEntry); 
 		} else if ( _command.equals("resumeQueueEntry") ) {
 			hasSend = sendJMF(request, response, EnumType.ResumeQueueEntry); 
@@ -132,6 +130,8 @@ public class QEControllerServlet extends HttpServlet {
 			hasSend = sendJMF(request, response, EnumType.AbortQueueEntry); 
 		} else if ( _command.equals("removeQueueEntry") ) {
 			hasSend = sendJMF(request, response, EnumType.RemoveQueueEntry);	
+		} else if ( _command.equals("holdQueueEntry") ) {
+			hasSend = sendJMF(request, response, EnumType.HoldQueueEntry);	
 		} else {
 			showError("command not implemented", "the command "+_command+" is not implemented",
 						request, response);
@@ -166,23 +166,21 @@ public class QEControllerServlet extends HttpServlet {
 			jmf = JMFFactory.buildAbortQueueEntry(_queueEntryID);
 		else if (type == EnumType.RemoveQueueEntry)
 			jmf = JMFFactory.buildRemoveQueueEntry(_queueEntryID);
+		else if (type == EnumType.HoldQueueEntry)
+			jmf = JMFFactory.buildHoldQueueEntry(_queueEntryID);
 		
-		if (jmf == null)
-		{
+		if (jmf == null) {
 			log.error("failed to create JMF");
 			return false;
 		}
 		
 		JDFResponse resp = JMFFactory.send2URL(jmf, _deviceURL);		
-		if (resp == null)
-		{
+		if (resp == null) {
 			String errorMsg=type.getName()+" with ID="+_queueEntryID+" on device "+_deviceID+" failed, ";
 			errorMsg += "\r\nResponse is null";
 			showError("failed to send JMF command", errorMsg, request, response);
 			return false;
-		}
-		if (resp.getReturnCode()!=0 && type!=EnumType.AbortQueueEntry)
-		{
+		} if (resp.getReturnCode()!=0 && type!=EnumType.AbortQueueEntry) {
 			String errorMsg=type.getName()+" with ID="+_queueEntryID+" on device "+_deviceID+" failed.";
 			errorMsg += "\r\nResponse: "+resp.toString();
 			showError("failed to send JMF command", resp.toString(), request, response);

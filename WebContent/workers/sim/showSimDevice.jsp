@@ -52,7 +52,7 @@
 		                <th align="left" width="250px">QueueEntry ID</th>
 		                <th align="left" width="70px">Status</th>
 		                <th align="left">Priority</th>
-		                <th></th> <!-- suspend/resume -->
+		                <th></th> <!-- suspend/resume/hold -->
 		                <th></th> <!-- abort -->
 		                <th></th> <!-- remove -->
 		            </tr>
@@ -76,10 +76,15 @@
 	            %>
 	            				<a href="overview?cmd=suspendQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">suspend</a>
 	            <%
-	            			} else if ( bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Suspended) )
+	            			} else if ( bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Suspended) || bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Held) )
 	            			{
 	            %>
 	            	           	<a href="overview?cmd=resumeQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">resume</a>				
+	            <%
+	            	        }else if ( bqe.queueEntryStatus.equals(EnumQueueEntryStatus.Waiting) )
+	            			{
+	            %>
+	            	           	<a href="overview?cmd=holdQueueEntry&id=<%=dev.getDeviceID()%>&qeid=<%=bqe.queueEntryID%>&id=<%=dev.getDeviceID()%>&show=true">hold</a>				
 	            <%
 	            	        }
 	            %>

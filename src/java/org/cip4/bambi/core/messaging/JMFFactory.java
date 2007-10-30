@@ -104,6 +104,18 @@ public class JMFFactory {
 	}
 	
 	/**
+	 * build a JMF HoldQueueEntry command
+	 * @param queueEntryId queue entry ID of the queue to hold
+	 * @return the message
+	 */
+	public static JDFJMF buildHoldQueueEntry(String queueEntryId)
+	{
+		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.HoldQueueEntry);
+		jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
+		return jmf;
+	}
+	
+	/**
 	 * build a JMF ResumeQueueEntry command
 	 * @param queueEntryId queue entry ID of the queue to resume
 	 * @return the message
