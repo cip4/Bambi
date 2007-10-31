@@ -89,14 +89,14 @@ import org.cip4.jdflib.core.VElement;
  * 
  * @author boegerni
  */
-public class MultiDeviceProperties
+public class MultiDeviceProperties implements IMultiDeviceProperties
 {
 	/**
 	 * properties for a single device
 	 * @author boegerni
 	 *
 	 */
-	public static class DeviceProperties {
+	public static class DeviceProperties implements IDeviceProperties {
 		private String deviceID=null;
 		private String deviceURL=null;
 		private String proxyURL=null;
@@ -121,15 +121,15 @@ public class MultiDeviceProperties
 			setAppDir(theAppDir);
 		}
 
-		/**
-		 * @param deviceURL the deviceURL to set
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#setDeviceURL(java.lang.String)
 		 */
 		public void setDeviceURL(String deviceURL) {
 			this.deviceURL = deviceURL;
 		}
 
-		/**
-		 * @return the deviceURL
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
 		 */
 		public String getDeviceURL() {
 			return deviceURL;
@@ -142,8 +142,8 @@ public class MultiDeviceProperties
 			this.deviceID = deviceID;
 		}
 
-		/**
-		 * @return the deviceID
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
 		 */
 		public String getDeviceID() {
 			return deviceID;
@@ -156,8 +156,8 @@ public class MultiDeviceProperties
 			this.proxyURL = controllerURL;
 		}
 
-		/**
-		 * @return the controllerURL
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getProxyURL()
 		 */
 		public String getProxyURL() {
 			return proxyURL;
@@ -170,29 +170,29 @@ public class MultiDeviceProperties
 			this.deviceType = deviceType;
 		}
 
-		/**
-		 * @return the deviceType
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceType()
 		 */
 		public String getDeviceType() {
 			return deviceType;
 		}
 
-		/**
-		 * @param appDir the location of the web application on the hard disk
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#setAppDir(java.lang.String)
 		 */
 		public void setAppDir(String appDir) {
 			this.appDir = appDir;
 		}
 
-		/**
-		 * @return the appURL
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getAppDir()
 		 */
 		public String getAppDir() {
 			return appDir;
 		}
 		
-		/**
-		 * get the String representation of this DeviceProperty
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#toString()
 		 */
 		public String toString() {
 			String ret="["+this.getClass().getName()+" application directory="+appDir+", device ID="+
@@ -249,33 +249,29 @@ public class MultiDeviceProperties
 	    }
 	}
 	
-	/**
-	 * get the number of the devices
-	 * @return the number of devices, zero if no devices have been found
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.IMultiDeviceProperties#count()
 	 */
 	public int count() {
 		return _devices.size();
 	}
 	
-	/**
-	 * get the a Set with the device IDs of all device properties stored
-	 * @return a Set of device IDs, an empty set of nothing has been found
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.IMultiDeviceProperties#getDeviceIDs()
 	 */
 	public Set<String> getDeviceIDs() {
 		return _devices.keySet();
 	}
 	
-	/**
-	 * get the device properties for a single device
-	 * @param deviceID the device ID of the device to look for
-	 * @return the device properties, null if not found
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.IMultiDeviceProperties#getDevice(java.lang.String)
 	 */
-	public DeviceProperties getDevice(String deviceID) {
+	public IDeviceProperties getDevice(String deviceID) {
 		return _devices.get(deviceID);
 	}
 	
-	/**
-	 * get the String representation of this MultiDeviceProperties
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.IMultiDeviceProperties#toString()
 	 */
 	public String toString() {
 		String ret="["+this.getClass().getName()+" Size="+_devices.size()+" DeviceProperties=[";
@@ -284,7 +280,7 @@ public class MultiDeviceProperties
 		Iterator<String> it=keys.iterator();
 		while (it.hasNext()) {
 			String key=it.next().toString();
-			DeviceProperties prop=_devices.get(key);
+			IDeviceProperties prop=_devices.get(key);
 			ret+=prop.toString()+" ";
 		}
 		

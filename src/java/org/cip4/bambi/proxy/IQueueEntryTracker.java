@@ -89,7 +89,7 @@ public interface IQueueEntryTracker {
 	 * @param deviceURL  URL of the device where the output QueueEntry is being processed
 	 * @param returnURL  URL of the orginal sender of the QueueEntry
 	 */
-	public abstract void addEntry(String inputQEID, String outputQEID,
+	public void addEntry(String inputQEID, String outputQEID,
 			String deviceID, String deviceURL, String returnURL);
 
 	/**
@@ -97,60 +97,60 @@ public interface IQueueEntryTracker {
 	 * @param qeid ID of the incoming QueueEntry
 	 * @return true, if the QueueEntry has been forwarded
 	 */
-	public abstract boolean hasIncomingQE(String qeid);
+	public boolean hasIncomingQE(String qeid);
 
 	/**
 	 * get the ID of the incoming QueueEntry matchingthe given outgoing QueueEntry ID  
 	 * @param qeid ID of the outgoing QueueEntry
 	 * @return the ID of the incoming QueueEntry, null if not found
 	 */
-	public abstract String getIncomingQEID(String qeid);
+	public String getIncomingQEID(String qeid);
 
 	/**
 	 * get the output QueueEntryID
 	 * @param qeid the ID of the input QueueEntry to look for
 	 * @return the ID of the output QueueEntry
 	 */
-	public abstract String getOutgoingQEID(String qeid);
+	public String getOutgoingQEID(String qeid);
 
 	/**
 	 * remove a QueueEntry by ID
 	 * @param qeid the incoming QueueEntry ID
 	 */
-	public abstract void removeEntry(String qeid);
+	public void removeEntry(String qeid);
 
 	/**
 	 * the number of tracked QueueEntries
 	 * @return
 	 */
-	public abstract int countTracked();
+	public int countTracked();
 
 	/**
 	 * get the ID of the device where the given QueueEntry is being processed 
 	 * @param qeid the incoming QueueEntry ID
 	 * @return the ID of the device where the given QueueEntry is being processed
 	 */
-	public abstract String getDeviceID(String qeid);
+	public String getDeviceID(String qeid);
 
 	/**
 	 * get the URL of the device where the given QueueEntry is being processed 
 	 * @param qeid the incoming QueueEntry ID
 	 * @return the URL of the device where the given QueueEntry is being processed
 	 */
-	public abstract String getDeviceURL(String qeid);
+	public String getDeviceURL(String qeid);
 
 	/**
 	 * get the URL of the of the originator of the given QueueEntry (e.g. the MIS) 
 	 * @param qeid the incoming QueueEntry ID
 	 * @return the URL of the of the originator of the given QueueEntry (e.g. the MIS) 
 	 */
-	public abstract String getReturnURL(String qeid);
+	public String getReturnURL(String qeid);
 
 	/**
 	 * get the String representation of a tracked entry
 	 * @param qeid the ID of the incoming QueueEntry
 	 * @return
 	 */
-	public abstract String getQueueEntryString(String qeid);
+	public String getQueueEntryString(String qeid);
 
 }

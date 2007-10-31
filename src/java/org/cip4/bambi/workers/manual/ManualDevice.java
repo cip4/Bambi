@@ -74,7 +74,7 @@ package org.cip4.bambi.workers.manual;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
-import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.workers.core.AbstractWorkerDevice;
 import org.cip4.bambi.workers.core.AbstractBambiDeviceProcessor.JobPhase;
 
@@ -99,7 +99,7 @@ public final class ManualDevice extends AbstractWorkerDevice   {
 	private static final long serialVersionUID = -2337883311731643911L;
 	private static Log log = LogFactory.getLog(ManualDevice.class.getName());
 	
-	public ManualDevice(DeviceProperties prop)
+	public ManualDevice(IDeviceProperties prop)
 	{
 		super(prop);
 		log.info("created ManualDevice '"+prop.getDeviceID()+"'");

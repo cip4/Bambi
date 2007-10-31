@@ -88,7 +88,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
@@ -176,7 +175,7 @@ public abstract class AbstractDevice extends HttpServlet implements IDevice, IJM
 	protected IStatusListener _theStatusListener=null;
 	protected ISignalDispatcher _theSignalDispatcher=null;
 	protected JMFHandler _jmfHandler = null ;
-	protected DeviceProperties _devProperties=null;
+	protected IDeviceProperties _devProperties=null;
 
 	/**
 	 * creates a new device instance
@@ -189,12 +188,12 @@ public abstract class AbstractDevice extends HttpServlet implements IDevice, IJM
 	 * creates a new device instance
 	 * @param prop the properties for the device
 	 */
-	public AbstractDevice(DeviceProperties prop) {
+	public AbstractDevice(IDeviceProperties prop) {
 		super();
 		init(prop);
 	}
 
-	protected void init(DeviceProperties prop) {
+	protected void init(IDeviceProperties prop) {
 		_devProperties = prop;
 		_jmfHandler = new JMFHandler();
 

@@ -92,7 +92,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.jdflib.core.JDFDoc;
@@ -146,7 +145,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		}
 	}
 
-	protected DeviceProperties _devProperties=null;
+	protected IDeviceProperties _devProperties=null;
 	protected String _appDir=null;
 	protected String _baseDir=null;
 	protected String _configDir=null;

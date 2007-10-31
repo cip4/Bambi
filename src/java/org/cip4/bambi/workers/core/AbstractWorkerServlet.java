@@ -88,8 +88,9 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractBambiServlet;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IDevice;
+import org.cip4.bambi.core.IDeviceProperties;
+import org.cip4.bambi.core.IMultiDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties;
-import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
@@ -217,7 +218,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	 * @return the Device, if device has been created. 
 	 * null, if not (maybe device with deviceID is already present)
 	 */
-	public IDevice createDevice(DeviceProperties prop)
+	public IDevice createDevice(IDeviceProperties prop)
 	{
 		if (_devices == null) {
 			log.warn("map of devices is null, re-initialising map...");
@@ -305,7 +306,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
      */
 	protected boolean createDevicesFromFile(File configFile)
 	{
-		MultiDeviceProperties dv = new MultiDeviceProperties(_appDir, configFile);
+		IMultiDeviceProperties dv = new MultiDeviceProperties(_appDir, configFile);
 		if (dv.count()==0) {
 			log.error("failed to load device properties from "+configFile);
 			return false;
@@ -315,7 +316,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 		Iterator<String> iter=keys.iterator();
 		while (iter.hasNext()) {
 			String devID=iter.next().toString();
-			DeviceProperties prop=dv.getDevice(devID);
+			IDeviceProperties prop=dv.getDevice(devID);
 			prop.setDeviceURL(_deviceURL+devID);
 			createDevice(prop);
 		}
@@ -333,7 +334,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	 * @param prop
 	 * @return
 	 */
-	protected abstract IDevice buildDevice(DeviceProperties prop);
+	protected abstract IDevice buildDevice(IDeviceProperties prop);
 	
 	/**
 	 * display the device on a web page

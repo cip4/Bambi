@@ -72,7 +72,7 @@
 package org.cip4.bambi.workers.core;
 
 import org.cip4.bambi.core.AbstractDevice;
-import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 
 
@@ -88,7 +88,7 @@ import org.cip4.bambi.core.queues.IQueueProcessor;
 public abstract class AbstractWorkerDevice extends AbstractDevice {
 	protected AbstractBambiDeviceProcessor _theDeviceProcessor=null;
 	
-	public AbstractWorkerDevice(DeviceProperties prop) {
+	public AbstractWorkerDevice(IDeviceProperties prop) {
 		super(prop);
 		this._theDeviceProcessor=(AbstractBambiDeviceProcessor) super._theDeviceProcessor;
 	}

@@ -74,7 +74,7 @@ package org.cip4.bambi.workers.sim;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
-import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.workers.core.AbstractWorkerDevice;
 import org.cip4.bambi.workers.core.AbstractBambiDeviceProcessor.JobPhase;
 
@@ -103,7 +103,7 @@ public final class SimDevice extends AbstractWorkerDevice   {
 		return _theDeviceProcessor.getCurrentJobPhase();
 	}
 
-	public SimDevice(DeviceProperties prop)
+	public SimDevice(IDeviceProperties prop)
 	{
 		super(prop);
 		log.info("created SimDevice '"+prop.getDeviceID()+"'");

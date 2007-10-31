@@ -7,14 +7,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IDevice;
-import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.workers.core.AbstractWorkerServlet;
 
 public class ManualWorkerServlet extends AbstractWorkerServlet {
 	protected static Log log = LogFactory.getLog(ManualWorkerServlet.class.getName());
 	private static final long serialVersionUID = 431025409853435322L;
 	
-	protected IDevice buildDevice(DeviceProperties prop) {
+	protected IDevice buildDevice(IDeviceProperties prop) {
 		ManualDevice dev=new ManualDevice(prop);
 		return dev;
 	}
