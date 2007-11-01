@@ -144,8 +144,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
         _theStatusListener=new StatusListener(_theSignalDispatcher,_deviceID);
         _theStatusListener.addHandlers(_jmfHandler);
 		
-        String appDir=context.getRealPath("")+"/";
-        _theQueueProcessor = new ProxyQueueProcessor(_deviceID, appDir);
+        _theQueueProcessor = new ProxyQueueProcessor(_deviceID, _appDir);
         _theQueueProcessor.addHandlers(_jmfHandler);
 	}
 

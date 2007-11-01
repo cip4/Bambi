@@ -257,8 +257,8 @@ public abstract class AbstractDevice extends HttpServlet implements IDevice, IJM
 	public boolean appendDeviceInfo(JDFDeviceList dl) {
 		JDFDeviceInfo info = dl.appendDeviceInfo();
 		JDFDevice dev = info.appendDevice();
-		dev.setDeviceID(_devProperties.getDeviceID());
-		dev.setDeviceType( _devProperties.getDeviceType() );
+		dev.setDeviceID(getDeviceID());
+		dev.setDeviceType( getDeviceType() );
 		dev.setJDFVersions( EnumVersion.Version_1_3.getName() );
 		info.setDeviceStatus( getDeviceStatus() );
 		return true;

@@ -83,7 +83,7 @@ import org.cip4.jdflib.core.KElement;
 public class BambiNSExtension
 {
 
-    private BambiNSExtension(){/* never construct - static class */}
+    protected BambiNSExtension(){/* never construct - static class */}
    
     public static final String MY_NS = "www.cip4.org/Bambi";
     public static final String MY_NS_PREFIX = "bambi:";
@@ -94,7 +94,7 @@ public class BambiNSExtension
      * @param attName the local attribute name to set
      * @param attVal the attribute value to set
      */
-    private static void setMyNSAttribute(KElement e, String attName,String attVal)
+    protected static void setMyNSAttribute(KElement e, String attName,String attVal)
     {
         if(e==null)
         {
@@ -105,11 +105,44 @@ public class BambiNSExtension
     
     /**
      * @param e the element to work on
+     * @param attName the local element name to get
+     * @param iSkip get the nth element
+     * @return the element
+     * 
+     */
+    protected static KElement getCreateMyNSElement(KElement e, String elmName, int iSkip)
+    {
+        return e==null ? null : e.getCreateElement(elmName, MY_NS, iSkip);
+    }
+    /**
+     * @param e the element to work on
+     * @param attName the local element name to get
+     * @param iSkip get the nth element
+     * @return the element
+     * 
+     */
+    protected static KElement getMyNSElement(KElement e, String elmName, int iSkip)
+    {
+        return e==null ? null : e.getElement(elmName, MY_NS, iSkip);
+    }
+    /**
+     * @param e the element to work on
+     * @param attName the local element name to get
+     * @param iSkip get the nth element
+     * @return the element
+     * 
+     */
+    protected static KElement removeMyNSElement(KElement e, String elmName, int iSkip)
+    {
+        return e==null ? null : e.removeChild(elmName, MY_NS, iSkip);
+    }
+    /**
+     * @param e the element to work on
      * @param attName the local attribute name to set
      * @return the attribute value, null if none exists
      * 
      */
-    private static String getMyNSAttribute(KElement e, String attName)
+    protected static String getMyNSAttribute(KElement e, String attName)
     {
         return e==null ? null : e.getAttribute(attName, MY_NS, null);
     }
@@ -119,7 +152,7 @@ public class BambiNSExtension
      * @param e the element to work on
      * @param attName the local attribute name to remove
      */
-    private static void removeMyNSAttribute(KElement e, String attName)
+    protected static void removeMyNSAttribute(KElement e, String attName)
     {
         if(e==null)
         {
