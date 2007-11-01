@@ -14,11 +14,13 @@ public class SimWorkerServlet extends AbstractWorkerServlet {
 	protected static Log log = LogFactory.getLog(SimWorkerServlet.class.getName());
 	private static final long serialVersionUID = 431025409853435322L;
 	
+	@Override
 	protected IDevice buildDevice(IDeviceProperties prop) {
 		SimDevice dev=new SimDevice(prop);
 		return dev;
 	}
 
+	@Override
 	protected void showDevice(HttpServletRequest request,
 			HttpServletResponse response) {
 		try {
@@ -28,12 +30,9 @@ public class SimWorkerServlet extends AbstractWorkerServlet {
 		}
 	}
 
+	@Override
 	protected AbstractDevice getDeviceFromObject(Object dev) {
-		if (dev!=null) {
-			return (SimDevice)dev;
-		} else {
-			return null;
-		}
+		return dev==null ? null : (SimDevice)dev;
 	}
 	
 	

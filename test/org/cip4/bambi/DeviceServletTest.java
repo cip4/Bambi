@@ -81,7 +81,8 @@ import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
 import org.cip4.bambi.core.MultiDeviceProperties;
-import org.cip4.bambi.servlets.DeviceServlet;
+import org.cip4.bambi.workers.core.AbstractWorkerServlet;
+import org.cip4.bambi.workers.sim.SimWorkerServlet;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
@@ -120,7 +121,7 @@ public class DeviceServletTest extends BambiTestCase {
 
 	public void testAddDevice()
 	{
-		AbstractWorkerServlet d = new AbstractWorkerServlet();
+		AbstractWorkerServlet d = new SimWorkerServlet();
 		assertEquals( 0,d.getDeviceQuantity() ); 
 		MultiDeviceProperties dp = new MultiDeviceProperties( null,new File(sm_dirTestData+"test_devices.xml") );
 		assertNotNull( d.createDevice(dp.getDevice("device001")) );
@@ -129,12 +130,12 @@ public class DeviceServletTest extends BambiTestCase {
 		assertEquals( 2,d.getDeviceQuantity() );
 		assertNotNull( d.getDevice("device001") );
 		
-		removeDir( new File("null") );
+		removeDir( new File("nulljmb") );
 	}
 	
 	public void testRemoveDevice()
 	{
-		AbstractWorkerServlet d = new AbstractWorkerServlet();
+		AbstractWorkerServlet d = new SimWorkerServlet();
 		assertEquals( 0,d.getDeviceQuantity() );
 		MultiDeviceProperties dp = new MultiDeviceProperties( null,new File(sm_dirTestData+"test_devices.xml") );
 		assertNotNull( d.createDevice(dp.getDevice("device001")) );
@@ -145,7 +146,7 @@ public class DeviceServletTest extends BambiTestCase {
 		assertEquals(1, d.getDeviceQuantity() );
 		assertFalse( d.removeDevice("device001") );
 		
-		removeDir( new File("null") );
+		removeDir( new File("nulljmb") );
 	}
 
     public void testMimeSubmit() throws Exception
@@ -182,7 +183,7 @@ public class DeviceServletTest extends BambiTestCase {
         
         // now serialize to file and reread - should still work
         HttpURLConnection uc=MimeUtil.writeToURL(m, SimWorkerUrl);
-        MimeUtil.writeToFile(m, sm_dirTestData+"testMime.mjm");
+        MimeUtil.writeToFile(m, sm_dirTestTemp+"testMime.mjm");
         assertEquals(uc.getResponseCode(), 200);
         UrlUtil.UrlPart[] parts=UrlUtil.getURLParts(uc);
         assertEquals(parts.length, 1);
@@ -202,14 +203,23 @@ public class DeviceServletTest extends BambiTestCase {
     public void testMultiSubmit() throws Exception
     {
     	long t=System.currentTimeMillis();
-    	for(int i=0;i<55;i++)
-    	{
+    	for(int i=0;i<55;i++) {
     		long t1=System.currentTimeMillis();
     		System.out.println("Pre submit,"+i);
     		singleMIMESubmit("Job"+i);
     		long t2=System.currentTimeMillis();
     		System.out.println("Post submit,"+i+" single: "+(t2-t1)+" total: "+(t2-t));
     	}
+    }
+    
+    public void testCreateDevicesFromFile() {
+    	AbstractWorkerServlet d = new SimWorkerServlet();
+    	assertEquals( 0,d.getDeviceQuantity() );
+    	File f=new File(simConfigDir+"devices.xml");
+    	d.createDevicesFromFile(f);
+    	assertEquals( 2,d.getDeviceQuantity() );
+    	
+    	removeDir( new File("nulljmb") );
     }
     
 }

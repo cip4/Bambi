@@ -114,6 +114,7 @@ public class QueueFacade {
 		_theQueue = queue;
 	}
 
+	@Override
 	public String toString()
 	{
 		return ( _theQueue.toString() );

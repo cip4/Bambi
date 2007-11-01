@@ -160,6 +160,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	/** Initializes the servlet.
 	 * @throws MalformedURLException 
 	 */
+	@Override
 	public void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
@@ -282,10 +283,11 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	/** Handles the HTTP <code>POST</code> method.
 	 * @param request servlet request
 	 * @param response servlet response
+	 * @throws IOException 
 	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-	throws ServletException, IOException
-	{
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+	throws IOException	{
 		log.debug("Processing post request for: "+request.getPathInfo());
 		String contentType=request.getContentType();
 		if(MimeUtil.VND_JMF.equals(contentType)) {

@@ -14,11 +14,13 @@ public class ManualWorkerServlet extends AbstractWorkerServlet {
 	protected static Log log = LogFactory.getLog(ManualWorkerServlet.class.getName());
 	private static final long serialVersionUID = 431025409853435322L;
 	
+	@Override
 	protected IDevice buildDevice(IDeviceProperties prop) {
 		ManualDevice dev=new ManualDevice(prop);
 		return dev;
 	}
 
+	@Override
 	protected void showDevice(HttpServletRequest request,
 			HttpServletResponse response) {
 		try {
@@ -28,12 +30,9 @@ public class ManualWorkerServlet extends AbstractWorkerServlet {
 		}
 	}
 	
+	@Override
 	protected AbstractDevice getDeviceFromObject(Object dev) {
-		if (dev!=null) {
-			return (ManualDevice)dev;
-		} else {
-			return null;
-		}
+		return dev==null ? null : (ManualDevice)dev;
 	}
 	
 	

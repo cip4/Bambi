@@ -108,8 +108,9 @@ public class QEControllerServlet extends HttpServlet {
 	 */
 	private static final long serialVersionUID = -6128394458416858325L;
 	
-	protected void doGet(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {		
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+	throws ServletException, IOException {		
 		if (!checkInit(request, response)) {
 			log.error("failed on checkInit()");
 			return;
@@ -156,7 +157,7 @@ public class QEControllerServlet extends HttpServlet {
 	 * @throws IOException
 	 */
 	private boolean sendJMF(HttpServletRequest request,
-			HttpServletResponse response, EnumType type) throws ServletException, IOException {
+			HttpServletResponse response, EnumType type) {
 		JDFJMF jmf = null;
 		if (type == EnumType.SuspendQueueEntry)
 			jmf = JMFFactory.buildSuspendQueueEntry(_queueEntryID);
@@ -227,14 +228,7 @@ public class QEControllerServlet extends HttpServlet {
 			return false;
 		}
 		
-		AbstractDevice dev = (AbstractDevice) oDev;
-		if (dev==null) {
-			String errDetails = "Mandatory parameter 'dev' is not a Bambi device. "+
-			"The servlet needs a device to continue.";
-			showErrorPage("mandatory parameter 'dev' is not a device", errDetails, request, response);
-			return false;
-		}
-		
+		AbstractDevice dev = (AbstractDevice) oDev;		
 		JDFQueue qu = dev.getQueue();
 		if (qu == null)
 		{
@@ -257,9 +251,8 @@ public class QEControllerServlet extends HttpServlet {
 		return true;
 	}
 	
-	
-	public void doPost(HttpServletRequest request, HttpServletResponse response)
-	throws ServletException, IOException {
+	@Override
+	public void doPost(HttpServletRequest request, HttpServletResponse response) {
 		log.info("called doPost");
 	}
 	

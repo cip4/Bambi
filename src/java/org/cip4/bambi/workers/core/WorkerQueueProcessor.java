@@ -99,6 +99,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		_parent = theParent;
 	}
 	
+	@Override
 	public IQueueEntry getNextEntry()
     {
         JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
@@ -114,11 +115,11 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
         		JMFFactory.send2URL(jmf,_parent.getProxyURL());
         	}
             return null;
-        } else {
-        	return super.getNextEntry();
         }
+		return super.getNextEntry();
     }
 	
+	@Override
 	protected void handleAbortQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
 		EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Aborted);
@@ -137,10 +138,12 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		log.info("aborted QueueEntry with ID="+qeid);
 	}
 	
+	@Override
 	protected void handleQueueStatus(JDFQueue q) {
 		// nothing to do
 	}
 	
+	@Override
 	protected void handleSuspendQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
 		EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Suspended);
@@ -159,6 +162,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		log.info("suspended QueueEntry with ID="+qeid);
 	}
 	
+	@Override
 	protected void handleResumeQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
 		updateEntry(qeid,EnumQueueEntryStatus.Waiting);

@@ -113,6 +113,7 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 			return _deviceURL;
 		}
 		
+		@Override
 		public String toString() {
 			return "[ outgoing QueueEntryID="+_qeid+", device ID="+_deviceID
 				+", device URL="+_deviceURL+" ]";
@@ -144,11 +145,10 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 	 */
 	private OutgoingQE getOutputQE(String qeid) {
 		Object value = _tracker.get(qeid);
-		if (value!=null) {
-			return (OutgoingQE)value;
-		} else {
+		if (value==null) {
 			return null;
 		}
+		return (OutgoingQE)value;
 	}
 	
 	/* (non-Javadoc)
@@ -189,11 +189,10 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 	 */
 	public String getOutgoingQEID(String qeid) {
 		OutgoingQE qe = getOutputQE(qeid);
-		if (qe!=null) {
-			return qe.getQueueEntryID();
-		} else {
-			return null;
+		if (qe==null) {
+			return null;	
 		}
+		return qe.getQueueEntryID();
 	}
 	
 	/* (non-Javadoc)
@@ -216,11 +215,7 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 	 */
 	public String getDeviceID(String qeid) {
 		OutgoingQE qe = getOutputQE(qeid);
-		if (qe!=null) {
-			return qe.getDeviceID();
-		} else {
-			return null;
-		}
+		return qe!=null ? qe.getDeviceID() : null;
 	}
 
 	/* (non-Javadoc)
@@ -228,11 +223,7 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 	 */
 	public String getDeviceURL(String qeid) {
 		OutgoingQE qe = _tracker.get(qeid);
-		if (qe!=null) {
-			return qe.getDeviceURL();
-		} else {
-			return null;
-		}
+		return qe==null ? null : qe.getDeviceURL();
 	}
 	
 	
@@ -265,7 +256,8 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 			succeeded=false;
 		} finally { 
 			try { 
-				fos.close(); 
+				if (fos!=null)
+					fos.close(); 
 			} catch ( Exception e ) { 
 				log.error("failed to persist QueueEntryTracker to "+_configFile);
 				succeeded=false;
@@ -299,7 +291,8 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 			succeeded=false;
 		} finally { 
 			try { 
-				fis.close(); 
+				if (fis!=null)
+					fis.close(); 
 			} catch ( Exception e ) {
 				log.error("failed to load QueueEntryTracker from "+_configFile);
 				succeeded=false;

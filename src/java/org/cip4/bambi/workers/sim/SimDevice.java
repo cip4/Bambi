@@ -109,6 +109,7 @@ public final class SimDevice extends AbstractWorkerDevice   {
 		log.info("created SimDevice '"+prop.getDeviceID()+"'");
 	}
 
+	@Override
 	protected AbstractDeviceProcessor buildDeviceProcessor() {
 		return new SimDeviceProcessor();
 	}

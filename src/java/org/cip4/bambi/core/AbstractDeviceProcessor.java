@@ -210,6 +210,11 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         try {
             log.info("processing JDF: ");
             qes=processDoc(doc,qe);
+            if (qes==null) {
+            	if (log!=null)
+            		log.error( "QueueEntryStatus is null" );
+            	return false;
+            }
             qe.setQueueEntryStatus(qes);
             _queueProcessor.updateEntry(queueEntryID, qes);
             log.info("finalized processing JDF: ");
@@ -240,8 +245,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
      * @return EnumQueueEntryStatus the final status of the queuentry 
      */
 	public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
-		if(qe==null || doc==null)
-        {
+		if(qe==null || doc==null) {
             log.error("proccessing null job");
             return EnumQueueEntryStatus.Aborted;
         }
@@ -255,32 +259,28 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);
 
         VElement v=node.getResourceLinks(null);
-        int vSiz=v==null ? 0 : v.size();
         String inConsume=null;
         String outQuantity=null;
-        for(int i=0;i<vSiz;i++)
-        {
-            JDFResourceLink rl=(JDFResourceLink) v.elementAt(i);
-            JDFResource r=rl.getLinkRoot();
-            EnumResourceClass c=r.getResourceClass();
-            if(EnumResourceClass.Consumable.equals(c)
-                    || EnumResourceClass.Handling.equals(c)
-                    || EnumResourceClass.Quantity.equals(c) )
-            {
-                EnumUsage inOut=rl.getUsage();
-                if(EnumUsage.Input.equals(inOut))
-                {
-                    if(EnumResourceClass.Consumable.equals(c))
-                        inConsume=rl.getrRef();
-                }
-                else
-                {
-                    outQuantity=rl.getrRef();
-                }
-            }
-        }
-        
-        _trackResourceID= inConsume !=null ? inConsume : outQuantity;
+        if (v!=null) {
+        	int vSiz=v.size();
+			for (int i = 0; i < vSiz; i++) {
+				JDFResourceLink rl = (JDFResourceLink) v.elementAt(i);
+				JDFResource r = rl.getLinkRoot();
+				EnumResourceClass c = r.getResourceClass();
+				if (EnumResourceClass.Consumable.equals(c)
+						|| EnumResourceClass.Handling.equals(c)
+						|| EnumResourceClass.Quantity.equals(c)) {
+					EnumUsage inOut = rl.getUsage();
+					if (EnumUsage.Input.equals(inOut)) {
+						if (EnumResourceClass.Consumable.equals(c))
+							inConsume = rl.getrRef();
+					} else {
+						outQuantity = rl.getrRef();
+					}
+				}
+			}
+		}
+		_trackResourceID= inConsume !=null ? inConsume : outQuantity;
         _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, _trackResourceID);
         
         

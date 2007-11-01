@@ -142,6 +142,7 @@ public abstract class AbstractBambiDeviceProcessor extends AbstractDeviceProcess
 		 */
 		public double Output_Waste=0;
 		
+		@Override
 		public String toString()
 		{
 			return ("[JobPhase: Duration="+duration+", DeviceStatus="+deviceStatus.getName()
@@ -183,13 +184,15 @@ public abstract class AbstractBambiDeviceProcessor extends AbstractDeviceProcess
      * @param _queueProcessor
      * @param _statusListener
      */
-    public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID, String appDir)
+    @Override
+	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID, String appDir)
     {
     	super.init(queueProcessor, statusListener, deviceID, appDir);
         _jobPhases = new ArrayList<JobPhase>();
     }
     
-    protected EnumQueueEntryStatus suspendQueueEntry(JDFQueueEntry qe, int currentPhase, int remainingPhaseTime)
+    @Override
+	protected EnumQueueEntryStatus suspendQueueEntry(JDFQueueEntry qe, int currentPhase, int remainingPhaseTime)
 	{
     	if (qe!=null) {
     		persistRemainingPhases(qe.getQueueEntryID(), currentPhase, 0);
@@ -226,16 +229,13 @@ public abstract class AbstractBambiDeviceProcessor extends AbstractDeviceProcess
 					+queueEntryID+": "+e.getMessage() );
 		}
 
-		if (obj instanceof List)
-		{
-			List<JobPhase> phases = (List<JobPhase>) obj;
-			// delete file with remaining phases after loading
-			(new File(fileName)).delete();
-			log.info( "successfully loaded remaining phases from "+fileName );
-			return phases;
-		} else {
+		if ( !(obj instanceof List) )
 			return null;
-		}
+		List<JobPhase> phases = (List<JobPhase>) obj;
+		// delete file with remaining phases after loading
+		(new File(fileName)).delete();
+		log.info( "successfully loaded remaining phases from "+fileName );
+		return phases;
     }
 	
 	public abstract JobPhase getCurrentJobPhase();

@@ -85,12 +85,14 @@ public class SimDeviceInfoServlet extends AbstractDeviceInfoServlet {
 	private static final long serialVersionUID = -2807402684627573611L;
 	private static Log log = LogFactory.getLog(SimDeviceInfoServlet.class.getName());
 
+	@Override
 	protected void handleCommand(String command, HttpServletRequest request,
 			HttpServletResponse response) {
 		log.info("unknown command: "+command);
 		showDevice(request, response);
 	}
 
+	@Override
 	protected void showDevice(HttpServletRequest request,
 			HttpServletResponse response) {
 		try {

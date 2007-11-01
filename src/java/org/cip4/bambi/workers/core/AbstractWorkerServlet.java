@@ -116,6 +116,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 
 	/** Initializes the servlet.
 	 */
+	@Override
 	public void init(ServletConfig config) throws ServletException 
 	{
 		super.init(config);
@@ -125,6 +126,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 
 	/** Destroys the servlet.
 	 */
+	@Override
 	public void destroy() {
 		Set<String> keys=_devices.keySet();
 		Iterator<String> it=keys.iterator();
@@ -139,6 +141,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	 * @param request servlet request
 	 * @param response servlet response
 	 */
+	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 	{
 		log.info("Processing get request...");
@@ -164,8 +167,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 				showErrorPage("can't get device", "device ID missing or unknown", request, response);
 				return;
 			}
-		} else if ( command.endsWith("QueueEntry") ) 
-		{
+		} else if ( command.endsWith("QueueEntry") )  {
 			IDevice dev=getDeviceFromRequest(request);
 			if (dev!=null)
 			{
@@ -186,14 +188,12 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	 */
 	protected IDevice getDeviceFromRequest(HttpServletRequest request) {
 		String deviceID = request.getParameter("id");
-		if (deviceID == null)
-		{
+		if (deviceID == null) {
 			log.error("invalid request: device ID is missing");
 			return null;
 		}
 		IDevice dev = getDevice(deviceID);
-		if (dev == null)
-		{
+		if (dev == null) {
 			log.error("invalid request: device with id="+deviceID+" not found");
 			return null;
 		}
@@ -206,6 +206,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	/** 
 	 * Returns a short description of the servlet.
 	 */
+	@Override
 	public String getServletInfo() 
 	{
 		return "Bambi Device  Servlet";
@@ -221,20 +222,19 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	public IDevice createDevice(IDeviceProperties prop)
 	{
 		if (_devices == null) {
-			log.warn("map of devices is null, re-initialising map...");
+			log.info("map of devices is null, re-initialising map...");
 			_devices = new HashMap<String, IDevice>();
 		}
 		
 		String devID=prop.getDeviceID();
-		if (_devices.get(prop.getDeviceID()) == null) {	
-			IDevice dev = buildDevice(prop);
-			_devices.put(devID,dev);
-			log.info("created device "+devID);
-			return dev;
-		} else {
+		if (_devices.get(prop.getDeviceID()) != null) {	
 			log.warn("device "+devID+" is already existing");
 			return null;
 		}
+		IDevice dev = buildDevice(prop);
+		_devices.put(devID,dev);
+		log.info("created device "+devID);
+		return dev;
 	}
 	
 	/**
@@ -247,13 +247,12 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 			log.error("list of devices is null");
 			return false;
 		}
-		if (_devices.get(deviceID) != null) {	
-			_devices.remove(deviceID);
-			return true;
-		} else {
+		if (_devices.get(deviceID) == null) {
 			log.warn("tried to removing non-existing device");
 			return false;
 		}
+		_devices.remove(deviceID);
+		return true;
 	}
 
 	/**
@@ -261,11 +260,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	 * @return
 	 */
 	public int getDeviceQuantity() {
-		if (_devices == null) {
-			return 0; 
-		} else {
-			return _devices.size();
-		}
+		return _devices==null ? 0 : _devices.size();
 	}
 
 	/**
@@ -280,7 +275,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 			return null;
 		}
 
-		return (IDevice)_devices.get(deviceID);
+		return _devices.get(deviceID);
 	}
 	
 	/**
@@ -304,7 +299,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
      * @param configFile the file containing the list of devices 
      * @return true if successfull, otherwise false
      */
-	protected boolean createDevicesFromFile(File configFile)
+	public boolean createDevicesFromFile(File configFile)
 	{
 		IMultiDeviceProperties dv = new MultiDeviceProperties(_appDir, configFile);
 		if (dv.count()==0) {
@@ -344,6 +339,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	protected abstract void showDevice(HttpServletRequest request, HttpServletResponse response);
 
 	
+	@Override
 	protected void processJDFRequest(HttpServletRequest request, 
 			HttpServletResponse response, InputStream inStream) throws IOException
 	{
@@ -369,14 +365,12 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 //		}
 	}
 
+	@Override
 	protected void processJMFDoc(HttpServletRequest request,
 			HttpServletResponse response, JDFDoc jmfDoc) {
-		if(jmfDoc==null)
-		{
+		if(jmfDoc==null) {
 			processError(request, response, null, 3, "Error Parsing JMF");
-		}
-		else
-		{
+		} else {
 			// switch: sends the jmfDoc to correct device
 			JDFDoc responseJMF = null;
 			IJMFHandler handler = getTargetHandler(request);
@@ -384,17 +378,14 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 				responseJMF=handler.processJMF(jmfDoc);
 			} 
 			
-			if(responseJMF!=null)
-			{
+			if(responseJMF!=null) {
 				response.setContentType(MimeUtil.VND_JMF);
 				try {
 					responseJMF.write2Stream(response.getOutputStream(), 0, true);
 				} catch (IOException e) {
 					log.error("cannot write to stream: ",e);
 				}
-			}
-			else
-			{
+			} else {
 				processError(request, response, null, 3, "Error Parsing JMF");               
 			}
 		}
@@ -420,20 +411,18 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 		return( device.getHandler() );
 	}
 	
+	@Override
 	protected boolean handleKnownDevices(JDFMessage m, JDFResponse resp) {
-		if(m==null || resp==null)
-		{
+		if(m==null || resp==null) {
 			return false;
 		}
 //		log.info("Handling "+m.getType());
 		EnumType typ=m.getEnumType();
-		if(EnumType.KnownDevices.equals(typ))
-		{
+		if(EnumType.KnownDevices.equals(typ)) {
 			JDFDeviceList dl = resp.appendDeviceList();
 			Set<String> keys = _devices.keySet();
 			Object[] strKeys = keys.toArray();
-			for (int i=0; i<keys.size();i++)
-			{
+			for (int i=0; i<keys.size();i++) {
 				String key = (String)strKeys[i];
 				AbstractDevice dev = getDeviceFromObject(_devices.get(key));
 				if (dev == null)

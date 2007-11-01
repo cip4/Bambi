@@ -132,6 +132,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 	
 	/** Initializes the servlet.
 	 */
+	@Override
 	public void init(ServletConfig config) throws ServletException 
 	{
 		super.init(config);
@@ -150,6 +151,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 
 	/** Destroys the servlet.
 	 */
+	@Override
 	public void destroy() {
 		_theSignalDispatcher.shutdown();
 	}
@@ -159,6 +161,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 	 * @param request servlet request
 	 * @param response servlet response
 	 */
+	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 	{
 		log.info("Processing get request...");
@@ -220,6 +223,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 		}
 	}
 
+	@Override
 	protected void processJMFDoc(HttpServletRequest request,
 			HttpServletResponse response, JDFDoc jmfDoc) {
 		if(jmfDoc==null) {
@@ -248,16 +252,19 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 	/** 
 	 * Returns a short description of the servlet.
 	 */
+	@Override
 	public String getServletInfo() {
 		return "Bambi Proxy Servlet";
 	}
 	
+	@Override
 	public String toString() {
 		String ret ="[ BambiProxy - DeviceID="+_deviceID+", DeviceURL="+_deviceURL+", AppDir="
 			+_appDir+" ]";
 		return ret;
 	}
 	
+	@Override
 	protected boolean handleKnownDevices(JDFMessage m, JDFResponse resp) {
 		if(m==null || resp==null)
 		{
@@ -279,6 +286,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 		return false;
 	}
 	
+	@Override
 	protected void processJDFRequest(HttpServletRequest request, HttpServletResponse response, InputStream inStream) throws IOException
 	{
 		log.info("processJDFRequest");

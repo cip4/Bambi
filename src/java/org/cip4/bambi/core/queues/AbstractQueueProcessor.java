@@ -138,17 +138,22 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
                 JDFQueueSubmissionParams qsp=m.getQueueSubmissionParams(0);
                 if(qsp!=null) {
                     JDFDoc doc=qsp.getURLDoc();
-
-                    if(doc!=null) {
-                        JDFResponse r2=addEntry( (JDFCommand)m, doc, qsp.getHold() );
-                        if(r2!=null) {
-                            resp.mergeElement(r2, false);
-                            return true;
-                        }
+                    if (doc==null) {
+                    	String errorMsg="failed to get JDFDoc from '"+qsp.getURL()+"' on SubmitQueueEntry";
+                    	log.error( errorMsg );
+                    	log.error( "Thread: "+ Thread.currentThread().getName() );
+                    	resp.setErrorText( errorMsg );
+                        resp.setReturnCode(9);
+                    	return true;
+                    }
+                    JDFResponse r2=addEntry( (JDFCommand)m, doc, qsp.getHold() );
+                    if(r2!=null) {
+                    	resp.mergeElement(r2, false);
+                    	return true;
                     }
                 }
-                log.error("QueueSubmissionParams missing or invalid");
-                resp.setErrorText("QueueSubmissionParams missing or invalid");
+                log.error("QueueSubmissionParams are missing or invalid");
+                resp.setErrorText("QueueSubmissionParams are missing or invalid");
                 resp.setReturnCode(9);
                 return true;
             }
@@ -197,13 +202,12 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 //	        			log.info(qf.toString());
 	        		handleQueueStatus(q);
 	        		removeBambiNSExtensions(q);
-	        		return true;
 	        	} else {
 	        		log.error("queue is null");
 	        		// append an empty Queue to the response
 	        		resp.appendQueue();
-	        		return true;
 	        	}
+	        	return true;
 	        }
 	
 	        return false;        
@@ -248,26 +252,25 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	            	resp.setReturnCode(105);
 	            	resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
 	            	return true;
-	            } else {
-	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-	                if ( EnumQueueEntryStatus.Completed.equals(status) )
-	                {
-	                    log.error("cannot abort QueueEntry with ID="+qeid+", it is already completed");
-	                    resp.setReturnCode(114);
-	                    resp.setErrorText("job is already completed");
-	                    return true;
-	                } else if ( EnumQueueEntryStatus.Aborted.equals(status) )
-	                {
-	                    log.error("cannot abort QueueEntry with ID="+qeid+", it is already aborted");
-	                    resp.setReturnCode(113);
-	                    resp.setErrorText("QueueEntry is already aborted");
-	                    return true;
-	                }
-
-	                // has to be waiting, held, running or suspended: abort it!
-	                handleAbortQueueEntry(resp, qeid, qe); 				
-	                return true;
 	            }
+				EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+				if ( EnumQueueEntryStatus.Completed.equals(status) )
+				{
+				    log.error("cannot abort QueueEntry with ID="+qeid+", it is already completed");
+				    resp.setReturnCode(114);
+				    resp.setErrorText("job is already completed");
+				    return true;
+				} else if ( EnumQueueEntryStatus.Aborted.equals(status) )
+				{
+				    log.error("cannot abort QueueEntry with ID="+qeid+", it is already aborted");
+				    resp.setReturnCode(113);
+				    resp.setErrorText("QueueEntry is already aborted");
+				    return true;
+				}
+
+				// has to be waiting, held, running or suspended: abort it!
+				handleAbortQueueEntry(resp, qeid, qe); 				
+				return true;
 	        }
 	
 	        return false;
@@ -310,36 +313,33 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	        {
 	            String qeid = getMessageQueueEntryID(m);
 	            JDFQueueEntry qe =_theQueue.getQueueEntry(qeid);
-	            if (qe==null)
-	            {
+	            if (qe==null) {
 	            	log.error("failed to remove QueueEntry with ID="+qeid+", QueueEntry does not exist.");
 		            resp.setReturnCode(105);
 		            resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
 	            	return true;
-	            } else {
-	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-	
-	                if ( EnumQueueEntryStatus.Held.equals(status) || 
-	                		EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
-	                {
-	                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Removed);
-	                    JDFQueue q = resp.appendQueue();
-	                    q.copyElement(qe, null);
-	                    q.setDeviceID( _theQueue.getDeviceID() );
-	                    q.setStatus( _theQueue.getStatus() );
-	                    removeBambiNSExtensions(q);
-	                    updateEntry(qeid, EnumQueueEntryStatus.Removed);
-	                    _theQueue.cleanup();
-	                    log.info("removed QueueEntry with ID="+qeid);
-	                    return true;
-	                } else {
-	                	String statName = status.getName();
-	                    log.error("cannot remove QueueEntry with ID="+qeid+", it is "+statName);
-	                    resp.setReturnCode(106);
-	                    resp.setErrorText("QueueEntry is "+statName);
-	                    return true;
-	                }
 	            }
+				EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+
+				if ( EnumQueueEntryStatus.Held.equals(status) || EnumQueueEntryStatus.Waiting.equals(status) ||
+					 EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
+				{
+				    qe.setQueueEntryStatus(EnumQueueEntryStatus.Removed);
+				    JDFQueue q = resp.appendQueue();
+				    q.copyElement(qe, null);
+				    q.setDeviceID( _theQueue.getDeviceID() );
+				    q.setQueueStatus( _theQueue.getQueueStatus() );
+				    removeBambiNSExtensions(q);
+				    updateEntry(qeid, EnumQueueEntryStatus.Removed);
+				    _theQueue.cleanup();
+				    log.info("removed QueueEntry with ID="+qeid);
+				    return true;
+				}
+				String statName = status.getName();
+				log.error("cannot remove QueueEntry with ID="+qeid+", it is "+statName);
+				resp.setReturnCode(106);
+				resp.setErrorText("QueueEntry is "+statName);
+				return true;
 	        }
 	
 	        return false;       
@@ -390,31 +390,30 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	            	resp.setReturnCode(105);
 	            	resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
 	            	return true;
-	            } else {
-	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-	
-	                if ( EnumQueueEntryStatus.Suspended.equals(status) || EnumQueueEntryStatus.Held.equals(status) )
-	                {
-	                	handleResumeQueueEntry(resp, qeid, qe); 				
-	                    return true;
-	                }
-	
-	                if ( EnumQueueEntryStatus.Running.equals(status) )
-	                {
-	                    log.error("cannot resume QueueEntry with ID="+qeid+", it is "+status.getName());
-	                    resp.setReturnCode(113);
-	                    resp.setErrorText("QueueEntry is "+status.getName());
-	                    return true;
-	                }
-	
-	                if ( EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status) )
-	                {
-	                    log.error("cannot resume QueueEntry with ID="+qeid+", it is already "+status.getName());
-	                    resp.setReturnCode(115);
-	                    resp.setErrorText("QueueEntry is already "+status.getName());
-	                    return true;
-	                }
 	            }
+				EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+
+				if ( EnumQueueEntryStatus.Suspended.equals(status) || EnumQueueEntryStatus.Held.equals(status) )
+				{
+					handleResumeQueueEntry(resp, qeid, qe); 				
+				    return true;
+				}
+
+				if ( EnumQueueEntryStatus.Running.equals(status) )
+				{
+				    log.error("cannot resume QueueEntry with ID="+qeid+", it is "+status.getName());
+				    resp.setReturnCode(113);
+				    resp.setErrorText("QueueEntry is "+status.getName());
+				    return true;
+				}
+
+				if ( EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status) )
+				{
+				    log.error("cannot resume QueueEntry with ID="+qeid+", it is already "+status.getName());
+				    resp.setReturnCode(115);
+				    resp.setErrorText("QueueEntry is already "+status.getName());
+				    return true;
+				}
 	        }
 	
 	        return false;       
@@ -460,39 +459,38 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	            	resp.setReturnCode(105);
 	            	resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
 	            	return true;
-	            } else {
-	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-	
-	                if ( EnumQueueEntryStatus.Running.equals(status) )
-	                {
-	                	handleSuspendQueueEntry(resp, qeid, qe); 				
-	                    return true;
-	                }
-	
-	                if ( EnumQueueEntryStatus.Suspended.equals(status) )
-	                {
-	                    log.error("cannot suspend QueueEntry with ID="+qeid+", it is already suspended");
-	                    resp.setReturnCode(113);
-	                    resp.setErrorText("QueueEntry is already suspended");
-	                    return true;
-	                }
-	
-	                if ( EnumQueueEntryStatus.Waiting.equals(status)  || EnumQueueEntryStatus.Held.equals(status) )
-	                {
-	                    log.error("cannot suspend QueueEntry with ID="+qeid+", it is "+status.getName());
-	                    resp.setReturnCode(115);
-	                    resp.setErrorText("QueueEntry is "+status.getName());
-	                    return true;
-	                }
-	
-	                if ( EnumQueueEntryStatus.Completed.equals(status)  || EnumQueueEntryStatus.Aborted.equals(status) )
-	                {
-	                    log.error("cannot suspend QueueEntry with ID="+qeid+", it is already "+status.getName());
-	                    resp.setReturnCode(114);
-	                    resp.setErrorText("QueueEntry is already "+status.getName());
-	                    return true;
-	                }
 	            }
+				EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+
+				if ( EnumQueueEntryStatus.Running.equals(status) )
+				{
+					handleSuspendQueueEntry(resp, qeid, qe); 				
+				    return true;
+				}
+
+				if ( EnumQueueEntryStatus.Suspended.equals(status) )
+				{
+				    log.error("cannot suspend QueueEntry with ID="+qeid+", it is already suspended");
+				    resp.setReturnCode(113);
+				    resp.setErrorText("QueueEntry is already suspended");
+				    return true;
+				}
+
+				if ( EnumQueueEntryStatus.Waiting.equals(status)  || EnumQueueEntryStatus.Held.equals(status) )
+				{
+				    log.error("cannot suspend QueueEntry with ID="+qeid+", it is "+status.getName());
+				    resp.setReturnCode(115);
+				    resp.setErrorText("QueueEntry is "+status.getName());
+				    return true;
+				}
+
+				if ( EnumQueueEntryStatus.Completed.equals(status)  || EnumQueueEntryStatus.Aborted.equals(status) )
+				{
+				    log.error("cannot suspend QueueEntry with ID="+qeid+", it is already "+status.getName());
+				    resp.setReturnCode(114);
+				    resp.setErrorText("QueueEntry is already "+status.getName());
+				    return true;
+				}
 	        }
 	
 	        return false;       
@@ -537,41 +535,40 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	            	resp.setReturnCode(105);
 	            	resp.setErrorText("found no QueueEntry with QueueEntryID="+qeid);
 	            	return true;
-	            } else {
-	                EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-	
-	                if ( EnumQueueEntryStatus.Waiting.equals(status) ) {
-	                	updateEntry(qe.getQueueEntryID(), EnumQueueEntryStatus.Held);
-	                	JDFQueue q = resp.appendQueue();
-	            		q.setDeviceID( _theQueue.getDeviceID() );
-	            		q.setQueueStatus( _theQueue.getQueueStatus() );
-	            		q.copyElement(qe, null);
-	            		removeBambiNSExtensions(q);
-	            		log.info("held QueueEntry with ID="+qeid);
-	                    return true;
-	                }
-	
-	                if ( EnumQueueEntryStatus.Held.equals(status) ) {
-	                    log.error("cannot suspend QueueEntry with ID="+qeid+", it is already held");
-	                    resp.setReturnCode(113);
-	                    resp.setErrorText("QueueEntry is already held");
-	                    return true;
-	                }
-	
-	                if ( EnumQueueEntryStatus.Running.equals(status)  || EnumQueueEntryStatus.Suspended.equals(status) ) {
-	                    log.error("cannot hold QueueEntry with ID="+qeid+", it is "+status.getName());
-	                    resp.setReturnCode(106);
-	                    resp.setErrorText("QueueEntry is "+status.getName());
-	                    return true;
-	                }
-	
-	                if ( EnumQueueEntryStatus.Completed.equals(status)  || EnumQueueEntryStatus.Aborted.equals(status) ) {
-	                    log.error("cannot hold QueueEntry with ID="+qeid+", it is already "+status.getName());
-	                    resp.setReturnCode(114);
-	                    resp.setErrorText("QueueEntry is already "+status.getName());
-	                    return true;
-	                }
 	            }
+				EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+
+				if ( EnumQueueEntryStatus.Waiting.equals(status) ) {
+					updateEntry(qe.getQueueEntryID(), EnumQueueEntryStatus.Held);
+					JDFQueue q = resp.appendQueue();
+					q.setDeviceID( _theQueue.getDeviceID() );
+					q.setQueueStatus( _theQueue.getQueueStatus() );
+					q.copyElement(qe, null);
+					removeBambiNSExtensions(q);
+					log.info("held QueueEntry with ID="+qeid);
+				    return true;
+				}
+
+				if ( EnumQueueEntryStatus.Held.equals(status) ) {
+				    log.error("cannot suspend QueueEntry with ID="+qeid+", it is already held");
+				    resp.setReturnCode(113);
+				    resp.setErrorText("QueueEntry is already held");
+				    return true;
+				}
+
+				if ( EnumQueueEntryStatus.Running.equals(status)  || EnumQueueEntryStatus.Suspended.equals(status) ) {
+				    log.error("cannot hold QueueEntry with ID="+qeid+", it is "+status.getName());
+				    resp.setReturnCode(106);
+				    resp.setErrorText("QueueEntry is "+status.getName());
+				    return true;
+				}
+
+				if ( EnumQueueEntryStatus.Completed.equals(status)  || EnumQueueEntryStatus.Aborted.equals(status) ) {
+				    log.error("cannot hold QueueEntry with ID="+qeid+", it is already "+status.getName());
+				    resp.setReturnCode(114);
+				    resp.setErrorText("QueueEntry is already "+status.getName());
+				    return true;
+				}
 	        }
 	
 	        return false;       
@@ -663,17 +660,15 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         	JDFDoc doc=loadDocFromFile(file);
     		if ( doc!=null ) {
     			return new QueueEntry(doc,qe);
-    		} else {
-    			return null;
     		}
-        } else {
-            String docURL=BambiNSExtension.getDocURL(qe);
-            if(docURL==null || docURL.length()<1) {
-            	return null;
-            }
-        	JDFDoc theDoc = loadDocFromURL(docURL);
-        	return new QueueEntry(theDoc,qe);      
+			return null;
         }
+		String docURL=BambiNSExtension.getDocURL(qe);
+		if(docURL==null || docURL.length()<1) {
+			return null;
+		}
+		JDFDoc theDoc = loadDocFromURL(docURL);
+		return new QueueEntry(theDoc,qe);
     }
 
     /**
@@ -690,12 +685,8 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         	BufferedReader br=null;
         	InputStream is=null;
 			try {
-				url = new URL(docURL);
-				if (url==null) {
-					log.error("can't create URL from String '"+docURL+"'");
-				}
-			
-				URLConnection conn = (URLConnection) url.openConnection();
+				url = new URL(docURL);		
+				URLConnection conn = url.openConnection();
         		is=conn.getInputStream();
         		br=new BufferedReader( new InputStreamReader(is) );
         		String read=br.readLine();
@@ -874,6 +865,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
+    @Override
     public String toString()
     {
         String s="[QueueProcessor: ] Status= "+_theQueue.getQueueStatus().getName()+" Num Entries: "+_theQueue.numEntries(null)+"\n Queue:\n";

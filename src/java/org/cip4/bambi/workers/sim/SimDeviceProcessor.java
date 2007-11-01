@@ -131,20 +131,17 @@ public class SimDeviceProcessor extends AbstractBambiDeviceProcessor
 		_originalPhases.clear();
 		JDFParser p = new JDFParser();
 		JDFDoc doc = p.parseFile(fileName);
-		if (doc == null)
-		{
+		if (doc == null) {
 			log.error( fileName+" not found, list of job phases remains empty" );
 			return false;
 		}
 
 		int counter = 0;
-		try 
-		{
+		try {
 			KElement simJob = doc.getRoot();
 			VElement v = simJob.getXPathElementVector("//BambiJob/*", 99);
-			for (int i = 0; i < v.size(); i++)
-			{
-				KElement job = (KElement)v.elementAt(i);
+			for (int i = 0; i < v.size(); i++) {
+				KElement job = v.elementAt(i);
 				JobPhase phase = new JobPhase();
 				phase.deviceStatus = EnumDeviceStatus.getEnum(job.getXPathAttribute("@DeviceStatus", "Idle"));
 				phase.deviceStatusDetails = job.getXPathAttribute("@DeviceStatusDetails", "");
@@ -160,24 +157,18 @@ public class SimDeviceProcessor extends AbstractBambiDeviceProcessor
 			
 			_jobPhases = new ArrayList<JobPhase>();
 			_jobPhases.addAll(_originalPhases);
-		}
-		catch (Exception ex)
-		{
+		} catch (Exception ex) {
 			log.warn("error in importing jobs");
 			_originalPhases = new ArrayList<JobPhase>();
 			return false;
 		}
 
-		if (counter > 0)
-		{
-			log.debug("created new job from "+fileName+" with "+counter+" job phases.");
-			return true;
-		}
-		else
-		{
+		if (counter == 0) {
 			log.warn("no job phases were added from "+fileName);
 			return false;
 		}
+		log.debug("created new job from "+fileName+" with "+counter+" job phases.");
+		return true;
 	}
 	
 	/**
@@ -220,6 +211,7 @@ public class SimDeviceProcessor extends AbstractBambiDeviceProcessor
 		}
 	}
 
+	@Override
 	public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
 		super.processDoc(doc, qe);
 		
@@ -232,27 +224,23 @@ public class SimDeviceProcessor extends AbstractBambiDeviceProcessor
 			_jobPhases.addAll(_originalPhases);
 		}
         		
-		if ( _jobPhases.isEmpty() )
-		{
+		if ( _jobPhases.isEmpty() ) {
 			log.warn("unable to start the job, no job loaded");
 			return EnumQueueEntryStatus.Aborted;
 		}
-		for (int i=0;i<_jobPhases.size();i++)
-		{
+		for (int i=0;i<_jobPhases.size();i++) {
 			_currentPhase = _jobPhases.get(i);
-			if (_currentPhase!=null && _currentPhase.duration>0) 
-			{
+			if (_currentPhase!=null && _currentPhase.duration>0) {
 				_statusListener.signalStatus(_currentPhase.deviceStatus, _currentPhase.deviceStatusDetails, 
 						_currentPhase.nodeStatus,_currentPhase.nodeStatusDetails);
 				try {
-					int repeats = (int)(_currentPhase.duration/1000);
+					int repeats = (_currentPhase.duration/1000);
 					int remainder = _currentPhase.duration % 1000;
-					for (int j=0;j < repeats; j++)
-					{
+					for (int j=0;j < repeats; j++) {
 						int reqSize=_updateStatusReqs.size();
 						if (reqSize>0) {
 							for (int reqNo=0;reqNo<reqSize;reqNo++) {
-								ChangeQueueEntryStatusRequest request=(ChangeQueueEntryStatusRequest) _updateStatusReqs.get(reqNo);
+								ChangeQueueEntryStatusRequest request=_updateStatusReqs.get(reqNo);
 								if ( !request.queueEntryID.equals(qe.getQueueEntryID()) ) {	
 									_updateStatusReqs.remove(reqNo);
 									log.error("failed to change status of QueueEntry, it is not running");
@@ -278,6 +266,7 @@ public class SimDeviceProcessor extends AbstractBambiDeviceProcessor
 	}
 
 
+	@Override
 	public JobPhase getCurrentJobPhase() {
 		return _currentPhase;
 	}
@@ -288,6 +277,7 @@ public class SimDeviceProcessor extends AbstractBambiDeviceProcessor
 		initSimDeviceProcessor(deviceID);
 	}
 	
+	@Override
 	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, 
 			String deviceID, String appDir) {
 		super.init(queueProcessor, statusListener, deviceID, appDir);

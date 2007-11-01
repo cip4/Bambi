@@ -111,6 +111,7 @@ public class ManualDeviceProcessor extends AbstractBambiDeviceProcessor
 		firstPhase.nodeStatusDetails="Waiting";
 	}
 		
+	@Override
 	public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
 		super.processDoc(doc, qe);
 		
@@ -124,7 +125,7 @@ public class ManualDeviceProcessor extends AbstractBambiDeviceProcessor
 				_jobPhases.remove(0);
 				doNextPhase = false;
 			}
-			JobPhase phase = (JobPhase)_jobPhases.get(0);
+			JobPhase phase = _jobPhases.get(0);
 			
 			if (phase == null) {
 				log.fatal("job phase is null");
@@ -144,7 +145,7 @@ public class ManualDeviceProcessor extends AbstractBambiDeviceProcessor
 					int reqSize=_updateStatusReqs.size();
 					if (reqSize>0) {
 						for (int reqNo=0;reqNo<reqSize;reqNo++) {
-							ChangeQueueEntryStatusRequest request=(ChangeQueueEntryStatusRequest) _updateStatusReqs.get(reqNo);
+							ChangeQueueEntryStatusRequest request=_updateStatusReqs.get(reqNo);
 							if ( !request.queueEntryID.equals(qe.getQueueEntryID()) ) {	
 								_updateStatusReqs.remove(reqNo);
 								log.error("failed to change status of QueueEntry, it is not running");
@@ -192,11 +193,11 @@ public class ManualDeviceProcessor extends AbstractBambiDeviceProcessor
 		doFinalizeQE = true;
 	}
 	
+	@Override
 	public JobPhase getCurrentJobPhase() {
 		if ( _jobPhases != null && _jobPhases.size() > 0)
-			return (JobPhase)_jobPhases.get(0);
-		else 
-			return null;
+			return _jobPhases.get(0);
+		return null;
 	}
 
 }

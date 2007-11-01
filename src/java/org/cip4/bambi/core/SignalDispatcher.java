@@ -139,6 +139,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         /**
          * equals ignores the value of Amount!
          */
+        @Override
         public boolean equals(Object arg0)
         {
             if(!(arg0 instanceof Trigger))
@@ -154,6 +155,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         /* (non-Javadoc)
          * @see java.lang.Object#hashCode()
          */
+        @Override
         public int hashCode()
         {
             return queueEntryID==null ? 0 : queueEntryID.hashCode() + workStepID==null ? 0 : workStepID.hashCode();
@@ -162,6 +164,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         /* (non-Javadoc)
          * @see java.lang.Object#toString()
          */
+        @Override
         public String toString()
         {
             return "Trigger: queueEntryID: "+queueEntryID+" workStepID: "+workStepID+ "amount: "+amount;
@@ -238,7 +241,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         {
             Vector<MsgSubscription> v = new Vector<MsgSubscription>();
             Iterator<Entry<String,MsgSubscription>> it
-            	= (Iterator<Entry<String,MsgSubscription>>)triggers.entrySet().iterator(); // active triggers
+            	= triggers.entrySet().iterator(); // active triggers
             while(it.hasNext())
             {
                 final Entry<String,MsgSubscription> nxt = it.next();
@@ -376,6 +379,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         /* (non-Javadoc)
          * @see java.lang.Object#clone()
          */
+        @Override
         public Object clone()
         {
             MsgSubscription c;
@@ -396,14 +400,16 @@ public final class SignalDispatcher implements ISignalDispatcher
             c.trigger=trigger; // ref only NOT Cloned (!!!)
             return c;
         }
-        public String toString()
-        {
+        
+        @Override
+        public String toString() {
             return "[MsgSubscription: channelID="+channelID+
             " lastAmount="+lastAmount+
             " repeatAmount="+repeatAmount+
             " repeatTime="+repeatTime+
             " lastTime="+lastTime+"]";
         }
+        
         /**
          * @param queueEntryID
          */
@@ -541,14 +547,15 @@ public final class SignalDispatcher implements ISignalDispatcher
             JDFJMF jmf=nodeInfo.getJMF(i);
             // TODO regs
             VElement vMess=jmf.getMessageVector(EnumFamily.Query, null);
-            int nMess= vMess==null ? 0 : vMess.size();
-            for(int j=0;j<nMess;j++)
-            {
-                JDFQuery q=(JDFQuery)vMess.elementAt(j);
-                String channelID=addSubscription(q, queueEntryID);
-                if(channelID!=null)
-                   vs.add(channelID); 
-            }            
+            if (vMess!=null) {
+				int nMess = vMess.size();
+				for (int j = 0; j < nMess; j++) {
+					JDFQuery q = (JDFQuery) vMess.elementAt(j);
+					String channelID = addSubscription(q, queueEntryID);
+					if (channelID != null)
+						vs.add(channelID);
+				}
+			}            
         }
         return vs;
      }
@@ -568,18 +575,18 @@ public final class SignalDispatcher implements ISignalDispatcher
      * @see org.cip4.bambi.ISignalDispatcher#removeSubScription(java.lang.String)
      */
     @SuppressWarnings("unchecked")
-	public void removeSubScriptions(String queueEntryID)
-    {
+	public void removeSubScriptions(String queueEntryID) {
         if(queueEntryID==null)
             return;
         
         Vector<String> v=(Vector<String>)queueEntryMap.get(queueEntryID);
-        int siz= v==null ? 0 : v.size();
-        for(int i=0;i<siz;i++)
-        {
-            removeSubScription(v.get(i));
-        }
-        queueEntryMap.remove(queueEntryID);
+        if (v!=null) {
+        	int siz=v.size();
+			for (int i = 0; i < siz; i++) {
+				removeSubScription(v.get(i));
+			}
+		}
+		queueEntryMap.remove(queueEntryID);
     }
 
     /* (non-Javadoc)
@@ -613,18 +620,20 @@ public final class SignalDispatcher implements ISignalDispatcher
 	public void triggerQueueEntry(String queueEntryID,  String workStepID, int amount)
     {
         Vector<String> v=(Vector<String>) queueEntryMap.get(queueEntryID);
-        int si=v==null ? 0 : v.size();
-        for(int i=0;i<si;i++)
-        {
-            triggerChannel(v.get(i),queueEntryID, workStepID, amount);
-        }
-        // now the global queries
+        if (v!=null) {
+			int si = v.size();
+			for (int i = 0; i < si; i++) {
+				triggerChannel(v.get(i), queueEntryID, workStepID, amount);
+			}
+		}
+		// now the global queries
         v=(Vector<String>) queueEntryMap.get("*");
-        si=v==null ? 0 : v.size();
-        for(int i=0;i<si;i++)
-        {
-            triggerChannel(v.get(i),queueEntryID, workStepID, amount);
-        }
+        if ( v!= null) {
+			int si = v.size();
+			for (int i = 0; i < si; i++) {
+				triggerChannel(v.get(i), queueEntryID, workStepID, amount);
+			}
+		}
     }
 
     /**

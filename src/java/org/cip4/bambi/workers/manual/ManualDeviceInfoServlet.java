@@ -89,16 +89,17 @@ public class ManualDeviceInfoServlet extends AbstractDeviceInfoServlet {
 	private static Log log = LogFactory.getLog(ManualDeviceInfoServlet.class.getName());
 	private ManualDevice _dev=null;
 
+	@Override
 	protected void handleCommand(String command, HttpServletRequest request,
 			HttpServletResponse response) {
 		ManualDevice dev = getDeviceFromRequest(request, response);
 		if (dev==null) {
-		String errorDetails="Mandatory parameter \"device\"is missing." 
-			+ " The Servlet needs a device to continue";
-		showErrorPage("Mandatory parameter \"device\" is missing.", errorDetails, request, response);
-		} else {
-			_dev=dev;
+			String errorDetails="Mandatory parameter \"device\"is missing." 
+				+ " The Servlet needs a device to continue";
+			showErrorPage("Mandatory parameter \"device\" is missing.", errorDetails, request, response);
+			return;
 		}
+		_dev=dev;
 		
 		if ( command.equals("finalizeCurrentQE") ) {
 			dev.finalizeCurrentQueueEntry();
@@ -135,13 +136,10 @@ public class ManualDeviceInfoServlet extends AbstractDeviceInfoServlet {
 			return null;
 		}
 		
-		ManualDevice dev = (ManualDevice) oDev;
-		if (dev==null) {
-			return null;
-		}
-		return dev;
+		return (ManualDevice)oDev;
 	}
 
+	@Override
 	protected void showDevice(HttpServletRequest request,
 			HttpServletResponse response) {
 		try {

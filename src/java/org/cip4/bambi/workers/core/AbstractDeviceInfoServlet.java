@@ -99,8 +99,9 @@ public abstract class AbstractDeviceInfoServlet extends HttpServlet {
 	 */
 	private static final long serialVersionUID = -6128394458416858325L;
 
+	@Override
 	protected void doGet(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
+			HttpServletResponse response) {
 		String command = request.getParameter("cmd");
 		if (command == null)
 		{
@@ -123,12 +124,6 @@ public abstract class AbstractDeviceInfoServlet extends HttpServlet {
 		}
 		
 		AbstractDevice dev = (AbstractDevice) oDev;
-		if (dev==null) {
-			String errDetails = "Mandatory parameter 'dev' is null or missing. "+
-			"The servlet needs a device to continue.";
-			showErrorPage("mandatory parameter 'dev' is null or missing", errDetails, request, response);
-			return;
-		}
 		request.setAttribute("device", dev);
 		request.setAttribute("bqu", dev.getQueueFacade());
 
@@ -153,8 +148,8 @@ public abstract class AbstractDeviceInfoServlet extends HttpServlet {
 			request.getRequestDispatcher(target).forward(request, response);
 	}
 
-	public void doPost(HttpServletRequest request, HttpServletResponse response)
-	throws ServletException, IOException {
+	@Override
+	public void doPost(HttpServletRequest request, HttpServletResponse response) {
 		log.info("called doPost");
 	}
 	/**

@@ -40,7 +40,8 @@ public class QueueEntry implements IQueueEntry
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
-    public String toString() {
+    @Override
+	public String toString() {
         String s="[QueueEntry: ] \nQueueEntry : ";
         s+=_theQueueEntry==null ?"null \n" : _theQueueEntry.getQueueEntryID() + "\n"+_theQueueEntry.toString();
         s+="\n Doc: "+_theDoc==null ?"null \n": _theDoc.toString();

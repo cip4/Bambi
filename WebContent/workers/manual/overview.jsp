@@ -36,7 +36,7 @@
 				if (devices==null) {
 					return;
 				}
-				SortedSet<String> keys = (SortedSet<String>)new TreeSet();
+				SortedSet<String> keys = new TreeSet<String>();
 				keys.addAll( devices.keySet() );
 				java.util.Iterator<String> it = keys.iterator();
 				while (it.hasNext()) {

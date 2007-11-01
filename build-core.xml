@@ -61,7 +61,7 @@
 			<mkdir dir="${test.reports.dir}" />
 			<!-- Compile test cases -->
 			<echo>Compiling unit tests...</echo>
-			<javac destdir="${test.bin.dir}" debug="${build.debug}" target="1.4" source="1.4">
+			<javac destdir="${test.bin.dir}" debug="${build.debug}" target="1.5" source="1.5">
 				<src path="${test.src.dir}" />
 				<classpath refid="project.class.path" />
 				<classpath path="${bin.dir}" />

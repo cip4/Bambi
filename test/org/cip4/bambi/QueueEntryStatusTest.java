@@ -94,7 +94,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 	private JDFQueue getQueue() {
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
 		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
-        assertTrue( resp!=null );
+		assertNotNull( resp );
         assertEquals( 0,resp.getReturnCode() );
 
         JDFQueue qu = resp.getQueue(0);
@@ -124,13 +124,10 @@ public class QueueEntryStatusTest extends BambiTestCase {
 	{
 		JDFQueue qu = getQueue();
 		JDFQueueEntry que = qu.getQueueEntry(queueEntryID);
-		if ( que==null) {
-		return null;
-		} else {
-			return que.getQueueEntryStatus();
-		}
+		return que==null ? null : que.getQueueEntryStatus();
 	}
 	
+	@Override
 	public void setUp() throws Exception 
 	{
 		super.setUp();
@@ -171,6 +168,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
         assertNotNull( runningQE );
 	}
 	
+	@Override
 	public void tearDown() throws Exception
 	{
 		// remove the created the created QueueEntry, if there is any
@@ -207,25 +205,40 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		jmf = JMFFactory.buildResumeQueueEntry( qeID );
 		resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
 		assertEquals( 0, resp.getReturnCode() );
-		// give the device some time to resume the QE
-        try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		boolean hasSucceeded=false;
+		EnumQueueEntryStatus status=null;
+		int counter=0;
+		while (counter<10 && !hasSucceeded) {
+			// give the device some time to resume the QE
+			try {
+				Thread.sleep(750);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			// now the qe should be either Waiting or Running
+			status = getQueueEntryStatus(qeID);
+			if (status.equals(EnumQueueEntryStatus.Running)
+					|| status.equals(EnumQueueEntryStatus.Waiting)) {
+				assertTrue(true);
+				hasSucceeded=true;
+			}
+			counter++;
 		}
-		// now the qe should be either Waiting or Running
-		EnumQueueEntryStatus status = getQueueEntryStatus(qeID);
-		if (status.equals(EnumQueueEntryStatus.Running) || status.equals(EnumQueueEntryStatus.Waiting)) {
-			assertTrue( true );
-		} else {
-			fail("status is "+status.getName()+", should be Running or Waiting");
+		
+		if ( !hasSucceeded ) {
+			if (status==null) {
+				fail("status is null");
+			} else {
+				fail("status is " + status.getName()+", should be Running or Waiting");
+			}
 		}
+		
 	}
 	
 	public void testAbortRemoveQE()
 	{
 		JDFQueueEntry runningQE = getRunningQueueEntry();
-		assertTrue( runningQE!=null );
+		assertNotNull( runningQE );
 		String qeID = runningQE.getQueueEntryID();
 		
 		JDFJMF jmf = JMFFactory.buildAbortQueueEntry( qeID );
@@ -255,7 +268,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 	public void testSuspendAbortQE()
 	{
 		JDFQueueEntry runningQE = getRunningQueueEntry();
-		assertTrue( runningQE!=null );
+		assertNotNull( runningQE );
 		String qeID = runningQE.getQueueEntryID();
 		
 		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry( qeID );

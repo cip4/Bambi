@@ -112,7 +112,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 * 
 	 * handler for the knownmessages query
 	 */
-	private class KnownMessagesHandler implements IMessageHandler
+	protected class KnownMessagesHandler implements IMessageHandler
 	{
 
 		/* (non-Javadoc)
@@ -144,11 +144,11 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			Iterator<EnumType> it=messageMap.keySet().iterator();
 			while(it.hasNext())
 			{
-				EnumType typ=(EnumType)it.next();
+				EnumType typ=it.next();
 				log.debug("Known Message: "+typ.getName());
 				JDFMessageService ms=resp.appendMessageService();
 				ms.setType(typ);
-				ms.setFamilies(ContainerUtil.toVector((EnumFamily[])familyMap.get(typ)));     
+				ms.setFamilies(ContainerUtil.toVector(familyMap.get(typ)));     
 				if(subscriptionMap.get(typ)!=null)
 					ms.setPersistent(true);
 			}
@@ -209,10 +209,10 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 */
 	private IMessageHandler getHandler(EnumType typ, EnumFamily family)
 	{
-		IMessageHandler messageHandler=(IMessageHandler) messageMap.get(typ);
+		IMessageHandler messageHandler=messageMap.get(typ);
 		if(messageHandler!=null)
 		{
-			EnumFamily[]fams=(EnumFamily[]) familyMap.get(typ);
+			EnumFamily[]fams=familyMap.get(typ);
 			if(fams==null || !ArrayUtils.contains(fams, family))
 				messageHandler=null;
 		}

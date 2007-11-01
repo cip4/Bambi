@@ -93,6 +93,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice {
 		this._theDeviceProcessor=(AbstractBambiDeviceProcessor) super._theDeviceProcessor;
 	}
 	
+	@Override
 	protected IQueueProcessor buildQueueProcessor() {
 		return new WorkerQueueProcessor(_devProperties.getDeviceID(), this, _devProperties.getAppDir());
 	}

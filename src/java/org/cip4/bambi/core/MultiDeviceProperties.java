@@ -194,6 +194,7 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 		/* (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#toString()
 		 */
+		@Override
 		public String toString() {
 			String ret="["+this.getClass().getName()+" application directory="+appDir+", device ID="+
 				deviceID+", device type="+deviceType+
@@ -215,6 +216,7 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 		
 		if (configFile==null || !configFile.exists()) {
 			log.fatal("config file '"+configFile+"' does not exist");
+			return;
 		}
 		
 		JDFParser p = new JDFParser();
@@ -233,7 +235,7 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 	    VElement v = e.getXPathElementVector("//devices/*", 99);
 	    for (int i = 0; i < v.size(); i++)
 	    {
-	    	KElement device = (KElement)v.elementAt(i);
+	    	KElement device = v.elementAt(i);
 	    	String deviceID = device.getXPathAttribute("@DeviceID", null);
 	    	if (deviceID==null) {
 	    		log.error("cannot create device without device ID");
@@ -273,6 +275,7 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 	/* (non-Javadoc)
 	 * @see org.cip4.bambi.core.IMultiDeviceProperties#toString()
 	 */
+	@Override
 	public String toString() {
 		String ret="["+this.getClass().getName()+" Size="+_devices.size()+" DeviceProperties=[";
 		

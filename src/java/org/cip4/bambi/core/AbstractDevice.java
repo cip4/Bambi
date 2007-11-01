@@ -169,7 +169,7 @@ public abstract class AbstractDevice extends HttpServlet implements IDevice, IJM
 			return EnumType.KnownDevices;
 		}
 	}
-	private static Log log = LogFactory.getLog(AbstractDevice.class.getName());
+	protected static Log log = LogFactory.getLog(AbstractDevice.class.getName());
 	protected IQueueProcessor _theQueueProcessor=null;
 	protected AbstractDeviceProcessor _theDeviceProcessor=null;
 	protected IStatusListener _theStatusListener=null;
@@ -245,6 +245,7 @@ public abstract class AbstractDevice extends HttpServlet implements IDevice, IJM
 	/**
 	 * get a String representation of this device
 	 */
+	@Override
 	public String toString() {
 		return ("["+this.getClass().getName()+" Properties="+ _devProperties.toString() +"]");
 	}
@@ -304,10 +305,7 @@ public abstract class AbstractDevice extends HttpServlet implements IDevice, IJM
 	 */
 	public String getDeviceProcessorClass()
 	{
-		if (_theDeviceProcessor != null)
-			return _theDeviceProcessor.getClass().getName();
-		else
-			return "";
+		return _theDeviceProcessor != null ? _theDeviceProcessor.getClass().getName() : "";
 	}
 	
 	/**
@@ -577,8 +575,9 @@ public abstract class AbstractDevice extends HttpServlet implements IDevice, IJM
 	 * @param request servlet request
 	 * @param response servlet response
 	 */
+	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-	throws ServletException, IOException
+	throws IOException
 	{
 		log.debug("Processing post request for: "+request.getPathInfo());
 		String contentType=request.getContentType();
@@ -620,6 +619,7 @@ public abstract class AbstractDevice extends HttpServlet implements IDevice, IJM
 	 * @param request servlet request
 	 * @param response servlet response
 	 */
+	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 	{
 		log.info("Processing get request...");

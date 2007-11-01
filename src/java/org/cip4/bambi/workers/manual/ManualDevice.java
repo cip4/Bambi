@@ -121,6 +121,7 @@ public final class ManualDevice extends AbstractWorkerDevice   {
 		((ManualDeviceProcessor)_theDeviceProcessor).finalizeQueueEntry();
 	}
 
+	@Override
 	protected AbstractDeviceProcessor buildDeviceProcessor() {
 		return new ManualDeviceProcessor(_theQueueProcessor, _theStatusListener, _devProperties.getDeviceID(), _devProperties.getAppDir());
 	}

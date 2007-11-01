@@ -276,6 +276,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 		_tracker=new QueueEntryTracker(_configDir);
 	}
 	
+	@Override
 	public void addHandlers(IJMFHandler jmfHandler)
     {
 		super.addHandlers(jmfHandler);
@@ -329,15 +330,15 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
         	 qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
      		_tracker.addEntry(qe.getQueueEntryID(), newQE.getQueueEntryID(), deviceID, targetURL);
      		return true;
-        } else {
-        	String respError = resp==null ? "response is null" : "ReturnCode is "+resp.getReturnCode();  
-        	log.error("failed to send SubmitQueueEntry, "+respError);
-        	BambiNSExtension.setDeviceID(qe, null);
-        	return false;
         }
+		String respError = resp==null ? "response is null" : "ReturnCode is "+resp.getReturnCode();  
+		log.error("failed to send SubmitQueueEntry, "+respError);
+		BambiNSExtension.setDeviceID(qe, null);
+		return false;
         
 	}
 
+	@Override
 	protected void handleAbortQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
 		// check if the QueueEntry has already been forwarded
@@ -350,6 +351,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 		
 	}
 
+	@Override
 	protected void handleQueueStatus(JDFQueue q) {
 		int siz=_theQueue.getQueueSize();
 		for (int i=0;i<siz;i++) {
@@ -361,6 +363,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 		q.removeChild("QueueEntry", "", siz);
 	}
 
+	@Override
 	protected void handleResumeQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
 		// check if the QueueEntry has already been forwarded
@@ -373,6 +376,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 		
 	}
 
+	@Override
 	protected void handleSuspendQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
 		// check if the QueueEntry has already been forwarded

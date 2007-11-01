@@ -92,6 +92,7 @@ public class BambiTestCase extends TestCase {
     protected final static String jdfDir=cwd+File.separator+"test"+File.separator+"data"+File.separator;
     protected static String SimWorkerUrl="";
 
+    @Override
 	protected void setUp() throws Exception {
 		super.setUp();
 		
@@ -100,7 +101,7 @@ public class BambiTestCase extends TestCase {
 		try {
 			in = new FileInputStream(simConfigDir+"Device.properties");
 			properties.load(in);
-			SimWorkerUrl= properties.getProperty("DeviceURL")+"/"+"sim001";
+			SimWorkerUrl=properties.getProperty("DeviceURL")+"/"+"sim002";
 			in.close();
 		} catch (IOException e) {
 			fail( "failed to load Bambi properties on test init" );
@@ -109,6 +110,7 @@ public class BambiTestCase extends TestCase {
 		
 	}
 
+    @Override
 	protected void tearDown() throws Exception {
 		super.tearDown();
 	}

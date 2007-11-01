@@ -69,7 +69,7 @@
 					Vector<BambiQueueEntry> bqEntries = bqu.getBambiQueueEntryVector();
 					for (int i=0; i<bqEntries.size();i++)
 					{
-						QueueFacade.BambiQueueEntry bqe = (QueueFacade.BambiQueueEntry)bqEntries.get(i);
+						QueueFacade.BambiQueueEntry bqe = bqEntries.get(i);
 				%>
 					<tr>
 						<td> <%=bqe.queueEntryID %> </td>                     
@@ -127,7 +127,7 @@
 				if (bqEntry.size() == 0)
 					return;
 				
-				QueueFacade.BambiQueueEntry currentBQE = (QueueFacade.BambiQueueEntry)bqEntry.get(0);
+				QueueFacade.BambiQueueEntry currentBQE = bqEntry.get(0);
 				if (currentBQE.queueEntryStatus!=EnumQueueEntryStatus.Running) {
 					return;
 				}
@@ -173,9 +173,9 @@
 	     			<td>
 		     			<select name="DeviceStatus" size="1">
 			 			<%
-			 					Iterator devIter = EnumDeviceStatus.iterator();
+			 					Iterator<EnumDeviceStatus> devIter = EnumDeviceStatus.iterator();
 			 					while (devIter.hasNext()) {
-			 						String devStatus = ((EnumDeviceStatus) devIter.next()).getName();
+			 						String devStatus = devIter.next().getName();
 			 						if (devStatus.equals(currentPhase.deviceStatus.getName())) {
 			 			%>
 			 					<option selected="selected"><%=devStatus%></option>
@@ -203,10 +203,9 @@
 	     			<td>
 	     				<select name="NodeStatus" size="1">
 			 			<%
-			 					Iterator nodeIter = EnumNodeStatus.iterator();
+			 					Iterator<EnumNodeStatus> nodeIter = EnumNodeStatus.iterator();
 			 					while (nodeIter.hasNext()) {
-			 						String nodeStatus = ((EnumNodeStatus) nodeIter.next())
-			 						.getName();
+			 						String nodeStatus = nodeIter.next().getName();
 			 						if (nodeStatus.equals(currentPhase.nodeStatus.getName())) {
 			 			%>
 			 					<option selected="selected"><%=nodeStatus%></option>
