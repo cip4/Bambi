@@ -327,7 +327,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
         if (resp!=null && resp.getReturnCode()==0) {
         	JDFQueueEntry newQE = resp.getQueueEntry(0);
         	 qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
-     		_tracker.addEntry(qe.getQueueEntryID(), newQE.getQueueEntryID(), deviceID, targetURL, returnURL);
+     		_tracker.addEntry(qe.getQueueEntryID(), newQE.getQueueEntryID(), deviceID, targetURL);
      		return true;
         } else {
         	String respError = resp==null ? "response is null" : "ReturnCode is "+resp.getReturnCode();  

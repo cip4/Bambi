@@ -3,42 +3,49 @@ package org.cip4.bambi.core;
 public interface IDeviceProperties {
 
 	/**
+	 * set the URL to communicate with this device (in other words: send JMFs to this URL)
 	 * @param deviceURL the deviceURL to set
 	 */
 	public void setDeviceURL(String deviceURL);
 
 	/**
-	 * @return the deviceURL
+	 * get the URL to communicate with this device
+	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
 	 */
 	public String getDeviceURL();
 
 	/**
+	 * get the DeviceID of this device
 	 * @return the deviceID
 	 */
 	public String getDeviceID();
 
 	/**
-	 * @return the controllerURL
+	 * get the URL of the proxy this device is using.
+	 * @return the proxy URL
 	 */
 	public String getProxyURL();
 
 	/**
-	 * @return the deviceType
+	 * get the DeviceType of this device
+	 * @return the DeviceType of this device
 	 */
 	public String getDeviceType();
 
 	/**
+	 * set the location of the web application on the hard disk
 	 * @param appDir the location of the web application on the hard disk
 	 */
 	public void setAppDir(String appDir);
 
 	/**
-	 * @return the appURL
+	 * get the location of the web application on the hard disk
+	 * @return the location of the web application on the hard disk
 	 */
 	public String getAppDir();
 
 	/**
-	 * get the String representation of this DeviceProperty
+	 * get a String representation of this DeviceProperty
 	 */
 	public String toString();
 

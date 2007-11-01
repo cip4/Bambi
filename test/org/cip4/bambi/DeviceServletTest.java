@@ -80,7 +80,7 @@ import java.net.MalformedURLException;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
-import org.cip4.bambi.devices.devcore.MultiDeviceProperties;
+import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.servlets.DeviceServlet;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -122,7 +122,7 @@ public class DeviceServletTest extends BambiTestCase {
 	{
 		AbstractWorkerServlet d = new AbstractWorkerServlet();
 		assertEquals( 0,d.getDeviceQuantity() ); 
-		MultiDeviceProperties dp = new MultiDeviceProperties(null, sm_dirTestData+"test_devices.xml");
+		MultiDeviceProperties dp = new MultiDeviceProperties( null,new File(sm_dirTestData+"test_devices.xml") );
 		assertNotNull( d.createDevice(dp.getDevice("device001")) );
         assertNotNull( d.createDevice(dp.getDevice("device002")) );
 		assertNull( d.createDevice(dp.getDevice("device002")) );
@@ -136,7 +136,7 @@ public class DeviceServletTest extends BambiTestCase {
 	{
 		AbstractWorkerServlet d = new AbstractWorkerServlet();
 		assertEquals( 0,d.getDeviceQuantity() );
-		MultiDeviceProperties dp = new MultiDeviceProperties(null, sm_dirTestData+"test_devices.xml");
+		MultiDeviceProperties dp = new MultiDeviceProperties( null,new File(sm_dirTestData+"test_devices.xml") );
 		assertNotNull( d.createDevice(dp.getDevice("device001")) );
         assertNotNull( d.createDevice(dp.getDevice("device002")) );
 		assertEquals( 2,d.getDeviceQuantity() );
@@ -181,7 +181,7 @@ public class DeviceServletTest extends BambiTestCase {
         assertEquals(d2[1].getJDFRoot().getEnumType(),EnumType.ColorSpaceConversion);
         
         // now serialize to file and reread - should still work
-        HttpURLConnection uc=MimeUtil.writeToURL(m, BambiUrl);
+        HttpURLConnection uc=MimeUtil.writeToURL(m, SimWorkerUrl);
         MimeUtil.writeToFile(m, sm_dirTestData+"testMime.mjm");
         assertEquals(uc.getResponseCode(), 200);
         UrlUtil.UrlPart[] parts=UrlUtil.getURLParts(uc);

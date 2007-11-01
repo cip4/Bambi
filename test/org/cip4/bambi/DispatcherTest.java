@@ -1,6 +1,3 @@
-package org.cip4.bambi;
-
-
 /*
 *
 * The CIP4 Software License, Version 1.0
@@ -72,10 +69,12 @@ package org.cip4.bambi;
 * 
 */
 
+package org.cip4.bambi;
+
 import java.io.File;
 
 import org.cip4.bambi.core.SignalDispatcher;
-import org.cip4.bambi.messaging.JMFHandler;
+import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFSubscription;

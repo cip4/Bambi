@@ -1,5 +1,3 @@
-package org.cip4.bambi;
-
 /*
 *
 * The CIP4 Software License, Version 1.0
@@ -71,6 +69,8 @@ package org.cip4.bambi;
 * 
 */
 
+package org.cip4.bambi;
+
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -83,7 +83,7 @@ public class JMFQuery_ResponderTest extends BambiTestCase {
 		JDFDoc doc=new JDFDoc("JMF");
         JDFJMF jmf=doc.getJMFRoot();
         jmf.appendMessageElement(JDFMessage.EnumFamily.Query, JDFMessage.EnumType.KnownMessages);
-        JDFDoc resp=doc.write2URL( BambiTestCase.BambiUrl );
+        JDFDoc resp=doc.write2URL( BambiTestCase.SimWorkerUrl );
         
         assertTrue( !resp.isNull() );
         assertEquals( 0,resp.getJMFRoot().getResponse(0).getReturnCode() );
@@ -94,7 +94,7 @@ public class JMFQuery_ResponderTest extends BambiTestCase {
 		JDFDoc doc=new JDFDoc("JMF");
         JDFJMF jmf=doc.getJMFRoot();
         jmf.appendMessageElement(JDFMessage.EnumFamily.Query, JDFMessage.EnumType.Status);
-        JDFDoc resp=doc.write2URL( BambiTestCase.BambiUrl );
+        JDFDoc resp=doc.write2URL( BambiTestCase.SimWorkerUrl );
         
         assertTrue( !resp.isNull() );
         assertEquals( 0,resp.getJMFRoot().getResponse(0).getReturnCode() );
@@ -105,7 +105,7 @@ public class JMFQuery_ResponderTest extends BambiTestCase {
 		JDFDoc doc=new JDFDoc("JMF");
         JDFJMF jmf=doc.getJMFRoot();
         jmf.appendMessageElement(JDFMessage.EnumFamily.Query, JDFMessage.EnumType.KnownDevices);
-        JDFDoc resp=doc.write2URL( BambiTestCase.BambiUrl );
+        JDFDoc resp=doc.write2URL( BambiTestCase.SimWorkerUrl );
         
         assertTrue( !resp.isNull() );
         assertEquals( 0,resp.getJMFRoot().getResponse(0).getReturnCode() );

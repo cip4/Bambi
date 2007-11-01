@@ -1,7 +1,3 @@
-package org.cip4.bambi;
-
-import org.cip4.bambi.queues.QueueEntryTracker;
-
 /*
 *
 * The CIP4 Software License, Version 1.0
@@ -73,42 +69,65 @@ import org.cip4.bambi.queues.QueueEntryTracker;
 * 
 */
 
+package org.cip4.bambi;
+
+import java.io.File;
+
+import org.cip4.bambi.proxy.IQueueEntryTracker;
+import org.cip4.bambi.proxy.QueueEntryTracker;
+
+
 
 public class QueueTrackerTest extends BambiTestCase {
 	
 	public void testAddEntries() 
 	{
-		QueueEntryTracker qt=new QueueEntryTracker();
-		assertEquals( 0, qt.count() );
-		qt.addEntry("in_1", "out_1", "dev_1", "devUrl_1", "retUrl_1");
-		assertEquals( 1, qt.count() );
+		IQueueEntryTracker qt=new QueueEntryTracker(sm_dirTestTemp);
+		qt.addEntry("in_1", "out_1", "dev_1", "devUrl_1");
+		assertEquals( 1, qt.countTracked() );
 		
-		qt.addEntry("in_1", "out_1", "dev_1", "devUrl_1", "retUrl_1");
-		assertEquals( 1, qt.count() );
+		qt.addEntry("in_1", "out_1", "dev_1", "devUrl_1");
+		assertEquals( 1, qt.countTracked() );
 	}
 	
 	public void testRemoveEntries() 
 	{
-		QueueEntryTracker qt=new QueueEntryTracker();
-		qt.addEntry("in_1", "out_1", "dev_1", "devUrl_1", "retUrl_1");		
-		qt.addEntry("in_2", "out_2", "dev_2", "devUrl_2", "retUrl_2");
-		assertEquals( 2, qt.count() );
+		IQueueEntryTracker qt=new QueueEntryTracker(sm_dirTestTemp);
+		qt.addEntry("in_1", "out_1", "dev_1", "devUrl_1");		
+		qt.addEntry("in_2", "out_2", "dev_2", "devUrl_2");
+		assertEquals( 2, qt.countTracked() );
 		
 		qt.removeEntry("in_3");
-		assertEquals( 2, qt.count() );
+		assertEquals( 2, qt.countTracked() );
 		
 		qt.removeEntry("in_1");
-		assertEquals( 1, qt.count() );
+		assertEquals( 1, qt.countTracked() );
 	}
 	
-	public void testGetItems() 
-	{
-		QueueEntryTracker qt=new QueueEntryTracker();
-		qt.addEntry("in_1", "out_1", "dev_1", "devUrl_1", "retUrl_1");
+	public void testPersistResume() {
+		File configFile=new File( sm_dirTestTemp+"tracker.bin" );
+		if (configFile.exists() ) {
+			configFile.delete();
+		}
+				
+		{
+			IQueueEntryTracker qt=new QueueEntryTracker(sm_dirTestTemp);
+			qt.addEntry("in_1", "out_1", "dev_1", "devUrl_1");		
+			qt.addEntry("in_2", "out_2", "dev_2", "devUrl_2");
+		}
 		
-		assertEquals("retUrl_1", qt.getReturnURL("in_1"));
-		assertNull( qt.getReturnURL("foo") );
+		IQueueEntryTracker qt=new QueueEntryTracker(sm_dirTestTemp);
+		assertEquals( 2, qt.countTracked() );
+		assertEquals( "out_1",qt.getOutgoingQEID("in_1") );
+		assertEquals( "out_2",qt.getOutgoingQEID("in_2") );
+		assertEquals( "in_1",qt.getIncomingQEID("out_1") );
+		assertEquals( "in_2",qt.getIncomingQEID("out_2") );
+		assertEquals( "devUrl_1",qt.getDeviceURL("in_1") );
+		assertEquals( "devUrl_2",qt.getDeviceURL("in_2") );
+		assertEquals( "dev_1",qt.getDeviceID("in_1") );
+		assertEquals( "dev_2",qt.getDeviceID("in_2") );
+		
+		configFile.delete();
 	}
-	
 
 }

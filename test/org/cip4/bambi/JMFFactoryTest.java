@@ -1,5 +1,3 @@
-package org.cip4.bambi;
-
 /*
  *
  * The CIP4 Software License, Version 1.0
@@ -71,6 +69,7 @@ package org.cip4.bambi;
  * 
  */
 
+package org.cip4.bambi;
 import java.net.HttpURLConnection;
 
 import javax.mail.Multipart;
@@ -95,14 +94,14 @@ public class JMFFactoryTest extends BambiTestCase {
 	public void testStatus() 
 	{
 		JDFJMF jmf = JMFFactory.buildStatus();
-		JDFResponse resp = JMFFactory.send2Bambi(jmf,null);
+		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
         assertTrue( resp!=null );
         assertEquals( 0,resp.getReturnCode() );
         JDFDeviceInfo di = resp.getDeviceInfo(0);
         assertTrue( di!=null );
         
         jmf = JMFFactory.buildStatus();
-        resp = JMFFactory.send2Bambi(jmf, "device001");
+        resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
         assertTrue( resp!=null );
         assertEquals( 0,resp.getReturnCode() );
         resp.getDeviceInfo(0);
@@ -112,7 +111,7 @@ public class JMFFactoryTest extends BambiTestCase {
 	public void testSuspendQueueEntry()
 	{
 		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry("12345");
-		JDFResponse resp = JMFFactory.send2Bambi(jmf, "device001");
+		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
         assertTrue( resp!=null );
         assertEquals( 105,resp.getReturnCode() );
 	}
@@ -120,7 +119,7 @@ public class JMFFactoryTest extends BambiTestCase {
 	public void testResumeQueueEntry()
 	{
 		JDFJMF jmf = JMFFactory.buildResumeQueueEntry("12345");
-		JDFResponse resp = JMFFactory.send2Bambi(jmf, "device001");
+		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
         assertTrue( resp!=null );
         assertEquals( 105,resp.getReturnCode() );
 	}
@@ -128,7 +127,7 @@ public class JMFFactoryTest extends BambiTestCase {
 	public void testAbortQueueEntry()
 	{
 		JDFJMF jmf = JMFFactory.buildAbortQueueEntry("12345");
-		JDFResponse resp = JMFFactory.send2Bambi(jmf, "device001");
+		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
         assertTrue( resp!=null );
         assertEquals( 105,resp.getReturnCode() );
 	}
@@ -136,7 +135,7 @@ public class JMFFactoryTest extends BambiTestCase {
 	public void testRemoveQueueEntry()
 	{
 		JDFJMF jmf = JMFFactory.buildRemoveQueueEntry("12345");
-		JDFResponse resp = JMFFactory.send2Bambi(jmf, "device001");
+		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
         assertTrue( resp!=null );
         assertEquals( 105,resp.getReturnCode() );
 	}
@@ -144,7 +143,7 @@ public class JMFFactoryTest extends BambiTestCase {
 	public void testQueueStatus()
 	{
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-        JDFResponse resp = JMFFactory.send2Bambi(jmf, null);
+        JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
 		assertTrue( resp!=null );
 		assertEquals( 0,resp.getReturnCode() );
 		JDFQueue q = resp.getQueue(0);
@@ -179,7 +178,7 @@ public class JMFFactoryTest extends BambiTestCase {
     {
         long t=System.currentTimeMillis();
         JDFJMF jmf = JMFFactory.buildQueueStatus();
-        JDFResponse resp = JMFFactory.send2Bambi(jmf, null);
+        JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
         JDFQueue q=resp.getQueue(0);
         assertNotNull(q);
         int queueSize = q.getQueueSize();
@@ -190,10 +189,10 @@ public class JMFFactoryTest extends BambiTestCase {
             System.out.println("Pre abort,"+i);
             String qeID=((JDFQueueEntry)v.elementAt(i)).getQueueEntryID();
             jmf = JMFFactory.buildAbortQueueEntry(qeID);
-            resp = JMFFactory.send2Bambi(jmf, null);
+            resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
 
             jmf = JMFFactory.buildRemoveQueueEntry(qeID);
-            resp = JMFFactory.send2Bambi(jmf, null);
+            resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
             long t2=System.currentTimeMillis();
             // a return code of 106="Failed, QueueEntry is already executing" is possible
             // and does not indicate an error
@@ -204,7 +203,7 @@ public class JMFFactoryTest extends BambiTestCase {
             System.out.println("Post abort,"+i+" single: "+(t2-t1)+" total: "+(t2-t));
         }
         jmf = JMFFactory.buildQueueStatus();
-        resp = JMFFactory.send2Bambi(jmf, null);
+        resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
         q=resp.getQueue(0);
         assertNotNull(q);
         queueSize = q.getQueueSize();
@@ -222,7 +221,7 @@ public class JMFFactoryTest extends BambiTestCase {
 	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = JMFFactory.send2Bambi(jmfStat, "device001");
+		JDFResponse resp = JMFFactory.send2URL(jmfStat, SimWorkerUrl);
 		assertTrue( resp!=null );
 		assertEquals( 0,resp.getReturnCode() );
 		JDFQueue q = resp.getQueue(0);
@@ -241,15 +240,14 @@ public class JMFFactoryTest extends BambiTestCase {
         Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
 
         try {
-        	HttpURLConnection response = MimeUtil.writeToURL( mp,BambiUrl+"/device001" );
+        	HttpURLConnection response = MimeUtil.writeToURL( mp,SimWorkerUrl+"/device001" );
         	assertEquals( 200,response.getResponseCode() );
         } catch (Exception e) {
-        	System.err.println( e.getMessage() );
-        	fail(); // fail on exception
+        	fail( e.getMessage() ); // fail on exception
         }
         
         // there should be one more QueueEntry
-		resp = JMFFactory.send2Bambi(jmfStat, "device001");
+		resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
 		assertTrue( resp!=null );
 		assertEquals( 0,resp.getReturnCode() );
 		q = resp.getQueue(0);

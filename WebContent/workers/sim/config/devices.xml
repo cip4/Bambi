@@ -2,7 +2,7 @@
 <devices>
   <device001 DeviceID="sim001" DeviceType="Bambi Sim device no. 1"
   	ProxyURL="http://127.0.0.1:8080/BambiProxy/devices" 
-  	DeviceURL="http://127.0.0.1:8080/ManualWorker/devices/sim002" />
+  	DeviceURL="http://127.0.0.1:8080/ManualWorker/devices/sim001" />
   <device002 DeviceID="sim002" DeviceType="Bambi Sim device no. 2" 
   	ProxyURL="http://127.0.0.1:8080/BambiProxy/devices" 
   	DeviceURL="http://127.0.0.1:8080/ManualWorker/devices/sim002" />

@@ -200,7 +200,9 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	        		return true;
 	        	} else {
 	        		log.error("queue is null");
-	        		return false;
+	        		// append an empty Queue to the response
+	        		resp.appendQueue();
+	        		return true;
 	        	}
 	        }
 	

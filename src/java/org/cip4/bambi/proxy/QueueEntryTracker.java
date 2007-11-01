@@ -94,13 +94,11 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 		private String _qeid=null;
 		private String _deviceID=null;
 		private String _deviceURL=null;
-		private String _returnURL=null;
 		
-		public OutgoingQE(String qeid, String deviceID,String deviceURL, String returnURL) {
+		public OutgoingQE(String qeid, String deviceID,String deviceURL) {
 			_qeid=qeid;
 			_deviceID=deviceID;
 			_deviceURL=deviceURL;
-			_returnURL=returnURL;
 		}
 		
 		public String getQueueEntryID() {
@@ -115,13 +113,9 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 			return _deviceURL;
 		}
 		
-		public String getReturnURL() {
-			return _returnURL;
-		}
-		
 		public String toString() {
 			return "[ outgoing QueueEntryID="+_qeid+", device ID="+_deviceID
-				+", device URL="+", returnURL="+_returnURL+" ]";
+				+", device URL="+_deviceURL+" ]";
 		}
 	}
 	
@@ -160,8 +154,8 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 	/* (non-Javadoc)
 	 * @see org.cip4.bambi.proxy.IQueueEntryTracker#addEntry(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
 	 */
-	public void addEntry(String inputQEID, String outputQEID, String deviceID, String deviceURL, String returnURL) {
-		OutgoingQE qe = new OutgoingQE(outputQEID,deviceID,deviceURL,returnURL);
+	public void addEntry(String inputQEID, String outputQEID, String deviceID, String deviceURL) {
+		OutgoingQE qe = new OutgoingQE(outputQEID,deviceID,deviceURL);
 		_tracker.put(inputQEID, qe);
 		persist();
 	}
@@ -236,18 +230,6 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 		OutgoingQE qe = _tracker.get(qeid);
 		if (qe!=null) {
 			return qe.getDeviceURL();
-		} else {
-			return null;
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.cip4.bambi.proxy.IQueueEntryTracker#getReturnURL(java.lang.String)
-	 */
-	public String getReturnURL(String qeid) {
-		OutgoingQE qe = _tracker.get(qeid);
-		if (qe!=null) {
-			return qe.getReturnURL();
 		} else {
 			return null;
 		}

@@ -12,8 +12,8 @@ public interface IMultiDeviceProperties {
 	public int count();
 
 	/**
-	 * get the a Set with the device IDs of all device properties stored
-	 * @return a Set of device IDs, an empty set of nothing has been found
+	 * get the Set with the device IDs of all device properties stored
+	 * @return a Set<String> of device IDs. Return an empty set of nothing has been found
 	 */
 	public Set<String> getDeviceIDs();
 

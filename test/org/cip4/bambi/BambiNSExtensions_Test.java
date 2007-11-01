@@ -1,5 +1,3 @@
-package org.cip4.bambi;
-
 /*
 *
 * The CIP4 Software License, Version 1.0
@@ -71,6 +69,8 @@ package org.cip4.bambi;
 * 
 */
 
+package org.cip4.bambi;
+
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -85,18 +85,23 @@ public class BambiNSExtensions_Test extends BambiTestCase {
 		JDFResponse resp = root.appendResponse();
 		resp.setType("Status");
 		JDFQueueEntry qe = resp.getCreateQueue(0).getCreateQueueEntry(0);
+		BambiNSExtension.setDeviceID(qe, "someDeviceID");
+		BambiNSExtension.setDeviceURL(qe, "someDeviceURL");
 		BambiNSExtension.setDocURL(qe, "foo");
 		BambiNSExtension.setReturnJMF(qe, "bar");
-		BambiNSExtension.setReturnURL(qe, "someURL");
+		BambiNSExtension.setReturnURL(qe, "someReturnURL");
+		
 		return qe;
 	}
 	
 	public void testAddBambiExtensions()
 	{
 		JDFQueueEntry qe = buildQueueEntry();
+		assertEquals( "someDeviceID",BambiNSExtension.getDeviceID(qe) );
+		assertEquals( "someDeviceURL",BambiNSExtension.getDeviceURL(qe) );
 		assertEquals( "foo",BambiNSExtension.getDocURL(qe) );
 		assertEquals( "bar",BambiNSExtension.getReturnJMF(qe) );
-		assertEquals( "someURL",BambiNSExtension.getReturnURL(qe) );
+		assertEquals( "someReturnURL",BambiNSExtension.getReturnURL(qe) );
 	}
 	
 	public void testRemoveBambiExtensions()
@@ -104,6 +109,8 @@ public class BambiNSExtensions_Test extends BambiTestCase {
 		JDFQueueEntry qe = buildQueueEntry();
 		BambiNSExtension.removeBambiExtensions(qe);
         
+		assertFalse( qe.hasAttributeNS(BambiNSExtension.MY_NS, BambiNSExtension.deviceID) );
+		assertFalse( qe.hasAttributeNS(BambiNSExtension.MY_NS, BambiNSExtension.deviceURL) );
         assertFalse( qe.hasAttributeNS(BambiNSExtension.MY_NS, BambiNSExtension.docURL) );
         assertFalse( qe.hasAttributeNS(BambiNSExtension.MY_NS, BambiNSExtension.returnJMF) );
         assertFalse( qe.hasAttributeNS(BambiNSExtension.MY_NS, BambiNSExtension.returnURL) );

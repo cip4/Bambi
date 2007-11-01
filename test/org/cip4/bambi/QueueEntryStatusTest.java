@@ -1,5 +1,3 @@
-package org.cip4.bambi;
-
 /*
 *
 * The CIP4 Software License, Version 1.0
@@ -71,9 +69,11 @@ package org.cip4.bambi;
 * 
 */
 
+package org.cip4.bambi;
+
 import java.net.HttpURLConnection;
 import javax.mail.Multipart;
-import org.cip4.bambi.messaging.JMFFactory;
+import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
@@ -89,15 +89,11 @@ import org.cip4.jdflib.util.MimeUtil;
 
 public class QueueEntryStatusTest extends BambiTestCase {
 	
-	/**
-	 * tests are running on this device
-	 */
-	private final String deviceID = "device002";
 	private String createdQueueEntryID=null;
 
 	private JDFQueue getQueue() {
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-		JDFResponse resp = JMFFactory.send2Bambi(jmf,deviceID);
+		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
         assertTrue( resp!=null );
         assertEquals( 0,resp.getReturnCode() );
 
@@ -155,7 +151,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
             Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
 
             try {
-            	HttpURLConnection response = MimeUtil.writeToURL( mp,BambiUrl+"/"+deviceID );
+            	HttpURLConnection response = MimeUtil.writeToURL( mp,SimWorkerUrl );
             	assertEquals( 200,response.getResponseCode() );
             	// give the device some time to start processing
                 try {
@@ -180,11 +176,11 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		// remove the created the created QueueEntry, if there is any
 		if ( createdQueueEntryID!=null ) {
 			JDFJMF jmf = JMFFactory.buildAbortQueueEntry(createdQueueEntryID);
-			JDFResponse resp = JMFFactory.send2Bambi(jmf, deviceID);
+			JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
 			Thread.sleep(1000);
 			if (resp.getReturnCode()!=105) {
 				jmf = JMFFactory.buildRemoveQueueEntry(createdQueueEntryID);
-				JMFFactory.send2Bambi(jmf, deviceID);
+				JMFFactory.send2URL(jmf, SimWorkerUrl);
 			}
 		}
 		
@@ -198,7 +194,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		String qeID = runningQE.getQueueEntryID();
 		
 		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry( qeID );
-		JDFResponse resp = JMFFactory.send2Bambi(jmf, deviceID);
+		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
 		assertEquals( 0,resp.getReturnCode() );
 		// give the device some time to suspend the QE
         try {
@@ -209,7 +205,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		assertEquals(EnumQueueEntryStatus.Suspended, getQueueEntryStatus(qeID) );
 		
 		jmf = JMFFactory.buildResumeQueueEntry( qeID );
-		resp = JMFFactory.send2Bambi(jmf, deviceID);
+		resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
 		assertEquals( 0, resp.getReturnCode() );
 		// give the device some time to resume the QE
         try {
@@ -233,7 +229,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		String qeID = runningQE.getQueueEntryID();
 		
 		JDFJMF jmf = JMFFactory.buildAbortQueueEntry( qeID );
-		JDFResponse resp = JMFFactory.send2Bambi(jmf, deviceID);
+		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
 		assertEquals( 0, resp.getReturnCode() );
 		// give the device some time to abort the QE
         try {
@@ -244,7 +240,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		assertEquals(EnumQueueEntryStatus.Aborted.getName(), getQueueEntryStatus(qeID).getName() );
 		
 		jmf = JMFFactory.buildRemoveQueueEntry( qeID );
-		resp = JMFFactory.send2Bambi(jmf, deviceID);
+		resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
 		assertEquals( 0, resp.getReturnCode() );
 		// give the device some time to remove the QE
         try {
@@ -263,7 +259,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		String qeID = runningQE.getQueueEntryID();
 		
 		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry( qeID );
-		JDFResponse resp = JMFFactory.send2Bambi(jmf, deviceID);
+		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
 		assertEquals( 0, resp.getReturnCode() );
 		// give the device some time to abort the QE
         try {
@@ -274,7 +270,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		assertEquals(EnumQueueEntryStatus.Suspended.getName(), getQueueEntryStatus(qeID).getName() );
 		
 		jmf = JMFFactory.buildAbortQueueEntry( qeID );
-		resp = JMFFactory.send2Bambi(jmf, deviceID);
+		resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
 		assertEquals( 0, resp.getReturnCode() );
 		// give the device some time to remove the QE
         try {
@@ -288,8 +284,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 	
 	public void testRogueWaves() throws Exception
 	{
-		for (int i=0;i<20;i++)
-		{
+		for (int i=0;i<20;i++) {
 			System.out.println("run #"+i);
 			setUp();
 			testSuspendResumeQE();

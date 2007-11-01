@@ -13,7 +13,8 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 		<link rel="stylesheet" type="text/css" href="./css/styles_pc.css"/>
-		<title>Bambi</title>
+		<link rel="icon" href="favicon.ico" type="image/x-icon" />
+		<title>Bambi - Proxy</title>
 	</head>
 	<body>
 		<h1>Bambi Proxy - Overview</h1>

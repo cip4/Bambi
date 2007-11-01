@@ -87,10 +87,9 @@ public interface IQueueEntryTracker {
 	 * @param outputQEID ID of the outgoing QueueEntry
 	 * @param deviceID   ID of the device where the output QueueEntry is being processed
 	 * @param deviceURL  URL of the device where the output QueueEntry is being processed
-	 * @param returnURL  URL of the orginal sender of the QueueEntry
 	 */
 	public void addEntry(String inputQEID, String outputQEID,
-			String deviceID, String deviceURL, String returnURL);
+			String deviceID, String deviceURL);
 
 	/**
 	 * check whether the incomong QueueEntry has been forwarded to a worker  
@@ -138,13 +137,6 @@ public interface IQueueEntryTracker {
 	 * @return the URL of the device where the given QueueEntry is being processed
 	 */
 	public String getDeviceURL(String qeid);
-
-	/**
-	 * get the URL of the of the originator of the given QueueEntry (e.g. the MIS) 
-	 * @param qeid the incoming QueueEntry ID
-	 * @return the URL of the of the originator of the given QueueEntry (e.g. the MIS) 
-	 */
-	public String getReturnURL(String qeid);
 
 	/**
 	 * get the String representation of a tracked entry
