@@ -297,10 +297,10 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		} else {
 			boolean isMultipart = ServletFileUpload.isMultipartContent(request);
 			if (isMultipart) {
-				log.info("Processing multipart request..."+contentType);
+				log.info("Processing multipart request... (ContentType: "+contentType+")");
 				processMultipartRequest(request, response);
 			} else {
-				log.warn("Unknown ContentType:"+contentType);
+				log.warn("Unknown ContentType: "+contentType);
 				response.setContentType("text/plain");
 				OutputStream os=response.getOutputStream();
 				InputStream is=request.getInputStream();

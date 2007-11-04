@@ -125,9 +125,9 @@ public class StatusListener implements IStatusListener
                 return false;
             }
             try {
-            	JDFDeviceInfo di=r.getDeviceInfo(0);
-            	di.setDeviceID( theCounter.getDeviceID() );
-            	di.setDeviceStatus( getDeviceStatus() );
+//            	JDFDeviceInfo di=r.getDeviceInfo(0);
+//            	di.setDeviceID( theCounter.getDeviceID() );
+//            	di.setDeviceStatus( getDeviceStatus() );
 //            	JDFDevice d = r.getDeviceInfo(0).getDevice();
             	// TODO insert more Bambi info from properties file
             } catch (NullPointerException e) {
@@ -285,8 +285,9 @@ public class StatusListener implements IStatusListener
 		JDFDoc docJMF=null;
 		try {
 			docJMF=theCounter.getDocJMFPhaseTime();
-			JDFResponse r=docJMF.getJMFRoot().getResponse(0);
-			return r.getDeviceInfo(-1).getDeviceStatus();
+			JDFResponse r=docJMF.getJMFRoot().getResponse(-1);
+			JDFDeviceInfo di=r.getDeviceInfo(0);
+			return di.getDeviceStatus();
 		} catch (NullPointerException e) {
 			log.fatal("StatusCounter returned an illegal doc: \r\n"+docJMF);
 			return EnumDeviceStatus.Unknown;
