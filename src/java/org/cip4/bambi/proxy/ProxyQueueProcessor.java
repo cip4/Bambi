@@ -271,7 +271,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 
 
 	public ProxyQueueProcessor(String deviceID, String appDir) {
-		super(deviceID, appDir);
+		super(deviceID, null, appDir);
 		_configDir=_appDir+"config/";
 		_tracker=new QueueEntryTracker(_configDir);
 	}

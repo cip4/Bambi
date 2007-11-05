@@ -183,6 +183,7 @@ public class JMFFactoryTest extends BambiTestCase {
         assertNotNull(q);
         int queueSize = q.getQueueSize();
         VElement v=q.getQueueEntryVector();
+        int numRunning=0;
         for(int i=0;i<v.size();i++)
         {
             long t1=System.currentTimeMillis();
@@ -190,31 +191,43 @@ public class JMFFactoryTest extends BambiTestCase {
             String qeID=((JDFQueueEntry)v.elementAt(i)).getQueueEntryID();
             jmf = JMFFactory.buildAbortQueueEntry(qeID);
             resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
+            assertNotNull( resp );
+            assertEquals( 0,resp.getReturnCode() );
 
             jmf = JMFFactory.buildRemoveQueueEntry(qeID);
             resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
             long t2=System.currentTimeMillis();
+            assertNotNull( resp );
             // a return code of 106="Failed, QueueEntry is already executing" is possible
             // and does not indicate an error
             int retCode = resp.getReturnCode();
+            if (retCode==106)
+            	numRunning++;
             if (retCode!=0 && retCode!=106) {
             	fail("RemoveQueueEntry failed, return code is "+retCode);
             }
             System.out.println("Post abort,"+i+" single: "+(t2-t1)+" total: "+(t2-t));
         }
+        // give the device some time to process the Abort/RemoveQE's
+        Thread.sleep( 1000 );
+        
         jmf = JMFFactory.buildQueueStatus();
         resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
         q=resp.getQueue(0);
         assertNotNull(q);
         queueSize = q.getQueueSize();
-        // only the running QueueEntries are allowed to remain, all others should 
-        // be aborted
+        // only then-running now-aborted QueueEntries are allowed to remain, all others should 
+        // be removed
+        assertEquals( numRunning,queueSize );
         for (int i=0;i<queueSize;i++) {
         	JDFQueueEntry qe = q.getQueueEntry(i);
         	EnumQueueEntryStatus status=qe.getQueueEntryStatus();
-        	if (status!=EnumQueueEntryStatus.Running) {
-        		fail( "QueueEntryStatus is "+status.getName()+", but should be Running" );
+        	if (status!=EnumQueueEntryStatus.Aborted) {
+        		fail( "QueueEntryStatus is "+status.getName()+", but should be Aborted" );
         	}
+        	// clean up
+        	jmf = JMFFactory.buildRemoveQueueEntry( qe.getQueueEntryID() );
+            resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
         }
     }
 	
@@ -227,7 +240,6 @@ public class JMFFactoryTest extends BambiTestCase {
 		assertEquals( 0,resp.getReturnCode() );
 		JDFQueue q = resp.getQueue(0);
 		assertNotNull( q );
-		int qSize_old = q.getQueueEntryVector().size();
 		
 		// build SubmitQueueEntry
 		JDFDoc docJMF=new JDFDoc("JMF");
@@ -246,14 +258,5 @@ public class JMFFactoryTest extends BambiTestCase {
         } catch (Exception e) {
         	fail( e.getMessage() ); // fail on exception
         }
-        
-        // there should be one more QueueEntry
-		resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
-		assertNotNull( resp );
-		assertEquals( 0,resp.getReturnCode() );
-		q = resp.getQueue(0);
-		assertNotNull( q );
-		int qSize = q.getQueueEntryVector().size();
-		assertEquals( qSize_old+1,qSize );
 	}
 }

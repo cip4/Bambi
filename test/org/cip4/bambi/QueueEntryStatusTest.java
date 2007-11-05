@@ -215,10 +215,11 @@ public class QueueEntryStatusTest extends BambiTestCase {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			// now the qe should be either Waiting or Running
+			// now the qe should be either Waiting or Running, Completed is allowed as well
 			status = getQueueEntryStatus(qeID);
 			if (status.equals(EnumQueueEntryStatus.Running)
-					|| status.equals(EnumQueueEntryStatus.Waiting)) {
+					|| status.equals(EnumQueueEntryStatus.Waiting) 
+					|| status.equals(EnumQueueEntryStatus.Completed) ) {
 				assertTrue(true);
 				hasSucceeded=true;
 			}

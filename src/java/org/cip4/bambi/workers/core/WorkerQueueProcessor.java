@@ -92,11 +92,9 @@ import org.cip4.jdflib.jmf.JDFResponse;
 public class WorkerQueueProcessor extends AbstractQueueProcessor
 {
 	protected static final Log log = LogFactory.getLog(WorkerQueueProcessor.class.getName());
-	protected AbstractDevice _parent=null;
 
 	public WorkerQueueProcessor(String deviceID, AbstractDevice theParent, String appDir) {
-		super(deviceID, appDir);
-		_parent = theParent;
+		super(deviceID,theParent,appDir);
 	}
 	
 	@Override

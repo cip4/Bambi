@@ -88,6 +88,7 @@ import javax.mail.Multipart;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
@@ -600,12 +601,13 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     protected String _configDir=null;
     protected String _deviceURL=null;
     protected String _jdfDir=null;
-     
-    public AbstractQueueProcessor(String deviceID, String appDir)
-    {
-		super();
+    protected AbstractDevice _parent=null;
+        
+    public AbstractQueueProcessor(String deviceID, AbstractDevice theParent, String appDir) {
+    	super();
 		_appDir=appDir;
-		this.init(deviceID);
+    	_parent=theParent;
+    	this.init(deviceID);
     }
     
     /**
