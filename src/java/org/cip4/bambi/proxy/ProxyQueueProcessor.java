@@ -72,6 +72,7 @@ package org.cip4.bambi.proxy;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
@@ -268,12 +269,16 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 
 	protected static final Log log = LogFactory.getLog(ProxyQueueProcessor.class.getName());
 	protected IQueueEntryTracker _tracker=null;
+	
+	public ProxyQueueProcessor(String deviceID, AbstractDevice theParent, String appDir) {
+		super(deviceID,theParent,appDir);
+		_configDir=_appDir+"config/";
+		_tracker=new QueueEntryTracker(_configDir);
+	}
 
 
 	public ProxyQueueProcessor(String deviceID, String appDir) {
-		super(deviceID, null, appDir);
-		_configDir=_appDir+"config/";
-		_tracker=new QueueEntryTracker(_configDir);
+		this(deviceID, null, appDir);
 	}
 	
 	@Override
