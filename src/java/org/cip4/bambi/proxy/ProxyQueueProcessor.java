@@ -298,7 +298,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	 * @param targetURL the URL to submit the QueueEntry to
 	 * @return true, if successful
 	 */
-	private boolean submitQueueEntry(JDFQueueEntry qe, String targetURL)
+	protected boolean submitQueueEntry(JDFQueueEntry qe, String targetURL)
 	{
 		// get DeviceID from targetURL
 		if (targetURL.endsWith("/")) {
@@ -364,7 +364,8 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 			newQE.copyElement(_theQueue.getQueueEntry(i).getFirstChildElement(), null);
 			BambiNSExtension.removeBambiExtensions(newQE);
 		}
-		//remove the last QueueEntry, it will be empty
+		//dirty hack/workaround: remove the last QueueEntry, it will be empty
+		// TODO fix (newQE.mergeElement() instead of .copyElement() ?)
 		q.removeChild("QueueEntry", "", siz);
 	}
 

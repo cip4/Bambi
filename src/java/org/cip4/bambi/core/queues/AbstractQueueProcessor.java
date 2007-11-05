@@ -148,10 +148,16 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
                     	return true;
                     }
                     JDFResponse r2=addEntry( (JDFCommand)m, doc, qsp.getHold() );
-                    if(r2!=null) {
-                    	resp.mergeElement(r2, false);
+                    if(r2==null) {
+                    	String et="failed to add entry: invalid or missing message parameters";
+                    	log.fatal(et);
+                    	resp.setErrorText(et);
+                    	resp.setReturnCode(9);
                     	return true;
                     }
+                    resp.mergeElement(r2, false);
+                	return true;
+                    
                 }
                 log.error("QueueSubmissionParams are missing or invalid");
                 resp.setErrorText("QueueSubmissionParams are missing or invalid");
@@ -754,8 +760,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
      */
     public JDFResponse addEntry(JDFCommand submitQueueEntry, JDFDoc theJDF, boolean hold)
     {
-        if(submitQueueEntry==null || theJDF==null)
-        {
+        if(submitQueueEntry==null || theJDF==null) {
             log.error("error submitting new queueentry");
             return null;
         }
@@ -763,8 +768,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
             return null;
         
         JDFQueueSubmissionParams qsp=submitQueueEntry.getQueueSubmissionParams(0);
-        if(qsp==null)
-        {
+        if(qsp==null) {
             log.error("error submitting new queueentry");
             return null;
         }
@@ -772,15 +776,14 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         JDFResponse r=qsp.addEntry(_theQueue, null);
         JDFQueueEntry newQE=r.getQueueEntry(0);
        
-        if(r.getReturnCode()!=0 || newQE==null)
-        {
+        if(r.getReturnCode()!=0 || newQE==null) {
             log.error("error submitting queueentry: "+r.getReturnCode());
             return r;
         }
          
-        if(!storeDoc(newQE,theJDF,qsp.getReturnURL(),qsp.getReturnJMF()))
-        {
+        if(!storeDoc(newQE,theJDF,qsp.getReturnURL(),qsp.getReturnJMF())) {
             log.error("error storing queueentry: "+r.getReturnCode());
+            return r;
         }
         persist();
         notifyListeners();
