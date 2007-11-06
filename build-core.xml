@@ -5,6 +5,7 @@
 	<target name="-init" description="Initializes the build. This task is automatically run before building.">
 		<echo>Initializing. Using build settings from ./build.properties...</echo>
 		<!-- Sets properties -->
+		<tstamp/>
 	   	<property name="BambCore.name" value="BambiCore" />
 		<property file="version.properties"/>
 		<property name="src.dir" value="./src" />

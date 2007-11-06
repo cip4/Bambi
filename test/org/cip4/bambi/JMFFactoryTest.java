@@ -231,7 +231,7 @@ public class JMFFactoryTest extends BambiTestCase {
         }
     }
 	
-	public void testSubmitQueueEntry_MIME()
+	public void testSubmitQueueEntry_MIME() throws Exception
 	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
@@ -258,5 +258,7 @@ public class JMFFactoryTest extends BambiTestCase {
         } catch (Exception e) {
         	fail( e.getMessage() ); // fail on exception
         }
+        
+        testAbortAll();
 	}
 }

@@ -55,7 +55,12 @@
 	</target>
 	<target name="clean" description="remove bin and dist directories">
 		<echo>Cleaning...</echo>
-		<delete dir="${bin.dir}" />
-		<delete dir="${dist.dir}" />
+		<ant antfile="build-core.xml" target="clean" description="clean Bambi Core"/>
+		<echo>cleaning Proxy...</echo>
+		<ant antfile="build-proxy.xml" target="clean" description="clean the Bambi Proxy"/>
+		<echo>cleaning ManualWorker...</echo>
+		<ant antfile="build-manualworker.xml" target="clean" description="clean the Bambi ManualWorker device"/>
+		<echo>cleaning SimWorker...</echo>
+		<ant antfile="build-simworker.xml" target="clean" description="clean the Bambi SimWorker device"/>
 	</target>
 </project>

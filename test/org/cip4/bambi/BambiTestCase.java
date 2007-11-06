@@ -77,9 +77,15 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Properties;
 
-import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.util.UrlUtil;
 import junit.framework.TestCase;
+
+import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.util.UrlUtil;
 
 public class BambiTestCase extends TestCase {
 	protected final static String sm_dirTestData = "test" + File.separator + "data" + File.separator;
@@ -108,6 +114,7 @@ public class BambiTestCase extends TestCase {
 		}
 		JDFJMF.setTheSenderID( "BambiTest" );
 		
+		abortRemoveAll();
 	}
 
     @Override
@@ -130,6 +137,43 @@ public class BambiTestCase extends TestCase {
 	    }
 	    return url+"/test/data/";
 	}
+	
+	/**
+	 * cleaning up, brute-force-sytle: send a AbortQueueEntry and a RemoveQueueEntry 
+	 * message to every QueueEntry in the Queue
+	 */
+	protected void abortRemoveAll() {		
+		JDFJMF jmf=JMFFactory.buildQueueStatus();
+		JDFResponse resp=JMFFactory.send2URL(jmf,SimWorkerUrl);
+		JDFQueue theQueue=resp.getQueue(0);
+		if (theQueue==null) {
+			return;
+		}
+		VElement qVec=theQueue.getQueueEntryVector();
+		int siz=qVec.size();
+		if (siz==0)
+			return;
+		
+		for (int i=0;i<siz;i++) {
+			String qeid=((JDFQueueEntry)qVec.get(i)).getQueueEntryID();
+			jmf=JMFFactory.buildAbortQueueEntry(qeid);
+			JMFFactory.send2URL(jmf,SimWorkerUrl);
+		}
+		
+		// wait to allow the worker to process the AbortQueueEntries,
+		// then send RemoveQueueEntry messages
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			fail( e.getMessage() );
+		}
+		for (int i=0;i<siz;i++) {
+			String qeid=((JDFQueueEntry)qVec.get(i)).getQueueEntryID();
+			jmf=JMFFactory.buildRemoveQueueEntry(qeid);
+			JMFFactory.send2URL(jmf,SimWorkerUrl);
+		}
+	}
+	
     // dummy so that we can simply run the directory as a test
     public void testNothing() 
     {

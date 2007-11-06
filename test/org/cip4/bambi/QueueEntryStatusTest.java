@@ -88,8 +88,6 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.MimeUtil;
 
 public class QueueEntryStatusTest extends BambiTestCase {
-	
-	private String createdQueueEntryID=null;
 
 	private JDFQueue getQueue() {
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
@@ -152,7 +150,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
             	assertEquals( 200,response.getResponseCode() );
             	// give the device some time to start processing
                 try {
-        			Thread.sleep(1000);
+        			Thread.sleep(3000);
         		} catch (InterruptedException e) {
         			e.printStackTrace();
         		}
@@ -160,47 +158,34 @@ public class QueueEntryStatusTest extends BambiTestCase {
             	fail( e.getMessage() ); 
             }
             runningQE = getRunningQueueEntry();
-            if (runningQE!=null) {
-            	createdQueueEntryID=runningQE.getQueueEntryID();
-            }
         }
         
         assertNotNull( runningQE );
 	}
 	
-	@Override
-	public void tearDown() throws Exception
-	{
-		// remove the created the created QueueEntry, if there is any
-		if ( createdQueueEntryID!=null ) {
-			JDFJMF jmf = JMFFactory.buildAbortQueueEntry(createdQueueEntryID);
-			JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
-			Thread.sleep(1000);
-			if (resp.getReturnCode()!=105) {
-				jmf = JMFFactory.buildRemoveQueueEntry(createdQueueEntryID);
-				JMFFactory.send2URL(jmf, SimWorkerUrl);
-			}
-		}
-		
-		super.tearDown();
-	}
-	
 	public void testSuspendResumeQE()
 	{
 		JDFQueueEntry runningQE = getRunningQueueEntry();
-		assertNotNull( runningQE);
+		assertNotNull( runningQE );
 		String qeID = runningQE.getQueueEntryID();
 		
 		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry( qeID );
 		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
 		assertEquals( 0,resp.getReturnCode() );
 		// give the device some time to suspend the QE
-        try {
-			Thread.sleep(1500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		boolean hasSuspended=false;
+		byte suspCounter=0;
+		while (!hasSuspended && suspCounter<10) {
+			try {
+				Thread.sleep(750);
+			} catch (InterruptedException e) {
+				fail( "interrupted during Thread.sleed()" );
+			}
+			if (getQueueEntryStatus(qeID)==EnumQueueEntryStatus.Suspended)
+				hasSuspended=true;
+			suspCounter++;
 		}
-		assertEquals(EnumQueueEntryStatus.Suspended, getQueueEntryStatus(qeID) );
+        assertTrue( hasSuspended );
 		
 		jmf = JMFFactory.buildResumeQueueEntry( qeID );
 		resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
@@ -275,7 +260,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry( qeID );
 		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
 		assertEquals( 0, resp.getReturnCode() );
-		// give the device some time to abort the QE
+		// give the device some time to suspend the QE
         try {
 			Thread.sleep(2500);
 		} catch (InterruptedException e) {
