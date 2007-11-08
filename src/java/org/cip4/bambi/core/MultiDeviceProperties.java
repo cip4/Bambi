@@ -101,7 +101,8 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 		private String deviceURL=null;
 		private String proxyURL=null;
 		private String deviceType=null;
-		private String appDir=null;
+        private String appDir=null;
+        private String hotFolder=null;
 		
 		/**
 		 * create device properties
@@ -110,15 +111,18 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 		 * @param theProxyURL   the URL of its proxy/controller
 		 * @param theDeviceType the device type (e.g. "General Foo Device")
 		 * @param theDeviceProcessorClass the class of the device (e.g. "org.cip4.bambi.workers.sim.SimWorker")
-		 * @param theAppDir     the location of the web app (e.g. "C:/tomcat/webapps/bambi")
+         * @param theAppDir     the location of the web app (e.g. "C:/tomcat/webapps/bambi")
+         * @param theHotFolder     the location of the hotfolder 
 		 */
 		public DeviceProperties(String theDeviceID, String theDeviceURL, String theProxyURL,
-				String theDeviceType, String theAppDir) {
+				String theDeviceType, String theAppDir, String theHotFolder) {
 			setDeviceID(theDeviceID);
 			setDeviceURL(theDeviceURL);
 			setProxyURL(theProxyURL);
 			setDeviceType(theDeviceType);
 			setAppDir(theAppDir);
+            hotFolder=theHotFolder;
+            
 		}
 
 		/* (non-Javadoc)
@@ -201,6 +205,14 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 				", device URL="+deviceURL+", proxy URL="+proxyURL+"]";
 			return ret;
 		}
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getHotFolderURL()
+         */
+        public String getHotFolderURL()
+        {
+           return hotFolder;
+        }
 	}
 	
 	protected static final Log log = LogFactory.getLog(MultiDeviceProperties.class.getName());
@@ -241,12 +253,13 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 	    		log.error("cannot create device without device ID");
 	    		break;
 	    	}
-	    	String deviceType = device.getXPathAttribute("@DeviceType", null);
-	    	String proxyURL = device.getXPathAttribute("@ProxyURL", null);
-	    	String deviceURL= device.getXPathAttribute("@DeviceURL", null);
+            final String deviceType = device.getXPathAttribute("@DeviceType", null);
+            final String proxyURL = device.getXPathAttribute("@ProxyURL", null);
+            final String deviceURL= device.getXPathAttribute("@DeviceURL", null);
+            final String hotFolderURL= device.getXPathAttribute("@HotFolderURL", null);
 
 	    	DeviceProperties dev = new DeviceProperties(deviceID,deviceURL,proxyURL,
-	    			deviceType,appDir);
+	    			deviceType,appDir,hotFolderURL);
 	    	_devices.put(deviceID, dev);
 	    }
 	}

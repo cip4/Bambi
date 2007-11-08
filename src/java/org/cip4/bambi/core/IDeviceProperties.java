@@ -8,11 +8,17 @@ public interface IDeviceProperties {
 	 */
 	public void setDeviceURL(String deviceURL);
 
-	/**
-	 * get the URL to communicate with this device
-	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
-	 */
-	public String getDeviceURL();
+    /**
+     * get the URL to communicate with this device
+     * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+     */
+    public String getDeviceURL();
+    
+    /**
+     * get the URL of the device hotfolder, if null the device does not support a JDF input hot folder
+     * @return the device hotfolder URL. Drop JDFs to this URL, if you want to submit to the device without JMF. 
+     */
+    public String getHotFolderURL();
 
 	/**
 	 * get the DeviceID of this device

@@ -71,6 +71,7 @@
 
 package org.cip4.bambi.core;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -111,6 +112,9 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.QueueHotFolder;
+import org.cip4.jdflib.util.QueueHotFolderListener;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * basis for JDF devices. <br>
@@ -169,6 +173,29 @@ public abstract class AbstractDevice extends HttpServlet implements IDevice, IJM
 			return EnumType.KnownDevices;
 		}
 	}
+
+    protected class HFListner implements QueueHotFolderListener
+    {
+         public void submitted(JDFJMF submissionJMF)
+        {
+            log.info("HFListner:submitted");
+            JDFCommand command=submissionJMF.getCommand(0);
+            JDFQueueSubmissionParams qsp=command.getQueueSubmissionParams(0);
+
+            JDFDoc doc=qsp.getURLDoc();
+            if(doc==null)
+            {
+                log.warn("could not process JDF File");
+            }
+            else
+            {
+                JDFResponse r=_theQueueProcessor.addEntry(command, doc, qsp.getHold());
+                if (r == null)
+                    log.warn("_theQueue.addEntry returned null");
+                new File(doc.getOriginalFileName()).delete();
+            }        
+        }
+    }
 	protected static Log log = LogFactory.getLog(AbstractDevice.class.getName());
 	protected IQueueProcessor _theQueueProcessor=null;
 	protected AbstractDeviceProcessor _theDeviceProcessor=null;
@@ -176,11 +203,12 @@ public abstract class AbstractDevice extends HttpServlet implements IDevice, IJM
 	protected ISignalDispatcher _theSignalDispatcher=null;
 	protected JMFHandler _jmfHandler = null ;
 	protected IDeviceProperties _devProperties=null;
+    protected QueueHotFolder _submitHotFolder=null;
 
 	/**
 	 * creates a new device instance
 	 */
-	public AbstractDevice() {
+	protected AbstractDevice() {
 		super();
 	}
 	
@@ -213,11 +241,26 @@ public abstract class AbstractDevice extends HttpServlet implements IDevice, IJM
 		log.info("device thread started: "+deviceProcessorClass+"_"+deviceID);
 		
 		_devProperties.setDeviceURL( createDeviceURL(deviceID) );
+        
+        final String hfURL=prop.getHotFolderURL();
+        createHotFolder(hfURL);
 		
 		addHandlers();
 	}
 	
-	private void addHandlers() {
+	/**
+     * @param hfURL the URL of the hotfolder to create
+     */
+    protected void createHotFolder(String hfURL)
+    {
+        if(hfURL==null)
+            return;
+        File hfStorage=new File(_devProperties.getAppDir()+File.separator+"HFTmpStorage"+File.separator+_devProperties.getDeviceID());
+        _submitHotFolder=new QueueHotFolder(UrlUtil.urlToFile(hfURL),hfStorage,null,new HFListner(),null);
+        
+    }
+
+    private void addHandlers() {
 		_jmfHandler.addHandler( this.new KnownDevicesHandler() );
 	}
 

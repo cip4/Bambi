@@ -1,6 +1,7 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <devices>
   <device001 DeviceID="manual001" DeviceType="Bambi Manual device no. 1" 
   	ProxyURL="http://127.0.0.1:8080/BambiProxy/devices" 
+  	HotFolderURL="file:///C:/BambiHF" 
   	DeviceURL="http://127.0.0.1:8080/ManualWorker/devices/manual001" />
 </devices>
