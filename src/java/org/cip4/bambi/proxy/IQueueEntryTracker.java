@@ -134,14 +134,15 @@ public interface IQueueEntryTracker {
 	/**
 	 * get the URL of the device where the given QueueEntry is being processed 
 	 * @param qeid the incoming QueueEntry ID
-	 * @return the URL of the device where the given QueueEntry is being processed
+	 * @return the URL of the device where the given QueueEntry is being processed, 
+	 *         null if the QueueEntry has not been found
 	 */
 	public String getDeviceURL(String qeid);
 
 	/**
 	 * get the String representation of a tracked entry
 	 * @param qeid the ID of the incoming QueueEntry
-	 * @return
+	 * @return the QueueEntry, null if no matching QueueEntry has been found
 	 */
 	public String getQueueEntryString(String qeid);
 

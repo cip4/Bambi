@@ -274,6 +274,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 		super(deviceID,theParent,appDir);
 		_configDir=_appDir+"config/";
 		_tracker=new QueueEntryTracker(_configDir);
+		_theQueue.setMaxRunningEntries(99);
 	}
 
 
@@ -300,6 +301,11 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	 */
 	protected boolean submitQueueEntry(JDFQueueEntry qe, String targetURL)
 	{
+		if ( BambiNSExtension.getDeviceID(qe)!=null ) {
+			log.error( "QueueEntry '"+qe.getQueueEntryID()+"' has already been forwarded" );
+			return false;
+		}
+		
 		// get DeviceID from targetURL
 		if (targetURL.endsWith("/")) {
 			targetURL = targetURL.substring(0, targetURL.length()-2);
@@ -346,11 +352,8 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	@Override
 	protected void handleAbortQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
-		// check if the QueueEntry has already been forwarded
-		if ( _tracker.hasIncomingQE(qeid) ) {
-			JDFJMF jmf = JMFFactory.buildAbortQueueEntry(qeid);
-			JMFFactory.send2URL(jmf, _tracker.getDeviceURL(qeid));
-		} else {
+		int retCode=changeQEStatus(qeid, EnumQueueEntryStatus.Aborted);
+		if (retCode==0) {
 			qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
 		}
 		
@@ -358,41 +361,75 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 
 	@Override
 	protected void handleQueueStatus(JDFQueue q) {
-		int siz=_theQueue.getQueueSize();
-		for (int i=0;i<siz;i++) {
-			JDFQueueEntry newQE=q.appendQueueEntry();
-			newQE.copyElement(_theQueue.getQueueEntry(i).getFirstChildElement(), null);
-			BambiNSExtension.removeBambiExtensions(newQE);
-		}
-		//dirty hack/workaround: remove the last QueueEntry, it will be empty
-		// TODO fix (newQE.mergeElement() instead of .copyElement() ?)
-		q.removeChild("QueueEntry", "", siz);
+		// nothing to do
 	}
 
 	@Override
 	protected void handleResumeQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
-		// check if the QueueEntry has already been forwarded
-		if ( _tracker.hasIncomingQE(qeid) ) {
-			JDFJMF jmf = JMFFactory.buildResumeQueueEntry(qeid);
-			JMFFactory.send2URL(jmf, _tracker.getDeviceURL(qeid));
-		} else {
+		int retCode=changeQEStatus(qeid, EnumQueueEntryStatus.Running);
+		if (retCode==0) {
 			qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
 		}
-		
 	}
 
 	@Override
 	protected void handleSuspendQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
+		int retCode=changeQEStatus(qeid, EnumQueueEntryStatus.Suspended);
+		if (retCode==0)
+			qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
+	}
+	
+	/**
+	 * change the QueueEntryStatus of a QueueEntry
+	 * @param  qeid   the QueueEntryID of the QueueEntry to change status
+	 * @param  status the desired new status of the QueueEntry
+	 * @return the return code of the JMF signalling the status (0=success)
+	 */
+	private int changeQEStatus(String qeid, EnumQueueEntryStatus status) {
 		// check if the QueueEntry has already been forwarded
 		if ( _tracker.hasIncomingQE(qeid) ) {
-			JDFJMF jmf = JMFFactory.buildSuspendQueueEntry(qeid);
-			JMFFactory.send2URL(jmf, _tracker.getDeviceURL(qeid));
-		} else {
-			qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
-		}
-		
+			String outQeid=_tracker.getOutgoingQEID(qeid);
+			if (outQeid==null) {
+				log.error( "found no matching outgoing QueueEntry for "
+						+"incoming QueueEntry with QueueEntryID="+qeid );
+				return 105;
+			}
+			
+			JDFJMF jmf=null;
+			String cmdName=status.getName()+"QueueEntry";
+			if ( status==EnumQueueEntryStatus.Suspended) {
+				jmf = JMFFactory.buildSuspendQueueEntry( outQeid );
+			} else if ( status==EnumQueueEntryStatus.Running) {
+				jmf = JMFFactory.buildResumeQueueEntry( outQeid );
+			} else if ( status==EnumQueueEntryStatus.Aborted) {
+				jmf = JMFFactory.buildAbortQueueEntry( outQeid );
+			} else {
+				log.error( cmdName+" is not supported" );
+				return 5;
+			}
+			
+			String devUrl=_tracker.getDeviceURL(qeid);
+			if ( devUrl==null) {
+				log.error( "found no matching DeviceURL for QueueEntryID="+qeid );
+				return 105;
+			}
+			
+			JDFResponse resp=JMFFactory.send2URL(jmf,devUrl);
+			if (resp==null) {
+				log.error( "failed to forward "+cmdName+" to "+devUrl
+						+", response is null" );
+				return 120;
+			}
+			int retCode=resp.getReturnCode();
+			if (retCode!=0) {
+				log.error( "failed to forward "+cmdName+" to "+devUrl
+						+", ReturnCode="+retCode );
+				return retCode;
+			}
+		} 
+		return 0;
 	}
 	
 }

@@ -134,6 +134,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		q.setQueueStatus( _theQueue.getQueueStatus() );
 		removeBambiNSExtensions(q);
 		log.info("aborted QueueEntry with ID="+qeid);
+		// FIXME notify proxy
 	}
 	
 	@Override
@@ -158,6 +159,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		q.copyElement(qe, null);
 		removeBambiNSExtensions(q);
 		log.info("suspended QueueEntry with ID="+qeid);
+		// FIXME notify proxy
 	}
 	
 	@Override
@@ -170,6 +172,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		q.setQueueStatus( _theQueue.getQueueStatus() );
 		removeBambiNSExtensions(q);
 		log.info("resumed QueueEntry with ID="+qeid);
+		// FIXME notify proxy
 	}
 	
 	/**
