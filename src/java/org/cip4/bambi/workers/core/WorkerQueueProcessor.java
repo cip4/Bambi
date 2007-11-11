@@ -138,11 +138,6 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 	}
 	
 	@Override
-	protected void handleQueueStatus(JDFQueue q) {
-		// nothing to do
-	}
-	
-	@Override
 	protected void handleSuspendQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
 		EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Suspended);

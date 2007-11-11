@@ -78,7 +78,7 @@ import org.cip4.bambi.proxy.QueueEntryTracker;
 
 
 
-public class QueueTrackerTest extends BambiTestCase {
+public class QueueEntryTrackerTest extends BambiTestCase {
 	
 	public void testAddEntries() 
 	{

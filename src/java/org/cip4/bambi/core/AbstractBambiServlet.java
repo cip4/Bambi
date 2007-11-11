@@ -78,6 +78,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
+import java.util.HashMap;
 import java.util.Properties;
 
 import javax.mail.BodyPart;
@@ -104,7 +105,9 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.MimeUtil;
 
 /**
- * mother of all Bambi servlets
+ * Entrance point for 
+ * @see AbstractWorkerServlet
+ * @see ProxyServlet
  * @author boegerni
  *
  */
@@ -155,6 +158,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	protected String _deviceType=null;
 	protected String _deviceURL=null;
 	protected JMFHandler _jmfHandler=null;
+	protected HashMap<String,IDevice> _devices = null;
 	private static Log log = LogFactory.getLog(AbstractBambiServlet.class.getName());
 	
 	/** Initializes the servlet.
@@ -180,7 +184,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	protected abstract boolean handleKnownDevices(JDFMessage m, JDFResponse resp);
 
 	/**
-	 * display an error on  error.jsp
+	 * display an error on error.jsp
 	 * @param errorMsg short message describing the error
 	 * @param errorDetails detailed error info
 	 * @param request required to forward the page
@@ -268,9 +272,6 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 				processMultipleDocuments(request,response,bp);
 			} else {
 				String s=bp[0].getContentType();
-				if(MimeUtil.VND_JDF.equalsIgnoreCase(s)) {
-					processJDFRequest(request, response, bp[0].getInputStream());            
-				}
 				if(MimeUtil.VND_JMF.equalsIgnoreCase(s)) {
 					processJMFRequest(request, response, bp[0].getInputStream());            
 				}
@@ -292,8 +293,6 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		String contentType=request.getContentType();
 		if(MimeUtil.VND_JMF.equals(contentType)) {
 			processJMFRequest(request,response,null);
-		} else if(MimeUtil.VND_JDF.equals(contentType)) {
-			processJDFRequest(request,response,null);
 		} else {
 			boolean isMultipart = ServletFileUpload.isMultipartContent(request);
 			if (isMultipart) {
@@ -328,16 +327,6 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		JDFDoc jmfDoc=p.parseStream(inStream);
 		processJMFDoc(request, response, jmfDoc);
 	}
-	
-	/**
-	 * http hotfolder processor
-	 * 
-	 * @param request
-	 * @param response
-	 * @throws IOException 
-	 */
-	protected abstract void processJDFRequest(HttpServletRequest request, HttpServletResponse response, 
-			InputStream inStream) throws IOException;
 	
 	protected boolean loadProperties()
 	{

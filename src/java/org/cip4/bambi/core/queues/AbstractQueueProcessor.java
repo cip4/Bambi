@@ -141,8 +141,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
                     JDFDoc doc=qsp.getURLDoc();
                     if (doc==null) {
                     	String errorMsg="failed to get JDFDoc from '"+qsp.getURL()+"' on SubmitQueueEntry";
-                    	log.error( errorMsg );
-                    	log.error( "Thread: "+ Thread.currentThread().getName() );
+                    	log.error( errorMsg+"\r\nin thread: "+ Thread.currentThread().getName() );
                     	resp.setErrorText( errorMsg );
                         resp.setReturnCode(9);
                     	return true;
@@ -157,7 +156,6 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
                     }
                     resp.mergeElement(r2, false);
                 	return true;
-                    
                 }
                 log.error("QueueSubmissionParams are missing or invalid");
                 resp.setErrorText("QueueSubmissionParams are missing or invalid");
@@ -207,7 +205,6 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 //	        			log.info("qf is null");
 //	        		else 
 //	        			log.info(qf.toString());
-	        		handleQueueStatus(q);
 	        		removeBambiNSExtensions(q);
 	        	} else {
 	        		log.error("queue is null");
@@ -960,8 +957,6 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     
     protected abstract void handleAbortQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe);
-    
-    protected abstract void handleQueueStatus(JDFQueue q);
     
     protected abstract void handleSuspendQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe);

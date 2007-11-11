@@ -85,7 +85,6 @@ import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFRequestQueueEntryParams;
@@ -135,7 +134,8 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        	if (queueEntryID!=null && queueEntryID.length()>0) {
 	        		// submit a specific QueueEntry
 	        		JDFQueueEntry qe = _theQueue.getQueueEntry(queueEntryID);
-	        		if (qe!=null && qe.getQueueEntryStatus()==EnumQueueEntryStatus.Waiting) {
+	        		if (qe!=null && qe.getQueueEntryStatus()==EnumQueueEntryStatus.Waiting
+	        				&& BambiNSExtension.getDeviceID(qe)==null) {
 	        			// mark QueueEntry as "Running" before submitting, so it won't be
 	        			// submitted twice. If SubmitQE fails, mark it as waiting so other workers
 	        			// can grab it.
@@ -272,8 +272,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	
 	public ProxyQueueProcessor(String deviceID, AbstractDevice theParent, String appDir) {
 		super(deviceID,theParent,appDir);
-		_configDir=_appDir+"config/";
-		_tracker=new QueueEntryTracker(_configDir);
+		_tracker=new QueueEntryTracker(_configDir, deviceID);
 		_theQueue.setMaxRunningEntries(99);
 	}
 
@@ -357,11 +356,6 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 			qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
 		}
 		
-	}
-
-	@Override
-	protected void handleQueueStatus(JDFQueue q) {
-		// nothing to do
 	}
 
 	@Override

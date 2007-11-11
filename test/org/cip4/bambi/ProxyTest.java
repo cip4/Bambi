@@ -71,63 +71,67 @@
 
 package org.cip4.bambi;
 
-import java.io.File;
+import java.net.HttpURLConnection;
 
-import org.cip4.bambi.proxy.IQueueEntryTracker;
-import org.cip4.bambi.proxy.QueueEntryTracker;
+import javax.mail.Multipart;
 
+import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
+import org.cip4.jdflib.jmf.JDFCommand;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
+import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.util.MimeUtil;
 
-
-public class QueueTrackerTest extends BambiTestCase {
+public class ProxyTest extends BambiTestCase {
 	
-	public void testAddEntries() 
-	{
-		IQueueEntryTracker qt=new QueueEntryTracker(sm_dirTestTemp, null);
-		qt.addEntry("in_1", "out_1", "dev_1", "devUrl_1");
-		assertEquals( 1, qt.countTracked() );
-		
-		qt.addEntry("in_1", "out_1", "dev_1", "devUrl_1");
-		assertEquals( 1, qt.countTracked() );
+	@Override
+	public void setUp() throws Exception {
+		super.setUp();
+		abortRemoveAll(proxyUrl);
 	}
 	
-	public void testRemoveEntries() 
-	{
-		IQueueEntryTracker qt=new QueueEntryTracker(sm_dirTestTemp, null);
-		qt.addEntry("in_1", "out_1", "dev_1", "devUrl_1");		
-		qt.addEntry("in_2", "out_2", "dev_2", "devUrl_2");
-		assertEquals( 2, qt.countTracked() );
-		
-		qt.removeEntry("in_3");
-		assertEquals( 2, qt.countTracked() );
-		
-		qt.removeEntry("in_1");
-		assertEquals( 1, qt.countTracked() );
+	public void testSubmitQueueEntry() {
+		fail( "implement" );
 	}
 	
-	public void testPersistResume() {
-		File configFile=new File( sm_dirTestTemp+"tracker.bin" );
-		if (configFile.exists() ) {
-			configFile.delete();
-		}
-				
-		{
-			IQueueEntryTracker qt=new QueueEntryTracker(sm_dirTestTemp, null);
-			qt.addEntry("in_1", "out_1", "dev_1", "devUrl_1");		
-			qt.addEntry("in_2", "out_2", "dev_2", "devUrl_2");
-		}
+	public void testSubmitQueueEntry_MIME() {
+		// get number of QueueEntries before submitting
+		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
+		JDFResponse resp = JMFFactory.send2URL(jmfStat, proxyUrl);
+		assertNotNull( resp );
+		assertEquals( 0,resp.getReturnCode() );
+		JDFQueue q = resp.getQueue(0);
+		assertNotNull( q );
 		
-		IQueueEntryTracker qt=new QueueEntryTracker(sm_dirTestTemp, null);
-		assertEquals( 2, qt.countTracked() );
-		assertEquals( "out_1",qt.getOutgoingQEID("in_1") );
-		assertEquals( "out_2",qt.getOutgoingQEID("in_2") );
-		assertEquals( "in_1",qt.getIncomingQEID("out_1") );
-		assertEquals( "in_2",qt.getIncomingQEID("out_2") );
-		assertEquals( "devUrl_1",qt.getDeviceURL("in_1") );
-		assertEquals( "devUrl_2",qt.getDeviceURL("in_2") );
-		assertEquals( "dev_1",qt.getDeviceID("in_1") );
-		assertEquals( "dev_2",qt.getDeviceID("in_2") );
-		
-		configFile.delete();
-	}
+		// build SubmitQueueEntry
+		JDFDoc docJMF=new JDFDoc("JMF");
+        JDFJMF jmf=docJMF.getJMFRoot();
+        JDFCommand com = (JDFCommand)jmf.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
+        JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
+        qsp.setURL( "cid:"+sm_dirTestData+"Elk_ConventionalPrinting.jdf" );
+	
+		JDFParser p = new JDFParser();
+        JDFDoc docJDF = p.parseFile( sm_dirTestData+"Elk_ConventionalPrinting.jdf" );
+        Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
 
+        try {
+        	HttpURLConnection response = MimeUtil.writeToURL( mp,proxyUrl );
+        	assertEquals( 200,response.getResponseCode() );
+        } catch (Exception e) {
+        	fail( e.getMessage() ); // fail on exception
+        }
+        
+        // check that the QE is on the proxy
+        // FIXME continue
+        
+        abortRemoveAll(simWorkerUrl);
+	}
+	
+	public void testAbortQueueEntry() {
+		fail( "implement" );
+	}
 }

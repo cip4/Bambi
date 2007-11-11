@@ -71,9 +71,12 @@
 
 package org.cip4.bambi.proxy;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -85,50 +88,30 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractBambiServlet;
 import org.cip4.bambi.core.IDevice;
-import org.cip4.bambi.core.ISignalDispatcher;
-import org.cip4.bambi.core.IStatusListener;
-import org.cip4.bambi.core.SignalDispatcher;
-import org.cip4.bambi.core.StatusListener;
+import org.cip4.bambi.core.IDeviceProperties;
+import org.cip4.bambi.core.IMultiDeviceProperties;
+import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
-import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.core.queues.QueueFacade;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
-import org.cip4.jdflib.core.JDFElement.EnumVersion;
-import org.cip4.jdflib.jmf.JDFCommand;
-import org.cip4.jdflib.jmf.JDFDeviceInfo;
-import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
-
+import org.cip4.jdflib.util.StringUtil;
 
 /**
- * This is Bambi main entrance point and "root device". <br>
- * It does not process QueueEntries, it just collects them. Processing is done by
- * the worker devices defined in <code>/WebContent/config/devices.xml</code>.
- * @author rainer
- *
- *
- * @web:servlet-init-param	name="" 
- *									value=""
- *									description=""
- *
- * @web:servlet-mapping url-pattern="/BambiRootDevice"
+ * This servlet is the main entrance point for Bambi proxies. <br>
+ * Its purpose is to keep track of and forward messages to ProxyDevices.
+ * 
+ * @author rainer, niels
  */
 public class ProxyServlet extends AbstractBambiServlet implements IDevice 
 {
 	private static final long serialVersionUID = -8902151736245089036L;
 	private static Log log = LogFactory.getLog(ProxyServlet.class.getName());
-	private ISignalDispatcher _theSignalDispatcher=null;
-	private IQueueProcessor _theQueueProcessor=null;
-	private IStatusListener _theStatusListener=null;
-	
+	private HashMap<String, ProxyDevice> _devices=null;
 	
 	/** Initializes the servlet.
 	 */
@@ -138,22 +121,21 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 		super.init(config);
 		ServletContext context = config.getServletContext();
 		log.info( "Initializing servlet for "+context.getServletContextName() );
-		
-		_theSignalDispatcher=new SignalDispatcher(_jmfHandler, _deviceID);
-		_theSignalDispatcher.addHandlers(_jmfHandler);
-
-        _theStatusListener=new StatusListener(_theSignalDispatcher,_deviceID);
-        _theStatusListener.addHandlers(_jmfHandler);
-		
-        _theQueueProcessor = new ProxyQueueProcessor(_deviceID, _appDir);
-        _theQueueProcessor.addHandlers(_jmfHandler);
+        _devices=new HashMap<String, ProxyDevice>();
+        createDevices();
 	}
 
 	/** Destroys the servlet.
 	 */
 	@Override
 	public void destroy() {
-		_theSignalDispatcher.shutdown();
+		Set<String> keys=_devices.keySet();
+		Iterator<String> it=keys.iterator();
+		while (it.hasNext()) {
+			String devID=it.next().toString();
+			ProxyDevice dev=_devices.get(devID);
+			dev.shutdown();
+		}
 	}
 
 
@@ -168,30 +150,23 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 		String command = request.getParameter("cmd");
 		
 		if ( command==null||command.length()==0 )  {
-			QueueFacade qf = new QueueFacade( _theQueueProcessor.getQueue() );
-			request.setAttribute("qf", qf);
 			try {
+				request.setAttribute("devices", _devices);
 				request.getRequestDispatcher("/overview.jsp").forward(request, response);
 			} catch (Exception e) {
 				log.error(e);
 			} 
-// TODO allow proxy to send AbortQE to workers via web interface?		
-//		} else if ( command.endsWith("QueueEntry") ) 
-//		{
-//			IDevice dev=getDeviceFromRequest(request);
-//			if (dev!=null)
-//			{
-//				request.setAttribute("device", dev);
-//				try {
-//					request.getRequestDispatcher("QueueEntry").forward(request, response);
-//				} catch (Exception e) {
-//					log.error(e);
-//				}
-//			} else {
-//				log.error("can't get device, device ID is missing or unknown");
-//			}
-		} else if ( command.equals("showQueue") )  {	
-			QueueFacade bqu = new QueueFacade( _theQueueProcessor.getQueue() );
+		} else if ( command.equals("showQueue") )  {
+			String devID=request.getParameter("devID");
+			ProxyDevice dev=_devices.get(devID);
+			if (dev==null) {
+				String errorMsg="illegal DeviceID '"+devID+"'";
+				log.error( errorMsg );
+				showErrorPage(errorMsg, "The DeviceID '"+devID+"' is unknown", 
+						request, response);
+				return;
+			}
+			QueueFacade bqu = dev.getQueueFacade();
 			String quStr = bqu.toHTML();
 			writeRawResponse(request, response, quStr);
 		} else if ( command.equals("showJDFDoc") ) {
@@ -231,7 +206,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 		} else {
 			// switch: sends the jmfDoc to correct device
 			JDFDoc responseJMF = null;
-			IJMFHandler handler = _jmfHandler;
+			IJMFHandler handler = getTargetHandler(request);
 			if (handler != null) {
 				responseJMF=handler.processJMF(jmfDoc);
 			} 
@@ -273,40 +248,88 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 //		log.info("Handling "+m.getType());
 		EnumType typ=m.getEnumType();
 		if(EnumType.KnownDevices.equals(typ)) {
-			// I am the known device
 			JDFDeviceList dl = resp.appendDeviceList();
-			JDFDeviceInfo info = dl.appendDeviceInfo();
-			JDFDevice dev = info.appendDevice();
-			dev.setDeviceID( getDeviceID() );
-			dev.setDeviceType( getDeviceType() );
-			dev.setJDFVersions( EnumVersion.Version_1_3.getName() );
+			Set<String> keys = _devices.keySet();
+			Object[] strKeys = keys.toArray();
+			for (int i=0; i<keys.size();i++) {
+				String key = (String)strKeys[i];
+				ProxyDevice dev = _devices.get(key);
+				if (dev == null)
+					log.error("device with key '"+key+"'not found");
+				else
+					dev.appendDeviceInfo(dl);
+			}
 			return true;
 		}
 
 		return false;
 	}
 	
-	@Override
-	protected void processJDFRequest(HttpServletRequest request, HttpServletResponse response, InputStream inStream) throws IOException
+	private void createDevices() {
+		File configFile=new File(_configDir+"devices.xml");
+		createDevicesFromFile(configFile);
+	}
+	
+	/**
+     * create devices based on the list of devices given in a file
+     * @param configFile the file containing the list of devices 
+     * @return true if successfull, otherwise false
+     */
+	public boolean createDevicesFromFile(File configFile)
 	{
-		log.info("processJDFRequest");
-		JDFParser p=new JDFParser();
-		if(inStream==null) {
-			inStream=request.getInputStream();
+		IMultiDeviceProperties dv = new MultiDeviceProperties(_appDir, configFile);
+		if (dv.count()==0) {
+			log.error("failed to load device properties from "+configFile);
+			return false;
 		}
-		JDFDoc doc=p.parseStream(inStream);
-		if(doc==null) {
-			processError(request, response, null, 3, "Error Parsing JDF");
-		} else {
-			JDFJMF jmf=JDFJMF.createJMF(EnumFamily.Command, EnumType.SubmitQueueEntry);
-			final JDFCommand command = jmf.getCommand(0);
-			// create a simple dummy sqe and submit to myself
-			JDFQueueSubmissionParams qsp=command.getCreateQueueSubmissionParams(0);
-			qsp.setPriority(50);
-			JDFResponse r=_theQueueProcessor.addEntry(command, doc, false);
-			if (r == null) {
-				log.warn("_theQueue.addEntry returned null");
-			}
+		
+		Set<String> keys=dv.getDeviceIDs();
+		Iterator<String> iter=keys.iterator();
+		while (iter.hasNext()) {
+			String devID=iter.next().toString();
+			IDeviceProperties prop=dv.getDevice(devID);
+//			prop.setDeviceURL(_deviceURL+"/"+devID);
+			createDevice(prop);
 		}
+
+		return true;
+	}
+	
+	/**
+	 * create a new device and add it to the map of devices.
+	 * @param deviceID
+	 * @param deviceType
+	 * @return the Device, if device has been created. 
+	 * null, if not (maybe device with deviceID is already present)
+	 */
+	public IDevice createDevice(IDeviceProperties prop)
+	{
+		if (_devices == null) {
+			log.info("map of devices is null, re-initialising map...");
+			_devices = new HashMap<String, ProxyDevice>();
+		}
+		
+		String devID=prop.getDeviceID();
+		if (_devices.get(prop.getDeviceID()) != null) {	
+			log.warn("device "+devID+" is already existing");
+			return null;
+		}
+		ProxyDevice dev = new ProxyDevice(prop);
+		_devices.put(devID,dev);
+		log.info("created device "+devID);
+		return dev;
+	}
+	
+	private IJMFHandler getTargetHandler(HttpServletRequest request) {
+		String deviceID = request.getPathInfo();
+		if (deviceID == null)
+			return _jmfHandler; // root folder
+		deviceID = StringUtil.token(deviceID, 0, "/");
+		if (deviceID == null)
+			return _jmfHandler; // device not found
+		ProxyDevice device = _devices.get(deviceID);
+		if (device == null)
+			return _jmfHandler; // device not found
+		return( device.getHandler() );
 	}
 }

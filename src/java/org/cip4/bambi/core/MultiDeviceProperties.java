@@ -110,7 +110,6 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 		 * @param theDeviceURL  the URL of the device
 		 * @param theProxyURL   the URL of its proxy/controller
 		 * @param theDeviceType the device type (e.g. "General Foo Device")
-		 * @param theDeviceProcessorClass the class of the device (e.g. "org.cip4.bambi.workers.sim.SimWorker")
          * @param theAppDir     the location of the web app (e.g. "C:/tomcat/webapps/bambi")
          * @param theHotFolder     the location of the hotfolder 
 		 */

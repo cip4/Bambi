@@ -74,7 +74,6 @@ package org.cip4.bambi;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.Properties;
 
 import junit.framework.TestCase;
@@ -88,63 +87,73 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.UrlUtil;
 
 public class BambiTestCase extends TestCase {
-	protected final static String sm_dirTestData = "test" + File.separator + "data" + File.separator;
-	protected final static String sm_dirTestTemp = "test" + File.separator + "temp" + File.separator;
-    protected final static String sm_UrlTestData = "File:test/data/";
     protected final static String cwd =System.getProperty("user.dir");
+	protected final static String sm_dirTestData = cwd+File.separator+"test" + File.separator + "data" + File.separator;
+	protected final static String sm_dirTestTemp = cwd+File.separator+"test" + File.separator + "temp" + File.separator;
+    protected final static String sm_UrlTestData = "File:test/data/";
     protected final static String simConfigDir=cwd+File.separator+"WebContent"
     	+File.separator+"workers"+File.separator+"sim"+File.separator+"config"
     	+File.separator;
     protected final static String jdfDir=cwd+File.separator+"test"+File.separator+"data"+File.separator;
-    protected static String SimWorkerUrl="";
-
-    @Override
-	protected void setUp() throws Exception {
-		super.setUp();
-		
-		Properties properties = new Properties();
+    protected static String simWorkerUrl=null;
+    protected String proxyUrl=null;
+    
+    public BambiTestCase() {
+    	// load SimWorker properties
+    	Properties properties = new Properties();
 		FileInputStream in=null;
 		try {
 			in = new FileInputStream(simConfigDir+"Device.properties");
 			properties.load(in);
-			SimWorkerUrl=properties.getProperty("DeviceURL")+"/"+"sim002";
+			simWorkerUrl=properties.getProperty("DeviceURL")+"/"+"sim002";
 			in.close();
 		} catch (IOException e) {
-			fail( "failed to load Bambi properties on test init" );
+			fail( "failed to load SimWorker properties on test init" );
 		}
-		JDFJMF.setTheSenderID( "BambiTest" );
+		assertNotNull( simWorkerUrl );
+		assertFalse( simWorkerUrl.equals("") );
 		
-		abortRemoveAll();
-	}
+		// load Proxy properties
+		String proxyConfigDir=cwd+File.separator+"WebContent"
+		+File.separator+"proxy"+File.separator+"config"+File.separator;
+		properties = new Properties();
+		in=null;
+		try {
+			in = new FileInputStream(proxyConfigDir+"device.properties");
+			properties.load(in);
+			proxyUrl=properties.getProperty("DeviceURL");
+			in.close();
+		} catch (IOException e) {
+			fail( "failed to load proxy properties on test init" );
+		}		
+		assertNotNull( proxyUrl );
+		assertFalse( proxyUrl.equals("") );
+		
+		JDFJMF.setTheSenderID( "BambiTest" );
+    }
 
-    @Override
-	protected void tearDown() throws Exception {
-		super.tearDown();
-	}
-       /**
+    /**
      * @return
      */
 	protected String getTestURL()
 	{
 	    String url=null;
-	    try
-	    {
-	        url=UrlUtil.fileToUrl(new File(cwd), false);
-	    }
-	    catch (MalformedURLException x)
-	    {
-	        return null;
-	    }
+	    url=UrlUtil.fileToUrl(new File(cwd), false);
 	    return url+"/test/data/";
 	}
 	
 	/**
 	 * cleaning up, brute-force-sytle: send a AbortQueueEntry and a RemoveQueueEntry 
 	 * message to every QueueEntry in the Queue
+	 * @param url TODO
 	 */
-	protected void abortRemoveAll() {		
+	protected void abortRemoveAll(String url) {		
 		JDFJMF jmf=JMFFactory.buildQueueStatus();
-		JDFResponse resp=JMFFactory.send2URL(jmf,SimWorkerUrl);
+		JDFResponse resp=JMFFactory.send2URL(jmf,url);
+		if (resp==null) {
+			System.err.println("failed to send QueueStatus");
+			return;
+		}
 		JDFQueue theQueue=resp.getQueue(0);
 		if (theQueue==null) {
 			return;
@@ -157,7 +166,7 @@ public class BambiTestCase extends TestCase {
 		for (int i=0;i<siz;i++) {
 			String qeid=((JDFQueueEntry)qVec.get(i)).getQueueEntryID();
 			jmf=JMFFactory.buildAbortQueueEntry(qeid);
-			JMFFactory.send2URL(jmf,SimWorkerUrl);
+			JMFFactory.send2URL(jmf,url);
 		}
 		
 		// wait to allow the worker to process the AbortQueueEntries,
@@ -170,7 +179,7 @@ public class BambiTestCase extends TestCase {
 		for (int i=0;i<siz;i++) {
 			String qeid=((JDFQueueEntry)qVec.get(i)).getQueueEntryID();
 			jmf=JMFFactory.buildRemoveQueueEntry(qeid);
-			JMFFactory.send2URL(jmf,SimWorkerUrl);
+			JMFFactory.send2URL(jmf,url);
 		}
 	}
 	

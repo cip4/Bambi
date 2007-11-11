@@ -91,7 +91,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 
 	private JDFQueue getQueue() {
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
+		JDFResponse resp = JMFFactory.send2URL(jmf, simWorkerUrl);
 		assertNotNull( resp );
         assertEquals( 0,resp.getReturnCode() );
 
@@ -129,38 +129,37 @@ public class QueueEntryStatusTest extends BambiTestCase {
 	public void setUp() throws Exception 
 	{
 		super.setUp();
+		abortRemoveAll(simWorkerUrl);
 		
-		JDFQueueEntry runningQE = getRunningQueueEntry();
+		JDFQueueEntry runningQE=null;
         
-        // submit a new qe if no running qe has been found
-        if (runningQE == null) {
-        	System.out.println("submitting new QueueEntry");
-        	JDFDoc docJMF=new JDFDoc("JMF");
-            JDFJMF jmfSubmit=docJMF.getJMFRoot();
-            JDFCommand com = (JDFCommand)jmfSubmit.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
-            JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
-            qsp.setURL( "cid:"+sm_dirTestData+"Elk_ConventionalPrinting.jdf" );
-    	
-    		JDFParser p = new JDFParser();
-            JDFDoc docJDF = p.parseFile( sm_dirTestData+"Elk_ConventionalPrinting.jdf" );
-            Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
+		// submit a new, fresh qe
+		System.out.println("submitting new QueueEntry");
+		JDFDoc docJMF=new JDFDoc("JMF");
+		JDFJMF jmfSubmit=docJMF.getJMFRoot();
+		JDFCommand com = (JDFCommand)jmfSubmit.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
+		JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
+		qsp.setURL( "cid:"+sm_dirTestData+"Elk_ConventionalPrinting.jdf" );
 
-            try {
-            	HttpURLConnection response = MimeUtil.writeToURL( mp,SimWorkerUrl );
-            	assertEquals( 200,response.getResponseCode() );
-            	// give the device some time to start processing
-                try {
-        			Thread.sleep(3000);
-        		} catch (InterruptedException e) {
-        			e.printStackTrace();
-        		}
-            } catch (Exception e) {
-            	fail( e.getMessage() ); 
-            }
-            runningQE = getRunningQueueEntry();
-        }
-        
-        assertNotNull( runningQE );
+		JDFParser p = new JDFParser();
+		JDFDoc docJDF = p.parseFile( sm_dirTestData+"Elk_ConventionalPrinting.jdf" );
+		Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
+
+		try {
+			HttpURLConnection response = MimeUtil.writeToURL( mp,simWorkerUrl );
+			assertEquals( 200,response.getResponseCode() );
+			// give the device some time to start processing
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		} catch (Exception e) {
+			fail( e.getMessage() ); 
+		}
+		runningQE = getRunningQueueEntry();
+
+		assertNotNull( runningQE );
 	}
 	
 	public void testSuspendResumeQE()
@@ -170,7 +169,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		String qeID = runningQE.getQueueEntryID();
 		
 		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry( qeID );
-		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
+		JDFResponse resp = JMFFactory.send2URL(jmf, simWorkerUrl);
 		assertEquals( 0,resp.getReturnCode() );
 		// give the device some time to suspend the QE
 		boolean hasSuspended=false;
@@ -188,7 +187,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
         assertTrue( hasSuspended );
 		
 		jmf = JMFFactory.buildResumeQueueEntry( qeID );
-		resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
+		resp = JMFFactory.send2URL(jmf, simWorkerUrl);
 		assertEquals( 0, resp.getReturnCode() );
 		boolean hasSucceeded=false;
 		EnumQueueEntryStatus status=null;
@@ -228,7 +227,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		String qeID = runningQE.getQueueEntryID();
 		
 		JDFJMF jmf = JMFFactory.buildAbortQueueEntry( qeID );
-		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
+		JDFResponse resp = JMFFactory.send2URL(jmf, simWorkerUrl);
 		assertEquals( 0, resp.getReturnCode() );
 		// give the device some time to abort the QE
         try {
@@ -239,7 +238,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		assertEquals(EnumQueueEntryStatus.Aborted.getName(), getQueueEntryStatus(qeID).getName() );
 		
 		jmf = JMFFactory.buildRemoveQueueEntry( qeID );
-		resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
+		resp = JMFFactory.send2URL(jmf, simWorkerUrl);
 		assertEquals( 0, resp.getReturnCode() );
 		// give the device some time to remove the QE
         try {
@@ -258,7 +257,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		String qeID = runningQE.getQueueEntryID();
 		
 		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry( qeID );
-		JDFResponse resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
+		JDFResponse resp = JMFFactory.send2URL(jmf, simWorkerUrl);
 		assertEquals( 0, resp.getReturnCode() );
 		// give the device some time to suspend the QE
         try {
@@ -269,7 +268,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		assertEquals(EnumQueueEntryStatus.Suspended.getName(), getQueueEntryStatus(qeID).getName() );
 		
 		jmf = JMFFactory.buildAbortQueueEntry( qeID );
-		resp = JMFFactory.send2URL(jmf, SimWorkerUrl);
+		resp = JMFFactory.send2URL(jmf, simWorkerUrl);
 		assertEquals( 0, resp.getReturnCode() );
 		// give the device some time to remove the QE
         try {

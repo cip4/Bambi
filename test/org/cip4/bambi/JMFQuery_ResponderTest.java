@@ -78,12 +78,18 @@ import org.cip4.bambi.BambiTestCase;
 
 public class JMFQuery_ResponderTest extends BambiTestCase {
 	
+	@Override
+	public void setUp() throws Exception {
+		super.setUp();
+		abortRemoveAll(simWorkerUrl);
+	}
+	
 	public void testKnownMessages() 
 	{
 		JDFDoc doc=new JDFDoc("JMF");
         JDFJMF jmf=doc.getJMFRoot();
         jmf.appendMessageElement(JDFMessage.EnumFamily.Query, JDFMessage.EnumType.KnownMessages);
-        JDFDoc resp=doc.write2URL( BambiTestCase.SimWorkerUrl );
+        JDFDoc resp=doc.write2URL( BambiTestCase.simWorkerUrl );
         
         assertTrue( !resp.isNull() );
         assertEquals( 0,resp.getJMFRoot().getResponse(0).getReturnCode() );
@@ -94,7 +100,7 @@ public class JMFQuery_ResponderTest extends BambiTestCase {
 		JDFDoc doc=new JDFDoc("JMF");
         JDFJMF jmf=doc.getJMFRoot();
         jmf.appendMessageElement(JDFMessage.EnumFamily.Query, JDFMessage.EnumType.Status);
-        JDFDoc resp=doc.write2URL( BambiTestCase.SimWorkerUrl );
+        JDFDoc resp=doc.write2URL( BambiTestCase.simWorkerUrl );
         
         assertTrue( !resp.isNull() );
         assertEquals( 0,resp.getJMFRoot().getResponse(0).getReturnCode() );
@@ -105,7 +111,7 @@ public class JMFQuery_ResponderTest extends BambiTestCase {
 		JDFDoc doc=new JDFDoc("JMF");
         JDFJMF jmf=doc.getJMFRoot();
         jmf.appendMessageElement(JDFMessage.EnumFamily.Query, JDFMessage.EnumType.KnownDevices);
-        JDFDoc resp=doc.write2URL( BambiTestCase.SimWorkerUrl );
+        JDFDoc resp=doc.write2URL( BambiTestCase.simWorkerUrl );
         
         assertTrue( !resp.isNull() );
         assertEquals( 0,resp.getJMFRoot().getResponse(0).getReturnCode() );

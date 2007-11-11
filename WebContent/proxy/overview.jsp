@@ -6,6 +6,7 @@
 <%@ page import="org.cip4.bambi.core.AbstractDevice" %>
 <%@ page import="org.cip4.bambi.core.queues.QueueFacade" %>
 <%@ page import="org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus" %>
+<%@ page import="org.cip4.bambi.proxy.ProxyDevice" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
@@ -19,20 +20,38 @@
 	<body>
 		<h1>Bambi Proxy - Overview</h1>
 		
-		use <strong>http://<%=request.getLocalAddr() + ":" + request.getServerPort() + request.getContextPath()%>/devices</strong> to connect your MIS/Alces <br>
+		<h2>Known Proxies:</h2>
+		<% 
+			HashMap<String, ProxyDevice> devices = (HashMap<String, ProxyDevice>)request.getAttribute("devices");
+			if (devices==null) {
+				return;
+			}
+			SortedSet<String> keys = new TreeSet<String>();
+			keys.addAll( devices.keySet() );
+			java.util.Iterator<String> it = keys.iterator();
+			while (it.hasNext()) {
+				String key = it.next().toString();
+				ProxyDevice dev =devices.get(key);
+	  	%>
+				<h3><%=dev.getDeviceID()%></h3>
+				<big>Device type: </big><%=dev.getDeviceType()%> <br/>
+				<big>URL: </big><%=dev.getDeviceURL()%> <br/>
+				<big>Queue:</big>
+				<% QueueFacade qf=dev.getQueueFacade(); %>
+				Completed: <%= qf.count(EnumQueueEntryStatus.Completed)%>, Aborted: <%= qf.count(EnumQueueEntryStatus.Aborted)%>, 
+				Total: <%= qf.countAll()%> <br>
+				<iframe src="overview?cmd=showQueue&devID=<%=dev.getDeviceID()%>" width="450" height="200">
+			 		<a href="overview?cmd=showQueue&devID=<%=dev.getDeviceID()%> ">show queue</a>
+				</iframe>
 		
 		<br>
-		
-		<h3>Queue:</h3>
-		<% QueueFacade qf=(QueueFacade)request.getAttribute("qf"); %>
-		Waiting: <%= qf.count(EnumQueueEntryStatus.Waiting)%>, Running: <%= qf.count(EnumQueueEntryStatus.Running)%>, 
-		Completed: <%= qf.count(EnumQueueEntryStatus.Completed)%>, Aborted: <%= qf.count(EnumQueueEntryStatus.Aborted)%>, 
-		Total: <%= qf.countAll()%> <br>
-		<iframe src="overview?cmd=showQueue" width="450" height="200">
-			  <a href="overview?cmd=showQueue">show queue</a>
-		</iframe>
+			
+		<%
+			}
+		%>
 		
 		<br>
+
 		<p>Build @build.number@, @build.timestamp@</p>
 	</body>
 </html>

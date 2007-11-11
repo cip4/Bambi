@@ -105,6 +105,12 @@ import org.cip4.jdflib.util.UrlUtil;
 
 public class DeviceServletTest extends BambiTestCase {
 	
+	@Override
+	public void setUp() throws Exception {
+		super.setUp();
+		abortRemoveAll(simWorkerUrl);
+	}
+	
 	private JDFResponse singleMIMESubmit(String jobID) throws MalformedURLException, IOException, MessagingException
     {
         JDFDoc d1=new JDFDoc("JMF");
@@ -133,7 +139,7 @@ public class DeviceServletTest extends BambiTestCase {
         assertEquals(d2[1].getJDFRoot().getEnumType(),EnumType.ColorSpaceConversion);
         
         // now serialize to file and reread - should still work
-        HttpURLConnection uc=MimeUtil.writeToURL(m, SimWorkerUrl);
+        HttpURLConnection uc=MimeUtil.writeToURL(m, simWorkerUrl);
         MimeUtil.writeToFile(m, sm_dirTestTemp+"testMime.mjm");
         assertEquals(uc.getResponseCode(), 200);
         UrlUtil.UrlPart[] parts=UrlUtil.getURLParts(uc);

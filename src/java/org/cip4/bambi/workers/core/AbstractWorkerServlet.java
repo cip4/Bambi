@@ -73,7 +73,6 @@ package org.cip4.bambi.workers.core;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -93,7 +92,6 @@ import org.cip4.bambi.core.IMultiDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -103,16 +101,17 @@ import org.cip4.jdflib.util.StringUtil;
 
 
 /**
- * This is main entrance point of a Bambi worker device. <br>
+ * This is main entrance point of a Bambi worker servlet. A worker servlet contains 
+ * worker devices (aka workers).<br>
+ * Its workers are defined in <code>/WebContent/config/devices.xml</code>.
  * It does not handle QueueEntries. Processing is done by
- * the devices defined in <code>/WebContent/config/devices.xml</code>.
+ * the workers defined in <code>/WebContent/config/devices.xml</code>.
  * @author niels
  */
 public abstract class AbstractWorkerServlet extends AbstractBambiServlet implements IDevice 
 {
 	protected static final long serialVersionUID = -8902151736245089036L;
 	protected static Log log = LogFactory.getLog(AbstractWorkerServlet.class.getName());
-	protected HashMap<String,IDevice> _devices = null;
 
 	/** Initializes the servlet.
 	 */
@@ -338,33 +337,6 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	 */
 	protected abstract void showDevice(HttpServletRequest request, HttpServletResponse response);
 
-	
-	@Override
-	protected void processJDFRequest(HttpServletRequest request, 
-			HttpServletResponse response, InputStream inStream) throws IOException
-	{
-		log.info("processJDFRequest");
-		JDFParser p=new JDFParser();
-		if(inStream==null)
-			inStream=request.getInputStream();
-		JDFDoc doc=p.parseStream(inStream);
-		if(doc==null)
-		{
-			processError(request, response, null, 3, "Error Parsing JDF");
-		}
-//		else
-//		{
-//			JDFJMF jmf=JDFJMF.createJMF(EnumFamily.Command, EnumType.SubmitQueueEntry);
-//			final JDFCommand command = jmf.getCommand(0);
-//			// create a simple dummy sqe and submit to myself
-//			JDFQueueSubmissionParams qsp=command.getCreateQueueSubmissionParams(0);
-//			qsp.setPriority(50);
-//			JDFResponse r=_theQueueProcessor.addEntry(command, doc, false);
-//			if (r == null)
-//				log.warn("_theQueue.addEntry returned null");
-//		}
-	}
-
 	@Override
 	protected void processJMFDoc(HttpServletRequest request,
 			HttpServletResponse response, JDFDoc jmfDoc) {
@@ -378,7 +350,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 				responseJMF=handler.processJMF(jmfDoc);
 			} 
 			
-			if(responseJMF!=null) {
+			if (responseJMF!=null) {
 				response.setContentType(MimeUtil.VND_JMF);
 				try {
 					responseJMF.write2Stream(response.getOutputStream(), 0, true);

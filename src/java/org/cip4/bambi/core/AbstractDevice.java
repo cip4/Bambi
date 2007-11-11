@@ -74,19 +74,8 @@ package org.cip4.bambi.core;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.Properties;
 
-import javax.mail.BodyPart;
-import javax.mail.MessagingException;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IJMFHandler;
@@ -97,7 +86,6 @@ import org.cip4.bambi.core.queues.QueueFacade;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
@@ -111,7 +99,6 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.resource.JDFDeviceList;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.QueueHotFolder;
 import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.UrlUtil;
@@ -125,7 +112,7 @@ import org.cip4.jdflib.util.UrlUtil;
  * @author boegerni
  * 
  */
-public abstract class AbstractDevice extends HttpServlet implements IDevice, IJMFHandler
+public abstract class AbstractDevice implements IDevice, IJMFHandler
 {
 	/**
 	 * 
@@ -448,282 +435,6 @@ public abstract class AbstractDevice extends HttpServlet implements IDevice, IJM
 		_theDeviceProcessor.shutdown();
 	}
 
-	/**
-	 * @param request
-	 * @param response
-	 */
-	private void processError(HttpServletRequest request, HttpServletResponse response, EnumType messageType, int returnCode, String notification)
-	{
-		log.warn("processError- rc: "+returnCode+" "+notification==null ? "" : notification);
-		JDFJMF error=JDFJMF.createJMF(EnumFamily.Response, messageType);
-		JDFResponse r=error.getResponse(0);
-		r.setReturnCode(returnCode);
-		r.setErrorText(notification);
-		response.setContentType(MimeUtil.VND_JMF);
-		try
-		{
-			error.getOwnerDocument_KElement().write2Stream(response.getOutputStream(), 0, true);
-		}
-		catch (IOException x)
-		{
-			log.error("processError: cannot write response\n"+x.getMessage());
-		}
-	
-	}
-
-	/**
-	 * http hotfolder processor
-	 * 
-	 * @param request
-	 * @param response
-	 * @throws IOException 
-	 */
-	private void processJDFRequest(HttpServletRequest request, HttpServletResponse response, InputStream inStream) throws IOException
-	{
-		log.info("processJDFRequest");
-		JDFParser p=new JDFParser();
-		if(inStream==null)
-			inStream=request.getInputStream();
-		JDFDoc doc=p.parseStream(inStream);
-		if(doc==null)
-		{
-			processError(request, response, null, 3, "Error Parsing JDF");
-		}
-		else
-		{
-			JDFJMF jmf=JDFJMF.createJMF(EnumFamily.Command, EnumType.SubmitQueueEntry);
-			final JDFCommand command = jmf.getCommand(0);
-			// create a simple dummy sqe and submit to myself
-			JDFQueueSubmissionParams qsp=command.getCreateQueueSubmissionParams(0);
-			qsp.setPriority(50);
-			JDFResponse r=_theQueueProcessor.addEntry(command, doc, false);
-			if (r == null)
-				log.warn("_theQueue.addEntry returned null");
-		}
-	}
-
-	/**
-	 * @param request
-	 * @param response
-	 * @param jmfDoc
-	 * @throws IOException
-	 */
-	private void processJMFDoc(HttpServletRequest request,
-			HttpServletResponse response, JDFDoc jmfDoc) {
-		if(jmfDoc==null)
-		{
-			processError(request, response, null, 3, "Error Parsing JMF");
-		}
-		else
-		{
-			// switch: sends the jmfDoc to correct device
-			JDFDoc responseJMF = null;
-			if (_jmfHandler != null) {
-				responseJMF=_jmfHandler.processJMF(jmfDoc);
-			} 
-			
-			if(responseJMF!=null)
-			{
-				response.setContentType(MimeUtil.VND_JMF);
-				try {
-					responseJMF.write2Stream(response.getOutputStream(), 0, true);
-				} catch (IOException e) {
-					log.error("cannot write to stream: ",e);
-				}
-			}
-			else
-			{
-				processError(request, response, null, 3, "Error Parsing JMF");               
-			}
-		}
-	}
-
-	/**
-	 * @param request
-	 * @param response
-	 */
-	private void processJMFRequest(HttpServletRequest request, HttpServletResponse response,InputStream inStream) throws IOException
-	{
-		log.debug("processJMFRequest");
-		JDFParser p=new JDFParser();
-		if(inStream==null)
-			inStream=request.getInputStream();
-		JDFDoc jmfDoc=p.parseStream(inStream);
-		processJMFDoc(request, response, jmfDoc);
-	}
-
-	/**
-	 * Parses a multipart request.
-	 */
-	private void processMultipartRequest(HttpServletRequest request, HttpServletResponse response)
-	throws IOException
-	{
-		InputStream inStream=request.getInputStream();
-		BodyPart bp[]=MimeUtil.extractMultipartMime(inStream);
-		log.info("Body Parts: "+((bp==null) ? 0 : bp.length));
-		if(bp==null || bp.length==0)
-		{
-			processError(request,response,null,9,"No body parts in mime package");
-			return;
-		}
-		try // messaging exceptions
-		{
-			if(bp.length>1)
-			{
-				processMultipleDocuments(request,response,bp);
-			}
-			else
-			{
-				String s=bp[0].getContentType();
-				if(MimeUtil.VND_JDF.equalsIgnoreCase(s))
-				{
-					processJDFRequest(request, response, bp[0].getInputStream());            
-				}
-				if(MimeUtil.VND_JMF.equalsIgnoreCase(s))
-				{
-					processJMFRequest(request, response, bp[0].getInputStream());            
-				}
-			}
-		}
-		catch (MessagingException x)
-		{
-			processError(request, response, null, 9, "Messaging exception\n"+x.getLocalizedMessage());
-		}
-	
-	}
-
-	/**
-	 * process a multipart request - including job submission
-	 * @param request
-	 * @param response
-	 */
-	private void processMultipleDocuments(HttpServletRequest request, HttpServletResponse response,BodyPart[] bp)
-	{
-		log.info("processMultipleDocuments- parts: "+(bp==null ? 0 : bp.length));
-		if(bp==null || bp.length<2)
-		{
-			processError(request, response, EnumType.Notification, 2,"processMultipleDocuments- not enough parts, bailing out");
-			return;
-		}
-		JDFDoc docJDF[]=MimeUtil.getJMFSubmission(bp[0].getParent());
-		if(docJDF==null)
-		{
-			processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
-			return;
-		}
-		processJMFDoc(request, response, docJDF[0]);
-	}
-	
-	/** Handles the HTTP <code>POST</code> method.
-	 * @param request servlet request
-	 * @param response servlet response
-	 */
-	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-	throws IOException
-	{
-		log.debug("Processing post request for: "+request.getPathInfo());
-		String contentType=request.getContentType();
-		if(MimeUtil.VND_JMF.equals(contentType))
-		{
-			processJMFRequest(request,response,null);
-		}
-		else if(MimeUtil.VND_JDF.equals(contentType))
-		{
-			processJDFRequest(request,response,null);
-		}
-		else 
-		{
-			boolean isMultipart = ServletFileUpload.isMultipartContent(request);
-			if (isMultipart)
-			{
-				log.info("Processing multipart request..."+contentType);
-				processMultipartRequest(request, response);
-			}
-			else
-			{
-				log.warn("Unknown ContentType:"+contentType);
-				response.setContentType("text/plain");
-				OutputStream os=response.getOutputStream();
-				InputStream is=request.getInputStream();
-				byte[] b=new byte[1000];
-				while(true)
-				{
-					int l=is.read(b);
-					if(l<=0)
-						break;
-					os.write(b,0,l);
-				}
-			}
-		}
-	}
-	
-	/** Handles the HTTP <code>GET</code> method.
-	 * @param request servlet request
-	 * @param response servlet response
-	 */
-	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-	{
-		log.info("Processing get request...");
-		String command = request.getParameter("cmd");
-
-		if ( command==null || command.length()==0 || command.equals("showDevice") || 
-				command.equals("processNextPhase") || command.equals("finalizeCurrentQE") )
-		{
-			request.setAttribute("device", this);
-			try {
-				request.getRequestDispatcher("DeviceInfo").forward(request, response);
-			} catch (Exception e) {
-				log.error(e);
-			}
-		} else if ( command.endsWith("QueueEntry") ) {
-			request.setAttribute("device", this);
-			try {
-				request.getRequestDispatcher("QueueEntry").forward(request, response);
-			} catch (Exception e) {
-				log.error(e);
-			}
-		} else if ( command.equals("showQueue") ) {	
-			QueueFacade bqu = new QueueFacade( _theQueueProcessor.getQueue() );
-			String quStr = bqu.toHTML();
-			PrintWriter out=null;
-			try {
-				out = response.getWriter();
-				out.println(quStr);
-				out.flush();
-				out.close();
-			} catch (IOException e) {
-				showErrorPage("failed to show queue", e.getMessage(), request, response);
-				log.error("failed to show Queue: "+e.getMessage());
-			}
-		}
-	}
-	
-	/**
-	 * display an error on error.jsp
-	 * @param errorMsg short message describing the error
-	 * @param errorDetails detailed error info
-	 * @param request required to forward the page
-	 * @param response required to forward the page
-	 */
-	protected void showErrorPage(String errorMsg, String errorDetails, HttpServletRequest request, HttpServletResponse response)
-	{
-		request.setAttribute("errorOrigin", this.getClass().getName());
-		request.setAttribute("errorMsg", errorMsg);
-		request.setAttribute("errorDetails", errorDetails);
-
-		try {
-			request.getRequestDispatcher("/error.jsp").forward(request, response);
-		} catch (ServletException e) {
-			System.err.println("failed to show error.jsp");
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.err.println("failed to show error.jsp");
-			e.printStackTrace();
-		}
-	}
-	
 	/**
 	 * get the directory of the web application this device belongs to
 	 * @return the path of the app dir on the filesystem

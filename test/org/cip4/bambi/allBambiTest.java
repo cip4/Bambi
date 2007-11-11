@@ -87,7 +87,8 @@ public class allBambiTest extends BambiTestCase
         suite.addTestSuite(JMFFactoryTest.class);
         suite.addTestSuite(JMFQuery_ResponderTest.class);
         suite.addTestSuite(QueueEntryStatusTest.class);
-        suite.addTestSuite(QueueTrackerTest.class);
+        suite.addTestSuite(QueueEntryTrackerTest.class);
+        suite.addTestSuite(ProxyTest.class);
 
         return suite;
     }
