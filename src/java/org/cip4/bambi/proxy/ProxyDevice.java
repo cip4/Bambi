@@ -79,7 +79,7 @@ import org.cip4.bambi.core.queues.IQueueProcessor;
 public class ProxyDevice extends AbstractDevice {
 	
 	public ProxyDevice(IDeviceProperties properties) {
-		init(properties);
+		super(properties);
 	}
 	
 	@Override
