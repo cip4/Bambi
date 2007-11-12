@@ -114,56 +114,56 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public abstract class AbstractDevice implements IDevice, IJMFHandler
 {
-	/**
-	 * 
-	 * handler for the KnownDevices query
-	 */
-	protected class KnownDevicesHandler implements IMessageHandler
-	{
-	
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-		 */
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
-		{
-			// "I am the known device"
-			if(m==null || resp==null)
-			{
-				return false;
-			}
-			log.debug("Handling "+m.getType());
-			EnumType typ=m.getEnumType();
-			if(EnumType.KnownDevices.equals(typ))
-			{
-				JDFDeviceList dl = resp.appendDeviceList();
-				appendDeviceInfo(dl);
-				return true;
-			}
-	
-			return false;
-		}
-	
-	
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.IMessageHandler#getFamilies()
-		 */
-		public EnumFamily[] getFamilies()
-		{
-			return new EnumFamily[]{EnumFamily.Query};
-		}
-	
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.IMessageHandler#getMessageType()
-		 */
-		public EnumType getMessageType()
-		{
-			return EnumType.KnownDevices;
-		}
-	}
+    /**
+     * 
+     * handler for the KnownDevices query
+     */
+    protected class KnownDevicesHandler implements IMessageHandler
+    {
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+         */
+        public boolean handleMessage(JDFMessage m, JDFResponse resp)
+        {
+            // "I am the known device"
+            if(m==null || resp==null)
+            {
+                return false;
+            }
+            log.debug("Handling "+m.getType());
+            EnumType typ=m.getEnumType();
+            if(EnumType.KnownDevices.equals(typ))
+            {
+                JDFDeviceList dl = resp.appendDeviceList();
+                appendDeviceInfo(dl);
+                return true;
+            }
+
+            return false;
+        }
+
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#getFamilies()
+         */
+        public EnumFamily[] getFamilies()
+        {
+            return new EnumFamily[]{EnumFamily.Query};
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#getMessageType()
+         */
+        public EnumType getMessageType()
+        {
+            return EnumType.KnownDevices;
+        }
+    }
 
     protected class HFListner implements QueueHotFolderListener
     {
-         public void submitted(JDFJMF submissionJMF)
+        public void submitted(JDFJMF submissionJMF)
         {
             log.info("HFListner:submitted");
             JDFCommand command=submissionJMF.getCommand(0);
@@ -179,65 +179,61 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
                 JDFResponse r=_theQueueProcessor.addEntry(command, doc, qsp.getHold());
                 if (r == null)
                     log.warn("_theQueue.addEntry returned null");
-                new File(doc.getOriginalFileName()).delete();
+                final String tmpURL=qsp.getURL();
+                final File tmpFile=UrlUtil.urlToFile(tmpURL);
+                if(tmpFile!=null)
+                    tmpFile.delete();
             }        
         }
     }
-	protected static Log log = LogFactory.getLog(AbstractDevice.class.getName());
-	protected IQueueProcessor _theQueueProcessor=null;
-	protected AbstractDeviceProcessor _theDeviceProcessor=null;
-	protected IStatusListener _theStatusListener=null;
-	protected ISignalDispatcher _theSignalDispatcher=null;
-	protected JMFHandler _jmfHandler = null ;
-	protected IDeviceProperties _devProperties=null;
+    protected static Log log = LogFactory.getLog(AbstractDevice.class.getName());
+    protected IQueueProcessor _theQueueProcessor=null;
+    protected AbstractDeviceProcessor _theDeviceProcessor=null;
+    protected IStatusListener _theStatusListener=null;
+    protected ISignalDispatcher _theSignalDispatcher=null;
+    protected JMFHandler _jmfHandler = null ;
+    protected IDeviceProperties _devProperties=null;
     protected QueueHotFolder _submitHotFolder=null;
 
-	/**
-	 * creates a new device instance
-	 */
-	protected AbstractDevice() {
-		super();
-	}
-	
-	/**
-	 * creates a new device instance
-	 * @param prop the properties for the device
-	 */
-	public AbstractDevice(IDeviceProperties prop) {
-		super();
-		init(prop);
-	}
+    /**
+     * creates a new device instance
+     * @param prop the properties for the device
+     */
+    public AbstractDevice(IDeviceProperties prop) {
+        super();
+        init(prop);
+    }
 
-	protected void init(IDeviceProperties prop) {
-		_devProperties = prop;
-		_jmfHandler = new JMFHandler();
+    protected void init(IDeviceProperties prop) {
+        _devProperties = prop;
+        _jmfHandler = new JMFHandler();
 
         _theSignalDispatcher=new SignalDispatcher(_jmfHandler, _devProperties.getDeviceID());
         _theSignalDispatcher.addHandlers(_jmfHandler);
 
-        _theQueueProcessor = buildQueueProcessor();
+        _theQueueProcessor = buildQueueProcessor( );
         _theQueueProcessor.addHandlers(_jmfHandler);
         _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
         _theStatusListener.addHandlers(_jmfHandler);
-        
+
         String deviceID=_devProperties.getDeviceID();
         _theDeviceProcessor = buildDeviceProcessor();
         if (_theDeviceProcessor!=null) {
-        	_theDeviceProcessor.init(_theQueueProcessor, _theStatusListener, deviceID, prop.getAppDir());
-        	String deviceProcessorClass=_theDeviceProcessor.getClass().getSimpleName();
-        	new Thread(_theDeviceProcessor,deviceProcessorClass+"_"+deviceID).start();
-        	log.info("device thread started: "+deviceProcessorClass+"_"+deviceID);
+            _theDeviceProcessor.init(_theQueueProcessor, _theStatusListener, deviceID, prop.getAppDir());
+            String deviceProcessorClass=_theDeviceProcessor.getClass().getSimpleName();
+            new Thread(_theDeviceProcessor,deviceProcessorClass+"_"+deviceID).start();
+            log.info("device thread started: "+deviceProcessorClass+"_"+deviceID);
         }
-		
-		_devProperties.setDeviceURL( createDeviceURL(deviceID) );
-        
+
+        _devProperties.setDeviceURL( createDeviceURL(deviceID) );
+
         final String hfURL=prop.getHotFolderURL();
         createHotFolder(hfURL);
-		
-		addHandlers();
-	}
-	
-	/**
+
+        addHandlers();
+    }
+
+    /**
 	 * creates the hotfolder on the file system
      * @param hfURL the URL of the hotfolder to create. If hfURL is null, no hotfolder will be created.
      */
@@ -247,101 +243,101 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
             return;
         File hfStorage=new File(_devProperties.getAppDir()+File.separator+"HFTmpStorage"+File.separator+_devProperties.getDeviceID());
         _submitHotFolder=new QueueHotFolder(UrlUtil.urlToFile(hfURL),hfStorage,null,new HFListner(),null);
-        
+
     }
 
     protected void addHandlers() {
-		_jmfHandler.addHandler( this.new KnownDevicesHandler() );
-	}
+        _jmfHandler.addHandler( this.new KnownDevicesHandler() );
+    }
 
-	/**
-	 * get the device type of this device
-	 * @return
-	 */
-	public String getDeviceType()
-	{
-		return _devProperties.getDeviceType();
-	}
+    /**
+     * get the device type of this device
+     * @return
+     */
+    public String getDeviceType()
+    {
+        return _devProperties.getDeviceType();
+    }
 
-	/* (non-Javadoc)
-	 * @see org.cip4.bambi.IDevice#getDeviceID()
-	 */
-	public String getDeviceID() {
-		return _devProperties.getDeviceID();
-	}
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.IDevice#getDeviceID()
+     */
+    public String getDeviceID() {
+        return _devProperties.getDeviceID();
+    }
 
-	public JDFDoc processJMF(JDFDoc doc) {
-		log.info("JMF processed by "+_devProperties.getDeviceID());
-		return _jmfHandler.processJMF(doc);
-	}
+    public JDFDoc processJMF(JDFDoc doc) {
+        log.info("JMF processed by "+_devProperties.getDeviceID());
+        return _jmfHandler.processJMF(doc);
+    }
 
-	/**
-	 * get a String representation of this device
-	 */
-	@Override
-	public String toString() {
-		return ("["+this.getClass().getName()+" Properties="+ _devProperties.toString() +"]");
-	}
-	
-	/**
-	 * append the JDFDeviceInfo of this device to a given JDFDeviceList
-	 * @param dl the JDFDeviceList, where the JDFDeviceInfo will be appended
-	 * @return true, if successful
-	 */
-	public boolean appendDeviceInfo(JDFDeviceList dl) {
-		JDFDeviceInfo info = dl.appendDeviceInfo();
-		JDFDevice dev = info.appendDevice();
-		dev.setDeviceID(getDeviceID());
-		dev.setDeviceType( getDeviceType() );
-		dev.setJDFVersions( EnumVersion.Version_1_3.getName() );
-		info.setDeviceStatus( getDeviceStatus() );
-		return true;
-	}
+    /**
+     * get a String representation of this device
+     */
+    @Override
+    public String toString() {
+        return ("["+this.getClass().getName()+" Properties="+ _devProperties.toString() +"]");
+    }
 
-	/**
-	 * add a MessageHandler to this devices JMFHandler
-	 * @param handler the MessageHandler to add
-	 */
-	public void addHandler(IMessageHandler handler) {
-		_jmfHandler.addHandler(handler);
-	}
+    /**
+     * append the JDFDeviceInfo of this device to a given JDFDeviceList
+     * @param dl the JDFDeviceList, where the JDFDeviceInfo will be appended
+     * @return true, if successful
+     */
+    public boolean appendDeviceInfo(JDFDeviceList dl) {
+        JDFDeviceInfo info = dl.appendDeviceInfo();
+        JDFDevice dev = info.appendDevice();
+        dev.setDeviceID(getDeviceID());
+        dev.setDeviceType( getDeviceType() );
+        dev.setJDFVersions( EnumVersion.Version_1_3.getName() );
+        info.setDeviceStatus( getDeviceStatus() );
+        return true;
+    }
 
-	/**
-	 * get the JMFHandler of this device
-	 * @return
-	 */
-	public IJMFHandler getHandler() {
-		return _jmfHandler;
-	}
-	
-	/**
-	 * get a facade of this devices Queue
-	 * @return
-	 */
-	public QueueFacade getQueueFacade()
-	{
-		return (new QueueFacade(_theQueueProcessor.getQueue()) );
-	}
-	
-	/**
-	 * get the JDFQueue
-	 * @return JDFQueue
-	 */
-	public JDFQueue getQueue()
-	{
-		return _theQueueProcessor.getQueue();
-	}
-	
-	/**
-	 * get the class name of the device processor
-	 * @return
-	 */
-	public String getDeviceProcessorClass()
-	{
-		return _theDeviceProcessor != null ? _theDeviceProcessor.getClass().getName() : "";
-	}
-	
-	/**
+    /**
+     * add a MessageHandler to this devices JMFHandler
+     * @param handler the MessageHandler to add
+     */
+    public void addHandler(IMessageHandler handler) {
+        _jmfHandler.addHandler(handler);
+    }
+
+    /**
+     * get the JMFHandler of this device
+     * @return
+     */
+    public IJMFHandler getHandler() {
+        return _jmfHandler;
+    }
+
+    /**
+     * get a facade of this devices Queue
+     * @return
+     */
+    public QueueFacade getQueueFacade()
+    {
+        return (new QueueFacade(_theQueueProcessor.getQueue()) );
+    }
+
+    /**
+     * get the JDFQueue
+     * @return JDFQueue
+     */
+    public JDFQueue getQueue()
+    {
+        return _theQueueProcessor.getQueue();
+    }
+
+    /**
+     * get the class name of the device processor
+     * @return
+     */
+    public String getDeviceProcessorClass()
+    {
+        return _theDeviceProcessor != null ? _theDeviceProcessor.getClass().getName() : "";
+    }
+
+    /**
      * get the queprocessor
      * @return
      */
@@ -349,21 +345,21 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     {
         return _theQueueProcessor;
     }
-    
+
     /**
      * get the DeviceStatus of this device
      * @return
      */
     public EnumDeviceStatus getDeviceStatus()
     {
-    	EnumDeviceStatus status = _theStatusListener.getDeviceStatus();
-    	if (status == null) {
-    		log.error("StatusListener returned a null device status");
-    		status = EnumDeviceStatus.Unknown;
-    	}
-    	return status;
+        EnumDeviceStatus status = _theStatusListener.getDeviceStatus();
+        if (status == null) {
+            log.error("StatusListener returned a null device status");
+            status = EnumDeviceStatus.Unknown;
+        }
+        return status;
     }
-    
+
     /**
      * stop the processing the given QueueEntry
      * @param queueEntryID the ID of the QueueEntry to stop
@@ -376,68 +372,68 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     		log.error( "DeviceProcessor for device '"+_devProperties.getDeviceID()+"' is null" );
     		return null;
     	}
-    	JDFQueue q=_theQueueProcessor.getQueue();
-    	if (q==null) {
-    		log.fatal("queue of device "+_devProperties.getDeviceID()+"is null");
-    		return null;
-    	}
-    	JDFQueueEntry qe=q.getQueueEntry(queueEntryID);
-    	if (qe==null) {
-    		log.fatal("QueueEntry with ID="+queueEntryID+" is null on device "+_devProperties.getDeviceID());
-    		return null;
-    	}
-    	
-    	_theDeviceProcessor.stopProcessing(qe, status);
-    	return qe;
+        JDFQueue q=_theQueueProcessor.getQueue();
+        if (q==null) {
+            log.fatal("queue of device "+_devProperties.getDeviceID()+"is null");
+            return null;
+        }
+        JDFQueueEntry qe=q.getQueueEntry(queueEntryID);
+        if (qe==null) {
+            log.fatal("QueueEntry with ID="+queueEntryID+" is null on device "+_devProperties.getDeviceID());
+            return null;
+        }
+
+        _theDeviceProcessor.stopProcessing(qe, status);
+        return qe;
     }
 
     /**
-	 * build the URL of this device
-	 * @param deviceID the ID of the device to get the URL for. Use "" for the Bambi Root Device.
-	 * @return
-	 */
-	private String createDeviceURL(String deviceID) {
-		Properties properties = new Properties();
-		FileInputStream in=null;
-		String deviceURL=null;
-		try {
-			in = new FileInputStream(_devProperties.getAppDir()+"config/device.properties");
-			properties.load(in);
-			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
-			deviceURL= properties.getProperty("DeviceURL");
-			if (deviceID!=null && deviceID.length()>0)
-				deviceURL += "/"+deviceID;
-			in.close();
-		} catch (IOException e) {
-			log.error("failed to load properties: \r\n"+e.getMessage());
-			return null;
-		}
-		return deviceURL;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.cip4.bambi.IDevice#getDeviceURL()
-	 */
-	public String getDeviceURL() {
-		return _devProperties.getDeviceURL();
-	}
-	
-	public void setDeviceURL(String theURL) {
-		_devProperties.setDeviceURL(theURL);
-	}
-	
-	/**
-	 * get the URL of the proxy device for this device
-	 * @return
-	 */
-	public String getProxyURL() {
-		return _devProperties.getProxyURL();
-	}
-	
-	/**
+     * build the URL of this device
+     * @param deviceID the ID of the device to get the URL for. Use "" for the Bambi Root Device.
+     * @return
+     */
+    private String createDeviceURL(String deviceID) {
+        Properties properties = new Properties();
+        FileInputStream in=null;
+        String deviceURL=null;
+        try {
+            in = new FileInputStream(_devProperties.getAppDir()+"config/device.properties");
+            properties.load(in);
+            JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
+            deviceURL= properties.getProperty("DeviceURL");
+            if (deviceID!=null && deviceID.length()>0)
+                deviceURL += "/"+deviceID;
+            in.close();
+        } catch (IOException e) {
+            log.error("failed to load properties: \r\n"+e.getMessage());
+            return null;
+        }
+        return deviceURL;
+    }
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.IDevice#getDeviceURL()
+     */
+    public String getDeviceURL() {
+        return _devProperties.getDeviceURL();
+    }
+
+    public void setDeviceURL(String theURL) {
+        _devProperties.setDeviceURL(theURL);
+    }
+
+    /**
+     * get the URL of the proxy device for this device
+     * @return
+     */
+    public String getProxyURL() {
+        return _devProperties.getProxyURL();
+    }
+
+    /**
 	 * stop the signal dispatcher and device processor, if they are not null
-	 */
-	public void shutdown() {
+     */
+    public void shutdown() {
 		if (_theSignalDispatcher!=null) {
 			_theSignalDispatcher.shutdown();
 		}
@@ -446,22 +442,22 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
 		}
 	}
 
-	/**
-	 * get the directory of the web application this device belongs to
-	 * @return the path of the app dir on the filesystem
-	 */
-	public String getAppDir() {
-		return _devProperties.getAppDir();
-	}
-	/**
-	 * build a new QueueProcessor
-	 * @return
-	 */
-	protected abstract IQueueProcessor buildQueueProcessor();
-	
-	/**
-	 * build a new DeviceProcessor
-	 * @return
-	 */
-	protected abstract AbstractDeviceProcessor buildDeviceProcessor();
+    /**
+     * get the directory of the web application this device belongs to
+     * @return the path of the app dir on the filesystem
+     */
+    public String getAppDir() {
+        return _devProperties.getAppDir();
+    }
+    /**
+     * build a new QueueProcessor
+     * @return
+     */
+    protected abstract IQueueProcessor buildQueueProcessor();
+
+    /**
+     * build a new DeviceProcessor
+     * @return
+     */
+    protected abstract AbstractDeviceProcessor buildDeviceProcessor();
 }
