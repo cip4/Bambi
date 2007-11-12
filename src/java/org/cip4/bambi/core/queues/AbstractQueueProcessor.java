@@ -597,7 +597,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	}
 
 	protected static final Log log = LogFactory.getLog(AbstractQueueProcessor.class.getName());
-    private File _queueFile;
+    protected File _queueFile=null;
     private static final long serialVersionUID = -876551736245089033L;
     protected JDFQueue _theQueue;
     private Vector<Object> _listeners;
@@ -611,6 +611,8 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     	super();
 		_appDir=appDir;
     	_parent=theParent;
+        _listeners=new Vector<Object>();
+
     	this.init(deviceID);
     }
     
@@ -627,16 +629,20 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         jmfHandler.addHandler(this.new HoldQueueEntryHandler());
     }
 
-    private void init(String deviceID) {
+    protected void init(String deviceID) {
         log.info("QueueProcessor construct for device '"+deviceID+"'");
         String baseDir=_appDir+"jmb/";
-        _configDir=_appDir+"config/";
-        _jdfDir=_appDir+"jmb/JDFDir/";
+        if(_configDir==null)
+            _configDir=_appDir+"config/";
+        if(_jdfDir==null)
+            _jdfDir=baseDir+"JDFDir/";
+        new File(_jdfDir).mkdirs();
+        
         loadProperties();
         
-      	_queueFile=new File(baseDir+"theQueue_"+deviceID+".xml");       
+        if(_queueFile==null)
+            _queueFile=new File(baseDir+"theQueue_"+deviceID+".xml");       
         _queueFile.getParentFile().mkdirs();
-        new File(baseDir+"JDFDir"+File.separator).mkdirs();
         JDFDoc d=JDFDoc.parseFile(_queueFile.getAbsolutePath());
         if(d!=null) {
             log.info("refreshing queue");
@@ -650,11 +656,10 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         _theQueue.setAutomated(true);
         _theQueue.setDeviceID(deviceID);
         _theQueue.setMaxCompletedEntries( 100 ); // remove just the selected QE when RemoveQE is called 
-        _listeners=new Vector<Object>();
 	}
 
     public IQueueEntry getNextEntry() {
-        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
+        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry(null);
 
         if(qe==null) {
         	if (_parent==null) {
@@ -810,9 +815,8 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
             log.error("error fetching queueentry: QueueEntryID="+newQEID);
             return false;
         }
-        String baseDir=_appDir+"jmb/";
-        String jdfDir=baseDir+"JDFDir/";
-        String theDocFile=jdfDir+newQEID+".jdf";
+        
+        String theDocFile=_jdfDir+newQEID+".jdf";
         boolean ok=theJDF.write2File(theDocFile, 0, true);
         String docURL=_parent.getDeviceURL()+"?cmd=showJDFDoc&qeid="+newQEID;
         BambiNSExtension.setDocURL( newQE,docURL );
