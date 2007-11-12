@@ -92,6 +92,7 @@ import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
+import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
@@ -656,23 +657,29 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
 
         if(qe==null) {
-        	return null;
+        	if (_parent==null) {
+        		return null;
+        	}
+        	//log.info("sending RequestQueueEntry to proxy device");
+        	String queueURL=_parent.getDeviceURL();
+        	// DeviceID is not needed for the RequestQE in the current implementation
+        	//JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,_parent.getDeviceID() );
+        	JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,null );
+        	String proxyURL=_parent.getProxyURL();
+        	if (proxyURL!=null && proxyURL.length()>0) {
+        		JMFFactory.send2URL(jmf,_parent.getProxyURL());
+        	}
+            return null;
         }
         
         // try to load from local file system first, then try URL
-        String file=_jdfDir+qe.getQueueEntryID()+".jdf";
-        if ( new File(file).canRead() ) {
-        	JDFDoc doc=loadDocFromFile(file);
-    		if ( doc!=null ) {
-    			return new QueueEntry(doc,qe);
-    		}
-			return null;
-        }
-		String docURL=BambiNSExtension.getDocURL(qe);
-		if(docURL==null || docURL.length()<1) {
+        String docURL=BambiNSExtension.getDocURL(qe);
+		JDFDoc theDoc = loadDocFromURL(docURL);
+		if (theDoc==null) {
+			log.error( "QueueProcessor in thread '"+Thread.currentThread().getName()
+					+"' is unable to load the JDFDoc from '"+docURL+"'");
 			return null;
 		}
-		JDFDoc theDoc = loadDocFromURL(docURL);
 		return new QueueEntry(theDoc,qe);
     }
 
@@ -807,7 +814,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         String jdfDir=baseDir+"JDFDir/";
         String theDocFile=jdfDir+newQEID+".jdf";
         boolean ok=theJDF.write2File(theDocFile, 0, true);
-        String docURL=_deviceURL+"?cmd=showJDFDoc&qeid="+newQEID;
+        String docURL=_parent.getDeviceURL()+"?cmd=showJDFDoc&qeid="+newQEID;
         BambiNSExtension.setDocURL( newQE,docURL );
         if(!KElement.isWildCard(returnJMF)) {
         	BambiNSExtension.setReturnURL(newQE, returnJMF);

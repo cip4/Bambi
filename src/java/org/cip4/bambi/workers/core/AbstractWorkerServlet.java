@@ -179,6 +179,18 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 			} else {
 				log.error("can't get device, device ID is missing or unknown");
 			}
+		} else if ( command.equals("showJDFDoc") ) {
+			String qeid=request.getParameter("qeid");
+			if ( (qeid!=null&&qeid.length()>0) ) {
+				String filePath=_jdfDir+qeid+".jdf";
+				JDFDoc theDoc=JDFDoc.parseFile(filePath);
+				if (theDoc!=null) {
+					writeRawResponse( request,response,theDoc.toXML() );
+				} else {
+					log.error( "cannot parse '"+filePath+"'" );
+					return;
+				}
+			}
 		}
 	}
 

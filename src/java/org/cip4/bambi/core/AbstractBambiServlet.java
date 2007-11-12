@@ -77,6 +77,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Properties;
@@ -368,5 +369,25 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	public String getDeviceType() {
         return _deviceType;
     }
+	
+	/**
+	 * write a String to a writer of a HttpServletResponse, show error.jsp if failed
+	 * @param request  the request
+	 * @param response theStr will be written to the PrintWriter of this response
+	 * @param theStr   the String to write
+	 */
+	protected void writeRawResponse(HttpServletRequest request,
+			HttpServletResponse response, String theStr) {
+		PrintWriter out=null;
+		try {
+			out = response.getWriter();
+			out.println(theStr);
+		    out.flush();
+		    out.close();
+		} catch (IOException e) {
+			showErrorPage("failed to write response", e.getMessage(), request, response);
+			log.error("failed to write response: "+e.getMessage());
+		}
+	}
 
 }

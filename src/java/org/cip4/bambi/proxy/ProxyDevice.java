@@ -71,184 +71,34 @@
 
 package org.cip4.bambi.proxy;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.IDevice;
+import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.IDeviceProperties;
-import org.cip4.bambi.core.ISignalDispatcher;
-import org.cip4.bambi.core.IStatusListener;
-import org.cip4.bambi.core.SignalDispatcher;
-import org.cip4.bambi.core.StatusListener;
-import org.cip4.bambi.core.messaging.IJMFHandler;
-import org.cip4.bambi.core.messaging.IMessageHandler;
-import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.queues.IQueueProcessor;
-import org.cip4.bambi.core.queues.QueueFacade;
-import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFElement.EnumVersion;
-import org.cip4.jdflib.jmf.JDFDeviceInfo;
-import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.resource.JDFDevice;
-import org.cip4.jdflib.resource.JDFDeviceList;
 
-public class ProxyDevice implements IDevice, IJMFHandler {
-	
-	/**
-	 * 
-	 * handler for the KnownDevices query
-	 */
-	protected class KnownDevicesHandler implements IMessageHandler
-	{
-	
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-		 */
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
-		{
-			// "I am the known device"
-			if(m==null || resp==null)
-			{
-				return false;
-			}
-			log.debug("Handling "+m.getType());
-			EnumType typ=m.getEnumType();
-			if(EnumType.KnownDevices.equals(typ))
-			{
-				JDFDeviceList dl = resp.appendDeviceList();
-				JDFDeviceInfo info = dl.appendDeviceInfo();
-				JDFDevice dev = info.appendDevice();
-				dev.setDeviceID(getDeviceID());
-				dev.setDeviceType( getDeviceType() );
-				dev.setJDFVersions( EnumVersion.Version_1_3.getName() );
-				info.setDeviceStatus( getDeviceStatus() );
-				return true;
-			}
-	
-			return false;
-		}
-	
-	
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.IMessageHandler#getFamilies()
-		 */
-		public EnumFamily[] getFamilies()
-		{
-			return new EnumFamily[]{EnumFamily.Query};
-		}
-	
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.IMessageHandler#getMessageType()
-		 */
-		public EnumType getMessageType()
-		{
-			return EnumType.KnownDevices;
-		}
-	}
-	
-	private static final Log log = LogFactory.getLog(ProxyDevice.class.getName());
-	private ISignalDispatcher _theSignalDispatcher=null;
-	private IQueueProcessor _theQueueProcessor=null;
-	private IStatusListener _theStatusListener=null;
-	private IDeviceProperties _devProperties=null;
-	private JMFHandler _jmfHandler=null;
+public class ProxyDevice extends AbstractDevice {
 	
 	public ProxyDevice(IDeviceProperties properties) {
-		log.info( "initializing "+properties.getDeviceID() );
-		_devProperties=properties;
-		
-		_jmfHandler = new JMFHandler();
-        _theSignalDispatcher=new SignalDispatcher(_jmfHandler, _devProperties.getDeviceID());
-        _theSignalDispatcher.addHandlers(_jmfHandler);
-
-        _theQueueProcessor = new ProxyQueueProcessor(_devProperties.getDeviceID(), _devProperties.getAppDir());
-        _theQueueProcessor.addHandlers(_jmfHandler);
-        _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
-        _theStatusListener.addHandlers(_jmfHandler);
-        
-        addHandlers();
-	}
-
-
-	public String getDeviceID() {
-		return _devProperties.getDeviceID();
-	}
-
-	public String getDeviceType() {
-		return _devProperties.getDeviceType();
-	}
-
-	public String getDeviceURL() {
-		return _devProperties.getDeviceURL();
+		init(properties);
 	}
 	
-	/**
-     * get the DeviceStatus of this device
-     * @return
-     */
-    public EnumDeviceStatus getDeviceStatus()
-    {
-    	EnumDeviceStatus status = _theStatusListener.getDeviceStatus();
-    	if (status == null) {
-    		log.error("StatusListener returned a null device status");
-    		status = EnumDeviceStatus.Unknown;
-    	}
-    	return status;
-    }
-    
-    /**
-	 * get a facade of this devices Queue
-	 * @return
-	 */
-	public QueueFacade getQueueFacade() {
-		return (new QueueFacade(_theQueueProcessor.getQueue()) );
+	@Override
+	public void init(IDeviceProperties properties) {
+		super.init(properties);
 	}
-	
-	/**
-	 * append the JDFDeviceInfo of this device to a given JDFDeviceList
-	 * @param dl the JDFDeviceList, where the JDFDeviceInfo will be appended
-	 * @return true, if successful
-	 */
-	public boolean appendDeviceInfo(JDFDeviceList dl) {
-		JDFDeviceInfo info = dl.appendDeviceInfo();
-		JDFDevice dev = info.appendDevice();
-		dev.setDeviceID(getDeviceID());
-		dev.setDeviceType( getDeviceType() );
-		dev.setJDFVersions( EnumVersion.Version_1_3.getName() );
-		info.setDeviceStatus( getDeviceStatus() );
-		return true;
-	}
-	
-	public JMFHandler getHandler() {
-		return _jmfHandler;
-	}
-	
-	/**
-	 * stop the signal dispatcher
-	 */
-	public void shutdown() {
-		_theSignalDispatcher.shutdown();
-	}
-	
-    private void addHandlers() {
-		_jmfHandler.addHandler( this.new KnownDevicesHandler() );
-	}
-
 
 	/**
-	 * add a MessageHandler to this devices JMFHandler
-	 * @param handler the MessageHandler to add
+	 * returns null, since the ProxyDevice doesn't need a DeviceProcessor
 	 */
-	public void addHandler(IMessageHandler handler) {
-		_jmfHandler.addHandler(handler);
+	@Override
+	protected AbstractDeviceProcessor buildDeviceProcessor() {
+		return null;
 	}
 
-	public JDFDoc processJMF(JDFDoc doc) {
-		log.info("JMF processed by "+_devProperties.getDeviceID());
-		return _jmfHandler.processJMF(doc);
+
+	@Override
+	protected IQueueProcessor buildQueueProcessor() {
+		return new ProxyQueueProcessor(_devProperties.getDeviceID(), this, _devProperties.getAppDir());
 	}
 	
 }

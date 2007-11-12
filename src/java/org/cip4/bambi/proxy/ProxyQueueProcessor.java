@@ -275,18 +275,13 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 		_tracker=new QueueEntryTracker(_configDir, deviceID);
 		_theQueue.setMaxRunningEntries(99);
 	}
-
-
-	public ProxyQueueProcessor(String deviceID, String appDir) {
-		this(deviceID, null, appDir);
-	}
 	
 	@Override
 	public void addHandlers(IJMFHandler jmfHandler)
     {
-		super.addHandlers(jmfHandler);
 		jmfHandler.addHandler(this.new RequestQueueEntryHandler());
 		jmfHandler.addHandler(this.new ReturnQueueEntryHandler());
+		super.addHandlers(jmfHandler);
     }
 	
 	/**
@@ -319,18 +314,18 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
         JDFJMF jmf=docJMF.getJMFRoot();
         JDFCommand com = (JDFCommand)jmf.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
         JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
-        qsp.setURL( BambiNSExtension.getDocURL(qe) );
+        qsp.setURL( _parent.getDeviceURL()+"?cmd=showJDFDoc&qeid="+qe.getQueueEntryID() );
         String returnURL = BambiNSExtension.getReturnURL(qe);
         // QueueSubmitParams need either ReturnJMF or ReturnURL
         if (returnURL!=null && returnURL.length()>0) {
-        	qsp.setReturnURL( _deviceURL );
+        	qsp.setReturnURL( _parent.getDeviceURL() );
         } else {
-        	returnURL=_deviceURL;
+        	returnURL=_parent.getDeviceURL();
         	String returnJMF = BambiNSExtension.getReturnJMF(qe); 
         	if (returnJMF!=null && returnJMF.length()>0) {
         		qsp.setReturnJMF( returnJMF );
         	} else {
-        		qsp.setReturnJMF( _deviceURL );
+        		qsp.setReturnJMF( _parent.getDeviceURL() );
         	}
         }
         

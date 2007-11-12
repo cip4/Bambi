@@ -105,7 +105,7 @@ public class BambiTestCase extends TestCase {
 		try {
 			in = new FileInputStream(simConfigDir+"Device.properties");
 			properties.load(in);
-			simWorkerUrl=properties.getProperty("DeviceURL")+"/"+"sim002";
+			simWorkerUrl=properties.getProperty("DeviceURL")+"/sim002";
 			in.close();
 		} catch (IOException e) {
 			fail( "failed to load SimWorker properties on test init" );
@@ -121,7 +121,7 @@ public class BambiTestCase extends TestCase {
 		try {
 			in = new FileInputStream(proxyConfigDir+"device.properties");
 			properties.load(in);
-			proxyUrl=properties.getProperty("DeviceURL");
+			proxyUrl=properties.getProperty("DeviceURL")+"/proxy001";
 			in.close();
 		} catch (IOException e) {
 			fail( "failed to load proxy properties on test init" );

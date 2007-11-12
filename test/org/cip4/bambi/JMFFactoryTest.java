@@ -265,6 +265,6 @@ public class JMFFactoryTest extends BambiTestCase {
         	fail( e.getMessage() ); // fail on exception
         }
         
-        testAbortAll();
+        abortRemoveAll(simWorkerUrl);
 	}
 }

@@ -80,6 +80,16 @@ import org.cip4.bambi.proxy.QueueEntryTracker;
 
 public class QueueEntryTrackerTest extends BambiTestCase {
 	
+	@Override
+	public void setUp() throws Exception {
+		super.setUp();
+		File configFile=new File( sm_dirTestTemp+"trackernull.bin" );
+		if (configFile.exists() ) {
+			configFile.delete();
+		}
+		
+	}
+	
 	public void testAddEntries() 
 	{
 		IQueueEntryTracker qt=new QueueEntryTracker(sm_dirTestTemp, null);
@@ -105,11 +115,6 @@ public class QueueEntryTrackerTest extends BambiTestCase {
 	}
 	
 	public void testPersistResume() {
-		File configFile=new File( sm_dirTestTemp+"tracker.bin" );
-		if (configFile.exists() ) {
-			configFile.delete();
-		}
-				
 		{
 			IQueueEntryTracker qt=new QueueEntryTracker(sm_dirTestTemp, null);
 			qt.addEntry("in_1", "out_1", "dev_1", "devUrl_1");		
@@ -126,8 +131,6 @@ public class QueueEntryTrackerTest extends BambiTestCase {
 		assertEquals( "devUrl_2",qt.getDeviceURL("in_2") );
 		assertEquals( "dev_1",qt.getDeviceID("in_1") );
 		assertEquals( "dev_2",qt.getDeviceID("in_2") );
-		
-		configFile.delete();
 	}
 
 }

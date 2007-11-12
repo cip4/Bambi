@@ -215,17 +215,19 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
         _theSignalDispatcher=new SignalDispatcher(_jmfHandler, _devProperties.getDeviceID());
         _theSignalDispatcher.addHandlers(_jmfHandler);
 
-        _theQueueProcessor = buildQueueProcessor( );
+        _theQueueProcessor = buildQueueProcessor();
         _theQueueProcessor.addHandlers(_jmfHandler);
         _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
         _theStatusListener.addHandlers(_jmfHandler);
         
         String deviceID=_devProperties.getDeviceID();
         _theDeviceProcessor = buildDeviceProcessor();
-        _theDeviceProcessor.init(_theQueueProcessor, _theStatusListener, deviceID, prop.getAppDir());
-        String deviceProcessorClass=_theDeviceProcessor.getClass().getSimpleName();
-		new Thread(_theDeviceProcessor,deviceProcessorClass+"_"+deviceID).start();
-		log.info("device thread started: "+deviceProcessorClass+"_"+deviceID);
+        if (_theDeviceProcessor!=null) {
+        	_theDeviceProcessor.init(_theQueueProcessor, _theStatusListener, deviceID, prop.getAppDir());
+        	String deviceProcessorClass=_theDeviceProcessor.getClass().getSimpleName();
+        	new Thread(_theDeviceProcessor,deviceProcessorClass+"_"+deviceID).start();
+        	log.info("device thread started: "+deviceProcessorClass+"_"+deviceID);
+        }
 		
 		_devProperties.setDeviceURL( createDeviceURL(deviceID) );
         
@@ -236,7 +238,8 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
 	}
 	
 	/**
-     * @param hfURL the URL of the hotfolder to create
+	 * creates the hotfolder on the file system
+     * @param hfURL the URL of the hotfolder to create. If hfURL is null, no hotfolder will be created.
      */
     protected void createHotFolder(String hfURL)
     {
@@ -247,7 +250,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
         
     }
 
-    private void addHandlers() {
+    protected void addHandlers() {
 		_jmfHandler.addHandler( this.new KnownDevicesHandler() );
 	}
 
@@ -362,13 +365,17 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     }
     
     /**
-     * stop processing the given QueueEntry
+     * stop the processing the given QueueEntry
      * @param queueEntryID the ID of the QueueEntry to stop
      * @param status target status of the QueueEntry (Suspended,Aborted,Held)
      * @return the updated QueueEntry
      */
     public JDFQueueEntry stopProcessing(String queueEntryID, EnumQueueEntryStatus status)
     {
+    	if (_theDeviceProcessor==null) {
+    		log.error( "DeviceProcessor for device '"+_devProperties.getDeviceID()+"' is null" );
+    		return null;
+    	}
     	JDFQueue q=_theQueueProcessor.getQueue();
     	if (q==null) {
     		log.fatal("queue of device "+_devProperties.getDeviceID()+"is null");
@@ -428,11 +435,15 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
 	}
 	
 	/**
-	 * stop the signal dispatcher and device processor
+	 * stop the signal dispatcher and device processor, if they are not null
 	 */
 	public void shutdown() {
-		_theSignalDispatcher.shutdown();
-		_theDeviceProcessor.shutdown();
+		if (_theSignalDispatcher!=null) {
+			_theSignalDispatcher.shutdown();
+		}
+		if (_theDeviceProcessor!=null) {
+			_theDeviceProcessor.shutdown();
+		}
 	}
 
 	/**

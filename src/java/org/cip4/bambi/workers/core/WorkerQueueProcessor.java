@@ -74,11 +74,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiNSExtension;
-import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.queues.AbstractQueueProcessor;
-import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -96,27 +93,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 	public WorkerQueueProcessor(String deviceID, AbstractDevice theParent, String appDir) {
 		super(deviceID,theParent,appDir);
 	}
-	
-	@Override
-	public IQueueEntry getNextEntry()
-    {
-        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry();
-        
-        if(qe==null) {
-        	//log.info("sending RequestQueueEntry to proxy device");
-        	String queueURL=_parent.getDeviceURL();
-        	// DeviceID is not needed for the RequestQE in the current implementation
-        	//JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,_parent.getDeviceID() );
-        	JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,null );
-        	String proxyURL=_parent.getProxyURL();
-        	if (proxyURL!=null && proxyURL.length()>0) {
-        		JMFFactory.send2URL(jmf,_parent.getProxyURL());
-        	}
-            return null;
-        }
-		return super.getNextEntry();
-    }
-	
+
 	@Override
 	protected void handleAbortQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {

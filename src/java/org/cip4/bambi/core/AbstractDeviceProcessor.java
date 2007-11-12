@@ -283,8 +283,6 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		_trackResourceID= inConsume !=null ? inConsume : outQuantity;
         _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, _trackResourceID);
         
-        
-        
         // remember to call finalizeProcessDoc() at the end of derived processDoc implementations
 		return null;
 	}

@@ -73,7 +73,6 @@ package org.cip4.bambi.proxy;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -111,7 +110,6 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 {
 	private static final long serialVersionUID = -8902151736245089036L;
 	private static Log log = LogFactory.getLog(ProxyServlet.class.getName());
-	private HashMap<String, ProxyDevice> _devices=null;
 	
 	/** Initializes the servlet.
 	 */
@@ -121,7 +119,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 		super.init(config);
 		ServletContext context = config.getServletContext();
 		log.info( "Initializing servlet for "+context.getServletContextName() );
-        _devices=new HashMap<String, ProxyDevice>();
+        _devices=new HashMap<String, IDevice>();
         createDevices();
 	}
 
@@ -133,7 +131,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 		Iterator<String> it=keys.iterator();
 		while (it.hasNext()) {
 			String devID=it.next().toString();
-			ProxyDevice dev=_devices.get(devID);
+			ProxyDevice dev=(ProxyDevice) _devices.get(devID);
 			dev.shutdown();
 		}
 	}
@@ -158,7 +156,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 			} 
 		} else if ( command.equals("showQueue") )  {
 			String devID=request.getParameter("devID");
-			ProxyDevice dev=_devices.get(devID);
+			ProxyDevice dev=(ProxyDevice) _devices.get(devID);
 			if (dev==null) {
 				String errorMsg="illegal DeviceID '"+devID+"'";
 				log.error( errorMsg );
@@ -181,20 +179,6 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 					return;
 				}
 			}
-		}
-	}
-
-	private void writeRawResponse(HttpServletRequest request,
-			HttpServletResponse response, String theStr) {
-		PrintWriter out=null;
-		try {
-			out = response.getWriter();
-			out.println(theStr);
-		    out.flush();
-		    out.close();
-		} catch (IOException e) {
-			showErrorPage("failed to response", e.getMessage(), request, response);
-			log.error("failed to write response: "+e.getMessage());
 		}
 	}
 
@@ -253,7 +237,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 			Object[] strKeys = keys.toArray();
 			for (int i=0; i<keys.size();i++) {
 				String key = (String)strKeys[i];
-				ProxyDevice dev = _devices.get(key);
+				ProxyDevice dev = (ProxyDevice) _devices.get(key);
 				if (dev == null)
 					log.error("device with key '"+key+"'not found");
 				else
@@ -306,7 +290,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 	{
 		if (_devices == null) {
 			log.info("map of devices is null, re-initialising map...");
-			_devices = new HashMap<String, ProxyDevice>();
+			_devices = new HashMap<String, IDevice>();
 		}
 		
 		String devID=prop.getDeviceID();
@@ -327,7 +311,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 		deviceID = StringUtil.token(deviceID, 0, "/");
 		if (deviceID == null)
 			return _jmfHandler; // device not found
-		ProxyDevice device = _devices.get(deviceID);
+		ProxyDevice device = (ProxyDevice) _devices.get(deviceID);
 		if (device == null)
 			return _jmfHandler; // device not found
 		return( device.getHandler() );
