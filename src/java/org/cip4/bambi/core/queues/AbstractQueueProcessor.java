@@ -72,8 +72,6 @@ package org.cip4.bambi.core.queues;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -81,7 +79,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Properties;
 import java.util.Vector;
 
 import javax.mail.Multipart;
@@ -601,15 +598,13 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     private static final long serialVersionUID = -876551736245089033L;
     protected JDFQueue _theQueue;
     private Vector<Object> _listeners;
-    protected String _appDir=null;
     protected String _configDir=null;
     protected String _deviceURL=null;
     protected String _jdfDir=null;
     protected AbstractDevice _parent=null;
         
-    public AbstractQueueProcessor(String deviceID, AbstractDevice theParent, String appDir) {
+    public AbstractQueueProcessor(String deviceID, AbstractDevice theParent) {
     	super();
-		_appDir=appDir;
     	_parent=theParent;
         _listeners=new Vector<Object>();
 
@@ -631,18 +626,18 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 
     protected void init(String deviceID) {
         log.info("QueueProcessor construct for device '"+deviceID+"'");
-        String baseDir=_appDir+"jmb/";
-        if(_configDir==null)
-            _configDir=_appDir+"config/";
-        if(_jdfDir==null)
-            _jdfDir=baseDir+"JDFDir/";
-        new File(_jdfDir).mkdirs();
-        
-        loadProperties();
+        _jdfDir=_parent.getJDFDir();
+        if (_jdfDir!=null) { // will be null in unit tests
+        	File jdfDir=new File (_jdfDir);
+        if (!jdfDir.exists())
+        	new File(_jdfDir).mkdirs();
+        }
         
         if(_queueFile==null)
-            _queueFile=new File(baseDir+"theQueue_"+deviceID+".xml");       
-        _queueFile.getParentFile().mkdirs();
+            _queueFile=new File(_parent.getBaseDir()+"theQueue_"+deviceID+".xml");
+        if (_queueFile!=null &_queueFile.getParentFile()!=null) { // will be null in unit tests
+        	_queueFile.getParentFile().mkdirs();
+        }
         JDFDoc d=JDFDoc.parseFile(_queueFile.getAbsolutePath());
         if(d!=null) {
             log.info("refreshing queue");
@@ -974,27 +969,5 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     
     protected abstract void handleResumeQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe);
-    
-	protected boolean loadProperties() {
-		log.debug("loading properties");
-		String configPath=_configDir+"device.properties";
-		try  {
-			Properties properties = new Properties();
-			FileInputStream in = new FileInputStream(configPath);
-			properties.load(in);
-			
-			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
-			_deviceURL=properties.getProperty("DeviceURL");
-			
-			in.close();
-		} catch (FileNotFoundException e) {
-			log.fatal("properties not found at location "+configPath);
-			return false;
-		} catch (IOException e) {
-			log.fatal("Error while loading properties from "+configPath);
-			return false;
-		}
-		return true;
-	}
     
 }

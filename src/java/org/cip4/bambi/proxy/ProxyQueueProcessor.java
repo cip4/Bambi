@@ -271,7 +271,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	protected IQueueEntryTracker _tracker=null;
 	
 	public ProxyQueueProcessor(String deviceID, AbstractDevice theParent, String appDir) {
-		super(deviceID,theParent,appDir);
+		super(deviceID,theParent);
 		_tracker=new QueueEntryTracker(_configDir, deviceID);
 		_theQueue.setMaxRunningEntries(99);
 	}

@@ -70,7 +70,6 @@
  */
 package org.cip4.bambi.core;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -97,12 +96,15 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 	 *
 	 */
 	public static class DeviceProperties implements IDeviceProperties {
-		private String deviceID=null;
-		private String deviceURL=null;
-		private String proxyURL=null;
-		private String deviceType=null;
-        private String appDir=null;
-        private String hotFolder=null;
+		private String _deviceID=null;
+		private String _deviceURL=null;
+		private String _proxyURL=null;
+		private String _deviceType=null;
+        private String _appDir=null;
+        private String _hotFolder=null;
+        private String _baseDir=null;
+        private String _configDir=null;
+        private String _jdfDir=null;
 		
 		/**
 		 * create device properties
@@ -110,8 +112,8 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 		 * @param theDeviceURL  the URL of the device
 		 * @param theProxyURL   the URL of its proxy/controller
 		 * @param theDeviceType the device type (e.g. "General Foo Device")
-         * @param theAppDir     the location of the web app (e.g. "C:/tomcat/webapps/bambi")
-         * @param theHotFolder     the location of the hotfolder 
+		 * @param theAppDir     the location of the web app (e.g. "C:/tomcat/webapps/bambi")
+		 * @param theHotFolder  the location of the hotfolder 
 		 */
 		public DeviceProperties(String theDeviceID, String theDeviceURL, String theProxyURL,
 				String theDeviceType, String theAppDir, String theHotFolder) {
@@ -120,78 +122,84 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 			setProxyURL(theProxyURL);
 			setDeviceType(theDeviceType);
 			setAppDir(theAppDir);
-            hotFolder=theHotFolder;
-            
+            _hotFolder=theHotFolder;
+		}
+		
+		/**
+		 * constructor
+		 */
+		public DeviceProperties() {
+			
 		}
 
 		/* (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#setDeviceURL(java.lang.String)
 		 */
 		public void setDeviceURL(String deviceURL) {
-			this.deviceURL = deviceURL;
+			this._deviceURL = deviceURL;
 		}
 
 		/* (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
 		 */
 		public String getDeviceURL() {
-			return deviceURL;
+			return _deviceURL;
 		}
 
 		/**
 		 * @param deviceID the deviceID to set
 		 */
 		private void setDeviceID(String deviceID) {
-			this.deviceID = deviceID;
+			this._deviceID = deviceID;
 		}
 
 		/* (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
 		 */
 		public String getDeviceID() {
-			return deviceID;
+			return _deviceID;
 		}
 
 		/**
 		 * @param controllerURL the controllerURL to set
 		 */
 		private void setProxyURL(String controllerURL) {
-			this.proxyURL = controllerURL;
+			this._proxyURL = controllerURL;
 		}
 
 		/* (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getProxyURL()
 		 */
 		public String getProxyURL() {
-			return proxyURL;
+			return _proxyURL;
 		}
 
 		/**
 		 * @param deviceType the deviceType to set
 		 */
 		private void setDeviceType(String deviceType) {
-			this.deviceType = deviceType;
+			this._deviceType = deviceType;
 		}
 
 		/* (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceType()
 		 */
 		public String getDeviceType() {
-			return deviceType;
+			return _deviceType;
 		}
 
 		/* (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#setAppDir(java.lang.String)
 		 */
 		public void setAppDir(String appDir) {
-			this.appDir = appDir;
+			this._appDir = appDir;
 		}
 
 		/* (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getAppDir()
 		 */
 		public String getAppDir() {
-			return appDir;
+			return _appDir;
 		}
 		
 		/* (non-Javadoc)
@@ -199,9 +207,9 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 		 */
 		@Override
 		public String toString() {
-			String ret="["+this.getClass().getName()+" application directory="+appDir+", device ID="+
-				deviceID+", device type="+deviceType+
-				", device URL="+deviceURL+", proxy URL="+proxyURL+"]";
+			String ret="["+this.getClass().getName()+" application directory="+_appDir+", device ID="+
+				_deviceID+", device type="+_deviceType+
+				", device URL="+_deviceURL+", proxy URL="+_proxyURL+"]";
 			return ret;
 		}
 
@@ -210,8 +218,32 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
          */
         public String getHotFolderURL()
         {
-           return hotFolder;
+           return _hotFolder;
         }
+
+		public String getBaseDir() {
+			return _baseDir;
+		}
+
+		public String getConfigDir() {
+			return _configDir;
+		}
+
+		public String getJDFDir() {
+			return _jdfDir;
+		}
+
+		public void setBaseDir(String baseDir) {
+			_baseDir=baseDir;
+		}
+
+		public void setConfigDir(String configDir) {
+			_configDir=configDir;
+		}
+
+		public void setJDFDir(String jdfDir) {
+			_jdfDir=jdfDir;
+		}
 	}
 	
 	protected static final Log log = LogFactory.getLog(MultiDeviceProperties.class.getName());
@@ -222,25 +254,24 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 	 * @param appDir     the location of the web application in the server
 	 * @param configFile the config file
 	 */
-	public MultiDeviceProperties(String appDir, File configFile) {
+	public MultiDeviceProperties(String appDir, String configFile) {
 		_devices = new HashMap<String, DeviceProperties>();
 		
-		if (configFile==null || !configFile.exists()) {
-			log.fatal("config file '"+configFile+"' does not exist");
+		if (configFile==null || configFile.equals("")) {
+			log.fatal("path to config file is null");
 			return;
 		}
 		
 		JDFParser p = new JDFParser();
-		String path=configFile.getAbsolutePath();
-	    JDFDoc doc = p.parseFile(path);
+	    JDFDoc doc = p.parseFile(configFile);
 	    if (doc == null) {
-	    	log.fatal( "failed to parse "+path );
+	    	log.fatal( "failed to parse "+configFile );
 	    	return;
 	    }
 	    
 	    KElement e = doc.getRoot();
 	    if (e==null) {
-	    	log.fatal( "failed to parse "+path+", root is null" );
+	    	log.fatal( "failed to parse "+configFile+", root is null" );
 	    	return;
 	    }
 	    VElement v = e.getXPathElementVector("//devices/*", 99);

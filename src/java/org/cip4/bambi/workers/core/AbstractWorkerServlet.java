@@ -71,7 +71,6 @@
 
 package org.cip4.bambi.workers.core;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -108,7 +107,7 @@ import org.cip4.jdflib.util.StringUtil;
  * the workers defined in <code>/WebContent/config/devices.xml</code>.
  * @author niels
  */
-public abstract class AbstractWorkerServlet extends AbstractBambiServlet implements IDevice 
+public abstract class AbstractWorkerServlet extends AbstractBambiServlet 
 {
 	protected static final long serialVersionUID = -8902151736245089036L;
 	protected static Log log = LogFactory.getLog(AbstractWorkerServlet.class.getName());
@@ -119,7 +118,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 	public void init(ServletConfig config) throws ServletException 
 	{
 		super.init(config);
-		File configFile=new File(_configDir+"devices.xml");
+		String configFile=_devProperties.getConfigDir()+"devices.xml";
 		createDevicesFromFile(configFile);
 	}
 
@@ -182,7 +181,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 		} else if ( command.equals("showJDFDoc") ) {
 			String qeid=request.getParameter("qeid");
 			if ( (qeid!=null&&qeid.length()>0) ) {
-				String filePath=_jdfDir+qeid+".jdf";
+				String filePath=_devProperties.getJDFDir()+qeid+".jdf";
 				JDFDoc theDoc=JDFDoc.parseFile(filePath);
 				if (theDoc!=null) {
 					writeRawResponse( request,response,theDoc.toXML() );
@@ -310,9 +309,9 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
      * @param configFile the file containing the list of devices 
      * @return true if successfull, otherwise false
      */
-	public boolean createDevicesFromFile(File configFile)
+	public boolean createDevicesFromFile(String configFile)
 	{
-		IMultiDeviceProperties dv = new MultiDeviceProperties(_appDir, configFile);
+		IMultiDeviceProperties dv = new MultiDeviceProperties(_devProperties.getAppDir(), configFile);
 		if (dv.count()==0) {
 			log.error("failed to load device properties from "+configFile);
 			return false;
@@ -323,15 +322,17 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet impleme
 		while (iter.hasNext()) {
 			String devID=iter.next().toString();
 			IDeviceProperties prop=dv.getDevice(devID);
-			prop.setDeviceURL(_deviceURL+devID);
+			prop.setAppDir( _devProperties.getAppDir() );
+			prop.setBaseDir( _devProperties.getBaseDir() );
+			prop.setConfigDir( _devProperties.getConfigDir() );
+			prop.setJDFDir( _devProperties.getJDFDir() );
 			createDevice(prop);
 		}
 
 		return true;
 	}
 		
-	public HashMap<String, IDevice> getDevices()
-	{
+	public HashMap<String, IDevice> getDevices() {
 		return _devices;
 	}
 	

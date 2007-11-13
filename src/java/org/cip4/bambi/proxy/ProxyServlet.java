@@ -71,7 +71,6 @@
 
 package org.cip4.bambi.proxy;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -106,7 +105,7 @@ import org.cip4.jdflib.util.StringUtil;
  * 
  * @author rainer, niels
  */
-public class ProxyServlet extends AbstractBambiServlet implements IDevice 
+public class ProxyServlet extends AbstractBambiServlet 
 {
 	private static final long serialVersionUID = -8902151736245089036L;
 	private static Log log = LogFactory.getLog(ProxyServlet.class.getName());
@@ -170,7 +169,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 		} else if ( command.equals("showJDFDoc") ) {
 			String qeid=request.getParameter("qeid");
 			if ( (qeid!=null&&qeid.length()>0) ) {
-				String filePath=_jdfDir+qeid+".jdf";
+				String filePath=_devProperties.getJDFDir()+qeid+".jdf";
 				JDFDoc theDoc=JDFDoc.parseFile(filePath);
 				if (theDoc!=null) {
 					writeRawResponse( request,response,theDoc.toXML() );
@@ -218,8 +217,8 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 	
 	@Override
 	public String toString() {
-		String ret ="[ BambiProxy - DeviceID="+_deviceID+", DeviceURL="+_deviceURL+", AppDir="
-			+_appDir+" ]";
+		String ret ="[ BambiProxy - DeviceID="+_devProperties.getDeviceID()
+			+", DeviceURL="+_devProperties.getDeviceURL()+" ]";
 		return ret;
 	}
 	
@@ -250,7 +249,7 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 	}
 	
 	private void createDevices() {
-		File configFile=new File(_configDir+"devices.xml");
+		String configFile=_devProperties.getConfigDir()+"devices.xml";
 		createDevicesFromFile(configFile);
 	}
 	
@@ -259,9 +258,9 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
      * @param configFile the file containing the list of devices 
      * @return true if successfull, otherwise false
      */
-	public boolean createDevicesFromFile(File configFile)
+	public boolean createDevicesFromFile(String configFile)
 	{
-		IMultiDeviceProperties dv = new MultiDeviceProperties(_appDir, configFile);
+		IMultiDeviceProperties dv = new MultiDeviceProperties(_devProperties.getAppDir(), configFile);
 		if (dv.count()==0) {
 			log.error("failed to load device properties from "+configFile);
 			return false;
@@ -272,7 +271,10 @@ public class ProxyServlet extends AbstractBambiServlet implements IDevice
 		while (iter.hasNext()) {
 			String devID=iter.next().toString();
 			IDeviceProperties prop=dv.getDevice(devID);
-//			prop.setDeviceURL(_deviceURL+"/"+devID);
+			prop.setAppDir( _devProperties.getAppDir() );
+			prop.setBaseDir( _devProperties.getBaseDir() );
+			prop.setConfigDir( _devProperties.getConfigDir() );
+			prop.setJDFDir( _devProperties.getJDFDir() );
 			createDevice(prop);
 		}
 

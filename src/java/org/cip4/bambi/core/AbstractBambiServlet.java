@@ -150,14 +150,6 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	}
 
 	protected IDeviceProperties _devProperties=null;
-	protected String _appDir=null;
-	protected String _baseDir=null;
-	protected String _configDir=null;
-	protected String _jdfDir=null;
-	protected String _xslDir="./xslt/";
-	protected String _deviceID=null;
-	protected String _deviceType=null;
-	protected String _deviceURL=null;
 	protected JMFHandler _jmfHandler=null;
 	protected HashMap<String,IDevice> _devices = null;
 	private static Log log = LogFactory.getLog(AbstractBambiServlet.class.getName());
@@ -171,13 +163,12 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		super.init(config);
 		ServletContext context = config.getServletContext();
 		log.info( "Initializing servlet for "+context.getServletContextName() );
-		_appDir=context.getRealPath("")+"/";
-		_baseDir=_appDir+"jmb/";
-		_configDir=_appDir+"config/";
-		_jdfDir=_baseDir+"JDFDir/";
-		loadProperties();
-		new File(_baseDir).mkdirs();
-		new File(_jdfDir).mkdirs();
+		String appDir=context.getRealPath("")+"/";
+		_devProperties=new MultiDeviceProperties.DeviceProperties();
+		_devProperties.setAppDir(appDir);
+		loadProperties(appDir+"config/application.properties");
+		new File(_devProperties.getBaseDir()).mkdirs();
+		new File(_devProperties.getJDFDir()).mkdirs();
 		_jmfHandler=new JMFHandler();
 		addHandlers();
 	}
@@ -329,26 +320,46 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		processJMFDoc(request, response, jmfDoc);
 	}
 	
-	protected boolean loadProperties()
+	/**
+	 * loads properties
+	 * @param fileName the name of the Java .propert file
+	 * @return true, if the properties have been loaded successfully
+	 */
+	protected boolean loadProperties(String fileName)
 	{
-		log.debug("loading properties");
-		try 
-		{
+		log.info("loading properties from "+fileName);
+		try {
 			Properties properties = new Properties();
-			FileInputStream in = new FileInputStream(_configDir+"device.properties");
+			FileInputStream in = new FileInputStream(fileName);
 			properties.load(in);
-			
-			_deviceID=properties.getProperty("DeviceID");
-			_deviceType=properties.getProperty("DeviceType");
-			_deviceURL=properties.getProperty("DeviceURL");
 			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
+			String property=properties.getProperty("BaseDir");
+			if (property!=null && property.startsWith("./")) {
+				property=property.substring(2);
+				property=_devProperties.getAppDir()+property;
+			}
+			_devProperties.setBaseDir(property);
+			
+			property=properties.getProperty("ConfigDir");
+			if (property!=null && property.startsWith("./")) {
+				property=property.substring(2);
+				property=_devProperties.getAppDir()+property;
+			}
+			_devProperties.setConfigDir(property);
+			
+			property=properties.getProperty("JDFDir");
+			if (property!=null && property.startsWith("./")) {
+				property=property.substring(2);
+				property=_devProperties.getAppDir()+property;
+			}
+			_devProperties.setJDFDir(property);
 			
 			in.close();
 		} catch (FileNotFoundException e) {
-			log.fatal("device.properties not found");
+			log.fatal(fileName+" not found");
 			return false;
 		} catch (IOException e) {
-			log.fatal("Error while applying device.properties");
+			log.fatal("Error while applying properties from "+fileName);
 			return false;
 		}
 		return true;
@@ -359,15 +370,15 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	}
 	
 	public String getDeviceID() {
-		return _deviceID;
+		return _devProperties.getDeviceID();
 	}
 
 	public String getDeviceURL() {
-		return _deviceURL;
+		return _devProperties.getDeviceURL();
 	}
 	
 	public String getDeviceType() {
-        return _deviceType;
+        return _devProperties.getDeviceType();
     }
 	
 	/**

@@ -91,7 +91,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 	protected static final Log log = LogFactory.getLog(WorkerQueueProcessor.class.getName());
 
 	public WorkerQueueProcessor(String deviceID, AbstractDevice theParent, String appDir) {
-		super(deviceID,theParent,appDir);
+		super(deviceID,theParent);
 	}
 
 	@Override

@@ -84,6 +84,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
+import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IStatusListener;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
@@ -158,15 +159,13 @@ public abstract class AbstractBambiDeviceProcessor extends AbstractDeviceProcess
 	 * constructor
 	 * @param queueProcessor points to the QueueProcessor
 	 * @param statusListener points to the StatusListener
-	 * @param deviceID       ID of the device this DeviceProcessor belogs to
-	 * @param appDir         the location of the web application
+	 * @param devProperties  device properties
 	 */
 	public AbstractBambiDeviceProcessor(IQueueProcessor queueProcessor, 
-			IStatusListener statusListener, String deviceID, String appDir)
+			IStatusListener statusListener, IDeviceProperties devProperties)
 	{
 		super();
-		_appDir=appDir;
-        init(queueProcessor, statusListener, deviceID, appDir);
+        init(queueProcessor, statusListener, devProperties);
 	}
 	
 	/**
@@ -180,14 +179,13 @@ public abstract class AbstractBambiDeviceProcessor extends AbstractDeviceProcess
    
     /**
      * initialize the IDeviceProcessor
-     * @param deviceID 
      * @param _queueProcessor
      * @param _statusListener
      */
     @Override
-	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID, String appDir)
+	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, IDeviceProperties devProperties)
     {
-    	super.init(queueProcessor, statusListener, deviceID, appDir);
+    	super.init(queueProcessor, statusListener, devProperties);
         _jobPhases = new ArrayList<JobPhase>();
     }
     
@@ -203,13 +201,13 @@ public abstract class AbstractBambiDeviceProcessor extends AbstractDeviceProcess
     /**
      * check whether qe has been suspended before, and get its remaining job phases if there are any.
      * @param qe the QueueEntry to look for
-     * @return a {@link List} of {@link JobPhase}. Returns null if no remaining phases have been found
+     * @return a {@link List} of {@link JobPhase}. Returns null if no remaining phases have been found.
      */
     @SuppressWarnings({ "unchecked", "unchecked" })
 	protected List<JobPhase> resumeQueueEntry(JDFQueueEntry qe)
     {
     	String queueEntryID=qe.getQueueEntryID();
-    	String fileName = _appDir+"/jmb/"+queueEntryID+".phases";
+    	String fileName = _devProperties.getBaseDir()+queueEntryID+".phases";
 		FileInputStream f_in=null;
 		try {
 			f_in = new FileInputStream(fileName);
@@ -279,7 +277,7 @@ public abstract class AbstractBambiDeviceProcessor extends AbstractDeviceProcess
 		phases.set(0, firstPhase);
 		
 		// serialize the remaining job phases
-		String fileName = _appDir+"/jmb/"+queueEntryID+".phases";
+		String fileName = _devProperties.getBaseDir()+queueEntryID+".phases";
 		FileOutputStream f_out=null;
 		try {
 			f_out = new FileOutputStream(fileName);

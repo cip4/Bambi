@@ -31,7 +31,7 @@
 		<div style="margin-left: 20px">
 			<b>ID: </b> <%= dev.getDeviceID() %> <br/>
 			<b>Class: </b> <%= dev.getDeviceType() %><br/>
-			<b>URL: </b> http://<%=request.getLocalAddr() + ":" + request.getServerPort() + request.getContextPath()+"/devices/"+dev.getDeviceID()%><br/>
+			<b>URL: </b> <%=dev.getDeviceURL()%> <br/>
 			<b>Status: </b> <%= dev.getDeviceStatus().getName() %>
 		</div>
 		

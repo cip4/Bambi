@@ -72,9 +72,6 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -219,13 +216,11 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
         String deviceID=_devProperties.getDeviceID();
         _theDeviceProcessor = buildDeviceProcessor();
         if (_theDeviceProcessor!=null) {
-            _theDeviceProcessor.init(_theQueueProcessor, _theStatusListener, deviceID, prop.getAppDir());
+            _theDeviceProcessor.init(_theQueueProcessor, _theStatusListener, _devProperties);
             String deviceProcessorClass=_theDeviceProcessor.getClass().getSimpleName();
             new Thread(_theDeviceProcessor,deviceProcessorClass+"_"+deviceID).start();
             log.info("device thread started: "+deviceProcessorClass+"_"+deviceID);
         }
-
-        _devProperties.setDeviceURL( createDeviceURL(deviceID) );
 
         final String hfURL=prop.getHotFolderURL();
         createHotFolder(hfURL);
@@ -387,30 +382,6 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
         return qe;
     }
 
-    /**
-     * build the URL of this device
-     * @param deviceID the ID of the device to get the URL for. Use "" for the Bambi Root Device.
-     * @return
-     */
-    private String createDeviceURL(String deviceID) {
-        Properties properties = new Properties();
-        FileInputStream in=null;
-        String deviceURL=null;
-        try {
-            in = new FileInputStream(_devProperties.getAppDir()+"config/device.properties");
-            properties.load(in);
-            JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
-            deviceURL= properties.getProperty("DeviceURL");
-            if (deviceID!=null && deviceID.length()>0)
-                deviceURL += "/"+deviceID;
-            in.close();
-        } catch (IOException e) {
-            log.error("failed to load properties: \r\n"+e.getMessage());
-            return null;
-        }
-        return deviceURL;
-    }
-
     /* (non-Javadoc)
      * @see org.cip4.bambi.IDevice#getDeviceURL()
      */
@@ -460,4 +431,16 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
      * @return
      */
     protected abstract AbstractDeviceProcessor buildDeviceProcessor();
+    
+    public String getBaseDir() {
+    	return _devProperties.getBaseDir();
+    }
+    
+    public String getConfigDir() {
+    	return _devProperties.getConfigDir();
+    }
+    
+    public String getJDFDir() {
+    	return _devProperties.getJDFDir();
+    }
 }

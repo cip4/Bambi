@@ -77,6 +77,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IStatusListener;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.workers.core.AbstractBambiDeviceProcessor;
@@ -108,7 +109,7 @@ public class SimDeviceProcessor extends AbstractBambiDeviceProcessor
 	 */
 	private void initSimDeviceProcessor(String deviceID) {     
         // try to load default a default job
-        boolean hasLoaded = loadJobFromFile(_appDir+"/config/job_"+deviceID+".xml");
+        boolean hasLoaded = loadJobFromFile(_devProperties.getConfigDir()+"job_"+deviceID+".xml");
         if (hasLoaded)
         	randomizeJobPhases(10.0, 30.0);
         else
@@ -126,7 +127,7 @@ public class SimDeviceProcessor extends AbstractBambiDeviceProcessor
 		// if fileName has no file separator it is assumed to be on the server and 
 		// needs the config dir to be added
 		if ( !fileName.contains(File.separator) )  
-			fileName = _appDir+fileName;
+			fileName = _devProperties.getAppDir()+fileName;
 		_originalPhases = new ArrayList<JobPhase>();
 		_originalPhases.clear();
 		JDFParser p = new JDFParser();
@@ -272,16 +273,16 @@ public class SimDeviceProcessor extends AbstractBambiDeviceProcessor
 	}
 	
 	public SimDeviceProcessor(IQueueProcessor queueProcessor, 
-			IStatusListener statusListener,	String deviceID, String appDir) {
-		super(queueProcessor, statusListener, deviceID, appDir);
-		initSimDeviceProcessor(deviceID);
+			IStatusListener statusListener, IDeviceProperties devProperties) {
+		super(queueProcessor, statusListener, devProperties);
+		initSimDeviceProcessor(devProperties.getDeviceID());
 	}
 	
 	@Override
 	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, 
-			String deviceID, String appDir) {
-		super.init(queueProcessor, statusListener, deviceID, appDir);
-		initSimDeviceProcessor(deviceID);
+			IDeviceProperties devProperties) {
+		super.init(queueProcessor, statusListener, devProperties);
+		initSimDeviceProcessor(devProperties.getDeviceID());
 	}
 	
 	public SimDeviceProcessor() {

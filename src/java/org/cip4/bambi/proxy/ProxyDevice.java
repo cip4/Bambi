@@ -81,11 +81,6 @@ public class ProxyDevice extends AbstractDevice {
 	public ProxyDevice(IDeviceProperties properties) {
 		super(properties);
 	}
-	
-	@Override
-	public void init(IDeviceProperties properties) {
-		super.init(properties);
-	}
 
 	/**
 	 * returns null, since the ProxyDevice doesn't need a DeviceProcessor
@@ -94,7 +89,6 @@ public class ProxyDevice extends AbstractDevice {
 	protected AbstractDeviceProcessor buildDeviceProcessor() {
 		return null;
 	}
-
 
 	@Override
 	protected IQueueProcessor buildQueueProcessor() {

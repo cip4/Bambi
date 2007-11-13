@@ -178,7 +178,7 @@ public class DeviceServletTest extends BambiTestCase {
 	{
 		AbstractWorkerServlet d = new SimWorkerServlet();
 		assertEquals( 0,d.getDeviceQuantity() ); 
-		MultiDeviceProperties dp = new MultiDeviceProperties( null,new File(sm_dirTestData+"test_devices.xml") );
+		MultiDeviceProperties dp = new MultiDeviceProperties( null,sm_dirTestData+"test_devices.xml" );
 		assertNotNull( d.createDevice(dp.getDevice("device001")) );
         assertNotNull( d.createDevice(dp.getDevice("device002")) );
 		assertNull( d.createDevice(dp.getDevice("device002")) );
@@ -192,7 +192,7 @@ public class DeviceServletTest extends BambiTestCase {
 	{
 		AbstractWorkerServlet d = new SimWorkerServlet();
 		assertEquals( 0,d.getDeviceQuantity() );
-		MultiDeviceProperties dp = new MultiDeviceProperties( null,new File(sm_dirTestData+"test_devices.xml") );
+		MultiDeviceProperties dp = new MultiDeviceProperties( null,sm_dirTestData+"test_devices.xml" );
 		assertNotNull( d.createDevice(dp.getDevice("device001")) );
         assertNotNull( d.createDevice(dp.getDevice("device002")) );
 		assertEquals( 2,d.getDeviceQuantity() );
@@ -235,14 +235,13 @@ public class DeviceServletTest extends BambiTestCase {
     	}
     }
     
-    public void testCreateDevicesFromFile() {
-    	AbstractWorkerServlet d = new SimWorkerServlet();
-    	assertEquals( 0,d.getDeviceQuantity() );
-    	File f=new File(simConfigDir+"devices.xml");
-    	d.createDevicesFromFile(f);
-    	assertEquals( 2,d.getDeviceQuantity() );
-    	
-    	removeDir( new File("nulljmb") );
-    }
+//    public void testCreateDevicesFromFile() {
+//    	AbstractWorkerServlet s = new SimWorkerServlet();
+//    	assertEquals( 0,s.getDeviceQuantity() );
+//    	s.createDevicesFromFile(simConfigDir+"devices.xml");
+//    	assertEquals( 2,s.getDeviceQuantity() );
+//    	
+//    	removeDir( new File("nulljmb") );
+//    }
     
 }

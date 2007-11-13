@@ -97,13 +97,10 @@ public interface IDeviceProcessor extends Runnable
      * initialize the IDeviceProcessor
      * @param queueProcessor the queueprocessor
      * @param statusListener the status listener
-     * @param deviceID       the device ID
-     * @param appDir         the location of the web application on the disk 
-     *                       (required for loading the config files without relying 
-     *                        on Tomcat-specific system properties)
+     * @param devProperties  device properties
      */
     public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, 
-    		String deviceID, String appDir);
+    		IDeviceProperties devProperties);
     
     /**
      * stop the device processor loop

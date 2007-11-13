@@ -49,6 +49,44 @@ public interface IDeviceProperties {
 	 * @return the location of the web application on the hard disk
 	 */
 	public String getAppDir();
+	
+	/**
+	 * set the base dir of the web application
+	 * @param baseDir the base dir of the web application
+	 */
+	public void setBaseDir(String baseDir);
+
+	/**
+	 * get the base dir of the web application
+	 * @return the base dir of the web application
+	 */
+	public String getBaseDir();
+	
+	/**
+	 * set the directory containing the JDF documents
+	 * @param jdfDir the directory containing the JDF documents
+	 */
+	public void setJDFDir(String jdfDir);
+
+	/**
+	 * get the directory containing the JDF documents
+	 * @return the directory containing the JDF documents
+	 */
+	public String getJDFDir();
+	
+	/**
+	 * set the directory containing the config files of the application
+	 * @param jdfDir the directory containing the config files of the application
+	 */
+	public void setConfigDir(String configDir);
+
+	/**
+	 * get the directory containing the config files of the application
+	 * @return the directory containing the config files of the application
+	 */
+	public String getConfigDir();
+	
+	
 
 	/**
 	 * get a String representation of this DeviceProperty

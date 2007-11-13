@@ -75,6 +75,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
@@ -108,10 +109,9 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	protected IStatusListener _statusListener;
 	protected Object _myListener; // the mutex for waiting and reawakening
 	protected String _trackResourceID=null;
-	protected String _deviceID=null;
+	protected IDeviceProperties _devProperties=null;
 	protected List<ChangeQueueEntryStatusRequest> _updateStatusReqs=null;
-	protected String _appDir=null;
-	protected boolean doShutdown=false;
+	protected boolean _doShutdown=false;
 
 	protected static class ChangeQueueEntryStatusRequest {
 		public String queueEntryID=null;
@@ -126,15 +126,13 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	 * constructor
 	 * @param queueProcessor points to the QueueProcessor
 	 * @param statusListener points to the StatusListener
-	 * @param deviceID       ID of the device this DeviceProcessor belogs to
-	 * @param appDir         the location of the web application
+	 * @param devProperties TODO
 	 */
 	public AbstractDeviceProcessor(IQueueProcessor queueProcessor, 
-			IStatusListener statusListener, String deviceID, String appDir)
+			IStatusListener statusListener, DeviceProperties devProperties)
 	{
 		super();
-		_appDir=appDir;
-        init(queueProcessor, statusListener, deviceID, appDir);
+        init(queueProcessor, statusListener, devProperties);
 	}
 	
 	/**
@@ -149,7 +147,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
      * this is the device processor loop
      */
 	public void run() {
-		while (!doShutdown)
+		while (!_doShutdown)
 		{
             if(!processQueueEntry())
             {
@@ -172,20 +170,18 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
    
     /**
      * initialize the IDeviceProcessor
-     * @param deviceID 
      * @param _queueProcessor
      * @param _statusListener
      */
-    public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, String deviceID, String appDir)
+    public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, IDeviceProperties devProperties)
     {
     	log.info(this.getClass().getName()+" construct");
         _queueProcessor=queueProcessor;
         _myListener=new Object();
         _queueProcessor.addListener(_myListener);
         _statusListener=statusListener;
-        _deviceID=deviceID;
+        _devProperties=devProperties;
         _updateStatusReqs=new ArrayList<ChangeQueueEntryStatusRequest>();
-        _appDir=appDir;
     }
     
     protected boolean processQueueEntry()
@@ -249,7 +245,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             log.error("proccessing null job");
             return EnumQueueEntryStatus.Aborted;
         }
-		BambiNSExtension.setDeviceID(qe, _deviceID);
+		BambiNSExtension.setDeviceID(qe, _devProperties.getDeviceID());
         final String queueEntryID = qe.getQueueEntryID();
         log.info("Processing queueentry "+queueEntryID);
         JDFNode node=doc.getJDFRoot();
@@ -316,7 +312,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	}
 	
 	public void shutdown() {
-		doShutdown=true;
+		_doShutdown=true;
 	}
 	
 }

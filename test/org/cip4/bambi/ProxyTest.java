@@ -78,6 +78,7 @@ import javax.mail.Multipart;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -94,19 +95,7 @@ public class ProxyTest extends BambiTestCase {
 		abortRemoveAll(proxyUrl);
 	}
 	
-	public void testSubmitQueueEntry() {
-		fail( "implement" );
-	}
-	
-	public void testSubmitQueueEntry_MIME() {
-		// get number of QueueEntries before submitting
-		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = JMFFactory.send2URL(jmfStat, proxyUrl);
-		assertNotNull( resp );
-		assertEquals( 0,resp.getReturnCode() );
-		JDFQueue q = resp.getQueue(0);
-		assertNotNull( q );
-		
+	private void submitMimeToProxy() {
 		// build SubmitQueueEntry
 		JDFDoc docJMF=new JDFDoc("JMF");
         JDFJMF jmf=docJMF.getJMFRoot();
@@ -124,14 +113,51 @@ public class ProxyTest extends BambiTestCase {
         } catch (Exception e) {
         	fail( e.getMessage() ); // fail on exception
         }
+	}
+	
+	public void testSubmitQueueEntry() {
+		
+		fail( "implement" );
+	}
+	
+	public void testSubmitQueueEntry_MIME() {
+		// get number of QueueEntries before submitting
+		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
+		JDFResponse resp = JMFFactory.send2URL(jmfStat, proxyUrl);
+		assertNotNull( resp );
+		assertEquals( 0,resp.getReturnCode() );
+		JDFQueue q = resp.getQueue(0);
+		assertNotNull( q );
+		int oldSize=q.getEntryCount();
+		submitMimeToProxy();
         
         // check that the QE is on the proxy
-        // FIXME continue
+		JDFJMF jmf = JMFFactory.buildQueueStatus();
+        resp=JMFFactory.send2URL(jmf, proxyUrl);
+        assertNotNull( resp );
+        assertEquals( 0,resp.getReturnCode() );
+        q=resp.getQueue(0);
+        assertNotNull( q );
+        int newCount=q.getEntryCount();
+        assertEquals( oldSize+1,newCount );
         
         abortRemoveAll(simWorkerUrl);
 	}
 	
 	public void testAbortQueueEntry() {
-		fail( "implement" );
+		submitMimeToProxy();
+		JDFJMF jmf = JMFFactory.buildQueueStatus();
+        JDFResponse resp=JMFFactory.send2URL(jmf, proxyUrl);
+        assertNotNull( resp );
+        assertEquals( 0,resp.getReturnCode() );
+        JDFQueue q=resp.getQueue(0);
+        assertNotNull( q );
+        
+        VElement elem=q.getQueueEntryVector();
+        assertTrue( elem.size()>0 );
+        for (int i=0;i<elem.size();i++) {
+        	// FIXME continue here
+        	fail();
+        }
 	}
 }

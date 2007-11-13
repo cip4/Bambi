@@ -103,7 +103,7 @@ public class BambiTestCase extends TestCase {
     	Properties properties = new Properties();
 		FileInputStream in=null;
 		try {
-			in = new FileInputStream(simConfigDir+"Device.properties");
+			in = new FileInputStream(simConfigDir+"application.properties");
 			properties.load(in);
 			simWorkerUrl=properties.getProperty("DeviceURL")+"/sim002";
 			in.close();
@@ -119,7 +119,7 @@ public class BambiTestCase extends TestCase {
 		properties = new Properties();
 		in=null;
 		try {
-			in = new FileInputStream(proxyConfigDir+"device.properties");
+			in = new FileInputStream(proxyConfigDir+"application.properties");
 			properties.load(in);
 			proxyUrl=properties.getProperty("DeviceURL")+"/proxy001";
 			in.close();
