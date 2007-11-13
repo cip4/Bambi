@@ -70,6 +70,9 @@
  */
 package org.cip4.bambi.proxy;
 
+import java.io.File;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
@@ -81,6 +84,7 @@ import org.cip4.bambi.core.queues.AbstractQueueProcessor;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -92,6 +96,8 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  *
@@ -114,23 +120,23 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        if(m==null) {
 	            return false;
 	        }
-	        //log.info("Handling "+m.getType());
 	        EnumType typ=m.getEnumType();
+            //log.info("Handling "+m.getType());
 	        if(EnumType.RequestQueueEntry.equals(typ)) {
 	        	// check for valid RequestQueueEntryParams
 	        	JDFRequestQueueEntryParams qep = m.getRequestQueueEntryParams(0);
-	        	String queueURL=null;
 	        	if (qep==null) {
 	        		log.error("QueueEntryParams missing in RequestQueueEntry message");
 	        		return false;
 	        	}
-	        	queueURL=qep.getQueueURL();
+                final String queueURL=qep.getQueueURL();
 	        	if (queueURL==null || queueURL.length()<1) {
 	        		log.error("queueURL is missing");
 	        		return false;
 	        	}
-	        		        	
-	        	String queueEntryID = qep.getJobID();        	
+	        	
+                final String deviceID=m.getSenderID();
+	        	final String queueEntryID = qep.getJobID();        	
 	        	if (queueEntryID!=null && queueEntryID.length()>0) {
 	        		// submit a specific QueueEntry
 	        		JDFQueueEntry qe = _theQueue.getQueueEntry(queueEntryID);
@@ -140,7 +146,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        			// submitted twice. If SubmitQE fails, mark it as waiting so other workers
 	        			// can grab it.
 	        			qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
-	        			boolean submitted=submitQueueEntry(qe, queueURL);
+	        			boolean submitted=submitQueueEntry(qe, queueURL, deviceID);
 	        			if (!submitted) {
 	        				qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
 	        			}
@@ -153,7 +159,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        		// submit the next QueueEntry available
 	        		IQueueEntry qe = getNextEntry();
 	        		if (qe!=null) {
-	        			submitQueueEntry( qe.getQueueEntry(),qep.getQueueURL() );
+	        			submitQueueEntry( qe.getQueueEntry(),qep.getQueueURL(), deviceID );
 	        		} else {
 	        			//log.info("RequestQueueEntry won't trigger Submit: no QueueEntries waiting in root device");
 	        		}
@@ -270,7 +276,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	protected static final Log log = LogFactory.getLog(ProxyQueueProcessor.class.getName());
 	protected IQueueEntryTracker _tracker=null;
 	
-	public ProxyQueueProcessor(String deviceID, AbstractDevice theParent, String appDir) {
+	public ProxyQueueProcessor(String deviceID, AbstractDevice theParent) {
 		super(deviceID,theParent);
 		_tracker=new QueueEntryTracker(_configDir, deviceID);
 		_theQueue.setMaxRunningEntries(99);
@@ -293,7 +299,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	 * @param targetURL the URL to submit the QueueEntry to
 	 * @return true, if successful
 	 */
-	protected boolean submitQueueEntry(JDFQueueEntry qe, String targetURL)
+	protected boolean submitQueueEntry(JDFQueueEntry qe, String targetURL, String deviceID)
 	{
 		if ( BambiNSExtension.getDeviceID(qe)!=null ) {
 			log.error( "QueueEntry '"+qe.getQueueEntryID()+"' has already been forwarded" );
@@ -304,45 +310,59 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 		if (targetURL.endsWith("/")) {
 			targetURL = targetURL.substring(0, targetURL.length()-2);
 		}
-		// set device ID
-		String deviceID = targetURL.substring(targetURL.lastIndexOf("/"));
+		// recalculate device ID
+        if(KElement.isWildCard(deviceID))
+            deviceID = targetURL.substring(targetURL.lastIndexOf("/"));
+        
 		BambiNSExtension.setDeviceID(qe, deviceID);
 		BambiNSExtension.setDeviceURL(qe,targetURL);
 		
 		// build SubmitQueueEntry
-		JDFDoc docJMF=new JDFDoc("JMF");
-        JDFJMF jmf=docJMF.getJMFRoot();
-        JDFCommand com = (JDFCommand)jmf.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
-        JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
-        qsp.setURL( _parent.getDeviceURL()+"?cmd=showJDFDoc&qeid="+qe.getQueueEntryID() );
-        String returnURL = BambiNSExtension.getReturnURL(qe);
-        // QueueSubmitParams need either ReturnJMF or ReturnURL
-        if (returnURL!=null && returnURL.length()>0) {
-        	qsp.setReturnURL( _parent.getDeviceURL() );
-        } else {
-        	returnURL=_parent.getDeviceURL();
-        	String returnJMF = BambiNSExtension.getReturnJMF(qe); 
-        	if (returnJMF!=null && returnJMF.length()>0) {
-        		qsp.setReturnJMF( returnJMF );
-        	} else {
-        		qsp.setReturnJMF( _parent.getDeviceURL() );
-        	}
+		File fOut=UrlUtil.urlToFile(targetURL);
+        if(fOut!=null)
+        {
+            File fIn=UrlUtil.urlToFile(BambiNSExtension.getDocURL(qe));
+            if(fIn!=null && fIn.canRead())
+            {
+                return FileUtil.copyFile(fIn, fOut);
+            }  
+            return false; // snafu ...
         }
-        
-        JDFResponse resp = JMFFactory.send2URL(jmf, targetURL);
-        if (resp!=null && resp.getReturnCode()==0) {
-        	JDFQueueEntry newQE = resp.getQueueEntry(0);
-        	 qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
-     		_tracker.addEntry(qe.getQueueEntryID(), newQE.getQueueEntryID(), deviceID, targetURL);
-     		return true;
-        }
-		String respError = resp==null ? "response is null" : "ReturnCode is "+resp.getReturnCode();  
-		log.error("failed to send SubmitQueueEntry, "+respError);
-		BambiNSExtension.setDeviceID(qe, null);
-		return false;
-        
-	}
+        else // not a file url - assume JMF
+        {
+            JDFJMF jmf=JDFJMF.createJMF(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
+            JDFCommand com = (JDFCommand)jmf.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
+            JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
+            qsp.setURL( _parent.getDeviceURL()+"?cmd=showJDFDoc&qeid="+qe.getQueueEntryID() );
+            String returnURL = BambiNSExtension.getReturnURL(qe);
+            // QueueSubmitParams need either ReturnJMF or ReturnURL
+            if (returnURL!=null && returnURL.length()>0) {
+                qsp.setReturnURL( _parent.getDeviceURL() );
+            } else {
+                returnURL=_parent.getDeviceURL();
+                String returnJMF = BambiNSExtension.getReturnJMF(qe); 
+                if (returnJMF!=null && returnJMF.length()>0) {
+                    qsp.setReturnJMF( returnJMF );
+                } else {
+                    qsp.setReturnJMF( _parent.getDeviceURL() );
+                }
+            }
 
+            JDFResponse resp = JMFFactory.send2URL(jmf, targetURL);
+            if (resp!=null && resp.getReturnCode()==0) {
+                JDFQueueEntry newQE = resp.getQueueEntry(0);
+                qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
+                _tracker.addEntry(qe.getQueueEntryID(), newQE.getQueueEntryID(), deviceID, targetURL);
+                return true;
+            }
+            String respError = resp==null ? "response is null" : "ReturnCode is "+resp.getReturnCode();  
+            log.error("failed to send SubmitQueueEntry, "+respError);
+            BambiNSExtension.setDeviceID(qe, null);
+            return false;
+        }
+	}
+//////////////////////////////////////////////////////////////////////////////
+    
 	@Override
 	protected void handleAbortQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {

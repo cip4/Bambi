@@ -115,10 +115,10 @@ public class ProxyServlet extends AbstractBambiServlet
 	@Override
 	public void init(ServletConfig config) throws ServletException 
 	{
+        _devices=new HashMap<String, IDevice>();
 		super.init(config);
 		ServletContext context = config.getServletContext();
 		log.info( "Initializing servlet for "+context.getServletContextName() );
-        _devices=new HashMap<String, IDevice>();
         createDevices();
 	}
 
@@ -130,7 +130,7 @@ public class ProxyServlet extends AbstractBambiServlet
 		Iterator<String> it=keys.iterator();
 		while (it.hasNext()) {
 			String devID=it.next().toString();
-			ProxyDevice dev=(ProxyDevice) _devices.get(devID);
+			IDevice dev= _devices.get(devID);
 			dev.shutdown();
 		}
 	}
@@ -236,7 +236,7 @@ public class ProxyServlet extends AbstractBambiServlet
 			Object[] strKeys = keys.toArray();
 			for (int i=0; i<keys.size();i++) {
 				String key = (String)strKeys[i];
-				ProxyDevice dev = (ProxyDevice) _devices.get(key);
+				IDevice dev = _devices.get(key);
 				if (dev == null)
 					log.error("device with key '"+key+"'not found");
 				else

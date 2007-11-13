@@ -129,7 +129,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	 * @param devProperties TODO
 	 */
 	public AbstractDeviceProcessor(IQueueProcessor queueProcessor, 
-			IStatusListener statusListener, DeviceProperties devProperties)
+			IStatusListener statusListener, IDeviceProperties devProperties)
 	{
 		super();
         init(queueProcessor, statusListener, devProperties);

@@ -92,7 +92,7 @@ public class ProxyDevice extends AbstractDevice {
 
 	@Override
 	protected IQueueProcessor buildQueueProcessor() {
-		return new ProxyQueueProcessor(_devProperties.getDeviceID(), this, _devProperties.getAppDir());
+		return new ProxyQueueProcessor(_devProperties.getDeviceID(), this);
 	}
 	
 }

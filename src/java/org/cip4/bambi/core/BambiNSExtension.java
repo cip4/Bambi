@@ -72,6 +72,7 @@
 package org.cip4.bambi.core;
 
 
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.KElement;
 
@@ -199,7 +200,17 @@ public class BambiNSExtension
         return getMyNSAttribute(ke,docURL);
     }
         
-    /*** returnURL **********************************************************/
+    /**
+     * get the associated JDF
+     * @param ke the KElement to work on
+     * @return docURL the location of the JDF
+     */
+    public static JDFDoc getDocFromURL(KElement ke)
+    {
+        String url=getMyNSAttribute(ke,docURL);
+        return JDFDoc.parseURL(url, null);
+    }
+   /*** returnURL **********************************************************/
     /**
      * the URL to send the JDFDoc back to after processing
      */

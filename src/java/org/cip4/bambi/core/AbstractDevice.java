@@ -402,15 +402,18 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     }
 
     /**
-	 * stop the signal dispatcher and device processor, if they are not null
+	 * stop the signal dispatcher, hot folder and device processor, if they are not null
      */
     public void shutdown() {
 		if (_theSignalDispatcher!=null) {
 			_theSignalDispatcher.shutdown();
 		}
-		if (_theDeviceProcessor!=null) {
-			_theDeviceProcessor.shutdown();
-		}
+        if (_theDeviceProcessor!=null) {
+            _theDeviceProcessor.shutdown();
+        }
+        if (_submitHotFolder!=null) {
+            _submitHotFolder.stop();
+        }
 	}
 
     /**

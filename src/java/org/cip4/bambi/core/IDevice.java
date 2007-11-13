@@ -71,6 +71,9 @@
 
 package org.cip4.bambi.core;
 
+import org.cip4.jdflib.resource.JDFDeviceList;
+
+
 /**
  * interface for all devices in Bambi
  * @author boegerni
@@ -95,5 +98,19 @@ public interface IDevice {
 	 * @return
 	 */
 	public abstract String getDeviceURL();
+
+    /**
+     * append the JDFDeviceInfo of this device to a given JDFDeviceList
+     * @param dl the JDFDeviceList, where the JDFDeviceInfo will be appended
+     * @return true, if successful
+    */
+    public boolean appendDeviceInfo(JDFDeviceList dl);
+
+    /**
+     * shut down the device
+     */
+    public void shutdown();
+    
+    
 
 }

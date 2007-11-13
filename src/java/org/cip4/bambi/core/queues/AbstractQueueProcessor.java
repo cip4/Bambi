@@ -674,7 +674,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         
         // try to load from local file system first, then try URL
         String docURL=BambiNSExtension.getDocURL(qe);
-		JDFDoc theDoc = loadDocFromURL(docURL);
+		JDFDoc theDoc = JDFDoc.parseURL(docURL, null);
 		if (theDoc==null) {
 			log.error( "QueueProcessor in thread '"+Thread.currentThread().getName()
 					+"' is unable to load the JDFDoc from '"+docURL+"'");
@@ -682,73 +682,6 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 		}
 		return new QueueEntry(theDoc,qe);
     }
-
-    /**
-     * get and parse a JDFDoc from an URL
-     * @param docURL the location of the JDFDoc to get and parse. 
-     *               May point to an HTTP URL or to a file.
-     * @return a JDFDoc if successful, null if not
-     */
-	protected JDFDoc loadDocFromURL(String docURL) {
-		JDFDoc theDoc=null;
-        if (UrlUtil.isHttp(docURL)) {
-        	String docStr="";
-        	URL url;
-        	BufferedReader br=null;
-        	InputStream is=null;
-			try {
-				url = new URL(docURL);		
-				URLConnection conn = url.openConnection();
-        		is=conn.getInputStream();
-        		br=new BufferedReader( new InputStreamReader(is) );
-        		String read=br.readLine();
-        		while ( read!=null ) {
-        			docStr+=read;
-        			read=br.readLine();
-        		}
-        		
-        		br.close();
-        		is.close();   		
-			} catch (MalformedURLException e) {
-				log.error("failed to download file, invalid URL '"+docURL+"'");
-			} catch (IOException e) {
-				log.error("failed to download file from URL '"+docURL+"'. Error: "
-						+e.getMessage());
-			} finally {		
-				try {
-					if (is!=null) {
-						is.close();
-					}
-					if (br!=null) {
-						br.close();
-					}
-				} catch (IOException e) {
-					log.error("failed to download file from URL '"+docURL+"'. Error: "
-							+e.getMessage());
-				}
-			}
-			
-			JDFParser p=new JDFParser();
-			theDoc=p.parseString(docStr);
-        } else {
-        	theDoc=JDFDoc.parseFile(docURL);
-        }
-		return theDoc;
-	}
-	
-	/**
-	 * get and parse a JDFDoc from a given file 
-	 * @param file the full path of the  file to load the JDFDoc from
-	 * @return a JDFDoc, null if the file could notbe read or an error occured
-	 */
-	protected JDFDoc loadDocFromFile(String file) {
-		if ( !new File(file).canRead() ) {
-			log.warn( "failed to load JDFDoc from file "+file );
-			return null;
-		}
-		JDFDoc doc=JDFDoc.parseFile(file);
-		return doc;
-	}
 
     /* (non-Javadoc)
      * @see org.cip4.bambi.IQueueProcessor#addListener(java.lang.Object)
@@ -902,9 +835,9 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         final String queueEntryID = qe.getQueueEntryID();
         qerp.setQueueEntryID(queueEntryID);
         String docFile=_jdfDir+qe.getQueueEntryID()+".jdf";
-        JDFDoc docJDF = loadDocFromFile(docFile);
+        JDFDoc docJDF = JDFDoc.parseFile(docFile);
         if ( docJDF==null ) {
-        	log.equals("cannot load the JDFDoc from "+docFile);
+        	log.error("cannot load the JDFDoc from "+docFile);
         	return;
         }
         Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
