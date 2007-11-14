@@ -628,9 +628,9 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         log.info("QueueProcessor construct for device '"+deviceID+"'");
         _jdfDir=_parent.getJDFDir();
         if (_jdfDir!=null) { // will be null in unit tests
-        	File jdfDir=new File (_jdfDir);
-        if (!jdfDir.exists())
-        	new File(_jdfDir).mkdirs();
+            File jdfDir=new File (_jdfDir);
+            if (!jdfDir.exists())
+                jdfDir.mkdirs();
         }
         
         if(_queueFile==null)

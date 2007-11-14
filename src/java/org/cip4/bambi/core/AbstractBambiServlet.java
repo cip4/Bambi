@@ -170,8 +170,12 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		_devProperties=loadProperties(appDir, appDir+"config/application.properties");
 		
 		List<File> dirs=new ArrayList<File>();
-		dirs.add( new File(_devProperties.getBaseDir()) );
-		dirs.add( new File(_devProperties.getJDFDir()) );
+		final String baseDir = _devProperties.getBaseDir();
+        if(baseDir!=null)
+            dirs.add( new File(baseDir) );
+		final String jdfDir = _devProperties.getJDFDir();
+        if(jdfDir!=null)
+            dirs.add( new File(jdfDir) );
 		createDirs(dirs);
 		
 		_jmfHandler=new JMFHandler();
@@ -186,7 +190,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		for (int i=0;i<dirs.size();i++) {
 			File dir=dirs.get(i);
 			if (!dir.exists()) {
-				dir.mkdir();
+				dir.mkdirs();
 			}
 		}
 	}
