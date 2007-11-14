@@ -79,7 +79,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 
 import javax.mail.BodyPart;
@@ -96,6 +98,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -164,13 +167,28 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		ServletContext context = config.getServletContext();
 		log.info( "Initializing servlet for "+context.getServletContextName() );
 		String appDir=context.getRealPath("")+"/";
-		_devProperties=new MultiDeviceProperties.DeviceProperties();
-		_devProperties.setAppDir(appDir);
-		loadProperties(appDir+"config/application.properties");
-		new File(_devProperties.getBaseDir()).mkdirs();
-		new File(_devProperties.getJDFDir()).mkdirs();
+		_devProperties=loadProperties(appDir, appDir+"config/application.properties");
+		
+		List<File> dirs=new ArrayList<File>();
+		dirs.add( new File(_devProperties.getBaseDir()) );
+		dirs.add( new File(_devProperties.getJDFDir()) );
+		createDirs(dirs);
+		
 		_jmfHandler=new JMFHandler();
 		addHandlers();
+	}
+
+	/**
+	 * create the specified directories, if the do not exist
+	 * @param dirs the directories to create
+	 */
+	protected void createDirs(List<File> dirs) {
+		for (int i=0;i<dirs.size();i++) {
+			File dir=dirs.get(i);
+			if (!dir.exists()) {
+				dir.mkdir();
+			}
+		}
 	}
 	
 	protected abstract boolean handleKnownDevices(JDFMessage m, JDFResponse resp);
@@ -322,11 +340,13 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	
 	/**
 	 * loads properties
+	 * @param appDir   the directory of the web application
 	 * @param fileName the name of the Java .propert file
 	 * @return true, if the properties have been loaded successfully
 	 */
-	protected boolean loadProperties(String fileName)
+	protected IDeviceProperties loadProperties(String appDir, String fileName)
 	{
+		IDeviceProperties prop=new DeviceProperties();
 		log.info("loading properties from "+fileName);
 		try {
 			Properties properties = new Properties();
@@ -336,33 +356,33 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 			String property=properties.getProperty("BaseDir");
 			if (property!=null && property.startsWith("./")) {
 				property=property.substring(2);
-				property=_devProperties.getAppDir()+property;
+				property=appDir+property;
 			}
-			_devProperties.setBaseDir(property);
+			prop.setBaseDir(property);
 			
 			property=properties.getProperty("ConfigDir");
 			if (property!=null && property.startsWith("./")) {
 				property=property.substring(2);
-				property=_devProperties.getAppDir()+property;
+				property=appDir+property;
 			}
-			_devProperties.setConfigDir(property);
+			prop.setConfigDir(property);
 			
 			property=properties.getProperty("JDFDir");
 			if (property!=null && property.startsWith("./")) {
 				property=property.substring(2);
-				property=_devProperties.getAppDir()+property;
+				property=appDir+property;
 			}
-			_devProperties.setJDFDir(property);
+			prop.setJDFDir(property);
 			
 			in.close();
 		} catch (FileNotFoundException e) {
 			log.fatal(fileName+" not found");
-			return false;
+			return null;
 		} catch (IOException e) {
 			log.fatal("Error while applying properties from "+fileName);
-			return false;
+			return null;
 		}
-		return true;
+		return prop;
 	}
 	
 	protected void addHandlers() {
