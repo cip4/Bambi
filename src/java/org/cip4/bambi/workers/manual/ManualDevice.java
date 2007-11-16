@@ -123,6 +123,6 @@ public final class ManualDevice extends AbstractWorkerDevice   {
 
 	@Override
 	protected AbstractDeviceProcessor buildDeviceProcessor() {
-		return new ManualDeviceProcessor(_theQueueProcessor, _theStatusListener, _devProperties.getDeviceID(), _devProperties.getAppDir(), null);
+		return new ManualDeviceProcessor(_theQueueProcessor, _theStatusListener, _devProperties);
 	}
 }

@@ -70,15 +70,8 @@
  */
 package org.cip4.bambi.core.queues;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Vector;
 
 import javax.mail.Multipart;
@@ -94,7 +87,6 @@ import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
@@ -110,7 +102,6 @@ import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.MimeUtil;
-import org.cip4.jdflib.util.UrlUtil;
 
 /**
  *
@@ -603,12 +594,12 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     protected String _jdfDir=null;
     protected AbstractDevice _parent=null;
         
-    public AbstractQueueProcessor(String deviceID, AbstractDevice theParent) {
+    public AbstractQueueProcessor(AbstractDevice theParent) {
     	super();
     	_parent=theParent;
         _listeners=new Vector<Object>();
 
-    	this.init(deviceID);
+    	this.init();
     }
     
     /**
@@ -624,13 +615,14 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         jmfHandler.addHandler(this.new HoldQueueEntryHandler());
     }
 
-    protected void init(String deviceID) {
+    protected void init() {
+    	String deviceID=_parent.getDeviceID();
         log.info("QueueProcessor construct for device '"+deviceID+"'");
         _jdfDir=_parent.getJDFDir();
         if (_jdfDir!=null) { // will be null in unit tests
-            File jdfDir=new File (_jdfDir);
-            if (!jdfDir.exists())
-                jdfDir.mkdirs();
+        	File jdfDir=new File (_jdfDir);
+        if (!jdfDir.exists())
+        	new File(_jdfDir).mkdirs();
         }
         
         if(_queueFile==null)

@@ -76,6 +76,7 @@ import java.net.HttpURLConnection;
 import javax.mail.Multipart;
 
 import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VElement;
@@ -83,6 +84,7 @@ import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.MimeUtil;
@@ -115,11 +117,6 @@ public class ProxyTest extends BambiTestCase {
         }
 	}
 	
-	public void testSubmitQueueEntry() {
-		
-		fail( "implement" );
-	}
-	
 	public void testSubmitQueueEntry_MIME() {
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
@@ -144,20 +141,33 @@ public class ProxyTest extends BambiTestCase {
         abortRemoveAll(simWorkerUrl);
 	}
 	
-	public void testAbortQueueEntry() {
+	public void testAbortQueueEntry() throws InterruptedException {
 		submitMimeToProxy();
-		JDFJMF jmf = JMFFactory.buildQueueStatus();
-        JDFResponse resp=JMFFactory.send2URL(jmf, proxyUrl);
-        assertNotNull( resp );
-        assertEquals( 0,resp.getReturnCode() );
-        JDFQueue q=resp.getQueue(0);
-        assertNotNull( q );
-        
-        VElement elem=q.getQueueEntryVector();
-        assertTrue( elem.size()>0 );
-        for (int i=0;i<elem.size();i++) {
-        	// FIXME continue here
-        	fail();
-        }
+		
+		int loops=0;
+		boolean hasRunningQE=false;
+		while (loops<10 && !hasRunningQE) {
+			Thread.sleep(1000);
+			JDFJMF jmf = JMFFactory.buildQueueStatus();
+	        JDFResponse resp=JMFFactory.send2URL(jmf, proxyUrl);
+	        assertNotNull( resp );
+	        assertEquals( 0,resp.getReturnCode() );
+	        JDFQueue q=resp.getQueue(0);
+	        assertNotNull( q );
+	        
+	        VElement elem=q.getQueueEntryVector();
+	        assertTrue( elem.size()>0 );
+	        
+	        for (int i=0;i<elem.size();i++) {
+	        	JDFQueueEntry qe=(JDFQueueEntry) elem.get(i);
+	        	assertNotNull( qe );
+	        	if ( EnumQueueEntryStatus.Running.equals(qe.getQueueEntryStatus()) ) {
+	        		hasRunningQE=true;
+	        		break;   		
+	        	}
+	        }
+	        loops++;
+		}
+        assertTrue( hasRunningQE );        
 	}
 }

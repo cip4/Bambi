@@ -72,7 +72,6 @@ package org.cip4.bambi.proxy;
 
 import java.io.File;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
@@ -276,9 +275,10 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	protected static final Log log = LogFactory.getLog(ProxyQueueProcessor.class.getName());
 	protected IQueueEntryTracker _tracker=null;
 	
-	public ProxyQueueProcessor(String deviceID, AbstractDevice theParent) {
-		super(deviceID,theParent);
-		_tracker=new QueueEntryTracker(_configDir, deviceID);
+	public ProxyQueueProcessor(AbstractDevice theParent) {
+		super(theParent);
+		_configDir=theParent.getConfigDir();		
+		_tracker=new QueueEntryTracker(_configDir, theParent.getDeviceID());
 		_theQueue.setMaxRunningEntries(99);
 	}
 	
@@ -328,38 +328,38 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
             }  
             return false; // snafu ...
         }
-        else // not a file url - assume JMF
-        {
-            JDFJMF jmf=JDFJMF.createJMF(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
-            JDFCommand com = (JDFCommand)jmf.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
-            JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
-            qsp.setURL( _parent.getDeviceURL()+"?cmd=showJDFDoc&qeid="+qe.getQueueEntryID() );
-            String returnURL = BambiNSExtension.getReturnURL(qe);
-            // QueueSubmitParams need either ReturnJMF or ReturnURL
-            if (returnURL!=null && returnURL.length()>0) {
-                qsp.setReturnURL( _parent.getDeviceURL() );
-            } else {
-                returnURL=_parent.getDeviceURL();
-                String returnJMF = BambiNSExtension.getReturnJMF(qe); 
-                if (returnJMF!=null && returnJMF.length()>0) {
-                    qsp.setReturnJMF( returnJMF );
-                } else {
-                    qsp.setReturnJMF( _parent.getDeviceURL() );
-                }
-            }
+		JDFJMF jmf=JDFJMF.createJMF(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
+		JDFCommand com = (JDFCommand)jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command,0);
+		JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
+		qsp.setURL( _parent.getDeviceURL()+"?cmd=showJDFDoc&qeid="+qe.getQueueEntryID() );
+		String returnURL = BambiNSExtension.getReturnURL(qe);
+		// QueueSubmitParams need either ReturnJMF or ReturnURL
+		if (returnURL!=null && returnURL.length()>0) {
+		    qsp.setReturnURL( _parent.getDeviceURL() );
+		} else {
+		    returnURL=_parent.getDeviceURL();
+		    String returnJMF = BambiNSExtension.getReturnJMF(qe); 
+		    if (returnJMF!=null && returnJMF.length()>0) {
+		        qsp.setReturnJMF( returnJMF );
+		    } else {
+		        qsp.setReturnJMF( _parent.getDeviceURL() );
+		    }
+		}
 
-            JDFResponse resp = JMFFactory.send2URL(jmf, targetURL);
-            if (resp!=null && resp.getReturnCode()==0) {
-                JDFQueueEntry newQE = resp.getQueueEntry(0);
-                qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
-                _tracker.addEntry(qe.getQueueEntryID(), newQE.getQueueEntryID(), deviceID, targetURL);
-                return true;
-            }
-            String respError = resp==null ? "response is null" : "ReturnCode is "+resp.getReturnCode();  
-            log.error("failed to send SubmitQueueEntry, "+respError);
-            BambiNSExtension.setDeviceID(qe, null);
-            return false;
-        }
+		JDFResponse resp = JMFFactory.send2URL(jmf, targetURL);
+		if (resp!=null && resp.getReturnCode()==0) {
+		    JDFQueueEntry newQE = resp.getQueueEntry(0);
+		    qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
+		    _tracker.addEntry(qe.getQueueEntryID(), newQE.getQueueEntryID(), deviceID, targetURL);
+		    return true;
+		}
+		String respError = resp==null ? "response is null" : "ReturnCode is "+resp.getReturnCode();
+		if (resp!=null) {
+			respError += ", JDFResponse is: \r\n"+resp.getText();
+		}
+		log.error("failed to send SubmitQueueEntry, "+respError);
+		BambiNSExtension.setDeviceID(qe, null);
+		return false;
 	}
 //////////////////////////////////////////////////////////////////////////////
     

@@ -95,6 +95,6 @@ public abstract class AbstractWorkerDevice extends AbstractDevice {
 	
 	@Override
 	protected IQueueProcessor buildQueueProcessor() {
-		return new WorkerQueueProcessor(_devProperties.getDeviceID(), this, _devProperties.getAppDir());
+		return new WorkerQueueProcessor(this);
 	}
 }

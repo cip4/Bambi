@@ -127,10 +127,10 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 	/**
 	 * constructor
 	 * @param configPath the path to the config folder of the web application
-	 * @param deviceID TODO
+	 * @param deviceID   the ID of the device this tracker belongs to
 	 */
 	public QueueEntryTracker(String configPath, String deviceID) {
-		_configFile=configPath+"tracker"+deviceID+".bin";
+		_configFile=configPath+deviceID+".tracker";
 		if (loadTracker()==true) {
 			log.info("loaded QueueEntryTracker from "+_configFile);
 		} else {

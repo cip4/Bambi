@@ -73,8 +73,8 @@ package org.cip4.bambi.workers.manual;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IStatusListener;
-import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.workers.core.AbstractBambiDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
@@ -99,7 +99,7 @@ public class ManualDeviceProcessor extends AbstractBambiDeviceProcessor
 	private JobPhase firstPhase=null;
 	
 	public ManualDeviceProcessor(IQueueProcessor queueProcessor, 
-			IStatusListener statusListener, String deviceID, String appDir, DeviceProperties devProperties) {
+			IStatusListener statusListener, IDeviceProperties devProperties) {
 		super(queueProcessor, statusListener, devProperties);
 		initManualDeviceProcessor();
 	}
@@ -201,8 +201,9 @@ public class ManualDeviceProcessor extends AbstractBambiDeviceProcessor
 		return null;
 	}
 
+	@Override
 	public void init(IQueueProcessor queueProcessor,
-			IStatusListener statusListener, DeviceProperties devProperties) {
+			IStatusListener statusListener, IDeviceProperties devProperties) {
 		super.init(queueProcessor, statusListener, devProperties);
 		initManualDeviceProcessor();
 	}

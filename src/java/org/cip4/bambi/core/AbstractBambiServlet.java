@@ -79,9 +79,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Properties;
 
 import javax.mail.BodyPart;
@@ -96,11 +94,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
-import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -109,9 +109,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.MimeUtil;
 
 /**
- * Entrance point for 
- * @see AbstractWorkerServlet
- * @see ProxyServlet
+ * Entrance point for Bambi servlets 
  * @author boegerni
  *
  */
@@ -153,7 +151,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	}
 
 	protected IDeviceProperties _devProperties=null;
-	protected JMFHandler _jmfHandler=null;
+	protected IJMFHandler _jmfHandler=null;
 	protected HashMap<String,IDevice> _devices = null;
 	private static Log log = LogFactory.getLog(AbstractBambiServlet.class.getName());
 	
@@ -169,13 +167,10 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		String appDir=context.getRealPath("")+"/";
 		_devProperties=loadProperties(appDir, appDir+"config/application.properties");
 		
-		List<File> dirs=new ArrayList<File>();
-		final String baseDir = _devProperties.getBaseDir();
-        if(baseDir!=null)
-            dirs.add( new File(baseDir) );
-		final String jdfDir = _devProperties.getJDFDir();
-        if(jdfDir!=null)
-            dirs.add( new File(jdfDir) );
+		VString dirs=new VString();
+		dirs.add( _devProperties.getBaseDir() );
+		dirs.add( _devProperties.getJDFDir() );
+		dirs.add( _devProperties.getHotFolderURL() );
 		createDirs(dirs);
 		
 		_jmfHandler=new JMFHandler();
@@ -186,11 +181,15 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	 * create the specified directories, if the do not exist
 	 * @param dirs the directories to create
 	 */
-	protected void createDirs(List<File> dirs) {
+	protected void createDirs(VString dirs) {
 		for (int i=0;i<dirs.size();i++) {
-			File dir=dirs.get(i);
-			if (!dir.exists()) {
-				dir.mkdirs();
+			String dir=dirs.get(i);
+			if (dir==null) 
+				break;
+			File f=new File(dir);
+			if (!f.exists()) {
+				f.mkdirs();
+				log.info( "created directory "+dir );
 			}
 		}
 	}
