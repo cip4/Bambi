@@ -71,6 +71,7 @@
 
 package org.cip4.bambi.core;
 
+import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.jdflib.resource.JDFDeviceList;
 
 
@@ -99,6 +100,7 @@ public interface IDevice {
 	 */
 	public abstract String getDeviceURL();
 
+
     /**
      * append the JDFDeviceInfo of this device to a given JDFDeviceList
      * @param dl the JDFDeviceList, where the JDFDeviceInfo will be appended
@@ -106,6 +108,12 @@ public interface IDevice {
     */
     public boolean appendDeviceInfo(JDFDeviceList dl);
 
+    /**
+     * get the IJMFHandler associated with this device
+     * @return IJMFHandler the handler
+     */
+    public IJMFHandler getHandler();
+    
     /**
      * shut down the device
      */

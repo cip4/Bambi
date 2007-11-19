@@ -282,11 +282,12 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
      * @return true, if successful
      */
     public boolean appendDeviceInfo(JDFDeviceList dl) {
-        JDFDeviceInfo info = dl.appendDeviceInfo();
-        JDFDevice dev = info.appendDevice();
+        JDFDeviceInfo info = dl.getCreateDeviceInfo(getDeviceID());
+        JDFDevice dev = info.getCreateDevice();
         dev.setDeviceID(getDeviceID());
         dev.setDeviceType( getDeviceType() );
         dev.setJDFVersions( EnumVersion.Version_1_3.getName() );
+        dev.setJMFURL(getDeviceURL());
         info.setDeviceStatus( getDeviceStatus() );
         return true;
     }
