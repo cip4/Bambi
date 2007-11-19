@@ -178,12 +178,14 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
                     log.warn("_theQueue.addEntry returned null");
                 final String tmpURL=qsp.getURL();
                 final File tmpFile=UrlUtil.urlToFile(tmpURL);
-                if(tmpFile!=null)
-                    tmpFile.delete();
+                if(tmpFile!=null) {
+                	if (!tmpFile.delete())
+                		log.warn( "failed to delete temporary file "+tmpFile.getAbsolutePath() );
+                }    
             }        
         }
     }
-    protected static Log log = LogFactory.getLog(AbstractDevice.class.getName());
+    protected static final Log log = LogFactory.getLog(AbstractDevice.class.getName());
     protected IQueueProcessor _theQueueProcessor=null;
     protected AbstractDeviceProcessor _theDeviceProcessor=null;
     protected IStatusListener _theStatusListener=null;

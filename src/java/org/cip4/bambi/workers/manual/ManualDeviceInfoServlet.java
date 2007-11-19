@@ -87,7 +87,6 @@ import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 public class ManualDeviceInfoServlet extends AbstractDeviceInfoServlet {
 	private static final long serialVersionUID = -2807402684627573611L;
 	private static Log log = LogFactory.getLog(ManualDeviceInfoServlet.class.getName());
-	private ManualDevice _dev=null;
 
 	@Override
 	protected void handleCommand(String command, HttpServletRequest request,
@@ -99,7 +98,6 @@ public class ManualDeviceInfoServlet extends AbstractDeviceInfoServlet {
 			showErrorPage("Mandatory parameter \"device\" is missing.", errorDetails, request, response);
 			return;
 		}
-		_dev=dev;
 		
 		if ( command.equals("finalizeCurrentQE") ) {
 			dev.finalizeCurrentQueueEntry();
@@ -143,16 +141,14 @@ public class ManualDeviceInfoServlet extends AbstractDeviceInfoServlet {
 	protected void showDevice(HttpServletRequest request,
 			HttpServletResponse response) {
 		try {
-			if (_dev==null) {
-				_dev=getDeviceFromRequest(request, response);
-				if (_dev==null) {
-					String errorDetails="Mandatory parameter \"device\"is missing." 
-						+ " The Servlet needs a device to continue";
-					showErrorPage("Mandatory parameter \"device\" is missing.", errorDetails, request, response);
-					return;
-				}
+			ManualDevice dev=getDeviceFromRequest(request, response);
+			if (dev==null) {
+				String errorDetails="Mandatory parameter \"device\"is missing." 
+					+ " The Servlet needs a device to continue";
+				showErrorPage("Mandatory parameter \"device\" is missing.", errorDetails, request, response);
+				return;
 			}
-			JobPhase currentPhase = _dev.getCurrentJobPhase();
+			JobPhase currentPhase = dev.getCurrentJobPhase();
 			request.setAttribute("currentPhase", currentPhase);
 			forwardVisiblePage("showManualDevice.jsp", request, response);
 		} catch (ServletException e) {

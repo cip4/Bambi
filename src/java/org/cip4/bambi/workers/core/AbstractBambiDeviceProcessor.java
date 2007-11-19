@@ -231,7 +231,11 @@ public abstract class AbstractBambiDeviceProcessor extends AbstractDeviceProcess
 			return null;
 		List<JobPhase> phases = (List<JobPhase>) obj;
 		// delete file with remaining phases after loading
-		(new File(fileName)).delete();
+		boolean deleted=(new File(fileName)).delete();
+		if (!deleted) {
+			log.warn( "failed to delete file with remaining job phases after "
+					+ "resuming ->'"+fileName+"'" );
+		}
 		log.info( "successfully loaded remaining phases from "+fileName );
 		return phases;
     }

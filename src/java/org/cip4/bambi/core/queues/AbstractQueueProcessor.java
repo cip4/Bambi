@@ -622,13 +622,15 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         if (_jdfDir!=null) { // will be null in unit tests
         	File jdfDir=new File (_jdfDir);
         if (!jdfDir.exists())
-        	new File(_jdfDir).mkdirs();
+        	if ( !new File(_jdfDir).mkdirs() )
+        		log.error( "failed to create JDFDir at location "+_jdfDir );
         }
         
         if(_queueFile==null)
             _queueFile=new File(_parent.getBaseDir()+"theQueue_"+deviceID+".xml");
-        if (_queueFile!=null &_queueFile.getParentFile()!=null) { // will be null in unit tests
-        	_queueFile.getParentFile().mkdirs();
+        if (_queueFile!=null && _queueFile.getParentFile()!=null) { // will be null in unit tests
+        	if ( !_queueFile.getParentFile().mkdirs() )
+        		log.error( "failed to create base dir at location "+_queueFile.getParentFile() );
         }
         JDFDoc d=JDFDoc.parseFile(_queueFile.getAbsolutePath());
         if(d!=null) {

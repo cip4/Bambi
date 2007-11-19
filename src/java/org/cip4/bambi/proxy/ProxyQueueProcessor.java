@@ -337,13 +337,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 		if (returnURL!=null && returnURL.length()>0) {
 		    qsp.setReturnURL( _parent.getDeviceURL() );
 		} else {
-		    returnURL=_parent.getDeviceURL();
-		    String returnJMF = BambiNSExtension.getReturnJMF(qe); 
-		    if (returnJMF!=null && returnJMF.length()>0) {
-		        qsp.setReturnJMF( returnJMF );
-		    } else {
-		        qsp.setReturnJMF( _parent.getDeviceURL() );
-		    }
+			qsp.setReturnJMF( _parent.getDeviceURL() );
 		}
 
 		JDFResponse resp = JMFFactory.send2URL(jmf, targetURL);

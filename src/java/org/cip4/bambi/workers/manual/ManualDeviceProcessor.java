@@ -71,6 +71,8 @@
 
 package org.cip4.bambi.workers.manual;
 
+import java.util.ArrayList;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IDeviceProperties;
@@ -92,7 +94,7 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
  */
 public class ManualDeviceProcessor extends AbstractBambiDeviceProcessor
 {
-	private static Log log = LogFactory.getLog(ManualDeviceProcessor.class.getName());
+	private static final Log log = LogFactory.getLog(ManualDeviceProcessor.class.getName());
 	private static final long serialVersionUID = -384123589645081254L;
 	private boolean doFinalizeQE = false;
 	private boolean doNextPhase = false;
@@ -118,7 +120,10 @@ public class ManualDeviceProcessor extends AbstractBambiDeviceProcessor
 		
         doFinalizeQE = false;
 		while ( !doFinalizeQE ) {
-			if ( _jobPhases==null || _jobPhases.isEmpty() ) {
+			if ( _jobPhases==null ) {
+				_jobPhases = new ArrayList<JobPhase>();
+			}
+			if ( _jobPhases.isEmpty() ) {
 				_jobPhases.add(firstPhase);
 			}
 			

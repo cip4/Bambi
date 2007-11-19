@@ -94,7 +94,7 @@ import org.cip4.jdflib.util.StatusCounter;
 public class StatusListener implements IStatusListener
 {
 
-    protected static Log log = LogFactory.getLog(StatusListener.class.getName());
+    private static Log log = LogFactory.getLog(StatusListener.class.getName());
     private ISignalDispatcher dispatcher;
     protected StatusCounter theCounter;
     

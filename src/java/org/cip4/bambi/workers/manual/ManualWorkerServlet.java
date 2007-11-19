@@ -11,7 +11,7 @@ import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.workers.core.AbstractWorkerServlet;
 
 public class ManualWorkerServlet extends AbstractWorkerServlet {
-	protected static Log log = LogFactory.getLog(ManualWorkerServlet.class.getName());
+	protected static final Log log = LogFactory.getLog(ManualWorkerServlet.class.getName());
 	private static final long serialVersionUID = 431025409853435322L;
 	
 	@Override

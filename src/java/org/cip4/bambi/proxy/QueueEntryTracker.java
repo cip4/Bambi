@@ -175,7 +175,7 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 		Collection<String> keys = _tracker.keySet();
 		Iterator<String> it = keys.iterator();
 		while (it.hasNext()) {
-			String inQEID = it.next().toString();
+			String inQEID = it.next();
 			OutgoingQE out = _tracker.get(inQEID);
 			if (out.getQueueEntryID().equals(qeid)) {
 				return inQEID;

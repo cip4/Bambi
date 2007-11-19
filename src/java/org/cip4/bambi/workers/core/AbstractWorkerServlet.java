@@ -110,7 +110,7 @@ import org.cip4.jdflib.util.StringUtil;
 public abstract class AbstractWorkerServlet extends AbstractBambiServlet 
 {
 	protected static final long serialVersionUID = -8902151736245089036L;
-	protected static Log log = LogFactory.getLog(AbstractWorkerServlet.class.getName());
+	protected static final Log log = LogFactory.getLog(AbstractWorkerServlet.class.getName());
 
 	/** Initializes the servlet.
 	 */
@@ -129,7 +129,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 		Set<String> keys=_devices.keySet();
 		Iterator<String> it=keys.iterator();
 		while (it.hasNext()) {
-			String devID=it.next().toString();
+			String devID=it.next();
 			AbstractDevice dev=(AbstractDevice) _devices.get(devID);
 			dev.shutdown();
 		}
@@ -320,7 +320,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 		Set<String> keys=dv.getDeviceIDs();
 		Iterator<String> iter=keys.iterator();
 		while (iter.hasNext()) {
-			String devID=iter.next().toString();
+			String devID=iter.next();
 			IDeviceProperties prop=dv.getDevice(devID);
 			prop.setAppDir( _devProperties.getAppDir() );
 			prop.setBaseDir( _devProperties.getBaseDir() );

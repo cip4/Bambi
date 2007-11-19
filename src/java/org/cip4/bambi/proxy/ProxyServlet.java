@@ -129,7 +129,7 @@ public class ProxyServlet extends AbstractBambiServlet
 		Set<String> keys=_devices.keySet();
 		Iterator<String> it=keys.iterator();
 		while (it.hasNext()) {
-			String devID=it.next().toString();
+			String devID=it.next();
 			IDevice dev= _devices.get(devID);
 			dev.shutdown();
 		}
@@ -269,7 +269,7 @@ public class ProxyServlet extends AbstractBambiServlet
 		Set<String> keys=dv.getDeviceIDs();
 		Iterator<String> iter=keys.iterator();
 		while (iter.hasNext()) {
-			String devID=iter.next().toString();
+			String devID=iter.next();
 			IDeviceProperties prop=dv.getDevice(devID);
 			prop.setAppDir( _devProperties.getAppDir() );
 			prop.setBaseDir( _devProperties.getBaseDir() );

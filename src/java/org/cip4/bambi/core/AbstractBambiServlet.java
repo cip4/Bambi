@@ -188,8 +188,8 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 				break;
 			File f=new File(dir);
 			if (!f.exists()) {
-				f.mkdirs();
-				log.info( "created directory "+dir );
+				if (!f.mkdirs())
+					log.error("failed to create directory "+dir);
 			}
 		}
 	}

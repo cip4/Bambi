@@ -324,12 +324,14 @@ public class MultiDeviceProperties implements IMultiDeviceProperties
 		
 		Set<String> keys=_devices.keySet();
 		Iterator<String> it=keys.iterator();
+		StringBuffer buf=new StringBuffer(ret);
 		while (it.hasNext()) {
-			String key=it.next().toString();
+			String key=it.next();
 			IDeviceProperties prop=_devices.get(key);
-			ret+=prop.toString()+" ";
+			buf.append(prop.toString());
+			buf.append(" ");
 		}
-		
+		ret=new String(buf);
 		ret+="] ]";
 		return ret;
 	}
