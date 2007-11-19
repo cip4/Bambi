@@ -79,8 +79,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
+import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.core.ElementName;
-import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
@@ -119,8 +119,6 @@ public final class SignalDispatcher implements ISignalDispatcher
     protected Object mutex=null;
     protected boolean doShutdown=false;
  
-
-    
     /////////////////////////////////////////////////////////////
     protected static class Trigger
     {
@@ -204,18 +202,19 @@ public final class SignalDispatcher implements ISignalDispatcher
                 {
                     final MsgSubscription sub=triggerVector.elementAt(i);
                     log.debug("Trigger Signalling :"+i+" channelID="+sub.channelID);
-                    // TODO think about new threads here
-                    sub.signalJMF();
+                    String url=sub.getURL();
+                    Thread t = new Thread( new MessageSender( sub.getSignal(),url),"MessageSender_"+url );
+                    t.run();
                 }
                // select pending time subscriptions
                 final Vector<MsgSubscription> subVector = getTimeSubscriptions();
                 // spam them out
-                for(int i=0;i<subVector.size();i++)
-                {
+                for(int i=0;i<subVector.size();i++) {
                     final MsgSubscription sub=subVector.elementAt(i);
-                    log.debug("Time Signalling :"+i+" channelID="+sub.channelID);
-                    // TODO think about new threads here
-                    sub.signalJMF();
+                    log.debug("Time Signalling: "+i+", channelID="+sub.channelID);
+                    String url=sub.getURL();
+                    Thread t = new Thread( new MessageSender( sub.getSignal(),url),"MessageSender_"+url );
+                    t.start();
                 }
  
                 try
@@ -340,16 +339,13 @@ public final class SignalDispatcher implements ISignalDispatcher
              theMessage=(JDFMessage)m;
              //TODO observation targets
         }
-        /**
-         * 
-         */
-        protected void signalJMF()
-        {
-            if(!(theMessage instanceof JDFQuery))
+        
+        public JDFJMF getSignal() {
+        	if(!(theMessage instanceof JDFQuery))
             {
                 //TODO guess what...
                 log.error("registrations not supported");
-                return;
+                return null;
             }
             JDFQuery q=(JDFQuery)theMessage;
             JDFJMF jmf=q.createResponse();
@@ -362,20 +358,18 @@ public final class SignalDispatcher implements ISignalDispatcher
             if(!b)
             {
                 log.error("Unhandled message: "+q.getType());
-                return;
+                return null;
             }
             jmf=JDFJMF.createJMF(EnumFamily.Signal, q.getEnumType());
             JDFSignal s=jmf.getSignal(0);
             s.convertResponse(r, q);
-            JDFDoc resp=new JDFDoc(jmf.getOwnerDocument()).write2URL(url);
-            if (resp==null)
-            {
-            	log.error("failed to write to "+url);
-            	return;
-            }
-            // TODO error handling
-            
+            return jmf;
         }
+        
+        public String getURL() {
+        	return url;
+        }
+        
         /* (non-Javadoc)
          * @see java.lang.Object#clone()
          */
@@ -446,22 +440,19 @@ public final class SignalDispatcher implements ISignalDispatcher
                 return false;
             JDFStopPersChParams spcp=inputMessage.getStopPersChParams(0);
             if(spcp==null)
-                return false;
+                return true;
             String channel=spcp.getChannelID();
-            boolean bHandled=false;
             if(!KElement.isWildCard(channel))
             {
                 removeSubScription(channel);
-                bHandled=true;
             }
             String queueEntryID=spcp.getQueueEntryID();
             if(!KElement.isWildCard(queueEntryID))
             {
                 removeSubScription(channel);
-                bHandled=true;
             }
             
-            return bHandled;
+            return true;
         }
         
 

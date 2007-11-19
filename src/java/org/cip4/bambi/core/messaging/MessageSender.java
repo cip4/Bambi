@@ -68,49 +68,33 @@
  *  
  * 
  */
+package org.cip4.bambi.core.messaging;
 
-package org.cip4.bambi.core;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.jmf.JDFJMF;
 
-import org.cip4.jdflib.resource.JDFDeviceList;
 
-
-/**
- * interface for all devices in Bambi
- * @author boegerni
- *
- */
-public interface IDevice {
-
-	/**
-     * return the unique ID of this device
-     * @return
-     */
-    public abstract String getDeviceID();
-    
-    /**
-     * return the type of this device
-     * @return
-     */
-    public abstract String getDeviceType();
-
-	/**
-	 * return the URL of this device
-	 * @return
-	 */
-	public abstract String getDeviceURL();
-
-    /**
-     * append the JDFDeviceInfo of this device to a given JDFDeviceList
-     * @param dl the JDFDeviceList, where the JDFDeviceInfo will be appended
-     * @return true, if successful
-    */
-    public boolean appendDeviceInfo(JDFDeviceList dl);
-
-    /**
-     * shut down the device
-     */
-    public void shutdown();
-    
-    
-
+public class MessageSender implements Runnable {
+	private final Log log = LogFactory.getLog(MessageSender.class.getName());
+	JDFJMF _jmf=null;
+	String _url=null;
+	
+	public MessageSender(JDFJMF theJMF, String theUrl) {
+		_jmf=theJMF;
+		_url=theUrl;
+	}
+	
+	public void run() {
+		if ( _url!=null && !_url.equals("") && _jmf!=null ) {
+			JDFDoc resp=new JDFDoc(_jmf.getOwnerDocument()).write2URL(_url);
+			if (resp==null)
+			{
+				log.error("failed to write to "+_url);
+				return;
+			}
+		}
+	}
+	
 }

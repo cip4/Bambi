@@ -435,4 +435,31 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 		return 0;
 	}
 	
+	@Override
+	protected boolean storeDoc(JDFQueueEntry newQE, JDFDoc theJDF, String returnURL, String returnJMF)
+    {
+        if(newQE==null || theJDF==null) {
+            log.error("error storing queueentry");
+            return false;
+        }
+        String newQEID=newQE.getQueueEntryID();
+        newQE=_theQueue.getQueueEntry(newQEID);
+        if(newQE==null) {
+            log.error("error fetching queueentry: QueueEntryID="+newQEID);
+            return false;
+        }
+        
+        String theDocFile=_jdfDir+newQEID+".jdf";
+        boolean ok=theJDF.write2File(theDocFile, 0, true);
+        String docURL=_parent.getDeviceURL()+"?cmd=showJDFDoc&qeid="+newQEID;
+        BambiNSExtension.setDocURL( newQE,docURL );
+        if(!KElement.isWildCard(returnJMF)) {
+        	BambiNSExtension.setReturnURL(newQE, returnJMF);
+        } else if(!KElement.isWildCard(returnURL)) {
+        	BambiNSExtension.setReturnURL(newQE, returnURL);
+        }
+
+        return ok;
+    }
+	
 }

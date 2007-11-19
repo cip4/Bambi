@@ -145,7 +145,7 @@ public class BambiTestCase extends TestCase {
 	/**
 	 * cleaning up, brute-force-sytle: send a AbortQueueEntry and a RemoveQueueEntry 
 	 * message to every QueueEntry in the Queue
-	 * @param url TODO
+	 * @param url the URL of the device to send the command to
 	 */
 	protected void abortRemoveAll(String url) {		
 		JDFJMF jmf=JMFFactory.buildQueueStatus();

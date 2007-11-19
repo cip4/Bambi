@@ -725,7 +725,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
      * @param newQE
      * @param theJDF
      */
-    private boolean storeDoc(JDFQueueEntry newQE, JDFDoc theJDF, String returnURL, String returnJMF)
+    protected boolean storeDoc(JDFQueueEntry newQE, JDFDoc theJDF, String returnURL, String returnJMF)
     {
         if(newQE==null || theJDF==null) {
             log.error("error storing queueentry");
@@ -740,8 +740,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         
         String theDocFile=_jdfDir+newQEID+".jdf";
         boolean ok=theJDF.write2File(theDocFile, 0, true);
-        String docURL=_parent.getDeviceURL()+"?cmd=showJDFDoc&qeid="+newQEID;
-        BambiNSExtension.setDocURL( newQE,docURL );
+        BambiNSExtension.setDocURL( newQE,theDocFile );
         if(!KElement.isWildCard(returnJMF)) {
         	BambiNSExtension.setReturnURL(newQE, returnJMF);
         } else if(!KElement.isWildCard(returnURL)) {

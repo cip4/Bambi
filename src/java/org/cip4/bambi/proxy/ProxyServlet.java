@@ -313,7 +313,7 @@ public class ProxyServlet extends AbstractBambiServlet
 		deviceID = StringUtil.token(deviceID, 0, "/");
 		if (deviceID == null)
 			return _jmfHandler; // device not found
-		IDevice device = _devices.get(deviceID);
+		ProxyDevice device = (ProxyDevice) _devices.get(deviceID);
 		if (device == null)
 			return _jmfHandler; // device not found
 		return( device.getHandler() );
