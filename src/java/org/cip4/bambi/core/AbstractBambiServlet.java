@@ -81,6 +81,7 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -106,7 +107,9 @@ import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StringUtil;
 
 /**
  * Entrance point for Bambi servlets 
@@ -161,6 +164,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	@Override
 	public void init(ServletConfig config) throws ServletException
 	{
+        _devices=new HashMap<String, IDevice>();
 		super.init(config);
 		ServletContext context = config.getServletContext();
 		log.info( "Initializing servlet for "+context.getServletContextName() );
@@ -194,7 +198,30 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		}
 	}
 	
-	protected abstract boolean handleKnownDevices(JDFMessage m, JDFResponse resp);
+    protected boolean handleKnownDevices(JDFMessage m, JDFResponse resp) {
+        if(m==null || resp==null)
+        {
+            return false;
+        }
+//      log.info("Handling "+m.getType());
+        EnumType typ=m.getEnumType();
+        if(EnumType.KnownDevices.equals(typ)) {
+            JDFDeviceList dl = resp.appendDeviceList();
+            Set<String> keys = _devices.keySet();
+            Object[] strKeys = keys.toArray();
+            for (int i=0; i<keys.size();i++) {
+                String key = (String)strKeys[i];
+                IDevice dev = _devices.get(key);
+                if (dev == null)
+                    log.error("device with key '"+key+"'not found");
+                else
+                    dev.appendDeviceInfo(dl);
+            }
+            return true;
+        }
+
+        return false;
+    }
 
 	/**
 	 * display an error on error.jsp
@@ -259,14 +286,31 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		processJMFDoc(request, response, docJDF[0]);
 	}
 	
-	/**
-	 * 
-	 * @param request
-	 * @param response
-	 * @param jmfDoc
-	 */
-	protected abstract void processJMFDoc(HttpServletRequest request,
-			HttpServletResponse response, JDFDoc jmfDoc);
+    protected void processJMFDoc(HttpServletRequest request,
+            HttpServletResponse response, JDFDoc jmfDoc) {
+        if(jmfDoc==null) {
+            processError(request, response, null, 3, "Error Parsing JMF");
+        } else {
+            // switch: sends the jmfDoc to correct device
+            JDFDoc responseJMF = null;
+            IJMFHandler handler = getTargetHandler(request);
+            if (handler != null) {
+                responseJMF=handler.processJMF(jmfDoc);
+            } 
+            
+            if (responseJMF!=null) {
+                response.setContentType(MimeUtil.VND_JMF);
+                try {
+                    responseJMF.write2Stream(response.getOutputStream(), 0, true);
+                } catch (IOException e) {
+                    log.error("cannot write to stream: ",e);
+                }
+            } else {
+                processError(request, response, null, 3, "Error Parsing JMF");               
+            }
+        }
+    }
+    protected abstract IJMFHandler getTargetHandler(HttpServletRequest request);
 	
 	/**
 	 * Parses a multipart request.

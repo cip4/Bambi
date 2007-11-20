@@ -99,61 +99,61 @@ import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
  */
 public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 {
-	private static Log log = LogFactory.getLog(AbstractDeviceProcessor.class.getName());
-	/**
-	 * note: the queue processor points to the queue processor of the device, 
-	 * it !does not! copy it
-	 */
-	protected IQueueProcessor _queueProcessor;
-	protected IStatusListener _statusListener;
-	protected Object _myListener; // the mutex for waiting and reawakening
-	protected String _trackResourceID=null;
-	protected IDeviceProperties _devProperties=null;
-	protected List<ChangeQueueEntryStatusRequest> _updateStatusReqs=null;
-	protected boolean _doShutdown=false;
+    private static Log log = LogFactory.getLog(AbstractDeviceProcessor.class.getName());
+    /**
+     * note: the queue processor points to the queue processor of the device, 
+     * it !does not! copy it
+     */
+    protected IQueueProcessor _queueProcessor;
+    protected IStatusListener _statusListener;
+    protected Object _myListener; // the mutex for waiting and reawakening
+    protected String _trackResourceID=null;
+    protected IDeviceProperties _devProperties=null;
+    protected List<ChangeQueueEntryStatusRequest> _updateStatusReqs=null;
+    protected boolean _doShutdown=false;
 
-	protected static class ChangeQueueEntryStatusRequest {
-		public String queueEntryID=null;
-		public EnumQueueEntryStatus newStatus=null;
-		public ChangeQueueEntryStatusRequest(String qeid, EnumQueueEntryStatus status) {
-			queueEntryID=qeid;
-			newStatus=status;
-		}
-	}
-		
-	/**
-	 * constructor
-	 * @param queueProcessor points to the QueueProcessor
-	 * @param statusListener points to the StatusListener
-	 * @param devProperties TODO
-	 */
-	public AbstractDeviceProcessor(IQueueProcessor queueProcessor, 
-			IStatusListener statusListener, IDeviceProperties devProperties)
-	{
-		super();
+    protected static class ChangeQueueEntryStatusRequest {
+        public String queueEntryID=null;
+        public EnumQueueEntryStatus newStatus=null;
+        public ChangeQueueEntryStatusRequest(String qeid, EnumQueueEntryStatus status) {
+            queueEntryID=qeid;
+            newStatus=status;
+        }
+    }
+
+    /**
+     * constructor
+     * @param queueProcessor points to the QueueProcessor
+     * @param statusListener points to the StatusListener
+     * @param devProperties TODO
+     */
+    public AbstractDeviceProcessor(IQueueProcessor queueProcessor, 
+            IStatusListener statusListener, IDeviceProperties devProperties)
+    {
+        super();
         init(queueProcessor, statusListener, devProperties);
-	}
-	
-	/**
+    }
+
+    /**
      * constructor
      */
-	public AbstractDeviceProcessor()
-	{
-		super();
-	}
-	
+    public AbstractDeviceProcessor()
+    {
+        super();
+    }
+
     /**
      * this is the device processor loop
      */
-	public void run() {
-		while (!_doShutdown)
-		{
+    public void run() {
+        while (!_doShutdown)
+        {
             if(!processQueueEntry())
             {
                 try
                 {
-                	if (log!=null)
-                		log.debug("waiting");
+                    if (log!=null)
+                        log.debug("waiting");
                     synchronized (_myListener)
                     {
                         _myListener.wait(10000); // just in case                        
@@ -164,9 +164,9 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
                     log.error("interrupted while idle");
                 }
             }
-		}
-	}
-   
+        }
+    }
+
     /**
      * initialize the IDeviceProcessor
      * @param _queueProcessor
@@ -174,7 +174,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
      */
     public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, IDeviceProperties devProperties)
     {
-    	log.info(this.getClass().getName()+" construct");
+        log.info(this.getClass().getName()+" construct");
         _queueProcessor=queueProcessor;
         _myListener=new Object();
         _queueProcessor.addListener(_myListener);
@@ -182,7 +182,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         _devProperties=devProperties;
         _updateStatusReqs=new ArrayList<ChangeQueueEntryStatusRequest>();
     }
-    
+
     protected boolean processQueueEntry()
     {
         IQueueEntry iqe=_queueProcessor.getNextEntry();
@@ -198,17 +198,17 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         JDFDoc doc=iqe.getJDF();
         if(doc==null)
             return false;
-                
-        qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
-         _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Running);
-        EnumQueueEntryStatus qes=null;
+
+        initializeProcessDoc(queueEntryID);
+
         try {
             log.info("processing JDF: ");
-            qes=processDoc(doc,qe);
+            EnumQueueEntryStatus qes=processDoc(doc,qe);
+            finalizeProcessDoc();
             if (qes==null) {
-            	if (log!=null)
-            		log.error( "QueueEntryStatus is null" );
-            	return false;
+                if (log!=null)
+                    log.error( "QueueEntryStatus is null" );
+                return false;
             }
             qe.setQueueEntryStatus(qes);
             _queueProcessor.updateEntry(queueEntryID, qes);
@@ -217,36 +217,47 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             log.error("error processing JDF: "+x);
             qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
             _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Aborted);
+            return false;
         }
-        
+
         return true;
     }
 
+    /**
+     * genric setup of processing 
+     * @param queueEntryID the queueEntryID of the job to process
+     */
+    protected void initializeProcessDoc(final String queueEntryID)
+    {
+        _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Running);
+    }
+
     protected EnumQueueEntryStatus suspendQueueEntry(JDFQueueEntry qe, int currentPhase, int remainingPhaseTime)
-	{
-    	_statusListener.signalStatus(EnumDeviceStatus.Idle, "Idle", EnumNodeStatus.Suspended, "job suspended");
-		_statusListener.setNode(null, null, null, null, null);
-    	return EnumQueueEntryStatus.Suspended;
-	}
-        
-	protected EnumQueueEntryStatus abortQueueEntry() {
-		_statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCanceledByUser", EnumNodeStatus.Aborted, "job canceled by user");
-		_statusListener.setNode(null, null, null, null, null);
-		return EnumQueueEntryStatus.Aborted;
-	}
-	
+    {
+        _statusListener.signalStatus(EnumDeviceStatus.Idle, "Idle", EnumNodeStatus.Suspended, "job suspended");
+        _statusListener.setNode(null, null, null, null, null);
+        return EnumQueueEntryStatus.Suspended;
+    }
+
+    protected EnumQueueEntryStatus abortQueueEntry() {
+        _statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCanceledByUser", EnumNodeStatus.Aborted, "job canceled by user");
+        _statusListener.setNode(null, null, null, null, null);
+        return EnumQueueEntryStatus.Aborted;
+    }
+
     /**
      * @param doc
      * @return EnumQueueEntryStatus the final status of the queuentry 
      */
-	public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
-		if(qe==null || doc==null) {
+    public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
+        if(qe==null || doc==null) {
             log.error("proccessing null job");
             return EnumQueueEntryStatus.Aborted;
         }
-		BambiNSExtension.setDeviceID(qe, _devProperties.getDeviceID());
+        BambiNSExtension.setDeviceID(qe, _devProperties.getDeviceID());
         final String queueEntryID = qe.getQueueEntryID();
         log.info("Processing queueentry "+queueEntryID);
+
         JDFNode node=doc.getJDFRoot();
         VJDFAttributeMap vPartMap=qe.getPartMapVector();
         JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
@@ -257,61 +268,61 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         String inConsume=null;
         String outQuantity=null;
         if (v!=null) {
-        	int vSiz=v.size();
-			for (int i = 0; i < vSiz; i++) {
-				JDFResourceLink rl = (JDFResourceLink) v.elementAt(i);
-				JDFResource r = rl.getLinkRoot();
-				EnumResourceClass c = r.getResourceClass();
-				if (EnumResourceClass.Consumable.equals(c)
-						|| EnumResourceClass.Handling.equals(c)
-						|| EnumResourceClass.Quantity.equals(c)) {
-					EnumUsage inOut = rl.getUsage();
-					if (EnumUsage.Input.equals(inOut)) {
-						if (EnumResourceClass.Consumable.equals(c))
-							inConsume = rl.getrRef();
-					} else {
-						outQuantity = rl.getrRef();
-					}
-				}
-			}
-		}
-		_trackResourceID= inConsume !=null ? inConsume : outQuantity;
+            int vSiz=v.size();
+            for (int i = 0; i < vSiz; i++) {
+                JDFResourceLink rl = (JDFResourceLink) v.elementAt(i);
+                JDFResource r = rl.getLinkRoot();
+                EnumResourceClass c = r.getResourceClass();
+                if (EnumResourceClass.Consumable.equals(c)
+                        || EnumResourceClass.Handling.equals(c)
+                        || EnumResourceClass.Quantity.equals(c)) {
+                    EnumUsage inOut = rl.getUsage();
+                    if (EnumUsage.Input.equals(inOut)) {
+                        if (EnumResourceClass.Consumable.equals(c))
+                            inConsume = rl.getrRef();
+                    } else {
+                        outQuantity = rl.getrRef();
+                    }
+                }
+            }
+        }
+        _trackResourceID= inConsume !=null ? inConsume : outQuantity;
         _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, _trackResourceID);
-        
-        // remember to call finalizeProcessDoc() at the end of derived processDoc implementations
-		return null;
-	}
 
-	/**
-	 * signal that processing has finished and ready the StatusCounter for the next process
-	 * @return EnumQueueEntryStatus.Completed
-	 */
-	protected EnumQueueEntryStatus finalizeProcessDoc()
-	{
-		_statusListener.signalStatus(EnumDeviceStatus.Idle, "Idle", EnumNodeStatus.Completed, "job completed");
-		_statusListener.setNode(null, null, null, null, null);
-		return EnumQueueEntryStatus.Completed;
-	}
-	
-	
-	public EnumQueueEntryStatus stopProcessing(JDFQueueEntry qe,EnumQueueEntryStatus newStatus) {
-		EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-		
-		if (status.equals(EnumQueueEntryStatus.Running)) {
-			ChangeQueueEntryStatusRequest newReq = new ChangeQueueEntryStatusRequest(qe.getQueueEntryID(),newStatus);
-			_updateStatusReqs.add(newReq);
-			return status;
-		} else if (status.equals(EnumQueueEntryStatus.Waiting) || status.equals(EnumQueueEntryStatus.Suspended)) {
-			qe.setQueueEntryStatus(newStatus);
-			return newStatus;
-		} else {
-			// cannot change status
-			return status;
-		}
-	}
-	
-	public void shutdown() {
-		_doShutdown=true;
-	}
-	
+        // remember to call finalizeProcessDoc() at the end of derived processDoc implementations
+        return null;
+    }
+
+    /**
+     * signal that processing has finished and ready the StatusCounter for the next process
+     * @return EnumQueueEntryStatus.Completed
+     */
+    protected EnumQueueEntryStatus finalizeProcessDoc()
+    {
+        _statusListener.signalStatus(EnumDeviceStatus.Idle, "Idle", EnumNodeStatus.Completed, "job completed");
+        _statusListener.setNode(null, null, null, null, null);
+        return EnumQueueEntryStatus.Completed;
+    }
+
+
+    public EnumQueueEntryStatus stopProcessing(JDFQueueEntry qe,EnumQueueEntryStatus newStatus) {
+        EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+
+        if (status.equals(EnumQueueEntryStatus.Running)) {
+            ChangeQueueEntryStatusRequest newReq = new ChangeQueueEntryStatusRequest(qe.getQueueEntryID(),newStatus);
+            _updateStatusReqs.add(newReq);
+            return status;
+        } else if (status.equals(EnumQueueEntryStatus.Waiting) || status.equals(EnumQueueEntryStatus.Suspended)) {
+            qe.setQueueEntryStatus(newStatus);
+            return newStatus;
+        } else {
+            // cannot change status
+            return status;
+        }
+    }
+
+    public void shutdown() {
+        _doShutdown=true;
+    }
+
 }

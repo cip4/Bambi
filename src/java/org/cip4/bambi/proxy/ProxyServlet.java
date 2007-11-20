@@ -115,7 +115,6 @@ public class ProxyServlet extends AbstractBambiServlet
 	@Override
 	public void init(ServletConfig config) throws ServletException 
 	{
-        _devices=new HashMap<String, IDevice>();
 		super.init(config);
 		ServletContext context = config.getServletContext();
 		log.info( "Initializing servlet for "+context.getServletContextName() );
@@ -222,31 +221,6 @@ public class ProxyServlet extends AbstractBambiServlet
 		return ret;
 	}
 	
-	@Override
-	protected boolean handleKnownDevices(JDFMessage m, JDFResponse resp) {
-		if(m==null || resp==null)
-		{
-			return false;
-		}
-//		log.info("Handling "+m.getType());
-		EnumType typ=m.getEnumType();
-		if(EnumType.KnownDevices.equals(typ)) {
-			JDFDeviceList dl = resp.appendDeviceList();
-			Set<String> keys = _devices.keySet();
-			Object[] strKeys = keys.toArray();
-			for (int i=0; i<keys.size();i++) {
-				String key = (String)strKeys[i];
-				IDevice dev = _devices.get(key);
-				if (dev == null)
-					log.error("device with key '"+key+"'not found");
-				else
-					dev.appendDeviceInfo(dl);
-			}
-			return true;
-		}
-
-		return false;
-	}
 	
 	private void createDevices() {
 		String configFile=_devProperties.getConfigDir()+"devices.xml";
@@ -306,7 +280,7 @@ public class ProxyServlet extends AbstractBambiServlet
 		return dev;
 	}
 	
-	private IJMFHandler getTargetHandler(HttpServletRequest request) {
+	protected IJMFHandler getTargetHandler(HttpServletRequest request) {
 		String deviceID = request.getPathInfo();
 		if (deviceID == null)
 			return _jmfHandler; // root folder

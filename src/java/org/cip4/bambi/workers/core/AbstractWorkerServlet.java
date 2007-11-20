@@ -91,10 +91,6 @@ import org.cip4.bambi.core.IMultiDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
 
@@ -350,31 +346,6 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 	 */
 	protected abstract void showDevice(HttpServletRequest request, HttpServletResponse response);
 
-	@Override
-	protected void processJMFDoc(HttpServletRequest request,
-			HttpServletResponse response, JDFDoc jmfDoc) {
-		if(jmfDoc==null) {
-			processError(request, response, null, 3, "Error Parsing JMF");
-		} else {
-			// switch: sends the jmfDoc to correct device
-			JDFDoc responseJMF = null;
-			IJMFHandler handler = getTargetHandler(request);
-			if (handler != null) {
-				responseJMF=handler.processJMF(jmfDoc);
-			} 
-			
-			if (responseJMF!=null) {
-				response.setContentType(MimeUtil.VND_JMF);
-				try {
-					responseJMF.write2Stream(response.getOutputStream(), 0, true);
-				} catch (IOException e) {
-					log.error("cannot write to stream: ",e);
-				}
-			} else {
-				processError(request, response, null, 3, "Error Parsing JMF");               
-			}
-		}
-	}
 
 	/**
 	 * get a device instance from a given Object
@@ -383,7 +354,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 	 */
 	protected abstract AbstractDevice getDeviceFromObject(Object dev);
 	
-	private IJMFHandler getTargetHandler(HttpServletRequest request) {
+	protected IJMFHandler getTargetHandler(HttpServletRequest request) {
 		String deviceID = request.getPathInfo();
 		if (deviceID == null)
 			return _jmfHandler; // root folder
@@ -395,29 +366,4 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 			return _jmfHandler; // device not found
 		return( device.getHandler() );
 	}
-	
-	@Override
-	protected boolean handleKnownDevices(JDFMessage m, JDFResponse resp) {
-		if(m==null || resp==null) {
-			return false;
-		}
-//		log.info("Handling "+m.getType());
-		EnumType typ=m.getEnumType();
-		if(EnumType.KnownDevices.equals(typ)) {
-			JDFDeviceList dl = resp.appendDeviceList();
-			Set<String> keys = _devices.keySet();
-			Object[] strKeys = keys.toArray();
-			for (int i=0; i<keys.size();i++) {
-				String key = (String)strKeys[i];
-				AbstractDevice dev = getDeviceFromObject(_devices.get(key));
-				if (dev == null)
-					log.error("device with key '"+key+"'not found");
-				else
-					dev.appendDeviceInfo(dl);
-			}
-			return true;
-		}
-
-		return false;
-	}
-}
+    }

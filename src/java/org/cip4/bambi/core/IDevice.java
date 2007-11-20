@@ -71,6 +71,7 @@
 
 package org.cip4.bambi.core;
 
+import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.jdflib.resource.JDFDeviceList;
 
 
@@ -110,6 +111,12 @@ public interface IDevice {
      * shut down the device
      */
     public void shutdown();
+
+    /**
+     * return the message handler for this device
+     * @return
+     */
+    public abstract IJMFHandler getHandler();
     
     
 
