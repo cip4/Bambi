@@ -81,14 +81,15 @@ public class allBambiTest extends BambiTestCase
     {
         TestSuite suite = new TestSuite("Tests for org.cip4.bambi.*");
 
+        suite.addTestSuite(AsyncMessagingTest.class);
         suite.addTestSuite(BambiNSExtensions_Test.class);
         suite.addTestSuite(DeviceServletTest.class);
         suite.addTestSuite(DispatcherTest.class);
         suite.addTestSuite(JMFFactoryTest.class);
         suite.addTestSuite(JMFQuery_ResponderTest.class);
+        suite.addTestSuite(ProxyTest.class);
         suite.addTestSuite(QueueEntryStatusTest.class);
         suite.addTestSuite(QueueEntryTrackerTest.class);
-        suite.addTestSuite(ProxyTest.class);
 
         return suite;
     }

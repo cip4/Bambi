@@ -71,7 +71,6 @@
 
 package org.cip4.bambi.workers.core;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -91,7 +90,6 @@ import org.cip4.bambi.core.IMultiDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
 
 
@@ -353,7 +351,8 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 	 * @return
 	 */
 	protected abstract AbstractDevice getDeviceFromObject(Object dev);
-	
+
+	@Override
 	protected IJMFHandler getTargetHandler(HttpServletRequest request) {
 		String deviceID = request.getPathInfo();
 		if (deviceID == null)
@@ -366,4 +365,4 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 			return _jmfHandler; // device not found
 		return( device.getHandler() );
 	}
-    }
+}

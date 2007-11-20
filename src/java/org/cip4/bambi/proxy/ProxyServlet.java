@@ -92,10 +92,6 @@ import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.queues.QueueFacade;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
 
@@ -280,6 +276,7 @@ public class ProxyServlet extends AbstractBambiServlet
 		return dev;
 	}
 	
+	@Override
 	protected IJMFHandler getTargetHandler(HttpServletRequest request) {
 		String deviceID = request.getPathInfo();
 		if (deviceID == null)
@@ -287,7 +284,7 @@ public class ProxyServlet extends AbstractBambiServlet
 		deviceID = StringUtil.token(deviceID, 0, "/");
 		if (deviceID == null)
 			return _jmfHandler; // device not found
-		ProxyDevice device = (ProxyDevice) _devices.get(deviceID);
+		IDevice device = _devices.get(deviceID);
 		if (device == null)
 			return _jmfHandler; // device not found
 		return( device.getHandler() );

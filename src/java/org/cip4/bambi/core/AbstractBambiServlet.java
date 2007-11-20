@@ -109,7 +109,6 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
-import org.cip4.jdflib.util.StringUtil;
 
 /**
  * Entrance point for Bambi servlets 

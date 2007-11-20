@@ -189,11 +189,6 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	        	if (_theQueue != null) {
 	        		JDFQueue q = (JDFQueue) resp.copyElement(_theQueue, null);
 	        		//TODO filter some stuff?
-//	        		JDFQueueFilter qf=m.getQueueFilter(0);
-//	        		if (qf==null)
-//	        			log.info("qf is null");
-//	        		else 
-//	        			log.info(qf.toString());
 	        		removeBambiNSExtensions(q);
 	        	} else {
 	        		log.error("queue is null");

@@ -72,27 +72,53 @@ package org.cip4.bambi.core.messaging;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFResponse;
 
-
+/**
+ * allow a JMF message to be send in its own thread
+ * @author boegerni
+ */
 public class MessageSender implements Runnable {
 	private final Log log = LogFactory.getLog(MessageSender.class.getName());
 	JDFJMF _jmf=null;
 	String _url=null;
+	IResponseHandler _sender=null;
 	
+	/**
+	 * constructor
+	 * @param theJMF the message to send
+	 * @param theUrl the URL to send the message to
+	 */
 	public MessageSender(JDFJMF theJMF, String theUrl) {
 		_jmf=theJMF;
 		_url=theUrl;
 	}
 	
+	/**
+	 * constructor
+	 * @param theJMF the message to send
+	 * @param theUrl the URL to send the message to
+	 * @param sender the origin of the JMF. Its notify(JDFResponse) method will be
+	 *               triggered when a response has been received. <br/>
+	 *               If the response is null, the IResponseHandler will not be triggered.       
+	 */
+	public MessageSender(JDFJMF theJMF, String theUrl, IResponseHandler sender) {
+		_jmf=theJMF;
+		_url=theUrl;
+		_sender=sender;
+	}
+
+	
 	public void run() {
-		if ( _url!=null && !_url.equals("") && _jmf!=null ) {
-			JDFDoc resp=new JDFDoc(_jmf.getOwnerDocument()).write2URL(_url);
-			if (resp==null)
-			{
+		if (_url!=null && !_url.equals("") && _jmf!=null) {
+			JDFResponse resp=JMFFactory.send2URL(_jmf, _url);
+			if (resp==null) {
 				log.error("failed to write to "+_url);
 				return;
+			}
+			if (_sender!=null) {
+				_sender.handleResponse(resp);
 			}
 		}
 	}

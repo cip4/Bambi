@@ -121,4 +121,9 @@ public interface IStatusListener extends IMultiJMFHandler
       * @return
       */
      public EnumDeviceStatus getDeviceStatus();
+     
+     /**
+      * shut down this StatusListener
+      */
+     public void shutdown();
 }
