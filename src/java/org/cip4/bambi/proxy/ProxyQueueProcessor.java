@@ -235,13 +235,13 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        	VString aborted = qep.getAborted();
 	        	if (aborted!=null && aborted.size()!=0) {
 	        		qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
-	        		returnQueueEntry(qe, aborted);
+	        		returnQueueEntry(qe, aborted, doc);
 	        	} else {
 	        		VString completed = qep.getCompleted();
 	        		if (completed!=null && completed.size()!=0) {
 	        			qe.setQueueEntryStatus(EnumQueueEntryStatus.Completed);
 	        		} 
-	        		returnQueueEntry(qe, completed);
+	        		returnQueueEntry(qe, completed, doc);
 	        	}
 	        	
 	        	_tracker.removeEntry(inQEID);

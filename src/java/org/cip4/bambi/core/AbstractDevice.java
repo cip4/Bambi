@@ -448,4 +448,12 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     public String getJDFDir() {
     	return _devProperties.getJDFDir();
     }
+
+    /**
+     * @return the _theStatusListener
+     */
+    public IStatusListener getStatusListener()
+    {
+        return _theStatusListener;
+    }
 }

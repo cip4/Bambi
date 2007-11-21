@@ -224,14 +224,13 @@ public class StatusListener implements IStatusListener
     public void signalStatus(EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus,
             String nodeStatusDetails)
     {
-       StatusCounter su=theCounter;
-       if(su==null) {
+       if(theCounter==null) {
            log.error("updating null status tracker");
            return;
        }
-       boolean bMod=su.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
+       boolean bMod=theCounter.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
        if(bMod) {
-           dispatcher.triggerQueueEntry(su.getQueueEntryID(), su.getWorkStepID(), -1);
+           dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), -1);
        }
     }
 
@@ -240,12 +239,11 @@ public class StatusListener implements IStatusListener
      */
     public void updateAmount(String resID, double good, double waste)
     {
-        StatusCounter su=theCounter;
-        if(su==null)
+        if(theCounter==null)
             return;
-        su.addPhase(resID, good, waste);
+        theCounter.addPhase(resID, good, waste);
         if(good>0) {
-            dispatcher.triggerQueueEntry(su.getQueueEntryID(), su.getWorkStepID(), (int)good);
+            dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), (int)good);
         }
 
     }

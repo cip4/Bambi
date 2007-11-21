@@ -72,8 +72,8 @@ package org.cip4.bambi.core.messaging;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Vector;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.AttributeName;
@@ -88,7 +88,6 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.util.ContainerUtil;
 
 
 /**
@@ -99,14 +98,60 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 {
 
 	protected static final Log log = LogFactory.getLog(JMFHandler.class.getName());
-
+	protected class MessageType
+    {
+	    public EnumType type;
+        public EnumFamily family;
+        /**
+         * @param typ
+         * @param family2
+         */
+        public MessageType(EnumType typ, EnumFamily _family)
+        {
+            type=typ;
+            family=_family;
+        }
+        /* (non-Javadoc)
+         * @see java.lang.Object#equals(java.lang.Object)
+         */
+        @Override
+        public boolean equals(Object arg0)
+        {
+            if(!(arg0 instanceof MessageType))
+                return false;
+            MessageType mt=(MessageType)arg0;
+            if(type==null && mt.type!=null)
+                return false;
+            if(family==null && mt.family!=null)
+                return false;
+            if(family==null&&type==null)
+                return true;
+            return family.equals(mt.family) && type.equals(mt.type);
+        }
+        /* (non-Javadoc)
+         * @see java.lang.Object#hashCode()
+         */
+        @Override
+        public int hashCode()
+        {
+            return (type==null?0: type.hashCode()) + (family==null ? 0 : family.hashCode());
+        }
+        /* (non-Javadoc)
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString()
+        {
+            return "MesageType :"+type+" "+family;
+        }
+    }
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -8902151736245089033L;
-	protected HashMap<EnumType,IMessageHandler> messageMap; // key = type , value = IMessageHandler
-	protected HashMap<EnumType,EnumFamily[]> familyMap; // key = type , value = families handled
-	protected HashMap<EnumType,IMessageHandler> subscriptionMap; // key = type , value = subscriptions handled
+	protected HashMap<MessageType,IMessageHandler> messageMap; // key = type , value = IMessageHandler
+//TODO handle subscriptions
+    protected HashMap<EnumType,IMessageHandler> subscriptionMap; // key = type , value = subscriptions handled
 
 	/**
 	 * 
@@ -141,14 +186,32 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			if(!EnumFamily.Query.equals(m.getFamily()))
 				return false;
 
-			Iterator<EnumType> it=messageMap.keySet().iterator();
+			Iterator<MessageType> it=messageMap.keySet().iterator();
+            HashMap<EnumType,Vector<EnumFamily>> htf=new  HashMap<EnumType,Vector<EnumFamily>>();
 			while(it.hasNext())
 			{
-				EnumType typ=it.next();
+				MessageType typ=it.next();
+                if(htf.get(typ.type)==null)
+                {
+                    Vector<EnumFamily> v=new Vector<EnumFamily>();
+                    v.add(typ.family);
+                    htf.put(typ.type, v);
+                }
+                else
+                {
+                    Vector<EnumFamily> v=htf.get(typ.type);
+                    v.add(typ.family);                   
+                }
+            }
+            
+            Iterator<EnumType> iTyp=htf.keySet().iterator();
+            while(iTyp.hasNext())
+            {
+                EnumType typ=iTyp.next();
 				log.debug("Known Message: "+typ.getName());
 				JDFMessageService ms=resp.appendMessageService();
 				ms.setType(typ);
-				ms.setFamilies(ContainerUtil.toVector(familyMap.get(typ)));     
+				ms.setFamilies(htf.get(typ));     
 				if(subscriptionMap.get(typ)!=null)
 					ms.setPersistent(true);
 			}
@@ -175,8 +238,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	public JMFHandler()
 	{
 		super();
-		messageMap=new HashMap<EnumType, IMessageHandler>();
-		familyMap=new HashMap<EnumType, EnumFamily[]>();
+		messageMap=new HashMap<MessageType, IMessageHandler>();
 		subscriptionMap=new HashMap<EnumType, IMessageHandler>();
 		addHandler( this.new KnownMessagesHandler() );
 	}
@@ -184,8 +246,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	public JMFHandler(JMFHandler oldHandler)
 	{
 		super();
-		messageMap=new HashMap<EnumType, IMessageHandler>(oldHandler.messageMap);
-		familyMap=new HashMap<EnumType, EnumFamily[]>(oldHandler.familyMap);
+		messageMap=new HashMap<MessageType, IMessageHandler>(oldHandler.messageMap);
 		subscriptionMap=new HashMap<EnumType, IMessageHandler>(oldHandler.subscriptionMap);
 		addHandler( this.new KnownMessagesHandler() );
 	}
@@ -197,9 +258,9 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	public void addHandler(IMessageHandler handler)
 	{
 		EnumType typ=handler.getMessageType();
-		messageMap.put(typ, handler);
 		EnumFamily[] families = handler.getFamilies();
-		familyMap.put(typ, families);
+        for(int i=0; i<families.length;i++)
+            messageMap.put(new MessageType(typ,families[i]), handler);
 	}
 
 	/**
@@ -209,14 +270,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 */
 	private IMessageHandler getHandler(EnumType typ, EnumFamily family)
 	{
-		IMessageHandler messageHandler=messageMap.get(typ);
-		if(messageHandler!=null)
-		{
-			EnumFamily[]fams=familyMap.get(typ);
-			if(fams==null || !ArrayUtils.contains(fams, family))
-				messageHandler=null;
-		}
-		return messageHandler;
+		return messageMap.get(new MessageType(typ,family));
 	}
 	/**
 	 * @param knownMessages
@@ -262,9 +316,22 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		log.info("unhandled Message: "+m.getType());
 		if(resp==null)
 			return;
-		resp.setReturnCode(5);
-		resp.setErrorText("Message not implemented: "+m.getType()+"; Family: "+m.getFamily().getName());        
+		errorResponse(resp, "Message not implemented: "+m.getType()+"; Family: "+m.getFamily().getName(), 5);        
 	}
+
+    /**
+     * standard error message creator
+     * 
+     * @param resp the response to make an error
+     * @param text the explicit error text
+     * @param rc the jmf response returncode
+     */
+    public static void errorResponse(JDFResponse resp, String text, int rc)
+    {
+        resp.setReturnCode(rc);
+		resp.setErrorText(text);
+        log.warn("JMF error: rc="+rc+" "+text);
+    }
 
 	/**
      * add tis subscription to the list of known subscriptions

@@ -101,6 +101,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.MimeUtil;
 
 /**
@@ -643,7 +644,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 	}
 
     public IQueueEntry getNextEntry() {
-        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry(null);
+        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry(null,null);
 
         if(qe==null) {
         	if (_parent==null) {
@@ -727,11 +728,14 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
             return false;
         }
         String newQEID=newQE.getQueueEntryID();
-        newQE=_theQueue.getQueueEntry(newQEID);
+        final JDFNode root = theJDF.getJDFRoot();
+        newQE.setFromJDF(root); // set jobid, jobpartid, partmaps
+        newQE=_theQueue.getQueueEntry(newQEID); // the "actual" entry in the queue
         if(newQE==null) {
             log.error("error fetching queueentry: QueueEntryID="+newQEID);
             return false;
         }
+        newQE.setFromJDF(root); // repeat for the actual entry
         
         String theDocFile=_jdfDir+newQEID+".jdf";
         boolean ok=theJDF.write2File(theDocFile, 0, true);
@@ -745,7 +749,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         return ok;
     }
 
-    private void notifyListeners()
+    protected void notifyListeners()
     {
         for(int i=0;i<_listeners.size();i++) {
             final Object elementAt = _listeners.elementAt(i);
@@ -759,10 +763,13 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
      * make the memory queue persistent
      *
      */
-    protected synchronized void persist()
+    protected void persist()
     {
-        log.info("persisting queue to "+_queueFile.getAbsolutePath());
-        _theQueue.getOwnerDocument_KElement().write2File(_queueFile.getAbsolutePath(), 0, true);
+        synchronized (_theQueue)
+        {
+            log.info("persisting queue to "+_queueFile.getAbsolutePath());
+            _theQueue.getOwnerDocument_KElement().write2File(_queueFile.getAbsolutePath(), 0, true);
+        }
     }
 
     /* (non-Javadoc)
@@ -781,11 +788,16 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         if(queueEntryID==null)
             return;
         JDFQueueEntry qe=getEntry(queueEntryID);
+        updateEntry(qe, status);
+    }
+
+    public void updateEntry(JDFQueueEntry qe, EnumQueueEntryStatus status)
+    {
         if (qe == null)
         	return;
         qe.setQueueEntryStatus(status);
         if (status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Aborted)) {
-        	returnQueueEntry( qe,new VString("root",null) );
+        	returnQueueEntry( qe,null ,null);
         }
         persist();
         notifyListeners();
@@ -802,32 +814,44 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         return s;
     }
     
-    protected void returnQueueEntry(JDFQueueEntry qe, VString finishedNodes)
+    protected void returnQueueEntry(JDFQueueEntry qe, VString finishedNodes, JDFDoc docJDF)
 	{
 		JDFDoc docJMF=new JDFDoc("JMF");
         JDFJMF jmf=docJMF.getJMFRoot();
         JDFCommand com=(JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.ReturnQueueEntry);
         JDFReturnQueueEntryParams qerp = com.appendReturnQueueEntryParams();
 
-        if (finishedNodes==null) {
-        	finishedNodes=new VString("root",null);
-        }
-        
-        if ( EnumNodeStatus.Completed.equals( qe.getStatus() )) {
-        	qerp.setCompleted( finishedNodes );
-        } else if ( EnumNodeStatus.Aborted.equals( qe.getStatus() )) {
-        	qerp.setAborted( finishedNodes );
-        }
         String returnURL=BambiNSExtension.getReturnURL(qe);
         qerp.setURL("cid:dummy"); // will be overwritten by buildMimePackage
         final String queueEntryID = qe.getQueueEntryID();
         qerp.setQueueEntryID(queueEntryID);
-        String docFile=_jdfDir+qe.getQueueEntryID()+".jdf";
-        JDFDoc docJDF = JDFDoc.parseFile(docFile);
+        if(docJDF==null)
+        {
+            String docFile=_jdfDir+qe.getQueueEntryID()+".jdf";
+            docJDF = JDFDoc.parseFile(docFile);
+        }
         if ( docJDF==null ) {
-        	log.error("cannot load the JDFDoc from "+docFile);
+        	log.error("cannot load the JDFDoc to return");
         	return;
         }
+        if (finishedNodes==null) {
+            JDFNode n=docJDF.getJDFRoot();
+            if(n==null)
+            {
+                finishedNodes=new VString("root",null);
+            }
+            else
+            {
+                finishedNodes=new VString(n.getID(),null);
+            }
+        }
+
+        if ( EnumNodeStatus.Completed.equals( qe.getStatus() )) {
+            qerp.setCompleted( finishedNodes );
+        } else if ( EnumNodeStatus.Aborted.equals( qe.getStatus() )) {
+            qerp.setAborted( finishedNodes );
+        }
+
         Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
         if(returnURL!=null) {
         	HttpURLConnection response = null;
