@@ -216,11 +216,7 @@ public class JMFFactory {
 		}
 		JDFDoc doc = jmf.getOwnerDocument_JDFElement();
 		JDFDoc respDoc = doc.write2URL(url);
-		if (respDoc==null || respDoc.toString().length()<10)
-		{
-			if (log!=null) {
-//				log.error("no response received");
-			}
+		if (respDoc==null || respDoc.toString().length()<10) {
 			return null;
 		}
 		return respDoc.getJMFRoot().getResponse(0);

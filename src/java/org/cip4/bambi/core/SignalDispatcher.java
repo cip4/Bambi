@@ -72,6 +72,7 @@ package org.cip4.bambi.core;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Vector;
 import java.util.Map.Entry;
 
@@ -118,6 +119,8 @@ public final class SignalDispatcher implements ISignalDispatcher
     protected VectorMap triggers=null;
     protected Object mutex=null;
     protected boolean doShutdown=false;
+    private HashMap<String,MessageSender> senders=null;
+    private int _maxSenders=10;
  
     /////////////////////////////////////////////////////////////
     protected static class Trigger
@@ -196,6 +199,8 @@ public final class SignalDispatcher implements ISignalDispatcher
         {
             while(!doShutdown)
             {
+            	checkMaxSenders();
+            	
                 final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
                 // spam them out
                 for(int i=0;i<triggerVector.size();i++)
@@ -213,8 +218,11 @@ public final class SignalDispatcher implements ISignalDispatcher
                     final MsgSubscription sub=subVector.elementAt(i);
                     log.debug("Time Signalling: "+i+", channelID="+sub.channelID);
                     String url=sub.getURL();
-                    Thread t = new Thread( new MessageSender( sub.getSignal(),url),"MessageSender_"+url );
-                    t.start();
+                    if ( !senders.containsKey(url) ) {
+                    	addSender(url);
+                    }
+                    MessageSender ms=senders.get(url);
+                    ms.sendMessage( sub.getSignal() );
                 }
  
                 try
@@ -637,6 +645,45 @@ public final class SignalDispatcher implements ISignalDispatcher
     
     public void shutdown() {
     	doShutdown=true;
+    	removeAllSenders(false);
+    }
+    
+    /**
+     * set the maximum number of senders allowed.
+     * If this SignalDispacher has reaches the number of max allowed senders, all 
+     * senders will be shut down gracefully and the vector of senders will be rebuild 
+     * @param i
+     */
+    public void setMaxSenders(int i) {
+    	_maxSenders=i;
+    }
+    
+    private void checkMaxSenders() {
+    	if (senders==null)
+    		return;
+    	if (senders.size()==_maxSenders) {
+    		removeAllSenders(true);
+    	}
+    }
+    
+    private void addSender(String url) {
+    	MessageSender ms = new MessageSender(null,url);
+    	int id=(int)(Math.random()*10000); // prevent having two threads with same name
+    	new Thread(ms, "sender_"+url+"_"+id );
+    	senders.put( url,new MessageSender(null,url) );
+    }
+    
+    private void removeAllSenders(boolean gracefully) {
+    	if (senders==null) {
+    		return;
+    	}
+    	Set<String> keys = senders.keySet();
+    	Iterator<String> it = keys.iterator();
+    	while ( it.hasNext() ) {
+    		String key=it.next();
+    		MessageSender ms=senders.get(key);
+   			ms.shutDown(gracefully);
+    	}
     }
 
 }

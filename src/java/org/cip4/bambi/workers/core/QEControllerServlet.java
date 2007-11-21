@@ -159,15 +159,15 @@ public class QEControllerServlet extends HttpServlet {
 	private boolean sendJMF(HttpServletRequest request,
 			HttpServletResponse response, EnumType type) {
 		JDFJMF jmf = null;
-		if (type == EnumType.SuspendQueueEntry)
+		if ( EnumType.SuspendQueueEntry.equals(type) )
 			jmf = JMFFactory.buildSuspendQueueEntry(_queueEntryID);
-		else if (type == EnumType.ResumeQueueEntry)
+		else if ( EnumType.ResumeQueueEntry.equals(type) )
 			jmf = JMFFactory.buildResumeQueueEntry(_queueEntryID);
-		else if (type == EnumType.AbortQueueEntry)
+		else if ( EnumType.AbortQueueEntry.equals(type) )
 			jmf = JMFFactory.buildAbortQueueEntry(_queueEntryID);
-		else if (type == EnumType.RemoveQueueEntry)
+		else if ( EnumType.RemoveQueueEntry.equals(type) )
 			jmf = JMFFactory.buildRemoveQueueEntry(_queueEntryID);
-		else if (type == EnumType.HoldQueueEntry)
+		else if ( EnumType.HoldQueueEntry.equals(type) )
 			jmf = JMFFactory.buildHoldQueueEntry(_queueEntryID);
 		
 		if (jmf == null) {
@@ -181,7 +181,7 @@ public class QEControllerServlet extends HttpServlet {
 			errorMsg += "\r\nResponse is null";
 			showError("failed to send JMF command", errorMsg, request, response);
 			return false;
-		} if (resp.getReturnCode()!=0 && type!=EnumType.AbortQueueEntry) {
+		} if (resp.getReturnCode()!=0 && !EnumType.AbortQueueEntry.equals(type)) {
 			String errorMsg=type.getName()+" with ID="+_queueEntryID+" on device "+_deviceID+" failed.";
 			errorMsg += "\r\nResponse: "+resp.toString();
 			showError("failed to send JMF command", resp.toString(), request, response);

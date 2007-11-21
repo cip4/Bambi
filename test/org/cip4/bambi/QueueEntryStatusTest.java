@@ -178,10 +178,11 @@ public class QueueEntryStatusTest extends BambiTestCase {
 			try {
 				Thread.sleep(750);
 			} catch (InterruptedException e) {
-				fail( "interrupted during Thread.sleed()" );
+				fail( "interrupted during Thread.sleep()" );
 			}
-			if (getQueueEntryStatus(qeID)==EnumQueueEntryStatus.Suspended)
+			if ( EnumQueueEntryStatus.Suspended.equals( getQueueEntryStatus(qeID) ) ) {
 				hasSuspended=true;
+			}
 			suspCounter++;
 		}
         assertTrue( hasSuspended );

@@ -228,7 +228,7 @@ public class JMFFactoryTest extends BambiTestCase {
         for (int i=0;i<queueSize;i++) {
         	JDFQueueEntry qe = q.getQueueEntry(i);
         	EnumQueueEntryStatus status=qe.getQueueEntryStatus();
-        	if (status!=EnumQueueEntryStatus.Aborted) {
+        	if ( EnumQueueEntryStatus.Aborted.equals(status) ) {
         		fail( "QueueEntryStatus is "+status.getName()+", but should be Aborted" );
         	}
         	// clean up
@@ -259,7 +259,7 @@ public class JMFFactoryTest extends BambiTestCase {
         Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
 
         try {
-        	HttpURLConnection response = MimeUtil.writeToURL( mp,simWorkerUrl+"/device001" );
+        	HttpURLConnection response = MimeUtil.writeToURL( mp,simWorkerUrl );
         	assertEquals( 200,response.getResponseCode() );
         } catch (Exception e) {
         	fail( e.getMessage() ); // fail on exception

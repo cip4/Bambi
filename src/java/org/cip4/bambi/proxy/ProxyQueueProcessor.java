@@ -134,15 +134,15 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        		return false;
 	        	}
 	        	
-                final String deviceID=m.getSenderID();
+                final String deviceID=BambiNSExtension.getDeviceID( qep );
 	        	final String queueEntryID = qep.getJobID();        	
 	        	if (queueEntryID!=null && queueEntryID.length()>0) {
 	        		// submit a specific QueueEntry
 	        		JDFQueueEntry qe = _theQueue.getQueueEntry(queueEntryID);
-	        		if (qe!=null && qe.getQueueEntryStatus()==EnumQueueEntryStatus.Waiting
+	        		if (qe!=null && EnumQueueEntryStatus.Waiting.equals( qe.getQueueEntryStatus() )
 	        				&& BambiNSExtension.getDeviceID(qe)==null) {
 	        			// mark QueueEntry as "Running" before submitting, so it won't be
-	        			// submitted twice. If SubmitQE fails, mark it as waiting so other workers
+	        			// submitted twice. If SubmitQE fails, mark it as "Waiting" so other workers
 	        			// can grab it.
 	        			qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
 	        			boolean submitted=submitQueueEntry(qe, queueURL, deviceID);
@@ -159,9 +159,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        		IQueueEntry qe = getNextEntry();
 	        		if (qe!=null) {
 	        			submitQueueEntry( qe.getQueueEntry(),qep.getQueueURL(), deviceID );
-	        		} else {
-	        			//log.info("RequestQueueEntry won't trigger Submit: no QueueEntries waiting in root device");
-	        		}
+	        		} 
 	        		return true;
 	        	} 
 	        }
@@ -402,11 +400,11 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 			
 			JDFJMF jmf=null;
 			String cmdName=status.getName()+"QueueEntry";
-			if ( status==EnumQueueEntryStatus.Suspended) {
+			if ( EnumQueueEntryStatus.Suspended.equals( status ) ) {
 				jmf = JMFFactory.buildSuspendQueueEntry( outQeid );
-			} else if ( status==EnumQueueEntryStatus.Running) {
+			} else if ( EnumQueueEntryStatus.Running.equals( status ) ) {
 				jmf = JMFFactory.buildResumeQueueEntry( outQeid );
-			} else if ( status==EnumQueueEntryStatus.Aborted) {
+			} else if ( EnumQueueEntryStatus.Aborted.equals( status )) {
 				jmf = JMFFactory.buildAbortQueueEntry( outQeid );
 			} else {
 				log.error( cmdName+" is not supported" );

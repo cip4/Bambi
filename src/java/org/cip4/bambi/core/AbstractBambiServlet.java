@@ -116,7 +116,7 @@ import org.cip4.jdflib.util.MimeUtil;
  *
  */
 public abstract class AbstractBambiServlet extends HttpServlet {
-	
+
 	/**
 	 * 
 	 * handler for the knowndevices query

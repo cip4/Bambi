@@ -617,8 +617,8 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         if (_jdfDir!=null) { // will be null in unit tests
         	File jdfDir=new File (_jdfDir);
         if (!jdfDir.exists())
-        	if ( !new File(_jdfDir).mkdirs() )
-        		log.error( "failed to create JDFDir at location "+_jdfDir );
+        	if ( !jdfDir.mkdirs() )
+        		log.error( "failed to create JDFDir at location "+jdfDir.getAbsolutePath() );
         }
         
         if(_queueFile==null)
@@ -653,7 +653,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         	String queueURL=_parent.getDeviceURL();
         	// DeviceID is not needed for the RequestQE in the current implementation
         	//JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,_parent.getDeviceID() );
-        	JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,null );
+        	JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,_parent.getDeviceID() );
         	String proxyURL=_parent.getProxyURL();
         	if (proxyURL!=null && proxyURL.length()>0) {
         		JMFFactory.send2URL(jmf,_parent.getProxyURL());
@@ -784,7 +784,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         if (qe == null)
         	return;
         qe.setQueueEntryStatus(status);
-        if (status == EnumQueueEntryStatus.Completed || status == EnumQueueEntryStatus.Aborted) {
+        if (status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Aborted)) {
         	returnQueueEntry( qe,new VString("root",null) );
         }
         persist();
@@ -813,9 +813,9 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         	finishedNodes=new VString("root",null);
         }
         
-        if (qe.getStatus() == EnumNodeStatus.Completed) {
+        if ( EnumNodeStatus.Completed.equals( qe.getStatus() )) {
         	qerp.setCompleted( finishedNodes );
-        } else if (qe.getStatus() == EnumNodeStatus.Aborted) {
+        } else if ( EnumNodeStatus.Aborted.equals( qe.getStatus() )) {
         	qerp.setAborted( finishedNodes );
         }
         String returnURL=BambiNSExtension.getReturnURL(qe);

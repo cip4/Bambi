@@ -147,6 +147,7 @@ public class ProxyTest extends BambiTestCase {
 		int loops=0;
 		boolean hasRunningQE=false;
 		while (loops<10 && !hasRunningQE) {
+			loops++;
 			Thread.sleep(1000);
 			JDFJMF jmf = JMFFactory.buildQueueStatus();
 	        JDFResponse resp=JMFFactory.send2URL(jmf, proxyUrl);
@@ -166,7 +167,6 @@ public class ProxyTest extends BambiTestCase {
 	        		break;   		
 	        	}
 	        }
-	        loops++;
 		}
         assertTrue( hasRunningQE );        
 	}

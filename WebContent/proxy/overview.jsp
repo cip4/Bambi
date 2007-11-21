@@ -41,7 +41,8 @@
 				Completed: <%= qf.count(EnumQueueEntryStatus.Completed)%>, Aborted: <%= qf.count(EnumQueueEntryStatus.Aborted)%>, 
 				Total: <%= qf.countAll()%> <br>
 				<iframe src="overview?cmd=showQueue&devID=<%=dev.getDeviceID()%>" width="450" height="200">
-			 		<a href="overview?cmd=showQueue&devID=<%=dev.getDeviceID()%> ">show queue</a>
+			 		Oops! You should see a frame here. Please follow this link to see the queue of this device:			
+			 		<a href="overview?cmd=showQueue&devID=<%=dev.getDeviceID()%> ">Link</a>
 				</iframe>
 		
 		<br>

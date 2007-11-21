@@ -70,6 +70,8 @@
  */
 package org.cip4.bambi.core.messaging;
 
+import java.util.Vector;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -80,10 +82,12 @@ import org.cip4.jdflib.jmf.JDFResponse;
  * @author boegerni
  */
 public class MessageSender implements Runnable {
-	private final Log log = LogFactory.getLog(MessageSender.class.getName());
-	JDFJMF _jmf=null;
-	String _url=null;
-	IResponseHandler _sender=null;
+	private String _url=null;
+	private IResponseHandler _sender=null;
+	private boolean doShutDown=false;
+	private boolean doShutDownGracefully=false;
+	private Vector<JDFJMF> _messages=null;
+	private static Log log = LogFactory.getLog(MessageSender.class.getName());
 	
 	/**
 	 * constructor
@@ -91,8 +95,7 @@ public class MessageSender implements Runnable {
 	 * @param theUrl the URL to send the message to
 	 */
 	public MessageSender(JDFJMF theJMF, String theUrl) {
-		_jmf=theJMF;
-		_url=theUrl;
+		init(theJMF,theUrl, null);
 	}
 	
 	/**
@@ -104,23 +107,73 @@ public class MessageSender implements Runnable {
 	 *               If the response is null, the IResponseHandler will not be triggered.       
 	 */
 	public MessageSender(JDFJMF theJMF, String theUrl, IResponseHandler sender) {
-		_jmf=theJMF;
+		init(theJMF,theUrl, sender);
+	}
+	
+	private void init(JDFJMF theJMF, String theUrl, IResponseHandler sender) {
+		_messages=new Vector<JDFJMF>();
+		if (theJMF!=null)
+			_messages.add(theJMF);
 		_url=theUrl;
 		_sender=sender;
+		
 	}
 
-	
+	/**
+	 * the sender loop. <br/>
+	 * Checks whether its vector of pending messages is empty. If it is not empty, 
+	 * the first message is sent and removed from the map.
+	 */
 	public void run() {
-		if (_url!=null && !_url.equals("") && _jmf!=null) {
-			JDFResponse resp=JMFFactory.send2URL(_jmf, _url);
-			if (resp==null) {
-				log.error("failed to write to "+_url);
-				return;
+		while (!doShutDown) {
+			if (_messages!=null && !_messages.isEmpty() ) {
+				JDFJMF jmf=_messages.get(0);
+				if ( jmf!=null &&_url!=null && !_url.equals("") ) {
+					JDFResponse resp=JMFFactory.send2URL(jmf, _url);
+					if (_sender!=null) {
+						_sender.handleResponse(resp);
+					}
+				}
+				_messages.remove(0);
 			}
-			if (_sender!=null) {
-				_sender.handleResponse(resp);
+			
+			if ( doShutDownGracefully && _messages.isEmpty() ) {
+				doShutDown=true;
+			}
+			
+			try {
+				this.wait(100);
+			} catch (InterruptedException e) {
+				log.error( "MessageSender was interrupted while waiting: "+e.getMessage() );
 			}
 		}
+	}
+	
+	/**
+	 * stop sending new messages immediately and shut down
+	 * @param gracefully true  - process remaining messages first, then shut down. <br/>
+	 *                   false - shut down immediately, skip remaining messages.
+	 */
+	public void shutDown(boolean gracefully) {
+		if (gracefully) {
+			doShutDownGracefully=true;
+		} else {
+			doShutDown=true;
+		}
+	}
+
+	/**
+	 * send a message to the URL this MessageSender belongs to
+	 * @param jmf the message to send
+	 * @return true, if the message will be sent. False, if this MessageSender is
+	 *         unable to accept further messages (i. e. it is shutting down). 
+	 */
+	public boolean sendMessage(JDFJMF jmf) {
+		if (doShutDown || doShutDownGracefully) {
+			return false;
+		}
+		_messages.add(jmf);
+		return true;
 	}
 	
 }

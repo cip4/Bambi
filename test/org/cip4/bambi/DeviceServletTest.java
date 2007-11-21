@@ -211,7 +211,7 @@ public class DeviceServletTest extends BambiTestCase {
         assertEquals( 0,resp.getReturnCode() );
         String qeid=resp.getQueue(0).getQueueEntry(0).getQueueEntryID();
         assertNotNull( qeid );
-        assertTrue( qeid!="" );
+        assertFalse( qeid.equals("") );
     }
 
     public void testMultiSubmit() throws Exception
@@ -230,7 +230,7 @@ public class DeviceServletTest extends BambiTestCase {
             assertEquals( 0,resp.getReturnCode() );
             String qeid=resp.getQueueEntry(0).getQueueEntryID();
             assertNotNull( qeid );
-            assertTrue( qeid!="" );
+            assertFalse( qeid.equals("") );
             qeids.add( qeid );   		
     	}
     }
