@@ -152,8 +152,7 @@
  			<input type="hidden" name="qeid" value="<%=currentBQE.queueEntryID %>" />
  			<input type="hidden" name="show" value="true" />
      	<%
-     				JobPhase currentPhase = (JobPhase) request
-     				.getAttribute("currentPhase");
+     				JobPhase currentPhase = (JobPhase) request.getAttribute("currentPhase");
      		if (currentPhase == null) {
      	%>
  				current job phase is null

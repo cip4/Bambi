@@ -341,7 +341,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 		JDFResponse resp = JMFFactory.send2URL(jmf, targetURL);
 		if (resp!=null && resp.getReturnCode()==0) {
 		    JDFQueueEntry newQE = resp.getQueueEntry(0);
-		    qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
+		    updateEntry(qe, EnumQueueEntryStatus.Running);
 		    _tracker.addEntry(qe.getQueueEntryID(), newQE.getQueueEntryID(), deviceID, targetURL);
 		    return true;
 		}
@@ -360,7 +360,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 			JDFQueueEntry qe) {
 		int retCode=changeQEStatus(qeid, EnumQueueEntryStatus.Aborted);
 		if (retCode==0) {
-			qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
+			updateEntry(qe,EnumQueueEntryStatus.Aborted);
 		}
 		
 	}
@@ -370,7 +370,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 			JDFQueueEntry qe) {
 		int retCode=changeQEStatus(qeid, EnumQueueEntryStatus.Running);
 		if (retCode==0) {
-			qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
+			updateEntry(qe,EnumQueueEntryStatus.Running);
 		}
 	}
 
@@ -379,7 +379,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 			JDFQueueEntry qe) {
 		int retCode=changeQEStatus(qeid, EnumQueueEntryStatus.Suspended);
 		if (retCode==0)
-			qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
+			updateEntry(qe,EnumQueueEntryStatus.Suspended);
 	}
 	
 	/**

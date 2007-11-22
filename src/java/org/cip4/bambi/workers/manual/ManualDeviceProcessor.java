@@ -103,10 +103,10 @@ public class ManualDeviceProcessor extends AbstractBambiDeviceProcessor
 	public ManualDeviceProcessor(IQueueProcessor queueProcessor, 
 			IStatusListener statusListener, IDeviceProperties devProperties) {
 		super(queueProcessor, statusListener, devProperties);
-		initManualDeviceProcessor();
+		initFirstPhase();
 	}
 	
-	private void initManualDeviceProcessor() {
+	private void initFirstPhase() {
 		firstPhase = new JobPhase();
 		firstPhase.deviceStatus=EnumDeviceStatus.Idle;
 		firstPhase.deviceStatusDetails="Waiting";
@@ -210,7 +210,8 @@ public class ManualDeviceProcessor extends AbstractBambiDeviceProcessor
 	public void init(IQueueProcessor queueProcessor,
 			IStatusListener statusListener, IDeviceProperties devProperties) {
 		super.init(queueProcessor, statusListener, devProperties);
-		initManualDeviceProcessor();
+		initFirstPhase();
+		_jobPhases.add(firstPhase);
 	}
 
 }

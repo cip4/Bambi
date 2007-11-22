@@ -624,7 +624,8 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         
         if(_queueFile==null)
             _queueFile=new File(_parent.getBaseDir()+"theQueue_"+deviceID+".xml");
-        if (_queueFile!=null && _queueFile.getParentFile()!=null) { // will be null in unit tests
+        if (_queueFile!=null && _queueFile.getParentFile()!=null 
+        		&& _queueFile.getParentFile().exists() ) { // will be null in unit tests
         	if ( !_queueFile.getParentFile().mkdirs() )
         		log.error( "failed to create base dir at location "+_queueFile.getParentFile() );
         }
@@ -651,12 +652,10 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         		return null;
         	}
         	//log.info("sending RequestQueueEntry to proxy device");
-        	String queueURL=_parent.getDeviceURL();
-        	// DeviceID is not needed for the RequestQE in the current implementation
-        	//JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,_parent.getDeviceID() );
-        	JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,_parent.getDeviceID() );
         	String proxyURL=_parent.getProxyURL();
         	if (proxyURL!=null && proxyURL.length()>0) {
+            	String queueURL=_parent.getDeviceURL();
+            	JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,_parent.getDeviceID() );
         		JMFFactory.send2URL(jmf,_parent.getProxyURL());
         	}
             return null;
