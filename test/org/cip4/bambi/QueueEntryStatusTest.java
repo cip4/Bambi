@@ -148,18 +148,27 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		try {
 			HttpURLConnection response = MimeUtil.writeToURL( mp,simWorkerUrl );
 			assertEquals( 200,response.getResponseCode() );
-			// give the device some time to start processing
-			try {
-				Thread.sleep(3000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
 		} catch (Exception e) {
 			fail( e.getMessage() ); 
 		}
-		runningQE = getRunningQueueEntry();
+		
+		// give the device some time to start processing
+		boolean hasRunningQE=false;
+		int counter=0;
+		while (counter<10 && !hasRunningQE) {
+			try {
+				Thread.sleep(750);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			runningQE = getRunningQueueEntry();
+			if (runningQE!=null)
+				hasRunningQE=true;
+			counter++;
+		}
 
-		assertNotNull( runningQE );
+		assertTrue( hasRunningQE );
 	}
 	
 	public void testSuspendResumeQE()
@@ -271,14 +280,29 @@ public class QueueEntryStatusTest extends BambiTestCase {
 		jmf = JMFFactory.buildAbortQueueEntry( qeID );
 		resp = JMFFactory.send2URL(jmf, simWorkerUrl);
 		assertEquals( 0, resp.getReturnCode() );
+		
 		// give the device some time to remove the QE
-        try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		boolean hasAborted=false;
+		EnumQueueEntryStatus status=null;
+		int counter=0;
+		while (counter<10 && !hasAborted) {
+			try {
+				Thread.sleep(750);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			// check whether the QEStatus is Aborted
+			status = getQueueEntryStatus(qeID);
+			if ( EnumQueueEntryStatus.Aborted.equals(status) ) {
+				assertTrue(true);
+				hasAborted=true;
+			}
+			counter++;
 		}
+		
 		// now the qe should be gone
-		assertEquals(EnumQueueEntryStatus.Aborted.getName(), getQueueEntryStatus(qeID).getName());
+		assertTrue( hasAborted );
 	}
 	
 	public void testRogueWaves() throws Exception

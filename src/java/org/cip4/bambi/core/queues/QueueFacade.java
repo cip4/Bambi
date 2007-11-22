@@ -131,7 +131,7 @@ public class QueueFacade {
 	
 	public Vector<BambiQueueEntry> getBambiQueueEntryVector()
 	{
-		log.info("building BambieQueueEntryVector");
+		log.info("building BambiQueueEntryVector");
 		Vector<BambiQueueEntry> qes = new Vector<BambiQueueEntry>();
 		for (int i = 0; i<_theQueue.getQueueSize();i++)
 		{

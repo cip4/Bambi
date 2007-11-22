@@ -308,11 +308,12 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     public EnumQueueEntryStatus stopProcessing(JDFQueueEntry qe,EnumQueueEntryStatus newStatus) {
         EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 
-        if (status.equals(EnumQueueEntryStatus.Running)) {
+        if (EnumQueueEntryStatus.Running.equals(status)) {
             ChangeQueueEntryStatusRequest newReq = new ChangeQueueEntryStatusRequest(qe.getQueueEntryID(),newStatus);
             _updateStatusReqs.add(newReq);
             return status;
-        } else if (status.equals(EnumQueueEntryStatus.Waiting) || status.equals(EnumQueueEntryStatus.Suspended)) {
+        } else if ( EnumQueueEntryStatus.Waiting.equals(status) 
+        		|| EnumQueueEntryStatus.Suspended.equals(status) ) {
             qe.setQueueEntryStatus(newStatus);
             return newStatus;
         } else {

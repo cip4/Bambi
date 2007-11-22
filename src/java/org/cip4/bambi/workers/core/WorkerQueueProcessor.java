@@ -101,7 +101,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		if (newStatus==null) {
 			// got no response
 			updateEntry(qeid,EnumQueueEntryStatus.Aborted);
-			log.error("failed to suspend QueueEntry with ID="+qeid); 
+			log.error("failed to abort QueueEntry with ID="+qeid); 
 		} else {
 			updateEntry(qeid,newStatus);
 		}
