@@ -140,7 +140,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	        		// submit a specific QueueEntry
 	        		JDFQueueEntry qe = _theQueue.getQueueEntry(queueEntryID);
 	        		if (qe!=null && EnumQueueEntryStatus.Waiting.equals( qe.getQueueEntryStatus() )
-	        				&& BambiNSExtension.getDeviceID(qe)==null) {
+	        				&& qe.getDeviceID()==null) {
 	        			// mark QueueEntry as "Running" before submitting, so it won't be
 	        			// submitted twice. If SubmitQE fails, mark it as "Waiting" so other workers
 	        			// can grab it.
@@ -299,7 +299,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	 */
 	protected boolean submitQueueEntry(JDFQueueEntry qe, String targetURL, String deviceID)
 	{
-		if ( BambiNSExtension.getDeviceID(qe)!=null ) {
+		if ( qe.getDeviceID()!=null && !qe.getDeviceID().equals("") ) {
 			log.error( "QueueEntry '"+qe.getQueueEntryID()+"' has already been forwarded" );
 			return false;
 		}
@@ -312,7 +312,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
         if(KElement.isWildCard(deviceID))
             deviceID = targetURL.substring(targetURL.lastIndexOf("/"));
         
-		BambiNSExtension.setDeviceID(qe, deviceID);
+        qe.setDeviceID( deviceID );
 		BambiNSExtension.setDeviceURL(qe,targetURL);
 		
 		// build SubmitQueueEntry
@@ -350,7 +350,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 			respError += ", JDFResponse is: \r\n"+resp.getText();
 		}
 		log.error("failed to send SubmitQueueEntry, "+respError);
-		BambiNSExtension.setDeviceID(qe, null);
+		qe.setDeviceID(null);
 		return false;
 	}
 //////////////////////////////////////////////////////////////////////////////

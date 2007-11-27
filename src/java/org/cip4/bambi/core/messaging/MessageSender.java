@@ -142,9 +142,9 @@ public class MessageSender implements Runnable {
 			}
 			
 			try {
-				this.wait(100);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
-				log.error( "MessageSender was interrupted while waiting: "+e.getMessage() );
+				log.error( "MessageSender was interrupted while sleeping: "+e.getMessage() );
 			}
 		}
 	}

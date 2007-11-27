@@ -27,7 +27,7 @@
 	    <xsl:value-of select = "@Status" />  
       </td>
       <td>
-        <xsl:value-of select = "@bambi:DeviceID" />
+        <xsl:value-of select = "@DeviceID" />
       </td>
 	</tr>
   </xsl:template> 

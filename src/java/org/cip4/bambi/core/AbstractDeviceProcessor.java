@@ -254,7 +254,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             log.error("proccessing null job");
             return EnumQueueEntryStatus.Aborted;
         }
-        BambiNSExtension.setDeviceID(qe, _devProperties.getDeviceID());
+        qe.setDeviceID( _devProperties.getDeviceID() );
         final String queueEntryID = qe.getQueueEntryID();
         log.info("Processing queueentry "+queueEntryID);
 

@@ -73,7 +73,6 @@ package org.cip4.bambi.workers.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
-import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.queues.AbstractQueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.jmf.JDFQueue;
@@ -111,7 +110,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		q.setQueueStatus( _theQueue.getQueueStatus() );
 		removeBambiNSExtensions(q);
 		log.info("aborted QueueEntry with ID="+qeid);
-		// FIXME notify proxy
+		// TODO notify proxy
 	}
 	
 	@Override
@@ -131,7 +130,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		q.copyElement(qe, null);
 		removeBambiNSExtensions(q);
 		log.info("suspended QueueEntry with ID="+qeid);
-		// FIXME notify proxy
+		// TODO notify proxy
 	}
 	
 	@Override
@@ -144,7 +143,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		q.setQueueStatus( _theQueue.getQueueStatus() );
 		removeBambiNSExtensions(q);
 		log.info("resumed QueueEntry with ID="+qeid);
-		// FIXME notify proxy
+		// TODO notify proxy
 	}
 	
 	/**
@@ -157,7 +156,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
     protected EnumQueueEntryStatus stopOnDevice(JDFQueueEntry qe,EnumQueueEntryStatus status)
     {
     	String queueEntryID=qe.getQueueEntryID();
-    	String deviceID=BambiNSExtension.getDeviceID(qe);
+    	String deviceID=qe.getDeviceID();
     	if (deviceID==null) {
     		log.error("no device ID supplied for "+queueEntryID);
     		return null;

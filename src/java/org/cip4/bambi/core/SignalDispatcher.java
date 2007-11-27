@@ -495,6 +495,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         messageHandler=_messageHandler;
         triggers=new VectorMap();
         mutex = new Object();
+        senders = new HashMap<String, MessageSender>();
         new Thread(new Dispatcher(),"SignalDispatcher_"+deviceID).start();
         log.info("dispatcher thread 'SignalDispatcher_"+deviceID+"' started");
     }
