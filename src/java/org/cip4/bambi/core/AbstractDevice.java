@@ -212,8 +212,8 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
 
         _theQueueProcessor = buildQueueProcessor( );
         _theQueueProcessor.addHandlers(_jmfHandler);
-        _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
-        _theStatusListener.addHandlers(_jmfHandler);
+//        _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
+//        _theStatusListener.addHandlers(_jmfHandler);
 
         String deviceID=_devProperties.getDeviceID();
         _theDeviceProcessor = buildDeviceProcessor();
