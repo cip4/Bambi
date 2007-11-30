@@ -70,13 +70,12 @@
  */
 package org.cip4.bambi.workers.core;
 
+import java.beans.XMLDecoder;
+import java.beans.XMLEncoder;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -114,10 +113,16 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
 		 * 
 		 */
 		private static final long serialVersionUID = 2262422293566643131L;
+		
+		public JobPhase() {
+			super();
+		}
+		
 		/**
 		 * status to be displayed for this job phase
 		 */
 		public EnumDeviceStatus deviceStatus=EnumDeviceStatus.Idle;
+		
 		/**
 		 * device status details
 		 */
@@ -148,6 +153,62 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
 					+", NodeStatus="+nodeStatus.getName()
 					+", NodeStatusDetails="+nodeStatusDetails
 					+", Good="+Output_Good+", Waste="+Output_Waste+"]");
+		}
+
+		public EnumDeviceStatus getDeviceStatus() {
+			return deviceStatus;
+		}
+
+		public void setDeviceStatus(EnumDeviceStatus deviceStatus) {
+			this.deviceStatus = deviceStatus;
+		}
+
+		public String getDeviceStatusDetails() {
+			return deviceStatusDetails;
+		}
+
+		public void setDeviceStatusDetails(String deviceStatusDetails) {
+			this.deviceStatusDetails = deviceStatusDetails;
+		}
+
+		public EnumNodeStatus getNodeStatus() {
+			return nodeStatus;
+		}
+
+		public void setNodeStatus(EnumNodeStatus nodeStatus) {
+			this.nodeStatus = nodeStatus;
+		}
+
+		public String getNodeStatusDetails() {
+			return nodeStatusDetails;
+		}
+
+		public void setNodeStatusDetails(String nodeStatusDetails) {
+			this.nodeStatusDetails = nodeStatusDetails;
+		}
+
+		public int getDuration() {
+			return duration;
+		}
+
+		public void setDuration(int duration) {
+			this.duration = duration;
+		}
+
+		public double getOutput_Good() {
+			return Output_Good;
+		}
+
+		public void setOutput_Good(double output_Good) {
+			Output_Good = output_Good;
+		}
+
+		public double getOutput_Waste() {
+			return Output_Waste;
+		}
+
+		public void setOutput_Waste(double output_Waste) {
+			Output_Waste = output_Waste;
 		}
 
 	}
@@ -203,30 +264,23 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
     @SuppressWarnings({ "unchecked", "unchecked" })
 	protected List<JobPhase> resumeQueueEntry(JDFQueueEntry qe)
     {
+    	List<JobPhase> phases=null;
     	String queueEntryID=qe.getQueueEntryID();
-    	String fileName = _devProperties.getBaseDir()+queueEntryID+".phases";
-		FileInputStream f_in=null;
-		try {
-			f_in = new FileInputStream(fileName);
-		} catch (FileNotFoundException e2) {
-			log.info( "no remaining job phases found for QueueEntry with ID="+queueEntryID );
+    	String fileName = _devProperties.getBaseDir()+queueEntryID+"_phases.xml";
+    	if ( !new File(fileName).canRead() ) {
 			return null;
 		}
-
-		Object obj=null;
-		try {
-			ObjectInputStream obj_in = new ObjectInputStream (f_in);
-			obj = obj_in.readObject();
-			obj_in.close();
-			f_in.close();
-		} catch (Exception e) {
-			log.error( "failed to load remaining phases for QueueEntry with ID="
-					+queueEntryID+": "+e.getMessage() );
-		}
-
-		if ( !(obj instanceof List) )
-			return null;
-		List<JobPhase> phases = (List<JobPhase>) obj;
+		XMLDecoder dec = null; 
+	    try { 
+	      dec = new XMLDecoder( new FileInputStream(fileName) ); 
+	      phases = (List<JobPhase>) dec.readObject();   
+	    } catch ( IOException e ) { 
+	    	log.error( "error while deserializing: "+e.getMessage() );
+	    } finally { 
+	      if ( dec!=null ) 
+	        dec.close(); 
+	    }
+    	
 		// delete file with remaining phases after loading
 		boolean deleted=(new File(fileName)).delete();
 		if (!deleted) {
@@ -278,28 +332,17 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
 		phases.set(0, firstPhase);
 		
 		// serialize the remaining job phases
-		String fileName = _devProperties.getBaseDir()+queueEntryID+".phases";
-		FileOutputStream f_out=null;
-		try {
-			f_out = new FileOutputStream(fileName);
-		} catch (FileNotFoundException e) {
-			log.error( "serialization of the remaining job phases failed: \r\n"+e.getMessage() );
-		}
-		if (f_out == null) {
-			log.error( "serialization of the remaining job phases failed: FileOutputStream is null");
-			return;
-		}
-		
-		ObjectOutputStream obj_out=null;
-		try {
-			obj_out = new ObjectOutputStream (f_out);
-			obj_out.writeObject ( phases );
-			
-			obj_out.close();
-			f_out.close();
-		} catch (IOException e) {
-			log.error( "serialization of the remaining job phases failed: \r\n"+e.getMessage() );
-		}
+		String fileName = _devProperties.getBaseDir()+queueEntryID+"_phases.xml";
+		XMLEncoder enc = null; 	 
+	    try { 
+	      enc = new XMLEncoder( new FileOutputStream(fileName) ); 
+	      enc.writeObject( phases );
+	    } catch ( IOException e ) { 
+	      log.error( "error while persisting: "+e.getMessage() );
+	    } finally { 
+	      if ( enc != null ) 
+	        enc.close(); 
+	    }
 		log.info("remaining phases have been saved to "+fileName);
 	}
 }

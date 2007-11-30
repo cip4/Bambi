@@ -72,6 +72,7 @@ package org.cip4.bambi.core;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 import java.util.Map.Entry;
@@ -209,7 +210,7 @@ public final class SignalDispatcher implements ISignalDispatcher
                     log.debug("Trigger Signalling :"+i+" channelID="+sub.channelID);
                     String url=sub.getURL();
                     Thread t = new Thread( new MessageSender( sub.getSignal(),url),"MessageSender_"+url );
-                    t.run();
+                    t.start();
                 }
                // select pending time subscriptions
                 final Vector<MsgSubscription> subVector = getTimeSubscriptions();
@@ -669,7 +670,7 @@ public final class SignalDispatcher implements ISignalDispatcher
     
     private void addSender(String url) {
     	MessageSender ms = new MessageSender(null,url);
-    	int id=(int)(Math.random()*10000); // prevent having two threads with same name
+    	int id=new Random().nextInt(); // prevent having two threads with same name
     	new Thread(ms, "sender_"+url+"_"+id );
     	senders.put( url,new MessageSender(null,url) );
     }

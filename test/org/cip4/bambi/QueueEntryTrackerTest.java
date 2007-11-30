@@ -83,7 +83,7 @@ public class QueueEntryTrackerTest extends BambiTestCase {
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
-		File configFile=new File( sm_dirTestTemp+"null.tracker" );
+		File configFile=new File( sm_dirTestTemp+"null_tracker.xml" );
 		if (configFile.exists() ) {
 			configFile.delete();
 		}

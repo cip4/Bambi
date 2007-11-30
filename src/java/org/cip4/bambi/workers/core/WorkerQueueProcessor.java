@@ -161,11 +161,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
     		log.error("no device ID supplied for "+queueEntryID);
     		return null;
     	}
-    	if ( !deviceID.equals(_theQueue.getDeviceID()) ) {
-    		log.error("the queue entry is not processed on the this device");
-    		return null;
-    	}
-    	
+     	
     	if (_parent == null) {
     		log.error("cannot stop on parent device, parent is null");
     		return null;

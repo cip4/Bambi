@@ -71,15 +71,12 @@
 
 package org.cip4.bambi.proxy;
 
+import java.beans.XMLDecoder;
+import java.beans.XMLEncoder;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -89,11 +86,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 public class QueueEntryTracker implements IQueueEntryTracker {
-	protected static class OutgoingQE implements Serializable {
+	public static class OutgoingQE {
 		private static final long serialVersionUID = 4586978931L;
 		private String _qeid=null;
 		private String _deviceID=null;
 		private String _deviceURL=null;
+		
+		public OutgoingQE() {
+			super();
+		}
 		
 		public OutgoingQE(String qeid, String deviceID,String deviceURL) {
 			_qeid=qeid;
@@ -101,12 +102,24 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 			_deviceURL=deviceURL;
 		}
 		
+		public void setQueueEntryID(String qeid) {
+			_qeid=qeid;
+		}
+		
 		public String getQueueEntryID() {
 			return _qeid;
+		}
+
+		public void setDeviceID(String deviceID) {
+			_deviceID = deviceID;
 		}
 		
 		public String getDeviceID() {
 			return _deviceID;
+		}
+		
+		public void setDeviceURL(String deviceURL) {
+			_deviceURL = deviceURL;
 		}
 		
 		public String getDeviceURL() {
@@ -130,7 +143,7 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 	 * @param deviceID   the ID of the device this tracker belongs to
 	 */
 	public QueueEntryTracker(String configPath, String deviceID) {
-		_configFile=configPath+deviceID+".tracker";
+		_configFile=configPath+deviceID+"_tracker.xml";
 		if (loadTracker()==true) {
 			log.info("loaded QueueEntryTracker from "+_configFile);
 		} else {
@@ -246,26 +259,18 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 	 * @return true is successful, false if not
 	 */
 	private boolean persist() {
-		boolean succeeded=true;
-		OutputStream fos = null; 
-		try { 
-		  fos = new FileOutputStream( _configFile ); 
-		  ObjectOutputStream o = new ObjectOutputStream( fos ); 
-		  o.writeObject( _tracker );  
-		} catch ( IOException e ) { 
-			log.error("failed to persist QueueEntryTracker to "+_configFile);
-			succeeded=false;
-		} finally { 
-			try { 
-				if (fos!=null)
-					fos.close(); 
-			} catch ( Exception e ) { 
-				log.error("failed to persist QueueEntryTracker to "+_configFile);
-				succeeded=false;
-			} 
-		}
-
-		 return succeeded;
+		XMLEncoder enc = null; 	 
+	    try { 
+	      enc = new XMLEncoder( new FileOutputStream(_configFile) ); 
+	      enc.writeObject( _tracker );
+	    } catch ( IOException e ) { 
+	      log.error( "error while persisting: "+e.getMessage() );
+	      return false;
+	    } finally { 
+	      if ( enc != null ) 
+	        enc.close(); 
+	    }
+	    return true;
 	}
 	
 	/**
@@ -277,30 +282,17 @@ public class QueueEntryTracker implements IQueueEntryTracker {
 		if ( !new File(_configFile).canRead() ) {
 			return false;
 		}
-		
-		boolean succeeded=true;
-		InputStream fis = null; 
-		try { 
-		  fis = new FileInputStream( _configFile ); 
-		  ObjectInputStream o = new ObjectInputStream( fis ); 
-		  _tracker = (Map<String, OutgoingQE>) o.readObject();  
-		}  catch ( IOException e ) { 
-			log.error("failed to load QueueEntryTracker from "+_configFile); 
-			succeeded=false;
-		}  catch ( ClassNotFoundException e ) { 
-			log.error( "failed to import file '"+_configFile+"'" );
-			succeeded=false;
-		} finally { 
-			try { 
-				if (fis!=null)
-					fis.close(); 
-			} catch ( Exception e ) {
-				log.error("failed to load QueueEntryTracker from "+_configFile);
-				succeeded=false;
-			} 
-		}
-		
-		return succeeded;
+		XMLDecoder dec = null; 
+	    try { 
+	      dec = new XMLDecoder( new FileInputStream(_configFile) ); 
+	      _tracker = (Map<String, OutgoingQE>) dec.readObject();   
+	    } catch ( IOException e ) { 
+	    	log.error( "error while deserializing: "+e.getMessage() );
+	    } finally { 
+	      if ( dec!=null ) 
+	        dec.close(); 
+	    }
+	    return true;
 	}
 	
 }

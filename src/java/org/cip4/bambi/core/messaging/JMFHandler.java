@@ -73,6 +73,7 @@ package org.cip4.bambi.core.messaging;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
+import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -204,10 +205,10 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
                 }
             }
             
-            Iterator<EnumType> iTyp=htf.keySet().iterator();
+            Iterator<Entry<EnumType, Vector<EnumFamily>>> iTyp=htf.entrySet().iterator();
             while(iTyp.hasNext())
             {
-                EnumType typ=iTyp.next();
+                EnumType typ=iTyp.next().getKey();
 				log.debug("Known Message: "+typ.getName());
 				JDFMessageService ms=resp.appendMessageService();
 				ms.setType(typ);
