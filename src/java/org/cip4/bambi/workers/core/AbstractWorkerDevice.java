@@ -90,7 +90,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice {
 	
 	public AbstractWorkerDevice(IDeviceProperties prop) {
 		super(prop);
-		this._theDeviceProcessor=(AbstractWorkerDeviceProcessor) super._theDeviceProcessor;
+		_theDeviceProcessor=(AbstractWorkerDeviceProcessor) super._deviceProcessors.get(0);
 	}
 	
 	@Override

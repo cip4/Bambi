@@ -72,6 +72,7 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
+import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -187,7 +188,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     }
     protected static final Log log = LogFactory.getLog(AbstractDevice.class.getName());
     protected IQueueProcessor _theQueueProcessor=null;
-    protected AbstractDeviceProcessor _theDeviceProcessor=null;
+    protected Vector<AbstractDeviceProcessor> _deviceProcessors=null;
     protected ISignalDispatcher _theSignalDispatcher=null;
     protected JMFHandler _jmfHandler = null ;
     protected IDeviceProperties _devProperties=null;
@@ -214,13 +215,14 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
         
 
         String deviceID=_devProperties.getDeviceID();
-        _theDeviceProcessor = buildDeviceProcessor();
-        if (_theDeviceProcessor!=null) {
+        _deviceProcessors=new Vector<AbstractDeviceProcessor>();
+        _deviceProcessors.add( buildDeviceProcessor() );
+        if (_deviceProcessors.get(0)!=null) {
         	IStatusListener theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
             theStatusListener.addHandlers(_jmfHandler);
-            _theDeviceProcessor.init(_theQueueProcessor, theStatusListener, _devProperties);
-            String deviceProcessorClass=_theDeviceProcessor.getClass().getSimpleName();
-            new Thread(_theDeviceProcessor,deviceProcessorClass+"_"+deviceID).start();
+            _deviceProcessors.get(0).init(_theQueueProcessor, theStatusListener, _devProperties);
+            String deviceProcessorClass=_deviceProcessors.get(0).getClass().getSimpleName();
+            new Thread(_deviceProcessors.get(0),deviceProcessorClass+"_"+deviceID).start();
             log.info("device processor thread started: "+deviceProcessorClass+"_"+deviceID);
         }
 
@@ -326,12 +328,13 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     }
 
     /**
-     * get the class name of the device processor
+     * get the class name of the i'th device processor
+     * @param i the index of the device processor to get the name for
      * @return
      */
-    public String getDeviceProcessorClass()
+    public String getDeviceProcessorClass(int i)
     {
-        return _theDeviceProcessor != null ? _theDeviceProcessor.getClass().getName() : "";
+        return _deviceProcessors.get(i) != null ? _deviceProcessors.get(i).getClass().getName() : "";
     }
 
     /**
@@ -349,7 +352,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
      */
     public EnumDeviceStatus getDeviceStatus()
     {
-        EnumDeviceStatus status = getStatusListener().getDeviceStatus();
+        EnumDeviceStatus status = getStatusListener(0).getDeviceStatus();
         if (status == null) {
             log.error("StatusListener returned a null device status");
             status = EnumDeviceStatus.Unknown;
@@ -365,7 +368,8 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
      */
     public JDFQueueEntry stopProcessing(String queueEntryID, EnumQueueEntryStatus status)
     {
-    	if (_theDeviceProcessor==null) {
+    	AbstractDeviceProcessor theDeviceProcessor=_deviceProcessors.get(0);
+    	if (theDeviceProcessor==null) {
     		log.error( "DeviceProcessor for device '"+_devProperties.getDeviceID()+"' is null" );
     		return null;
     	}
@@ -380,7 +384,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
             return null;
         }
 
-        _theDeviceProcessor.stopProcessing(qe, status);
+        theDeviceProcessor.stopProcessing(qe, status);
         return qe;
     }
 
@@ -410,9 +414,13 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
 		if (_theSignalDispatcher!=null) {
 			_theSignalDispatcher.shutdown();
 		}
-        if (_theDeviceProcessor!=null) {
-            _theDeviceProcessor.shutdown();
-        }
+		
+		if (_deviceProcessors!=null) {
+			for (int i=0;i<_deviceProcessors.size();i++) {
+				_deviceProcessors.get(i).shutdown();
+			}
+		}
+		
         if (_submitHotFolder!=null) {
             _submitHotFolder.stop();
         }
@@ -450,10 +458,12 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     }
 
     /**
-     * @return the _theStatusListener
+     * get the StatusListener of the i'th DeviceProcessor
+     * @param i the index of the DeviceProcessor to the the StatusListener of
+     * @return the StatusListener
      */
-    public IStatusListener getStatusListener()
+    public IStatusListener getStatusListener(int i)
     {
-        return _theDeviceProcessor.getStatusListener();
+        return _deviceProcessors.get(i).getStatusListener();
     }
 }

@@ -2,7 +2,7 @@
 <%@ page import="org.cip4.bambi.workers.manual.ManualDevice"%>
 <%@ page import="org.cip4.bambi.core.queues.QueueFacade"%>
 <%@ page import="org.cip4.bambi.core.queues.QueueFacade.BambiQueueEntry"%>
-<%@ page import="org.cip4.bambi.workers.core.AbstractBambiDeviceProcessor.JobPhase"%>
+<%@ page import="org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase"%>
 <%@ page import="org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus"%>
 <%@ page import="org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus"%>
 <%@ page import="org.cip4.jdflib.core.JDFElement.EnumNodeStatus"%>

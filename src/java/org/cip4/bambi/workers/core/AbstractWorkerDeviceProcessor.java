@@ -99,10 +99,7 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
  * @author boegerni
  *
  */
-public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProcessor
-{
-	
-	
+public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProcessor {
 	private static Log log = LogFactory.getLog(AbstractWorkerDeviceProcessor.class.getName());
 	protected List<JobPhase> _jobPhases=null;
 	
