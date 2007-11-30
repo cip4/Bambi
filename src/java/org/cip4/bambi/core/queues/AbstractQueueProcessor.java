@@ -614,6 +614,15 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     protected void init() {
     	String deviceID=_parent.getDeviceID();
         log.info("QueueProcessor construct for device '"+deviceID+"'");
+        
+        if(_queueFile==null)
+            _queueFile=new File(_parent.getBaseDir()+"theQueue_"+deviceID+".xml");
+        if (_queueFile!=null && _queueFile.getParentFile()!=null 
+        		&& !_queueFile.getParentFile().exists() ) { // will be null in unit tests
+        	if ( !_queueFile.getParentFile().mkdirs() )
+        		log.error( "failed to create base dir at location "+_queueFile.getParentFile() );
+        }
+        
         _jdfDir=_parent.getJDFDir();
         if (_jdfDir!=null) { // will be null in unit tests
         	File jdfDir=new File (_jdfDir);
@@ -622,13 +631,6 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         		log.error( "failed to create JDFDir at location "+jdfDir.getAbsolutePath() );
         }
         
-        if(_queueFile==null)
-            _queueFile=new File(_parent.getBaseDir()+"theQueue_"+deviceID+".xml");
-        if (_queueFile!=null && _queueFile.getParentFile()!=null 
-        		&& _queueFile.getParentFile().exists() ) { // will be null in unit tests
-        	if ( !_queueFile.getParentFile().mkdirs() )
-        		log.error( "failed to create base dir at location "+_queueFile.getParentFile() );
-        }
         JDFDoc d=JDFDoc.parseFile(_queueFile.getAbsolutePath());
         if(d!=null) {
             log.info("refreshing queue");
@@ -740,7 +742,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         boolean ok=theJDF.write2File(theDocFile, 0, true);
         BambiNSExtension.setDocURL( newQE,theDocFile );
         if(!KElement.isWildCard(returnJMF)) {
-        	BambiNSExtension.setReturnURL(newQE, returnJMF);
+        	BambiNSExtension.setReturnJMF(newQE, returnJMF);
         } else if(!KElement.isWildCard(returnURL)) {
         	BambiNSExtension.setReturnURL(newQE, returnURL);
         }

@@ -78,7 +78,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IStatusListener;
 import org.cip4.bambi.core.queues.IQueueProcessor;
-import org.cip4.bambi.workers.core.AbstractBambiDeviceProcessor;
+import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
@@ -92,7 +92,7 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
  * @author boegerni
  *
  */
-public class ManualDeviceProcessor extends AbstractBambiDeviceProcessor
+public class ManualDeviceProcessor extends AbstractWorkerDeviceProcessor
 {
 	private static final Log log = LogFactory.getLog(ManualDeviceProcessor.class.getName());
 	private static final long serialVersionUID = -384123589645081254L;
@@ -100,9 +100,8 @@ public class ManualDeviceProcessor extends AbstractBambiDeviceProcessor
 	private boolean doNextPhase = false;
 	private JobPhase firstPhase=null;
 	
-	public ManualDeviceProcessor(IQueueProcessor queueProcessor, 
-			IStatusListener statusListener, IDeviceProperties devProperties) {
-		super(queueProcessor, statusListener, devProperties);
+	public ManualDeviceProcessor() {
+		super();
 		initFirstPhase();
 	}
 	

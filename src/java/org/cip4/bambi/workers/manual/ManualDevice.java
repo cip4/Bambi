@@ -76,7 +76,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.workers.core.AbstractWorkerDevice;
-import org.cip4.bambi.workers.core.AbstractBambiDeviceProcessor.JobPhase;
+import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
 
 /**
  * a simple JDF device.<br>
@@ -123,6 +123,6 @@ public final class ManualDevice extends AbstractWorkerDevice   {
 
 	@Override
 	protected AbstractDeviceProcessor buildDeviceProcessor() {
-		return new ManualDeviceProcessor(_theQueueProcessor, _theStatusListener, _devProperties);
+		return new ManualDeviceProcessor();
 	}
 }

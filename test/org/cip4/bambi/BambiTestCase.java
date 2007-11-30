@@ -94,8 +94,12 @@ public class BambiTestCase extends TestCase {
     protected final static String simConfigDir=cwd+File.separator+"WebContent"
     	+File.separator+"workers"+File.separator+"sim"+File.separator+"config"
     	+File.separator;
+    protected final static String manualConfigDir=cwd+File.separator+"WebContent"
+		+File.separator+"workers"+File.separator+"manual"+File.separator+"config"
+		+File.separator;
     protected final static String jdfDir=cwd+File.separator+"test"+File.separator+"data"+File.separator;
     protected static String simWorkerUrl=null;
+    protected static String manualWorkerUrl=null;
     protected String proxyUrl=null;
     
     public BambiTestCase() {
@@ -112,6 +116,20 @@ public class BambiTestCase extends TestCase {
 		}
 		assertNotNull( simWorkerUrl );
 		assertFalse( simWorkerUrl.equals("") );
+		
+		// load ManualWorker properties
+    	properties = new Properties();
+		in=null;
+		try {
+			in = new FileInputStream(manualConfigDir+"application.properties");
+			properties.load(in);
+			manualWorkerUrl=properties.getProperty("DeviceURL")+"/manual001";
+			in.close();
+		} catch (IOException e) {
+			fail( "failed to load ManualWorker properties on test init" );
+		}
+		assertNotNull( manualWorkerUrl );
+		assertFalse( manualWorkerUrl.equals("") );
 		
 		// load Proxy properties
 		String proxyConfigDir=cwd+File.separator+"WebContent"

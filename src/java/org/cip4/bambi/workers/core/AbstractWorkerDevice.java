@@ -86,11 +86,11 @@ import org.cip4.bambi.core.queues.IQueueProcessor;
  * 
  */
 public abstract class AbstractWorkerDevice extends AbstractDevice {
-	protected AbstractBambiDeviceProcessor _theDeviceProcessor=null;
+	protected AbstractWorkerDeviceProcessor _theDeviceProcessor=null;
 	
 	public AbstractWorkerDevice(IDeviceProperties prop) {
 		super(prop);
-		this._theDeviceProcessor=(AbstractBambiDeviceProcessor) super._theDeviceProcessor;
+		this._theDeviceProcessor=(AbstractWorkerDeviceProcessor) super._theDeviceProcessor;
 	}
 	
 	@Override

@@ -120,26 +120,13 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             newStatus=status;
         }
     }
-
-    /**
-     * constructor
-     * @param queueProcessor points to the QueueProcessor
-     * @param statusListener points to the StatusListener
-     * @param devProperties TODO
-     */
-    public AbstractDeviceProcessor(IQueueProcessor queueProcessor, 
-            IStatusListener statusListener, IDeviceProperties devProperties)
-    {
-        super();
-        init(queueProcessor, statusListener, devProperties);
-    }
-
+ 
     /**
      * constructor
      */
     public AbstractDeviceProcessor()
     {
-        super();
+    	super();
     }
 
     /**
@@ -324,6 +311,10 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 
     public void shutdown() {
         _doShutdown=true;
+    }
+    
+    public IStatusListener getStatusListener() {
+    	return _statusListener;
     }
 
 }

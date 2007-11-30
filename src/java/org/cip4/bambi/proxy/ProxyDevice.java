@@ -87,12 +87,11 @@ public class ProxyDevice extends AbstractDevice {
 	 */
 	@Override
 	protected AbstractDeviceProcessor buildDeviceProcessor() {
-		return null;
+		return new ProxyDeviceProcessor();
 	}
 
 	@Override
 	protected IQueueProcessor buildQueueProcessor() {
 		return new ProxyQueueProcessor(this);
 	}
-	
 }

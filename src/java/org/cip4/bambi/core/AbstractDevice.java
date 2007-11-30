@@ -188,7 +188,6 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     protected static final Log log = LogFactory.getLog(AbstractDevice.class.getName());
     protected IQueueProcessor _theQueueProcessor=null;
     protected AbstractDeviceProcessor _theDeviceProcessor=null;
-    protected IStatusListener _theStatusListener=null;
     protected ISignalDispatcher _theSignalDispatcher=null;
     protected JMFHandler _jmfHandler = null ;
     protected IDeviceProperties _devProperties=null;
@@ -212,16 +211,17 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
 
         _theQueueProcessor = buildQueueProcessor( );
         _theQueueProcessor.addHandlers(_jmfHandler);
-//        _theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
-//        _theStatusListener.addHandlers(_jmfHandler);
+        
 
         String deviceID=_devProperties.getDeviceID();
         _theDeviceProcessor = buildDeviceProcessor();
         if (_theDeviceProcessor!=null) {
-            _theDeviceProcessor.init(_theQueueProcessor, _theStatusListener, _devProperties);
+        	IStatusListener theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
+            theStatusListener.addHandlers(_jmfHandler);
+            _theDeviceProcessor.init(_theQueueProcessor, theStatusListener, _devProperties);
             String deviceProcessorClass=_theDeviceProcessor.getClass().getSimpleName();
             new Thread(_theDeviceProcessor,deviceProcessorClass+"_"+deviceID).start();
-            log.info("device thread started: "+deviceProcessorClass+"_"+deviceID);
+            log.info("device processor thread started: "+deviceProcessorClass+"_"+deviceID);
         }
 
         final String hfURL=prop.getHotFolderURL();
@@ -349,7 +349,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
      */
     public EnumDeviceStatus getDeviceStatus()
     {
-        EnumDeviceStatus status = _theStatusListener.getDeviceStatus();
+        EnumDeviceStatus status = getStatusListener().getDeviceStatus();
         if (status == null) {
             log.error("StatusListener returned a null device status");
             status = EnumDeviceStatus.Unknown;
@@ -454,6 +454,6 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
      */
     public IStatusListener getStatusListener()
     {
-        return _theStatusListener;
+        return _theDeviceProcessor.getStatusListener();
     }
 }

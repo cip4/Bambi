@@ -80,7 +80,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IStatusListener;
 import org.cip4.bambi.core.queues.IQueueProcessor;
-import org.cip4.bambi.workers.core.AbstractBambiDeviceProcessor;
+import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
@@ -96,7 +96,7 @@ import org.cip4.jdflib.util.StringUtil;
  * @author boegerni
  *
  */
-public class SimDeviceProcessor extends AbstractBambiDeviceProcessor
+public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 {
 	private static Log log = LogFactory.getLog(SimDeviceProcessor.class.getName());	
 	private List<JobPhase> _originalPhases = null;
@@ -270,12 +270,6 @@ public class SimDeviceProcessor extends AbstractBambiDeviceProcessor
 	@Override
 	public JobPhase getCurrentJobPhase() {
 		return _currentPhase;
-	}
-	
-	public SimDeviceProcessor(IQueueProcessor queueProcessor, 
-			IStatusListener statusListener, IDeviceProperties devProperties) {
-		super(queueProcessor, statusListener, devProperties);
-		initSimDeviceProcessor(devProperties.getDeviceID());
 	}
 	
 	@Override

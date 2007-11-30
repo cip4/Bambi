@@ -99,11 +99,11 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
  * @author boegerni
  *
  */
-public abstract class AbstractBambiDeviceProcessor extends AbstractDeviceProcessor
+public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProcessor
 {
 	
 	
-	private static Log log = LogFactory.getLog(AbstractBambiDeviceProcessor.class.getName());
+	private static Log log = LogFactory.getLog(AbstractWorkerDeviceProcessor.class.getName());
 	protected List<JobPhase> _jobPhases=null;
 	
 	/**
@@ -161,7 +161,7 @@ public abstract class AbstractBambiDeviceProcessor extends AbstractDeviceProcess
 	 * @param statusListener points to the StatusListener
 	 * @param devProperties  device properties
 	 */
-	public AbstractBambiDeviceProcessor(IQueueProcessor queueProcessor, 
+	public AbstractWorkerDeviceProcessor(IQueueProcessor queueProcessor, 
 			IStatusListener statusListener, IDeviceProperties devProperties)
 	{
 		super();
@@ -171,7 +171,7 @@ public abstract class AbstractBambiDeviceProcessor extends AbstractDeviceProcess
 	/**
      * constructor
      */
-	public AbstractBambiDeviceProcessor()
+	public AbstractWorkerDeviceProcessor()
 	{
 		super();
 	}
