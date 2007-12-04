@@ -216,14 +216,15 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
 
         String deviceID=_devProperties.getDeviceID();
         _deviceProcessors=new Vector<AbstractDeviceProcessor>();
-        _deviceProcessors.add( buildDeviceProcessor() );
-        if (_deviceProcessors.get(0)!=null) {
+        AbstractDeviceProcessor newDevProc= buildDeviceProcessor();
+        if (newDevProc!=null) {
         	IStatusListener theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
             theStatusListener.addHandlers(_jmfHandler);
-            _deviceProcessors.get(0).init(_theQueueProcessor, theStatusListener, _devProperties);
-            String deviceProcessorClass=_deviceProcessors.get(0).getClass().getSimpleName();
-            new Thread(_deviceProcessors.get(0),deviceProcessorClass+"_"+deviceID).start();
+            newDevProc.init(_theQueueProcessor, theStatusListener, _devProperties);
+            String deviceProcessorClass=newDevProc.getClass().getSimpleName();
+            new Thread(newDevProc,deviceProcessorClass+"_"+deviceID).start();
             log.info("device processor thread started: "+deviceProcessorClass+"_"+deviceID);
+            _deviceProcessors.add( newDevProc );
         }
 
         final String hfURL=prop.getHotFolderURL();
