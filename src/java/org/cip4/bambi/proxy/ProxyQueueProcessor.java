@@ -275,8 +275,8 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
 	
 	public ProxyQueueProcessor(AbstractDevice theParent) {
 		super(theParent);
-		_configDir=theParent.getConfigDir();		
-		_tracker=new QueueEntryTracker(_configDir, theParent.getDeviceID());
+
+		_tracker=new QueueEntryTracker(theParent.getConfigDir(), theParent.getDeviceID());
 		_theQueue.setMaxRunningEntries(99);
 	}
 	

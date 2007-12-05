@@ -319,7 +319,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 				    q.setDeviceID( _theQueue.getDeviceID() );
 				    q.setQueueStatus( _theQueue.getQueueStatus() );
 				    removeBambiNSExtensions(q);
-				    updateEntry(qeid, EnumQueueEntryStatus.Removed);
+				    updateEntry(qe, EnumQueueEntryStatus.Removed);
 				    _theQueue.cleanup();
 				    log.info("removed QueueEntry with ID="+qeid);
 				    return true;
@@ -528,7 +528,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
 				EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 
 				if ( EnumQueueEntryStatus.Waiting.equals(status) ) {
-					updateEntry(qe.getQueueEntryID(), EnumQueueEntryStatus.Held);
+					updateEntry(qe, EnumQueueEntryStatus.Held);
 					JDFQueue q = resp.appendQueue();
 					q.setDeviceID( _theQueue.getDeviceID() );
 					q.setQueueStatus( _theQueue.getQueueStatus() );
@@ -585,7 +585,6 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     private static final long serialVersionUID = -876551736245089033L;
     protected JDFQueue _theQueue;
     private Vector<Object> _listeners;
-    protected String _configDir=null;
     protected String _deviceURL=null;
     protected String _jdfDir=null;
     protected AbstractDevice _parent=null;
@@ -781,17 +780,6 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         return _theQueue;
     }
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.IQueueProcessor#updateEntry(java.lang.String, org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus)
-     */
-    public void updateEntry(String queueEntryID, EnumQueueEntryStatus status)
-    {
-        if(queueEntryID==null)
-            return;
-        JDFQueueEntry qe=getEntry(queueEntryID);
-        updateEntry(qe, status);
-    }
-
     public void updateEntry(JDFQueueEntry qe, EnumQueueEntryStatus status)
     {
         if (qe == null)
@@ -888,11 +876,6 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         log.info("processing getMessageQueueEntryID for "+qeid);
         return qeid;
     }
-
-    private JDFQueueEntry getEntry(String queueEntryID) {
-        JDFQueueEntry qe=_theQueue.getQueueEntry(queueEntryID);
-		return qe;
-	}
     
     /**
      * remove all Bambi namespace extensions from a given queue
@@ -904,8 +887,6 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     		BambiNSExtension.removeBambiExtensions( queue.getQueueEntry(i) );
     	}
     }
-    
-    
     
     protected abstract void handleAbortQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe);

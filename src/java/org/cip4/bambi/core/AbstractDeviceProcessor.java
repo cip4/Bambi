@@ -186,7 +186,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         if(doc==null)
             return false;
 
-        initializeProcessDoc(queueEntryID);
+        initializeProcessDoc(qe);
 
         try {
             log.info("processing JDF: ");
@@ -198,12 +198,12 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
                 return false;
             }
             qe.setQueueEntryStatus(qes);
-            _queueProcessor.updateEntry(queueEntryID, qes);
+            _queueProcessor.updateEntry(qe, qes);
             log.info("finalized processing JDF: ");
         } catch(Exception x) {
             log.error("error processing JDF: "+x);
             qe.setQueueEntryStatus(EnumQueueEntryStatus.Aborted);
-            _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Aborted);
+            _queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted);
             return false;
         }
 
@@ -214,9 +214,9 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
      * genric setup of processing 
      * @param queueEntryID the queueEntryID of the job to process
      */
-    protected void initializeProcessDoc(final String queueEntryID)
+    protected void initializeProcessDoc(JDFQueueEntry qe)
     {
-        _queueProcessor.updateEntry(queueEntryID, EnumQueueEntryStatus.Running);
+        _queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Running);
     }
 
     protected EnumQueueEntryStatus suspendQueueEntry(JDFQueueEntry qe, int currentPhase, int remainingPhaseTime)
@@ -281,7 +281,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     }
 
     /**
-     * signal that processing has finished and ready the StatusCounter for the next process
+     * signal that processing has finished and prepare the StatusCounter for the next process
      * @return EnumQueueEntryStatus.Completed
      */
     protected EnumQueueEntryStatus finalizeProcessDoc()

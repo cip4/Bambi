@@ -417,7 +417,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
 		}
 		
 		if (_deviceProcessors!=null) {
-			for (int i=0;i<_deviceProcessors.size();i++) {
+			for (int i=_deviceProcessors.size()-1;i>=0;i--) {
 				_deviceProcessors.get(i).shutdown();
 			}
 		}

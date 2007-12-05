@@ -75,6 +75,7 @@ import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
 
 /**
@@ -110,7 +111,7 @@ public interface IQueueProcessor extends IMultiJMFHandler
      * @param queueEntryID the queuentryid to update
      * @param status the queuentry status
      */
-    public void updateEntry(String queueEntryID, EnumQueueEntryStatus status);
+    public void updateEntry(JDFQueueEntry qe, EnumQueueEntryStatus status);
     
     public void addListener(Object o);
 

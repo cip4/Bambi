@@ -99,10 +99,10 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Aborted);
 		if (newStatus==null) {
 			// got no response
-			updateEntry(qeid,EnumQueueEntryStatus.Aborted);
-			log.error("failed to abort QueueEntry with ID="+qeid); 
+			updateEntry(qe,EnumQueueEntryStatus.Aborted);
+			log.error( "failed to abort QueueEntry with ID="+qe.getQueueEntryID() ); 
 		} else {
-			updateEntry(qeid,newStatus);
+			updateEntry(qe,newStatus);
 		}
 		JDFQueue q = resp.appendQueue();
 		q.copyElement(qe, null);
@@ -119,10 +119,10 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 		EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Suspended);
 		if (newStatus==null) {
 			// got no response
-			updateEntry(qeid,EnumQueueEntryStatus.Aborted);
+			updateEntry(qe,EnumQueueEntryStatus.Aborted);
 			log.error("failed to suspend QueueEntry with ID="+qeid); 
 		} else {
-			updateEntry(qeid,newStatus);
+			updateEntry(qe,newStatus);
 		}
 		JDFQueue q = resp.appendQueue();
 		q.setDeviceID( _theQueue.getDeviceID() );
@@ -136,7 +136,7 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
 	@Override
 	protected void handleResumeQueueEntry(JDFResponse resp, String qeid,
 			JDFQueueEntry qe) {
-		updateEntry(qeid,EnumQueueEntryStatus.Waiting);
+		updateEntry(qe,EnumQueueEntryStatus.Waiting);
 		JDFQueue q = resp.appendQueue();
 		q.copyElement(qe, null);
 		q.setDeviceID( _theQueue.getDeviceID() );
