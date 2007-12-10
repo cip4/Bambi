@@ -116,7 +116,6 @@ public class MessageSender implements Runnable {
 			_messages.add(theJMF);
 		_url=theUrl;
 		_sender=sender;
-		
 	}
 
 	/**
@@ -126,25 +125,29 @@ public class MessageSender implements Runnable {
 	 */
 	public void run() {
 		while (!doShutDown) {
-			if (_messages!=null && !_messages.isEmpty() ) {
-				JDFJMF jmf=_messages.get(0);
-				if ( jmf!=null &&_url!=null && !_url.equals("") ) {
-					JDFResponse resp=JMFFactory.send2URL(jmf, _url);
-					if (_sender!=null) {
-						_sender.handleResponse(resp);
+			synchronized(_messages) {
+				if (_messages!=null && !_messages.isEmpty() ) {
+					JDFJMF jmf=_messages.get(0);
+					if ( jmf!=null &&_url!=null && !_url.equals("") ) {
+						JDFResponse resp=JMFFactory.send2URL(jmf, _url);
+						if (_sender!=null) {
+							_sender.handleResponse(resp);
+						}
 					}
+					_messages.remove(0);
 				}
-				_messages.remove(0);
-			}
-			
-			if ( doShutDownGracefully && _messages.isEmpty() ) {
-				doShutDown=true;
+				
+				if ( doShutDownGracefully && _messages.isEmpty() ) {
+					doShutDown=true;
+				}
 			}
 			
 			try {
-				Thread.sleep(100);
+				synchronized (_messages) {
+                    _messages.wait(100);                       
+                }
 			} catch (InterruptedException e) {
-				log.error( "MessageSender was interrupted while sleeping: "+e.getMessage() );
+				log.error( "MessageSender was interrupted while waiting: "+e.getMessage() );
 			}
 		}
 	}
@@ -172,7 +175,9 @@ public class MessageSender implements Runnable {
 		if (doShutDown || doShutDownGracefully) {
 			return false;
 		}
-		_messages.add(jmf);
+		synchronized(_messages) {
+			_messages.add(jmf);
+		}
 		return true;
 	}
 	

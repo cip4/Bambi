@@ -447,7 +447,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
             return false;
         }
         
-        String theDocFile=_jdfDir+newQEID+".jdf";
+        String theDocFile=_parent.getJDFDir()+newQEID+".jdf";
         boolean ok=theJDF.write2File(theDocFile, 0, true);
         String docURL=_parent.getDeviceURL()+"?cmd=showJDFDoc&qeid="+newQEID;
         BambiNSExtension.setDocURL( newQE,docURL );

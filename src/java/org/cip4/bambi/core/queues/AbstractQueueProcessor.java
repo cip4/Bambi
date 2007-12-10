@@ -585,8 +585,8 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
     private static final long serialVersionUID = -876551736245089033L;
     protected JDFQueue _theQueue;
     private Vector<Object> _listeners;
-    protected String _deviceURL=null;
-    protected String _jdfDir=null;
+    //protected String _deviceURL=null;
+    //protected String _jdfDir=null;
     protected AbstractDevice _parent=null;
         
     public AbstractQueueProcessor(AbstractDevice theParent) {
@@ -622,9 +622,8 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         		log.error( "failed to create base dir at location "+_queueFile.getParentFile() );
         }
         
-        _jdfDir=_parent.getJDFDir();
-        if (_jdfDir!=null) { // will be null in unit tests
-        	File jdfDir=new File (_jdfDir);
+        if (_parent.getJDFDir()!=null) { // will be null in unit tests
+        	File jdfDir=new File ( _parent.getJDFDir() );
         if (!jdfDir.exists())
         	if ( !jdfDir.mkdirs() )
         		log.error( "failed to create JDFDir at location "+jdfDir.getAbsolutePath() );
@@ -737,7 +736,7 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         }
         newQE.setFromJDF(root); // repeat for the actual entry
         
-        String theDocFile=_jdfDir+newQEID+".jdf";
+        String theDocFile=_parent.getJDFDir()+newQEID+".jdf";
         boolean ok=theJDF.write2File(theDocFile, 0, true);
         BambiNSExtension.setDocURL( newQE,theDocFile );
         if(!KElement.isWildCard(returnJMF)) {
@@ -810,13 +809,12 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         JDFCommand com=(JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.ReturnQueueEntry);
         JDFReturnQueueEntryParams qerp = com.appendReturnQueueEntryParams();
 
-        String returnURL=BambiNSExtension.getReturnURL(qe);
         qerp.setURL("cid:dummy"); // will be overwritten by buildMimePackage
         final String queueEntryID = qe.getQueueEntryID();
         qerp.setQueueEntryID(queueEntryID);
         if(docJDF==null)
         {
-            String docFile=_jdfDir+qe.getQueueEntryID()+".jdf";
+            String docFile=_parent.getJDFDir()+qe.getQueueEntryID()+".jdf";
             docJDF = JDFDoc.parseFile(docFile);
         }
         if ( docJDF==null ) {
@@ -842,6 +840,8 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         }
 
         Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
+        String returnURL=BambiNSExtension.getReturnURL(qe);
+        String returnJMF=BambiNSExtension.getReturnJMF(qe);
         if(returnURL!=null) {
         	HttpURLConnection response = null;
             try {
@@ -853,9 +853,19 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
             } catch (Exception e) {
                 log.error("failed to send ReturnQueueEntry: "+e);
             }
-            response = null;
+        } else if (returnJMF!=null) {
+        	HttpURLConnection response = null;
+            try {
+                response = MimeUtil.writeToURL(mp, returnJMF);
+                if (response.getResponseCode() == 200)
+                    log.info("ReturnQueueEntry for "+queueEntryID+" has been sent.");
+                else
+                    log.error("failed to send ReturnQueueEntry. Response: "+response.toString());
+            } catch (Exception e) {
+                log.error("failed to send ReturnQueueEntry: "+e);
+            }
         } else {
-            // TODO write to default output
+        	// TODO write to default output
             log.warn("No return URL specified");
         }
 	}

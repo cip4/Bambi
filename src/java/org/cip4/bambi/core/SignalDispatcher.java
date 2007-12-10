@@ -208,9 +208,7 @@ public final class SignalDispatcher implements ISignalDispatcher
                 {
                     final MsgSubscription sub=triggerVector.elementAt(i);
                     log.debug("Trigger Signalling :"+i+" channelID="+sub.channelID);
-                    String url=sub.getURL();
-                    Thread t = new Thread( new MessageSender( sub.getSignal(),url),"MessageSender_"+url );
-                    t.start();
+                    sendMessage(sub);
                 }
                // select pending time subscriptions
                 final Vector<MsgSubscription> subVector = getTimeSubscriptions();
@@ -218,12 +216,7 @@ public final class SignalDispatcher implements ISignalDispatcher
                 for(int i=0;i<subVector.size();i++) {
                     final MsgSubscription sub=subVector.elementAt(i);
                     log.debug("Time Signalling: "+i+", channelID="+sub.channelID);
-                    String url=sub.getURL();
-                    if ( !senders.containsKey(url) ) {
-                    	addSender(url);
-                    }
-                    MessageSender ms=senders.get(url);
-                    ms.sendMessage( sub.getSignal() );
+                    sendMessage(sub);
                 }
  
                 try
@@ -239,6 +232,19 @@ public final class SignalDispatcher implements ISignalDispatcher
                 }
             }
         }
+
+		/**
+		 * @param sub
+		 */
+		private void sendMessage(final MsgSubscription sub) {
+			String url=sub.getURL();
+			if ( !senders.containsKey(url) ) {
+				addSender(url);
+			}
+			MessageSender ms=senders.get(url);
+			if ( ms.sendMessage( sub.getSignal())!=true )
+				log.error( "failed to dispatch signal" );
+		}
 
         /**
          * get the triggered subscriptions, either forced (amount=-1) or by amount
@@ -671,8 +677,8 @@ public final class SignalDispatcher implements ISignalDispatcher
     private void addSender(String url) {
     	MessageSender ms = new MessageSender(null,url);
     	int id=new Random().nextInt(); // prevent having two threads with same name
-    	new Thread(ms, "sender_"+url+"_"+id );
-    	senders.put( url,new MessageSender(null,url) );
+    	new Thread(ms, "sender_"+url+"_"+id ).start();
+    	senders.put( url,ms );
     }
     
     private void removeAllSenders(boolean gracefully) {
