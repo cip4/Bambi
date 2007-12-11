@@ -241,8 +241,17 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     {
         if(hfURL==null)
             return;
+        log.info("enabling input hot folder: "+hfURL);
         File hfStorage=new File(_devProperties.getAppDir()+File.separator+"HFTmpStorage"+File.separator+_devProperties.getDeviceID());
-        _submitHotFolder=new QueueHotFolder(UrlUtil.urlToFile(hfURL),hfStorage,null,new HFListner(),null);
+        hfStorage.mkdirs(); // just in case
+        if(hfStorage.isDirectory())
+        {
+            _submitHotFolder=new QueueHotFolder(UrlUtil.urlToFile(hfURL),hfStorage,null,new HFListner(),null);
+        }
+        else
+        {
+            log.error("input hot folder could not be created "+hfURL);
+        }
 
     }
 

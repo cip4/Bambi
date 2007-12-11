@@ -109,6 +109,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * Entrance point for Bambi servlets 
@@ -188,8 +189,8 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		for (int i=0;i<dirs.size();i++) {
 			String dir=dirs.get(i);
 			if (dir==null) 
-				break;
-			File f=new File(dir);
+				continue;
+			File f=UrlUtil.urlToFile(dir);
 			if (!f.exists()) {
 				if (!f.mkdirs())
 					log.error("failed to create directory "+dir);

@@ -327,7 +327,7 @@ public class ProxyQueueProcessor extends AbstractQueueProcessor
             return false; // snafu ...
         }
 		JDFJMF jmf=JDFJMF.createJMF(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
-		JDFCommand com = (JDFCommand)jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command,0);
+		JDFCommand com = (JDFCommand)jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command, null, 0);
 		JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
 		qsp.setURL( _parent.getDeviceURL()+"?cmd=showJDFDoc&qeid="+qe.getQueueEntryID() );
 		String returnURL = BambiNSExtension.getReturnURL(qe);
