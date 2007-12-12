@@ -73,11 +73,17 @@ package org.cip4.bambi.workers.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.messaging.IJMFHandler;
+import org.cip4.bambi.core.messaging.IMessageHandler;
+import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.queues.AbstractQueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 
 /**
  * QueueProcessor for devices attached to the Bambi root device
@@ -87,63 +93,234 @@ import org.cip4.jdflib.jmf.JDFResponse;
  */
 public class WorkerQueueProcessor extends AbstractQueueProcessor
 {
+	protected class AbortQueueEntryHandler implements IMessageHandler
+	{
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+	     */
+	    public boolean handleMessage(JDFMessage m, JDFResponse resp)
+	    {
+	        if(m==null || resp==null)
+	        {
+	            return false;
+	        }
+	        log.info("Handling "+m.getType());
+	        EnumType typ=m.getEnumType();
+	        if(EnumType.AbortQueueEntry.equals(typ))
+	        {
+	            String qeid = getMessageQueueEntryID(m);
+	            JDFQueueEntry qe =_theQueue.getQueueEntry(qeid);
+	            if (qe==null) {
+	            	JMFHandler.errorResponse(resp, "found no QueueEntry with QueueEntryID="+qeid, 105);
+	            	return true;
+	            }
+				EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+				if ( EnumQueueEntryStatus.Completed.equals(status) ) {
+					JMFHandler.errorResponse(resp, "cannot abort QueueEntry with ID="+qeid+", it is already completed", 114);
+				    return true;
+				} else if ( EnumQueueEntryStatus.Aborted.equals(status) ) {
+					JMFHandler.errorResponse(resp, "cannot abort QueueEntry with ID="+qeid+", it is already aborted", 113);
+				    return true;
+				}
+	
+				// has to be waiting, held, running or suspended: abort it!
+				EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Aborted);
+				if (newStatus==null) {
+					// got no response
+					updateEntry(qe,EnumQueueEntryStatus.Aborted);
+					log.error( "failed to abort QueueEntry with ID="+qe.getQueueEntryID() ); 
+				} else {
+					updateEntry(qe,newStatus);
+				}
+				JDFQueue q = resp.appendQueue();
+				q.copyElement(qe, null);
+				q.setDeviceID( _theQueue.getDeviceID() );
+				q.setQueueStatus( _theQueue.getQueueStatus() );
+				removeBambiNSExtensions(q);
+				log.info("aborted QueueEntry with ID="+qeid);		
+				return true;
+	        }
+	
+	        return false;
+	    }
+	
+		
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getFamilies()
+	     */
+	    public EnumFamily[] getFamilies()
+	    {
+	        return new EnumFamily[]{EnumFamily.Command};
+	    }
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getMessageType()
+	     */
+	    public EnumType getMessageType()
+	    {
+	        return EnumType.AbortQueueEntry;
+	    }
+	}
+
+	protected class ResumeQueueEntryHandler implements IMessageHandler
+	{
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+	     */
+	    public boolean handleMessage(JDFMessage m, JDFResponse resp)
+	    {
+	    	if(m==null || resp==null)
+	        {
+	            return false;
+	        }
+	        log.info("Handling "+m.getType());
+	        EnumType typ=m.getEnumType();
+	        if(EnumType.ResumeQueueEntry.equals(typ))
+	        {
+	            String qeid = getMessageQueueEntryID(m);
+	
+	            JDFQueueEntry qe =_theQueue.getQueueEntry(qeid);
+	            if (qe==null) {
+	            	JMFHandler.errorResponse(resp, "found no QueueEntry with QueueEntryID="+qeid, 105);
+	            	return true;
+	            }
+				EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+	
+				if ( EnumQueueEntryStatus.Suspended.equals(status) || EnumQueueEntryStatus.Held.equals(status) )
+				{
+					updateEntry(qe,EnumQueueEntryStatus.Waiting);
+					JDFQueue q = resp.appendQueue();
+					q.copyElement(qe, null);
+					q.setDeviceID( _theQueue.getDeviceID() );
+					q.setQueueStatus( _theQueue.getQueueStatus() );
+					removeBambiNSExtensions(q);
+					log.info("resumed QueueEntry with ID="+qeid); 				
+				    return true;
+				}
+	
+				if ( EnumQueueEntryStatus.Running.equals(status) ) {
+					JMFHandler.errorResponse(resp, "cannot resume QueueEntry with ID="+qeid+", it is "+status.getName(), 113);
+				    return true;
+				}
+	
+				if ( EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status) )
+				{
+					JMFHandler.errorResponse(resp, "cannot resume QueueEntry with ID="+qeid+", it is already "+status.getName(), 115);
+				    return true;
+				}
+	        }
+	
+	        return false;       
+	    }
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getFamilies()
+	     */
+	    public EnumFamily[] getFamilies()
+	    {
+	        return new EnumFamily[]{EnumFamily.Command};
+	    }
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getMessageType()
+	     */
+	    public EnumType getMessageType()
+	    {
+	        return EnumType.ResumeQueueEntry;
+	    }
+	}
+
+	protected class SuspendQueueEntryHandler implements IMessageHandler
+	{
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+	     */
+	    public boolean handleMessage(JDFMessage m, JDFResponse resp)
+	    {
+	    	if(m==null || resp==null)
+	        {
+	            return false;
+	        }
+	        log.info("Handling "+m.getType());
+	        EnumType typ=m.getEnumType();
+	        if(EnumType.SuspendQueueEntry.equals(typ))
+	        {
+	            String qeid = getMessageQueueEntryID(m);
+	            JDFQueueEntry qe =_theQueue.getQueueEntry(qeid);
+	            if (qe==null) {
+	            	JMFHandler.errorResponse(resp, "found no QueueEntry with QueueEntryID="+qeid, 105);
+	            	return true;
+	            }
+				EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+	
+				if ( EnumQueueEntryStatus.Running.equals(status) )
+				{
+					EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Suspended);
+					if (newStatus==null) {
+						// got no response
+						updateEntry(qe,EnumQueueEntryStatus.Aborted);
+						log.error("failed to suspend QueueEntry with ID="+qeid); 
+					} else {
+						updateEntry(qe,newStatus);
+					}
+					JDFQueue q = resp.appendQueue();
+					q.setDeviceID( _theQueue.getDeviceID() );
+					q.setQueueStatus( _theQueue.getQueueStatus() );
+					q.copyElement(qe, null);
+					removeBambiNSExtensions(q);
+					log.info("suspended QueueEntry with ID="+qeid); 				
+				    return true;
+				}
+	
+				if ( EnumQueueEntryStatus.Suspended.equals(status) )
+				{
+					JMFHandler.errorResponse(resp, "cannot suspend QueueEntry with ID="+qeid+", it is already suspended", 113);
+				    return true;
+				}
+	
+				if ( EnumQueueEntryStatus.Waiting.equals(status)  || EnumQueueEntryStatus.Held.equals(status) )
+				{
+					String errorMsg="cannot suspend QueueEntry with ID="+qeid+", it is "+status.getName();
+					JMFHandler.errorResponse(resp, errorMsg, 115);
+				    return true;
+				}
+	
+				if ( EnumQueueEntryStatus.Completed.equals(status)  || EnumQueueEntryStatus.Aborted.equals(status) )
+				{
+					String errorMsg="cannot suspend QueueEntry with ID="+qeid+", it is already "+status.getName();
+				    JMFHandler.errorResponse(resp, errorMsg, 114);
+				    return true;
+				}
+	        }
+	
+	        return false;       
+	    }
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getFamilies()
+	     */
+	    public EnumFamily[] getFamilies()
+	    {
+	        return new EnumFamily[]{EnumFamily.Command};
+	    }
+	
+	    /* (non-Javadoc)
+	     * @see org.cip4.bambi.IMessageHandler#getMessageType()
+	     */
+	    public EnumType getMessageType()
+	    {
+	        return EnumType.SuspendQueueEntry;
+	    }
+	}
+
 	protected static final Log log = LogFactory.getLog(WorkerQueueProcessor.class.getName());
 
 	public WorkerQueueProcessor(AbstractDevice theParent) {
 		super(theParent);
-	}
-
-	@Override
-	protected void handleAbortQueueEntry(JDFResponse resp, String qeid,
-			JDFQueueEntry qe) {
-		EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Aborted);
-		if (newStatus==null) {
-			// got no response
-			updateEntry(qe,EnumQueueEntryStatus.Aborted);
-			log.error( "failed to abort QueueEntry with ID="+qe.getQueueEntryID() ); 
-		} else {
-			updateEntry(qe,newStatus);
-		}
-		JDFQueue q = resp.appendQueue();
-		q.copyElement(qe, null);
-		q.setDeviceID( _theQueue.getDeviceID() );
-		q.setQueueStatus( _theQueue.getQueueStatus() );
-		removeBambiNSExtensions(q);
-		log.info("aborted QueueEntry with ID="+qeid);
-		// TODO notify proxy
-	}
-	
-	@Override
-	protected void handleSuspendQueueEntry(JDFResponse resp, String qeid,
-			JDFQueueEntry qe) {
-		EnumQueueEntryStatus newStatus=stopOnDevice(qe, EnumQueueEntryStatus.Suspended);
-		if (newStatus==null) {
-			// got no response
-			updateEntry(qe,EnumQueueEntryStatus.Aborted);
-			log.error("failed to suspend QueueEntry with ID="+qeid); 
-		} else {
-			updateEntry(qe,newStatus);
-		}
-		JDFQueue q = resp.appendQueue();
-		q.setDeviceID( _theQueue.getDeviceID() );
-		q.setQueueStatus( _theQueue.getQueueStatus() );
-		q.copyElement(qe, null);
-		removeBambiNSExtensions(q);
-		log.info("suspended QueueEntry with ID="+qeid);
-		// TODO notify proxy
-	}
-	
-	@Override
-	protected void handleResumeQueueEntry(JDFResponse resp, String qeid,
-			JDFQueueEntry qe) {
-		updateEntry(qe,EnumQueueEntryStatus.Waiting);
-		JDFQueue q = resp.appendQueue();
-		q.copyElement(qe, null);
-		q.setDeviceID( _theQueue.getDeviceID() );
-		q.setQueueStatus( _theQueue.getQueueStatus() );
-		removeBambiNSExtensions(q);
-		log.info("resumed QueueEntry with ID="+qeid);
-		// TODO notify proxy
 	}
 	
 	/**
@@ -176,4 +353,12 @@ public class WorkerQueueProcessor extends AbstractQueueProcessor
     	log.info("QueueEntry with ID="+queueEntryID+" is now "+newStatus.getName());
     	return newStatus;
     }
+
+	@Override
+	public void addHandlers(IJMFHandler jmfHandler) {
+		super.addHandlers(jmfHandler);
+	    jmfHandler.addHandler(this.new AbortQueueEntryHandler());
+	    jmfHandler.addHandler(this.new ResumeQueueEntryHandler());
+	    jmfHandler.addHandler(this.new SuspendQueueEntryHandler());
+	}
 }
