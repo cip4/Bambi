@@ -691,6 +691,7 @@ public final class SignalDispatcher implements ISignalDispatcher
     		String key=it.next();
     		MessageSender ms=senders.get(key);
    			ms.shutDown(gracefully);
+   			senders.remove(key);
     	}
     }
 

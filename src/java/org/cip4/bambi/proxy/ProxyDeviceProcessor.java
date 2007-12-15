@@ -71,6 +71,8 @@
 
 package org.cip4.bambi.proxy;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 
 /**
@@ -82,9 +84,23 @@ import org.cip4.bambi.core.AbstractDeviceProcessor;
 public class ProxyDeviceProcessor extends AbstractDeviceProcessor 
 {
 	private static final long serialVersionUID = -5602256836245089864L;
+	private static Log log = LogFactory.getLog(ProxyDeviceProcessor.class.getName());
 
 	@Override
-	protected boolean processQueueEntry() {
-		return true;
-	}
+    /**
+     * this is the device processor loop <br/>
+     * note that that Bambi does not need a device processor at this time. Hence this
+     * method idles until shutdown.
+     */ 
+	public void run() {
+		while (!_doShutdown) {
+			try {
+				synchronized (_myListener) {
+					_myListener.wait(1000);                         
+				}
+			} catch (InterruptedException x) {
+				log.error("interrupted while idle");
+			}
+        }
+    }
 }
