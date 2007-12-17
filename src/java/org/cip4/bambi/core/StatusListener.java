@@ -295,5 +295,13 @@ public class StatusListener implements IStatusListener
 	public void shutdown() {
 		// not needed right now, retaining method for future compatability		
 	}
+	
+	/**
+	 * get the StatusCounter
+	 * @return the StatusCounter
+	 */
+	public StatusCounter getStatusCounter() {
+		return theCounter;
+	}
 
 }
