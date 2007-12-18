@@ -143,7 +143,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
         @Override
         public String toString()
         {
-            return "MesageType :"+type+" "+family;
+            return "MessageType :"+type+" "+family;
         }
     }
 	/**
@@ -392,5 +392,12 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		}
 		return handled;
 	}
+	
+	@Override
+	public String toString() {
+		String msgMap="MessageMap (size="+messageMap.size()+")=["+messageMap.toString()+"]";
+		String subMap="SubsriptionMap (size="+subscriptionMap.size()+")=["+subscriptionMap.toString()+"]";
+        return "JMFHandler: "+msgMap+", "+subMap;
+    }
 
 }
