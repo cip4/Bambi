@@ -279,7 +279,17 @@ public class StatusListener implements IStatusListener
     }
     
     
+    /**
+     * get the device status
+     * @return the device status. <br/>
+     * Returns EnumDeviceStatus.Idle if the StatusCounter is null. <br/>
+     * Returns EnumDeviceStatus.Unknown, if the StatusListener was unable to retrieve the status from the StatusCounter.
+     */
 	public EnumDeviceStatus getDeviceStatus() {
+		if (theCounter==null) {
+			return EnumDeviceStatus.Idle;
+		}
+		
 		JDFDoc docJMF=null;
 		try {
 			docJMF=theCounter.getDocJMFPhaseTime();
