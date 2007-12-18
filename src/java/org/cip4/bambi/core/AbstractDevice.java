@@ -358,11 +358,15 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
 
     /**
      * get the DeviceStatus of this device
-     * @return
+     * @return the DeviceStatus. Returns EnumDeviceStatus.Idle, if the StatusListener is null
      */
-    public EnumDeviceStatus getDeviceStatus()
-    {
-        EnumDeviceStatus status = getStatusListener(0).getDeviceStatus();
+    public EnumDeviceStatus getDeviceStatus() {
+    	IStatusListener listener=getStatusListener(0);
+    	if (listener==null) {
+    		return EnumDeviceStatus.Idle;
+    	}
+    	
+        EnumDeviceStatus status = listener.getDeviceStatus();
         if (status == null) {
             log.error("StatusListener returned a null device status");
             status = EnumDeviceStatus.Unknown;
@@ -472,8 +476,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
      * @param i the index of the DeviceProcessor to the the StatusListener of
      * @return the StatusListener
      */
-    public IStatusListener getStatusListener(int i)
-    {
+    public IStatusListener getStatusListener(int i) {
         return _deviceProcessors.get(i).getStatusListener();
     }
 }
