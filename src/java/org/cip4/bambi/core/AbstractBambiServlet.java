@@ -80,6 +80,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
 
@@ -465,6 +466,19 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		} catch (IOException e) {
 			showErrorPage("failed to write response", e.getMessage(), request, response);
 			log.error("failed to write response: "+e.getMessage());
+		}
+	}
+	
+	/** Destroys the servlet.
+	 */
+	@Override
+	public void destroy() {
+		Set<String> keys=_devices.keySet();
+		Iterator<String> it=keys.iterator();
+		while (it.hasNext()) {
+			String devID=it.next();
+			AbstractDevice dev=(AbstractDevice) _devices.get(devID);
+			dev.shutdown();
 		}
 	}
 

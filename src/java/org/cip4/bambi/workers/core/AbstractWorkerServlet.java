@@ -116,19 +116,6 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 		createDevicesFromFile(configFile);
 	}
 
-	/** Destroys the servlet.
-	 */
-	@Override
-	public void destroy() {
-		Set<String> keys=_devices.keySet();
-		Iterator<String> it=keys.iterator();
-		while (it.hasNext()) {
-			String devID=it.next();
-			AbstractDevice dev=(AbstractDevice) _devices.get(devID);
-			dev.shutdown();
-		}
-	}
-
 	/** Handles the HTTP <code>GET</code> method.
 	 * @param request servlet request
 	 * @param response servlet response
