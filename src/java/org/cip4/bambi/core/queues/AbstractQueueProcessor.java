@@ -89,6 +89,7 @@ import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFCommand;
@@ -373,7 +374,9 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
      */
     public void addHandlers(IJMFHandler jmfHandler) {
         jmfHandler.addHandler(this.new SubmitQueueEntryHandler());
-        jmfHandler.addHandler(this.new QueueStatusHandler());
+        QueueStatusHandler qsh=this.new QueueStatusHandler();
+        jmfHandler.addHandler(qsh);
+        jmfHandler.addSubscriptionHandler(EnumType.QueueStatus, qsh);
         jmfHandler.addHandler(this.new RemoveQueueEntryHandler());
         jmfHandler.addHandler(this.new HoldQueueEntryHandler());
     }
@@ -401,6 +404,16 @@ public abstract class AbstractQueueProcessor implements IQueueProcessor
         if(d!=null) {
             log.info("refreshing queue");
             _theQueue=(JDFQueue) d.getRoot();
+            // make sure that all QueueEntries are suspended on restart 
+            VElement qev=_theQueue.getQueueEntryVector();
+            for (int i=0;i<qev.size();i++) {
+            	JDFQueueEntry qe=(JDFQueueEntry) qev.get(i);
+            	EnumQueueEntryStatus stat=qe.getQueueEntryStatus();
+            	if ( EnumQueueEntryStatus.Running.equals(stat) 
+            			|| EnumQueueEntryStatus.Waiting.equals(stat) ) {
+            		qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
+            	}
+            }
         } else {
             d=new JDFDoc(ElementName.QUEUE);
             log.info("creating new queue");

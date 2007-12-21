@@ -1,6 +1,7 @@
 package org.cip4.bambi.core.messaging;
 
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 
 /*--------------------------------------------------------------------------------------------------
  * The CIP4 Software License, Version 1.0
@@ -84,6 +85,13 @@ public interface IJMFHandler
      * @param handler the handler associated with the event
      */
     public void addHandler(IMessageHandler handler);
+	
+    /**
+	 * add message type to map of subscribale messages
+	 * @param typ     the type of the subscribale message
+	 * @param handler the message handler
+	 */
+	public void addSubscriptionHandler(EnumType typ, IMessageHandler handler);
     
     /**
      * the big processing dispatcher

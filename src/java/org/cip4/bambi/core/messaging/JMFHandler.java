@@ -273,15 +273,12 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	{
 		return messageMap.get(new MessageType(typ,family));
 	}
-	/**
-	 * @param knownMessages
-	 * @param families
-	 * @param handler
-	 */
+	
 	public void addSubscriptionHandler(EnumType typ, IMessageHandler handler)
 	{
 		subscriptionMap.put(typ, handler);
 	}
+	
 	/**
 	 * the big processing dispatcher
 	 * 

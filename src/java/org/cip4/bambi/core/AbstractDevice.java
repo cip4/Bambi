@@ -479,4 +479,9 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     public IStatusListener getStatusListener(int i) {
         return _deviceProcessors.get(i).getStatusListener();
     }
+    
+    public void addSubscriptionHandler(EnumType typ, IMessageHandler handler)
+	{
+    	_jmfHandler.addSubscriptionHandler(typ, handler);
+	}
 }
