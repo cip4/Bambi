@@ -163,16 +163,13 @@ public class BambiNSExtension
     }
     
     /**
-     * remove all Bambi specific attributes from the given KElement
+     * remove all Bambi specific elements and attributes from the given KElement
      * @param ke the KElement to clean up
      */
     public static void removeBambiExtensions(KElement ke)
     {
-    	removeMyNSAttribute(ke, returnJMF);
-    	removeMyNSAttribute(ke, returnURL);
-    	removeMyNSAttribute(ke, docURL);
-    	removeMyNSAttribute(ke, deviceID);
-    	removeMyNSAttribute(ke, deviceURL);
+        if(ke!=null)
+            ke.removeExtensions(MY_NS);
     }
 
     /*** docURL *************************************************************/

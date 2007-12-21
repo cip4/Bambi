@@ -86,6 +86,7 @@ import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessageService;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -297,10 +298,18 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 
 			JDFResponse mResp=(JDFResponse) (id==null ? null : jmfResp.getChildWithAttribute(ElementName.RESPONSE,AttributeName.REFID, null, id, 0, true));
 			if(mResp==null)
-				log.error("??? "+id+" "+jmfResp);
+            {
+				log.error("no response provided ??? "+id+" "+jmfResp);
+            }
 			handleMessage(m, mResp);
+            if(m instanceof JDFSignal && mResp!=null)
+            {
+                int retCode=mResp.getReturnCode();
+                if(retCode==0)
+                    mResp.deleteNode();
+            }
 		}   
-		return new JDFDoc(jmfResp.getOwnerDocument());
+		return jmfResp.getOwnerDocument_JDFElement();
 	}
 
 
@@ -312,8 +321,6 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	private void unhandledMessage(JDFMessage m, JDFResponse resp)
 	{
 		log.info("unhandled Message: "+m.getType());
-		if(resp==null)
-			return;
 		errorResponse(resp, "Message not implemented: "+m.getType()+"; Family: "+m.getFamily().getName(), 5);        
 	}
 
@@ -324,15 +331,18 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
      * @param text the explicit error text
      * @param rc the jmf response returncode
      */
-    public static void errorResponse(JDFResponse resp, String text, int rc)
-    {
-        resp.setReturnCode(rc);
-		resp.setErrorText(text);
-        log.warn("JMF error: rc="+rc+" "+text);
-    }
+	public static void errorResponse(JDFResponse resp, String text, int rc)
+	{
+	    if(resp!=null)
+	    {
+	        resp.setReturnCode(rc);
+	        resp.setErrorText(text);
+	    }
+	    log.warn("JMF error: rc="+rc+" "+text);
+	}
 
 	/**
-     * add tis subscription to the list of known subscriptions
+     * add this subscription to the list of known subscriptions
      * 
      * @param q the query with subscription
      * @param resp the response to fill in
