@@ -107,7 +107,6 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     protected IQueueProcessor _queueProcessor;
     protected IStatusListener _statusListener;
     protected Object _myListener; // the mutex for waiting and reawakening
-    protected String _trackResourceID=null;
     protected IDeviceProperties _devProperties=null;
     protected List<ChangeQueueEntryStatusRequest> _updateStatusReqs=null;
     protected boolean _doShutdown=false;
@@ -232,54 +231,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         return EnumQueueEntryStatus.Aborted;
     }
 
-    /**
-     * @param doc
-     * @return EnumQueueEntryStatus the final status of the queuentry 
-     */
-    public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
-        if(qe==null || doc==null) {
-            log.error("proccessing null job");
-            return EnumQueueEntryStatus.Aborted;
-        }
-        qe.setDeviceID( _devProperties.getDeviceID() );
-        final String queueEntryID = qe.getQueueEntryID();
-        log.info("Processing queueentry "+queueEntryID);
-
-        JDFNode node=doc.getJDFRoot();
-        VJDFAttributeMap vPartMap=qe.getPartMapVector();
-        JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
-        final String workStepID = node.getWorkStepID(partMap);
-        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);
-
-        VElement v=node.getResourceLinks(null);
-        String inConsume=null;
-        String outQuantity=null;
-        if (v!=null) {
-            int vSiz=v.size();
-            for (int i = 0; i < vSiz; i++) {
-                JDFResourceLink rl = (JDFResourceLink) v.elementAt(i);
-                JDFResource r = rl.getLinkRoot();
-                EnumResourceClass c = r.getResourceClass();
-                if (EnumResourceClass.Consumable.equals(c)
-                        || EnumResourceClass.Handling.equals(c)
-                        || EnumResourceClass.Quantity.equals(c)) {
-                    EnumUsage inOut = rl.getUsage();
-                    if (EnumUsage.Input.equals(inOut)) {
-                        if (EnumResourceClass.Consumable.equals(c))
-                            inConsume = rl.getrRef();
-                    } else {
-                        outQuantity = rl.getrRef();
-                    }
-                }
-            }
-        }
-        _trackResourceID= inConsume !=null ? inConsume : outQuantity;
-        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, _trackResourceID);
-
-        // remember to call finalizeProcessDoc() at the end of derived processDoc implementations
-        return null;
-    }
-
+ 
     /**
      * signal that processing has finished and prepare the StatusCounter for the next process
      * @return EnumQueueEntryStatus.Completed

@@ -100,6 +100,7 @@ import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VString;
@@ -156,7 +157,8 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 
 	protected IDeviceProperties _devProperties=null;
 	protected IJMFHandler _jmfHandler=null;
-	protected HashMap<String,IDevice> _devices = null;
+    protected HashMap<String,IDevice> _devices = null;
+    protected IConverterCallback _callBack = null;
 	private static Log log = LogFactory.getLog(AbstractBambiServlet.class.getName());
 	
 	/** Initializes the servlet.
@@ -260,6 +262,9 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		r.setReturnCode(returnCode);
 		r.setErrorText(notification);
 		response.setContentType(MimeUtil.VND_JMF);
+        if(_callBack!=null)
+            _callBack.updateJMFForExtern(error.getOwnerDocument_JDFElement());
+        
 		try {
 			error.getOwnerDocument_KElement().write2Stream(response.getOutputStream(), 0, true);
 		} catch (IOException x) {
@@ -274,24 +279,54 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	 */
 	protected void processMultipleDocuments(HttpServletRequest request, HttpServletResponse response,BodyPart[] bp)
 	{
-		log.info("processMultipleDocuments- parts: "+(bp==null ? 0 : bp.length));
-		if(bp==null || bp.length<2) {
-			processError(request, response, EnumType.Notification, 2,"processMultipleDocuments- not enough parts, bailing out");
-			return;
-		}
-		JDFDoc docJDF[]=MimeUtil.getJMFSubmission(bp[0].getParent());
-		if(docJDF==null) {
-			processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
-			return;
-		}
-		processJMFDoc(request, response, docJDF[0]);
+	    log.info("processMultipleDocuments- parts: "+(bp==null ? 0 : bp.length));
+	    if(bp==null || bp.length<2) {
+	        processError(request, response, EnumType.Notification, 2,"processMultipleDocuments- not enough parts, bailing out");
+	        return;
+	    }
+	    JDFDoc docJDF[]=MimeUtil.getJMFSubmission(bp[0].getParent());
+	    if(docJDF==null) {
+	        processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
+	        return;
+	    }
+	    if(_callBack!=null)
+	    {
+	        for(int i=0;i<docJDF.length;i++)
+	        {
+	            final JDFDoc doc = docJDF[i];
+                final String localName = doc.getLocalName();
+	            if(localName.equals(ElementName.JMF))
+	            {
+	                _callBack.prepareJMFForBambi(doc);
+	            }
+	            else if(localName.equals(ElementName.JDF))
+	            {
+	                _callBack.prepareJDFForBambi(doc);
+	            }                
+	        }
+	    }
+	    processJMFDoc(request, response, docJDF[0]);
 	}
 	
-    protected void processJMFDoc(HttpServletRequest request,
-            HttpServletResponse response, JDFDoc jmfDoc) {
-        if(jmfDoc==null) {
+    /**
+     * process zhe main, i.e. doc #0 JMF document
+     * 
+     * @param request the http request to service
+     * @param response the http response to fill
+     * @param jmfDoc the extracted first jmf bodypart or raw jmf
+     */
+    protected void processJMFDoc(HttpServletRequest request, HttpServletResponse response, JDFDoc jmfDoc) {
+        if(jmfDoc==null) 
+        {
             processError(request, response, null, 3, "Error Parsing JMF");
-        } else {
+        } 
+        else 
+        {
+            if(_callBack!=null)
+            {
+                _callBack.prepareJMFForBambi(jmfDoc);
+            }
+
             // switch: sends the jmfDoc to correct device
             JDFDoc responseJMF = null;
             IJMFHandler handler = getTargetHandler(request);
@@ -301,9 +336,15 @@ public abstract class AbstractBambiServlet extends HttpServlet {
             
             if (responseJMF!=null) {
                 response.setContentType(MimeUtil.VND_JMF);
-                try {
+                if(_callBack!=null)
+                    _callBack.updateJMFForExtern(responseJMF);
+                
+                try 
+                {
                     responseJMF.write2Stream(response.getOutputStream(), 0, true);
-                } catch (IOException e) {
+                } 
+                catch (IOException e) 
+                {
                     log.error("cannot write to stream: ",e);
                 }
             } else {

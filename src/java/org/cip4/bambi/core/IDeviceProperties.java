@@ -20,11 +20,17 @@ public interface IDeviceProperties {
      */
     public String getHotFolderURL();
 
-	/**
-	 * get the DeviceID of this device
-	 * @return the deviceID
-	 */
-	public String getDeviceID();
+    /**
+     * get the DeviceID of this device
+     * @return the deviceID
+     */
+    public String getDeviceID();
+
+    /**
+     * get the Name, ProcessUsage or Usage of the major resource to track
+     * @return the deviceID
+     */
+    public String getTrackResource();
 
 	/**
 	 * get the URL of the proxy this device is using.
@@ -86,7 +92,11 @@ public interface IDeviceProperties {
 	 */
 	public String getConfigDir();
 	
-	
+    /**
+     * returns the name of the IConverterCallback that specifies the converter name
+     * @return {@link IConverterCallback} the callback to use, null if none is specified
+     */
+	public IConverterCallback getCallBackClass();
 
 	/**
 	 * get a String representation of this DeviceProperty

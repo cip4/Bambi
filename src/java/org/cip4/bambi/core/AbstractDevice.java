@@ -161,10 +161,24 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
 
     protected class HFListner implements QueueHotFolderListener
     {
+        private IConverterCallback _callBack=null;
+
+        /**
+         * @param callBackClass
+         */
+        public HFListner(IConverterCallback callBackClass)
+        {
+            _callBack=callBackClass;
+        }
+
         public void submitted(JDFJMF submissionJMF)
         {
             log.info("HFListner:submitted");
             JDFCommand command=submissionJMF.getCommand(0);
+
+            if(_callBack!=null)
+                _callBack.prepareJMFForBambi(submissionJMF.getOwnerDocument_JDFElement());
+
             JDFQueueSubmissionParams qsp=command.getQueueSubmissionParams(0);
 
             JDFDoc doc=qsp.getURLDoc();
@@ -174,14 +188,17 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
             }
             else
             {
+                if(_callBack!=null)
+                    _callBack.prepareJDFForBambi(doc);
+
                 JDFResponse r=_theQueueProcessor.addEntry(command, doc, qsp.getHold());
                 if (r == null)
                     log.warn("_theQueue.addEntry returned null");
                 final String tmpURL=qsp.getURL();
                 final File tmpFile=UrlUtil.urlToFile(tmpURL);
                 if(tmpFile!=null) {
-                	if (!tmpFile.delete())
-                		log.warn( "failed to delete temporary file "+tmpFile.getAbsolutePath() );
+                    if (!tmpFile.delete())
+                        log.warn( "failed to delete temporary file "+tmpFile.getAbsolutePath() );
                 }    
             }        
         }
@@ -207,18 +224,18 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
         _devProperties = prop;
         _jmfHandler = new JMFHandler();
 
-        _theSignalDispatcher=new SignalDispatcher(_jmfHandler, _devProperties.getDeviceID());
+        _theSignalDispatcher=new SignalDispatcher(_jmfHandler, _devProperties);
         _theSignalDispatcher.addHandlers(_jmfHandler);
 
         _theQueueProcessor = buildQueueProcessor( );
         _theQueueProcessor.addHandlers(_jmfHandler);
-        
+
 
         String deviceID=_devProperties.getDeviceID();
         _deviceProcessors=new Vector<AbstractDeviceProcessor>();
         AbstractDeviceProcessor newDevProc= buildDeviceProcessor();
         if (newDevProc!=null) {
-        	IStatusListener theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
+            IStatusListener theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
             theStatusListener.addHandlers(_jmfHandler);
             newDevProc.init(_theQueueProcessor, theStatusListener, _devProperties);
             String deviceProcessorClass=newDevProc.getClass().getSimpleName();
@@ -234,7 +251,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     }
 
     /**
-	 * creates the hotfolder on the file system
+     * creates the hotfolder on the file system
      * @param hfURL the URL of the hotfolder to create. If hfURL is null, no hotfolder will be created.
      */
     protected void createHotFolder(String hfURL)
@@ -246,7 +263,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
         hfStorage.mkdirs(); // just in case
         if(hfStorage.isDirectory())
         {
-            _submitHotFolder=new QueueHotFolder(UrlUtil.urlToFile(hfURL),hfStorage,null,new HFListner(),null);
+            _submitHotFolder=new QueueHotFolder(UrlUtil.urlToFile(hfURL),hfStorage,null,new HFListner(_devProperties.getCallBackClass()),null);
         }
         else
         {
@@ -361,11 +378,11 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
      * @return the DeviceStatus. Returns EnumDeviceStatus.Idle, if the StatusListener is null
      */
     public EnumDeviceStatus getDeviceStatus() {
-    	IStatusListener listener=getStatusListener(0);
-    	if (listener==null) {
-    		return EnumDeviceStatus.Idle;
-    	}
-    	
+        IStatusListener listener=getStatusListener(0);
+        if (listener==null) {
+            return EnumDeviceStatus.Idle;
+        }
+
         EnumDeviceStatus status = listener.getDeviceStatus();
         if (status == null) {
             log.error("StatusListener returned a null device status");
@@ -382,11 +399,11 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
      */
     public JDFQueueEntry stopProcessing(String queueEntryID, EnumQueueEntryStatus status)
     {
-    	AbstractDeviceProcessor theDeviceProcessor=_deviceProcessors.get(0);
-    	if (theDeviceProcessor==null) {
-    		log.error( "DeviceProcessor for device '"+_devProperties.getDeviceID()+"' is null" );
-    		return null;
-    	}
+        AbstractDeviceProcessor theDeviceProcessor=_deviceProcessors.get(0);
+        if (theDeviceProcessor==null) {
+            log.error( "DeviceProcessor for device '"+_devProperties.getDeviceID()+"' is null" );
+            return null;
+        }
         JDFQueue q=_theQueueProcessor.getQueue();
         if (q==null) {
             log.fatal("queue of device "+_devProperties.getDeviceID()+"is null");
@@ -422,23 +439,23 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     }
 
     /**
-	 * stop the signal dispatcher, hot folder and device processor, if they are not null
+     * stop the signal dispatcher, hot folder and device processor, if they are not null
      */
     public void shutdown() {
-		if (_theSignalDispatcher!=null) {
-			_theSignalDispatcher.shutdown();
-		}
-		
-		if (_deviceProcessors!=null) {
-			for (int i=_deviceProcessors.size()-1;i>=0;i--) {
-				_deviceProcessors.get(i).shutdown();
-			}
-		}
-		
+        if (_theSignalDispatcher!=null) {
+            _theSignalDispatcher.shutdown();
+        }
+
+        if (_deviceProcessors!=null) {
+            for (int i=_deviceProcessors.size()-1;i>=0;i--) {
+                _deviceProcessors.get(i).shutdown();
+            }
+        }
+
         if (_submitHotFolder!=null) {
             _submitHotFolder.stop();
         }
-	}
+    }
 
     /**
      * get the directory of the web application this device belongs to
@@ -458,17 +475,17 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
      * @return
      */
     protected abstract AbstractDeviceProcessor buildDeviceProcessor();
-    
+
     public String getBaseDir() {
-    	return _devProperties.getBaseDir();
+        return _devProperties.getBaseDir();
     }
-    
+
     public String getConfigDir() {
-    	return _devProperties.getConfigDir();
+        return _devProperties.getConfigDir();
     }
-    
+
     public String getJDFDir() {
-    	return _devProperties.getJDFDir();
+        return _devProperties.getJDFDir();
     }
 
     /**
@@ -479,9 +496,9 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     public IStatusListener getStatusListener(int i) {
         return _deviceProcessors.get(i).getStatusListener();
     }
-    
+
     public void addSubscriptionHandler(EnumType typ, IMessageHandler handler)
-	{
-    	_jmfHandler.addSubscriptionHandler(typ, handler);
-	}
+    {
+        _jmfHandler.addSubscriptionHandler(typ, handler);
+    }
 }
