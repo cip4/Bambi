@@ -47,5 +47,13 @@ public class QueueEntry implements IQueueEntry
         s+="\n Doc: "+_theDoc==null ?"null \n": _theDoc.toString();
         return s;
     }
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.queues.IQueueEntry#getQueueEntryID()
+     */
+    public String getQueueEntryID()
+    {
+        return _theQueueEntry==null ? null : _theQueueEntry.getQueueEntryID();
+    }
     
 }

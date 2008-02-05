@@ -71,9 +71,13 @@
 
 package org.cip4.bambi.proxy;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 
 /**
  * This is the device processor for Bambi proxies. It does not need to process QueueEntries, 
@@ -86,6 +90,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
 	private static final long serialVersionUID = -5602256836245089864L;
 	private static Log log = LogFactory.getLog(ProxyDeviceProcessor.class.getName());
 
+    
 	@Override
     /**
      * this is the device processor loop <br/>
@@ -102,5 +107,18 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
 				log.error("interrupted while idle");
 			}
         }
+    }
+
+       public EnumQueueEntryStatus stopProcessing(JDFQueueEntry qe,EnumQueueEntryStatus newStatus) {
+           throw new NotImplementedException(); // should never get here
+        }
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.IDeviceProcessor#processDoc(org.cip4.jdflib.core.JDFDoc, org.cip4.jdflib.jmf.JDFQueueEntry)
+     */
+    public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe)
+    {
+        //this is a nop for proxy
+        throw new NotImplementedException(); // should never get here
     }
 }

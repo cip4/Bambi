@@ -108,17 +108,9 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     protected IStatusListener _statusListener;
     protected Object _myListener; // the mutex for waiting and reawakening
     protected IDeviceProperties _devProperties=null;
-    protected List<ChangeQueueEntryStatusRequest> _updateStatusReqs=null;
     protected boolean _doShutdown=false;
+    protected IQueueEntry currentQE;
 
-    protected static class ChangeQueueEntryStatusRequest {
-        public String queueEntryID=null;
-        public EnumQueueEntryStatus newStatus=null;
-        public ChangeQueueEntryStatusRequest(String qeid, EnumQueueEntryStatus status) {
-            queueEntryID=qeid;
-            newStatus=status;
-        }
-    }
  
     /**
      * constructor
@@ -166,8 +158,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         _queueProcessor.addListener(_myListener);
         _statusListener=statusListener;
         _devProperties=devProperties;
-        _updateStatusReqs=new ArrayList<ChangeQueueEntryStatusRequest>();
-    }
+     }
 
     protected boolean processQueueEntry()
     {
@@ -240,26 +231,12 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     {
         _statusListener.signalStatus(EnumDeviceStatus.Idle, "Idle", EnumNodeStatus.Completed, "job completed");
         _statusListener.setNode(null, null, null, null, null);
+        currentQE=null;
         return EnumQueueEntryStatus.Completed;
     }
 
 
-    public EnumQueueEntryStatus stopProcessing(JDFQueueEntry qe,EnumQueueEntryStatus newStatus) {
-        EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-
-        if (EnumQueueEntryStatus.Running.equals(status)) {
-            ChangeQueueEntryStatusRequest newReq = new ChangeQueueEntryStatusRequest(qe.getQueueEntryID(),newStatus);
-            _updateStatusReqs.add(newReq);
-            return status;
-        } else if ( EnumQueueEntryStatus.Waiting.equals(status) 
-        		|| EnumQueueEntryStatus.Suspended.equals(status) ) {
-            qe.setQueueEntryStatus(newStatus);
-            return newStatus;
-        } else {
-            // cannot change status
-            return status;
-        }
-    }
+    public abstract EnumQueueEntryStatus stopProcessing(JDFQueueEntry qe,EnumQueueEntryStatus newStatus);
 
     public void shutdown() {
         _doShutdown=true;

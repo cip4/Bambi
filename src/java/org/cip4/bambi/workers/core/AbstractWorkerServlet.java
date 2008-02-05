@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -89,7 +89,6 @@ import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IMultiDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
-import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.util.StringUtil;
 
 
@@ -104,7 +103,7 @@ import org.cip4.jdflib.util.StringUtil;
 public abstract class AbstractWorkerServlet extends AbstractBambiServlet 
 {
 	protected static final long serialVersionUID = -8902151736245089036L;
-	protected static final Log log = LogFactory.getLog(AbstractWorkerServlet.class.getName());
+	public static final Log log = LogFactory.getLog(AbstractWorkerServlet.class.getName());
 
 	/** Initializes the servlet.
 	 */
@@ -114,85 +113,8 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 		super.init(config);
 		String configFile=_devProperties.getConfigDir()+"devices.xml";
 		createDevicesFromFile(configFile);
+        
 	}
-
-	/** Handles the HTTP <code>GET</code> method.
-	 * @param request servlet request
-	 * @param response servlet response
-	 */
-	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-	{
-		log.info("Processing get request...");
-		
-		String command = request.getParameter("cmd");
-		
-		if (command == null || command.length() == 0) {
-			request.setAttribute("devices", getDevices());
-			try {
-				request.getRequestDispatcher("/overview.jsp").forward(request, response);
-			} catch (Exception e) {
-				log.error(e);
-			} 
-		} else if ( command.equals("showDevice") || 
-				command.equals("processNextPhase") || command.equals("finalizeCurrentQE") )
-		{
-			IDevice dev=getDeviceFromRequest(request);
-			if (dev!=null)
-			{
-				request.setAttribute("device", dev);
-				showDevice(request,response);
-			} else {
-				showErrorPage("can't get device", "device ID missing or unknown", request, response);
-				return;
-			}
-		} else if ( command.endsWith("QueueEntry") )  {
-			IDevice dev=getDeviceFromRequest(request);
-			if (dev!=null)
-			{
-				request.setAttribute("device", dev);
-				try {
-					request.getRequestDispatcher("QEController").forward(request, response);
-				} catch (Exception e) {
-					log.error(e);
-				}
-			} else {
-				log.error("can't get device, device ID is missing or unknown");
-			}
-		} else if ( command.equals("showJDFDoc") ) {
-			String qeid=request.getParameter("qeid");
-			if ( (qeid!=null&&qeid.length()>0) ) {
-				String filePath=_devProperties.getJDFDir()+qeid+".jdf";
-				JDFDoc theDoc=JDFDoc.parseFile(filePath);
-				if (theDoc!=null) {
-					writeRawResponse( request,response,theDoc.toXML() );
-				} else {
-					log.error( "cannot parse '"+filePath+"'" );
-					return;
-				}
-			}
-		}
-	}
-
-	/**
-	 * @param request
-	 */
-	protected IDevice getDeviceFromRequest(HttpServletRequest request) {
-		String deviceID = request.getParameter("id");
-		if (deviceID == null) {
-			log.error("invalid request: device ID is missing");
-			return null;
-		}
-		IDevice dev = getDevice(deviceID);
-		if (dev == null) {
-			log.error("invalid request: device with id="+deviceID+" not found");
-			return null;
-		}
-		
-		return dev;
-	}
-
-	
 
 	/** 
 	 * Returns a short description of the servlet.
@@ -200,7 +122,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 	@Override
 	public String getServletInfo() 
 	{
-		return "Bambi Device  Servlet";
+		return "Bambi Device Worker Servlet";
 	}
 
 	/**
@@ -228,63 +150,6 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 		return dev;
 	}
 	
-	/**
-	 * remove device
-	 * @param deviceID ID of the device to be removed
-	 * @return
-	 */
-	public boolean removeDevice(String deviceID) {
-		if (_devices == null) {
-			log.error("list of devices is null");
-			return false;
-		}
-		if (_devices.get(deviceID) == null) {
-			log.warn("tried to removing non-existing device");
-			return false;
-		}
-		_devices.remove(deviceID);
-		return true;
-	}
-
-	/**
-	 * get the number of devices
-	 * @return
-	 */
-	public int getDeviceQuantity() {
-		return _devices==null ? 0 : _devices.size();
-	}
-
-	/**
-	 * get a device
-	 * @param deviceID ID of the device to get
-	 * @return
-	 */
-	public IDevice getDevice(String deviceID)
-	{
-		if (_devices == null) {
-			log.warn("list of devices is null");
-			return null;
-		}
-
-		return _devices.get(deviceID);
-	}
-	
-	/**
-     * add or replace a device in the devicemap
-     * 
-     * @param deviceID
-     * @param device
-     */
-    public void addDevice(String deviceID, IDevice device)
-    {
-        if (_devices == null) {
-            log.debug("list of devices is null");
-            _devices=new HashMap<String, IDevice>();
-        }
-
-        _devices.put(deviceID, device);
-    }
-
     /**
      * create devices based on the list of devices given in a file
      * @param configFile the file containing the list of devices 
@@ -313,10 +178,6 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 		return true;
 	}
 		
-	public HashMap<String, IDevice> getDevices() {
-		return _devices;
-	}
-	
 	/**
 	 * build a new device instance
 	 * @param prop
@@ -329,27 +190,13 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 	 * @param request
 	 * @param response
 	 */
-	protected abstract void showDevice(HttpServletRequest request, HttpServletResponse response);
+    protected void showDevice(HttpServletRequest request,
+            HttpServletResponse response) {
+        try {
+            request.getRequestDispatcher("DeviceInfo").forward(request, response);
+        } catch (Exception e) {
+            log.error(e);
+        }
+    }
 
-
-	/**
-	 * get a device instance from a given Object
-	 * @param dev
-	 * @return
-	 */
-	protected abstract AbstractDevice getDeviceFromObject(Object dev);
-
-	@Override
-	protected IJMFHandler getTargetHandler(HttpServletRequest request) {
-		String deviceID = request.getPathInfo();
-		if (deviceID == null)
-			return _jmfHandler; // root folder
-		deviceID = StringUtil.token(deviceID, 0, "/");
-		if (deviceID == null)
-			return _jmfHandler; // device not found
-		AbstractDevice device = getDeviceFromObject( _devices.get(deviceID) );
-		if (device == null)
-			return _jmfHandler; // device not found
-		return( device.getHandler() );
-	}
 }

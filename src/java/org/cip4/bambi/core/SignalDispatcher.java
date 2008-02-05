@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -38,7 +38,7 @@
  *
  * Usage of this software in commercial products is subject to restrictions. For
  * details please consult info@cip4.org.
-  *
+ *
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -122,14 +122,15 @@ public final class SignalDispatcher implements ISignalDispatcher
     protected boolean doShutdown=false;
     private HashMap<String,MessageSender> senders=null;
     private int _maxSenders=10;
- 
+    private IConverterCallback _callback=null;
+
     /////////////////////////////////////////////////////////////
     protected static class Trigger
     {
         protected String queueEntryID;
         protected String workStepID;
         protected int amount;
-        
+
         public Trigger(String _queueEntryID, String _workStepID, int _amount)
         {
             super();
@@ -147,7 +148,7 @@ public final class SignalDispatcher implements ISignalDispatcher
             if(!(arg0 instanceof Trigger))
                 return false;
             Trigger t=(Trigger) arg0;
-            
+
             boolean bQE=ContainerUtil.equals(queueEntryID, t.queueEntryID);
             if(!bQE)
                 return false;
@@ -186,9 +187,9 @@ public final class SignalDispatcher implements ISignalDispatcher
                 return false;
             return true;
         }
-        
-        
-        
+
+
+
     }
     /////////////////////////////////////////////////////////////
     protected class Dispatcher implements Runnable
@@ -200,32 +201,32 @@ public final class SignalDispatcher implements ISignalDispatcher
         {
             while(!doShutdown)
             {
-            	checkMaxSenders();
-            	
+                checkMaxSenders();
+
                 final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
                 // spam them out
                 for(int i=0;i<triggerVector.size();i++)
                 {
                     final MsgSubscription sub=triggerVector.elementAt(i);
                     log.debug("Trigger Signalling :"+i+" channelID="+sub.channelID);
-                    sendMessage(sub);
+                    queueMessageInSender(sub);
                 }
-               // select pending time subscriptions
+                // select pending time subscriptions
                 final Vector<MsgSubscription> subVector = getTimeSubscriptions();
                 // spam them out
                 for(int i=0;i<subVector.size();i++) {
                     final MsgSubscription sub=subVector.elementAt(i);
                     log.debug("Time Signalling: "+i+", channelID="+sub.channelID);
-                    sendMessage(sub);
+                    queueMessageInSender(sub);
                 }
- 
+
                 try
                 {
                     synchronized (mutex)
                     {
                         mutex.wait(1000);                       
                     }
-                 }
+                }
                 catch (InterruptedException x)
                 {
                     //
@@ -233,29 +234,30 @@ public final class SignalDispatcher implements ISignalDispatcher
             }
         }
 
-		/**
-		 * @param sub
-		 */
-		private void sendMessage(final MsgSubscription sub) {
-			String url=sub.getURL();
-			if ( !senders.containsKey(url) ) {
-				addSender(url);
-			}
-			MessageSender ms=senders.get(url);
-			if ( ms.sendMessage( sub.getSignal())!=true )
-				log.error( "failed to dispatch signal" );
-		}
+        /**
+         * queue a message in the appropriate sender
+         * @param sub
+         */
+        private void queueMessageInSender(final MsgSubscription sub) {
+            String url=sub.getURL();
+            if ( !senders.containsKey(url) ) {
+                addSender(url);
+            }
+            MessageSender ms=senders.get(url);
+            if ( ms.queueMessage( sub.getSignal())!=true )
+                log.error( "failed to dispatch signal" );
+        }
 
         /**
          * get the triggered subscriptions, either forced (amount=-1) or by amount
          * @return the vector of triggered subscriptions
          */
         @SuppressWarnings("unchecked")
-		private Vector<MsgSubscription> getTriggerSubscriptions()
+        private Vector<MsgSubscription> getTriggerSubscriptions()
         {
             Vector<MsgSubscription> v = new Vector<MsgSubscription>();
             Iterator<Entry<String,MsgSubscription>> it
-            	= triggers.entrySet().iterator(); // active triggers
+            = triggers.entrySet().iterator(); // active triggers
             while(it.hasNext())
             {
                 final Entry<String,MsgSubscription> nxt = it.next();
@@ -306,13 +308,13 @@ public final class SignalDispatcher implements ISignalDispatcher
                 while(it.hasNext())
                 {
                     final Entry<String, MsgSubscription> next = 
-                    	it.next();
+                        it.next();
                     MsgSubscription sub=next.getValue();
                     if( sub.repeatTime>0)
                     {
                         if(now-sub.lastTime>sub.repeatTime)
                         {
-                        	// todo keine fehlerfortpflanzung
+                            // todo keine fehlerfortpflanzung
                             sub.lastTime=now; 
                             sub=(MsgSubscription) sub.clone();
                             subVector.add(sub);
@@ -322,9 +324,9 @@ public final class SignalDispatcher implements ISignalDispatcher
             } // end synch map
             return subVector;
         }
-        
+
     }
-    
+
     private class MsgSubscription implements Cloneable
     {
         protected String channelID = null;
@@ -333,7 +335,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         protected long repeatTime, lastTime = 0;
         protected JDFMessage theMessage = null;
         protected Trigger trigger = null;
-        
+
         MsgSubscription(IJMFSubscribable m)
         {
             JDFSubscription sub=m.getSubscription();
@@ -343,20 +345,20 @@ public final class SignalDispatcher implements ISignalDispatcher
                 channelID=null;
                 return;
             }
-             channelID=m.getID(); 
-             url=sub.getURL();
-             lastAmount=0;
-             repeatAmount=sub.getRepeatStep();
-             lastTime=0;
-             repeatTime=(long)sub.getRepeatTime();
-             theMessage=(m instanceof JDFMessage) ? theMessage : null;
-             trigger=new Trigger(null,null,0);
-             theMessage=(JDFMessage)m;
-             //TODO observation targets
+            channelID=m.getID(); 
+            url=sub.getURL();
+            lastAmount=0;
+            repeatAmount=sub.getRepeatStep();
+            lastTime=0;
+            repeatTime=(long)sub.getRepeatTime();
+            theMessage=(m instanceof JDFMessage) ? theMessage : null;
+            trigger=new Trigger(null,null,0);
+            theMessage=(JDFMessage)m;
+            //TODO observation targets
         }
-        
+
         public JDFJMF getSignal() {
-        	if(!(theMessage instanceof JDFQuery))
+            if(!(theMessage instanceof JDFQuery))
             {
                 //TODO guess what...
                 log.error("registrations not supported");
@@ -367,7 +369,7 @@ public final class SignalDispatcher implements ISignalDispatcher
             JDFResponse r=jmf.getResponse(0);
             q=(JDFQuery) jmf.copyElement(q, null);
             q.removeChild(ElementName.SUBSCRIPTION, null, 0);
-            
+
             // this is the handling of the actual message
             boolean b=messageHandler.handleMessage(q, r);
             if(!b)
@@ -380,11 +382,11 @@ public final class SignalDispatcher implements ISignalDispatcher
             s.convertResponse(r, q);
             return jmf;
         }
-        
+
         public String getURL() {
-        	return url;
+            return url;
         }
-        
+
         /* (non-Javadoc)
          * @see java.lang.Object#clone()
          */
@@ -409,7 +411,7 @@ public final class SignalDispatcher implements ISignalDispatcher
             c.trigger=trigger; // ref only NOT Cloned (!!!)
             return c;
         }
-        
+
         @Override
         public String toString() {
             return "[MsgSubscription: channelID="+channelID+
@@ -418,7 +420,7 @@ public final class SignalDispatcher implements ISignalDispatcher
             " repeatTime="+repeatTime+
             " lastTime="+lastTime+"]";
         }
-        
+
         /**
          * @param queueEntryID
          */
@@ -435,17 +437,17 @@ public final class SignalDispatcher implements ISignalDispatcher
                 JDFStatusQuParams sqp=theMessage.getCreateStatusQuParams(0);
                 sqp.setQueueEntryID(queueEntryID);
             }
-            
+
         }
     }
-    
+
     /**
      * 
      * handler for the StopPersistentChannel command
      */
     public class StopPersistentChannelHandler implements IMessageHandler
     {
-    
+
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
@@ -466,12 +468,12 @@ public final class SignalDispatcher implements ISignalDispatcher
             {
                 removeSubScription(channel);
             }
-            
+
             return true;
         }
-        
 
-    
+
+
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#getFamilies()
          */
@@ -479,13 +481,13 @@ public final class SignalDispatcher implements ISignalDispatcher
         {
             return new EnumFamily[]{EnumFamily.Command};
         }
-    
+
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#getMessageType()
          */
         public EnumType getMessageType()
         {
-             return EnumType.StopPersistentChannel;
+            return EnumType.StopPersistentChannel;
         }
     }
 
@@ -495,8 +497,15 @@ public final class SignalDispatcher implements ISignalDispatcher
      * @param deviceID ID of the device this SignalHandler is working for. 
      * 			       Required for debugging purposes only. 
      */
-    public SignalDispatcher(IMessageHandler _messageHandler, String deviceID)
-    {        
+    public SignalDispatcher(IMessageHandler _messageHandler, IDeviceProperties devProps)
+    {    
+
+        String deviceID=null;
+        if(devProps!=null)
+        {
+            deviceID=devProps.getDeviceID();
+            _callback=devProps.getCallBackClass();
+        }
         subscriptionMap=new HashMap<String, MsgSubscription>();
         queueEntryMap=new VectorMap();
         messageHandler=_messageHandler;
@@ -518,7 +527,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         {
             return null;
         }
-        
+
         if(subscriptionMap.containsKey(sub.channelID))
         {
             log.error("subscription already exists for:"+sub.channelID);
@@ -535,7 +544,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         sub.trigger.queueEntryID=queueEntryID;
         return sub.channelID;
     }
-    
+
     /* (non-Javadoc)
      * @see org.cip4.bambi.ISignalDispatcher#addSubscription(org.cip4.jdflib.ifaces.IJMFSubscribable)
      */
@@ -555,18 +564,18 @@ public final class SignalDispatcher implements ISignalDispatcher
             // TODO regs
             VElement vMess=jmf.getMessageVector(EnumFamily.Query, null);
             if (vMess!=null) {
-				int nMess = vMess.size();
-				for (int j = 0; j < nMess; j++) {
-					JDFQuery q = (JDFQuery) vMess.elementAt(j);
-					String channelID = addSubscription(q, queueEntryID);
-					if (channelID != null)
-						vs.add(channelID);
-				}
-			}            
+                int nMess = vMess.size();
+                for (int j = 0; j < nMess; j++) {
+                    JDFQuery q = (JDFQuery) vMess.elementAt(j);
+                    String channelID = addSubscription(q, queueEntryID);
+                    if (channelID != null)
+                        vs.add(channelID);
+                }
+            }            
         }
         return vs;
-     }
-    
+    }
+
     /* (non-Javadoc)
      * @see org.cip4.bambi.ISignalDispatcher#removeSubScription(java.lang.String)
      */
@@ -582,18 +591,18 @@ public final class SignalDispatcher implements ISignalDispatcher
      * @see org.cip4.bambi.ISignalDispatcher#removeSubScription(java.lang.String)
      */
     @SuppressWarnings("unchecked")
-	public void removeSubScriptions(String queueEntryID) {
+    public void removeSubScriptions(String queueEntryID) {
         if(queueEntryID==null)
             return;
-        
+
         Vector<String> v=(Vector<String>)queueEntryMap.get(queueEntryID);
         if (v!=null) {
-        	int siz=v.size();
-			for (int i = 0; i < siz; i++) {
-				removeSubScription(v.get(i));
-			}
-		}
-		queueEntryMap.remove(queueEntryID);
+            int siz=v.size();
+            for (int i = 0; i < siz; i++) {
+                removeSubScription(v.get(i));
+            }
+        }
+        queueEntryMap.remove(queueEntryID);
     }
 
     /* (non-Javadoc)
@@ -624,23 +633,23 @@ public final class SignalDispatcher implements ISignalDispatcher
      * @see org.cip4.bambi.ISignalDispatcher#triggerQueueEntry(java.lang.String)
      */
     @SuppressWarnings("unchecked")
-	public void triggerQueueEntry(String queueEntryID,  String workStepID, int amount)
+    public void triggerQueueEntry(String queueEntryID,  String workStepID, int amount)
     {
         Vector<String> v=(Vector<String>) queueEntryMap.get(queueEntryID);
         if (v!=null) {
-			int si = v.size();
-			for (int i = 0; i < si; i++) {
-				triggerChannel(v.get(i), queueEntryID, workStepID, amount);
-			}
-		}
-		// now the global queries
+            int si = v.size();
+            for (int i = 0; i < si; i++) {
+                triggerChannel(v.get(i), queueEntryID, workStepID, amount);
+            }
+        }
+        // now the global queries
         v=(Vector<String>) queueEntryMap.get("*");
         if ( v!= null) {
-			int si = v.size();
-			for (int i = 0; i < si; i++) {
-				triggerChannel(v.get(i), queueEntryID, workStepID, amount);
-			}
-		}
+            int si = v.size();
+            for (int i = 0; i < si; i++) {
+                triggerChannel(v.get(i), queueEntryID, workStepID, amount);
+            }
+        }
     }
 
     /**
@@ -650,12 +659,12 @@ public final class SignalDispatcher implements ISignalDispatcher
     {
         jmfHandler.addHandler(this.new StopPersistentChannelHandler());        
     }
-    
+
     public void shutdown() {
-    	doShutdown=true;
-    	removeAllSenders(false);
+        doShutdown=true;
+        removeAllSenders(false);
     }
-    
+
     /**
      * set the maximum number of senders allowed.
      * If this SignalDispacher has reaches the number of max allowed senders, all 
@@ -663,36 +672,36 @@ public final class SignalDispatcher implements ISignalDispatcher
      * @param i
      */
     public void setMaxSenders(int i) {
-    	_maxSenders=i;
+        _maxSenders=i;
     }
-    
+
     private void checkMaxSenders() {
-    	if (senders==null)
-    		return;
-    	if (senders.size()==_maxSenders) {
-    		removeAllSenders(true);
-    	}
+        if (senders==null)
+            return;
+        if (senders.size()==_maxSenders) {
+            removeAllSenders(true);
+        }
     }
-    
+
     private void addSender(String url) {
-    	MessageSender ms = new MessageSender(null,url);
-    	int id=new Random().nextInt(); // prevent having two threads with same name
-    	new Thread(ms, "sender_"+url+"_"+id ).start();
-    	senders.put( url,ms );
+        MessageSender ms = new MessageSender(null,url,null,_callback);
+        int id=new Random().nextInt(); // prevent having two threads with same name
+        new Thread(ms, "sender_"+url+"_"+id ).start();
+        senders.put( url,ms );
     }
-    
+
     private void removeAllSenders(boolean gracefully) {
-    	if (senders==null) {
-    		return;
-    	}
-    	Set<String> keys = senders.keySet();
-    	Iterator<String> it = keys.iterator();
-    	while ( it.hasNext() ) {
-    		String key=it.next();
-    		MessageSender ms=senders.get(key);
-   			ms.shutDown(gracefully);
-   			senders.remove(key);
-    	}
+        if (senders==null) {
+            return;
+        }
+        Set<String> keys = senders.keySet();
+        Iterator<String> it = keys.iterator();
+        while ( it.hasNext() ) {
+            String key=it.next();
+            MessageSender ms=senders.get(key);
+            ms.shutDown(gracefully);
+            senders.remove(key);
+        }
     }
 
 }

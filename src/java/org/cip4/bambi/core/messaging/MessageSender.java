@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -74,6 +74,8 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
 
@@ -83,39 +85,34 @@ import org.cip4.jdflib.jmf.JDFResponse;
  */
 public class MessageSender implements Runnable {
 	private String _url=null;
-	private IResponseHandler _sender=null;
+	private IResponseHandler _responseHandler=null;
 	private boolean doShutDown=false;
 	private boolean doShutDownGracefully=false;
 	private Vector<JDFJMF> _messages=null;
 	private static Log log = LogFactory.getLog(MessageSender.class.getName());
-	
+    private static IConverterCallback _callBack=null;
+		
 	/**
 	 * constructor
 	 * @param theJMF the message to send
 	 * @param theUrl the URL to send the message to
-	 */
-	public MessageSender(JDFJMF theJMF, String theUrl) {
-		init(theJMF,theUrl, null);
-	}
-	
-	/**
-	 * constructor
-	 * @param theJMF the message to send
-	 * @param theUrl the URL to send the message to
-	 * @param sender the origin of the JMF. Its notify(JDFResponse) method will be
+	 * @param responseHandler the origin of the JMF. Its notify(JDFResponse) method will be
 	 *               triggered when a response has been received. <br/>
-	 *               If the response is null, the IResponseHandler will not be triggered.       
+	 *               If the response is null, the IResponseHandler will not be triggered.     
+     * @param callBack the converter callback to use, null if no modification is required                
 	 */
-	public MessageSender(JDFJMF theJMF, String theUrl, IResponseHandler sender) {
-		init(theJMF,theUrl, sender);
+	public MessageSender(JDFJMF theJMF, String theUrl, IResponseHandler responseHandler, IConverterCallback callback) {
+		init(theJMF,theUrl, responseHandler,callback);
 	}
 	
-	private void init(JDFJMF theJMF, String theUrl, IResponseHandler sender) {
+	private void init(JDFJMF theJMF, String theUrl, IResponseHandler responseHandler,IConverterCallback callback) 
+    {
 		_messages=new Vector<JDFJMF>();
 		if (theJMF!=null)
 			_messages.add(theJMF);
 		_url=theUrl;
-		_sender=sender;
+		_responseHandler=responseHandler;
+        _callBack=callback;
 	}
 
 	/**
@@ -126,16 +123,8 @@ public class MessageSender implements Runnable {
 	public void run() {
 		while (!doShutDown) {
 			synchronized(_messages) {
-				if (_messages!=null && !_messages.isEmpty() ) {
-					JDFJMF jmf=_messages.get(0);
-					if ( jmf!=null &&_url!=null && !_url.equals("") ) {
-						JDFResponse resp=JMFFactory.send2URL(jmf, _url);
-						if (_sender!=null) {
-							_sender.handleResponse(resp);
-						}
-					}
-					_messages.remove(0);
-				}
+					if(sendFirstMessage())
+					    _messages.remove(0);
 				
 				if ( doShutDownGracefully && _messages.isEmpty() ) {
 					doShutDown=true;
@@ -151,6 +140,37 @@ public class MessageSender implements Runnable {
 			}
 		}
 	}
+
+    
+    /**
+     * send the first enqueued message and return true if all went well
+     * also update any returned responses for Bambi internally
+     * @return boolean true if the message is assumed sent
+     *                 false if an error was detected and the Message must remain in the queue
+     */
+    private boolean sendFirstMessage()
+    {
+        if (_messages==null ||_messages.isEmpty() ) 
+            return false;
+
+        boolean b=true;
+        JDFJMF jmf=_messages.get(0);
+        if ( jmf==null)
+            return true; // need no resend - will remove
+        if(KElement.isWildCard(_url) ) 
+            return false; // snafu anyhow but not sent
+
+        JDFResponse resp=JMFFactory.send2URL(jmf, _url);
+        if (_responseHandler!=null) 
+        {
+            b=_responseHandler.handleResponse(resp);
+        }
+        if(_callBack!=null && resp!=null)
+        {
+            _callBack.prepareJMFForBambi(resp.getOwnerDocument_JDFElement());
+        }
+        return b;
+    }
 	
 	/**
 	 * stop sending new messages immediately and shut down
@@ -166,15 +186,19 @@ public class MessageSender implements Runnable {
 	}
 
 	/**
-	 * send a message to the URL this MessageSender belongs to
+	 * queses a message for the URL that this MessageSender belongs to
+     * also updates the message for a given recipient if required
 	 * @param jmf the message to send
-	 * @return true, if the message will be sent. False, if this MessageSender is
-	 *         unable to accept further messages (i. e. it is shutting down). 
+	 * @return true, if the message is successfully queued. 
+     *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
 	 */
-	public boolean sendMessage(JDFJMF jmf) {
+	public boolean queueMessage(JDFJMF jmf) {
 		if (doShutDown || doShutDownGracefully) {
 			return false;
 		}
+        if(_callBack!=null)
+            _callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+        
 		synchronized(_messages) {
 			_messages.add(jmf);
 		}

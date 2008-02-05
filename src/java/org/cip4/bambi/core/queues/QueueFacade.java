@@ -3,7 +3,7 @@
 * The CIP4 Software License, Version 1.0
 *
 *
-* Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+* Copyright (c) 2001-2008 The International Cooperation for the Integration of 
 * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
 * reserved.
 *
@@ -72,6 +72,7 @@
 package org.cip4.bambi.core.queues;
 
 import java.util.Vector;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
@@ -94,11 +95,11 @@ public class QueueFacade {
 		public EnumQueueEntryStatus queueEntryStatus=null;
 		public int queuePriority=0;
 		
-		protected BambiQueueEntry(String qEntryID, EnumQueueEntryStatus qStatus, int qPriority)
+		protected BambiQueueEntry(JDFQueueEntry jqe)
 		{
-			queueEntryID = qEntryID;
-			queueEntryStatus = qStatus;
-			queuePriority = qPriority;
+			queueEntryID = jqe.getQueueEntryID();
+			queueEntryStatus = jqe.getQueueEntryStatus();
+			queuePriority = jqe.getPriority();
 		}
 	}
 	
@@ -136,8 +137,7 @@ public class QueueFacade {
 		for (int i = 0; i<_theQueue.getQueueSize();i++)
 		{
 			JDFQueueEntry jqe = _theQueue.getQueueEntry(i);
-			BambiQueueEntry bqe = new BambiQueueEntry( jqe.getQueueEntryID(),
-					jqe.getQueueEntryStatus(),jqe.getPriority() );
+			BambiQueueEntry bqe = new BambiQueueEntry( jqe);
 			qes.add(bqe);
 		}
 			

@@ -87,9 +87,11 @@ import org.cip4.bambi.core.queues.IQueueProcessor;
  */
 public abstract class AbstractWorkerDevice extends AbstractDevice {
 	protected AbstractWorkerDeviceProcessor _theDeviceProcessor=null;
+    protected String _trackResource=null;
 	
 	public AbstractWorkerDevice(IDeviceProperties prop) {
 		super(prop);
+        _trackResource=prop.getTrackResource();
 		_theDeviceProcessor=(AbstractWorkerDeviceProcessor) super._deviceProcessors.get(0);
 	}
 	
@@ -97,4 +99,9 @@ public abstract class AbstractWorkerDevice extends AbstractDevice {
 	protected IQueueProcessor buildQueueProcessor() {
 		return new WorkerQueueProcessor(this);
 	}
+
+    public String getTrackResource()
+    {
+        return _trackResource;
+    }
 }

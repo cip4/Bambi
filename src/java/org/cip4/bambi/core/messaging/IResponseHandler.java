@@ -76,7 +76,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 
 
 /**
- * handles the asynchcronous responses for messages send by MessageSender
+ * Interface handle the asynchcronous responses for messages sent by MessageSender
  * 
  * @author boegerni
  *
@@ -85,8 +85,10 @@ public interface IResponseHandler
 {
     /**
      * handle the JDFResponse
-     * @param resp the JDFResponse of a message send by the MessageSender 
+     * @param resp the JDFResponse of a message send by the MessageSender
+     * @return boolean true if the message has been sent successfully 
+     *                 false if a resend is required and the message should not be removed from the message queue 
      */
-    public void handleResponse(JDFResponse resp);
+    public boolean handleResponse(JDFResponse resp);
 
 }

@@ -79,6 +79,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.workers.core.AbstractDeviceInfoServlet;
 
 public class SimDeviceInfoServlet extends AbstractDeviceInfoServlet {
@@ -103,5 +104,15 @@ public class SimDeviceInfoServlet extends AbstractDeviceInfoServlet {
 			log.error( "failed to display page: "+e.getMessage() );
 		}
 	}
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.AbstractBambiServlet#getTargetHandler(javax.servlet.http.HttpServletRequest)
+     */
+    @Override
+    protected IJMFHandler getTargetHandler(HttpServletRequest request)
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }

@@ -71,8 +71,6 @@
 
 package org.cip4.bambi.workers.manual;
 
-import java.util.ArrayList;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IDeviceProperties;
@@ -96,8 +94,6 @@ public class ManualDeviceProcessor extends AbstractWorkerDeviceProcessor
 {
 	private static final Log log = LogFactory.getLog(ManualDeviceProcessor.class.getName());
 	private static final long serialVersionUID = -384123589645081254L;
-	private boolean doFinalizeQE = false;
-	private boolean doNextPhase = false;
 	private JobPhase firstPhase=null;
 	
 	public ManualDeviceProcessor() {
@@ -111,100 +107,36 @@ public class ManualDeviceProcessor extends AbstractWorkerDeviceProcessor
 		firstPhase.deviceStatusDetails="Waiting";
 		firstPhase.nodeStatus=EnumNodeStatus.Waiting;
 		firstPhase.nodeStatusDetails="Waiting";
+        firstPhase.setAmount(_trackResource, 0, true);
+        
 	}
-		
-	@Override
-	public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
-		super.processDoc(doc, qe);
-		
-        doFinalizeQE = false;
-		while ( !doFinalizeQE ) {
-			if ( _jobPhases==null ) {
-				_jobPhases = new ArrayList<JobPhase>();
-			}
-			if ( _jobPhases.isEmpty() ) {
-				_jobPhases.add(firstPhase);
-			}
-			
-			if (doNextPhase) {
-				_jobPhases.remove(0);
-				doNextPhase = false;
-			}
-			JobPhase phase = _jobPhases.get(0);
-			
-			if (phase == null) {
-				log.fatal("job phase is null");
-				return EnumQueueEntryStatus.Aborted;
-			}
-			
-			log.info("processing new job phase: "+phase.toString());
-			_statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, 
-					phase.nodeStatus,phase.nodeStatusDetails);
-			
-			while ( !doNextPhase ) {
-				if (doFinalizeQE) {
-					break;
-				}
-					
-				try {
-					int reqSize=_updateStatusReqs.size();
-					if (reqSize>0) {
-						for (int reqNo=0;reqNo<reqSize;reqNo++) {
-							ChangeQueueEntryStatusRequest request=_updateStatusReqs.get(reqNo);
-							if ( !request.queueEntryID.equals(qe.getQueueEntryID()) ) {	
-								_updateStatusReqs.remove(reqNo);
-								log.error("failed to change status of QueueEntry, it is not running");
-							} else if (request.newStatus.equals(EnumQueueEntryStatus.Suspended)) {
-								_updateStatusReqs.remove(reqNo);
-								return suspendQueueEntry(qe,0, 0);
-							} else if (request.newStatus.equals(EnumQueueEntryStatus.Aborted)) {
-								_updateStatusReqs.remove(reqNo);
-								doNextPhase(firstPhase);
-								return abortQueueEntry();
-							}
-						}					
-					} else {
-						Thread.sleep(1000);
-					}
-					_statusListener.updateAmount(_trackResourceID, phase.Output_Good, phase.Output_Waste);
-					
-				} catch (InterruptedException e) {
-					log.warn("interrupted while sleeping");
-				}
-			}
-
-		}
-		
-		// processing has finished
-		doNextPhase(firstPhase);
-		return finalizeProcessDoc();
+    /**
+     * @param doc the jdfdoc to process
+     * @param qe the queueentry to process
+     * @return EnumQueueEntryStatus the final status of the queuentry 
+     */
+	protected EnumQueueEntryStatus prepareProcessing(JDFDoc doc, JDFQueueEntry qe) 
+	{
+	    EnumQueueEntryStatus qes=super.prepareProcessing(doc, qe);
+        _jobPhases.clear();
+        _jobPhases.add(firstPhase);
+        
+        return qes;
 	}
 	
 	/**
 	 * proceed to the next job phase
 	 * @param newPhase the next job phase to process.<br>
-	 * Phase duration is ignored in this class, it is advancing to the next phase 
+	 * Phase timeToGo is ignored in this class, it is advancing to the next phase 
 	 * solely by doNextPhase().
 	 */
 	public void doNextPhase(JobPhase nextPhase) {
-		_jobPhases.add(nextPhase);
-		doNextPhase = true;
+	    JobPhase lastPhase=getCurrentJobPhase();
+        if(lastPhase!=null)
+            lastPhase.timeToGo=0;
+	    _jobPhases.add(nextPhase);
 	}
 	
-	/**
-	 * finish processing the current QueueEntry
-	 */
-	public void finalizeQueueEntry() {
-		doFinalizeQE = true;
-	}
-	
-	@Override
-	public JobPhase getCurrentJobPhase() {
-		if ( _jobPhases != null && _jobPhases.size() > 0)
-			return _jobPhases.get(0);
-		return null;
-	}
-
 	@Override
 	public void init(IQueueProcessor queueProcessor,
 			IStatusListener statusListener, IDeviceProperties devProperties) {

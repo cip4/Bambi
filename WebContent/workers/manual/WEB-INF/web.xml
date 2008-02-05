@@ -19,15 +19,15 @@
 		<servlet-class>org.cip4.bambi.workers.core.QEControllerServlet</servlet-class>
 		<load-on-startup>20</load-on-startup>
 	</servlet>
-	<servlet>
-		<servlet-name>DeviceInfoServlet</servlet-name>
-		<servlet-class>org.cip4.bambi.workers.manual.ManualDeviceInfoServlet</servlet-class>
-		<load-on-startup>10</load-on-startup>
-	</servlet>
 	<servlet-mapping>
 		<!-- the entrance point of the application -->
 		<servlet-name>ManualWorkerServlet</servlet-name>
 		<url-pattern>/overview/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<!-- the entrance point of the application -->
+		<servlet-name>ManualWorkerServlet</servlet-name>
+		<url-pattern>/processNextPhase/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 	 	<!-- the entrance point for child devices -->
@@ -41,7 +41,7 @@
 	</servlet-mapping>
 	<servlet-mapping>
 		<!-- entrance point for showing device info -->
-		<servlet-name>DeviceInfoServlet</servlet-name>
+		<servlet-name>ManualWorkerServlet</servlet-name>
 		<url-pattern>/DeviceInfo</url-pattern>
 	</servlet-mapping>
 	<session-config>

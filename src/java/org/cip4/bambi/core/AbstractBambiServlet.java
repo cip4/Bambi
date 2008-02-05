@@ -81,8 +81,10 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -103,6 +105,7 @@ import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -111,6 +114,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -120,7 +124,52 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public abstract class AbstractBambiServlet extends HttpServlet {
 
-	/**
+    /**
+     * handler for final handler for any non-handled url
+     * @author prosirai
+     *
+     */
+    protected class UnknownErrorHandler implements IGetHandler
+    {
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+         */
+        public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
+        {
+            
+            showErrorPage("No handler for URL", request.getPathInfo(), request, response);
+            return true;
+        }
+    }
+    
+    /**
+     * handler for the overview page
+     * @author prosirai
+     *
+     */
+    protected class OverviewHandler implements IGetHandler
+    {
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+         */
+        public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
+        {
+            if(KElement.isWildCard(context)||context.equalsIgnoreCase("overview"))
+            {
+                request.setAttribute("devices", getDevices());
+                try {
+                    request.getRequestDispatcher("/overview.jsp").forward(request, response);
+                } catch (Exception e) {
+                    log.error(e);
+                } 
+                return true;
+            }
+            else
+                return false;
+        }
+    }
+    /**
 	 * 
 	 * handler for the knowndevices query
 	 */
@@ -155,11 +204,12 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		}
 	}
 
-	protected IDeviceProperties _devProperties=null;
+ 	protected IDeviceProperties _devProperties=null;
 	protected IJMFHandler _jmfHandler=null;
     protected HashMap<String,IDevice> _devices = null;
     protected IConverterCallback _callBack = null;
 	private static Log log = LogFactory.getLog(AbstractBambiServlet.class.getName());
+    protected List<IGetHandler> _getHandlers=new Vector<IGetHandler>();
 	
 	/** Initializes the servlet.
 	 * @throws MalformedURLException 
@@ -180,15 +230,20 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		dirs.add( _devProperties.getHotFolderURL() );
 		createDirs(dirs);
 		
+        // jmf handlers
 		_jmfHandler=new JMFHandler();
 		addHandlers();
+        
+        // doGet handlers
+        _getHandlers.add(this.new OverviewHandler());
+        _getHandlers.add(this.new UnknownErrorHandler());
 	}
 
 	/**
 	 * create the specified directories, if the do not exist
 	 * @param dirs the directories to create
 	 */
-	protected void createDirs(VString dirs) {
+	private void createDirs(VString dirs) {
 		for (int i=0;i<dirs.size();i++) {
 			String dir=dirs.get(i);
 			if (dir==null) 
@@ -352,7 +407,14 @@ public abstract class AbstractBambiServlet extends HttpServlet {
             }
         }
     }
-    protected abstract IJMFHandler getTargetHandler(HttpServletRequest request);
+
+    protected IJMFHandler getTargetHandler(HttpServletRequest request)
+    {
+        IDevice device =  getDeviceFromRequest(request);
+        if (device == null)
+            return _jmfHandler; // device not found
+        return( device.getHandler() );
+    }
 	
 	/**
 	 * Parses a multipart request.
@@ -400,6 +462,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 			} else {
 				log.warn("Unknown ContentType: "+contentType);
 				response.setContentType("text/plain");
+                
 				OutputStream os=response.getOutputStream();
 				InputStream is=request.getInputStream();
 				byte[] b=new byte[1000];
@@ -478,18 +541,6 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		_jmfHandler.addHandler( new AbstractBambiServlet.KnownDevicesHandler() );
 	}
 	
-	public String getDeviceID() {
-		return _devProperties.getDeviceID();
-	}
-
-	public String getDeviceURL() {
-		return _devProperties.getDeviceURL();
-	}
-	
-	public String getDeviceType() {
-        return _devProperties.getDeviceType();
-    }
-	
 	/**
 	 * write a String to a writer of a HttpServletResponse, show error.jsp if failed
 	 * @param request  the request
@@ -522,5 +573,140 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 			dev.shutdown();
 		}
 	}
+
+    /**
+     * @param request
+     */
+	protected IDevice getDeviceFromRequest(HttpServletRequest request)
+	{
+	    String deviceID = getDeviceIDFromRequest(request);
+	    IDevice dev = getDevice(deviceID);
+	    if (dev == null) {
+	        log.error("invalid request: device with id="+deviceID==null?"null":deviceID+" not found");
+	        return null;
+	    }		
+	    return dev;
+	}
+
+    /**
+     * 
+     * @param request the request to parse
+     * @return
+     */
+    public static String getDeviceIDFromRequest(HttpServletRequest request)
+    {
+        String deviceID = request.getParameter("id");
+	    if (deviceID == null) {
+	        deviceID = request.getPathInfo();
+	        deviceID = StringUtil.token(deviceID, 0, "/");
+	    }
+        return deviceID;
+    }
+
+    /**
+     * get a device
+     * @param deviceID ID of the device to get
+     * @return
+     */
+    public IDevice getDevice(String deviceID)
+    {
+    	if (_devices == null) {
+    		log.warn("list of devices is null");
+    		return null;
+    	}
+        else if(deviceID==null)   
+        {
+            log.warn("attempting to retrieve null device");
+            return null;           
+        }
+    	return _devices.get(deviceID);
+    }
+
+    public HashMap<String, IDevice> getDevices()
+    {
+    	return _devices;
+    }
+
+    /**
+     * remove device
+     * @param deviceID ID of the device to be removed
+     * @return
+     */
+    public boolean removeDevice(String deviceID)
+    {
+    	if (_devices == null) {
+    		log.error("list of devices is null");
+    		return false;
+    	}
+    	if (_devices.get(deviceID) == null) {
+    		log.warn("tried to removing non-existing device");
+    		return false;
+    	}
+    	_devices.remove(deviceID);
+    	return true;
+    }
+
+    /**
+     * extract a double attribute from a given request
+     * @param request
+     * @param param
+     * @return
+     */
+    public static double getDoubleFromRequest(HttpServletRequest request, String param)
+    {
+    	final String val = request.getParameter(param);
+    	return StringUtil.parseDouble(val, 0.0);
+    }
+
+    /**
+     * extract a double attribute from a given request
+     * @param request
+     * @param param
+     * @return
+     */
+    public static boolean getBooleanFromRequest(HttpServletRequest request, String param)
+    {
+        final String val = request.getParameter(param);
+        return StringUtil.parseBoolean(val, false);
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    {
+        String context = getContext(request);
+        // simply loop over all handlers until you are done
+        for(int i=0;i<_getHandlers.size();i++)
+        {
+            IGetHandler ig=_getHandlers.get(i);
+            final boolean bHandled=ig.handleGet(request, response, context);
+            if(bHandled)
+                return;
+        }
+    }
+
+    /**
+     * get the static context string
+     * @param request
+     * @return
+     */
+    public static String getContext(HttpServletRequest request)
+    {
+        String context = request.getParameter("cmd");
+        if(context==null)
+        {
+            context=UrlUtil.getLocalURL(request.getContextPath(),request.getRequestURI());
+        }
+        return context;
+    }
+
+    /**
+     * get the number of devices
+     * used only for test purposes 
+     * @return
+     */
+    public int getDeviceQuantity()
+    {
+    	return _devices==null ? 0 : _devices.size();
+    }
 
 }

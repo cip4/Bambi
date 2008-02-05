@@ -81,14 +81,17 @@ import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IStatusListener;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor;
+import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
 
 /**
@@ -101,8 +104,6 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 	private static Log log = LogFactory.getLog(SimDeviceProcessor.class.getName());	
 	private List<JobPhase> _originalPhases = null;
 	private static final long serialVersionUID = -256551569245084031L;
-	public boolean isPaused=false;
-	JobPhase _currentPhase = null;
 
 	/**
 	 * initialize the SimDeviceProcessor and load the default sim phases from "job_$(DeviceID).xml"
@@ -111,7 +112,7 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
         // try to load default a default job
         boolean hasLoaded = loadJobFromFile(_devProperties.getConfigDir()+"job_"+deviceID+".xml");
         if (hasLoaded)
-        	randomizeJobPhases(10.0, 30.0);
+        	randomizeJobPhases(10.0);
         else
         	log.error("no default job defined for SimJobProcessor of "+deviceID);
 	}
@@ -140,17 +141,25 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 		int counter = 0;
 		try {
 			KElement simJob = doc.getRoot();
-			VElement v = simJob.getXPathElementVector("//BambiJob/*", 99);
+			VElement v = simJob.getXPathElementVector("JobPhase", -1);
 			for (int i = 0; i < v.size(); i++) {
-				KElement job = v.elementAt(i);
+				KElement phaseElement = v.elementAt(i);
 				JobPhase phase = new JobPhase();
-				phase.deviceStatus = EnumDeviceStatus.getEnum(job.getXPathAttribute("@DeviceStatus", "Idle"));
-				phase.deviceStatusDetails = job.getXPathAttribute("@DeviceStatusDetails", "");
-				phase.nodeStatus = EnumNodeStatus.getEnum(job.getXPathAttribute("@NodeStatus", "Waiting"));
-				phase.nodeStatusDetails = job.getXPathAttribute("@NodeStatusDetails", "");
-				phase.duration = StringUtil.parseInt( job.getXPathAttribute("@Duration", "0"), 0 );
-				phase.Output_Good = StringUtil.parseDouble( job.getXPathAttribute("@Good", "0"),0.0 );
-				phase.Output_Waste = StringUtil.parseDouble( job.getXPathAttribute("@Waste", "0"),0.0 );
+				phase.deviceStatus = EnumDeviceStatus.getEnum(phaseElement.getXPathAttribute("@DeviceStatus", "Idle"));
+				phase.deviceStatusDetails = phaseElement.getXPathAttribute("@DeviceStatusDetails", "");
+				phase.nodeStatus = EnumNodeStatus.getEnum(phaseElement.getXPathAttribute("@NodeStatus", "Waiting"));
+				phase.nodeStatusDetails = phaseElement.getXPathAttribute("@NodeStatusDetails", "");
+				phase.timeToGo = StringUtil.parseInt( phaseElement.getXPathAttribute("@Duration", "0"), 0 );
+                VElement vA=phaseElement.getChildElementVector("Amount", null);
+                for(int j=0;j<vA.size();j++)
+                {
+                    KElement am=vA.elementAt(i);
+                    final double good = am.getRealAttribute("Good", null, 0);
+                    final boolean waste = am.getBoolAttribute("Waste", null, false);
+                    //timeToGo is milisecods, speed is / hour
+                    final double speed = phase.timeToGo<=0 ? 0. : 3600*1000*(good)/phase.timeToGo;
+                    phase.setAmount(am.getAttribute("Resource"), speed, waste);                   
+                }
 
 				_originalPhases.add(phase);
 				counter++;
@@ -177,7 +186,7 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 	 * @param randomTime the given time of each job phase is to vary by ... percent
 	 * @param errorPos random errors to create (as percentage of the total numbers of original job phases)
 	 */
-	public void randomizeJobPhases(double randomTime, double errorPoss)
+	private void randomizeJobPhases(double randomTime)
 	{
 		if (randomTime > 0.0)
 		{
@@ -187,90 +196,27 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 				if (Math.random() < 0.5)
 					varyBy *= -1.0;
 				JobPhase phase=_originalPhases.get(i);
-				phase.duration=phase.duration+(int)(phase.duration*varyBy);
+				phase.timeToGo=phase.timeToGo+(int)(phase.timeToGo*varyBy);
 			}
-		}
-		
-		if (errorPoss > 0.0)
-		{
-			int numberOfErrors = (int)((errorPoss/100.0)*_originalPhases.size());
-			JobPhase errorPhase = new JobPhase();
-			errorPhase.deviceStatus = EnumDeviceStatus.Down;
-			errorPhase.deviceStatusDetails = "Random Bambi Error Phase";
-			errorPhase.nodeStatus = EnumNodeStatus.InProgress;
-			errorPhase.nodeStatusDetails = "Random Bambi Error phase";
-			
-			for (int i=0;i<numberOfErrors;i++)
-			{
-				double rand = Math.random();
-				int insertErrorAtPos = (int)(rand*_originalPhases.size());
-				errorPhase.duration=(int)(5000*rand);
-				if (Math.random()>0.5)
-					errorPhase.Output_Waste=100.0*rand;
-				_originalPhases.add(insertErrorAtPos, errorPhase);
-			}
-		}
+		}		
 	}
+    /**
+     * @param doc the jdfdoc to process
+     * @param qe the queueentry to process
+     * @return EnumQueueEntryStatus the final status of the queuentry 
+     */
+    protected EnumQueueEntryStatus prepareProcessing(JDFDoc doc, JDFQueueEntry qe) {
+        EnumQueueEntryStatus qes=super.prepareProcessing(doc, qe);
+        _jobPhases = new ArrayList<JobPhase>();
+        List<JobPhase> phases = resumeQueueEntry(qe);
+        if (phases != null) {
+            _jobPhases.addAll(phases);
+        } else {
+            _jobPhases.addAll(_originalPhases);
+        }
+        return qes;
+    }
 
-	@Override
-	public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
-		super.processDoc(doc, qe);
-		
-		// try to load a list of remaining phases for qe
-		_jobPhases = new ArrayList<JobPhase>();
-		List<JobPhase> phases = resumeQueueEntry(qe);
-		if (phases != null) {
-			_jobPhases.addAll(phases);
-		} else {
-			_jobPhases.addAll(_originalPhases);
-		}
-        		
-		if ( _jobPhases.isEmpty() ) {
-			log.warn("unable to start the job, no job loaded");
-			return EnumQueueEntryStatus.Aborted;
-		}
-		for (int i=0;i<_jobPhases.size();i++) {
-			_currentPhase = _jobPhases.get(i);
-			if (_currentPhase!=null && _currentPhase.duration>0) {
-				_statusListener.signalStatus(_currentPhase.deviceStatus, _currentPhase.deviceStatusDetails, 
-						_currentPhase.nodeStatus,_currentPhase.nodeStatusDetails);
-				try {
-					int repeats = (_currentPhase.duration/1000);
-					int remainder = _currentPhase.duration % 1000;
-					for (int j=0;j < repeats; j++) {
-						int reqSize=_updateStatusReqs.size();
-						if (reqSize>0) {
-							for (int reqNo=0;reqNo<reqSize;reqNo++) {
-								ChangeQueueEntryStatusRequest request=_updateStatusReqs.get(reqNo);
-								if ( !request.queueEntryID.equals(qe.getQueueEntryID()) ) {	
-									_updateStatusReqs.remove(reqNo);
-									log.error("failed to change status of QueueEntry, it is not running");
-								} else if (request.newStatus.equals(EnumQueueEntryStatus.Suspended)) {
-									_updateStatusReqs.remove(reqNo);
-									return suspendQueueEntry(qe,i+1, remainder);
-								} else if (request.newStatus.equals(EnumQueueEntryStatus.Aborted)) {
-									_updateStatusReqs.remove(reqNo);
-									return abortQueueEntry();
-								}
-							}					
-						} else {
-							Thread.sleep(1000);
-						}
-					}
-				} catch (InterruptedException e) {
-					log.warn("interrupted while sleeping");
-				}
-			}
-		}
-		
-		return finalizeProcessDoc();
-	}
-
-
-	@Override
-	public JobPhase getCurrentJobPhase() {
-		return _currentPhase;
-	}
 	
 	@Override
 	public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, 
@@ -282,4 +228,20 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 	public SimDeviceProcessor() {
 		super();
 	}
-}
+    
+    @Override
+    protected void randomErrors(JobPhase phase)
+    {
+        if(phase.errorChance>0 && Math.random()<phase.errorChance){
+            JobPhase errorPhase=new JobPhase();
+            errorPhase.deviceStatus=EnumDeviceStatus.Down;
+            errorPhase.deviceStatusDetails="Randomly inserted error";
+            errorPhase.nodeStatus=EnumNodeStatus.Stopped;
+            errorPhase.nodeStatusDetails="Randomly inserted error";
+            _jobPhases.add(1, errorPhase);
+            _jobPhases.add(2,(JobPhase)phase.clone());
+            phase.timeToGo=0;               
+        }        
+    }
+
+ }

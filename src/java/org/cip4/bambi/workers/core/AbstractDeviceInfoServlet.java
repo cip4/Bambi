@@ -74,19 +74,19 @@ package org.cip4.bambi.workers.core;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.AbstractBambiServlet;
 import org.cip4.bambi.core.AbstractDevice;
 
 /**
  * processes commands and view requests for the worker devices
  * @author boegerni
  */
-public abstract class AbstractDeviceInfoServlet extends HttpServlet {
+public abstract class AbstractDeviceInfoServlet extends AbstractBambiServlet {
 
 	private static Log log = LogFactory.getLog(AbstractDeviceInfoServlet.class.getName());
 	/**
@@ -151,29 +151,6 @@ public abstract class AbstractDeviceInfoServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response) {
 		log.info("called doPost");
-	}
-	/**
-	 * display an error on  error.jsp
-	 * @param errorMsg short message describing the error
-	 * @param errorDetails detailed error info
-	 * @param request required to forward the page
-	 * @param response required to forward the page
-	 */
-	protected void showErrorPage(String errorMsg, String errorDetails, HttpServletRequest request, HttpServletResponse response)
-	{
-		request.setAttribute("errorOrigin", this.getClass().getName());
-		request.setAttribute("errorMsg", errorMsg);
-		request.setAttribute("errorDetails", errorDetails);
-
-		try {
-			request.getRequestDispatcher("/error.jsp").forward(request, response);
-		} catch (ServletException e) {
-			System.err.println("failed to show error.jsp");
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.err.println("failed to show error.jsp");
-			e.printStackTrace();
-		}
 	}
 	
 	protected abstract void showDevice(HttpServletRequest request, HttpServletResponse response);

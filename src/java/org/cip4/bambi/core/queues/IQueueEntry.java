@@ -1,11 +1,9 @@
-package org.cip4.bambi.core.queues;
-
 /*
 *
 * The CIP4 Software License, Version 1.0
 *
 *
-* Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+* Copyright (c) 2001-2008 The International Cooperation for the Integration of 
 * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
 * reserved.
 *
@@ -70,6 +68,7 @@ package org.cip4.bambi.core.queues;
 *  
 * 
 */
+package org.cip4.bambi.core.queues;
 
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -83,4 +82,5 @@ public interface IQueueEntry
 
     public JDFDoc getJDF();
     public JDFQueueEntry getQueueEntry();
+    public String getQueueEntryID();
 }

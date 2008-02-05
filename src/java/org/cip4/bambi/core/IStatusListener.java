@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -84,7 +84,7 @@ public interface IStatusListener extends IMultiJMFHandler
 {
     /**
      * updates the amount for a given resource
-     * the amounts are collected but not signaled until setstatus is called
+     * the amounts are collected but not signaled until signalstatus is called
      * @param resID the resource id of the tracked resource
      * @param good the number of good copies
      * @param waste the number of waste copies, negative values specify that waste should be ignored
