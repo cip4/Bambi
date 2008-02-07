@@ -109,101 +109,6 @@ import org.cip4.jdflib.util.StatusCounter;
  */
 public final class ManualDevice extends AbstractWorkerDevice  implements IGetHandler {
 	
-
-	private class XMLSimDevice extends XMLDoc
-    {
-    
-        private JobPhase currentJobPhase;
-    
-        /**
-         * XML representation of this simDevice
-         * fore use as html display using an XSLT
-         * @param dev
-         */
-        public XMLSimDevice(ManualDevice dev)
-        {
-            super("SimDevice",null);
-            setXSLTURL("showManualDevice.xsl");
-            KElement root=getRoot();
-            root.setAttribute(AttributeName.DEVICEID, dev.getDeviceID());
-            root.setAttribute(AttributeName.DEVICETYPE, dev.getDeviceType());
-            root.setAttribute("DeviceURL", dev.getDeviceURL());
-            root.setAttribute(AttributeName.DEVICESTATUS, dev.getDeviceStatus().getName());
-            currentJobPhase = dev.getCurrentJobPhase();
-            KElement phase=addPhase();
-            // TODO Auto-generated constructor stub
-        }
-    
-        /**
-         * @param currentJobPhase
-         * @return
-         */
-        private KElement addPhase()
-        {
-            KElement root=getRoot();
-            KElement phase=root.appendElement("Phase");
-            
-            final EnumDeviceStatus deviceStatus = currentJobPhase.getDeviceStatus();
-            final EnumNodeStatus nodeStatus = currentJobPhase.getNodeStatus();
-            if(deviceStatus!=null  && nodeStatus!=null)
-            {
-                phase.setAttribute("DeviceStatus",deviceStatus.getName(),null);
-                phase.setAttribute("DeviceStatusDetails",currentJobPhase.getDeviceStatusDetails());
-                phase.setAttribute("NodeStatus",nodeStatus.getName(),null);
-                phase.setAttribute("NodeStatusDetails",currentJobPhase.getNodeStatusDetails());
-                phase.setAttribute(AttributeName.DURATION,(double)currentJobPhase.getTimeToGo()/1000.,null);  
-                VString v=currentJobPhase.getAmountResourceNames();
-                int vSiz=v==null ? 0 : v.size();
-                for(int i=0;i<vSiz;i++)
-                {
-                    addAmount(v.stringAt(i), phase);
-                }
-                addOptionList(deviceStatus,EnumDeviceStatus.iterator(),phase,"DeviceStatus");
-                addOptionList(nodeStatus,EnumNodeStatus.iterator(),phase,"NodeStatus");
-            }
-            else
-            {
-                log.error("null status - bailing out");
-            }
-            return null;
-        }
-    
-        /**
-         * @param deviceStatus
-         */
-        private void addOptionList(ValuedEnum e, Iterator<ValuedEnum>it,KElement parent, String name)
-        {
-            if(e==null || parent==null)
-                return;
-            KElement list=parent.appendElement("OptionList");
-            list.setAttribute("name", name);
-            list.setAttribute("default", e.getName());
-            while(it.hasNext())
-            {
-                ValuedEnum ve=it.next();
-                KElement option=list.appendElement("Option");
-                option.setAttribute("name", ve.getName());
-                option.setAttribute("selected", ve.equals(e)?"selected":null,null);
-            }
-            
-        }
-    
-        /**
-         * @param string
-         */
-        private void addAmount(String resString, KElement jp)
-        {
-            if(jp==null)
-                return;
-            KElement amount=jp.appendElement("ResourceAmount");
-            amount.setAttribute("ResourceName", resString);
-            amount.setAttribute("ResourceIndex", jp.getParentNode_KElement().numChildElements("ResourceIndex", null)-1,null);
-            amount.setAttribute("Good", currentJobPhase.getOutput_Good(resString,-1),null);
-            amount.setAttribute("Waste", currentJobPhase.getOutput_Waste(resString,-1),null);            
-            amount.setAttribute("Speed", currentJobPhase.getOutput_Speed(resString),null);            
-        }        
-    }
-
     /**
 	 * 
 	 */
@@ -216,11 +121,6 @@ public final class ManualDevice extends AbstractWorkerDevice  implements IGetHan
  		log.info("created ManualDevice '"+prop.getDeviceID()+"'");
 	}
 
-	public JobPhase getCurrentJobPhase()
-	{
-		return _theDeviceProcessor.getCurrentJobPhase();
-	}
-	
 	public void doNextJobPhase(JobPhase nextPhase)
 	{
 		((ManualDeviceProcessor)_theDeviceProcessor).doNextPhase(nextPhase);
@@ -231,12 +131,7 @@ public final class ManualDevice extends AbstractWorkerDevice  implements IGetHan
 		return new ManualDeviceProcessor();
 	}
 
-    public String getTrackResource()
-    {
-        return _trackResource;
-    }
-
-    /* (non-Javadoc)
+     /* (non-Javadoc)
      * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
      */
     public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
@@ -246,32 +141,14 @@ public final class ManualDevice extends AbstractWorkerDevice  implements IGetHan
             return false;
         if(!reqDeviceID.equals(getDeviceID()))
             return false;
-        if("showDevice".equals(context))
-        {
-            return showDevice(request,response);
-        }
-        else if("processNextPhase".equals(context))
+        if("processNextPhase".equals(context))
         {
             return processNextPhase(request,response);
         }
-        return false;
+        return super.handleGet(request, response, context);
     }
 
-    private boolean showDevice(HttpServletRequest request,HttpServletResponse response)
-    {
-        XMLSimDevice simDevice=new XMLSimDevice(this);
-        try
-        {
-            simDevice.write2Stream(response.getOutputStream(), 0,true);
-        }
-        catch (IOException x)
-        {
-            return false;
-        }
-        response.setContentType(MimeUtil.TEXT_XML);
-        return true;
-    }
-
+ 
     private boolean processNextPhase(HttpServletRequest request, HttpServletResponse response) {
 
         JobPhase nextPhase = buildJobPhaseFromRequest(request);
@@ -308,6 +185,12 @@ public final class ManualDevice extends AbstractWorkerDevice  implements IGetHan
                 !AbstractBambiServlet.getBooleanFromRequest(request, "Waste") );
         newPhase.timeToGo=Integer.MAX_VALUE; // until modified...
         return newPhase;
+    }
+
+    @Override
+    protected String getXSLT()
+    {
+        return "showManualDevice.xsl";
     }
     
 }

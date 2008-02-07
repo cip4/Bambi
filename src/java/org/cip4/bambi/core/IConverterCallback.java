@@ -3,7 +3,7 @@
 * The CIP4 Software License, Version 1.0
 *
 *
-* Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+* Copyright (c) 2001-2008 The International Cooperation for the Integration of 
 * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
 * reserved.
 *
@@ -68,59 +68,41 @@
 *  
 * 
 */
+package org.cip4.bambi.core;
 
-package org.cip4.bambi.workers.sim;
-
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.AbstractDeviceProcessor;
-import org.cip4.bambi.core.IDeviceProperties;
-import org.cip4.bambi.core.IGetHandler;
-import org.cip4.bambi.workers.core.AbstractWorkerDevice;
-import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
+import org.cip4.jdflib.core.JDFDoc;
 
 /**
- * a simple JDF device with a fixed list of job phases. <br>
- * Job phases are defined in <code>/WebContend/config/devices.xml</code> and loaded in the constructor. 
- * They can be randomized, and random error phases can be added. 
- * An example job phase is provided in <code>example_job.xml</code>.<br>
- * This class should remain final: if it is ever subclassed, the DeviceProcessor thread 
- * would be started before the constructor from the subclass has a chance to fire.
+ * this interface modifies jdf and jmf that are exchanged between Bambi and 3rd party Comtrollers or drvices
  * 
- * @author boegerni
+ * Copyright (C) 2007 Heidelberger Druckmaschinen AG. All Rights Reserved.
  * 
+ * @author Rainer Prosi
+ *
  */
-public final class SimDevice extends AbstractWorkerDevice implements IGetHandler  {
-	
+public interface IConverterCallback
+{
+    /**
+     * prepare the jdf for the internal Bambi device prior to submitting
+     * @param doc the Document to modify
+     */
+    public void prepareJDFForBambi(JDFDoc doc);
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8412710163767830461L;
-	private static Log log = LogFactory.getLog(SimDevice.class.getName());
+    /**
+     * update the processed jdf for the external controller/manager
+     * @param doc the Document to modify
+     */
+    public void updateJDFForExtern(JDFDoc doc);
+    /**
+     * prepare a jmf for the device prior to submitting
+     * @param doc the Document to modify
+     */
+    public void prepareJMFForBambi(JDFDoc doc);
 
-
-	public SimDevice(IDeviceProperties prop)
-	{
-		super(prop);
-		log.info("created SimDevice '"+prop.getDeviceID()+"'");
-	}
-
-	@Override
-	protected AbstractDeviceProcessor buildDeviceProcessor() {
-		return new SimDeviceProcessor();
-	}
-       
-    @Override
-    protected String getXSLT()
-    {
-        return "showSimDevice.xsl";
-    }
+    /**
+     * update a jmf from the the external controller/manager
+     * @param doc the Document to modify
+     */
+    public void updateJMFForExtern(JDFDoc doc);
 
 }

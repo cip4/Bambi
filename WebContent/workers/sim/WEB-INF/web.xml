@@ -19,11 +19,6 @@
 		<servlet-class>org.cip4.bambi.workers.core.QEControllerServlet</servlet-class>
 		<load-on-startup>20</load-on-startup>
 	</servlet>
-	<servlet>
-		<servlet-name>DeviceInfoServlet</servlet-name>
-		<servlet-class>org.cip4.bambi.workers.sim.SimDeviceInfoServlet</servlet-class>
-		<load-on-startup>10</load-on-startup>
-	</servlet>
 	<servlet-mapping>
 		<!-- the entrance point of the application -->
 		<servlet-name>SimWorkerServlet</servlet-name>
@@ -41,7 +36,7 @@
 	</servlet-mapping>
 	<servlet-mapping>
 		<!-- entrance point for showing device info -->
-		<servlet-name>DeviceInfoServlet</servlet-name>
+		<servlet-name>SimWorkerServlet</servlet-name>
 		<url-pattern>/DeviceInfo</url-pattern>
 	</servlet-mapping>
 	<session-config>

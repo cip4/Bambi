@@ -121,7 +121,7 @@ public final class SignalDispatcher implements ISignalDispatcher
     protected Object mutex=null;
     protected boolean doShutdown=false;
     private HashMap<String,MessageSender> senders=null;
-    private int _maxSenders=10;
+    private int _maxSenders=42;
     private IConverterCallback _callback=null;
 
     /////////////////////////////////////////////////////////////

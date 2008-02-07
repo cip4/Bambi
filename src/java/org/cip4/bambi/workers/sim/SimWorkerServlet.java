@@ -18,6 +18,7 @@ public class SimWorkerServlet extends AbstractWorkerServlet {
 	@Override
 	protected IDevice buildDevice(IDeviceProperties prop) {
 		SimDevice dev=new SimDevice(prop);
+        _getHandlers.add(0,dev);
 		return dev;
 	}
 
@@ -25,8 +26,7 @@ public class SimWorkerServlet extends AbstractWorkerServlet {
      * @param request servlet request
      * @param response servlet response
      */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet_(HttpServletRequest request, HttpServletResponse response)
     {
     	log.info("Processing get request...");
     	

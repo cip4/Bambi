@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -68,51 +68,25 @@
  *  
  * 
  */
+package org.cip4.bambi.core;
 
-package org.cip4.bambi.workers.sim;
-
-import java.io.IOException;
-
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.messaging.IJMFHandler;
-import org.cip4.bambi.workers.core.AbstractDeviceInfoServlet;
+/**
+ * interface that handles doGet()
+ * @author prosirai
+ *
+ */
+public interface IGetHandler {
 
-public class SimDeviceInfoServlet extends AbstractDeviceInfoServlet {
-	private static final long serialVersionUID = -2807402684627573611L;
-	private static Log log = LogFactory.getLog(SimDeviceInfoServlet.class.getName());
-
-	@Override
-	protected void handleCommand(String command, HttpServletRequest request,
-			HttpServletResponse response) {
-		log.info("unknown command: "+command);
-		showDevice(request, response);
-	}
-
-	@Override
-	protected void showDevice(HttpServletRequest request,
-			HttpServletResponse response) {
-		try {
-			forwardVisiblePage("showSimDevice.jsp", request, response);
-		} catch (ServletException e) {
-			log.error( "failed to display page: "+e.getMessage() );
-		} catch (IOException e) {
-			log.error( "failed to display page: "+e.getMessage() );
-		}
-	}
-
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.AbstractBambiServlet#getTargetHandler(javax.servlet.http.HttpServletRequest)
-     */
-    @Override
-    protected IJMFHandler getTargetHandler(HttpServletRequest request)
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	/**
+	 * set the URL to communicate with this device (in other words: send JMFs to this URL)
+	 * @param request the url request to handle
+     * @param response the response to fill
+     * @param context the context that is used as a filter
+     * @return boolean true if the request was handled and the response has been filled 
+	 */
+	public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context);
 
 }

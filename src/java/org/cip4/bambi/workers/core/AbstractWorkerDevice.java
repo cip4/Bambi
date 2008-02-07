@@ -71,9 +71,26 @@
 
 package org.cip4.bambi.workers.core;
 
+import java.io.IOException;
+import java.util.Iterator;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.enums.ValuedEnum;
+import org.cip4.bambi.core.AbstractBambiServlet;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IDeviceProperties;
+import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.core.queues.IQueueProcessor;
+import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
+import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
+import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.util.MimeUtil;
 
 
 /**
@@ -85,17 +102,129 @@ import org.cip4.bambi.core.queues.IQueueProcessor;
  * @author boegerni
  * 
  */
-public abstract class AbstractWorkerDevice extends AbstractDevice {
+public abstract class AbstractWorkerDevice extends AbstractDevice implements IGetHandler{
 	protected AbstractWorkerDeviceProcessor _theDeviceProcessor=null;
     protected String _trackResource=null;
-	
+    
+    /**
+     * 
+     * @author prosirai
+     *
+     */
+    protected class XMLDevice extends XMLDoc
+    {
+    
+        private JobPhase currentJobPhase;
+    
+        /**
+         * XML representation of this simDevice
+         * fore use as html display using an XSLT
+         * @param dev
+         */
+        public XMLDevice(AbstractWorkerDevice dev)
+        {
+            super("SimDevice",null);
+            setXSLTURL(dev.getXSLT());
+            KElement root=getRoot();
+            root.setAttribute(AttributeName.DEVICEID, dev.getDeviceID());
+            root.setAttribute(AttributeName.DEVICETYPE, dev.getDeviceType());
+            root.setAttribute("DeviceURL", dev.getDeviceURL());
+            root.setAttribute(AttributeName.DEVICESTATUS, dev.getDeviceStatus().getName());
+            currentJobPhase = dev.getCurrentJobPhase();
+            if(currentJobPhase!=null)
+            {
+                KElement phase=addPhase();
+            }
+           
+        }
+    
+        /**
+         * @param currentJobPhase
+         * @return
+         */
+        private KElement addPhase()
+        {
+            KElement root=getRoot();
+            KElement phase=root.appendElement("Phase");
+            
+            final EnumDeviceStatus deviceStatus = currentJobPhase.getDeviceStatus();
+            final EnumNodeStatus nodeStatus = currentJobPhase.getNodeStatus();
+            if(deviceStatus!=null  && nodeStatus!=null)
+            {
+                phase.setAttribute("DeviceStatus",deviceStatus.getName(),null);
+                phase.setAttribute("DeviceStatusDetails",currentJobPhase.getDeviceStatusDetails());
+                phase.setAttribute("NodeStatus",nodeStatus.getName(),null);
+                phase.setAttribute("NodeStatusDetails",currentJobPhase.getNodeStatusDetails());
+                phase.setAttribute(AttributeName.DURATION,(double)currentJobPhase.getTimeToGo()/1000.,null);  
+                VString v=currentJobPhase.getAmountResourceNames();
+                int vSiz=v==null ? 0 : v.size();
+                for(int i=0;i<vSiz;i++)
+                {
+                    addAmount(v.stringAt(i), phase);
+                }
+                addOptionList(deviceStatus,EnumDeviceStatus.iterator(),phase,"DeviceStatus");
+                addOptionList(nodeStatus,EnumNodeStatus.iterator(),phase,"NodeStatus");
+            }
+            else
+            {
+                log.error("null status - bailing out");
+            }
+            return null;
+        }
+    
+        /**
+         * @param deviceStatus
+         */
+        private void addOptionList(ValuedEnum e, Iterator<ValuedEnum>it,KElement parent, String name)
+        {
+            if(e==null || parent==null)
+                return;
+            KElement list=parent.appendElement("OptionList");
+            list.setAttribute("name", name);
+            list.setAttribute("default", e.getName());
+            while(it.hasNext())
+            {
+                ValuedEnum ve=it.next();
+                KElement option=list.appendElement("Option");
+                option.setAttribute("name", ve.getName());
+                option.setAttribute("selected", ve.equals(e)?"selected":null,null);
+            }
+            
+        }
+    
+        /**
+         * @param string
+         */
+        private void addAmount(String resString, KElement jp)
+        {
+            if(jp==null)
+                return;
+            KElement amount=jp.appendElement("ResourceAmount");
+            amount.setAttribute("ResourceName", resString);
+            amount.setAttribute("ResourceIndex", jp.getParentNode_KElement().numChildElements("ResourceIndex", null)-1,null);
+            amount.setAttribute("Good", currentJobPhase.getOutput_Good(resString,-1),null);
+            amount.setAttribute("Waste", currentJobPhase.getOutput_Waste(resString,-1),null);            
+            amount.setAttribute("Speed", currentJobPhase.getOutput_Speed(resString),null);            
+        }        
+    }	
+    
+    /////////////////////////////////////////////////////////////////////////////
+    
 	public AbstractWorkerDevice(IDeviceProperties prop) {
 		super(prop);
         _trackResource=prop.getTrackResource();
 		_theDeviceProcessor=(AbstractWorkerDeviceProcessor) super._deviceProcessors.get(0);
 	}
 	
-	@Override
+	/**
+     * @return
+     */
+    protected String getXSLT()
+    {
+        return null;
+    }
+
+    @Override
 	protected IQueueProcessor buildQueueProcessor() {
 		return new WorkerQueueProcessor(this);
 	}
@@ -104,4 +233,41 @@ public abstract class AbstractWorkerDevice extends AbstractDevice {
     {
         return _trackResource;
     }
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
+     */
+    public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
+    {
+        final String reqDeviceID=AbstractBambiServlet.getDeviceIDFromRequest(request);
+        if(reqDeviceID==null)
+            return false;
+        if(!reqDeviceID.equals(getDeviceID()))
+            return false;
+        if("showDevice".equals(context))
+        {
+            return showDevice(request,response);
+        }
+        return false;
+    }
+
+    protected boolean showDevice(HttpServletRequest request,HttpServletResponse response)
+    {
+        XMLDevice simDevice=new XMLDevice(this);
+        try
+        {
+            simDevice.write2Stream(response.getOutputStream(), 0,true);
+        }
+        catch (IOException x)
+        {
+            return false;
+        }
+        response.setContentType(MimeUtil.TEXT_XML);
+        return true;
+    }
+
+    public JobPhase getCurrentJobPhase()
+    {
+    	return _theDeviceProcessor.getCurrentJobPhase();
+    }
+
 }
