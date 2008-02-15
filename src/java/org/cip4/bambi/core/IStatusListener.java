@@ -70,6 +70,7 @@
 package org.cip4.bambi.core;
 
 import org.cip4.bambi.core.messaging.IMultiJMFHandler;
+import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;

@@ -97,7 +97,8 @@ public class StatusListener implements IStatusListener
     private static Log log = LogFactory.getLog(StatusListener.class.getName());
     private ISignalDispatcher dispatcher;
     protected StatusCounter theCounter;
-    
+    private JDFNode currentNode=null;
+    private long lastSave = 0;
     /**
      * 
      * handler for the StopPersistentChannel command
@@ -245,7 +246,8 @@ public class StatusListener implements IStatusListener
         if(good>0) {
             dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), (int)good);
         }
-
+        if(System.currentTimeMillis()-lastSave>3000)
+            saveJDF();
     }
 
     /* (non-Javadoc)
@@ -254,6 +256,12 @@ public class StatusListener implements IStatusListener
     public void setNode(String queueEntryID, String workStepID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID)
     {       
         String oldQEID=theCounter.getQueueEntryID();
+        saveJDF();
+        boolean bSame=currentNode==node;
+        currentNode=node;
+        if(!bSame )
+            saveJDF();
+            
         if(!KElement.isWildCard(oldQEID))
         {
             log.info("removing subscription for: "+oldQEID);
@@ -266,6 +274,21 @@ public class StatusListener implements IStatusListener
         if(node!=null) {
             log.info("adding subscription for: "+queueEntryID);
             dispatcher.addSubscriptions(node,queueEntryID);
+        }
+    }
+
+    /**
+     *  save the currently active jdf
+     */
+    private void saveJDF()
+    {
+        if(currentNode==null)
+            return;
+        final JDFDoc ownerDoc = currentNode.getOwnerDocument_JDFElement();
+        if(ownerDoc!=null && ownerDoc.getOriginalFileName()!=null)
+        {
+            ownerDoc.write2File((String)null, 0, true);
+            lastSave=System.currentTimeMillis();
         }
     }
 

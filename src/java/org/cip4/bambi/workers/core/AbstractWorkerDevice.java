@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -72,23 +72,21 @@
 package org.cip4.bambi.workers.core;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.enums.ValuedEnum;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractBambiServlet;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
-import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VString;
-import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.util.MimeUtil;
 
@@ -103,39 +101,36 @@ import org.cip4.jdflib.util.MimeUtil;
  * 
  */
 public abstract class AbstractWorkerDevice extends AbstractDevice implements IGetHandler{
-	protected AbstractWorkerDeviceProcessor _theDeviceProcessor=null;
+    /**
+     * 
+     */
     protected String _trackResource=null;
+    private static final Log log = LogFactory.getLog(AbstractWorkerDevice.class.getName());
     
     /**
      * 
      * @author prosirai
      *
      */
-    protected class XMLDevice extends XMLDoc
+    protected class XMLSimDevice
     {
     
         private JobPhase currentJobPhase;
-    
+        XMLDevice d;
         /**
          * XML representation of this simDevice
          * fore use as html display using an XSLT
          * @param dev
          */
-        public XMLDevice(AbstractWorkerDevice dev)
+        public XMLSimDevice()
         {
-            super("SimDevice",null);
-            setXSLTURL(dev.getXSLT());
-            KElement root=getRoot();
-            root.setAttribute(AttributeName.DEVICEID, dev.getDeviceID());
-            root.setAttribute(AttributeName.DEVICETYPE, dev.getDeviceType());
-            root.setAttribute("DeviceURL", dev.getDeviceURL());
-            root.setAttribute(AttributeName.DEVICESTATUS, dev.getDeviceStatus().getName());
-            currentJobPhase = dev.getCurrentJobPhase();
+           d=new XMLDevice();
+            
+            currentJobPhase = getCurrentJobPhase();
             if(currentJobPhase!=null)
             {
-                KElement phase=addPhase();
-            }
-           
+                addPhase();
+            }          
         }
     
         /**
@@ -144,7 +139,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
          */
         private KElement addPhase()
         {
-            KElement root=getRoot();
+            KElement root=d.getRoot();
             KElement phase=root.appendElement("Phase");
             
             final EnumDeviceStatus deviceStatus = currentJobPhase.getDeviceStatus();
@@ -155,15 +150,15 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
                 phase.setAttribute("DeviceStatusDetails",currentJobPhase.getDeviceStatusDetails());
                 phase.setAttribute("NodeStatus",nodeStatus.getName(),null);
                 phase.setAttribute("NodeStatusDetails",currentJobPhase.getNodeStatusDetails());
-                phase.setAttribute(AttributeName.DURATION,(double)currentJobPhase.getTimeToGo()/1000.,null);  
+                phase.setAttribute(AttributeName.DURATION,currentJobPhase.getTimeToGo()/1000.,null);  
                 VString v=currentJobPhase.getAmountResourceNames();
                 int vSiz=v==null ? 0 : v.size();
                 for(int i=0;i<vSiz;i++)
                 {
-                    addAmount(v.stringAt(i), phase);
+                    addAmount(i,v.stringAt(i), phase);
                 }
-                addOptionList(deviceStatus,EnumDeviceStatus.iterator(),phase,"DeviceStatus");
-                addOptionList(nodeStatus,EnumNodeStatus.iterator(),phase,"NodeStatus");
+                AbstractBambiServlet.addOptionList(deviceStatus,EnumDeviceStatus.getEnumList(),phase,"DeviceStatus");
+                AbstractBambiServlet.addOptionList(nodeStatus,EnumNodeStatus.getEnumList(),phase,"NodeStatus");
             }
             else
             {
@@ -172,39 +167,19 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
             return null;
         }
     
-        /**
-         * @param deviceStatus
-         */
-        private void addOptionList(ValuedEnum e, Iterator<ValuedEnum>it,KElement parent, String name)
-        {
-            if(e==null || parent==null)
-                return;
-            KElement list=parent.appendElement("OptionList");
-            list.setAttribute("name", name);
-            list.setAttribute("default", e.getName());
-            while(it.hasNext())
-            {
-                ValuedEnum ve=it.next();
-                KElement option=list.appendElement("Option");
-                option.setAttribute("name", ve.getName());
-                option.setAttribute("selected", ve.equals(e)?"selected":null,null);
-            }
-            
-        }
-    
+     
         /**
          * @param string
          */
-        private void addAmount(String resString, KElement jp)
+        private void addAmount(int loop,String resString, KElement jp)
         {
             if(jp==null)
                 return;
             KElement amount=jp.appendElement("ResourceAmount");
             amount.setAttribute("ResourceName", resString);
-            amount.setAttribute("ResourceIndex", jp.getParentNode_KElement().numChildElements("ResourceIndex", null)-1,null);
-            amount.setAttribute("Good", currentJobPhase.getOutput_Good(resString,-1),null);
-            amount.setAttribute("Waste", currentJobPhase.getOutput_Waste(resString,-1),null);            
-            amount.setAttribute("Speed", currentJobPhase.getOutput_Speed(resString),null);            
+            amount.setAttribute("ResourceIndex", jp.numChildElements("ResourceAmount", null)-1,null);
+            amount.setAttribute("Waste"+loop, !currentJobPhase.getOutput_Condition(resString),null);            
+            amount.setAttribute("Speed"+loop, currentJobPhase.getOutput_Speed(resString),null);            
         }        
     }	
     
@@ -213,22 +188,9 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
 	public AbstractWorkerDevice(IDeviceProperties prop) {
 		super(prop);
         _trackResource=prop.getTrackResource();
-		_theDeviceProcessor=(AbstractWorkerDeviceProcessor) super._deviceProcessors.get(0);
 	}
 	
-	/**
-     * @return
-     */
-    protected String getXSLT()
-    {
-        return null;
-    }
-
-    @Override
-	protected IQueueProcessor buildQueueProcessor() {
-		return new WorkerQueueProcessor(this);
-	}
-
+ 
     public String getTrackResource()
     {
         return _trackResource;
@@ -237,25 +199,20 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
      * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
      */
     public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
-    {
-        final String reqDeviceID=AbstractBambiServlet.getDeviceIDFromRequest(request);
-        if(reqDeviceID==null)
-            return false;
-        if(!reqDeviceID.equals(getDeviceID()))
-            return false;
-        if("showDevice".equals(context))
+    {       
+        if(AbstractBambiServlet.isMyRequest(request,getDeviceID(),SHOW_DEVICE))
         {
-            return showDevice(request,response);
+            return showDevice(response);
         }
-        return false;
+        return super.handleGet(request,response,context);
     }
 
-    protected boolean showDevice(HttpServletRequest request,HttpServletResponse response)
+    protected boolean showDevice(HttpServletResponse response)
     {
-        XMLDevice simDevice=new XMLDevice(this);
+        XMLSimDevice simDevice=this.new XMLSimDevice();
         try
         {
-            simDevice.write2Stream(response.getOutputStream(), 0,true);
+            simDevice.d.write2Stream(response.getOutputStream(), 0,true);
         }
         catch (IOException x)
         {
@@ -267,7 +224,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
 
     public JobPhase getCurrentJobPhase()
     {
-    	return _theDeviceProcessor.getCurrentJobPhase();
+    	return ((AbstractWorkerDeviceProcessor)_deviceProcessors.get(0)).getCurrentJobPhase();
     }
 
 }

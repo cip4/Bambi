@@ -71,13 +71,15 @@
 
 package org.cip4.bambi.core.messaging;
 
+import java.util.HashMap;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
-import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFRequestQueueEntryParams;
-import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 
@@ -89,9 +91,12 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
  */
 public class JMFFactory {
 	
-	private static Log log = LogFactory.getLog(JMFFactory.class.getName());
-	
-	/**
+    private static Log log = LogFactory.getLog(JMFFactory.class.getName());
+    private static HashMap<String,MessageSender> senders=new HashMap<String, MessageSender>();
+    private static IConverterCallback callback=null;
+    private static int nThreads=0;
+
+    /**
 	 * build a JMF SuspendQueueEntry command
 	 * @param queueEntryId queue entry ID of the queue to suspend
 	 * @return the message
@@ -183,18 +188,10 @@ public class JMFFactory {
 	{
 		// maybe replace DeviceID with DeviceType, just to be able to decrease the 
 		// Proxy's knowledge about querying devices?
-		JDFJMF jmf=null;
-		try {
-			jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.RequestQueueEntry);
-		} catch (NullPointerException ex) {
-			log.error("caught an NPE while trying to build the JMF: "+ex.getMessage());
-			return null;
-		}
+		JDFJMF jmf=JDFJMF.createJMF(EnumFamily.Command, EnumType.RequestQueueEntry);
 		JDFRequestQueueEntryParams qep=jmf.getCommand(0).appendRequestQueueEntryParams();
 		qep.setQueueURL(queueURL);
-		if (deviceID!=null && !deviceID.equals("")) {
-			BambiNSExtension.setDeviceID(qep, deviceID);
-		}
+		BambiNSExtension.setDeviceID(qep, deviceID);
 		return jmf;
 	}
 	
@@ -204,7 +201,7 @@ public class JMFFactory {
 	 * @param url the URL to send the JMF to
 	 * @return the response if successful, otherwise null
 	 */
-	public static JDFResponse send2URL(JDFJMF jmf, String url) {
+	public static void send2URL(JDFJMF jmf, String url, IResponseHandler handler) {
 		// this method is prone for crashing on shutdown, thus checking for 
 		// log!=null is important
 		
@@ -212,14 +209,66 @@ public class JMFFactory {
 			if (log!=null) {
 				log.error("failed to send JDFMessage, message and/or URL is null");
 			}
-			return null;
+			return;
 		}
-		JDFDoc doc = jmf.getOwnerDocument_JDFElement();
-		JDFDoc respDoc = doc.write2URL(url);
-		if (respDoc==null || respDoc.toString().length()<10) {
-			return null;
-		}
-		return respDoc.getJMFRoot().getResponse(0);
+        
+        MessageSender ms = getCreateMessageSender(url,callback); 
+        
+        ms.queueMessage(jmf,handler);
 	}
+
+    /**
+     * 
+     * @param url
+     */
+    public static void shutDown(String url, boolean graceFully)
+	{
+        if(url==null) // null = all
+        {           
+            final Set<String> keySet = senders.keySet();
+            String[]as=keySet.toArray(new String[keySet.size()]);
+            for(int i=0;i<as.length;i++)
+            {
+                String s=as[i];
+                if(s!=null)
+                {
+                    shutDown(s,graceFully);
+                }
+                senders.remove(s);                                   
+            }
+        }
+        else // individual url
+        {
+            MessageSender ms=senders.get(url);
+            if(ms!=null)
+            {
+                ms.shutDown(graceFully);
+            }
+            senders.remove(url);                                               
+        }
+	}
+
+    public static MessageSender getCreateMessageSender(String url, IConverterCallback callBack)
+    {
+        if(url==null)
+            return null;
+
+        MessageSender ms=senders.get(url);
+        if(ms==null)
+        {
+            ms=new MessageSender(url,callBack);
+            senders.put(url, ms);
+            new Thread(ms,"MessageSender_"+nThreads++).start();
+        }
+        return ms;
+    }
+
+    /**
+     * @param callBackClass the standard callback class for all sent jmf messages
+     */
+    public static void setCallBack(IConverterCallback callBackClass)
+    {
+        callback=callBackClass;       
+    }
 	
 }

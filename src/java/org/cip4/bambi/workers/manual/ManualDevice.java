@@ -71,28 +71,18 @@
 
 package org.cip4.bambi.workers.manual;
 
-import java.io.IOException;
-import java.util.Iterator;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.enums.ValuedEnum;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractBambiServlet;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.IDeviceProperties;
-import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.workers.core.AbstractWorkerDevice;
 import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
-import org.cip4.jdflib.core.AttributeName;
-import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.VString;
-import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StatusCounter;
 
 /**
@@ -107,7 +97,8 @@ import org.cip4.jdflib.util.StatusCounter;
  * @author boegerni
  * 
  */
-public final class ManualDevice extends AbstractWorkerDevice  implements IGetHandler {
+public final class ManualDevice extends AbstractWorkerDevice
+{
 	
     /**
 	 * 
@@ -121,10 +112,6 @@ public final class ManualDevice extends AbstractWorkerDevice  implements IGetHan
  		log.info("created ManualDevice '"+prop.getDeviceID()+"'");
 	}
 
-	public void doNextJobPhase(JobPhase nextPhase)
-	{
-		((ManualDeviceProcessor)_theDeviceProcessor).doNextPhase(nextPhase);
-	}
 	
 	@Override
 	protected AbstractDeviceProcessor buildDeviceProcessor() {
@@ -136,25 +123,20 @@ public final class ManualDevice extends AbstractWorkerDevice  implements IGetHan
      */
     public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
     {
-        final String reqDeviceID=AbstractBambiServlet.getDeviceIDFromRequest(request);
-        if(reqDeviceID==null)
-            return false;
-        if(!reqDeviceID.equals(getDeviceID()))
-            return false;
-        if("processNextPhase".equals(context))
+        if(AbstractBambiServlet.isMyRequest(request,getDeviceID(),"processNextPhase"))       
         {
             return processNextPhase(request,response);
         }
         return super.handleGet(request, response, context);
     }
 
- 
+
     private boolean processNextPhase(HttpServletRequest request, HttpServletResponse response) {
 
         JobPhase nextPhase = buildJobPhaseFromRequest(request);
-        doNextJobPhase(nextPhase);
+        ((ManualDeviceProcessor)_deviceProcessors.get(0)).doNextPhase(nextPhase);
         StatusCounter.sleep(1000); // allow device to switch phases before displaying page
-        showDevice(request, response);
+        showDevice(response);
         return true;
     }
 
@@ -167,6 +149,7 @@ public final class ManualDevice extends AbstractWorkerDevice  implements IGetHan
      */
     private JobPhase buildJobPhaseFromRequest(HttpServletRequest request) {
         JobPhase newPhase = new JobPhase();
+        newPhase.timeToGo=Integer.MAX_VALUE; // until modified...
 
         String status = request.getParameter("DeviceStatus");
         if (status != null) {
@@ -177,20 +160,24 @@ public final class ManualDevice extends AbstractWorkerDevice  implements IGetHan
         status = request.getParameter("NodeStatus");
         if (status != null) {
             newPhase.nodeStatus = EnumNodeStatus.getEnum(status);
+            if(EnumNodeStatus.Aborted.equals(newPhase.nodeStatus)||EnumNodeStatus.Completed.equals(newPhase.nodeStatus)||EnumNodeStatus.Suspended.equals(newPhase.nodeStatus))
+                newPhase.timeToGo=0;
+                
         }
         newPhase.nodeStatusDetails = request.getParameter("NodeStatusDetails");
 
         newPhase.setAmount(getTrackResource(), 
-                AbstractBambiServlet.getDoubleFromRequest(request, "Speed"),
-                !AbstractBambiServlet.getBooleanFromRequest(request, "Waste") );
-        newPhase.timeToGo=Integer.MAX_VALUE; // until modified...
+                AbstractBambiServlet.getDoubleFromRequest(request, "Speed0"),
+                !AbstractBambiServlet.getBooleanFromRequest(request, "Waste0") );
         return newPhase;
     }
 
     @Override
-    protected String getXSLT()
+    public String getXSLT(String context)
     {
-        return "showManualDevice.xsl";
+        if("showDevice".equalsIgnoreCase(context))
+            return "../showManualDevice.xsl";
+        return super.getXSLT(context);
     }
     
 }

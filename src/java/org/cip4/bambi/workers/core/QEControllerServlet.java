@@ -175,7 +175,7 @@ public class QEControllerServlet extends HttpServlet {
 			return false;
 		}
 		
-		JDFResponse resp = JMFFactory.send2URL(jmf, _deviceURL);		
+		JDFResponse resp = null; JMFFactory.send2URL(jmf, _deviceURL,null);		
 		if (resp == null) {
 			String errorMsg=type.getName()+" with ID="+_queueEntryID+" on device "+_deviceID+" failed, ";
 			errorMsg += "\r\nResponse is null";

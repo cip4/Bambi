@@ -77,19 +77,14 @@ import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractBambiServlet;
-import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IDevice;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IMultiDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties;
-import org.cip4.bambi.core.messaging.IJMFHandler;
-import org.cip4.jdflib.util.StringUtil;
 
 
 /**
@@ -155,7 +150,7 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
      * @param configFile the file containing the list of devices 
      * @return true if successfull, otherwise false
      */
-	public boolean createDevicesFromFile(String configFile)
+	private boolean createDevicesFromFile(String configFile)
 	{
 		IMultiDeviceProperties dv = new MultiDeviceProperties(_devProperties.getAppDir(), configFile);
 		if (dv.count()==0) {
@@ -185,18 +180,5 @@ public abstract class AbstractWorkerServlet extends AbstractBambiServlet
 	 */
 	protected abstract IDevice buildDevice(IDeviceProperties prop);
 	
-	/**
-	 * display the device on a web page
-	 * @param request
-	 * @param response
-	 */
-    protected void showDevice(HttpServletRequest request,
-            HttpServletResponse response) {
-        try {
-            request.getRequestDispatcher("DeviceInfo").forward(request, response);
-        } catch (Exception e) {
-            log.error(e);
-        }
-    }
 
 }

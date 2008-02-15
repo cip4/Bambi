@@ -46,7 +46,7 @@
 				<tr>
 					<td><%=dev.getDeviceID()%></td>
 					<td><%=dev.getDeviceType()%></td>
-					<td><a href="overview?cmd=showDevice&id=<%=dev.getDeviceID()%>&show=true">show</a></td>
+					<td><a href="showDevice/<%=dev.getDeviceID()%>">show</a></td>
 				</tr>
 			<%
 				}

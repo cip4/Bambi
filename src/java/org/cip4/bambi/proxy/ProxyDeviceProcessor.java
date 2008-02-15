@@ -75,6 +75,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
+import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -91,6 +92,12 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
 	private static Log log = LogFactory.getLog(ProxyDeviceProcessor.class.getName());
 
     
+       protected boolean processQueueEntry()
+        {
+            IQueueEntry iqe=_queueProcessor.getNextEntry();
+            if(iqe==null)
+                return false;
+        }
 	@Override
     /**
      * this is the device processor loop <br/>
@@ -100,6 +107,8 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
 	public void run() {
 		while (!_doShutdown) {
 			try {
+                //TODO this in case no qe
+ 
 				synchronized (_myListener) {
 					_myListener.wait(1000);                         
 				}

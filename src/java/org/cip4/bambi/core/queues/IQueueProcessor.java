@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -70,10 +70,12 @@
 
 package org.cip4.bambi.core.queues;
 
+import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.core.messaging.IMultiJMFHandler;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFCommand;
+import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -82,7 +84,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
  * @author prosirai
  *
  */
-public interface IQueueProcessor extends IMultiJMFHandler
+public interface IQueueProcessor extends IMultiJMFHandler, IGetHandler
 {
     /**
      * get the next waiting entry
@@ -101,18 +103,20 @@ public interface IQueueProcessor extends IMultiJMFHandler
      * 
      * @param sumitQueueEntry queuesubmission command
      * @param theJDF the referenced jdf doc
-     * @param hold if true, the initial QeueEntryStatus is Held
-     * @return 
+     * @return JDFQueueEntry the newly created queue entry
      */
-    public JDFResponse addEntry(JDFCommand sumitQueueEntry, JDFDoc theJDF, boolean hold);
+    public JDFQueueEntry addEntry(JDFCommand sumitQueueEntry, JDFDoc theJDF);
     
     /**
      * updated an entry in the queue 
      * @param queueEntryID the queuentryid to update
      * @param status the queuentry status
+     * @param mess the incoming message (may be null) used to extract a queue filter
+     * @param resp the response to fill with an updated queue (may be null)
+     * @return {@link JDFQueue} the updated queue
+     * 
      */
-    public void updateEntry(JDFQueueEntry qe, EnumQueueEntryStatus status);
-    
+    public JDFQueue updateEntry(JDFQueueEntry qe, EnumQueueEntryStatus status, JDFMessage mess, JDFResponse resp);
+        
     public void addListener(Object o);
-
 }

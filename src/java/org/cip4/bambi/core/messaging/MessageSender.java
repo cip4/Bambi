@@ -75,9 +75,13 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.util.StatusCounter;
 
 /**
  * allow a JMF message to be send in its own thread
@@ -85,60 +89,58 @@ import org.cip4.jdflib.jmf.JDFResponse;
  */
 public class MessageSender implements Runnable {
 	private String _url=null;
-	private IResponseHandler _responseHandler=null;
 	private boolean doShutDown=false;
 	private boolean doShutDownGracefully=false;
-	private Vector<JDFJMF> _messages=null;
+	private Vector<MessHandler> _messages=null;
 	private static Log log = LogFactory.getLog(MessageSender.class.getName());
     private static IConverterCallback _callBack=null;
-		
+	
+    protected class MessHandler
+    {
+        protected JDFJMF jmf;
+        protected IResponseHandler respHandler;
+        protected MessHandler(JDFJMF _jmf, IResponseHandler _respHandler)
+        {
+            respHandler=_respHandler;
+            jmf=_jmf;
+        }
+    }
 	/**
 	 * constructor
-	 * @param theJMF the message to send
 	 * @param theUrl the URL to send the message to
 	 * @param responseHandler the origin of the JMF. Its notify(JDFResponse) method will be
 	 *               triggered when a response has been received. <br/>
 	 *               If the response is null, the IResponseHandler will not be triggered.     
      * @param callBack the converter callback to use, null if no modification is required                
 	 */
-	public MessageSender(JDFJMF theJMF, String theUrl, IResponseHandler responseHandler, IConverterCallback callback) {
-		init(theJMF,theUrl, responseHandler,callback);
-	}
-	
-	private void init(JDFJMF theJMF, String theUrl, IResponseHandler responseHandler,IConverterCallback callback) 
-    {
-		_messages=new Vector<JDFJMF>();
-		if (theJMF!=null)
-			_messages.add(theJMF);
-		_url=theUrl;
-		_responseHandler=responseHandler;
+	public MessageSender(String theUrl,  IConverterCallback callback) {
+        _messages=new Vector<MessHandler>();
+        _url=theUrl;
         _callBack=callback;
 	}
-
+	
 	/**
 	 * the sender loop. <br/>
 	 * Checks whether its vector of pending messages is empty. If it is not empty, 
 	 * the first message is sent and removed from the map.
 	 */
 	public void run() {
-		while (!doShutDown) {
-			synchronized(_messages) {
-					if(sendFirstMessage())
-					    _messages.remove(0);
-				
-				if ( doShutDownGracefully && _messages.isEmpty() ) {
-					doShutDown=true;
-				}
-			}
-			
-			try {
-				synchronized (_messages) {
-                    _messages.wait(100);                       
-                }
-			} catch (InterruptedException e) {
-				log.error( "MessageSender was interrupted while waiting: "+e.getMessage() );
-			}
-		}
+	    while (!doShutDown) {
+	        boolean sendFirstMessage;
+	        synchronized(_messages) {
+	            sendFirstMessage = sendFirstMessage();
+	            if(sendFirstMessage)
+	            {
+	                _messages.remove(0);
+	            }
+
+	            if ( doShutDownGracefully && _messages.isEmpty() ) {
+	                doShutDown=true;
+	            }
+	        }
+	        if(!sendFirstMessage)
+	            StatusCounter.sleep(100);
+	    }
 	}
 
     
@@ -154,20 +156,33 @@ public class MessageSender implements Runnable {
             return false;
 
         boolean b=true;
-        JDFJMF jmf=_messages.get(0);
+        MessHandler mh=_messages.get(0);
+        if(mh==null)
+            return true;
+        JDFJMF jmf=mh.jmf;
         if ( jmf==null)
             return true; // need no resend - will remove
         if(KElement.isWildCard(_url) ) 
             return false; // snafu anyhow but not sent
 
-        JDFResponse resp=JMFFactory.send2URL(jmf, _url);
-        if (_responseHandler!=null) 
+        JDFDoc doc=jmf.getOwnerDocument_JDFElement().write2URL(_url);
+        if(doc!=null)
         {
-            b=_responseHandler.handleResponse(resp);
-        }
-        if(_callBack!=null && resp!=null)
-        {
-            _callBack.prepareJMFForBambi(resp.getOwnerDocument_JDFElement());
+            JDFJMF jmfRet=doc.getJMFRoot();
+            VElement resps=jmfRet==null ? null : jmfRet.getMessageVector(JDFMessage.EnumFamily.Response, null);
+            int siz=resps==null ? 0 : resps.size();
+            for(int i=0;i<siz;i++)
+            {
+                JDFResponse resp=(JDFResponse) resps.get(i);
+                if(_callBack!=null && resp!=null)
+                {
+                    _callBack.prepareJMFForBambi(resp.getOwnerDocument_JDFElement());
+                }
+                if (mh.respHandler!=null) 
+                {
+                    b=mh.respHandler.handleResponse(resp);
+                }
+            }
         }
         return b;
     }
@@ -192,7 +207,7 @@ public class MessageSender implements Runnable {
 	 * @return true, if the message is successfully queued. 
      *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
 	 */
-	public boolean queueMessage(JDFJMF jmf) {
+	public boolean queueMessage(JDFJMF jmf, IResponseHandler handler) {
 		if (doShutDown || doShutDownGracefully) {
 			return false;
 		}
@@ -200,9 +215,15 @@ public class MessageSender implements Runnable {
             _callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
         
 		synchronized(_messages) {
-			_messages.add(jmf);
+			_messages.add(new MessHandler(jmf,handler));
 		}
 		return true;
 	}
+
+    @Override
+    public String toString()
+    {
+        return "MessageSender - URL: "+_url+" size: "+_messages.size()+"\n"+_messages;
+    }
 	
 }

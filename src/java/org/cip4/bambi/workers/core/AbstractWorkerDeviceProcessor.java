@@ -85,7 +85,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.IDeviceProperties;
-import org.cip4.bambi.core.IStatusListener;
+import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
@@ -115,7 +115,6 @@ import org.cip4.jdflib.util.StatusCounter;
 public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProcessor {
     private static Log log = LogFactory.getLog(AbstractWorkerDeviceProcessor.class.getName());
     protected List<JobPhase> _jobPhases=null;
-    protected String _trackResource=null;
 
     /**
      * a single job phase
@@ -349,7 +348,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
      * @param devProperties  device properties
      */
     public AbstractWorkerDeviceProcessor(IQueueProcessor queueProcessor, 
-            IStatusListener statusListener, IDeviceProperties devProperties)
+            StatusListener statusListener, IDeviceProperties devProperties)
     {
         super();
         init(queueProcessor, statusListener, devProperties);
@@ -370,21 +369,18 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
      * @param _statusListener
      */
     @Override
-    public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, IDeviceProperties devProperties)
+    public void init(IQueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties)
     {
-        _trackResource=devProperties.getTrackResource();
         _jobPhases = new ArrayList<JobPhase>();
         super.init(queueProcessor, statusListener, devProperties);
 
     }
 
     @Override
-    protected EnumQueueEntryStatus suspendQueueEntry(JDFQueueEntry qe, int currentPhase, int remainingPhaseTime)
+    protected void suspend()
     {
-        if (qe!=null) {
-            persistRemainingPhases(qe.getQueueEntryID(), currentPhase, 0);
-        }
-        return super.suspendQueueEntry(qe, currentPhase, remainingPhaseTime);
+        persistRemainingPhases();
+        super.suspend();
     }
 
     /**
@@ -430,71 +426,6 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         return _jobPhases;
     }
 
-    /**
-     * @param doc the jdfdoc to process
-     * @param qe the queueentry to process
-     * @return EnumQueueEntryStatus the final status of the queuentry 
-     */
-    protected EnumQueueEntryStatus prepareProcessing(JDFDoc doc, JDFQueueEntry qe) {
-        if(qe==null || doc==null) {
-            log.error("proccessing null job");
-            return EnumQueueEntryStatus.Aborted;
-        }
-        currentQE=new QueueEntry(doc,qe);
-        if ( _jobPhases==null ) {
-            _jobPhases = new ArrayList<JobPhase>();
-        }
-        qe.setDeviceID( _devProperties.getDeviceID() );
-        final String queueEntryID = qe.getQueueEntryID();
-        log.info("Processing queueentry "+queueEntryID);
-
-        JDFNode node=doc.getJDFRoot();
-        VJDFAttributeMap vPartMap=qe.getPartMapVector();
-        JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
-        final String workStepID = node.getWorkStepID(partMap);
-        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, null);
-
-        VElement vResLinks=node.getResourceLinks(null);
-        String inConsume=null;
-        String outQuantity=null;
-        String trackResourceID=null;
-        if (vResLinks!=null) {
-            int vSiz=vResLinks.size();
-            for (int i = 0; i < vSiz; i++) {
-                JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
-                if(isMatchingLink(rl, _trackResource))
-                    trackResourceID=rl.getrRef();
-            }
-
-            //heuristics in case we didn't find anything
-            if(trackResourceID==null)
-            {
-                for (int i = 0; i < vSiz; i++) {
-                    JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
-                    JDFResource r = rl.getLinkRoot();
-                    EnumResourceClass c = r.getResourceClass();
-                    if (EnumResourceClass.Consumable.equals(c)
-                            || EnumResourceClass.Handling.equals(c)
-                            || EnumResourceClass.Quantity.equals(c)) {
-                        EnumUsage inOut = rl.getUsage();
-                        if (EnumUsage.Input.equals(inOut)) {
-                            if (EnumResourceClass.Consumable.equals(c))
-                                inConsume = rl.getrRef();
-                        } else {
-                            outQuantity = rl.getrRef();
-                        }
-                    }
-                }
-            }
-
-            trackResourceID= inConsume !=null ? inConsume : outQuantity;
-        }
-        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
-
-        // remember to call finalizeProcessDoc() at the end of derived processDoc implementations
-        return null;
-    }
-
     protected static boolean isMatchingLink(JDFResourceLink li,  String resName)
     {
         if(resName==null)
@@ -527,29 +458,17 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
      * @param currentPhase the last phase that has been processed
      * @param remainingPhaseTime how long is the first phase to run after resuming
      */
-    protected void persistRemainingPhases(String queueEntryID, int currentPhase, int remainingPhaseTime)
+    protected void persistRemainingPhases()
     {
-        if ( queueEntryID==null || queueEntryID.equals("") ) {
-            log.error("missing QueueEntry ID, aborting persist");
+        if(currentQE==null)
             return;
-        }
-
-        // make sure there are remaining phases left
-        if ( currentPhase >= _jobPhases.size() ) {
-            log.info("no more phases remaning, stopping persist");
-            return;
-        }
-
+        
         // add all remaining phases to a new list
         List<JobPhase> phases = new ArrayList<JobPhase>();
-        for (int i=currentPhase;i<_jobPhases.size();i++) {
+        for (int i=0;i<_jobPhases.size();i++) {
             phases.add( _jobPhases.get(i) );
         }
-
-        // adjust the time of the first job phase
-        JobPhase firstPhase = phases.get(0);
-        firstPhase.timeToGo = remainingPhaseTime;
-        phases.set(0, firstPhase);
+        final String queueEntryID=currentQE.getQueueEntryID();
 
         // serialize the remaining job phases
         String fileName = _devProperties.getBaseDir()+queueEntryID+"_phases.xml";
@@ -566,6 +485,10 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         log.info("remaining phases have been saved to "+fileName);
     }
 
+    /**
+     * get the current job phase, null if none is ther
+     * @return
+     */
     public JobPhase getCurrentJobPhase() {
         if ( _jobPhases != null && _jobPhases.size() > 0)
             return _jobPhases.get(0);
@@ -574,12 +497,15 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
 
 
     public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
-        prepareProcessing(doc, qe);
+        JobPhase lastPhase=null;
         while ( _jobPhases.size()>0 ) {
-             processPhase();
-            _jobPhases.remove(0); // phase(0) is always the active phase
-        }       
-        return finalizeProcessDoc();
+            processPhase();
+            lastPhase=_jobPhases.remove(0); // phase(0) is always the active phase
+         }
+        EnumQueueEntryStatus qes=lastPhase==null ? null : EnumNodeStatus.getQueueEntryStatus(lastPhase.nodeStatus);
+        if(qes==null)
+            qes=EnumQueueEntryStatus.Aborted;
+        return qes;
     }
 
     private void processPhase()
@@ -590,9 +516,8 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         long deltaT=1000;
         while ( phase.timeToGo>0 ) {
             long t0=System.currentTimeMillis();
-            _statusListener.updateAmount(null, phase.getOutput_Good(_trackResource,(int)deltaT), phase.getOutput_Waste(_trackResource,1000));
-            _statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, 
-                    phase.nodeStatus,phase.nodeStatusDetails);
+            _statusListener.updateAmount(null, phase.getOutput_Good(_trackResource,(int)deltaT), phase.getOutput_Waste(_trackResource,(int)deltaT));
+            _statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails,phase.nodeStatus,phase.nodeStatusDetails);
 
             randomErrors(phase);
             StatusCounter.sleep(1000);
@@ -610,38 +535,104 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         // nop - only overwritten in sim
 
     }
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.AbstractDeviceProcessor#stopProcessing(org.cip4.jdflib.jmf.JDFQueueEntry, org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus)
-     */
+ 
     @Override
-    public EnumQueueEntryStatus stopProcessing(JDFQueueEntry qe, EnumQueueEntryStatus newStatus)
+    protected void finalizeProcessDoc(EnumQueueEntryStatus qes)
     {
-        JobPhase jp=getCurrentJobPhase();
-        if(jp==null||currentQE==null||currentQE.getQueueEntryID()==null||newStatus==null)
-            return qe.getQueueEntryStatus();
+        super.finalizeProcessDoc(qes);
+        _jobPhases.clear();
+    }
 
-        if(qe==null || qe.equals(currentQE.getQueueEntryID()))
-        {
+    @Override
+    protected void initializeProcessDoc(JDFDoc doc, JDFQueueEntry qe)
+    {
+        // TODO Auto-generated method stub
+        super.initializeProcessDoc(doc,qe);
+        if(qe==null || doc==null) {
+            log.error("proccessing null job");
+            return;
+        }
+        currentQE=new QueueEntry(doc,qe);
+        if ( _jobPhases==null ) {
+            _jobPhases = new ArrayList<JobPhase>();
+        }
+        qe.setDeviceID( _devProperties.getDeviceID() );
+        final String queueEntryID = qe.getQueueEntryID();
+        log.info("Processing queueentry "+queueEntryID);
 
-            if(EnumQueueEntryStatus.Aborted.equals(newStatus))
-            {
-                jp.timeToGo=0;
-                _jobPhases.clear();
-                jp=new JobPhase();
-                jp.nodeStatus=EnumNodeStatus.Aborted;
-                _jobPhases.add(jp);
-                return EnumQueueEntryStatus.Aborted;
+        JDFNode node=doc.getJDFRoot();
+        VJDFAttributeMap vPartMap=qe.getPartMapVector();
+        JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
+        final String workStepID = node.getWorkStepID(partMap);
+
+        VElement vResLinks=node.getResourceLinks(null);
+        String inConsume=null;
+        String outQuantity=null;
+        String trackResourceID=null;
+        if (vResLinks!=null) {
+            int vSiz=vResLinks.size();
+            for (int i = 0; i < vSiz; i++) {
+                JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
+                if(isMatchingLink(rl, _trackResource))
+                {
+                    trackResourceID=rl.getrRef();
+                    break; // gotcha
+                }
             }
-            if(EnumQueueEntryStatus.Suspended.equals(newStatus))
+
+            //heuristics in case we didn't find anything
+            if(trackResourceID==null)
             {
-                jp.timeToGo=0;
-                _jobPhases.clear();
-                jp=new JobPhase();
-                jp.nodeStatus=EnumNodeStatus.Suspended;
-                _jobPhases.add(jp);
-                return EnumQueueEntryStatus.Suspended;
+                for (int i = 0; i < vSiz; i++) {
+                    JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
+                    JDFResource r = rl.getLinkRoot();
+                    EnumResourceClass c = r.getResourceClass();
+                    if (EnumResourceClass.Consumable.equals(c)
+                            || EnumResourceClass.Handling.equals(c)
+                            || EnumResourceClass.Quantity.equals(c)) {
+                        EnumUsage inOut = rl.getUsage();
+                        if (EnumUsage.Input.equals(inOut)) {
+                            if (EnumResourceClass.Consumable.equals(c))
+                                inConsume = rl.getrRef();
+                        } else {
+                            outQuantity = rl.getrRef();
+                        }
+                    }
+                }
+                trackResourceID= inConsume !=null ? inConsume : outQuantity;
             }
         }
-        return currentQE==null ? null : currentQE.getQueueEntry().getQueueEntryStatus();
+        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
+    }
+
+    @Override
+    public void stopProcessing(EnumNodeStatus newStatus)
+    {
+        synchronized (_jobPhases)
+        {
+            JobPhase p=getCurrentJobPhase();
+            if(p!=null)
+                p.timeToGo=0;
+            _jobPhases.clear();
+            p=new JobPhase();            
+            p.setNodeStatus(newStatus);
+            p.setDeviceStatus(EnumDeviceStatus.Idle);
+            doNextPhase(p);
+        }
+
+    }
+
+    /**
+     * proceed to the next job phase
+     * @param newPhase the next job phase to process.<br>
+     * Phase timeToGo is ignored in this class, it is advancing to the next phase 
+     * solely by doNextPhase().
+     */
+    public void doNextPhase(JobPhase nextPhase)
+    {
+        JobPhase lastPhase=getCurrentJobPhase();
+        if(lastPhase!=null)
+            lastPhase.timeToGo=0;
+        _jobPhases.add(nextPhase);
     }
 }

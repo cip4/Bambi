@@ -99,7 +99,7 @@ public interface IDeviceProcessor extends Runnable
      * @param statusListener the status listener
      * @param devProperties  device properties
      */
-    public void init(IQueueProcessor queueProcessor, IStatusListener statusListener, 
+    public void init(IQueueProcessor queueProcessor, StatusListener statusListener, 
     		IDeviceProperties devProperties);
     
     /**

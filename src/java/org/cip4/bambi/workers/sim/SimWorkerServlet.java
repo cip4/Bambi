@@ -1,15 +1,10 @@
 package org.cip4.bambi.workers.sim;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IDevice;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.workers.core.AbstractWorkerServlet;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.util.UrlUtil;
 
 public class SimWorkerServlet extends AbstractWorkerServlet {
 	protected static final Log log = LogFactory.getLog(SimWorkerServlet.class.getName());
@@ -26,6 +21,7 @@ public class SimWorkerServlet extends AbstractWorkerServlet {
      * @param request servlet request
      * @param response servlet response
      */
+    /*
     protected void doGet_(HttpServletRequest request, HttpServletResponse response)
     {
     	log.info("Processing get request...");
@@ -81,5 +77,6 @@ public class SimWorkerServlet extends AbstractWorkerServlet {
     		}
     	}
     }
+    */
 	
 }

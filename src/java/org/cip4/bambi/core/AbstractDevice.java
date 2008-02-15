@@ -74,16 +74,25 @@ package org.cip4.bambi.core;
 import java.io.File;
 import java.util.Vector;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
+import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.core.queues.QueueFacade;
+import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
-import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
@@ -110,8 +119,43 @@ import org.cip4.jdflib.util.UrlUtil;
  * @author boegerni
  * 
  */
-public abstract class AbstractDevice implements IDevice, IJMFHandler
+public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandler
 {
+    /**
+     * 
+     * @author prosirai
+     *
+     */
+    protected class XMLDevice extends XMLDoc
+    {
+    
+        /**
+         * XML representation of this simDevice
+         * fore use as html display using an XSLT
+         * @param dev
+         */
+        public XMLDevice()
+        {
+            super("XMLDevice",null);
+            setXSLTURL(getXSLT(SHOW_DEVICE));
+            KElement root=getRoot();
+            root.setAttribute(AttributeName.DEVICEID, getDeviceID());
+            root.setAttribute(AttributeName.DEVICETYPE, getDeviceType());
+            root.setAttribute("DeviceURL", getDeviceURL());
+            root.setAttribute(AttributeName.DEVICESTATUS, getDeviceStatus().getName());
+            addProcessors();
+           
+        }
+    
+        private void addProcessors()
+        {
+            for(int i=0;i<_deviceProcessors.size();i++)
+            {
+                _deviceProcessors.get(i).addToDisplayXML(getRoot());
+            }
+        }
+    }
+    
     /**
      * 
      * handler for the KnownDevices query
@@ -191,8 +235,8 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
                 if(_callBack!=null)
                     _callBack.prepareJDFForBambi(doc);
 
-                JDFResponse r=_theQueueProcessor.addEntry(command, doc, qsp.getHold());
-                if (r == null)
+                JDFQueueEntry qe=_theQueueProcessor.addEntry(command, doc);
+                if (qe == null)
                     log.warn("_theQueue.addEntry returned null");
                 final String tmpURL=qsp.getURL();
                 final File tmpFile=UrlUtil.urlToFile(tmpURL);
@@ -203,7 +247,8 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
             }        
         }
     }
-    protected static final Log log = LogFactory.getLog(AbstractDevice.class.getName());
+    private static final Log log = LogFactory.getLog(AbstractDevice.class.getName());
+    protected static final String SHOW_DEVICE = "showDevice";
     protected IQueueProcessor _theQueueProcessor=null;
     protected Vector<AbstractDeviceProcessor> _deviceProcessors=null;
     protected ISignalDispatcher _theSignalDispatcher=null;
@@ -235,7 +280,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
         _deviceProcessors=new Vector<AbstractDeviceProcessor>();
         AbstractDeviceProcessor newDevProc= buildDeviceProcessor();
         if (newDevProc!=null) {
-            IStatusListener theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
+            StatusListener theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
             theStatusListener.addHandlers(_jmfHandler);
             newDevProc.init(_theQueueProcessor, theStatusListener, _devProperties);
             String deviceProcessorClass=newDevProc.getClass().getSimpleName();
@@ -372,6 +417,15 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     {
         return _theQueueProcessor;
     }
+    /**
+     * @return
+     */
+    public String getXSLT(String context)
+    {
+       if("showQueue".equalsIgnoreCase(context))
+           return "../queue2html.xsl";
+       return null;
+    }
 
     /**
      * get the DeviceStatus of this device
@@ -397,26 +451,32 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
      * @param status target status of the QueueEntry (Suspended,Aborted,Held)
      * @return the updated QueueEntry
      */
-    public JDFQueueEntry stopProcessing(String queueEntryID, EnumQueueEntryStatus status)
+    public JDFQueueEntry stopProcessing(String queueEntryID, EnumNodeStatus status)
     {
-        AbstractDeviceProcessor theDeviceProcessor=_deviceProcessors.get(0);
-        if (theDeviceProcessor==null) {
-            log.error( "DeviceProcessor for device '"+_devProperties.getDeviceID()+"' is null" );
+        AbstractDeviceProcessor theDeviceProcessor = getProcessor(queueEntryID);
+        if(theDeviceProcessor==null)
             return null;
-        }
-        JDFQueue q=_theQueueProcessor.getQueue();
-        if (q==null) {
-            log.fatal("queue of device "+_devProperties.getDeviceID()+"is null");
-            return null;
-        }
-        JDFQueueEntry qe=q.getQueueEntry(queueEntryID);
-        if (qe==null) {
-            log.fatal("QueueEntry with ID="+queueEntryID+" is null on device "+_devProperties.getDeviceID());
-            return null;
-        }
+        theDeviceProcessor.stopProcessing(status);
+        return theDeviceProcessor.getCurrentQE().getQueueEntry();
+    }
 
-        theDeviceProcessor.stopProcessing(qe, status);
-        return qe;
+    /**
+     * gets the device processor for a given queuentry
+     * @param queueEntryID - if null use any
+     * @return the processor that is processing queueEntryID, null if none matches
+     */
+    protected AbstractDeviceProcessor getProcessor(String queueEntryID)
+    {
+        for(int i=0;i<_deviceProcessors.size();i++)
+        {
+            AbstractDeviceProcessor theDeviceProcessor=_deviceProcessors.get(i);
+            IQueueEntry iqe=theDeviceProcessor.getCurrentQE();
+            if(iqe==null) // processor is currently idle
+                continue;
+            if(queueEntryID==null || queueEntryID.equals(iqe.getQueueEntryID())) // gotcha
+                return theDeviceProcessor;
+        }
+        return null; // none here
     }
 
     /* (non-Javadoc)
@@ -432,6 +492,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
 
     /**
      * get the URL of the proxy device for this device
+     * proxy devices (or MIS) respond to RequestQueueEntry requests
      * @return
      */
     public String getProxyURL() {
@@ -468,7 +529,9 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
      * build a new QueueProcessor
      * @return
      */
-    protected abstract IQueueProcessor buildQueueProcessor();
+    protected IQueueProcessor buildQueueProcessor() {
+        return new QueueProcessor(this);
+    }
 
     /**
      * build a new DeviceProcessor
@@ -501,4 +564,36 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler
     {
         _jmfHandler.addSubscriptionHandler(typ, handler);
     }
-}
+
+    /**
+     * @param request
+     * @param response
+     * @param context
+     * @return
+     */
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
+     */
+    public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
+    {
+        if(_theQueueProcessor!=null)
+        {
+            return _theQueueProcessor.handleGet(request, response, context);
+         }
+        return false;
+    }
+
+    /**
+     * sends a request for a new qe to the proxy
+     */
+    public void sendRequestQueueEntry()
+    {
+        final String proxyURL=getProxyURL();
+        if (KElement.isWildCard(proxyURL))
+            return;
+        final  String queueURL=getDeviceURL();
+        JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,getDeviceID() );
+        JMFFactory.send2URL(jmf,proxyURL,null); // TODO handle reponse
+    }
+
+ }

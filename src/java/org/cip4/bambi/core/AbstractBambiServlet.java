@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -96,11 +96,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.lang.enums.ValuedEnum;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
+import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -229,6 +231,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		dirs.add( _devProperties.getJDFDir() );
 		dirs.add( _devProperties.getHotFolderURL() );
 		createDirs(dirs);
+        JMFFactory.setCallBack(_devProperties.getCallBackClass());
 		
         // jmf handlers
 		_jmfHandler=new JMFHandler();
@@ -561,7 +564,8 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		}
 	}
 	
-	/** Destroys the servlet.
+	/** 
+     * Destroys the servlet.
 	 */
 	@Override
 	public void destroy() {
@@ -572,6 +576,8 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 			AbstractDevice dev=(AbstractDevice) _devices.get(devID);
 			dev.shutdown();
 		}
+        _devices.clear();
+        JMFFactory.shutDown(null, true);
 	}
 
     /**
@@ -601,6 +607,30 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	        deviceID = StringUtil.token(deviceID, 0, "/");
 	    }
         return deviceID;
+    }
+    /**
+     * add a set of options to an xml file
+     * @param e the default enum
+     * @param it the iterator over all enums
+     * @param parent the parent element to add the list to
+     * @param name the name of the option list form
+     */
+    public static void addOptionList(ValuedEnum e, List l,KElement parent, String name)
+    {
+        if(e==null || parent==null)
+            return;
+        KElement list=parent.appendElement(BambiNSExtension.MY_NS_PREFIX+"OptionList",BambiNSExtension.MY_NS); 
+        list.setAttribute("name", name);
+        list.setAttribute("default", e.getName());
+        Iterator<ValuedEnum> it=l.iterator();
+        while(it.hasNext())
+        {
+            ValuedEnum ve=it.next();
+            KElement option=list.appendElement(BambiNSExtension.MY_NS_PREFIX+"Option",BambiNSExtension.MY_NS);
+            option.setAttribute("name", ve.getName());
+            option.setAttribute("selected", ve.equals(e)?"selected":null,null);
+        }
+        
     }
 
     /**
@@ -697,6 +727,20 @@ public abstract class AbstractBambiServlet extends HttpServlet {
             context=UrlUtil.getLocalURL(request.getContextPath(),request.getRequestURI());
         }
         return context;
+    }
+    
+    public static boolean isMyRequest(HttpServletRequest request,final String deviceID, String context)
+    {
+        if(deviceID!=null)
+        {
+            final String reqDeviceID=getDeviceIDFromRequest(request);
+            if(!deviceID.equals(reqDeviceID))
+                return false;           
+        }
+        String reqContext=getContext(request);
+        if(context.equals(StringUtil.token(reqContext, 0, "/")))
+            return true;
+        return false;
     }
 
     /**

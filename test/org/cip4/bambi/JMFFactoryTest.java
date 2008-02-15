@@ -184,7 +184,7 @@ public class JMFFactoryTest extends BambiTestCase {
     {
         long t=System.currentTimeMillis();
         JDFJMF jmf = JMFFactory.buildQueueStatus();
-        JDFResponse resp = JMFFactory.send2URL(jmf, simWorkerUrl);
+        JDFResponse resp = JMFFactory.send2URL(jmf, simWorkerUrl, null);
         JDFQueue q=resp.getQueue(0);
         assertNotNull(q);
         int queueSize = q.getQueueSize();

@@ -74,11 +74,10 @@ package org.cip4.bambi.workers.manual;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IDeviceProperties;
-import org.cip4.bambi.core.IStatusListener;
+import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
-import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -94,20 +93,20 @@ public class ManualDeviceProcessor extends AbstractWorkerDeviceProcessor
 {
 	private static final Log log = LogFactory.getLog(ManualDeviceProcessor.class.getName());
 	private static final long serialVersionUID = -384123589645081254L;
-	private JobPhase firstPhase=null;
-	
 	public ManualDeviceProcessor() {
 		super();
-		initFirstPhase();
 	}
 	
-	private void initFirstPhase() {
-		firstPhase = new JobPhase();
-		firstPhase.deviceStatus=EnumDeviceStatus.Idle;
-		firstPhase.deviceStatusDetails="Waiting";
-		firstPhase.nodeStatus=EnumNodeStatus.Waiting;
-		firstPhase.nodeStatusDetails="Waiting";
-        firstPhase.setAmount(_trackResource, 0, true);
+	private JobPhase initFirstPhase() {
+        log.info("initializing first phase");
+		JobPhase firstPhase = new JobPhase();
+		firstPhase.deviceStatus=EnumDeviceStatus.Setup;
+		firstPhase.deviceStatusDetails="Setup";
+		firstPhase.nodeStatus=EnumNodeStatus.Setup;
+		firstPhase.nodeStatusDetails="Setup";
+        firstPhase.timeToGo=Integer.MAX_VALUE;
+        firstPhase.setAmount(_trackResource, 0, false);
+        return firstPhase;
         
 	}
     /**
@@ -115,34 +114,22 @@ public class ManualDeviceProcessor extends AbstractWorkerDeviceProcessor
      * @param qe the queueentry to process
      * @return EnumQueueEntryStatus the final status of the queuentry 
      */
-	protected EnumQueueEntryStatus prepareProcessing(JDFDoc doc, JDFQueueEntry qe) 
+    @Override
+	protected void initializeProcessDoc(JDFDoc doc, JDFQueueEntry qe) 
 	{
-	    EnumQueueEntryStatus qes=super.prepareProcessing(doc, qe);
-        _jobPhases.clear();
-        _jobPhases.add(firstPhase);
-        
-        return qes;
-	}
-	
-	/**
-	 * proceed to the next job phase
-	 * @param newPhase the next job phase to process.<br>
-	 * Phase timeToGo is ignored in this class, it is advancing to the next phase 
-	 * solely by doNextPhase().
-	 */
-	public void doNextPhase(JobPhase nextPhase) {
-	    JobPhase lastPhase=getCurrentJobPhase();
-        if(lastPhase!=null)
-            lastPhase.timeToGo=0;
-	    _jobPhases.add(nextPhase);
-	}
+	    super.initializeProcessDoc(doc, qe);
+        synchronized (_jobPhases)
+        {
+            _jobPhases.clear();
+            initFirstPhase();
+            _jobPhases.add(initFirstPhase());            
+        }
+ 	}
 	
 	@Override
-	public void init(IQueueProcessor queueProcessor,
-			IStatusListener statusListener, IDeviceProperties devProperties) {
+	public void init(IQueueProcessor queueProcessor,StatusListener statusListener, IDeviceProperties devProperties) {
 		super.init(queueProcessor, statusListener, devProperties);
 		initFirstPhase();
-		_jobPhases.add(firstPhase);
 	}
 
 }

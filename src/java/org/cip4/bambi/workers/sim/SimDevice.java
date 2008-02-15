@@ -71,19 +71,11 @@
 
 package org.cip4.bambi.workers.sim;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.IDeviceProperties;
-import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.workers.core.AbstractWorkerDevice;
-import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
 
 /**
  * a simple JDF device with a fixed list of job phases. <br>
@@ -96,7 +88,8 @@ import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
  * @author boegerni
  * 
  */
-public final class SimDevice extends AbstractWorkerDevice implements IGetHandler  {
+public final class SimDevice extends AbstractWorkerDevice  
+{
 	
 
 	/**
@@ -118,9 +111,10 @@ public final class SimDevice extends AbstractWorkerDevice implements IGetHandler
 	}
        
     @Override
-    protected String getXSLT()
+    public String getXSLT(String context)
     {
-        return "showSimDevice.xsl";
+        if("showDevice".equalsIgnoreCase(context))
+            return "../showSimDevice.xsl";
+        return super.getXSLT(context);
     }
-
 }

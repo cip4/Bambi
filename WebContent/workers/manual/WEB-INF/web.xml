@@ -20,29 +20,34 @@
 		<load-on-startup>20</load-on-startup>
 	</servlet>
 	<servlet-mapping>
-		<!-- the entrance point of the application -->
 		<servlet-name>ManualWorkerServlet</servlet-name>
 		<url-pattern>/overview/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-		<!-- the entrance point of the application -->
+		<servlet-name>ManualWorkerServlet</servlet-name>
+		<url-pattern>/showDevice/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ManualWorkerServlet</servlet-name>
+		<url-pattern>/showQueue/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
 		<servlet-name>ManualWorkerServlet</servlet-name>
 		<url-pattern>/processNextPhase/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-	 	<!-- the entrance point for child devices -->
 		<servlet-name>ManualWorkerServlet</servlet-name>
 		<url-pattern>/devices/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<!-- entrance point for manipulating QueueEntries -->
-		<servlet-name>QueueEntryController</servlet-name>
-		<url-pattern>/QEController</url-pattern>
+		<servlet-name>ManualWorkerServlet</servlet-name>
+		<url-pattern>/modifyQE/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-		<!-- entrance point for showing device info -->
+		<!-- entrance point for showing JDF File info -->
 		<servlet-name>ManualWorkerServlet</servlet-name>
-		<url-pattern>/DeviceInfo</url-pattern>
+		<url-pattern>/showJDF/*</url-pattern>
 	</servlet-mapping>
 	<session-config>
 		<session-timeout>120</session-timeout>

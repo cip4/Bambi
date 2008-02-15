@@ -72,8 +72,6 @@ package org.cip4.bambi.core;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Random;
-import java.util.Set;
 import java.util.Vector;
 import java.util.Map.Entry;
 
@@ -81,7 +79,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
-import org.cip4.bambi.core.messaging.MessageSender;
+import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
@@ -115,14 +113,11 @@ public final class SignalDispatcher implements ISignalDispatcher
 {
     protected static final Log log = LogFactory.getLog(SignalDispatcher.class.getName());
     protected HashMap<String, MsgSubscription> subscriptionMap=null; // map of channelID / Subscription
-    protected VectorMap queueEntryMap=null; // map of queueEntryID / vector of channelIDS
+    protected VectorMap<String,String> queueEntryMap=null; // map of queueEntryID / vector of channelIDS
     protected IMessageHandler messageHandler=null;
-    protected VectorMap triggers=null;
+    protected VectorMap<String,Trigger> triggers=null;
     protected Object mutex=null;
     protected boolean doShutdown=false;
-    private HashMap<String,MessageSender> senders=null;
-    private int _maxSenders=42;
-    private IConverterCallback _callback=null;
 
     /////////////////////////////////////////////////////////////
     protected static class Trigger
@@ -201,7 +196,6 @@ public final class SignalDispatcher implements ISignalDispatcher
         {
             while(!doShutdown)
             {
-                checkMaxSenders();
 
                 final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
                 // spam them out
@@ -240,33 +234,26 @@ public final class SignalDispatcher implements ISignalDispatcher
          */
         private void queueMessageInSender(final MsgSubscription sub) {
             String url=sub.getURL();
-            if ( !senders.containsKey(url) ) {
-                addSender(url);
-            }
-            MessageSender ms=senders.get(url);
-            if ( ms.queueMessage( sub.getSignal())!=true )
-                log.error( "failed to dispatch signal" );
+            JMFFactory.send2URL(sub.getSignal(), url, null);
         }
 
         /**
          * get the triggered subscriptions, either forced (amount=-1) or by amount
          * @return the vector of triggered subscriptions
          */
-        @SuppressWarnings("unchecked")
         private Vector<MsgSubscription> getTriggerSubscriptions()
         {
             Vector<MsgSubscription> v = new Vector<MsgSubscription>();
-            Iterator<Entry<String,MsgSubscription>> it
-            = triggers.entrySet().iterator(); // active triggers
+            Iterator<Entry<String,Vector<Trigger>>> it = triggers.entrySet().iterator(); // active triggers
             while(it.hasNext())
             {
-                final Entry<String,MsgSubscription> nxt = it.next();
+                final Entry<String, Vector<Trigger>> nxt = it.next();
                 String channelID=nxt.getKey();
                 MsgSubscription sub=subscriptionMap.get(channelID);
                 int siz=triggers.size(channelID);
                 for(int i=0;i<siz;i++)
                 {
-                    Trigger t= (Trigger) triggers.getOne(channelID,i);
+                    Trigger t= triggers.getOne(channelID,i);
                     MsgSubscription subClone=(MsgSubscription) sub.clone();
                     subClone.trigger=t;
 
@@ -504,14 +491,12 @@ public final class SignalDispatcher implements ISignalDispatcher
         if(devProps!=null)
         {
             deviceID=devProps.getDeviceID();
-            _callback=devProps.getCallBackClass();
         }
         subscriptionMap=new HashMap<String, MsgSubscription>();
         queueEntryMap=new VectorMap();
         messageHandler=_messageHandler;
         triggers=new VectorMap();
         mutex = new Object();
-        senders = new HashMap<String, MessageSender>();
         new Thread(new Dispatcher(),"SignalDispatcher_"+deviceID).start();
         log.info("dispatcher thread 'SignalDispatcher_"+deviceID+"' started");
     }
@@ -595,7 +580,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         if(queueEntryID==null)
             return;
 
-        Vector<String> v=(Vector<String>)queueEntryMap.get(queueEntryID);
+        Vector<String> v=queueEntryMap.get(queueEntryID);
         if (v!=null) {
             int siz=v.size();
             for (int i = 0; i < siz; i++) {
@@ -632,10 +617,9 @@ public final class SignalDispatcher implements ISignalDispatcher
     /* (non-Javadoc)
      * @see org.cip4.bambi.ISignalDispatcher#triggerQueueEntry(java.lang.String)
      */
-    @SuppressWarnings("unchecked")
     public void triggerQueueEntry(String queueEntryID,  String workStepID, int amount)
     {
-        Vector<String> v=(Vector<String>) queueEntryMap.get(queueEntryID);
+        Vector<String> v=queueEntryMap.get(queueEntryID);
         if (v!=null) {
             int si = v.size();
             for (int i = 0; i < si; i++) {
@@ -643,7 +627,7 @@ public final class SignalDispatcher implements ISignalDispatcher
             }
         }
         // now the global queries
-        v=(Vector<String>) queueEntryMap.get("*");
+        v=queueEntryMap.get("*");
         if ( v!= null) {
             int si = v.size();
             for (int i = 0; i < si; i++) {
@@ -662,46 +646,6 @@ public final class SignalDispatcher implements ISignalDispatcher
 
     public void shutdown() {
         doShutdown=true;
-        removeAllSenders(false);
-    }
-
-    /**
-     * set the maximum number of senders allowed.
-     * If this SignalDispacher has reaches the number of max allowed senders, all 
-     * senders will be shut down gracefully and the vector of senders will be rebuild 
-     * @param i
-     */
-    public void setMaxSenders(int i) {
-        _maxSenders=i;
-    }
-
-    private void checkMaxSenders() {
-        if (senders==null)
-            return;
-        if (senders.size()==_maxSenders) {
-            removeAllSenders(true);
-        }
-    }
-
-    private void addSender(String url) {
-        MessageSender ms = new MessageSender(null,url,null,_callback);
-        int id=new Random().nextInt(); // prevent having two threads with same name
-        new Thread(ms, "sender_"+url+"_"+id ).start();
-        senders.put( url,ms );
-    }
-
-    private void removeAllSenders(boolean gracefully) {
-        if (senders==null) {
-            return;
-        }
-        Set<String> keys = senders.keySet();
-        Iterator<String> it = keys.iterator();
-        while ( it.hasNext() ) {
-            String key=it.next();
-            MessageSender ms=senders.get(key);
-            ms.shutDown(gracefully);
-            senders.remove(key);
-        }
     }
 
 }
