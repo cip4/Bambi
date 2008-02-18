@@ -71,29 +71,11 @@
 
 package org.cip4.bambi.proxy;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractBambiServlet;
 import org.cip4.bambi.core.IDevice;
 import org.cip4.bambi.core.IDeviceProperties;
-import org.cip4.bambi.core.IMultiDeviceProperties;
-import org.cip4.bambi.core.MultiDeviceProperties;
-import org.cip4.bambi.core.messaging.IJMFHandler;
-import org.cip4.bambi.core.queues.QueueFacade;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.util.MimeUtil;
-import org.cip4.jdflib.util.StringUtil;
 
 /**
  * This servlet is the main entrance point for Bambi proxies. <br>
@@ -106,187 +88,11 @@ public class ProxyServlet extends AbstractBambiServlet
 	private static final long serialVersionUID = -8902151736245089036L;
 	private static Log log = LogFactory.getLog(ProxyServlet.class.getName());
 	
-	/** Initializes the servlet.
-	 */
-	@Override
-	public void init(ServletConfig config) throws ServletException 
-	{
-		super.init(config);
-		ServletContext context = config.getServletContext();
-		log.info( "Initializing servlet for "+context.getServletContextName() );
-        createDevices();
-	}
+    @Override
+    protected IDevice buildDevice(IDeviceProperties prop) {
+        ProxyDevice dev=new ProxyDevice(prop);
+        _getHandlers.add(0,dev);
+        return dev;
+    }   
 
-	/** Destroys the servlet.
-	 */
-	@Override
-	public void destroy() {
-		Set<String> keys=_devices.keySet();
-		Iterator<String> it=keys.iterator();
-		while (it.hasNext()) {
-			String devID=it.next();
-			IDevice dev= _devices.get(devID);
-			dev.shutdown();
-		}
-	}
-
-
-	/** Handles the HTTP <code>GET</code> method.
-	 * @param request servlet request
-	 * @param response servlet response
-	 */
-	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-	{
-		log.info("Processing get request...");
-		String command = request.getParameter("cmd");
-		
-		if ( command==null||command.length()==0 )  {
-			try {
-				request.setAttribute("devices", _devices);
-				request.getRequestDispatcher("/overview.jsp").forward(request, response);
-			} catch (Exception e) {
-				log.error(e);
-			} 
-		} else if ( command.equals("showQueue") )  {
-			String devID=request.getParameter("devID");
-			ProxyDevice dev=(ProxyDevice) _devices.get(devID);
-			if (dev==null) {
-				String errorMsg="illegal DeviceID '"+devID+"'";
-				log.error( errorMsg );
-				showErrorPage(errorMsg, "The DeviceID '"+devID+"' is unknown", 
-						request, response);
-				return;
-			}
-			QueueFacade bqu = dev.getQueueFacade();
-			String quStr = bqu.toHTML();
-			writeRawResponse(request, response, quStr);
-		} else if ( command.equals("showJDFDoc") ) {
-			String qeid=request.getParameter("qeid");
-			if ( (qeid!=null&&qeid.length()>0) ) {
-				String filePath=_devProperties.getJDFDir()+qeid+".jdf";
-				JDFDoc theDoc=JDFDoc.parseFile(filePath);
-				if (theDoc!=null) {
-					writeRawResponse( request,response,theDoc.toXML() );
-				} else {
-					log.error( "cannot parse '"+filePath+"'" );
-					return;
-				}
-			}
-		}
-	}
-
-	@Override
-	protected void processJMFDoc(HttpServletRequest request,
-			HttpServletResponse response, JDFDoc jmfDoc) {
-		if(jmfDoc==null) {
-			processError(request, response, null, 3, "Error Parsing JMF");
-		} else {
-			// switch: sends the jmfDoc to correct device
-			JDFDoc responseJMF = null;
-			IJMFHandler handler = getTargetHandler(request);
-			if (handler != null) {
-				responseJMF=handler.processJMF(jmfDoc);
-			} 
-			
-			if (responseJMF!=null) {
-				response.setContentType(MimeUtil.VND_JMF);
-				try {
-					responseJMF.write2Stream(response.getOutputStream(), 0, true);
-				} catch (IOException e) {
-					log.error("cannot write to stream: ",e);
-				}
-			} else {
-				processError(request, response, null, 3, "Error Parsing JMF");               
-			}
-		}
-	}
-
-	/** 
-	 * Returns a short description of the servlet.
-	 */
-	@Override
-	public String getServletInfo() {
-		return "Bambi Proxy Servlet";
-	}
-	
-	@Override
-	public String toString() {
-		String ret ="[ BambiProxy - DeviceID="+_devProperties.getDeviceID()
-			+", DeviceURL="+_devProperties.getDeviceURL()+" ]";
-		return ret;
-	}
-	
-	
-	private void createDevices() {
-		String configFile=_devProperties.getConfigDir()+"devices.xml";
-		createDevicesFromFile(configFile);
-	}
-	
-	/**
-     * create devices based on the list of devices given in a file
-     * @param configFile the file containing the list of devices 
-     * @return true if successfull, otherwise false
-     */
-	public boolean createDevicesFromFile(String configFile)
-	{
-		IMultiDeviceProperties dv = new MultiDeviceProperties(_devProperties.getAppDir(), configFile);
-		if (dv.count()==0) {
-			log.error("failed to load device properties from "+configFile);
-			return false;
-		}
-		
-		Set<String> keys=dv.getDeviceIDs();
-		Iterator<String> iter=keys.iterator();
-		while (iter.hasNext()) {
-			String devID=iter.next();
-			IDeviceProperties prop=dv.getDevice(devID);
-			prop.setAppDir( _devProperties.getAppDir() );
-			prop.setBaseDir( _devProperties.getBaseDir() );
-			prop.setConfigDir( _devProperties.getConfigDir() );
-			prop.setJDFDir( _devProperties.getJDFDir() );
-			createDevice(prop);
-		}
-
-		return true;
-	}
-	
-	/**
-	 * create a new device and add it to the map of devices.
-	 * @param deviceID
-	 * @param deviceType
-	 * @return the Device, if device has been created. 
-	 * null, if not (maybe device with deviceID is already present)
-	 */
-	public IDevice createDevice(IDeviceProperties prop)
-	{
-		if (_devices == null) {
-			log.info("map of devices is null, re-initialising map...");
-			_devices = new HashMap<String, IDevice>();
-		}
-		
-		String devID=prop.getDeviceID();
-		if (_devices.get(prop.getDeviceID()) != null) {	
-			log.warn("device "+devID+" is already existing");
-			return null;
-		}
-		ProxyDevice dev = new ProxyDevice(prop);
-		_devices.put(devID,dev);
-		log.info("created device "+devID);
-		return dev;
-	}
-	
-	@Override
-	protected IJMFHandler getTargetHandler(HttpServletRequest request) {
-		String deviceID = request.getPathInfo();
-		if (deviceID == null)
-			return _jmfHandler; // root folder
-		deviceID = StringUtil.token(deviceID, 0, "/");
-		if (deviceID == null)
-			return _jmfHandler; // device not found
-		IDevice device = _devices.get(deviceID);
-		if (device == null)
-			return _jmfHandler; // device not found
-		return( device.getHandler() );
-	}
 }
