@@ -269,6 +269,7 @@ public class StatusListener implements IStatusListener
         }
         theCounter.setActiveNode(node, vPartMap, null);
         theCounter.setFirstRefID(trackResourceID);
+        theCounter.setTrackWaste(trackResourceID, true); // always track waste
         theCounter.setQueueEntryID(queueEntryID);
         theCounter.setWorkStepID(workStepID);
         if(node!=null) {

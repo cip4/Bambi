@@ -537,10 +537,11 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
     }
  
     @Override
-    protected void finalizeProcessDoc(EnumQueueEntryStatus qes)
+    protected boolean finalizeProcessDoc(EnumQueueEntryStatus qes)
     {
-        super.finalizeProcessDoc(qes);
+        boolean b=super.finalizeProcessDoc(qes);
         _jobPhases.clear();
+        return b;
     }
 
     @Override
@@ -562,6 +563,9 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
 
         JDFNode node=doc.getJDFRoot();
         VJDFAttributeMap vPartMap=qe.getPartMapVector();
+        if(vPartMap==null)
+            vPartMap=node.getPartMapVector();
+        
         JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
         final String workStepID = node.getWorkStepID(partMap);
 

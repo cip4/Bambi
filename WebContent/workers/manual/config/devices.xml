@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<devices>
-  <device001 DeviceID="manual001" DeviceType="Bambi Manual Device" 
+<application BaseDir="./jmb/" JDFDir="JDFDir/">
+  <Device DeviceID="manual001" DeviceType="Bambi Manual Device" 
   	ProxyURL="http://127.0.0.1:8080/BambiProxy/devices/proxy001" 
-  	HotFolderURL="file:///C:/BambiHF" 
+  	InputHF="C:/BambiHF/manual001/Input"   	OutputHF="C:/BambiHF/manual001/Output"   	ErrorHF="C:/BambiHF/manual001/Error" 
   	DeviceURL="http://127.0.0.1:8080/ManualWorker/devices/manual001" />
-</devices>
+</application>

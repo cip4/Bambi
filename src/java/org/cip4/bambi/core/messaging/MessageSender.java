@@ -98,8 +98,8 @@ public class MessageSender implements Runnable {
     protected class MessHandler
     {
         protected JDFJMF jmf;
-        protected IResponseHandler respHandler;
-        protected MessHandler(JDFJMF _jmf, IResponseHandler _respHandler)
+        protected IMessageHandler respHandler;
+        protected MessHandler(JDFJMF _jmf, IMessageHandler _respHandler)
         {
             respHandler=_respHandler;
             jmf=_jmf;
@@ -180,7 +180,7 @@ public class MessageSender implements Runnable {
                 }
                 if (mh.respHandler!=null) 
                 {
-                    b=mh.respHandler.handleResponse(resp);
+                    b=mh.respHandler.handleMessage(resp,null);
                 }
             }
         }
@@ -207,7 +207,7 @@ public class MessageSender implements Runnable {
 	 * @return true, if the message is successfully queued. 
      *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
 	 */
-	public boolean queueMessage(JDFJMF jmf, IResponseHandler handler) {
+	public boolean queueMessage(JDFJMF jmf, IMessageHandler handler) {
 		if (doShutDown || doShutDownGracefully) {
 			return false;
 		}

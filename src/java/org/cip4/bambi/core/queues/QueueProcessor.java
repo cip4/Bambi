@@ -88,6 +88,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractBambiServlet;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiNSExtension;
+import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
@@ -115,6 +116,7 @@ import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.util.MimeUtil;
 
 /**
@@ -656,7 +658,7 @@ public class QueueProcessor implements IQueueProcessor
         _parentDevice=theParentDevice;
         _listeners=new Vector<Object>();
 
-        this.init();
+        init();
     }
 
     /**
@@ -680,7 +682,7 @@ public class QueueProcessor implements IQueueProcessor
         log.info("QueueProcessor construct for device '"+deviceID+"'");
 
         if(_queueFile==null)
-            _queueFile=new File(_parentDevice.getBaseDir()+"theQueue_"+deviceID+".xml");
+            _queueFile=new File(_parentDevice.getBaseDir()+File.separator+"theQueue_"+deviceID+".xml");
         if (_queueFile!=null && _queueFile.getParentFile()!=null 
                 && !_queueFile.getParentFile().exists() ) { // will be null in unit tests
             if ( !_queueFile.getParentFile().mkdirs() )
@@ -688,7 +690,7 @@ public class QueueProcessor implements IQueueProcessor
         }
 
         if (_parentDevice.getJDFDir()!=null) { // will be null in unit tests
-            File jdfDir=new File ( _parentDevice.getJDFDir() );
+            File jdfDir= _parentDevice.getJDFDir();
             if (!jdfDir.exists())
                 if ( !jdfDir.mkdirs() )
                     log.error( "failed to create JDFDir at location "+jdfDir.getAbsolutePath() );
@@ -719,9 +721,40 @@ public class QueueProcessor implements IQueueProcessor
         _theQueue.setMaxCompletedEntries( 100 ); // remove just the selected QE when RemoveQE is called 
     }
 
-    public IQueueEntry getNextEntry() {
-        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry(null,null);
+    /**
+     * get a qe by qeID
+     * 
+     * @param queueEntryID the JDFNode.NodeIdentifier
+     * @return
+     */
+    public IQueueEntry getQueueEntry(NodeIdentifier nodeID) {
+        for(int i=0;true;i++)
+        {
+            JDFQueueEntry qe=_theQueue.getQueueEntry(nodeID,i);
+            if(qe==null)
+                return null;
+            
+            if(EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && !KElement.isWildCard(qe.getDeviceID()))
+                return getIQueueEntry(qe);
+            // try next    
+        }
+    }
 
+    /**
+     * get the next queue entry
+     */
+    public IQueueEntry getNextEntry() {
+        
+        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry(null,null);
+        return getIQueueEntry(qe);
+    }
+
+    /**
+     * @param qe
+     * @return
+     */
+    private IQueueEntry getIQueueEntry(JDFQueueEntry qe)
+    {
         if(qe==null) 
         {
             if (_parentDevice!=null) 
@@ -731,7 +764,6 @@ public class QueueProcessor implements IQueueProcessor
             return null;
         }
 
-        // try to load from local file system first, then try URL
         String docURL=BambiNSExtension.getDocURL(qe);
         JDFDoc theDoc = JDFDoc.parseURL(docURL, null);
         if (theDoc==null) {
@@ -749,6 +781,14 @@ public class QueueProcessor implements IQueueProcessor
     {
         log.info("adding new listener");
         _listeners.add(o);        
+    }
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.IQueueProcessor#removeListener(java.lang.Object)
+     */
+    public void removeListener(Object o)
+    {
+        log.info("removing listener");
+        _listeners.remove(o);        
     }
 
     /* (non-Javadoc)
@@ -828,7 +868,7 @@ public class QueueProcessor implements IQueueProcessor
     {
         if(newQEID==null)
             return null;
-        return _parentDevice.getJDFDir()+newQEID+".jdf";
+        return _parentDevice.getJDFDir()+File.separator+newQEID+".jdf";
     }
 
     protected void notifyListeners()
@@ -871,6 +911,11 @@ public class QueueProcessor implements IQueueProcessor
             if (status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Aborted)) {
                 returnQueueEntry( qe,null ,null);
             }
+            if (status.equals(EnumQueueEntryStatus.Removed)) {
+                String docURL=BambiNSExtension.getDocURL(qe);
+                if(docURL!=null)
+                    new File(docURL).delete();
+            }
             persist();
             notifyListeners();
         }
@@ -885,8 +930,9 @@ public class QueueProcessor implements IQueueProcessor
         catch (JDFException e) {
             // nop
         }
-        return _theQueue.copyToResponse(resp, qf);
-
+        JDFQueue q= _theQueue.copyToResponse(resp, qf);
+        removeBambiNSExtensions(q);
+        return q;
     }
 
     /* (non-Javadoc)
@@ -912,7 +958,7 @@ public class QueueProcessor implements IQueueProcessor
         qerp.setQueueEntryID(queueEntryID);
         if(docJDF==null)
         {
-            String docFile=_parentDevice.getJDFDir()+qe.getQueueEntryID()+".jdf";
+            String docFile=getJDFStorage(qe.getQueueEntryID());
             docJDF = JDFDoc.parseFile(docFile);
         }
         if ( docJDF==null ) {
@@ -931,40 +977,64 @@ public class QueueProcessor implements IQueueProcessor
             }
         }
 
+        boolean bAborted=false;
         if ( EnumNodeStatus.Completed.equals( qe.getStatus() )) {
             qerp.setCompleted( finishedNodes );
         } else if ( EnumNodeStatus.Aborted.equals( qe.getStatus() )) {
             qerp.setAborted( finishedNodes );
+            bAborted=true;
         }
 
         Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
         String returnURL=BambiNSExtension.getReturnURL(qe);
         String returnJMF=BambiNSExtension.getReturnJMF(qe);
-        if(returnURL!=null) {
-            HttpURLConnection response = null;
-            try {
-                response = MimeUtil.writeToURL(mp, returnURL);
-                if (response.getResponseCode() == 200)
-                    log.info("ReturnQueueEntry for "+queueEntryID+" has been sent.");
-                else
-                    log.error("failed to send ReturnQueueEntry. Response: "+response.toString());
-            } catch (Exception e) {
-                log.error("failed to send ReturnQueueEntry: "+e);
-            }
-        } else if (returnJMF!=null) {
+        final IDeviceProperties properties = _parentDevice.getProperties();
+        final File deviceOutputHF = properties.getOutputHF();
+        final File deviceErrorHF = properties.getErrorHF();
+        boolean bOK=false;
+        if(returnJMF!=null) {
             HttpURLConnection response = null;
             try {
                 response = MimeUtil.writeToURL(mp, returnJMF);
                 if (response.getResponseCode() == 200)
+                {
                     log.info("ReturnQueueEntry for "+queueEntryID+" has been sent.");
+                    bOK=true;
+                }
                 else
                     log.error("failed to send ReturnQueueEntry. Response: "+response.toString());
             } catch (Exception e) {
                 log.error("failed to send ReturnQueueEntry: "+e);
             }
-        } else {
-            // TODO write to default output
-            log.warn("No return URL specified");
+        } 
+        if (! bOK && returnURL!=null) {
+            HttpURLConnection response = null;
+            try {
+                response = MimeUtil.writeToURL(mp, returnJMF);
+                if (response.getResponseCode() == 200)
+                {
+                    log.info("ReturnQueueEntry for "+queueEntryID+" has been sent.");
+                    bOK=true;
+                }
+                else
+                    log.error("failed to send ReturnQueueEntry. Response: "+response.toString());
+            } catch (Exception e) {
+                log.error("failed to send ReturnQueueEntry: "+e);
+            }
+        } 
+        if(!bOK)
+        {
+            if (!bAborted && deviceOutputHF!=null){
+                deviceOutputHF.mkdirs();
+                bOK = docJDF.write2File(deviceOutputHF, 0, true);
+                log.info("JDF for "+queueEntryID+" has been written to good output: "+deviceOutputHF);
+            } else if (bAborted && deviceErrorHF!=null){
+                deviceErrorHF.mkdirs();
+                bOK = docJDF.write2File(deviceErrorHF, 0, true);
+                log.info("JDF for "+queueEntryID+" has been written to error output: "+deviceErrorHF);
+            } else{
+                log.warn("No return URL, No HF, No Nothing  specified");
+            }
         }
     }
 
@@ -995,7 +1065,9 @@ public class QueueProcessor implements IQueueProcessor
      * @param queue the queue to filter
      * @return a queue without Bambi namespaces 
      */
-    protected void removeBambiNSExtensions(JDFQueue queue) {   		
+    protected void removeBambiNSExtensions(JDFQueue queue) {  
+        if(queue==null)
+            return;
         for (int i=0;i<queue.getQueueSize();i++) {
             BambiNSExtension.removeBambiExtensions( queue.getQueueEntry(i) );
         }

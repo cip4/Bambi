@@ -75,6 +75,9 @@ package org.cip4.bambi.core;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 
 /**
  * provides Bambi specific XML extensions for JDF and JMF
@@ -305,6 +308,50 @@ public class BambiNSExtension
         public static String getDeviceURL(KElement ke)
         {
             return getMyNSAttribute(ke,deviceURL);
+        }
+        
+///////////////////////////////////////////////////////////////////////
+        
+        /**
+         * the queue entry tracking subelement
+         */
+        public static final String devQueueEntryID="DeviceQueueEntryID";
+
+         /**
+         * @param qe
+         * @param outputQEID
+         */
+        public static void setDeviceQueueEntryID(KElement qe, String outputQEID)
+        {
+            setMyNSAttribute(qe, devQueueEntryID, outputQEID);        
+        }
+        /**
+         * @param qe the queuentry to check
+         */
+        public static String  getDeviceQueueEntryID(KElement qe)
+        {
+            return getMyNSAttribute(qe, devQueueEntryID);        
+        }
+        
+        /**
+         * @param qt
+         * @param outputQEID
+         */
+        public static JDFQueueEntry  getDeviceQueueEntry(JDFQueue q, String deviceQueueEntryID)
+        {
+            if(KElement.isWildCard(deviceQueueEntryID))
+                return null;
+            
+            VElement v=q.getQueueEntryVector();
+            if(v==null)
+                return null;
+            for(int i=0;i<v.size();i++)
+            {
+                JDFQueueEntry qe=(JDFQueueEntry)v.elementAt(i);
+                if(deviceQueueEntryID.equals(qe.getAttribute(devQueueEntryID, MY_NS, null)))
+                    return qe;
+            }
+            return null;
         }
    
 }

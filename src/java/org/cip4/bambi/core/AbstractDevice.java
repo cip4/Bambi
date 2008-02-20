@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -85,7 +85,6 @@ import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.IQueueProcessor;
-import org.cip4.bambi.core.queues.QueueFacade;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.AttributeName;
@@ -98,7 +97,6 @@ import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -255,6 +253,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
     protected JMFHandler _jmfHandler = null ;
     protected IDeviceProperties _devProperties=null;
     protected QueueHotFolder _submitHotFolder=null;
+    protected IConverterCallback _callback=null;
 
     /**
      * creates a new device instance
@@ -289,7 +288,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
             _deviceProcessors.add( newDevProc );
         }
 
-        final String hfURL=prop.getHotFolderURL();
+        final File hfURL=prop.getInputHF();
         createHotFolder(hfURL);
 
         addHandlers();
@@ -299,16 +298,16 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
      * creates the hotfolder on the file system
      * @param hfURL the URL of the hotfolder to create. If hfURL is null, no hotfolder will be created.
      */
-    protected void createHotFolder(String hfURL)
+    protected void createHotFolder(File hfURL)
     {
         if(hfURL==null)
             return;
         log.info("enabling input hot folder: "+hfURL);
-        File hfStorage=new File(_devProperties.getAppDir()+File.separator+"HFTmpStorage"+File.separator+_devProperties.getDeviceID());
+        File hfStorage=new File(_devProperties.getBaseDir()+File.separator+"HFTmpStorage"+File.separator+_devProperties.getDeviceID());
         hfStorage.mkdirs(); // just in case
         if(hfStorage.isDirectory())
         {
-            _submitHotFolder=new QueueHotFolder(UrlUtil.urlToFile(hfURL),hfStorage,null,new HFListner(_devProperties.getCallBackClass()),null);
+            _submitHotFolder=new QueueHotFolder(hfURL,hfStorage,null,new HFListner(_devProperties.getCallBackClass()),null);
         }
         else
         {
@@ -382,42 +381,6 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
     }
 
     /**
-     * get a facade of this devices Queue
-     * @return
-     */
-    public QueueFacade getQueueFacade()
-    {
-        return (new QueueFacade(_theQueueProcessor.getQueue()) );
-    }
-
-    /**
-     * get the JDFQueue
-     * @return JDFQueue
-     */
-    public JDFQueue getQueue()
-    {
-        return _theQueueProcessor.getQueue();
-    }
-
-    /**
-     * get the class name of the i'th device processor
-     * @param i the index of the device processor to get the name for
-     * @return
-     */
-    public String getDeviceProcessorClass(int i)
-    {
-        return _deviceProcessors.get(i) != null ? _deviceProcessors.get(i).getClass().getName() : "";
-    }
-
-    /**
-     * get the queprocessor
-     * @return
-     */
-    public IQueueProcessor getQueueProcessor()
-    {
-        return _theQueueProcessor;
-    }
-    /**
      * @return
      */
     public String getXSLT(String context)
@@ -457,7 +420,8 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
         if(theDeviceProcessor==null)
             return null;
         theDeviceProcessor.stopProcessing(status);
-        return theDeviceProcessor.getCurrentQE().getQueueEntry();
+        final IQueueEntry currentQE = theDeviceProcessor.getCurrentQE();
+        return currentQE==null ? null : currentQE.getQueueEntry();
     }
 
     /**
@@ -477,26 +441,6 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
                 return theDeviceProcessor;
         }
         return null; // none here
-    }
-
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.IDevice#getDeviceURL()
-     */
-    public String getDeviceURL() {
-        return _devProperties.getDeviceURL();
-    }
-
-    public void setDeviceURL(String theURL) {
-        _devProperties.setDeviceURL(theURL);
-    }
-
-    /**
-     * get the URL of the proxy device for this device
-     * proxy devices (or MIS) respond to RequestQueueEntry requests
-     * @return
-     */
-    public String getProxyURL() {
-        return _devProperties.getProxyURL();
     }
 
     /**
@@ -519,13 +463,6 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
     }
 
     /**
-     * get the directory of the web application this device belongs to
-     * @return the path of the app dir on the filesystem
-     */
-    public String getAppDir() {
-        return _devProperties.getAppDir();
-    }
-    /**
      * build a new QueueProcessor
      * @return
      */
@@ -538,18 +475,6 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
      * @return
      */
     protected abstract AbstractDeviceProcessor buildDeviceProcessor();
-
-    public String getBaseDir() {
-        return _devProperties.getBaseDir();
-    }
-
-    public String getConfigDir() {
-        return _devProperties.getConfigDir();
-    }
-
-    public String getJDFDir() {
-        return _devProperties.getJDFDir();
-    }
 
     /**
      * get the StatusListener of the i'th DeviceProcessor
@@ -588,12 +513,58 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
      */
     public void sendRequestQueueEntry()
     {
-        final String proxyURL=getProxyURL();
+        final String proxyURL=_devProperties.getProxyControllerURL();
         if (KElement.isWildCard(proxyURL))
             return;
         final  String queueURL=getDeviceURL();
         JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,getDeviceID() );
         JMFFactory.send2URL(jmf,proxyURL,null); // TODO handle reponse
+    }
+
+    public ISignalDispatcher getSignalDispatcher()
+    {
+        return _theSignalDispatcher;
+    }
+
+    public IConverterCallback getCallback()
+    {
+        return _callback;
+    }
+
+    public void setCallback(IConverterCallback callback)
+    {
+        this._callback = callback;
+    }
+    /**
+     * get the device properties
+     * @return
+     */
+    public IDeviceProperties getProperties()
+    {
+        return _devProperties;
+    }
+
+    /**
+     * @return
+     */
+    public File getJDFDir()
+    {
+        return _devProperties.getJDFDir();
+    }
+    /**
+     * @return
+     */
+    public File getBaseDir()
+    {
+        return _devProperties.getBaseDir();
+    }
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.IDevice#getDeviceURL()
+     */
+    public String getDeviceURL()
+    {
+        return _devProperties.getDeviceURL();
     }
 
  }

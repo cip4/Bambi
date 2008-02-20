@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -80,8 +80,8 @@ import java.net.MalformedURLException;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
+import org.cip4.bambi.core.AbstractBambiServlet;
 import org.cip4.bambi.core.MultiDeviceProperties;
-import org.cip4.bambi.workers.core.AbstractWorkerServlet;
 import org.cip4.bambi.workers.sim.SimWorkerServlet;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -176,7 +176,7 @@ public class DeviceServletTest extends BambiTestCase {
 
 	public void testAddDevice()
 	{
-		AbstractWorkerServlet d = new SimWorkerServlet();
+		AbstractBambiServlet d = new SimWorkerServlet();
 		assertEquals( 0,d.getDeviceQuantity() ); 
 		MultiDeviceProperties dp = new MultiDeviceProperties( null,sm_dirTestData+"test_devices.xml" );
 		assertNotNull( d.createDevice(dp.getDevice("device001")) );
@@ -190,7 +190,7 @@ public class DeviceServletTest extends BambiTestCase {
 	
 	public void testRemoveDevice()
 	{
-		AbstractWorkerServlet d = new SimWorkerServlet();
+        AbstractBambiServlet d = new SimWorkerServlet();
 		assertEquals( 0,d.getDeviceQuantity() );
 		MultiDeviceProperties dp = new MultiDeviceProperties( null,sm_dirTestData+"test_devices.xml" );
 		assertNotNull( d.createDevice(dp.getDevice("device001")) );

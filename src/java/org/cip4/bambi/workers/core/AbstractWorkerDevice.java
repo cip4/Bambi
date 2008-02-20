@@ -104,7 +104,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
     /**
      * 
      */
-    protected String _trackResource=null;
+    protected String _trackResource=null; // the "major" resource to track
     private static final Log log = LogFactory.getLog(AbstractWorkerDevice.class.getName());
     
     /**

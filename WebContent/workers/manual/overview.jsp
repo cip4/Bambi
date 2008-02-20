@@ -4,8 +4,6 @@
 <%@ page import="java.util.SortedSet" %>
 <%@ page import="java.util.TreeSet" %>
 <%@ page import="org.cip4.bambi.core.AbstractDevice" %>
-<%@ page import="org.cip4.bambi.core.queues.QueueFacade" %>
-<%@ page import="org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus" %>
 <%@ page import="org.cip4.bambi.core.IDevice" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">

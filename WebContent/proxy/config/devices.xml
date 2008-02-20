@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<devices>
-  <device001 DeviceID="proxy001" DeviceType="Bambi Proxy" 
+<application BaseDir="./jmb/" JDFDir="./jmb/JDFDir/>
+  <Device DeviceID="proxy001" DeviceType="Bambi Proxy" 
   	DeviceURL="http://127.0.0.1:8080/BambiProxy/devices/proxy001" />
-</devices>
+</application>

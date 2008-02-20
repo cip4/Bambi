@@ -105,6 +105,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     protected boolean _doShutdown=false;
     protected IQueueEntry currentQE;
     protected String _trackResource=null;
+    protected AbstractDevice _parent=null;
 
     private class XMLDeviceProcessor
     {
@@ -227,6 +228,8 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
                 }
             }
         }
+        if(_queueProcessor!=null)
+            _queueProcessor.removeListener(_myListener);
     }
 
     /**
@@ -237,9 +240,10 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     public void init(IQueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties)
     {
         log.info(this.getClass().getName()+" construct");
-        _queueProcessor=queueProcessor;
         _myListener=new Object();
-        _queueProcessor.addListener(_myListener);
+        _queueProcessor=queueProcessor;
+        if(_queueProcessor!=null)
+            _queueProcessor.addListener(_myListener);
         _statusListener=statusListener;
         _devProperties=devProperties;
         _trackResource=devProperties.getTrackResource();
@@ -279,8 +283,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             return false;
         }
 
-        finalizeProcessDoc(qes);
-        return true;
+        return finalizeProcessDoc(qes);
     }
 
     /**
@@ -302,14 +305,14 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     }
     
     protected void complete() {
-        _statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCompleted", EnumNodeStatus.Aborted, "job canceled by user");
+        _statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCompleted", EnumNodeStatus.Completed, "job completed successfully");
     }
 
  
     /**
      * signal that processing has finished and prepare the StatusCounter for the next process
      */
-    protected void finalizeProcessDoc(EnumQueueEntryStatus qes)
+    protected boolean finalizeProcessDoc(EnumQueueEntryStatus qes)
     {
         if(currentQE!=null)
         {
@@ -329,6 +332,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         _statusListener.setNode(null, null, null, null, null);
         _queueProcessor.updateEntry(currentQE.getQueueEntry(), qes, null, null);
         currentQE=null;
+        return true;
     }
 
 
@@ -354,6 +358,15 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     public IQueueEntry getCurrentQE()
     {
         return currentQE;
+    }
+    
+    /**
+     * get the device properties
+     * @return
+     */
+    public IDeviceProperties getProperties()
+    {
+        return _devProperties;
     }
 
     /**

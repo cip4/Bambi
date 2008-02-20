@@ -79,6 +79,7 @@ import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 
 /**
  * @author prosirai
@@ -117,6 +118,17 @@ public interface IQueueProcessor extends IMultiJMFHandler, IGetHandler
      * 
      */
     public JDFQueue updateEntry(JDFQueueEntry qe, EnumQueueEntryStatus status, JDFMessage mess, JDFResponse resp);
-        
+    
+    /**
+     * get a qe by qeID
+     * 
+     * @param queueEntryID the JDFNode.NodeIdentifier
+     * @return
+     */
+    public IQueueEntry getQueueEntry(NodeIdentifier nodeID);
+
+    
     public void addListener(Object o);
+    
+    public void removeListener(Object o);
 }

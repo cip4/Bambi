@@ -72,8 +72,6 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -82,7 +80,6 @@ import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
@@ -99,7 +96,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.lang.enums.ValuedEnum;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
@@ -206,7 +202,6 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		}
 	}
 
- 	protected IDeviceProperties _devProperties=null;
 	protected IJMFHandler _jmfHandler=null;
     protected HashMap<String,IDevice> _devices = null;
     protected IConverterCallback _callBack = null;
@@ -223,16 +218,9 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		super.init(config);
 		ServletContext context = config.getServletContext();
 		log.info( "Initializing servlet for "+context.getServletContextName() );
-		String appDir=context.getRealPath("")+"/";
-		_devProperties=loadProperties(appDir, appDir+"config/application.properties");
-		
-		VString dirs=new VString();
-		dirs.add( _devProperties.getBaseDir() );
-		dirs.add( _devProperties.getJDFDir() );
-		dirs.add( _devProperties.getHotFolderURL() );
-		createDirs(dirs);
-        JMFFactory.setCallBack(_devProperties.getCallBackClass());
-		
+//		String appDir=context.getRealPath("")+"/";
+		loadProperties(new File(context.getRealPath("")+"/config/devices.xml"));
+				
         // jmf handlers
 		_jmfHandler=new JMFHandler();
 		addHandlers();
@@ -246,17 +234,14 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	 * create the specified directories, if the do not exist
 	 * @param dirs the directories to create
 	 */
-	private void createDirs(VString dirs) {
-		for (int i=0;i<dirs.size();i++) {
-			String dir=dirs.get(i);
-			if (dir==null) 
-				continue;
-			File f=UrlUtil.urlToFile(dir);
-			if (!f.exists()) {
-				if (!f.mkdirs())
-					log.error("failed to create directory "+dir);
-			}
-		}
+	private void createDirs(Vector<File> dirs) {
+	    for (int i=0;i<dirs.size();i++) {
+	        File f=dirs.get(i);
+	        if (f!=null && !f.exists()) {
+	            if (!f.mkdirs())
+	                log.error("failed to create directory "+f);
+	        }
+	    }
 	}
 	
     protected boolean handleKnownDevices(JDFMessage m, JDFResponse resp) {
@@ -499,45 +484,10 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	 * @param fileName the name of the Java .propert file
 	 * @return true, if the properties have been loaded successfully
 	 */
-	protected IDeviceProperties loadProperties(String appDir, String fileName)
+	protected void loadProperties(File config)
 	{
-		IDeviceProperties prop=new DeviceProperties();
-		log.info("loading properties from "+fileName);
-		try {
-			Properties properties = new Properties();
-			FileInputStream in = new FileInputStream(fileName);
-			properties.load(in);
-			JDFJMF.setTheSenderID(properties.getProperty("SenderID"));
-			String property=properties.getProperty("BaseDir");
-			if (property!=null && property.startsWith("./")) {
-				property=property.substring(2);
-				property=appDir+property;
-			}
-			prop.setBaseDir(property);
-			
-			property=properties.getProperty("ConfigDir");
-			if (property!=null && property.startsWith("./")) {
-				property=property.substring(2);
-				property=appDir+property;
-			}
-			prop.setConfigDir(property);
-			
-			property=properties.getProperty("JDFDir");
-			if (property!=null && property.startsWith("./")) {
-				property=property.substring(2);
-				property=appDir+property;
-			}
-			prop.setJDFDir(property);
-			
-			in.close();
-		} catch (FileNotFoundException e) {
-			log.fatal(fileName+" not found");
-			return null;
-		} catch (IOException e) {
-			log.fatal("Error while applying properties from "+fileName);
-			return null;
-		}
-		return prop;
+		MultiDeviceProperties props=new MultiDeviceProperties(config);
+        createDevices(props);
 	}
 	
 	protected void addHandlers() {
@@ -751,6 +701,63 @@ public abstract class AbstractBambiServlet extends HttpServlet {
     public int getDeviceQuantity()
     {
     	return _devices==null ? 0 : _devices.size();
+    }
+
+    /**
+     * build a new device instance
+     * @param prop
+     * @return
+     */
+    protected abstract IDevice buildDevice(IDeviceProperties prop);
+
+    /**
+     * create a new device and add it to the map of devices.
+     * @param deviceID
+     * @param deviceType
+     * @return the Device, if device has been created. 
+     * null, if not (maybe device with deviceID is already present)
+     */
+    private IDevice createDevice(IDeviceProperties prop)
+    {
+    	if (_devices == null) {
+    		log.info("map of devices is null, re-initialising map...");
+    		_devices = new HashMap<String, IDevice>();
+    	}
+    	
+    	String devID=prop.getDeviceID();
+    	if (_devices.get(prop.getDeviceID()) != null) {	
+    		log.warn("device "+devID+" is already existing");
+    		return null;
+    	}
+    	IDevice dev = buildDevice(prop);
+    	_devices.put(devID,dev);
+    	log.info("created device "+devID);
+    	return dev;
+    }
+
+    /**
+     * create devices based on the list of devices given in a file
+     * @param props 
+     * @param configFile the file containing the list of devices 
+     * @return true if successfull, otherwise false
+     */
+    private boolean createDevices(MultiDeviceProperties props)
+    {
+    	
+        Vector<File> dirs=new Vector<File>();
+        dirs.add( props.getBaseDir() );
+        dirs.add( props.getJDFDir() );
+        createDirs(dirs);
+
+        VString v=props.getDeviceIDs();
+    	Iterator<String> iter=v.iterator();
+    	while (iter.hasNext()) {
+    		String devID=iter.next();
+    		IDeviceProperties prop=props.getDevice(devID);
+    		createDevice(prop);
+    	}
+    
+    	return true;
     }
 
 }

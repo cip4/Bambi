@@ -111,26 +111,6 @@ Waste Production: <input type="checkbox" name="Waste0" value="true">
 </xsl:template>
 
 
-<!--
-
-  <xsl:template name="AmountBox">
-    <xsl:param name="AmountType"/>
-   <xsl:param name="ResourceName"/>
-   <xsl:param name="ResourceIndex"/>
-<xsl value-of select="$ResourceName"/>: <input type="text" size="10" maxlength="30">
-<xsl:attribute name="name">
-Speed<xsl:value-of select="@ResourceIndex"/>
-</xsl:attribute>
-<xsl:attribute name="value">
-<xsl:attribute name="select">
-
-</xsl:attribute>
-
-<xsl:value-of select="@Speed"/>
-</xsl:attribute>
-</input>
-   </xsl:template>
--->
 
 <!-- add more templates -->
 <!-- the catchall -->

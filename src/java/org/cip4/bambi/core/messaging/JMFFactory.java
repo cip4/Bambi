@@ -3,7 +3,7 @@
 * The CIP4 Software License, Version 1.0
 *
 *
-* Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+* Copyright (c) 2001-2008 The International Cooperation for the Integration of 
 * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
 * reserved.
 *
@@ -201,12 +201,12 @@ public class JMFFactory {
 	 * @param url the URL to send the JMF to
 	 * @return the response if successful, otherwise null
 	 */
-	public static void send2URL(JDFJMF jmf, String url, IResponseHandler handler) {
-		// this method is prone for crashing on shutdown, thus checking for 
-		// log!=null is important
+	public static void send2URL(JDFJMF jmf, String url, IMessageHandler handler) {
 		
 		if (jmf==null || url==null) {
 			if (log!=null) {
+                // this method is prone for crashing on shutdown, thus checking for 
+                // log!=null is important
 				log.error("failed to send JDFMessage, message and/or URL is null");
 			}
 			return;
