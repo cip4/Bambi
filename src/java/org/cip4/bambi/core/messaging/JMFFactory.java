@@ -79,7 +79,9 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFRequestQueueEntryParams;
+import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 
@@ -156,15 +158,33 @@ public class JMFFactory {
 		return jmf;
 	}
 	
-	/**
-	 * build a JMF Status query
-	 * @return the message
-	 */
-	public static JDFJMF buildStatus()
-	{
-		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Status);
-		return jmf;
-	}
+    /**
+     * build a JMF Status query
+     * @return the message
+     */
+    public static JDFJMF buildStatus()
+    {
+        JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Status);
+        return jmf;
+    }
+    /**
+     * build a JMF Status subscription
+     * @return the message
+     */
+    public static JDFJMF buildStatusSubscription(String subscriberURL, double repeatTime, int repeatStep)
+    {
+        final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Status);
+        final JDFQuery q=jmf.getQuery(0);
+        final JDFSubscription s=q.appendSubscription();
+        s.setURL(subscriberURL);
+        if(repeatTime>0)
+            s.setRepeatTime(repeatTime);
+        if(repeatStep>0)
+            s.setRepeatStep(repeatStep);
+        s.appendObservationTarget().setObservationPath("*");
+
+        return jmf;
+    }
 	
 	/**
 	 * build a JMF QueueStatus query
@@ -201,7 +221,7 @@ public class JMFFactory {
 	 * @param url the URL to send the JMF to
 	 * @return the response if successful, otherwise null
 	 */
-	public static void send2URL(JDFJMF jmf, String url, IMessageHandler handler) {
+	public static void send2URL(JDFJMF jmf, String url, IMessageHandler handler, String senderID) {
 		
 		if (jmf==null || url==null) {
 			if (log!=null) {
@@ -213,7 +233,8 @@ public class JMFFactory {
 		}
         
         MessageSender ms = getCreateMessageSender(url,callback); 
-        
+        if(senderID!=null)
+            jmf.setSenderID(senderID);
         ms.queueMessage(jmf,handler);
 	}
 

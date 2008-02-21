@@ -72,6 +72,7 @@
 package org.cip4.bambi.proxy;
 
 import java.io.File;
+import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -124,6 +125,7 @@ public class ProxyDevice extends AbstractDevice {
             if(m==null) {
                 return false;
             }
+            // TODO retain rqe in case we cannot submit now
             // check for valid RequestQueueEntryParams
             JDFRequestQueueEntryParams qep = m.getRequestQueueEntryParams(0);
             if (qep==null) {
@@ -143,9 +145,12 @@ public class ProxyDevice extends AbstractDevice {
             if (qe!=null && EnumQueueEntryStatus.Waiting.equals( qe.getQueueEntryStatus() ) && KElement.isWildCard(qe.getDeviceID())) {
                 qe.setDeviceID(m.getSenderID());
                 submitQueueEntry(iqe, queueURL);
-            } else {
-                String qeStatus = qe==null ? "null" : qe.getQueueEntryStatus().getName();
-                JMFHandler.errorResponse(resp, "requested QueueEntry is "+qeStatus, 2);
+            } else if qe==null {
+                JMFHandler.errorResponse(resp, "No QueueEntry is available for request"+qeStatus, 108);
+                return true;
+            } else  {
+                String qeStatus = qe.getQueueEntryStatus().getName();
+                JMFHandler.errorResponse(resp, "requested QueueEntry is "+qeStatus, 106);
                 return true;
             }
             return true;
@@ -169,8 +174,6 @@ public class ProxyDevice extends AbstractDevice {
 
 
 
-
-
     protected class ReturnQueueEntryHandler implements IMessageHandler
     {
 
@@ -189,25 +192,14 @@ public class ProxyDevice extends AbstractDevice {
                 return true;
             }
 
-            String outQEID=retQEParams.getQueueEntryID();
-            if (outQEID==null || outQEID.length()<1) {
-                JMFHandler.errorResponse(resp, "ReturnQueueEntryParams missing QueueEntry ID", 7);
-                return true;
-            }
-
-            String inQEID = getIncomingQEID(outQEID);
-            ProxyDeviceProcessor proc=(ProxyDeviceProcessor) getProcessor(inQEID);
-
-            if (proc==null) {
-                String errorMsg="QueueEntry with ID="+outQEID+" is not being processed";
-                JMFHandler.errorResponse(resp, errorMsg, 2);
-                return true;
-            }
-            
-            return proc.returnFromSlave(m,resp);
- 
+            final String outQEID=retQEParams.getQueueEntryID();
+            ProxyDeviceProcessor proc = getProcessorForSlaveQE(resp, outQEID);
+            if(proc!=null)
+                proc.returnFromSlave(m,resp);
+            return true;
         }
 
+ 
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#getFamilies()
          */
@@ -222,6 +214,45 @@ public class ProxyDevice extends AbstractDevice {
         public EnumType getMessageType()
         {
             return EnumType.ReturnQueueEntry;
+        }
+    }
+
+    protected class StatusSignalHandler implements IMessageHandler
+    {
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+         */
+        public boolean handleMessage(JDFMessage m, JDFResponse resp)
+        {
+            if(m==null) {
+                return false;
+            }
+            log.info("Handling "+m.getType());
+            Vector<ProxyDeviceProcessor> v=getProxyProcessors();
+            if(v==null)
+                return false;
+            boolean b=false;
+            for(int i=0;i<v.size();i++)
+                b=v.get(i).handleStatus(m,resp) || b;
+            return b; // handled if any was ok
+        }
+
+ 
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#getFamilies()
+         */
+        public EnumFamily[] getFamilies()
+        {
+            return new EnumFamily[]{EnumFamily.Signal};
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#getMessageType()
+         */
+        public EnumType getMessageType()
+        {
+            return EnumType.Status;
         }
     }
 
@@ -321,6 +352,7 @@ public class ProxyDevice extends AbstractDevice {
         super.addHandlers();
         _jmfHandler.addHandler( this.new RequestQueueEntryHandler() );
         _jmfHandler.addHandler( this.new ReturnQueueEntryHandler() );
+        _jmfHandler.addHandler( this.new StatusSignalHandler() );
     }
 
     /**
@@ -381,6 +413,41 @@ public class ProxyDevice extends AbstractDevice {
         // TODO - dynamically grab with knowndevices
         return _devProperties.getSlaveDeviceID();
     }
+  
+    /**
+     * gets the device processor for a given queuentry
+     * @param queueEntryID - if null use any
+     * @return the processor that is processing queueEntryID, null if none matches
+     */
+    protected Vector<ProxyDeviceProcessor> getProxyProcessors()
+    {
+        Vector<ProxyDeviceProcessor> v=new Vector<ProxyDeviceProcessor>();
+        for(int i=0;i<_deviceProcessors.size();i++)
+        {
+            AbstractDeviceProcessor theDeviceProcessor=_deviceProcessors.get(i);
+            if(theDeviceProcessor instanceof ProxyDeviceProcessor)
+                v.add((ProxyDeviceProcessor) theDeviceProcessor);
+        }
+        return v.size()==0 ? null : v;
+    }
+
+    /**
+     * @param resp
+     * @param slaveQEID
+     * @return
+     */
+    private ProxyDeviceProcessor getProcessorForSlaveQE(JDFResponse resp, final String slaveQEID)
+    {
+        final String inQEID = getIncomingQEID(slaveQEID);
+        ProxyDeviceProcessor proc=(ProxyDeviceProcessor) getProcessor(inQEID);
+
+        if (proc==null) {
+            String errorMsg="QueueEntry with ID="+slaveQEID+" is not being processed";
+            JMFHandler.errorResponse(resp, errorMsg, 2);
+        }
+        return proc;
+    }
+
     /**
      * remove a processor from the list of active processors
      * @param processor
@@ -445,6 +512,13 @@ public class ProxyDevice extends AbstractDevice {
                 return proc.getSlaveQEID();             
         }
         return null;
+    }
+    @Override
+    public String getXSLT(String context)
+    {
+        if("showDevice".equalsIgnoreCase(context))
+            return "../showProxyDevice.xsl";
+        return super.getXSLT(context);
     }
 
 }

@@ -538,7 +538,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	    String deviceID = getDeviceIDFromRequest(request);
 	    IDevice dev = getDevice(deviceID);
 	    if (dev == null) {
-	        log.error("invalid request: device with id="+deviceID==null?"null":deviceID+" not found");
+	        log.info("invalid request: device with id="+deviceID==null?"null":deviceID+" not found");
 	        return null;
 	    }		
 	    return dev;

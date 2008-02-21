@@ -97,6 +97,7 @@ public interface IJMFHandler
      * the big processing dispatcher
      * 
      * @param doc the JDFDoc holding the JMF which is to be processed
+     * @param dispatcher the signal dispatcher that handles subscriptions
      * @return the JDFDoc holding the JMF response
      */
     public JDFDoc processJMF(JDFDoc doc);

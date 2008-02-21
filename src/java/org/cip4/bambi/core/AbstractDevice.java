@@ -72,6 +72,7 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
@@ -104,6 +105,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.resource.JDFDeviceList;
+import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.QueueHotFolder;
 import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.UrlUtil;
@@ -270,6 +272,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
 
         _theSignalDispatcher=new SignalDispatcher(_jmfHandler, _devProperties);
         _theSignalDispatcher.addHandlers(_jmfHandler);
+        _jmfHandler.setDispatcher(_theSignalDispatcher);
 
         _theQueueProcessor = buildQueueProcessor( );
         _theQueueProcessor.addHandlers(_jmfHandler);
@@ -359,7 +362,12 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
         JDFDevice dev = info.appendDevice();
         dev.setDeviceID(getDeviceID());
         dev.setDeviceType( getDeviceType() );
+        dev.setJMFURL(getDeviceURL());
+        dev.setJDFInputURL(UrlUtil.fileToUrl(_devProperties.getInputHF(),false));
+        dev.setJDFOutputURL(UrlUtil.fileToUrl(_devProperties.getOutputHF(),false));
+        dev.setJDFErrorURL(UrlUtil.fileToUrl(_devProperties.getErrorHF(),false));
         dev.setJDFVersions( EnumVersion.Version_1_3.getName() );
+
         info.setDeviceStatus( getDeviceStatus() );
         return true;
     }
@@ -423,6 +431,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
         final IQueueEntry currentQE = theDeviceProcessor.getCurrentQE();
         return currentQE==null ? null : currentQE.getQueueEntry();
     }
+    
 
     /**
      * gets the device processor for a given queuentry
@@ -503,11 +512,16 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
      */
     public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
     {
+        if(AbstractBambiServlet.isMyRequest(request,getDeviceID(),SHOW_DEVICE))
+        {
+            return showDevice(response);
+        }
         if(_theQueueProcessor!=null)
         {
             return _theQueueProcessor.handleGet(request, response, context);
-         }
+        }
         return false;
+        
     }
 
     /**
@@ -520,7 +534,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
             return;
         final  String queueURL=getDeviceURL();
         JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,getDeviceID() );
-        JMFFactory.send2URL(jmf,proxyURL,null); // TODO handle reponse
+        JMFFactory.send2URL(jmf,proxyURL,null,getDeviceID()); // TODO handle reponse
     }
 
     public ISignalDispatcher getSignalDispatcher()
@@ -577,5 +591,20 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
         // TODO Auto-generated method stub
         return _deviceProcessors.size();
     }
+    protected boolean showDevice(HttpServletResponse response)
+    {
+        XMLDevice simDevice=this.new XMLDevice();
+        try
+        {
+            simDevice.write2Stream(response.getOutputStream(), 0,true);
+        }
+        catch (IOException x)
+        {
+            return false;
+        }
+        response.setContentType(MimeUtil.TEXT_XML);
+        return true;
+    }
+
 
  }

@@ -77,10 +77,12 @@ import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.ISignalDispatcher;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.ifaces.IJMFSubscribable;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessageService;
@@ -154,7 +156,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	protected HashMap<MessageType,IMessageHandler> messageMap; // key = type , value = IMessageHandler
 //TODO handle subscriptions
     protected HashMap<EnumType,IMessageHandler> subscriptionMap; // key = type , value = subscriptions handled
-
+    ISignalDispatcher _signalDispatcher;
 	/**
 	 * 
 	 * handler for the knownmessages query
@@ -243,6 +245,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		messageMap=new HashMap<MessageType, IMessageHandler>();
 		subscriptionMap=new HashMap<EnumType, IMessageHandler>();
 		addHandler( this.new KnownMessagesHandler() );
+        _signalDispatcher=null;
 	}
 
 	public JMFHandler(JMFHandler oldHandler)
@@ -250,7 +253,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		super();
 		messageMap=new HashMap<MessageType, IMessageHandler>(oldHandler.messageMap);
 		subscriptionMap=new HashMap<EnumType, IMessageHandler>(oldHandler.subscriptionMap);
-		addHandler( this.new KnownMessagesHandler() );
+		addHandler( this.new KnownMessagesHandler());
+        _signalDispatcher=oldHandler._signalDispatcher;        
 	}
 
 	/**
@@ -301,7 +305,10 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
             {
 				log.error("no response provided ??? "+id+" "+jmfResp);
             }
-			handleMessage(m, mResp);
+ 			handleMessage(m, mResp);
+            if(_signalDispatcher!=null)
+                _signalDispatcher.findSubscription(m, mResp);
+            
             if(m instanceof JDFSignal && mResp!=null)
             {
                 int retCode=mResp.getReturnCode();
@@ -313,7 +320,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	}
 
 
-	/**
+
+    /**
 	 * standard handler for unimplemented messages
 	 * @param m
 	 * @param resp
@@ -341,19 +349,6 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	    log.warn("JMF error: rc="+rc+" "+text);
 	}
 
-	/**
-     * add this subscription to the list of known subscriptions
-     * 
-     * @param q the query with subscription
-     * @param resp the response to fill in
-     * @param subscript the subscription
-     */
-	private void processSubscription(JDFQuery q, JDFMessage resp, JDFSubscription subscript)
-	{
-		// TODO Auto-generated method stub
-
-	}
-
 	/** 
 	 * we do not call these for ourselves...
 	 */
@@ -377,21 +372,12 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	{
 		if(inputMessage==null)
 			return false;
-		EnumFamily family=inputMessage.getFamily();
-		if(EnumFamily.Query.equals(family))
-		{
-			JDFQuery q=(JDFQuery)inputMessage;
-			JDFSubscription subscript=q.getSubscription();
-			// subscriptions are added to the subscription list rather than immediately answered
-			if(subscript!=null) {
-				processSubscription(q,response,subscript);
-				return true;
-			}
-		}
-		EnumType typ=inputMessage.getEnumType();
-		IMessageHandler handler=getHandler(typ, family);
+		final EnumFamily family=inputMessage.getFamily();
+		final EnumType typ=inputMessage.getEnumType();
+		final IMessageHandler handler=getHandler(typ, family);
 		boolean handled=handler!=null;
-		if(handler!=null)
+		
+        if(handler!=null)
 			handled=handler.handleMessage(inputMessage, response);
 		if(!handled)
 		{
@@ -405,6 +391,15 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		String msgMap="MessageMap (size="+messageMap.size()+")=["+messageMap.toString()+"]";
 		String subMap="SubsriptionMap (size="+subscriptionMap.size()+")=["+subscriptionMap.toString()+"]";
         return "JMFHandler: "+msgMap+", "+subMap;
+    }
+
+    /**
+     * @param signalDispatcher
+     */
+    public void setDispatcher(ISignalDispatcher signalDispatcher)
+    {
+        _signalDispatcher=signalDispatcher;
+        
     }
 
 }

@@ -156,8 +156,8 @@ public class QueueProcessor implements IQueueProcessor
                 }
                 else
                 {
-                    if(resp!=null)
-                        resp.copyElement(qe, null);
+                    JDFQueueEntry qeNew=(JDFQueueEntry) resp.copyElement(qe, null);
+                    BambiNSExtension.removeBambiExtensions(qeNew);
                     updateEntry(qe, null, m, resp);
                 }
                 return true;
@@ -359,6 +359,10 @@ public class QueueProcessor implements IQueueProcessor
                 updateEntry(qe,status,m,resp);                   
                 JMFHandler.errorResponse(resp, "cannot abort QueueEntry with ID="+qeid+", it is already aborted", 113);
                 return true;
+            } 
+            else if ( EnumQueueEntryStatus.Waiting.equals(status) ) // no need to check processors - it is still waiting
+            {
+                updateEntry(qe,EnumQueueEntryStatus.Aborted,m,resp);                   
             }
             String queueEntryID=qe.getQueueEntryID();
             JDFQueueEntry returnQE=_parentDevice.stopProcessing(queueEntryID, EnumNodeStatus.Aborted);
@@ -727,22 +731,27 @@ public class QueueProcessor implements IQueueProcessor
     }
 
     /**
-     * get a qe by qeID
+     * get a qe by nodeidentifier
+     * only waiting entries that have not been forwarded to a lower level device are tken into account
      * 
      * @param queueEntryID the JDFNode.NodeIdentifier
      * @return
      */
     public IQueueEntry getQueueEntry(NodeIdentifier nodeID) {
-        for(int i=0;true;i++)
+        synchronized (_theQueue)
         {
-            JDFQueueEntry qe=_theQueue.getQueueEntry(nodeID,i);
-            if(qe==null)
-                return null;
-            
-            if(EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && KElement.isWildCard(qe.getDeviceID()))
-                return getIQueueEntry(qe);
-            // try next    
+
+            VElement vQE=_theQueue.getQueueEntryVector(nodeID);
+            int siz=vQE==null ? 0 : vQE.size();
+            for(int i=0;i<siz;i++)
+            {
+                JDFQueueEntry qe=(JDFQueueEntry) vQE.get(i);            
+                if(EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && KElement.isWildCard(BambiNSExtension.getDeviceURL(qe)))
+                    return getIQueueEntry(qe);
+                // try next    
+            }
         }
+        return null;
     }
 
     /**
@@ -908,6 +917,10 @@ public class QueueProcessor implements IQueueProcessor
     }
 
 
+    /**
+     * update the entry qe to be in the new status
+     * @return JDFQueue the queue in its new status
+     */
     public JDFQueue updateEntry(JDFQueueEntry qe, EnumQueueEntryStatus status, JDFMessage mess, JDFResponse resp)
     {
         if (qe != null && status!=null && !status.equals(qe.getQueueEntryStatus()))

@@ -18,9 +18,18 @@
 		<servlet-name>Proxy</servlet-name>
 		<url-pattern>/overview/*</url-pattern>
 	</servlet-mapping>
+		<servlet-mapping>
+		<servlet-name>Proxy</servlet-name>
+		<url-pattern>/jmf/*</url-pattern>
+	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>Proxy</servlet-name>
 		<url-pattern>/showDevice/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<!-- entrance point for manipulating QueueEntries -->
+		<servlet-name>Proxy</servlet-name>
+		<url-pattern>/modifyQE/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>Proxy</servlet-name>

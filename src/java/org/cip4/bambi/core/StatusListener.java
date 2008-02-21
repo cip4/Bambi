@@ -250,6 +250,20 @@ public class StatusListener implements IStatusListener
             saveJDF();
     }
 
+    /**
+     * 
+     */
+    public void replaceNode(JDFNode node)
+    {
+        if(node!=null)
+        {
+            String location=currentNode==null ? null : currentNode.getOwnerDocument_JDFElement().getOriginalFileName();
+            currentNode=node;
+            if(location!=null)
+                currentNode.getOwnerDocument_JDFElement().setOriginalFileName(location);
+            saveJDF();
+        }
+    }
     /* (non-Javadoc)
      * @see org.cip4.bambi.IStatusListener#setNode(java.lang.String, org.cip4.jdflib.node.JDFNode)
      */

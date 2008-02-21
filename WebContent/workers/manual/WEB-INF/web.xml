@@ -16,6 +16,10 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>ManualWorkerServlet</servlet-name>
+		<url-pattern>/jmf/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ManualWorkerServlet</servlet-name>
 		<url-pattern>/overview/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>

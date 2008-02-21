@@ -13,8 +13,8 @@
 	<head>
 		<link rel="stylesheet" type="text/css" href="../css/styles_pc.css"/>
 		<link rel="icon" href="../favicon.ico" type="image/x-icon" />
-		<title>Bambi - Manual Device :<xsl:value-of select="$deviceID"/></title>
-		<h1>Bambi - Manual Device :<xsl:value-of select="$deviceID"/></h1>
+		<title>Bambi - Simulation Device :<xsl:value-of select="$deviceID"/></title>
+		<h1>Bambi - Simulation Device :<xsl:value-of select="$deviceID"/></h1>
 	</head>
  	<body>
 		

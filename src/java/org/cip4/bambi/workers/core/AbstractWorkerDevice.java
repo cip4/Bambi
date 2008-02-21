@@ -195,17 +195,6 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
     {
         return _trackResource;
     }
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
-     */
-    public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
-    {       
-        if(AbstractBambiServlet.isMyRequest(request,getDeviceID(),SHOW_DEVICE))
-        {
-            return showDevice(response);
-        }
-        return super.handleGet(request,response,context);
-    }
 
     protected boolean showDevice(HttpServletResponse response)
     {

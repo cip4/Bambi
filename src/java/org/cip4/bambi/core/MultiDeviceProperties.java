@@ -82,6 +82,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.StringUtil;
 
 
 /**
@@ -216,7 +217,7 @@ public class MultiDeviceProperties
         {
             File fBase=getAppDir();
             File f= getRootFile("BaseDir");
-            return FileUtil.concat(fBase, f);
+            return FileUtil.getFileInDirectory(fBase, f);
         }
         
         public File getAppDir()
@@ -233,7 +234,7 @@ public class MultiDeviceProperties
         {
             File fBase=getBaseDir();
             File f= getFile("JDFDir");
-            return FileUtil.concat(fBase, f);
+            return FileUtil.getFileInDirectory(fBase, f);
         }
 
 
@@ -242,7 +243,13 @@ public class MultiDeviceProperties
          */
         public String getSlaveDeviceID()
         {
-            return devRoot.getAttribute("SlaveDeviceID",null,null);
+            String s= devRoot.getAttribute("SlaveDeviceID",null,null);
+            if(s!=null)
+                return s;
+            s=getSlaveURL();
+            if(s!=null)
+                s=StringUtil.token(s, -1, "/");
+            return s;
         }
 
 
@@ -315,7 +322,7 @@ public class MultiDeviceProperties
     public MultiDeviceProperties(File baseDir, File configFile) {
 
         JDFParser p = new JDFParser();
-        XMLDoc doc = p.parseFile(FileUtil.concat(baseDir,configFile));
+        XMLDoc doc = p.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
         root = doc==null ? null : doc.getRoot();
         if (root==null) {
             log.fatal( "failed to parse "+configFile+", root is null" );
@@ -361,7 +368,7 @@ public class MultiDeviceProperties
     {
         File fBase=getAppDir();
         File f= getRootFile("BaseDir");
-        return FileUtil.concat(fBase, f);
+        return FileUtil.getFileInDirectory(fBase, f);
      }
 
     /**
@@ -371,7 +378,7 @@ public class MultiDeviceProperties
     {
         File fBase=getBaseDir();
         File f= getRootFile("JDFDir");
-        return FileUtil.concat(fBase, f);
+        return FileUtil.getFileInDirectory(fBase, f);
     }
 
     /**

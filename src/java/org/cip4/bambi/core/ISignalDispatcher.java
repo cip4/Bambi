@@ -70,8 +70,11 @@
 package org.cip4.bambi.core;
 
 import org.cip4.bambi.core.messaging.IMultiJMFHandler;
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.ifaces.IJMFSubscribable;
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.node.JDFNode;
 
 
@@ -134,5 +137,13 @@ public interface ISignalDispatcher extends IMultiJMFHandler
      * stop the dispatcher thread
      */
     public void shutdown();
-    
+
+    /**
+     * find subscriptions in a message and add them if appropriate
+     * @param m
+     * @param resp
+     * @param dispatcher
+     */
+    public void findSubscription(JDFMessage m, JDFResponse resp);
+     
 }

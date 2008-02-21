@@ -20,6 +20,10 @@
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>SimWorkerServlet</servlet-name>
+		<url-pattern>/jmf/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>SimWorkerServlet</servlet-name>
 		<url-pattern>/showDevice/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>

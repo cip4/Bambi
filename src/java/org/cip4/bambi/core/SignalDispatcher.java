@@ -118,6 +118,7 @@ public final class SignalDispatcher implements ISignalDispatcher
     protected VectorMap<String,Trigger> triggers=null;
     protected Object mutex=null;
     protected boolean doShutdown=false;
+    protected String deviceID=null;
 
     /////////////////////////////////////////////////////////////
     protected static class Trigger
@@ -234,7 +235,7 @@ public final class SignalDispatcher implements ISignalDispatcher
          */
         private void queueMessageInSender(final MsgSubscription sub) {
             String url=sub.getURL();
-            JMFFactory.send2URL(sub.getSignal(), url, null);
+            JMFFactory.send2URL(sub.getSignal(), url, null,deviceID);
         }
 
         /**
@@ -486,12 +487,7 @@ public final class SignalDispatcher implements ISignalDispatcher
      */
     public SignalDispatcher(IMessageHandler _messageHandler, IDeviceProperties devProps)
     {    
-
-        String deviceID=null;
-        if(devProps!=null)
-        {
-            deviceID=devProps.getDeviceID();
-        }
+        deviceID=devProps.getDeviceID();
         subscriptionMap=new HashMap<String, MsgSubscription>();
         queueEntryMap=new VectorMap();
         messageHandler=_messageHandler;
@@ -501,11 +497,32 @@ public final class SignalDispatcher implements ISignalDispatcher
         log.info("dispatcher thread 'SignalDispatcher_"+deviceID+"' started");
     }
 
+    /**
+     * @param m
+     * @param resp
+     * @param dispatcher
+     */
+    public void findSubscription(JDFMessage m, JDFResponse resp)
+    {
+        if(!(m instanceof IJMFSubscribable))
+        {
+            return;        
+        }
+        IJMFSubscribable query=(IJMFSubscribable)m;
+        JDFSubscription sub=query.getSubscription();
+        if(sub==null)
+            return;
+        addSubscription(query, null);
+        if(resp!=null)
+            resp.setSubscribed(true);
+     }
+
     /* (non-Javadoc)
      * @see org.cip4.bambi.ISignalDispatcher#addSubscription(org.cip4.jdflib.ifaces.IJMFSubscribable)
      */
     public String addSubscription(IJMFSubscribable subMess, String queueEntryID)
     {
+        log.info("adding subscription ");
         MsgSubscription sub=new MsgSubscription(subMess);
         sub.setQueueEntryID(queueEntryID);
         if(sub.channelID==null)

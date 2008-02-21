@@ -82,5 +82,7 @@ public interface IQueueEntry
 
     public JDFDoc getJDF();
     public JDFQueueEntry getQueueEntry();
+    public void setJDF(JDFDoc doc);
+    public void setQueueEntry(JDFQueueEntry qe);
     public String getQueueEntryID();
 }
