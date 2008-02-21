@@ -113,11 +113,17 @@ public interface IDeviceProperties {
 
 
 	
-	/**
-	 * get the base dir of the web application
-	 * @return the base dir of the web application
-	 */
-	public File getBaseDir();
+    /**
+     * get the application context dir of the web application
+     * @return the base dir of the web application
+     */
+    public File getAppDir();
+    
+    /**
+     * get the base dir of the web application
+     * @return the base dir of the web application
+     */
+    public File getBaseDir();
 	
 	/**
 	 * get the directory containing the JDF documents

@@ -150,10 +150,15 @@ public class QueueProcessor implements IQueueProcessor
                     return true;
                 }
                 JDFQueueEntry qe=addEntry( (JDFCommand)m, doc);
-                updateEntry(qe, null, m, resp);
                 if(qe==null) {
                     JMFHandler.errorResponse(resp, "failed to add entry: invalid or missing message parameters", 9);
                     return true;
+                }
+                else
+                {
+                    if(resp!=null)
+                        resp.copyElement(qe, null);
+                    updateEntry(qe, null, m, resp);
                 }
                 return true;
             }
@@ -734,7 +739,7 @@ public class QueueProcessor implements IQueueProcessor
             if(qe==null)
                 return null;
             
-            if(EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && !KElement.isWildCard(qe.getDeviceID()))
+            if(EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && KElement.isWildCard(qe.getDeviceID()))
                 return getIQueueEntry(qe);
             // try next    
         }
@@ -1036,6 +1041,7 @@ public class QueueProcessor implements IQueueProcessor
                 log.warn("No return URL, No HF, No Nothing  specified");
             }
         }
+           
     }
 
     protected JDFQueueEntry getMessageQueueEntry(JDFMessage m, JDFResponse resp)

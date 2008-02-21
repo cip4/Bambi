@@ -71,16 +71,12 @@
 
 package org.cip4.bambi.workers.sim;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.IDeviceProperties;
-import org.cip4.bambi.core.StatusListener;
-import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFDoc;
@@ -111,8 +107,6 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 	{
 		// if fileName has no file separator it is assumed to be on the server and 
 		// needs the config dir to be added
-		if ( !fileName.contains(File.separator) )  
-			fileName = _devProperties.getBaseDir()+fileName;
  		JDFParser p = new JDFParser();
 		JDFDoc doc = p.parseFile(fileName);
 		if (doc == null) {
@@ -120,42 +114,37 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 			return null;
 		}
 
-		int counter = 0;
-        List<JobPhase> _originalPhases = new ArrayList<JobPhase>();
-		try {
-			KElement simJob = doc.getRoot();
-			VElement v = simJob.getXPathElementVector("JobPhase", -1);
-			for (int i = 0; i < v.size(); i++) {
-				KElement phaseElement = v.elementAt(i);
-				JobPhase phase = new JobPhase();
-				phase.deviceStatus = EnumDeviceStatus.getEnum(phaseElement.getXPathAttribute("@DeviceStatus", "Idle"));
-				phase.deviceStatusDetails = phaseElement.getXPathAttribute("@DeviceStatusDetails", "");
-				phase.nodeStatus = EnumNodeStatus.getEnum(phaseElement.getXPathAttribute("@NodeStatus", "Waiting"));
-				phase.nodeStatusDetails = phaseElement.getXPathAttribute("@NodeStatusDetails", "");
-				phase.timeToGo = StringUtil.parseInt( phaseElement.getXPathAttribute("@Duration", "0"), 0 );
-                VElement vA=phaseElement.getChildElementVector("Amount", null);
-                for(int j=0;j<vA.size();j++)
-                {
-                    KElement am=vA.elementAt(i);
-                    final double good = am.getRealAttribute("Good", null, 0);
-                    final boolean waste = am.getBoolAttribute("Waste", null, false);
-                    //timeToGo is milisecods, speed is / hour
-                    final double speed = phase.timeToGo<=0 ? 0. : 3600*1000*(good)/phase.timeToGo;
-                    phase.setAmount(am.getAttribute("Resource"), speed, waste);  
-                }
-				_originalPhases.add(phase);
-				counter++;
-			}			
-		} catch (Exception ex) {
-			log.warn("error in importing jobs");
-			return null;
-		}
+		List<JobPhase> _originalPhases = new Vector<JobPhase>();
+		KElement simJob = doc.getRoot();
+		VElement v = simJob.getXPathElementVector("JobPhase", -1);
+		for (int i = 0; i < v.size(); i++) {
+		    KElement phaseElement = v.elementAt(i);
+		    JobPhase phase = new JobPhase();
+		    phase.deviceStatus = EnumDeviceStatus.getEnum(phaseElement.getXPathAttribute("@DeviceStatus", "Idle"));
+		    phase.deviceStatusDetails = phaseElement.getXPathAttribute("@DeviceStatusDetails", "");
+		    phase.nodeStatus = EnumNodeStatus.getEnum(phaseElement.getXPathAttribute("@NodeStatus", "Waiting"));
+		    phase.nodeStatusDetails = phaseElement.getXPathAttribute("@NodeStatusDetails", "");
+		    phase.timeToGo = StringUtil.parseInt( phaseElement.getXPathAttribute("@Duration", "0"), 0 );
+		    phase.errorChance = StringUtil.parseInt( phaseElement.getXPathAttribute("@Error", "0"), 0 );
+		    VElement vA=phaseElement.getChildElementVector("Amount", null);
+		    for(int j=0;j<vA.size();j++)
+		    {
+		        KElement am=vA.elementAt(j);
+		        final double good = am.getRealAttribute("Amount", null, 0);
+		        final boolean waste = am.getBoolAttribute("Waste", null, false);
+		        //timeToGo is milisecods, speed is / hour
+		        final double speed = phase.timeToGo<=0 ? 0. : 3600*1000*(good)/phase.timeToGo;
+		        phase.setAmount(am.getAttribute("Resource"), speed, waste);  
+		    }
+		    _originalPhases.add(phase);
+		}			
 
-		if (counter == 0) {
-			log.warn("no job phases were added from "+fileName);
-			return null;
+
+		if (_originalPhases.size() == 0) {
+		    log.warn("no job phases were added from "+fileName);
+		    return null;
 		}
-		log.debug("created new job from "+fileName+" with "+counter+" job phases.");
+		log.debug("created new job from "+fileName+" with "+_originalPhases.size()+" job phases.");
 		return _originalPhases;
 	}
 	
@@ -166,7 +155,7 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 	 */
 	private void randomizeJobPhases(double randomTime)
 	{
-		if (randomTime > 0.0)
+		if (randomTime > 0.0 && _jobPhases!=null)
 		{
 			for (int i=0;i<_jobPhases.size();i++)
 			{
@@ -184,15 +173,15 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
      * @return EnumQueueEntryStatus the final status of the queuentry 
      */
     protected void initializeProcessDoc(JDFDoc doc, JDFQueueEntry qe) {
-        super.initializeProcessDoc(doc, qe);        
-         _jobPhases = resumeQueueEntry(qe);
+        _jobPhases = resumeQueueEntry(qe);
         if (_jobPhases == null)  {
-            _jobPhases = loadJobFromFile("./config/job_"+_devProperties.getDeviceID()+".xml");
+            _jobPhases = loadJobFromFile(_devProperties.getAppDir()+"/config/job_"+_devProperties.getDeviceID()+".xml");
             randomizeJobPhases(10.0);
         }
         if (_jobPhases == null)  {
             _jobPhases=new ArrayList<JobPhase>();
         }
+        super.initializeProcessDoc(doc, qe);        
     }
 
 		

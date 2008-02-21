@@ -3,20 +3,26 @@
 	<JobPhase Duration="2000"
 		DeviceStatus="Setup" DeviceStatusDetails="WarmingUp" 
 		NodeStatus="Setup" NodeStatusDetails="node setup">
-		<Amount Resource="Component" Good="0" Waste="0" />
-		<Amount Resource="UsageCounter" Good="0" Waste="0" />
+		<Amount Resource="Component:Output" Amount="0" />
+		<Amount Resource="Media:Input" Amount="0"  />
 		</JobPhase>
-	<JobPhase Duration="5000" 
+	<JobPhase Duration="2000"
+		DeviceStatus="Setup" DeviceStatusDetails="Waste" 
+		NodeStatus="Setup" NodeStatusDetails="node setup">
+		<Amount Resource="Component:Output" Amount="10" Waste="true"/>
+		<Amount Resource="Media:Input" Amount="40" Waste="true" />
+		</JobPhase>
+	<JobPhase Duration="10000" 
 		DeviceStatus="Running" DeviceStatusDetails="Good" 
 		NodeStatus="InProgress" NodeStatusDetails="producing node">
-		<Amount Resource="Component" Good="120" Waste="0" />
-		<Amount Resource="Media" Good="480" Waste="0" />
+		<Amount Resource="Component:Output" Amount="40" />
+		<Amount Resource="Media:Input" Amount="160"  />
 		</JobPhase>
 	<JobPhase Duration="2000" 
 		DeviceStatus="Cleanup" DeviceStatusDetails="WashUp" 
 		NodeStatus="Cleanup" NodeStatusDetails="cleaning up">
-				<Amount Resource="Component" Good="0" Waste="0" />
-				<Amount Resource="Media" Good="0" Waste="0" />
+		<Amount Resource="Component:Output" Amount="0" />
+		<Amount Resource="Media:Input" Amount="0"  />
 				</JobPhase>
 
 </BambiJob>

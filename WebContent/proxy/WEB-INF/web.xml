@@ -10,17 +10,30 @@
 		<param-value>2</param-value>
 	</context-param>
 	<servlet>
-		<servlet-name>Bambi</servlet-name>
+		<servlet-name>Proxy</servlet-name>
 		<servlet-class>org.cip4.bambi.proxy.ProxyServlet</servlet-class>
 		<load-on-startup>10</load-on-startup>
 	</servlet>
-	<servlet-mapping>
-		<servlet-name>Bambi</servlet-name>
+		<servlet-mapping>
+		<servlet-name>Proxy</servlet-name>
 		<url-pattern>/overview/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-		<servlet-name>Bambi</servlet-name>
+		<servlet-name>Proxy</servlet-name>
+		<url-pattern>/showDevice/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Proxy</servlet-name>
+		<url-pattern>/showQueue/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Proxy</servlet-name>
 		<url-pattern>/devices/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<!-- entrance point for showing JDF File info -->
+		<servlet-name>Proxy</servlet-name>
+		<url-pattern>/showJDF/*</url-pattern>
 	</servlet-mapping>
 	<session-config>
 		<session-timeout>120</session-timeout>

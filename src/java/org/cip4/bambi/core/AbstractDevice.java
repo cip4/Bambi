@@ -482,6 +482,8 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
      * @return the StatusListener
      */
     public IStatusListener getStatusListener(int i) {
+        if(i>=_deviceProcessors.size())
+            return null;
         return _deviceProcessors.get(i).getStatusListener();
     }
 
@@ -565,6 +567,15 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
     public String getDeviceURL()
     {
         return _devProperties.getDeviceURL();
+    }
+
+    /**
+     * @return
+     */
+    public int activeProcessors()
+    {
+        // TODO Auto-generated method stub
+        return _deviceProcessors.size();
     }
 
  }

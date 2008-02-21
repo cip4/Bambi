@@ -74,10 +74,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.IQueueProcessor;
+import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
@@ -170,11 +172,12 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             
             phase.setAttribute("Type", typ);
             phase.copyAttribute(AttributeName.DESCRIPTIVENAME, node, null, null, null);
-                       
-            int siz=_trackResource==null ? 0 : 1;
+            
+            JDFResourceLink rls[]=sc.getAmountLinks();
+            int siz=rls==null ? 0 : rls.length;
             for(int i=0;i<siz;i++)
             {
-                addAmount(phase,null);
+                addAmount(phase,rls[i].getrRef(),rls[i].getLinkedResourceName());
             }
         }
 
@@ -182,18 +185,25 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         /**
          * @param string
          */
-        private void addAmount(KElement jp, String resID)
+        private void addAmount(KElement jp, String resID, String resName)
         {
             if(jp==null)
                 return;
             StatusCounter sc=_statusListener.getStatusCounter();
+            final double phaseAmount = sc.getPhaseAmount(resID);
+            final double totalAmount = sc.getTotalAmount(resID);
+            final double totalWaste = sc.getTotalWaste(resID);
+            final double phaseWaste = sc.getPhaseWaste(resID);
 
-            KElement amount=jp.appendElement(BambiNSExtension.MY_NS_PREFIX+"PhaseAmount",BambiNSExtension.MY_NS);
-            amount.setAttribute("ResourceName", resID);
-            amount.setAttribute("PhaseAmount", sc.getPhaseAmount(resID),null);
-            amount.setAttribute("PhaseWaste", sc.getPhaseWaste(resID),null);
-            amount.setAttribute("TotalAmount", sc.getTotalAmount(resID),null);
-            amount.setAttribute("TotalWaste", sc.getTotalWaste(resID),null);
+            if(phaseAmount+phaseWaste+totalAmount+totalWaste>0)
+            {
+                KElement amount=jp.appendElement(BambiNSExtension.MY_NS_PREFIX+"PhaseAmount",BambiNSExtension.MY_NS);
+                amount.setAttribute("ResourceName", resName);
+                amount.setAttribute("PhaseAmount", phaseAmount,null);
+                amount.setAttribute("PhaseWaste", phaseWaste,null);
+                amount.setAttribute("TotalAmount", totalAmount,null);
+                amount.setAttribute("TotalWaste", totalWaste,null);
+            }
         }
     }   
     
@@ -292,6 +302,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
      */
     protected void initializeProcessDoc(JDFDoc doc, JDFQueueEntry qe)
     {
+        currentQE=new QueueEntry(doc,qe);
         _queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Running,null,null);
     }
 
@@ -331,6 +342,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         }
         _statusListener.setNode(null, null, null, null, null);
         _queueProcessor.updateEntry(currentQE.getQueueEntry(), qes, null, null);
+        currentQE.getQueueEntry().removeAttribute(AttributeName.DEVICEID);
         currentQE=null;
         return true;
     }

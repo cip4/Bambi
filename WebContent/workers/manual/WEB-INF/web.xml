@@ -14,11 +14,6 @@
 		<servlet-class>org.cip4.bambi.workers.manual.ManualWorkerServlet</servlet-class>
 		<load-on-startup>10</load-on-startup>
 	</servlet>
-	<servlet>
-		<servlet-name>QueueEntryController</servlet-name>
-		<servlet-class>org.cip4.bambi.workers.core.QEControllerServlet</servlet-class>
-		<load-on-startup>20</load-on-startup>
-	</servlet>
 	<servlet-mapping>
 		<servlet-name>ManualWorkerServlet</servlet-name>
 		<url-pattern>/overview/*</url-pattern>

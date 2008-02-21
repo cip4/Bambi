@@ -1,18 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <BambiJob>
-	<JobPhase Duration="7500" Good="0" Waste="0" 
+<JobPhase Duration="2000"
 		DeviceStatus="Setup" DeviceStatusDetails="WarmingUp" 
-		NodeStatus="Setup" NodeStatusDetails="node setup" />
-	<JobPhase Duration="15000" Good="120" Waste="0" 
+		NodeStatus="Setup" NodeStatusDetails="node setup">
+		<Amount Resource="Component:Output" Amount="0" />
+		<Amount Resource="Media:Input" Amount="0"  />
+		<Amount Resource="UsageCounter:Input" Amount="0"  />
+		</JobPhase>
+	<JobPhase Duration="2000"
+		DeviceStatus="Setup" DeviceStatusDetails="Waste" 
+		NodeStatus="Setup" NodeStatusDetails="node setup">
+		<Amount Resource="Component:Output" Amount="10" Waste="true"/>
+		<Amount Resource="Media:Input" Amount="40" Waste="true" />
+		<Amount Resource="UsageCounter:Input" Amount="80"  />
+		</JobPhase>
+	<JobPhase Duration="10000" 
 		DeviceStatus="Running" DeviceStatusDetails="Good" 
-		NodeStatus="InProgress" NodeStatusDetails="producing good" />
-	<JobPhase Duration="8000" Good="0" Waste="80" 
-		DeviceStatus="Running" DeviceStatusDetails="Waste" 
-		NodeStatus="InProgress" NodeStatusDetails="producing waste" />
-	<JobPhase Duration="12000" Good="90" Waste="0" 
-		DeviceStatus="Running" DeviceStatusDetails="Good" 
-		NodeStatus="InProgress" NodeStatusDetails="producing good" />
-	<JobPhase Duration="5000" Good="0" Waste="0" 
+		NodeStatus="InProgress" NodeStatusDetails="producing node">
+		<Amount Resource="Component:Output" Amount="40" />
+		<Amount Resource="Media:Input" Amount="160"  />
+		<Amount Resource="UsageCounter:Input" Amount="320"  />
+		</JobPhase>
+	<JobPhase Duration="2000" 
 		DeviceStatus="Cleanup" DeviceStatusDetails="WashUp" 
-		NodeStatus="Cleanup" NodeStatusDetails="cleaning up" />
+		NodeStatus="Cleanup" NodeStatusDetails="cleaning up">
+		<Amount Resource="Component:Output" Amount="0" />
+		<Amount Resource="Media:Input" Amount="0"  />
+		<Amount Resource="UsageCounter:Input" Amount="0"  />
+	</JobPhase>
 </BambiJob>

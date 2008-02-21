@@ -214,7 +214,14 @@ public class MultiDeviceProperties
          */
         public File getBaseDir()
         {
-            return getRootFile("BaseDir");
+            File fBase=getAppDir();
+            File f= getRootFile("BaseDir");
+            return FileUtil.concat(fBase, f);
+        }
+        
+        public File getAppDir()
+        {
+            return getRootFile("AppDir");
         }
 
 
@@ -226,9 +233,7 @@ public class MultiDeviceProperties
         {
             File fBase=getBaseDir();
             File f= getFile("JDFDir");
-            if(f!=null && f!=null)
-                f=new File(fBase+File.separator+f);
-            return f;
+            return FileUtil.concat(fBase, f);
         }
 
 
@@ -307,15 +312,18 @@ public class MultiDeviceProperties
      * @param appDir     the location of the web application in the server
      * @param configFile the config file
      */
-    public MultiDeviceProperties(File configFile) {
+    public MultiDeviceProperties(File baseDir, File configFile) {
 
         JDFParser p = new JDFParser();
-        XMLDoc doc = p.parseFile(configFile);
+        XMLDoc doc = p.parseFile(FileUtil.concat(baseDir,configFile));
         root = doc==null ? null : doc.getRoot();
         if (root==null) {
             log.fatal( "failed to parse "+configFile+", root is null" );
         }
-
+        else
+        {
+            root.setAttribute("AppDir", baseDir.getAbsolutePath());
+        }
     }
 
     /* (non-Javadoc)
@@ -344,19 +352,26 @@ public class MultiDeviceProperties
     /**
      * @return
      */
+    public File getAppDir()
+    {
+        return getRootFile("AppDir");
+    }
+    
     public File getBaseDir()
     {
-        // TODO Auto-generated method stub
-        return null;
-    }
+        File fBase=getAppDir();
+        File f= getRootFile("BaseDir");
+        return FileUtil.concat(fBase, f);
+     }
 
     /**
      * @return
      */
     public File getJDFDir()
     {
-        // TODO Auto-generated method stub
-        return null;
+        File fBase=getBaseDir();
+        File f= getRootFile("JDFDir");
+        return FileUtil.concat(fBase, f);
     }
 
     /**

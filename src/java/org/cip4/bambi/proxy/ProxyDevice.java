@@ -72,27 +72,23 @@
 package org.cip4.bambi.proxy;
 
 import java.io.File;
-import java.net.URL;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
-import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.messaging.IMessageHandler;
-import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
-import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFRequestQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
@@ -144,8 +140,8 @@ public class ProxyDevice extends AbstractDevice {
             // submit a specific QueueEntry
             IQueueEntry iqe = _theQueueProcessor.getQueueEntry(nid);
             JDFQueueEntry qe =iqe==null ? null : iqe.getQueueEntry();
-            if (qe!=null && EnumQueueEntryStatus.Waiting.equals( qe.getQueueEntryStatus() )
-                    && qe.getDeviceID()==null) {
+            if (qe!=null && EnumQueueEntryStatus.Waiting.equals( qe.getQueueEntryStatus() ) && KElement.isWildCard(qe.getDeviceID())) {
+                qe.setDeviceID(m.getSenderID());
                 submitQueueEntry(iqe, queueURL);
             } else {
                 String qeStatus = qe==null ? "null" : qe.getQueueEntryStatus().getName();
@@ -320,6 +316,13 @@ public class ProxyDevice extends AbstractDevice {
 
     }
 
+    @Override
+    protected void addHandlers() {
+        super.addHandlers();
+        _jmfHandler.addHandler( this.new RequestQueueEntryHandler() );
+        _jmfHandler.addHandler( this.new ReturnQueueEntryHandler() );
+    }
+
     /**
      * @param iqe
      * @param queueURL
@@ -327,7 +330,7 @@ public class ProxyDevice extends AbstractDevice {
      */
     public void submitQueueEntry(IQueueEntry iqe, String queueURL)
     {
-        ProxyDeviceProcessor pdp=new ProxyDeviceProcessor(this,iqe,queueURL);
+        ProxyDeviceProcessor pdp=new ProxyDeviceProcessor(this,_theQueueProcessor,iqe,queueURL);
         addProcessor(pdp);        
     }
 

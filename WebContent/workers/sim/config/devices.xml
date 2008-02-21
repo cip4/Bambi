@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<application BaseDir="./jmb/" JDFDir="./jmb/JDFDir/">
+<application BaseDir="jmb/" JDFDir="JDFDir/">
   <Device DeviceID="sim001" DeviceType="Bambi Sim Device"
   	ProxyURL="http://127.0.0.1:8080/BambiProxy/devices/proxy001" 
   	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/sim001" 

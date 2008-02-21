@@ -219,7 +219,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		ServletContext context = config.getServletContext();
 		log.info( "Initializing servlet for "+context.getServletContextName() );
 //		String appDir=context.getRealPath("")+"/";
-		loadProperties(new File(context.getRealPath("")+"/config/devices.xml"));
+		loadProperties(context,new File("/config/devices.xml"));
 				
         // jmf handlers
 		_jmfHandler=new JMFHandler();
@@ -484,9 +484,9 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 	 * @param fileName the name of the Java .propert file
 	 * @return true, if the properties have been loaded successfully
 	 */
-	protected void loadProperties(File config)
+	protected void loadProperties(ServletContext context, File config)
 	{
-		MultiDeviceProperties props=new MultiDeviceProperties(config);
+		MultiDeviceProperties props=new MultiDeviceProperties(new File(context.getRealPath("")),config);
         createDevices(props);
 	}
 	

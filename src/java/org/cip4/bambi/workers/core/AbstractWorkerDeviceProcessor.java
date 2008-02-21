@@ -88,6 +88,7 @@ import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.core.queues.QueueEntry;
+import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase.PhaseAmount;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
@@ -143,6 +144,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             protected double speed=0;
 
             protected String resource="Output";
+            protected String resourceName="Output";
             /**
              * @param resName
              * @param good
@@ -151,13 +153,13 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
              */
             public PhaseAmount(String resName,  double _speed, boolean condition)
             {
-                resource=resName;
+                resource=resourceName=resName;
                 bGood=condition;
                 speed=_speed;
             }
             public String toString()
             {
-                return "[ "+resource+(bGood ? " G: ":" W: ")+"Speed: "+speed+"]";
+                return "[ "+resourceName+" "+resource+(bGood ? " G: ":" W: ")+"Speed: "+speed+"]";
             }
             /**
              * @param res 
@@ -165,7 +167,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
              */
             public boolean matchesRes(String res)
             {
-                return resource.equals(res);
+                return resource.equals(res)||resourceName.equals(res);
             }
 
 
@@ -289,7 +291,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             VString v=new VString();
             for(int i=0;i<amounts.size();i++)
             {
-                v.add(amounts.elementAt(i).resource);
+                v.add(amounts.elementAt(i).resourceName);
             }
             return v;
         }
@@ -338,6 +340,22 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             if(!getOutput_Condition(resource))
                 return 0;
             return getOutput(resource, i);
+        }
+
+        /**
+         * update the abstract resourcelink names with real idref values from the link
+         * @param rl
+         */
+        public void updateAmountLinks(JDFResourceLink rl)
+        {
+            if(rl==null || amounts==null)
+                return;
+            for(int i=0;i<amounts.size();i++)
+            {
+                PhaseAmount pa=amounts.get(i);
+                if(rl.matchesString(pa.resource))
+                    pa.resource=rl.getrRef();
+            }           
         }
     }
 
@@ -426,32 +444,6 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         return _jobPhases;
     }
 
-    protected static boolean isMatchingLink(JDFResourceLink li,  String resName)
-    {
-        if(resName==null)
-            return false;
-
-        boolean bIsLink = resName.equals(li.getNamedProcessUsage());
-        // 200602 RP added fix
-        if(!bIsLink)
-        {
-            bIsLink = resName.equals(li.getLinkedResourceName());
-        }
-
-        // 230802 RP added check for ID in vRWResources
-        if(!bIsLink)
-        {
-            bIsLink = resName.equals(li.getrRef());
-        }
-
-        // 040902 RP added check for Usage in vRWResources
-        if(!bIsLink)
-        {
-            bIsLink = resName.equals(li.getAttribute(AttributeName.USAGE));
-        }
-        return bIsLink;
-    }
-
     /**
      * remember where we stopped, so we can resume later
      * @param queueEntryID the ID of the queue we are talking about
@@ -502,9 +494,23 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             processPhase();
             lastPhase=_jobPhases.remove(0); // phase(0) is always the active phase
          }
-        EnumQueueEntryStatus qes=lastPhase==null ? null : EnumNodeStatus.getQueueEntryStatus(lastPhase.nodeStatus);
+        if(lastPhase==null)
+            return EnumQueueEntryStatus.Aborted;
+        
+        EnumQueueEntryStatus qes=EnumNodeStatus.getQueueEntryStatus(lastPhase.nodeStatus);
         if(qes==null)
-            qes=EnumQueueEntryStatus.Aborted;
+            return EnumQueueEntryStatus.Aborted;
+        if(lastPhase.timeToGo<=0 && EnumQueueEntryStatus.Running.equals(qes)) // final phase was active
+        {
+            JobPhase finalPhase=new JobPhase();
+            finalPhase.deviceStatus=EnumDeviceStatus.Idle;
+            finalPhase.deviceStatusDetails=null;
+            finalPhase.nodeStatus=EnumNodeStatus.Completed;
+            finalPhase.nodeStatusDetails=null;
+            _jobPhases.add(finalPhase);
+            qes=processDoc(doc, qe); 
+        }
+
         return qes;
     }
 
@@ -516,7 +522,13 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         long deltaT=1000;
         while ( phase.timeToGo>0 ) {
             long t0=System.currentTimeMillis();
-            _statusListener.updateAmount(null, phase.getOutput_Good(_trackResource,(int)deltaT), phase.getOutput_Waste(_trackResource,(int)deltaT));
+            VString names=phase.getAmountResourceNames();
+            for(int i=0;i<names.size();i++)
+            {
+                PhaseAmount pa=phase.getPhaseAmount(names.get(i));
+                if(pa!=null)
+                    _statusListener.updateAmount(pa.resource, phase.getOutput_Good(pa.resource,(int)deltaT), phase.getOutput_Waste(pa.resource,(int)deltaT));
+            }
             _statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails,phase.nodeStatus,phase.nodeStatusDetails);
 
             randomErrors(phase);
@@ -553,10 +565,6 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             log.error("proccessing null job");
             return;
         }
-        currentQE=new QueueEntry(doc,qe);
-        if ( _jobPhases==null ) {
-            _jobPhases = new ArrayList<JobPhase>();
-        }
         qe.setDeviceID( _devProperties.getDeviceID() );
         final String queueEntryID = qe.getQueueEntryID();
         log.info("Processing queueentry "+queueEntryID);
@@ -573,14 +581,19 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         String inConsume=null;
         String outQuantity=null;
         String trackResourceID=null;
+        int jobPhaseSize=_jobPhases==null ? 0 : _jobPhases.size();
         if (vResLinks!=null) {
             int vSiz=vResLinks.size();
             for (int i = 0; i < vSiz; i++) {
                 JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
-                if(isMatchingLink(rl, _trackResource))
+                if(trackResourceID==null && rl.matchesString(_trackResource))
                 {
                     trackResourceID=rl.getrRef();
-                    break; // gotcha
+                }
+                for(int j=0;j<jobPhaseSize;j++)
+                {
+                    JobPhase jp=_jobPhases.get(j);
+                    jp.updateAmountLinks(rl);
                 }
             }
 

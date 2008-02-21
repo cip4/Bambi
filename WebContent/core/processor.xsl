@@ -15,31 +15,28 @@ Description: <xsl:value-of select="@DescriptiveName"/><br/>
 Start Time: <xsl:value-of select="@StartTime"/><br/>
 
 <h2>Resources:</h2>
+<table>
+<tr>
+<th>Type</th><th>Phase Amount</th><th>Phase Waste</th><th>Total Amount</th><th>Total Waste</th>
+</tr>
+
 <xsl:apply-templates select="bambi:PhaseAmount"/>
+
+</table>
 </xsl:if>
 </xsl:template>
 
 <!--   ///////////////////////////////////////////////// -->
 
 <xsl:template match="bambi:PhaseAmount">
-<h3>Resource: <xsl:value-of select="@ResourceName"/> </h3>
-<table>
-<th>
-<td>Type</td><td>Amount</td>
-</th>
 <tr>
-<td>Phase Amount</td><td><xsl:value-of select="@PhaseAmount"/></td>
+<td><xsl:value-of select="@ResourceName"/></td>
+<td><xsl:value-of select="@PhaseAmount"/></td>
+<td><xsl:value-of select="@PhaseWaste"/></td>
+<td><xsl:value-of select="@TotalAmount"/></td>
+<td><xsl:value-of select="@TotalWaste"/></td>
 </tr>
-<tr>
-<td>Phase Waste</td><td><xsl:value-of select="@PhaseWaste"/></td>
-</tr>
-<tr>
-<td>Total Amount</td><td><xsl:value-of select="@TotalAmount"/></td>
-</tr>
-<tr>
-<td>Total Waste</td><td><xsl:value-of select="@TotalWaste"/></td>
-</tr>
-</table>
+
 
 </xsl:template>
 
