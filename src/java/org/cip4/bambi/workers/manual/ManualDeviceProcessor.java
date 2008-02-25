@@ -97,19 +97,7 @@ public class ManualDeviceProcessor extends AbstractWorkerDeviceProcessor
 		super();
 	}
 	
-	private JobPhase initFirstPhase() {
-        log.info("initializing first phase");
-		JobPhase firstPhase = new JobPhase();
-		firstPhase.deviceStatus=EnumDeviceStatus.Setup;
-		firstPhase.deviceStatusDetails="Setup";
-		firstPhase.nodeStatus=EnumNodeStatus.Setup;
-		firstPhase.nodeStatusDetails="Setup";
-        firstPhase.timeToGo=Integer.MAX_VALUE;
-        firstPhase.setAmount(_trackResource, 0, false);
-        return firstPhase;
-        
-	}
-    /**
+	/**
      * @param doc the jdfdoc to process
      * @param qe the queueentry to process
      * @return EnumQueueEntryStatus the final status of the queuentry 
@@ -121,15 +109,9 @@ public class ManualDeviceProcessor extends AbstractWorkerDeviceProcessor
         synchronized (_jobPhases)
         {
             _jobPhases.clear();
-            initFirstPhase();
-            _jobPhases.add(initFirstPhase());            
+             _jobPhases.add(initFirstPhase());            
         }
  	}
 	
-	@Override
-	public void init(IQueueProcessor queueProcessor,StatusListener statusListener, IDeviceProperties devProperties) {
-		super.init(queueProcessor, statusListener, devProperties);
-		initFirstPhase();
-	}
 
 }

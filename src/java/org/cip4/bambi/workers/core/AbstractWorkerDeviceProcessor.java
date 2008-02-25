@@ -648,8 +648,25 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
     public void doNextPhase(JobPhase nextPhase)
     {
         JobPhase lastPhase=getCurrentJobPhase();
+        int pos=0;
         if(lastPhase!=null)
+        {
             lastPhase.timeToGo=0;
-        _jobPhases.add(nextPhase);
+            pos=1;
+        }
+        _jobPhases.add(pos,nextPhase);
+    }
+
+    protected JobPhase initFirstPhase() {
+        log.info("initializing first phase");
+    	JobPhase firstPhase = new JobPhase();
+    	firstPhase.deviceStatus=EnumDeviceStatus.Setup;
+    	firstPhase.deviceStatusDetails="Setup";
+    	firstPhase.nodeStatus=EnumNodeStatus.Setup;
+    	firstPhase.nodeStatusDetails="Setup";
+        firstPhase.timeToGo=Integer.MAX_VALUE/2;
+        firstPhase.setAmount(_trackResource, 0, false);
+        return firstPhase;
+        
     }
 }

@@ -71,14 +71,14 @@
 
 package org.cip4.bambi;
 
-import org.cip4.bambi.core.messaging.IResponseHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.omg.CORBA.portable.ResponseHandler;
 
-public class AsyncMessagingTest extends BambiTestCase implements IResponseHandler {
+public class AsyncMessagingTest extends BambiTestCase implements ResponseHandler {
 	protected VString messageIDs=null;
 	
 	@Override

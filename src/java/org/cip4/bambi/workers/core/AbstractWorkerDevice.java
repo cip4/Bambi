@@ -89,6 +89,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StatusCounter;
 
 
 /**
@@ -214,6 +215,69 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
     public JobPhase getCurrentJobPhase()
     {
     	return ((AbstractWorkerDeviceProcessor)_deviceProcessors.get(0)).getCurrentJobPhase();
+    }
+
+
+    /**
+     * build a new job phase with info from a given request. 
+     * JobPhase parameter 'timeToGo' will remain with its default value 0, since it
+     * is not used in the context of ManualDevice.doNextJobPhase()
+     * @param request request to get the job phase info from
+     * @return the new JobPhase
+     */
+    private JobPhase buildJobPhaseFromRequest(HttpServletRequest request) {
+        JobPhase newPhase = new JobPhase();
+        newPhase.timeToGo=Integer.MAX_VALUE; // until modified...
+    
+        String status = request.getParameter("DeviceStatus");
+        if (status != null) {
+            newPhase.deviceStatus = EnumDeviceStatus.getEnum( status );
+        }
+        newPhase.deviceStatusDetails = request.getParameter("DeviceStatusDetails");
+    
+        status = request.getParameter("NodeStatus");
+        if (status != null) {
+            newPhase.nodeStatus = EnumNodeStatus.getEnum(status);
+            if(EnumNodeStatus.Aborted.equals(newPhase.nodeStatus)||EnumNodeStatus.Completed.equals(newPhase.nodeStatus)||EnumNodeStatus.Suspended.equals(newPhase.nodeStatus))
+                newPhase.timeToGo=0;
+                
+        }
+        newPhase.nodeStatusDetails = request.getParameter("NodeStatusDetails");
+    
+        newPhase.setAmount(getTrackResource(), 
+                AbstractBambiServlet.getDoubleFromRequest(request, "Speed0"),
+                !AbstractBambiServlet.getBooleanFromRequest(request, "Waste0") );
+        JobPhase current=getCurrentJobPhase();
+        if(request.getParameter(AttributeName.DURATION)!=null)
+            newPhase.setTimeToGo(1000*(int)AbstractBambiServlet.getDoubleFromRequest(request, AttributeName.DURATION));
+        else if(current!=null)
+            newPhase.setTimeToGo(current.getTimeToGo());
+            
+        
+        return newPhase;
+    }
+
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
+     */
+    public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
+    {
+        if(AbstractBambiServlet.isMyRequest(request,getDeviceID(),"processNextPhase"))       
+        {
+            return processNextPhase(request,response);
+        }
+        return super.handleGet(request, response, context);
+    }
+
+
+    private boolean processNextPhase(HttpServletRequest request, HttpServletResponse response) {
+    
+        JobPhase nextPhase = buildJobPhaseFromRequest(request);
+        ((AbstractWorkerDeviceProcessor)_deviceProcessors.get(0)).doNextPhase(nextPhase);
+        StatusCounter.sleep(1000); // allow device to switch phases before displaying page
+        showDevice(response);
+        return true;
     }
 
 }

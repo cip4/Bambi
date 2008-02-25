@@ -14,14 +14,14 @@
 		<link rel="stylesheet" type="text/css" href="../css/styles_pc.css"/>
 		<link rel="icon" href="../favicon.ico" type="image/x-icon" />
 		<title>Bambi - Simulation Device :<xsl:value-of select="$deviceID"/></title>
-		<h1>Bambi - Simulation Device :<xsl:value-of select="$deviceID"/></h1>
 	</head>
  	<body>
-		
+		<h1>Bambi - Simulation Device :<xsl:value-of select="$deviceID"/></h1>
 		<p align="center">
  			<a><xsl:attribute name="href">
  			../showDevice/<xsl:value-of select="$deviceID"/>
- 			</xsl:attribute>reload this page</a> 
+ 			</xsl:attribute>reload this page</a> <br/>
+		<img src="../bambi.jpg" border="2" width="68" height="100" alt="BambiPic"/>
 		</p>
 
 <!--  device info section   -->

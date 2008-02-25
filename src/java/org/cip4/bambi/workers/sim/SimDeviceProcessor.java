@@ -124,7 +124,7 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 		    phase.deviceStatusDetails = phaseElement.getXPathAttribute("@DeviceStatusDetails", "");
 		    phase.nodeStatus = EnumNodeStatus.getEnum(phaseElement.getXPathAttribute("@NodeStatus", "Waiting"));
 		    phase.nodeStatusDetails = phaseElement.getXPathAttribute("@NodeStatusDetails", "");
-		    phase.timeToGo = StringUtil.parseInt( phaseElement.getXPathAttribute("@Duration", "0"), 0 );
+		    phase.timeToGo = 1000 * StringUtil.parseInt( phaseElement.getXPathAttribute("@Duration", "0"), 0 );
 		    phase.errorChance = StringUtil.parseInt( phaseElement.getXPathAttribute("@Error", "0"), 0 );
 		    VElement vA=phaseElement.getChildElementVector("Amount", null);
 		    for(int j=0;j<vA.size();j++)
@@ -178,8 +178,10 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
             _jobPhases = loadJobFromFile(_devProperties.getAppDir()+"/config/job_"+_devProperties.getDeviceID()+".xml");
             randomizeJobPhases(10.0);
         }
+        // we want at least one setup dummy
         if (_jobPhases == null)  {
             _jobPhases=new ArrayList<JobPhase>();
+            _jobPhases.add(initFirstPhase());
         }
         super.initializeProcessDoc(doc, qe);        
     }
@@ -192,16 +194,21 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
     @Override
     protected void randomErrors(JobPhase phase)
     {
+        if(phase==null)
+            return;
+        
         if(phase.errorChance>0 && Math.random()<phase.errorChance){
             JobPhase errorPhase=new JobPhase();
             errorPhase.deviceStatus=EnumDeviceStatus.Down;
-            errorPhase.deviceStatusDetails="Randomly inserted error";
+            errorPhase.deviceStatusDetails=StringUtil.getRandomString();
             errorPhase.nodeStatus=EnumNodeStatus.Stopped;
-            errorPhase.nodeStatusDetails="Randomly inserted error";
+            errorPhase.nodeStatusDetails=StringUtil.getRandomString();
+            errorPhase.setTimeToGo((int)(10000*Math.random()+phase.getTimeToGo()*Math.random()));
             _jobPhases.add(1, errorPhase);
             _jobPhases.add(2,(JobPhase)phase.clone());
             phase.timeToGo=0;               
         }        
     }
+}
 
- }
+ 

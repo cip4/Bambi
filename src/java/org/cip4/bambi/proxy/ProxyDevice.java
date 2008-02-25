@@ -145,16 +145,13 @@ public class ProxyDevice extends AbstractDevice {
             if (qe!=null && EnumQueueEntryStatus.Waiting.equals( qe.getQueueEntryStatus() ) && KElement.isWildCard(qe.getDeviceID())) {
                 qe.setDeviceID(m.getSenderID());
                 submitQueueEntry(iqe, queueURL);
-            } else if qe==null {
-                JMFHandler.errorResponse(resp, "No QueueEntry is available for request"+qeStatus, 108);
-                return true;
+            } else if (qe==null) {
+                JMFHandler.errorResponse(resp, "No QueueEntry is available for request", 108);
             } else  {
                 String qeStatus = qe.getQueueEntryStatus().getName();
                 JMFHandler.errorResponse(resp, "requested QueueEntry is "+qeStatus, 106);
-                return true;
             }
             return true;
-
         }
 
         /* (non-Javadoc)
@@ -199,7 +196,7 @@ public class ProxyDevice extends AbstractDevice {
             return true;
         }
 
- 
+
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#getFamilies()
          */
@@ -238,7 +235,7 @@ public class ProxyDevice extends AbstractDevice {
             return b; // handled if any was ok
         }
 
- 
+
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#getFamilies()
          */
@@ -259,7 +256,7 @@ public class ProxyDevice extends AbstractDevice {
 ///////////////////////////////////////////////////////////////////////////////////
 
     //////////////////////////////////////////////////////////////////
-    
+
     protected class ReturnHFListner implements QueueHotFolderListener
     {
         private EnumQueueEntryStatus hfStatus;
@@ -270,13 +267,13 @@ public class ProxyDevice extends AbstractDevice {
         {
             hfStatus=status;
         }
-    
+
         public void submitted(JDFJMF submissionJMF)
         {
             log.info("ReturnHFListner:submitted");
             JDFCommand command=submissionJMF.getCommand(0);
             JDFReturnQueueEntryParams rqp=command.getReturnQueueEntryParams(0);
-    
+
             JDFDoc doc=rqp==null ? null : rqp.getURLDoc();
             if(doc==null)
             {
@@ -290,7 +287,7 @@ public class ProxyDevice extends AbstractDevice {
                     log.warn("could not process JDF File");
                     return;
                 }
-    
+
                 // assume the root was the executed baby...
                 rqp.setAttribute(hfStatus.getName(), n.getID());
                 // let the standard returnqe handler do the work
@@ -314,7 +311,7 @@ public class ProxyDevice extends AbstractDevice {
                 }
             }        
         }
-    
+
         /**
          * @param submissionJMF
          */
@@ -388,7 +385,7 @@ public class ProxyDevice extends AbstractDevice {
     }
 
 
-    
+
     /**
      * remove a processor from the list of active processors
      * @param processor
@@ -402,9 +399,9 @@ public class ProxyDevice extends AbstractDevice {
             statusContainer.removeModule(statusListener.getStatusCounter());
         // zapp the subscription that we added for listening to the device
         //TODO _parent.getSignalDispatcher().removeSubScription(channelID);
-        
+
     }
-    
+
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
      */
@@ -413,7 +410,7 @@ public class ProxyDevice extends AbstractDevice {
         // TODO - dynamically grab with knowndevices
         return _devProperties.getSlaveDeviceID();
     }
-  
+
     /**
      * gets the device processor for a given queuentry
      * @param queueEntryID - if null use any
@@ -489,7 +486,7 @@ public class ProxyDevice extends AbstractDevice {
             ProxyDeviceProcessor proc=(ProxyDeviceProcessor) aProc;
             final String slaveQEID=proc.getSlaveQEID();
             if(outQEID.equals(slaveQEID))
-                 return proc.getCurrentQE().getQueueEntryID();                
+                return proc.getCurrentQE().getQueueEntryID();                
         }
         return null;
     }
