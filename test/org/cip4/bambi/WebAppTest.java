@@ -3,7 +3,7 @@
 * The CIP4 Software License, Version 1.0
 *
 *
-* Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+* Copyright (c) 2001-2008 The International Cooperation for the Integration of 
 * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
 * reserved.
 *
@@ -89,7 +89,7 @@ public class WebAppTest extends BambiTestCase {
 		
 		for (int i=0;i<urls.size();i++) {
 			String url=urls.get(i);
-			JDFResponse resp=JMFFactory.send2URL(jmfStatus, url);
+			JDFResponse resp=JMFFactory.send2URLSynch(jmfStatus, url,null);
 			assertNotNull( resp );
 			JDFDeviceInfo di=resp.getDeviceInfo(0);
 			assertNotNull( di );

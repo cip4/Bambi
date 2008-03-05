@@ -46,7 +46,7 @@
        <td colspan="2" nowrap="true">
       <!-- calls the optionList -->
 <form>
-<xsl:attribute name="action">../modifyQE/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+<xsl:attribute name="action">../modifyQE/<xsl:value-of select="../@DeviceID" /></xsl:attribute>
 
          <xsl:apply-templates/>
   <input type="hidden" name="qeID">
@@ -56,7 +56,7 @@
 			   </form>
          </td>
       <td nowrap="true">
-     <a><xsl:attribute name="href">../showJDF/<xsl:value-of select="@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
+     <a><xsl:attribute name="href">../showJDF/<xsl:value-of select="../@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
        Show JDF: <xsl:value-of select="@QueueEntryID"/> </a>
          </td>
 	</tr>

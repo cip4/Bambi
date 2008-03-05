@@ -263,7 +263,13 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     {
         currentQE=_queueProcessor.getNextEntry();
         if(currentQE==null)
+        {
+            if (_parent!=null) 
+            {
+                _parent.sendRequestQueueEntry();
+            }
             return false;
+        }
         JDFQueueEntry qe=currentQE.getQueueEntry();         
         if(qe==null)
             return false;
@@ -387,6 +393,11 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     public void addToDisplayXML(KElement root)
     {
        this.new XMLDeviceProcessor(root).fill();       
+    }
+    @Override
+    public String toString()
+    {
+        return "Abstract Device Processor: Current Entry: "+(currentQE!=null ? currentQE.getQueueEntry() : "no current entry") + "]";
     }
 
 }

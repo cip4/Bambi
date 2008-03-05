@@ -235,7 +235,9 @@ public final class SignalDispatcher implements ISignalDispatcher
          */
         private void queueMessageInSender(final MsgSubscription sub) {
             String url=sub.getURL();
-            JMFFactory.send2URL(sub.getSignal(), url, null,deviceID);
+            final JDFJMF signalJMF = sub.getSignal();
+            signalJMF.setSenderID(deviceID);
+            JMFFactory.send2URL(signalJMF, url, null,deviceID);
         }
 
         /**

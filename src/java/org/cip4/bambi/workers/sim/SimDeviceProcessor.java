@@ -71,6 +71,7 @@
 
 package org.cip4.bambi.workers.sim;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -78,6 +79,7 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor;
+import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
@@ -105,16 +107,20 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 	 */
 	private List<JobPhase> loadJobFromFile(String fileName)
 	{
-		// if fileName has no file separator it is assumed to be on the server and 
-		// needs the config dir to be added
- 		JDFParser p = new JDFParser();
-		JDFDoc doc = p.parseFile(fileName);
-		if (doc == null) {
-			log.error( fileName+" not found, list of job phases remains empty" );
+	    File f=new File(fileName);
+	    if(!f.canRead())
+	    {
+	        log.info("No preset file :"+fileName);
+	        return null;
+	    }
+	    JDFParser p = new JDFParser();
+	    JDFDoc doc = p.parseFile(fileName);
+	    if (doc == null) {
+	        log.error( fileName+" not found, list of job phases remains empty" );
 			return null;
 		}
 
-		List<JobPhase> _originalPhases = new Vector<JobPhase>();
+		List<JobPhase> phaseList = new Vector<JobPhase>();
 		KElement simJob = doc.getRoot();
 		VElement v = simJob.getXPathElementVector("JobPhase", -1);
 		for (int i = 0; i < v.size(); i++) {
@@ -136,16 +142,18 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 		        final double speed = phase.timeToGo<=0 ? 0. : 3600*1000*(good)/phase.timeToGo;
 		        phase.setAmount(am.getAttribute("Resource"), speed, waste);  
 		    }
-		    _originalPhases.add(phase);
+		    phaseList.add(phase);
 		}			
 
 
-		if (_originalPhases.size() == 0) {
+		if (phaseList.size() == 0) {
 		    log.warn("no job phases were added from "+fileName);
 		    return null;
 		}
-		log.debug("created new job from "+fileName+" with "+_originalPhases.size()+" job phases.");
-		return _originalPhases;
+		log.debug("created new job from "+fileName+" with "+phaseList.size()+" job phases.");
+        randomizeJobPhases(phaseList,simJob.getRealAttribute("RandomFactor", null, 0.0));
+
+		return phaseList;
 	}
 	
 	/**
@@ -153,16 +161,16 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 	 * @param randomTime the given time of each job phase is to vary by ... percent
 	 * @param errorPos random errors to create (as percentage of the total numbers of original job phases)
 	 */
-	private void randomizeJobPhases(double randomTime)
+	private void randomizeJobPhases(List<JobPhase> phases, double randomTime)
 	{
-		if (randomTime > 0.0 && _jobPhases!=null)
+		if (randomTime > 0.0 && phases!=null)
 		{
-			for (int i=0;i<_jobPhases.size();i++)
+			for (int i=0;i<phases.size();i++)
 			{
 				double varyBy = Math.random()*randomTime/100.0;
 				if (Math.random() < 0.5)
 					varyBy *= -1.0;
-				JobPhase phase=_jobPhases.get(i);
+				JobPhase phase=phases.get(i);
 				phase.timeToGo=phase.timeToGo+(int)(phase.timeToGo*varyBy);
 			}
 		}		
@@ -176,7 +184,6 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
         _jobPhases = resumeQueueEntry(qe);
         if (_jobPhases == null)  {
             _jobPhases = loadJobFromFile(_devProperties.getAppDir()+"/config/job_"+_devProperties.getDeviceID()+".xml");
-            randomizeJobPhases(10.0);
         }
         // we want at least one setup dummy
         if (_jobPhases == null)  {
@@ -209,6 +216,7 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
             phase.timeToGo=0;               
         }        
     }
-}
+
+  }
 
  

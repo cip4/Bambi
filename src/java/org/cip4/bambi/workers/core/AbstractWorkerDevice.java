@@ -226,7 +226,9 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
      * @return the new JobPhase
      */
     private JobPhase buildJobPhaseFromRequest(HttpServletRequest request) {
-        JobPhase newPhase = new JobPhase();
+        JobPhase current=getCurrentJobPhase();
+        
+        JobPhase newPhase = (JobPhase) (current==null ? new JobPhase() : current.clone());
         newPhase.timeToGo=Integer.MAX_VALUE; // until modified...
     
         String status = request.getParameter("DeviceStatus");
@@ -247,8 +249,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
         newPhase.setAmount(getTrackResource(), 
                 AbstractBambiServlet.getDoubleFromRequest(request, "Speed0"),
                 !AbstractBambiServlet.getBooleanFromRequest(request, "Waste0") );
-        JobPhase current=getCurrentJobPhase();
-        if(request.getParameter(AttributeName.DURATION)!=null)
+        if(!KElement.isWildCard(request.getParameter(AttributeName.DURATION)))
             newPhase.setTimeToGo(1000*(int)AbstractBambiServlet.getDoubleFromRequest(request, AttributeName.DURATION));
         else if(current!=null)
             newPhase.setTimeToGo(current.getTimeToGo());

@@ -769,15 +769,8 @@ public class QueueProcessor implements IQueueProcessor
      */
     private IQueueEntry getIQueueEntry(JDFQueueEntry qe)
     {
-        if(qe==null) 
-        {
-            if (_parentDevice!=null) 
-            {
-                _parentDevice.sendRequestQueueEntry();
-            }
+        if(qe==null)
             return null;
-        }
-
         String docURL=BambiNSExtension.getDocURL(qe);
         JDFDoc theDoc = JDFDoc.parseURL(docURL, null);
         if (theDoc==null) {

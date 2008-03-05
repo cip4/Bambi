@@ -77,6 +77,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.ISignalDispatcher;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -156,7 +157,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	protected HashMap<MessageType,IMessageHandler> messageMap; // key = type , value = IMessageHandler
 //TODO handle subscriptions
     protected HashMap<EnumType,IMessageHandler> subscriptionMap; // key = type , value = subscriptions handled
-    ISignalDispatcher _signalDispatcher;
+    protected ISignalDispatcher _signalDispatcher;
+    protected String senderID=null;
 	/**
 	 * 
 	 * handler for the knownmessages query
@@ -239,23 +241,26 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		}
 	}
 
-	public JMFHandler()
+	public JMFHandler(IDeviceProperties prop)
 	{
 		super();
 		messageMap=new HashMap<MessageType, IMessageHandler>();
 		subscriptionMap=new HashMap<EnumType, IMessageHandler>();
 		addHandler( this.new KnownMessagesHandler() );
         _signalDispatcher=null;
+        if(prop!=null)
+            senderID=prop.getDeviceID();
 	}
 
-	public JMFHandler(JMFHandler oldHandler)
-	{
-		super();
-		messageMap=new HashMap<MessageType, IMessageHandler>(oldHandler.messageMap);
-		subscriptionMap=new HashMap<EnumType, IMessageHandler>(oldHandler.subscriptionMap);
-		addHandler( this.new KnownMessagesHandler());
-        _signalDispatcher=oldHandler._signalDispatcher;        
-	}
+//	public JMFHandler(JMFHandler oldHandler)
+//	{
+//		super();
+//		messageMap=new HashMap<MessageType, IMessageHandler>(oldHandler.messageMap);
+//		subscriptionMap=new HashMap<EnumType, IMessageHandler>(oldHandler.subscriptionMap);
+//		addHandler( this.new KnownMessagesHandler());
+//        _signalDispatcher=oldHandler._signalDispatcher;     
+//        senderID=oldHandler.senderID;
+//	}
 
 	/**
 	 * add a message handler
@@ -315,7 +320,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
                 if(retCode==0)
                     mResp.deleteNode();
             }
-		}   
+		} 
+        jmfResp.setSenderID(senderID);
 		return jmfResp.getOwnerDocument_JDFElement();
 	}
 

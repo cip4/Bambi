@@ -1,5 +1,6 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" 
 	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi" >
+
 <!--  device processor -->
 <xsl:template match="bambi:Processor">
 <hr/>
@@ -13,6 +14,10 @@ QueueEntryID: <xsl:value-of select="@QueueEntryID"/><br/>
 Node type: <xsl:value-of select="@Type"/><br/>
 Description: <xsl:value-of select="@DescriptiveName"/><br/>
 Start Time: <xsl:value-of select="@StartTime"/><br/>
+Show JDF: <a><xsl:attribute name="href">../showJDF/<xsl:value-of select="../@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
+<xsl:value-of select="@QueueEntryID"/></a>
+
+
 
 <h2>Resources:</h2>
 <table>

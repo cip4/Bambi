@@ -87,11 +87,9 @@ import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.queues.IQueueProcessor;
-import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase.PhaseAmount;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.VElement;
@@ -169,6 +167,14 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             {
                 return resource.equals(res)||resourceName.equals(res);
             }
+            @Override
+            protected Object clone() 
+            {
+                PhaseAmount pa=new PhaseAmount(null,speed,bGood);
+                pa.resource=resource;
+                pa.resourceName=resourceName;
+                return pa;
+            }
 
 
 
@@ -179,6 +185,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         public JobPhase() {
             super();
         }
+
 
         /**
          * status to be displayed for this job phase
@@ -198,7 +205,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
          */
         public int  timeToGo=0;
         public long  timeStarted=System.currentTimeMillis();
-        public double errorChance=0.01;
+        public double errorChance=0.00;
 
 
         @Override
@@ -257,6 +264,11 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             PhaseAmount pa=getPhaseAmount(resName);
             if(pa==null)
                 amounts.add(this.new PhaseAmount(resName,speed,bGood));
+            else
+            {
+                pa.bGood=bGood;
+                pa.speed=speed;
+            }           
         }
 
         public double getOutput_Speed(String res) {
@@ -306,6 +318,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             jp.nodeStatus=nodeStatus;
             jp.nodeStatusDetails=nodeStatusDetails;
             jp.errorChance=errorChance;
+            jp.amounts=(Vector<PhaseAmount>) amounts.clone();
             return jp;
         }
 
@@ -666,7 +679,26 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
     	firstPhase.nodeStatusDetails="Setup";
         firstPhase.timeToGo=Integer.MAX_VALUE/2;
         firstPhase.setAmount(_trackResource, 0, false);
-        return firstPhase;
-        
+        return firstPhase;   
     }
+    
+    @Override
+    public String toString()
+    {
+        StringBuffer b=new StringBuffer(1000);
+        int siz=_jobPhases==null ? 0 : _jobPhases.size();
+        if(siz==0)
+            b.append("no phases");
+        else
+        {
+            b.append(siz+" phases:\n");
+            for(int i=0;i<siz;i++)
+            {
+                b.append(_jobPhases.get(i).toString());
+                b.append("\n");
+            }
+        }
+        return "Abstract Worker Device Processor: "+super.toString()+"\nPhases: "+b.toString() + "]";
+    }
+
 }

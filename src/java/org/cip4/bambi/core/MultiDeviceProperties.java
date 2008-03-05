@@ -392,6 +392,15 @@ public class MultiDeviceProperties
     }
 
     /**
+     * 
+     * @return
+     */
+    public String getSenderID()
+    {
+        return root.getAttribute(AttributeName.SENDERID);
+     }
+
+    /**
      * @return
      */
     public VString getDeviceIDs()

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -72,12 +72,11 @@
 package org.cip4.bambi;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Properties;
 
 import junit.framework.TestCase;
 
+import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -91,62 +90,185 @@ public class BambiTestCase extends TestCase {
 	protected final static String sm_dirTestData = cwd+File.separator+"test" + File.separator + "data" + File.separator;
 	protected final static String sm_dirTestTemp = cwd+File.separator+"test" + File.separator + "temp" + File.separator;
     protected final static String sm_UrlTestData = "File:test/data/";
-    protected final static String simConfigDir=cwd+File.separator+"WebContent"
-    	+File.separator+"workers"+File.separator+"sim"+File.separator+"config"
-    	+File.separator;
-    protected final static String manualConfigDir=cwd+File.separator+"WebContent"
-		+File.separator+"workers"+File.separator+"manual"+File.separator+"config"
-		+File.separator;
-    protected final static String jdfDir=cwd+File.separator+"test"+File.separator+"data"+File.separator;
+
+
     protected static String simWorkerUrl=null;
     protected static String manualWorkerUrl=null;
     protected String proxyUrl=null;
     
+
+
+    static class BambiTestProp implements IDeviceProperties
+    {
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getAppDir()
+         */
+        public File getAppDir()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getBaseDir()
+         */
+        public File getBaseDir()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
+         */
+        public IConverterCallback getCallBackClass()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
+         */
+        public String getDeviceID()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceType()
+         */
+        public String getDeviceType()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
+         */
+        public String getDeviceURL()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getErrorHF()
+         */
+        public File getErrorHF()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getInputHF()
+         */
+        public File getInputHF()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getJDFDir()
+         */
+        public File getJDFDir()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getMaxPush()
+         */
+        public int getMaxPush()
+        {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getOutputHF()
+         */
+        public File getOutputHF()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getProxyControllerURL()
+         */
+        public String getProxyControllerURL()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
+         */
+        public String getSlaveDeviceID()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveErrorHF()
+         */
+        public File getSlaveErrorHF()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveInputHF()
+         */
+        public File getSlaveInputHF()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveOutputHF()
+         */
+        public File getSlaveOutputHF()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveURL()
+         */
+        public String getSlaveURL()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getTrackResource()
+         */
+        public String getTrackResource()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+        
+    }
+    
+    ////////////////////////////////////////////////////////////////////////
+    
     public BambiTestCase() {
-    	// load SimWorker properties
-    	Properties properties = new Properties();
-		FileInputStream in=null;
-		try {
-			in = new FileInputStream(simConfigDir+"application.properties");
-			properties.load(in);
-			simWorkerUrl=properties.getProperty("DeviceURL")+"/sim002";
-			in.close();
-		} catch (IOException e) {
-			fail( "failed to load SimWorker properties on test init" );
-		}
-		assertNotNull( simWorkerUrl );
-		assertFalse( simWorkerUrl.equals("") );
-		
-		// load ManualWorker properties
-    	properties = new Properties();
-		in=null;
-		try {
-			in = new FileInputStream(manualConfigDir+"application.properties");
-			properties.load(in);
-			manualWorkerUrl=properties.getProperty("DeviceURL")+"/manual001";
-			in.close();
-		} catch (IOException e) {
-			fail( "failed to load ManualWorker properties on test init" );
-		}
-		assertNotNull( manualWorkerUrl );
-		assertFalse( manualWorkerUrl.equals("") );
-		
-		// load Proxy properties
-		String proxyConfigDir=cwd+File.separator+"WebContent"
-		+File.separator+"proxy"+File.separator+"config"+File.separator;
-		properties = new Properties();
-		in=null;
-		try {
-			in = new FileInputStream(proxyConfigDir+"application.properties");
-			properties.load(in);
-			proxyUrl=properties.getProperty("DeviceURL")+"/proxy001";
-			in.close();
-		} catch (IOException e) {
-			fail( "failed to load proxy properties on test init" );
-		}		
-		assertNotNull( proxyUrl );
-		assertFalse( proxyUrl.equals("") );
-		
+				
 		JDFJMF.setTheSenderID( "BambiTest" );
     }
 
@@ -167,7 +289,7 @@ public class BambiTestCase extends TestCase {
 	 */
 	protected void abortRemoveAll(String url) {		
 		JDFJMF jmf=JMFFactory.buildQueueStatus();
-		JDFResponse resp=JMFFactory.send2URL(jmf,url);
+		JDFResponse resp=JMFFactory.send2URLSynch(jmf,url,"testcase");
 		if (resp==null) {
 			System.err.println("failed to send QueueStatus");
 			return;
@@ -184,7 +306,7 @@ public class BambiTestCase extends TestCase {
 		for (int i=0;i<siz;i++) {
 			String qeid=((JDFQueueEntry)qVec.get(i)).getQueueEntryID();
 			jmf=JMFFactory.buildAbortQueueEntry(qeid);
-			JMFFactory.send2URL(jmf,url);
+			JMFFactory.send2URLSynch(jmf, url, "testcase");
 		}
 		
 		// wait to allow the worker to process the AbortQueueEntries,
@@ -197,7 +319,7 @@ public class BambiTestCase extends TestCase {
 		for (int i=0;i<siz;i++) {
 			String qeid=((JDFQueueEntry)qVec.get(i)).getQueueEntryID();
 			jmf=JMFFactory.buildRemoveQueueEntry(qeid);
-			JMFFactory.send2URL(jmf,url);
+			JMFFactory.send2URLSynch(jmf,url,"testcase");
 		}
 	}
 	

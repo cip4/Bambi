@@ -71,8 +71,7 @@
 
 package org.cip4.bambi;
 
-import java.io.File;
-
+import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -88,23 +87,18 @@ public class DispatcherTest extends BambiTestCase {
 
     public void testAddSubscription()
     {
-        JMFHandler h=new JMFHandler();
-        SignalDispatcher d=new SignalDispatcher(h, null);
+        JMFHandler h=new JMFHandler(null);
+        SignalDispatcher d=new SignalDispatcher(h, new BambiTestProp());
 
         d.addHandlers(h);
-        File f=new File(sm_dirTestData+"subscriptions.jmf");
-        f.delete();
         JDFJMF jmf=JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
         JDFQuery q=jmf.getQuery(0);
         JDFSubscription s=q.appendSubscription();
         s.setRepeatTime(1.0);
-        UrlUtil.urlToFile(getTestURL()).mkdirs();
-        s.setURL(getTestURL()+"subscriptions.jmf");
+        s.setURL("http://localhost:8080/httpdump/");
         d.addSubscription(q, null);
-        StatusCounter.sleep(2000);
-        assertTrue( f.exists() ); 
+        StatusCounter.sleep(4000);
         d.shutdown();
-        assertTrue( f.delete() );
     }
 
 }

@@ -78,12 +78,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFRequestQueueEntryParams;
+import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.util.StatusCounter;
 
 /**
  * factory for creating JMF messages
@@ -237,6 +240,36 @@ public class JMFFactory {
             jmf.setSenderID(senderID);
         ms.queueMessage(jmf,handler);
 	}
+    /**
+     * sends a JMF message to a given URL sychronusly
+     * @param jmf the message to send
+     * @param url the URL to send the JMF to
+     * @return the response if successful, otherwise null
+     */
+    public static JDFResponse send2URLSynch(JDFJMF jmf, String url, String senderID) {
+        
+        if (jmf==null || url==null) {
+            if (log!=null) {
+                // this method is prone for crashing on shutdown, thus checking for 
+                // log!=null is important
+                log.error("failed to send JDFMessage, message and/or URL is null");
+            }
+            return null;
+        }
+        
+        MessageSender ms = getCreateMessageSender(url,callback); 
+        if(senderID!=null)
+            jmf.setSenderID(senderID);
+        MessageResponseHandler handler=new MessageResponseHandler();
+        ms.queueMessage(jmf,handler);
+        for (int i=0;i<20;i++)
+        {
+            if(!handler.isHandled())
+                StatusCounter.sleep(100);
+            return handler.getResponse();
+        }
+        return null;
+    }
 
     /**
      * 

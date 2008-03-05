@@ -268,7 +268,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
 
     protected void init(IDeviceProperties prop) {
         _devProperties = prop;
-        _jmfHandler = new JMFHandler();
+        _jmfHandler = new JMFHandler(prop);
 
         _theSignalDispatcher=new SignalDispatcher(_jmfHandler, _devProperties);
         _theSignalDispatcher.addHandlers(_jmfHandler);

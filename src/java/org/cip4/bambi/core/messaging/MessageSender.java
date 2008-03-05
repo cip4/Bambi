@@ -81,6 +81,8 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.StatusCounter;
 
 /**
@@ -88,62 +90,112 @@ import org.cip4.jdflib.util.StatusCounter;
  * @author boegerni
  */
 public class MessageSender implements Runnable {
-	private String _url=null;
-	private boolean doShutDown=false;
-	private boolean doShutDownGracefully=false;
-	private Vector<MessHandler> _messages=null;
-	private static Log log = LogFactory.getLog(MessageSender.class.getName());
+    private String _url=null;
+    private boolean doShutDown=false;
+    private boolean doShutDownGracefully=false;
+    private Vector<MessagePair> _messages=null;
+    private static Log log = LogFactory.getLog(MessageSender.class.getName());
     private static IConverterCallback _callBack=null;
-	
-    protected class MessHandler
+
+    protected class MessagePair
     {
         protected JDFJMF jmf;
         protected IMessageHandler respHandler;
-        protected MessHandler(JDFJMF _jmf, IMessageHandler _respHandler)
+        protected MessagePair(JDFJMF _jmf, IMessageHandler _respHandler)
         {
             respHandler=_respHandler;
             jmf=_jmf;
         }
     }
-	/**
-	 * constructor
-	 * @param theUrl the URL to send the message to
-	 * @param responseHandler the origin of the JMF. Its notify(JDFResponse) method will be
-	 *               triggered when a response has been received. <br/>
-	 *               If the response is null, the IResponseHandler will not be triggered.     
+    
+    /**
+     * trivial response handler that simply grabs the response and passes it back through
+     * getResponse() / isHandled()
+     * @author prosirai
+     *
+     */
+    public static class MessageResponseHandler implements IMessageHandler
+    {
+        private JDFResponse resp=null;
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.messaging.IMessageHandler#getFamilies()
+         */
+        public EnumFamily[] getFamilies()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.messaging.IMessageHandler#getMessageType()
+         */
+        public EnumType getMessageType()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.messaging.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+         */
+        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+        {
+            if(!(inputMessage instanceof JDFResponse))
+                return false;
+            resp=(JDFResponse)inputMessage;
+            return true;
+        }
+
+        public boolean isHandled()
+        {
+            return resp!=null;
+        }
+        
+        public JDFResponse getResponse()
+        {
+            return resp;
+        }
+
+    }
+    /**
+     * constructor
+     * @param theUrl the URL to send the message to
+     * @param responseHandler the origin of the JMF. Its notify(JDFResponse) method will be
+     *               triggered when a response has been received. <br/>
+     *               If the response is null, the IResponseHandler will not be triggered.     
      * @param callBack the converter callback to use, null if no modification is required                
-	 */
-	public MessageSender(String theUrl,  IConverterCallback callback) {
-        _messages=new Vector<MessHandler>();
+     */
+    public MessageSender(String theUrl,  IConverterCallback callback) {
+        _messages=new Vector<MessagePair>();
         _url=theUrl;
         _callBack=callback;
-	}
-	
-	/**
-	 * the sender loop. <br/>
-	 * Checks whether its vector of pending messages is empty. If it is not empty, 
-	 * the first message is sent and removed from the map.
-	 */
-	public void run() {
-	    while (!doShutDown) {
-	        boolean sendFirstMessage;
-	        synchronized(_messages) {
-	            sendFirstMessage = sendFirstMessage();
-	            if(sendFirstMessage)
-	            {
-	                _messages.remove(0);
-	            }
+    }
 
-	            if ( doShutDownGracefully && _messages.isEmpty() ) {
-	                doShutDown=true;
-	            }
-	        }
-	        if(!sendFirstMessage)
-	            StatusCounter.sleep(100);
-	    }
-	}
+    /**
+     * the sender loop. <br/>
+     * Checks whether its vector of pending messages is empty. If it is not empty, 
+     * the first message is sent and removed from the map.
+     */
+    public void run() {
+        while (!doShutDown) {
+            boolean sentFirstMessage;
+            synchronized(_messages) {
+                sentFirstMessage = sendFirstMessage();
+                if(sentFirstMessage)
+                {
+                    _messages.remove(0);
+                }
 
-    
+                if ( doShutDownGracefully && _messages.isEmpty() ) {
+                    doShutDown=true;
+                }
+            }
+            if(!sentFirstMessage)
+                StatusCounter.sleep(100);
+        }
+    }
+
+
     /**
      * send the first enqueued message and return true if all went well
      * also update any returned responses for Bambi internally
@@ -156,14 +208,14 @@ public class MessageSender implements Runnable {
             return false;
 
         boolean b=true;
-        MessHandler mh=_messages.get(0);
+        MessagePair mh=_messages.get(0);
         if(mh==null)
             return true;
         JDFJMF jmf=mh.jmf;
         if ( jmf==null)
             return true; // need no resend - will remove
         if(KElement.isWildCard(_url) ) 
-            return false; // snafu anyhow but not sent
+            return true; // snafu anyhow but not sent but no retry useful
 
         JDFDoc doc=jmf.getOwnerDocument_JDFElement().write2URL(_url);
         if(doc!=null)
@@ -186,44 +238,44 @@ public class MessageSender implements Runnable {
         }
         return b;
     }
-	
-	/**
-	 * stop sending new messages immediately and shut down
-	 * @param gracefully true  - process remaining messages first, then shut down. <br/>
-	 *                   false - shut down immediately, skip remaining messages.
-	 */
-	public void shutDown(boolean gracefully) {
-		if (gracefully) {
-			doShutDownGracefully=true;
-		} else {
-			doShutDown=true;
-		}
-	}
 
-	/**
-	 * queses a message for the URL that this MessageSender belongs to
+    /**
+     * stop sending new messages immediately and shut down
+     * @param gracefully true  - process remaining messages first, then shut down. <br/>
+     *                   false - shut down immediately, skip remaining messages.
+     */
+    public void shutDown(boolean gracefully) {
+        if (gracefully) {
+            doShutDownGracefully=true;
+        } else {
+            doShutDown=true;
+        }
+    }
+
+    /**
+     * queses a message for the URL that this MessageSender belongs to
      * also updates the message for a given recipient if required
-	 * @param jmf the message to send
-	 * @return true, if the message is successfully queued. 
+     * @param jmf the message to send
+     * @return true, if the message is successfully queued. 
      *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
-	 */
-	public boolean queueMessage(JDFJMF jmf, IMessageHandler handler) {
-		if (doShutDown || doShutDownGracefully) {
-			return false;
-		}
+     */
+    public boolean queueMessage(JDFJMF jmf, IMessageHandler handler) {
+        if (doShutDown || doShutDownGracefully) {
+            return false;
+        }
         if(_callBack!=null)
             _callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
-        
-		synchronized(_messages) {
-			_messages.add(new MessHandler(jmf,handler));
-		}
-		return true;
-	}
+
+        synchronized(_messages) {
+            _messages.add(new MessagePair(jmf,handler));
+        }
+        return true;
+    }
 
     @Override
     public String toString()
     {
         return "MessageSender - URL: "+_url+" size: "+_messages.size()+"\n"+_messages;
     }
-	
+
 }

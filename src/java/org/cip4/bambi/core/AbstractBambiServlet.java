@@ -222,7 +222,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
 		loadProperties(context,new File("/config/devices.xml"));
 				
         // jmf handlers
-		_jmfHandler=new JMFHandler();
+		_jmfHandler=new JMFHandler((IDeviceProperties)null);
 		addHandlers();
         
         // doGet handlers

@@ -71,14 +71,17 @@
 
 package org.cip4.bambi;
 
+import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
-import org.omg.CORBA.portable.ResponseHandler;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 
-public class AsyncMessagingTest extends BambiTestCase implements ResponseHandler {
+public class AsyncMessagingTest extends BambiTestCase implements IMessageHandler {
 	protected VString messageIDs=null;
 	
 	@Override
@@ -89,11 +92,13 @@ public class AsyncMessagingTest extends BambiTestCase implements ResponseHandler
 	
 	public void testSendQueueStatus() throws InterruptedException 
 	{
+        final MessageSender messageSender = new MessageSender(simWorkerUrl,null);
+        Thread t=new Thread(messageSender,"Sender_Test");
 		for (int i=0;i<10;i++) {
 			JDFJMF stat=JMFFactory.buildStatus();
 			String msgID=stat.getMessageElement(null, null, 0).getID();
+            messageSender.queueMessage(stat, this);
 			messageIDs.add(msgID);
-			Thread t=new Thread(new MessageSender(stat,simWorkerUrl,this,null),"Sender_"+i);
 			t.start();
 		}
 		
@@ -106,10 +111,29 @@ public class AsyncMessagingTest extends BambiTestCase implements ResponseHandler
 	}
 	
 
-	public boolean handleResponse(JDFResponse resp) {
-		String refID=resp.getrefID();
+	public boolean handleMessage(JDFMessage inResp, JDFResponse response) {
+		String refID=inResp.getrefID();
 		messageIDs.remove(refID);
         return true;
 	}
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.messaging.IMessageHandler#getFamilies()
+     */
+    public EnumFamily[] getFamilies()
+        {
+            return new EnumFamily[]{EnumFamily.Response};
+        }
+    
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.messaging.IMessageHandler#getMessageType()
+     */
+    public EnumType getMessageType()
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 
 }

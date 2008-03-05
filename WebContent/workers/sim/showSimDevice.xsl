@@ -20,8 +20,9 @@
 		<p align="center">
  			<a><xsl:attribute name="href">
  			../showDevice/<xsl:value-of select="$deviceID"/>
- 			</xsl:attribute>reload this page</a> <br/>
-		<img src="../bambi.jpg" border="2" width="68" height="100" alt="BambiPic"/>
+ 			</xsl:attribute>reload this page</a> 
+		<img src="../bambi.jpg" border="2" width="68" height="100" hspace="10" alt="BambiPic"/>
+		Go to <a href="../overview">DeviceList</a> 
 		</p>
 
 <!--  device info section   -->
