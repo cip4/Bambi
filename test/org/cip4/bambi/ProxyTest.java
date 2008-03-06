@@ -93,6 +93,7 @@ public class ProxyTest extends BambiTestCase {
 	
 	@Override
 	public void setUp() throws Exception {
+       
 		super.setUp();
 		abortRemoveAll(proxyUrl);
 	}
