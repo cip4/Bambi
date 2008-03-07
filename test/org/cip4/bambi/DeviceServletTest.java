@@ -80,9 +80,6 @@ import java.net.MalformedURLException;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
-import org.cip4.bambi.core.AbstractBambiServlet;
-import org.cip4.bambi.core.MultiDeviceProperties;
-import org.cip4.bambi.workers.sim.SimWorkerServlet;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
@@ -174,36 +171,7 @@ public class DeviceServletTest extends BambiTestCase {
 		    return( path.delete() );
 	}
 
-	public void testAddDevice()
-	{
-		AbstractBambiServlet d = new SimWorkerServlet();
-		assertEquals( 0,d.getDeviceQuantity() ); 
-		MultiDeviceProperties dp = new MultiDeviceProperties( null,sm_dirTestData+"test_devices.xml" );
-		assertNotNull( d.createDevice(dp.getDevice("device001")) );
-        assertNotNull( d.createDevice(dp.getDevice("device002")) );
-		assertNull( d.createDevice(dp.getDevice("device002")) );
-		assertEquals( 2,d.getDeviceQuantity() );
-		assertNotNull( d.getDevice("device001") );
-		
-		removeDir( new File("nulljmb") );
-	}
 	
-	public void testRemoveDevice()
-	{
-        AbstractBambiServlet d = new SimWorkerServlet();
-		assertEquals( 0,d.getDeviceQuantity() );
-		MultiDeviceProperties dp = new MultiDeviceProperties( null,sm_dirTestData+"test_devices.xml" );
-		assertNotNull( d.createDevice(dp.getDevice("device001")) );
-        assertNotNull( d.createDevice(dp.getDevice("device002")) );
-		assertEquals( 2,d.getDeviceQuantity() );
-		assertTrue( d.removeDevice("device001") );
-		assertNull( d.getDevice("device001") );
-		assertEquals(1, d.getDeviceQuantity() );
-		assertFalse( d.removeDevice("device001") );
-		
-		removeDir( new File("nulljmb") );
-	}
-
     public void testMimeSubmit() throws Exception
     {
         JDFResponse resp=singleMIMESubmit("SingleMIME");
