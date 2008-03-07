@@ -90,7 +90,9 @@ import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase.PhaseAmount;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -503,8 +505,9 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
 
     public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
         JobPhase lastPhase=null;
+        JDFNode n=doc==null ? null : doc.getJDFRoot();
         while ( _jobPhases.size()>0 ) {
-            processPhase();
+            processPhase(n);
             lastPhase=_jobPhases.remove(0); // phase(0) is always the active phase
          }
         if(lastPhase==null)
@@ -527,9 +530,15 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         return qes;
     }
 
-    private void processPhase()
+    private void processPhase(JDFNode n)
     {
+        JDFResourceLink rlAmount=getAmountLink(n);
+        String namedRes=rlAmount==null ? null : rlAmount.getrRef();
         JobPhase phase = getCurrentJobPhase();
+        double all=rlAmount==null ? 0 : rlAmount.getAmountPoolDouble(AttributeName.ACTUALAMOUNT, n==null ? null : n.getPartMapVector());
+        if(all<0)
+            all=0;
+        double todoAmount=rlAmount==null ? 0 : rlAmount.getAmountPoolDouble(AttributeName.AMOUNT, n==null ? null : n.getPartMapVector());
         log.info("processing new job phase: "+phase.toString());
         _statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails,phase.nodeStatus,phase.nodeStatusDetails);          
         long deltaT=1000;
@@ -540,16 +549,54 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             {
                 PhaseAmount pa=phase.getPhaseAmount(names.get(i));
                 if(pa!=null)
-                    _statusListener.updateAmount(pa.resource, phase.getOutput_Good(pa.resource,(int)deltaT), phase.getOutput_Waste(pa.resource,(int)deltaT));
+                {
+                    final double phaseGood = phase.getOutput_Good(pa.resource,(int)deltaT);
+                    _statusListener.updateAmount(pa.resource, phaseGood, phase.getOutput_Waste(pa.resource,(int)deltaT));
+                    if(namedRes!=null && pa.matchesRes(namedRes))
+                    {
+                        all+=phaseGood;
+                        if(all>todoAmount)
+                        {
+                            phase.timeToGo=0;
+                            log.info("phase end for resource: "+namedRes);
+                        }
+                    }
+                }
             }
             _statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails,phase.nodeStatus,phase.nodeStatusDetails);
-
-            randomErrors(phase);
-            StatusCounter.sleep(1000);
-            long t1=System.currentTimeMillis();
-            deltaT=t1-t0;
-            phase.timeToGo-=deltaT;
+            if(phase.timeToGo>0)
+            {
+                randomErrors(phase);
+                StatusCounter.sleep(1000);
+                long t1=System.currentTimeMillis();
+                deltaT=t1-t0;
+                phase.timeToGo-=deltaT;
+            }
         }
+    }
+
+    /**
+     * @param n
+     * @return
+     */
+    private JDFResourceLink getAmountLink(JDFNode n)
+    {
+        VJDFAttributeMap vMap=n.getPartMapVector();
+        VElement v=n.getResourceLinks(new JDFAttributeMap(AttributeName.USAGE,EnumUsage.Output));
+        int siz= v==null ? 0 : v.size();
+        for(int i=0;i<siz;i++)
+        {
+            JDFResourceLink rl=(JDFResourceLink)v.elementAt(i);
+            try{
+                double d=rl.getAmountPoolDouble(AttributeName.AMOUNT, vMap);
+                if(d>=0)
+                    return rl;
+            }
+            catch (JDFException e) {
+                // nop
+            }
+        }
+        return null;
     }
 
     /**

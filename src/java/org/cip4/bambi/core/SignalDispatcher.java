@@ -236,8 +236,15 @@ public final class SignalDispatcher implements ISignalDispatcher
         private void queueMessageInSender(final MsgSubscription sub) {
             String url=sub.getURL();
             final JDFJMF signalJMF = sub.getSignal();
-            signalJMF.setSenderID(deviceID);
-            JMFFactory.send2URL(signalJMF, url, null,deviceID);
+            if(signalJMF!=null)
+            {
+                signalJMF.setSenderID(deviceID);
+                JMFFactory.send2URL(signalJMF, url, null,deviceID);
+            }
+            else
+            {
+                log.error("bad subscription: "+sub);
+            }
         }
 
         /**
@@ -514,16 +521,21 @@ public final class SignalDispatcher implements ISignalDispatcher
         JDFSubscription sub=query.getSubscription();
         if(sub==null)
             return;
-        addSubscription(query, null);
-        if(resp!=null)
+        final String channelID=addSubscription(query, null);
+        if(resp!=null && channelID!=null)
             resp.setSubscribed(true);
-     }
+    }
 
     /* (non-Javadoc)
      * @see org.cip4.bambi.ISignalDispatcher#addSubscription(org.cip4.jdflib.ifaces.IJMFSubscribable)
      */
     public String addSubscription(IJMFSubscribable subMess, String queueEntryID)
     {
+        if(subMess==null)
+        {
+            log.error("adding null subscription"+queueEntryID);
+            return null;
+        }
         log.info("adding subscription ");
         MsgSubscription sub=new MsgSubscription(subMess);
         sub.setQueueEntryID(queueEntryID);
