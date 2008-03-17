@@ -72,8 +72,8 @@ package org.cip4.bambi.core;
 
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.node.JDFNode;
 
 /**
  * @author prosirai
@@ -91,7 +91,7 @@ public interface IDeviceProcessor extends Runnable
      * @param doc
      * @return EnumQueueEntryStatus the final status of the queuentry 
      */
-    public abstract EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe);
+    public abstract EnumQueueEntryStatus processDoc(JDFNode node, JDFQueueEntry qe);
     
     /**
      * initialize the IDeviceProcessor

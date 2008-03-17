@@ -778,7 +778,9 @@ public class QueueProcessor implements IQueueProcessor
                     +"' is unable to load the JDFDoc from '"+docURL+"'");
             return null;
         }
-        return new QueueEntry(theDoc,qe);
+        
+        JDFNode n=_parentDevice.getNodeFromDoc(theDoc);
+        return new QueueEntry(n,qe);
     }
 
     /* (non-Javadoc)
@@ -808,6 +810,8 @@ public class QueueProcessor implements IQueueProcessor
             return null;
         }
         if(!_theQueue.canAccept())
+            return null;
+        if(!_parentDevice.canAccept(theJDF))
             return null;
 
         JDFQueueSubmissionParams qsp=submitQueueEntry.getQueueSubmissionParams(0);
@@ -1021,14 +1025,8 @@ public class QueueProcessor implements IQueueProcessor
         if (! bOK && returnURL!=null) {
             HttpURLConnection response = null;
             try {
-                response = MimeUtil.writeToURL(mp, returnJMF);
-                if (response.getResponseCode() == 200)
-                {
-                    log.info("ReturnQueueEntry for "+queueEntryID+" has been sent.");
-                    bOK=true;
-                }
-                else
-                    log.error("failed to send ReturnQueueEntry. Response: "+response.toString());
+                JDFDoc d = docJDF.write2URL(returnURL);
+                bOK=true;
             } catch (Exception e) {
                 log.error("failed to send ReturnQueueEntry: "+e);
             }

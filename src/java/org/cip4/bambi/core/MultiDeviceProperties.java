@@ -309,6 +309,15 @@ public class MultiDeviceProperties
         }
 
 
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
+         */
+        public String getTypeExpression()
+        {
+            return devRoot.getAttribute(AttributeName.TYPEEXPRESSION, null, null);
+        }
+
+
 
     }
 

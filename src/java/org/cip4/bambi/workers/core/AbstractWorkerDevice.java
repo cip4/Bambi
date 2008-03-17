@@ -85,11 +85,15 @@ import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StatusCounter;
+import org.cip4.jdflib.util.StringUtil;
 
 
 /**
@@ -106,8 +110,56 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
      * 
      */
     protected String _trackResource=null; // the "major" resource to track
+    protected String _typeExpression=null; // the regexp that defines the valid types
     private static final Log log = LogFactory.getLog(AbstractWorkerDevice.class.getName());
-    
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
+     */
+    @Override
+    public boolean canAccept(JDFDoc doc)
+    {
+        if(doc!=null && _typeExpression==null)
+            return true;
+        return getAcceptableNodes(doc)!=null;
+    }
+
+    public JDFNode getNodeFromDoc(JDFDoc doc)
+    {
+        VElement v=getAcceptableNodes(doc);
+        return (JDFNode) (v==null ? null : v.get(0));
+    }
+
+    /**
+     * @param doc
+     * @return
+     */
+    public VElement getAcceptableNodes(JDFDoc doc)
+    {
+        //TODO plug in devcaps
+         if(doc==null)
+            return null;
+
+        JDFNode n=doc.getJDFRoot();
+        VElement v=n.getvJDFNode(null, null, false);
+        for(int i=v.size()-1;i>=0;i--)
+        {
+            JDFNode n2=(JDFNode)v.elementAt(i);
+            if(!canAccept(n2))
+                v.remove(n2);
+        }
+        return v.size()==0 ? null : v;
+    }
+
+
+    /**
+     * @param n2
+     */
+    private boolean canAccept(JDFNode n2)
+    {
+        String types=n2.getTypesString();
+        return StringUtil.matches(types, _typeExpression);
+    }
     /**
      * 
      * @author prosirai
@@ -115,7 +167,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
      */
     protected class XMLSimDevice
     {
-    
+
         private JobPhase currentJobPhase;
         XMLDevice d;
         /**
@@ -125,15 +177,15 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
          */
         public XMLSimDevice()
         {
-           d=new XMLDevice();
-            
+            d=new XMLDevice();
+
             currentJobPhase = getCurrentJobPhase();
             if(currentJobPhase!=null)
             {
                 addPhase();
             }          
         }
-    
+
         /**
          * @param currentJobPhase
          * @return
@@ -142,7 +194,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
         {
             KElement root=d.getRoot();
             KElement phase=root.appendElement("Phase");
-            
+
             final EnumDeviceStatus deviceStatus = currentJobPhase.getDeviceStatus();
             final EnumNodeStatus nodeStatus = currentJobPhase.getNodeStatus();
             if(deviceStatus!=null  && nodeStatus!=null)
@@ -167,8 +219,8 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
             }
             return null;
         }
-    
-     
+
+
         /**
          * @param string
          */
@@ -183,15 +235,16 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
             amount.setAttribute("Speed"+loop, currentJobPhase.getOutput_Speed(resString),null);            
         }        
     }	
-    
+
     /////////////////////////////////////////////////////////////////////////////
-    
-	public AbstractWorkerDevice(IDeviceProperties prop) {
-		super(prop);
+
+    public AbstractWorkerDevice(IDeviceProperties prop) {
+        super(prop);
         _trackResource=prop.getTrackResource();
-	}
-	
- 
+        _typeExpression=prop.getTypeExpression();
+    }
+
+
     public String getTrackResource()
     {
         return _trackResource;
@@ -214,7 +267,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
 
     public JobPhase getCurrentJobPhase()
     {
-    	return ((AbstractWorkerDeviceProcessor)_deviceProcessors.get(0)).getCurrentJobPhase();
+        return ((AbstractWorkerDeviceProcessor)_deviceProcessors.get(0)).getCurrentJobPhase();
     }
 
 
@@ -227,25 +280,25 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
      */
     private JobPhase buildJobPhaseFromRequest(HttpServletRequest request) {
         JobPhase current=getCurrentJobPhase();
-        
+
         JobPhase newPhase = (JobPhase) (current==null ? new JobPhase() : current.clone());
         newPhase.timeToGo=Integer.MAX_VALUE; // until modified...
-    
+
         String status = request.getParameter("DeviceStatus");
         if (status != null) {
             newPhase.deviceStatus = EnumDeviceStatus.getEnum( status );
         }
         newPhase.deviceStatusDetails = request.getParameter("DeviceStatusDetails");
-    
+
         status = request.getParameter("NodeStatus");
         if (status != null) {
             newPhase.nodeStatus = EnumNodeStatus.getEnum(status);
             if(EnumNodeStatus.Aborted.equals(newPhase.nodeStatus)||EnumNodeStatus.Completed.equals(newPhase.nodeStatus)||EnumNodeStatus.Suspended.equals(newPhase.nodeStatus))
                 newPhase.timeToGo=0;
-                
+
         }
         newPhase.nodeStatusDetails = request.getParameter("NodeStatusDetails");
-    
+
         newPhase.setAmount(getTrackResource(), 
                 AbstractBambiServlet.getDoubleFromRequest(request, "Speed0"),
                 !AbstractBambiServlet.getBooleanFromRequest(request, "Waste0") );
@@ -253,8 +306,8 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
             newPhase.setTimeToGo(1000*(int)AbstractBambiServlet.getDoubleFromRequest(request, AttributeName.DURATION));
         else if(current!=null)
             newPhase.setTimeToGo(current.getTimeToGo());
-            
-        
+
+
         return newPhase;
     }
 
@@ -273,7 +326,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
 
 
     private boolean processNextPhase(HttpServletRequest request, HttpServletResponse response) {
-    
+
         JobPhase nextPhase = buildJobPhaseFromRequest(request);
         ((AbstractWorkerDeviceProcessor)_deviceProcessors.get(0)).doNextPhase(nextPhase);
         StatusCounter.sleep(1000); // allow device to switch phases before displaying page

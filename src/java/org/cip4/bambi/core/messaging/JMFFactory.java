@@ -265,7 +265,10 @@ public class JMFFactory {
         for (int i=0;i<20;i++)
         {
             if(!handler.isHandled())
+            {
                 StatusCounter.sleep(100);
+                continue;
+            }
             return handler.getResponse();
         }
         return null;

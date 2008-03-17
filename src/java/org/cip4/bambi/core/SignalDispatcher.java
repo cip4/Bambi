@@ -253,46 +253,49 @@ public final class SignalDispatcher implements ISignalDispatcher
          */
         private Vector<MsgSubscription> getTriggerSubscriptions()
         {
-            Vector<MsgSubscription> v = new Vector<MsgSubscription>();
-            Iterator<Entry<String,Vector<Trigger>>> it = triggers.entrySet().iterator(); // active triggers
-            while(it.hasNext())
+            synchronized (triggers)
             {
-                final Entry<String, Vector<Trigger>> nxt = it.next();
-                String channelID=nxt.getKey();
-                MsgSubscription sub=subscriptionMap.get(channelID);
-                int siz=triggers.size(channelID);
-                for(int i=0;i<siz;i++)
+                Vector<MsgSubscription> v = new Vector<MsgSubscription>();
+                Iterator<Entry<String,Vector<Trigger>>> it = triggers.entrySet().iterator(); // active triggers
+                while(it.hasNext())
                 {
-                    Trigger t= triggers.getOne(channelID,i);
-                    MsgSubscription subClone=(MsgSubscription) sub.clone();
-                    subClone.trigger=t;
+                    final Entry<String, Vector<Trigger>> nxt = it.next();
+                    String channelID=nxt.getKey();
+                    MsgSubscription sub=subscriptionMap.get(channelID);
+                    int siz=triggers.size(channelID);
+                    for(int i=0;i<siz;i++)
+                    {
+                        Trigger t= triggers.getOne(channelID,i);
+                        MsgSubscription subClone=(MsgSubscription) sub.clone();
+                        subClone.trigger=t;
 
-                    if(t.amount<0)
-                    {
-                        v.add(subClone);
-                    }
-                    else if(t.amount>0)
-                    {
-                        if(subClone.repeatAmount>0)
+                        if(t.amount<0)
                         {
-                            int last=subClone.lastAmount;
-                            int next=last+t.amount;
-                            if(next/sub.repeatAmount > last/sub.repeatAmount)
+                            v.add(subClone);
+                        }
+                        else if(t.amount>0)
+                        {
+                            if(subClone.repeatAmount>0)
                             {
-                                sub.lastAmount=next; // not a typo - modify of nthe original subscription
-                                v.add(subClone);
-                            }
-                        }                    
+                                int last=subClone.lastAmount;
+                                int next=last+t.amount;
+                                if(next/sub.repeatAmount > last/sub.repeatAmount)
+                                {
+                                    sub.lastAmount=next; // not a typo - modify of nthe original subscription
+                                    v.add(subClone);
+                                }
+                            }                    
+                        }
                     }
                 }
+                // remove active triggers that will be returned
+                for(int j=0;j<v.size();j++)
+                {
+                    MsgSubscription sub=v.elementAt(j);                
+                    triggers.removeOne(sub.channelID,sub.trigger);
+                }
+                return v;
             }
-            // remove active triggers that will be returned
-            for(int j=0;j<v.size();j++)
-            {
-                MsgSubscription sub=v.elementAt(j);                
-                triggers.removeOne(sub.channelID,sub.trigger);
-            }
-            return v;                
         }
 
         private Vector<MsgSubscription> getTimeSubscriptions()
@@ -599,14 +602,19 @@ public final class SignalDispatcher implements ISignalDispatcher
     {
         if(channelID==null)
             return;
-        subscriptionMap.remove(channelID);
-        triggers.remove(channelID);
+        synchronized(subscriptionMap)
+        {
+            subscriptionMap.remove(channelID);
+        }
+        synchronized (triggers)
+        {
+            triggers.remove(channelID);
+        }
         log.debug("removing subscription for channelid="+channelID);
     }
     /* (non-Javadoc)
      * @see org.cip4.bambi.ISignalDispatcher#removeSubScription(java.lang.String)
      */
-    @SuppressWarnings("unchecked")
     public void removeSubScriptions(String queueEntryID) {
         if(queueEntryID==null)
             return;
@@ -618,7 +626,10 @@ public final class SignalDispatcher implements ISignalDispatcher
                 removeSubScription(v.get(i));
             }
         }
-        queueEntryMap.remove(queueEntryID);
+        synchronized (queueEntryMap)
+        {
+            queueEntryMap.remove(queueEntryID);           
+        }
     }
 
     /* (non-Javadoc)
@@ -627,14 +638,17 @@ public final class SignalDispatcher implements ISignalDispatcher
     public void triggerChannel(String channelID,  String queueEntryID, String workStepID, int amount)
     {
         Trigger tNew=new Trigger(queueEntryID, workStepID, amount);
-        Trigger t=(Trigger) triggers.getOne(channelID, tNew);
-        if(t==null)
+        synchronized (triggers)
         {
-            triggers.putOne(channelID, tNew);
-        }
-        else if(amount>0 && t.amount>=0) // -1 always forces
-        {
-            t.amount+=amount; 
+            Trigger t=(Trigger) triggers.getOne(channelID, tNew);
+            if(t==null)
+            {
+                triggers.putOne(channelID, tNew);
+            }
+            else if(amount>0 && t.amount>=0) // -1 always forces
+            {
+                t.amount+=amount; 
+            }
         }
         if(amount!=0)
         {

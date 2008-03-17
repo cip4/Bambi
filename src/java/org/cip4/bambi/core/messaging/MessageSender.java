@@ -70,12 +70,18 @@
  */
 package org.cip4.bambi.core.messaging;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Vector;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -83,6 +89,7 @@ import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.StatusCounter;
 
 /**
@@ -96,6 +103,8 @@ public class MessageSender implements Runnable {
     private Vector<MessagePair> _messages=null;
     private static Log log = LogFactory.getLog(MessageSender.class.getName());
     private static IConverterCallback _callBack=null;
+    public static DumpDir inDump=null; // messy bu efficient...
+    public static DumpDir outDump=null; // messy bu efficient...
 
     protected class MessagePair
     {
@@ -107,7 +116,7 @@ public class MessageSender implements Runnable {
             jmf=_jmf;
         }
     }
-    
+
     /**
      * trivial response handler that simply grabs the response and passes it back through
      * getResponse() / isHandled()
@@ -150,7 +159,7 @@ public class MessageSender implements Runnable {
         {
             return resp!=null;
         }
-        
+
         public JDFResponse getResponse()
         {
             return resp;
@@ -217,26 +226,50 @@ public class MessageSender implements Runnable {
         if(KElement.isWildCard(_url) ) 
             return true; // snafu anyhow but not sent but no retry useful
 
-        JDFDoc doc=jmf.getOwnerDocument_JDFElement().write2URL(_url);
-        if(doc!=null)
-        {
-            JDFJMF jmfRet=doc.getJMFRoot();
-            VElement resps=jmfRet==null ? null : jmfRet.getMessageVector(JDFMessage.EnumFamily.Response, null);
-            int siz=resps==null ? 0 : resps.size();
-            for(int i=0;i<siz;i++)
+        try{
+            final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
+            HttpURLConnection con=jmfDoc.write2HTTPURL(new URL(_url));
+            if(con!=null && con.getResponseCode()==200)
             {
-                JDFResponse resp=(JDFResponse) resps.get(i);
-                if(_callBack!=null && resp!=null)
+                if(inDump!=null)
                 {
-                    _callBack.prepareJMFForBambi(resp.getOwnerDocument_JDFElement());
+                    File dump=inDump.newFile();
+                    final FileOutputStream fs = new FileOutputStream(dump);
+                    IOUtils.copy(con.getInputStream(), fs);
+                    fs.flush();
+                    fs.close();
                 }
-                if (mh.respHandler!=null) 
+                if(outDump!=null)
                 {
-                    b=mh.respHandler.handleMessage(resp,null);
+                    File dump=outDump.newFile();
+                    jmfDoc.write2File(dump, 0, true);                    
+                }
+                JDFDoc doc=new JDFParser().parseStream(con.getInputStream());
+                if(doc!=null)
+                {
+                    JDFJMF jmfRet=doc.getJMFRoot();
+                    VElement resps=jmfRet==null ? null : jmfRet.getMessageVector(JDFMessage.EnumFamily.Response, null);
+                    int siz=resps==null ? 0 : resps.size();
+                    for(int i=0;i<siz;i++)
+                    {
+                        JDFResponse resp=(JDFResponse) resps.get(i);
+                        if(_callBack!=null && resp!=null)
+                        {
+                            _callBack.prepareJMFForBambi(resp.getOwnerDocument_JDFElement());
+                        }
+                        if (mh.respHandler!=null) 
+                        {
+                            b=mh.respHandler.handleMessage(resp,null);
+                        }
+                    }
                 }
             }
+ 
         }
-        return b;
+        catch (Exception e) {
+            // TODO: handle exception
+        }
+       return b;
     }
 
     /**

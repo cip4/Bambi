@@ -92,7 +92,7 @@ public class BambiTestCase extends TestCase {
     protected final static String sm_UrlTestData = "File:test/data/";
 
 
-    protected static String simWorkerUrl=null;
+    protected static String simWorkerUrl="http://localhost:8080/SimWorker/jmf/sim002";
     protected static String manualWorkerUrl=null;
     protected String proxyUrl="http://localhost:8080/BambiProxy/jmf/proxy002";
     
@@ -258,6 +258,15 @@ public class BambiTestCase extends TestCase {
          * @see org.cip4.bambi.core.IDeviceProperties#getTrackResource()
          */
         public String getTrackResource()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
+         */
+        public String getTypeExpression()
         {
             // TODO Auto-generated method stub
             return null;

@@ -135,7 +135,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             }
            
             final EnumDeviceStatus deviceStatus = _statusListener.getDeviceStatus();
-            JDFNode n=currentQE.getJDF().getJDFRoot();
+            JDFNode n=currentQE.getJDF();
             JDFAttributeMap map=null; // todo partitioning
             final EnumNodeStatus nodeStatus = n.getPartStatus(map);
             if(deviceStatus!=null  && nodeStatus!=null)
@@ -277,16 +277,16 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         if (queueEntryID != null)
             log.debug("processing: "+queueEntryID);
 
-        JDFDoc doc=currentQE.getJDF();
-        if(doc==null)
+        JDFNode node=currentQE.getJDF();
+        if(node==null)
             return false;
 
-        initializeProcessDoc(doc,qe);
+        initializeProcessDoc(node,qe);
 
         EnumQueueEntryStatus qes;
         try {
             log.info("processing JDF: ");
-            qes=processDoc(doc,qe);
+            qes=processDoc(node,qe);
             if (qes==null) {
                 if (log!=null)
                     log.error( "QueueEntryStatus is null" );
@@ -306,9 +306,9 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
      * genric setup of processing 
      * @param queueEntryID the queueEntryID of the job to process
      */
-    protected void initializeProcessDoc(JDFDoc doc, JDFQueueEntry qe)
+    protected void initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
     {
-        currentQE=new QueueEntry(doc,qe);
+        currentQE=new QueueEntry(node,qe);
         _queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Running,null,null);
     }
 
@@ -398,6 +398,15 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     public String toString()
     {
         return "Abstract Device Processor: Current Entry: "+(currentQE!=null ? currentQE.getQueueEntry() : "no current entry") + "]";
+    }
+
+    /**
+     * @param device
+     */
+    public void setParent(AbstractDevice device)
+    {
+        _parent=device;
+        
     }
 
 }

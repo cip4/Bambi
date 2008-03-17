@@ -3,12 +3,16 @@
   <Device DeviceID="sim001" DeviceType="Bambi Proxied Sim Device"
   	ProxyURL="http://127.0.0.1:8080/BambiProxy/devices/proxy001" 
   	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/sim001" 
-  	TrackResource="Component"/>
+  	TrackResource="Component:Output"/>
   <Device DeviceID="sim002" DeviceType="Bambi Sim Device" 
-  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/sim002" TrackResource="Component"/>
+  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/sim002" TrackResource="Component:Output"/>
+  <Device DeviceID="DigiPrint" DeviceType="Digital Press" 
+  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/DigiPress" TrackResource="Component:Output" TypeExpression="(.)*DigitalPrinting(.)*"/>
+  <Device DeviceID="Speedmaster" DeviceType="Conventional Press" 
+  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/Speedmaster" TrackResource="Component:Output" TypeExpression="(.)*ConventionalPrinting(.)*"/>
  <Device DeviceID="manual001" DeviceType="Bambi Manual Device" 
-  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/manual001" TrackResource="Component"/>
+  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/manual001" TrackResource="Component:Output"/>
  <Device DeviceID="manual002" DeviceType="Bambi Manual HotFolder Device" 
-  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/manual002" TrackResource="Component"
+  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/manual002" TrackResource="Component:Output"
   	InputHF="C:/BambiHF/manual002/Input" OutputHF="C:/BambiHF/manual002/Output" ErrorHF="C:/BambiHF/manual002/Error" />
 </application>

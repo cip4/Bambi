@@ -79,7 +79,6 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor;
-import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
@@ -87,6 +86,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.StringUtil;
 
 /**
@@ -136,11 +136,12 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 		    for(int j=0;j<vA.size();j++)
 		    {
 		        KElement am=vA.elementAt(j);
-		        final double good = am.getRealAttribute("Amount", null, 0);
-		        final boolean waste = am.getBoolAttribute("Waste", null, false);
-		        //timeToGo is milisecods, speed is / hour
-		        final double speed = phase.timeToGo<=0 ? 0. : 3600*1000*(good)/phase.timeToGo;
-		        phase.setAmount(am.getAttribute("Resource"), speed, waste);  
+		        double speed = am.getRealAttribute("Speed", null, 0);
+                if(speed<0)
+                    speed=0;
+		        final boolean bGood = !am.getBoolAttribute("Waste", null, false);
+		        //timeToGo is seconds, speed is / hour
+		        phase.setAmount(am.getAttribute("Resource"), speed, bGood);  
 		    }
 		    phaseList.add(phase);
 		}			
@@ -180,7 +181,7 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
      * @param qe the queueentry to process
      * @return EnumQueueEntryStatus the final status of the queuentry 
      */
-    protected void initializeProcessDoc(JDFDoc doc, JDFQueueEntry qe) {
+    protected void initializeProcessDoc(JDFNode doc, JDFQueueEntry qe) {
         _jobPhases = resumeQueueEntry(qe);
         if (_jobPhases == null)  {
             _jobPhases = loadJobFromFile(_devProperties.getAppDir()+"/config/job_"+_devProperties.getDeviceID()+".xml");

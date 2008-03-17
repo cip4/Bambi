@@ -76,6 +76,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.workers.core.AbstractWorkerDevice;
+import org.cip4.jdflib.core.JDFDoc;
 
 /**
  * a simple JDF device with a fixed list of job phases. <br>
@@ -115,4 +116,5 @@ public final class SimDevice extends AbstractWorkerDevice
             return "../showSimDevice.xsl";
         return super.getXSLT(context);
     }
+
 }

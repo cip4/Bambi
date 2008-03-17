@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <BambiJob>
-<JobPhase Duration="2000"
+<JobPhase Duration="20"
 		DeviceStatus="Setup" DeviceStatusDetails="WarmingUp" 
-		NodeStatus="Setup" NodeStatusDetails="node setup">
-		<Amount Resource="Component:Output" Amount="0" />
-		<Amount Resource="Media:Input" Amount="0"  />
-		<Amount Resource="UsageCounter:Input" Amount="0"  />
+		NodeStatus="Setup" NodeStatusDetails="node warmup">
+		<Amount Resource="Component:Output" />
+		<Amount Resource="Media:Input"   />
+		<Amount Resource="UsageCounter:Input" />
 		</JobPhase>
-	<JobPhase Duration="2000"
+	<JobPhase Duration="30"
 		DeviceStatus="Setup" DeviceStatusDetails="Waste" 
 		NodeStatus="Setup" NodeStatusDetails="node setup">
-		<Amount Resource="Component:Output" Amount="10" Waste="true"/>
-		<Amount Resource="Media:Input" Amount="40" Waste="true" />
-		<Amount Resource="UsageCounter:Input" Amount="80"  />
+		<Amount Resource="Component:Output" Speed="1000" Waste="true"/>
+		<Amount Resource="Media:Input" Speed="4000" Waste="true" />
+		<Amount Resource="UsageCounter:Input" Speed="8000"  />
 		</JobPhase>
-	<JobPhase Duration="10000" 
+	<JobPhase Duration="100" 
 		DeviceStatus="Running" DeviceStatusDetails="Good" 
 		NodeStatus="InProgress" NodeStatusDetails="producing node">
-		<Amount Resource="Component:Output" Amount="40" />
-		<Amount Resource="Media:Input" Amount="160"  />
-		<Amount Resource="UsageCounter:Input" Amount="320"  />
+		<Amount Resource="Component:Output" Speed="4000" />
+		<Amount Resource="Media:Input" Speed="16000"  />
+		<Amount Resource="UsageCounter:Input" Speed="32000"  />
 		</JobPhase>
-	<JobPhase Duration="2000" 
+	<JobPhase Duration="15" 
 		DeviceStatus="Cleanup" DeviceStatusDetails="WashUp" 
 		NodeStatus="Cleanup" NodeStatusDetails="cleaning up">
-		<Amount Resource="Component:Output" Amount="0" />
-		<Amount Resource="Media:Input" Amount="0"  />
-		<Amount Resource="UsageCounter:Input" Amount="0"  />
+		<Amount Resource="Component:Output" />
+		<Amount Resource="Media:Input" />
+		<Amount Resource="UsageCounter:Input" />
 	</JobPhase>
 </BambiJob>

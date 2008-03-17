@@ -503,9 +503,8 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
     }
 
 
-    public EnumQueueEntryStatus processDoc(JDFDoc doc, JDFQueueEntry qe) {
+    public EnumQueueEntryStatus processDoc(JDFNode n, JDFQueueEntry qe) {
         JobPhase lastPhase=null;
-        JDFNode n=doc==null ? null : doc.getJDFRoot();
         while ( _jobPhases.size()>0 ) {
             processPhase(n);
             lastPhase=_jobPhases.remove(0); // phase(0) is always the active phase
@@ -524,7 +523,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             finalPhase.nodeStatus=EnumNodeStatus.Completed;
             finalPhase.nodeStatusDetails=null;
             _jobPhases.add(finalPhase);
-            qes=processDoc(doc, qe); 
+            qes=processDoc(n, qe); 
         }
 
         return qes;
@@ -617,11 +616,10 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
     }
 
     @Override
-    protected void initializeProcessDoc(JDFDoc doc, JDFQueueEntry qe)
+    protected void initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
     {
-        // TODO Auto-generated method stub
-        super.initializeProcessDoc(doc,qe);
-        if(qe==null || doc==null) {
+        super.initializeProcessDoc(node,qe);
+        if(qe==null || node==null) {
             log.error("proccessing null job");
             return;
         }
@@ -629,7 +627,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         final String queueEntryID = qe.getQueueEntryID();
         log.info("Processing queueentry "+queueEntryID);
 
-        JDFNode node=doc.getJDFRoot();
+         
         VJDFAttributeMap vPartMap=qe.getPartMapVector();
         if(vPartMap==null)
             vPartMap=node.getPartMapVector();
@@ -681,6 +679,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         }
         _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
     }
+
 
     @Override
     public void stopProcessing(EnumNodeStatus newStatus)

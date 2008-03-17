@@ -103,6 +103,7 @@ import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.MimeUtil;
@@ -277,11 +278,11 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
         _theQueueProcessor = buildQueueProcessor( );
         _theQueueProcessor.addHandlers(_jmfHandler);
 
-
         String deviceID=_devProperties.getDeviceID();
         _deviceProcessors=new Vector<AbstractDeviceProcessor>();
         AbstractDeviceProcessor newDevProc= buildDeviceProcessor();
         if (newDevProc!=null) {
+            newDevProc.setParent(this);
             StatusListener theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
             theStatusListener.addHandlers(_jmfHandler);
             newDevProc.init(_theQueueProcessor, theStatusListener, _devProperties);
@@ -484,6 +485,17 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
      * @return
      */
     protected abstract AbstractDeviceProcessor buildDeviceProcessor();
+    
+    /**
+     * returns true if the device cann process the jdf ticket
+     * @return
+     */
+    public abstract boolean canAccept(JDFDoc doc);
+    /**
+     * @param doc
+     * @return
+     */
+    public abstract JDFNode getNodeFromDoc(JDFDoc doc);
 
     /**
      * get the StatusListener of the i'th DeviceProcessor

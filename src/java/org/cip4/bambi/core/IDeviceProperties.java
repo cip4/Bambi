@@ -180,4 +180,9 @@ public interface IDeviceProperties {
      */
     public int getMaxPush();
 
+    /**
+     * @return the type regular expression that the device accepts
+     */
+    public String getTypeExpression();
+
 }

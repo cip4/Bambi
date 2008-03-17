@@ -74,6 +74,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.node.JDFNode;
 
 /**
  * simple QueueEntry / JDF pair
@@ -84,20 +85,21 @@ public class QueueEntry implements IQueueEntry
 {
     private static Log log = LogFactory.getLog(QueueEntry.class.getName());
    
-    private JDFDoc _theDoc;
+    private JDFNode _theNode;
     private JDFQueueEntry _theQueueEntry;
     
-    public QueueEntry(JDFDoc doc, JDFQueueEntry qe) {
+    public QueueEntry(JDFNode node, JDFQueueEntry qe) {
         super();
         log.info("constructing new QueueEntry");
-        _theDoc=doc;
+        _theNode=node;
         _theQueueEntry=qe;
-        if(_theDoc==null || _theQueueEntry==null)
+        qe.setIdentifier(node.getIdentifier());
+        if(_theNode==null || _theQueueEntry==null)
             log.error("null elements in QueueEntry");
     }
 
-    public JDFDoc getJDF() {
-        return _theDoc;
+    public JDFNode getJDF() {
+        return _theNode;
     }
     
     public JDFQueueEntry getQueueEntry() {
@@ -111,7 +113,7 @@ public class QueueEntry implements IQueueEntry
 	public String toString() {
         String s="[QueueEntry: ] \nQueueEntry : ";
         s+=_theQueueEntry==null ?"null \n" : _theQueueEntry.getQueueEntryID() + "\n"+_theQueueEntry.toString();
-        s+="\n Doc: "+_theDoc==null ?"null \n": _theDoc.toString();
+        s+="\n Doc: "+_theNode==null ?"null \n": _theNode.toString();
         return s;
     }
 
@@ -126,9 +128,9 @@ public class QueueEntry implements IQueueEntry
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.queues.IQueueEntry#setJDF(org.cip4.jdflib.core.JDFDoc)
      */
-    public void setJDF(JDFDoc doc)
+    public void setJDF(JDFNode node)
     {
-       _theDoc=doc;
+       _theNode=node;
         
     }
 

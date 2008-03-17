@@ -518,4 +518,23 @@ public class ProxyDevice extends AbstractDevice {
         return super.getXSLT(context);
     }
 
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
+     */
+    @Override
+    public boolean canAccept(JDFDoc doc)
+    {
+        return true;
+    }
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core.JDFDoc)
+     */
+    @Override
+    public JDFNode getNodeFromDoc(JDFDoc doc)
+    {
+        // TODO Auto-generated method stub
+        return doc.getJDFRoot();
+    }
+
 }

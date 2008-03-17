@@ -70,8 +70,8 @@
 */
 package org.cip4.bambi.core.queues;
 
-import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.node.JDFNode;
 
 /**
  * @author prosirai
@@ -80,9 +80,9 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 public interface IQueueEntry
 {
 
-    public JDFDoc getJDF();
+    public JDFNode getJDF();
     public JDFQueueEntry getQueueEntry();
-    public void setJDF(JDFDoc doc);
+    public void setJDF(JDFNode doc);
     public void setQueueEntry(JDFQueueEntry qe);
     public String getQueueEntryID();
 }
