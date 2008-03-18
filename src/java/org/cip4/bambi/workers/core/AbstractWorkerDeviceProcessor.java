@@ -581,15 +581,35 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
     private JDFResourceLink getAmountLink(JDFNode n)
     {
         VJDFAttributeMap vMap=n.getPartMapVector();
+        
         VElement v=n.getResourceLinks(new JDFAttributeMap(AttributeName.USAGE,EnumUsage.Output));
         int siz= v==null ? 0 : v.size();
+        int mapSiz = vMap==null ? 0 : vMap.size();
         for(int i=0;i<siz;i++)
         {
             JDFResourceLink rl=(JDFResourceLink)v.elementAt(i);
             try{
-                double d=rl.getAmountPoolDouble(AttributeName.AMOUNT, vMap);
-                if(d>=0)
-                    return rl;
+                if(mapSiz==0)
+                {
+                    double d=rl.getAmountPoolDouble(AttributeName.AMOUNT, vMap);
+                    if(d>=0)
+                        return rl;
+                }
+                else
+                {
+                    VJDFAttributeMap vm=new VJDFAttributeMap(vMap);
+                    final JDFResource linkRoot = rl.getLinkRoot();
+                    if(linkRoot!=null)
+                        vm.reduceMap(linkRoot.getPartIDKeys().getSet());
+                    
+                    for(int j=0;j<mapSiz;j++)
+                    {
+                        double d=rl.getAmountPoolDouble(AttributeName.AMOUNT, vm.elementAt(j));
+                        if(d>=0)
+                            return rl;
+
+                    }
+                }
             }
             catch (JDFException e) {
                 // nop
