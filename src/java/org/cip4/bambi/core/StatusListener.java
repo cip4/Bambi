@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -323,22 +323,17 @@ public class StatusListener implements IStatusListener
      * Returns EnumDeviceStatus.Idle if the StatusCounter is null. <br/>
      * Returns EnumDeviceStatus.Unknown, if the StatusListener was unable to retrieve the status from the StatusCounter.
      */
-	public EnumDeviceStatus getDeviceStatus() {
-		if (theCounter==null) {
-			return EnumDeviceStatus.Idle;
-		}
-		
-		JDFDoc docJMF=null;
-		try {
-			docJMF=theCounter.getDocJMFPhaseTime();
-			JDFResponse r=docJMF.getJMFRoot().getResponse(-1);
-			JDFDeviceInfo di=r.getDeviceInfo(0);
-			return di.getDeviceStatus();
-		} catch (NullPointerException e) {
-			log.fatal("StatusCounter returned an illegal doc: \r\n"+docJMF);
-			return EnumDeviceStatus.Unknown;
-		}
-	}
+    public EnumDeviceStatus getDeviceStatus() {
+        if (theCounter==null) {
+            return EnumDeviceStatus.Idle;
+        }
+
+        JDFDoc docJMF=theCounter.getDocJMFPhaseTime();
+        JDFResponse r=docJMF==null ? null : docJMF.getJMFRoot().getResponse(-1);
+        JDFDeviceInfo di=r==null ? null : r.getDeviceInfo(0);
+        return di==null ? EnumDeviceStatus.Idle : di.getDeviceStatus();
+
+    }
 
 	public void shutdown() {
 		// not needed right now, retaining method for future compatability		
@@ -351,5 +346,11 @@ public class StatusListener implements IStatusListener
 	public StatusCounter getStatusCounter() {
 		return theCounter;
 	}
+
+    @Override
+    public String toString()
+    {
+         return "[StatusListner - counter: "+theCounter+"\n Current Node: "+currentNode;
+    }
 
 }

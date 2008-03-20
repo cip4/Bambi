@@ -116,7 +116,7 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 	    JDFParser p = new JDFParser();
 	    JDFDoc doc = p.parseFile(fileName);
 	    if (doc == null) {
-	        log.error( fileName+" not found, list of job phases remains empty" );
+	        log.error( "Job File "+fileName+" not found, using default" );
 			return null;
 		}
 
@@ -177,11 +177,11 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
 		}		
 	}
     /**
-     * @param doc the jdfdoc to process
+     * @param node the jdfdoc to process
      * @param qe the queueentry to process
      * @return EnumQueueEntryStatus the final status of the queuentry 
      */
-    protected void initializeProcessDoc(JDFNode doc, JDFQueueEntry qe) {
+    protected void initializeProcessDoc(JDFNode node, JDFQueueEntry qe) {
         _jobPhases = resumeQueueEntry(qe);
         if (_jobPhases == null)  {
             _jobPhases = loadJobFromFile(_devProperties.getAppDir()+"/config/job_"+_devProperties.getDeviceID()+".xml");
@@ -189,9 +189,9 @@ public class SimDeviceProcessor extends AbstractWorkerDeviceProcessor
         // we want at least one setup dummy
         if (_jobPhases == null)  {
             _jobPhases=new ArrayList<JobPhase>();
-            _jobPhases.add(initFirstPhase());
+            _jobPhases.add(initFirstPhase(node));
         }
-        super.initializeProcessDoc(doc, qe);        
+        super.initializeProcessDoc(node, qe);        
     }
 
 		

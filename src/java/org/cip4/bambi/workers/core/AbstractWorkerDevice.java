@@ -86,6 +86,7 @@ import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -110,6 +111,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
      * 
      */
     protected String _trackResource=null; // the "major" resource to track
+    protected VString amountResources=null;
     protected String _typeExpression=null; // the regexp that defines the valid types
     private static final Log log = LogFactory.getLog(AbstractWorkerDevice.class.getName());
 
@@ -137,7 +139,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
     public VElement getAcceptableNodes(JDFDoc doc)
     {
         //TODO plug in devcaps
-         if(doc==null)
+        if(doc==null)
             return null;
 
         JDFNode n=doc.getJDFRoot();
@@ -208,7 +210,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
                 int vSiz=v==null ? 0 : v.size();
                 for(int i=0;i<vSiz;i++)
                 {
-                    addAmount(i,v.stringAt(i), phase);
+                    addAmount(v.stringAt(i), phase);
                 }
                 AbstractBambiServlet.addOptionList(deviceStatus,EnumDeviceStatus.getEnumList(),phase,"DeviceStatus");
                 AbstractBambiServlet.addOptionList(nodeStatus,EnumNodeStatus.getEnumList(),phase,"NodeStatus");
@@ -224,15 +226,15 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
         /**
          * @param string
          */
-        private void addAmount(int loop,String resString, KElement jp)
+        private void addAmount(String resString, KElement jp)
         {
             if(jp==null)
                 return;
             KElement amount=jp.appendElement("ResourceAmount");
             amount.setAttribute("ResourceName", resString);
             amount.setAttribute("ResourceIndex", jp.numChildElements("ResourceAmount", null)-1,null);
-            amount.setAttribute("Waste"+loop, !currentJobPhase.getOutput_Condition(resString),null);            
-            amount.setAttribute("Speed"+loop, currentJobPhase.getOutput_Speed(resString),null);            
+            amount.setAttribute("Waste", !currentJobPhase.getOutput_Condition(resString),null);            
+            amount.setAttribute("Speed", currentJobPhase.getOutput_Speed(resString),null);            
         }        
     }	
 
@@ -242,6 +244,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
         super(prop);
         _trackResource=prop.getTrackResource();
         _typeExpression=prop.getTypeExpression();
+        amountResources=prop.getAmountResources();
     }
 
 
@@ -250,8 +253,28 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
         return _trackResource;
     }
 
-    protected boolean showDevice(HttpServletResponse response)
+    /**
+     * check whether this resource should track amounts
+     * @param resLink
+     * @return
+     */
+    boolean isAmountResource(JDFResourceLink resLink)
     {
+        if(resLink==null || amountResources==null)
+            return false;
+        for(int i=0;i<amountResources.size();i++)
+        {
+            if(resLink.matchesString(amountResources.get(i)))
+                return true;
+        }        
+        return false;
+    }
+    @Override
+    protected boolean showDevice(HttpServletResponse response, boolean refresh)
+    {
+        if(refresh)
+            return super.showDevice(response, refresh); // skip the phase stuff
+        
         XMLSimDevice simDevice=this.new XMLSimDevice();
         try
         {
@@ -299,9 +322,16 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
         }
         newPhase.nodeStatusDetails = request.getParameter("NodeStatusDetails");
 
-        newPhase.setAmount(getTrackResource(), 
-                AbstractBambiServlet.getDoubleFromRequest(request, "Speed0"),
-                !AbstractBambiServlet.getBooleanFromRequest(request, "Waste0") );
+        for(int i=0;i<10;i++)
+        {
+            final String parameter = request.getParameter("Res"+i);
+            if(parameter==null)
+                break;
+            newPhase.setAmount(parameter, 
+                    AbstractBambiServlet.getDoubleFromRequest(request, "Speed"+i),
+                    !AbstractBambiServlet.getBooleanFromRequest(request, "Waste"+i) );
+
+        }
         if(!KElement.isWildCard(request.getParameter(AttributeName.DURATION)))
             newPhase.setTimeToGo(1000*(int)AbstractBambiServlet.getDoubleFromRequest(request, AttributeName.DURATION));
         else if(current!=null)
@@ -330,7 +360,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
         JobPhase nextPhase = buildJobPhaseFromRequest(request);
         ((AbstractWorkerDeviceProcessor)_deviceProcessors.get(0)).doNextPhase(nextPhase);
         StatusCounter.sleep(1000); // allow device to switch phases before displaying page
-        showDevice(response);
+        showDevice(response,false);
         return true;
     }
 

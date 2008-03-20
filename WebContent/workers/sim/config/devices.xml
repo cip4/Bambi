@@ -1,18 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+
+Each Device specifies one logical device with Queue, Processor(s) etc.
+TrackResource: the individual resource used for calculating amounts in phase jmfs
+AmountResources: Other resources that have amounts and may be set
+ProxyURL: URL of a device that reacts to requestQueueEntry
+DeviceURL: URL of this
+TypeExpression: regExp for retrieving the correct node based on Types
+InputHF: hot folder thatr accepts jdf tickets
+OutputHF: folder where successfully completed jobs are placed
+ErrorHF: folder where unsuccessfuly completed jobs are placed
+
+-->
 <application BaseDir="jmb/" JDFDir="JDFDir" SenderID="SimDevice">
+ <!--
   <Device DeviceID="sim001" DeviceType="Bambi Proxied Sim Device"
-  	ProxyURL="http://127.0.0.1:8080/BambiProxy/devices/proxy001" 
-  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/sim001" 
-  	TrackResource="Component:Output"/>
+  	ProxyURL="http://kie-prosirai-lg:8080/BambiProxy/devices/proxy001" 
+  	TrackResource="Component:Output" AmountResources="Media:Input"/>
+  	
   <Device DeviceID="sim002" DeviceType="Bambi Sim Device" 
-  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/sim002" TrackResource="Component:Output"/>
+  	TrackResource="Component:Output" AmountResources="Media:Input"/>
+  
   <Device DeviceID="DigiPrint" DeviceType="Digital Press" 
-  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/DigiPress" TrackResource="Component:Output" TypeExpression="(.)*DigitalPrinting(.)*"/>
+  	TrackResource="Component:Output" AmountResources="Media:Input,UsageCounter" TypeExpression="(.)*DigitalPrinting(.)*"/>
+  
   <Device DeviceID="Speedmaster" DeviceType="Conventional Press" 
-  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/Speedmaster" TrackResource="Component:Output" TypeExpression="(.)*ConventionalPrinting(.)*"/>
- <Device DeviceID="manual001" DeviceType="Bambi Manual Device" 
-  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/manual001" TrackResource="Component:Output"/>
- <Device DeviceID="manual002" DeviceType="Bambi Manual HotFolder Device" 
-  	DeviceURL="http://127.0.0.1:8080/SimWorker/devices/manual002" TrackResource="Component:Output"
+  	TrackResource="Component:Output" AmountResources="Media:Input" TypeExpression="(.)*ConventionalPrinting(.)*"/>
+ 
+  <Device DeviceID="manual001" DeviceType="Bambi Manual Device" 
+  	TrackResource="Component:Output"/>
+ -->
+
+  <Device DeviceID="manual002" DeviceType="Bambi Manual HotFolder Device" 
+  	TrackResource="Component:Output"
   	InputHF="C:/BambiHF/manual002/Input" OutputHF="C:/BambiHF/manual002/Output" ErrorHF="C:/BambiHF/manual002/Error" />
+  	
 </application>

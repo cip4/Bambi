@@ -79,6 +79,7 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -267,6 +268,15 @@ public class BambiTestCase extends TestCase {
          * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
          */
         public String getTypeExpression()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getAmountResources()
+         */
+        public VString getAmountResources()
         {
             // TODO Auto-generated method stub
             return null;

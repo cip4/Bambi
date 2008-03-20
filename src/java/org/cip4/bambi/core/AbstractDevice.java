@@ -526,7 +526,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
     {
         if(AbstractBambiServlet.isMyRequest(request,getDeviceID(),SHOW_DEVICE))
         {
-            return showDevice(response);
+            return showDevice(response,AbstractBambiServlet.getBooleanFromRequest(request, "refresh"));
         }
         if(_theQueueProcessor!=null)
         {
@@ -535,6 +535,8 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
         return false;
         
     }
+
+   
 
     /**
      * sends a request for a new qe to the proxy
@@ -603,9 +605,12 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
         // TODO Auto-generated method stub
         return _deviceProcessors.size();
     }
-    protected boolean showDevice(HttpServletResponse response)
+    protected boolean showDevice(HttpServletResponse response, boolean refresh)
     {
         XMLDevice simDevice=this.new XMLDevice();
+        if(refresh)
+            simDevice.getRoot().setAttribute("refresh", true,null);
+        
         try
         {
             simDevice.write2Stream(response.getOutputStream(), 0,true);

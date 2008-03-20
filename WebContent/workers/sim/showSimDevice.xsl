@@ -14,13 +14,27 @@
 		<link rel="stylesheet" type="text/css" href="../css/styles_pc.css"/>
 		<link rel="icon" href="../favicon.ico" type="image/x-icon" />
 		<title>Bambi - Simulation Device :<xsl:value-of select="$deviceID"/></title>
+			<xsl:if test="@refresh='true'">
+				<meta http-equiv="refresh">
+				<xsl:attribute name="content">15; URL=../showDevice/<xsl:value-of select="$deviceID"/>?refresh=true</xsl:attribute>
+		 		</meta>
+		 	</xsl:if>
 	</head>
  	<body>
 		<h1>Bambi - Simulation Device :<xsl:value-of select="$deviceID"/></h1>
 		<p align="center">
- 			<a><xsl:attribute name="href">
- 			../showDevice/<xsl:value-of select="$deviceID"/>
- 			</xsl:attribute>reload this page</a> 
+ 			<xsl:choose>
+			<xsl:when test="@refresh='true'">
+			<a>
+ 			<xsl:attribute name="href">../showDevice/<xsl:value-of select="$deviceID"/>?refresh=false</xsl:attribute>
+ 			modify page</a> 
+ 			</xsl:when>
+			<xsl:otherwise>
+			<a>
+ 			<xsl:attribute name="href">../showDevice/<xsl:value-of select="$deviceID"/>?refresh=true</xsl:attribute>
+ 			reload continually</a> 
+ 			</xsl:otherwise>
+			</xsl:choose>
 		<img src="../bambi.jpg" border="2" width="68" height="100" hspace="10" alt="BambiPic"/>
 		Go to <a href="../overview">DeviceList</a> 
 		</p>
@@ -78,7 +92,7 @@ Seconds to go: <xsl:value-of select="@Duration"/>; new time to go:
 <xsl:attribute name="value"></xsl:attribute>
 </input>
 
-
+<hr/>
 <h3>Resource Amounts</h3>
 <xsl:apply-templates select="ResourceAmount"/>
 
@@ -94,19 +108,28 @@ Seconds to go: <xsl:value-of select="@Duration"/>; new time to go:
 <xsl:value-of select="@ResourceName"/>
 </h4>
 
-<xsl:if test="@ResourceIndex='0'">
-Waste Production: <input type="checkbox" name="Waste0" value="true">
-<xsl:if test="@Waste0='true'">
-<xsl:attribute name="checked">checked</xsl:attribute>
+<input type="hidden">
+<xsl:attribute name="name">Res<xsl:value-of select="@ResourceIndex"/></xsl:attribute>
+<xsl:attribute name="value"><xsl:value-of select="@ResourceName"/></xsl:attribute>
+</input>
+Waste Production: <input type="checkbox"  value="true">
+<xsl:attribute name="name">Waste<xsl:value-of select="@ResourceIndex"/></xsl:attribute>
+
+<xsl:if test="@Waste='true'">
+<xsl:attribute name="checked">Waste</xsl:attribute>
 </xsl:if>
 </input>
 
 - Speed: 
-<input name ="Speed0" type="text" size="10" maxlength="30">
-<xsl:attribute name="value"><xsl:value-of select="@Speed0"/></xsl:attribute>
+<input type="text" size="10" maxlength="30">
+<xsl:attribute name="name">Speed<xsl:value-of select="@ResourceIndex"/></xsl:attribute>
+<xsl:attribute name="value"><xsl:value-of select="@Speed"/></xsl:attribute>
 </input>
 <br/>
-</xsl:if>
+
+
+
+
 
 <xsl:apply-templates/>
 </xsl:template>

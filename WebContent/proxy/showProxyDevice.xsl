@@ -15,14 +15,30 @@
 		<link rel="stylesheet" type="text/css" href="../css/styles_pc.css"/>
 		<link rel="icon" href="../favicon.ico" type="image/x-icon" />
 		<title>Bambi - Proxy Device :<xsl:value-of select="$deviceID"/></title>
-		<h1>Bambi - Proxy Device :<xsl:value-of select="$deviceID"/></h1>
+					<xsl:if test="@refresh='true'">
+<meta http-equiv="refresh">
+		<xsl:attribute name="content">15; URL=../showDevice/<xsl:value-of select="$deviceID"/>?refresh=true</xsl:attribute>
+ 		</meta>
+ 		</xsl:if>
 	</head>
  	<body>
+	<h1>Bambi - Proxy Device :<xsl:value-of select="$deviceID"/></h1>
 		
 		<p align="center">
- 			<a><xsl:attribute name="href">
- 			../showDevice/<xsl:value-of select="$deviceID"/>
- 			</xsl:attribute>reload this page</a> 
+ 			<xsl:choose>
+			<xsl:when test="@refresh='true'">
+			<a>
+ 			<xsl:attribute name="href">../showDevice/<xsl:value-of select="$deviceID"/>?refresh=false</xsl:attribute>
+ 			modify page</a> 
+ 			</xsl:when>
+			<xsl:otherwise>
+			<a>
+ 			<xsl:attribute name="href">../showDevice/<xsl:value-of select="$deviceID"/>?refresh=true</xsl:attribute>
+ 			reload continually</a> 
+ 			</xsl:otherwise>
+			</xsl:choose>
+		<img src="../bambi.jpg" border="2" width="68" height="100" hspace="10" alt="BambiPic"/>
+		Go to <a href="../overview">DeviceList</a> 
 		</p>
 
 <!--  device info section   -->

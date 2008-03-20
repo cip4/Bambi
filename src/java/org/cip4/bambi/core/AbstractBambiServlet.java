@@ -225,9 +225,8 @@ public abstract class AbstractBambiServlet extends HttpServlet {
         _devices=new HashMap<String, IDevice>();
         super.init(config);
         ServletContext context = config.getServletContext();
- //       config.getInitParameter(arg0)
+        
         String dump=config.getInitParameter("bambiDump");
-//        String dump="c:/BambiDump";
         if(dump!=null)
         {
             bambiDumpIn=new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("in")));
@@ -550,7 +549,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
      */
     protected void loadProperties(ServletContext context, File config)
     {
-        MultiDeviceProperties props=new MultiDeviceProperties(new File(context.getRealPath("")),config);
+        MultiDeviceProperties props=new MultiDeviceProperties(context,config);
         createDevices(props);
     }
 
@@ -703,10 +702,10 @@ public abstract class AbstractBambiServlet extends HttpServlet {
     }
 
     /**
-     * extract a double attribute from a given request
+     * extract a boolean attribute from a given request
      * @param request
      * @param param
-     * @return
+     * @return true if the parameter is"true", else false
      */
     public static boolean getBooleanFromRequest(HttpServletRequest request, String param)
     {

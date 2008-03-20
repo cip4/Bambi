@@ -71,6 +71,13 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.Properties;
+
+import javax.servlet.ServletContext;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -98,6 +105,7 @@ public class MultiDeviceProperties
      *
      */
     private KElement root;
+    private URL contextURL;
 
     public class DeviceProperties implements IDeviceProperties {
         /**
@@ -114,7 +122,7 @@ public class MultiDeviceProperties
          * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
          */
         public String getDeviceURL() {
-            return devRoot.getAttribute("DeviceURL",null,null);
+            return contextURL.toExternalForm()+"/jmf/"+getDeviceID();
         }
 
         /* (non-Javadoc)
@@ -179,8 +187,8 @@ public class MultiDeviceProperties
 
         private File getFile(String file)
         {
-           final String fil=devRoot.getAttribute(file,null,null);
-           return fil==null ? getRootFile(file) : new File(fil);
+            final String fil=devRoot.getAttribute(file,null,null);
+            return fil==null ? getRootFile(file) : new File(fil);
         } 
 
         /* (non-Javadoc)
@@ -188,7 +196,7 @@ public class MultiDeviceProperties
          */
         public File getErrorHF()
         {
-           return getFile("ErrorHF");
+            return getFile("ErrorHF");
         }
 
 
@@ -219,14 +227,14 @@ public class MultiDeviceProperties
             File f= getRootFile("BaseDir");
             return FileUtil.getFileInDirectory(fBase, f);
         }
-        
+
         public File getAppDir()
         {
             return getRootFile("AppDir");
         }
 
 
-  
+
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getJDFDir()
          */
@@ -318,6 +326,22 @@ public class MultiDeviceProperties
         }
 
 
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getAmountResources()
+         */
+        public VString getAmountResources()
+        {
+            VString v= StringUtil.tokenize(devRoot.getAttribute("AmountResources", null, null), ",", false);
+            final String trackResource = getTrackResource();
+            if (v==null)
+            {
+                return StringUtil.tokenize(trackResource, null, false);
+            }
+            v.appendUnique(trackResource);
+            return v;
+        }
+
+
 
     }
 
@@ -328,8 +352,11 @@ public class MultiDeviceProperties
      * @param appDir     the location of the web application in the server
      * @param configFile the config file
      */
-    public MultiDeviceProperties(File baseDir, File configFile) {
-
+    public MultiDeviceProperties(ServletContext context, File configFile)
+    {
+ 
+        // to evaluate current name and send it back rather than 127.0.0.1
+        File baseDir=new File(context.getRealPath(""));
         JDFParser p = new JDFParser();
         XMLDoc doc = p.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
         root = doc==null ? null : doc.getRoot();
@@ -340,6 +367,29 @@ public class MultiDeviceProperties
         {
             root.setAttribute("AppDir", baseDir.getAbsolutePath());
         }
+        try
+        {
+            InetAddress localHost = InetAddress.getLocalHost();
+            contextURL=new URL("http://"+localHost.getHostName()+":"+getPort()+"/"+StringUtil.token(context.getResource("/").toExternalForm(),-1,"/"));
+        }
+        catch (UnknownHostException x1)
+        {
+            //
+        }
+        catch (MalformedURLException x2)
+        {
+            // 
+        }
+
+    }
+
+    /**
+     * @return
+     */
+    private int getPort()
+    {
+        
+        return root.getIntAttribute("Port", null, 8080);
     }
 
     /* (non-Javadoc)
@@ -349,7 +399,7 @@ public class MultiDeviceProperties
         return root.numChildElements(ElementName.DEVICE, null);
     }
 
-     /* (non-Javadoc)
+    /* (non-Javadoc)
      * @see org.cip4.bambi.core.IMultiDeviceProperties#getDevice(java.lang.String)
      */
     public IDeviceProperties getDevice(String deviceID) {
@@ -362,7 +412,7 @@ public class MultiDeviceProperties
      */
     @Override
     public String toString() {
-        return "[ MultiDeviceProperties: "+root.toString()+"]";           
+        return "[ MultiDeviceProperties: "+contextURL+"\n"+root+"]";           
     }
 
     /**
@@ -372,13 +422,13 @@ public class MultiDeviceProperties
     {
         return getRootFile("AppDir");
     }
-    
+
     public File getBaseDir()
     {
         File fBase=getAppDir();
         File f= getRootFile("BaseDir");
         return FileUtil.getFileInDirectory(fBase, f);
-     }
+    }
 
     /**
      * @return
@@ -396,8 +446,8 @@ public class MultiDeviceProperties
      */
     protected File getRootFile(String file)
     {
-       final String fil=root.getAttribute(file,null,null);
-       return fil==null ? null : new File(fil);
+        final String fil=root.getAttribute(file,null,null);
+        return fil==null ? null : new File(fil);
     }
 
     /**
@@ -407,20 +457,20 @@ public class MultiDeviceProperties
     public String getSenderID()
     {
         return root.getAttribute(AttributeName.SENDERID);
-     }
+    }
 
     /**
      * @return
      */
     public VString getDeviceIDs()
     {
-       VElement v=root.getChildElementVector(ElementName.DEVICE, null);
-       VString vs=new VString();
-       for(int i=0;i<v.size();i++)
-       {
-           vs.add(v.elementAt(i).getAttribute(AttributeName.DEVICEID));
-       }
-       return vs;
+        VElement v=root.getChildElementVector(ElementName.DEVICE, null);
+        VString vs=new VString();
+        for(int i=0;i<v.size();i++)
+        {
+            vs.add(v.elementAt(i).getAttribute(AttributeName.DEVICEID));
+        }
+        return vs;
     }
 
 }

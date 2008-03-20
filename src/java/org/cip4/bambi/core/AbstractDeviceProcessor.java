@@ -83,6 +83,7 @@ import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
+import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.StatusCounter;
@@ -127,23 +128,24 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
          */
         public void fill()
         {
-            KElement phase=root.appendElement(BambiNSExtension.MY_NS_PREFIX+"Processor", BambiNSExtension.MY_NS);
+            KElement processor=root.appendElement(BambiNSExtension.MY_NS_PREFIX+"Processor", BambiNSExtension.MY_NS);
             if(currentQE==null)
             {
-                phase.setAttribute("DeviceStatus", "Idle");
+                processor.setAttribute("DeviceStatus", "Idle");
                 return;
             }
            
             final EnumDeviceStatus deviceStatus = _statusListener.getDeviceStatus();
             JDFNode n=currentQE.getJDF();
-            JDFAttributeMap map=null; // todo partitioning
+            VJDFAttributeMap vm=n.getNodeInfoPartMapVector();
+            JDFAttributeMap map=vm==null ? null : vm.elementAt(0);
             final EnumNodeStatus nodeStatus = n.getPartStatus(map);
             if(deviceStatus!=null  && nodeStatus!=null)
             {
-                phase.setAttribute("NodeStatus",nodeStatus.getName(),null);
-                phase.setAttribute("NodeStatusDetails",n.getStatusDetails());
-
-                fillPhaseTime(phase);
+                processor.setAttribute("NodeStatus",nodeStatus.getName(),null);
+                processor.setAttribute("NodeStatusDetails",n.getStatusDetails());
+ 
+                fillPhaseTime(processor);
              }
             else
             {
@@ -153,31 +155,33 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     
      
         /**
-         * @param phase
+         * @param processor
          * @param pt
          */
-        private void fillPhaseTime(KElement phase)
+        private void fillPhaseTime(KElement processor)
         {
-            StatusCounter sc=_statusListener.getStatusCounter();
-            if(phase==null || sc==null)
+            StatusCounter statusCounter=_statusListener.getStatusCounter();
+            if(processor==null || statusCounter==null)
                 return;
-            phase.setAttribute(AttributeName.STARTTIME, sc.getStartDate().getDateTimeISO());
-            phase.setAttribute(AttributeName.DEVICESTATUS, sc.getStatus().getName());
-            phase.setAttribute("Device"+AttributeName.STATUSDETAILS, sc.getStatusDetails());
-            phase.setAttribute(AttributeName.QUEUEENTRYID, currentQE.getQueueEntryID());
-            final JDFNode node = currentQE.getJDF().getJDFRoot();
+            processor.setAttribute(AttributeName.STARTTIME, statusCounter.getStartDate().getDateTimeISO());
+            processor.setAttribute(AttributeName.DEVICESTATUS, statusCounter.getStatus().getName());
+            processor.setAttribute("Device"+AttributeName.STATUSDETAILS, statusCounter.getStatusDetails());
+            processor.setAttribute(AttributeName.QUEUEENTRYID, currentQE.getQueueEntryID());
+            final JDFNode node = currentQE.getJDF();
             String typ=node.getType();
             if(node.isTypesNode())
                 typ+=" - "+node.getAttribute(AttributeName.TYPE);
             
-            phase.setAttribute("Type", typ);
-            phase.copyAttribute(AttributeName.DESCRIPTIVENAME, node, null, null, null);
+            processor.setAttribute("Type", typ);
+            processor.copyAttribute(AttributeName.DESCRIPTIVENAME, node, null, null, null);
+            processor.setAttribute("JobID",node.getJobID(true));
+            processor.setAttribute("JobPartID",node.getJobPartID(false));
             
-            JDFResourceLink rls[]=sc.getAmountLinks();
+            JDFResourceLink rls[]=statusCounter.getAmountLinks();
             int siz=rls==null ? 0 : rls.length;
             for(int i=0;i<siz;i++)
             {
-                addAmount(phase,rls[i].getrRef(),rls[i].getLinkedResourceName());
+                addAmount(processor,rls[i].getrRef(),rls[i].getLinkedResourceName());
             }
         }
 
@@ -257,7 +261,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         _statusListener=statusListener;
         _devProperties=devProperties;
         _trackResource=devProperties.getTrackResource();
-     }
+    }
 
     final private boolean processQueueEntry()
     {
@@ -349,6 +353,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         _statusListener.setNode(null, null, null, null, null);
         _queueProcessor.updateEntry(currentQE.getQueueEntry(), qes, null, null);
         currentQE.getQueueEntry().removeAttribute(AttributeName.DEVICEID);
+       
         currentQE=null;
         return true;
     }

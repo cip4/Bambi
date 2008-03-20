@@ -72,6 +72,8 @@ package org.cip4.bambi.core;
 
 import java.io.File;
 
+import org.cip4.jdflib.core.VString;
+
 public interface IDeviceProperties {
 
 
@@ -184,5 +186,10 @@ public interface IDeviceProperties {
      * @return the type regular expression that the device accepts
      */
     public String getTypeExpression();
+
+    /**
+     * @return the vector of amount counting resource names
+     */
+    public VString getAmountResources();
 
 }

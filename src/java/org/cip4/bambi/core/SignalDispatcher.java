@@ -307,8 +307,7 @@ public final class SignalDispatcher implements ISignalDispatcher
                 long now=System.currentTimeMillis()/1000;
                 while(it.hasNext())
                 {
-                    final Entry<String, MsgSubscription> next = 
-                        it.next();
+                    final Entry<String, MsgSubscription> next = it.next();
                     MsgSubscription sub=next.getValue();
                     if( sub.repeatTime>0)
                     {

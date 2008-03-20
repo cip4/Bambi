@@ -262,15 +262,19 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             this.timeToGo = duration;
         }
 
-        public void setAmount(String resName, double speed, boolean bGood){
+        public PhaseAmount setAmount(String resName, double speed, boolean bGood){
             PhaseAmount pa=getPhaseAmount(resName);
             if(pa==null)
-                amounts.add(this.new PhaseAmount(resName,speed,bGood));
+            {
+                pa = this.new PhaseAmount(resName,speed,bGood);
+                amounts.add(pa);
+            }
             else
             {
                 pa.bGood=bGood;
                 pa.speed=speed;
-            }           
+            }   
+            return pa;
         }
 
         public double getOutput_Speed(String res) {
@@ -469,7 +473,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
     {
         if(currentQE==null)
             return;
-        
+
         // add all remaining phases to a new list
         List<JobPhase> phases = new ArrayList<JobPhase>();
         for (int i=0;i<_jobPhases.size();i++) {
@@ -497,6 +501,9 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
      * @return
      */
     public JobPhase getCurrentJobPhase() {
+//        if(currentQE==null)
+//            _jobPhases.clear(); // just in case we have some remaining spurious phases
+        
         if ( _jobPhases != null && _jobPhases.size() > 0)
             return _jobPhases.get(0);
         return null;
@@ -508,10 +515,10 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         while ( _jobPhases.size()>0 ) {
             processPhase(n);
             lastPhase=_jobPhases.remove(0); // phase(0) is always the active phase
-         }
+        }
         if(lastPhase==null)
             return EnumQueueEntryStatus.Aborted;
-        
+
         EnumQueueEntryStatus qes=EnumNodeStatus.getQueueEntryStatus(lastPhase.nodeStatus);
         if(qes==null)
             return EnumQueueEntryStatus.Aborted;
@@ -534,10 +541,10 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         JDFResourceLink rlAmount=getAmountLink(n);
         String namedRes=rlAmount==null ? null : rlAmount.getrRef();
         JobPhase phase = getCurrentJobPhase();
-        double all=rlAmount==null ? 0 : rlAmount.getAmountPoolDouble(AttributeName.ACTUALAMOUNT, n==null ? null : n.getPartMapVector());
+        double all=rlAmount==null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.ACTUALAMOUNT, n==null ? null : n.getNodeInfoPartMapVector());
         if(all<0)
             all=0;
-        double todoAmount=rlAmount==null ? 0 : rlAmount.getAmountPoolDouble(AttributeName.AMOUNT, n==null ? null : n.getPartMapVector());
+        double todoAmount=rlAmount==null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.AMOUNT, n==null ? null : n.getNodeInfoPartMapVector());
         log.info("processing new job phase: "+phase.toString());
         _statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails,phase.nodeStatus,phase.nodeStatusDetails);          
         long deltaT=1000;
@@ -554,7 +561,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
                     if(namedRes!=null && pa.matchesRes(namedRes))
                     {
                         all+=phaseGood;
-                        if(all>todoAmount)
+                        if(all>todoAmount && todoAmount>0)
                         {
                             phase.timeToGo=0;
                             log.info("phase end for resource: "+namedRes);
@@ -580,36 +587,17 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
      */
     private JDFResourceLink getAmountLink(JDFNode n)
     {
-        VJDFAttributeMap vMap=n.getPartMapVector();
-        
+        VJDFAttributeMap vMap=n.getNodeInfoPartMapVector();
+
         VElement v=n.getResourceLinks(new JDFAttributeMap(AttributeName.USAGE,EnumUsage.Output));
         int siz= v==null ? 0 : v.size();
-        int mapSiz = vMap==null ? 0 : vMap.size();
         for(int i=0;i<siz;i++)
         {
             JDFResourceLink rl=(JDFResourceLink)v.elementAt(i);
             try{
-                if(mapSiz==0)
-                {
-                    double d=rl.getAmountPoolDouble(AttributeName.AMOUNT, vMap);
-                    if(d>=0)
-                        return rl;
-                }
-                else
-                {
-                    VJDFAttributeMap vm=new VJDFAttributeMap(vMap);
-                    final JDFResource linkRoot = rl.getLinkRoot();
-                    if(linkRoot!=null)
-                        vm.reduceMap(linkRoot.getPartIDKeys().getSet());
-                    
-                    for(int j=0;j<mapSiz;j++)
-                    {
-                        double d=rl.getAmountPoolDouble(AttributeName.AMOUNT, vm.elementAt(j));
-                        if(d>=0)
-                            return rl;
-
-                    }
-                }
+                double d=rl.getAmountPoolSumDouble(AttributeName.AMOUNT, vMap);
+                if(d>=0)
+                    return rl;
             }
             catch (JDFException e) {
                 // nop
@@ -626,7 +614,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         // nop - only overwritten in sim
 
     }
- 
+
     @Override
     protected boolean finalizeProcessDoc(EnumQueueEntryStatus qes)
     {
@@ -647,11 +635,11 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         final String queueEntryID = qe.getQueueEntryID();
         log.info("Processing queueentry "+queueEntryID);
 
-         
+
         VJDFAttributeMap vPartMap=qe.getPartMapVector();
         if(vPartMap==null)
-            vPartMap=node.getPartMapVector();
-        
+            vPartMap=node.getNodeInfoPartMapVector();
+
         JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
         final String workStepID = node.getWorkStepID(partMap);
 
@@ -736,18 +724,36 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         _jobPhases.add(pos,nextPhase);
     }
 
-    protected JobPhase initFirstPhase() {
+    protected JobPhase initFirstPhase(JDFNode node) {
         log.info("initializing first phase");
-    	JobPhase firstPhase = new JobPhase();
-    	firstPhase.deviceStatus=EnumDeviceStatus.Setup;
-    	firstPhase.deviceStatusDetails="Setup";
-    	firstPhase.nodeStatus=EnumNodeStatus.Setup;
-    	firstPhase.nodeStatusDetails="Setup";
+        JobPhase firstPhase = new JobPhase();
+        firstPhase.deviceStatus=EnumDeviceStatus.Setup;
+        firstPhase.deviceStatusDetails="Setup";
+        firstPhase.nodeStatus=EnumNodeStatus.Setup;
+        firstPhase.nodeStatusDetails="Setup";
         firstPhase.timeToGo=Integer.MAX_VALUE/2;
-        firstPhase.setAmount(_trackResource, 0, false);
+        if(node!=null)
+        {
+            VElement v=node.getResourceLinks(null);
+            int s=v==null ? 0 : v.size();
+            for(int i=0;i<s;i++)
+            {
+                JDFResourceLink rl=(JDFResourceLink) v.get(i);
+                final JDFResource linkRoot = rl.getLinkRoot();
+                if(linkRoot!=null && ((AbstractWorkerDevice)_parent).isAmountResource(rl))
+                {
+                    PhaseAmount pa=firstPhase.setAmount(rl.getNamedProcessUsage(), 0, false);  
+                    pa.resource=linkRoot.getID();
+                }
+            }
+        }
+        else
+        {
+            firstPhase.setAmount(_trackResource, 0, false);
+        }
         return firstPhase;   
     }
-    
+
     @Override
     public String toString()
     {
