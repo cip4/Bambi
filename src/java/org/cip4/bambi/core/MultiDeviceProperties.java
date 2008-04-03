@@ -75,7 +75,6 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.Properties;
 
 import javax.servlet.ServletContext;
 
@@ -89,6 +88,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
 
 
@@ -339,6 +339,25 @@ public class MultiDeviceProperties
             }
             v.appendUnique(trackResource);
             return v;
+        }
+
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
+         */
+        public int getDeviceHTTPChunk()
+        {
+            return devRoot.getIntAttribute("HTTPChunk", null, 10000);
+        }
+
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
+         */
+        public String getDeviceMIMEEncoding()
+        {
+            // TODO Auto-generated method stub
+            return devRoot.getAttribute("MIMETransferEncoding",null,MimeUtil.BASE64);
         }
 
 

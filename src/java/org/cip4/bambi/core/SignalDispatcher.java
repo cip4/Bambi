@@ -354,6 +354,12 @@ public final class SignalDispatcher implements ISignalDispatcher
             trigger=new Trigger(null,null,0);
             theMessage=(JDFMessage)m;
             //TODO observation targets
+            if(repeatTime==0 && repeatAmount==0) // reasonable default
+            {
+                repeatAmount=100;
+                repeatTime=15; 
+            }
+                
         }
 
         public JDFJMF getSignal() {

@@ -145,7 +145,7 @@ public class QueueEntryStatusTest extends BambiTestCase {
 
 		JDFParser p = new JDFParser();
 		JDFDoc docJDF = p.parseFile( sm_dirTestData+"Elk_ConventionalPrinting.jdf" );
-		Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
+		Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, true);
 
 		try {
 			HttpURLConnection response = MimeUtil.writeToURL( mp,simWorkerUrl );

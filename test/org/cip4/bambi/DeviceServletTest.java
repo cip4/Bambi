@@ -128,7 +128,7 @@ public class DeviceServletTest extends BambiTestCase {
         JDFRunList rl=(JDFRunList)n.addResource(ElementName.RUNLIST, null, EnumUsage.Input, null, null, null, null);
         rl.addPDF(StringUtil.uncToUrl(sm_dirTestData+File.separator+"url3.pdf",false), 0, -1);
 
-        Multipart m=MimeUtil.buildMimePackage(d1,doc);
+        Multipart m=MimeUtil.buildMimePackage(d1, doc, true);
         
         JDFDoc[] d2=MimeUtil.getJMFSubmission(m);
         assertNotNull(d2);
@@ -137,7 +137,7 @@ public class DeviceServletTest extends BambiTestCase {
         
         // now serialize to file and reread - should still work
         HttpURLConnection uc=MimeUtil.writeToURL(m, simWorkerUrl);
-        MimeUtil.writeToFile(m, sm_dirTestTemp+"testMime.mjm");
+        MimeUtil.writeToFile(m, sm_dirTestTemp+"testMime.mjm", null);
         assertEquals(uc.getResponseCode(), 200);
         UrlUtil.UrlPart[] parts=UrlUtil.getURLParts(uc);
         assertEquals(parts.length, 1);

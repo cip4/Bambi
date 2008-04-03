@@ -232,6 +232,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
             bambiDumpIn=new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("in")));
             MessageSender.inDump=bambiDumpIn;
             bambiDumpOut=new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("out")));
+            MessageSender.outDump=bambiDumpOut;
         }
         log.info( "Initializing servlet for "+context.getServletContextName() );
 //      String appDir=context.getRealPath("")+"/";

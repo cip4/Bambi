@@ -281,6 +281,24 @@ public class BambiTestCase extends TestCase {
             // TODO Auto-generated method stub
             return null;
         }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
+         */
+        public int getDeviceHTTPChunk()
+        {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
+         */
+        public String getDeviceMIMEEncoding()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
         
     }
     

@@ -93,6 +93,7 @@ import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
@@ -118,6 +119,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
 /**
  *
@@ -1000,7 +1002,7 @@ public class QueueProcessor implements IQueueProcessor
             bAborted=true;
         }
 
-        Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF);
+        Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
         String returnURL=BambiNSExtension.getReturnURL(qe);
         String returnJMF=BambiNSExtension.getReturnJMF(qe);
         final IDeviceProperties properties = _parentDevice.getProperties();
@@ -1009,8 +1011,12 @@ public class QueueProcessor implements IQueueProcessor
         boolean bOK=false;
         if(returnJMF!=null) {
             HttpURLConnection response = null;
+            MIMEDetails ud=new MIMEDetails();
+            ud.chunkSize=properties.getDeviceHTTPChunk();
+            ud.transferEncoding=properties.getDeviceMIMEEncoding();
+            
             try {
-                response = MimeUtil.writeToURL(mp, returnJMF);
+                response = MimeUtil.writeToURL(mp, returnJMF,ud);
                 if (response.getResponseCode() == 200)
                 {
                     log.info("ReturnQueueEntry for "+queueEntryID+" has been sent.");
@@ -1020,6 +1026,10 @@ public class QueueProcessor implements IQueueProcessor
                     log.error("failed to send ReturnQueueEntry. Response: "+response.toString());
             } catch (Exception e) {
                 log.error("failed to send ReturnQueueEntry: "+e);
+            }
+            if(MessageSender.outDump!=null)
+            {
+                MimeUtil.writeToFile(mp, MessageSender.outDump.newFile().getAbsolutePath(), null);
             }
         } 
         if (! bOK && returnURL!=null) {

@@ -82,6 +82,11 @@ public interface IDeviceProperties {
      * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
      */
     public String getDeviceURL();
+    /**
+     * get the URL to communicate with this device
+     * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+     */
+    public int getDeviceHTTPChunk();
     
     /**
      * get the URL of the device hotfolder, if null the device does not support a JDF input hot folder
@@ -191,5 +196,9 @@ public interface IDeviceProperties {
      * @return the vector of amount counting resource names
      */
     public VString getAmountResources();
+    /**
+     * @return the default body part encoding
+     */
+    public String getDeviceMIMEEncoding();
 
 }

@@ -31,6 +31,9 @@ ErrorHF: folder where unsuccessfuly completed jobs are placed
   	TrackResource="Component:Output"/>
  -->
 
+ <Device DeviceID="ImagePressC1" DeviceType="Digital Press" HTTPChunk="0" MIMETransferEncoding="base64"
+  	TrackResource="Component:Output" AmountResources="Media:Input,UsageCounter" TypeExpression="(.)*DigitalPrinting(.)*"/>
+
   <Device DeviceID="manual002" DeviceType="Bambi Manual HotFolder Device" 
   	TrackResource="Component:Output"
   	InputHF="C:/BambiHF/manual002/Input" OutputHF="C:/BambiHF/manual002/Output" ErrorHF="C:/BambiHF/manual002/Error" />
