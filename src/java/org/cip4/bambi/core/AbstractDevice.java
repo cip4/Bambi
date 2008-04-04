@@ -277,7 +277,8 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
 
         _theQueueProcessor = buildQueueProcessor( );
         _theQueueProcessor.addHandlers(_jmfHandler);
-
+        
+        _callback=_devProperties.getCallBackClass();
         String deviceID=_devProperties.getDeviceID();
         _deviceProcessors=new Vector<AbstractDeviceProcessor>();
         AbstractDeviceProcessor newDevProc= buildDeviceProcessor();

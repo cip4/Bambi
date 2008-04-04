@@ -354,12 +354,14 @@ public abstract class AbstractBambiServlet extends HttpServlet {
             for(int i=0;i<docJDF.length;i++)
             {
                 final JDFDoc doc = docJDF[i];
-                final String localName = doc.getLocalName();
-                if(localName.equals(ElementName.JMF))
+                KElement e=doc.getRoot();
+                
+                final String localName = e==null ? null : e.getLocalName();
+                if(ElementName.JMF.equals(localName))
                 {
                     _callBack.prepareJMFForBambi(doc);
                 }
-                else if(localName.equals(ElementName.JDF))
+                else if(ElementName.JDF.equals(localName))
                 {
                     _callBack.prepareJDFForBambi(doc);
                 }                
@@ -818,6 +820,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
         while (iter.hasNext()) {
             String devID=iter.next();
             IDeviceProperties prop=props.getDevice(devID);
+            _callBack=prop.getCallBackClass(); // the last one wins
             createDevice(prop);
         }
 

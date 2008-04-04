@@ -152,7 +152,7 @@ public class MultiDeviceProperties
          */
         public String getCallBackClassName()
         {
-            return devRoot.getAttribute("CallBackName",null,null);        
+            return root.getAttribute("CallBackName",null,null);        
         }
 
         /* (non-Javadoc)

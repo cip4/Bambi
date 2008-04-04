@@ -524,13 +524,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             return EnumQueueEntryStatus.Aborted;
         if(lastPhase.timeToGo<=0 && EnumQueueEntryStatus.Running.equals(qes)) // final phase was active
         {
-            JobPhase finalPhase=new JobPhase();
-            finalPhase.deviceStatus=EnumDeviceStatus.Idle;
-            finalPhase.deviceStatusDetails=null;
-            finalPhase.nodeStatus=EnumNodeStatus.Completed;
-            finalPhase.nodeStatusDetails=null;
-            _jobPhases.add(finalPhase);
-            qes=processDoc(n, qe); 
+            qes=EnumQueueEntryStatus.Completed;
         }
 
         return qes;

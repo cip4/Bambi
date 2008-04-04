@@ -88,6 +88,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractBambiServlet;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiNSExtension;
+import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.core.messaging.IJMFHandler;
@@ -151,6 +152,9 @@ public class QueueProcessor implements IQueueProcessor
                     JMFHandler.errorResponse(resp, errorMsg, 9);
                     return true;
                 }
+                final IConverterCallback callback = _parentDevice.getCallback();
+                if(callback!=null)
+                    callback.prepareJDFForBambi(doc);
                 JDFQueueEntry qe=addEntry( (JDFCommand)m, doc);
                 if(qe==null) {
                     JMFHandler.errorResponse(resp, "failed to add entry: invalid or missing message parameters", 9);
@@ -760,7 +764,7 @@ public class QueueProcessor implements IQueueProcessor
      * get the next queue entry
      */
     public IQueueEntry getNextEntry() {
-        
+
         JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry(null,null);
         return getIQueueEntry(qe);
     }
@@ -780,7 +784,7 @@ public class QueueProcessor implements IQueueProcessor
                     +"' is unable to load the JDFDoc from '"+docURL+"'");
             return null;
         }
-        
+
         JDFNode n=_parentDevice.getNodeFromDoc(theDoc);
         return new QueueEntry(n,qe);
     }
@@ -968,11 +972,11 @@ public class QueueProcessor implements IQueueProcessor
         JDFDoc docJMF=new JDFDoc("JMF");
         JDFJMF jmf=docJMF.getJMFRoot();
         JDFCommand com=(JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.ReturnQueueEntry);
-        JDFReturnQueueEntryParams qerp = com.appendReturnQueueEntryParams();
+        JDFReturnQueueEntryParams returnQEParams = com.appendReturnQueueEntryParams();
 
-        qerp.setURL("cid:dummy"); // will be overwritten by buildMimePackage
+        returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
         final String queueEntryID = qe.getQueueEntryID();
-        qerp.setQueueEntryID(queueEntryID);
+        returnQEParams.setQueueEntryID(queueEntryID);
         if(docJDF==null)
         {
             String docFile=getJDFStorage(qe.getQueueEntryID());
@@ -996,12 +1000,19 @@ public class QueueProcessor implements IQueueProcessor
 
         boolean bAborted=false;
         if ( EnumNodeStatus.Completed.equals( qe.getStatus() )) {
-            qerp.setCompleted( finishedNodes );
+            returnQEParams.setCompleted( finishedNodes );
         } else if ( EnumNodeStatus.Aborted.equals( qe.getStatus() )) {
-            qerp.setAborted( finishedNodes );
+            returnQEParams.setAborted( finishedNodes );
             bAborted=true;
         }
-
+        
+        // fix for returning
+        final IConverterCallback callBack = _parentDevice.getCallback();
+        if(callBack!=null)
+        {
+            callBack.updateJDFForExtern(docJDF);
+            callBack.updateJMFForExtern(docJMF);
+        }
         Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
         String returnURL=BambiNSExtension.getReturnURL(qe);
         String returnJMF=BambiNSExtension.getReturnJMF(qe);
@@ -1014,7 +1025,7 @@ public class QueueProcessor implements IQueueProcessor
             MIMEDetails ud=new MIMEDetails();
             ud.chunkSize=properties.getDeviceHTTPChunk();
             ud.transferEncoding=properties.getDeviceMIMEEncoding();
-            
+
             try {
                 response = MimeUtil.writeToURL(mp, returnJMF,ud);
                 if (response.getResponseCode() == 200)
@@ -1055,7 +1066,6 @@ public class QueueProcessor implements IQueueProcessor
                 log.warn("No return URL, No HF, No Nothing  specified");
             }
         }
-           
     }
 
     protected JDFQueueEntry getMessageQueueEntry(JDFMessage m, JDFResponse resp)
