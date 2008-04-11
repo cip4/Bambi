@@ -80,6 +80,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
@@ -89,6 +90,7 @@ import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
@@ -370,6 +372,16 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
         dev.setJDFErrorURL(UrlUtil.fileToUrl(_devProperties.getErrorHF(),false));
         dev.setJDFVersions( EnumVersion.Version_1_3.getName() );
 
+        if(_devProperties instanceof DeviceProperties)
+        {
+            DeviceProperties dp=(DeviceProperties) _devProperties;
+            KElement root=dp.getDevRoot();
+            if(root!=null)
+            {
+                KElement deviceCap=root.getElement(ElementName.DEVICECAP);
+                dev.copyElement(deviceCap, null);
+            }
+        }
         info.setDeviceStatus( getDeviceStatus() );
         return true;
     }
@@ -549,7 +561,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
             return;
         final  String queueURL=getDeviceURL();
         JDFJMF jmf = JMFFactory.buildRequestQueueEntry( queueURL,getDeviceID() );
-        JMFFactory.send2URL(jmf,proxyURL,null,getDeviceID()); // TODO handle reponse
+        new JMFFactory(_callback).send2URL(jmf,proxyURL,null,getDeviceID()); // TODO handle reponse
     }
 
     public ISignalDispatcher getSignalDispatcher()

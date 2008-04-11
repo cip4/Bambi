@@ -97,7 +97,7 @@ public class BambiTestCase extends TestCase {
     protected static String manualWorkerUrl=null;
     protected String proxyUrl="http://localhost:8080/BambiProxy/jmf/proxy002";
     
-
+    protected JMFFactory jmfFactory=new JMFFactory(null);
 
     static class BambiTestProp implements IDeviceProperties
     {
@@ -299,6 +299,15 @@ public class BambiTestCase extends TestCase {
             // TODO Auto-generated method stub
             return null;
         }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getReturnMIME()
+         */
+        public QEReturn getReturnMIME()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
         
     }
     
@@ -326,7 +335,7 @@ public class BambiTestCase extends TestCase {
 	 */
 	protected void abortRemoveAll(String url) {		
 		JDFJMF jmf=JMFFactory.buildQueueStatus();
-		JDFResponse resp=JMFFactory.send2URLSynch(jmf,url,"testcase");
+		JDFResponse resp=jmfFactory.send2URLSynch(jmf,url,"testcase");
 		if (resp==null) {
 			System.err.println("failed to send QueueStatus");
 			return;
@@ -343,7 +352,7 @@ public class BambiTestCase extends TestCase {
 		for (int i=0;i<siz;i++) {
 			String qeid=((JDFQueueEntry)qVec.get(i)).getQueueEntryID();
 			jmf=JMFFactory.buildAbortQueueEntry(qeid);
-			JMFFactory.send2URLSynch(jmf, url, "testcase");
+			jmfFactory.send2URLSynch(jmf, url, "testcase");
 		}
 		
 		// wait to allow the worker to process the AbortQueueEntries,
@@ -356,7 +365,7 @@ public class BambiTestCase extends TestCase {
 		for (int i=0;i<siz;i++) {
 			String qeid=((JDFQueueEntry)qVec.get(i)).getQueueEntryID();
 			jmf=JMFFactory.buildRemoveQueueEntry(qeid);
-			JMFFactory.send2URLSynch(jmf,url,"testcase");
+			jmfFactory.send2URLSynch(jmf,url,"testcase");
 		}
 	}
 	

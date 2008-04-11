@@ -86,6 +86,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StatusCounter;
 
 /**
@@ -95,11 +96,47 @@ import org.cip4.jdflib.util.StatusCounter;
  * 
  */
 public class JMFFactory {
-	
+	private static class CallURL
+    {
+	    private IConverterCallback callback;
+        private String url;
+        /**
+         * 
+         */
+        public CallURL(IConverterCallback _callback, String _url)
+        {
+            callback=_callback;
+            url=_url;
+        }
+        @Override
+        public int hashCode()
+        {
+            return  (callback==null ? 0 : callback.hashCode())+(url==null ? 0 : url.hashCode());
+        }
+        @Override
+        public String toString()
+        {
+            return "[CallURL: "+callback+" - "+url+"]";
+        }
+        @Override
+        public boolean equals(Object obj)
+        {
+            if(!(obj instanceof CallURL))
+                return false;
+            CallURL other=(CallURL)obj;
+            return ContainerUtil.equals(url, other.url) && ContainerUtil.equals(callback, other.callback);
+        }
+    }
     private static Log log = LogFactory.getLog(JMFFactory.class.getName());
-    private static HashMap<String,MessageSender> senders=new HashMap<String, MessageSender>();
-    private static IConverterCallback callback=null;
+    private static HashMap<CallURL,MessageSender> senders=new HashMap<CallURL, MessageSender>();
     private static int nThreads=0;
+    private IConverterCallback callback;
+
+    public JMFFactory(IConverterCallback _callback)
+    {
+        super();
+        callback = _callback;
+    }
 
     /**
 	 * build a JMF SuspendQueueEntry command
@@ -224,7 +261,7 @@ public class JMFFactory {
 	 * @param url the URL to send the JMF to
 	 * @return the response if successful, otherwise null
 	 */
-	public static void send2URL(JDFJMF jmf, String url, IMessageHandler handler, String senderID) {
+	public void send2URL(JDFJMF jmf, String url, IMessageHandler handler, String senderID) {
 		
 		if (jmf==null || url==null) {
 			if (log!=null) {
@@ -246,7 +283,7 @@ public class JMFFactory {
      * @param url the URL to send the JMF to
      * @return the response if successful, otherwise null
      */
-    public static JDFResponse send2URLSynch(JDFJMF jmf, String url, String senderID) {
+    public JDFResponse send2URLSynch(JDFJMF jmf, String url, String senderID) {
         
         if (jmf==null || url==null) {
             if (log!=null) {
@@ -278,15 +315,15 @@ public class JMFFactory {
      * 
      * @param url
      */
-    public static void shutDown(String url, boolean graceFully)
+    public static void shutDown(CallURL cu, boolean graceFully)
 	{
-        if(url==null) // null = all
+        if(cu==null) // null = all
         {           
-            final Set<String> keySet = senders.keySet();
-            String[]as=keySet.toArray(new String[keySet.size()]);
+            final Set<CallURL> keySet = senders.keySet();
+            CallURL[]as=keySet.toArray(new CallURL[keySet.size()]);
             for(int i=0;i<as.length;i++)
             {
-                String s=as[i];
+                CallURL s=as[i];
                 if(s!=null)
                 {
                     shutDown(s,graceFully);
@@ -296,12 +333,12 @@ public class JMFFactory {
         }
         else // individual url
         {
-            MessageSender ms=senders.get(url);
+            MessageSender ms=senders.get(cu);
             if(ms!=null)
             {
                 ms.shutDown(graceFully);
             }
-            senders.remove(url);                                               
+            senders.remove(cu);                                               
         }
 	}
 
@@ -309,23 +346,15 @@ public class JMFFactory {
     {
         if(url==null)
             return null;
+        CallURL cu=new CallURL(callBack,url);
 
         MessageSender ms=senders.get(url);
         if(ms==null)
         {
             ms=new MessageSender(url,callBack);
-            senders.put(url, ms);
+            senders.put(cu, ms);
             new Thread(ms,"MessageSender_"+nThreads++).start();
         }
         return ms;
-    }
-
-    /**
-     * @param callBackClass the standard callback class for all sent jmf messages
-     */
-    public static void setCallBack(IConverterCallback callBackClass)
-    {
-        callback=callBackClass;       
-    }
-	
+    }	
 }

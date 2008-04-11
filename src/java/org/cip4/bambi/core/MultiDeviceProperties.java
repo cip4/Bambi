@@ -106,15 +106,20 @@ public class MultiDeviceProperties
      */
     private KElement root;
     private URL contextURL;
+    private ServletContext context;
 
     public class DeviceProperties implements IDeviceProperties {
         /**
          * constructor
          */
         private KElement devRoot;
-
         protected DeviceProperties(KElement _devRoot) {
             devRoot=_devRoot;
+        }
+        
+        public KElement getDevRoot()
+        {
+            return devRoot;
         }
 
 
@@ -122,6 +127,20 @@ public class MultiDeviceProperties
          * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
          */
         public String getDeviceURL() {
+            try
+            {
+                InetAddress localHost = InetAddress.getLocalHost();
+                contextURL=new URL("http://"+localHost.getHostName()+":"+getPort()+"/"+StringUtil.token(context.getResource("/").toExternalForm(),-1,"/"));
+            }
+            catch (UnknownHostException x1)
+            {
+                //
+            }
+            catch (MalformedURLException x2)
+            {
+                // 
+            }
+
             return contextURL.toExternalForm()+"/jmf/"+getDeviceID();
         }
 
@@ -356,8 +375,24 @@ public class MultiDeviceProperties
          */
         public String getDeviceMIMEEncoding()
         {
-            // TODO Auto-generated method stub
             return devRoot.getAttribute("MIMETransferEncoding",null,MimeUtil.BASE64);
+        }
+
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getReturnMIME()
+         */
+        public QEReturn getReturnMIME()
+        {
+            String s=devRoot.getAttribute("MIMEReturn",null,"MIME");
+            try
+            {
+                return QEReturn.valueOf(s);
+            }
+            catch(Exception x)
+            {
+                return QEReturn.MIME;
+            }
         }
 
 
@@ -371,9 +406,9 @@ public class MultiDeviceProperties
      * @param appDir     the location of the web application in the server
      * @param configFile the config file
      */
-    public MultiDeviceProperties(ServletContext context, File configFile)
+    public MultiDeviceProperties(ServletContext _context, File configFile)
     {
- 
+        context=_context;
         // to evaluate current name and send it back rather than 127.0.0.1
         File baseDir=new File(context.getRealPath(""));
         JDFParser p = new JDFParser();
@@ -407,8 +442,9 @@ public class MultiDeviceProperties
      */
     private int getPort()
     {
-        
-        return root.getIntAttribute("Port", null, 8080);
+        //TODO extract from servlet
+        return root.getIntAttribute("Port", null, AbstractBambiServlet.port);
+
     }
 
     /* (non-Javadoc)
@@ -490,6 +526,11 @@ public class MultiDeviceProperties
             vs.add(v.elementAt(i).getAttribute(AttributeName.DEVICEID));
         }
         return vs;
+    }
+
+    public KElement getRoot()
+    {
+        return root;
     }
 
 }

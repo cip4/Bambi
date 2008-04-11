@@ -121,7 +121,7 @@ public class ProxyTest extends BambiTestCase {
 	public void testSubmitQueueEntry_MIME() {
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = JMFFactory.send2URLSynch(jmfStat, proxyUrl,null);
+		JDFResponse resp = jmfFactory.send2URLSynch(jmfStat, proxyUrl,null);
 		assertNotNull( resp );
 		assertEquals( 0,resp.getReturnCode() );
 		JDFQueue q = resp.getQueue(0);
@@ -131,7 +131,7 @@ public class ProxyTest extends BambiTestCase {
         
         // check that the QE is on the proxy
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-        resp=JMFFactory.send2URLSynch(jmf, proxyUrl,null);
+        resp=jmfFactory.send2URLSynch(jmf, proxyUrl,null);
         assertNotNull( resp );
         assertEquals( 0,resp.getReturnCode() );
         q=resp.getQueue(0);
@@ -152,7 +152,7 @@ public class ProxyTest extends BambiTestCase {
 			Thread.sleep(1000);
 			JDFJMF jmf = JMFFactory.buildQueueStatus();
             
-	        JDFResponse resp=JMFFactory.send2URLSynch(jmf, proxyUrl,null);
+	        JDFResponse resp=jmfFactory.send2URLSynch(jmf, proxyUrl,null);
 	        assertNotNull( resp );
 	        assertEquals( 0,resp.getReturnCode() );
 	        JDFQueue q=resp.getQueue(0);

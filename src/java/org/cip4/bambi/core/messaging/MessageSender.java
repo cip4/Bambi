@@ -228,7 +228,7 @@ public class MessageSender implements Runnable {
 
         try{
             final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
-            HttpURLConnection con=jmfDoc.write2HTTPURL(new URL(_url));
+            HttpURLConnection con=jmfDoc.write2HTTPURL(new URL(_url),null);
             if(con!=null && con.getResponseCode()==200)
             {
                 if(inDump!=null)

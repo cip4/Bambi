@@ -119,6 +119,7 @@ public final class SignalDispatcher implements ISignalDispatcher
     protected Object mutex=null;
     protected boolean doShutdown=false;
     protected String deviceID=null;
+    private JMFFactory jmfFactory;
 
     /////////////////////////////////////////////////////////////
     protected static class Trigger
@@ -239,7 +240,7 @@ public final class SignalDispatcher implements ISignalDispatcher
             if(signalJMF!=null)
             {
                 signalJMF.setSenderID(deviceID);
-                JMFFactory.send2URL(signalJMF, url, null,deviceID);
+                jmfFactory.send2URL(signalJMF, url, null,deviceID);
             }
             else
             {
@@ -512,6 +513,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         mutex = new Object();
         new Thread(new Dispatcher(),"SignalDispatcher_"+deviceID).start();
         log.info("dispatcher thread 'SignalDispatcher_"+deviceID+"' started");
+        jmfFactory=new JMFFactory(devProps.getCallBackClass());
     }
 
     /**

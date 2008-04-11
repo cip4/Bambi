@@ -76,7 +76,11 @@ import org.cip4.jdflib.core.VString;
 
 public interface IDeviceProperties {
 
-
+    /**
+     * queueentry return type
+     *
+     */
+    public enum QEReturn{HF,HTTP,MIME};
     /**
      * get the URL to communicate with this device
      * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
@@ -153,6 +157,12 @@ public interface IDeviceProperties {
      * @return
      */
     public File getOutputHF();
+    
+    /**
+     * if true, qes are returned as MIME, else 
+     * @return
+     */
+    public QEReturn getReturnMIME();
 
     /**
      * @return

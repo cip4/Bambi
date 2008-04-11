@@ -76,6 +76,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Vector;
 
 import javax.mail.Multipart;
@@ -91,12 +93,14 @@ import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
+import org.cip4.bambi.core.IDeviceProperties.QEReturn;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFException;
@@ -119,8 +123,10 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 
 /**
  *
@@ -487,7 +493,8 @@ public class QueueProcessor implements IQueueProcessor
             {
                 InputStream is=new FileInputStream(f);
                 IOUtils.copy(is, response.getOutputStream());
-                response.setContentType(MimeUtil.TEXT_XML);
+                boolean bJDF=AbstractBambiServlet.getBooleanFromRequest(request, isJDF);
+                response.setContentType(bJDF ? MimeUtil.VND_JDF: MimeUtil.TEXT_XML);
             }
             catch (FileNotFoundException x)
             {
@@ -660,6 +667,7 @@ public class QueueProcessor implements IQueueProcessor
      */
     private static final String QE_STATUS = "qeStatus";
     private static final String QE_ID = "qeID";
+    private static final String isJDF = "isJDF";
     private static final String SHOW_QUEUE = "showQueue";
     private static final String SHOW_JDF = "showJDF";
     private static final String MODIFY_QE = "modifyQE";
@@ -930,9 +938,15 @@ public class QueueProcessor implements IQueueProcessor
         {
             qe.setQueueEntryStatus(status);
             if (status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Aborted)) {
+                if(!qe.hasAttribute(AttributeName.ENDTIME))
+                    qe.setEndTime(new JDFDate());
                 returnQueueEntry( qe,null ,null);
             }
-            if (status.equals(EnumQueueEntryStatus.Removed)) {
+            else if (status.equals(EnumQueueEntryStatus.Running) ) {
+                if(!qe.hasAttribute(AttributeName.STARTTIME))
+                    qe.setStartTime(new JDFDate());
+            }
+            else if (status.equals(EnumQueueEntryStatus.Removed)) {
                 String docURL=BambiNSExtension.getDocURL(qe);
                 if(docURL!=null)
                     new File(docURL).delete();
@@ -974,7 +988,7 @@ public class QueueProcessor implements IQueueProcessor
         JDFCommand com=(JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.ReturnQueueEntry);
         JDFReturnQueueEntryParams returnQEParams = com.appendReturnQueueEntryParams();
 
-        returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
+        
         final String queueEntryID = qe.getQueueEntryID();
         returnQEParams.setQueueEntryID(queueEntryID);
         if(docJDF==null)
@@ -1013,38 +1027,74 @@ public class QueueProcessor implements IQueueProcessor
             callBack.updateJDFForExtern(docJDF);
             callBack.updateJMFForExtern(docJMF);
         }
-        Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
         String returnURL=BambiNSExtension.getReturnURL(qe);
         String returnJMF=BambiNSExtension.getReturnJMF(qe);
         final IDeviceProperties properties = _parentDevice.getProperties();
         final File deviceOutputHF = properties.getOutputHF();
         final File deviceErrorHF = properties.getErrorHF();
+         
         boolean bOK=false;
         if(returnJMF!=null) {
-            HttpURLConnection response = null;
-            MIMEDetails ud=new MIMEDetails();
-            ud.chunkSize=properties.getDeviceHTTPChunk();
-            ud.transferEncoding=properties.getDeviceMIMEEncoding();
+            QEReturn qr=properties.getReturnMIME();
+            HttpURLConnection response=null;
+            if(QEReturn.MIME.equals(qr))
+            {
+                returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
+                Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
+                MIMEDetails ud=new MIMEDetails();
+                ud.httpDetails.chunkSize=properties.getDeviceHTTPChunk();
+                ud.transferEncoding=properties.getDeviceMIMEEncoding();
+                 try {
+                    response = MimeUtil.writeToURL(mp, returnJMF,ud);
+                 } catch (Exception e) {
+                    log.error("failed to send ReturnQueueEntry: "+e);
+                }
+                if(MessageSender.outDump!=null)
+                {
+                    MimeUtil.writeToFile(mp, MessageSender.outDump.newFile().getAbsolutePath(), null);
+                }
+            }
+            else // http
+            {
+                returnQEParams.setURL(_parentDevice.getDeviceURL()+"/showJDF?qeid="+queueEntryID+"&isJDF=true"); // will be overwritten by buildMimePackage
+                HTTPDetails hDet=new  HTTPDetails();
+                hDet.chunkSize=properties.getDeviceHTTPChunk();
 
-            try {
-                response = MimeUtil.writeToURL(mp, returnJMF,ud);
-                if (response.getResponseCode() == 200)
+                try
+                {
+                    URL url = new URL(returnJMF);
+                    response = docJMF.write2HTTPURL(url,hDet);
+                }
+                catch (MalformedURLException x)
+                {
+                    bOK=false;
+                }
+            }
+            int responseCode;
+            if(response!=null)
+            {
+                try
+                {
+                    responseCode = response.getResponseCode();
+                }
+                catch (IOException x)
+                {
+                    responseCode=0;
+                }
+                if (responseCode == 200)
                 {
                     log.info("ReturnQueueEntry for "+queueEntryID+" has been sent.");
                     bOK=true;
                 }
                 else
+                {
                     log.error("failed to send ReturnQueueEntry. Response: "+response.toString());
-            } catch (Exception e) {
-                log.error("failed to send ReturnQueueEntry: "+e);
-            }
-            if(MessageSender.outDump!=null)
-            {
-                MimeUtil.writeToFile(mp, MessageSender.outDump.newFile().getAbsolutePath(), null);
+                    bOK=false;
+                }
             }
         } 
+
         if (! bOK && returnURL!=null) {
-            HttpURLConnection response = null;
             try {
                 JDFDoc d = docJDF.write2URL(returnURL);
                 bOK=true;

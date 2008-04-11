@@ -286,9 +286,10 @@ public class StatusListener implements IStatusListener
         theCounter.setTrackWaste(trackResourceID, true); // always track waste
         theCounter.setQueueEntryID(queueEntryID);
         theCounter.setWorkStepID(workStepID);
-        if(node!=null) {
+        while(node!=null) {
             log.info("adding subscription for: "+queueEntryID);
             dispatcher.addSubscriptions(node,queueEntryID);
+            node=node.getParentJDF();
         }
     }
 

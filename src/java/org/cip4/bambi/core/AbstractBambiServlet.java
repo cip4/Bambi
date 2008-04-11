@@ -214,6 +214,8 @@ public abstract class AbstractBambiServlet extends HttpServlet {
     protected List<IGetHandler> _getHandlers=new Vector<IGetHandler>();
     protected DumpDir bambiDumpIn=null;
     protected DumpDir bambiDumpOut=null;
+    public static int port=0;
+
 
 
     /** Initializes the servlet.
@@ -224,8 +226,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
     {
         _devices=new HashMap<String, IDevice>();
         super.init(config);
-        ServletContext context = config.getServletContext();
-        
+        ServletContext context = config.getServletContext();       
         String dump=config.getInitParameter("bambiDump");
         if(dump!=null)
         {
@@ -460,6 +461,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
         log.debug("Processing post request for: "+request.getPathInfo());
         BambiServletRequest bufRequest=null;
         BambiServletResponse bufResponse=null;
+
         if(bambiDumpIn!=null)
         {
             try
@@ -622,7 +624,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
             deviceID = request.getPathInfo();
             deviceID = StringUtil.token(deviceID, 0, "/");
         }
-        return deviceID;
+        return deviceID;        
     }
     /**
      * add a set of options to an xml file
@@ -646,7 +648,6 @@ public abstract class AbstractBambiServlet extends HttpServlet {
             option.setAttribute("name", ve.getName());
             option.setAttribute("selected", ve.equals(e)?"selected":null,null);
         }
-
     }
 
     /**
@@ -825,6 +826,15 @@ public abstract class AbstractBambiServlet extends HttpServlet {
         }
 
         return true;
+    }
+
+    @Override
+    protected void service(HttpServletRequest arg0, HttpServletResponse arg1) throws ServletException, IOException
+    {
+        if(port==0) // quick hack
+            port=arg0.getServerPort();
+        super.service(arg0, arg1);
+
     }
 
 }

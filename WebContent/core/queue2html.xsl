@@ -20,6 +20,9 @@
         <table cellspacing="1" border="1" >
           <tr bgcolor="#bbbbbb">
             <th align="left" >QueueEntryID</th>
+            <th align="left" >Submission Date / Time</th>
+            <th align="left" >Start Date / Time</th>
+            <th align="left" >End Date / Time</th>
             <th align="left" >JobID</th>
             <th align="left" >JobPartID</th>
             <th align="center" >Device</th>
@@ -61,6 +64,9 @@
       <xsl:attribute name="bgcolor">#dddddd</xsl:attribute>
   </xsl:if>
   <td align="left"><xsl:value-of select = "@QueueEntryID" /></td>
+	  <td align="left"><xsl:value-of select = "@SubmissionTime" /></td>
+	  <td align="left"><xsl:value-of select = "@StartTime" /></td>
+	  <td align="left"><xsl:value-of select = "@EndTime" /></td>
 	  <td align="left"><xsl:value-of select = "@JobID" /></td>
 	  <td align="left"><xsl:value-of select = "@JobPartID" /></td>
       <td>
