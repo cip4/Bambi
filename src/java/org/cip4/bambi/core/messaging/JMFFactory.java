@@ -348,7 +348,7 @@ public class JMFFactory {
             return null;
         CallURL cu=new CallURL(callBack,url);
 
-        MessageSender ms=senders.get(url);
+        MessageSender ms=senders.get(cu);
         if(ms==null)
         {
             ms=new MessageSender(url,callBack);

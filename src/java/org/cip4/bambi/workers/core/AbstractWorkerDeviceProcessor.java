@@ -540,18 +540,20 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             all=0;
         double todoAmount=rlAmount==null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.AMOUNT, n==null ? null : n.getNodeInfoPartMapVector());
         log.info("processing new job phase: "+phase.toString());
-        _statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails,phase.nodeStatus,phase.nodeStatusDetails);          
+        _statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, phase.nodeStatus, phase.nodeStatusDetails,false);          
         long deltaT=1000;
         while ( phase.timeToGo>0 ) {
             long t0=System.currentTimeMillis();
             VString names=phase.getAmountResourceNames();
+            boolean reachedEnd=false;
             for(int i=0;i<names.size();i++)
             {
                 PhaseAmount pa=phase.getPhaseAmount(names.get(i));
                 if(pa!=null)
                 {
                     final double phaseGood = phase.getOutput_Good(pa.resource,(int)deltaT);
-                    _statusListener.updateAmount(pa.resource, phaseGood, phase.getOutput_Waste(pa.resource,(int)deltaT));
+                    final double phaseWaste = phase.getOutput_Waste(pa.resource,(int)deltaT);
+                    _statusListener.updateAmount(pa.resource, phaseGood, phaseWaste);
                     if(namedRes!=null && pa.matchesRes(namedRes))
                     {
                         all+=phaseGood;
@@ -559,15 +561,16 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
                         {
                             phase.timeToGo=0;
                             log.info("phase end for resource: "+namedRes);
+                            reachedEnd=true;
                         }
                     }
                 }
             }
-            _statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails,phase.nodeStatus,phase.nodeStatusDetails);
+            _statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails,phase.nodeStatus,phase.nodeStatusDetails, reachedEnd);
             if(phase.timeToGo>0)
             {
                 randomErrors(phase);
-                StatusCounter.sleep(1000);
+                StatusCounter.sleep(123);
                 long t1=System.currentTimeMillis();
                 deltaT=t1-t0;
                 phase.timeToGo-=deltaT;

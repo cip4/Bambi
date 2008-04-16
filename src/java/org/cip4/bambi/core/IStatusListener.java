@@ -100,8 +100,9 @@ public interface IStatusListener extends IMultiJMFHandler
      * @param deviceStatusDetails
      * @param nodeStatus
      * @param nodeStatusDetails
+     * @param forceOut forces writing by any generator, even if the status remains the same and the trigger would not call for a write
      */
-    void signalStatus(EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus, String nodeStatusDetails);
+    void signalStatus(EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus, String nodeStatusDetails, boolean forceOut);
 
     /**
      * setup the map of queueentryid and node

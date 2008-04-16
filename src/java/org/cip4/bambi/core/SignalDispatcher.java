@@ -81,6 +81,7 @@ import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
@@ -89,6 +90,7 @@ import org.cip4.jdflib.ifaces.IJMFSubscribable;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQuery;
+import org.cip4.jdflib.jmf.JDFResourceQuParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
@@ -120,6 +122,7 @@ public final class SignalDispatcher implements ISignalDispatcher
     protected boolean doShutdown=false;
     protected String deviceID=null;
     private JMFFactory jmfFactory;
+    private Dispatcher theDispatcher;
 
     /////////////////////////////////////////////////////////////
     protected static class Trigger
@@ -199,22 +202,7 @@ public final class SignalDispatcher implements ISignalDispatcher
             while(!doShutdown)
             {
 
-                final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
-                // spam them out
-                for(int i=0;i<triggerVector.size();i++)
-                {
-                    final MsgSubscription sub=triggerVector.elementAt(i);
-                    log.debug("Trigger Signalling :"+i+" channelID="+sub.channelID);
-                    queueMessageInSender(sub);
-                }
-                // select pending time subscriptions
-                final Vector<MsgSubscription> subVector = getTimeSubscriptions();
-                // spam them out
-                for(int i=0;i<subVector.size();i++) {
-                    final MsgSubscription sub=subVector.elementAt(i);
-                    log.debug("Time Signalling: "+i+", channelID="+sub.channelID);
-                    queueMessageInSender(sub);
-                }
+                flush();
 
                 try
                 {
@@ -227,6 +215,29 @@ public final class SignalDispatcher implements ISignalDispatcher
                 {
                     //
                 }
+            }
+        }
+
+        /**
+         * 
+         */
+        private void flush()
+        {
+            final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
+            // spam them out
+            for(int i=0;i<triggerVector.size();i++)
+            {
+                final MsgSubscription sub=triggerVector.elementAt(i);
+                log.debug("Trigger Signalling :"+i+" channelID="+sub.channelID);
+                queueMessageInSender(sub);
+            }
+            // select pending time subscriptions
+            final Vector<MsgSubscription> subVector = getTimeSubscriptions();
+            // spam them out
+            for(int i=0;i<subVector.size();i++) {
+                final MsgSubscription sub=subVector.elementAt(i);
+                log.debug("Time Signalling: "+i+", channelID="+sub.channelID);
+                queueMessageInSender(sub);
             }
         }
 
@@ -263,6 +274,8 @@ public final class SignalDispatcher implements ISignalDispatcher
                     final Entry<String, Vector<Trigger>> nxt = it.next();
                     String channelID=nxt.getKey();
                     MsgSubscription sub=subscriptionMap.get(channelID);
+                    if(sub==null)
+                        continue; // snafu
                     int siz=triggers.size(channelID);
                     for(int i=0;i<siz;i++)
                     {
@@ -511,7 +524,8 @@ public final class SignalDispatcher implements ISignalDispatcher
         messageHandler=_messageHandler;
         triggers=new VectorMap();
         mutex = new Object();
-        new Thread(new Dispatcher(),"SignalDispatcher_"+deviceID).start();
+        theDispatcher = new Dispatcher();
+        new Thread(theDispatcher,"SignalDispatcher_"+deviceID).start();
         log.info("dispatcher thread 'SignalDispatcher_"+deviceID+"' started");
         jmfFactory=new JMFFactory(devProps.getCallBackClass());
     }
@@ -531,9 +545,37 @@ public final class SignalDispatcher implements ISignalDispatcher
         JDFSubscription sub=query.getSubscription();
         if(sub==null)
             return;
-        final String channelID=addSubscription(query, null);
+        final String channelID=addSubscription(query, findQueueEntryID(m));
         if(resp!=null && channelID!=null)
             resp.setSubscribed(true);
+    }
+
+    /**
+     * @param m
+     * @return
+     */
+    private String findQueueEntryID(JDFMessage m)
+    {
+       if(m==null)
+           return null;
+       try{
+       final EnumType messageType = m.getEnumType();
+       if(EnumType.Status.equals(messageType))
+       {
+           JDFStatusQuParams sqp=m.getStatusQuParams();
+           String qeid=sqp==null ? null : sqp.getQueueEntryID();
+           return qeid;
+       }
+       else if(EnumType.Resource.equals(messageType))
+       {
+           JDFResourceQuParams rqp=m.getResourceQuParams();
+           String qeid=rqp==null ? null : rqp.getQueueEntryID();
+           return qeid;
+       }
+       }
+       catch (JDFException x)
+       { /* nop */ }
+       return null;
     }
 
     /* (non-Javadoc)
@@ -607,15 +649,16 @@ public final class SignalDispatcher implements ISignalDispatcher
      */
     public void removeSubScription(String channelID)
     {
+        theDispatcher.flush();
         if(channelID==null)
             return;
-        synchronized(subscriptionMap)
-        {
-            subscriptionMap.remove(channelID);
-        }
         synchronized (triggers)
         {
             triggers.remove(channelID);
+        }
+        synchronized(subscriptionMap)
+        {
+            subscriptionMap.remove(channelID);
         }
         log.debug("removing subscription for channelid="+channelID);
     }
@@ -655,6 +698,10 @@ public final class SignalDispatcher implements ISignalDispatcher
             else if(amount>0 && t.amount>=0) // -1 always forces
             {
                 t.amount+=amount; 
+            }
+            else
+            {
+                t.amount=amount;
             }
         }
         if(amount!=0)

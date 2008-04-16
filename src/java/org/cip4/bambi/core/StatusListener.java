@@ -69,6 +69,8 @@
  */
 package org.cip4.bambi.core;
 
+import java.util.Vector;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IJMFHandler;
@@ -99,6 +101,8 @@ public class StatusListener implements IStatusListener
     protected StatusCounter theCounter;
     private JDFNode currentNode=null;
     private long lastSave = 0;
+    private Vector<JDFDoc> queuedStatus=new Vector<JDFDoc>();
+    private Vector<JDFDoc> queuedResource=new Vector<JDFDoc>();
     /**
      * 
      * handler for the StopPersistentChannel command
@@ -114,25 +118,16 @@ public class StatusListener implements IStatusListener
             if(!EnumFamily.Query.equals(inputMessage.getFamily()))
                 return false;
             
-            JDFDoc docJMF=theCounter.getDocJMFPhaseTime();
+            JDFDoc docJMF=(queuedStatus.size()==0) ? theCounter.getDocJMFPhaseTime(): queuedStatus.remove(0);
+
             if(docJMF==null) {
                 log.warn("StatusHandler.handleMessage: StatusCounter-phasetime = null");
                 return false;
             }
-            // TODO change interface to public int handleMessage(JDFMessage inputMessage, JDFJMF responses)
             JDFResponse r=docJMF.getJMFRoot().getResponse(-1);
             if(r==null) {
                 log.error("StatusHandler.handleMessage: StatusCounter response = null");
                 return false;
-            }
-            try {
-//            	JDFDeviceInfo di=r.getDeviceInfo(0);
-//            	di.setDeviceID( theCounter.getDeviceID() );
-//            	di.setDeviceStatus( getDeviceStatus() );
-//            	JDFDevice d = r.getDeviceInfo(0).getDevice();
-            	// TODO insert more Bambi info from properties file
-            } catch (NullPointerException e) {
-            	log.error("failed to insert further info in Status response");
             }
             response.mergeElement(r, false);
             return true;
@@ -218,20 +213,19 @@ public class StatusListener implements IStatusListener
         theCounter=new StatusCounter(null,null,null);
         theCounter.setDeviceID(deviceID);
     }
-    
     /* (non-Javadoc)
      * @see org.cip4.bambi.IStatusListener#signalStatus(java.lang.String, java.lang.String, org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus, java.lang.String, org.cip4.jdflib.core.JDFElement.EnumNodeStatus, java.lang.String)
      */
-    public void signalStatus(EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus,
-            String nodeStatusDetails)
+    public void signalStatus(EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus,String nodeStatusDetails, boolean forceOut)
     {
        if(theCounter==null) {
            log.error("updating null status tracker");
            return;
        }
        boolean bMod=theCounter.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
-       if(bMod) {
+       if(bMod || forceOut) {
            dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), -1);
+           queuedStatus.add(theCounter.getDocJMFPhaseTime());
        }
     }
 
@@ -270,6 +264,7 @@ public class StatusListener implements IStatusListener
     public void setNode(String queueEntryID, String workStepID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID)
     {       
         String oldQEID=theCounter.getQueueEntryID();
+        theCounter.writeAll(); // write all stuff in the counter to the node
         saveJDF();
         boolean bSame=currentNode==node;
         currentNode=node;
