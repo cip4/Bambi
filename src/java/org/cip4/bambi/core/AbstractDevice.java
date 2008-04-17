@@ -259,6 +259,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
     protected IDeviceProperties _devProperties=null;
     protected QueueHotFolder _submitHotFolder=null;
     protected IConverterCallback _callback=null;
+    RootDevice rootDevice;
 
     /**
      * creates a new device instance
@@ -266,6 +267,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
      */
     public AbstractDevice(IDeviceProperties prop) {
         super();
+
         init(prop);
     }
 
@@ -535,21 +537,27 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
      */
-    public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
+    public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
     {
-        if(AbstractBambiServlet.isMyRequest(request,getDeviceID(),SHOW_DEVICE))
+        if(!isMyRequest(request))
+            return false;
+        
+        if(AbstractBambiServlet.isMyContext(request,SHOW_DEVICE))
         {
-            return showDevice(response,AbstractBambiServlet.getBooleanFromRequest(request, "refresh"));
+            return showDevice(request,response,AbstractBambiServlet.getBooleanFromRequest(request, "refresh"));
         }
         if(_theQueueProcessor!=null)
         {
-            return _theQueueProcessor.handleGet(request, response, context);
+            return _theQueueProcessor.handleGet(request, response);
         }
         return false;
         
     }
 
-   
+   protected boolean isMyRequest(HttpServletRequest request)
+   {
+       return AbstractBambiServlet.isMyRequest(request, getDeviceID());
+   }
 
     /**
      * sends a request for a new qe to the proxy
@@ -618,7 +626,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
         // TODO Auto-generated method stub
         return _deviceProcessors.size();
     }
-    protected boolean showDevice(HttpServletResponse response, boolean refresh)
+    protected boolean showDevice(HttpServletRequest request,HttpServletResponse response, boolean refresh)
     {
         XMLDevice simDevice=this.new XMLDevice();
         if(refresh)
@@ -634,6 +642,16 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
         }
         response.setContentType(MimeUtil.TEXT_XML);
         return true;
+    }
+
+    public RootDevice getRootDevice()
+    {
+        return rootDevice;
+    }
+
+    public void setRootDevice(RootDevice _rootDevice)
+    {
+        this.rootDevice = _rootDevice;
     }
 
 

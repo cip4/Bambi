@@ -125,6 +125,7 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 
@@ -475,10 +476,9 @@ public class QueueProcessor implements IQueueProcessor
      */
     private class ShowJDFHandler implements IGetHandler
     {
-        public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
+        public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
         {
-            final String deviceID = getDeviceID();
-            if(!AbstractBambiServlet.isMyRequest(request,deviceID,"showJDF"))
+            if(!AbstractBambiServlet.isMyContext(request, "showJDF"))
             {
                 return false;
             }
@@ -515,15 +515,13 @@ public class QueueProcessor implements IQueueProcessor
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
          */
-        public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
+        public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
         {
-            final String deviceID = getDeviceID();
-
-            if( AbstractBambiServlet.isMyRequest(request,deviceID,"showQueue"))
+            if( AbstractBambiServlet.isMyContext(request, "showQueue"))
             {
                 // nop
             }
-            else if(AbstractBambiServlet.isMyRequest(request,deviceID,"modifyQE"))       
+            else if(AbstractBambiServlet.isMyContext(request, "modifyQE"))       
             {
                 updateQE(request);
             }
@@ -771,9 +769,9 @@ public class QueueProcessor implements IQueueProcessor
     /**
      * get the next queue entry
      */
-    public IQueueEntry getNextEntry() {
+    public IQueueEntry getNextEntry(String deviceID) {
 
-        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry(null,null);
+        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry(deviceID,null);
         return getIQueueEntry(qe);
     }
 
@@ -1004,7 +1002,7 @@ public class QueueProcessor implements IQueueProcessor
             JDFNode n=docJDF.getJDFRoot();
             if(n==null)
             {
-                finishedNodes=new VString("root",null);
+                finishedNodes=new VString("rootDev",null);
             }
             else
             {
@@ -1034,6 +1032,9 @@ public class QueueProcessor implements IQueueProcessor
         final File deviceErrorHF = properties.getErrorHF();
          
         boolean bOK=false;
+        //  need a better synch to message thread
+        StatusCounter.sleep(1000); // wait to flush queues
+
         if(returnJMF!=null) {
             QEReturn qr=properties.getReturnMIME();
             HttpURLConnection response=null;
@@ -1156,24 +1157,15 @@ public class QueueProcessor implements IQueueProcessor
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
      */
-    public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
+    public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
     {
 
-        boolean b= this.new QueueGetHandler().handleGet(request, response, context);
+        boolean b= this.new QueueGetHandler().handleGet(request, response);
         if(!b)
-            b=this.new ShowJDFHandler().handleGet(request, response, context);
+            b=this.new ShowJDFHandler().handleGet(request, response);
         return b;
 
     }
 
-    /**
-     * @return
-     */
-    private String getDeviceID()
-    {
-        if(_parentDevice==null)
-            return null;
-        return  _parentDevice.getDeviceID();
-    }
 
 }

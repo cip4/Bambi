@@ -415,7 +415,7 @@ public class MultiDeviceProperties
         XMLDoc doc = p.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
         root = doc==null ? null : doc.getRoot();
         if (root==null) {
-            log.fatal( "failed to parse "+configFile+", root is null" );
+            log.fatal( "failed to parse "+configFile+", rootDev is null" );
         }
         else
         {

@@ -20,9 +20,15 @@ Show JDF: <a><xsl:attribute name="href">../showJDF/<xsl:value-of select="../@Dev
 
 
 <h2>Resources:</h2>
-<table>
+<table cellspacing="1" border="1">
 <tr>
-<th>Type</th><th>Phase Amount</th><th>Phase Waste</th><th>Total Amount</th><th>Total Waste</th>
+<th>Type</th>
+<th>Planned Amount</th>
+<th>Planned Waste</th>
+<th>Phase Amount</th>
+<th>Phase Waste</th>
+<th>Total Amount</th>
+<th>Total Waste</th>
 </tr>
 
 <xsl:apply-templates select="bambi:PhaseAmount"/>
@@ -36,10 +42,12 @@ Show JDF: <a><xsl:attribute name="href">../showJDF/<xsl:value-of select="../@Dev
 <xsl:template match="bambi:PhaseAmount">
 <tr>
 <td><xsl:value-of select="@ResourceName"/></td>
-<td><xsl:value-of select="@PhaseAmount"/></td>
-<td><xsl:value-of select="@PhaseWaste"/></td>
-<td><xsl:value-of select="@TotalAmount"/></td>
-<td><xsl:value-of select="@TotalWaste"/></td>
+<td align="center"><xsl:value-of select="@PlannedAmount"/></td>
+<td align="center"><xsl:value-of select="@PlannedWaste"/></td>
+<td align="center"><xsl:value-of select="@PhaseAmount"/></td>
+<td align="center"><xsl:value-of select="@PhaseWaste"/></td>
+<td align="center"><xsl:value-of select="@TotalAmount"/></td>
+<td align="center"><xsl:value-of select="@TotalWaste"/></td>
 </tr>
 
 

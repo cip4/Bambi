@@ -18,9 +18,7 @@ ErrorHF: folder where unsuccessfuly completed jobs are placed
   	ProxyURL="http://kie-prosirai-lg:8080/BambiProxy/devices/proxy001" 
   	TrackResource="Component:Output" AmountResources="Media:Input"/>
   	
-  <Device DeviceID="sim002" DeviceType="Bambi Sim Device" 
-  	TrackResource="Component:Output" AmountResources="Media:Input"/>
-  
+   
   <Device DeviceID="DigiPrint" DeviceType="Digital Press" 
   	TrackResource="Component:Output" AmountResources="Media:Input,UsageCounter" TypeExpression="(.)*DigitalPrinting(.)*"/>
   
@@ -31,11 +29,12 @@ ErrorHF: folder where unsuccessfuly completed jobs are placed
   	TrackResource="Component:Output"/>
  -->
 
- <Device DeviceID="ImagePressC1" DeviceType="Digital Press" HTTPChunk="0" MIMETransferEncoding="base64"
-  	TrackResource="Component:Output" AmountResources="Media:Input,UsageCounter" TypeExpression="(.)*DigitalPrinting(.)*"/>
+  <Device DeviceID="SimWorkerRoot" DeviceType="Bambi Sim Device Root" />
 
-  <Device DeviceID="manual002" DeviceType="Bambi Manual HotFolder Device" 
+ <Device DeviceID="manual002" DeviceType="Bambi Manual HotFolder Device" 
   	TrackResource="Component:Output"
   	InputHF="C:/BambiHF/manual002/Input" OutputHF="C:/BambiHF/manual002/Output" ErrorHF="C:/BambiHF/manual002/Error" />
   	
+ <Device DeviceID="manual001" DeviceType="Bambi Manual Device" 
+  	TrackResource="Component:Output"/>
 </application>

@@ -288,7 +288,7 @@ public class ProxyDevice extends AbstractDevice {
                     return;
                 }
 
-                // assume the root was the executed baby...
+                // assume the rootDev was the executed baby...
                 rqp.setAttribute(hfStatus.getName(), n.getID());
                 // let the standard returnqe handler do the work
                 JDFDoc responseJMF=_jmfHandler.processJMF(submissionJMF.getOwnerDocument_JDFElement());

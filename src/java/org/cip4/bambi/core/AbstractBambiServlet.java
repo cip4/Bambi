@@ -98,6 +98,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.enums.ValuedEnum;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.RootDevice;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
@@ -138,7 +139,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
          */
-        public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
+        public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
         {
 
             showErrorPage("No handler for URL", request.getPathInfo(), request, response);
@@ -156,11 +157,12 @@ public abstract class AbstractBambiServlet extends HttpServlet {
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
          */
-        public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
+        public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
         {
+            String context=getContext(request);
             if(KElement.isWildCard(context)||context.equalsIgnoreCase("overview"))
             {
-                request.setAttribute("devices", getDevices());
+                request.setAttribute("devices", rootDev.getDevices());
                 try {
                     request.getRequestDispatcher("/overview.jsp").forward(request, response);
                 } catch (Exception e) {
@@ -172,45 +174,11 @@ public abstract class AbstractBambiServlet extends HttpServlet {
                 return false;
         }
     }
-    /**
-     * 
-     * handler for the knowndevices query
-     */
-    protected class KnownDevicesHandler implements IMessageHandler
-    {
-        public KnownDevicesHandler() {
-            super();
-        }
+ 
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-         */
-        public boolean handleMessage(JDFMessage m, JDFResponse resp)
-        {
-            return handleKnownDevices(m, resp);
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Query};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.KnownDevices;
-        }
-    }
-
-    protected IJMFHandler _jmfHandler=null;
-    protected HashMap<String,IDevice> _devices = null;
     protected IConverterCallback _callBack = null;
     private static Log log = LogFactory.getLog(AbstractBambiServlet.class.getName());
+    protected RootDevice rootDev=null;
     protected List<IGetHandler> _getHandlers=new Vector<IGetHandler>();
     protected DumpDir bambiDumpIn=null;
     protected DumpDir bambiDumpOut=null;
@@ -224,7 +192,6 @@ public abstract class AbstractBambiServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException
     {
-        _devices=new HashMap<String, IDevice>();
         super.init(config);
         ServletContext context = config.getServletContext();       
         String dump=config.getInitParameter("bambiDump");
@@ -237,15 +204,15 @@ public abstract class AbstractBambiServlet extends HttpServlet {
         }
         log.info( "Initializing servlet for "+context.getServletContextName() );
 //      String appDir=context.getRealPath("")+"/";
-        loadProperties(context,new File("/config/devices.xml"));
+       MultiDeviceProperties mp=loadProperties(context,new File("/config/devices.xml"));
 
-        // jmf handlers
-        _jmfHandler=new JMFHandler((IDeviceProperties)null);
-        addHandlers();
+//        // jmf handlers
+//        _jmfHandler=new JMFHandler((IDeviceProperties)null);
+//        ((JMFHandler)_jmfHandler).setSenderID(mp.getSenderID());
+//        addHandlers();
 
         // doGet handlers
         _getHandlers.add(this.new OverviewHandler());
-        _getHandlers.add(this.new UnknownErrorHandler());
     }
 
     /**
@@ -262,31 +229,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
         }
     }
 
-    protected boolean handleKnownDevices(JDFMessage m, JDFResponse resp) {
-        if(m==null || resp==null)
-        {
-            return false;
-        }
-//      log.info("Handling "+m.getType());
-        EnumType typ=m.getEnumType();
-        if(EnumType.KnownDevices.equals(typ)) {
-            JDFDeviceList dl = resp.appendDeviceList();
-            Set<String> keys = _devices.keySet();
-            Object[] strKeys = keys.toArray();
-            for (int i=0; i<keys.size();i++) {
-                String key = (String)strKeys[i];
-                IDevice dev = _devices.get(key);
-                if (dev == null)
-                    log.error("device with key '"+key+"'not found");
-                else
-                    dev.appendDeviceInfo(dl);
-            }
-            return true;
-        }
-
-        return false;
-    }
-
+ 
     /**
      * display an error on error.jsp
      * @param errorMsg short message describing the error
@@ -420,7 +363,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
     {
         IDevice device =  getDeviceFromRequest(request);
         if (device == null)
-            return _jmfHandler; // device not found
+            return rootDev.getHandler(); // device not found
         return( device.getHandler() );
     }
 
@@ -552,14 +495,11 @@ public abstract class AbstractBambiServlet extends HttpServlet {
      * @param fileName the name of the Java .propert file
      * @return true, if the properties have been loaded successfully
      */
-    protected void loadProperties(ServletContext context, File config)
+    MultiDeviceProperties loadProperties(ServletContext context, File config)
     {
         MultiDeviceProperties props=new MultiDeviceProperties(context,config);
         createDevices(props);
-    }
-
-    protected void addHandlers() {
-        _jmfHandler.addHandler( new AbstractBambiServlet.KnownDevicesHandler() );
+        return props;
     }
 
     /**
@@ -587,14 +527,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
      */
     @Override
     public void destroy() {
-        Set<String> keys=_devices.keySet();
-        Iterator<String> it=keys.iterator();
-        while (it.hasNext()) {
-            String devID=it.next();
-            AbstractDevice dev=(AbstractDevice) _devices.get(devID);
-            dev.shutdown();
-        }
-        _devices.clear();
+        rootDev.shutdown();
         JMFFactory.shutDown(null, true);
     }
 
@@ -604,7 +537,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
     protected IDevice getDeviceFromRequest(HttpServletRequest request)
     {
         String deviceID = getDeviceIDFromRequest(request);
-        IDevice dev = getDevice(deviceID);
+        IDevice dev = rootDev.getDevice(deviceID);
         if (dev == null) {
             log.info("invalid request: device with id="+deviceID==null?"null":deviceID+" not found");
             return null;
@@ -650,48 +583,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
         }
     }
 
-    /**
-     * get a device
-     * @param deviceID ID of the device to get
-     * @return
-     */
-    public IDevice getDevice(String deviceID)
-    {
-        if (_devices == null) {
-            log.warn("list of devices is null");
-            return null;
-        }
-        else if(deviceID==null)   
-        {
-            log.warn("attempting to retrieve null device");
-            return null;           
-        }
-        return _devices.get(deviceID);
-    }
 
-    public HashMap<String, IDevice> getDevices()
-    {
-        return _devices;
-    }
-
-    /**
-     * remove device
-     * @param deviceID ID of the device to be removed
-     * @return
-     */
-    public boolean removeDevice(String deviceID)
-    {
-        if (_devices == null) {
-            log.error("list of devices is null");
-            return false;
-        }
-        if (_devices.get(deviceID) == null) {
-            log.warn("tried to removing non-existing device");
-            return false;
-        }
-        _devices.remove(deviceID);
-        return true;
-    }
 
     /**
      * extract a double attribute from a given request
@@ -720,16 +612,23 @@ public abstract class AbstractBambiServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     {
-        String context = getContext(request);
+        final int size = _getHandlers.size();
+        boolean bHandled=false;
         // simply loop over all handlers until you are done
-        for(int i=0;i<_getHandlers.size();i++)
+        for(int i=0;i<size;i++)
         {
             IGetHandler ig=_getHandlers.get(i);
-            final boolean bHandled=ig.handleGet(request, response, context);
+            bHandled=ig.handleGet(request, response);
             if(bHandled)
-                return;
+                break;
         }
-    }
+        if(!bHandled && rootDev!=null)
+            bHandled = rootDev.handleGet(request, response);
+        if(!bHandled)
+            this.new UnknownErrorHandler().handleGet(request, response);
+
+        
+     }
 
     /**
      * get the static context string
@@ -746,28 +645,27 @@ public abstract class AbstractBambiServlet extends HttpServlet {
         return context;
     }
 
-    public static boolean isMyRequest(HttpServletRequest request,final String deviceID, String context)
+    public static boolean isMyRequest(HttpServletRequest request,final String deviceID)
     {
-        if(deviceID!=null)
-        {
-            final String reqDeviceID=getDeviceIDFromRequest(request);
-            if(!deviceID.equals(reqDeviceID))
-                return false;           
-        }
-        String reqContext=getContext(request);
-        if(context.equals(StringUtil.token(reqContext, 0, "/")))
+        if(deviceID==null)
             return true;
-        return false;
+            final String reqDeviceID=getDeviceIDFromRequest(request);
+            return deviceID.equals(reqDeviceID);           
     }
-
     /**
-     * get the number of devices
-     * used only for test purposes 
+     * 
+     * @param request
+     * @param context
      * @return
      */
-    public int getDeviceQuantity()
+    public static boolean isMyContext(HttpServletRequest request, String context)
     {
-        return _devices==null ? 0 : _devices.size();
+        if(context==null)
+            return true;
+        
+        String reqContext=getContext(request);
+        return context.equals(StringUtil.token(reqContext, 0, "/"));
+            
     }
 
     /**
@@ -777,31 +675,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
      */
     protected abstract IDevice buildDevice(IDeviceProperties prop);
 
-    /**
-     * create a new device and add it to the map of devices.
-     * @param deviceID
-     * @param deviceType
-     * @return the Device, if device has been created. 
-     * null, if not (maybe device with deviceID is already present)
-     */
-    private IDevice createDevice(IDeviceProperties prop)
-    {
-        if (_devices == null) {
-            log.info("map of devices is null, re-initialising map...");
-            _devices = new HashMap<String, IDevice>();
-        }
-
-        String devID=prop.getDeviceID();
-        if (_devices.get(prop.getDeviceID()) != null) {	
-            log.warn("device "+devID+" is already existing");
-            return null;
-        }
-        IDevice dev = buildDevice(prop);
-        _devices.put(devID,dev);
-        log.info("created device "+devID);
-        return dev;
-    }
-
+ 
     /**
      * create devices based on the list of devices given in a file
      * @param props 
@@ -821,8 +695,16 @@ public abstract class AbstractBambiServlet extends HttpServlet {
         while (iter.hasNext()) {
             String devID=iter.next();
             IDeviceProperties prop=props.getDevice(devID);
-            _callBack=prop.getCallBackClass(); // the last one wins
-            createDevice(prop);
+            if(rootDev==null)
+            {
+                rootDev=new RootDevice(prop);
+                _callBack=prop.getCallBackClass(); // the last one wins       
+                rootDev.createDevice(prop,null);
+            }
+            else
+            {
+                rootDev.createDevice(prop,this);
+            }
         }
 
         return true;
@@ -831,6 +713,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
     @Override
     protected void service(HttpServletRequest arg0, HttpServletResponse arg1) throws ServletException, IOException
     {
+        // TODO find correct server port at startup
         if(port==0) // quick hack
             port=arg0.getServerPort();
         super.service(arg0, arg1);

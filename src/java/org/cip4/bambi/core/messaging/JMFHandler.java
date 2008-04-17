@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -83,14 +83,11 @@ import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VElement;
-import org.cip4.jdflib.ifaces.IJMFSubscribable;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessageService;
-import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
-import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 
@@ -406,6 +403,16 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
     {
         _signalDispatcher=signalDispatcher;
         
+    }
+
+    public String getSenderID()
+    {
+        return senderID;
+    }
+
+    public void setSenderID(String senderID)
+    {
+        this.senderID = senderID;
     }
 
 }

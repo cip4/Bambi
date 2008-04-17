@@ -84,9 +84,8 @@ public interface IGetHandler {
 	 * set the URL to communicate with this device (in other words: send JMFs to this URL)
 	 * @param request the url request to handle
      * @param response the response to fill
-     * @param context the context that is used as a filter
      * @return boolean true if the request was handled and the response has been filled 
 	 */
-	public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context);
+	public boolean handleGet(HttpServletRequest request, HttpServletResponse response);
 
 }

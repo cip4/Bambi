@@ -88,10 +88,11 @@ import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 public interface IQueueProcessor extends IMultiJMFHandler, IGetHandler
 {
     /**
-     * get the next waiting entry
+     * get the next waiting entry for the device specified in deviceID
+     * @param deviceID the deviceID; null is a wildcard
      * @return
      */
-    public IQueueEntry getNextEntry();
+    public IQueueEntry getNextEntry(String deviceID);
     
     /**
      * get the jdf representation of this queue

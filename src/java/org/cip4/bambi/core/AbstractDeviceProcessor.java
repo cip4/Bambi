@@ -78,12 +78,12 @@ import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
-import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.StatusCounter;
@@ -113,7 +113,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     private class XMLDeviceProcessor
     {
         /**
-         * @param root
+         * @param rootDev
          */
         KElement root;
         public XMLDeviceProcessor(KElement _root)
@@ -198,11 +198,15 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             final double totalAmount = sc.getTotalAmount(resID);
             final double totalWaste = sc.getTotalWaste(resID);
             final double phaseWaste = sc.getPhaseWaste(resID);
+            final double plannedAmount = sc.getPlannedAmount(resID);
+            final double plannedWaste = sc.getPlannedWaste(resID);
 
-            if(phaseAmount+phaseWaste+totalAmount+totalWaste>0)
+            if((phaseAmount+phaseWaste+totalAmount+totalWaste>0) || (plannedAmount>0) || (plannedWaste>0) )
             {
                 KElement amount=jp.appendElement(BambiNSExtension.MY_NS_PREFIX+"PhaseAmount",BambiNSExtension.MY_NS);
                 amount.setAttribute("ResourceName", resName);
+                amount.setAttribute("PlannedAmount", plannedAmount,null);
+                amount.setAttribute("PlannedWaste", plannedWaste,null);
                 amount.setAttribute("PhaseAmount", phaseAmount,null);
                 amount.setAttribute("PhaseWaste", phaseWaste,null);
                 amount.setAttribute("TotalAmount", totalAmount,null);
@@ -265,15 +269,9 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 
     final private boolean processQueueEntry()
     {
-        currentQE=_queueProcessor.getNextEntry();
+        currentQE=getQEFromParent();
         if(currentQE==null)
-        {
-            if (_parent!=null) 
-            {
-                _parent.sendRequestQueueEntry();
-            }
             return false;
-        }
         JDFQueueEntry qe=currentQE.getQueueEntry();         
         if(qe==null)
             return false;
@@ -304,6 +302,38 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         }
 
         return finalizeProcessDoc(qes);
+    }
+
+    /**
+     * 
+     */
+    private IQueueEntry getQEFromParent()
+    {
+        currentQE = _queueProcessor.getNextEntry(null);
+        if(currentQE==null)
+        {
+            if (_parent!=null) 
+            {
+                RootDevice rd=_parent.getRootDevice();
+                if(rd!=null)
+                {
+                    currentQE=rd._theQueueProcessor.getNextEntry(_parent.getDeviceID());
+                    if(currentQE!=null)
+                    {
+                        //grab the qe and pass it on to the devices queue...
+                        final JDFQueue queue = _parent._theQueueProcessor.getQueue();
+                        JDFQueueEntry queueEntry = currentQE.getQueueEntry();
+                        queueEntry=(JDFQueueEntry) queue.moveElement(queueEntry, null);
+                        queueEntry.sortQueue(-1);
+                        currentQE.setQueueEntry(queueEntry);
+                    }
+                }
+            }
+            if(currentQE==null){
+                _parent.sendRequestQueueEntry();
+             }
+        }
+        return currentQE;
     }
 
     /**
@@ -352,7 +382,6 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         }
         
         _statusListener.setNode(null, null, null, null, null);
-        StatusCounter.sleep(1000); // wait to flush queues
         _queueProcessor.updateEntry(currentQE.getQueueEntry(), qes, null, null);
         currentQE.getQueueEntry().removeAttribute(AttributeName.DEVICEID);
        
@@ -395,7 +424,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     }
 
     /**
-     * @param root
+     * @param rootDev
      */
     public void addToDisplayXML(KElement root)
     {

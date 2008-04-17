@@ -270,10 +270,10 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
         return false;
     }
     @Override
-    protected boolean showDevice(HttpServletResponse response, boolean refresh)
+    protected boolean showDevice(HttpServletRequest request, HttpServletResponse response, boolean refresh)
     {
         if(refresh)
-            return super.showDevice(response, refresh); // skip the phase stuff
+            return super.showDevice(request, response, refresh); // skip the phase stuff
         
         XMLSimDevice simDevice=this.new XMLSimDevice();
         try
@@ -345,13 +345,13 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
      */
-    public boolean handleGet(HttpServletRequest request, HttpServletResponse response, String context)
+    public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
     {
-        if(AbstractBambiServlet.isMyRequest(request,getDeviceID(),"processNextPhase"))       
+        if(isMyRequest(request) && AbstractBambiServlet.isMyContext(request,"processNextPhase"))       
         {
             return processNextPhase(request,response);
         }
-        return super.handleGet(request, response, context);
+        return super.handleGet(request, response);
     }
 
 
@@ -360,7 +360,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
         JobPhase nextPhase = buildJobPhaseFromRequest(request);
         ((AbstractWorkerDeviceProcessor)_deviceProcessors.get(0)).doNextPhase(nextPhase);
         StatusCounter.sleep(1000); // allow device to switch phases before displaying page
-        showDevice(response,false);
+        showDevice(request,response,false);
         return true;
     }
 
