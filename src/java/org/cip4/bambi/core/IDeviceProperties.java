@@ -87,6 +87,11 @@ public interface IDeviceProperties {
      */
     public String getDeviceURL();
     /**
+     * get the URL to communicate with the root of this device
+     * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+     */
+    public String getContextURL();
+    /**
      * get the URL to communicate with this device
      * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
      */

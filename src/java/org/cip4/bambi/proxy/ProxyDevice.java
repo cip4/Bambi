@@ -80,19 +80,24 @@ import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
-import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
+import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFRequestQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
+import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
@@ -101,6 +106,7 @@ import org.cip4.jdflib.util.MultiModuleStatusCounter;
 import org.cip4.jdflib.util.QueueHotFolder;
 import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.MultiModuleStatusCounter.MultiType;
 
 public class ProxyDevice extends AbstractDevice {
 
@@ -114,9 +120,13 @@ public class ProxyDevice extends AbstractDevice {
      * @author prosirai
      *
      */
-    protected class RequestQueueEntryHandler implements IMessageHandler
+    protected class RequestQueueEntryHandler extends AbstractHandler
     {
 
+        public RequestQueueEntryHandler()
+        {
+            super(EnumType.RequestQueueEntry, new EnumFamily[]{EnumFamily.Command});
+        }
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
@@ -153,27 +163,15 @@ public class ProxyDevice extends AbstractDevice {
             }
             return true;
         }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies() {
-            return new EnumFamily[]{EnumFamily.Command};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType() {
-            return EnumType.RequestQueueEntry;
-        }
     }
 
-
-
-    protected class ReturnQueueEntryHandler implements IMessageHandler
+    protected class ReturnQueueEntryHandler extends AbstractHandler
     {
 
+        public ReturnQueueEntryHandler()
+        {
+            super(EnumType.ReturnQueueEntry, new EnumFamily[]{EnumFamily.Command});
+        }
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
@@ -195,27 +193,81 @@ public class ProxyDevice extends AbstractDevice {
                 proc.returnFromSlave(m,resp);
             return true;
         }
+    }
+    /**
+     * 
+     * handler for the Status Query
+     */
+    public class StatusHandler extends AbstractHandler
+    {
 
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
+        public StatusHandler()
         {
-            return new EnumFamily[]{EnumFamily.Command};
+            super(EnumType.Status, new EnumFamily[]{EnumFamily.Query});
         }
 
         /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
+         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
-        public EnumType getMessageType()
-        {
-            return EnumType.ReturnQueueEntry;
+        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+        {   
+            if(theStatusListener==null)
+                return false;
+            
+            JDFDoc docJMF=theStatusListener.getJMFPhaseTime();    
+            JDFResponse r=docJMF==null ? null : docJMF.getJMFRoot().getResponse(-1);
+            if(r==null) {
+                log.error("StatusHandler.handleMessage: StatusCounter response = null");
+                return false;
+            }
+            VElement v=r.getChildElementVector(ElementName.DEVICEINFO, null);
+            int siz=v==null ? 0 : v.size();
+            for(int i=0;i<siz;i++)
+            {
+                response.copyElement(v.elementAt(i), null);
+            }
+            final JDFStatusQuParams statusQuParams = inputMessage.getStatusQuParams();
+            boolean bQueue=statusQuParams==null ? false : statusQuParams.getQueueInfo();
+            if(bQueue)
+            {
+                JDFQueue qq=(JDFQueue) response.copyElement(_theQueueProcessor.getQueue(), null);
+                QueueProcessor.removeBambiNSExtensions(qq);
+            }
+            return true;
         }
     }
-
-    protected class StatusSignalHandler implements IMessageHandler
+ 
+    protected class StatusQueryHandler  extends AbstractHandler
     {
+
+        public StatusQueryHandler()
+        {
+            super(EnumType.Status, new EnumFamily[]{EnumFamily.Query});
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+         */
+        public boolean handleMessage(JDFMessage m, JDFResponse resp)
+        {
+            if(statusContainer==null)
+                return false;
+
+            JDFDoc docJMF=statusContainer.getStatusResponse();    
+            boolean bOK=copyPhaseTimeFromCounter(resp, docJMF);
+            if(bOK)
+                addQueueToStatusResponse(m, resp);
+            return bOK;
+
+        }
+    }
+    protected class StatusSignalHandler  extends AbstractHandler
+    {
+
+        public StatusSignalHandler()
+        {
+            super(EnumType.Status, new EnumFamily[]{EnumFamily.Signal});
+        }
 
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
@@ -231,25 +283,20 @@ public class ProxyDevice extends AbstractDevice {
                 return false;
             boolean b=false;
             for(int i=0;i<v.size();i++)
-                b=v.get(i).handleStatus(m,resp) || b;
-            return b; // handled if any was ok
-        }
+                b=v.get(i).handleStatusSignal(m,resp) || b;
+            if(!b)
+            {
+                JDFStatusQuParams sqp = m.getStatusQuParams();
+                String qeid=(sqp!=null) ? sqp.getQueueEntryID():null;
 
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Signal};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.Status;
+                JMFHandler.errorResponse(resp, "Unknown QueueEntry: "+qeid ,103);
+            }
+            else
+            {
+                resp.setReturnCode(0);
+            }
+            
+            return true; // handled if any was ok
         }
     }
 
@@ -340,7 +387,9 @@ public class ProxyDevice extends AbstractDevice {
             JDFJMF rqCommand=JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
             slaveJDFError=new QueueHotFolder(fDeviceErrorOutput,hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Aborted), rqCommand);
         } 
-        statusContainer=new MultiModuleStatusCounter();
+        statusContainer=new MultiModuleStatusCounter(MultiType.JOB);
+        _jmfHandler.setFilterOnDeviceID(false);
+        //TODO correctly dispatch them
 
     }
 
@@ -350,6 +399,7 @@ public class ProxyDevice extends AbstractDevice {
         _jmfHandler.addHandler( this.new RequestQueueEntryHandler() );
         _jmfHandler.addHandler( this.new ReturnQueueEntryHandler() );
         _jmfHandler.addHandler( this.new StatusSignalHandler() );
+        _jmfHandler.addHandler( this.new StatusQueryHandler() );
     }
 
     /**
@@ -536,5 +586,6 @@ public class ProxyDevice extends AbstractDevice {
         // TODO Auto-generated method stub
         return doc.getJDFRoot();
     }
+
 
 }

@@ -5,12 +5,14 @@
   <xsl:template match="jdf:Queue">
     <html>
       <head> 
-      				<meta http-equiv="refresh">
+ 						<link rel="stylesheet" type="text/css" href="../css/styles_pc.css"/>
+     				<meta http-equiv="refresh">
 							<xsl:attribute name="content">15; URL=../showQueue/<xsl:value-of select="@DeviceID"/>?refresh=true</xsl:attribute>
 					 		</meta>
 
       </head>
       <body>
+		<img src="../logo.gif" height="70"  alt="logo"/>
       <h1>Queue - DeviceID:<xsl:value-of select = "@DeviceID" /> - Status: <xsl:value-of select = "@Status" /></h1>
       <hr/>
       Show Device:<a><xsl:attribute name="href">../showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>

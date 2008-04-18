@@ -82,6 +82,7 @@ import org.cip4.bambi.core.ISignalDispatcher;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -90,6 +91,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.util.ContainerUtil;
 
 
 /**
@@ -156,6 +158,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
     protected HashMap<EnumType,IMessageHandler> subscriptionMap; // key = type , value = subscriptions handled
     protected ISignalDispatcher _signalDispatcher;
     protected String senderID=null;
+    protected boolean bFilterOnDeviceID=false;
 	/**
 	 * 
 	 * handler for the knownmessages query
@@ -238,7 +241,43 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		}
 	}
 
-	public JMFHandler(IDeviceProperties prop)
+	/**
+     * 
+     * handler for the StopPersistentChannel command
+     */
+    public static abstract class AbstractHandler implements IMessageHandler
+    {
+        EnumType type=null;
+        EnumFamily[] families=null;
+        public AbstractHandler(EnumType _type, EnumFamily[] _families)
+        {
+            this.type = _type;
+            this.families = _families;
+        }
+    
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+         */
+        public abstract boolean handleMessage(JDFMessage inputMessage, JDFResponse response);
+    
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#getFamilies()
+         */
+        final public EnumFamily[] getFamilies()
+        {
+            return families;
+        }
+    
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#getMessageType()
+         */
+        final public EnumType getMessageType()
+        {
+            return type;
+        }
+    }
+
+    public JMFHandler(IDeviceProperties prop)
 	{
 		super();
 		messageMap=new HashMap<MessageType, IMessageHandler>();
@@ -267,6 +306,10 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	{
 		EnumType typ=handler.getMessageType();
 		EnumFamily[] families = handler.getFamilies();
+        if(typ==null || families==null)
+        {
+            log.error("Unknown message type or family in addhandler - bailing out ");
+        }
         for(int i=0; i<families.length;i++)
             messageMap.put(new MessageType(typ,families[i]), handler);
 	}
@@ -276,7 +319,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 * @param family the family
 	 * @return the handler, null if none exists
 	 */
-	private IMessageHandler getHandler(EnumType typ, EnumFamily family)
+	public IMessageHandler getHandler(EnumType typ, EnumFamily family)
 	{
 		return messageMap.get(new MessageType(typ,family));
 	}
@@ -297,7 +340,9 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		JDFJMF jmf=doc.getJMFRoot();
 		JDFJMF jmfResp=jmf.createResponse();
 		VElement vMess=jmf.getMessageVector(null,null);
-		for(int i=0;i<vMess.size();i++)
+		final int messSize = vMess.size();
+        int respSize=messSize;
+        for(int i=0;i<messSize;i++)
 		{
 			JDFMessage m=(JDFMessage) vMess.elementAt(i);
 			String id=m.getID();
@@ -315,11 +360,19 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
             {
                 int retCode=mResp.getReturnCode();
                 if(retCode==0)
+                {
                     mResp.deleteNode();
+                    respSize--;
+                }
             }
 		} 
+        if(respSize>0)
+        {
         jmfResp.setSenderID(senderID);
 		return jmfResp.getOwnerDocument_JDFElement();
+        }
+        else
+            return null;
 	}
 
 
@@ -377,6 +430,12 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			return false;
 		final EnumFamily family=inputMessage.getFamily();
 		final EnumType typ=inputMessage.getEnumType();
+        if(bFilterOnDeviceID)
+        {
+            String deviceID=inputMessage.getJMFRoot().getDeviceID();
+            if(!KElement.isWildCard(deviceID) && !ContainerUtil.equals(deviceID, senderID))
+                return false;            
+        }
 		final IMessageHandler handler=getHandler(typ, family);
 		boolean handled=handler!=null;
 		
@@ -413,6 +472,16 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
     public void setSenderID(String senderID)
     {
         this.senderID = senderID;
+    }
+
+    public boolean isFilterOnDeviceID()
+    {
+        return bFilterOnDeviceID;
+    }
+
+    public void setFilterOnDeviceID(boolean filterOnDeviceID)
+    {
+        bFilterOnDeviceID = filterOnDeviceID;
     }
 
 }

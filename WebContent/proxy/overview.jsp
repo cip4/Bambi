@@ -16,6 +16,7 @@
 		<title>Bambi - Proxy</title>
 	</head>
 	<body>
+		<img src="logo.gif" height="70" alt="BambiPic"/>
 		<h1>Bambi Proxy - Overview</h1>
 		
 		<h2>Known Proxies:</h2>

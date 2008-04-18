@@ -395,6 +395,11 @@ public class MultiDeviceProperties
             }
         }
 
+        public String getContextURL()
+        {
+            return contextURL==null ? null : contextURL.toExternalForm();
+        }
+
 
 
     }

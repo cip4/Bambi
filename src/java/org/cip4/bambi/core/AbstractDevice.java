@@ -85,6 +85,7 @@ import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.core.queues.QueueProcessor;
@@ -93,6 +94,7 @@ import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
@@ -100,17 +102,21 @@ import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.resource.JDFDeviceList;
+import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.QueueHotFolder;
 import org.cip4.jdflib.util.QueueHotFolderListener;
+import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -122,7 +128,7 @@ import org.cip4.jdflib.util.UrlUtil;
  * @author boegerni
  * 
  */
-public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandler
+public abstract class AbstractDevice implements IDevice, IGetHandler
 {
     /**
      * 
@@ -131,7 +137,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
      */
     protected class XMLDevice extends XMLDoc
     {
-    
+
         /**
          * XML representation of this simDevice
          * fore use as html display using an XSLT
@@ -147,9 +153,9 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
             root.setAttribute("DeviceURL", getDeviceURL());
             root.setAttribute(AttributeName.DEVICESTATUS, getDeviceStatus().getName());
             addProcessors();
-           
+
         }
-    
+
         private void addProcessors()
         {
             for(int i=0;i<_deviceProcessors.size();i++)
@@ -158,14 +164,18 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
             }
         }
     }
-    
+
     /**
      * 
      * handler for the KnownDevices query
      */
-    protected class KnownDevicesHandler implements IMessageHandler
+    protected class KnownDevicesHandler extends AbstractHandler
     {
 
+        public KnownDevicesHandler()
+        {
+            super(EnumType.KnownDevices,new EnumFamily[]{EnumFamily.Query});
+        }
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
@@ -186,23 +196,6 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
             }
 
             return false;
-        }
-
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Query};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.KnownDevices;
         }
     }
 
@@ -250,6 +243,109 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
             }        
         }
     }
+    ////////////////////////////////////////////////////////////////////////
+
+    /**
+     * 
+     * handler for the StopPersistentChannel command
+     */
+    public class ResourceHandler extends AbstractHandler
+    {
+
+        public ResourceHandler()
+        {
+            super(EnumType.Resource,new EnumFamily[]{EnumFamily.Query});
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+         */
+        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+        {    
+            StatusCounter sc=theStatusListener.getStatusCounter();
+            response.mergeElement( sc.getDocJMFResource().getJMFRoot().getResponse(0),false);
+            return true;
+        }
+
+    }
+    /**
+     * 
+     * generic dispatcher handler for  command
+     */
+    protected abstract class DispatchHandler extends JMFHandler.AbstractHandler
+    {
+
+        public DispatchHandler(EnumType _type, EnumFamily[] _families)
+        {
+            super(_type,_families);
+        }
+        
+        /**
+         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+         */
+        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response, IJMFHandler[]devs, boolean checkReturnCode)
+        {
+
+            if(devs==null)
+                return false;
+            boolean b=false;
+            JDFNotification notif=(JDFNotification) response.removeChild(ElementName.NOTIFICATION, null, 0);
+            
+            for(int i=0;i<devs.length;i++)
+            {
+                IMessageHandler mh= devs[i].getHandler(inputMessage.getEnumType(),inputMessage.getFamily());
+                if(mh!=null)
+                {
+                    response.setReturnCode(0);
+                    boolean b1= mh.handleMessage(inputMessage, response) ;
+                    if(b1&&checkReturnCode)
+                    {
+                        int rc=response.getReturnCode();
+                        b1=rc==0;
+                    }
+                    b= b1 || b;
+                    if(response.hasChildElement(ElementName.NOTIFICATION, null))
+                    {
+                        notif=(JDFNotification) response.removeChild(ElementName.NOTIFICATION, null, 0);
+                    }
+                 }
+            }
+            if(b)
+                response.setReturnCode(0);
+            else if( notif!=null)
+                response.moveElement(notif, null);
+            
+            return b;
+        }
+    }
+    /**
+     * 
+     * handler for the Status Query
+     */
+    public class StatusHandler extends AbstractHandler
+    {
+
+        public StatusHandler()
+        {
+            super(EnumType.Status, new EnumFamily[]{EnumFamily.Query});
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+         */
+        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+        {   
+            if(theStatusListener==null)
+                return false;
+            
+            JDFDoc docJMF=theStatusListener.getJMFPhaseTime();    
+            boolean bOK=copyPhaseTimeFromCounter(response, docJMF);
+            if(bOK)
+                addQueueToStatusResponse(inputMessage, response);
+            return bOK;
+        }
+    }
+
     private static final Log log = LogFactory.getLog(AbstractDevice.class.getName());
     protected static final String SHOW_DEVICE = "showDevice";
     protected IQueueProcessor _theQueueProcessor=null;
@@ -259,7 +355,8 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
     protected IDeviceProperties _devProperties=null;
     protected QueueHotFolder _submitHotFolder=null;
     protected IConverterCallback _callback=null;
-    RootDevice rootDevice;
+    RootDevice rootDevice=null;
+    protected StatusListener theStatusListener=null;
 
     /**
      * creates a new device instance
@@ -278,18 +375,18 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
         _theSignalDispatcher=new SignalDispatcher(_jmfHandler, _devProperties);
         _theSignalDispatcher.addHandlers(_jmfHandler);
         _jmfHandler.setDispatcher(_theSignalDispatcher);
+        _jmfHandler.setFilterOnDeviceID(true); 
 
         _theQueueProcessor = buildQueueProcessor( );
         _theQueueProcessor.addHandlers(_jmfHandler);
-        
+
         _callback=_devProperties.getCallBackClass();
         String deviceID=_devProperties.getDeviceID();
         _deviceProcessors=new Vector<AbstractDeviceProcessor>();
         AbstractDeviceProcessor newDevProc= buildDeviceProcessor();
         if (newDevProc!=null) {
             newDevProc.setParent(this);
-            StatusListener theStatusListener=new StatusListener(_theSignalDispatcher, getDeviceID());
-            theStatusListener.addHandlers(_jmfHandler);
+            theStatusListener = new StatusListener(_theSignalDispatcher, getDeviceID());
             newDevProc.init(_theQueueProcessor, theStatusListener, _devProperties);
             String deviceProcessorClass=newDevProc.getClass().getSimpleName();
             new Thread(newDevProc,deviceProcessorClass+"_"+deviceID).start();
@@ -326,7 +423,9 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
     }
 
     protected void addHandlers() {
-        _jmfHandler.addHandler( this.new KnownDevicesHandler() );
+        addHandler(this.new KnownDevicesHandler() );
+        addHandler(this.new ResourceHandler());        
+        addHandler(this.new StatusHandler());        
     }
 
     /**
@@ -409,9 +508,9 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
      */
     public String getXSLT(String context)
     {
-       if("showQueue".equalsIgnoreCase(context))
-           return "../queue2html.xsl";
-       return null;
+        if("showQueue".equalsIgnoreCase(context))
+            return "../queue2html.xsl";
+        return null;
     }
 
     /**
@@ -447,7 +546,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
         final IQueueEntry currentQE = theDeviceProcessor.getCurrentQE();
         return currentQE==null ? null : currentQE.getQueueEntry();
     }
-    
+
 
     /**
      * gets the device processor for a given queuentry
@@ -500,7 +599,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
      * @return
      */
     protected abstract AbstractDeviceProcessor buildDeviceProcessor();
-    
+
     /**
      * returns true if the device cann process the jdf ticket
      * @return
@@ -541,7 +640,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
     {
         if(!isMyRequest(request))
             return false;
-        
+
         if(AbstractBambiServlet.isMyContext(request,SHOW_DEVICE))
         {
             return showDevice(request,response,AbstractBambiServlet.getBooleanFromRequest(request, "refresh"));
@@ -551,13 +650,13 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
             return _theQueueProcessor.handleGet(request, response);
         }
         return false;
-        
+
     }
 
-   protected boolean isMyRequest(HttpServletRequest request)
-   {
-       return AbstractBambiServlet.isMyRequest(request, getDeviceID());
-   }
+    protected boolean isMyRequest(HttpServletRequest request)
+    {
+        return AbstractBambiServlet.isMyRequest(request, getDeviceID());
+    }
 
     /**
      * sends a request for a new qe to the proxy
@@ -631,7 +730,7 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
         XMLDevice simDevice=this.new XMLDevice();
         if(refresh)
             simDevice.getRoot().setAttribute("refresh", true,null);
-        
+
         try
         {
             simDevice.write2Stream(response.getOutputStream(), 0,true);
@@ -653,6 +752,48 @@ public abstract class AbstractDevice implements IDevice, IJMFHandler, IGetHandle
     {
         this.rootDevice = _rootDevice;
     }
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.messaging.IJMFHandler#getHandler(org.cip4.jdflib.jmf.JDFMessage.EnumType, org.cip4.jdflib.jmf.JDFMessage.EnumFamily)
+     */
+    public IMessageHandler getHandler(EnumType typ, EnumFamily family)
+    {
+        return _jmfHandler==null ? null : _jmfHandler.getHandler(typ, family);
+    }
+
+    /**
+     * @param inputMessage
+     * @param response
+     */
+    protected void addQueueToStatusResponse(JDFMessage inputMessage, JDFResponse response)
+    {
+        final JDFStatusQuParams statusQuParams = inputMessage.getStatusQuParams();
+        boolean bQueue=statusQuParams==null ? false : statusQuParams.getQueueInfo();
+        if(bQueue)
+        {
+            JDFQueue qq=(JDFQueue) response.copyElement(_theQueueProcessor.getQueue(), null);
+            QueueProcessor.removeBambiNSExtensions(qq);
+        }
+    }
+
+    /**
+     * @param response
+     * @param docJMF
+     */
+    protected boolean copyPhaseTimeFromCounter(JDFResponse response, JDFDoc docJMF)
+    {
+        JDFResponse r=docJMF==null ? null : docJMF.getJMFRoot().getResponse(-1);
+        if(r==null) {
+            log.error("StatusHandler.handleMessage: StatusCounter response = null");
+            return false;
+        }
+        VElement v=r.getChildElementVector(ElementName.DEVICEINFO, null);
+        int siz=v==null ? 0 : v.size();
+        for(int i=0;i<siz;i++)
+        {
+            response.copyElement(v.elementAt(i), null);
+        }
+        return true;
+    }
 
 
- }
+}

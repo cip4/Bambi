@@ -22,6 +22,7 @@
  		</xsl:if>
 	</head>
  	<body>
+		<img src="../logo.gif" height="70" alt="BambiPic"/>
 	<h1>Bambi - Proxy Device :<xsl:value-of select="$deviceID"/></h1>
 		
 		<p align="center">

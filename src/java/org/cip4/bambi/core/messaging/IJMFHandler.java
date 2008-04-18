@@ -1,13 +1,14 @@
 package org.cip4.bambi.core.messaging;
 
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 
 /*--------------------------------------------------------------------------------------------------
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2006 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -101,4 +102,12 @@ public interface IJMFHandler
      * @return the JDFDoc holding the JMF response
      */
     public JDFDoc processJMF(JDFDoc doc);
+    
+    /**
+     * @param typ the message type
+     * @param family the family
+     * @return the IMessageHandler, null if none exists
+     */
+    public IMessageHandler getHandler(EnumType typ, EnumFamily family);
+
 }

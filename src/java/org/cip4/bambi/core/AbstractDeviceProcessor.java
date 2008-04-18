@@ -263,6 +263,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         if(_queueProcessor!=null)
             _queueProcessor.addListener(_myListener);
         _statusListener=statusListener;
+        _statusListener.getStatusCounter().setDeviceID(devProperties.getDeviceID());
         _devProperties=devProperties;
         _trackResource=devProperties.getTrackResource();
     }

@@ -98,6 +98,7 @@ import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.MessageSender;
+import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
@@ -138,8 +139,13 @@ import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 public class QueueProcessor implements IQueueProcessor
 {
 
-    protected class SubmitQueueEntryHandler implements IMessageHandler
+    protected class SubmitQueueEntryHandler  extends AbstractHandler
     {
+
+        public SubmitQueueEntryHandler()
+        {
+            super(EnumType.SubmitQueueEntry,new EnumFamily[]{EnumFamily.Command});
+        }
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
@@ -179,26 +185,14 @@ public class QueueProcessor implements IQueueProcessor
             log.error("QueueSubmissionParams are missing or invalid");
             return true;
         }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Command};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.SubmitQueueEntry;
-        }
     }
 
-    protected class QueueStatusHandler implements IMessageHandler
+    protected class QueueStatusHandler extends AbstractHandler
     {
+        public QueueStatusHandler()
+        {
+            super(EnumType.QueueStatus,new EnumFamily[]{EnumFamily.Command});
+        }
 
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
@@ -211,25 +205,14 @@ public class QueueProcessor implements IQueueProcessor
             updateEntry(null, null, m, resp);
             return true;
         }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies() {
-            return new EnumFamily[]{EnumFamily.Query};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType() {
-            return EnumType.QueueStatus;
-        }
-
     }
 
-    protected class RemoveQueueEntryHandler implements IMessageHandler
+    protected class RemoveQueueEntryHandler extends AbstractHandler
     {
+        public RemoveQueueEntryHandler()
+        {
+            super(EnumType.RemoveQueueEntry,new EnumFamily[]{EnumFamily.Command});
+        }
 
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
@@ -262,30 +245,15 @@ public class QueueProcessor implements IQueueProcessor
             }
             return true;
         }
-
-
-
-
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Command};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.RemoveQueueEntry;
-        }
     }
 
-    protected class HoldQueueEntryHandler implements IMessageHandler
+    protected class HoldQueueEntryHandler  extends AbstractHandler
     {
+
+        public HoldQueueEntryHandler()
+        {
+            super(EnumType.HoldQueueEntry,new EnumFamily[]{EnumFamily.Command});
+        }
 
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
@@ -326,26 +294,15 @@ public class QueueProcessor implements IQueueProcessor
             }
             return true;
         }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Command};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.HoldQueueEntry;
-        }
     }
 
-    protected class AbortQueueEntryHandler implements IMessageHandler
+    protected class AbortQueueEntryHandler extends AbstractHandler
     {
+
+        public AbortQueueEntryHandler()
+        {
+            super(EnumType.AbortQueueEntry,new EnumFamily[]{EnumFamily.Command});
+        }
 
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
@@ -386,29 +343,15 @@ public class QueueProcessor implements IQueueProcessor
             log.info("aborted QueueEntry with ID="+qeid);		
             return true;
         }
-
-
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Command};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.AbortQueueEntry;
-        }
     }
 
-    protected class ResumeQueueEntryHandler implements IMessageHandler
+    protected class ResumeQueueEntryHandler  extends AbstractHandler
     {
 
+        public ResumeQueueEntryHandler()
+        {
+            super(EnumType.ResumeQueueEntry,new EnumFamily[]{EnumFamily.Command});
+        }
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
@@ -451,22 +394,6 @@ public class QueueProcessor implements IQueueProcessor
             }
 
             return false;       
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Command};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.ResumeQueueEntry;
         }
     }
 
@@ -586,8 +513,13 @@ public class QueueProcessor implements IQueueProcessor
 
     //////////////////////////////////////////////////////////////////////
 
-    protected class SuspendQueueEntryHandler implements IMessageHandler
-    {   
+    protected class SuspendQueueEntryHandler extends AbstractHandler
+    {
+
+        public SuspendQueueEntryHandler()
+        {
+            super(EnumType.SuspendQueueEntry,new EnumFamily[]{EnumFamily.Command});
+        }
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
@@ -639,22 +571,6 @@ public class QueueProcessor implements IQueueProcessor
                     return false;       
             }
             return true;
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Command};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.SuspendQueueEntry;
         }
     }
 
@@ -986,7 +902,7 @@ public class QueueProcessor implements IQueueProcessor
         JDFCommand com=(JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.ReturnQueueEntry);
         JDFReturnQueueEntryParams returnQEParams = com.appendReturnQueueEntryParams();
 
-        
+
         final String queueEntryID = qe.getQueueEntryID();
         returnQEParams.setQueueEntryID(queueEntryID);
         if(docJDF==null)
@@ -1017,7 +933,7 @@ public class QueueProcessor implements IQueueProcessor
             returnQEParams.setAborted( finishedNodes );
             bAborted=true;
         }
-        
+
         // fix for returning
         final IConverterCallback callBack = _parentDevice.getCallback();
         if(callBack!=null)
@@ -1030,7 +946,7 @@ public class QueueProcessor implements IQueueProcessor
         final IDeviceProperties properties = _parentDevice.getProperties();
         final File deviceOutputHF = properties.getOutputHF();
         final File deviceErrorHF = properties.getErrorHF();
-         
+
         boolean bOK=false;
         //  need a better synch to message thread
         StatusCounter.sleep(1000); // wait to flush queues
@@ -1045,9 +961,9 @@ public class QueueProcessor implements IQueueProcessor
                 MIMEDetails ud=new MIMEDetails();
                 ud.httpDetails.chunkSize=properties.getDeviceHTTPChunk();
                 ud.transferEncoding=properties.getDeviceMIMEEncoding();
-                 try {
+                try {
                     response = MimeUtil.writeToURL(mp, returnJMF,ud);
-                 } catch (Exception e) {
+                } catch (Exception e) {
                     log.error("failed to send ReturnQueueEntry: "+e);
                 }
                 if(MessageSender.outDump!=null)
@@ -1057,7 +973,7 @@ public class QueueProcessor implements IQueueProcessor
             }
             else // http
             {
-                returnQEParams.setURL(_parentDevice.getDeviceURL()+"/showJDF?qeid="+queueEntryID+"&isJDF=true"); // will be overwritten by buildMimePackage
+                returnQEParams.setURL(properties.getContextURL()+"/jmb/JDFDir/"+queueEntryID+".jdf"); // will be overwritten by buildMimePackage
                 HTTPDetails hDet=new  HTTPDetails();
                 hDet.chunkSize=properties.getDeviceHTTPChunk();
 
@@ -1146,7 +1062,7 @@ public class QueueProcessor implements IQueueProcessor
      * @param queue the queue to filter
      * @return a queue without Bambi namespaces 
      */
-    protected void removeBambiNSExtensions(JDFQueue queue) {  
+    public static void removeBambiNSExtensions(JDFQueue queue) {  
         if(queue==null)
             return;
         for (int i=0;i<queue.getQueueSize();i++) {

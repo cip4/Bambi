@@ -73,19 +73,13 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.messaging.IJMFHandler;
-import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
-import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFResourceInfo;
 import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.StatusCounter;
 
@@ -103,110 +97,12 @@ public class StatusListener implements IStatusListener
     private long lastSave = 0;
     private Vector<JDFDoc> queuedStatus=new Vector<JDFDoc>();
     private Vector<JDFDoc> queuedResource=new Vector<JDFDoc>();
-    /**
-     * 
-     * handler for the StopPersistentChannel command
-     */
-    public class StatusHandler implements IMessageHandler
-    {
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-         */
-        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
-        {
-            if(!EnumFamily.Query.equals(inputMessage.getFamily()))
-                return false;
-            
-            JDFDoc docJMF=(queuedStatus.size()==0) ? theCounter.getDocJMFPhaseTime(): queuedStatus.remove(0);
-
-            if(docJMF==null) {
-                log.warn("StatusHandler.handleMessage: StatusCounter-phasetime = null");
-                return false;
-            }
-            JDFResponse r=docJMF.getJMFRoot().getResponse(-1);
-            if(r==null) {
-                log.error("StatusHandler.handleMessage: StatusCounter response = null");
-                return false;
-            }
-            response.mergeElement(r, false);
-            return true;
-        }
-
-
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Query};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.Status;
-        }
-    }
-    
-    ////////////////////////////////////////////////////////////////////////
     
     /**
      * 
-     * handler for the StopPersistentChannel command
+     * @param dispatch
+     * @param deviceID
      */
-    public class ResourceHandler implements IMessageHandler
-    {
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-         */
-        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
-        {
-        	if(inputMessage==null || response==null) {
-	            return false;
-	        }
-        	
-            if(!EnumFamily.Query.equals(inputMessage.getFamily())) {
-                return false;
-            }
-
-            
-            JDFResourceInfo ri = response.appendResourceInfo();            
-            StatusCounter sc=theCounter;
-            //TODO richtiges element kopieren (nicht ein jmf in ein ri hinein...
-            try {
-            	ri.copyElement( sc.getDocJMFResource().getJMFRoot(),null );
-            } catch (NullPointerException ex) {
-            	log.error("hit an npe while trying to add resources: "+ex);
-            }
-            return true;
-        }
-
-
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Query};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.Resource;
-        }
-    }
-    
-    ////////////////////////////////////////////////////////////////////////
-    
     public StatusListener(ISignalDispatcher dispatch, String deviceID)
     {
         dispatcher=dispatch;
@@ -303,15 +199,6 @@ public class StatusListener implements IStatusListener
         }
     }
 
-    /**
-     * @param jmfHandler
-     */
-    public void addHandlers(IJMFHandler jmfHandler)
-    {
-        jmfHandler.addHandler(this.new ResourceHandler());        
-        jmfHandler.addHandler(this.new StatusHandler());        
-    }
-    
     
     /**
      * get the device status
@@ -342,7 +229,11 @@ public class StatusListener implements IStatusListener
 	public StatusCounter getStatusCounter() {
 		return theCounter;
 	}
-
+	public JDFDoc getJMFPhaseTime()
+	{
+	    return (queuedStatus.size()==0) ? theCounter.getDocJMFPhaseTime(): queuedStatus.remove(0);
+	}
+    
     @Override
     public String toString()
     {

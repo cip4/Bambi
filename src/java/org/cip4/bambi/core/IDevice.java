@@ -80,7 +80,7 @@ import org.cip4.jdflib.resource.JDFDeviceList;
  * @author boegerni
  *
  */
-public interface IDevice {
+public interface IDevice extends IJMFHandler{
 
 	/**
      * return the unique ID of this device

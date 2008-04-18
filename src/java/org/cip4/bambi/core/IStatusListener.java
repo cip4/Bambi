@@ -81,7 +81,7 @@ import org.cip4.jdflib.node.JDFNode;
  * @author prosirai
  *
  */
-public interface IStatusListener extends IMultiJMFHandler
+public interface IStatusListener
 {
     /**
      * updates the amount for a given resource

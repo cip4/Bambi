@@ -21,6 +21,7 @@
 		 	</xsl:if>
 	</head>
  	<body>
+		<img src="../logo.gif" height="70" alt="logo"/>
 		<h1>Bambi - Simulation Device :<xsl:value-of select="$deviceID"/></h1>
 		<p align="center">
  			<xsl:choose>

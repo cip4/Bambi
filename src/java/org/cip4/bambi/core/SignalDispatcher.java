@@ -520,9 +520,9 @@ public final class SignalDispatcher implements ISignalDispatcher
     {    
         deviceID=devProps.getDeviceID();
         subscriptionMap=new HashMap<String, MsgSubscription>();
-        queueEntryMap=new VectorMap();
+        queueEntryMap=new VectorMap<String, String>();
         messageHandler=_messageHandler;
-        triggers=new VectorMap();
+        triggers=new VectorMap<String,Trigger>();
         mutex = new Object();
         theDispatcher = new Dispatcher();
         new Thread(theDispatcher,"SignalDispatcher_"+deviceID).start();

@@ -308,6 +308,15 @@ public class BambiTestCase extends TestCase {
             // TODO Auto-generated method stub
             return null;
         }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getContextURL()
+         */
+        public String getContextURL()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
         
     }
     

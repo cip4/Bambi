@@ -354,7 +354,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
                     log.error("cannot write to stream: ",e);
                 }
             } else {
-                processError(request, response, null, 3, "Error Parsing JMF");               
+//                processError(request, response, null, 3, "Error Parsing JMF");               
             }
         }
     }
@@ -622,6 +622,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
             if(bHandled)
                 break;
         }
+        // rootDev also dispatches to all other devices
         if(!bHandled && rootDev!=null)
             bHandled = rootDev.handleGet(request, response);
         if(!bHandled)

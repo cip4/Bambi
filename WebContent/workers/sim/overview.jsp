@@ -16,6 +16,7 @@
 		<title>SimWorker - Overview</title>
 	</head>
 	<body>
+		<img src="logo.gif" height="70" alt="logo"/>
 		<h1>SimWorker - Overview</h1>
 		
 		use <b>http://<%=request.getLocalAddr() + ":" + request.getServerPort() + request.getContextPath()%>/devices</b> to connect your MIS/Alces<br>
