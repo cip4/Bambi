@@ -77,6 +77,13 @@ import org.cip4.jdflib.core.VString;
 public interface IDeviceProperties {
 
     /**
+     * generic catchall
+     * @param key
+     * @return
+     */
+    public String getDeviceAttribute(String key); 
+        
+    /**
      * queueentry return type
      *
      */

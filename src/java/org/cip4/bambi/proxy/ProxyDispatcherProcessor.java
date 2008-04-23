@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -69,38 +69,85 @@
  * 
  */
 
-package org.cip4.bambi.core.messaging;
+package org.cip4.bambi.proxy;
 
-import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.AbstractDeviceProcessor;
+import org.cip4.bambi.core.queues.IQueueEntry;
+import org.cip4.bambi.core.queues.QueueEntry;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.node.JDFNode;
 
 /**
- * IMessageHandler is the interface for a generic message handler
- * 
- * @author prosirai
  *
+ * @author prosirai
  */
-public interface IMessageHandler
+public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 {
-    /**
-     * handle the message specified in inputMessage
-     * 
-     * @param inputMessage the input message to handle
-     * @param response the response to fill
-     * @return true if the message was handled, else false
-     */
-    public boolean handleMessage(JDFMessage inputMessage, JDFResponse response);
+    private static Log log = LogFactory.getLog(ProxyDispatcherProcessor.class);
+    private static final long serialVersionUID = -384333582645081254L;
+
 
     /**
-     * @return handled message type
+     * constructor
+     * @param queueProcessor points to the QueueProcessor
+     * @param statusListener points to the StatusListener
+     * @param _callBack      the converter call back too and from device
+     * @param device         the parent device that this processor does processing for
+     * @param qeToProcess   the queueentry that this processor will be working for
+     * @param doc 
      */
-    public EnumType getMessageType();
+    public ProxyDispatcherProcessor(ProxyDevice parent)
+    {
+        super();
+        _parent=parent;
 
-    /**
-     * @param typ
-     * @return
+    }
+
+    public EnumQueueEntryStatus processDoc(JDFNode nod, JDFQueueEntry qe) 
+    {
+        //nop - the submission processor does the real work
+        return EnumQueueEntryStatus.Waiting;
+
+    }
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.AbstractDeviceProcessor#stopProcessing(org.cip4.jdflib.core.JDFElement.EnumNodeStatus)
      */
-    public EnumFamily[] getFamilies();
+    @Override
+    public void stopProcessing(EnumNodeStatus newStatus)
+    {
+        //TODO call abortqe
+
+    }
+
+    @Override
+    protected boolean finalizeProcessDoc(EnumQueueEntryStatus qes)
+    {
+        // nop
+        return _parent.activeProcessors()<1+_devProperties.getMaxPush();
+    }
+
+    @Override
+    protected void initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
+    {
+        currentQE=null;
+        if(_parent.activeProcessors()>=1+_devProperties.getMaxPush())
+            return; // no more push
+        qe.setDeviceID(_devProperties.getSlaveDeviceID());
+        IQueueEntry iqe=new QueueEntry(node,qe);
+        ((ProxyDevice)_parent).submitQueueEntry(iqe, _devProperties.getSlaveURL()); 
+    }
+
+    @Override
+    public IQueueEntry getCurrentQE()
+    {
+        // we never have a qe of our own
+        return null;
+    }
+
+
 }

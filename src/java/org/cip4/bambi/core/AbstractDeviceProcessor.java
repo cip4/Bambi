@@ -353,11 +353,11 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     }
 
     protected void abort() {
-        _statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCanceledByUser", EnumNodeStatus.Aborted, "job canceled by user",false);
+        _statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCanceledByUser", EnumNodeStatus.Aborted, "job canceled by user",true);
     }
     
     protected void complete() {
-        _statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCompleted", EnumNodeStatus.Completed, "job completed successfully",false);
+        _statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCompleted", EnumNodeStatus.Completed, "job completed successfully",true);
     }
 
  
@@ -381,11 +381,10 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
                 abort();
             }
         }
-        
+        _statusListener.flush();
         _statusListener.setNode(null, null, null, null, null);
         _queueProcessor.updateEntry(currentQE.getQueueEntry(), qes, null, null);
         currentQE.getQueueEntry().removeAttribute(AttributeName.DEVICEID);
-       
         currentQE=null;
         return true;
     }

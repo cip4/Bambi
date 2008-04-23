@@ -80,6 +80,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.JDFNodeInfo;
@@ -115,7 +116,7 @@ public final class SignalDispatcher implements ISignalDispatcher
 {
     protected static final Log log = LogFactory.getLog(SignalDispatcher.class.getName());
     protected HashMap<String, MsgSubscription> subscriptionMap=null; // map of channelID / Subscription
-    protected VectorMap<String,String> queueEntryMap=null; // map of queueEntryID / vector of channelIDS
+//    protected VectorMap<String,String> queueEntryMap=null; // map of queueEntryID / vector of channelIDS
     protected IMessageHandler messageHandler=null;
     protected VectorMap<String,Trigger> triggers=null;
     protected Object mutex=null;
@@ -223,22 +224,29 @@ public final class SignalDispatcher implements ISignalDispatcher
          */
         private void flush()
         {
-            final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
-            // spam them out
-            for(int i=0;i<triggerVector.size();i++)
+            while(true)
             {
-                final MsgSubscription sub=triggerVector.elementAt(i);
-                log.debug("Trigger Signalling :"+i+" channelID="+sub.channelID);
-                queueMessageInSender(sub);
-            }
-            // select pending time subscriptions
-            final Vector<MsgSubscription> subVector = getTimeSubscriptions();
-            // spam them out
-            for(int i=0;i<subVector.size();i++) {
-                final MsgSubscription sub=subVector.elementAt(i);
-                log.debug("Time Signalling: "+i+", channelID="+sub.channelID);
-                queueMessageInSender(sub);
-            }
+                final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
+                final int size = triggerVector.size();
+                // spam them out
+                for(int i=0;i<size;i++)
+                {
+                    final MsgSubscription sub=triggerVector.elementAt(i);
+                    log.debug("Trigger Signalling :"+i+" channelID="+sub.channelID);
+                    queueMessageInSender(sub);
+                }
+                // select pending time subscriptions
+                final Vector<MsgSubscription> subVector = getTimeSubscriptions();
+                final int size2 = subVector.size();
+                // spam them out
+                for(int i=0;i<size2;i++) {
+                    final MsgSubscription sub=subVector.elementAt(i);
+                    log.debug("Time Signalling: "+i+", channelID="+sub.channelID);
+                    queueMessageInSender(sub);
+                }
+                if(size==0 && size2==0)
+                    break; // flushed all
+            }                
         }
 
         /**
@@ -343,13 +351,14 @@ public final class SignalDispatcher implements ISignalDispatcher
     private class MsgSubscription implements Cloneable
     {
         protected String channelID = null;
+        protected String queueEntry = null;
         protected String url = null;
         protected int repeatAmount, lastAmount = 0;
         protected long repeatTime, lastTime = 0;
         protected JDFMessage theMessage = null;
         protected Trigger trigger = null;
 
-        MsgSubscription(IJMFSubscribable m)
+        MsgSubscription(IJMFSubscribable m, String qeid)
         {
             JDFSubscription sub=m.getSubscription();
             if(sub==null)
@@ -360,6 +369,8 @@ public final class SignalDispatcher implements ISignalDispatcher
             }
             channelID=m.getID(); 
             url=sub.getURL();
+            queueEntry=qeid;
+           
             lastAmount=0;
             repeatAmount=sub.getRepeatStep();
             lastTime=0;
@@ -373,7 +384,7 @@ public final class SignalDispatcher implements ISignalDispatcher
                 repeatAmount=100;
                 repeatTime=15; 
             }
-                
+
         }
 
         public JDFJMF getSignal() {
@@ -434,10 +445,12 @@ public final class SignalDispatcher implements ISignalDispatcher
         @Override
         public String toString() {
             return "[MsgSubscription: channelID="+channelID+
+            " Type="+theMessage.getType()+
             " lastAmount="+lastAmount+
             " repeatAmount="+repeatAmount+
             " repeatTime="+repeatTime+
-            " lastTime="+lastTime+"]";
+            " lastTime="+lastTime+
+            " URL="+url+"]";
         }
 
         /**
@@ -477,16 +490,22 @@ public final class SignalDispatcher implements ISignalDispatcher
             JDFStopPersChParams spcp=inputMessage.getStopPersChParams(0);
             if(spcp==null)
                 return true;
-            String channel=spcp.getChannelID();
+            final String channel=spcp.getChannelID();
             if(!KElement.isWildCard(channel))
             {
                 removeSubScription(channel);
+                return true;
+            }
+            String url=spcp.getURL();
+            if(KElement.isWildCard(url))
+            {
+                JMFHandler.errorResponse(response, "No URL specified", 7);
+                return true;
             }
             String queueEntryID=spcp.getQueueEntryID();
-            if(!KElement.isWildCard(queueEntryID))
-            {
-                removeSubScription(channel);
-            }
+            if(KElement.isWildCard(queueEntryID))
+                queueEntryID=null;
+            removeSubScriptions(queueEntryID,url);
 
             return true;
         }
@@ -520,7 +539,7 @@ public final class SignalDispatcher implements ISignalDispatcher
     {    
         deviceID=devProps.getDeviceID();
         subscriptionMap=new HashMap<String, MsgSubscription>();
-        queueEntryMap=new VectorMap<String, String>();
+ //       queueEntryMap=new VectorMap<String, String>();
         messageHandler=_messageHandler;
         triggers=new VectorMap<String,Trigger>();
         mutex = new Object();
@@ -556,26 +575,26 @@ public final class SignalDispatcher implements ISignalDispatcher
      */
     private String findQueueEntryID(JDFMessage m)
     {
-       if(m==null)
-           return null;
-       try{
-       final EnumType messageType = m.getEnumType();
-       if(EnumType.Status.equals(messageType))
-       {
-           JDFStatusQuParams sqp=m.getStatusQuParams();
-           String qeid=sqp==null ? null : sqp.getQueueEntryID();
-           return qeid;
-       }
-       else if(EnumType.Resource.equals(messageType))
-       {
-           JDFResourceQuParams rqp=m.getResourceQuParams();
-           String qeid=rqp==null ? null : rqp.getQueueEntryID();
-           return qeid;
-       }
-       }
-       catch (JDFException x)
-       { /* nop */ }
-       return null;
+        if(m==null)
+            return null;
+        try{
+            final EnumType messageType = m.getEnumType();
+            if(EnumType.Status.equals(messageType))
+            {
+                JDFStatusQuParams sqp=m.getStatusQuParams();
+                String qeid=sqp==null ? null : sqp.getQueueEntryID();
+                return qeid;
+            }
+            else if(EnumType.Resource.equals(messageType))
+            {
+                JDFResourceQuParams rqp=m.getResourceQuParams();
+                String qeid=rqp==null ? null : rqp.getQueueEntryID();
+                return qeid;
+            }
+        }
+        catch (JDFException x)
+        { /* nop */ }
+        return null;
     }
 
     /* (non-Javadoc)
@@ -589,13 +608,17 @@ public final class SignalDispatcher implements ISignalDispatcher
             return null;
         }
         log.info("adding subscription ");
-        MsgSubscription sub=new MsgSubscription(subMess);
+        MsgSubscription sub=new MsgSubscription(subMess,queueEntryID);
         sub.setQueueEntryID(queueEntryID);
-        if(sub.channelID==null)
+        if(sub.channelID==null || sub.url==null)
         {
             return null;
         }
-
+        if(deviceID.equals(AbstractBambiServlet.getDeviceIDFromURL(sub.url)))
+        {
+            log .info("subscribing to self - ignore: "+deviceID);
+            return null;
+        }
         if(subscriptionMap.containsKey(sub.channelID))
         {
             log.error("subscription already exists for:"+sub.channelID);
@@ -605,10 +628,6 @@ public final class SignalDispatcher implements ISignalDispatcher
         {
             subscriptionMap.put(sub.channelID, sub);
         }
-        if(queueEntryID!=null)
-            queueEntryMap.putOne(queueEntryID, sub.channelID);
-        else
-            queueEntryMap.putOne("*", sub.channelID);
         sub.trigger.queueEntryID=queueEntryID;
         return sub.channelID;
     }
@@ -665,20 +684,25 @@ public final class SignalDispatcher implements ISignalDispatcher
     /* (non-Javadoc)
      * @see org.cip4.bambi.ISignalDispatcher#removeSubScription(java.lang.String)
      */
-    public void removeSubScriptions(String queueEntryID) {
-        if(queueEntryID==null)
-            return;
-
-        Vector<String> v=queueEntryMap.get(queueEntryID);
-        if (v!=null) {
-            int siz=v.size();
-            for (int i = 0; i < siz; i++) {
-                removeSubScription(v.get(i));
-            }
-        }
-        synchronized (queueEntryMap)
-        {
-            queueEntryMap.remove(queueEntryID);           
+    public void removeSubScriptions(String queueEntryID, String url) {
+        Iterator<String> it=subscriptionMap.keySet().iterator();            
+        boolean allURL = KElement.isWildCard(url);
+        boolean allQE = KElement.isWildCard(queueEntryID);
+        while(it.hasNext()) {
+            final String channelID = it.next();
+            if(!allURL || !allQE)
+            {
+                MsgSubscription sub=subscriptionMap.get(channelID);
+                if(!allURL && !url.equals(sub.getURL()))
+                {
+                    continue; // non-matching URL
+                }                    
+                if(!allQE && !queueEntryID.equals(sub.queueEntry))
+                {
+                    continue; // non-matching qeid
+                }                    
+            }               
+            removeSubScription(channelID);                
         }
     }
 
@@ -718,22 +742,17 @@ public final class SignalDispatcher implements ISignalDispatcher
      */
     public void triggerQueueEntry(String queueEntryID,  String workStepID, int amount)
     {
-        Vector<String> v=queueEntryMap.get(queueEntryID);
+        Vector<MsgSubscription> v=ContainerUtil.toValueVector(subscriptionMap);
         if (v!=null) {
             int si = v.size();
-            for (int i = 0; i < si; i++) {
-                triggerChannel(v.get(i), queueEntryID, workStepID, amount);
+            for (int i = 0; i < si; i++) 
+            {
+                MsgSubscription sub=v.get(i);
+                if(KElement.isWildCard(sub.queueEntry) || sub.queueEntry.equals(queueEntryID))
+                triggerChannel(sub.channelID, queueEntryID, workStepID, amount);
             }
         }
-        // now the global queries
-        v=queueEntryMap.get("*");
-        if ( v!= null) {
-            int si = v.size();
-            for (int i = 0; i < si; i++) {
-                triggerChannel(v.get(i), queueEntryID, workStepID, amount);
-            }
-        }
-    }
+     }
 
     /**
      * @param jmfHandler

@@ -76,8 +76,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Vector;
 
 import javax.mail.Multipart;
@@ -93,9 +91,10 @@ import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
+import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.IDeviceProperties.QEReturn;
 import org.cip4.bambi.core.messaging.IJMFHandler;
-import org.cip4.bambi.core.messaging.IMessageHandler;
+import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
@@ -848,6 +847,7 @@ public class QueueProcessor implements IQueueProcessor
      */
     public JDFQueue updateEntry(JDFQueueEntry qe, EnumQueueEntryStatus status, JDFMessage mess, JDFResponse resp)
     {
+        
         if (qe != null && status!=null && !status.equals(qe.getQueueEntryStatus()))
         {
             qe.setQueueEntryStatus(status);
@@ -941,6 +941,7 @@ public class QueueProcessor implements IQueueProcessor
             callBack.updateJDFForExtern(docJDF);
             callBack.updateJMFForExtern(docJMF);
         }
+        docJDF.write2File((String)null, 0, true);
         String returnURL=BambiNSExtension.getReturnURL(qe);
         String returnJMF=BambiNSExtension.getReturnJMF(qe);
         final IDeviceProperties properties = _parentDevice.getProperties();
@@ -948,8 +949,8 @@ public class QueueProcessor implements IQueueProcessor
         final File deviceErrorHF = properties.getErrorHF();
 
         boolean bOK=false;
-        //  need a better synch to message thread
-        StatusCounter.sleep(1000); // wait to flush queues
+        //TODO  need a better synch to message thread
+        StatusCounter.sleep(5333); // wait to flush queues
 
         if(returnJMF!=null) {
             QEReturn qr=properties.getReturnMIME();
@@ -961,11 +962,7 @@ public class QueueProcessor implements IQueueProcessor
                 MIMEDetails ud=new MIMEDetails();
                 ud.httpDetails.chunkSize=properties.getDeviceHTTPChunk();
                 ud.transferEncoding=properties.getDeviceMIMEEncoding();
-                try {
-                    response = MimeUtil.writeToURL(mp, returnJMF,ud);
-                } catch (Exception e) {
-                    log.error("failed to send ReturnQueueEntry: "+e);
-                }
+                response=new JMFFactory(_parentDevice.getCallback()).send2URLSynch(mp, returnJMF,ud);
                 if(MessageSender.outDump!=null)
                 {
                     MimeUtil.writeToFile(mp, MessageSender.outDump.newFile().getAbsolutePath(), null);
@@ -977,15 +974,7 @@ public class QueueProcessor implements IQueueProcessor
                 HTTPDetails hDet=new  HTTPDetails();
                 hDet.chunkSize=properties.getDeviceHTTPChunk();
 
-                try
-                {
-                    URL url = new URL(returnJMF);
-                    response = docJMF.write2HTTPURL(url,hDet);
-                }
-                catch (MalformedURLException x)
-                {
-                    bOK=false;
-                }
+                response=new JMFFactory(_parentDevice.getCallback()).send2URLSynch(jmf, returnJMF, _parentDevice.getDeviceID());
             }
             int responseCode;
             if(response!=null)

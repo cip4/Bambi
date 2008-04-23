@@ -114,7 +114,9 @@ public class ProxyDevice extends AbstractDevice {
     private QueueHotFolder slaveJDFOutput=null;
     private QueueHotFolder slaveJDFError=null;
     protected MultiModuleStatusCounter statusContainer;
-
+    public enum EnumSlaveStatus {JMF,NODEINFO}
+    EnumSlaveStatus slaveStatus=null;
+    
     /** 
      * simple dispatcher
      * @author prosirai
@@ -390,7 +392,7 @@ public class ProxyDevice extends AbstractDevice {
         statusContainer=new MultiModuleStatusCounter(MultiType.JOB);
         _jmfHandler.setFilterOnDeviceID(false);
         //TODO correctly dispatch them
-
+        
     }
 
     @Override
@@ -585,6 +587,17 @@ public class ProxyDevice extends AbstractDevice {
     {
         // TODO Auto-generated method stub
         return doc.getJDFRoot();
+    }
+
+    /**
+     * @return
+     */
+    public EnumSlaveStatus getSlaveStatus()
+    {
+        String s=getProperties().getDeviceAttribute("SlaveStatus");
+        if(s==null)
+            return null;
+        return EnumSlaveStatus.valueOf(s.toUpperCase());
     }
 
 

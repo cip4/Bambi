@@ -337,6 +337,8 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
         {   
             if(theStatusListener==null)
                 return false;
+            if(!theStatusListener.matchesQuery(inputMessage))
+                return false;
             
             JDFDoc docJMF=theStatusListener.getJMFPhaseTime();    
             boolean bOK=copyPhaseTimeFromCounter(response, docJMF);
@@ -792,6 +794,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
         {
             response.copyElement(v.elementAt(i), null);
         }
+
         return true;
     }
 

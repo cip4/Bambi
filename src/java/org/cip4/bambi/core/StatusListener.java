@@ -74,12 +74,18 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFStatusQuParams;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.StatusCounter;
 
@@ -109,6 +115,19 @@ public class StatusListener implements IStatusListener
         theCounter=new StatusCounter(null,null,null);
         theCounter.setDeviceID(deviceID);
     }
+
+    public void flush()
+    {
+        int qsize = queuedStatus.size();
+        int n=0;
+        while(qsize>0 && n++<100)
+        {
+            dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), -1);
+            StatusCounter.sleep(10);
+            qsize = queuedStatus.size();
+       }
+
+    }
     /* (non-Javadoc)
      * @see org.cip4.bambi.IStatusListener#signalStatus(java.lang.String, java.lang.String, org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus, java.lang.String, org.cip4.jdflib.core.JDFElement.EnumNodeStatus, java.lang.String)
      */
@@ -120,8 +139,21 @@ public class StatusListener implements IStatusListener
        }
        boolean bMod=theCounter.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
        if(bMod || forceOut) {
-           dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), -1);
-           queuedStatus.add(theCounter.getDocJMFPhaseTime());
+           final JDFDoc docJMFPhaseTime = theCounter.getDocJMFPhaseTime();
+           JDFJMF root=docJMFPhaseTime.getJMFRoot();
+           if(root.numChildElements(ElementName.RESPONSE, null)>1)
+           {
+               JDFDoc doc2=new JDFDoc("JMF");
+               final KElement root2 = doc2.getRoot();
+               root2.mergeElement(root, false);
+               root.removeChild(ElementName.RESPONSE, null, 1);
+               root2.removeChild(ElementName.RESPONSE, null, 0);
+
+               queuedStatus.add(docJMFPhaseTime);
+               queuedStatus.add(doc2);
+               StatusCounter.sleep(10);
+           }
+           flush();
        }
     }
 
@@ -165,12 +197,14 @@ public class StatusListener implements IStatusListener
         boolean bSame=currentNode==node;
         currentNode=node;
         if(!bSame )
+        {
             saveJDF();
+        }
             
         if(!KElement.isWildCard(oldQEID))
         {
             log.info("removing subscription for: "+oldQEID);
-            dispatcher.removeSubScriptions(oldQEID);
+            dispatcher.removeSubScriptions(oldQEID,"*");
         }
         theCounter.setActiveNode(node, vPartMap, null);
         theCounter.setFirstRefID(trackResourceID);
@@ -238,6 +272,44 @@ public class StatusListener implements IStatusListener
     public String toString()
     {
          return "[StatusListner - counter: "+theCounter+"\n Current Node: "+currentNode;
+    }
+
+    /**
+     * @param inputMessage
+     * @return
+     */
+    public boolean matchesQuery(JDFMessage inputMessage)
+    {
+        if(inputMessage==null)
+            return false;
+        if(!(inputMessage instanceof JDFQuery))
+            return false;
+        JDFQuery q=(JDFQuery)inputMessage;
+        if(EnumType.Status.equals(q.getEnumType()))
+        {
+            JDFStatusQuParams sqp=q.getStatusQuParams();
+            if(sqp!=null)
+                return true; // TODO fix
+            String id=sqp.getJobID();
+            String id2 = currentNode==null ? null : currentNode.getJobID(true);
+            if(!KElement.isWildCard(id)&&!id.equals(id2))
+                return false;
+            id=sqp.getJobPartID();
+            id2 = currentNode==null ? null : currentNode.getJobPartID(false);
+            if(!KElement.isWildCard(id)&&!id2.startsWith(id)) // assume dot notation
+                return false;
+            id=sqp.getQueueEntryID();
+            id2 = currentNode==null ? null : theCounter.getQueueEntryID();
+            if(!KElement.isWildCard(id)&&!id.equals(id)) // assume dot notation
+                return false;
+            
+            return true;            
+        }
+        else if(EnumType.Status.equals(q.getEnumType()))
+        {
+            // TODO
+        }
+        return true;
     }
 
 }

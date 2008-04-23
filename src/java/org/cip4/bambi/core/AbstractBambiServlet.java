@@ -464,7 +464,8 @@ public abstract class AbstractBambiServlet extends HttpServlet {
                 File f=bambiDumpOut.newFile();
                 FileOutputStream fs=new FileOutputStream(f);
                 InputStream bufIn=bufResponse.getBufferedInputStream();
-                IOUtils.copy(bufIn, fs);
+                if(bufIn!=null)
+                    IOUtils.copy(bufIn, fs);
                 fs.flush();
                 fs.close();
             }
@@ -555,9 +556,19 @@ public abstract class AbstractBambiServlet extends HttpServlet {
         String deviceID = request.getParameter("id");
         if (deviceID == null) {
             deviceID = request.getPathInfo();
-            deviceID = StringUtil.token(deviceID, 0, "/");
+            deviceID = getDeviceIDFromURL(deviceID);
         }
         return deviceID;        
+    }
+
+    /**
+     * @param deviceID
+     * @return
+     */
+    public static String getDeviceIDFromURL(String deviceID)
+    {
+        deviceID = StringUtil.token(deviceID, -1, "/");
+        return deviceID;
     }
     /**
      * add a set of options to an xml file

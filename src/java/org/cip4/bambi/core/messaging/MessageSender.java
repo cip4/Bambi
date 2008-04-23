@@ -72,15 +72,19 @@ package org.cip4.bambi.core.messaging;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
+
+import javax.mail.Multipart;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
@@ -90,7 +94,10 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.DumpDir;
+import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StatusCounter;
+import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 
 /**
  * allow a JMF message to be send in its own thread
@@ -100,20 +107,35 @@ public class MessageSender implements Runnable {
     private String _url=null;
     private boolean doShutDown=false;
     private boolean doShutDownGracefully=false;
-    private Vector<MessagePair> _messages=null;
+    private Vector<MessageDetails> _messages=null;
     private static Log log = LogFactory.getLog(MessageSender.class.getName());
     private static IConverterCallback _callBack=null;
     public static DumpDir inDump=null; // messy bu efficient...
     public static DumpDir outDump=null; // messy bu efficient...
 
-    protected class MessagePair
+    protected class MessageDetails
     {
-        protected JDFJMF jmf;
-        protected IMessageHandler respHandler;
-        protected MessagePair(JDFJMF _jmf, IMessageHandler _respHandler)
+        protected JDFJMF jmf=null;
+        protected Multipart mime=null;
+        protected IResponseHandler respHandler;
+        protected MIMEDetails mimeDet;
+        protected MessageDetails(JDFJMF _jmf, IResponseHandler _respHandler, HTTPDetails hdet)
         {
             respHandler=_respHandler;
             jmf=_jmf;
+            if(hdet==null)
+                mimeDet=null;
+            else
+            {
+                mimeDet=new MIMEDetails();
+                mimeDet.httpDetails=hdet;
+            }            
+        }
+        protected MessageDetails(Multipart _mime, IResponseHandler _respHandler, MIMEDetails mdet)
+        {
+            respHandler=_respHandler;
+            mime=_mime;
+            mimeDet=mdet;
         }
     }
 
@@ -123,46 +145,59 @@ public class MessageSender implements Runnable {
      * @author prosirai
      *
      */
-    public static class MessageResponseHandler implements IMessageHandler
+    public static class MessageResponseHandler implements IResponseHandler
     {
         private JDFResponse resp=null;
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.messaging.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.messaging.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
+        private HttpURLConnection connect=null;
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.messaging.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
          */
-        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+        public boolean handleMessage()
         {
-            if(!(inputMessage instanceof JDFResponse))
+            JDFDoc doc;
+            try
+            {
+                doc = new JDFParser().parseStream(connect.getInputStream());
+            }
+            catch (IOException x)
+            {
                 return false;
-            resp=(JDFResponse)inputMessage;
+            }
+            if(doc!=null)
+            {
+                JDFJMF jmfRet=doc.getJMFRoot();
+                VElement resps=jmfRet==null ? null : jmfRet.getMessageVector(JDFMessage.EnumFamily.Response, null);
+                int siz=resps==null ? 0 : resps.size();
+                for(int i=0;i<siz;i++)
+                {
+                    JDFResponse resp2=(JDFResponse) resps.get(i);
+                    if(_callBack!=null && resp!=null)
+                    {
+                        _callBack.prepareJMFForBambi(resp2.getOwnerDocument_JDFElement());
+                    }
+                 }
+            }
             return true;
-        }
-
-        public boolean isHandled()
-        {
-            return resp!=null;
         }
 
         public JDFResponse getResponse()
         {
             return resp;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
+         */
+        public HttpURLConnection getConnection()
+        {
+            return connect;
+        }
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
+         */
+        public void setConnection(HttpURLConnection uc)
+        {
+            connect=uc;
         }
 
     }
@@ -175,7 +210,7 @@ public class MessageSender implements Runnable {
      * @param callBack the converter callback to use, null if no modification is required                
      */
     public MessageSender(String theUrl,  IConverterCallback callback) {
-        _messages=new Vector<MessagePair>();
+        _messages=new Vector<MessageDetails>();
         _url=theUrl;
         _callBack=callback;
     }
@@ -213,63 +248,76 @@ public class MessageSender implements Runnable {
      */
     private boolean sendFirstMessage()
     {
-        if (_messages==null ||_messages.isEmpty() ) 
-            return false;
+        synchronized (_messages)
+        {
 
-        boolean b=true;
-        MessagePair mh=_messages.get(0);
-        if(mh==null)
-            return true;
-        JDFJMF jmf=mh.jmf;
-        if ( jmf==null)
-            return true; // need no resend - will remove
-        if(KElement.isWildCard(_url) ) 
-            return true; // snafu anyhow but not sent but no retry useful
+            if (_messages==null ||_messages.isEmpty() ) 
+                return false;
 
-        try{
-            final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
-            HttpURLConnection con=jmfDoc.write2HTTPURL(new URL(_url),null);
-            if(con!=null && con.getResponseCode()==200)
-            {
-                if(inDump!=null)
+            boolean b=true;
+            MessageDetails mh=_messages.get(0);
+            if(mh==null)
+                return true;
+            JDFJMF jmf=mh.jmf;
+            Multipart mp=mh.mime;
+            if(KElement.isWildCard(_url) ) 
+                return true; // snafu anyhow but not sent but no retry useful
+            if ( jmf==null && mp==null)
+                return true; // need no resend - will remove
+
+            try{
+                HttpURLConnection con;
+                if(jmf!=null)
                 {
-                    File dump=inDump.newFile();
-                    final FileOutputStream fs = new FileOutputStream(dump);
-                    IOUtils.copy(con.getInputStream(), fs);
-                    fs.flush();
-                    fs.close();
-                }
-                if(outDump!=null)
-                {
-                    File dump=outDump.newFile();
-                    jmfDoc.write2File(dump, 0, true);                    
-                }
-                JDFDoc doc=new JDFParser().parseStream(con.getInputStream());
-                if(doc!=null)
-                {
-                    JDFJMF jmfRet=doc.getJMFRoot();
-                    VElement resps=jmfRet==null ? null : jmfRet.getMessageVector(JDFMessage.EnumFamily.Response, null);
-                    int siz=resps==null ? 0 : resps.size();
-                    for(int i=0;i<siz;i++)
+                    final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
+                    HTTPDetails hd=mh.mimeDet==null ? null : mh.mimeDet.httpDetails;
+                    con=jmfDoc.write2HTTPURL(new URL(_url),hd);
+                    if(outDump!=null)
                     {
-                        JDFResponse resp=(JDFResponse) resps.get(i);
-                        if(_callBack!=null && resp!=null)
-                        {
-                            _callBack.prepareJMFForBambi(resp.getOwnerDocument_JDFElement());
-                        }
-                        if (mh.respHandler!=null) 
-                        {
-                            b=mh.respHandler.handleMessage(resp,null);
-                        }
+                        File dump=outDump.newFile();
+                        jmfDoc.write2File(dump, 0, true);                    
                     }
                 }
+                else if(mp!=null)
+                {
+                    con=MimeUtil.writeToURL(mp, _url, mh.mimeDet);
+                    if(outDump!=null)
+                    {
+                        File dump=outDump.newFile();
+                        MimeUtil.writeToFile(mp, dump.getAbsolutePath(),mh.mimeDet);                    
+                    }
+               }
+                else
+                {
+                    return true; // nothing to send; remove it
+                }
+
+                if(mh.respHandler!=null)
+                    mh.respHandler.setConnection(con);
+
+                if(con!=null && con.getResponseCode()==200)
+                {
+                    if(inDump!=null)
+                    {
+                        File dump=inDump.newFile();
+                        final FileOutputStream fs = new FileOutputStream(dump);
+                        IOUtils.copy(con.getInputStream(), fs);
+                        fs.flush();
+                        fs.close();
+                    }
+                    if (mh.respHandler!=null) 
+                    {
+                        mh.respHandler.setConnection(con);
+                        b=mh.respHandler.handleMessage();
+                    }
+                }
+
             }
- 
+            catch (Exception e) {
+                // TODO: handle exception
+            }
+            return b;
         }
-        catch (Exception e) {
-            // TODO: handle exception
-        }
-       return b;
     }
 
     /**
@@ -292,7 +340,7 @@ public class MessageSender implements Runnable {
      * @return true, if the message is successfully queued. 
      *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
      */
-    public boolean queueMessage(JDFJMF jmf, IMessageHandler handler) {
+    public boolean queueMessage(JDFJMF jmf, IResponseHandler handler) {
         if (doShutDown || doShutDownGracefully) {
             return false;
         }
@@ -300,7 +348,24 @@ public class MessageSender implements Runnable {
             _callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
 
         synchronized(_messages) {
-            _messages.add(new MessagePair(jmf,handler));
+            _messages.add(new MessageDetails(jmf,handler,null));
+        }
+        return true;
+    }
+    /**
+     * queses a message for the URL that this MessageSender belongs to
+     * also updates the message for a given recipient if required
+     * @param jmf the message to send
+     * @return true, if the message is successfully queued. 
+     *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
+     */
+    public boolean queueMimeMessage(Multipart multpart, IResponseHandler handler, MIMEDetails md) {
+        if (doShutDown || doShutDownGracefully) {
+            return false;
+        }
+
+        synchronized(_messages) {
+            _messages.add(new MessageDetails(multpart,handler,md));
         }
         return true;
     }

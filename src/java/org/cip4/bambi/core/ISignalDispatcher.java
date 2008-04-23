@@ -70,7 +70,6 @@
 package org.cip4.bambi.core;
 
 import org.cip4.bambi.core.messaging.IMultiJMFHandler;
-import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.ifaces.IJMFSubscribable;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -112,8 +111,9 @@ public interface ISignalDispatcher extends IMultiJMFHandler
     /**
      * remove a know subscription by queueEntryID
      * @param queueEntryID the queueEntryID of the subscriptions to remove
+     * @param url url of subscriptions to zapp
      */
-    public void removeSubScriptions(String queueEntryID);
+    public void removeSubScriptions(String queueEntryID, String url);
 
     /**
      * trigger a subscription based on queuentryID

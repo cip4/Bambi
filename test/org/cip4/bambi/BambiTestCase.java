@@ -317,6 +317,15 @@ public class BambiTestCase extends TestCase {
             // TODO Auto-generated method stub
             return null;
         }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceAttribute(java.lang.String)
+         */
+        public String getDeviceAttribute(String key)
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
         
     }
     
@@ -344,7 +353,7 @@ public class BambiTestCase extends TestCase {
 	 */
 	protected void abortRemoveAll(String url) {		
 		JDFJMF jmf=JMFFactory.buildQueueStatus();
-		JDFResponse resp=jmfFactory.send2URLSynch(jmf,url,"testcase");
+		JDFResponse resp=jmfFactory.send2URLSynchResp(jmf,url,"testcase");
 		if (resp==null) {
 			System.err.println("failed to send QueueStatus");
 			return;

@@ -89,7 +89,7 @@ public class WebAppTest extends BambiTestCase {
 		
 		for (int i=0;i<urls.size();i++) {
 			String url=urls.get(i);
-			JDFResponse resp=jmfFactory.send2URLSynch(jmfStatus, url,null);
+			JDFResponse resp=jmfFactory.send2URLSynchResp(jmfStatus, url,null);
 			assertNotNull( resp );
 			JDFDeviceInfo di=resp.getDeviceInfo(0);
 			assertNotNull( di );

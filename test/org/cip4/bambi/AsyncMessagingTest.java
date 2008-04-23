@@ -71,19 +71,19 @@
 
 package org.cip4.bambi;
 
-import org.cip4.bambi.core.messaging.IMessageHandler;
+import java.net.HttpURLConnection;
+
+import org.cip4.bambi.core.messaging.IResponseHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 
-public class AsyncMessagingTest extends BambiTestCase implements IMessageHandler {
+public class AsyncMessagingTest extends BambiTestCase implements IResponseHandler {
 	protected VString messageIDs=null;
-	
+	HttpURLConnection c;
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
@@ -111,9 +111,8 @@ public class AsyncMessagingTest extends BambiTestCase implements IMessageHandler
 	}
 	
 
-	public boolean handleMessage(JDFMessage inResp, JDFResponse response) {
-		String refID=inResp.getrefID();
-		messageIDs.remove(refID);
+	public boolean handleMessage() {
+		
         return true;
 	}
 
@@ -133,6 +132,23 @@ public class AsyncMessagingTest extends BambiTestCase implements IMessageHandler
     {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
+     */
+    public HttpURLConnection getConnection()
+    {
+       return c;
+    }
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.messaging.IResponseHandler#setConnection(java.net.HttpURLConnection)
+     */
+    public void setConnection(HttpURLConnection con)
+    {
+        c=con;
+        
     }
 
 

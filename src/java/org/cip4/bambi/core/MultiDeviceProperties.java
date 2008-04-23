@@ -326,7 +326,10 @@ public class MultiDeviceProperties
             return devRoot.getAttribute("TrackResource",null,"Output");
         }
 
-
+        public String getDeviceAttribute(String key)
+        {
+            return devRoot.getAttribute(key, null, null);
+        }
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getMaxPush()
          */
