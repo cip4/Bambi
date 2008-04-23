@@ -104,13 +104,18 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	protected static final Log log = LogFactory.getLog(JMFHandler.class.getName());
 	protected class MessageType
     {
-	    public EnumType type;
+	    public String type;
         public EnumFamily family;
         /**
          * @param typ
          * @param family2
          */
         public MessageType(EnumType typ, EnumFamily _family)
+        {
+            type=typ.getName();
+            family=_family;
+        }
+        public MessageType(String typ, EnumFamily _family)
         {
             type=typ;
             family=_family;
@@ -163,10 +168,19 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 * 
 	 * handler for the knownmessages query
 	 */
-	protected class KnownMessagesHandler implements IMessageHandler
+	protected class KnownMessagesHandler extends AbstractHandler
 	{
 
-		/* (non-Javadoc)
+		/**
+         * @param _type
+         * @param _families
+         */
+        public KnownMessagesHandler()
+        {
+            super(EnumType.KnownMessages, new EnumFamily[]{EnumFamily.Query});
+            // TODO Auto-generated constructor stub
+        }
+        /* (non-Javadoc)
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		public boolean handleMessage(JDFMessage m, JDFResponse resp)
@@ -193,7 +207,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 				return false;
 
 			Iterator<MessageType> it=messageMap.keySet().iterator();
-            HashMap<EnumType,Vector<EnumFamily>> htf=new  HashMap<EnumType,Vector<EnumFamily>>();
+            HashMap<String,Vector<EnumFamily>> htf=new  HashMap<String,Vector<EnumFamily>>();
 			while(it.hasNext())
 			{
 				MessageType typ=it.next();
@@ -210,11 +224,11 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
                 }
             }
             
-            Iterator<Entry<EnumType, Vector<EnumFamily>>> iTyp=htf.entrySet().iterator();
+            Iterator<Entry<String, Vector<EnumFamily>>> iTyp=htf.entrySet().iterator();
             while(iTyp.hasNext())
             {
-                EnumType typ=iTyp.next().getKey();
-				log.debug("Known Message: "+typ.getName());
+                String typ=iTyp.next().getKey();
+				log.debug("Known Message: "+typ);
 				JDFMessageService ms=resp.appendMessageService();
 				ms.setType(typ);
 				ms.setFamilies(htf.get(typ));     
@@ -222,22 +236,6 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 					ms.setPersistent(true);
 			}
 			return true;
-		}
-
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.IMessageHandler#getFamilies()
-		 */
-		public EnumFamily[] getFamilies()
-		{
-			return new EnumFamily[]{EnumFamily.Query};
-		}
-
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.IMessageHandler#getMessageType()
-		 */
-		public EnumType getMessageType()
-		{
-			return EnumType.KnownMessages;
 		}
 	}
 
@@ -247,12 +245,17 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
      */
     public static abstract class AbstractHandler implements IMessageHandler
     {
-        EnumType type=null;
+        String type=null;
         EnumFamily[] families=null;
         public AbstractHandler(EnumType _type, EnumFamily[] _families)
         {
-            this.type = _type;
-            this.families = _families;
+            type = _type.getName();
+            families = _families;
+        }
+        public AbstractHandler(String _type, EnumFamily[] _families)
+        {
+            type = _type;
+            families = _families;
         }
     
         /* (non-Javadoc)
@@ -271,7 +274,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#getMessageType()
          */
-        final public EnumType getMessageType()
+        final public String getMessageType()
         {
             return type;
         }
@@ -304,7 +307,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 */
 	public void addHandler(IMessageHandler handler)
 	{
-		EnumType typ=handler.getMessageType();
+		String typ=handler.getMessageType();
 		EnumFamily[] families = handler.getFamilies();
         if(typ==null || families==null)
         {
@@ -319,7 +322,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 * @param family the family
 	 * @return the handler, null if none exists
 	 */
-	public IMessageHandler getHandler(EnumType typ, EnumFamily family)
+	public IMessageHandler getHandler(String typ, EnumFamily family)
 	{
 		return messageMap.get(new MessageType(typ,family));
 	}
@@ -416,7 +419,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	/* (non-Javadoc)
 	 * @see org.cip4.bambi.IMessageHandler#getMessageType()
 	 */
-	public EnumType getMessageType()
+	public String getMessageType()
 	{
 		return null;
 	}
@@ -429,7 +432,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		if(inputMessage==null)
 			return false;
 		final EnumFamily family=inputMessage.getFamily();
-		final EnumType typ=inputMessage.getEnumType();
+		final String typ=inputMessage.getType();
         if(bFilterOnDeviceID)
         {
             String deviceID=inputMessage.getJMFRoot().getDeviceID();

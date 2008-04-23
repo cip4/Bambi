@@ -85,13 +85,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.AbstractBambiServlet;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiNSExtension;
+import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
-import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.IDeviceProperties.QEReturn;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
@@ -404,7 +403,7 @@ public class QueueProcessor implements IQueueProcessor
     {
         public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
         {
-            if(!AbstractBambiServlet.isMyContext(request, "showJDF"))
+            if(!BambiServlet.isMyContext(request, "showJDF"))
             {
                 return false;
             }
@@ -419,7 +418,7 @@ public class QueueProcessor implements IQueueProcessor
             {
                 InputStream is=new FileInputStream(f);
                 IOUtils.copy(is, response.getOutputStream());
-                boolean bJDF=AbstractBambiServlet.getBooleanFromRequest(request, isJDF);
+                boolean bJDF=BambiServlet.getBooleanFromRequest(request, isJDF);
                 response.setContentType(bJDF ? MimeUtil.VND_JDF: MimeUtil.TEXT_XML);
             }
             catch (FileNotFoundException x)
@@ -443,11 +442,11 @@ public class QueueProcessor implements IQueueProcessor
          */
         public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
         {
-            if( AbstractBambiServlet.isMyContext(request, "showQueue"))
+            if(BambiServlet.isMyContext(request, "showQueue"))
             {
                 // nop
             }
-            else if(AbstractBambiServlet.isMyContext(request, "modifyQE"))       
+            else if(BambiServlet.isMyContext(request, "modifyQE"))       
             {
                 updateQE(request);
             }
@@ -505,7 +504,7 @@ public class QueueProcessor implements IQueueProcessor
             {
                 JDFQueueEntry qe=(JDFQueueEntry)v.get(i);
                 // TODO select iterator based on current value
-                AbstractBambiServlet.addOptionList(qe.getQueueEntryStatus(), qe.getNextStatusVector(), qe, QE_STATUS);
+                BambiServlet.addOptionList(qe.getQueueEntryStatus(), qe.getNextStatusVector(), qe, QE_STATUS);
             }       
         }
     }

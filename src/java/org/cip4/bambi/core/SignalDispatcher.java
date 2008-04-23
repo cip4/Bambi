@@ -81,6 +81,7 @@ import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.JDFNodeInfo;
@@ -477,8 +478,17 @@ public final class SignalDispatcher implements ISignalDispatcher
      * 
      * handler for the StopPersistentChannel command
      */
-    public class StopPersistentChannelHandler implements IMessageHandler
+    public class StopPersistentChannelHandler extends AbstractHandler
     {
+
+        /**
+         * @param _type
+         * @param _families
+         */
+        public StopPersistentChannelHandler()
+        {
+            super(EnumType.StopPersistentChannel, new EnumFamily[]{EnumFamily.Command});
+        }
 
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
@@ -510,23 +520,6 @@ public final class SignalDispatcher implements ISignalDispatcher
             return true;
         }
 
-
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Command};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.StopPersistentChannel;
-        }
     }
 
     /**
@@ -614,7 +607,7 @@ public final class SignalDispatcher implements ISignalDispatcher
         {
             return null;
         }
-        if(deviceID.equals(AbstractBambiServlet.getDeviceIDFromURL(sub.url)))
+        if(deviceID.equals(BambiServlet.getDeviceIDFromURL(sub.url)))
         {
             log .info("subscribing to self - ignore: "+deviceID);
             return null;

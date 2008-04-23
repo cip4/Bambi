@@ -88,7 +88,7 @@ import org.cip4.bambi.workers.core.AbstractWorkerDevice;
  * @author boegerni
  * 
  */
-public final class SimDevice extends AbstractWorkerDevice  
+public class SimDevice extends AbstractWorkerDevice  
 {
 	/**
 	 * 

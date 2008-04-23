@@ -85,6 +85,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -180,7 +181,7 @@ public class RootDevice extends AbstractDevice
      * @return the Device, if device has been created. 
      * null, if not (maybe device with deviceID is already present)
      */
-    IDevice createDevice(IDeviceProperties prop, AbstractBambiServlet servlet)
+    IDevice createDevice(IDeviceProperties prop,BambiServlet servlet)
     {
         if (_devices == null) {
             log.info("map of devices is null, re-initialising map...");
@@ -195,12 +196,16 @@ public class RootDevice extends AbstractDevice
         IDevice dev;
         if(servlet!=null)
         {
-            dev= servlet.buildDevice(prop);
+            dev= prop.getDeviceClass();
             if(dev instanceof AbstractDevice)
             {
-                ((AbstractDevice)dev).setRootDevice(this);
+                final AbstractDevice abstractDevice = ((AbstractDevice)dev);
+                abstractDevice.setRootDevice(this);
+                servlet._getHandlers.add(0,abstractDevice);
             }
+ 
             _devices.put(devID,dev);
+
         }
         else
         {
@@ -241,10 +246,10 @@ public class RootDevice extends AbstractDevice
      * 
      * handler for the knowndevices query
      */
-    protected class KnownDevicesHandler implements IMessageHandler
+    protected class KnownDevicesHandler extends AbstractHandler
     {
         public KnownDevicesHandler() {
-            super();
+            super(EnumType.KnownDevices,new EnumFamily[]{EnumFamily.Query});
         }
 
         /* (non-Javadoc)
@@ -253,22 +258,6 @@ public class RootDevice extends AbstractDevice
         public boolean handleMessage(JDFMessage m, JDFResponse resp)
         {
             return handleKnownDevices(m, resp);
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Query};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.KnownDevices;
         }
     }
 
@@ -340,6 +329,11 @@ public class RootDevice extends AbstractDevice
     {
         private IMessageHandler superHandler=null;
         public QueueDispatchHandler(EnumType _type, EnumFamily[] _families)
+        {
+            super(_type,_families);       
+            superHandler=_jmfHandler.getHandler(_type.getName(), _families[0]);
+        }
+        public QueueDispatchHandler(String _type, EnumFamily[] _families)
         {
             super(_type,_families);       
             superHandler=_jmfHandler.getHandler(_type, _families[0]);
@@ -446,7 +440,7 @@ public class RootDevice extends AbstractDevice
     }
     protected boolean isMyRequest(HttpServletRequest request)
     {
-        return AbstractBambiServlet.isMyRequest(request, null);
+        return BambiServlet.isMyRequest(request, null);
     }
 
     @Override

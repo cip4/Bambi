@@ -86,9 +86,9 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IStatusListener;
 import org.cip4.bambi.core.StatusListener;
-import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.proxy.ProxyDevice.EnumSlaveStatus;
@@ -221,8 +221,19 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         }
     }
 
-    protected class SubmitQueueEntryResponseHandler implements IMessageHandler
+    // TODO - make resphandler
+    protected class SubmitQueueEntryResponseHandler extends AbstractHandler
     {
+
+        /**
+         * @param _type
+         * @param _families
+         */
+        public SubmitQueueEntryResponseHandler()
+        {
+            super(EnumType.SubmitQueueEntry, new EnumFamily[]{EnumFamily.Acknowledge, EnumFamily.Response});
+            // TODO Auto-generated constructor stub
+        }
 
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
@@ -242,21 +253,6 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
 
         }
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.messaging.IMessageHandler#getFamilies()
-         */
-        public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Acknowledge, EnumFamily.Response};
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.messaging.IMessageHandler#getMessageType()
-         */
-        public EnumType getMessageType()
-        {
-            return EnumType.SubmitQueueEntry;
-        }
     }
 
     /**

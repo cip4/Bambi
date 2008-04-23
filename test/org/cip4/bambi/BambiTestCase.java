@@ -76,6 +76,7 @@ import java.io.File;
 import junit.framework.TestCase;
 
 import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.bambi.core.IDevice;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.VElement;
@@ -322,6 +323,15 @@ public class BambiTestCase extends TestCase {
          * @see org.cip4.bambi.core.IDeviceProperties#getDeviceAttribute(java.lang.String)
          */
         public String getDeviceAttribute(String key)
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceClass()
+         */
+        public IDevice getDeviceClass()
         {
             // TODO Auto-generated method stub
             return null;

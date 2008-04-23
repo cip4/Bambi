@@ -96,7 +96,7 @@ public interface IMessageHandler
     /**
      * @return handled message type
      */
-    public EnumType getMessageType();
+    public String getMessageType();
 
     /**
      * @param typ

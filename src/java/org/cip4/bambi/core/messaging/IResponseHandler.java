@@ -69,30 +69,32 @@
  * 
  */
 
-package org.cip4.bambi.proxy;
+package org.cip4.bambi.core.messaging;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.AbstractBambiServlet;
-import org.cip4.bambi.core.IDevice;
-import org.cip4.bambi.core.IDeviceProperties;
+import java.net.HttpURLConnection;
 
 /**
- * This servlet is the main entrance point for Bambi proxies. <br>
- * Its purpose is to keep track of and forward messages to ProxyDevices.
+ * IMessageHandler is the interface for a generic response handler
  * 
- * @author rainer, niels
+ * @author prosirai
+ *
  */
-public class ProxyServlet extends AbstractBambiServlet 
+public interface IResponseHandler 
 {
-	private static final long serialVersionUID = -8902151736245089036L;
-	private static Log log = LogFactory.getLog(ProxyServlet.class.getName());
-	
-    @Override
-    protected IDevice buildDevice(IDeviceProperties prop) {
-        ProxyDevice dev=new ProxyDevice(prop);
-        _getHandlers.add(0,dev);
-        return dev;
-    }   
+
+    /**
+     * handle the message specified in inputMessage
+     * 
+     * @return true if the message was handled, else false
+     */
+    public boolean handleMessage();
+    /**
+     * @return handled message type
+     */
+    public HttpURLConnection getConnection();
+    /**
+     * @return handled message type
+     */
+    public void setConnection(HttpURLConnection con);
 
 }

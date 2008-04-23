@@ -108,6 +108,6 @@ public interface IJMFHandler
      * @param family the family
      * @return the IMessageHandler, null if none exists
      */
-    public IMessageHandler getHandler(EnumType typ, EnumFamily family);
+    public IMessageHandler getHandler(String typ, EnumFamily family);
 
 }

@@ -275,6 +275,12 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
     protected abstract class DispatchHandler extends JMFHandler.AbstractHandler
     {
 
+        public DispatchHandler(String _type, EnumFamily[] _families)
+        {
+            super(_type, _families);
+            // TODO Auto-generated constructor stub
+        }
+
         public DispatchHandler(EnumType _type, EnumFamily[] _families)
         {
             super(_type,_families);
@@ -293,7 +299,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
             
             for(int i=0;i<devs.length;i++)
             {
-                IMessageHandler mh= devs[i].getHandler(inputMessage.getEnumType(),inputMessage.getFamily());
+                IMessageHandler mh= devs[i].getHandler(inputMessage.getType(),inputMessage.getFamily());
                 if(mh!=null)
                 {
                     response.setReturnCode(0);
@@ -643,9 +649,9 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
         if(!isMyRequest(request))
             return false;
 
-        if(AbstractBambiServlet.isMyContext(request,SHOW_DEVICE))
+        if(BambiServlet.isMyContext(request,SHOW_DEVICE))
         {
-            return showDevice(request,response,AbstractBambiServlet.getBooleanFromRequest(request, "refresh"));
+            return showDevice(request,response,BambiServlet.getBooleanFromRequest(request, "refresh"));
         }
         if(_theQueueProcessor!=null)
         {
@@ -657,7 +663,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 
     protected boolean isMyRequest(HttpServletRequest request)
     {
-        return AbstractBambiServlet.isMyRequest(request, getDeviceID());
+        return BambiServlet.isMyRequest(request, getDeviceID());
     }
 
     /**
@@ -757,7 +763,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.messaging.IJMFHandler#getHandler(org.cip4.jdflib.jmf.JDFMessage.EnumType, org.cip4.jdflib.jmf.JDFMessage.EnumFamily)
      */
-    public IMessageHandler getHandler(EnumType typ, EnumFamily family)
+    public IMessageHandler getHandler(String typ, EnumFamily family)
     {
         return _jmfHandler==null ? null : _jmfHandler.getHandler(typ, family);
     }

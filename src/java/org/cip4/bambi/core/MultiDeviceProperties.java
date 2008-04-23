@@ -71,6 +71,7 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -189,7 +190,8 @@ public class MultiDeviceProperties
                 try
                 {
                     Class c=Class.forName(_deviceName);
-                    return (IDevice) c.newInstance();
+                    Constructor con=c.getConstructor(new Class[]{IDeviceProperties.class});
+                    return (IDevice) con.newInstance(new Object[]{this});
                 }
                 catch (Exception x)
                 {
@@ -486,7 +488,7 @@ public class MultiDeviceProperties
     private int getPort()
     {
         //TODO extract from servlet
-        return root.getIntAttribute("Port", null, AbstractBambiServlet.port);
+        return root.getIntAttribute("Port", null, BambiServlet.port);
 
     }
 

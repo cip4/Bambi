@@ -11,7 +11,7 @@
 	</context-param>
 	<servlet>
 		<servlet-name>Proxy</servlet-name>
-		<servlet-class>org.cip4.bambi.proxy.ProxyServlet</servlet-class>
+		<servlet-class>org.cip4.bambi.core.BambiServlet</servlet-class>
 			<init-param>
 					<param-name>bambiDump</param-name>
 					<param-value>C:/bambidump</param-value>

@@ -78,10 +78,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.Vector;
 
 import javax.mail.BodyPart;
@@ -98,11 +96,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.enums.ValuedEnum;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.RootDevice;
 import org.cip4.bambi.core.messaging.IJMFHandler;
-import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
-import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -110,11 +105,9 @@ import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
@@ -126,7 +119,7 @@ import org.cip4.jdflib.util.UrlUtil;
  * @author boegerni
  *
  */
-public abstract class AbstractBambiServlet extends HttpServlet {
+public class BambiServlet extends HttpServlet {
 
     /**
      * handler for final handler for any non-handled url
@@ -177,7 +170,7 @@ public abstract class AbstractBambiServlet extends HttpServlet {
  
 
     protected IConverterCallback _callBack = null;
-    private static Log log = LogFactory.getLog(AbstractBambiServlet.class.getName());
+    private static Log log = LogFactory.getLog(BambiServlet.class.getName());
     protected RootDevice rootDev=null;
     protected List<IGetHandler> _getHandlers=new Vector<IGetHandler>();
     protected DumpDir bambiDumpIn=null;

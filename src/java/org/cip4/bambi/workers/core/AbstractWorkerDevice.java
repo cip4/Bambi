@@ -78,8 +78,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.AbstractBambiServlet;
 import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
@@ -212,8 +212,8 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
                 {
                     addAmount(v.stringAt(i), phase);
                 }
-                AbstractBambiServlet.addOptionList(deviceStatus,EnumDeviceStatus.getEnumList(),phase,"DeviceStatus");
-                AbstractBambiServlet.addOptionList(nodeStatus,EnumNodeStatus.getEnumList(),phase,"NodeStatus");
+                BambiServlet.addOptionList(deviceStatus,EnumDeviceStatus.getEnumList(),phase,"DeviceStatus");
+                BambiServlet.addOptionList(nodeStatus,EnumNodeStatus.getEnumList(),phase,"NodeStatus");
             }
             else
             {
@@ -328,12 +328,12 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
             if(parameter==null)
                 break;
             newPhase.setAmount(parameter, 
-                    AbstractBambiServlet.getDoubleFromRequest(request, "Speed"+i),
-                    !AbstractBambiServlet.getBooleanFromRequest(request, "Waste"+i) );
+                    BambiServlet.getDoubleFromRequest(request, "Speed"+i),
+                    !BambiServlet.getBooleanFromRequest(request, "Waste"+i) );
 
         }
         if(!KElement.isWildCard(request.getParameter(AttributeName.DURATION)))
-            newPhase.setTimeToGo(1000*(int)AbstractBambiServlet.getDoubleFromRequest(request, AttributeName.DURATION));
+            newPhase.setTimeToGo(1000*(int)BambiServlet.getDoubleFromRequest(request, AttributeName.DURATION));
         else if(current!=null)
             newPhase.setTimeToGo(current.getTimeToGo());
 
@@ -347,7 +347,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
      */
     public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
     {
-        if(isMyRequest(request) && AbstractBambiServlet.isMyContext(request,"processNextPhase"))       
+        if(isMyRequest(request) && BambiServlet.isMyContext(request,"processNextPhase"))       
         {
             return processNextPhase(request,response);
         }
