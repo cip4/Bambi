@@ -679,14 +679,6 @@ public abstract class AbstractBambiServlet extends HttpServlet {
         return context.equals(StringUtil.token(reqContext, 0, "/"));
             
     }
-
-    /**
-     * build a new device instance
-     * @param prop
-     * @return
-     */
-    protected abstract IDevice buildDevice(IDeviceProperties prop);
-
  
     /**
      * create devices based on the list of devices given in a file

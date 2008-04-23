@@ -171,9 +171,44 @@ public class MultiDeviceProperties
          */
         public String getCallBackClassName()
         {
-            return root.getAttribute("CallBackName",null,null);        
+            String name= devRoot.getAttribute("CallBackName",null,null);
+            if(name==null)
+                name= root.getAttribute("CallBackName",null,null);
+            return name;
         }
 
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
+         */
+        public IDevice getDeviceClass()
+        {
+            String _deviceName=getDeviceClassName();
+
+            if(_deviceName!=null)
+            {
+                try
+                {
+                    Class c=Class.forName(_deviceName);
+                    return (IDevice) c.newInstance();
+                }
+                catch (Exception x)
+                {
+                    log.error("Cannot instantiate callback class: "+_deviceName);
+                }
+            }
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
+         */
+        public String getDeviceClassName()
+        {
+            String name= devRoot.getAttribute("DeviceClass",null,null);
+            if(name==null)
+                name= root.getAttribute("DeviceClass",null,"org.cip4.bambi.workers.sim.SimDevice");
+            return name;
+        }
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
          */

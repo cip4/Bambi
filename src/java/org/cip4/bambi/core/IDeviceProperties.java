@@ -155,10 +155,15 @@ public interface IDeviceProperties {
 	public File getJDFDir();
 		
     /**
+     * returns the name of the IDevice that specifies the converter name
+     * @return {@link IConverterCallback} the callback to use, null if none is specified
+     */
+    public IDevice getDeviceClass();
+    /**
      * returns the name of the IConverterCallback that specifies the converter name
      * @return {@link IConverterCallback} the callback to use, null if none is specified
      */
-	public IConverterCallback getCallBackClass();
+    public IConverterCallback getCallBackClass();
 
 	/**
 	 * get a String representation of this DeviceProperty
