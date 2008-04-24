@@ -167,7 +167,6 @@ public class BambiServlet extends HttpServlet {
                 return false;
         }
     }
- 
 
     protected IConverterCallback _callBack = null;
     private static Log log = LogFactory.getLog(BambiServlet.class.getName());
@@ -176,8 +175,6 @@ public class BambiServlet extends HttpServlet {
     protected DumpDir bambiDumpIn=null;
     protected DumpDir bambiDumpOut=null;
     public static int port=0;
-
-
 
     /** Initializes the servlet.
      * @throws MalformedURLException 
@@ -196,13 +193,8 @@ public class BambiServlet extends HttpServlet {
             MessageSender.outDump=bambiDumpOut;
         }
         log.info( "Initializing servlet for "+context.getServletContextName() );
-//      String appDir=context.getRealPath("")+"/";
-       MultiDeviceProperties mp=loadProperties(context,new File("/config/devices.xml"));
 
-//        // jmf handlers
-//        _jmfHandler=new JMFHandler((IDeviceProperties)null);
-//        ((JMFHandler)_jmfHandler).setSenderID(mp.getSenderID());
-//        addHandlers();
+        MultiDeviceProperties mp=loadProperties(context,new File("/config/devices.xml"));
 
         // doGet handlers
         _getHandlers.add(this.new OverviewHandler());
@@ -222,7 +214,7 @@ public class BambiServlet extends HttpServlet {
         }
     }
 
- 
+
     /**
      * display an error on error.jsp
      * @param errorMsg short message describing the error
@@ -292,7 +284,7 @@ public class BambiServlet extends HttpServlet {
             {
                 final JDFDoc doc = docJDF[i];
                 KElement e=doc.getRoot();
-                
+
                 final String localName = e==null ? null : e.getLocalName();
                 if(ElementName.JMF.equals(localName))
                 {
@@ -347,7 +339,7 @@ public class BambiServlet extends HttpServlet {
                     log.error("cannot write to stream: ",e);
                 }
             } else {
-//                processError(request, response, null, 3, "Error Parsing JMF");               
+//              processError(request, response, null, 3, "Error Parsing JMF");               
             }
         }
     }
@@ -416,7 +408,7 @@ public class BambiServlet extends HttpServlet {
                 w.println("Context Length:"+request.getContentLength());
                 w.print("------ end of http header ------\n");
                 w.flush();
-                
+
                 IOUtils.copy(bufRequest.getBufferedInputStream(), fs);
                 fs.flush();
                 fs.close();
@@ -632,8 +624,8 @@ public class BambiServlet extends HttpServlet {
         if(!bHandled)
             this.new UnknownErrorHandler().handleGet(request, response);
 
-        
-     }
+
+    }
 
     /**
      * get the static context string
@@ -654,8 +646,8 @@ public class BambiServlet extends HttpServlet {
     {
         if(deviceID==null)
             return true;
-            final String reqDeviceID=getDeviceIDFromRequest(request);
-            return deviceID.equals(reqDeviceID);           
+        final String reqDeviceID=getDeviceIDFromRequest(request);
+        return deviceID.equals(reqDeviceID);           
     }
     /**
      * 
@@ -667,12 +659,12 @@ public class BambiServlet extends HttpServlet {
     {
         if(context==null)
             return true;
-        
+
         String reqContext=getContext(request);
         return context.equals(StringUtil.token(reqContext, 0, "/"));
-            
+
     }
- 
+
     /**
      * create devices based on the list of devices given in a file
      * @param props 
@@ -694,8 +686,16 @@ public class BambiServlet extends HttpServlet {
             IDeviceProperties prop=props.getDevice(devID);
             if(rootDev==null)
             {
-                rootDev=new RootDevice(prop);
-                _callBack=prop.getCallBackClass(); // the last one wins       
+                IDevice d=prop.getDeviceClass();
+                if(d instanceof RootDevice)
+                {
+                    rootDev=(RootDevice) d;
+                }
+                else
+                {
+                    rootDev=new RootDevice(prop);
+                }
+                _callBack=prop.getCallBackClass(); // the first one wins       
                 rootDev.createDevice(prop,null);
             }
             else

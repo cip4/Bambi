@@ -153,8 +153,7 @@ public class JMFFactory {
      */
     public static JDFJMF buildSuspendQueueEntry(String queueEntryId)
     {
-        JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.SuspendQueueEntry);
-        jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
+        JDFJMF jmf = buildQueueEntryCommand(queueEntryId,EnumType.SuspendQueueEntry);
         return jmf;
     }
 
@@ -165,8 +164,7 @@ public class JMFFactory {
      */
     public static JDFJMF buildHoldQueueEntry(String queueEntryId)
     {
-        JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.HoldQueueEntry);
-        jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
+        JDFJMF jmf = buildQueueEntryCommand(queueEntryId,EnumType.HoldQueueEntry);
         return jmf;
     }
 
@@ -177,8 +175,7 @@ public class JMFFactory {
      */
     public static JDFJMF buildResumeQueueEntry(String queueEntryId)
     {
-        JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry);
-        jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
+        JDFJMF jmf = buildQueueEntryCommand(queueEntryId,EnumType.ResumeQueueEntry);
         return jmf;
     }
 
@@ -189,7 +186,19 @@ public class JMFFactory {
      */
     public static JDFJMF buildAbortQueueEntry(String queueEntryId)
     {
-        JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.AbortQueueEntry);
+        JDFJMF jmf = buildQueueEntryCommand(queueEntryId,EnumType.AbortQueueEntry);
+        return jmf;
+    }
+
+    /**
+     * @param queueEntryId
+     * @return
+     */
+    private static JDFJMF buildQueueEntryCommand(String queueEntryId, EnumType typ)
+    {
+        if(queueEntryId==null)
+            return null;
+        JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, typ);
         jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
         return jmf;
     }
@@ -201,8 +210,7 @@ public class JMFFactory {
      */
     public static JDFJMF buildRemoveQueueEntry(String queueEntryId)
     {
-        JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.RemoveQueueEntry);
-        jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
+        JDFJMF jmf = buildQueueEntryCommand(queueEntryId,EnumType.RemoveQueueEntry);
         return jmf;
     }
 

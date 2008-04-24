@@ -82,23 +82,28 @@ import org.cip4.jdflib.resource.JDFDeviceList;
  */
 public interface IDevice extends IJMFHandler{
 
-	/**
+    /**
      * return the unique ID of this device
      * @return
      */
-    public abstract String getDeviceID();
+    public IDeviceProperties getProperties();
+    /**
+     * return the unique ID of this device
+     * @return
+     */
+    public String getDeviceID();
     
     /**
      * return the type of this device
      * @return
      */
-    public abstract String getDeviceType();
+    public String getDeviceType();
 
 	/**
 	 * return the URL of this device
 	 * @return
 	 */
-	public abstract String getDeviceURL();
+	public String getDeviceURL();
 
     /**
      * append the JDFDeviceInfo of this device to a given JDFDeviceList

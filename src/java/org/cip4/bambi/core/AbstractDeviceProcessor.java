@@ -78,6 +78,7 @@ import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
@@ -86,6 +87,7 @@ import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.resource.process.JDFUsageCounter;
 import org.cip4.jdflib.util.StatusCounter;
 
 /**
@@ -181,7 +183,20 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             int siz=rls==null ? 0 : rls.length;
             for(int i=0;i<siz;i++)
             {
-                addAmount(processor,rls[i].getrRef(),rls[i].getLinkedResourceName());
+                String linkedResName = rls[i].getLinkedResourceName();
+                if(ElementName.USAGECOUNTER.equals(linkedResName))
+                {
+                    JDFUsageCounter uc=(JDFUsageCounter) rls[i].getTarget();
+                    if(uc!=null && !KElement.isWildCard(uc.getCounterID()))
+                    {
+                        linkedResName+=":"+uc.getCounterID();
+                    }
+                }
+                else if(ElementName.COMPONENT.equals(linkedResName))
+                {
+                    linkedResName+=":"+rls[i].getUsage().getName();
+                }
+                addAmount(processor,rls[i].getrRef(),linkedResName);
             }
         }
 

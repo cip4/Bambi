@@ -377,23 +377,19 @@ public class BambiTestCase extends TestCase {
 		if (siz==0)
 			return;
 		
-		for (int i=0;i<siz;i++) {
+		for (int i=siz-1;i>=0;i--) {
 			String qeid=((JDFQueueEntry)qVec.get(i)).getQueueEntryID();
 			jmf=JMFFactory.buildAbortQueueEntry(qeid);
-			jmfFactory.send2URLSynch(jmf, url, "testcase");
+			jmfFactory.send2URL(jmf, url, null,"testcase");
 		}
 		
 		// wait to allow the worker to process the AbortQueueEntries,
 		// then send RemoveQueueEntry messages
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			fail( e.getMessage() );
-		}
+
 		for (int i=0;i<siz;i++) {
 			String qeid=((JDFQueueEntry)qVec.get(i)).getQueueEntryID();
 			jmf=JMFFactory.buildRemoveQueueEntry(qeid);
-			jmfFactory.send2URLSynch(jmf,url,"testcase");
+			jmfFactory.send2URL(jmf,url,null,"testcase");
 		}
 	}
 	

@@ -363,7 +363,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
     protected IDeviceProperties _devProperties=null;
     protected QueueHotFolder _submitHotFolder=null;
     protected IConverterCallback _callback=null;
-    RootDevice rootDevice=null;
+    protected RootDevice rootDevice=null;
     protected StatusListener theStatusListener=null;
 
     /**
@@ -372,15 +372,14 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
      */
     public AbstractDevice(IDeviceProperties prop) {
         super();
-
-        init(prop);
+        _devProperties=prop;
+        init(this);
     }
 
-    protected void init(IDeviceProperties prop) {
-        _devProperties = prop;
-        _jmfHandler = new JMFHandler(prop);
+    protected void init(IDevice dev) {
+        _jmfHandler = new JMFHandler(this);
 
-        _theSignalDispatcher=new SignalDispatcher(_jmfHandler, _devProperties);
+        _theSignalDispatcher=new SignalDispatcher(_jmfHandler, this);
         _theSignalDispatcher.addHandlers(_jmfHandler);
         _jmfHandler.setDispatcher(_theSignalDispatcher);
         _jmfHandler.setFilterOnDeviceID(true); 
@@ -402,7 +401,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
             _deviceProcessors.add( newDevProc );
         }
 
-        final File hfURL=prop.getInputHF();
+        final File hfURL=_devProperties.getInputHF();
         createHotFolder(hfURL);
 
         addHandlers();
@@ -759,6 +758,8 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
     public void setRootDevice(RootDevice _rootDevice)
     {
         this.rootDevice = _rootDevice;
+        if(theStatusListener!=null && _rootDevice!=null)
+            theStatusListener.setRootDispatcher(_rootDevice._theSignalDispatcher);
     }
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.messaging.IJMFHandler#getHandler(org.cip4.jdflib.jmf.JDFMessage.EnumType, org.cip4.jdflib.jmf.JDFMessage.EnumFamily)

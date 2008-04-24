@@ -82,14 +82,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
-import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
@@ -127,7 +124,7 @@ public class RootDevice extends AbstractDevice
 
     protected void addHandlers() {
         super.addHandlers();
-        _jmfHandler.addHandler( this.new KnownDevicesHandler() );
+        _jmfHandler.addHandler(this.new KnownDevicesHandler() );
         _jmfHandler.addHandler(this.new StatusHandler());
         _jmfHandler.addHandler(this.new RootDispatchHandler(EnumType.Resource,new EnumFamily[]{EnumFamily.Query,EnumFamily.Command}));
         _jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.AbortQueueEntry,new EnumFamily[]{EnumFamily.Command}));
@@ -308,6 +305,10 @@ public class RootDevice extends AbstractDevice
     public  class RootDispatchHandler extends DispatchHandler
     {
         public RootDispatchHandler(EnumType _type, EnumFamily[] _families)
+        {
+            super(_type,_families);
+        }
+        public RootDispatchHandler(String _type, EnumFamily[] _families)
         {
             super(_type,_families);
         }

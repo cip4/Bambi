@@ -154,6 +154,7 @@ public class MessageSender implements Runnable {
          */
         public boolean handleMessage()
         {
+            /*
             JDFDoc doc;
             try
             {
@@ -177,6 +178,7 @@ public class MessageSender implements Runnable {
                     }
                  }
             }
+            */
             return true;
         }
 

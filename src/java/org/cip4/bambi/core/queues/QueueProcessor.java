@@ -167,6 +167,7 @@ public class QueueProcessor implements IQueueProcessor
                 if(callback!=null)
                     callback.prepareJDFForBambi(doc);
                 JDFQueueEntry qe=addEntry( (JDFCommand)m, doc);
+                fixEntry(qe,doc);
                 if(qe==null) {
                     JMFHandler.errorResponse(resp, "failed to add entry: invalid or missing message parameters", 9);
                     return true;
@@ -183,13 +184,24 @@ public class QueueProcessor implements IQueueProcessor
             log.error("QueueSubmissionParams are missing or invalid");
             return true;
         }
+        
+        /**
+         * stub that allows moving data from the jdfdoc to the queueentry
+         * @param qe
+         * @param doc
+         */
+        protected void fixEntry(JDFQueueEntry qe, JDFDoc doc)
+        {
+           return;
+            
+        }
     }
 
     protected class QueueStatusHandler extends AbstractHandler
     {
         public QueueStatusHandler()
         {
-            super(EnumType.QueueStatus,new EnumFamily[]{EnumFamily.Command});
+            super(EnumType.QueueStatus,new EnumFamily[]{EnumFamily.Query});
         }
 
         /* (non-Javadoc)
@@ -949,7 +961,7 @@ public class QueueProcessor implements IQueueProcessor
 
         boolean bOK=false;
         //TODO  need a better synch to message thread
-        StatusCounter.sleep(5333); // wait to flush queues
+        StatusCounter.sleep(1234); // wait to flush queues
 
         if(returnJMF!=null) {
             QEReturn qr=properties.getReturnMIME();

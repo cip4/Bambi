@@ -21,7 +21,7 @@ Show JDF: <a><xsl:attribute name="href">../showJDF/<xsl:value-of select="../@Dev
 
 <h2>Resources:</h2>
 <table cellspacing="1" border="1">
-<tr>
+<tr bgcolor="#dddddd">
 <th>Type</th>
 <th>Planned Amount</th>
 <th>Planned Waste</th>
@@ -41,7 +41,7 @@ Show JDF: <a><xsl:attribute name="href">../showJDF/<xsl:value-of select="../@Dev
 
 <xsl:template match="bambi:PhaseAmount">
 <tr>
-<td><xsl:value-of select="@ResourceName"/></td>
+<td bgcolor="#dddddd"><xsl:value-of select="@ResourceName"/></td>
 <td align="center"><xsl:value-of select="@PlannedAmount"/></td>
 <td align="center"><xsl:value-of select="@PlannedWaste"/></td>
 <td align="center"><xsl:value-of select="@PhaseAmount"/></td>

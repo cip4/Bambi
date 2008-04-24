@@ -133,6 +133,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
     private static final long serialVersionUID = -384123582645081254L;
     private IConverterCallback callBack;
     private QueueEntryStatusContainer qsc;
+    private String _slaveURL;
 
 
     /**
@@ -272,10 +273,12 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         currentQE=qeToProcess;
         qsc=this.new QueueEntryStatusContainer();
         callBack=device.getCallback();
+        
         init(qProc, _statusListener, _parent.getProperties());
 
         if(slaveURL==null)
             slaveURL = _parent.getProperties().getSlaveURL();
+        _slaveURL=slaveURL;
 
         URL qURL;
         try
@@ -582,8 +585,16 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
     @Override
     public void stopProcessing(EnumNodeStatus newStatus)
     {
-        // TODO Auto-generated method stub
-
+        JDFJMF jmf=null;
+        String slaveQE=getSlaveQEID();
+        if(EnumNodeStatus.Aborted.equals(newStatus))
+            jmf=JMFFactory.buildAbortQueueEntry(slaveQE);
+        else if(EnumNodeStatus.Suspended.equals(newStatus))
+            jmf=JMFFactory.buildSuspendQueueEntry(slaveQE);
+        if(jmf!=null)
+        {
+            new JMFFactory(callBack).send2URL(jmf, slaveQE, null,getParent().getDeviceID());
+        }
     }
 
     /**

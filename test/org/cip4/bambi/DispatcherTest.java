@@ -71,7 +71,6 @@
 
 package org.cip4.bambi;
 
-import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -80,7 +79,6 @@ import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.StatusCounter;
-import org.cip4.jdflib.util.UrlUtil;
 
 public class DispatcherTest extends BambiTestCase {
 
@@ -88,7 +86,7 @@ public class DispatcherTest extends BambiTestCase {
     public void testAddSubscription()
     {
         JMFHandler h=new JMFHandler(null);
-        SignalDispatcher d=new SignalDispatcher(h, new BambiTestProp());
+        SignalDispatcher d=new SignalDispatcher(h, null);
 
         d.addHandlers(h);
         JDFJMF jmf=JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
