@@ -16,9 +16,60 @@
       <h1>Queue - DeviceID:<xsl:value-of select = "@DeviceID" /> - Status: <xsl:value-of select = "@Status" /></h1>
       <hr/>
       Show Device:<a><xsl:attribute name="href">../showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
-      Device: <xsl:value-of select="@DeviceID"/> </a>
-     
+      Device: <xsl:value-of select="@DeviceID"/> </a>     
       <hr/>
+      <h2>Queue Summary</h2>
+      
+        <table cellspacing="2" border="1" >
+          <tr bgcolor="#bbbbbb">
+            <th align="left" >Queue Entry Status</th>
+            <th align="center" ># of Entries</th>
+          </tr>  
+          <tr>
+	         <td align="left">All</td>
+	  	     <td align="center"><xsl:value-of select = "count(jdf:QueueEntry)" /></td>
+          </tr>
+	        <xsl:if test="count(jdf:QueueEntry[@Status='Waiting'])>0">
+         <tr bgcolor="#aaaaff">
+	         <td align="left">Waiting</td>
+	  	     <td align="center"><xsl:value-of select = "count(jdf:QueueEntry[@Status='Waiting'])" /></td>
+          </tr>
+          </xsl:if>
+	        <xsl:if test="count(jdf:QueueEntry[@Status='Running'])>0">
+         <tr bgcolor="#aaffaa">
+	         <td align="left">Running</td>
+	  	     <td align="center"><xsl:value-of select = "count(jdf:QueueEntry[@Status='Running'])" /></td>
+          </tr>
+          </xsl:if>
+	        <xsl:if test="count(jdf:QueueEntry[@Status='Held'])>0">
+         <tr bgcolor="#ffffaa">
+	         <td align="left">Held</td>
+	  	     <td align="center"><xsl:value-of select = "count(jdf:QueueEntry[@Status='Held'])" /></td>
+          </tr>
+          </xsl:if>
+	        <xsl:if test="count(jdf:QueueEntry[@Status='Suspended'])>0">
+         <tr bgcolor="#ffffaa">
+	         <td align="left">Suspended</td>
+	  	     <td align="center"><xsl:value-of select = "count(jdf:QueueEntry[@Status='Suspended'])" /></td>
+          </tr>
+          </xsl:if>
+	        <xsl:if test="count(jdf:QueueEntry[@Status='Completed'])>0">
+         <tr bgcolor="#dddddd">
+	         <td align="left">Completed</td>
+	  	     <td align="center"><xsl:value-of select = "count(jdf:QueueEntry[@Status='Completed'])" /></td>
+          </tr>
+          </xsl:if>
+	        <xsl:if test="count(jdf:QueueEntry[@Status='Aborted'])>0">
+         <tr bgcolor="#ffaaaa">
+	         <td align="left">Aborted</td>
+	  	     <td align="center"><xsl:value-of select = "count(jdf:QueueEntry[@Status='Aborted'])" /></td>
+          </tr>
+          </xsl:if>
+         </table> 
+          <hr/>
+                
+                <h2>Queue Details</h2>
+
         <table cellspacing="1" border="1" >
           <tr bgcolor="#bbbbbb">
             <th align="left" >QueueEntryID</th>
@@ -48,9 +99,6 @@
       <xsl:attribute name="bgcolor">#aaffaa</xsl:attribute>
   </xsl:if>
 	<xsl:if test="@Status='Waiting'">
-      <xsl:attribute name="bgcolor">#ddddd</xsl:attribute>
-  </xsl:if>
-	<xsl:if test="@Status='Waiting'">
       <xsl:attribute name="bgcolor">#aaaaff</xsl:attribute>
   </xsl:if>
 	<xsl:if test="@Status='Suspended'">
@@ -76,8 +124,8 @@
       Device: <xsl:value-of select="@DeviceID"/> </a>     
        </td>
        
-       <td nowrap="true">
-      <!-- calls the optionList -->
+       <td nowrap="true">      
+<!-- calls the optionList -->
 <form>
 <xsl:attribute name="action">../modifyQE/<xsl:value-of select="../@DeviceID" /></xsl:attribute>
 
@@ -94,8 +142,6 @@
          </td>
 	</tr>
 
-  </xsl:template> 
-  
+</xsl:template> 
 <xsl:include href="optionlist.xsl"/> 
- 
 </xsl:stylesheet>

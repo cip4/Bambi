@@ -94,7 +94,7 @@ public class BambiTestCase extends TestCase {
     protected final static String sm_UrlTestData = "File:test/data/";
 
 
-    protected static String simWorkerUrl="http://localhost:8080/SimWorker/jmf/sim002";
+    protected static String simWorkerUrl="http://localhost:8080/SimWorker/jmf/sim";
     protected static String manualWorkerUrl=null;
     protected String proxyUrl="http://localhost:8080/BambiProxy/jmf/proxy002";
     

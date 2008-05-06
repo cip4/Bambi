@@ -370,7 +370,8 @@ public class RootDevice extends AbstractDevice
         while (it.hasNext()) {
             String devID=it.next();
             AbstractDevice dev=(AbstractDevice) _devices.get(devID);
-            dev.shutdown();
+            if(dev!=null)
+                dev.shutdown();
         }
         _devices.clear();
         super.shutdown();
@@ -458,4 +459,5 @@ public class RootDevice extends AbstractDevice
         return true;
 
     }
+
 }

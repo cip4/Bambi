@@ -457,7 +457,12 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     public void setParent(AbstractDevice device)
     {
         _parent=device;
-        
+    }
+    @Override
+    protected void finalize() throws Throwable
+    {
+        shutdown();
+        super.finalize();
     }
 
 }

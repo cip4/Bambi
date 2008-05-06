@@ -43,4 +43,13 @@ ErrorHF: folder where unsuccessfuly completed jobs are placed
   	
   	<Device DeviceID="sim002" DeviceType="Bambi Simulation Device" 
   	TrackResource="Component:Output"/>
+  	
+  	<Device DeviceID="sim003" DeviceType="Bambi Simulation Device" 
+  	TrackResource="Component:Output"/>
+  	
+  	<Device DeviceID="sim004" DeviceType="Bambi Simulation Device" 
+  	TrackResource="Component:Output"/>
+  	
+  	<Device DeviceID="sim005" DeviceType="Bambi Simulation Device" 
+  	TrackResource="Component:Output"/>
 </application>

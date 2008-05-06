@@ -693,6 +693,7 @@ public class BambiServlet extends HttpServlet {
                 }
                 else
                 {
+                    d.shutdown();
                     rootDev=new RootDevice(prop);
                 }
                 _callBack=prop.getCallBackClass(); // the first one wins       

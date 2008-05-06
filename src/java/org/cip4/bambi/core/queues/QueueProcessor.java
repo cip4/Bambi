@@ -184,7 +184,7 @@ public class QueueProcessor implements IQueueProcessor
             log.error("QueueSubmissionParams are missing or invalid");
             return true;
         }
-        
+
         /**
          * stub that allows moving data from the jdfdoc to the queueentry
          * @param qe
@@ -192,8 +192,8 @@ public class QueueProcessor implements IQueueProcessor
          */
         protected void fixEntry(JDFQueueEntry qe, JDFDoc doc)
         {
-           return;
-            
+            return;
+
         }
     }
 
@@ -467,7 +467,10 @@ public class QueueProcessor implements IQueueProcessor
                 return false;
             }
             setRoot(ElementName.QUEUE,null);
-            getRoot().mergeElement(_theQueue, false);
+            synchronized (_theQueue)
+            {
+                getRoot().mergeElement(_theQueue, false);
+            }
             setXSLTURL(_parentDevice.getXSLT(SHOW_QUEUE));
             addOptions();
 
@@ -676,18 +679,15 @@ public class QueueProcessor implements IQueueProcessor
      * @return
      */
     public IQueueEntry getQueueEntry(NodeIdentifier nodeID) {
-        synchronized (_theQueue)
-        {
 
-            VElement vQE=_theQueue.getQueueEntryVector(nodeID);
-            int siz=vQE==null ? 0 : vQE.size();
-            for(int i=0;i<siz;i++)
-            {
-                JDFQueueEntry qe=(JDFQueueEntry) vQE.get(i);            
-                if(EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && KElement.isWildCard(BambiNSExtension.getDeviceURL(qe)))
-                    return getIQueueEntry(qe);
-                // try next    
-            }
+        VElement vQE=_theQueue.getQueueEntryVector(nodeID);
+        int siz=vQE==null ? 0 : vQE.size();
+        for(int i=0;i<siz;i++)
+        {
+            JDFQueueEntry qe=(JDFQueueEntry) vQE.get(i);            
+            if(EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && KElement.isWildCard(BambiNSExtension.getDeviceURL(qe)))
+                return getIQueueEntry(qe);
+            // try next    
         }
         return null;
     }
@@ -858,7 +858,7 @@ public class QueueProcessor implements IQueueProcessor
      */
     public JDFQueue updateEntry(JDFQueueEntry qe, EnumQueueEntryStatus status, JDFMessage mess, JDFResponse resp)
     {
-        
+
         if (qe != null && status!=null && !status.equals(qe.getQueueEntryStatus()))
         {
             qe.setQueueEntryStatus(status);
@@ -891,9 +891,11 @@ public class QueueProcessor implements IQueueProcessor
             // nop
         }
         JDFQueue q= _theQueue.copyToResponse(resp, qf);
+
         removeBambiNSExtensions(q);
         return q;
     }
+
 
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
@@ -1035,6 +1037,7 @@ public class QueueProcessor implements IQueueProcessor
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     protected JDFQueueEntry getMessageQueueEntry(JDFMessage m, JDFResponse resp)
     {
         final JDFQueueEntryDef def = m.getQueueEntryDef(0);
@@ -1056,6 +1059,7 @@ public class QueueProcessor implements IQueueProcessor
         return qe;
 
     }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * remove all Bambi namespace extensions from a given queue
@@ -1065,10 +1069,12 @@ public class QueueProcessor implements IQueueProcessor
     public static void removeBambiNSExtensions(JDFQueue queue) {  
         if(queue==null)
             return;
-        for (int i=0;i<queue.getQueueSize();i++) {
+        final int queueSize = queue.getQueueSize();
+        for (int i=0;i<queueSize;i++) {
             BambiNSExtension.removeBambiExtensions( queue.getQueueEntry(i) );
         }
     }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
@@ -1082,6 +1088,5 @@ public class QueueProcessor implements IQueueProcessor
         return b;
 
     }
-
-
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 }

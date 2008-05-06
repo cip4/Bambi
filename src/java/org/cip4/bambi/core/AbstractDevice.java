@@ -285,7 +285,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
         {
             super(_type,_families);
         }
-        
+
         /**
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
@@ -296,7 +296,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
                 return false;
             boolean b=false;
             JDFNotification notif=(JDFNotification) response.removeChild(ElementName.NOTIFICATION, null, 0);
-            
+
             for(int i=0;i<devs.length;i++)
             {
                 IMessageHandler mh= devs[i].getHandler(inputMessage.getType(),inputMessage.getFamily());
@@ -314,13 +314,13 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
                     {
                         notif=(JDFNotification) response.removeChild(ElementName.NOTIFICATION, null, 0);
                     }
-                 }
+                }
             }
             if(b)
                 response.setReturnCode(0);
             else if( notif!=null)
                 response.moveElement(notif, null);
-            
+
             return b;
         }
     }
@@ -345,7 +345,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
                 return false;
             if(!theStatusListener.matchesQuery(inputMessage))
                 return false;
-            
+
             JDFDoc docJMF=theStatusListener.getJMFPhaseTime();    
             boolean bOK=copyPhaseTimeFromCounter(response, docJMF);
             if(bOK)
@@ -803,6 +803,13 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
         }
 
         return true;
+    }
+
+    @Override
+    protected void finalize() throws Throwable
+    {
+        shutdown();
+        super.finalize();
     }
 
 
