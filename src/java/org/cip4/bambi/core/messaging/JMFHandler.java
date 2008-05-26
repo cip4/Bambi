@@ -178,7 +178,6 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
         public KnownMessagesHandler()
         {
             super(EnumType.KnownMessages, new EnumFamily[]{EnumFamily.Query});
-            // TODO Auto-generated constructor stub
         }
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
@@ -190,14 +189,11 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
                 return false;
             }
             log.debug("Handling"+m.getType());
-            EnumType typ=m.getEnumType();
-            if(EnumType.KnownMessages.equals(typ))
-                return handleKnownMessages(m, resp);
-
-            return false;
+            return handleKnownMessages(m, resp);
         }
         /**
-         * @return
+         * create the KnownMessages Response from the internal hashMap
+         * @return true if handled correctly
          */
         private boolean handleKnownMessages(JDFMessage m, JDFMessage resp)
         {
@@ -288,8 +284,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
         addHandler( this.new KnownMessagesHandler() );
         _signalDispatcher=null;
         _parentDevice=dev;
-        
-      }
+
+    }
 
 //  public JMFHandler(JMFHandler oldHandler)
 //  {
