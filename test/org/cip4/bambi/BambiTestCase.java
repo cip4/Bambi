@@ -93,8 +93,9 @@ public class BambiTestCase extends TestCase {
 	protected final static String sm_dirTestTemp = cwd+File.separator+"test" + File.separator + "temp" + File.separator;
     protected final static String sm_UrlTestData = "File:test/data/";
 
-
-    protected static String simWorkerUrl="http://localhost:8080/SimWorker/jmf/sim";
+    
+ //       protected static String simWorkerUrl="http://localhost:8080/SimWorker/jmf/sim";
+    protected static String simWorkerUrl="http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
     protected static String manualWorkerUrl=null;
     protected String proxyUrl="http://localhost:8080/BambiProxy/jmf/proxy002";
     

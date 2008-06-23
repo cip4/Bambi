@@ -78,17 +78,21 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
+import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
+import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
+import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -196,49 +200,7 @@ public class ProxyDevice extends AbstractDevice {
             return true;
         }
     }
-    /**
-     * 
-     * handler for the Status Query
-     */
-    public class StatusHandler extends AbstractHandler
-    {
 
-        public StatusHandler()
-        {
-            super(EnumType.Status, new EnumFamily[]{EnumFamily.Query});
-        }
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-         */
-        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
-        {   
-            if(theStatusListener==null)
-                return false;
-            
-            JDFDoc docJMF=theStatusListener.getJMFPhaseTime();    
-            JDFResponse r=docJMF==null ? null : docJMF.getJMFRoot().getResponse(-1);
-            if(r==null) {
-                log.error("StatusHandler.handleMessage: StatusCounter response = null");
-                return false;
-            }
-            VElement v=r.getChildElementVector(ElementName.DEVICEINFO, null);
-            int siz=v==null ? 0 : v.size();
-            for(int i=0;i<siz;i++)
-            {
-                response.copyElement(v.elementAt(i), null);
-            }
-            final JDFStatusQuParams statusQuParams = inputMessage.getStatusQuParams();
-            boolean bQueue=statusQuParams==null ? false : statusQuParams.getQueueInfo();
-            if(bQueue)
-            {
-                JDFQueue qq=(JDFQueue) response.copyElement(_theQueueProcessor.getQueue(), null);
-                QueueProcessor.removeBambiNSExtensions(qq);
-            }
-            return true;
-        }
-    }
- 
     protected class StatusQueryHandler  extends AbstractHandler
     {
 
@@ -560,16 +522,17 @@ public class ProxyDevice extends AbstractDevice {
             if(bambiQEID.equals(qeID))
                 return proc.getSlaveQEID();             
         }
+        JDFQueueEntry qe=_theQueueProcessor.getQueue().getQueueEntry(bambiQEID);
+        if(qe!=null)
+        {
+            KElement sc=BambiNSExtension.getStatusContainer(qe);
+            if(sc!=null)
+                return sc.getAttribute("SlaveQueueEntryID",null,null);
+        }
+            
         return null;
     }
-    @Override
-    public String getXSLT(String context)
-    {
-        if("showDevice".equalsIgnoreCase(context))
-            return "../showProxyDevice.xsl";
-        return super.getXSLT(context);
-    }
-
+ 
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
      */
@@ -598,6 +561,22 @@ public class ProxyDevice extends AbstractDevice {
         if(s==null)
             return null;
         return EnumSlaveStatus.valueOf(s.toUpperCase());
+    }
+
+    @Override
+    public JDFQueueEntry stopProcessing(String queueEntryID, EnumNodeStatus status)
+    {
+        if(status==null)
+        {
+
+            JDFJMF jmf=JMFFactory.buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
+            if(jmf!=null)
+            {
+                new JMFFactory(_callback).send2URL(jmf, _devProperties.getSlaveURL(), null,getDeviceID());
+            }
+        }
+        JDFQueueEntry qe= super.stopProcessing(queueEntryID, status);
+        return qe;
     }
 
 

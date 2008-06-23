@@ -112,6 +112,8 @@ public class MessageSender implements Runnable {
     private static IConverterCallback _callBack=null;
     public static DumpDir inDump=null; // messy bu efficient...
     public static DumpDir outDump=null; // messy bu efficient...
+    private Object mutex=new Object();
+
 
     protected class MessageDetails
     {
@@ -237,7 +239,19 @@ public class MessageSender implements Runnable {
                 }
             }
             if(!sentFirstMessage)
-                StatusCounter.sleep(100);
+            {
+                try
+                {
+                    synchronized (mutex)
+                    {
+                        mutex.wait(1000);                        
+                    }
+                }
+                catch (InterruptedException x)
+                {
+                    //nop
+                }
+            }
         }
     }
 
@@ -351,6 +365,10 @@ public class MessageSender implements Runnable {
 
         synchronized(_messages) {
             _messages.add(new MessageDetails(jmf,handler,null));
+        }
+        synchronized (mutex)
+        {
+            mutex.notifyAll();            
         }
         return true;
     }

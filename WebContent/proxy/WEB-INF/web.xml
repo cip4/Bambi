@@ -31,6 +31,11 @@
 		<servlet-name>Proxy</servlet-name>
 		<url-pattern>/showDevice/*</url-pattern>
 	</servlet-mapping>
+		<servlet-mapping>
+			<servlet-name>Proxy</servlet-name>
+			<url-pattern>/showSubscriptions/*</url-pattern>
+		</servlet-mapping>
+
 	<servlet-mapping>
 		<!-- entrance point for manipulating QueueEntries -->
 		<servlet-name>Proxy</servlet-name>

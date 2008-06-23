@@ -81,7 +81,7 @@ import org.cip4.jdflib.node.JDFNode;
  * @author prosirai
  *
  */
-public interface ISignalDispatcher extends IMultiJMFHandler
+public interface ISignalDispatcher extends IMultiJMFHandler, IGetHandler
 {
 
     /**
@@ -137,6 +137,10 @@ public interface ISignalDispatcher extends IMultiJMFHandler
      * stop the dispatcher thread
      */
     public void shutdown();
+    /**
+     * flush any waiting messages
+     */
+    public void flush();
 
     /**
      * find subscriptions in a message and add them if appropriate

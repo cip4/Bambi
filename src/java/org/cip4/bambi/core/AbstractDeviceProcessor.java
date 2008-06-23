@@ -81,12 +81,16 @@ import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.core.JDFResourceLink.EnumUsage;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.resource.JDFResource;
+import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
 import org.cip4.jdflib.resource.process.JDFUsageCounter;
 import org.cip4.jdflib.util.StatusCounter;
 
@@ -145,8 +149,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             if(deviceStatus!=null  && nodeStatus!=null)
             {
                 processor.setAttribute("NodeStatus",nodeStatus.getName(),null);
-                processor.setAttribute("NodeStatusDetails",n.getStatusDetails());
- 
+                processor.setAttribute("NodeStatusDetails",n.getStatusDetails()); 
                 fillPhaseTime(processor);
              }
             else
@@ -172,10 +175,10 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             final JDFNode node = currentQE.getJDF();
             String typ=node.getType();
             if(node.isTypesNode())
-                typ+=" - "+node.getAttribute(AttributeName.TYPE);
+                typ+=" - "+node.getAttribute(AttributeName.TYPES);
             
             processor.setAttribute("Type", typ);
-            processor.copyAttribute(AttributeName.DESCRIPTIVENAME, node, null, null, null);
+            processor.copyAttribute(AttributeName.DESCRIPTIVENAME, node);
             processor.setAttribute("JobID",node.getJobID(true));
             processor.setAttribute("JobPartID",node.getJobPartID(false));
             
@@ -360,7 +363,67 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     {
         currentQE=new QueueEntry(node,qe);
         _queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Running,null,null);
+        setupStatusListener(node, qe);
+
     }
+    /**
+     * @param node
+     * @param qe
+     * @param queueEntryID
+     * @param vResLinks
+     * @param vSiz
+     */
+    protected void setupStatusListener(JDFNode node, JDFQueueEntry qe)
+    {
+        if(node==null || qe==null)
+            return;
+        final String queueEntryID = qe.getQueueEntryID();
+        VElement vResLinks=node.getResourceLinks(null);
+        int vSiz= (vResLinks==null) ? 0 : vResLinks.size();
+        VJDFAttributeMap vPartMap=qe.getPartMapVector();
+        if(vPartMap==null)
+            vPartMap=node.getNodeInfoPartMapVector();
+
+        JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
+        final String workStepID = node.getWorkStepID(partMap);
+
+        String trackResourceID=null;
+
+        for (int i = 0; i < vSiz; i++) {
+            JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
+            if(trackResourceID==null && rl.matchesString(_trackResource))
+            {
+                trackResourceID=rl.getrRef();
+                break;
+            }
+        }
+
+        //heuristics in case we didn't find anything
+        if(trackResourceID==null)
+        {
+            String inConsume=null;
+            String outQuantity=null;
+            for (int i = 0; i < vSiz; i++) {
+                JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
+                JDFResource r = rl.getLinkRoot();
+                EnumResourceClass c = r.getResourceClass();
+                if (EnumResourceClass.Consumable.equals(c)
+                        || EnumResourceClass.Handling.equals(c)
+                        || EnumResourceClass.Quantity.equals(c)) {
+                    EnumUsage inOut = rl.getUsage();
+                    if (EnumUsage.Input.equals(inOut)) {
+                        if (EnumResourceClass.Consumable.equals(c))
+                            inConsume = rl.getrRef();
+                    } else {
+                        outQuantity = rl.getrRef();
+                    }
+                }
+            }
+            trackResourceID= inConsume !=null ? inConsume : outQuantity;
+        }
+        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
+    }
+
 
     protected void suspend()
     {

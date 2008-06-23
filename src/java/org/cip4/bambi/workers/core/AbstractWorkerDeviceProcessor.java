@@ -630,58 +630,18 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
         qe.setDeviceID( _devProperties.getDeviceID() );
         final String queueEntryID = qe.getQueueEntryID();
         log.info("Processing queueentry "+queueEntryID);
-
-
-        VJDFAttributeMap vPartMap=qe.getPartMapVector();
-        if(vPartMap==null)
-            vPartMap=node.getNodeInfoPartMapVector();
-
-        JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
-        final String workStepID = node.getWorkStepID(partMap);
+        int jobPhaseSize=_jobPhases==null ? 0 : _jobPhases.size();
 
         VElement vResLinks=node.getResourceLinks(null);
-        String inConsume=null;
-        String outQuantity=null;
-        String trackResourceID=null;
-        int jobPhaseSize=_jobPhases==null ? 0 : _jobPhases.size();
-        if (vResLinks!=null) {
-            int vSiz=vResLinks.size();
-            for (int i = 0; i < vSiz; i++) {
-                JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
-                if(trackResourceID==null && rl.matchesString(_trackResource))
-                {
-                    trackResourceID=rl.getrRef();
-                }
-                for(int j=0;j<jobPhaseSize;j++)
-                {
-                    JobPhase jp=_jobPhases.get(j);
-                    jp.updateAmountLinks(rl);
-                }
-            }
-
-            //heuristics in case we didn't find anything
-            if(trackResourceID==null)
+        int vSiz= (vResLinks==null) ? 0 : vResLinks.size();
+        for (int i = 0; i < vSiz; i++) {
+            JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
+            for(int j=0;j<jobPhaseSize;j++)
             {
-                for (int i = 0; i < vSiz; i++) {
-                    JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
-                    JDFResource r = rl.getLinkRoot();
-                    EnumResourceClass c = r.getResourceClass();
-                    if (EnumResourceClass.Consumable.equals(c)
-                            || EnumResourceClass.Handling.equals(c)
-                            || EnumResourceClass.Quantity.equals(c)) {
-                        EnumUsage inOut = rl.getUsage();
-                        if (EnumUsage.Input.equals(inOut)) {
-                            if (EnumResourceClass.Consumable.equals(c))
-                                inConsume = rl.getrRef();
-                        } else {
-                            outQuantity = rl.getrRef();
-                        }
-                    }
-                }
-                trackResourceID= inConsume !=null ? inConsume : outQuantity;
+                JobPhase jp=_jobPhases.get(j);
+                jp.updateAmountLinks(rl);
             }
         }
-        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
     }
 
 

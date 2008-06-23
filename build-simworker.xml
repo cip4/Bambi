@@ -93,7 +93,7 @@
 			</fileset>
 		</copy>
 		<!-- Update build number and timestamp in overview.jsp -->
-			<replace file="${war.dir}/overview.jsp">
+		<replace file="${war.dir}/deviceList.xsl">
 			<replacefilter token="@build.number@" value="${build.number}" />
 			<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
 		</replace>		

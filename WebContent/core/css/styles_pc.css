@@ -3,7 +3,7 @@ BODY  {
 	background-color : white;
 	font-family : Geneva, Arial, Helvetica, sans-serif;
         background-repeat: repeat-x;
-        background-image: url(frame_background.gif);
+        background-image: url(./frame_background.gif);
 	/* Hier werden die Hintergrundfarbe  und die Schriftart des gesamten Dokumentes definiert */ 
 }
 

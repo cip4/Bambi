@@ -179,7 +179,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
          */
         public XMLSimDevice()
         {
-            d=new XMLDevice();
+            d=new XMLDevice(true);
 
             currentJobPhase = getCurrentJobPhase();
             if(currentJobPhase!=null)

@@ -121,13 +121,17 @@ public class StatusListener implements IStatusListener
     public void flush()
     {
         int qsize = queuedStatus.size();
-        int n=0;
-        while(qsize>0 && n++<100)
+        if(qsize>0)
         {
             dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), -1);
+            dispatcher.flush();
             if(rootDispatcher!=null)
+            {
                 rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), -1);
-            StatusCounter.sleep(10);
+                rootDispatcher.flush();
+            }
+            
+            StatusCounter.sleep(100);
             qsize = queuedStatus.size();           
         }
 
@@ -177,7 +181,9 @@ public class StatusListener implements IStatusListener
     }
 
     /**
-     * 
+     * replace the currently tracked node with node
+     * used to overwrite the current node with a returned node, e.g from a proxy device
+     * @param node the JDFNode used to overwrotie the local JDF node
      */
     public void replaceNode(JDFNode node)
     {
@@ -324,9 +330,9 @@ public class StatusListener implements IStatusListener
         return true;
     }
 
-    public void setRootDispatcher(ISignalDispatcher rootDispatcher)
+    public void setRootDispatcher(ISignalDispatcher _rootDispatcher)
     {
-        this.rootDispatcher = rootDispatcher;
+        this.rootDispatcher = _rootDispatcher;
     }
 
 }

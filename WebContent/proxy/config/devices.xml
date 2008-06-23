@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-SlaveURL - the URL of a slve to push to
+SlaveURL - the URL of a slave to push to
 SlaveStatus - the method to query for slave status - JMF, NodeInfo (missing=none)
 -->
 <application BaseDir="./jmb/" JDFDir="JDFDir" DeviceClass="org.cip4.bambi.proxy.ProxyDevice">
@@ -11,7 +11,7 @@ SlaveStatus - the method to query for slave status - JMF, NodeInfo (missing=none
   <Device DeviceID="proxy001" DeviceType="Bambi Pull Proxy" SlaveStatus="JMF"
   	DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/devices/proxy001" />
   	
-  <Device DeviceID="proxy002" DeviceType="Bambi Push Proxy for Manual002"  SlaveStatus="NodeInfo"
+  <Device DeviceID="proxy002" DeviceType="Bambi Push Proxy for SimWorker/Manual002"  SlaveStatus="NodeInfo"
   	DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/devices/proxy002" SlaveURL="http://kie-prosirai-lg:8080/SimWorker/devices/manual002" MaxPush="1"
   	InputHF="C:/BambiHF/proxy002/Input" OutputHF="C:/BambiHF/proxy002/Output" ErrorHF="C:/BambiHF/proxy002/Error" />
   	

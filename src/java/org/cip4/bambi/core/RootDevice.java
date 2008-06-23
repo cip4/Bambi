@@ -71,12 +71,11 @@
 
 package org.cip4.bambi.core;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.Map.Entry;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -87,7 +86,9 @@ import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -97,6 +98,8 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFDeviceList;
+import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.MimeUtil;
 
 /**
  * the dispatcher / rootDev controller device
@@ -144,15 +147,15 @@ public class RootDevice extends AbstractDevice
     @Override
     public boolean canAccept(JDFDoc doc)
     {
-       Iterator<String> it=_devices.keySet().iterator();
-       while(it.hasNext())
-       {
-           AbstractDevice ad=(AbstractDevice) _devices.get(it.next());
-           if(ad.canAccept(doc))
-               return true;
-           
-       }
-       return false;
+        Iterator<String> it=_devices.keySet().iterator();
+        while(it.hasNext())
+        {
+            AbstractDevice ad=(AbstractDevice) _devices.get(it.next());
+            if(ad.canAccept(doc))
+                return true;
+
+        }
+        return false;
     }
 
     /* (non-Javadoc)
@@ -200,7 +203,7 @@ public class RootDevice extends AbstractDevice
                 abstractDevice.setRootDevice(this);
                 servlet._getHandlers.add(0,abstractDevice);
             }
- 
+
             _devices.put(devID,dev);
 
         }
@@ -259,7 +262,7 @@ public class RootDevice extends AbstractDevice
     }
 
     ////////////////////////////////////////////////////////////////////////
-    
+
     public class StatusHandler extends RootDispatchHandler
     {
         public StatusHandler()
@@ -277,7 +280,7 @@ public class RootDevice extends AbstractDevice
             if(bGood&&bQueue)
             {
                 VElement vq=response.getChildElementVector(ElementName.QUEUE, null);
-                
+
                 JDFQueue q=_theQueueProcessor.getQueue().copyToResponse(response, null);
                 int nQ=vq==null ? 0 : vq.size();
                 final JDFQueueEntry qe0 = q.getQueueEntry(0);
@@ -298,7 +301,7 @@ public class RootDevice extends AbstractDevice
         }
 
     }
-     /**
+    /**
      * 
      * handler for the StopPersistentChannel command
      */
@@ -361,7 +364,7 @@ public class RootDevice extends AbstractDevice
             return bHandled;
         }
     }
-    
+
     @Override
     public void shutdown()
     {
@@ -376,7 +379,7 @@ public class RootDevice extends AbstractDevice
         _devices.clear();
         super.shutdown();
     }
-    
+
     /**
      * get a device
      * @param deviceID ID of the device to get
@@ -396,30 +399,13 @@ public class RootDevice extends AbstractDevice
         return _devices.get(deviceID);
     }
 
-    public HashMap<String, IDevice> getDevices()
-    {
-        return _devices;
-    }
-    
     /**
      * get an array of all child devices
      * @return
      */
     public IDevice[] getDeviceArray()
-    {
-        if( _devices==null )
-            return null;
-        Set<Entry<String, IDevice>> s=_devices.entrySet();
-        if(s.size()==0)
-            return null;
-        IDevice[] array=new IDevice[s.size()];
-        Iterator<Entry<String, IDevice>> it=s.iterator();
-        int i=0;
-        while(it.hasNext())
-        {
-            array[i++]=it.next().getValue();
-        }
-        return array;
+    {        
+        return ContainerUtil.toValueVector(_devices,true).toArray(new IDevice[0]);
     }
 
     /**
@@ -448,16 +434,47 @@ public class RootDevice extends AbstractDevice
     @Override
     protected boolean showDevice(HttpServletRequest request,HttpServletResponse response, boolean refresh)
     {
-        request.setAttribute("devices", getDevices());
-        try {
-            request.getContextPath();
-            final RequestDispatcher requestDispatcher = request.getRequestDispatcher("/overview.jsp");
-            requestDispatcher.forward(request, response);
-        } catch (Exception e) {
-            log.error(e);
-        } 
+        IDevice[] devices=getDeviceArray();
+        XMLDoc deviceList=new XMLDoc("DeviceList",null);
+        KElement listRoot=deviceList.getRoot();
+        XMLDevice dRoot=this.new XMLDevice(false);
+        final KElement rootElem = dRoot.getRoot();
+        rootElem.setAttribute("Root", true,null);
+        listRoot.copyAttribute("DeviceType", rootElem, null, null, null);
+        listRoot.copyElement(rootElem, null);
+
+        int listSize=devices==null ? 0 : devices.length;
+        for(int i=0;i<listSize;i++)
+        {
+            if(devices[i] instanceof AbstractDevice)
+            {
+                AbstractDevice ad=(AbstractDevice)devices[i];
+                XMLDevice dChild=ad.new XMLDevice(false);
+                final KElement childElem = dChild.getRoot();
+                childElem.setAttribute("Root", false,null);
+                listRoot.copyElement(childElem, null);
+            }
+            else
+            {
+                //TODO what if only interface?
+            }
+        }
+
+        deviceList.setXSLTURL("deviceList.xsl");
+
+        try
+        {
+            deviceList.write2Stream(response.getOutputStream(), 0,true);
+        }
+        catch (IOException x)
+        {
+            return false;
+        }
+        response.setContentType(MimeUtil.TEXT_XML);
         return true;
 
     }
+
+    //////////////////////////////////////////////////////////////////////////////////
 
 }

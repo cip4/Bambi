@@ -87,6 +87,11 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 public class BambiNSExtension
 {
 
+    /**
+     * 
+     */
+    private static final String STATUS_CONTAINER = "StatusContainer";
+
     protected BambiNSExtension(){/* never construct - static class */}
    
     public static final String MY_NS = "www.cip4.org/Bambi";
@@ -165,6 +170,20 @@ public class BambiNSExtension
         e.removeAttribute(MY_NS_PREFIX+attName,MY_NS);       
     }
     
+    /**
+     * 
+     */
+    public static KElement getStatusContainer(JDFQueueEntry qe)
+    {
+       return getMyNSElement(qe,STATUS_CONTAINER,0);
+    }
+    /**
+     * 
+     */
+    public static KElement getCreateStatusContainer(JDFQueueEntry qe)
+    {
+       return getCreateMyNSElement(qe,STATUS_CONTAINER,0);
+    }
     /**
      * remove all Bambi specific elements and attributes from the given KElement
      * @param ke the KElement to clean up

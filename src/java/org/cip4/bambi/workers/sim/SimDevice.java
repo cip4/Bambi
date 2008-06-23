@@ -108,12 +108,4 @@ public class SimDevice extends AbstractWorkerDevice
 		return new SimDeviceProcessor();
 	}
        
-    @Override
-    public String getXSLT(String context)
-    {
-        if("showDevice".equalsIgnoreCase(context))
-            return "../showSimDevice.xsl";
-        return super.getXSLT(context);
-    }
-
 }

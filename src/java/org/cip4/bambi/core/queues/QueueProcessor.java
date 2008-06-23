@@ -244,7 +244,9 @@ public class QueueProcessor implements IQueueProcessor
             if ( EnumQueueEntryStatus.Held.equals(status) || EnumQueueEntryStatus.Waiting.equals(status) ||
                     EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
             {
-                updateEntry(qe,EnumQueueEntryStatus.Removed,m,resp);                   
+                String queueEntryID=qe.getQueueEntryID();
+                JDFQueueEntry returnQE=_parentDevice.stopProcessing(queueEntryID, null); // use null to flag a removal
+                updateEntry(qe,EnumQueueEntryStatus.Removed,m,resp);    
                 log.info("removed QueueEntry with ID="+qeid);
             }
             else
@@ -476,7 +478,7 @@ public class QueueProcessor implements IQueueProcessor
 
             try
             {
-                write2Stream(response.getOutputStream(), 0,true);
+                write2Stream(response.getOutputStream(), 2,true);
             }
             catch (IOException x)
             {
@@ -602,6 +604,7 @@ public class QueueProcessor implements IQueueProcessor
     protected JDFQueue _theQueue;
     private Vector<Object> _listeners;
     protected AbstractDevice _parentDevice=null;
+    private long lastPersist=0;
 
     public QueueProcessor(AbstractDevice theParentDevice) {
         super();
@@ -771,7 +774,7 @@ public class QueueProcessor implements IQueueProcessor
             log.error("error storing queueentry: "+r.getReturnCode());
             return null;
         }
-        persist();
+        persist(0);
         notifyListeners();
         return _theQueue.getQueueEntry(qeID);
     }
@@ -832,14 +835,20 @@ public class QueueProcessor implements IQueueProcessor
 
     /**
      * make the memory queue persistent
+     * @param milliseconds length of time since last persist, if 0 always persist
      *
      */
-    protected void persist()
+    protected void persist(long milliseconds)
     {
-        synchronized (_theQueue)
+        long t=System.currentTimeMillis();
+        if(t>=milliseconds+lastPersist)
         {
-            log.info("persisting queue to "+_queueFile.getAbsolutePath());
-            _theQueue.getOwnerDocument_KElement().write2File(_queueFile.getAbsolutePath(), 0, true);
+            synchronized (_theQueue)
+            {
+                log.info("persisting queue to "+_queueFile.getAbsolutePath());
+                _theQueue.getOwnerDocument_KElement().write2File(_queueFile.getAbsolutePath(), 0, true);
+            }
+            lastPersist=t;
         }
     }
 
@@ -876,8 +885,12 @@ public class QueueProcessor implements IQueueProcessor
                 if(docURL!=null)
                     new File(docURL).delete();
             }
-            persist();
+            persist(0);
             notifyListeners();
+        }
+        else
+        {
+            persist(10000); // write queue just in case every 10 seconds
         }
         if(resp==null)
             return null;

@@ -35,6 +35,10 @@
 		<servlet-name>SimWorkerServlet</servlet-name>
 		<url-pattern>/showQueue/*</url-pattern>
 	</servlet-mapping>
+		<servlet-mapping>
+			<servlet-name>SimWorkerServlet</servlet-name>
+			<url-pattern>/showSubscriptions/*</url-pattern>
+		</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>SimWorkerServlet</servlet-name>
 		<url-pattern>/processNextPhase/*</url-pattern>

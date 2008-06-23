@@ -106,6 +106,7 @@ import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -141,9 +142,10 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
         /**
          * XML representation of this simDevice
          * fore use as html display using an XSLT
+         * @param addProcs TODO
          * @param dev
          */
-        public XMLDevice()
+        public XMLDevice(boolean addProcs)
         {
             super("XMLDevice",null);
             setXSLTURL(getXSLT(SHOW_DEVICE));
@@ -152,7 +154,8 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
             root.setAttribute(AttributeName.DEVICETYPE, getDeviceType());
             root.setAttribute("DeviceURL", getDeviceURL());
             root.setAttribute(AttributeName.DEVICESTATUS, getDeviceStatus().getName());
-            addProcessors();
+            if(addProcs)
+                addProcessors();
 
         }
 
@@ -263,7 +266,10 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
         public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
         {    
             StatusCounter sc=theStatusListener.getStatusCounter();
-            response.mergeElement( sc.getDocJMFResource().getJMFRoot().getResponse(0),false);
+            final JDFSignal response2 = sc.getDocJMFResource().getJMFRoot().getSignal(0);
+            response.mergeElement( response2,false);
+            response.removeAttribute(AttributeName.REFID);
+            response.removeChild(ElementName.RESOURCEQUPARAMS, null, 0);
             return true;
         }
 
@@ -356,6 +362,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 
     private static final Log log = LogFactory.getLog(AbstractDevice.class.getName());
     protected static final String SHOW_DEVICE = "showDevice";
+    protected static final String SHOW_SUBSCRIPTIONS = "showSubscriptions";
     protected IQueueProcessor _theQueueProcessor=null;
     protected Vector<AbstractDeviceProcessor> _deviceProcessors=null;
     protected ISignalDispatcher _theSignalDispatcher=null;
@@ -517,6 +524,8 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
     {
         if("showQueue".equalsIgnoreCase(context))
             return "../queue2html.xsl";
+        if("showDevice".equalsIgnoreCase(context))
+            return "../showDevice.xsl";
         return null;
     }
 
@@ -652,9 +661,15 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
         {
             return showDevice(request,response,BambiServlet.getBooleanFromRequest(request, "refresh"));
         }
+        if(BambiServlet.isMyContext(request,SHOW_SUBSCRIPTIONS))
+        {
+            return _theSignalDispatcher==null ? false :  _theSignalDispatcher.handleGet(request, response);
+        }
         if(_theQueueProcessor!=null)
         {
-            return _theQueueProcessor.handleGet(request, response);
+            boolean bH= _theQueueProcessor.handleGet(request, response);
+            if(bH)
+                return true;
         }
         return false;
 
@@ -734,7 +749,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
     }
     protected boolean showDevice(HttpServletRequest request,HttpServletResponse response, boolean refresh)
     {
-        XMLDevice simDevice=this.new XMLDevice();
+        XMLDevice simDevice=this.new XMLDevice(true);
         if(refresh)
             simDevice.getRoot().setAttribute("refresh", true,null);
 

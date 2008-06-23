@@ -155,13 +155,7 @@ public class BambiServlet extends HttpServlet {
             String context=getContext(request);
             if(KElement.isWildCard(context)||context.equalsIgnoreCase("overview"))
             {
-                request.setAttribute("devices", rootDev.getDevices());
-                try {
-                    request.getRequestDispatcher("/overview.jsp").forward(request, response);
-                } catch (Exception e) {
-                    log.error(e);
-                } 
-                return true;
+                return rootDev.showDevice(request, response,false);
             }
             else
                 return false;

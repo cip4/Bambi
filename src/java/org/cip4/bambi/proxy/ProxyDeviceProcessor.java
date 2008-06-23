@@ -153,11 +153,12 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         {
             qe=currentQE.getQueueEntry();
             theNode=currentQE.getJDF();
-            theContainer=qe.getCreateElement(BambiNSExtension.MY_NS_PREFIX+"StatusContainer", BambiNSExtension.MY_NS,0);
+            theContainer=BambiNSExtension.getCreateStatusContainer(qe);
             jp=(JDFJobPhase) theContainer.appendElement(ElementName.JOBPHASE);
             jp.setStatus(EnumNodeStatus.Waiting); //TODO evaluate qe
         }
 
+ 
         /**
          * return true if this processor is responsible for processing a given queuentry as specified by qe
          * 
@@ -447,7 +448,8 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         qsc.setSlaveQEID(devQEID);
         BambiNSExtension.setDeviceURL(qe, slaveURL);
         _queueProcessor.updateEntry(qe, newStatus ,null,null);
-        _statusListener.setNode(qe.getQueueEntryID(), node.getJobPartID(false), node, node.getPartMapVector(), null);
+//        _statusListener.setNode(qe.getQueueEntryID(), node.getJobPartID(false), node, node.getPartMapVector(), null);
+        setupStatusListener(node, qe);
         _statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.InProgress, "Submitted",false);
         createSubscriptionsForQE(slaveURL,devQEID);
     }
@@ -593,7 +595,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
             jmf=JMFFactory.buildSuspendQueueEntry(slaveQE);
         if(jmf!=null)
         {
-            new JMFFactory(callBack).send2URL(jmf, slaveQE, null,getParent().getDeviceID());
+            new JMFFactory(callBack).send2URL(jmf, _slaveURL, null,getParent().getDeviceID());
         }
     }
 
@@ -636,7 +638,6 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
      */
     public String getSlaveQEID()
     {
-        // TODO Auto-generated method stub
         return qsc.getSlaveQEID();
     }
 
@@ -644,7 +645,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
     protected boolean finalizeProcessDoc(EnumQueueEntryStatus qes)
     {
         boolean b= super.finalizeProcessDoc(qes);
-        qsc.delete();
+        //qsc.delete(); // better to retain. remove only when removing qe
         shutdown(); // remove ourselves ot of the processors list
         return b;
     }
@@ -680,7 +681,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         {
             b= handleDeviceInfo((JDFDeviceInfo)devicInfos.get(i)) || b;
         }
-        
+
         return b;    
     }
 
