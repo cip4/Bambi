@@ -103,7 +103,7 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -179,16 +179,9 @@ public class BambiServlet extends HttpServlet {
         super.init(config);
         ServletContext context = config.getServletContext();       
         String dump=config.getInitParameter("bambiDump");
-        if(dump!=null)
-        {
-            bambiDumpIn=new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("in")));
-            MessageSender.inDump=bambiDumpIn;
-            bambiDumpOut=new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("out")));
-            MessageSender.outDump=bambiDumpOut;
-        }
-        log.info( "Initializing servlet for "+context.getServletContextName() );
+         log.info( "Initializing servlet for "+context.getServletContextName() );
 
-        MultiDeviceProperties mp=loadProperties(context,new File("/config/devices.xml"));
+        loadProperties(context,new File("/config/devices.xml"),dump);
 
         // doGet handlers
         _getHandlers.add(this.new OverviewHandler());
@@ -410,6 +403,7 @@ public class BambiServlet extends HttpServlet {
             catch (IOException e) {
                 bufRequest=new BambiServletRequest(request,false);            
                 bufResponse=new BambiServletResponse(response,false);
+                log.error("Error copying to input dump",e);
             }
         }
         else
@@ -449,7 +443,7 @@ public class BambiServlet extends HttpServlet {
                 fs.close();
             }
             catch (IOException e) {
-                // nop
+                log.warn("Exception while writing to dump file",e);
             }
         }
         bufResponse.flush();
@@ -459,7 +453,7 @@ public class BambiServlet extends HttpServlet {
      * @param request
      * @param response
      */
-    private void processJMFRequest(BambiServletRequest request, BambiServletResponse response,InputStream inStream) throws IOException
+    private void processJMFRequest(BambiServletRequest request, BambiServletResponse response,InputStream inStream) 
     {
         log.debug("processJMFRequest");
         JDFParser p=new JDFParser();
@@ -471,15 +465,13 @@ public class BambiServlet extends HttpServlet {
 
     /**
      * loads properties
-     * @param appDir   the directory of the web application
-     * @param fileName the name of the Java .propert file
-     * @return true, if the properties have been loaded successfully
+     * @param context the serbvlet context information
+     * @param config the name of the Java config xml file
      */
-    MultiDeviceProperties loadProperties(ServletContext context, File config)
+    protected void loadProperties(ServletContext context, File config, String dump)
     {
         MultiDeviceProperties props=new MultiDeviceProperties(context,config);
-        createDevices(props);
-        return props;
+        createDevices(props, dump);
     }
 
     /**
@@ -602,19 +594,26 @@ public class BambiServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     {
-        final int size = _getHandlers.size();
         boolean bHandled=false;
-        // simply loop over all handlers until you are done
-        for(int i=0;i<size;i++)
+        try
         {
-            IGetHandler ig=_getHandlers.get(i);
-            bHandled=ig.handleGet(request, response);
-            if(bHandled)
-                break;
+            final int size = _getHandlers.size();
+            // simply loop over all handlers until you are done
+            for(int i=0;i<size;i++)
+            {
+                IGetHandler ig=_getHandlers.get(i);
+                bHandled=ig.handleGet(request, response);
+                if(bHandled)
+                    break;
+            }
+            // rootDev also dispatches to all other devices
+            if(!bHandled && rootDev!=null)
+                bHandled = rootDev.handleGet(request, response);
         }
-        // rootDev also dispatches to all other devices
-        if(!bHandled && rootDev!=null)
-            bHandled = rootDev.handleGet(request, response);
+        catch (Exception x)
+        {
+            // nop
+        }
         if(!bHandled)
             this.new UnknownErrorHandler().handleGet(request, response);
 
@@ -665,7 +664,7 @@ public class BambiServlet extends HttpServlet {
      * @param configFile the file containing the list of devices 
      * @return true if successfull, otherwise false
      */
-    private boolean createDevices(MultiDeviceProperties props)
+    protected boolean createDevices(MultiDeviceProperties props, String dump)
     {
 
         Vector<File> dirs=new Vector<File>();
@@ -673,30 +672,39 @@ public class BambiServlet extends HttpServlet {
         dirs.add( props.getJDFDir() );
         createDirs(dirs);
 
-        VString v=props.getDeviceIDs();
-        Iterator<String> iter=v.iterator();
+        VElement v=props.getDevices();
+        Iterator<KElement> iter=v.iterator();
         while (iter.hasNext()) {
-            String devID=iter.next();
-            IDeviceProperties prop=props.getDevice(devID);
+            IDeviceProperties prop=props.createDevice(iter.next());
+            IDevice d=null;
             if(rootDev==null)
             {
-                IDevice d=prop.getDeviceClass();
+                d=prop.getDeviceClass();
                 if(d instanceof RootDevice)
                 {
-                    rootDev=(RootDevice) d;
+                    d=rootDev=(RootDevice) d;
                 }
                 else
                 {
                     d.shutdown();
-                    rootDev=new RootDevice(prop);
+                    d=rootDev=new RootDevice(prop);
                 }
                 _callBack=prop.getCallBackClass(); // the first one wins       
-                rootDev.createDevice(prop,null);
+                d=rootDev.createDevice(prop,null);
+                if(v.size()==1) // also add myself to the list
+                    rootDev.createDevice(prop,this);
             }
             else
             {
-                rootDev.createDevice(prop,this);
+                d=rootDev.createDevice(prop,this);
             }
+            if(dump!=null)
+            {
+                bambiDumpIn=new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("in")));
+                bambiDumpOut=new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("out")));
+                MessageSender.addDumps(d.getDeviceID(),bambiDumpIn,bambiDumpOut);
+            }
+
         }
 
         return true;

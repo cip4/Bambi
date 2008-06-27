@@ -75,6 +75,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.core.queues.QueueEntry;
+import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
@@ -140,7 +141,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
                 processor.setAttribute("DeviceStatus", "Idle");
                 return;
             }
-           
+
             final EnumDeviceStatus deviceStatus = _statusListener.getDeviceStatus();
             JDFNode n=currentQE.getJDF();
             VJDFAttributeMap vm=n.getNodeInfoPartMapVector();
@@ -151,14 +152,14 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
                 processor.setAttribute("NodeStatus",nodeStatus.getName(),null);
                 processor.setAttribute("NodeStatusDetails",n.getStatusDetails()); 
                 fillPhaseTime(processor);
-             }
+            }
             else
             {
                 log.error("null status - bailing out");
             }
         }
-    
-     
+
+
         /**
          * @param processor
          * @param pt
@@ -176,12 +177,12 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             String typ=node.getType();
             if(node.isTypesNode())
                 typ+=" - "+node.getAttribute(AttributeName.TYPES);
-            
+
             processor.setAttribute("Type", typ);
             processor.copyAttribute(AttributeName.DESCRIPTIVENAME, node);
             processor.setAttribute("JobID",node.getJobID(true));
             processor.setAttribute("JobPartID",node.getJobPartID(false));
-            
+
             JDFResourceLink rls[]=statusCounter.getAmountLinks();
             int siz=rls==null ? 0 : rls.length;
             for(int i=0;i<siz;i++)
@@ -232,13 +233,13 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             }
         }
     }   
-    
+
     /**
      * constructor
      */
     public AbstractDeviceProcessor()
     {
-    	super();
+        super();
     }
 
     /**
@@ -247,21 +248,28 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     final public void run() {
         while (!_doShutdown)
         {
-            if(!processQueueEntry())
+            try
             {
-                try
+                if(!processQueueEntry())
                 {
-                    if (log!=null)
-                        log.debug("waiting");
-                    synchronized (_myListener)
+                    try
                     {
-                        _myListener.wait(10000); // just in case                        
+                        if (log!=null)
+                            log.debug("waiting");
+                        synchronized (_myListener)
+                        {
+                            _myListener.wait(10000); // just in case                        
+                        }
+                    }
+                    catch (InterruptedException x)
+                    {
+                        log.warn("interrupted while idle");
                     }
                 }
-                catch (InterruptedException x)
-                {
-                    log.error("interrupted while idle");
-                }
+            }
+            catch(Exception x)
+            {
+                log.error("unhandled exception in processor",x);
             }
         }
         if(_queueProcessor!=null)
@@ -326,33 +334,36 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     /**
      * 
      */
-    private IQueueEntry getQEFromParent()
+    protected IQueueEntry getQEFromParent()
     {
-        currentQE = _queueProcessor.getNextEntry(null);
-        if(currentQE==null)
+        synchronized (_queueProcessor.getQueue())
         {
-            if (_parent!=null) 
+            currentQE = _queueProcessor.getNextEntry(null);
+            if(currentQE==null)
             {
-                RootDevice rd=_parent.getRootDevice();
-                if(rd!=null)
+                if (_parent!=null) 
                 {
-                    currentQE=rd._theQueueProcessor.getNextEntry(_parent.getDeviceID());
-                    if(currentQE!=null)
+                    RootDevice rootDevice=_parent.getRootDevice();
+                    if(rootDevice!=null)
                     {
-                        //grab the qe and pass it on to the devices queue...
-                        final JDFQueue queue = _parent._theQueueProcessor.getQueue();
-                        JDFQueueEntry queueEntry = currentQE.getQueueEntry();
-                        queueEntry=(JDFQueueEntry) queue.moveElement(queueEntry, null);
-                        queueEntry.sortQueue(-1);
-                        currentQE.setQueueEntry(queueEntry);
+                        currentQE=rootDevice._theQueueProcessor.getNextEntry(_parent.getDeviceID());
+                        if(currentQE!=null)
+                        {
+                            //grab the qe and pass it on to the devices queue...
+                            final JDFQueue queue = _parent._theQueueProcessor.getQueue();
+                            JDFQueueEntry queueEntry = currentQE.getQueueEntry();
+                            queueEntry=(JDFQueueEntry) queue.moveElement(queueEntry, null);
+                            queueEntry.sortQueue(-1);
+                            currentQE.setQueueEntry(queueEntry);
+                        }
                     }
                 }
+                if(currentQE==null){
+                    _parent.sendRequestQueueEntry();
+                }
             }
-            if(currentQE==null){
-                _parent.sendRequestQueueEntry();
-             }
+            return currentQE;
         }
-        return currentQE;
     }
 
     /**
@@ -433,12 +444,12 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     protected void abort() {
         _statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCanceledByUser", EnumNodeStatus.Aborted, "job canceled by user",true);
     }
-    
+
     protected void complete() {
         _statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCompleted", EnumNodeStatus.Completed, "job completed successfully",true);
     }
 
- 
+
     /**
      * signal that processing has finished and prepare the StatusCounter for the next process
      */
@@ -461,7 +472,10 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         }
         _statusListener.flush();
         _statusListener.setNode(null, null, null, null, null);
-        _queueProcessor.updateEntry(currentQE.getQueueEntry(), qes, null, null);
+        JDFQueueEntry qe = currentQE.getQueueEntry();
+        _queueProcessor.updateEntry(qe, qes, null, null);
+        ((QueueProcessor)_queueProcessor).returnQueueEntry( qe,null ,null);
+
         currentQE.getQueueEntry().removeAttribute(AttributeName.DEVICEID);
         currentQE=null;
         return true;
@@ -478,9 +492,9 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     public void shutdown() {
         _doShutdown=true;
     }
-    
+
     public IStatusListener getStatusListener() {
-    	return _statusListener;
+        return _statusListener;
     }
 
     /**
@@ -491,7 +505,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     {
         return currentQE;
     }
-    
+
     /**
      * get the device properties
      * @return
@@ -506,7 +520,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
      */
     public void addToDisplayXML(KElement root)
     {
-       this.new XMLDeviceProcessor(root).fill();       
+        this.new XMLDeviceProcessor(root).fill();       
     }
     @Override
     public String toString()

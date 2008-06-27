@@ -155,6 +155,16 @@ public class BambiNSExtension
     {
         return e==null ? null : e.getAttribute(attName, MY_NS, null);
     }
+    /**
+     * @param e the element to work on
+     * @param attName the local attribute name to set
+     * @return the attribute value, null if none exists
+     * 
+     */
+    public static String getMyNSString(String attName)
+    {
+        return  MY_NS_PREFIX+attName;
+    }
     
     /**
      * 

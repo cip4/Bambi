@@ -290,7 +290,10 @@ public class BambiServletResponse implements HttpServletResponse
         if(buffer!=null)
         {
             try{
-                IOUtils.copy(buffer.getInputStream(), parent.getOutputStream());
+                ServletOutputStream outputStream = parent.getOutputStream();
+                IOUtils.copy(buffer.getInputStream(), outputStream);
+                outputStream.flush();
+                outputStream.close();
                 buffer=null;
             }
             catch (IOException e) {

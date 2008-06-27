@@ -98,12 +98,7 @@ public interface IDeviceProperties {
      * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
      */
     public String getContextURL();
-    /**
-     * get the URL to communicate with this device
-     * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
-     */
-    public int getDeviceHTTPChunk();
-    
+     
     /**
      * get the URL of the device hotfolder, if null the device does not support a JDF input hot folder
      * @return the device hotfolder URL. Drop JDFs to this URL, if you want to submit to the device without JMF. 
@@ -187,32 +182,10 @@ public interface IDeviceProperties {
     public File getErrorHF();
 
     /**
-     * @return
+     * get the URL to send generic subscriptions to
+     * @return the device URL. Status, Resource signals will be sent here regardless of any other subscriptions
      */
-    public File getSlaveInputHF();
-    /**
-     * @return
-     */
-    public File getSlaveOutputHF();
-    /**
-     * @return
-     */
-    public File getSlaveErrorHF();
-    /**
-     * get the URL to communicate with this device
-     * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
-     */
-    public String getSlaveURL();
-
-    /**
-     * @return
-     */
-    public String getSlaveDeviceID();
-
-    /**
-     * @return
-     */
-    public int getMaxPush();
+    public String getWatchURL();
 
     /**
      * @return the type regular expression that the device accepts
@@ -223,9 +196,21 @@ public interface IDeviceProperties {
      * @return the vector of amount counting resource names
      */
     public VString getAmountResources();
+    
+    /**
+     * get the HTTP chunking to communicate with this device
+     * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+     */
+    public int getControllerHTTPChunk();
+    
     /**
      * @return the default body part encoding
      */
-    public String getDeviceMIMEEncoding();
+    public String getControllerMIMEEncoding();
+    
+    /**
+     * @return true if referenced files should be included in the mime package
+     */
+    public boolean getControllerMIMEExpansion();
 
 }

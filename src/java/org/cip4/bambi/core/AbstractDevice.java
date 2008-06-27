@@ -90,6 +90,7 @@ import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
+import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -102,12 +103,14 @@ import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
+import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
@@ -365,7 +368,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
     protected static final String SHOW_SUBSCRIPTIONS = "showSubscriptions";
     protected IQueueProcessor _theQueueProcessor=null;
     protected Vector<AbstractDeviceProcessor> _deviceProcessors=null;
-    protected ISignalDispatcher _theSignalDispatcher=null;
+    protected SignalDispatcher _theSignalDispatcher=null;
     protected JMFHandler _jmfHandler = null ;
     protected IDeviceProperties _devProperties=null;
     protected QueueHotFolder _submitHotFolder=null;
@@ -377,17 +380,20 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
      * creates a new device instance
      * @param prop the properties for the device
      */
-    public AbstractDevice(IDeviceProperties prop) {
+    public AbstractDevice(IDeviceProperties prop) 
+    {
         super();
         _devProperties=prop;
-        init(this);
+        init();
     }
 
-    protected void init(IDevice dev) {
+    protected void init() 
+    {
         _jmfHandler = new JMFHandler(this);
 
         _theSignalDispatcher=new SignalDispatcher(_jmfHandler, this);
-        _theSignalDispatcher.addHandlers(_jmfHandler);
+        _theSignalDispatcher.addHandlers(_jmfHandler);        
+        
         _jmfHandler.setDispatcher(_theSignalDispatcher);
         _jmfHandler.setFilterOnDeviceID(true); 
 
@@ -412,6 +418,27 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
         createHotFolder(hfURL);
 
         addHandlers();
+        addWatchSubscriptions();
+    }
+
+    /**
+     * add generic subscriptions in case watchurl!=null
+     */
+    protected void addWatchSubscriptions()
+    {
+        final String watchURL = _devProperties.getWatchURL();
+        if(watchURL==null)
+            return;
+        JDFQuery status=JDFJMF.createJMF(EnumFamily.Query, EnumType.Status).getQuery(0);
+        JDFStatusQuParams sqp=status.appendStatusQuParams();
+        sqp.setQueueInfo(true);
+        sqp.setJobDetails(EnumJobDetails.Brief);
+        JDFSubscription sub=status.appendSubscription();
+        sub.setURL(watchURL);
+        sub.setRepeatTime(30);
+        sub.appendObservationTarget().setObservationPath("*");
+        _theSignalDispatcher.addSubscription(status, null);
+        
     }
 
     /**
@@ -693,7 +720,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
         new JMFFactory(_callback).send2URL(jmf,proxyURL,null,getDeviceID()); // TODO handle reponse
     }
 
-    public ISignalDispatcher getSignalDispatcher()
+    public SignalDispatcher getSignalDispatcher()
     {
         return _theSignalDispatcher;
     }
@@ -805,27 +832,45 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
      */
     protected boolean copyPhaseTimeFromCounter(JDFResponse response, JDFDoc docJMF)
     {
-        JDFResponse r=docJMF==null ? null : docJMF.getJMFRoot().getResponse(-1);
-        if(r==null) {
+        JDFJMF root= docJMF==null ? null : docJMF.getJMFRoot();
+        if(root==null) {
             log.error("StatusHandler.handleMessage: StatusCounter response = null");
             return false;
         }
-        VElement v=r.getChildElementVector(ElementName.DEVICEINFO, null);
-        int siz=v==null ? 0 : v.size();
-        for(int i=0;i<siz;i++)
-        {
-            response.copyElement(v.elementAt(i), null);
-        }
+        JDFJMF respRoot= response.getJMFRoot();
+        int nResp=root.numChildElements(ElementName.RESPONSE, null);
 
+        for(int i=0;i<nResp;i++)
+        {
+            JDFResponse r= root.getResponse(i);
+            JDFResponse rResp=respRoot.getCreateResponse(i);
+            rResp.setType(response.getType());
+            rResp.copyAttribute(AttributeName.REFID, response);
+            VElement v=r.getChildElementVector(ElementName.DEVICEINFO, null);
+            int siz=v==null ? 0 : v.size();
+
+            for(int j=0;j<siz;j++)
+            {
+                rResp.copyElement(v.elementAt(j), null);
+            }
+        }
         return true;
     }
 
+    /**
+     * flushes any and all message queues
+     *
+     */
+    public void flush()
+    {
+        if(_theSignalDispatcher!=null)
+            _theSignalDispatcher.flush();
+    }
     @Override
     protected void finalize() throws Throwable
     {
         shutdown();
         super.finalize();
     }
-
 
 }
