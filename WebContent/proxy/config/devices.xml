@@ -9,7 +9,8 @@ SlaveStatus - the method to query for slave status - JMF, NodeInfo (missing=none
   	DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/devices/proxy001" />
   
   <Device DeviceID="proxy001" DeviceType="Bambi Pull Proxy" SlaveStatus="JMF"
-  	DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/devices/proxy001" />
+  	DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/devices/proxy001" 
+  	SlaveURL="http://kie-prosirai-lg:8080/SimWorker/devices/sim001" MaxPush="10"/>
   	
   <Device DeviceID="proxy002" DeviceType="Bambi Push Proxy for SimWorker/Manual002"  SlaveStatus="NodeInfo"
   	DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/devices/proxy002" SlaveURL="http://kie-prosirai-lg:8080/SimWorker/devices/manual002" MaxPush="1"

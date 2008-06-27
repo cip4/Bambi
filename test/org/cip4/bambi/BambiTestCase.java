@@ -72,6 +72,9 @@
 package org.cip4.bambi;
 
 import java.io.File;
+import java.net.HttpURLConnection;
+
+import javax.mail.Multipart;
 
 import junit.framework.TestCase;
 
@@ -79,13 +82,21 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDevice;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.goldenticket.MISCPGoldenTicket;
+import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
 public class BambiTestCase extends TestCase {
     protected final static String cwd =System.getProperty("user.dir");
@@ -95,9 +106,9 @@ public class BambiTestCase extends TestCase {
 
     
  //       protected static String simWorkerUrl="http://localhost:8080/SimWorker/jmf/sim";
+    protected static String proxyUrl="http://kie-prosirai-lg:8080/BambiProxy/jmf/proxy001";
     protected static String simWorkerUrl="http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
     protected static String manualWorkerUrl=null;
-    protected String proxyUrl="http://localhost:8080/BambiProxy/jmf/proxy002";
     
     protected JMFFactory jmfFactory=new JMFFactory(null);
 
@@ -287,7 +298,7 @@ public class BambiTestCase extends TestCase {
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
          */
-        public int getDeviceHTTPChunk()
+        public int getControllerHTTPChunk()
         {
             // TODO Auto-generated method stub
             return 0;
@@ -296,7 +307,7 @@ public class BambiTestCase extends TestCase {
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
          */
-        public String getDeviceMIMEEncoding()
+        public String getControllerMIMEEncoding()
         {
             // TODO Auto-generated method stub
             return null;
@@ -337,6 +348,24 @@ public class BambiTestCase extends TestCase {
             // TODO Auto-generated method stub
             return null;
         }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getWatchURL()
+         */
+        public String getWatchURL()
+        {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEExpansion()
+         */
+        public boolean getControllerMIMEExpansion()
+        {
+            // TODO Auto-generated method stub
+            return false;
+        }
         
     }
     
@@ -364,7 +393,7 @@ public class BambiTestCase extends TestCase {
 	 */
 	protected void abortRemoveAll(String url) {		
 		JDFJMF jmf=JMFFactory.buildQueueStatus();
-		JDFResponse resp=jmfFactory.send2URLSynchResp(jmf,url,"testcase");
+		JDFResponse resp=jmfFactory.send2URLSynchResp(jmf, url, "testcase",2000);
 		if (resp==null) {
 			System.err.println("failed to send QueueStatus");
 			return;
@@ -399,4 +428,33 @@ public class BambiTestCase extends TestCase {
     {
         assertTrue(1==1);
     }
+    
+    /**
+     * 
+     */
+    protected void submitMimetoURL(String url)
+    {
+        JDFDoc docJMF=new JDFDoc("JMF");
+        JDFJMF jmf=docJMF.getJMFRoot();
+        JDFCommand com = (JDFCommand)jmf.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
+        com.appendQueueSubmissionParams().setURL("dummy");
+        MISCPGoldenTicket gt=new MISCPGoldenTicket(2,EnumVersion.Version_1_3,2,2,false,null);
+        gt.assign(null);
+        JDFNode n=gt.getNode();
+        for(int i=1;i<1234;i++) // fatten the baby to test big bad jdfs
+            n.appendComment().setText("Some text "+i);
+        Multipart mp = MimeUtil.buildMimePackage(docJMF, n.getOwnerDocument_JDFElement(), true);
+
+        try {
+            MIMEDetails md=new MIMEDetails();
+            md.transferEncoding=MimeUtil.BASE64;
+            md.httpDetails.chunkSize=-1;
+            HttpURLConnection response = MimeUtil.writeToURL( mp,url,md );
+            assertEquals( 200,response.getResponseCode() );
+            MimeUtil.writeToURL( mp,UrlUtil.fileToUrl(new File("C:\\data\\test.mim"), false),md );
+        } catch (Exception e) {
+            fail( e.getMessage() ); // fail on exception
+        }
+    }
+
 }

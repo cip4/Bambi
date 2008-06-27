@@ -71,6 +71,8 @@ package org.cip4.bambi;
 
 import junit.framework.TestSuite;
 
+import org.cip4.bambi.core.SignalDispatcherTest;
+
 /**
  * @author boegerni
  *
@@ -84,7 +86,7 @@ public class allBambiTest extends BambiTestCase
         suite.addTestSuite(AsyncMessagingTest.class);
         suite.addTestSuite(BambiNSExtensions_Test.class);
         suite.addTestSuite(DeviceServletTest.class);
-        suite.addTestSuite(DispatcherTest.class);
+        suite.addTestSuite(SignalDispatcherTest.class);
         suite.addTestSuite(JMFFactoryTest.class);
         suite.addTestSuite(JMFQuery_ResponderTest.class);
         suite.addTestSuite(ProxyTest.class);

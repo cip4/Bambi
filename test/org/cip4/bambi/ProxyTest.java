@@ -88,6 +88,7 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StatusCounter;
 
 public class ProxyTest extends BambiTestCase {
 	
@@ -95,33 +96,17 @@ public class ProxyTest extends BambiTestCase {
 	public void setUp() throws Exception {
        
 		super.setUp();
-		abortRemoveAll(proxyUrl);
+//		abortRemoveAll(proxyUrl);
 	}
 	
 	private void submitMimeToProxy() {
-		// build SubmitQueueEntry
-		JDFDoc docJMF=new JDFDoc("JMF");
-        JDFJMF jmf=docJMF.getJMFRoot();
-        JDFCommand com = (JDFCommand)jmf.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
-        JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
-        qsp.setURL( "cid:"+sm_dirTestData+"Elk_ConventionalPrinting.jdf" );
-	
-		JDFParser p = new JDFParser();
-        JDFDoc docJDF = p.parseFile( sm_dirTestData+"Elk_ConventionalPrinting.jdf" );
-        Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, true);
-
-        try {
-        	HttpURLConnection response = MimeUtil.writeToURL( mp,proxyUrl );
-        	assertEquals( 200,response.getResponseCode() );
-        } catch (Exception e) {
-        	fail( e.getMessage() ); // fail on exception
-        }
+        submitMimetoURL(proxyUrl);
 	}
 	
 	public void testSubmitQueueEntry_MIME() {
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmfStat, proxyUrl,null);
+		JDFResponse resp = jmfFactory.send2URLSynchResp(jmfStat, proxyUrl, null,2000);
 		assertNotNull( resp );
 		assertEquals( 0,resp.getReturnCode() );
 		JDFQueue q = resp.getQueue(0);
@@ -131,7 +116,7 @@ public class ProxyTest extends BambiTestCase {
         
         // check that the QE is on the proxy
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-        resp=jmfFactory.send2URLSynchResp(jmf, proxyUrl,null);
+        resp=jmfFactory.send2URLSynchResp(jmf, proxyUrl, null,2000);
         assertNotNull( resp );
         assertEquals( 0,resp.getReturnCode() );
         q=resp.getQueue(0);
@@ -139,10 +124,8 @@ public class ProxyTest extends BambiTestCase {
         int newCount=q.getEntryCount();
         assertEquals( oldSize+1,newCount );
         
-        abortRemoveAll(simWorkerUrl);
 	}
-	
-	public void testAbortQueueEntry() throws InterruptedException {
+       public void testAbortQueueEntry() throws InterruptedException {
 		submitMimeToProxy();
 		
 		int loops=0;
@@ -152,7 +135,7 @@ public class ProxyTest extends BambiTestCase {
 			Thread.sleep(1000);
 			JDFJMF jmf = JMFFactory.buildQueueStatus();
             
-	        JDFResponse resp=jmfFactory.send2URLSynchResp(jmf, proxyUrl,null);
+	        JDFResponse resp=jmfFactory.send2URLSynchResp(jmf, proxyUrl, null,2000);
 	        assertNotNull( resp );
 	        assertEquals( 0,resp.getReturnCode() );
 	        JDFQueue q=resp.getQueue(0);
@@ -172,4 +155,33 @@ public class ProxyTest extends BambiTestCase {
 		}
         assertTrue( hasRunningQE );        
 	}
+
+    public void testSubmitQueueEntry_MIME_Many() {
+            // get number of QueueEntries before submitting
+            JDFJMF jmfStat = JMFFactory.buildQueueStatus();
+            JDFResponse resp = jmfFactory.send2URLSynchResp(jmfStat, proxyUrl, "foo",20000);
+            assertNotNull( resp );
+            assertEquals( 0,resp.getReturnCode() );
+            JDFQueue q = resp.getQueue(0);
+            assertNotNull( q );
+            int oldSize=q.getEntryCount();
+    
+            // check that the QE is on the proxy
+            JDFJMF jmf = JMFFactory.buildQueueStatus();
+            for(int i=0;i<3;i++)
+            {
+                System.out.println("submitting "+i);
+                submitMimeToProxy();
+                resp=jmfFactory.send2URLSynchResp(jmf, proxyUrl, null,5000);
+                assertNotNull( resp );
+                assertEquals( 0,resp.getReturnCode() );
+                q=resp.getQueue(0);
+                assertNotNull( q );
+                int newCount=q.getEntryCount();
+                StatusCounter.sleep(1000);
+               // assertEquals( oldSize+i,newCount );
+            }
+    
+    //        abortRemoveAll(simWorkerUrl);
+        }
 }

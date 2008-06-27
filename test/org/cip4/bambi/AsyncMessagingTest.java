@@ -71,6 +71,7 @@
 
 package org.cip4.bambi;
 
+import java.io.BufferedInputStream;
 import java.net.HttpURLConnection;
 
 import org.cip4.bambi.core.messaging.IResponseHandler;
@@ -148,6 +149,24 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
     public void setConnection(HttpURLConnection con)
     {
         c=con;
+        
+    }
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java.io.BufferedInputStream)
+     */
+    public void setBufferedStream(BufferedInputStream bis)
+    {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.messaging.IResponseHandler#waitHandled(int)
+     */
+    public void waitHandled(int milliSeconds)
+    {
+        // TODO Auto-generated method stub
         
     }
 
