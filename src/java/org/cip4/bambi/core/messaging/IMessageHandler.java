@@ -74,7 +74,6 @@ package org.cip4.bambi.core.messaging;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 
 /**
  * IMessageHandler is the interface for a generic message handler

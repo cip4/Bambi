@@ -79,24 +79,20 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
+import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
-import org.cip4.bambi.core.queues.IQueueProcessor;
-import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFRequestQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -120,6 +116,7 @@ public class ProxyDevice extends AbstractDevice {
     protected MultiModuleStatusCounter statusContainer;
     public enum EnumSlaveStatus {JMF,NODEINFO}
     EnumSlaveStatus slaveStatus=null;
+    protected IConverterCallback _slaveCallback;
     
     /** 
      * simple dispatcher
@@ -241,19 +238,22 @@ public class ProxyDevice extends AbstractDevice {
             if(m==null) {
                 return false;
             }
-            log.info("Handling "+m.getType());
+            log.info("Handling "+m.getType()+" "+m.getID());
             Vector<ProxyDeviceProcessor> v=getProxyProcessors();
-            if(v==null)
-                return false;
             boolean b=false;
-            for(int i=0;i<v.size();i++)
+            int size = v==null ? 0 : v.size();
+            for(int i=0;i<size;i++)
+            {
                 b=v.get(i).handleStatusSignal(m,resp) || b;
+            }
             if(!b)
             {
                 JDFStatusQuParams sqp = m.getStatusQuParams();
                 String qeid=(sqp!=null) ? sqp.getQueueEntryID():null;
-
-                JMFHandler.errorResponse(resp, "Unknown QueueEntry: "+qeid ,103);
+                if(qeid==null)
+                    b=handleIdle(m,resp);
+                if(!b)
+                    JMFHandler.errorResponse(resp, "Unknown QueueEntry: "+qeid ,103);
             }
             else
             {
@@ -261,6 +261,15 @@ public class ProxyDevice extends AbstractDevice {
             }
             
             return true; // handled if any was ok
+        }
+
+        /**
+         * @return
+         */
+        private boolean handleIdle(JDFMessage m, JDFResponse resp)
+        {
+            // TODO Auto-generated method stub
+            return true;
         }
     }
 
@@ -334,11 +343,13 @@ public class ProxyDevice extends AbstractDevice {
 
     public ProxyDevice(IDeviceProperties properties) {
         super(properties);
+        IProxyProperties proxyProperties=getProxyProperties();
         final File fDeviceJDFOutput = properties.getOutputHF();
+        _slaveCallback=proxyProperties.getSlaveCallBackClass();
         if(fDeviceJDFOutput!=null)
         {            
             File hfStorage=new File(_devProperties.getBaseDir()+File.separator+"HFDevTmpStorage"+File.separator+_devProperties.getDeviceID());
-            log.info("Device output HF:"+fDeviceJDFOutput.getPath()+" device ID= "+_devProperties.getSlaveDeviceID());
+            log.info("Device output HF:"+fDeviceJDFOutput.getPath()+" device ID= "+proxyProperties.getSlaveDeviceID());
             JDFJMF rqCommand=JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
             slaveJDFOutput=new QueueHotFolder(fDeviceJDFOutput,hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Completed), rqCommand);
         }
@@ -353,6 +364,9 @@ public class ProxyDevice extends AbstractDevice {
         } 
         statusContainer=new MultiModuleStatusCounter(MultiType.JOB);
         _jmfHandler.setFilterOnDeviceID(false);
+        int maxPush = proxyProperties.getMaxPush();
+        if(maxPush>0)
+            _theQueueProcessor.getQueue().setMaxRunningEntries(maxPush);
         //TODO correctly dispatch them
         
     }
@@ -382,7 +396,7 @@ public class ProxyDevice extends AbstractDevice {
      */
     @Override
     protected AbstractDeviceProcessor buildDeviceProcessor() {
-        if (_devProperties.getMaxPush()<=0)
+        if (getProxyProperties().getMaxPush()<=0)
             return null;
         return new ProxyDispatcherProcessor(this);
     }
@@ -399,6 +413,10 @@ public class ProxyDevice extends AbstractDevice {
     }
 
 
+    public IConverterCallback getSlaveCallback()
+    {
+        return _slaveCallback;
+    }
 
     /**
      * remove a processor from the list of active processors
@@ -422,7 +440,7 @@ public class ProxyDevice extends AbstractDevice {
     public String getSlaveDeviceID()
     {
         // TODO - dynamically grab with knowndevices
-        return _devProperties.getSlaveDeviceID();
+        return getProxyProperties().getSlaveDeviceID();
     }
 
     /**
@@ -450,7 +468,7 @@ public class ProxyDevice extends AbstractDevice {
     private ProxyDeviceProcessor getProcessorForSlaveQE(JDFResponse resp, final String slaveQEID)
     {
         final String inQEID = getIncomingQEID(slaveQEID);
-        ProxyDeviceProcessor proc=(ProxyDeviceProcessor) getProcessor(inQEID);
+        ProxyDeviceProcessor proc=inQEID==null ? null : (ProxyDeviceProcessor) getProcessor(inQEID);
 
         if (proc==null) {
             String errorMsg="QueueEntry with ID="+slaveQEID+" is not being processed";
@@ -541,7 +559,6 @@ public class ProxyDevice extends AbstractDevice {
     {
         return true;
     }
-
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core.JDFDoc)
      */
@@ -572,11 +589,19 @@ public class ProxyDevice extends AbstractDevice {
             JDFJMF jmf=JMFFactory.buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
             if(jmf!=null)
             {
-                new JMFFactory(_callback).send2URL(jmf, _devProperties.getSlaveURL(), null,getDeviceID());
+                new JMFFactory(_callback).send2URL(jmf, getProxyProperties().getSlaveURL(), null,getDeviceID());
             }
         }
         JDFQueueEntry qe= super.stopProcessing(queueEntryID, status);
         return qe;
+    }
+
+    /**
+     * @return the proxyProperties
+     */
+    public IProxyProperties getProxyProperties()
+    {
+        return (IProxyProperties) _devProperties;
     }
 
 

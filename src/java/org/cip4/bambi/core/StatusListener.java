@@ -69,18 +69,15 @@
  */
 package org.cip4.bambi.core;
 
-import java.util.Vector;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.SignalDispatcher.Trigger;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
-import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
-import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFResourceQuParams;
@@ -98,20 +95,20 @@ public class StatusListener implements IStatusListener
 {
 
     private static Log log = LogFactory.getLog(StatusListener.class.getName());
-    private ISignalDispatcher dispatcher;
-    private ISignalDispatcher rootDispatcher=null;
+    private SignalDispatcher dispatcher;
+    private SignalDispatcher rootDispatcher=null;
     protected StatusCounter theCounter;
     private JDFNode currentNode=null;
     private long lastSave = 0;
-    private Vector<JDFDoc> queuedStatus=new Vector<JDFDoc>();
-    private Vector<JDFDoc> queuedResource=new Vector<JDFDoc>();
+//    private Vector<JDFDoc> queuedStatus=new Vector<JDFDoc>();
+//    private Vector<JDFDoc> queuedResource=new Vector<JDFDoc>();
 
     /**
      * 
      * @param dispatch
      * @param deviceID
      */
-    public StatusListener(ISignalDispatcher dispatch, String deviceID)
+    public StatusListener(SignalDispatcher dispatch, String deviceID)
     {
         dispatcher=dispatch;
         theCounter=new StatusCounter(null,null,null);
@@ -120,21 +117,14 @@ public class StatusListener implements IStatusListener
 
     public void flush()
     {
-        int qsize = queuedStatus.size();
-        if(qsize>0)
+        Trigger[] t=dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), -1);
+        dispatcher.flush();
+        if(rootDispatcher!=null)
         {
-            dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), -1);
-            dispatcher.flush();
-            if(rootDispatcher!=null)
-            {
-                rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), -1);
-                rootDispatcher.flush();
-            }
-            
-            StatusCounter.sleep(100);
-            qsize = queuedStatus.size();           
+            rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), -1);
+            rootDispatcher.flush();
         }
-
+        Trigger.waitQueued(t, 2000);
     }
     /* (non-Javadoc)
      * @see org.cip4.bambi.IStatusListener#signalStatus(java.lang.String, java.lang.String, org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus, java.lang.String, org.cip4.jdflib.core.JDFElement.EnumNodeStatus, java.lang.String)
@@ -147,23 +137,9 @@ public class StatusListener implements IStatusListener
         }
         boolean bMod=theCounter.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
         if(bMod || forceOut) {
-            final JDFDoc docJMFPhaseTime = theCounter.getDocJMFPhaseTime();
-            JDFJMF root=docJMFPhaseTime.getJMFRoot();
-            if(root.numChildElements(ElementName.RESPONSE, null)>1)
-            {
-                JDFDoc doc2=new JDFDoc("JMF");
-                final KElement root2 = doc2.getRoot();
-                root2.mergeElement(root, false);
-                root.removeChild(ElementName.RESPONSE, null, 1);
-                root2.removeChild(ElementName.RESPONSE, null, 0);
-
-                queuedStatus.add(docJMFPhaseTime);
-                queuedStatus.add(doc2);
-                StatusCounter.sleep(10);
-            }
             flush();
         }
-    }
+     }
 
     /* (non-Javadoc)
      * @see org.cip4.bambi.IStatusListener#updateAmount(java.lang.String, java.lang.String, java.lang.String, double, double)
@@ -275,7 +251,7 @@ public class StatusListener implements IStatusListener
     }
     public JDFDoc getJMFPhaseTime()
     {
-        return (queuedStatus.size()==0) ? theCounter.getDocJMFPhaseTime(): queuedStatus.remove(0);
+        return  theCounter.getDocJMFPhaseTime();
     }
 
     @Override
@@ -330,7 +306,7 @@ public class StatusListener implements IStatusListener
         return true;
     }
 
-    public void setRootDispatcher(ISignalDispatcher _rootDispatcher)
+    public void setRootDispatcher(SignalDispatcher _rootDispatcher)
     {
         this.rootDispatcher = _rootDispatcher;
     }

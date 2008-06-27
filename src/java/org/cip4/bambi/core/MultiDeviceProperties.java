@@ -105,7 +105,7 @@ public class MultiDeviceProperties
      * @author boegerni
      *
      */
-    private KElement root;
+    protected KElement root;
     private URL contextURL;
     private ServletContext context;
 
@@ -113,7 +113,7 @@ public class MultiDeviceProperties
         /**
          * constructor
          */
-        private KElement devRoot;
+        protected KElement devRoot;
         protected DeviceProperties(KElement _devRoot) {
             devRoot=_devRoot;
         }
@@ -241,7 +241,7 @@ public class MultiDeviceProperties
             return "[ DeviceProperties: "+devRoot.toString()+"]";           
         }
 
-        private File getFile(String file)
+        protected File getFile(String file)
         {
             final String fil=devRoot.getAttribute(file,null,null);
             return fil==null ? getRootFile(file) : new File(fil);
@@ -302,57 +302,6 @@ public class MultiDeviceProperties
         }
 
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
-         */
-        public String getSlaveDeviceID()
-        {
-            String s= devRoot.getAttribute("SlaveDeviceID",null,null);
-            if(s!=null)
-                return s;
-            s=getSlaveURL();
-            if(s!=null)
-                s=StringUtil.token(s, -1, "/");
-            return s;
-        }
-
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveErrorHF()
-         */
-        public File getSlaveErrorHF()
-        {
-            return getFile("SlaveErrorHF");
-        }
-
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveInputHF()
-         */
-        public File getSlaveInputHF()
-        {
-            return getFile("SlaveInputHF");
-        }
-
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveOutputHF()
-         */
-        public File getSlaveOutputHF()
-        {
-            return getFile("SlaveOutputHF");
-        }
-
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveURL()
-         */
-        public String getSlaveURL()
-        {
-            return devRoot.getAttribute("SlaveURL",null,null);
-        }
-
-
         /**
          * get the tracked resource - defaults to "Output"
          * 
@@ -367,15 +316,6 @@ public class MultiDeviceProperties
         {
             return devRoot.getAttribute(key, null, null);
         }
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getMaxPush()
-         */
-        public int getMaxPush()
-        {
-            return devRoot.getIntAttribute("MaxPush", null, 0);
-        }
-
-
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
          */
@@ -404,7 +344,7 @@ public class MultiDeviceProperties
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
          */
-        public int getDeviceHTTPChunk()
+        public int getControllerHTTPChunk()
         {
             return devRoot.getIntAttribute("HTTPChunk", null, 10000);
         }
@@ -413,9 +353,16 @@ public class MultiDeviceProperties
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
          */
-        public String getDeviceMIMEEncoding()
+        public String getControllerMIMEEncoding()
         {
             return devRoot.getAttribute("MIMETransferEncoding",null,MimeUtil.BASE64);
+        }
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEExpansion()
+         */
+        public boolean getControllerMIMEExpansion()
+        {
+            return devRoot.getBoolAttribute("MIMETransferEncoding",null,false);
         }
 
 
@@ -440,9 +387,15 @@ public class MultiDeviceProperties
             return contextURL==null ? null : contextURL.toExternalForm();
         }
 
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.IDeviceProperties#getWatchURL()
+         */
+        public String getWatchURL()
+        {
+            return devRoot.getAttribute("WatchURL",null,null);                   
+        }
 
-
-    }
+      }
 
     private static final Log log = LogFactory.getLog(MultiDeviceProperties.class.getName());
 
@@ -500,14 +453,6 @@ public class MultiDeviceProperties
     }
 
     /* (non-Javadoc)
-     * @see org.cip4.bambi.core.IMultiDeviceProperties#getDevice(java.lang.String)
-     */
-    public IDeviceProperties getDevice(String deviceID) {
-        KElement dev=root.getChildWithAttribute(ElementName.DEVICE, AttributeName.DEVICEID, null, deviceID, 0, true);
-        return dev==null ? null : this.new DeviceProperties(dev);
-    }
-
-    /* (non-Javadoc)
      * @see org.cip4.bambi.core.IMultiDeviceProperties#toString()
      */
     @Override
@@ -562,20 +507,23 @@ public class MultiDeviceProperties
     /**
      * @return
      */
-    public VString getDeviceIDs()
+    public VElement getDevices()
     {
-        VElement v=root.getChildElementVector(ElementName.DEVICE, null);
-        VString vs=new VString();
-        for(int i=0;i<v.size();i++)
-        {
-            vs.add(v.elementAt(i).getAttribute(AttributeName.DEVICEID));
-        }
-        return vs;
-    }
+        return root.getChildElementVector(ElementName.DEVICE, null);
+     }
 
     public KElement getRoot()
     {
         return root;
+    }
+
+    /**
+     * @param element
+     * @return
+     */
+    public IDeviceProperties createDevice(KElement element)
+    {
+         return this.new DeviceProperties(element);
     }
 
 }

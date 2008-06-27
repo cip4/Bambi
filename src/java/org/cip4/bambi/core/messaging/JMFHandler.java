@@ -78,7 +78,7 @@ import java.util.Map.Entry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IDevice;
-import org.cip4.bambi.core.ISignalDispatcher;
+import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -161,7 +161,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
     protected HashMap<MessageType,IMessageHandler> messageMap; // key = type , value = IMessageHandler
 //  TODO handle subscriptions
     protected HashMap<EnumType,IMessageHandler> subscriptionMap; // key = type , value = subscriptions handled
-    protected ISignalDispatcher _signalDispatcher;
+    protected SignalDispatcher _signalDispatcher;
     protected boolean bFilterOnDeviceID=false;
     protected IDevice _parentDevice=null;
     /**
@@ -427,24 +427,31 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
     {
         if(inputMessage==null)
             return false;
-        final EnumFamily family=inputMessage.getFamily();
-        final String typ=inputMessage.getType();
-        if(bFilterOnDeviceID)
-        {
-            String deviceID=inputMessage.getJMFRoot().getDeviceID();
-            if(!KElement.isWildCard(deviceID) && !ContainerUtil.equals(deviceID, getSenderID()))
-                return false;            
-        }
-        final IMessageHandler handler=getHandler(typ, family);
-        boolean handled=handler!=null;
+        try{
+            final EnumFamily family=inputMessage.getFamily();
+            final String typ=inputMessage.getType();
+            if(bFilterOnDeviceID)
+            {
+                String deviceID=inputMessage.getJMFRoot().getDeviceID();
+                if(!KElement.isWildCard(deviceID) && !ContainerUtil.equals(deviceID, getSenderID()))
+                    return false;            
+            }
+            final IMessageHandler handler=getHandler(typ, family);
+            boolean handled=handler!=null;
 
-        if(handler!=null)
-            handled=handler.handleMessage(inputMessage, response);
-        if(!handled)
-        {
-            unhandledMessage(inputMessage,response);
+            if(handler!=null)
+                handled=handler.handleMessage(inputMessage, response);
+            if(!handled)
+            {
+                unhandledMessage(inputMessage,response);
+            }
+            return handled;
         }
-        return handled;
+        catch(Exception x)
+        {
+            log.error("Unhandled Exception in handleMessage",x);
+            return false;
+        }
     }
 
     @Override
@@ -457,7 +464,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
     /**
      * @param signalDispatcher
      */
-    public void setDispatcher(ISignalDispatcher signalDispatcher)
+    public void setDispatcher(SignalDispatcher signalDispatcher)
     {
         _signalDispatcher=signalDispatcher;
 

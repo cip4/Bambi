@@ -93,7 +93,6 @@ import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
 /**
@@ -134,7 +133,7 @@ public class JMFFactory {
             return ContainerUtil.equals(url, other.url) && ContainerUtil.equals(callback, other.callback);
         }
     }
-    
+
     private static Log log = LogFactory.getLog(JMFFactory.class.getName());
     private static HashMap<CallURL,MessageSender> senders=new HashMap<CallURL, MessageSender>();
     private static int nThreads=0;
@@ -277,7 +276,7 @@ public class JMFFactory {
      * @param url the URL to send the JMF to
      * @return the response if successful, otherwise null
      */
-    public void send2URL(Multipart mp, String url, IResponseHandler handler, MIMEDetails md) {
+    public void send2URL(Multipart mp, String url, IResponseHandler handler, MIMEDetails md, String deviceID) {
 
         if (mp==null || url==null) {
             if (log!=null) {
@@ -289,12 +288,14 @@ public class JMFFactory {
         }
 
         MessageSender ms = getCreateMessageSender(url,callback); 
-        ms.queueMimeMessage(mp,handler,md);
+        ms.queueMimeMessage(mp,handler,md,deviceID);
     }
     /**
      * sends a JMF message to a given URL
      * @param jmf the message to send
      * @param url the URL to send the JMF to
+     * @param senderID the senderID of the caller
+     * @param milliSeconds timout to wait
      * @return the response if successful, otherwise null
      */
     public void send2URL(JDFJMF jmf, String url, IResponseHandler handler, String senderID) {
@@ -317,49 +318,41 @@ public class JMFFactory {
      * sends a JMF message to a given URL sychronusly
      * @param jmf the message to send
      * @param url the URL to send the JMF to
+     * @param senderID the senderID of the caller
+     * @param milliSeconds timout to wait
      * @return the response if successful, otherwise null
      */
-    public HttpURLConnection send2URLSynch(JDFJMF jmf, String url, String senderID) 
+    public HttpURLConnection send2URLSynch(JDFJMF jmf, String url, String senderID, int milliSeconds) 
     {       
         MessageResponseHandler handler=new MessageResponseHandler();
         send2URL(jmf, url, handler, senderID);
-        for (int i=0;i<20;i++)
-        {
-            if(handler.getConnection()==null)
-            {
-                StatusCounter.sleep(100);
-                continue;
-            }
-            return handler.getConnection();
-        }
-        return null;
+        handler.waitHandled(milliSeconds);
+        return handler.getConnection();
     }
     /**
      * sends a JMF message to a given URL sychronusly
      * @param jmf the message to send
      * @param url the URL to send the JMF to
+     * @param senderID the senderID of the caller
+     * @param milliSeconds timout to wait
      * @return the response if successful, otherwise null
      */
-    public JDFResponse send2URLSynchResp(JDFJMF jmf, String url, String senderID) 
+    public JDFResponse send2URLSynchResp(JDFJMF jmf, String url, String senderID,int milliSeconds) 
     {       
-       HttpURLConnection uc=send2URLSynch(jmf, url, senderID);
-       if(uc!=null)
-       {
-           try
+        MessageResponseHandler handler=new MessageResponseHandler();
+        send2URL(jmf, url, handler, senderID)  ;
+        handler.waitHandled(milliSeconds);
+        HttpURLConnection uc=handler.getConnection();
+        if(uc!=null)
         {
-            JDFDoc d=new JDFParser().parseStream(uc.getInputStream());
+            JDFDoc d=new JDFParser().parseStream(handler.getBufferedStream());
             if(d!=null)
             {
                 final JDFJMF root = d.getJMFRoot();
                 return root==null ? null : root.getResponse(0);
             }
         }
-        catch (IOException x)
-        {
-           return null;
-        }
-       }
-       return null;
+        return null;
     }
     /**
      * sends a JMF message to a given URL sychronusly
@@ -367,20 +360,11 @@ public class JMFFactory {
      * @param url the URL to send the JMF to
      * @return the response if successful, otherwise null
      */
-    public HttpURLConnection send2URLSynch(Multipart mp, String url, MIMEDetails md) {
-
+    public HttpURLConnection send2URLSynch(Multipart mp, String url, MIMEDetails md, String senderID,int milliSeconds) {
         MessageResponseHandler handler=new MessageResponseHandler();
-        send2URL(mp, url, handler, md)  ;
-        for (int i=0;i<20;i++)
-        {
-            if(handler.getConnection()==null)
-            {
-                StatusCounter.sleep(100);
-                continue;
-            }
-            return handler.getConnection();
-        }
-        return null;
+        send2URL(mp, url, handler, md, senderID)  ;
+        handler.waitHandled(milliSeconds);
+        return handler.getConnection();
     }
 
     /**

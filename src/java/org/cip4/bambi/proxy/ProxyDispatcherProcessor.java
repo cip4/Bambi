@@ -74,6 +74,7 @@ package org.cip4.bambi.proxy;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
+import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -89,21 +90,15 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 {
     private static Log log = LogFactory.getLog(ProxyDispatcherProcessor.class);
     private static final long serialVersionUID = -384333582645081254L;
-
+    private IProxyProperties proxyProperties;
 
     /**
-     * constructor
-     * @param queueProcessor points to the QueueProcessor
-     * @param statusListener points to the StatusListener
-     * @param _callBack      the converter call back too and from device
-     * @param device         the parent device that this processor does processing for
-     * @param qeToProcess   the queueentry that this processor will be working for
-     * @param doc 
      */
     public ProxyDispatcherProcessor(ProxyDevice parent)
     {
         super();
         _parent=parent;
+        proxyProperties=parent.getProxyProperties();
 
     }
 
@@ -128,18 +123,21 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
     protected boolean finalizeProcessDoc(EnumQueueEntryStatus qes)
     {
         // nop
-        return _parent.activeProcessors()<1+_devProperties.getMaxPush();
+        return _parent.activeProcessors()<1+proxyProperties.getMaxPush();
     }
 
     @Override
     protected void initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
     {
         currentQE=null;
-        if(_parent.activeProcessors()>=1+_devProperties.getMaxPush())
+        if(_parent.activeProcessors()>=1+proxyProperties.getMaxPush())
+        {
+            BambiNSExtension.setDeviceURL(qe, null);
             return; // no more push
-        qe.setDeviceID(_devProperties.getSlaveDeviceID());
+        }
+        qe.setDeviceID(proxyProperties.getSlaveDeviceID());
         IQueueEntry iqe=new QueueEntry(node,qe);
-        ((ProxyDevice)_parent).submitQueueEntry(iqe, _devProperties.getSlaveURL()); 
+        ((ProxyDevice)_parent).submitQueueEntry(iqe, proxyProperties.getSlaveURL()); 
     }
 
     @Override
@@ -148,6 +146,7 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
         // we never have a qe of our own
         return null;
     }
+ 
 
 
 }

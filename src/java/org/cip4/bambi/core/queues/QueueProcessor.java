@@ -95,7 +95,6 @@ import org.cip4.bambi.core.IDeviceProperties.QEReturn;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
-import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -120,11 +119,11 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFQueue.CleanupCallback;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
-import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 
@@ -137,6 +136,29 @@ import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 public class QueueProcessor implements IQueueProcessor
 {
 
+    /**
+     * cleans up the garbage that belongs to a queueentry when the qe is removed
+     * @author prosirai
+     *
+     */
+    protected class QueueEntryCleanup extends CleanupCallback
+    {
+
+        /* (non-Javadoc)
+         * @see org.cip4.jdflib.jmf.JDFQueue.CleanupCallback#cleanEntry(org.cip4.jdflib.jmf.JDFQueueEntry)
+         */
+        @Override
+        public void cleanEntry(JDFQueueEntry qe)
+        {
+            final String theDocFile=getJDFStorage(qe.getQueueEntryID());
+            if(theDocFile!=null)
+            {
+                File f=new File(theDocFile);
+                f.delete();
+            }
+        }
+        
+    }
     protected class SubmitQueueEntryHandler  extends AbstractHandler
     {
 
@@ -351,7 +373,11 @@ public class QueueProcessor implements IQueueProcessor
 
             // has to be waiting, held, running or suspended: abort it!
             EnumQueueEntryStatus newStatus=(returnQE==null ? null : returnQE.getQueueEntryStatus());
-            updateEntry(qe,newStatus==null ? EnumQueueEntryStatus.Aborted : newStatus,m,resp);                   
+            if(newStatus==null)
+                newStatus=EnumQueueEntryStatus.Aborted;
+            updateEntry(qe,newStatus,m,resp);    
+            if(EnumQueueEntryStatus.Aborted.equals(newStatus))
+                returnQueueEntry(qe, null, null);
             log.info("aborted QueueEntry with ID="+qeid);		
             return true;
         }
@@ -501,13 +527,16 @@ public class QueueProcessor implements IQueueProcessor
             if(status==null)
                 return;
             // also stop the device processor
+            
             if(EnumQueueEntryStatus.Completed.equals(status))
-                _parentDevice.stopProcessing(qeID, EnumNodeStatus.Completed);
+                qe=_parentDevice.stopProcessing(qeID, EnumNodeStatus.Completed);
             else if(EnumQueueEntryStatus.Aborted.equals(status))
-                _parentDevice.stopProcessing(qeID, EnumNodeStatus.Aborted);
+                qe=_parentDevice.stopProcessing(qeID, EnumNodeStatus.Aborted);
             else if(EnumQueueEntryStatus.Suspended.equals(status))
-                _parentDevice.stopProcessing(qeID, EnumNodeStatus.Suspended);
+                qe=_parentDevice.stopProcessing(qeID, EnumNodeStatus.Suspended);
             updateEntry(qe, status,null,null);
+            if(EnumQueueEntryStatus.Aborted.equals(qe.getQueueEntryStatus())||EnumQueueEntryStatus.Completed.equals(qe.getQueueEntryStatus()))
+                returnQueueEntry(qe, null, null);
         }
 
         /**
@@ -671,12 +700,13 @@ public class QueueProcessor implements IQueueProcessor
         }
         _theQueue.setAutomated(true);
         _theQueue.setDeviceID(deviceID);
-        _theQueue.setMaxCompletedEntries( 100 ); // remove just the selected QE when RemoveQE is called 
+        _theQueue.setMaxCompletedEntries(100); 
+        _theQueue.setCleanupCallback(new QueueEntryCleanup()); // zapps any attached files when removing qe
     }
 
     /**
      * get a qe by nodeidentifier
-     * only waiting entries that have not been forwarded to a lower level device are tken into account
+     * only waiting entries that have not been forwarded to a lower level device are taken into account
      * 
      * @param queueEntryID the JDFNode.NodeIdentifier
      * @return
@@ -697,10 +727,11 @@ public class QueueProcessor implements IQueueProcessor
 
     /**
      * get the next queue entry
+     * only waiting entries that have not been forwarded to a lower level device are taken into account
      */
-    public IQueueEntry getNextEntry(String deviceID) {
-
-        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry(deviceID,null);
+    public IQueueEntry getNextEntry(String deviceID) 
+    {
+        JDFQueueEntry qe=_theQueue.getNextExecutableQueueEntry(deviceID,BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL));
         return getIQueueEntry(qe);
     }
 
@@ -874,7 +905,6 @@ public class QueueProcessor implements IQueueProcessor
             if (status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Aborted)) {
                 if(!qe.hasAttribute(AttributeName.ENDTIME))
                     qe.setEndTime(new JDFDate());
-                returnQueueEntry( qe,null ,null);
             }
             else if (status.equals(EnumQueueEntryStatus.Running) ) {
                 if(!qe.hasAttribute(AttributeName.STARTTIME))
@@ -888,7 +918,7 @@ public class QueueProcessor implements IQueueProcessor
             persist(0);
             notifyListeners();
         }
-        else
+        else if(mess!=null &&!EnumFamily.Query.equals(mess.getFamily()))
         {
             persist(10000); // write queue just in case every 10 seconds
         }
@@ -921,7 +951,7 @@ public class QueueProcessor implements IQueueProcessor
         return s;
     }
 
-    protected void returnQueueEntry(JDFQueueEntry qe, VString finishedNodes, JDFDoc docJDF)
+    public void returnQueueEntry(JDFQueueEntry qe, VString finishedNodes, JDFDoc docJDF)
     {
         JDFDoc docJMF=new JDFDoc("JMF");
         JDFJMF jmf=docJMF.getJMFRoot();
@@ -975,8 +1005,7 @@ public class QueueProcessor implements IQueueProcessor
         final File deviceErrorHF = properties.getErrorHF();
 
         boolean bOK=false;
-        //TODO  need a better synch to message thread
-        StatusCounter.sleep(1234); // wait to flush queues
+        _parentDevice.flush();
 
         if(returnJMF!=null) {
             QEReturn qr=properties.getReturnMIME();
@@ -984,23 +1013,20 @@ public class QueueProcessor implements IQueueProcessor
             if(QEReturn.MIME.equals(qr))
             {
                 returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
-                Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
+                Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, _parentDevice.getProperties().getControllerMIMEExpansion());
                 MIMEDetails ud=new MIMEDetails();
-                ud.httpDetails.chunkSize=properties.getDeviceHTTPChunk();
-                ud.transferEncoding=properties.getDeviceMIMEEncoding();
-                response=new JMFFactory(_parentDevice.getCallback()).send2URLSynch(mp, returnJMF,ud);
-                if(MessageSender.outDump!=null)
-                {
-                    MimeUtil.writeToFile(mp, MessageSender.outDump.newFile().getAbsolutePath(), null);
-                }
+                String devID = _parentDevice.getDeviceID();
+                ud.httpDetails.chunkSize=properties.getControllerHTTPChunk();
+                ud.transferEncoding=properties.getControllerMIMEEncoding();
+                response=new JMFFactory(_parentDevice.getCallback()).send2URLSynch(mp, returnJMF,ud, devID,10000);
             }
             else // http
             {
                 returnQEParams.setURL(properties.getContextURL()+"/jmb/JDFDir/"+queueEntryID+".jdf"); // will be overwritten by buildMimePackage
                 HTTPDetails hDet=new  HTTPDetails();
-                hDet.chunkSize=properties.getDeviceHTTPChunk();
+                hDet.chunkSize=properties.getControllerHTTPChunk();
 
-                response=new JMFFactory(_parentDevice.getCallback()).send2URLSynch(jmf, returnJMF, _parentDevice.getDeviceID());
+                response=new JMFFactory(_parentDevice.getCallback()).send2URLSynch(jmf, returnJMF, _parentDevice.getDeviceID(),10000);
             }
             int responseCode;
             if(response!=null)
@@ -1015,7 +1041,7 @@ public class QueueProcessor implements IQueueProcessor
                 }
                 if (responseCode == 200)
                 {
-                    log.info("ReturnQueueEntry for "+queueEntryID+" has been sent.");
+                    log.info("ReturnQueueEntry for "+queueEntryID+" has been sent to "+returnJMF);
                     bOK=true;
                 }
                 else

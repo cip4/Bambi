@@ -71,6 +71,7 @@
 
 package org.cip4.bambi.core.messaging;
 
+import java.io.BufferedInputStream;
 import java.net.HttpURLConnection;
 
 /**
@@ -84,6 +85,7 @@ public interface IResponseHandler
 
     /**
      * handle the message specified in inputMessage
+     * note that the mutex should be 
      * 
      * @return true if the message was handled, else false
      */
@@ -96,5 +98,15 @@ public interface IResponseHandler
      * @return handled message type
      */
     public void setConnection(HttpURLConnection con);
+    /**
+     * @param bis
+     */
+    public void setBufferedStream(BufferedInputStream bis);
+    
+    /**
+     * wait for the handleMessage to complete
+     * @param milliSeconds
+     */
+    public void waitHandled(int milliSeconds);
 
 }

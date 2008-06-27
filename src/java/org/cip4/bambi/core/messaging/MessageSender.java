@@ -70,32 +70,26 @@
  */
 package org.cip4.bambi.core.messaging;
 
+import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
 
 import javax.mail.Multipart;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFException;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.MimeUtil;
-import org.cip4.jdflib.util.StatusCounter;
+import org.cip4.jdflib.util.VectorMap;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 
@@ -110,9 +104,8 @@ public class MessageSender implements Runnable {
     private Vector<MessageDetails> _messages=null;
     private static Log log = LogFactory.getLog(MessageSender.class.getName());
     private static IConverterCallback _callBack=null;
-    public static DumpDir inDump=null; // messy bu efficient...
-    public static DumpDir outDump=null; // messy bu efficient...
-    private Object mutex=new Object();
+    private static VectorMap<String, DumpDir> vDumps=new VectorMap<String, DumpDir>();
+    private Object mutexDispatch=new Object();
 
 
     protected class MessageDetails
@@ -121,10 +114,12 @@ public class MessageSender implements Runnable {
         protected Multipart mime=null;
         protected IResponseHandler respHandler;
         protected MIMEDetails mimeDet;
+        protected String senderID=null;
         protected MessageDetails(JDFJMF _jmf, IResponseHandler _respHandler, HTTPDetails hdet)
         {
             respHandler=_respHandler;
             jmf=_jmf;
+            senderID=jmf==null ? null : jmf.getSenderID();
             if(hdet==null)
                 mimeDet=null;
             else
@@ -133,11 +128,12 @@ public class MessageSender implements Runnable {
                 mimeDet.httpDetails=hdet;
             }            
         }
-        protected MessageDetails(Multipart _mime, IResponseHandler _respHandler, MIMEDetails mdet)
+        protected MessageDetails(Multipart _mime, IResponseHandler _respHandler, MIMEDetails mdet,String _senderID)
         {
             respHandler=_respHandler;
             mime=_mime;
             mimeDet=mdet;
+            senderID=_senderID;
         }
     }
 
@@ -151,37 +147,35 @@ public class MessageSender implements Runnable {
     {
         private JDFResponse resp=null;
         private HttpURLConnection connect=null;
+        protected BufferedInputStream bufferedInput=null;
+        private Object mutex=new Object();
+
+        public MessageResponseHandler()
+        {
+            super();
+        }
+
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.messaging.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
          */
         public boolean handleMessage()
         {
-            /*
-            JDFDoc doc;
-            try
-            {
-                doc = new JDFParser().parseStream(connect.getInputStream());
-            }
-            catch (IOException x)
-            {
-                return false;
-            }
-            if(doc!=null)
-            {
-                JDFJMF jmfRet=doc.getJMFRoot();
-                VElement resps=jmfRet==null ? null : jmfRet.getMessageVector(JDFMessage.EnumFamily.Response, null);
-                int siz=resps==null ? 0 : resps.size();
-                for(int i=0;i<siz;i++)
-                {
-                    JDFResponse resp2=(JDFResponse) resps.get(i);
-                    if(_callBack!=null && resp!=null)
-                    {
-                        _callBack.prepareJMFForBambi(resp2.getOwnerDocument_JDFElement());
-                    }
-                 }
-            }
-            */
+            finalizeHandling();
             return true;
+        }
+
+        /**
+         * 
+         */
+        protected void finalizeHandling()
+        {
+            if(mutex==null)
+                return;
+            synchronized (mutex)
+            {
+                mutex.notifyAll();                     
+            }
+            mutex=null;
         }
 
         public JDFResponse getResponse()
@@ -204,6 +198,52 @@ public class MessageSender implements Runnable {
             connect=uc;
         }
 
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java.io.BufferedInputStream)
+         */
+        public void setBufferedStream(BufferedInputStream bis)
+        {
+            bufferedInput=bis;            
+        }
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java.io.BufferedInputStream)
+         */
+        public InputStream getBufferedStream()
+        {
+            if(bufferedInput!=null) 
+                return bufferedInput;
+            if(connect==null)
+                return null;
+            try
+            {
+                bufferedInput=new BufferedInputStream(connect.getInputStream());
+            }
+            catch (IOException x)
+            {
+                //nop 
+            }
+            return bufferedInput;
+        }
+
+        /**
+         * @param i
+         */
+        public void waitHandled(int i)
+        {
+            if(mutex==null)
+                return;
+            synchronized (mutex)
+            {
+                try
+                {
+                    mutex.wait(i);
+                }
+                catch (InterruptedException x)
+                {
+                    //nop
+                }
+            }
+        }
     }
     /**
      * constructor
@@ -225,26 +265,33 @@ public class MessageSender implements Runnable {
      * the first message is sent and removed from the map.
      */
     public void run() {
-        while (!doShutDown) {
+        while (!doShutDown) 
+        {
             boolean sentFirstMessage;
-            synchronized(_messages) {
-                sentFirstMessage = sendFirstMessage();
-                if(sentFirstMessage)
-                {
-                    _messages.remove(0);
-                }
+            try{
+                synchronized(_messages) {
+                    sentFirstMessage = sendFirstMessage();
+                    if(sentFirstMessage)
+                    {
+                        _messages.remove(0);
+                    }
 
-                if ( doShutDownGracefully && _messages.isEmpty() ) {
-                    doShutDown=true;
+                    if ( doShutDownGracefully && _messages.isEmpty() ) {
+                        doShutDown=true;
+                    }
                 }
+            }
+            catch(Exception x)
+            {
+                sentFirstMessage=false;
             }
             if(!sentFirstMessage)
             {
                 try
                 {
-                    synchronized (mutex)
+                    synchronized (mutexDispatch)
                     {
-                        mutex.wait(1000);                        
+                        mutexDispatch.wait(1000);                        
                     }
                 }
                 catch (InterruptedException x)
@@ -274,6 +321,9 @@ public class MessageSender implements Runnable {
             MessageDetails mh=_messages.get(0);
             if(mh==null)
                 return true;
+            final DumpDir outDump = getOutDump(mh.senderID);
+            final DumpDir inDump = getInDump(mh.senderID);
+
             JDFJMF jmf=mh.jmf;
             Multipart mp=mh.mime;
             if(KElement.isWildCard(_url) ) 
@@ -302,35 +352,32 @@ public class MessageSender implements Runnable {
                         File dump=outDump.newFile();
                         MimeUtil.writeToFile(mp, dump.getAbsolutePath(),mh.mimeDet);                    
                     }
-               }
+                }
                 else
                 {
                     return true; // nothing to send; remove it
                 }
 
-                if(mh.respHandler!=null)
-                    mh.respHandler.setConnection(con);
-
                 if(con!=null && con.getResponseCode()==200)
                 {
+                    BufferedInputStream bis=new BufferedInputStream(con.getInputStream());                    
+                    bis.mark(1000000);
+
                     if(inDump!=null)
                     {
-                        File dump=inDump.newFile();
-                        final FileOutputStream fs = new FileOutputStream(dump);
-                        IOUtils.copy(con.getInputStream(), fs);
-                        fs.flush();
-                        fs.close();
+                        inDump.newFileFromStream(bis);
                     }
                     if (mh.respHandler!=null) 
                     {
                         mh.respHandler.setConnection(con);
+                        mh.respHandler.setBufferedStream(bis);
                         b=mh.respHandler.handleMessage();
                     }
                 }
 
             }
             catch (Exception e) {
-                // TODO: handle exception
+               log.error("Exception in sendfirstmessage",e);
             }
             return b;
         }
@@ -348,7 +395,20 @@ public class MessageSender implements Runnable {
             doShutDown=true;
         }
     }
+    private DumpDir getInDump(String senderID)
+    {
+        return vDumps.getOne(senderID, 0);
+    }
+    private DumpDir getOutDump(String senderID)
+    {
+        return vDumps.getOne(senderID, 1);        
+    }
 
+    public static void addDumps(String senderID, DumpDir inDump, DumpDir outDump)
+    {
+        vDumps.putOne(senderID, inDump);
+        vDumps.putOne(senderID, outDump);
+    }
     /**
      * queses a message for the URL that this MessageSender belongs to
      * also updates the message for a given recipient if required
@@ -366,9 +426,9 @@ public class MessageSender implements Runnable {
         synchronized(_messages) {
             _messages.add(new MessageDetails(jmf,handler,null));
         }
-        synchronized (mutex)
+        synchronized (mutexDispatch)
         {
-            mutex.notifyAll();            
+            mutexDispatch.notifyAll();            
         }
         return true;
     }
@@ -379,13 +439,13 @@ public class MessageSender implements Runnable {
      * @return true, if the message is successfully queued. 
      *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
      */
-    public boolean queueMimeMessage(Multipart multpart, IResponseHandler handler, MIMEDetails md) {
+    public boolean queueMimeMessage(Multipart multpart, IResponseHandler handler, MIMEDetails md, String senderID) {
         if (doShutDown || doShutDownGracefully) {
             return false;
         }
 
         synchronized(_messages) {
-            _messages.add(new MessageDetails(multpart,handler,md));
+            _messages.add(new MessageDetails(multpart,handler,md,senderID));
         }
         return true;
     }

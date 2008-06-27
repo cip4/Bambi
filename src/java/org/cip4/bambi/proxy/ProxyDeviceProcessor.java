@@ -71,12 +71,17 @@
 
 package org.cip4.bambi.proxy;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.mail.BodyPart;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -88,7 +93,7 @@ import org.cip4.bambi.core.IStatusListener;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
-import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
+import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.proxy.ProxyDevice.EnumSlaveStatus;
@@ -98,6 +103,7 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFNodeInfo;
+import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -112,10 +118,10 @@ import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -131,7 +137,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
 {
     private static Log log = LogFactory.getLog(ProxyDeviceProcessor.class);
     private static final long serialVersionUID = -384123582645081254L;
-    private IConverterCallback callBack;
+    private IConverterCallback slaveCallBack;
     private QueueEntryStatusContainer qsc;
     private String _slaveURL;
 
@@ -158,7 +164,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
             jp.setStatus(EnumNodeStatus.Waiting); //TODO evaluate qe
         }
 
- 
+
         /**
          * return true if this processor is responsible for processing a given queuentry as specified by qe
          * 
@@ -192,7 +198,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
             final JDFDeviceInfo devInfo=(JDFDeviceInfo) jobPhase.getParentNode();
             statusListener.updateAmount(_trackResource, deltaAmount, deltaWaste);
             statusListener.signalStatus(devInfo.getDeviceStatus(), devInfo.getStatusDetails(), jobPhase.getStatus(), jobPhase.getStatusDetails(),false);
-
+            log.info("Node Status :"+jobPhase.getStatus()+" "+jobPhase.getStatusDetails()+" "+deltaAmount+" "+deltaWaste);
             jp=(JDFJobPhase) jp.replaceElement(jobPhase);
         }
 
@@ -223,36 +229,70 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         }
     }
 
-    // TODO - make resphandler
-    protected class SubmitQueueEntryResponseHandler extends AbstractHandler
+    protected class SubmitQueueEntryResponseHandler extends MessageResponseHandler 
     {
-
+        public JDFDoc doc=null;
         /**
          * @param _type
          * @param _families
          */
         public SubmitQueueEntryResponseHandler()
         {
-            super(EnumType.SubmitQueueEntry, new EnumFamily[]{EnumFamily.Acknowledge, EnumFamily.Response});
-            // TODO Auto-generated constructor stub
+            super();
         }
 
         /* (non-Javadoc)
          * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
          */
-        public boolean handleMessage(JDFMessage m, JDFResponse resp)
+        public boolean handleMessage()
         {
-            if(m==null) {
-                return false;
-            }
-            int rc=m.getReturnCode();
-            if(rc!=0)
+            HttpURLConnection uc=getConnection();
+            boolean handled=false;
+            if(uc==null)
             {
-                //
+                finalizeHandling();
+                return false; // file
             }
+            int rc;
+            try
+            {
+                rc = uc.getResponseCode();
+                if(rc==200)
+                {
+                    if(bufferedInput==null)
+                    {
+                        final InputStream inputStream = uc.getInputStream();
+                        bufferedInput =new BufferedInputStream(inputStream);
+                        bufferedInput.mark(1000000);
+                    }
+                    bufferedInput.reset();
 
-            return true;
-
+                    Multipart mpRet=MimeUtil.getMultiPart(bufferedInput);
+                    if(mpRet!=null)
+                    {
+                        try{
+                            BodyPart bp = mpRet.getBodyPart(0);
+                            doc= MimeUtil.getJDFDoc(bp);
+                            handled=true;
+                        }
+                        catch (MessagingException e) {
+                            // nop - try simple doc
+                        }
+                    }
+                    if(!handled)
+                    {
+                        bufferedInput.reset();
+                        doc=new JDFParser().parseStream(bufferedInput);
+                        handled=true;
+                    }
+                }       
+            }
+            catch (IOException x)
+            {
+                handled= false;
+            }
+            finalizeHandling();
+            return handled;
         }
 
     }
@@ -273,12 +313,12 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         _parent=device;
         currentQE=qeToProcess;
         qsc=this.new QueueEntryStatusContainer();
-        callBack=device.getCallback();
-        
+        slaveCallBack=device.getSlaveCallback();
+
         init(qProc, _statusListener, _parent.getProperties());
 
         if(slaveURL==null)
-            slaveURL = _parent.getProperties().getSlaveURL();
+            slaveURL = getParent().getProxyProperties().getSlaveURL();
         _slaveURL=slaveURL;
 
         URL qURL;
@@ -297,7 +337,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         }
         else
         {
-            File hf=_parent.getProperties().getSlaveInputHF();
+            File hf= getParent().getProxyProperties().getSlaveInputHF();
             if(hf!=null)
                 qes=submitToHF(hf);
         }
@@ -361,7 +401,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
 
         qsp.setReturnJMF(_parent.getDeviceURL());
-        final File deviceOutputHF = _parent.getProperties().getSlaveOutputHF();
+        final File deviceOutputHF =  getParent().getProxyProperties().getSlaveOutputHF();
         if(deviceOutputHF!=null)
         {
             qsp.setReturnURL(deviceOutputHF.getPath());
@@ -376,8 +416,9 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
             {
                 final String urlString = qurl.toExternalForm();
                 MIMEDetails ud=new MIMEDetails();
-                ud.httpDetails.chunkSize=_devProperties.getDeviceHTTPChunk();
-                JDFDoc d=MimeUtil.writeToQueue(jmf.getOwnerDocument_JDFElement(), nod.getOwnerDocument_JDFElement(), urlString,ud);
+                ud.httpDetails.chunkSize= getParent().getProxyProperties().getSlaveHTTPChunk();
+
+                JDFDoc d=writeToQueue(jmf.getOwnerDocument_JDFElement(), nod.getOwnerDocument_JDFElement(), urlString,ud);
                 if(d!=null)
                 {
                     JDFJMF jmfResp=d.getJMFRoot();
@@ -437,6 +478,33 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         }
         return qe.getQueueEntryStatus();
     }
+    private JDFDoc writeToQueue(JDFDoc docJMF, JDFDoc docJDF, String strUrl, MIMEDetails urlDet) throws IOException, MessagingException
+    {
+        Multipart mp=MimeUtil.buildMimePackage(docJMF, docJDF, getParent().getProxyProperties().getSlaveMIMEExpansion());
+        SubmitQueueEntryResponseHandler sqh=new SubmitQueueEntryResponseHandler();
+        new JMFFactory(slaveCallBack).send2URL(mp, strUrl, sqh, urlDet,_parent.getDeviceID());
+        sqh.waitHandled(10000);
+        if(sqh.doc==null)
+        {
+            JDFCommand c=docJMF.getJMFRoot().getCommand(0);
+            final JDFJMF respJMF = c.createResponse();
+            JDFResponse r=respJMF.getResponse(0);
+            HttpURLConnection connection = sqh.getConnection();
+            if(connection==null)
+            {
+                r.setErrorText("Invalid http connection");
+            }
+            else
+            {
+            int responseCode = connection.getResponseCode();
+            r.setErrorText("Invalid http response - RC="+responseCode);
+            }
+            r.setReturnCode(3); // TODO correct rcs
+            return respJMF.getOwnerDocument_JDFElement();   
+        }
+
+        return sqh.doc;    
+    }
 
     /**
      * @param qe
@@ -448,9 +516,16 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         qsc.setSlaveQEID(devQEID);
         BambiNSExtension.setDeviceURL(qe, slaveURL);
         _queueProcessor.updateEntry(qe, newStatus ,null,null);
-//        _statusListener.setNode(qe.getQueueEntryID(), node.getJobPartID(false), node, node.getPartMapVector(), null);
+//      _statusListener.setNode(qe.getQueueEntryID(), node.getJobPartID(false), node, node.getPartMapVector(), null);
         setupStatusListener(node, qe);
-        _statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.InProgress, "Submitted",false);
+        if(EnumQueueEntryStatus.Waiting.equals(newStatus))
+        {
+            _statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.Waiting, "Submitted",false);
+        }
+        else
+        {
+            _statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.InProgress, "Submitted",false);
+        }
         createSubscriptionsForQE(slaveURL,devQEID);
     }
 
@@ -465,7 +540,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
             return;
 
         JDFJMF jmf=JMFFactory.buildStatusSubscription(_parent.getDeviceURL(), 10.,0);
-        new JMFFactory(callBack).send2URL(jmf, slaveURL, null, _devProperties.getDeviceID()); // TODO handle response        
+        new JMFFactory(slaveCallBack).send2URL(jmf, slaveURL, null, _devProperties.getDeviceID()); // TODO handle response        
     }
 
     /**
@@ -520,8 +595,8 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         JDFNode nod=getJDFNode();
 
         createNISubscriptions(nod);
-        if(callBack!=null)
-            callBack.prepareJDFForBambi(nod.getOwnerDocument_JDFElement());
+        if(slaveCallBack!=null)
+            slaveCallBack.updateJDFForExtern(nod.getOwnerDocument_JDFElement());
 
     }
 
@@ -535,7 +610,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
             return null;
         if(!EnumSlaveStatus.NODEINFO.equals(getParent().getSlaveStatus()))
             return null;
-        
+
         JDFNodeInfo ni=root.getCreateNodeInfo();
         final String deviceURL = _parent.getDeviceURL();
         final JDFJMF jmf=JMFFactory.buildStatusSubscription(deviceURL, 10, 100);
@@ -556,9 +631,9 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
     @Override
     public void shutdown()
     {
+        log.info("shutting down "+toString());
         super.shutdown();
         ((ProxyDevice)_parent).removeProcessor(this);
-        log.info("shutting down devcondeviceprocessor");
     }
 
 
@@ -571,14 +646,14 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         NodeIdentifier ni=jobPhase.getIdentifier();
         JDFNode n=currentQE.getJDF().getJDFRoot();
         VElement v=n.getMatchingNodes(ni);
-      
+
         if(v==null)
             return false;
-    
+
         qsc.applyPhase(jobPhase);
         _queueProcessor.updateEntry(qsc.qe, jobPhase.getQueueEntryStatus(),null,null);
         return true;
-    
+
     }
 
     /* (non-Javadoc)
@@ -595,7 +670,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
             jmf=JMFFactory.buildSuspendQueueEntry(slaveQE);
         if(jmf!=null)
         {
-            new JMFFactory(callBack).send2URL(jmf, _slaveURL, null,getParent().getDeviceID());
+            new JMFFactory(slaveCallBack).send2URLSynch(jmf, _slaveURL, getParent().getDeviceID(),2000);
         }
     }
 
@@ -629,7 +704,7 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
         } else {
             finalizeProcessDoc(EnumQueueEntryStatus.Completed);
         }
- 
+
         return true;
     }
 
@@ -659,13 +734,13 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
     {
         if(m==null || currentQE==null)
             return false;
-        
+
         JDFStatusQuParams sqp = m.getStatusQuParams();
         NodeIdentifier ni=null;
         if(sqp!=null)
         {
             String qeid=sqp.getQueueEntryID();
-            boolean matches=KElement.isWildCard(qeid) || getSlaveQEID().equals(qeid);
+            boolean matches=KElement.isWildCard(qeid) || ContainerUtil.equals(getSlaveQEID(),qeid);
             if(!matches)
                 return false;
             ni=sqp.getIdentifier();
@@ -708,9 +783,9 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
      */
     private String getSlaveDeviceID()
     {
-       return currentQE.getQueueEntry().getDeviceID();
+        return currentQE.getQueueEntry().getDeviceID();
     }
 
- 
+
 
 }
