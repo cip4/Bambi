@@ -108,6 +108,8 @@ import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFCommand;
+import org.cip4.jdflib.jmf.JDFFlushQueueInfo;
+import org.cip4.jdflib.jmf.JDFFlushQueueParams;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
@@ -435,6 +437,33 @@ public class QueueProcessor implements IQueueProcessor
         }
     }
 
+    protected class FlushQueueHandler  extends AbstractHandler
+    {
+
+        public FlushQueueHandler()
+        {
+            super(EnumType.FlushQueue,new EnumFamily[]{EnumFamily.Command});
+        }
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+         */
+        public boolean handleMessage(JDFMessage m, JDFResponse resp)
+        {
+            if(m==null || resp==null)
+            {
+                return false;
+            }
+            log.info("Handling "+m.getType());
+            JDFFlushQueueParams fqp=m.getFlushQueueParams(0);
+            JDFQueueFilter qf =fqp == null ? null : fqp.getQueueFilter();
+            JDFQueueFilter qfo =m.getQueueFilter(0);
+            VElement zapped=_theQueue.flushQueue(qf);    
+            _theQueue.copyToResponse(resp, qfo);
+            JDFFlushQueueInfo flushQueueInfo=resp.appendFlushQueueInfo();
+            flushQueueInfo.setQueueEntryDefsFromQE(zapped);
+            return true;       
+        }
+    }
     /**
      * @author prosirai
      *
@@ -527,13 +556,16 @@ public class QueueProcessor implements IQueueProcessor
             if(status==null)
                 return;
             // also stop the device processor
-            
+            JDFQueueEntry qe2=null;
             if(EnumQueueEntryStatus.Completed.equals(status))
-                qe=_parentDevice.stopProcessing(qeID, EnumNodeStatus.Completed);
+                qe2=_parentDevice.stopProcessing(qeID, EnumNodeStatus.Completed);
             else if(EnumQueueEntryStatus.Aborted.equals(status))
-                qe=_parentDevice.stopProcessing(qeID, EnumNodeStatus.Aborted);
+                qe2=_parentDevice.stopProcessing(qeID, EnumNodeStatus.Aborted);
             else if(EnumQueueEntryStatus.Suspended.equals(status))
-                qe=_parentDevice.stopProcessing(qeID, EnumNodeStatus.Suspended);
+                qe2=_parentDevice.stopProcessing(qeID, EnumNodeStatus.Suspended);
+            if(qe2!=null)
+                qe=qe2;
+            
             updateEntry(qe, status,null,null);
             if(EnumQueueEntryStatus.Aborted.equals(qe.getQueueEntryStatus())||EnumQueueEntryStatus.Completed.equals(qe.getQueueEntryStatus()))
                 returnQueueEntry(qe, null, null);
@@ -656,6 +688,7 @@ public class QueueProcessor implements IQueueProcessor
         jmfHandler.addHandler(this.new AbortQueueEntryHandler());
         jmfHandler.addHandler(this.new ResumeQueueEntryHandler());
         jmfHandler.addHandler(this.new SuspendQueueEntryHandler());
+        jmfHandler.addHandler(this.new FlushQueueHandler());
 
     }
 
@@ -679,17 +712,26 @@ public class QueueProcessor implements IQueueProcessor
         }
 
         JDFDoc d=JDFDoc.parseFile(_queueFile.getAbsolutePath());
+        if(d==null)
+        {
+            d=JDFDoc.parseFile(_queueFile.getAbsolutePath()+".bak");
+            if(d!=null)
+                log.warn("problems reading queue file - using backup");
+        }
         if(d!=null) {
             log.info("refreshing queue");
             _theQueue=(JDFQueue) d.getRoot();
             // make sure that all QueueEntries are suspended on restart 
             VElement qev=_theQueue.getQueueEntryVector();
-            for (int i=0;i<qev.size();i++) {
+            int qSize = qev==null ? 0 : qev.size();
+            for (int i=0;i<qSize;i++) {
                 JDFQueueEntry qe=(JDFQueueEntry) qev.get(i);
                 EnumQueueEntryStatus stat=qe.getQueueEntryStatus();
-                if ( EnumQueueEntryStatus.Running.equals(stat) 
-                        || EnumQueueEntryStatus.Waiting.equals(stat) ) {
+                if ( EnumQueueEntryStatus.Running.equals(stat)) {
                     qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
+                }
+                else if ( EnumQueueEntryStatus.Waiting.equals(stat)) {
+                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Held);
                 }
             }
         } else {
@@ -876,7 +918,14 @@ public class QueueProcessor implements IQueueProcessor
         {
             synchronized (_theQueue)
             {
-                log.info("persisting queue to "+_queueFile.getAbsolutePath());
+                final String qPath = _queueFile.getAbsolutePath();
+                final String bakPath=qPath+".bak";
+                final File bak=new File(bakPath);
+                bak.delete();
+                boolean bRen=_queueFile.renameTo(bak);
+                if(!bRen)
+                    log.warn("could not rename queue to backup:"+bakPath);
+                log.info("persisting queue to "+qPath);
                 _theQueue.getOwnerDocument_KElement().write2File(_queueFile.getAbsolutePath(), 0, true);
             }
             lastPersist=t;
@@ -933,8 +982,11 @@ public class QueueProcessor implements IQueueProcessor
         catch (JDFException e) {
             // nop
         }
-        JDFQueue q= _theQueue.copyToResponse(resp, qf);
-
+        JDFQueue q;
+        synchronized(_theQueue)
+        {
+            q= _theQueue.copyToResponse(resp, qf);
+        }
         removeBambiNSExtensions(q);
         return q;
     }

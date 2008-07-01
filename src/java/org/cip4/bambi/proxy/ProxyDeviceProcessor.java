@@ -685,16 +685,17 @@ public class ProxyDeviceProcessor extends AbstractDeviceProcessor
 
         // get the returned JDFDoc from the incoming ReturnQE command and pack it in the outgoing
         JDFDoc doc = retQEParams.getURLDoc();
+        final JDFQueueEntry qe=currentQE.getQueueEntry();
         if (doc==null) {
             String errorMsg="failed to parse the JDFDoc from the incoming "
                 + "ReturnQueueEntry with QueueEntryID="+currentQE.getQueueEntryID();
             JMFHandler.errorResponse(resp, errorMsg, 2);
-
-            return true;
         }
-        final JDFQueueEntry qe=currentQE.getQueueEntry();
-        // brutally overwrite the current node with this
-        _statusListener.replaceNode(doc.getJDFRoot());            
+        else
+        {
+            // brutally overwrite the current node with this
+            _statusListener.replaceNode(doc.getJDFRoot());   
+        }
 
         BambiNSExtension.setDeviceURL(qe, null);
 

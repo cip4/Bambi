@@ -100,8 +100,6 @@ public class StatusListener implements IStatusListener
     protected StatusCounter theCounter;
     private JDFNode currentNode=null;
     private long lastSave = 0;
-//    private Vector<JDFDoc> queuedStatus=new Vector<JDFDoc>();
-//    private Vector<JDFDoc> queuedResource=new Vector<JDFDoc>();
 
     /**
      * 

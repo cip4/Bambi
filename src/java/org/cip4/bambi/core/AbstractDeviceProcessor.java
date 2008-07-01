@@ -308,8 +308,11 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 
         JDFNode node=currentQE.getJDF();
         if(node==null)
+        {
+            log.error("no JDF Node for: "+queueEntryID);
             return false;
-
+        }
+        boolean bOK=true;
         initializeProcessDoc(node,qe);
 
         EnumQueueEntryStatus qes;
@@ -319,16 +322,17 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             if (qes==null) {
                 if (log!=null)
                     log.error( "QueueEntryStatus is null" );
-                return false;
+                bOK= false;
             }
             log.info("finalized processing JDF: ");
         } catch(Exception x) {
             log.error("error processing JDF: "+x);
             qes=EnumQueueEntryStatus.Aborted;
-            return false;
+            bOK= false;
         }
 
-        return finalizeProcessDoc(qes);
+        // Always finalize even if exceptions are caught
+        return finalizeProcessDoc(qes)&& bOK;
     }
 
     /**

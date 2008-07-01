@@ -106,6 +106,7 @@ public class MessageSender implements Runnable {
     private static IConverterCallback _callBack=null;
     private static VectorMap<String, DumpDir> vDumps=new VectorMap<String, DumpDir>();
     private Object mutexDispatch=new Object();
+    private int sent=0;
 
 
     protected class MessageDetails
@@ -274,6 +275,7 @@ public class MessageSender implements Runnable {
                     if(sentFirstMessage)
                     {
                         _messages.remove(0);
+                        sent++;
                     }
 
                     if ( doShutDownGracefully && _messages.isEmpty() ) {
@@ -453,7 +455,7 @@ public class MessageSender implements Runnable {
     @Override
     public String toString()
     {
-        return "MessageSender - URL: "+_url+" size: "+_messages.size()+"\n"+_messages;
+        return "MessageSender - URL: "+_url+" size: "+_messages.size()+" total: "+sent+"\n"+_messages;
     }
 
 }

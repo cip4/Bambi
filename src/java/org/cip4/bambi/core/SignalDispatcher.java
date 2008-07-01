@@ -783,7 +783,7 @@ public final class SignalDispatcher
         }
         if(ContainerUtil.equals(getSenderID(),BambiServlet.getDeviceIDFromURL(sub.url)))
         {
-            log .info("subscribing to self - ignore: "+getSenderID());
+            log.warn("subscribing to self - ignore: "+getSenderID());
             return null;
         }
         if(subscriptionMap.containsKey(sub.channelID))
