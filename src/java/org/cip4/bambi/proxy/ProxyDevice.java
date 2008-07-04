@@ -250,8 +250,9 @@ public class ProxyDevice extends AbstractDevice {
             {
                 JDFStatusQuParams sqp = m.getStatusQuParams();
                 String qeid=(sqp!=null) ? sqp.getQueueEntryID():null;
-                if(qeid==null)
+                if(KElement.isWildCard(qeid))
                     b=handleIdle(m,resp);
+                
                 if(!b)
                     JMFHandler.errorResponse(resp, "Unknown QueueEntry: "+qeid ,103);
             }
@@ -541,14 +542,7 @@ public class ProxyDevice extends AbstractDevice {
                 return proc.getSlaveQEID();             
         }
         JDFQueueEntry qe=_theQueueProcessor.getQueue().getQueueEntry(bambiQEID);
-        if(qe!=null)
-        {
-            KElement sc=BambiNSExtension.getStatusContainer(qe);
-            if(sc!=null)
-                return sc.getAttribute("SlaveQueueEntryID",null,null);
-        }
-            
-        return null;
+        return BambiNSExtension.getSlaveQueueEntryID(qe);
     }
  
     /* (non-Javadoc)

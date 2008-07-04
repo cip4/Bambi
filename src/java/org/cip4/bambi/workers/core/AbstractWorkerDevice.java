@@ -177,9 +177,9 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
          * fore use as html display using an XSLT
          * @param dev
          */
-        public XMLSimDevice()
+        public XMLSimDevice(String contextPath)
         {
-            d=new XMLDevice(true);
+            d=new XMLDevice(true,contextPath);
 
             currentJobPhase = getCurrentJobPhase();
             if(currentJobPhase!=null)
@@ -275,7 +275,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
         if(refresh)
             return super.showDevice(request, response, refresh); // skip the phase stuff
         
-        XMLSimDevice simDevice=this.new XMLSimDevice();
+        XMLSimDevice simDevice=this.new XMLSimDevice(request.getContextPath());
         try
         {
             simDevice.d.write2Stream(response.getOutputStream(), 0,true);

@@ -88,6 +88,7 @@ import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
@@ -107,6 +108,7 @@ import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.MimeUtil;
 
@@ -123,12 +125,11 @@ public final class SignalDispatcher
 {
     protected static final Log log = LogFactory.getLog(SignalDispatcher.class.getName());
     protected HashMap<String, MsgSubscription> subscriptionMap=null; // map of channelID / Subscription
-//  protected VectorMap<String,String> queueEntryMap=null; // map of queueEntryID / vector of channelIDS
     protected IMessageHandler messageHandler=null;
     protected Vector<Trigger> triggers=null;
     protected Object mutex=null;
     protected boolean doShutdown=false;
-    protected IDevice device=null;
+    protected String deviceID=null;
     private JMFFactory jmfFactory;
     private Dispatcher theDispatcher;
 
@@ -158,13 +159,14 @@ public final class SignalDispatcher
         {
             Vector<MsgSubscription> v=ContainerUtil.toValueVector(subscriptionMap, true);
             KElement root=getRoot();
-            root.setAttribute(AttributeName.DEVICEID, device.getDeviceID());
+            root.setAttribute(AttributeName.DEVICEID, deviceID);
+            root.setAttribute(AttributeName.CONTEXT, "/"+BambiServlet.getBaseServletName(request));
             if(v!=null)
             {
                 for(int i=0;i<v.size();i++)
                     v.get(i).appendToXML(root);
             }
-            setXSLTURL("../subscriptionList.xsl");
+            setXSLTURL("/"+BambiServlet.getBaseServletName(request)+"/subscriptionList.xsl");
             try
             {
                 write2Stream(response.getOutputStream(), 2,true);
@@ -182,16 +184,16 @@ public final class SignalDispatcher
     protected static class Trigger
     {
         protected String queueEntryID;
-        protected String workStepID;
+        protected NodeIdentifier nodeIdentifier;
         protected String channelID;
         protected int amount;
         private Object mutex;
 
-        public Trigger(String _queueEntryID, String _workStepID, String _channelID, int _amount)
+        public Trigger(String _queueEntryID, NodeIdentifier _workStepID, String _channelID, int _amount)
         {
             super();
             queueEntryID = _queueEntryID;
-            workStepID = _workStepID;
+            nodeIdentifier = _workStepID;
             channelID=_channelID;
             amount = _amount;
             mutex=new Object();
@@ -208,7 +210,7 @@ public final class SignalDispatcher
             Trigger t=(Trigger) t1;
             boolean b=ContainerUtil.equals(channelID, t.channelID);
             b=b && ContainerUtil.equals(queueEntryID, t.queueEntryID) ;
-            b=b &&  ContainerUtil.equals(workStepID, t.workStepID) ;   
+            b=b &&  ContainerUtil.equals(nodeIdentifier, t.nodeIdentifier) ;   
             return b;
         }
 
@@ -218,14 +220,15 @@ public final class SignalDispatcher
         @Override
         public String toString()
         {
-            return "Trigger: queueEntryID: "+queueEntryID+" workStepID: "+workStepID+ " amount: "+amount+workStepID+ " channelID: "+channelID;
+            return "Trigger: queueEntryID: "+queueEntryID+" nodeIdentifier: "+nodeIdentifier+ " amount: "+amount+nodeIdentifier+ " channelID: "+channelID;
         }
 
         @Override
         public int hashCode()
         {
-            // TODO Auto-generated method stub
-            return super.hashCode()+channelID==null ? 0 : channelID.hashCode() + queueEntryID==null ? 0 : queueEntryID.hashCode() + workStepID==null ? 0 : workStepID.hashCode();
+            return super.hashCode()+channelID==null ? 0 : channelID.hashCode() + 
+                    queueEntryID==null ? 0 : queueEntryID.hashCode() + 
+                            ((nodeIdentifier==null) ? 0 : nodeIdentifier.hashCode());
         }
 
         /**
@@ -235,7 +238,7 @@ public final class SignalDispatcher
         {
             if(mutex==null)
             {
-                 return; // pure time subscriptions are reused and never block!
+                return; // pure time subscriptions are reused and never block!
             }
             synchronized (mutex)
             {
@@ -357,8 +360,8 @@ public final class SignalDispatcher
             final JDFJMF signalJMF = sub.getSignal();
             if(signalJMF!=null)
             {
-                signalJMF.setSenderID(getSenderID());
-                jmfFactory.send2URL(signalJMF, url, null,getSenderID());
+                signalJMF.setSenderID(deviceID);
+                jmfFactory.send2URL(signalJMF, url, null,deviceID);
 
                 if(sub.trigger!=null)
                     sub.trigger.setQueued();
@@ -498,6 +501,7 @@ public final class SignalDispatcher
             JDFQuery q=(JDFQuery)theMessage;
             JDFJMF jmf=q.createResponse();
             JDFResponse r=jmf.getResponse(0);
+            // make a copy so that modifications do not have an effect
             q=(JDFQuery) jmf.copyElement(q, null);
             q.removeChild(ElementName.SUBSCRIPTION, null, 0);
 
@@ -509,12 +513,17 @@ public final class SignalDispatcher
                 return null;
             }
             int nResp=jmf.numChildElements(ElementName.RESPONSE, null);
-            JDFJMF jmfOut=JDFJMF.createJMF(EnumFamily.Signal, q.getEnumType());
+            int nSignals=jmf.numChildElements(ElementName.SIGNAL, null);
+            JDFJMF jmfOut=(nResp+nSignals>0) ? new JDFDoc("JMF").getJMFRoot():null;
             for(int i=0;i<nResp;i++)
             {
                 JDFSignal s=jmfOut.getCreateSignal(i);
                 r=jmf.getResponse(i);
                 s.convertResponse(r, q);
+            }
+            for(int i=0;i<nSignals;i++)
+            {
+                jmfOut.copyElement(jmf.getSignal(i), null);
             }
             return jmfOut;
         }
@@ -695,20 +704,18 @@ public final class SignalDispatcher
      * @param deviceID ID of the device this SignalHandler is working for. 
      * 			       Required for debugging purposes only. 
      */
-    public SignalDispatcher(IMessageHandler _messageHandler, IDevice dev)
+    public SignalDispatcher(IMessageHandler _messageHandler, String devID, IConverterCallback cb)
     {    
-        device=dev;
+        deviceID=devID;
         subscriptionMap=new HashMap<String, MsgSubscription>();
         //       queueEntryMap=new VectorMap<String, String>();
         messageHandler=_messageHandler;
         triggers=new Vector<Trigger>();
         mutex = new Object();
         theDispatcher = new Dispatcher();
-        new Thread(theDispatcher,"SignalDispatcher_"+getSenderID()).start();
-        log.info("dispatcher thread 'SignalDispatcher_"+getSenderID()+"' started");
-        IConverterCallback cb=null;
-        if(dev instanceof AbstractDevice)
-            cb=((AbstractDevice)device).getCallback();
+        new Thread(theDispatcher,"SignalDispatcher_"+deviceID).start();
+        log.info("dispatcher thread 'SignalDispatcher_"+deviceID+"' started");
+
         jmfFactory=new JMFFactory(cb);
     }
 
@@ -781,9 +788,9 @@ public final class SignalDispatcher
         {
             return null;
         }
-        if(ContainerUtil.equals(getSenderID(),BambiServlet.getDeviceIDFromURL(sub.url)))
+        if(ContainerUtil.equals(deviceID,BambiServlet.getDeviceIDFromURL(sub.url)))
         {
-            log.warn("subscribing to self - ignore: "+getSenderID());
+            log.warn("subscribing to self - ignore: "+deviceID);
             return null;
         }
         if(subscriptionMap.containsKey(sub.channelID))
@@ -844,7 +851,6 @@ public final class SignalDispatcher
      * remove a know subscription by channelid
      * @param channelID the channelID of the subscription to remove
      */
-
     public void removeSubScription(String channelID)
     {
         theDispatcher.flush();
@@ -860,6 +866,7 @@ public final class SignalDispatcher
         }
         log.debug("removing subscription for channelid="+channelID);
     }
+
     /**
      * remove a know subscription by queueEntryID
      * @param queueEntryID the queueEntryID of the subscriptions to remove
@@ -900,12 +907,12 @@ public final class SignalDispatcher
      * trigger a subscription based on channelID
      * @param channelID the channelid of the channel to trigger
      * @param queueEntryID the queuentryid of the active queueentry
-     * @param workStepID the workStepID of the active task
+     * @param nodeIdentifier the nodeIdentifier of the active task
      * @param amount the amount produced since the last call, 0 if unknown, -1 for a global trigger
      */
-    public Trigger triggerChannel(String channelID,  String queueEntryID, String workStepID, int amount)
+    public Trigger triggerChannel(String channelID,  String queueEntryID, NodeIdentifier nodeIdentifier, int amount)
     {
-        Trigger tNew=new Trigger(queueEntryID, workStepID, channelID, amount);
+        Trigger tNew=new Trigger(queueEntryID, nodeIdentifier, channelID, amount);
         synchronized (triggers)
         {
             Trigger t=getTrigger(tNew); 
@@ -961,11 +968,11 @@ public final class SignalDispatcher
      * trigger a subscription based on queuentryID
      * @param the queuentryid of the active queueentry
      * @param queueEntryID the queuentryid of the active queueentry
-     * @param workStepID the workStepID of the active task
+     * @param nodeIdentifier the nodeIdentifier of the active task
      * @param amount the amount produced since the last call, 0 if unknown, -1 for a global trigger
      */
 
-    public Trigger[] triggerQueueEntry(String queueEntryID,  String workStepID, int amount)
+    public Trigger[] triggerQueueEntry(String queueEntryID,  NodeIdentifier nodeID, int amount)
     {
         Vector<MsgSubscription> v=ContainerUtil.toValueVector(subscriptionMap,false);
         int si = v==null ? 0 : v.size();
@@ -978,7 +985,7 @@ public final class SignalDispatcher
             MsgSubscription sub=v.get(i);
             if(KElement.isWildCard(sub.queueEntry) || sub.queueEntry.equals(queueEntryID))
             {
-                triggers[n++]=triggerChannel(sub.channelID, queueEntryID, workStepID, amount);
+                triggers[n++]=triggerChannel(sub.channelID, queueEntryID, nodeID, amount);
             }
         }
         if(n==0)
@@ -1008,14 +1015,6 @@ public final class SignalDispatcher
         doShutdown=true;
     }
 
-    /**
-     * @return
-     */
-    private String getSenderID()
-    {
-        return device==null ? null : device.getDeviceID();
-    }
-
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
      */
@@ -1033,7 +1032,6 @@ public final class SignalDispatcher
         {
             mutex.notifyAll();
         }
-
     }
 
 }

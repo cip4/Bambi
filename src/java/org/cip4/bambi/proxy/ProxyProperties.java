@@ -80,7 +80,6 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
 
 
@@ -98,7 +97,8 @@ public class ProxyProperties extends MultiDeviceProperties
      */
  
    private static final Log log = LogFactory.getLog(ProxyProperties.class.getName());
-   public class ProxyDeviceProperties extends DeviceProperties implements IProxyProperties {
+   public class ProxyDeviceProperties extends DeviceProperties implements IProxyProperties 
+   {
         /**
          * constructor
          */

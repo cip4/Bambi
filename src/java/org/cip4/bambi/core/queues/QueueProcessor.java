@@ -158,6 +158,7 @@ public class QueueProcessor implements IQueueProcessor
                 File f=new File(theDocFile);
                 f.delete();
             }
+            _parentDevice.stopProcessing(qe.getQueueEntryID(), null);
         }
         
     }
@@ -461,6 +462,7 @@ public class QueueProcessor implements IQueueProcessor
             _theQueue.copyToResponse(resp, qfo);
             JDFFlushQueueInfo flushQueueInfo=resp.appendFlushQueueInfo();
             flushQueueInfo.setQueueEntryDefsFromQE(zapped);
+            
             return true;       
         }
     }
@@ -528,7 +530,7 @@ public class QueueProcessor implements IQueueProcessor
             {
                 getRoot().mergeElement(_theQueue, false);
             }
-            setXSLTURL(_parentDevice.getXSLT(SHOW_QUEUE));
+            setXSLTURL(_parentDevice.getXSLT(SHOW_QUEUE,request.getContextPath()));
             addOptions();
 
             try
@@ -661,6 +663,7 @@ public class QueueProcessor implements IQueueProcessor
     private static final String SHOW_QUEUE = "showQueue";
     private static final String SHOW_JDF = "showJDF";
     private static final String MODIFY_QE = "modifyQE";
+    public boolean useJobIDasQEID=false;
 
     protected JDFQueue _theQueue;
     private Vector<Object> _listeners;
@@ -744,6 +747,7 @@ public class QueueProcessor implements IQueueProcessor
         _theQueue.setDeviceID(deviceID);
         _theQueue.setMaxCompletedEntries(100); 
         _theQueue.setCleanupCallback(new QueueEntryCleanup()); // zapps any attached files when removing qe
+        BambiNSExtension.setMyNSAttribute(_theQueue, "ensureNS", "true");
     }
 
     /**
@@ -823,33 +827,55 @@ public class QueueProcessor implements IQueueProcessor
             log.error("error submitting new queueentry");
             return null;
         }
-        if(!_theQueue.canAccept())
-            return null;
-        if(!_parentDevice.canAccept(theJDF))
-            return null;
+        synchronized (_theQueue)
+        {
 
-        JDFQueueSubmissionParams qsp=submitQueueEntry.getQueueSubmissionParams(0);
-        if(qsp==null) {
-            log.error("error submitting new queueentry");
-            return null;
+            if(!_theQueue.canAccept())
+                return null;
+            if(!_parentDevice.canAccept(theJDF))
+                return null;
+
+            JDFQueueSubmissionParams qsp=submitQueueEntry.getQueueSubmissionParams(0);
+            if(qsp==null) {
+                log.error("error submitting new queueentry");
+                return null;
+            }
+
+            JDFResponse r=qsp.addEntry(_theQueue, null);
+            JDFQueueEntry newQE=r.getQueueEntry(0);
+
+            if(r.getReturnCode()!=0 || newQE==null) {
+                log.error("error submitting queueentry: "+r.getReturnCode());
+                return null;
+            }
+            String qeID=newQE.getQueueEntryID();
+            if(useJobIDasQEID)
+            {
+                String jobID= theJDF.getJDFRoot().getJobID(true);
+                if(jobID==null)
+                {
+                    log.error("error converting jobID: ");
+                    return null;
+                }
+                JDFQueueEntry qe2=_theQueue.getQueueEntry(jobID);
+                if(qe2!=null)
+                {
+                    log.error("queueEntry with jobID: "+jobID+" already exists");
+                    return null;
+                }
+                newQE.setQueueEntryID(jobID);
+                _theQueue.getQueueEntry(qeID).setQueueEntryID(jobID);
+                qeID=jobID;
+            }
+
+            if(!storeDoc(newQE,theJDF,qsp.getReturnURL(),qsp.getReturnJMF())) {
+                log.error("error storing queueentry: "+r.getReturnCode());
+                return null;
+            }
+            persist(0);
+            notifyListeners();
+            return _theQueue.getQueueEntry(qeID);
         }
-
-        JDFResponse r=qsp.addEntry(_theQueue, null);
-        JDFQueueEntry newQE=r.getQueueEntry(0);
-
-        if(r.getReturnCode()!=0 || newQE==null) {
-            log.error("error submitting queueentry: "+r.getReturnCode());
-            return null;
-        }
-        final String qeID=newQE.getQueueEntryID();
-
-        if(!storeDoc(newQE,theJDF,qsp.getReturnURL(),qsp.getReturnJMF())) {
-            log.error("error storing queueentry: "+r.getReturnCode());
-            return null;
-        }
-        persist(0);
-        notifyListeners();
-        return _theQueue.getQueueEntry(qeID);
     }
 
     /**

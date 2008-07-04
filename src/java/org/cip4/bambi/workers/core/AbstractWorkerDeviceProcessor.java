@@ -566,7 +566,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
                 }
             }
             _statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails,phase.nodeStatus,phase.nodeStatusDetails, reachedEnd);
-            if(phase.timeToGo>0)
+            if(phase.timeToGo>0 &&!_doShutdown)
             {
                 randomErrors(phase);
                 StatusCounter.sleep(123);
@@ -654,8 +654,9 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
             if(p!=null)
                 p.timeToGo=0;
             _jobPhases.clear();
-            p=new JobPhase();            
-            p.setNodeStatus(newStatus);
+            p=new JobPhase();      
+            if(newStatus!=null)
+                p.setNodeStatus(newStatus);
             p.setDeviceStatus(EnumDeviceStatus.Idle);
             doNextPhase(p);
         }

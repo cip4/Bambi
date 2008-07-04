@@ -115,11 +115,11 @@ public class StatusListener implements IStatusListener
 
     public void flush()
     {
-        Trigger[] t=dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), -1);
+        Trigger[] t=dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1);
         dispatcher.flush();
         if(rootDispatcher!=null)
         {
-            rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), -1);
+            rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1);
             rootDispatcher.flush();
         }
         Trigger.waitQueued(t, 2000);
@@ -148,7 +148,7 @@ public class StatusListener implements IStatusListener
             return;
         theCounter.addPhase(resID, good, waste);
         if(good>0) {
-            dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getWorkStepID(), (int)good);
+            dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int)good);
         }
         if(System.currentTimeMillis()-lastSave>3000)
             saveJDF();
@@ -173,7 +173,7 @@ public class StatusListener implements IStatusListener
     /* (non-Javadoc)
      * @see org.cip4.bambi.IStatusListener#setNode(java.lang.String, org.cip4.jdflib.node.JDFNode)
      */
-    public void setNode(String queueEntryID, String workStepID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID)
+    public void setNode(String queueEntryID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID)
     {       
         String oldQEID=theCounter.getQueueEntryID();
         theCounter.writeAll(); // write all stuff in the counter to the node
@@ -194,7 +194,6 @@ public class StatusListener implements IStatusListener
         theCounter.setFirstRefID(trackResourceID);
         theCounter.setTrackWaste(trackResourceID, true); // always track waste
         theCounter.setQueueEntryID(queueEntryID);
-        theCounter.setWorkStepID(workStepID);
         while(node!=null) {
             log.info("adding subscription for: "+queueEntryID);
             dispatcher.addSubscriptions(node,queueEntryID);

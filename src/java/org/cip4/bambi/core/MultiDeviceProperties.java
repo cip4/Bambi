@@ -181,7 +181,7 @@ public class MultiDeviceProperties
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
          */
-        public IDevice getDeviceClass()
+        public IDevice getDeviceInstance()
         {
             String _deviceName=getDeviceClassName();
 

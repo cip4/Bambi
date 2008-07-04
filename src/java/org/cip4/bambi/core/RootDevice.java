@@ -84,6 +84,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
+import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
@@ -100,6 +101,7 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StringUtil;
 
 /**
  * the dispatcher / rootDev controller device
@@ -196,12 +198,11 @@ public class RootDevice extends AbstractDevice
         IDevice dev;
         if(servlet!=null)
         {
-            dev= prop.getDeviceClass();
+            dev= prop.getDeviceInstance();
             if(dev instanceof AbstractDevice)
             {
                 final AbstractDevice abstractDevice = ((AbstractDevice)dev);
                 abstractDevice.setRootDevice(this);
-                servlet._getHandlers.add(0,abstractDevice);
             }
 
             _devices.put(devID,dev);
@@ -385,6 +386,7 @@ public class RootDevice extends AbstractDevice
      * @param deviceID ID of the device to get
      * @return
      */
+    @Override
     public IDevice getDevice(String deviceID)
     {
         if (_devices == null) {
@@ -437,7 +439,9 @@ public class RootDevice extends AbstractDevice
         IDevice[] devices=getDeviceArray();
         XMLDoc deviceList=new XMLDoc("DeviceList",null);
         KElement listRoot=deviceList.getRoot();
-        XMLDevice dRoot=this.new XMLDevice(false);
+        listRoot.setAttribute(AttributeName.CONTEXT, "/"+BambiServlet.getBaseServletName(request));
+        XMLDevice dRoot=this.new XMLDevice(false,request.getContextPath());
+
         final KElement rootElem = dRoot.getRoot();
         rootElem.setAttribute("Root", true,null);
         listRoot.copyAttribute("DeviceType", rootElem, null, null, null);
@@ -449,7 +453,7 @@ public class RootDevice extends AbstractDevice
             if(devices[i] instanceof AbstractDevice)
             {
                 AbstractDevice ad=(AbstractDevice)devices[i];
-                XMLDevice dChild=ad.new XMLDevice(false);
+                XMLDevice dChild=ad.new XMLDevice(false,request.getContextPath());
                 final KElement childElem = dChild.getRoot();
                 childElem.setAttribute("Root", false,null);
                 listRoot.copyElement(childElem, null);
@@ -460,7 +464,7 @@ public class RootDevice extends AbstractDevice
             }
         }
 
-        deviceList.setXSLTURL("deviceList.xsl");
+        deviceList.setXSLTURL(getXSLT("overview", request.getContextPath()));
 
         try
         {
@@ -473,6 +477,22 @@ public class RootDevice extends AbstractDevice
         response.setContentType(MimeUtil.TEXT_XML);
         return true;
 
+    }
+    /**
+     * @return
+     */
+    public String getXSLT(String command, String contextPath)
+    {
+        String s=null;
+        if("overview".equalsIgnoreCase(command))
+            s= "/deviceList.xsl";
+        else
+            return super.getXSLT(command, contextPath);
+        if(contextPath!=null)
+        {
+            s="/"+StringUtil.token(contextPath, 0, "/")+s;
+        }
+        return s;
     }
 
     //////////////////////////////////////////////////////////////////////////////////

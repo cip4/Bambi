@@ -107,6 +107,7 @@ public class MessageSender implements Runnable {
     private static VectorMap<String, DumpDir> vDumps=new VectorMap<String, DumpDir>();
     private Object mutexDispatch=new Object();
     private int sent=0;
+    private int idle=0;
 
 
     protected class MessageDetails
@@ -116,11 +117,13 @@ public class MessageSender implements Runnable {
         protected IResponseHandler respHandler;
         protected MIMEDetails mimeDet;
         protected String senderID=null;
-        protected MessageDetails(JDFJMF _jmf, IResponseHandler _respHandler, HTTPDetails hdet)
+        protected String url=null;
+        protected MessageDetails(JDFJMF _jmf, IResponseHandler _respHandler, HTTPDetails hdet, String _url)
         {
             respHandler=_respHandler;
             jmf=_jmf;
             senderID=jmf==null ? null : jmf.getSenderID();
+            url=_url;
             if(hdet==null)
                 mimeDet=null;
             else
@@ -129,12 +132,13 @@ public class MessageSender implements Runnable {
                 mimeDet.httpDetails=hdet;
             }            
         }
-        protected MessageDetails(Multipart _mime, IResponseHandler _respHandler, MIMEDetails mdet,String _senderID)
+        protected MessageDetails(Multipart _mime, IResponseHandler _respHandler, MIMEDetails mdet,String _senderID, String _url)
         {
             respHandler=_respHandler;
             mime=_mime;
             mimeDet=mdet;
             senderID=_senderID;
+            url=_url;
         }
     }
 
@@ -276,9 +280,11 @@ public class MessageSender implements Runnable {
                     {
                         _messages.remove(0);
                         sent++;
+                        idle=0;
                     }
 
-                    if ( doShutDownGracefully && _messages.isEmpty() ) {
+                    if ( doShutDownGracefully && (_messages.isEmpty()||idle>10) ) // idle > 10 blasts this odd if doShutDownGracefully and we are having problems
+                    {
                         doShutDown=true;
                     }
                 }
@@ -289,16 +295,24 @@ public class MessageSender implements Runnable {
             }
             if(!sentFirstMessage)
             {
-                try
-                {
-                    synchronized (mutexDispatch)
-                    {
-                        mutexDispatch.wait(1000);                        
-                    }
+                if(idle++ >3600) {
+                    // no success or idle for an hour...
+                    doShutDown=true;
+                    log.info("Shutting down thread for base url: "+_url);
                 }
-                catch (InterruptedException x)
+                else
                 {
-                    //nop
+                    try
+                    {
+                        synchronized (mutexDispatch)
+                        {
+                            mutexDispatch.wait(1000);                        
+                        }
+                    }
+                    catch (InterruptedException x)
+                    {
+                        //nop
+                    }
                 }
             }
         }
@@ -328,7 +342,7 @@ public class MessageSender implements Runnable {
 
             JDFJMF jmf=mh.jmf;
             Multipart mp=mh.mime;
-            if(KElement.isWildCard(_url) ) 
+            if(KElement.isWildCard(mh.url) ) 
                 return true; // snafu anyhow but not sent but no retry useful
             if ( jmf==null && mp==null)
                 return true; // need no resend - will remove
@@ -339,7 +353,7 @@ public class MessageSender implements Runnable {
                 {
                     final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
                     HTTPDetails hd=mh.mimeDet==null ? null : mh.mimeDet.httpDetails;
-                    con=jmfDoc.write2HTTPURL(new URL(_url),hd);
+                    con=jmfDoc.write2HTTPURL(new URL(mh.url),hd);
                     if(outDump!=null)
                     {
                         File dump=outDump.newFile();
@@ -348,7 +362,7 @@ public class MessageSender implements Runnable {
                 }
                 else if(mp!=null)
                 {
-                    con=MimeUtil.writeToURL(mp, _url, mh.mimeDet);
+                    con=MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
                     if(outDump!=null)
                     {
                         File dump=outDump.newFile();
@@ -376,10 +390,17 @@ public class MessageSender implements Runnable {
                         b=mh.respHandler.handleMessage();
                     }
                 }
+                else
+                {
+                    b=false;
+                    if(idle==0)// only warn on first try
+                        log.warn("could not send message to "+mh.url+" rc= "+((con==null) ? -1 : con.getResponseCode()));
+                }
 
             }
             catch (Exception e) {
                log.error("Exception in sendfirstmessage",e);
+               b=false;
             }
             return b;
         }
@@ -396,6 +417,14 @@ public class MessageSender implements Runnable {
         } else {
             doShutDown=true;
         }
+    }
+    /**
+     * return true if the thread is still running
+     * @return
+     */
+    public boolean isRunning() 
+    {
+       return !doShutDown;
     }
     private DumpDir getInDump(String senderID)
     {
@@ -418,7 +447,7 @@ public class MessageSender implements Runnable {
      * @return true, if the message is successfully queued. 
      *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
      */
-    public boolean queueMessage(JDFJMF jmf, IResponseHandler handler) {
+    public boolean queueMessage(JDFJMF jmf, IResponseHandler handler, String url) {
         if (doShutDown || doShutDownGracefully) {
             return false;
         }
@@ -426,7 +455,7 @@ public class MessageSender implements Runnable {
             _callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
 
         synchronized(_messages) {
-            _messages.add(new MessageDetails(jmf,handler,null));
+            _messages.add(new MessageDetails(jmf,handler,null,url));
         }
         synchronized (mutexDispatch)
         {
@@ -441,13 +470,13 @@ public class MessageSender implements Runnable {
      * @return true, if the message is successfully queued. 
      *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
      */
-    public boolean queueMimeMessage(Multipart multpart, IResponseHandler handler, MIMEDetails md, String senderID) {
+    public boolean queueMimeMessage(Multipart multpart, IResponseHandler handler, MIMEDetails md, String senderID, String url) {
         if (doShutDown || doShutDownGracefully) {
             return false;
         }
 
         synchronized(_messages) {
-            _messages.add(new MessageDetails(multpart,handler,md,senderID));
+            _messages.add(new MessageDetails(multpart,handler,md,senderID,url));
         }
         return true;
     }
