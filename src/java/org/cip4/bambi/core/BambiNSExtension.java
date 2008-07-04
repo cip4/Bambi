@@ -103,7 +103,7 @@ public class BambiNSExtension
      * @param attName the local attribute name to set
      * @param attVal the attribute value to set
      */
-    protected static void setMyNSAttribute(KElement e, String attName,String attVal)
+    public static void setMyNSAttribute(KElement e, String attName,String attVal)
     {
         if(e==null)
         {
@@ -119,7 +119,7 @@ public class BambiNSExtension
      * @return the element
      * 
      */
-    protected static KElement getCreateMyNSElement(KElement e, String elmName, int iSkip)
+    public static KElement getCreateMyNSElement(KElement e, String elmName, int iSkip)
     {
         return e==null ? null : e.getCreateElement(elmName, MY_NS, iSkip);
     }
@@ -130,7 +130,7 @@ public class BambiNSExtension
      * @return the element
      * 
      */
-    protected static KElement getMyNSElement(KElement e, String elmName, int iSkip)
+    public static KElement getMyNSElement(KElement e, String elmName, int iSkip)
     {
         return e==null ? null : e.getElement(elmName, MY_NS, iSkip);
     }
@@ -141,7 +141,7 @@ public class BambiNSExtension
      * @return the element
      * 
      */
-    protected static KElement removeMyNSElement(KElement e, String elmName, int iSkip)
+    public static KElement removeMyNSElement(KElement e, String elmName, int iSkip)
     {
         return e==null ? null : e.removeChild(elmName, MY_NS, iSkip);
     }
@@ -151,7 +151,7 @@ public class BambiNSExtension
      * @return the attribute value, null if none exists
      * 
      */
-    protected static String getMyNSAttribute(KElement e, String attName)
+    public static String getMyNSAttribute(KElement e, String attName)
     {
         return e==null ? null : e.getAttribute(attName, MY_NS, null);
     }
@@ -171,7 +171,7 @@ public class BambiNSExtension
      * @param e the element to work on
      * @param attName the local attribute name to remove
      */
-    protected static void removeMyNSAttribute(KElement e, String attName)
+    public static void removeMyNSAttribute(KElement e, String attName)
     {
         if(e==null)
         {
@@ -344,31 +344,31 @@ public class BambiNSExtension
         /**
          * the queue entry tracking subelement
          */
-        public static final String devQueueEntryID="DeviceQueueEntryID";
+        public static final String slaveQueueEntryID="SlaveQueueEntryID";
 
          /**
          * @param qe
          * @param outputQEID
          */
-        public static void setDeviceQueueEntryID(KElement qe, String outputQEID)
+        public static void setSlaveQueueEntryID(KElement qe, String outputQEID)
         {
-            setMyNSAttribute(qe, devQueueEntryID, outputQEID);        
+            setMyNSAttribute(qe, slaveQueueEntryID, outputQEID);        
         }
         /**
          * @param qe the queuentry to check
          */
-        public static String  getDeviceQueueEntryID(KElement qe)
+        public static String  getSlaveQueueEntryID(KElement qe)
         {
-            return getMyNSAttribute(qe, devQueueEntryID);        
+            return getMyNSAttribute(qe, slaveQueueEntryID);        
         }
         
         /**
          * @param qt
          * @param outputQEID
          */
-        public static JDFQueueEntry  getDeviceQueueEntry(JDFQueue q, String deviceQueueEntryID)
+        public static JDFQueueEntry  getSlaveQueueEntry(JDFQueue q, String slaveQueueEntryID)
         {
-            if(KElement.isWildCard(deviceQueueEntryID))
+            if(KElement.isWildCard(slaveQueueEntryID))
                 return null;
             
             VElement v=q.getQueueEntryVector();
@@ -377,7 +377,7 @@ public class BambiNSExtension
             for(int i=0;i<v.size();i++)
             {
                 JDFQueueEntry qe=(JDFQueueEntry)v.elementAt(i);
-                if(deviceQueueEntryID.equals(qe.getAttribute(devQueueEntryID, MY_NS, null)))
+                if(slaveQueueEntryID.equals(qe.getAttribute(slaveQueueEntryID, MY_NS, null)))
                     return qe;
             }
             return null;

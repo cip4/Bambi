@@ -117,10 +117,12 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.resource.JDFNotification;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.QueueHotFolder;
 import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.StatusCounter;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -146,13 +148,17 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
          * XML representation of this simDevice
          * fore use as html display using an XSLT
          * @param addProcs TODO
+         * @param contextPath 
          * @param dev
          */
-        public XMLDevice(boolean addProcs)
+        public XMLDevice(boolean addProcs, String contextPath)
         {
             super("XMLDevice",null);
-            setXSLTURL(getXSLT(SHOW_DEVICE));
             KElement root=getRoot();
+            contextPath="/"+StringUtil.token(contextPath, 0, "/");
+            setXSLTURL(getXSLT(SHOW_DEVICE,contextPath));
+
+            root.setAttribute(AttributeName.CONTEXT, contextPath);
             root.setAttribute(AttributeName.DEVICEID, getDeviceID());
             root.setAttribute(AttributeName.DEVICETYPE, getDeviceType());
             root.setAttribute("DeviceURL", getDeviceURL());
@@ -268,6 +274,8 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
          */
         public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
         {    
+            if(theStatusListener==null)
+                return false;
             StatusCounter sc=theStatusListener.getStatusCounter();
             final JDFSignal response2 = sc.getDocJMFResource().getJMFRoot().getSignal(0);
             response.mergeElement( response2,false);
@@ -279,7 +287,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
     }
     /**
      * 
-     * generic dispatcher handler for  command
+     * generic dispatcher handler for  dispatching to the respective low level processors
      */
     protected abstract class DispatchHandler extends JMFHandler.AbstractHandler
     {
@@ -391,7 +399,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
     {
         _jmfHandler = new JMFHandler(this);
 
-        _theSignalDispatcher=new SignalDispatcher(_jmfHandler, this);
+        _theSignalDispatcher=new SignalDispatcher(_jmfHandler, getDeviceID(),_callback);
         _theSignalDispatcher.addHandlers(_jmfHandler);        
         
         _jmfHandler.setDispatcher(_theSignalDispatcher);
@@ -484,7 +492,14 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
     public String getDeviceID() {
         return _devProperties.getDeviceID();
     }
-
+    
+    public IDevice getDevice(String deviceID)
+    {
+        if(KElement.isWildCard(deviceID))
+            return this;
+        return (ContainerUtil.equals(deviceID, getDeviceID())) ? this : null;
+    }
+    
     public JDFDoc processJMF(JDFDoc doc) {
         log.info("JMF processed by "+_devProperties.getDeviceID());
         return _jmfHandler.processJMF(doc);
@@ -547,13 +562,18 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
     /**
      * @return
      */
-    public String getXSLT(String context)
+    public String getXSLT(String command, String contextPath)
     {
-        if("showQueue".equalsIgnoreCase(context))
-            return "../queue2html.xsl";
-        if("showDevice".equalsIgnoreCase(context))
-            return "../showDevice.xsl";
-        return null;
+        String s=null;
+        if("showQueue".equalsIgnoreCase(command))
+            s= "/queue2html.xsl";
+        if("showDevice".equalsIgnoreCase(command))
+            s= "/showDevice.xsl";
+        if(s!=null && contextPath!=null)
+        {
+            s="/"+StringUtil.token(contextPath, 0, "/")+s;
+        }
+        return s;
     }
 
     /**
@@ -776,7 +796,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
     }
     protected boolean showDevice(HttpServletRequest request,HttpServletResponse response, boolean refresh)
     {
-        XMLDevice simDevice=this.new XMLDevice(true);
+        XMLDevice simDevice=this.new XMLDevice(true,request.getContextPath());
         if(refresh)
             simDevice.getRoot().setAttribute("refresh", true,null);
 

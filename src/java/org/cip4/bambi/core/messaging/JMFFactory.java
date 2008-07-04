@@ -74,7 +74,9 @@ package org.cip4.bambi.core.messaging;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.mail.Multipart;
 
@@ -93,7 +95,10 @@ import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+
+import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
 
 /**
  * factory for creating JMF messages
@@ -107,6 +112,14 @@ public class JMFFactory {
         private IConverterCallback callback;
         private String url;
         /**
+         * get the base url that is used to define equal senders
+         * @return
+         */
+        private String getBaseURL()
+        {
+            return StringUtil.token(url, 0, "/?")+"//"+StringUtil.token(url, 1, "/?");
+        }
+        /**
          * 
          */
         public CallURL(IConverterCallback _callback, String _url)
@@ -117,12 +130,13 @@ public class JMFFactory {
         @Override
         public int hashCode()
         {
-            return  (callback==null ? 0 : callback.hashCode())+(url==null ? 0 : url.hashCode());
+            final String baseUrl=getBaseURL();
+            return  (callback==null ? 0 : callback.hashCode())+(baseUrl==null ? 0 : baseUrl.hashCode());
         }
         @Override
         public String toString()
         {
-            return "[CallURL: "+callback+" - "+url+"]";
+            return "[CallURL: "+callback+" - "+getBaseURL()+"]";
         }
         @Override
         public boolean equals(Object obj)
@@ -130,7 +144,7 @@ public class JMFFactory {
             if(!(obj instanceof CallURL))
                 return false;
             CallURL other=(CallURL)obj;
-            return ContainerUtil.equals(url, other.url) && ContainerUtil.equals(callback, other.callback);
+            return ContainerUtil.equals(getBaseURL(), other.getBaseURL()) && ContainerUtil.equals(callback, other.callback);
         }
     }
 
@@ -288,7 +302,7 @@ public class JMFFactory {
         }
 
         MessageSender ms = getCreateMessageSender(url,callback); 
-        ms.queueMimeMessage(mp,handler,md,deviceID);
+        ms.queueMimeMessage(mp,handler,md,deviceID,url);
     }
     /**
      * sends a JMF message to a given URL
@@ -312,7 +326,7 @@ public class JMFFactory {
         MessageSender ms = getCreateMessageSender(url,callback); 
         if(senderID!=null)
             jmf.setSenderID(senderID);
-        ms.queueMessage(jmf,handler);
+        ms.queueMessage(jmf,handler,url);
     }
     /**
      * sends a JMF message to a given URL sychronusly
@@ -404,13 +418,36 @@ public class JMFFactory {
             return null;
         CallURL cu=new CallURL(callBack,url);
 
-        MessageSender ms=senders.get(cu);
-        if(ms==null)
+        synchronized (senders)
         {
-            ms=new MessageSender(url,callBack);
-            senders.put(cu, ms);
-            new Thread(ms,"MessageSender_"+nThreads++).start();
+
+            MessageSender ms=senders.get(cu);
+            if(ms!=null &&!ms.isRunning())
+            {
+                senders.remove(ms);
+                ms=null;
+            }
+            if(ms==null)
+            {
+                // cleanup idle threads
+                Iterator<MessageSender> it=senders.values().iterator();
+                Vector<MessageSender> v=new Vector<MessageSender>();
+                while(it.hasNext())
+                {
+                    MessageSender ms2=it.next();
+                    if(!ms2.isRunning())
+                        v.add(ms2);
+                }
+                for(int i=0;i<v.size();i++)
+                    senders.remove(v.get(i));
+                
+                ms=new MessageSender(cu.getBaseURL(),callBack);
+                senders.put(cu, ms);
+                new Thread(ms,"MessageSender_"+nThreads++ +"_"+cu.getBaseURL()).start();
+                
+            }
+            
+            return ms;
         }
-        return ms;
     }	
 }

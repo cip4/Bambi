@@ -70,8 +70,18 @@
  */
 package org.cip4.bambi.core;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+
+import javax.mail.BodyPart;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.core.queues.QueueEntry;
@@ -80,6 +90,8 @@ import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
@@ -93,6 +105,7 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
 import org.cip4.jdflib.resource.process.JDFUsageCounter;
+import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StatusCounter;
 
 /**
@@ -117,6 +130,74 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
     protected String _trackResource=null;
     protected AbstractDevice _parent=null;
 
+    protected class SubmitQueueEntryResponseHandler extends MessageResponseHandler 
+    {
+        public JDFDoc doc=null;
+        /**
+         * @param _type
+         * @param _families
+         */
+        public SubmitQueueEntryResponseHandler()
+        {
+            super();
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+         */
+        public boolean handleMessage()
+        {
+            HttpURLConnection uc=getConnection();
+            boolean handled=false;
+            if(uc==null)
+            {
+                finalizeHandling();
+                return false; // file
+            }
+            int rc;
+            try
+            {
+                rc = uc.getResponseCode();
+                if(rc==200)
+                {
+                    if(bufferedInput==null)
+                    {
+                        final InputStream inputStream = uc.getInputStream();
+                        bufferedInput =new BufferedInputStream(inputStream);
+                        bufferedInput.mark(1000000);
+                    }
+                    bufferedInput.reset();
+
+                    Multipart mpRet=MimeUtil.getMultiPart(bufferedInput);
+                    if(mpRet!=null)
+                    {
+                        try{
+                            BodyPart bp = mpRet.getBodyPart(0);
+                            doc= MimeUtil.getJDFDoc(bp);
+                            handled=true;
+                        }
+                        catch (MessagingException e) {
+                            // nop - try simple doc
+                        }
+                    }
+                    if(!handled)
+                    {
+                        bufferedInput.reset();
+                        doc=new JDFParser().parseStream(bufferedInput);
+                        handled=true;
+                    }
+                }       
+            }
+            catch (IOException x)
+            {
+                handled= false;
+            }
+            finalizeHandling();
+            return handled;
+        }
+
+    }
+    
     private class XMLDeviceProcessor
     {
         /**
@@ -256,6 +337,8 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
                     {
                         if (log!=null)
                             log.debug("waiting");
+                        if(_statusListener!=null)
+                            _statusListener.signalStatus(EnumDeviceStatus.Idle, null, null, null, false);
                         synchronized (_myListener)
                         {
                             _myListener.wait(10000); // just in case                        
@@ -399,11 +482,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         if(vPartMap==null)
             vPartMap=node.getNodeInfoPartMapVector();
 
-        JDFAttributeMap partMap=vPartMap==null ? null : vPartMap.elementAt(0);
-        final String workStepID = node.getWorkStepID(partMap);
-
         String trackResourceID=null;
-
         for (int i = 0; i < vSiz; i++) {
             JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
             if(trackResourceID==null && rl.matchesString(_trackResource))
@@ -436,7 +515,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             }
             trackResourceID= inConsume !=null ? inConsume : outQuantity;
         }
-        _statusListener.setNode(queueEntryID, workStepID, node, vPartMap, trackResourceID);
+        _statusListener.setNode(queueEntryID, node, vPartMap, trackResourceID);
     }
 
 
@@ -475,7 +554,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             }
         }
         _statusListener.flush();
-        _statusListener.setNode(null, null, null, null, null);
+        _statusListener.setNode(null, null, null, null);
         JDFQueueEntry qe = currentQE.getQueueEntry();
         _queueProcessor.updateEntry(qe, qes, null, null);
         ((QueueProcessor)_queueProcessor).returnQueueEntry( qe,null ,null);
@@ -546,4 +625,6 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
         super.finalize();
     }
 
+    
+    
 }

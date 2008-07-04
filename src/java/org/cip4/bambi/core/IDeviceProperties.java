@@ -153,7 +153,7 @@ public interface IDeviceProperties {
      * returns the name of the IDevice that specifies the converter name
      * @return {@link IConverterCallback} the callback to use, null if none is specified
      */
-    public IDevice getDeviceClass();
+    public IDevice getDeviceInstance();
     /**
      * returns the name of the IConverterCallback that specifies the converter name
      * @return {@link IConverterCallback} the callback to use, null if none is specified

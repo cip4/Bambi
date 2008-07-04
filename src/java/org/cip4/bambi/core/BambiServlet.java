@@ -153,9 +153,9 @@ public class BambiServlet extends HttpServlet {
         public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
         {
             String context=getContext(request);
-            if(KElement.isWildCard(context)||context.equalsIgnoreCase("overview"))
+            if(KElement.isWildCard(context)||context.equalsIgnoreCase("overview")&&(rootDev instanceof AbstractDevice))
             {
-                return rootDev.showDevice(request, response,false);
+                return ((AbstractDevice)rootDev).showDevice(request, response,false);
             }
             else
                 return false;
@@ -164,8 +164,8 @@ public class BambiServlet extends HttpServlet {
 
     protected IConverterCallback _callBack = null;
     private static Log log = LogFactory.getLog(BambiServlet.class.getName());
-    protected RootDevice rootDev=null;
-    protected List<IGetHandler> _getHandlers=new Vector<IGetHandler>();
+    protected IDevice rootDev=null;
+    private List<IGetHandler> _getHandlers=new Vector<IGetHandler>();
     protected DumpDir bambiDumpIn=null;
     protected DumpDir bambiDumpOut=null;
     public static int port=0;
@@ -179,7 +179,7 @@ public class BambiServlet extends HttpServlet {
         super.init(config);
         ServletContext context = config.getServletContext();       
         String dump=config.getInitParameter("bambiDump");
-         log.info( "Initializing servlet for "+context.getServletContextName() );
+        log.info( "Initializing servlet for "+context.getServletContextName() );
 
         loadProperties(context,new File("/config/devices.xml"),dump);
 
@@ -509,7 +509,8 @@ public class BambiServlet extends HttpServlet {
     protected IDevice getDeviceFromRequest(HttpServletRequest request)
     {
         String deviceID = getDeviceIDFromRequest(request);
-        IDevice dev = rootDev.getDevice(deviceID);
+        RootDevice root=getRootDevice();
+        IDevice dev = root==null ? rootDev : root.getDevice(deviceID); 
         if (dev == null) {
             log.info("invalid request: device with id="+deviceID==null?"null":deviceID+" not found");
             return null;
@@ -607,8 +608,8 @@ public class BambiServlet extends HttpServlet {
                     break;
             }
             // rootDev also dispatches to all other devices
-            if(!bHandled && rootDev!=null)
-                bHandled = rootDev.handleGet(request, response);
+            if(!bHandled && getRootDevice()!=null)
+                bHandled = getRootDevice().handleGet(request, response);
         }
         catch (Exception x)
         {
@@ -618,6 +619,14 @@ public class BambiServlet extends HttpServlet {
             this.new UnknownErrorHandler().handleGet(request, response);
 
 
+    }
+
+    /**
+     * @return
+     */
+    private RootDevice getRootDevice()
+    {
+        return (rootDev instanceof RootDevice) ? (RootDevice)rootDev : null;
     }
 
     /**
@@ -634,13 +643,22 @@ public class BambiServlet extends HttpServlet {
         }
         return context;
     }
+    /**
+     * get the static context string
+     * @param request
+     * @return
+     */
+    public static String getBaseServletName(HttpServletRequest request)
+    {
+        return StringUtil.token(request.getRequestURI(), 0, "/");
+    }
 
     public static boolean isMyRequest(HttpServletRequest request,final String deviceID)
     {
         if(deviceID==null)
             return true;
         final String reqDeviceID=getDeviceIDFromRequest(request);
-        return deviceID.equals(reqDeviceID);           
+        return reqDeviceID==null || deviceID.equals(reqDeviceID);           
     }
     /**
      * 
@@ -679,24 +697,20 @@ public class BambiServlet extends HttpServlet {
             IDevice d=null;
             if(rootDev==null)
             {
-                d=prop.getDeviceClass();
-                if(d instanceof RootDevice)
-                {
-                    d=rootDev=(RootDevice) d;
-                }
-                else
-                {
-                    d.shutdown();
-                    d=rootDev=new RootDevice(prop);
-                }
-                _callBack=prop.getCallBackClass(); // the first one wins       
-                d=rootDev.createDevice(prop,null);
-                if(v.size()==1) // also add myself to the list
-                    rootDev.createDevice(prop,this);
+                d=prop.getDeviceInstance();
+                rootDev=d;
             }
             else
             {
-                d=rootDev.createDevice(prop,this);
+                RootDevice rd=getRootDevice();
+                if(rd==null)
+                {
+                    if(rootDev!=null)
+                        rootDev.shutdown();
+                    rootDev=rd=new RootDevice(props.createDevice(v.get(0)));
+                }
+                d=rd.createDevice(prop,this);
+
             }
             if(dump!=null)
             {
@@ -704,9 +718,10 @@ public class BambiServlet extends HttpServlet {
                 bambiDumpOut=new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("out")));
                 MessageSender.addDumps(d.getDeviceID(),bambiDumpIn,bambiDumpOut);
             }
+            if(d instanceof IGetHandler)
+                _getHandlers.add(0,(IGetHandler)d);
 
         }
-
         return true;
     }
 

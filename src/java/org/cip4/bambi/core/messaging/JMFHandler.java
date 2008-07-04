@@ -100,7 +100,6 @@ import org.cip4.jdflib.util.ContainerUtil;
  */
 public class JMFHandler implements IMessageHandler, IJMFHandler
 {
-
     protected static final Log log = LogFactory.getLog(JMFHandler.class.getName());
     protected class MessageType
     {
@@ -129,13 +128,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
             if(!(arg0 instanceof MessageType))
                 return false;
             MessageType mt=(MessageType)arg0;
-            if(type==null && mt.type!=null)
-                return false;
-            if(family==null && mt.family!=null)
-                return false;
-            if(family==null&&type==null)
-                return true;
-            return family.equals(mt.family) && type.equals(mt.type);
+            return ContainerUtil.equals(family,mt.family) &&  ContainerUtil.equals(type,mt.type);
         }
         /* (non-Javadoc)
          * @see java.lang.Object#hashCode()
@@ -287,15 +280,6 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 
     }
 
-//  public JMFHandler(JMFHandler oldHandler)
-//  {
-//  super();
-//  messageMap=new HashMap<MessageType, IMessageHandler>(oldHandler.messageMap);
-//  subscriptionMap=new HashMap<EnumType, IMessageHandler>(oldHandler.subscriptionMap);
-//  addHandler( this.new KnownMessagesHandler());
-//  _signalDispatcher=oldHandler._signalDispatcher;     
-//  senderID=oldHandler.senderID;
-//  }
 
     /**
      * add a message handler
@@ -308,19 +292,24 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
         if(typ==null || families==null)
         {
             log.error("Unknown message type or family in addhandler - bailing out ");
+            return;
         }
         for(int i=0; i<families.length;i++)
             messageMap.put(new MessageType(typ,families[i]), handler);
     }
 
     /**
-     * @param typ the message type
+     * return a handler for a given type and family.
+     * @param typ the message type, "*" is a wildcard that will be called in case no individual handler exists
      * @param family the family
      * @return the handler, null if none exists
      */
     public IMessageHandler getHandler(String typ, EnumFamily family)
     {
-        return messageMap.get(new MessageType(typ,family));
+        IMessageHandler h= messageMap.get(new MessageType(typ,family));
+        if(h==null)
+            h= messageMap.get(new MessageType("*",family));
+        return h;            
     }
 
     public void addSubscriptionHandler(EnumType typ, IMessageHandler handler)

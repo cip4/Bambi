@@ -108,14 +108,13 @@ public interface IStatusListener
      * 
      * @param queueEntryID the queueentryid is associated to the node
      * if {@link QueueEntry}==null, the entire list is cleared
-     * @param workStepID the workstep id that is being tracked
      * @param vPartMap the vector of partitions that are being tracked
      * @param trackResourceID the id of the "major" resource to be counted for phasetimes
      * @param node the jdf node that will be processed. this may be a group node with 
      * additional sub nodes
      * if node==null the queueentryid is removed from the map
      */
-     public void setNode(String queueEntryID, String workStepID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID);
+     public void setNode(String queueEntryID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID);
      
      /**
       * get the device status
