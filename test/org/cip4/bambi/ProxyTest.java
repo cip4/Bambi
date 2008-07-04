@@ -168,12 +168,12 @@ public class ProxyTest extends BambiTestCase {
     
             // check that the QE is on the proxy
             JDFJMF jmf = JMFFactory.buildQueueStatus();
-            for(int i=0;i<13;i++)
+            for(int i=0;i<2213;i++)
             {
                 System.out.println("submitting "+i);
                 submitMimeToProxy();
                 resp=jmfFactory.send2URLSynchResp(jmf, proxyUrl, null,5000);
-                assertNotNull( resp );
+                assertNotNull( "loop "+i,resp );
                 assertEquals( 0,resp.getReturnCode() );
                 q=resp.getQueue(0);
                 assertNotNull( q );

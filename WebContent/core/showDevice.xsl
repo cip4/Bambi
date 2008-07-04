@@ -9,36 +9,44 @@
    <xsl:variable name="deviceType" select="@DeviceType"/>
    <xsl:variable name="deviceURL" select="@DeviceURL"/>
    <xsl:variable name="deviceStatus" select="@DeviceStatus"/>
+   <xsl:variable name="context" select="@Context"/>
 
 	<head>
-		<link rel="stylesheet" type="text/css" href="../css/styles_pc.css"/>
-		<link rel="icon" href="../favicon.ico" type="image/x-icon" />
+		<link rel="stylesheet" type="text/css">
+		<xsl:attribute name="href"><xsl:value-of select="$context"/>/css/styles_pc.css</xsl:attribute>  
+		</link>
+		<link rel="icon" type="image/x-icon">
+		<xsl:attribute name="href"><xsl:value-of select="$context"/>/favicon.ico</xsl:attribute>  
+		</link>
 		<title><xsl:value-of select="$deviceType"/> Simulation Device :<xsl:value-of select="$deviceID"/></title>
 			<xsl:if test="@refresh='true'">
 				<meta http-equiv="refresh">
-				<xsl:attribute name="content">15; URL=../showDevice/<xsl:value-of select="$deviceID"/>?refresh=true</xsl:attribute>
+				<xsl:attribute name="content">15; URL=<xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="$deviceID"/>?refresh=true</xsl:attribute>
 		 		</meta>
 		 	</xsl:if>
 	</head>
  	<body>
- 			<img src="../logo.gif" height="70" alt="logo"/>
+ 			<img src="/misconnector/logo.gif" height="70" alt="logo"/>
 
 		<h1><xsl:value-of select="$deviceType"/> - Simulation Device :<xsl:value-of select="$deviceID"/></h1>
 		<p align="center">
  			<xsl:choose>
 			<xsl:when test="@refresh='true'">
 			<a>
- 			<xsl:attribute name="href">../showDevice/<xsl:value-of select="$deviceID"/>?refresh=false</xsl:attribute>
+ 			<xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="$deviceID"/>?refresh=false</xsl:attribute>
  			modify page</a> 
  			</xsl:when>
 			<xsl:otherwise>
 			<a>
- 			<xsl:attribute name="href">../showDevice/<xsl:value-of select="$deviceID"/>?refresh=true</xsl:attribute>
+ 			<xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="$deviceID"/>?refresh=true</xsl:attribute>
  			reload continually</a> 
  			</xsl:otherwise>
 			</xsl:choose>
- 			<img src="../logo.gif" height="70" hspace="10" alt="logo"/>
-		Go to <a href="../overview">DeviceList</a> 
+ 			<img height="70" hspace="10" alt="logo">
+ 			<xsl:attribute name="src"><xsl:value-of select="$context"/>/logo.gif</xsl:attribute>
+ 			</img> 
+ 			Go to <a><xsl:attribute name="href"><xsl:value-of select="$context"/>/overview</xsl:attribute>
+ 			DeviceList</a> 
 		</p>
 
 <!--  device info section   -->
@@ -56,13 +64,13 @@
 		<tr>
 		<td>
 				<form style="margin-left: 20px">
- 			<xsl:attribute name="action">../showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute> 
+ 			<xsl:attribute name="action"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute> 
  			<input type="submit" value="show queue"/>
  			</form>
 </td>
 <td>
 				<form style="margin-left: 20px">
- 			<xsl:attribute name="action">../showSubscriptions/<xsl:value-of select="@DeviceID"/></xsl:attribute> 
+ 			<xsl:attribute name="action"><xsl:value-of select="$context"/>/showSubscriptions/<xsl:value-of select="@DeviceID"/></xsl:attribute> 
  			<input type="submit" value="show subscriptions"/>
  			</form>
  			</td>

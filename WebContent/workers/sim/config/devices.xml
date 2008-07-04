@@ -12,7 +12,7 @@ OutputHF: folder where successfully completed jobs are placed
 ErrorHF: folder where unsuccessfuly completed jobs are placed
 
 -->
-<application BaseDir="jmb/" JDFDir="JDFDir" SenderID="SimDevice">
+<application BaseDir="jmb/" JDFDir="JDFDir" SenderID="SimDevice" Port="8080">
  <!--
   <Device DeviceID="sim001" DeviceType="Bambi Proxied Sim Device"
   	ProxyURL="http://kie-prosirai-lg:8080/BambiProxy/devices/proxy001" 

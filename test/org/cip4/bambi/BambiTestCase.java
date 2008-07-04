@@ -86,6 +86,8 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
+import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.goldenticket.MISCPGoldenTicket;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -343,7 +345,7 @@ public class BambiTestCase extends TestCase {
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getDeviceClass()
          */
-        public IDevice getDeviceClass()
+        public IDevice getDeviceInstance()
         {
             // TODO Auto-generated method stub
             return null;
@@ -438,7 +440,11 @@ public class BambiTestCase extends TestCase {
         JDFJMF jmf=docJMF.getJMFRoot();
         JDFCommand com = (JDFCommand)jmf.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
         com.appendQueueSubmissionParams().setURL("dummy");
-        MISCPGoldenTicket gt=new MISCPGoldenTicket(2,EnumVersion.Version_1_3,2,2,false,null);
+        VJDFAttributeMap vParts=new VJDFAttributeMap();
+        JDFAttributeMap map=new JDFAttributeMap("SignatureName","sig1");
+        map.put("SheetName","s1");
+        vParts.add(map);
+        MISCPGoldenTicket gt=new MISCPGoldenTicket(2,EnumVersion.Version_1_3,2,2,false,vParts);
         gt.assign(null);
         JDFNode n=gt.getNode();
         for(int i=1;i<1234;i++) // fatten the baby to test big bad jdfs

@@ -88,7 +88,7 @@ public class SignalDispatcherTest extends BambiTestCase {
     public void setUp()
     {
         JMFHandler h=new JMFHandler(null);
-        d=new SignalDispatcher(h, null);
+        d=new SignalDispatcher(h, "MyDispatcher",null);
 
         d.addHandlers(h);
      }

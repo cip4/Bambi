@@ -5,10 +5,15 @@
   
 <xsl:template match="/DeviceList">  
 <html>
+   <xsl:variable name="context" select="@Context"/>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
-		<link rel="stylesheet" type="text/css" href="./css/styles_pc.css"/>
-		<link rel="icon" href="favicon.ico" type="image/x-icon" />
+	<link rel="stylesheet" type="text/css">
+		<xsl:attribute name="href"><xsl:value-of select="$context"/>/css/styles_pc.css</xsl:attribute>  
+		</link>
+		<link rel="icon" type="image/x-icon">
+		<xsl:attribute name="href"><xsl:value-of select="$context"/>/favicon.ico</xsl:attribute>  
+		</link>
 		<title><xsl:value-of select="@DeviceType"/> - Overview</title>
 	</head>
 	<body>

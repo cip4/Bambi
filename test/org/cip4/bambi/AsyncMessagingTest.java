@@ -98,7 +98,7 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 		for (int i=0;i<10;i++) {
 			JDFJMF stat=JMFFactory.buildStatus();
 			String msgID=stat.getMessageElement(null, null, 0).getID();
-            messageSender.queueMessage(stat, this);
+            messageSender.queueMessage(stat, this, simWorkerUrl);
 			messageIDs.add(msgID);
 			t.start();
 		}

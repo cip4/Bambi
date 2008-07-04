@@ -86,7 +86,7 @@ public class DispatcherTest extends BambiTestCase {
     public void testAddSubscription()
     {
         JMFHandler h=new JMFHandler(null);
-        SignalDispatcher d=new SignalDispatcher(h, null);
+        SignalDispatcher d=new SignalDispatcher(h, null,null);
 
         d.addHandlers(h);
         JDFJMF jmf=JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
