@@ -72,16 +72,12 @@
 package org.cip4.bambi.proxy;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-
-import javax.mail.MessagingException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
-import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IStatusListener;
 import org.cip4.bambi.core.StatusListener;
@@ -89,32 +85,27 @@ import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.IQueueProcessor;
-import org.cip4.bambi.proxy.ProxyDevice.EnumSlaveStatus;
+import org.cip4.bambi.proxy.AbstractProxyDevice.EnumSlaveStatus;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
-import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFJobPhase;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
-import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
@@ -128,7 +119,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 {
     private static Log log = LogFactory.getLog(ProxyDeviceProcessor.class);
     private static final long serialVersionUID = -384123582645081254L;
-    private IConverterCallback slaveCallBack;
     private QueueEntryStatusContainer qsc;
     private String _slaveURL;
 
@@ -221,7 +211,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
         _statusListener=new StatusListener(device.getSignalDispatcher(),device.getDeviceID());
         currentQE=qeToProcess;
         qsc=this.new QueueEntryStatusContainer();
-        slaveCallBack=device.getSlaveCallback();
 
         init(qProc, _statusListener, _parent.getProperties());
 
@@ -249,7 +238,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
             JDFNode nod =currentQE.getJDF(); 
             JDFQueueEntry qe=currentQE.getQueueEntry();
 
-            qes= submitToQueue(nod,qe,qURL, deviceOutputHF, ud, slaveCallBack, expandMime);
+            qes= submitToQueue(nod,qe,qURL, deviceOutputHF, ud, expandMime);
         }
         else
         {
@@ -448,7 +437,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
      * @param resp
      * @return
      */
-    public boolean returnFromSlave(JDFMessage m, JDFResponse resp)
+     public boolean returnFromSlave(JDFMessage m, JDFResponse resp)
     {
         JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
 

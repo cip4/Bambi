@@ -712,11 +712,11 @@ public class BambiServlet extends HttpServlet {
                 d=rd.createDevice(prop,this);
 
             }
-            if(dump!=null)
+            if(dump!=null )
             {
                 bambiDumpIn=new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("in")));
                 bambiDumpOut=new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("out")));
-                MessageSender.addDumps(d.getDeviceID(),bambiDumpIn,bambiDumpOut);
+                MessageSender.addDumps(d!=null ? d.getDeviceID() : "Bambi",bambiDumpIn,bambiDumpOut);
             }
             if(d instanceof IGetHandler)
                 _getHandlers.add(0,(IGetHandler)d);

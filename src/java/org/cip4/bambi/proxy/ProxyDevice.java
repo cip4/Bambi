@@ -108,16 +108,11 @@ import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MultiModuleStatusCounter.MultiType;
 
-public class ProxyDevice extends AbstractDevice {
+public class ProxyDevice extends AbstractProxyDevice {
 
     private static final Log log = LogFactory.getLog(ProxyDevice.class.getName());
-    private QueueHotFolder slaveJDFOutput=null;
-    private QueueHotFolder slaveJDFError=null;
     protected MultiModuleStatusCounter statusContainer;
-    public enum EnumSlaveStatus {JMF,NODEINFO}
-    EnumSlaveStatus slaveStatus=null;
-    protected IConverterCallback _slaveCallback;
-    
+     
     /** 
      * simple dispatcher
      * @author prosirai
@@ -278,91 +273,9 @@ public class ProxyDevice extends AbstractDevice {
 
     //////////////////////////////////////////////////////////////////
 
-    protected class ReturnHFListner implements QueueHotFolderListener
-    {
-        private EnumQueueEntryStatus hfStatus;
-        /**
-         * @param aborted
-         */
-        public ReturnHFListner(EnumQueueEntryStatus status)
-        {
-            hfStatus=status;
-        }
-
-        public void submitted(JDFJMF submissionJMF)
-        {
-            log.info("ReturnHFListner:submitted");
-            JDFCommand command=submissionJMF.getCommand(0);
-            JDFReturnQueueEntryParams rqp=command.getReturnQueueEntryParams(0);
-
-            JDFDoc doc=rqp==null ? null : rqp.getURLDoc();
-            if(doc==null)
-            {
-                log.warn("could not process JDF File");
-                return;
-            }
-            if (_jmfHandler != null) {
-                JDFNode n=doc.getJDFRoot();
-                if(n==null)
-                {
-                    log.warn("could not process JDF File");
-                    return;
-                }
-
-                // assume the rootDev was the executed baby...
-                rqp.setAttribute(hfStatus.getName(), n.getID());
-                // let the standard returnqe handler do the work
-                JDFDoc responseJMF=_jmfHandler.processJMF(submissionJMF.getOwnerDocument_JDFElement());
-                try
-                {    
-                    JDFJMF jmf=responseJMF.getJMFRoot();
-                    JDFResponse r=jmf.getResponse(0);
-                    if(r!=null && r.getReturnCode()==0)
-                    {
-                        UrlUtil.urlToFile(rqp.getURL()).delete();
-                    }
-                    else
-                    {
-                        log.error("could not process JDF File");
-                    }
-                }
-                catch (Exception e)
-                {
-                    handleError(submissionJMF);
-                }
-            }        
-        }
-
-        /**
-         * @param submissionJMF
-         */
-        private void handleError(JDFJMF submissionJMF)
-        {
-            log.error("error handling hf return");            
-        }
-    }
-
     public ProxyDevice(IDeviceProperties properties) {
         super(properties);
-        IProxyProperties proxyProperties=getProxyProperties();
-        final File fDeviceJDFOutput = properties.getOutputHF();
-        _slaveCallback=proxyProperties.getSlaveCallBackClass();
-        if(fDeviceJDFOutput!=null)
-        {            
-            File hfStorage=new File(_devProperties.getBaseDir()+File.separator+"HFDevTmpStorage"+File.separator+_devProperties.getDeviceID());
-            log.info("Device output HF:"+fDeviceJDFOutput.getPath()+" device ID= "+proxyProperties.getSlaveDeviceID());
-            JDFJMF rqCommand=JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
-            slaveJDFOutput=new QueueHotFolder(fDeviceJDFOutput,hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Completed), rqCommand);
-        }
-
-        final File fDeviceErrorOutput = properties.getErrorHF();
-        if(fDeviceErrorOutput!=null)
-        {
-            File hfStorage=new File(_devProperties.getBaseDir()+File.separator+"HFDevTmpStorage"+File.separator+_devProperties.getDeviceID());
-            log.info("Device error output HF:"+fDeviceErrorOutput.getPath()+" device ID= "+getSlaveDeviceID());
-            JDFJMF rqCommand=JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
-            slaveJDFError=new QueueHotFolder(fDeviceErrorOutput,hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Aborted), rqCommand);
-        } 
+        final IProxyProperties proxyProperties=getProxyProperties();
         statusContainer=new MultiModuleStatusCounter(MultiType.JOB);
         _jmfHandler.setFilterOnDeviceID(false);
         int maxPush = proxyProperties.getMaxPush();
@@ -414,11 +327,6 @@ public class ProxyDevice extends AbstractDevice {
     }
 
 
-    public IConverterCallback getSlaveCallback()
-    {
-        return _slaveCallback;
-    }
-
     /**
      * remove a processor from the list of active processors
      * @param processor
@@ -433,15 +341,6 @@ public class ProxyDevice extends AbstractDevice {
         // zapp the subscription that we added for listening to the device
         //TODO _parent.getSignalDispatcher().removeSubScription(channelID);
 
-    }
-
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
-     */
-    public String getSlaveDeviceID()
-    {
-        // TODO - dynamically grab with knowndevices
-        return getProxyProperties().getSlaveDeviceID();
     }
 
     /**
@@ -489,18 +388,6 @@ public class ProxyDevice extends AbstractDevice {
         final StatusListener statusListener = (StatusListener)processor.getStatusListener();
         if(statusListener!=null)
             statusContainer.addModule(statusListener.getStatusCounter());
-    }
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.AbstractDevice#shutdown()
-     */
-    @Override
-    public void shutdown()
-    {
-        super.shutdown();
-        if(slaveJDFError!=null)
-            slaveJDFError.stop();
-        if(slaveJDFOutput!=null)
-            slaveJDFOutput.stop();
     }
 
     /**
@@ -563,17 +450,6 @@ public class ProxyDevice extends AbstractDevice {
         return doc.getJDFRoot();
     }
 
-    /**
-     * @return
-     */
-    public EnumSlaveStatus getSlaveStatus()
-    {
-        String s=getProperties().getDeviceAttribute("SlaveStatus");
-        if(s==null)
-            return null;
-        return EnumSlaveStatus.valueOf(s.toUpperCase());
-    }
-
     @Override
     public JDFQueueEntry stopProcessing(String queueEntryID, EnumNodeStatus status)
     {
@@ -588,14 +464,6 @@ public class ProxyDevice extends AbstractDevice {
         }
         JDFQueueEntry qe= super.stopProcessing(queueEntryID, status);
         return qe;
-    }
-
-    /**
-     * @return the proxyProperties
-     */
-    public IProxyProperties getProxyProperties()
-    {
-        return (IProxyProperties) _devProperties;
     }
 
 

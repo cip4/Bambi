@@ -71,7 +71,6 @@
 
 package org.cip4.bambi.core.messaging;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -97,8 +96,6 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
-
-import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
 
 /**
  * factory for creating JMF messages

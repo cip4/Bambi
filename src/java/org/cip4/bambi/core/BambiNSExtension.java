@@ -366,18 +366,19 @@ public class BambiNSExtension
          * @param qt
          * @param outputQEID
          */
-        public static JDFQueueEntry  getSlaveQueueEntry(JDFQueue q, String slaveQueueEntryID)
+        public static JDFQueueEntry  getSlaveQueueEntry(JDFQueue q, String slaveID)
         {
-            if(KElement.isWildCard(slaveQueueEntryID))
+            if(KElement.isWildCard(slaveID))
                 return null;
             
             VElement v=q.getQueueEntryVector();
             if(v==null)
                 return null;
-            for(int i=0;i<v.size();i++)
+            int size = v.size();
+            for(int i=0;i<size;i++)
             {
                 JDFQueueEntry qe=(JDFQueueEntry)v.elementAt(i);
-                if(slaveQueueEntryID.equals(qe.getAttribute(slaveQueueEntryID, MY_NS, null)))
+                if(slaveID.equals(qe.getAttribute(slaveQueueEntryID, MY_NS, null)))
                     return qe;
             }
             return null;

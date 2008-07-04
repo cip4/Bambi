@@ -195,7 +195,7 @@ public class MultiDeviceProperties
                 }
                 catch (Exception x)
                 {
-                    log.error("Cannot instantiate callback class: "+_deviceName);
+                    log.error("Cannot instantiate Device class: "+_deviceName);
                 }
             }
             return null;

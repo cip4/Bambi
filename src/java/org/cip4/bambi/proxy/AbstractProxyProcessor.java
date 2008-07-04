@@ -18,15 +18,18 @@ import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.FileUtil;
@@ -42,15 +45,19 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 {
 
     private static Log log = LogFactory.getLog(AbstractProxyProcessor.class);
+    protected IConverterCallback slaveCallBack;
         /**
      * 
      */
-    public AbstractProxyProcessor(AbstractDevice parent)
+    public AbstractProxyProcessor(AbstractProxyDevice parent)
     {
         super();
        _parent=parent;
+       slaveCallBack=parent.getSlaveCallback();
+
     }
     
+
     protected JDFDoc writeToQueue(JDFDoc docJMF, JDFDoc docJDF, String strUrl, MIMEDetails urlDet, IConverterCallback slaveCallBack, boolean expandMime ) throws IOException
     {
         Multipart mp=MimeUtil.buildMimePackage(docJMF, docJDF, expandMime);
@@ -128,7 +135,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
      * @return
      * TODO mime or not mime...
      */
-    protected EnumQueueEntryStatus submitToQueue(JDFNode nod, JDFQueueEntry qe, URL qurl, File deviceOutputHF, MIMEDetails ud, IConverterCallback slaveCallBack, boolean expandMime)
+    protected EnumQueueEntryStatus submitToQueue(JDFNode nod, JDFQueueEntry qe, URL qurl, File deviceOutputHF, MIMEDetails ud, boolean expandMime)
     {
         JDFJMF jmf=JDFJMF.createJMF(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
         JDFCommand com = (JDFCommand)jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command, null, 0);
