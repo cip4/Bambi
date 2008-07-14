@@ -243,7 +243,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
                 if(_callBack!=null)
                     _callBack.prepareJDFForBambi(doc);
 
-                JDFQueueEntry qe=_theQueueProcessor.addEntry(command, doc);
+                JDFQueueEntry qe=_theQueueProcessor.addEntry(command, null, doc);
                 if (qe == null)
                     log.warn("_theQueue.addEntry returned null");
                 final String tmpURL=qsp.getURL();
@@ -399,6 +399,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
     {
         _jmfHandler = new JMFHandler(this);
 
+        _callback=_devProperties.getCallBackClass();
         _theSignalDispatcher=new SignalDispatcher(_jmfHandler, getDeviceID(),_callback);
         _theSignalDispatcher.addHandlers(_jmfHandler);        
         
@@ -408,7 +409,6 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
         _theQueueProcessor = buildQueueProcessor( );
         _theQueueProcessor.addHandlers(_jmfHandler);
 
-        _callback=_devProperties.getCallBackClass();
         String deviceID=_devProperties.getDeviceID();
         _deviceProcessors=new Vector<AbstractDeviceProcessor>();
         AbstractDeviceProcessor newDevProc= buildDeviceProcessor();
@@ -745,7 +745,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
         return _theSignalDispatcher;
     }
 
-    public IConverterCallback getCallback()
+    public IConverterCallback getCallback(String url)
     {
         return _callback;
     }

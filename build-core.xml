@@ -16,6 +16,7 @@
 		<property name="build.debug" value="true" />
 		<property name="base.filename" value="${BambCore.name}-${DSTAMP}" />
 		<property name="major.filename" value="${BambCore.name}" />		
+		<property name="build.optimize" value="on" />
 
 		<property name="verbose" value="true" />
 		<!-- Sets class path -->
@@ -31,7 +32,7 @@
 	</target>
 	<target name="compile" depends="-init" description="Compiles source code.">
 		<echo>Compiling BambiCore...</echo>
-		<javac destdir="${bin.dir}" debug="${build.debug}">
+		<javac destdir="${bin.dir}" debug="${build.debug}" optimize="${build.optimize}" >
 			<src path="${core.src.dir}" />
 			<classpath refid="project.class.path" />
 			<include name="**/*.java" />

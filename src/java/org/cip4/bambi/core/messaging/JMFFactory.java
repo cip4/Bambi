@@ -239,7 +239,35 @@ public class JMFFactory {
      */
     public static JDFJMF buildStatusSubscription(String subscriberURL, double repeatTime, int repeatStep)
     {
-        final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Status);
+        final JDFJMF jmf = buildSubscription(EnumType.Status, subscriberURL, repeatTime, repeatStep);
+        return jmf;
+    }
+
+    /**
+     * build a JMF Resource subscription
+     * @return the message
+     */
+    public static JDFJMF buildResourceSubscription(String subscriberURL, double repeatTime, int repeatStep)
+    {
+        final JDFJMF jmf = buildSubscription(EnumType.Resource, subscriberURL, repeatTime, repeatStep);
+        return jmf;
+    }
+    /**
+     * build a JMF Notification subscription
+     * @return the message
+     */
+    public static JDFJMF buildNotificationSubscription(String subscriberURL, double repeatTime, int repeatStep)
+    {
+        final JDFJMF jmf = buildSubscription(EnumType.Notification, subscriberURL, repeatTime, repeatStep);
+        return jmf;
+    }
+    /**
+     * build a generic subscription for a given type
+     * @return the message
+     */
+    private static JDFJMF buildSubscription(EnumType typ, String subscriberURL, double repeatTime, int repeatStep)
+    {
+        final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, typ);
         final JDFQuery q=jmf.getQuery(0);
         final JDFSubscription s=q.appendSubscription();
         s.setURL(subscriberURL);
@@ -251,7 +279,6 @@ public class JMFFactory {
 
         return jmf;
     }
-
     /**
      * build a JMF QueueStatus query
      * @return the message

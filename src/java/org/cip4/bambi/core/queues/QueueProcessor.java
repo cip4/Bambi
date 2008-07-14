@@ -124,6 +124,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQueue.CleanupCallback;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
@@ -188,14 +189,28 @@ public class QueueProcessor implements IQueueProcessor
                     JMFHandler.errorResponse(resp, errorMsg, 9);
                     return true;
                 }
-                final IConverterCallback callback = _parentDevice.getCallback();
+                final IConverterCallback callback = _parentDevice.getCallback(null);
                 if(callback!=null)
                     callback.prepareJDFForBambi(doc);
-                JDFQueueEntry qe=addEntry( (JDFCommand)m, doc);
+                
+                JDFQueueEntry qe=addEntry( (JDFCommand)m, resp, doc);
+                int rc=resp==null ? 9 : resp.getReturnCode();
+                
+                if(rc!=0)
+                {
+                    if(rc==112)
+                        JMFHandler.errorResponse(resp, "Submission failed - queue is not accepting new submissions", rc);
+                    else if(rc==116)
+                        JMFHandler.errorResponse(resp, "Submission failed - identical queue entry exists", rc);
+                    else
+                        JMFHandler.errorResponse(resp, "failed to add entry: invalid or missing message parameters", 9);
+
+                     return true; // error was filled by handler
+                }
                 fixEntry(qe,doc);
-                if(qe==null) {
-                    JMFHandler.errorResponse(resp, "failed to add entry: invalid or missing message parameters", 9);
-                    return true;
+                if(qe==null) 
+                {
+                     return true;
                 }
                 else
                 {
@@ -332,7 +347,90 @@ public class QueueProcessor implements IQueueProcessor
             return true;
         }
     }
+    
+    ///////////////////////////////////////////////////////////////////////////////////////
+    protected class HoldQueueHandler  extends ModifyQueueStatusHandler
+    {
+        protected EnumQueueStatus getNewStatus()
+        {
+           return _theQueue.holdQueue();
+        }
+        public HoldQueueHandler()
+        {
+            super(EnumType.HoldQueue);
+        }   
+    }  
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+    protected class CloseQueueHandler  extends ModifyQueueStatusHandler
+    {
+        protected EnumQueueStatus getNewStatus()
+        {
+            return _theQueue.closeQueue();
+        }
+        public CloseQueueHandler()
+        {
+            super(EnumType.CloseQueue);
+        }   
+    }  
+    ///////////////////////////////////////////////////////////////////////////////////////
+    protected class OpenQueueHandler  extends ModifyQueueStatusHandler
+    {
+        protected EnumQueueStatus getNewStatus()
+        {
+            return _theQueue.openQueue();
+        }
+        public OpenQueueHandler()
+        {
+            super(EnumType.OpenQueue);
+        }   
+    }  
+    ///////////////////////////////////////////////////////////////////////////////////////
+    protected class ResumeQueueHandler  extends ModifyQueueStatusHandler
+    {
+        protected EnumQueueStatus getNewStatus()
+        {
+           return _theQueue.resumeQueue();
+        }
+        public ResumeQueueHandler()
+        {
+            super(EnumType.ResumeQueue);
+        }   
+    }  
+    ///////////////////////////////////////////////////////////////////////////////////////
+    protected abstract class ModifyQueueStatusHandler  extends AbstractHandler
+    {
+        protected abstract EnumQueueStatus getNewStatus();        
+        public ModifyQueueStatusHandler(EnumType _type)
+        {
+            super(_type,new EnumFamily[]{EnumFamily.Command});
+        }
 
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+         */
+        public boolean handleMessage(JDFMessage m, JDFResponse resp)
+        {
+            if(m==null || resp==null)
+            {
+                return false;
+            }
+            EnumQueueStatus newStatus=getNewStatus();
+            
+            synchronized (_theQueue)
+            {
+                if(!ContainerUtil.equals(newStatus, _theQueue.getQueueStatus()))
+                {
+                    _theQueue.setQueueStatus(newStatus);
+                }
+                updateEntry(null, null, m, resp);                
+            }           
+            return true;
+         }
+    }
+    
+////////////////////////////////////////////////////////////////////////////////////////
+    
     protected class AbortQueueEntryHandler extends AbstractHandler
     {
 
@@ -681,7 +779,8 @@ public class QueueProcessor implements IQueueProcessor
     /**
      * @param jmfHandler
      */
-    public void addHandlers(IJMFHandler jmfHandler) {
+    public void addHandlers(IJMFHandler jmfHandler) 
+    {
         jmfHandler.addHandler(this.new SubmitQueueEntryHandler());
         final QueueStatusHandler qsh=this.new QueueStatusHandler();
         jmfHandler.addHandler(qsh);
@@ -692,7 +791,10 @@ public class QueueProcessor implements IQueueProcessor
         jmfHandler.addHandler(this.new ResumeQueueEntryHandler());
         jmfHandler.addHandler(this.new SuspendQueueEntryHandler());
         jmfHandler.addHandler(this.new FlushQueueHandler());
-
+        jmfHandler.addHandler(this.new OpenQueueHandler());
+        jmfHandler.addHandler(this.new CloseQueueHandler());
+        jmfHandler.addHandler(this.new HoldQueueHandler());
+        jmfHandler.addHandler(this.new ResumeQueueHandler());
     }
 
     protected void init() {
@@ -724,6 +826,7 @@ public class QueueProcessor implements IQueueProcessor
         if(d!=null) {
             log.info("refreshing queue");
             _theQueue=(JDFQueue) d.getRoot();
+            _theQueue.holdQueue();
             // make sure that all QueueEntries are suspended on restart 
             VElement qev=_theQueue.getQueueEntryVector();
             int qSize = qev==null ? 0 : qev.size();
@@ -733,10 +836,7 @@ public class QueueProcessor implements IQueueProcessor
                 if ( EnumQueueEntryStatus.Running.equals(stat)) {
                     qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
                 }
-                else if ( EnumQueueEntryStatus.Waiting.equals(stat)) {
-                    qe.setQueueEntryStatus(EnumQueueEntryStatus.Held);
-                }
-            }
+             }
         } else {
             d=new JDFDoc(ElementName.QUEUE);
             log.info("creating new queue");
@@ -746,9 +846,11 @@ public class QueueProcessor implements IQueueProcessor
         _theQueue.setAutomated(true);
         _theQueue.setDeviceID(deviceID);
         _theQueue.setMaxCompletedEntries(100); 
+        _theQueue.setMaxWaitingEntries(100000); 
+        _theQueue.setMaxRunningEntries(1); 
         _theQueue.setCleanupCallback(new QueueEntryCleanup()); // zapps any attached files when removing qe
-        BambiNSExtension.setMyNSAttribute(_theQueue, "ensureNS", "true");
-    }
+        BambiNSExtension.setMyNSAttribute(_theQueue, "EnsureNS", "Dummy"); // ensure that some bambi ns exists
+        }
 
     /**
      * get a qe by nodeidentifier
@@ -821,31 +923,36 @@ public class QueueProcessor implements IQueueProcessor
     /* (non-Javadoc)
      * @see org.cip4.bambi.IQueueProcessor#addEntry(org.cip4.jdflib.jmf.JDFCommand, org.cip4.jdflib.core.JDFDoc)
      */
-    public JDFQueueEntry addEntry(JDFCommand submitQueueEntry, JDFDoc theJDF)
+    public JDFQueueEntry addEntry(JDFCommand submitQueueEntry, JDFResponse r, JDFDoc theJDF)
     {
         if(submitQueueEntry==null || theJDF==null) {
             log.error("error submitting new queueentry");
             return null;
         }
+        if(!_parentDevice.canAccept(theJDF))
+            return null;
+
         synchronized (_theQueue)
         {
-
-            if(!_theQueue.canAccept())
-                return null;
-            if(!_parentDevice.canAccept(theJDF))
-                return null;
-
+ 
             JDFQueueSubmissionParams qsp=submitQueueEntry.getQueueSubmissionParams(0);
             if(qsp==null) {
                 log.error("error submitting new queueentry");
                 return null;
             }
 
-            JDFResponse r=qsp.addEntry(_theQueue, null);
+            JDFResponse r2=qsp.addEntry(_theQueue, null);
+            if(r!=null)
+                r.mergeElement(r2, false);
+            else
+                r=r2;
+            if(r==null || r.getReturnCode()!=0)
+                return null;
+            
             JDFQueueEntry newQE=r.getQueueEntry(0);
 
             if(r.getReturnCode()!=0 || newQE==null) {
-                log.error("error submitting queueentry: "+r.getReturnCode());
+                log.warn("error submitting queueentry: "+r.getReturnCode());
                 return null;
             }
             String qeID=newQE.getQueueEntryID();
@@ -973,48 +1080,46 @@ public class QueueProcessor implements IQueueProcessor
      */
     public JDFQueue updateEntry(JDFQueueEntry qe, EnumQueueEntryStatus status, JDFMessage mess, JDFResponse resp)
     {
-
-        if (qe != null && status!=null && !status.equals(qe.getQueueEntryStatus()))
-        {
-            qe.setQueueEntryStatus(status);
-            if (status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Aborted)) {
-                if(!qe.hasAttribute(AttributeName.ENDTIME))
-                    qe.setEndTime(new JDFDate());
-            }
-            else if (status.equals(EnumQueueEntryStatus.Running) ) {
-                if(!qe.hasAttribute(AttributeName.STARTTIME))
-                    qe.setStartTime(new JDFDate());
-            }
-            else if (status.equals(EnumQueueEntryStatus.Removed)) {
-                String docURL=BambiNSExtension.getDocURL(qe);
-                if(docURL!=null)
-                    new File(docURL).delete();
-            }
-            persist(0);
-            notifyListeners();
-        }
-        else if(mess!=null &&!EnumFamily.Query.equals(mess.getFamily()))
-        {
-            persist(10000); // write queue just in case every 10 seconds
-        }
-        if(resp==null)
-            return null;
-
-        JDFQueueFilter qf=null;
-        try
-        {
-            qf=mess==null ? null : mess.getQueueFilter(0);
-        }
-        catch (JDFException e) {
-            // nop
-        }
-        JDFQueue q;
         synchronized(_theQueue)
         {
-            q= _theQueue.copyToResponse(resp, qf);
+            if (qe != null && status!=null && !status.equals(qe.getQueueEntryStatus()))
+            {
+                qe.setQueueEntryStatus(status);
+                if (status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Aborted)) {
+                    if(!qe.hasAttribute(AttributeName.ENDTIME))
+                        qe.setEndTime(new JDFDate());
+                }
+                else if (status.equals(EnumQueueEntryStatus.Running) ) {
+                    if(!qe.hasAttribute(AttributeName.STARTTIME))
+                        qe.setStartTime(new JDFDate());
+                }
+                else if (status.equals(EnumQueueEntryStatus.Removed)) {
+                    String docURL=BambiNSExtension.getDocURL(qe);
+                    if(docURL!=null)
+                        new File(docURL).delete();
+                }
+                persist(0);
+                notifyListeners();
+            }
+            else if(mess!=null &&!EnumFamily.Query.equals(mess.getFamily()))
+            {
+                persist(10000); // write queue just in case every 10 seconds
+            }
+            if(resp==null)
+                return null;
+
+            JDFQueueFilter qf=null;
+            try
+            {
+                qf=mess==null ? null : mess.getQueueFilter(0);
+            }
+            catch (JDFException e) {
+                // nop
+            }
+            JDFQueue q=_theQueue.copyToResponse(resp, qf);
+            removeBambiNSExtensions(q);
+            return q;
         }
-        removeBambiNSExtensions(q);
-        return q;
     }
 
 
@@ -1069,7 +1174,7 @@ public class QueueProcessor implements IQueueProcessor
         }
 
         // fix for returning
-        final IConverterCallback callBack = _parentDevice.getCallback();
+        final IConverterCallback callBack = _parentDevice.getCallback(null);
         if(callBack!=null)
         {
             callBack.updateJDFForExtern(docJDF);
@@ -1096,7 +1201,7 @@ public class QueueProcessor implements IQueueProcessor
                 String devID = _parentDevice.getDeviceID();
                 ud.httpDetails.chunkSize=properties.getControllerHTTPChunk();
                 ud.transferEncoding=properties.getControllerMIMEEncoding();
-                response=new JMFFactory(_parentDevice.getCallback()).send2URLSynch(mp, returnJMF,ud, devID,10000);
+                response=new JMFFactory(_parentDevice.getCallback(null)).send2URLSynch(mp, returnJMF,ud, devID,10000);
             }
             else // http
             {
@@ -1104,7 +1209,7 @@ public class QueueProcessor implements IQueueProcessor
                 HTTPDetails hDet=new  HTTPDetails();
                 hDet.chunkSize=properties.getControllerHTTPChunk();
 
-                response=new JMFFactory(_parentDevice.getCallback()).send2URLSynch(jmf, returnJMF, _parentDevice.getDeviceID(),10000);
+                response=new JMFFactory(_parentDevice.getCallback(null)).send2URLSynch(jmf, returnJMF, _parentDevice.getDeviceID(),10000);
             }
             int responseCode;
             if(response!=null)

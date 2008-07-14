@@ -58,8 +58,13 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
     }
     
 
-    protected JDFDoc writeToQueue(JDFDoc docJMF, JDFDoc docJDF, String strUrl, MIMEDetails urlDet, IConverterCallback slaveCallBack, boolean expandMime ) throws IOException
+    protected JDFDoc writeToQueue(JDFDoc docJMF, JDFDoc docJDF, String strUrl, MIMEDetails urlDet, boolean expandMime ) throws IOException
     {
+        if(strUrl==null)
+        {
+            log.error("writeToQueue: attempting to write to null url");
+            return null;
+        }
         Multipart mp=MimeUtil.buildMimePackage(docJMF, docJDF, expandMime);
         SubmitQueueEntryResponseHandler sqh=new SubmitQueueEntryResponseHandler();
         new JMFFactory(slaveCallBack).send2URL(mp, strUrl, sqh, urlDet,_parent.getDeviceID());
@@ -152,9 +157,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
         {
             try
             {
-                final String urlString = qurl.toExternalForm();
+                final String urlString = qurl==null ? null :qurl.toExternalForm();
 
-                JDFDoc d=writeToQueue(jmf.getOwnerDocument_JDFElement(), nod.getOwnerDocument_JDFElement(), urlString,ud, slaveCallBack, expandMime);
+                JDFDoc d=writeToQueue(jmf.getOwnerDocument_JDFElement(), nod.getOwnerDocument_JDFElement(), urlString,ud, expandMime);
                 if(d!=null)
                 {
                     JDFJMF jmfResp=d.getJMFRoot();

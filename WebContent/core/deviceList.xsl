@@ -72,7 +72,4 @@
 			</tr>
 </xsl:template>  
 
-
-
-
 </xsl:stylesheet>  

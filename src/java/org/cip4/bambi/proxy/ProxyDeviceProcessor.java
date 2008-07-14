@@ -437,7 +437,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
      * @param resp
      * @return
      */
-     public boolean returnFromSlave(JDFMessage m, JDFResponse resp)
+     protected boolean returnFromSlave(JDFMessage m, JDFResponse resp)
     {
         JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
 

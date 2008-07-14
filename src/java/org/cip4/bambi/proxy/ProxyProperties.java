@@ -135,7 +135,7 @@ public class ProxyProperties extends MultiDeviceProperties
          {
              String name= devRoot.getAttribute("SlaveCallBackName",null,null);
              if(name==null)
-                 name= root.getAttribute("CallBackName",null,null);
+                 name= root.getAttribute("SlaveCallBackName",null,null);
              return name;
          }
 

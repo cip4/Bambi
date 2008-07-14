@@ -72,14 +72,21 @@
 package org.cip4.bambi.proxy;
 
 import java.io.File;
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
+import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -87,19 +94,25 @@ import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.QueueHotFolder;
 import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.UrlUtil;
 
 public abstract class AbstractProxyDevice extends AbstractDevice {
 
+    /**
+     * 
+     */
+    public static final String SLAVE_TRUE = "/slave";
     private static final Log log = LogFactory.getLog(AbstractProxyDevice.class.getName());
     protected QueueHotFolder slaveJDFOutput=null;
     protected QueueHotFolder slaveJDFError=null;
     public enum EnumSlaveStatus {JMF,NODEINFO}
     protected EnumSlaveStatus slaveStatus=null;
     protected IConverterCallback _slaveCallback;
-    
+    protected String slaveURL=null;
+
     protected class ReturnHFListner implements QueueHotFolderListener
     {
         private EnumQueueEntryStatus hfStatus;
@@ -164,11 +177,34 @@ public abstract class AbstractProxyDevice extends AbstractDevice {
         }
     }
 
+    /**
+     * 
+     * @author prosirai
+     *
+     */
+    protected class XMLProxyDevice
+    {
+
+        XMLDevice d;
+        /**
+         * XML representation of this simDevice
+         * fore use as html display using an XSLT
+         * @param dev
+         */
+        public XMLProxyDevice(String contextPath, IProxyProperties prop)
+        {
+            d=new XMLDevice(true,contextPath);
+            KElement root=d.getRoot();
+            BambiNSExtension.setSlaveURL(root,prop.getSlaveURL());
+        }        
+    }
+
     public AbstractProxyDevice(IDeviceProperties properties) {
         super(properties);
         IProxyProperties proxyProperties=getProxyProperties();
         final File fDeviceJDFOutput = properties.getOutputHF();
         _slaveCallback=proxyProperties.getSlaveCallBackClass();
+        slaveURL=proxyProperties.getSlaveURL();
         if(fDeviceJDFOutput!=null)
         {            
             File hfStorage=new File(_devProperties.getBaseDir()+File.separator+"HFDevTmpStorage"+File.separator+_devProperties.getDeviceID());
@@ -186,6 +222,18 @@ public abstract class AbstractProxyDevice extends AbstractDevice {
             slaveJDFError=new QueueHotFolder(fDeviceErrorOutput,hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Aborted), rqCommand);
         } 
         _jmfHandler.setFilterOnDeviceID(false);
+    }
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.AbstractDevice#init()
+     */
+    @Override
+    protected void init()
+    {
+        IProxyProperties dp=getProxyProperties();
+        slaveURL=dp.getSlaveURL();
+        super.init();
+        ((QueueProcessor)_theQueueProcessor).useJobIDasQEID=true;
     }
 
     public IConverterCallback getSlaveCallback()
@@ -229,11 +277,41 @@ public abstract class AbstractProxyDevice extends AbstractDevice {
     }
 
     /**
+     * @return the slaveURL
+     */
+    public String getSlaveURL()
+    {
+        return slaveURL;
+    }
+    @Override
+    public IConverterCallback getCallback(String url)
+    {
+        if(url!=null &&url.indexOf(SLAVE_TRUE)>=0)
+            return _slaveCallback;
+        return _callback;
+    }
+
+    /**
      * @return the proxyProperties
      */
     public IProxyProperties getProxyProperties()
     {
         return (IProxyProperties) _devProperties;
+    }
+    @Override
+    protected boolean showDevice(HttpServletRequest request, HttpServletResponse response, boolean refresh)
+    {
+        XMLProxyDevice proxyDev=this.new XMLProxyDevice(request.getContextPath(), getProxyProperties());
+        try
+        {
+            proxyDev.d.write2Stream(response.getOutputStream(), 0,true);
+        }
+        catch (IOException x)
+        {
+            return false;
+        }
+        response.setContentType(MimeUtil.TEXT_XML);
+        return true;
     }
 
 

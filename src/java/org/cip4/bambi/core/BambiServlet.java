@@ -99,6 +99,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
@@ -120,6 +121,11 @@ import org.cip4.jdflib.util.UrlUtil;
  *
  */
 public class BambiServlet extends HttpServlet {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1926504814491033980L;
 
     /**
      * handler for final handler for any non-handled url
@@ -162,7 +168,7 @@ public class BambiServlet extends HttpServlet {
         }
     }
 
-    protected IConverterCallback _callBack = null;
+    //protected IConverterCallback _callBack = null;
     private static Log log = LogFactory.getLog(BambiServlet.class.getName());
     protected IDevice rootDev=null;
     private List<IGetHandler> _getHandlers=new Vector<IGetHandler>();
@@ -237,7 +243,8 @@ public class BambiServlet extends HttpServlet {
         JDFResponse r=error.getResponse(0);
         r.setReturnCode(returnCode);
         r.setErrorText(notification);
-        response.setContentType(MimeUtil.VND_JMF);
+        response.setContentType(UrlUtil.VND_JMF);
+        IConverterCallback _callBack=getCallBack(request);
         if(_callBack!=null)
             _callBack.updateJMFForExtern(error.getOwnerDocument_JDFElement());
 
@@ -265,6 +272,8 @@ public class BambiServlet extends HttpServlet {
             processError(request, response, EnumType.Notification, 2,"proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
             return;
         }
+        IConverterCallback _callBack=getCallBack(request);
+
         if(_callBack!=null)
         {
             for(int i=0;i<docJDF.length;i++)
@@ -300,6 +309,8 @@ public class BambiServlet extends HttpServlet {
         } 
         else 
         {
+            IConverterCallback _callBack=getCallBack(request);
+
             if(_callBack!=null)
             {
                 _callBack.prepareJMFForBambi(jmfDoc);
@@ -313,7 +324,7 @@ public class BambiServlet extends HttpServlet {
             } 
 
             if (responseJMF!=null) {
-                response.setContentType(MimeUtil.VND_JMF);
+                response.setContentType(UrlUtil.VND_JMF);
                 if(_callBack!=null)
                     _callBack.updateJMFForExtern(responseJMF);
 
@@ -329,6 +340,20 @@ public class BambiServlet extends HttpServlet {
 //              processError(request, response, null, 3, "Error Parsing JMF");               
             }
         }
+    }
+
+    /**
+     * @param request
+     * @return
+     */
+    private IConverterCallback getCallBack(BambiServletRequest request)
+    {
+       if(rootDev instanceof AbstractDevice)
+       {
+           return ((AbstractDevice)rootDev).getCallback(request.getRequestURI());
+       }
+       else
+           return null;
     }
 
     protected IJMFHandler getTargetHandler(HttpServletRequest request)
@@ -356,7 +381,7 @@ public class BambiServlet extends HttpServlet {
                 processMultipleDocuments(request,response,bp);
             } else {
                 String s=bp[0].getContentType();
-                if(MimeUtil.VND_JMF.equalsIgnoreCase(s)) {
+                if(UrlUtil.VND_JMF.equalsIgnoreCase(s)) {
                     processJMFRequest(request, response, bp[0].getInputStream());            
                 }
             }
@@ -414,9 +439,16 @@ public class BambiServlet extends HttpServlet {
         }
 
         String contentType=request.getContentType();
-        if(MimeUtil.VND_JMF.equals(contentType)) {
+        if(UrlUtil.VND_JMF.equals(contentType)) 
+        {
             processJMFRequest(bufRequest,bufResponse,null);
-        } else {
+        } 
+        else if( UrlUtil.TEXT_XML.equals(contentType))
+        {
+            processXMLRequest(bufRequest, bufResponse);            
+        }
+        else 
+        {
             boolean isMultipart = ServletFileUpload.isMultipartContent(request);
             if (isMultipart) {
                 log.info("Processing multipart request... (ContentType: "+contentType+")");
@@ -447,6 +479,17 @@ public class BambiServlet extends HttpServlet {
             }
         }
         bufResponse.flush();
+    }
+
+    /**
+     * @param bufRequest
+     * @param bufResponse
+     */
+    private void processXMLRequest(BambiServletRequest bufRequest, BambiServletResponse bufResponse)
+    {
+        //TODO some smarts whether JDF or JMF
+        log.info("Processing text/xml");
+        processJMFRequest(bufRequest,bufResponse,null);
     }
 
     /**
@@ -498,7 +541,8 @@ public class BambiServlet extends HttpServlet {
      * Destroys the servlet.
      */
     @Override
-    public void destroy() {
+    public void destroy() 
+    {
         rootDev.shutdown();
         JMFFactory.shutDown(null, true);
     }
@@ -549,14 +593,14 @@ public class BambiServlet extends HttpServlet {
      * @param parent the parent element to add the list to
      * @param name the name of the option list form
      */
-    public static void addOptionList(ValuedEnum e, List l,KElement parent, String name)
+    public static void addOptionList(ValuedEnum e, List<EnumQueueEntryStatus> l,KElement parent, String name)
     {
         if(e==null || parent==null)
             return;
         KElement list=parent.appendElement(BambiNSExtension.MY_NS_PREFIX+"OptionList",BambiNSExtension.MY_NS); 
         list.setAttribute("name", name);
         list.setAttribute("default", e.getName());
-        Iterator<ValuedEnum> it=l.iterator();
+        Iterator<EnumQueueEntryStatus> it=l.iterator();
         while(it.hasNext())
         {
             ValuedEnum ve=it.next();

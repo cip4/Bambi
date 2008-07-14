@@ -91,6 +91,7 @@ public class BambiNSExtension
      * 
      */
     private static final String STATUS_CONTAINER = "StatusContainer";
+    private static String slaveURL="SlaveURL";
 
     protected BambiNSExtension(){/* never construct - static class */}
    
@@ -382,6 +383,15 @@ public class BambiNSExtension
                     return qe;
             }
             return null;
+        }
+
+        /**
+         * @param root
+         * @param slaveURL
+         */
+        public static void setSlaveURL(KElement root, String _slaveURL)
+        {
+            setMyNSAttribute(root, slaveURL, _slaveURL);        
         }
    
 }

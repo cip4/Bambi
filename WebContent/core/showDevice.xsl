@@ -56,6 +56,9 @@
 			<b>ID: </b> <xsl:value-of select="$deviceID"/><br/>
 			<b>Class: </b><xsl:value-of select="$deviceType"/><br/>
 			<b>URL: </b><xsl:value-of select="$deviceURL"/><br/>
+			<xsl:if test="@bambi:SlaveURL">
+			<b>Slave URL: </b><xsl:value-of select="@bambi:SlaveURL"/><br/>
+			</xsl:if>
 		</div>
 		<hr/>
 <!-- call queues and phases -->

@@ -13,15 +13,16 @@
       </head>
       <body>
 		<img src="../logo.gif" height="70"  alt="logo"/>
-      <h1>Queue - DeviceID:<xsl:value-of select = "@DeviceID" /> - Status: <xsl:value-of select = "@Status" /></h1>
+      <h1>Queue - DeviceID:<xsl:value-of select = "@DeviceID" /> - Queue Status: <xsl:value-of select = "@Status" /></h1>
       <hr/>
       Show Device:<a><xsl:attribute name="href">../showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
       Device: <xsl:value-of select="@DeviceID"/> </a>     
       <hr/>
-      <h2>Queue Summary</h2>
+  
+     <h2>Queue Entry Summary</h2>
       
         <table cellspacing="2" border="1" >
-          <tr bgcolor="#bbbbbb">
+           <tr bgcolor="#bbbbbb">
             <th align="left" >Queue Entry Status</th>
             <th align="center" ># of Entries</th>
           </tr>  

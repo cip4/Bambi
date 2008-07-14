@@ -105,9 +105,10 @@ public interface IQueueProcessor extends IMultiJMFHandler, IGetHandler
      * 
      * @param sumitQueueEntry queuesubmission command
      * @param theJDF the referenced jdf doc
+     * @param resp the response to fill, may be null
      * @return JDFQueueEntry the newly created queue entry
      */
-    public JDFQueueEntry addEntry(JDFCommand sumitQueueEntry, JDFDoc theJDF);
+    public JDFQueueEntry addEntry(JDFCommand sumitQueueEntry, JDFResponse resp, JDFDoc theJDF);
     
     /**
      * updated an entry in the queue 
