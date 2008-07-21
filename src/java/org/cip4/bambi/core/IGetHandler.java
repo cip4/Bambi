@@ -86,6 +86,6 @@ public interface IGetHandler {
      * @param response the response to fill
      * @return boolean true if the request was handled and the response has been filled 
 	 */
-	public boolean handleGet(HttpServletRequest request, HttpServletResponse response);
+	public boolean handleGet(BambiServletRequest request, BambiServletResponse response);
 
 }

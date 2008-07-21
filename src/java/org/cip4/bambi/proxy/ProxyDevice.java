@@ -71,15 +71,12 @@
 
 package org.cip4.bambi.proxy;
 
-import java.io.File;
 import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
-import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.messaging.JMFFactory;
@@ -90,7 +87,6 @@ import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
-import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -103,9 +99,6 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.util.MultiModuleStatusCounter;
-import org.cip4.jdflib.util.QueueHotFolder;
-import org.cip4.jdflib.util.QueueHotFolderListener;
-import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MultiModuleStatusCounter.MultiType;
 
 public class ProxyDevice extends AbstractProxyDevice {

@@ -3,21 +3,36 @@
   <xsl:output method="html"/>
   
   <xsl:template match="jdf:Queue">
+     <xsl:variable name="context" select="@Context"/>
+  
     <html>
       <head> 
- 						<link rel="stylesheet" type="text/css" href="../css/styles_pc.css"/>
+ 						<link rel="stylesheet" type="text/css" >
+ 						<xsl:attribute name="href"><xsl:value-of select="$context" />/css/styles_pc.css</xsl:attribute>
+ 						</link>
      				<meta http-equiv="refresh">
-							<xsl:attribute name="content">15; URL=../showQueue/<xsl:value-of select="@DeviceID"/>?refresh=true</xsl:attribute>
+							<xsl:attribute name="content">15; URL=<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID"/>?refresh=true</xsl:attribute>
 					 		</meta>
 
       </head>
       <body>
-		<img src="../logo.gif" height="70"  alt="logo"/>
+		<img height="70"  alt="logo"><xsl:attribute name="src"><xsl:value-of select="$context" />/logo.gif</xsl:attribute></img>
       <h1>Queue - DeviceID:<xsl:value-of select = "@DeviceID" /> - Queue Status: <xsl:value-of select = "@Status" /></h1>
       <hr/>
-      Show Device:<a><xsl:attribute name="href">../showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+      <table cellspacing="22" border="0">
+      <tr>
+      <td>
+            Show Device:<a><xsl:attribute name="href"><xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
       Device: <xsl:value-of select="@DeviceID"/> </a>     
-      <hr/>
+      </td>
+      <td>
+      Back to <a><xsl:attribute name="href"><xsl:value-of select="$context"/>/overview</xsl:attribute>Device List</a>     
+      </td>
+      </tr>
+      </table>
+      
+       <hr/>
+  
   
      <h2>Queue Entry Summary</h2>
       
@@ -67,6 +82,39 @@
           </tr>
           </xsl:if>
          </table> 
+         <br/>
+               <table cellspacing="2" border="0" >
+           <tr bgcolor="#ffffff">
+            <td align="left" >
+            <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+			     <input type="hidden" name="resume" value="true" /> 
+			     <input type="submit" value="resume queue" /> 
+				</form></td>
+            <td/>
+             <td align="left" >
+            <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+			     <input type="hidden" name="hold" value="true" /> 
+			     <input type="submit" value="hold queue" /> 
+				</form></td>
+            <td align="left" >
+             <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+			     <input type="hidden" name="open" value="true" /> 
+			     <input type="submit" value="open queue" /> 
+				</form></td>
+            <td align="left" >
+            <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+			     <input type="hidden" name="close" value="true" /> 
+			     <input type="submit" value="close queue" /> 
+				</form></td>
+				<td width="10"/>
+           <td align="left" >
+            <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+			     <input type="hidden" name="flush" value="true" /> 
+			     <input type="submit" value="flush queue" /> 
+				</form></td>
+           </tr>  
+          </table>
+          
           <hr/>
                 
                 <h2>Queue Details</h2>
@@ -86,7 +134,7 @@
           <xsl:apply-templates/>
         </table>
         <hr/>
-        <form ><xsl:attribute name="action">../showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+        <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
 			     <input type="submit" value="refresh queue" /> 
 				</form>
 
@@ -95,6 +143,8 @@
   </xsl:template>
 
   <xsl:template match="jdf:QueueEntry">
+       <xsl:variable name="context" select="../@Context"/>
+  
 	<tr>
 	<xsl:if test="@Status='Running'">
       <xsl:attribute name="bgcolor">#aaffaa</xsl:attribute>
@@ -121,14 +171,14 @@
 	  <td align="left"><xsl:value-of select = "@JobID" /></td>
 	  <td align="left"><xsl:value-of select = "@JobPartID" /></td>
       <td>
-       <a><xsl:attribute name="href">../showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+       <a><xsl:attribute name="href"><xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
       Device: <xsl:value-of select="@DeviceID"/> </a>     
        </td>
        
        <td nowrap="true">      
 <!-- calls the optionList -->
 <form>
-<xsl:attribute name="action">../modifyQE/<xsl:value-of select="../@DeviceID" /></xsl:attribute>
+<xsl:attribute name="action"><xsl:value-of select="$context" />/modifyQE/<xsl:value-of select="../@DeviceID" /></xsl:attribute>
 
          <xsl:apply-templates/>
   <input type="hidden" name="qeID">
@@ -138,7 +188,7 @@
 			   </form>
          </td>
       <td nowrap="true">
-     <a><xsl:attribute name="href">../showJDF/<xsl:value-of select="../@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
+     <a><xsl:attribute name="href"><xsl:value-of select="$context" />/showJDF/<xsl:value-of select="../@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
        Show JDF</a>
          </td>
 	</tr>

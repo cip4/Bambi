@@ -74,16 +74,14 @@ package org.cip4.bambi.proxy;
 import java.io.File;
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiNSExtension;
+import org.cip4.bambi.core.BambiServletRequest;
+import org.cip4.bambi.core.BambiServletResponse;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
-import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
@@ -97,6 +95,7 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.QueueHotFolder;
 import org.cip4.jdflib.util.QueueHotFolderListener;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 public abstract class AbstractProxyDevice extends AbstractDevice {
@@ -104,7 +103,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice {
     /**
      * 
      */
-    public static final String SLAVE_TRUE = "/slave";
+    public static final String SLAVEJMF = "slavejmf";
     private static final Log log = LogFactory.getLog(AbstractProxyDevice.class.getName());
     protected QueueHotFolder slaveJDFOutput=null;
     protected QueueHotFolder slaveJDFError=null;
@@ -233,7 +232,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice {
         IProxyProperties dp=getProxyProperties();
         slaveURL=dp.getSlaveURL();
         super.init();
-        ((QueueProcessor)_theQueueProcessor).useJobIDasQEID=true;
     }
 
     public IConverterCallback getSlaveCallback()
@@ -283,10 +281,18 @@ public abstract class AbstractProxyDevice extends AbstractDevice {
     {
         return slaveURL;
     }
+    /**
+     * @return the slaveURL
+     */
+    public String getDeviceURLForSlave()
+    {
+        return getProxyProperties().getDeviceURLForSlave();
+    }
+    
     @Override
     public IConverterCallback getCallback(String url)
     {
-        if(url!=null &&url.indexOf(SLAVE_TRUE)>=0)
+        if(StringUtil.hasToken(url, SLAVEJMF, "/",0))
             return _slaveCallback;
         return _callback;
     }
@@ -299,12 +305,12 @@ public abstract class AbstractProxyDevice extends AbstractDevice {
         return (IProxyProperties) _devProperties;
     }
     @Override
-    protected boolean showDevice(HttpServletRequest request, HttpServletResponse response, boolean refresh)
+    protected boolean showDevice(BambiServletRequest request, BambiServletResponse response, boolean refresh)
     {
-        XMLProxyDevice proxyDev=this.new XMLProxyDevice(request.getContextPath(), getProxyProperties());
+        XMLProxyDevice proxyDev=this.new XMLProxyDevice(request.getContextRoot(), getProxyProperties());
         try
         {
-            proxyDev.d.write2Stream(response.getOutputStream(), 0,true);
+            proxyDev.d.write2Stream(response.getBufferedOutputStream(), 0,true);
         }
         catch (IOException x)
         {

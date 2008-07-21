@@ -147,10 +147,10 @@ public class StatusListener implements IStatusListener
         if(theCounter==null)
             return;
         theCounter.addPhase(resID, good, waste);
-        if(good>0) {
-            dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int)good);
+        if(good+waste>0) {
+            dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int)(good+waste));
         }
-        if(System.currentTimeMillis()-lastSave>3000)
+        if(System.currentTimeMillis()-lastSave>12345)
             saveJDF();
     }
 

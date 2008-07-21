@@ -72,7 +72,6 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -80,6 +79,7 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.mail.BodyPart;
@@ -138,7 +138,7 @@ public class BambiServlet extends HttpServlet {
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
          */
-        public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
+        public boolean handleGet(BambiServletRequest request, BambiServletResponse response)
         {
 
             showErrorPage("No handler for URL", request.getPathInfo(), request, response);
@@ -156,7 +156,7 @@ public class BambiServlet extends HttpServlet {
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
          */
-        public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
+        public boolean handleGet(BambiServletRequest request, BambiServletResponse response)
         {
             String context=getContext(request);
             if(KElement.isWildCard(context)||context.equalsIgnoreCase("overview")&&(rootDev instanceof AbstractDevice))
@@ -215,7 +215,7 @@ public class BambiServlet extends HttpServlet {
      * @param request required to forward the page
      * @param response required to forward the page
      */
-    protected void showErrorPage(String errorMsg, String errorDetails, HttpServletRequest request, HttpServletResponse response)
+    protected void showErrorPage(String errorMsg, String errorDetails, BambiServletRequest request, BambiServletResponse response)
     {
         request.setAttribute("errorOrigin", this.getClass().getName());
         request.setAttribute("errorMsg", errorMsg);
@@ -249,7 +249,7 @@ public class BambiServlet extends HttpServlet {
             _callBack.updateJMFForExtern(error.getOwnerDocument_JDFElement());
 
         try {
-            error.getOwnerDocument_KElement().write2Stream(response.getOutputStream(), 0, true);
+            error.getOwnerDocument_KElement().write2Stream(response.getBufferedOutputStream(), 0, true);
         } catch (IOException x) {
             log.error("processError: cannot write response\n"+x.getMessage());
         }
@@ -350,6 +350,7 @@ public class BambiServlet extends HttpServlet {
     {
        if(rootDev instanceof AbstractDevice)
        {
+           Map m=request.getParameterMap();
            return ((AbstractDevice)rootDev).getCallback(request.getRequestURI());
        }
        else
@@ -402,34 +403,15 @@ public class BambiServlet extends HttpServlet {
         BambiServletRequest bufRequest=null;
         BambiServletResponse bufResponse=null;
 
+        String header="Context Path: "+request.getContextPath();
+        header+="\nMethod: Post\nContext Type: "+request.getContentType();
         if(bambiDumpIn!=null)
         {
-            try
-            {
-                bufRequest=new BambiServletRequest(request,true);
-                bufResponse=new BambiServletResponse(response,true);
+            bufRequest=new BambiServletRequest(request,true);
+            bufResponse=new BambiServletResponse(response,true);
 
-                File f=bambiDumpIn.newFile();
-                FileOutputStream fs=new FileOutputStream(f);
-                PrintWriter w=new PrintWriter(fs);
-//              w.println("Context Type:"+http);
-                w.println("Context Path:"+request.getContextPath());
-
-                final String contentType = request.getContentType();
-                w.println("Context Type:"+contentType);
-                w.println("Context Length:"+request.getContentLength());
-                w.print("------ end of http header ------\n");
-                w.flush();
-
-                IOUtils.copy(bufRequest.getBufferedInputStream(), fs);
-                fs.flush();
-                fs.close();
-            }
-            catch (IOException e) {
-                bufRequest=new BambiServletRequest(request,false);            
-                bufResponse=new BambiServletResponse(response,false);
-                log.error("Error copying to input dump",e);
-            }
+            header+="\nContext Length: "+request.getContentLength();
+            bambiDumpIn.newFileFromStream(header,bufRequest.getBufferedInputStream());
         }
         else
         {
@@ -457,26 +439,15 @@ public class BambiServlet extends HttpServlet {
                 log.warn("Unknown ContentType: "+contentType);
                 response.setContentType("text/plain");
 
-                OutputStream os=response.getOutputStream();
+                OutputStream os=bufResponse.getBufferedOutputStream();
                 InputStream is=bufRequest.getBufferedInputStream();
                 IOUtils.copy(is,os);
             }
         }
         if(bambiDumpOut!=null)
         {
-            try
-            {
-                File f=bambiDumpOut.newFile();
-                FileOutputStream fs=new FileOutputStream(f);
-                InputStream bufIn=bufResponse.getBufferedInputStream();
-                if(bufIn!=null)
-                    IOUtils.copy(bufIn, fs);
-                fs.flush();
-                fs.close();
-            }
-            catch (IOException e) {
-                log.warn("Exception while writing to dump file",e);
-            }
+            InputStream buf=bufResponse.getBufferedInputStream();
+            File f=bambiDumpOut.newFileFromStream(header,buf);
         }
         bufResponse.flush();
     }
@@ -515,26 +486,6 @@ public class BambiServlet extends HttpServlet {
     {
         MultiDeviceProperties props=new MultiDeviceProperties(context,config);
         createDevices(props, dump);
-    }
-
-    /**
-     * write a String to a writer of a HttpServletResponse, show error.jsp if failed
-     * @param request  the request
-     * @param response theStr will be written to the PrintWriter of this response
-     * @param theStr   the String to write
-     */
-    protected void writeRawResponse(HttpServletRequest request,
-            HttpServletResponse response, String theStr) {
-        PrintWriter out=null;
-        try {
-            out = response.getWriter();
-            out.println(theStr);
-            out.flush();
-            out.close();
-        } catch (IOException e) {
-            showErrorPage("failed to write response", e.getMessage(), request, response);
-            log.error("failed to write response: "+e.getMessage());
-        }
     }
 
     /** 
@@ -640,6 +591,26 @@ public class BambiServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     {
         boolean bHandled=false;
+        BambiServletRequest bufRequest=null;
+        BambiServletResponse bufResponse=null;
+
+        String header="Context Path: "+request.getContextPath();
+        header+="\nMethod: Get\nContext Type: "+request.getContentType();
+        if(bambiDumpIn!=null)
+        {
+            bufRequest=new BambiServletRequest(request,true);
+            bufResponse=new BambiServletResponse(response,true);
+
+            header+="\nContext Length: "+request.getContentLength();
+            bambiDumpIn.newFileFromStream(header,bufRequest.getBufferedInputStream());
+        }
+        else
+        {
+            bufRequest=new BambiServletRequest(request,false);     
+            bufResponse=new BambiServletResponse(response,false);
+
+        }
+
         try
         {
             final int size = _getHandlers.size();
@@ -647,21 +618,28 @@ public class BambiServlet extends HttpServlet {
             for(int i=0;i<size;i++)
             {
                 IGetHandler ig=_getHandlers.get(i);
-                bHandled=ig.handleGet(request, response);
+                bHandled=ig.handleGet(bufRequest, bufResponse);
                 if(bHandled)
                     break;
             }
             // rootDev also dispatches to all other devices
             if(!bHandled && getRootDevice()!=null)
-                bHandled = getRootDevice().handleGet(request, response);
+                bHandled = getRootDevice().handleGet(bufRequest, bufResponse);
         }
         catch (Exception x)
         {
+            int i=0;
             // nop
         }
         if(!bHandled)
-            this.new UnknownErrorHandler().handleGet(request, response);
+            this.new UnknownErrorHandler().handleGet(bufRequest, bufResponse);
 
+        if(bambiDumpOut!=null)
+        {
+            InputStream buf=bufResponse.getBufferedInputStream();
+            File f=bambiDumpOut.newFileFromStream(header,buf);
+        }
+        bufResponse.flush();
 
     }
 
@@ -736,23 +714,30 @@ public class BambiServlet extends HttpServlet {
 
         VElement v=props.getDevices();
         Iterator<KElement> iter=v.iterator();
+        boolean needController =  v.size()>1;
         while (iter.hasNext()) {
             IDeviceProperties prop=props.createDevice(iter.next());
             IDevice d=null;
             if(rootDev==null)
             {
-                d=prop.getDeviceInstance();
+                if(needController)
+                {
+                    d=prop.getDeviceInstance(); 
+                    if(!(d instanceof RootDevice))
+                    {
+                        d.shutdown();
+                        d=new RootDevice(prop);
+                    }
+                }
+                else
+                {
+                    d=prop.getDeviceInstance(); 
+                }
                 rootDev=d;
             }
             else
             {
                 RootDevice rd=getRootDevice();
-                if(rd==null)
-                {
-                    if(rootDev!=null)
-                        rootDev.shutdown();
-                    rootDev=rd=new RootDevice(props.createDevice(v.get(0)));
-                }
                 d=rd.createDevice(prop,this);
 
             }

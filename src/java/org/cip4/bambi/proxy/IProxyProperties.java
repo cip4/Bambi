@@ -99,7 +99,11 @@ public interface IProxyProperties extends IDeviceProperties {
      * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
      */
     public String getSlaveURL();
-    
+
+    /**
+     * get the URL of this proxy for the slave
+     */    
+    public String getDeviceURLForSlave();
     /**
      * @return
      */
@@ -114,17 +118,17 @@ public interface IProxyProperties extends IDeviceProperties {
      * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
      */
     public int getSlaveHTTPChunk();
-    
+
     /**
      * @return the default body part encoding
      */
     public String getSlaveMIMEEncoding();
-    
+
     /**
      * @return true if referenced files should be included in the mime package
      */
     public boolean getSlaveMIMEExpansion();
-    
+
     /**
      * @return the callback class to and from the slave device
      */

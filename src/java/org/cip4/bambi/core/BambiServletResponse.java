@@ -14,6 +14,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 
 /*
@@ -95,16 +98,12 @@ public class BambiServletResponse implements HttpServletResponse
 {
     private HttpServletResponse parent;
     private ByteArrayIOStream buffer;
+    private static Log log = LogFactory.getLog(BambiServletResponse.class.getName());
 
-    /**
-     * 
-     * @throws IOException 
-     * 
-     */
-    public BambiServletResponse(HttpServletResponse _parent, boolean b) throws IOException
+     public BambiServletResponse(HttpServletResponse _parent, boolean bBuffer)
     {
         parent=_parent;
-        if(b)
+        if(bBuffer)
         {
             buffer = new ByteArrayIOStream();
         }
@@ -182,10 +181,12 @@ public class BambiServletResponse implements HttpServletResponse
         return parent.getLocale();
     }
 
-    public ServletOutputStream getOutputStream() throws IOException
+    /**
+     * never acces this directly - always use flush finally
+     */
+    public ServletOutputStream getOutputStream() throws NotImplementedException
     {
-        flush();
-        return parent.getOutputStream();
+        throw new NotImplementedException("Use getBufferedOutputStream");
     }
     public OutputStream getBufferedOutputStream() throws IOException
     {
@@ -297,7 +298,7 @@ public class BambiServletResponse implements HttpServletResponse
                 buffer=null;
             }
             catch (IOException e) {
-                // nop
+                log.error("Error while flushing response stream",e);
             }
         }
 

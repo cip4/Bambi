@@ -76,9 +76,6 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.Map.Entry;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IJMFHandler;
@@ -110,7 +107,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * 
@@ -155,7 +152,7 @@ public final class SignalDispatcher
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
          */
-        public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
+        public boolean handleGet(BambiServletRequest request, BambiServletResponse response)
         {
             Vector<MsgSubscription> v=ContainerUtil.toValueVector(subscriptionMap, true);
             KElement root=getRoot();
@@ -169,13 +166,13 @@ public final class SignalDispatcher
             setXSLTURL("/"+BambiServlet.getBaseServletName(request)+"/subscriptionList.xsl");
             try
             {
-                write2Stream(response.getOutputStream(), 2,true);
+                write2Stream(response.getBufferedOutputStream(), 2,true);
             }
             catch (IOException x)
             {
                 return false;
             }
-            response.setContentType(MimeUtil.TEXT_XML);
+            response.setContentType(UrlUtil.TEXT_XML);
             return true;
 
         }
@@ -368,7 +365,7 @@ public final class SignalDispatcher
             }
             else
             {
-                log.error("bad subscription: "+sub);
+                log.debug("no Signal for subscription: "+sub);
             }
         }
 
@@ -978,14 +975,14 @@ public final class SignalDispatcher
         int si = v==null ? 0 : v.size();
         if(si==0)
             return null;
-        Trigger[] triggers = new Trigger[si];
+        Trigger[] locTriggers = new Trigger[si];
         int n=0;
         for (int i = 0; i < si; i++) 
         {
             MsgSubscription sub=v.get(i);
             if(KElement.isWildCard(sub.queueEntry) || sub.queueEntry.equals(queueEntryID))
             {
-                triggers[n++]=triggerChannel(sub.channelID, queueEntryID, nodeID, amount);
+                locTriggers[n++]=triggerChannel(sub.channelID, queueEntryID, nodeID, amount);
             }
         }
         if(n==0)
@@ -994,10 +991,10 @@ public final class SignalDispatcher
         {
             Trigger[] t2=new Trigger[n];
             for(int i=0;i<n;i++)
-                t2[i]=triggers[i];
-            triggers=t2;
+                t2[i]=locTriggers[i];
+            locTriggers=t2;
         }
-        return triggers;
+        return locTriggers;
     }
 
     /**
@@ -1018,7 +1015,7 @@ public final class SignalDispatcher
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
      */
-    public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
+    public boolean handleGet(BambiServletRequest request, BambiServletResponse response)
     {
         return this.new XMLSubscriptions().handleGet(request, response);
     }

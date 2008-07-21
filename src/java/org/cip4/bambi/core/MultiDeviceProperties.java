@@ -206,16 +206,13 @@ public class MultiDeviceProperties
          */
         public String getDeviceClassName()
         {
-            String name= devRoot.getAttribute("DeviceClass",null,null);
-            if(name==null)
-                name= root.getAttribute("DeviceClass",null,"org.cip4.bambi.workers.sim.SimDevice");
-            return name;
+            return getDeviceAttribute("DeviceClass",null,"org.cip4.bambi.workers.sim.SimDevice");
         }
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
          */
         public String getDeviceID() {
-            return devRoot.getAttribute("DeviceID",null,null);        
+            return getDeviceAttribute("DeviceID",null,null);        
         }
 
 
@@ -223,14 +220,14 @@ public class MultiDeviceProperties
          * @see org.cip4.bambi.core.IDeviceProperties#getProxyURL()
          */
         public String getProxyControllerURL() {
-            return devRoot.getAttribute("ProxyURL",null,null);        
+            return getDeviceAttribute("ProxyURL",null,null);        
         }
 
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getDeviceType()
          */
         public String getDeviceType() {
-            return devRoot.getAttribute("DeviceType",null,null);        
+            return getDeviceAttribute("DeviceType",null,null);        
         }
 
         /* (non-Javadoc)
@@ -309,19 +306,28 @@ public class MultiDeviceProperties
          */
         public String getTrackResource()
         {
-            return devRoot.getAttribute("TrackResource",null,"Output");
+            return getDeviceAttribute("TrackResource",null,"Output");
         }
 
         public String getDeviceAttribute(String key)
         {
-            return devRoot.getAttribute(key, null, null);
+            return getDeviceAttribute(key, null, null);
+                
+        }
+        public String getDeviceAttribute(String key, String ns, String def)
+        {
+            String val= devRoot.getAttribute(key, ns, null);
+            if(val==null)
+                val= root.getAttribute(key, ns, def);
+            return val;
+                
         }
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
          */
         public String getTypeExpression()
         {
-            return devRoot.getAttribute(AttributeName.TYPEEXPRESSION, null, null);
+            return getDeviceAttribute(AttributeName.TYPEEXPRESSION);
         }
 
 
@@ -330,7 +336,7 @@ public class MultiDeviceProperties
          */
         public VString getAmountResources()
         {
-            VString v= StringUtil.tokenize(devRoot.getAttribute("AmountResources", null, null), ",", false);
+            VString v= StringUtil.tokenize(getDeviceAttribute("AmountResources", null, null), ",", false);
             final String trackResource = getTrackResource();
             if (v==null)
             {
@@ -346,23 +352,22 @@ public class MultiDeviceProperties
          */
         public int getControllerHTTPChunk()
         {
-            return devRoot.getIntAttribute("HTTPChunk", null, 10000);
+            return StringUtil.parseInt(getDeviceAttribute("HTTPChunk"), 10000);
         }
-
 
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
          */
         public String getControllerMIMEEncoding()
         {
-            return devRoot.getAttribute("MIMETransferEncoding",null,MimeUtil.BASE64);
+            return getDeviceAttribute("MIMETransferEncoding",null,MimeUtil.BASE64);
         }
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEExpansion()
          */
         public boolean getControllerMIMEExpansion()
         {
-            return devRoot.getBoolAttribute("MIMETransferEncoding",null,false);
+            return StringUtil.parseBoolean(getDeviceAttribute("MIMEExpansion"),false);
         }
 
 
@@ -371,7 +376,7 @@ public class MultiDeviceProperties
          */
         public QEReturn getReturnMIME()
         {
-            String s=devRoot.getAttribute("MIMEReturn",null,"MIME");
+            String s=getDeviceAttribute("MIMEReturn",null,"MIME");
             try
             {
                 return QEReturn.valueOf(s);
@@ -392,7 +397,7 @@ public class MultiDeviceProperties
          */
         public String getWatchURL()
         {
-            return devRoot.getAttribute("WatchURL",null,null);                   
+            return getDeviceAttribute("WatchURL",null,null);                   
         }
 
       }

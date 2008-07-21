@@ -70,7 +70,7 @@
  */
 package org.cip4.bambi.core;
 
-import org.cip4.bambi.core.queues.IQueueProcessor;
+import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
@@ -99,8 +99,7 @@ public interface IDeviceProcessor extends Runnable
      * @param statusListener the status listener
      * @param devProperties  device properties
      */
-    public void init(IQueueProcessor queueProcessor, StatusListener statusListener, 
-    		IDeviceProperties devProperties);
+    public void init(QueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties);
     
     /**
      * stop the device processor loop

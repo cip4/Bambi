@@ -97,6 +97,7 @@ public class ProxyProperties extends MultiDeviceProperties
      */
  
    private static final Log log = LogFactory.getLog(ProxyProperties.class.getName());
+   
    public class ProxyDeviceProperties extends DeviceProperties implements IProxyProperties 
    {
         /**
@@ -163,6 +164,13 @@ public class ProxyProperties extends MultiDeviceProperties
             return getFile("SlaveErrorHF");
         }
 
+        /**
+         * get the URL of this proxy for the slave
+         */
+        public String getDeviceURLForSlave() {
+           String s=getDeviceURL();
+           return StringUtil.replaceString(s, "/jmf/", "/"+AbstractProxyDevice.SLAVEJMF+"/");
+        }
 
         /* (non-Javadoc)
          * @see org.cip4.bambi.core.IDeviceProperties#getSlaveInputHF()
@@ -196,7 +204,7 @@ public class ProxyProperties extends MultiDeviceProperties
          */
         public int getMaxPush()
         {
-            return devRoot.getIntAttribute("MaxPush", null, 0);
+            return StringUtil.parseInt(getDeviceAttribute("MaxPush"), 0);
         }
 
         /* (non-Javadoc)
@@ -204,7 +212,7 @@ public class ProxyProperties extends MultiDeviceProperties
          */
         public int getSlaveHTTPChunk()
         {
-            return devRoot.getIntAttribute("SlaveHTTPChunk", null, getControllerHTTPChunk());
+            return StringUtil.parseInt(getDeviceAttribute("SlaveHTTPChunk"), getControllerHTTPChunk());
         }
 
 
@@ -213,7 +221,7 @@ public class ProxyProperties extends MultiDeviceProperties
          */
         public String getSlaveMIMEEncoding()
         {
-            return devRoot.getAttribute("SlaveMIMETransferEncoding",null,getControllerMIMEEncoding());
+            return getDeviceAttribute("SlaveMIMETransferEncoding",null,getControllerMIMEEncoding());
         }
 
         /* (non-Javadoc)
@@ -221,7 +229,7 @@ public class ProxyProperties extends MultiDeviceProperties
          */
         public boolean getSlaveMIMEExpansion()
         {
-            return devRoot.getBoolAttribute("SlaveMIMETransferExpansion",null,getControllerMIMEExpansion());
+            return StringUtil.parseBoolean(getDeviceAttribute("SlaveMIMETransferExpansion"),getControllerMIMEExpansion());
         }
 
     }

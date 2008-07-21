@@ -74,12 +74,13 @@ package org.cip4.bambi.workers.core;
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiServlet;
+import org.cip4.bambi.core.BambiServletRequest;
+import org.cip4.bambi.core.BambiServletResponse;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase;
@@ -92,9 +93,9 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 
 /**
@@ -270,21 +271,21 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
         return false;
     }
     @Override
-    protected boolean showDevice(HttpServletRequest request, HttpServletResponse response, boolean refresh)
+    protected boolean showDevice(BambiServletRequest request, BambiServletResponse response, boolean refresh)
     {
         if(refresh)
             return super.showDevice(request, response, refresh); // skip the phase stuff
         
-        XMLSimDevice simDevice=this.new XMLSimDevice(request.getContextPath());
+        XMLSimDevice simDevice=this.new XMLSimDevice(request.getContextRoot());
         try
         {
-            simDevice.d.write2Stream(response.getOutputStream(), 0,true);
+            simDevice.d.write2Stream(response.getBufferedOutputStream(), 0,true);
         }
         catch (IOException x)
         {
             return false;
         }
-        response.setContentType(MimeUtil.TEXT_XML);
+        response.setContentType(UrlUtil.TEXT_XML);
         return true;
     }
 
@@ -345,7 +346,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
      */
-    public boolean handleGet(HttpServletRequest request, HttpServletResponse response)
+    public boolean handleGet(BambiServletRequest request, BambiServletResponse response)
     {
         if(isMyRequest(request) && BambiServlet.isMyContext(request,"processNextPhase"))       
         {
@@ -355,7 +356,7 @@ public abstract class AbstractWorkerDevice extends AbstractDevice implements IGe
     }
 
 
-    private boolean processNextPhase(HttpServletRequest request, HttpServletResponse response) {
+    private boolean processNextPhase(BambiServletRequest request, BambiServletResponse response) {
 
         JobPhase nextPhase = buildJobPhaseFromRequest(request);
         ((AbstractWorkerDeviceProcessor)_deviceProcessors.get(0)).doNextPhase(nextPhase);

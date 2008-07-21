@@ -71,23 +71,13 @@
 
 package org.cip4.bambi;
 
-import java.net.HttpURLConnection;
-
-import javax.mail.Multipart;
-
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VElement;
-import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
-import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StatusCounter;
 
 public class ProxyTest extends BambiTestCase {

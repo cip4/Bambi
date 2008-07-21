@@ -83,7 +83,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
-import org.cip4.bambi.core.queues.IQueueProcessor;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
@@ -121,7 +120,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
      * note: the queue processor points to the queue processor of the device, 
      * it !does not! copy it
      */
-    protected IQueueProcessor _queueProcessor;
+    protected QueueProcessor _queueProcessor;
     protected StatusListener _statusListener;
     protected Object _myListener; // the mutex for waiting and reawakening
     protected IDeviceProperties _devProperties=null;
@@ -364,7 +363,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
      * @param _queueProcessor
      * @param _statusListener
      */
-    public void init(IQueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties)
+    public void init(QueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties)
     {
         log.info(this.getClass().getName()+" construct");
         _myListener=new Object();
@@ -430,7 +429,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
             {
                 if (_parent!=null) 
                 {
-                    RootDevice rootDevice=_parent.getRootDevice();
+                    RootDevice rootDevice=_parent.get_rootDevice();
                     if(rootDevice!=null)
                     {
                         currentQE=rootDevice._theQueueProcessor.getNextEntry(_parent.getDeviceID());
@@ -440,7 +439,8 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
                             final JDFQueue queue = _parent._theQueueProcessor.getQueue();
                             JDFQueueEntry queueEntry = currentQE.getQueueEntry();
                             queueEntry=(JDFQueueEntry) queue.moveElement(queueEntry, null);
-                            queueEntry.sortQueue(-1);
+                            // sort the root queue as it doesn't know that it lost a kid
+                            rootDevice._theQueueProcessor.getQueue().sortChildren();
                             currentQE.setQueueEntry(queueEntry);
                         }
                     }
@@ -566,7 +566,8 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 
 
     /**
-     * stops the currently processed task
+     * stops the currently processed task, 
+     * called e.g. from the queueprocessor upon AbortQueueEntry
      * @param newStatus
      * @return the new status, null in case of snafu
      */

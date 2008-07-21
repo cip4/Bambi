@@ -20,6 +20,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.IOUtils;
 import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.StringUtil;
 
 /*
 *
@@ -106,13 +107,20 @@ public class BambiServletRequest implements HttpServletRequest
      * @throws IOException 
      * 
      */
-    public BambiServletRequest(HttpServletRequest _parent, boolean bufIt) throws IOException
+    public BambiServletRequest(HttpServletRequest _parent, boolean bufIt) 
     {
         parent=_parent;
         if(bufIt)
         {
             buffer = new ByteArrayIOStream();
-            IOUtils.copy(parent.getInputStream(), buffer);
+            try
+            {
+                IOUtils.copy(parent.getInputStream(), buffer);
+            }
+            catch (IOException x)
+            {
+                // nop - keep what we have
+            }
         }
         else
             buffer=null;
@@ -151,6 +159,11 @@ public class BambiServletRequest implements HttpServletRequest
     public String getContextPath()
     {
         return parent.getContextPath();
+    }
+    public String getContextRoot()
+    {
+        String s= parent.getContextPath();
+        return "/"+StringUtil.token(s, 0, "/");
     }
 
     public Cookie[] getCookies()
@@ -274,6 +287,7 @@ public class BambiServletRequest implements HttpServletRequest
         return parent.getReader();
     }
 
+    @Deprecated
     public String getRealPath(String arg0)
     {
         return parent.getRealPath(arg0);
@@ -359,6 +373,7 @@ public class BambiServletRequest implements HttpServletRequest
         return parent.isRequestedSessionIdFromCookie();
     }
 
+    @Deprecated
     public boolean isRequestedSessionIdFromUrl()
     {
         return parent.isRequestedSessionIdFromUrl();
@@ -397,6 +412,15 @@ public class BambiServletRequest implements HttpServletRequest
     public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException
     {
         parent.setCharacterEncoding(arg0);
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString()
+    {
+       return "BambiServletRequest: \nURI="+getContextPath();
     }
  
 }

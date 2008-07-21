@@ -88,6 +88,7 @@ import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
+import org.cip4.jdflib.goldenticket.BaseGoldenTicket;
 import org.cip4.jdflib.goldenticket.MISCPGoldenTicket;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -113,7 +114,10 @@ public class BambiTestCase extends TestCase {
     protected static String manualWorkerUrl=null;
     
     protected JMFFactory jmfFactory=new JMFFactory(null);
+    protected int chunkSize=-1;
+    protected String transferEncoding=UrlUtil.BASE64;
 
+    protected BaseGoldenTicket _theGT=null;
     static class BambiTestProp implements IDeviceProperties
     {
 
@@ -440,27 +444,36 @@ public class BambiTestCase extends TestCase {
         JDFJMF jmf=docJMF.getJMFRoot();
         JDFCommand com = (JDFCommand)jmf.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
         com.appendQueueSubmissionParams().setURL("dummy");
-        VJDFAttributeMap vParts=new VJDFAttributeMap();
-        JDFAttributeMap map=new JDFAttributeMap("SignatureName","sig1");
-        map.put("SheetName","s1");
-        vParts.add(map);
-        MISCPGoldenTicket gt=new MISCPGoldenTicket(2,EnumVersion.Version_1_3,2,2,false,vParts);
-        gt.assign(null);
-        JDFNode n=gt.getNode();
-        for(int i=1;i<1234;i++) // fatten the baby to test big bad jdfs
-            n.appendComment().setText("Some text "+i);
+        ensureCurrentGT();
+        _theGT.assign(null);
+        JDFNode n=_theGT.getNode();
+
         Multipart mp = MimeUtil.buildMimePackage(docJMF, n.getOwnerDocument_JDFElement(), true);
 
         try {
             MIMEDetails md=new MIMEDetails();
-            md.transferEncoding=MimeUtil.BASE64;
-            md.httpDetails.chunkSize=-1;
+            md.transferEncoding=transferEncoding;
+            md.httpDetails.chunkSize=chunkSize;
             HttpURLConnection response = MimeUtil.writeToURL( mp,url,md );
             assertEquals( 200,response.getResponseCode() );
             MimeUtil.writeToURL( mp,UrlUtil.fileToUrl(new File("C:\\data\\test.mim"), false),md );
         } catch (Exception e) {
             fail( e.getMessage() ); // fail on exception
         }
+    }
+
+    /**
+     * @return
+     */
+    private void ensureCurrentGT()
+    {
+        if(_theGT!=null)
+            return;
+        VJDFAttributeMap vParts=new VJDFAttributeMap();
+        JDFAttributeMap map=new JDFAttributeMap("SignatureName","sig1");
+        map.put("SheetName","s1");
+        vParts.add(map);
+        _theGT= new MISCPGoldenTicket(2,EnumVersion.Version_1_3,2,2,false,vParts);
     }
 
 }

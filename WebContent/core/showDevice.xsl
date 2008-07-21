@@ -26,7 +26,7 @@
 		 	</xsl:if>
 	</head>
  	<body>
- 			<img src="/misconnector/logo.gif" height="70" alt="logo"/>
+		<img height="70"  alt="logo"><xsl:attribute name="src"><xsl:value-of select="$context" />/logo.gif</xsl:attribute></img>
 
 		<h1><xsl:value-of select="$deviceType"/> - Simulation Device :<xsl:value-of select="$deviceID"/></h1>
 		<p align="center">

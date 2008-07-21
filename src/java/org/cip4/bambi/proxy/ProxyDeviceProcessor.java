@@ -84,7 +84,7 @@ import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
-import org.cip4.bambi.core.queues.IQueueProcessor;
+import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.bambi.proxy.AbstractProxyDevice.EnumSlaveStatus;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -205,7 +205,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
      * @param qeToProcess   the queueentry that this processor will be working for
      * @param doc 
      */
-    public ProxyDeviceProcessor(ProxyDevice device,  IQueueProcessor qProc, IQueueEntry qeToProcess, String slaveURL)
+    public ProxyDeviceProcessor(ProxyDevice device,  QueueProcessor qProc, IQueueEntry qeToProcess, String slaveURL)
     {
         super(device);
         _statusListener=new StatusListener(device.getSignalDispatcher(),device.getDeviceID());
@@ -340,7 +340,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 
     @Override
-    public void init(IQueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties)
+    public void init(QueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties)
     {
 
         super.init(queueProcessor, statusListener,devProperties);

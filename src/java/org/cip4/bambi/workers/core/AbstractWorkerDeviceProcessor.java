@@ -86,7 +86,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
-import org.cip4.bambi.core.queues.IQueueProcessor;
+import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.bambi.workers.core.AbstractWorkerDeviceProcessor.JobPhase.PhaseAmount;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -102,7 +102,6 @@ import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
-import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
 import org.cip4.jdflib.util.StatusCounter;
 
 /**
@@ -383,8 +382,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
      * @param statusListener points to the StatusListener
      * @param devProperties  device properties
      */
-    public AbstractWorkerDeviceProcessor(IQueueProcessor queueProcessor, 
-            StatusListener statusListener, IDeviceProperties devProperties)
+    public AbstractWorkerDeviceProcessor(QueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties)
     {
         super();
         init(queueProcessor, statusListener, devProperties);
@@ -405,7 +403,7 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
      * @param _statusListener
      */
     @Override
-    public void init(IQueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties)
+    public void init(QueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties)
     {
         _jobPhases = new ArrayList<JobPhase>();
         super.init(queueProcessor, statusListener, devProperties);
@@ -564,6 +562,12 @@ public abstract class AbstractWorkerDeviceProcessor extends AbstractDeviceProces
                         }
                     }
                 }
+            }
+            if(_doShutdown)
+            {
+                phase.timeToGo=0;
+                reachedEnd=true;
+                log.info("external shutdown: "+phase.toString());
             }
             _statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails,phase.nodeStatus,phase.nodeStatusDetails, reachedEnd);
             if(phase.timeToGo>0 &&!_doShutdown)

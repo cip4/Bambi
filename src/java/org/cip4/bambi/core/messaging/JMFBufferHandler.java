@@ -70,22 +70,24 @@
  */
 package org.cip4.bambi.core.messaging;
 
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
+import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.VectorMap;
 
@@ -94,14 +96,14 @@ import org.cip4.jdflib.util.VectorMap;
  *
  * @author  rainer
  */
-public abstract class JMFBufferHandler extends AbstractHandler implements IMessageHandler
+public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 {
     private static class MessageIdentifier implements Cloneable
     {
         protected String channelID = null;
         protected String msgType=null;
         protected String senderID=null;
- 
+
         MessageIdentifier(JDFMessage m)
         {
             if(m==null)
@@ -112,7 +114,7 @@ public abstract class JMFBufferHandler extends AbstractHandler implements IMessa
             if(KElement.isWildCard(channelID))
                 channelID=null;
         }
- 
+
 
         /* (non-Javadoc)
          * @see java.lang.Object#clone()
@@ -238,7 +240,7 @@ public abstract class JMFBufferHandler extends AbstractHandler implements IMessa
             return false;
         if(inputMessage==null)
             return true; 
-        
+
         String senderID=inputMessage.getSenderID();
         for(int i=0;i<ignoreSenderIDs.size();i++)
         {
@@ -261,14 +263,14 @@ public abstract class JMFBufferHandler extends AbstractHandler implements IMessa
         {
             ignoreSenderIDs=_ignoreSenderIDs;
         }
-        
+
     }
     /**
      * @param inputMessage
      * @param response
      * @return
      */
-    private JDFJMF getSignals(JDFMessage inputMessage, JDFResponse response)
+    protected JDFJMF getSignals(JDFMessage inputMessage, JDFResponse response)
     {
         synchronized(messageMap)
         {
@@ -310,17 +312,50 @@ public abstract class JMFBufferHandler extends AbstractHandler implements IMessa
         }
     }
 
-    /**
-     * @param inputMessage
-     * @return
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.messaging.JMFBufferHandler#handleSignal(org.cip4.jdflib.jmf.JDFSignal, org.cip4.jdflib.jmf.JDFResponse)
      */
-    protected abstract boolean handleSignal(JDFSignal inSignal, JDFResponse response);
+    protected boolean handleSignal(JDFSignal inSignal, JDFResponse response)
+    {
+        MessageIdentifier mi=new MessageIdentifier(inSignal);
+        synchronized (messageMap)
+        {
+            messageMap.putOne(mi,inSignal);
+            return true;
+        }
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////
 
     public static class StatusBufferHandler extends JMFBufferHandler
     {
 
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.messaging.JMFBufferHandler#getSignals(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+         */
+        @Override
+        protected JDFJMF getSignals(JDFMessage inputMessage, JDFResponse response)
+        {
+            JDFStatusQuParams sqp=inputMessage.getStatusQuParams();
+            boolean queueInfo=false;
+            if(sqp!=null)
+                queueInfo=sqp.getQueueInfo();
+
+            JDFJMF jmf=super.getSignals(inputMessage, response);
+            if(jmf==null)
+                return jmf;
+            VElement sigs=jmf.getMessageVector(EnumFamily.Signal, EnumType.Status);
+            int sigSize=sigs==null  ? 0 : sigs.size();
+            for(int i=0;i<sigSize;i++)
+            {
+                JDFSignal s=(JDFSignal) sigs.get(i);
+                JDFQueue signalQueue=s.getQueue(0);
+                if(signalQueue!=null)
+                    signalQueue.deleteNode();
+            }
+            return jmf;
+
+        }
         public StatusBufferHandler()
         {
             super("Status", new EnumFamily[]{EnumFamily.Signal,EnumFamily.Query});
@@ -401,11 +436,11 @@ public abstract class JMFBufferHandler extends AbstractHandler implements IMessa
             }
             return bAllSame;
         }
- 
+
     }
 
     ////////////////////////////////////////////////////////////////////////////////////
-    
+
     public static class NotificationBufferHandler extends JMFBufferHandler
     {
 
@@ -413,19 +448,16 @@ public abstract class JMFBufferHandler extends AbstractHandler implements IMessa
         {
             super("Notification", new EnumFamily[]{EnumFamily.Signal,EnumFamily.Query});
         }
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.messaging.JMFBufferHandler#handleSignal(org.cip4.jdflib.jmf.JDFSignal, org.cip4.jdflib.jmf.JDFResponse)
-         */
-        @Override
-        protected boolean handleSignal(JDFSignal inSignal, JDFResponse response)
+     }
+    ////////////////////////////////////////////////////////////////////////////////////
+
+    public static class ResourceBufferHandler extends JMFBufferHandler
+    {
+
+        public ResourceBufferHandler()
         {
-            MessageIdentifier mi=new MessageIdentifier(inSignal);
-            synchronized (messageMap)
-            {
-                messageMap.putOne(mi,inSignal);
-                return true;
-            }
+            super("Resource", new EnumFamily[]{EnumFamily.Signal,EnumFamily.Query});
         }
-    }
+     }
 
 }

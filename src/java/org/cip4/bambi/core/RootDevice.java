@@ -75,9 +75,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -395,7 +395,7 @@ public class RootDevice extends AbstractDevice
         }
         else if(deviceID==null)   
         {
-            log.warn("attempting to retrieve null device");
+            log.info("attempting to retrieve null device - defaulting to root");
             return this;           
         }
         return _devices.get(deviceID);
@@ -407,7 +407,8 @@ public class RootDevice extends AbstractDevice
      */
     public IDevice[] getDeviceArray()
     {        
-        return ContainerUtil.toValueVector(_devices,true).toArray(new IDevice[0]);
+        Vector<IDevice> deviceVector = ContainerUtil.toValueVector(_devices,true);
+        return deviceVector==null ? null : deviceVector.toArray(new IDevice[0]);
     }
 
     /**
@@ -434,7 +435,7 @@ public class RootDevice extends AbstractDevice
     }
 
     @Override
-    protected boolean showDevice(HttpServletRequest request,HttpServletResponse response, boolean refresh)
+    protected boolean showDevice(BambiServletRequest request,BambiServletResponse response, boolean refresh)
     {
         IDevice[] devices=getDeviceArray();
         XMLDoc deviceList=new XMLDoc("DeviceList",null);
@@ -468,7 +469,7 @@ public class RootDevice extends AbstractDevice
 
         try
         {
-            deviceList.write2Stream(response.getOutputStream(), 0,true);
+            deviceList.write2Stream(response.getBufferedOutputStream(), 0,true);
         }
         catch (IOException x)
         {

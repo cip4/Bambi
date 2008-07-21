@@ -72,6 +72,7 @@ package org.cip4.bambi.core.messaging;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -349,6 +350,8 @@ public class MessageSender implements Runnable {
 
             try{
                 HttpURLConnection con;
+                String header="URL: "+mh.url;
+
                 if(jmf!=null)
                 {
                     final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
@@ -356,8 +359,12 @@ public class MessageSender implements Runnable {
                     con=jmfDoc.write2HTTPURL(new URL(mh.url),hd);
                     if(outDump!=null)
                     {
-                        File dump=outDump.newFile();
-                        jmfDoc.write2File(dump, 0, true);                    
+                        File dump=outDump.newFile(header);
+                        if(dump!=null)
+                        {
+                            FileOutputStream fos=new FileOutputStream(dump,true);
+                            jmfDoc.write2Stream(fos, 0, true);    
+                        }
                     }
                 }
                 else if(mp!=null)
@@ -365,13 +372,24 @@ public class MessageSender implements Runnable {
                     con=MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
                     if(outDump!=null)
                     {
-                        File dump=outDump.newFile();
-                        MimeUtil.writeToFile(mp, dump.getAbsolutePath(),mh.mimeDet);                    
+                        File dump=outDump.newFile(header);
+                        if(dump!=null)
+                        {
+                            FileOutputStream fos=new FileOutputStream(dump,true);
+                            MimeUtil.writeToStream(mp,fos,mh.mimeDet);    
+                        }
                     }
                 }
                 else
                 {
                     return true; // nothing to send; remove it
+                }
+
+                if(con!=null)
+                {
+                    header+="\nResponse code:"+con.getResponseCode();
+                    header+="\nContent type:"+con.getContentType();
+                    header+="\nContent length:"+con.getContentLength();
                 }
 
                 if(con!=null && con.getResponseCode()==200)
@@ -381,7 +399,7 @@ public class MessageSender implements Runnable {
 
                     if(inDump!=null)
                     {
-                        inDump.newFileFromStream(bis);
+                        inDump.newFileFromStream(header, bis);
                     }
                     if (mh.respHandler!=null) 
                     {
@@ -395,12 +413,18 @@ public class MessageSender implements Runnable {
                     b=false;
                     if(idle==0)// only warn on first try
                         log.warn("could not send message to "+mh.url+" rc= "+((con==null) ? -1 : con.getResponseCode()));
+                    if(con!=null)
+                    {
+                        if(inDump!=null)
+                        {
+                            inDump.newFile(header);
+                        }
+                    }
                 }
-
             }
             catch (Exception e) {
-               log.error("Exception in sendfirstmessage",e);
-               b=false;
+                log.error("Exception in sendfirstmessage",e);
+                b=false;
             }
             return b;
         }
@@ -424,7 +448,7 @@ public class MessageSender implements Runnable {
      */
     public boolean isRunning() 
     {
-       return !doShutDown;
+        return !doShutDown;
     }
     private DumpDir getInDump(String senderID)
     {
@@ -471,11 +495,13 @@ public class MessageSender implements Runnable {
      *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
      */
     public boolean queueMimeMessage(Multipart multpart, IResponseHandler handler, MIMEDetails md, String senderID, String url) {
-        if (doShutDown || doShutDownGracefully) {
+        if (doShutDown || doShutDownGracefully) 
+        {
             return false;
         }
 
-        synchronized(_messages) {
+        synchronized(_messages) 
+        {
             _messages.add(new MessageDetails(multpart,handler,md,senderID,url));
         }
         return true;

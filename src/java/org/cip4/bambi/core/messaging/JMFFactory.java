@@ -448,7 +448,8 @@ public class JMFFactory {
             MessageSender ms=senders.get(cu);
             if(ms!=null &&!ms.isRunning())
             {
-                senders.remove(ms);
+                senders.remove(cu);
+                log.info("removing idle message sender "+cu.url);
                 ms=null;
             }
             if(ms==null)
