@@ -106,7 +106,14 @@ public interface IResponseHandler
     /**
      * wait for the handleMessage to complete
      * @param milliSeconds
+     * @param abort if abortTimeOut, don't send after timeout millisecconds
      */
-    public void waitHandled(int milliSeconds);
+    public void waitHandled(int milliSeconds, boolean abortTimeOut);
+    
+    /**
+     * true if this messages timed out
+     * @return
+     */
+    public boolean  isAborted();
 
 }

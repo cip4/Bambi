@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -416,22 +416,11 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
     @Override
     public void stopProcessing(EnumNodeStatus newStatus)
     {
-        JDFJMF jmf=null;
         final String slaveQE=getSlaveQEID();
-        if(EnumNodeStatus.Aborted.equals(newStatus))
-        {
-            jmf=JMFFactory.buildAbortQueueEntry(slaveQE);
-        }
-        else if(EnumNodeStatus.Suspended.equals(newStatus))
-        {
-            jmf=JMFFactory.buildSuspendQueueEntry(slaveQE);
-        }
-        if(jmf!=null)
-        {
-            new JMFFactory(slaveCallBack).send2URLSynch(jmf, _slaveURL, getParent().getDeviceID(),2000);
-        }
+        getParent().stopSlaveProcess(slaveQE,newStatus);
     }
 
+ 
     /**
      * @param m
      * @param resp

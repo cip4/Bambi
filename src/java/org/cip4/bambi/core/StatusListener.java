@@ -85,6 +85,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.StatusCounter;
 
 /**
@@ -124,6 +125,7 @@ public class StatusListener implements IStatusListener
         }
         Trigger.waitQueued(t, 2000);
     }
+    
     /* (non-Javadoc)
      * @see org.cip4.bambi.IStatusListener#signalStatus(java.lang.String, java.lang.String, org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus, java.lang.String, org.cip4.jdflib.core.JDFElement.EnumNodeStatus, java.lang.String)
      */
@@ -137,6 +139,23 @@ public class StatusListener implements IStatusListener
         if(bMod || forceOut) {
             flush();
         }
+     }
+    
+    /**
+     * set  event, append the Event element and optionally the comment<br/>
+     * overwrites existing values
+     * @param eventID Event/@EventID to set
+     * @param eventValue Event/@EventValue to set
+     * @param comment the comment text, if null no comment is set
+     */
+    public void setEvent(String eventID, String eventValue, String comment) 
+    {
+        if(theCounter==null) {
+            log.error("updating null status tracker");
+            return;
+        }
+        theCounter.setEvent(eventID, eventValue, comment);
+        flush();
      }
 
     /* (non-Javadoc)

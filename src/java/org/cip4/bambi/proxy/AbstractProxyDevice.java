@@ -82,9 +82,11 @@ import org.cip4.bambi.core.BambiServletRequest;
 import org.cip4.bambi.core.BambiServletResponse;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
+import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -92,7 +94,6 @@ import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.QueueHotFolder;
 import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.StringUtil;
@@ -231,6 +232,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice {
     {
         IProxyProperties dp=getProxyProperties();
         slaveURL=dp.getSlaveURL();
+        _slaveCallback=dp.getSlaveCallBackClass();
         super.init();
     }
 
@@ -261,6 +263,28 @@ public abstract class AbstractProxyDevice extends AbstractDevice {
             slaveJDFError.stop();
         if(slaveJDFOutput!=null)
             slaveJDFOutput.stop();
+    }
+
+    /**
+     * sends messages to the slave to stop processing
+     * @param newStatus
+     * @param slaveQE
+     */
+    protected void stopSlaveProcess(final String slaveQE,EnumNodeStatus newStatus)
+    {
+        JDFJMF jmf=null;
+        if(EnumNodeStatus.Aborted.equals(newStatus))
+        {
+            jmf=JMFFactory.buildAbortQueueEntry(slaveQE);
+        }
+        else if(EnumNodeStatus.Suspended.equals(newStatus))
+        {
+            jmf=JMFFactory.buildSuspendQueueEntry(slaveQE);
+        }
+        if(jmf!=null)
+        {
+            new JMFFactory(_slaveCallback).send2URLSynch(jmf, slaveURL, getDeviceID(),3000);
+        }
     }
 
     /**
@@ -316,7 +340,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice {
         {
             return false;
         }
-        response.setContentType(MimeUtil.TEXT_XML);
+        response.setContentType(UrlUtil.TEXT_XML);
         return true;
     }
 

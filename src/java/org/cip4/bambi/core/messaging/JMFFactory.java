@@ -364,7 +364,7 @@ public class JMFFactory {
     {       
         MessageResponseHandler handler=new MessageResponseHandler();
         send2URL(jmf, url, handler, senderID);
-        handler.waitHandled(milliSeconds);
+        handler.waitHandled(milliSeconds,true);
         return handler.getConnection();
     }
     /**
@@ -379,7 +379,7 @@ public class JMFFactory {
     {       
         MessageResponseHandler handler=new MessageResponseHandler();
         send2URL(jmf, url, handler, senderID)  ;
-        handler.waitHandled(milliSeconds);
+        handler.waitHandled(milliSeconds,true);
         HttpURLConnection uc=handler.getConnection();
         if(uc!=null)
         {
@@ -401,7 +401,7 @@ public class JMFFactory {
     public HttpURLConnection send2URLSynch(Multipart mp, String url, MIMEDetails md, String senderID,int milliSeconds) {
         MessageResponseHandler handler=new MessageResponseHandler();
         send2URL(mp, url, handler, md, senderID)  ;
-        handler.waitHandled(milliSeconds);
+        handler.waitHandled(milliSeconds,true);
         return handler.getConnection();
     }
 

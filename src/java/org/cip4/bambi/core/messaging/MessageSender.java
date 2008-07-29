@@ -155,6 +155,7 @@ public class MessageSender implements Runnable {
         private HttpURLConnection connect=null;
         protected BufferedInputStream bufferedInput=null;
         private Object mutex=new Object();
+        private int abort=0; // 0 no abort handling, 1= abort on timeou, 2= has been aborted
 
         public MessageResponseHandler()
         {
@@ -177,6 +178,7 @@ public class MessageSender implements Runnable {
         {
             if(mutex==null)
                 return;
+            abort=0;
             synchronized (mutex)
             {
                 mutex.notifyAll();                     
@@ -234,10 +236,11 @@ public class MessageSender implements Runnable {
         /**
          * @param i
          */
-        public void waitHandled(int i)
+        public void waitHandled(int i, boolean bAbort)
         {
             if(mutex==null)
                 return;
+            abort=bAbort?1:0;
             synchronized (mutex)
             {
                 try
@@ -249,6 +252,16 @@ public class MessageSender implements Runnable {
                     //nop
                 }
             }
+            if(abort==1)
+                abort++;
+        }
+
+        /* (non-Javadoc)
+         * @see org.cip4.bambi.core.messaging.IResponseHandler#isAborted()
+         */
+        public boolean isAborted()
+        {
+             return mutex==null ? false : abort==2;
         }
     }
     /**
@@ -337,7 +350,7 @@ public class MessageSender implements Runnable {
             boolean b=true;
             MessageDetails mh=_messages.get(0);
             if(mh==null)
-                return true;
+                return true; // should never happen
             final DumpDir outDump = getOutDump(mh.senderID);
             final DumpDir inDump = getInDump(mh.senderID);
 
@@ -348,7 +361,15 @@ public class MessageSender implements Runnable {
             if ( jmf==null && mp==null)
                 return true; // need no resend - will remove
 
-            try{
+            if(mh.respHandler!=null && mh.respHandler.isAborted())
+            {
+                _messages.remove(0);
+                log.warn("removed aborted message to: "+mh.url);
+                return false;
+            }
+            
+            try
+            {
                 HttpURLConnection con;
                 String header="URL: "+mh.url;
 

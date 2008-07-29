@@ -75,7 +75,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.util.Iterator;
 import java.util.List;
@@ -105,6 +104,7 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -112,6 +112,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
@@ -174,6 +175,8 @@ public class BambiServlet extends HttpServlet {
     private List<IGetHandler> _getHandlers=new Vector<IGetHandler>();
     protected DumpDir bambiDumpIn=null;
     protected DumpDir bambiDumpOut=null;
+    protected boolean dumpGet=false;
+    protected boolean dumpEmpty=false;
     public static int port=0;
 
     /** Initializes the servlet.
@@ -184,13 +187,27 @@ public class BambiServlet extends HttpServlet {
     {
         super.init(config);
         ServletContext context = config.getServletContext();       
-        String dump=config.getInitParameter("bambiDump");
+        final String dump = initializeDumps(config);
         log.info( "Initializing servlet for "+context.getServletContextName() );
-
         loadProperties(context,new File("/config/devices.xml"),dump);
 
         // doGet handlers
         _getHandlers.add(this.new OverviewHandler());
+    }
+
+    private String initializeDumps(ServletConfig config)
+    {
+        String dump=config.getInitParameter("bambiDump");
+        if(dump!=null)
+        {
+            bambiDumpIn=new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("in")));
+            bambiDumpOut=new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("out")));
+            String iniDumpGet = config.getInitParameter("bambiDumpGet");
+            dumpGet=iniDumpGet==null ? false : "true".compareToIgnoreCase(iniDumpGet)==0;
+            String iniDumpEmpty = config.getInitParameter("bambiDumpEmpty");
+            dumpGet=iniDumpEmpty==null ? false : "true".compareToIgnoreCase(iniDumpEmpty)==0;
+        }
+        return dump;
     }
 
     /**
@@ -207,7 +224,6 @@ public class BambiServlet extends HttpServlet {
         }
     }
 
-
     /**
      * display an error on error.jsp
      * @param errorMsg short message describing the error
@@ -217,18 +233,21 @@ public class BambiServlet extends HttpServlet {
      */
     protected void showErrorPage(String errorMsg, String errorDetails, BambiServletRequest request, BambiServletResponse response)
     {
-        request.setAttribute("errorOrigin", this.getClass().getName());
-        request.setAttribute("errorMsg", errorMsg);
-        request.setAttribute("errorDetails", errorDetails);
-
-        try {
-            request.getRequestDispatcher("/error.jsp").forward(request, response);
-        } catch (ServletException e) {
-            System.err.println("failed to show error.jsp");
-            e.printStackTrace();
-        } catch (IOException e) {
-            System.err.println("failed to show error.jsp");
-            e.printStackTrace();
+        XMLDoc d=new XMLDoc("BambiError",null);
+        KElement err=d.getRoot();
+        err.setAttribute("errorOrigin", this.getClass().getName());
+        err.setAttribute("errorMsg", errorMsg);
+        err.setAttribute("errorDetails", errorDetails);
+        err.setAttribute("Context", request.getContextRoot());
+        err.setAttribute("URL", request.getContextPath());
+        d.setXSLTURL(request.getContextRoot()+"/error.xsl");
+        try
+        {
+            d.write2Stream(response.getBufferedOutputStream(), 2, false);
+        }
+        catch (IOException x)
+        {
+            //nop
         }
     }
 
@@ -337,7 +356,20 @@ public class BambiServlet extends HttpServlet {
                     log.error("cannot write to stream: ",e);
                 }
             } else {
-//              processError(request, response, null, 3, "Error Parsing JMF");               
+                JDFJMF jmf=jmfDoc==null ? null : jmfDoc.getJMFRoot();
+                if(jmf!=null)
+                {
+                    VElement v=jmf.getMessageVector(null, null);
+                    int nMess=v==null ? 0 : v.size();
+                    v=jmf.getMessageVector(EnumFamily.Signal, null);
+                    int nSigs=v.size();
+                    if(nMess>nSigs || nMess==0) // eating all signals is ok and does not require a warning
+                        processError(request, response, null, 1, "General Error Handling JMF");         
+                }
+                else
+                {
+                    processError(request, response, null, 3, "Error Parsing JMF");                             
+                }
             }
         }
     }
@@ -403,15 +435,15 @@ public class BambiServlet extends HttpServlet {
         BambiServletRequest bufRequest=null;
         BambiServletResponse bufResponse=null;
 
-        String header="Context Path: "+request.getContextPath();
+        String header="Context Path: "+request.getRequestURI();
         header+="\nMethod: Post\nContext Type: "+request.getContentType();
         if(bambiDumpIn!=null)
         {
             bufRequest=new BambiServletRequest(request,true);
             bufResponse=new BambiServletResponse(response,true);
 
-            header+="\nContext Length: "+request.getContentLength();
-            bambiDumpIn.newFileFromStream(header,bufRequest.getBufferedInputStream());
+            String h2=header+"\nContext Length: "+request.getContentLength();
+            bambiDumpIn.newFileFromStream(h2,bufRequest.getBufferedInputStream());
         }
         else
         {
@@ -444,9 +476,10 @@ public class BambiServlet extends HttpServlet {
                 IOUtils.copy(is,os);
             }
         }
-        if(bambiDumpOut!=null)
+        if(bambiDumpOut!=null && dumpEmpty || bufResponse.getBufferedCount()>0)
         {
             InputStream buf=bufResponse.getBufferedInputStream();
+           
             File f=bambiDumpOut.newFileFromStream(header,buf);
         }
         bufResponse.flush();
@@ -496,6 +529,8 @@ public class BambiServlet extends HttpServlet {
     {
         rootDev.shutdown();
         JMFFactory.shutDown(null, true);
+        StatusCounter.sleep(1234); // leave some time for cleanup
+        super.destroy();
     }
 
     /**
@@ -594,21 +629,20 @@ public class BambiServlet extends HttpServlet {
         BambiServletRequest bufRequest=null;
         BambiServletResponse bufResponse=null;
 
-        String header="Context Path: "+request.getContextPath();
+        String header="Context Path: "+request.getRequestURI();
         header+="\nMethod: Get\nContext Type: "+request.getContentType();
-        if(bambiDumpIn!=null)
+        if(dumpGet && bambiDumpIn!=null)
         {
             bufRequest=new BambiServletRequest(request,true);
             bufResponse=new BambiServletResponse(response,true);
 
-            header+="\nContext Length: "+request.getContentLength();
-            bambiDumpIn.newFileFromStream(header,bufRequest.getBufferedInputStream());
+            String h2=header+"\nContext Length: "+request.getContentLength();
+            bambiDumpIn.newFileFromStream(h2,bufRequest.getBufferedInputStream());
         }
         else
         {
             bufRequest=new BambiServletRequest(request,false);     
             bufResponse=new BambiServletResponse(response,false);
-
         }
 
         try
@@ -634,7 +668,7 @@ public class BambiServlet extends HttpServlet {
         if(!bHandled)
             this.new UnknownErrorHandler().handleGet(bufRequest, bufResponse);
 
-        if(bambiDumpOut!=null)
+        if(dumpGet && bambiDumpOut!=null)
         {
             InputStream buf=bufResponse.getBufferedInputStream();
             File f=bambiDumpOut.newFileFromStream(header,buf);

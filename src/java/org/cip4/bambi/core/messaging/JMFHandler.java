@@ -329,7 +329,6 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
         JDFJMF jmfResp=jmf.createResponse();
         VElement vMess=jmf.getMessageVector(null,null);
         final int messSize = vMess.size();
-        int respSize=messSize;
         for(int i=0;i<messSize;i++)
         {
             JDFMessage m=(JDFMessage) vMess.elementAt(i);
@@ -350,11 +349,11 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
                 if(retCode==0)
                 {
                     mResp.deleteNode();
-                    respSize--;
-                }
+                 }
             }
         } 
-        if(respSize>0)
+        vMess=jmfResp.getMessageVector(null,null);
+        if(vMess!=null && vMess.size()>0)
         {
             jmfResp.setSenderID(getSenderID());
             return jmfResp.getOwnerDocument_JDFElement();

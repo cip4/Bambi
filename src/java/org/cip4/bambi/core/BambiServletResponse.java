@@ -196,6 +196,10 @@ public class BambiServletResponse implements HttpServletResponse
     {
         return buffer==null ? null : buffer.getInputStream();
     }
+    public int getBufferedCount() 
+    {
+        return buffer==null ? -1 : buffer.size();
+    }
 
     public PrintWriter getWriter() throws IOException
     {

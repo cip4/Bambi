@@ -270,6 +270,7 @@ public class ProxyDevice extends AbstractProxyDevice {
         super(properties);
         final IProxyProperties proxyProperties=getProxyProperties();
         statusContainer=new MultiModuleStatusCounter(MultiType.JOB);
+        statusContainer.getRoot().setDeviceID(_devProperties.getDeviceID());
         _jmfHandler.setFilterOnDeviceID(false);
         int maxPush = proxyProperties.getMaxPush();
         if(maxPush>0)

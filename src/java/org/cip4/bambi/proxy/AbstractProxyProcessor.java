@@ -63,7 +63,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
         Multipart mp=MimeUtil.buildMimePackage(docJMF, docJDF, expandMime);
         SubmitQueueEntryResponseHandler sqh=new SubmitQueueEntryResponseHandler();
         new JMFFactory(slaveCallBack).send2URL(mp, strUrl, sqh, urlDet,_parent.getDeviceID());
-        sqh.waitHandled(30000);
+        sqh.waitHandled(30000,true);
         if(sqh.doc==null)
         {
             JDFCommand c=docJMF.getJMFRoot().getCommand(0);
@@ -113,6 +113,10 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
         }
         else
         {
+            if(slaveCallBack!=null)
+            {
+                slaveCallBack.updateJDFForExtern(nod.getOwnerDocument_JDFElement());
+            }
             File fLoc=new File(((ProxyDevice)_parent).getNameFromQE(qe));
             final File fileInHF = FileUtil.getFileInDirectory(fHF, fLoc);
             boolean bWritten=nod.getOwnerDocument_JDFElement().write2File(fileInHF,0,true);
@@ -145,6 +149,13 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
         if(deviceOutputHF!=null)
         {
             qsp.setReturnURL(deviceOutputHF.getPath());
+        }
+        // fix for returning
+        
+        if(slaveCallBack!=null)
+        {
+            slaveCallBack.updateJDFForExtern(nod.getOwnerDocument_JDFElement());
+            slaveCallBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
         }
 
         qsp.setURL("dummy"); // replaced by mimeutil

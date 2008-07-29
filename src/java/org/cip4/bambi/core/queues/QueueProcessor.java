@@ -761,7 +761,6 @@ public class QueueProcessor
     private static final String SHOW_QUEUE = "showQueue";
     private static final String SHOW_JDF = "showJDF";
     private static final String MODIFY_QE = "modifyQE";
-    public boolean useJobIDasQEID=false;
 
     protected JDFQueue _theQueue;
     private Vector<Object> _listeners;
@@ -956,6 +955,8 @@ public class QueueProcessor
                 return null;
             }
             String qeID=newQE.getQueueEntryID();
+             
+            /*
             if(useJobIDasQEID)
             {
                 String jobID= theJDF.getJDFRoot().getJobID(true);
@@ -984,6 +985,7 @@ public class QueueProcessor
                     r.setReturnCode(116);                           
                 }
             }
+            */
 
             if(!storeDoc(newQE,theJDF,qsp.getReturnURL(),qsp.getReturnJMF())) 
             {
@@ -1008,7 +1010,7 @@ public class QueueProcessor
             return false;
         }
         String newQEID=newQE.getQueueEntryID();
-        final JDFNode root = theJDF.getJDFRoot();
+        final JDFNode root = _parentDevice.getNodeFromDoc(theJDF);
         newQE.setFromJDF(root); // set jobid, jobpartid, partmaps
         newQE=_theQueue.getQueueEntry(newQEID); // the "actual" entry in the queue
         if(newQE==null) {
