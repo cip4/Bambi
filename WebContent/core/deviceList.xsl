@@ -28,8 +28,9 @@
 				<th align="left"> Controller Status </th>
 				<th align="left"> Controller URL </th>
 				<th align="left"> Controller Queue </th>
-				<th align="left"> Running </th>
-				<th align="left"> Waiting </th>
+				<th align="left"> Queue Status </th>
+				<th align="left"> # Running </th>
+				<th align="left"> # Waiting </th>
 			</tr>
 		
     <xsl:apply-templates select="XMLDevice[@Root='true']"/>
@@ -44,8 +45,9 @@
 				<th align="left"> Device Status </th>
 				<th align="left"> Device URL </th>
 				<th align="left"> Device Queue </th>
-				<th align="left"> Running </th>
-				<th align="left"> Waiting </th>
+				<th align="left"> Queue Status </th>
+				<th align="left"> # Running </th>
+				<th align="left"> # Waiting </th>
 			</tr>
 		
     <xsl:apply-templates select="XMLDevice[@Root='false']"/>
@@ -65,8 +67,9 @@
 				<td align="left"><xsl:value-of select="@DeviceURL"/></td>
 				<td align="left">
 				<a><xsl:attribute name="href"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
-				Queue for <xsl:value-of select="@DeviceID"/>(<xsl:value-of select="@QueueStatus"/>)</a>
+				Queue for <xsl:value-of select="@DeviceID"/></a>
 				</td>
+				<td align="left"><xsl:value-of select="@QueueStatus"/></td>
 				<td align="left"><xsl:value-of select="@QueueRunning"/></td>
 				<td align="left"><xsl:value-of select="@QueueWaiting"/></td>				
 			</tr>
@@ -85,8 +88,9 @@
 				<td align="left"><xsl:value-of select="@DeviceURL"/></td>
 				<td align="left">
 				<a><xsl:attribute name="href">./showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
-				Queue for <xsl:value-of select="@DeviceID"/>(<xsl:value-of select="@QueueStatus"/>)</a>
+				Queue for <xsl:value-of select="@DeviceID"/></a>
 				</td>
+				<td align="left"><xsl:value-of select="@QueueStatus"/></td>
 				<td align="left"><xsl:value-of select="@QueueRunning"/></td>
 				<td align="left"><xsl:value-of select="@QueueWaiting"/></td>
 			</tr>

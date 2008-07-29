@@ -164,10 +164,19 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
     /* (non-Javadoc)
      * @see org.cip4.bambi.core.messaging.IResponseHandler#waitHandled(int)
      */
-    public void waitHandled(int milliSeconds)
+    public void waitHandled(int milliSeconds, boolean b)
     {
         // TODO Auto-generated method stub
         
+    }
+
+    /* (non-Javadoc)
+     * @see org.cip4.bambi.core.messaging.IResponseHandler#isAborted()
+     */
+    public boolean isAborted()
+    {
+        // TODO Auto-generated method stub
+        return false;
     }
 
 

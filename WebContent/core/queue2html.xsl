@@ -34,9 +34,24 @@
        <hr/>
   
   
-     <h2>Queue Entry Summary</h2>
+     <h2>Queue Summary</h2>
       
         <table cellspacing="2" border="1" >
+        <xsl:choose>
+ 	        <xsl:when test="@Status='Waiting'">
+         <tr bgcolor="#aaaaff">
+ 	         <th align="left">Status</th>
+	  	     <th align="center"><xsl:value-of select="@Status"/></th>
+          </tr>
+           </xsl:when>
+        <xsl:otherwise>
+         <tr bgcolor="#ffaaaa">
+ 	         <td align="left">Status</td>
+	  	     <td align="center"><xsl:value-of select="@Status"/></td>
+          </tr>
+           </xsl:otherwise>
+           </xsl:choose>
+
            <tr bgcolor="#bbbbbb">
             <th align="left" >Queue Entry Status</th>
             <th align="center" ># of Entries</th>
@@ -84,30 +99,43 @@
          </table> 
          <br/>
                <table cellspacing="2" border="0" >
-           <tr bgcolor="#ffffff">
-            <td align="left" >
-            <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
-			     <input type="hidden" name="resume" value="true" /> 
-			     <input type="submit" value="resume queue" /> 
-				</form></td>
-            <td/>
-             <td align="left" >
-            <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
-			     <input type="hidden" name="hold" value="true" /> 
-			     <input type="submit" value="hold queue" /> 
-				</form></td>
-            <td align="left" >
-             <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+               
+           <tr>
+           <td align="center" colspan="2">Incoming Entries</td>
+           <td/>
+          <td align="center" colspan="2">Outgoing Entries</td>
+           <td/>
+          <td align="center" colspan="2"><em>Danger flushes entire Queue!</em></td>
+          </tr>
+           <tr>
+           <td align="left" >
+               <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
 			     <input type="hidden" name="open" value="true" /> 
 			     <input type="submit" value="open queue" /> 
-				</form></td>
+				</form>
+				</td>
             <td align="left" >
             <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
 			     <input type="hidden" name="close" value="true" /> 
 			     <input type="submit" value="close queue" /> 
-				</form></td>
+				</form>
+				</td>
+					<td width="5"/>
+				
+				          <td align="left" >
+            <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+			     <input type="hidden" name="resume" value="true" /> 
+			     <input type="submit" value="resume queue" /> 
+				</form>
+				</td>
+            <td align="left" >
+            <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+			     <input type="hidden" name="hold" value="true" /> 
+			     <input type="submit" value="hold queue" /> 
+				</form>
+			</td>				
 				<td width="10"/>
-           <td align="left" >
+           <td align="center" >
             <form ><xsl:attribute name="action"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
 			     <input type="hidden" name="flush" value="true" /> 
 			     <input type="submit" value="flush queue" /> 
