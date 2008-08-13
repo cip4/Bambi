@@ -81,51 +81,55 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.StatusCounter;
 
-public class SignalDispatcherTest extends BambiTestCase {
+public class SignalDispatcherTest extends BambiTestCase
+{
 
-    SignalDispatcher d;
-    @Override
-    public void setUp()
-    {
-        JMFHandler h=new JMFHandler(null);
-        d=new SignalDispatcher(h, "MyDispatcher",null);
+	SignalDispatcher d;
 
-        d.addHandlers(h);
-     }
-    public void testAddSubscription()
-    {
-        JDFJMF jmf=JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
-        JDFQuery q=jmf.getQuery(0);
-        JDFSubscription s=q.appendSubscription();
-        s.setRepeatTime(1.0);
-        s.setURL("http://localhost:8080/httpdump/");
-        assertNotNull(d.addSubscription(q, null));
-        assertNull(d.addSubscription(q, null));
-        s.setRepeatTime(5.0);
-        q.setID("1234");
-        assertNotNull(d.addSubscription(q, null));
-        StatusCounter.sleep(4000);
-        d.shutdown();
-    }
-    public void testWaitQueued()
-    {
-        JDFJMF jmf=JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
-        JDFQuery q=jmf.getQuery(0);
-        JDFSubscription s=q.appendSubscription();
-        s.setRepeatTime(1.0);
-        s.setURL("http://localhost:8080/httpdump/");
-        assertNotNull(d.addSubscription(q, null));
-        assertNull(d.addSubscription(q, null));
-        s.setRepeatTime(5.0);
-        q.setID("1234");
-        assertNotNull(d.addSubscription(q, null));
-        Trigger[] ts=d.triggerQueueEntry(null, null, -1);
-        assertNotNull(ts);
-        long t0=System.currentTimeMillis();
-        Trigger.waitQueued(ts, 4000);
-        long t1=System.currentTimeMillis();
-        assertTrue(t1-t0<3000);
-        d.shutdown();
-    }
+	@Override
+	public void setUp()
+	{
+		JMFHandler h = new JMFHandler(null);
+		d = new SignalDispatcher(h, "MyDispatcher", null);
+
+		d.addHandlers(h);
+	}
+
+	public void testAddSubscription()
+	{
+		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
+		JDFQuery q = jmf.getQuery(0);
+		JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(1.0);
+		s.setURL("http://localhost:8080/httpdump/");
+		assertNotNull(d.addSubscription(q, null));
+		assertNull(d.addSubscription(q, null));
+		s.setRepeatTime(5.0);
+		q.setID("1234");
+		assertNotNull(d.addSubscription(q, null));
+		StatusCounter.sleep(4000);
+		d.shutdown();
+	}
+
+	public void testWaitQueued()
+	{
+		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
+		JDFQuery q = jmf.getQuery(0);
+		JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(1.0);
+		s.setURL("http://localhost:8080/httpdump/");
+		assertNotNull(d.addSubscription(q, null));
+		assertNull(d.addSubscription(q, null));
+		s.setRepeatTime(5.0);
+		q.setID("1234");
+		assertNotNull(d.addSubscription(q, null));
+		Trigger[] ts = d.triggerQueueEntry(null, null, -1, null);
+		assertNotNull(ts);
+		long t0 = System.currentTimeMillis();
+		Trigger.waitQueued(ts, 4000);
+		long t1 = System.currentTimeMillis();
+		assertTrue(t1 - t0 < 3000);
+		d.shutdown();
+	}
 
 }

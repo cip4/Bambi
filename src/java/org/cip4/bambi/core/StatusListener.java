@@ -72,6 +72,7 @@ package org.cip4.bambi.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.SignalDispatcher.Trigger;
+import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
@@ -85,246 +86,325 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.StatusCounter;
 
 /**
- * @author prosirai
- *
+ * @author Rainer Prosi
+ * 
  */
 public class StatusListener implements IStatusListener
 {
 
-    private static Log log = LogFactory.getLog(StatusListener.class.getName());
-    private SignalDispatcher dispatcher;
-    private SignalDispatcher rootDispatcher=null;
-    protected StatusCounter theCounter;
-    private JDFNode currentNode=null;
-    private long lastSave = 0;
+	private static Log log = LogFactory.getLog(StatusListener.class.getName());
+	private final SignalDispatcher dispatcher;
+	private SignalDispatcher rootDispatcher = null;
+	protected StatusCounter theCounter;
+	private JDFNode currentNode = null;
+	private long lastSave = 0;
 
-    /**
-     * 
-     * @param dispatch
-     * @param deviceID
-     */
-    public StatusListener(SignalDispatcher dispatch, String deviceID)
-    {
-        dispatcher=dispatch;
-        theCounter=new StatusCounter(null,null,null);
-        theCounter.setDeviceID(deviceID);
-    }
+	/**
+	 * 
+	 * @param dispatch
+	 * @param deviceID
+	 */
+	public StatusListener(SignalDispatcher dispatch, String deviceID)
+	{
+		dispatcher = dispatch;
+		theCounter = new StatusCounter(null, null, null);
+		theCounter.setDeviceID(deviceID);
+	}
 
-    public void flush()
-    {
-        Trigger[] t=dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1);
-        dispatcher.flush();
-        if(rootDispatcher!=null)
-        {
-            rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1);
-            rootDispatcher.flush();
-        }
-        Trigger.waitQueued(t, 2000);
-    }
-    
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.IStatusListener#signalStatus(java.lang.String, java.lang.String, org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus, java.lang.String, org.cip4.jdflib.core.JDFElement.EnumNodeStatus, java.lang.String)
-     */
-    public void signalStatus(EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus,String nodeStatusDetails, boolean forceOut)
-    {
-        if(theCounter==null) {
-            log.error("updating null status tracker");
-            return;
-        }
-        boolean bMod=theCounter.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
-        if(bMod || forceOut) {
-            flush();
-        }
-     }
-    
-    /**
-     * set  event, append the Event element and optionally the comment<br/>
-     * overwrites existing values
-     * @param eventID Event/@EventID to set
-     * @param eventValue Event/@EventValue to set
-     * @param comment the comment text, if null no comment is set
-     */
-    public void setEvent(String eventID, String eventValue, String comment) 
-    {
-        if(theCounter==null) {
-            log.error("updating null status tracker");
-            return;
-        }
-        theCounter.setEvent(eventID, eventValue, comment);
-        flush();
-     }
+	/**
+	 * @param msgType the type of messages to flush our, null if any
+	 */
+	public void flush(String msgType)
+	{
+		Trigger[] t = dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
+		dispatcher.flush();
+		if (rootDispatcher != null)
+		{
+			rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
+			rootDispatcher.flush();
+		}
+		Trigger.waitQueued(t, 2000);
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.IStatusListener#updateAmount(java.lang.String, java.lang.String, java.lang.String, double, double)
-     */
-    public void updateAmount(String resID, double good, double waste)
-    {
-        if(theCounter==null)
-            return;
-        theCounter.addPhase(resID, good, waste);
-        if(good+waste>0) {
-            dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int)(good+waste));
-        }
-        if(System.currentTimeMillis()-lastSave>12345)
-            saveJDF();
-    }
+	/**
+	 * update the status information by starting a new phase all amounts that
+	 * have been accumulated are linked to the prior phase should be called
+	 * after all amounts have been appropriately set
+	 * 
+	 * @param deviceStatus
+	 * @param deviceStatusDetails
+	 * @param nodeStatus
+	 * @param nodeStatusDetails
+	 * @param forceOut
+	 *            forces writing by any generator, even if the status remains
+	 *            the same and the trigger would not call for a write
+	 */
+	public void signalStatus(EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus, String nodeStatusDetails, boolean forceOut)
+	{
+		if (theCounter == null)
+		{
+			log.error("updating null status tracker");
+			return;
+		}
+		boolean bMod = theCounter.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
+		if (bMod || forceOut)
+		{
+			flush("Status");
+		}
+	}
 
-    /**
-     * replace the currently tracked node with node
-     * used to overwrite the current node with a returned node, e.g from a proxy device
-     * @param node the JDFNode used to overwrotie the local JDF node
-     */
-    public void replaceNode(JDFNode node)
-    {
-        if(node!=null)
-        {
-            String location=currentNode==null ? null : currentNode.getOwnerDocument_JDFElement().getOriginalFileName();
-            currentNode=node;
-            if(location!=null)
-                currentNode.getOwnerDocument_JDFElement().setOriginalFileName(location);
-            saveJDF();
-        }
-    }
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.IStatusListener#setNode(java.lang.String, org.cip4.jdflib.node.JDFNode)
-     */
-    public void setNode(String queueEntryID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID)
-    {       
-        String oldQEID=theCounter.getQueueEntryID();
-        theCounter.writeAll(); // write all stuff in the counter to the node
-        saveJDF();
-        boolean bSame=currentNode==node;
-        currentNode=node;
-        if(!bSame )
-        {
-            saveJDF();
-        }
+	/**
+	 * set event, append the Event element and optionally the comment<br/>
+	 * overwrites existing values
+	 * 
+	 * @param eventID
+	 *            Event/@EventID to set
+	 * @param eventValue
+	 *            Event/@EventValue to set
+	 * @param comment
+	 *            the comment text, if null no comment is set
+	 */
+	public void setEvent(String eventID, String eventValue, String comment)
+	{
+		if (theCounter == null)
+		{
+			log.error("updating null status tracker");
+			return;
+		}
+		theCounter.setEvent(eventID, eventValue, comment);
+		flush("Event");
+	}
 
-        if(!KElement.isWildCard(oldQEID))
-        {
-            log.info("removing subscription for: "+oldQEID);
-            dispatcher.removeSubScriptions(oldQEID,"*");
-        }
-        theCounter.setActiveNode(node, vPartMap, null);
-        theCounter.setFirstRefID(trackResourceID);
-        theCounter.setTrackWaste(trackResourceID, true); // always track waste
-        theCounter.setQueueEntryID(queueEntryID);
-        while(node!=null) {
-            log.info("adding subscription for: "+queueEntryID);
-            dispatcher.addSubscriptions(node,queueEntryID);
-            node=node.getParentJDF();
-        }
-    }
+	/**
+	 * updates the amount for a given resource the amounts are collected but not
+	 * signaled until signalstatus is called
+	 * 
+	 * @param resID
+	 *            the resource id of the tracked resource
+	 * @param good
+	 *            the number of good copies
+	 * @param waste
+	 *            the number of waste copies, negative values specify that waste
+	 *            should be ignored
+	 */
+	public void updateAmount(String resID, double good, double waste)
+	{
+		if (theCounter == null)
+			return;
+		theCounter.addPhase(resID, good, waste);
+		if (good + waste > 0)
+		{
+			dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int) (good + waste), null);
+		}
+		saveJDF(12345);
+	}
 
-    /**
-     *  save the currently active jdf
-     */
-    private void saveJDF()
-    {
-        if(currentNode==null)
-            return;
-        final JDFDoc ownerDoc = currentNode.getOwnerDocument_JDFElement();
-        if(ownerDoc!=null && ownerDoc.getOriginalFileName()!=null)
-        {
-            ownerDoc.write2File((String)null, 0, true);
-            lastSave=System.currentTimeMillis();
-        }
-    }
+	/**
+	 * update the total amount of a given resource to the value specified
+	 * 
+	 * @param resID
+	 *            the resource id
+	 * @param amount
+	 *            the total amount top set
+	 * @param waste
+	 *            if true, this is waste, else it is good
+	 * 
+	 */
+	public void setTotal(String resID, double amount, boolean waste)
+	{
+		if (theCounter == null)
+			return;
+		theCounter.setTotal(resID, amount, waste);
+		if (amount > 0)
+		{
+			dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int) (amount), null);
+		}
+		saveJDF(12345);
+	}
 
+	/**
+	 * replace the currently tracked node with node used to overwrite the
+	 * current node with a returned node, e.g from a proxy device
+	 * 
+	 * @param node
+	 *            the JDFNode used to overwrotie the local JDF node
+	 */
+	public void replaceNode(JDFNode node)
+	{
+		if (node != null)
+		{
+			String location = currentNode == null ? null : currentNode.getOwnerDocument_JDFElement().getOriginalFileName();
+			currentNode = node;
+			if (location != null)
+				currentNode.getOwnerDocument_JDFElement().setOriginalFileName(location);
+			saveJDF(-1);
+		}
+	}
 
-    /**
-     * get the device status
-     * @return the device status. <br/>
-     * Returns EnumDeviceStatus.Idle if the StatusCounter is null. <br/>
-     * Returns EnumDeviceStatus.Unknown, if the StatusListener was unable to retrieve the status from the StatusCounter.
-     */
-    public EnumDeviceStatus getDeviceStatus() {
-        if (theCounter==null) {
-            return EnumDeviceStatus.Idle;
-        }
+	/**
+	 * setup the map of queueentryid and node
+	 * 
+	 * @param queueEntryID
+	 *            the queueentryid is associated to the node if
+	 *            {@link QueueEntry}==null, the entire list is cleared
+	 * @param vPartMap
+	 *            the vector of partitions that are being tracked
+	 * @param trackResourceID
+	 *            the id of the "major" resource to be counted for phasetimes
+	 * @param node
+	 *            the jdf node that will be processed. this may be a group node
+	 *            with additional sub nodes if node==null the queueentryid is
+	 *            removed from the map
+	 */
+	public void setNode(String queueEntryID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID)
+	{
+		String oldQEID = theCounter.getQueueEntryID();
+		theCounter.writeAll(); // write all stuff in the counter to the node
+		saveJDF(-1);
+		boolean bSame = currentNode == node;
+		currentNode = node;
+		if (!bSame)
+		{
+			saveJDF(-1);
+		}
 
-        JDFDoc docJMF=theCounter.getDocJMFPhaseTime();
-        JDFResponse r=docJMF==null ? null : docJMF.getJMFRoot().getResponse(-1);
-        JDFDeviceInfo di=r==null ? null : r.getDeviceInfo(0);
-        return di==null ? EnumDeviceStatus.Idle : di.getDeviceStatus();
+		if (!KElement.isWildCard(oldQEID))
+		{
+			log.info("removing subscription for: " + oldQEID);
+			dispatcher.removeSubScriptions(oldQEID, "*");
+		}
+		theCounter.setActiveNode(node, vPartMap, null);
+		theCounter.setFirstRefID(trackResourceID);
+		theCounter.setTrackWaste(trackResourceID, true); // always track waste
+		theCounter.setQueueEntryID(queueEntryID);
+		while (node != null)
+		{
+			log.info("adding subscription for: " + queueEntryID);
+			dispatcher.addSubscriptions(node, queueEntryID);
+			node = node.getParentJDF();
+		}
+	}
 
-    }
+	/**
+	 * save the currently active jdf
+	 * 
+	 * @param timeSinceLast
+	 *            milliseconds time to leave between saves
+	 */
+	private void saveJDF(int timeSinceLast)
+	{
+		if (currentNode == null)
+			return;
+		if (System.currentTimeMillis() - lastSave > timeSinceLast)
+		{
+			final JDFDoc ownerDoc = currentNode.getOwnerDocument_JDFElement();
+			if (ownerDoc != null && ownerDoc.getOriginalFileName() != null)
+			{
+				ownerDoc.write2File((String) null, 0, true);
+				lastSave = System.currentTimeMillis();
+			}
+		}
+	}
 
-    public void shutdown() {
-        // not needed right now, retaining method for future compatability		
-    }
+	/**
+	 * get the device status
+	 * 
+	 * @return the device status. <br/> Returns EnumDeviceStatus.Idle if the
+	 *         StatusCounter is null. <br/> Returns EnumDeviceStatus.Unknown, if
+	 *         the StatusListener was unable to retrieve the status from the
+	 *         StatusCounter.
+	 */
+	public EnumDeviceStatus getDeviceStatus()
+	{
+		if (theCounter == null)
+		{
+			return EnumDeviceStatus.Idle;
+		}
 
-    /**
-     * get the StatusCounter
-     * @return the StatusCounter
-     */
-    public StatusCounter getStatusCounter() {
-        return theCounter;
-    }
-    public JDFDoc getJMFPhaseTime()
-    {
-        return  theCounter.getDocJMFPhaseTime();
-    }
+		JDFDoc docJMF = theCounter.getDocJMFPhaseTime();
+		JDFResponse r = docJMF == null ? null : docJMF.getJMFRoot().getResponse(-1);
+		JDFDeviceInfo di = r == null ? null : r.getDeviceInfo(0);
+		return di == null ? EnumDeviceStatus.Idle : di.getDeviceStatus();
+	}
 
-    @Override
-    public String toString()
-    {
-        return "[StatusListner - counter: "+theCounter+"\n Current Node: "+currentNode;
-    }
+	/**
+	 * shut down this StatusListener
+	 */
+	public void shutdown()
+	{
+		// not needed right now, retaining method for future compatability
+	}
 
-    /**
-     * @param inputMessage
-     * @return
-     */
-    public boolean matchesQuery(JDFMessage inputMessage)
-    {
-        if(inputMessage==null)
-            return false;
-        if(!(inputMessage instanceof JDFQuery))
-            return false;
-        JDFQuery q=(JDFQuery)inputMessage;
-        if(EnumType.Status.equals(q.getEnumType()))
-        {
-            JDFStatusQuParams sqp=q.getStatusQuParams();
-            if(sqp==null)
-                return true; 
-            return matchesIDs(sqp.getJobID(),sqp.getJobPartID(),sqp.getQueueEntryID());            
-        }
-        else if(EnumType.Resource.equals(q.getEnumType()))
-        {
-            JDFResourceQuParams rqp=q.getResourceQuParams();
-            if(rqp==null)
-                return true;
-            return matchesIDs(rqp.getJobID(),rqp.getJobPartID(),rqp.getQueueEntryID());            
-        }
-        return true;
-    }
-    /**
-     * @param q
-     * @return
-     */
-    private boolean matchesIDs(String jobID, String jobPartID, String queueEntryID)
-    {
-        String id2 = currentNode==null ? null : currentNode.getJobID(true);
-//        if(!KElement.isWildCard(jobID)&&!jobID.equals(id2))
-//            return false;
-//        id2 = currentNode==null ? null : currentNode.getJobPartID(false);
-//        if(!KElement.isWildCard(jobPartID)&&!id2.startsWith(jobPartID)) // assume dot notation
-//            return false;
-        id2 = currentNode==null ? null : theCounter.getQueueEntryID();
-        if(!KElement.isWildCard(jobPartID)&&!jobPartID.equals(jobPartID)) 
-            return false;
+	/**
+	 * get the StatusCounter
+	 * 
+	 * @return the StatusCounter
+	 */
+	public StatusCounter getStatusCounter()
+	{
+		return theCounter;
+	}
 
-        return true;
-    }
+	@Override
+	public String toString()
+	{
+		return "[StatusListner - counter: " + theCounter + "\n Current Node: " + currentNode;
+	}
 
-    public void setRootDispatcher(SignalDispatcher _rootDispatcher)
-    {
-        this.rootDispatcher = _rootDispatcher;
-    }
+	/**
+	 * @param inputMessage
+	 * @return
+	 */
+	public boolean matchesQuery(JDFMessage inputMessage)
+	{
+		if (inputMessage == null)
+			return false;
+		if (!(inputMessage instanceof JDFQuery))
+			return false;
+		JDFQuery q = (JDFQuery) inputMessage;
+		if (EnumType.Status.equals(q.getEnumType()))
+		{
+			JDFStatusQuParams sqp = q.getStatusQuParams();
+			if (sqp == null)
+				return true;
+			return matchesIDs(sqp.getJobID(), sqp.getJobPartID(), sqp.getQueueEntryID());
+		}
+		else if (EnumType.Resource.equals(q.getEnumType()))
+		{
+			JDFResourceQuParams rqp = q.getResourceQuParams();
+			if (rqp == null)
+				return true;
+			return matchesIDs(rqp.getJobID(), rqp.getJobPartID(), rqp.getQueueEntryID());
+		}
+		return true;
+	}
+
+	/**
+	 * @param q
+	 * @return
+	 */
+	private boolean matchesIDs(String jobID, String jobPartID, String queueEntryID)
+	{
+		String id2 = currentNode == null ? null : currentNode.getJobID(true);
+		// if(!KElement.isWildCard(jobID)&&!jobID.equals(id2))
+		// return false;
+		// id2 = currentNode==null ? null : currentNode.getJobPartID(false);
+		// if(!KElement.isWildCard(jobPartID)&&!id2.startsWith(jobPartID)) //
+		// assume dot notation
+		// return false;
+		id2 = currentNode == null ? null : theCounter.getQueueEntryID();
+		if (!KElement.isWildCard(jobPartID) && !jobPartID.equals(jobPartID))
+			return false;
+
+		return true;
+	}
+
+	public void setRootDispatcher(SignalDispatcher _rootDispatcher)
+	{
+		this.rootDispatcher = _rootDispatcher;
+	}
 
 }

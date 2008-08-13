@@ -71,10 +71,12 @@
 package org.cip4.bambi.core.messaging;
 
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.KElement;
@@ -92,424 +94,504 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.VectorMap;
 
-
 /**
  *
  * @author  rainer
  */
 public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 {
-    private static class MessageIdentifier implements Cloneable
-    {
-        protected String channelID = null;
-        protected String msgType=null;
-        protected String senderID=null;
+	private static class MessageIdentifier implements Cloneable
+	{
+		protected String misChannelID = null;
+		protected String slaveChannelID = null;
+		protected String msgType = null;
+		protected String senderID = null;
 
-        MessageIdentifier(JDFMessage m)
-        {
-            if(m==null)
-                return;
-            msgType=m.getType();
-            channelID=m.getrefID();
-            channelID=m.getSenderID();
-            if(KElement.isWildCard(channelID))
-                channelID=null;
-        }
+		MessageIdentifier(JDFMessage m, String jmfSenderID)
+		{
+			if (m == null)
+				return;
+			msgType = m.getType();
+			slaveChannelID = m.getrefID();
+			if (KElement.isWildCard(slaveChannelID))
+				slaveChannelID = null;
+			misChannelID = slaveChannelID == null ? m.getID() : null;
+			if (!KElement.isWildCard(jmfSenderID))
+			{
+				senderID = jmfSenderID;
+			}
+			else
+			{
+				senderID = m.getSenderID();
+				if (KElement.isWildCard(senderID))
+					senderID = null;
+			}
+		}
 
+		protected MessageIdentifier[] cloneChannels(Set<String> misChannels)
+		{
+			if (misChannels == null || misChannels.size() == 0)
+				return null;
+			Iterator<String> it = misChannels.iterator();
+			MessageIdentifier[] ret = new MessageIdentifier[misChannels.size()];
+			int n = 0;
+			while (it.hasNext())
+			{
+				ret[n] = (MessageIdentifier) clone();
+				ret[n].misChannelID = it.next();
+				n++;
+			}
+			return ret;
+		}
 
-        /* (non-Javadoc)
-         * @see java.lang.Object#clone()
-         */
-        @Override
-        public Object clone()
-        {
-            MessageIdentifier c;
-            try
-            {
-                c = (MessageIdentifier) super.clone();
-            }
-            catch (CloneNotSupportedException x)
-            {
-                return null;
-            }
-            c.channelID=channelID;
-            c.msgType=msgType;
-            c.senderID=senderID;
-            return c;
-        }
+		/* (non-Javadoc)
+		 * @see java.lang.Object#clone()
+		 */
+		@Override
+		public Object clone()
+		{
+			MessageIdentifier c;
+			try
+			{
+				c = (MessageIdentifier) super.clone();
+			}
+			catch (CloneNotSupportedException x)
+			{
+				return null;
+			}
+			c.misChannelID = misChannelID;
+			c.slaveChannelID = slaveChannelID;
+			c.msgType = msgType;
+			c.senderID = senderID;
+			return c;
+		}
 
-        @Override
-        public String toString() {
-            return "[MessageIdentifier: channelID="+channelID+
-            " Type="+msgType+
-            " SenderID="+senderID+"]";
-        }
+		@Override
+		public String toString()
+		{
+			return "[MessageIdentifier: slaveChannelID=" + slaveChannelID + " Type=" + msgType + " SenderID="
+					+ senderID + "]";
+		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (!(obj instanceof MessageIdentifier))
+				return false;
+			MessageIdentifier msg = (MessageIdentifier) obj;
 
+			if (!ContainerUtil.equals(senderID, msg.senderID))
+				return false;
+			if (!ContainerUtil.equals(slaveChannelID, msg.slaveChannelID))
+				return false;
+			if (!ContainerUtil.equals(misChannelID, msg.misChannelID))
+				return false;
+			if (!ContainerUtil.equals(msgType, msg.msgType))
+				return false;
+			return true;
+		}
 
-        /* (non-Javadoc)
-         * @see java.lang.Object#equals(java.lang.Object)
-         */
-        @Override
-        public boolean equals(Object obj)
-        {
-            if(!(obj instanceof MessageIdentifier))
-                return false;
-            MessageIdentifier msg=(MessageIdentifier)obj;
+		/**
+		 * if obj matches, i.e. any null element of object is also considered matching
+		 * @param
+		 */
+		public boolean matches(MessageIdentifier msg)
+		{
+			if (msg.senderID != null && !ContainerUtil.equals(senderID, msg.senderID))
+				return false;
+			if (msg.misChannelID != null && !ContainerUtil.equals(misChannelID, msg.misChannelID))
+				return false;
+			if (msg.slaveChannelID != null && !ContainerUtil.equals(slaveChannelID, msg.slaveChannelID))
+				return false;
+			if (!ContainerUtil.equals(msgType, msg.msgType))
+				return false;
+			return true;
+		}
 
-            if(!ContainerUtil.equals(senderID, msg.senderID))
-                return false;
-            if(!ContainerUtil.equals(channelID, msg.channelID))
-                return false;
-            if(!ContainerUtil.equals(msgType, msg.msgType))
-                return false;
-            return true;
-        }
-        /**
-         * if obj matches, i.e. any null element of object is also considered matching
-         * @param
-         */
-        public boolean matches(MessageIdentifier msg)
-        {
-            if( msg.senderID!=null && !ContainerUtil.equals(senderID, msg.senderID))
-                return false;
-            if( msg.channelID!=null && !ContainerUtil.equals(channelID, msg.channelID))
-                return false;
-            if(!ContainerUtil.equals(msgType, msg.msgType))
-                return false;
-            return true;
-        }
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode()
+		{
+			int hc = senderID == null ? 0 : senderID.hashCode();
+			hc += msgType == null ? 0 : msgType.hashCode();
+			hc += slaveChannelID == null ? 0 : slaveChannelID.hashCode();
+			hc += misChannelID == null ? 0 : misChannelID.hashCode();
+			return hc;
+		}
+	}
 
+	protected static final Log log = LogFactory.getLog(JMFBufferHandler.class.getName());
+	protected VString ignoreSenderIDs = null;
 
+	protected VectorMap<MessageIdentifier, JDFSignal> messageMap = new VectorMap<MessageIdentifier, JDFSignal>();
+	protected SignalDispatcher _theDispatcher;
 
-        /* (non-Javadoc)
-         * @see java.lang.Object#hashCode()
-         */
-        @Override
-        public int hashCode()
-        {
-            int hc=senderID==null ? 0 : senderID.hashCode();
-            hc+=msgType==null ? 0 : msgType.hashCode();
-            hc+=channelID==null ? 0 : channelID.hashCode();
-            return hc;
-        }
-    }
+	/**
+	 * @param _type
+	 * @param _families
+	 */
+	public JMFBufferHandler(String typ, EnumFamily[] _families, SignalDispatcher dispatcher)
+	{
+		super(typ, _families);
+		_theDispatcher = dispatcher;
+	}
 
-    protected static final Log log = LogFactory.getLog(JMFBufferHandler.class.getName());
-    protected VString ignoreSenderIDs=null;
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+	 */
+	@Override
+	public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+	{
+		if (inputMessage == null)
+			return false;
+		EnumFamily family = inputMessage.getFamily();
+		if (EnumFamily.Signal.equals(family))
+		{
+			if (ignore(inputMessage))
+				return true;
+			return handleSignal((JDFSignal) inputMessage, response);
+		}
+		else if (EnumFamily.Query.equals(family))
+		{
+			JDFJMF jmf = getSignals(inputMessage, response);
+			return true;
+		}
+		return false;
+	}
 
-    protected VectorMap<MessageIdentifier, JDFSignal> messageMap=new VectorMap<MessageIdentifier, JDFSignal>();
-    /**
-     * @param _type
-     * @param _families
-     */
-    public JMFBufferHandler(String typ, EnumFamily[] _families)
-    {
-        super(typ, _families);
-    }
+	/**
+	 * @param inputMessage
+	 * @return
+	 */
+	protected boolean ignore(JDFMessage inputMessage)
+	{
+		if (ignoreSenderIDs == null)
+			return false;
+		if (inputMessage == null)
+			return true;
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-     */
-    public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
-    { 
-        if(inputMessage==null)
-            return false;
-        EnumFamily family=inputMessage.getFamily();
-        if(EnumFamily.Signal.equals(family))
-        {
-            if(ignore(inputMessage))
-                return true;
-            return handleSignal( (JDFSignal)inputMessage,response);
-        }
-        else if(EnumFamily.Query.equals(family))
-        {
-            JDFJMF jmf= getSignals(inputMessage,response);
-            return true;
-        }
-        return false;
-    }
+		String senderID = inputMessage.getSenderID();
+		for (int i = 0; i < ignoreSenderIDs.size(); i++)
+		{
+			if (senderID.indexOf(ignoreSenderIDs.get(i)) >= 0)
+				return true;
+		}
+		return false;
+	}
 
-    /**
-     * @param inputMessage
-     * @return
-     */
-    protected boolean ignore(JDFMessage inputMessage)
-    {
-        if(ignoreSenderIDs==null)
-            return false;
-        if(inputMessage==null)
-            return true; 
+	/**
+	 * @param ignoreSenderIDs
+	 */
+	public void setIgnoreSendersIDs(VString _ignoreSenderIDs)
+	{
+		if (_ignoreSenderIDs == null || _ignoreSenderIDs.size() == 0)
+		{
+			ignoreSenderIDs = null;
+		}
+		else
+		{
+			ignoreSenderIDs = _ignoreSenderIDs;
+		}
 
-        String senderID=inputMessage.getSenderID();
-        for(int i=0;i<ignoreSenderIDs.size();i++)
-        {
-            if(senderID.indexOf(ignoreSenderIDs.get(i))>=0)
-                return true;
-        }
-        return false;
-    }
+	}
 
-    /**
-     * @param ignoreSenderIDs
-     */
-    public void setIgnoreSendersIDs(VString _ignoreSenderIDs)
-    {
-        if(_ignoreSenderIDs==null || _ignoreSenderIDs.size()==0)
-        {
-            ignoreSenderIDs=null;
-        }
-        else
-        {
-            ignoreSenderIDs=_ignoreSenderIDs;
-        }
+	/**
+	 * @param inputMessage
+	 * @param response
+	 * @return
+	 */
+	protected JDFJMF getSignals(JDFMessage inputMessage, JDFResponse response)
+	{
+		synchronized (messageMap)
+		{
+			MessageIdentifier messageIdentifier = new MessageIdentifier(inputMessage, inputMessage.getJMFRoot().getDeviceID());
+			Iterator<MessageIdentifier> it = messageMap.keySet().iterator();
+			JDFJMF jmf = response.getJMFRoot();
+			Vector<MessageIdentifier> v = new Vector<MessageIdentifier>();
 
-    }
-    /**
-     * @param inputMessage
-     * @param response
-     * @return
-     */
-    protected JDFJMF getSignals(JDFMessage inputMessage, JDFResponse response)
-    {
-        synchronized(messageMap)
-        {
-            MessageIdentifier messageIdentifier = new MessageIdentifier(inputMessage);
-            Iterator<MessageIdentifier> it=messageMap.keySet().iterator();
-            JDFJMF jmf=response.getJMFRoot();
-            Vector<MessageIdentifier> v=new Vector<MessageIdentifier>();
+			while (it.hasNext())
+			{
+				MessageIdentifier mi = it.next();
+				if (mi == null)
+				{
+					log.error("null mi");
+					continue;
+				}
+				if (mi.matches(messageIdentifier))
+				{
+					v.add(mi);
+					Vector<JDFSignal> sis = messageMap.get(mi);
+					for (int i = 0; i < sis.size(); i++)
+					{
+						// copy the potentially inherited senderID
+						JDFSignal signal = sis.get(i);
+						JDFSignal sNew = (JDFSignal) jmf.copyElement(signal, null);
+						sNew.setSenderID(signal.getSenderID());
+					}
+				}
+			}
+			if (v.size() > 0)
+			{
+				for (int i = 0; i < v.size(); i++)
+				{
+					messageMap.remove(v.get(i));
+				}
+			}
+			else
+			{
+				jmf = null;
+			}
+			response.deleteNode();// always zapp the dummy response
+			inputMessage.deleteNode(); // also zapp the query
+			return jmf;
+		}
+	}
 
-            while(it.hasNext())
-            {
-                MessageIdentifier mi=it.next();
-                if(mi.matches(messageIdentifier))
-                {
-                    v.add(mi);
-                    Vector<JDFSignal> sis=messageMap.get(mi);
-                    for(int i=0;i<sis.size();i++)
-                    {
-                        // copy the potentially inherited senderID
-                        JDFSignal signal = sis.get(i);
-                        JDFSignal sNew=(JDFSignal) jmf.copyElement(signal, null);
-                        sNew.setSenderID(signal.getSenderID());
-                    }
-                }
-            }
-            if(v.size()>0)
-            {
-                for(int i=0;i<v.size();i++)
-                {
-                    messageMap.remove(v.get(i));
-                }
-            }
-            else
-            {
-                jmf=null;
-            }
-            response.deleteNode();// always zapp the dummy response
-            inputMessage.deleteNode(); // also zapp the query
-            return jmf;
-        }
-    }
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.messaging.JMFBufferHandler#handleSignal(org.cip4.jdflib.jmf.JDFSignal, org.cip4.jdflib.jmf.JDFResponse)
+	 */
+	protected boolean handleSignal(JDFSignal inSignal, JDFResponse response)
+	{
+		Set<String> requests = _theDispatcher.getChannels(inSignal.getEnumType(), inSignal.getSenderID());
+		MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.messaging.JMFBufferHandler#handleSignal(org.cip4.jdflib.jmf.JDFSignal, org.cip4.jdflib.jmf.JDFResponse)
-     */
-    protected boolean handleSignal(JDFSignal inSignal, JDFResponse response)
-    {
-        MessageIdentifier mi=new MessageIdentifier(inSignal);
-        synchronized (messageMap)
-        {
-            messageMap.putOne(mi,inSignal);
-            return true;
-        }
-    }
+		if (mi != null)
+		{
+			synchronized (messageMap)
+			{
+				for (int i = 0; i < mi.length; i++)
+					messageMap.putOne(mi[i], inSignal);
+				return true;
+			}
+		}
+		return false;
+	}
 
-    ////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////
 
-    public static class StatusBufferHandler extends JMFBufferHandler
-    {
+	/**
+	 * buffers status messages and consolidates the amounts
+	 */
+	public static class StatusBufferHandler extends JMFBufferHandler
+	{
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.messaging.JMFBufferHandler#getSignals(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 */
+		@Override
+		protected JDFJMF getSignals(JDFMessage inputMessage, JDFResponse response)
+		{
+			JDFStatusQuParams sqp = inputMessage.getStatusQuParams();
+			boolean queueInfo = false;
+			if (sqp != null)
+				queueInfo = sqp.getQueueInfo();
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.messaging.JMFBufferHandler#getSignals(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
-         */
-        @Override
-        protected JDFJMF getSignals(JDFMessage inputMessage, JDFResponse response)
-        {
-            JDFStatusQuParams sqp=inputMessage.getStatusQuParams();
-            boolean queueInfo=false;
-            if(sqp!=null)
-                queueInfo=sqp.getQueueInfo();
+			JDFJMF jmf = super.getSignals(inputMessage, response);
+			if (jmf == null)
+				return jmf;
+			VElement sigs = jmf.getMessageVector(EnumFamily.Signal, EnumType.Status);
+			int sigSize = sigs == null ? 0 : sigs.size();
+			for (int i = 0; i < sigSize; i++)
+			{
+				JDFSignal s = (JDFSignal) sigs.get(i);
+				if (sqp != null)
+				{
+					JDFStatusQuParams sqpSig = s.getStatusQuParams();
+					if (sqpSig != null && !sqpSig.getIdentifier().matches(sqp.getIdentifier()))
+					{
+						s.deleteNode();
+						continue;
+					}
+				}
+				// remove unwanted queue elements
+				if (!queueInfo)
+				{
+					JDFQueue signalQueue = s.getQueue(0);
+					if (signalQueue != null)
+						signalQueue.deleteNode();
+				}
+			}
+			return jmf;
+		}
 
-            JDFJMF jmf=super.getSignals(inputMessage, response);
-            if(jmf==null)
-                return jmf;
-            VElement sigs=jmf.getMessageVector(EnumFamily.Signal, EnumType.Status);
-            int sigSize=sigs==null  ? 0 : sigs.size();
-            for(int i=0;i<sigSize;i++)
-            {
-                JDFSignal s=(JDFSignal) sigs.get(i);
-                JDFQueue signalQueue=s.getQueue(0);
-                if(signalQueue!=null)
-                    signalQueue.deleteNode();
-            }
-            return jmf;
+		/**
+		 * @param dispatcher the message dispatcher that sends out signals
+		 */
+		public StatusBufferHandler(SignalDispatcher dispatcher)
+		{
+			super("Status", new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dispatcher);
+		}
 
-        }
-        public StatusBufferHandler()
-        {
-            super("Status", new EnumFamily[]{EnumFamily.Signal,EnumFamily.Query});
-        }
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.messaging.JMFBufferHandler#handleSignal(org.cip4.jdflib.jmf.JDFSignal, org.cip4.jdflib.jmf.JDFResponse)
-         */
-        @Override
-        protected boolean handleSignal(JDFSignal theSignal, JDFResponse response)
-        {
-            VElement vSigs=splitSignals(theSignal);
-            for(int i=0;i<vSigs.size();i++)
-            {
-                JDFSignal inSignal=(JDFSignal)vSigs.get(i);
-                MessageIdentifier mi=new MessageIdentifier(inSignal);
-                synchronized (messageMap)
-                {
-                    JDFSignal last=messageMap.getOne(mi,-1);
-                    if(last==null)
-                    {
-                        messageMap.putOne(mi,inSignal);
-                    }
-                    else
-                    {
-                        boolean bAllSame = isSameStatusSignal(inSignal, last);
-                        if(bAllSame)
-                        {
-                            mergeStatusSignal(inSignal, last);
-                            messageMap.setOne(mi,inSignal,last);
-                        }
-                        else
-                        {
-                            messageMap.putOne(mi,inSignal);
-                        }
-                    }
-                }
-            }
-            return true;
-        }
-        /**
-         * @param theSignal
-         * @return
-         */
-        private VElement splitSignals(JDFSignal theSignal)
-        {
-            VElement devInfos=theSignal.getChildElementVector(ElementName.DEVICEINFO, null);
-            VElement sigs=new VElement();
-            sigs.add(theSignal);                
-            if(devInfos.size()==1)
-            {
-                theSignal.setSenderID(((JDFDeviceInfo) devInfos.get(0)).getDeviceID());
-            }
-            else
-            {
-                String senderID=theSignal.getSenderID();
-                for(int i=0;i<devInfos.size();i++)
-                {
-                    JDFDeviceInfo di=(JDFDeviceInfo) devInfos.get(i);
-                    String did=di.getDeviceID();
-                    if(!ContainerUtil.equals(did, senderID))
-                    {
-                        JDFSignal s=null;
-                        for(int ii=1;ii<sigs.size();ii++)
-                        {
-                            JDFSignal s2=(JDFSignal)sigs.get(ii);
-                            if(ContainerUtil.equals(s2.getSenderID(), did))
-                            {
-                                s=s2;
-                                break;
-                            }
-                        }
-                        if(s==null)
-                        {
-                            s=JDFJMF.createJMF(EnumFamily.Signal, EnumType.Status).getSignal(0);
-                            s.copyElement(theSignal.getQueue(0), null);
-                            sigs.add(s);
-                        }
-                        s.setSenderID(did);
-                        s.moveElement(di, null);
-                    }
-                }
-            }
-            if(theSignal.numChildElements(ElementName.DEVICEINFO, null)==0)
-                sigs.remove(0);
-            return sigs;
-        }
-        /**
-         * @param inSignal
-         * @param last
-         */
-        private void mergeStatusSignal(JDFSignal inSignal, JDFSignal last)
-        {
-            for(int i=0;true;i++)
-            {
-                JDFDeviceInfo di=inSignal.getDeviceInfo(i);  
-                if(di==null)
-                    break;
-                boolean bSameDI=false;
-                for(int j=0;!bSameDI;j++)
-                {
-                    JDFDeviceInfo diLast=last.getDeviceInfo(j);
-                    if(diLast==null)
-                        break;
-                    bSameDI=di.mergeLastPhase(diLast);
-                }                        
-            }
-        }
-        /**
-         * @param inSignal
-         * @param last
-         * @return
-         */
-        private boolean isSameStatusSignal(JDFSignal inSignal, JDFSignal last)
-        {
-            boolean bAllSame=true;
-            for(int i=0;bAllSame;i++)
-            {
-                JDFDeviceInfo di=inSignal.getDeviceInfo(i);  
-                if(di==null)
-                    break;
-                boolean bSameDI=false;
-                for(int j=0;!bSameDI;j++)
-                {
-                    JDFDeviceInfo diLast=last.getDeviceInfo(j);
-                    if(diLast==null)
-                        break;
-                    bSameDI=di.isSamePhase(diLast, false);
-                }                        
-                bAllSame = bAllSame && bSameDI;
-            }
-            return bAllSame;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.messaging.JMFBufferHandler#handleSignal(org.cip4.jdflib.jmf.JDFSignal, org.cip4.jdflib.jmf.JDFResponse)
+		 */
+		@Override
+		protected boolean handleSignal(JDFSignal theSignal, JDFResponse response)
+		{
+			Set<String> requests = _theDispatcher.getChannels(theSignal.getEnumType(), theSignal.getSenderID());
+			VElement vSigs = splitSignals(theSignal);
+			for (int i = 0; i < vSigs.size(); i++)
+			{
+				JDFSignal inSignal = (JDFSignal) vSigs.get(i);
+				MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
+				if (mi != null)
+				{
+					for (int ii = 0; ii < mi.length; ii++)
+					{
+						handleSingleSignal(inSignal, mi[ii]);
+					}
+				}
+			}
+			return true;
+		}
 
-    }
+		private void handleSingleSignal(JDFSignal inSignal, MessageIdentifier mi)
+		{
+			synchronized (messageMap)
+			{
+				JDFSignal last = messageMap.getOne(mi, -1);
+				if (last == null)
+				{
+					messageMap.putOne(mi, inSignal);
+				}
+				else
+				{
+					boolean bAllSame = isSameStatusSignal(inSignal, last);
+					if (bAllSame)
+					{
+						mergeStatusSignal(inSignal, last);
+						messageMap.setOne(mi, inSignal, last);
+					}
+					else
+					{
+						messageMap.putOne(mi, inSignal);
+					}
+				}
+			}
+		}
 
-    ////////////////////////////////////////////////////////////////////////////////////
+		/**
+		 * @param theSignal
+		 * @return
+		 */
+		private VElement splitSignals(JDFSignal theSignal)
+		{
+			VElement devInfos = theSignal.getChildElementVector(ElementName.DEVICEINFO, null);
+			VElement sigs = new VElement();
+			sigs.add(theSignal);
+			if (devInfos.size() == 1)
+			{
+				theSignal.setSenderID(((JDFDeviceInfo) devInfos.get(0)).getDeviceID());
+			}
+			else
+			{
+				String senderID = theSignal.getSenderID();
+				for (int i = 0; i < devInfos.size(); i++)
+				{
+					JDFDeviceInfo di = (JDFDeviceInfo) devInfos.get(i);
+					String did = di.getDeviceID();
+					if (!ContainerUtil.equals(did, senderID))
+					{
+						JDFSignal s = null;
+						for (int ii = 1; ii < sigs.size(); ii++)
+						{
+							JDFSignal s2 = (JDFSignal) sigs.get(ii);
+							if (ContainerUtil.equals(s2.getSenderID(), did))
+							{
+								s = s2;
+								break;
+							}
+						}
+						if (s == null)
+						{
+							s = JDFJMF.createJMF(EnumFamily.Signal, EnumType.Status).getSignal(0);
+							s.copyElement(theSignal.getQueue(0), null);
+							sigs.add(s);
+						}
+						s.setSenderID(did);
+						s.moveElement(di, null);
+					}
+				}
+			}
+			if (theSignal.numChildElements(ElementName.DEVICEINFO, null) == 0)
+				sigs.remove(0);
+			return sigs;
+		}
 
-    public static class NotificationBufferHandler extends JMFBufferHandler
-    {
+		/**
+		 * @param inSignal
+		 * @param last
+		 */
+		private void mergeStatusSignal(JDFSignal inSignal, JDFSignal last)
+		{
+			for (int i = 0; true; i++)
+			{
+				JDFDeviceInfo di = inSignal.getDeviceInfo(i);
+				if (di == null)
+					break;
+				boolean bSameDI = false;
+				for (int j = 0; !bSameDI; j++)
+				{
+					JDFDeviceInfo diLast = last.getDeviceInfo(j);
+					if (diLast == null)
+						break;
+					bSameDI = di.mergeLastPhase(diLast);
+				}
+			}
+		}
 
-        public NotificationBufferHandler()
-        {
-            super("Notification", new EnumFamily[]{EnumFamily.Signal,EnumFamily.Query});
-        }
-    }
-    ////////////////////////////////////////////////////////////////////////////////////
+		/**
+		 * @param inSignal
+		 * @param last
+		 * @return
+		 */
+		private boolean isSameStatusSignal(JDFSignal inSignal, JDFSignal last)
+		{
+			boolean bAllSame = true;
+			for (int i = 0; bAllSame; i++)
+			{
+				JDFDeviceInfo di = inSignal.getDeviceInfo(i);
+				if (di == null)
+					break;
+				boolean bSameDI = false;
+				for (int j = 0; !bSameDI; j++)
+				{
+					JDFDeviceInfo diLast = last.getDeviceInfo(j);
+					if (diLast == null)
+						break;
+					bSameDI = di.isSamePhase(diLast, false);
+				}
+				bAllSame = bAllSame && bSameDI;
+			}
+			return bAllSame;
+		}
 
-    public static class ResourceBufferHandler extends JMFBufferHandler
-    {
+	}
 
-        public ResourceBufferHandler()
-        {
-            super("Resource", new EnumFamily[]{EnumFamily.Signal,EnumFamily.Query});
-        }
-    }
+	////////////////////////////////////////////////////////////////////////////////////
+
+	public static class NotificationBufferHandler extends JMFBufferHandler
+	{
+
+		public NotificationBufferHandler(SignalDispatcher dispatcher)
+		{
+			super("Notification", new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dispatcher);
+		}
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////
+
+	public static class ResourceBufferHandler extends JMFBufferHandler
+	{
+
+		public ResourceBufferHandler(SignalDispatcher dispatcher)
+		{
+			super("Resource", new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dispatcher);
+		}
+	}
 
 }

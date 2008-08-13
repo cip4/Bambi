@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<BambiJob>
+<BambiJob Error="3">
 	<JobPhase Duration="2"
 		DeviceStatus="Setup" DeviceStatusDetails="WarmingUp" 
 		NodeStatus="Setup" NodeStatusDetails="node warmup">

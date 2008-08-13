@@ -81,7 +81,7 @@ public interface IProxyProperties extends IDeviceProperties {
      * queueentry return type
      *
      */
-    public enum QEReturn{HF,HTTP,MIME};
+    public enum QEReturn{HF,HTTP,MIME}
     /**
      * @return
      */

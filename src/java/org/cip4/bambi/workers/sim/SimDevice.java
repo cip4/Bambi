@@ -298,7 +298,7 @@ public class SimDevice extends AbstractDevice implements IGetHandler{
      * @param request request to get the job phase info from
      * @return the new JobPhase
      */
-    private JobPhase buildJobPhaseFromRequest(HttpServletRequest request) {
+    private JobPhase buildJobPhaseFromRequest(BambiServletRequest request) {
         JobPhase current=getCurrentJobPhase();
 
         JobPhase newPhase = (JobPhase) (current==null ? new JobPhase() : current.clone());
@@ -325,12 +325,12 @@ public class SimDevice extends AbstractDevice implements IGetHandler{
             if(parameter==null)
                 break;
             newPhase.setAmount(parameter, 
-                    BambiServlet.getDoubleFromRequest(request, "Speed"+i),
-                    !BambiServlet.getBooleanFromRequest(request, "Waste"+i) );
+                    request.getDoubleParam("Speed"+i),
+                    !request.getBooleanParam("Waste"+i) );
 
         }
         if(!KElement.isWildCard(request.getParameter(AttributeName.DURATION)))
-            newPhase.setTimeToGo(1000*(int)BambiServlet.getDoubleFromRequest(request, AttributeName.DURATION));
+            newPhase.setTimeToGo(1000*(int)request.getDoubleParam(AttributeName.DURATION));
         else if(current!=null)
             newPhase.setTimeToGo(current.getTimeToGo());
 

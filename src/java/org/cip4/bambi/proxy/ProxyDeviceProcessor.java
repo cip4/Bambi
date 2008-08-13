@@ -88,452 +88,654 @@ import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.bambi.proxy.AbstractProxyDevice.EnumSlaveStatus;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFJobPhase;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.jmf.JDFResourceInfo;
+import org.cip4.jdflib.jmf.JDFResourceQuParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
+import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.resource.JDFEvent;
+import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
- *
+ * 
  * @author prosirai
  */
 public class ProxyDeviceProcessor extends AbstractProxyProcessor
 {
-    private static Log log = LogFactory.getLog(ProxyDeviceProcessor.class);
-    private static final long serialVersionUID = -384123582645081254L;
-    private QueueEntryStatusContainer qsc;
-    private String _slaveURL;
+	static Log log = LogFactory.getLog(ProxyDeviceProcessor.class);
+	private static final long serialVersionUID = -384123582645081254L;
+	private QueueEntryStatusContainer qsc;
+	private final String _slaveURL;
 
+	protected class StatusSignalHandler
+	{
+		/**
+		 * @param m
+		 * @param resp
+		 * @return
+		 */
+		protected boolean handleSignal(JDFMessage m, JDFResponse resp)
+		{
+			if (m == null || currentQE == null)
+				return false;
 
-    /**
-     * this baby handles all status updates that are stored in the queuentry
-     * 
-     * @author prosirai
-     *
-     */
-    protected class QueueEntryStatusContainer
-    {
-        protected JDFQueueEntry qe;
-        protected KElement theContainer;
-        protected JDFNode theNode;
-        protected JDFJobPhase jp;
+			JDFStatusQuParams sqp = m.getStatusQuParams();
+			NodeIdentifier ni = null;
+			if (sqp != null)
+			{
+				String qeid = sqp.getQueueEntryID();
+				boolean matches = KElement.isWildCard(qeid) || ContainerUtil.equals(getSlaveQEID(), qeid);
+				if (!matches)
+					return false;
+				ni = sqp.getIdentifier();
+			}
+			VElement vMatch = currentQE.getJDF().getJDFRoot().getMatchingNodes(ni);
+			if (vMatch == null)
+				return false;
+			VElement deviceInfos = m.getChildElementVector(ElementName.DEVICEINFO, null);
+			if (deviceInfos == null)
+				return false;
+			boolean b = false;
+			for (int i = 0; i < deviceInfos.size(); i++)
+			{
+				b = handleDeviceInfo((JDFDeviceInfo) deviceInfos.get(i)) || b;
+			}
 
-        public QueueEntryStatusContainer()
-        {
-            qe=currentQE.getQueueEntry();
-            theNode=currentQE.getJDF();
-            theContainer=BambiNSExtension.getCreateStatusContainer(qe);
-            jp=(JDFJobPhase) theContainer.appendElement(ElementName.JOBPHASE);
-            jp.setStatus(EnumNodeStatus.Waiting); //TODO evaluate qe
-        }
+			return b;
+		}
 
+		/**
+		 * @param info
+		 * @param match
+		 */
+		private boolean handleDeviceInfo(JDFDeviceInfo info)
+		{
+			String slaveDevice = getSlaveDeviceID();
+			if (!info.getDeviceID().equals(slaveDevice))
+				return false;
+			VElement jobPhases = info.getChildElementVector(ElementName.JOBPHASE, null);
+			if (jobPhases == null)
+				return false;
+			boolean b = false;
+			for (int i = 0; i < jobPhases.size(); i++)
+				b = handleStatusUpdate((JDFJobPhase) jobPhases.get(i)) || b;
+			return b;
+		}
 
-        /**
-         * return true if this processor is responsible for processing a given queuentry as specified by qe
-         * 
-         * @param qe the queuentry
-         * @return true if we are processing qe
-         */
-        public boolean matchesQueueEntry(JDFQueueEntry _qe)
-        {
-            return _qe!=null &&  qe!=null && qe.getQueueEntryID().equals(_qe.getQueueEntryID());
-        }
+		/**
+		 * updates the current status based on the data in the input status
+		 * signal or response
+		 * 
+		 * @param jobPhase
+		 *            the jobphase containing the status information
+		 */
+		private boolean handleStatusUpdate(JDFJobPhase jobPhase)
+		{
+			NodeIdentifier ni = jobPhase.getIdentifier();
+			JDFNode n = currentQE.getJDF().getJDFRoot();
+			VElement v = n.getMatchingNodes(ni);
 
-        /**
-         * return true if this processor is responsible for processing a given node as specified by ni
-         * 
-         * @param ni the node identifier (jobid, jobpartid, part*)
-         * @return true if we are processing ni
-         */
-        public boolean matchesQueueEntry(NodeIdentifier ni)
-        {
-            return qe.matchesNodeIdentifier(ni);
-        }
+			if (v == null)
+				return false;
 
-        /**
-         * @param jobPhase
-         */
-        private void applyPhase(JDFJobPhase jobPhase)
-        {           
-            double deltaWaste=jobPhase.getWasteDifference(jp);
-            double deltaAmount=jobPhase.getAmountDifference(jp);
-            final IStatusListener statusListener = getStatusListener();
-            final JDFDeviceInfo devInfo=(JDFDeviceInfo) jobPhase.getParentNode();
-            statusListener.updateAmount(_trackResource, deltaAmount, deltaWaste);
-            statusListener.signalStatus(devInfo.getDeviceStatus(), devInfo.getStatusDetails(), jobPhase.getStatus(), jobPhase.getStatusDetails(),false);
-            log.info("Node Status :"+jobPhase.getStatus()+" "+jobPhase.getStatusDetails()+" "+deltaAmount+" "+deltaWaste);
-            jp=(JDFJobPhase) jp.replaceElement(jobPhase);
-        }
+			qsc.applyPhase(jobPhase);
+			_queueProcessor.updateEntry(qsc.qe, jobPhase.getQueueEntryStatus(), null, null);
+			return true;
 
- 
-        /**
-         * 
-         */
-        public void delete()
-        {
-            if(theContainer!=null)
-                theContainer.deleteNode();           
-        }
-    }
+		}
+	}
 
- 
+	protected class NotificationSignalHandler
+	{
+		/**
+		 * @param m
+		 * @param resp
+		 * @return true if handled
+		 */
+		protected boolean handleSignal(JDFMessage m, JDFResponse resp)
+		{
+			if (m == null || currentQE == null || !(m instanceof JDFSignal))
+				return false;
 
-    /**
-     * constructor
-     * @param queueProcessor points to the QueueProcessor
-     * @param statusListener points to the StatusListener
-     * @param _callBack      the converter call back too and from device
-     * @param device         the parent device that this processor does processing for
-     * @param qeToProcess   the queueentry that this processor will be working for
-     * @param doc 
-     */
-    public ProxyDeviceProcessor(ProxyDevice device,  QueueProcessor qProc, IQueueEntry qeToProcess, String slaveURL)
-    {
-        super(device);
-        _statusListener=new StatusListener(device.getSignalDispatcher(),device.getDeviceID());
-        currentQE=qeToProcess;
-        qsc=this.new QueueEntryStatusContainer();
+			JDFSignal s = (JDFSignal) m;
+			JDFNotification n = s.getNotification();
+			String notifType = n.getType();
+			boolean b = false;
+			if (ElementName.EVENT.equals(notifType))
+				b = handleEvent(n, resp);
 
-        init(qProc, _statusListener, _parent.getProperties());
+			return b;
+		}
 
-        if(slaveURL==null)
-            slaveURL = getParent().getProxyProperties().getSlaveURL();
-        _slaveURL=slaveURL;
+		/**
+		 * @param n
+		 * @return true if handled
+		 */
+		private boolean handleEvent(JDFNotification n, JDFResponse resp)
+		{
+			JDFEvent e = n.getEvent();
+			if (e == null)
+				JMFHandler.errorResponse(resp, "missing event in Event signal", 1);
+			else
+			{
+				_statusListener.setEvent(e.getEventID(), e.getEventValue(), n.getCommentText());
+			}
+			return true;
+		}
+	}
 
-        URL qURL;
-        try
-        {
-            qURL = slaveURL==null ? null : new URL(slaveURL);
-        }
-        catch (MalformedURLException x)
-        {
-            qURL=null;
-        }
-        EnumQueueEntryStatus qes=null;
-        if(qURL!=null)
-        {
-            IProxyProperties proxyProperties = getParent().getProxyProperties();
-            final  File deviceOutputHF=  proxyProperties.getSlaveOutputHF();
-            MIMEDetails ud=new MIMEDetails();
-            ud.httpDetails.chunkSize= proxyProperties.getSlaveHTTPChunk();
-            boolean expandMime=proxyProperties.getSlaveMIMEExpansion();
-            JDFNode nod =currentQE.getJDF(); 
-            JDFQueueEntry qe=currentQE.getQueueEntry();
+	/////////////////////////////////////////////////////////////
 
-            qes= submitToQueue(nod,qe,qURL, deviceOutputHF, ud, expandMime);
-        }
-        else
-        {
-            File hf= getParent().getProxyProperties().getSlaveInputHF();
-            if(hf!=null)
-                qes=submitToHF(hf);
-        }
+	protected class ResourceSignalHandler
+	{
+		/**
+		 * @param m
+		 * @param resp
+		 * @return true if handled
+		 */
+		protected boolean handleSignal(JDFMessage m, JDFResponse resp)
+		{
+			if (m == null || currentQE == null)
+				return false;
 
-        if(qes==null || EnumQueueEntryStatus.Aborted.equals(qes))
-        {
-            // TODO handle errors
-            log.error("submitting queueentry unsuccessful: "+qeToProcess.getQueueEntryID());
-            shutdown();
-        }       
-    }
+			JDFResourceQuParams rqp = m.getResourceQuParams();
+			NodeIdentifier ni = null;
+			if (rqp != null)
+			{
+				String qeid = rqp.getQueueEntryID();
+				boolean matches = KElement.isWildCard(qeid) || ContainerUtil.equals(getSlaveQEID(), qeid);
+				if (!matches)
+					return false;
+				ni = rqp.getIdentifier();
+			}
+			VElement vMatch = currentQE.getJDF().getJDFRoot().getMatchingNodes(ni);
+			if (vMatch == null)
+				return false;
+			VElement resourceInfos = m.getChildElementVector(ElementName.RESOURCEINFO, null);
+			if (resourceInfos == null)
+				return false;
+			boolean b = false;
+			for (int i = 0; i < resourceInfos.size(); i++)
+			{
+				b = handleResourceInfo((JDFResourceInfo) resourceInfos.get(i)) || b;
+			}
 
-    public EnumQueueEntryStatus processDoc(JDFNode nod, JDFQueueEntry qe) 
-    {
-        throw new NotImplementedException();
-    }
+			return b;
+		}
 
- 
+		/**
+		 * @param info
+		 * @param match
+		 */
+		private boolean handleResourceInfo(JDFResourceInfo info)
+		{
+			String id = info.getResourceID();
+			VJDFAttributeMap map = info.getPartMapVector();
+			VJDFAttributeMap map2 = new VJDFAttributeMap(map);
+			map2.put(AttributeName.CONDITION, "Waste");
+			double amount = info.getAmountPoolSumDouble(AttributeName.ACTUALAMOUNT, map2);
+			if (amount > 0)
+				_statusListener.setTotal(id, amount, true);
 
-    /**
-     * @param qe
-     * @param node
-     * @param qeR
-     */
-    @Override
-    protected void submitted(JDFQueueEntry qe, JDFNode node,  String devQEID, EnumQueueEntryStatus newStatus, String slaveURL)
-    {
-        super.submitted(qe, node, devQEID, newStatus, slaveURL);
-        setupStatusListener(node, qe);
-        if(EnumQueueEntryStatus.Waiting.equals(newStatus))
-        {
-            _statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.Waiting, "Submitted",false);
-        }
-        else
-        {
-            _statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.InProgress, "Submitted",false);
-        }
-        createSubscriptionsForQE(slaveURL,devQEID);
-    }
+			map2 = new VJDFAttributeMap(map);
+			map2.put(AttributeName.CONDITION, "Good");
+			amount = info.getAmountPoolSumDouble(AttributeName.ACTUALAMOUNT, map2);
+			if (amount > 0)
+				_statusListener.setTotal(id, amount, false);
 
-    /**
-     * 
-     */
-    private void createSubscriptionsForQE(String slaveURL, String devQEID)
-    {
-        if(!UrlUtil.isHttp(slaveURL))
-            return;
-        if(!EnumSlaveStatus.JMF.equals(getParent().getSlaveStatus()))
-            return;
+			return true;
+		}
+	}
 
-        JDFJMF jmf=JMFFactory.buildStatusSubscription(_parent.getDeviceURL(), 10.,0);
-        new JMFFactory(slaveCallBack).send2URL(jmf, slaveURL, null, _devProperties.getDeviceID()); // TODO handle response        
-    }
+	/**
+	 * this baby handles all status updates that are stored in the queuentry
+	 * 
+	 * @author prosirai
+	 * 
+	 */
+	protected class QueueEntryStatusContainer
+	{
+		protected JDFQueueEntry qe;
+		protected KElement theContainer;
+		protected JDFNode theNode;
+		protected JDFJobPhase jp;
 
-    /**
-     * @return
-     */
-    private ProxyDevice getParent()
-    {
-        return (ProxyDevice)_parent;
-    }
+		public QueueEntryStatusContainer()
+		{
+			qe = currentQE.getQueueEntry();
+			theNode = currentQE.getJDF();
+			theContainer = BambiNSExtension.getCreateStatusContainer(qe);
+			jp = (JDFJobPhase) theContainer.appendElement(ElementName.JOBPHASE);
+			jp.setStatus(EnumNodeStatus.Waiting); // TODO evaluate qe
+		}
 
-    /**
-     * @return
-     */
-    private JDFQueueEntry getQueueEntry()
-    {
-        return qsc.qe;
-    }
+		/**
+		 * return true if this processor is responsible for processing a given
+		 * queuentry as specified by qe
+		 * 
+		 * @param qe
+		 *            the queuentry
+		 * @return true if we are processing qe
+		 */
+		public boolean matchesQueueEntry(JDFQueueEntry _qe)
+		{
+			return _qe != null && qe != null && qe.getQueueEntryID().equals(_qe.getQueueEntryID());
+		}
 
-    /**
-     * @return the internal jobphase for this processor
-     */
-    public JDFJobPhase getJobPhase()
-    {
-        return qsc.jp;
-    }
+		/**
+		 * return true if this processor is responsible for processing a given
+		 * node as specified by ni
+		 * 
+		 * @param ni
+		 *            the node identifier (jobid, jobpartid, part*)
+		 * @return true if we are processing ni
+		 */
+		public boolean matchesQueueEntry(NodeIdentifier ni)
+		{
+			return qe.matchesNodeIdentifier(ni);
+		}
 
-    /**
-     * @param qe
-     * @return
-     */
-    public boolean matchesQueueEntry(JDFQueueEntry qe)
-    {
-        return qsc.matchesQueueEntry(qe);
-    }  
-    /**
-     * @param qe
-     * @return
-     */
-    public boolean matchesNode(NodeIdentifier ni)
-    {
-        return qsc.matchesQueueEntry(ni);
-    }
+		/**
+		 * @param jobPhase
+		 */
+		private void applyPhase(JDFJobPhase jobPhase)
+		{
+			double deltaWaste = jobPhase.getWasteDifference(jp);
+			double deltaAmount = jobPhase.getAmountDifference(jp);
+			final IStatusListener statusListener = getStatusListener();
+			final JDFDeviceInfo devInfo = (JDFDeviceInfo) jobPhase.getParentNode();
+			statusListener.updateAmount(_trackResource, deltaAmount, deltaWaste);
+			statusListener.signalStatus(devInfo.getDeviceStatus(), devInfo.getStatusDetails(), jobPhase.getStatus(), jobPhase.getStatusDetails(), false);
+			log.info("Node Status :" + jobPhase.getStatus() + " " + jobPhase.getStatusDetails() + " " + deltaAmount
+					+ " " + deltaWaste);
+			jp = (JDFJobPhase) jp.replaceElement(jobPhase);
+		}
 
+		/**
+		 * 
+		 */
+		public void delete()
+		{
+			if (theContainer != null)
+				theContainer.deleteNode();
+		}
+	}
 
-    @Override
-    public void init(QueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties)
-    {
+	/**
+	 * constructor
+	 * 
+	 * @param queueProcessor
+	 *            points to the QueueProcessor
+	 * @param statusListener
+	 *            points to the StatusListener
+	 * @param _callBack
+	 *            the converter call back too and from device
+	 * @param device
+	 *            the parent device that this processor does processing for
+	 * @param qeToProcess
+	 *            the queueentry that this processor will be working for
+	 * @param doc
+	 */
+	public ProxyDeviceProcessor(ProxyDevice device, QueueProcessor qProc, IQueueEntry qeToProcess, String slaveURL)
+	{
+		super(device);
+		_statusListener = new StatusListener(device.getSignalDispatcher(), device.getDeviceID());
+		currentQE = qeToProcess;
+		qsc = this.new QueueEntryStatusContainer();
 
-        super.init(queueProcessor, statusListener,devProperties);
-        JDFQueueEntry qe=getQueueEntry();
-        log.info("processQueueEntry queuentryID="+qe.getQueueEntryID());
-        JDFNode nod=getJDFNode();
+		init(qProc, _statusListener, _parent.getProperties());
 
-        createNISubscriptions(nod);
-        if(slaveCallBack!=null)
-            slaveCallBack.updateJDFForExtern(nod.getOwnerDocument_JDFElement());
+		if (slaveURL == null)
+			slaveURL = getParent().getProxyProperties().getSlaveURL();
+		_slaveURL = slaveURL;
 
-    }
+		URL qURL;
+		try
+		{
+			qURL = slaveURL == null ? null : new URL(slaveURL);
+		}
+		catch (MalformedURLException x)
+		{
+			qURL = null;
+		}
+		EnumQueueEntryStatus qes = null;
+		if (qURL != null)
+		{
+			IProxyProperties proxyProperties = getParent().getProxyProperties();
+			final File deviceOutputHF = proxyProperties.getSlaveOutputHF();
+			MIMEDetails ud = new MIMEDetails();
+			ud.httpDetails.chunkSize = proxyProperties.getSlaveHTTPChunk();
+			boolean expandMime = proxyProperties.getSlaveMIMEExpansion();
+			qes = submitToQueue(qURL, deviceOutputHF, ud, expandMime);
+		}
+		else
+		{
+			File hf = getParent().getProxyProperties().getSlaveInputHF();
+			if (hf != null)
+				qes = submitToHF(hf);
+		}
 
-    /**
-     * @param doc the doc to add a subscription to
-     * @return String the channelID of the newly created subscription, null if none was created
-     */
-    private String createNISubscriptions(JDFNode root)
-    {
-        if(root==null)
-            return null;
-        if(!EnumSlaveStatus.NODEINFO.equals(getParent().getSlaveStatus()))
-            return null;
+		if (qes == null || EnumQueueEntryStatus.Aborted.equals(qes))
+		{
+			// TODO handle errors
+			log.error("submitting queueentry unsuccessful: " + qeToProcess.getQueueEntryID());
+			shutdown();
+		}
+	}
 
-        JDFNodeInfo ni=root.getCreateNodeInfo();
-        final String deviceURL = _parent.getDeviceURL();
-        final JDFJMF jmf=JMFFactory.buildStatusSubscription(deviceURL, 10, 100);
-        ni.copyElement(jmf,null);
-        log.info("creating subscription for doc:"+root.getJobID(true)+" - "+root.getJobPartID(false)+ " to "+deviceURL);
+	/**
+	* @param hfURL
+	* @param qe
+	* @return
+	*/
+	private EnumQueueEntryStatus submitToHF(File fHF)
+	{
+		JDFQueueEntry qe = currentQE.getQueueEntry();
+		JDFNode nod = getCloneJDFForSlave();
+		if (nod == null)
+		{
+			// TODO abort!
+			log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
+			_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+		}
+		else
+		{
+			if (slaveCallBack != null)
+			{
+				slaveCallBack.updateJDFForExtern(nod.getOwnerDocument_JDFElement());
+			}
+			File fLoc = new File(((ProxyDevice) _parent).getNameFromQE(qe));
+			final File fileInHF = FileUtil.getFileInDirectory(fHF, fLoc);
+			boolean bWritten = nod.getOwnerDocument_JDFElement().write2File(fileInHF, 0, true);
+			if (bWritten)
+			{
+				submitted("qe" + JDFElement.uniqueID(0), EnumQueueEntryStatus.Running, UrlUtil.fileToUrl(fileInHF, true));
+			}
+			else
+			{
+				log.error("Could not write File: " + fLoc + " to " + fHF);
+				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+			}
+		}
+		return qe.getQueueEntryStatus();
+	}
 
-        return jmf.getQuery(0).getSubscription().getID();
-    }
+	@Override
+	public EnumQueueEntryStatus processDoc(JDFNode nod, JDFQueueEntry qe)
+	{
+		throw new NotImplementedException();
+	}
 
-    /**
-     * @return
-     */
-    JDFNode getJDFNode()
-    {
-        return qsc.theNode;
-    }
+	/**
+	 * @param qe
+	 * @param node
+	 * @param qeR
+	 */
+	@Override
+	protected void submitted(String devQEID, EnumQueueEntryStatus newStatus, String slaveURL)
+	{
+		super.submitted(devQEID, newStatus, slaveURL);
+		setupStatusListener(currentQE.getJDF(), currentQE.getQueueEntry());
+		if (EnumQueueEntryStatus.Waiting.equals(newStatus))
+		{
+			_statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.Waiting, "Submitted", false);
+		}
+		else
+		{
+			_statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.InProgress, "Submitted", false);
+		}
+		createSubscriptionsForQE(slaveURL, devQEID);
+	}
 
-    @Override
-    public void shutdown()
-    {
-        log.info("shutting down "+toString());
-        super.shutdown();
-        ((ProxyDevice)_parent).removeProcessor(this);
-    }
+	/**
+	 * 
+	 */
+	private void createSubscriptionsForQE(String slaveURL, String devQEID)
+	{
+		if (!UrlUtil.isHttp(slaveURL))
+			return;
+		if (!EnumSlaveStatus.JMF.equals(getParent().getSlaveStatus()))
+			return;
 
+		ProxyDevice p = getParent();
+		JDFJMF jmfs[] = p.createSubscriptions(devQEID);
+		JMFFactory factory = new JMFFactory(slaveCallBack);
+		String deviceID = p.getDeviceID();
+		for (int i = 0; i < jmfs.length; i++)
+		{
+			factory.send2URL(jmfs[i], slaveURL, null, deviceID);
+		} // TODO handle response        
+	}
 
-    /**
-     * updates the current status based on the data in the input status signal or response
-     * @param jobPhase the jobphase containing the status information
-     */
-    private boolean handleStatusUpdate(JDFJobPhase jobPhase)
-    {
-        NodeIdentifier ni=jobPhase.getIdentifier();
-        JDFNode n=currentQE.getJDF().getJDFRoot();
-        VElement v=n.getMatchingNodes(ni);
+	/**
+	 * @return
+	 */
+	ProxyDevice getParent()
+	{
+		return (ProxyDevice) _parent;
+	}
 
-        if(v==null)
-            return false;
+	/**
+	 * @return
+	 */
+	private JDFQueueEntry getQueueEntry()
+	{
+		return qsc.qe;
+	}
 
-        qsc.applyPhase(jobPhase);
-        _queueProcessor.updateEntry(qsc.qe, jobPhase.getQueueEntryStatus(),null,null);
-        return true;
+	/**
+	 * @return the internal jobphase for this processor
+	 */
+	public JDFJobPhase getJobPhase()
+	{
+		return qsc.jp;
+	}
 
-    }
+	/**
+	 * @param qe
+	 * @return
+	 */
+	public boolean matchesQueueEntry(JDFQueueEntry qe)
+	{
+		return qsc.matchesQueueEntry(qe);
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.AbstractDeviceProcessor#stopProcessing(org.cip4.jdflib.core.JDFElement.EnumNodeStatus)
-     */
-    @Override
-    public void stopProcessing(EnumNodeStatus newStatus)
-    {
-        final String slaveQE=getSlaveQEID();
-        getParent().stopSlaveProcess(slaveQE,newStatus);
-    }
+	/**
+	 * @param ni the NodeIdentifier to match against
+	 * @return true if ni matches this
+	 */
+	public boolean matchesNode(NodeIdentifier ni)
+	{
+		return qsc.matchesQueueEntry(ni);
+	}
 
- 
-    /**
-     * @param m
-     * @param resp
-     * @return
-     */
-     protected boolean returnFromSlave(JDFMessage m, JDFResponse resp)
-    {
-        JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
+	@Override
+	public void init(QueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties)
+	{
 
-        // get the returned JDFDoc from the incoming ReturnQE command and pack it in the outgoing
-        JDFDoc doc = retQEParams.getURLDoc();
-        final JDFQueueEntry qe=currentQE.getQueueEntry();
-        if (doc==null) {
-            String errorMsg="failed to parse the JDFDoc from the incoming "
-                + "ReturnQueueEntry with QueueEntryID="+currentQE.getQueueEntryID();
-            JMFHandler.errorResponse(resp, errorMsg, 2);
-        }
-        else
-        {
-            // brutally overwrite the current node with this
-            _statusListener.replaceNode(doc.getJDFRoot());   
-        }
+		super.init(queueProcessor, statusListener, devProperties);
+		JDFQueueEntry qe = getQueueEntry();
+		log.info("processQueueEntry queuentryID=" + qe.getQueueEntryID());
+		JDFNode nod = getJDFNode();
 
-        BambiNSExtension.setDeviceURL(qe, null);
+		//		updateNISubscriptions(nod);
+		if (slaveCallBack != null)
+			slaveCallBack.updateJDFForExtern(nod.getOwnerDocument_JDFElement());
 
-        VString aborted = retQEParams.getAborted();
-        if (aborted!=null && aborted.size()!=0) {
-            finalizeProcessDoc(EnumQueueEntryStatus.Aborted);
-        } else {
-            finalizeProcessDoc(EnumQueueEntryStatus.Completed);
-        }
+	}
 
-        return true;
-    }
+	/**
+	 * @return
+	 */
+	JDFNode getJDFNode()
+	{
+		return qsc.theNode;
+	}
 
-    /**
-     * @return the QueuentryID as submitted to the slave device
-     */
-    public String getSlaveQEID()
-    {
-        return currentQE==null ? null : BambiNSExtension.getSlaveQueueEntryID(currentQE.getQueueEntry());
-    }
+	@Override
+	public void shutdown()
+	{
+		log.info("shutting down " + toString());
+		super.shutdown();
+		((ProxyDevice) _parent).removeProcessor(this);
+	}
 
-    @Override
-    protected boolean finalizeProcessDoc(EnumQueueEntryStatus qes)
-    {
-        boolean b= super.finalizeProcessDoc(qes);
-        //qsc.delete(); // better to retain. remove only when removing qe
-        shutdown(); // remove ourselves ot of the processors list
-        return b;
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.cip4.bambi.core.AbstractDeviceProcessor#stopProcessing(org.cip4.jdflib
+	 * .core.JDFElement.EnumNodeStatus)
+	 */
+	@Override
+	public void stopProcessing(EnumNodeStatus newStatus)
+	{
+		final String slaveQE = getSlaveQEID();
+		getParent().stopSlaveProcess(slaveQE, newStatus);
+	}
 
-    /**
-     * @param m
-     * @param resp
-     * @return
-     */
-    public boolean handleStatusSignal(JDFMessage m, JDFResponse resp)
-    {
-        if(m==null || currentQE==null)
-            return false;
+	/**
+	 * @param m
+	 * @param resp
+	 * @return
+	 */
+	protected boolean returnFromSlave(JDFMessage m, JDFResponse resp)
+	{
+		JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
 
-        JDFStatusQuParams sqp = m.getStatusQuParams();
-        NodeIdentifier ni=null;
-        if(sqp!=null)
-        {
-            String qeid=sqp.getQueueEntryID();
-            boolean matches=KElement.isWildCard(qeid) || ContainerUtil.equals(getSlaveQEID(),qeid);
-            if(!matches)
-                return false;
-            ni=sqp.getIdentifier();
-        }
-        VElement vMatch=currentQE.getJDF().getJDFRoot().getMatchingNodes(ni);
-        if(vMatch==null)
-            return false;
-        VElement devicInfos=m.getChildElementVector(ElementName.DEVICEINFO, null);
-        if(devicInfos==null)
-            return false;
-        boolean b=false;
-        for(int i=0;i<devicInfos.size();i++)
-        {
-            b= handleDeviceInfo((JDFDeviceInfo)devicInfos.get(i)) || b;
-        }
+		// get the returned JDFDoc from the incoming ReturnQE command and pack
+		// it in the outgoing
+		JDFDoc doc = retQEParams.getURLDoc();
+		final JDFQueueEntry qe = currentQE.getQueueEntry();
+		if (doc == null)
+		{
+			String errorMsg = "failed to parse the JDFDoc from the incoming " + "ReturnQueueEntry with QueueEntryID="
+					+ currentQE.getQueueEntryID();
+			JMFHandler.errorResponse(resp, errorMsg, 2);
+		}
+		else
+		{
+			// brutally overwrite the current node with this
+			_statusListener.replaceNode(doc.getJDFRoot());
+		}
 
-        return b;    
-    }
+		BambiNSExtension.setDeviceURL(qe, null);
 
-    /**
-     * @param info
-     * @param match
-     */
-    private boolean handleDeviceInfo(JDFDeviceInfo info)
-    {
-        String slaveDevice=getSlaveDeviceID();
-        if(!info.getDeviceID().equals(slaveDevice))
-            return false;
-        VElement jobPhases=info.getChildElementVector(ElementName.JOBPHASE, null);
-        if(jobPhases==null)
-            return false;
-        boolean b=false;
-        for(int i=0;i<jobPhases.size();i++)
-            b=handleStatusUpdate((JDFJobPhase) jobPhases.get(i)) || b;
-        return b;
-    }
+		VString aborted = retQEParams.getAborted();
+		if (aborted != null && aborted.size() != 0)
+		{
+			finalizeProcessDoc(EnumQueueEntryStatus.Aborted);
+		}
+		else
+		{
+			finalizeProcessDoc(EnumQueueEntryStatus.Completed);
+		}
 
-    /**
-     * @return
-     */
-    private String getSlaveDeviceID()
-    {
-        return currentQE.getQueueEntry().getDeviceID();
-    }
+		return true;
+	}
 
+	/**
+	 * @return the QueuentryID as submitted to the slave device
+	 */
+	public String getSlaveQEID()
+	{
+		return currentQE == null ? null : BambiNSExtension.getSlaveQueueEntryID(currentQE.getQueueEntry());
+	}
 
+	@Override
+	protected boolean finalizeProcessDoc(EnumQueueEntryStatus qes)
+	{
+		boolean b = super.finalizeProcessDoc(qes);
+		// qsc.delete(); // better to retain. remove only when removing qe
+		qsc = null;
+		shutdown(); // remove ourselves out of the processors list
+		return b;
+	}
+
+	/**
+	 * @param m
+	 * @param resp
+	 * @return true if handled
+	 */
+	public boolean handleStatusSignal(JDFMessage m, JDFResponse resp)
+	{
+		return this.new StatusSignalHandler().handleSignal(m, resp);
+	}
+
+	/**
+	 * @param m
+	 * @param resp
+	 * @return true if handled
+	 */
+	public boolean handleNotificationSignal(JDFMessage m, JDFResponse resp)
+	{
+		return this.new NotificationSignalHandler().handleSignal(m, resp);
+	}
+
+	/**
+	 * @param m
+	 * @param resp
+	 * @return true if handled
+	 */
+	public boolean handleResourceSignal(JDFMessage m, JDFResponse resp)
+	{
+		return this.new ResourceSignalHandler().handleSignal(m, resp);
+	}
+
+	/**
+	 * @return the deviceID of the slave
+	 */
+	private String getSlaveDeviceID()
+	{
+		return currentQE.getQueueEntry().getDeviceID();
+	}
+
+	/**
+	 * removes all direct nodeinfo subscriptions and adds new ones to the proxy if required
+	 * @param root the node to update subscriptions in
+	 */
+	@Override
+	void updateNISubscriptions(JDFNode root)
+	{
+		if (root == null)
+			return;
+
+		super.updateNISubscriptions(root);
+		if (!EnumSlaveStatus.NODEINFO.equals(getParent().getSlaveStatus()))
+			return;
+
+		ProxyDevice p = getParent();
+		JDFJMF jmfs[] = p.createSubscriptions(null);
+		JDFNodeInfo ni = root.getCreateNodeInfo();
+		for (int i = 0; i < jmfs.length; i++)
+			ni.copyElement(jmfs[i], null);
+
+		log.info("creating subscription for doc:" + root.getJobID(true) + " - " + root.getJobPartID(false) + " to "
+				+ p.getSlaveURL());
+	}
 
 }

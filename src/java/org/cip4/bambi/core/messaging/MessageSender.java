@@ -83,11 +83,15 @@ import javax.mail.Multipart;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
+import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.VectorMap;
@@ -98,440 +102,540 @@ import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
  * allow a JMF message to be send in its own thread
  * @author boegerni
  */
-public class MessageSender implements Runnable {
-    private String _url=null;
-    private boolean doShutDown=false;
-    private boolean doShutDownGracefully=false;
-    private Vector<MessageDetails> _messages=null;
-    private static Log log = LogFactory.getLog(MessageSender.class.getName());
-    private static IConverterCallback _callBack=null;
-    private static VectorMap<String, DumpDir> vDumps=new VectorMap<String, DumpDir>();
-    private Object mutexDispatch=new Object();
-    private int sent=0;
-    private int idle=0;
+public class MessageSender implements Runnable
+{
+	private final CallURL callURL;
 
+	private enum sendReturn
+	{
+		sent, empty, error, removed
+	}
 
-    protected class MessageDetails
-    {
-        protected JDFJMF jmf=null;
-        protected Multipart mime=null;
-        protected IResponseHandler respHandler;
-        protected MIMEDetails mimeDet;
-        protected String senderID=null;
-        protected String url=null;
-        protected MessageDetails(JDFJMF _jmf, IResponseHandler _respHandler, HTTPDetails hdet, String _url)
-        {
-            respHandler=_respHandler;
-            jmf=_jmf;
-            senderID=jmf==null ? null : jmf.getSenderID();
-            url=_url;
-            if(hdet==null)
-                mimeDet=null;
-            else
-            {
-                mimeDet=new MIMEDetails();
-                mimeDet.httpDetails=hdet;
-            }            
-        }
-        protected MessageDetails(Multipart _mime, IResponseHandler _respHandler, MIMEDetails mdet,String _senderID, String _url)
-        {
-            respHandler=_respHandler;
-            mime=_mime;
-            mimeDet=mdet;
-            senderID=_senderID;
-            url=_url;
-        }
-    }
+	/**
+	 * @return the callURL associated with this
+	 */
+	public CallURL getCallURL()
+	{
+		return callURL;
+	}
 
-    /**
-     * trivial response handler that simply grabs the response and passes it back through
-     * getResponse() / isHandled()
-     * @author prosirai
-     *
-     */
-    public static class MessageResponseHandler implements IResponseHandler
-    {
-        private JDFResponse resp=null;
-        private HttpURLConnection connect=null;
-        protected BufferedInputStream bufferedInput=null;
-        private Object mutex=new Object();
-        private int abort=0; // 0 no abort handling, 1= abort on timeou, 2= has been aborted
+	private boolean doShutDown = false;
+	private boolean doShutDownGracefully = false;
+	private Vector<MessageDetails> _messages = null;
+	private static Log log = LogFactory.getLog(MessageSender.class.getName());
+	private static VectorMap<String, DumpDir> vDumps = new VectorMap<String, DumpDir>();
+	private final Object mutexDispatch = new Object();
+	private int sent = 0;
+	private int idle = 0;
+	private long lastQueued = 0;
+	private long lastSent = 0;
 
-        public MessageResponseHandler()
-        {
-            super();
-        }
+	protected class MessageDetails
+	{
+		protected JDFJMF jmf = null;
+		protected Multipart mime = null;
+		protected IResponseHandler respHandler;
+		protected MIMEDetails mimeDet;
+		protected String senderID = null;
+		protected String url = null;
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.messaging.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
-         */
-        public boolean handleMessage()
-        {
-            finalizeHandling();
-            return true;
-        }
+		protected MessageDetails(JDFJMF _jmf, IResponseHandler _respHandler, HTTPDetails hdet, String detailedURL)
+		{
+			respHandler = _respHandler;
+			jmf = _jmf;
+			senderID = jmf == null ? null : jmf.getSenderID();
+			url = detailedURL;
+			if (hdet == null)
+				mimeDet = null;
+			else
+			{
+				mimeDet = new MIMEDetails();
+				mimeDet.httpDetails = hdet;
+			}
+		}
 
-        /**
-         * 
-         */
-        protected void finalizeHandling()
-        {
-            if(mutex==null)
-                return;
-            abort=0;
-            synchronized (mutex)
-            {
-                mutex.notifyAll();                     
-            }
-            mutex=null;
-        }
+		protected MessageDetails(Multipart _mime, IResponseHandler _respHandler, MIMEDetails mdet, String _senderID, String _url)
+		{
+			respHandler = _respHandler;
+			mime = _mime;
+			mimeDet = mdet;
+			senderID = _senderID;
+			url = _url;
+		}
+	}
 
-        public JDFResponse getResponse()
-        {
-            return resp;
-        }
+	/**
+	 * trivial response handler that simply grabs the response and passes it back through
+	 * getResponse() / isHandled()
+	 * @author prosirai
+	 *
+	 */
+	public static class MessageResponseHandler implements IResponseHandler
+	{
+		private final JDFResponse resp = null;
+		private HttpURLConnection connect = null;
+		protected BufferedInputStream bufferedInput = null;
+		private Object mutex = new Object();
+		private int abort = 0; // 0 no abort handling, 1= abort on timeou, 2= has been aborted
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
-         */
-        public HttpURLConnection getConnection()
-        {
-            return connect;
-        }
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
-         */
-        public void setConnection(HttpURLConnection uc)
-        {
-            connect=uc;
-        }
+		public MessageResponseHandler()
+		{
+			super();
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java.io.BufferedInputStream)
-         */
-        public void setBufferedStream(BufferedInputStream bis)
-        {
-            bufferedInput=bis;            
-        }
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java.io.BufferedInputStream)
-         */
-        public InputStream getBufferedStream()
-        {
-            if(bufferedInput!=null) 
-                return bufferedInput;
-            if(connect==null)
-                return null;
-            try
-            {
-                bufferedInput=new BufferedInputStream(connect.getInputStream());
-            }
-            catch (IOException x)
-            {
-                //nop 
-            }
-            return bufferedInput;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.messaging.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 */
+		public boolean handleMessage()
+		{
+			finalizeHandling();
+			return true;
+		}
 
-        /**
-         * @param i
-         */
-        public void waitHandled(int i, boolean bAbort)
-        {
-            if(mutex==null)
-                return;
-            abort=bAbort?1:0;
-            synchronized (mutex)
-            {
-                try
-                {
-                    mutex.wait(i);
-                }
-                catch (InterruptedException x)
-                {
-                    //nop
-                }
-            }
-            if(abort==1)
-                abort++;
-        }
+		/**
+		 * 
+		 */
+		protected void finalizeHandling()
+		{
+			if (mutex == null)
+				return;
+			abort = 0;
+			synchronized (mutex)
+			{
+				mutex.notifyAll();
+			}
+			mutex = null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.messaging.IResponseHandler#isAborted()
-         */
-        public boolean isAborted()
-        {
-             return mutex==null ? false : abort==2;
-        }
-    }
-    /**
-     * constructor
-     * @param theUrl the URL to send the message to
-     * @param responseHandler the origin of the JMF. Its notify(JDFResponse) method will be
-     *               triggered when a response has been received. <br/>
-     *               If the response is null, the IResponseHandler will not be triggered.     
-     * @param callBack the converter callback to use, null if no modification is required                
-     */
-    public MessageSender(String theUrl,  IConverterCallback callback) {
-        _messages=new Vector<MessageDetails>();
-        _url=theUrl;
-        _callBack=callback;
-    }
+		public JDFResponse getResponse()
+		{
+			return resp;
+		}
 
-    /**
-     * the sender loop. <br/>
-     * Checks whether its vector of pending messages is empty. If it is not empty, 
-     * the first message is sent and removed from the map.
-     */
-    public void run() {
-        while (!doShutDown) 
-        {
-            boolean sentFirstMessage;
-            try{
-                synchronized(_messages) {
-                    sentFirstMessage = sendFirstMessage();
-                    if(sentFirstMessage)
-                    {
-                        _messages.remove(0);
-                        sent++;
-                        idle=0;
-                    }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
+		 */
+		public HttpURLConnection getConnection()
+		{
+			return connect;
+		}
 
-                    if ( doShutDownGracefully && (_messages.isEmpty()||idle>10) ) // idle > 10 blasts this odd if doShutDownGracefully and we are having problems
-                    {
-                        doShutDown=true;
-                    }
-                }
-            }
-            catch(Exception x)
-            {
-                sentFirstMessage=false;
-            }
-            if(!sentFirstMessage)
-            {
-                if(idle++ >3600) {
-                    // no success or idle for an hour...
-                    doShutDown=true;
-                    log.info("Shutting down thread for base url: "+_url);
-                }
-                else
-                {
-                    try
-                    {
-                        synchronized (mutexDispatch)
-                        {
-                            mutexDispatch.wait(1000);                        
-                        }
-                    }
-                    catch (InterruptedException x)
-                    {
-                        //nop
-                    }
-                }
-            }
-        }
-    }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
+		 */
+		public void setConnection(HttpURLConnection uc)
+		{
+			connect = uc;
+		}
 
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java.io.BufferedInputStream)
+		 */
+		public void setBufferedStream(BufferedInputStream bis)
+		{
+			bufferedInput = bis;
+		}
 
-    /**
-     * send the first enqueued message and return true if all went well
-     * also update any returned responses for Bambi internally
-     * @return boolean true if the message is assumed sent
-     *                 false if an error was detected and the Message must remain in the queue
-     */
-    private boolean sendFirstMessage()
-    {
-        synchronized (_messages)
-        {
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java.io.BufferedInputStream)
+		 */
+		public InputStream getBufferedStream()
+		{
+			if (bufferedInput != null)
+				return bufferedInput;
+			if (connect == null)
+				return null;
+			try
+			{
+				bufferedInput = new BufferedInputStream(connect.getInputStream());
+			}
+			catch (IOException x)
+			{
+				//nop 
+			}
+			return bufferedInput;
+		}
 
-            if (_messages==null ||_messages.isEmpty() ) 
-                return false;
+		/**
+		 * @param i
+		 */
+		public void waitHandled(int i, boolean bAbort)
+		{
+			if (mutex == null)
+				return;
+			abort = bAbort ? 1 : 0;
+			synchronized (mutex)
+			{
+				try
+				{
+					mutex.wait(i);
+				}
+				catch (InterruptedException x)
+				{
+					//nop
+				}
+			}
+			if (abort == 1)
+				abort++;
+		}
 
-            boolean b=true;
-            MessageDetails mh=_messages.get(0);
-            if(mh==null)
-                return true; // should never happen
-            final DumpDir outDump = getOutDump(mh.senderID);
-            final DumpDir inDump = getInDump(mh.senderID);
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.messaging.IResponseHandler#isAborted()
+		 */
+		public boolean isAborted()
+		{
+			return mutex == null ? false : abort == 2;
+		}
+	}
 
-            JDFJMF jmf=mh.jmf;
-            Multipart mp=mh.mime;
-            if(KElement.isWildCard(mh.url) ) 
-                return true; // snafu anyhow but not sent but no retry useful
-            if ( jmf==null && mp==null)
-                return true; // need no resend - will remove
+	/**
+	 * constructor
+	 * @param theUrl the URL to send the message to
+	 * @param callbck the converter callback to use, null if no modification is required                
+	 */
+	public MessageSender(String theUrl, IConverterCallback callback)
+	{
+		_messages = new Vector<MessageDetails>();
+		callURL = new CallURL(callback, theUrl);
+	}
 
-            if(mh.respHandler!=null && mh.respHandler.isAborted())
-            {
-                _messages.remove(0);
-                log.warn("removed aborted message to: "+mh.url);
-                return false;
-            }
-            
-            try
-            {
-                HttpURLConnection con;
-                String header="URL: "+mh.url;
+	/**
+	 * constructor
+	 * @param cu the URL to send the message to
+	 */
 
-                if(jmf!=null)
-                {
-                    final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
-                    HTTPDetails hd=mh.mimeDet==null ? null : mh.mimeDet.httpDetails;
-                    con=jmfDoc.write2HTTPURL(new URL(mh.url),hd);
-                    if(outDump!=null)
-                    {
-                        File dump=outDump.newFile(header);
-                        if(dump!=null)
-                        {
-                            FileOutputStream fos=new FileOutputStream(dump,true);
-                            jmfDoc.write2Stream(fos, 0, true);    
-                        }
-                    }
-                }
-                else if(mp!=null)
-                {
-                    con=MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
-                    if(outDump!=null)
-                    {
-                        File dump=outDump.newFile(header);
-                        if(dump!=null)
-                        {
-                            FileOutputStream fos=new FileOutputStream(dump,true);
-                            MimeUtil.writeToStream(mp,fos,mh.mimeDet);    
-                        }
-                    }
-                }
-                else
-                {
-                    return true; // nothing to send; remove it
-                }
+	public MessageSender(CallURL cu)
+	{
+		_messages = new Vector<MessageDetails>();
+		callURL = cu;
+	}
 
-                if(con!=null)
-                {
-                    header+="\nResponse code:"+con.getResponseCode();
-                    header+="\nContent type:"+con.getContentType();
-                    header+="\nContent length:"+con.getContentLength();
-                }
+	/**
+	 * the sender loop. <br/>
+	 * Checks whether its vector of pending messages is empty. If it is not empty, 
+	 * the first message is sent and removed from the map.
+	 */
+	public void run()
+	{
+		while (!doShutDown)
+		{
+			sendReturn sentFirstMessage;
+			try
+			{
+				synchronized (_messages)
+				{
+					sentFirstMessage = sendFirstMessage();
+					if (sentFirstMessage == sendReturn.sent)
+					{
+						_messages.remove(0);
+						sent++;
+						lastSent = System.currentTimeMillis();
+						idle = 0;
+					}
 
-                if(con!=null && con.getResponseCode()==200)
-                {
-                    BufferedInputStream bis=new BufferedInputStream(con.getInputStream());                    
-                    bis.mark(1000000);
+					if (doShutDownGracefully && (_messages.isEmpty() || idle > 10)) // idle > 10 blasts this away if doShutDownGracefully and we are having problems
+					{
+						doShutDown = true;
+					}
+				}
+			}
+			catch (Exception x)
+			{
+				sentFirstMessage = sendReturn.error;
+			}
+			if (sentFirstMessage != sendReturn.sent)
+			{
+				if (idle++ > 3600)
+				{
+					// no success or idle for an hour...
+					doShutDown = true;
+					log.info("Shutting down thread for base url: " + callURL.getBaseURL());
+				}
+				else
+				{ // stepwise increment - try every second 10 times, then every minute, then every 5 minutes 
+					final int wait = (sendReturn.error == sentFirstMessage && idle > 10) ? (idle > 100 ? 300000 : 60000) : 1000;
+					try
+					{
+						synchronized (mutexDispatch)
+						{
+							mutexDispatch.wait(wait);
+						}
+					}
+					catch (InterruptedException x)
+					{
+						//nop
+					}
+				}
+			}
+		}
+	}
 
-                    if(inDump!=null)
-                    {
-                        inDump.newFileFromStream(header, bis);
-                    }
-                    if (mh.respHandler!=null) 
-                    {
-                        mh.respHandler.setConnection(con);
-                        mh.respHandler.setBufferedStream(bis);
-                        b=mh.respHandler.handleMessage();
-                    }
-                }
-                else
-                {
-                    b=false;
-                    if(idle==0)// only warn on first try
-                        log.warn("could not send message to "+mh.url+" rc= "+((con==null) ? -1 : con.getResponseCode()));
-                    if(con!=null)
-                    {
-                        if(inDump!=null)
-                        {
-                            inDump.newFile(header);
-                        }
-                    }
-                }
-            }
-            catch (Exception e) {
-                log.error("Exception in sendfirstmessage",e);
-                b=false;
-            }
-            return b;
-        }
-    }
+	/**
+	 * send the first enqueued message and return true if all went well
+	 * also update any returned responses for Bambi internally
+	 * @return boolean true if the message is assumed sent
+	 *                 false if an error was detected and the Message must remain in the queue
+	 */
+	private sendReturn sendFirstMessage()
+	{
+		synchronized (_messages)
+		{
 
-    /**
-     * stop sending new messages immediately and shut down
-     * @param gracefully true  - process remaining messages first, then shut down. <br/>
-     *                   false - shut down immediately, skip remaining messages.
-     */
-    public void shutDown(boolean gracefully) {
-        if (gracefully) {
-            doShutDownGracefully=true;
-        } else {
-            doShutDown=true;
-        }
-    }
-    /**
-     * return true if the thread is still running
-     * @return
-     */
-    public boolean isRunning() 
-    {
-        return !doShutDown;
-    }
-    private DumpDir getInDump(String senderID)
-    {
-        return vDumps.getOne(senderID, 0);
-    }
-    private DumpDir getOutDump(String senderID)
-    {
-        return vDumps.getOne(senderID, 1);        
-    }
+			if (_messages == null || _messages.isEmpty())
+				return sendReturn.empty;
 
-    public static void addDumps(String senderID, DumpDir inDump, DumpDir outDump)
-    {
-        vDumps.putOne(senderID, inDump);
-        vDumps.putOne(senderID, outDump);
-    }
-    /**
-     * queses a message for the URL that this MessageSender belongs to
-     * also updates the message for a given recipient if required
-     * @param jmf the message to send
-     * @return true, if the message is successfully queued. 
-     *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
-     */
-    public boolean queueMessage(JDFJMF jmf, IResponseHandler handler, String url) {
-        if (doShutDown || doShutDownGracefully) {
-            return false;
-        }
-        if(_callBack!=null)
-            _callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+			sendReturn b = sendReturn.sent;
+			MessageDetails mh = _messages.get(0);
+			if (mh == null)
+			{
+				_messages.remove(0);
+				return sendReturn.removed; // should never happen
+			}
+			final DumpDir outDump = getOutDump(mh.senderID);
+			final DumpDir inDump = getInDump(mh.senderID);
 
-        synchronized(_messages) {
-            _messages.add(new MessageDetails(jmf,handler,null,url));
-        }
-        synchronized (mutexDispatch)
-        {
-            mutexDispatch.notifyAll();            
-        }
-        return true;
-    }
-    /**
-     * queses a message for the URL that this MessageSender belongs to
-     * also updates the message for a given recipient if required
-     * @param jmf the message to send
-     * @return true, if the message is successfully queued. 
-     *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
-     */
-    public boolean queueMimeMessage(Multipart multpart, IResponseHandler handler, MIMEDetails md, String senderID, String url) {
-        if (doShutDown || doShutDownGracefully) 
-        {
-            return false;
-        }
+			JDFJMF jmf = mh.jmf;
+			Multipart mp = mh.mime;
+			if (KElement.isWildCard(mh.url))
+			{
+				log.error("Sending to bad url - bailing out! " + mh.url);
+				return sendReturn.error; // snafu anyhow but not sent but no retry useful
+			}
+			if (jmf == null && mp == null)
+			{
+				log.error("Sending neither mime nor jmf - bailing out?");
+				_messages.remove(0);
+				return sendReturn.removed; // need no resend - will remove
+			}
 
-        synchronized(_messages) 
-        {
-            _messages.add(new MessageDetails(multpart,handler,md,senderID,url));
-        }
-        return true;
-    }
+			if (mh.respHandler != null && mh.respHandler.isAborted())
+			{
+				_messages.remove(0);
+				log.warn("removed aborted message to: " + mh.url);
+				return sendReturn.removed;
+			}
 
-    @Override
-    public String toString()
-    {
-        return "MessageSender - URL: "+_url+" size: "+_messages.size()+" total: "+sent+"\n"+_messages;
-    }
+			try
+			{
+				HttpURLConnection con;
+				String header = "URL: " + mh.url;
+
+				if (jmf != null)
+				{
+					final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
+					HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
+					con = jmfDoc.write2HTTPURL(new URL(mh.url), hd);
+					if (outDump != null)
+					{
+						File dump = outDump.newFile(header);
+						if (dump != null)
+						{
+							FileOutputStream fos = new FileOutputStream(dump, true);
+							jmfDoc.write2Stream(fos, 0, true);
+						}
+					}
+				}
+				else if (mp != null)
+				{
+					con = MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
+					if (outDump != null)
+					{
+						File dump = outDump.newFile(header);
+						if (dump != null)
+						{
+							FileOutputStream fos = new FileOutputStream(dump, true);
+							MimeUtil.writeToStream(mp, fos, mh.mimeDet);
+						}
+					}
+				}
+				else
+				{
+					log.error("Sending neither mime nor jmf - bailing out?");
+					_messages.remove(0);
+					return sendReturn.removed; // nothing to send; remove it
+				}
+
+				if (con != null)
+				{
+					header += "\nResponse code:" + con.getResponseCode();
+					header += "\nContent type:" + con.getContentType();
+					header += "\nContent length:" + con.getContentLength();
+				}
+
+				if (con != null && con.getResponseCode() == 200)
+				{
+					BufferedInputStream bis = new BufferedInputStream(con.getInputStream());
+					bis.mark(1000000);
+
+					if (inDump != null)
+					{
+						inDump.newFileFromStream(header, bis);
+					}
+					if (mh.respHandler != null)
+					{
+						mh.respHandler.setConnection(con);
+						mh.respHandler.setBufferedStream(bis);
+						b = mh.respHandler.handleMessage() ? sendReturn.sent : sendReturn.error;
+					}
+				}
+				else
+				{
+					b = sendReturn.error;
+					if (idle == 0)// only warn on first try
+						log.warn("could not send message to " + mh.url + " rc= "
+								+ ((con == null) ? -1 : con.getResponseCode()));
+					if (con != null)
+					{
+						if (inDump != null)
+						{
+							inDump.newFile(header);
+						}
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				log.error("Exception in sendfirstmessage", e);
+				b = sendReturn.error;
+			}
+			return b;
+		}
+	}
+
+	/**
+	 * stop sending new messages immediately and shut down
+	 * @param gracefully true  - process remaining messages first, then shut down. <br/>
+	 *                   false - shut down immediately, skip remaining messages.
+	 */
+	public void shutDown(boolean gracefully)
+	{
+		if (gracefully)
+		{
+			doShutDownGracefully = true;
+		}
+		else
+		{
+			doShutDown = true;
+		}
+	}
+
+	/**
+	 * return true if the thread is still running
+	 * @return true if running
+	 */
+	public boolean isRunning()
+	{
+		return !doShutDown;
+	}
+
+	/**
+	 * return true if tesatURL fits this url
+	 * @param testURL the url to check against
+	 * @return true if running
+	 */
+	public boolean matchesURL(String testURL)
+	{
+		return ContainerUtil.equals(testURL, callURL.getBaseURL());
+	}
+
+	private DumpDir getInDump(String senderID)
+	{
+		return vDumps.getOne(senderID, 0);
+	}
+
+	private DumpDir getOutDump(String senderID)
+	{
+		return vDumps.getOne(senderID, 1);
+	}
+
+	public static void addDumps(String senderID, DumpDir inDump, DumpDir outDump)
+	{
+		vDumps.putOne(senderID, inDump);
+		vDumps.putOne(senderID, outDump);
+	}
+
+	/**
+	 * queses a message for the URL that this MessageSender belongs to
+	 * also updates the message for a given recipient if required
+	 * @param jmf the message to send
+	 * @return true, if the message is successfully queued. 
+	 *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
+	 */
+	public boolean queueMessage(JDFJMF jmf, IResponseHandler handler, String url)
+	{
+		if (doShutDown || doShutDownGracefully)
+		{
+			return false;
+		}
+		IConverterCallback _callBack = callURL == null ? null : callURL.callback;
+		if (_callBack != null)
+			_callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+
+		MessageDetails messageDetails = new MessageDetails(jmf, handler, null, url);
+		queueMessageDetails(messageDetails);
+		return true;
+	}
+
+	/**
+	 * @param messageDetails
+	 */
+	private void queueMessageDetails(MessageDetails messageDetails)
+	{
+		synchronized (_messages)
+		{
+			_messages.add(messageDetails);
+			lastQueued = System.currentTimeMillis();
+		}
+		synchronized (mutexDispatch)
+		{
+			mutexDispatch.notifyAll();
+		}
+	}
+
+	/**
+	 * queses a message for the URL that this MessageSender belongs to
+	 * also updates the message for a given recipient if required
+	 * @param jmf the message to send
+	 * @return true, if the message is successfully queued. 
+	 *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
+	 */
+	public boolean queueMimeMessage(Multipart multpart, IResponseHandler handler, MIMEDetails md, String senderID, String url)
+	{
+		if (doShutDown || doShutDownGracefully)
+		{
+			return false;
+		}
+
+		MessageDetails messageDetails = new MessageDetails(multpart, handler, md, senderID, url);
+		queueMessageDetails(messageDetails);
+		return true;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "MessageSender - URL: " + callURL.url + " size: " + _messages.size() + " total: " + sent
+				+ " last queued at " + BambiServlet.formatLong(lastQueued) + " last sent at "
+				+ BambiServlet.formatLong(lastSent) + "\n" + _messages;
+	}
+
+	/**
+	 * creates a descriptive xml Object for this MessageSender
+	 * 
+	 * @param root the parent into which I append myself
+	 */
+	public void appendToXML(KElement root)
+	{
+		synchronized (_messages)
+		{
+			KElement ms = root.appendElement("MessageSender");
+			ms.setAttribute(AttributeName.URL, callURL.url);
+			ms.setAttribute(AttributeName.SIZE, _messages.size(), null);
+			ms.setAttribute("NumSent", sent, null);
+			ms.setAttribute("LastQueued", BambiServlet.formatLong(lastQueued), null);
+			ms.setAttribute("LastSent", BambiServlet.formatLong(lastSent), null);
+			ms.setAttribute("Active", !doShutDown, null);
+		}
+	}
 
 }

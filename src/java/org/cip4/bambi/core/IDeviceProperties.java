@@ -87,7 +87,7 @@ public interface IDeviceProperties {
      * queueentry return type
      *
      */
-    public enum QEReturn{HF,HTTP,MIME};
+    public enum QEReturn{HF,HTTP,MIME}
     /**
      * get the URL to communicate with this device
      * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 

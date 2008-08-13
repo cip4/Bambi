@@ -82,28 +82,31 @@ import org.cip4.jdflib.node.JDFNode;
 public interface IDeviceProcessor extends Runnable
 {
 
-    /**
-     * this is the device processor loop 
-     */
-    public abstract void run();
+	/**
+	 * this is the device processor loop 
+	 */
+	public abstract void run();
 
-    /**
-     * @param doc
-     * @return EnumQueueEntryStatus the final status of the queuentry 
-     */
-    public abstract EnumQueueEntryStatus processDoc(JDFNode node, JDFQueueEntry qe);
-    
-    /**
-     * initialize the IDeviceProcessor
-     * @param queueProcessor the queueprocessor
-     * @param statusListener the status listener
-     * @param devProperties  device properties
-     */
-    public void init(QueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties);
-    
-    /**
-     * stop the device processor loop
-     */
-    public void shutdown();
+	/**
+	 * process a queue entry
+	 * 
+	 * @param node the JDF node to process
+	 * @param qe the JDF queueentry that corresponds to this
+	 * @return EnumQueueEntryStatus the final status of the queuentry 
+	 */
+	public abstract EnumQueueEntryStatus processDoc(JDFNode node, JDFQueueEntry qe);
+
+	/**
+	 * initialize the IDeviceProcessor
+	 * @param queueProcessor the queueprocessor
+	 * @param statusListener the status listener
+	 * @param devProperties  device properties
+	 */
+	public void init(QueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties);
+
+	/**
+	 * stop the device processor loop
+	 */
+	public void shutdown();
 
 }

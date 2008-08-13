@@ -99,328 +99,366 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public class BambiServletRequest implements HttpServletRequest
 {
-    private HttpServletRequest parent;
-    private ByteArrayIOStream buffer;
+	private final HttpServletRequest parent;
+	private ByteArrayIOStream buffer;
 
-    /**
-     * 
-     * @throws IOException 
-     * 
-     */
-    public BambiServletRequest(HttpServletRequest _parent, boolean bufIt) 
-    {
-        parent=_parent;
-        if(bufIt)
-        {
-            buffer = new ByteArrayIOStream();
-            try
-            {
-                IOUtils.copy(parent.getInputStream(), buffer);
-            }
-            catch (IOException x)
-            {
-                // nop - keep what we have
-            }
-        }
-        else
-            buffer=null;
-    }
+	/**
+	 * 
+	 * @throws IOException 
+	 * 
+	 */
+	public BambiServletRequest(HttpServletRequest _parent, boolean bufIt)
+	{
+		parent = _parent;
+		if (bufIt)
+		{
+			buffer = new ByteArrayIOStream();
+			try
+			{
+				IOUtils.copy(parent.getInputStream(), buffer);
+			}
+			catch (IOException x)
+			{
+				// nop - keep what we have
+			}
+		}
+		else
+			buffer = null;
+	}
 
-    public Object getAttribute(String arg0)
-    {
-        return parent.getAttribute(arg0);
-    }
+	/**
+	 * extract a boolean attribute from a given request
+	 * @param request
+	 * @param param
+	 * @return true if the parameter is"true", else false
+	 */
+	public boolean getBooleanParam(String param)
+	{
+		final String val = getParameter(param);
+		return StringUtil.parseBoolean(val, false);
+	}
 
-    public Enumeration getAttributeNames()
-    {
-        return parent.getAttributeNames();
-    }
+	/**
+	 * extract a double attribute from a given request
+	 * @param request
+	 * @param param
+	 * @return
+	 */
+	public int getIntegerParam(String param)
+	{
+		final String val = getParameter(param);
+		return StringUtil.parseInt(val, 0);
+	}
 
-    public String getAuthType()
-    {
-        return parent.getAuthType();
-    }
+	/**
+	 * extract a double attribute from a given request
+	 * @param request
+	 * @param param
+	 * @return
+	 */
+	public double getDoubleParam(String param)
+	{
+		final String val = getParameter(param);
+		return StringUtil.parseDouble(val, 0.0);
+	}
 
-    public String getCharacterEncoding()
-    {
-        return parent.getCharacterEncoding();
-    }
+	public Object getAttribute(String arg0)
+	{
+		return parent.getAttribute(arg0);
+	}
 
-    public int getContentLength()
-    {
-        return parent.getContentLength();
-    }
+	public Enumeration getAttributeNames()
+	{
+		return parent.getAttributeNames();
+	}
 
-    public String getContentType()
-    {
-        return parent.getContentType();
-    }
+	public String getAuthType()
+	{
+		return parent.getAuthType();
+	}
 
-    public String getContextPath()
-    {
-        return parent.getContextPath();
-    }
-    public String getContextRoot()
-    {
-        String s= parent.getContextPath();
-        return "/"+StringUtil.token(s, 0, "/");
-    }
+	public String getCharacterEncoding()
+	{
+		return parent.getCharacterEncoding();
+	}
 
-    public Cookie[] getCookies()
-    {
-        return parent.getCookies();
-    }
+	public int getContentLength()
+	{
+		return parent.getContentLength();
+	}
 
-    public long getDateHeader(String arg0)
-    {
-        return parent.getDateHeader(arg0);
-    }
+	public String getContentType()
+	{
+		return parent.getContentType();
+	}
 
-    public String getHeader(String arg0)
-    {
-        return parent.getHeader(arg0);
-    }
+	public String getContextPath()
+	{
+		return parent.getContextPath();
+	}
 
-    public Enumeration getHeaderNames()
-    {
-        return parent.getHeaderNames();
-    }
+	public String getContextRoot()
+	{
+		String s = parent.getContextPath();
+		return "/" + StringUtil.token(s, 0, "/");
+	}
 
-    public Enumeration getHeaders(String arg0)
-    {
-        return parent.getHeaders(arg0);
-    }
+	public Cookie[] getCookies()
+	{
+		return parent.getCookies();
+	}
 
-    public ServletInputStream getInputStream() throws IOException
-    {
-        return parent.getInputStream();
-    }
-    public InputStream getBufferedInputStream() 
-    {        
-        try
-        {
-            return buffer!=null ? buffer.getInputStream() : parent.getInputStream();            
-        }
-        catch (Exception e)
-        {
-            return null;
-        }
-    }
+	public long getDateHeader(String arg0)
+	{
+		return parent.getDateHeader(arg0);
+	}
 
-    public int getIntHeader(String arg0)
-    {
-        return parent.getIntHeader(arg0);
-    }
+	public String getHeader(String arg0)
+	{
+		return parent.getHeader(arg0);
+	}
 
-    public String getLocalAddr()
-    {
-        return parent.getLocalAddr();
-    }
+	public Enumeration getHeaderNames()
+	{
+		return parent.getHeaderNames();
+	}
 
-    public Locale getLocale()
-    {
-        return parent.getLocale();
-    }
+	public Enumeration getHeaders(String arg0)
+	{
+		return parent.getHeaders(arg0);
+	}
 
-    public Enumeration getLocales()
-    {
-        return parent.getLocales();
-    }
+	public ServletInputStream getInputStream() throws IOException
+	{
+		return parent.getInputStream();
+	}
 
-    public String getLocalName()
-    {
-        return parent.getLocalName();
-    }
+	public InputStream getBufferedInputStream()
+	{
+		try
+		{
+			return buffer != null ? buffer.getInputStream() : parent.getInputStream();
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
 
-    public int getLocalPort()
-    {
-        return parent.getLocalPort();
-    }
+	public int getIntHeader(String arg0)
+	{
+		return parent.getIntHeader(arg0);
+	}
 
-    public String getMethod()
-    {
-        return parent.getMethod();
-    }
+	public String getLocalAddr()
+	{
+		return parent.getLocalAddr();
+	}
 
-    public String getParameter(String arg0)
-    {
-        return parent.getParameter(arg0);
-    }
+	public Locale getLocale()
+	{
+		return parent.getLocale();
+	}
 
-    public Map getParameterMap()
-    {
-        return parent.getParameterMap();
-    }
+	public Enumeration getLocales()
+	{
+		return parent.getLocales();
+	}
 
-    public Enumeration getParameterNames()
-    {
-        return parent.getParameterNames();
-    }
+	public String getLocalName()
+	{
+		return parent.getLocalName();
+	}
 
-    public String[] getParameterValues(String arg0)
-    {
-        return parent.getParameterValues(arg0);
-    }
+	public int getLocalPort()
+	{
+		return parent.getLocalPort();
+	}
 
-    public String getPathInfo()
-    {
-        return parent.getPathInfo();
-    }
+	public String getMethod()
+	{
+		return parent.getMethod();
+	}
 
-    public String getPathTranslated()
-    {
-        return parent.getPathTranslated();
-    }
+	public String getParameter(String arg0)
+	{
+		return parent.getParameter(arg0);
+	}
 
-    public String getProtocol()
-    {
-        return parent.getProtocol();
-    }
+	public Map getParameterMap()
+	{
+		return parent.getParameterMap();
+	}
 
-    public String getQueryString()
-    {
-        return parent.getQueryString();
-    }
+	public Enumeration getParameterNames()
+	{
+		return parent.getParameterNames();
+	}
 
-    public BufferedReader getReader() throws IOException
-    {
-        return parent.getReader();
-    }
+	public String[] getParameterValues(String arg0)
+	{
+		return parent.getParameterValues(arg0);
+	}
 
-    @Deprecated
-    public String getRealPath(String arg0)
-    {
-        return parent.getRealPath(arg0);
-    }
+	public String getPathInfo()
+	{
+		return parent.getPathInfo();
+	}
 
-    public String getRemoteAddr()
-    {
-        return parent.getRemoteAddr();
-    }
+	public String getPathTranslated()
+	{
+		return parent.getPathTranslated();
+	}
 
-    public String getRemoteHost()
-    {
-        return parent.getRemoteHost();
-    }
+	public String getProtocol()
+	{
+		return parent.getProtocol();
+	}
 
-    public int getRemotePort()
-    {
-        return parent.getRemotePort();
-    }
+	public String getQueryString()
+	{
+		return parent.getQueryString();
+	}
 
-    public String getRemoteUser()
-    {
-        return parent.getRemoteUser();
-    }
+	public BufferedReader getReader() throws IOException
+	{
+		return parent.getReader();
+	}
 
-    public RequestDispatcher getRequestDispatcher(String arg0)
-    {
-        return parent.getRequestDispatcher(arg0);
-    }
+	@Deprecated
+	public String getRealPath(String arg0)
+	{
+		return parent.getRealPath(arg0);
+	}
 
-    public String getRequestedSessionId()
-    {
-        return parent.getRequestedSessionId();
-    }
+	public String getRemoteAddr()
+	{
+		return parent.getRemoteAddr();
+	}
 
-    public String getRequestURI()
-    {
-        return parent.getRequestURI();
-    }
+	public String getRemoteHost()
+	{
+		return parent.getRemoteHost();
+	}
 
-    public StringBuffer getRequestURL()
-    {
-        return parent.getRequestURL();
-    }
+	public int getRemotePort()
+	{
+		return parent.getRemotePort();
+	}
 
-    public String getScheme()
-    {
-        return parent.getScheme();
-    }
+	public String getRemoteUser()
+	{
+		return parent.getRemoteUser();
+	}
 
-    public String getServerName()
-    {
-        return parent.getServerName();
-    }
+	public RequestDispatcher getRequestDispatcher(String arg0)
+	{
+		return parent.getRequestDispatcher(arg0);
+	}
 
-    public int getServerPort()
-    {
-        return parent.getServerPort();
-    }
+	public String getRequestedSessionId()
+	{
+		return parent.getRequestedSessionId();
+	}
 
-    public String getServletPath()
-    {
-        return parent.getServletPath();
-    }
+	public String getRequestURI()
+	{
+		return parent.getRequestURI();
+	}
 
-    public HttpSession getSession()
-    {
-        return parent.getSession();
-    }
+	public StringBuffer getRequestURL()
+	{
+		return parent.getRequestURL();
+	}
 
-    public HttpSession getSession(boolean arg0)
-    {
-        return parent.getSession(arg0);
-    }
+	public String getScheme()
+	{
+		return parent.getScheme();
+	}
 
-    public Principal getUserPrincipal()
-    {
-        return parent.getUserPrincipal();
-    }
+	public String getServerName()
+	{
+		return parent.getServerName();
+	}
 
-    public boolean isRequestedSessionIdFromCookie()
-    {
-        return parent.isRequestedSessionIdFromCookie();
-    }
+	public int getServerPort()
+	{
+		return parent.getServerPort();
+	}
 
-    @Deprecated
-    public boolean isRequestedSessionIdFromUrl()
-    {
-        return parent.isRequestedSessionIdFromUrl();
-    }
+	public String getServletPath()
+	{
+		return parent.getServletPath();
+	}
 
-    public boolean isRequestedSessionIdFromURL()
-    {
-        return parent.isRequestedSessionIdFromURL();
-    }
+	public HttpSession getSession()
+	{
+		return parent.getSession();
+	}
 
-    public boolean isRequestedSessionIdValid()
-    {
-        return parent.isRequestedSessionIdValid();
-    }
+	public HttpSession getSession(boolean arg0)
+	{
+		return parent.getSession(arg0);
+	}
 
-    public boolean isSecure()
-    {
-        return parent.isSecure();
-    }
+	public Principal getUserPrincipal()
+	{
+		return parent.getUserPrincipal();
+	}
 
-    public boolean isUserInRole(String arg0)
-    {
-        return parent.isUserInRole(arg0);
-    }
+	public boolean isRequestedSessionIdFromCookie()
+	{
+		return parent.isRequestedSessionIdFromCookie();
+	}
 
-    public void removeAttribute(String arg0)
-    {
-        parent.removeAttribute(arg0);
-    }
+	@Deprecated
+	public boolean isRequestedSessionIdFromUrl()
+	{
+		return parent.isRequestedSessionIdFromUrl();
+	}
 
-    public void setAttribute(String arg0, Object arg1)
-    {
-        parent.setAttribute(arg0, arg1);
-    }
+	public boolean isRequestedSessionIdFromURL()
+	{
+		return parent.isRequestedSessionIdFromURL();
+	}
 
-    public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException
-    {
-        parent.setCharacterEncoding(arg0);
-    }
+	public boolean isRequestedSessionIdValid()
+	{
+		return parent.isRequestedSessionIdValid();
+	}
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString()
-    {
-       return "BambiServletRequest: \nURI="+getContextPath();
-    }
- 
+	public boolean isSecure()
+	{
+		return parent.isSecure();
+	}
+
+	public boolean isUserInRole(String arg0)
+	{
+		return parent.isUserInRole(arg0);
+	}
+
+	public void removeAttribute(String arg0)
+	{
+		parent.removeAttribute(arg0);
+	}
+
+	public void setAttribute(String arg0, Object arg1)
+	{
+		parent.setAttribute(arg0, arg1);
+	}
+
+	public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException
+	{
+		parent.setCharacterEncoding(arg0);
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		return "BambiServletRequest: \nURI=" + getRequestURI();
+	}
+
 }

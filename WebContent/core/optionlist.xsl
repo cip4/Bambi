@@ -1,4 +1,5 @@
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:bambi="www.cip4.org/Bambi" ><!--  Option Box -->
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:bambi="www.cip4.org/Bambi" >
+<!--  Option Box -->
 <xsl:template match="bambi:OptionList">
 <select size="1"> 
 <xsl:attribute name="name">

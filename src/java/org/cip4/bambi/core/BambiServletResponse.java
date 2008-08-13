@@ -96,216 +96,231 @@ import org.cip4.jdflib.util.ByteArrayIOStream;
  */
 public class BambiServletResponse implements HttpServletResponse
 {
-    private HttpServletResponse parent;
-    private ByteArrayIOStream buffer;
-    private static Log log = LogFactory.getLog(BambiServletResponse.class.getName());
+	private final HttpServletResponse parent;
+	private ByteArrayIOStream buffer;
+	private static Log log = LogFactory.getLog(BambiServletResponse.class.getName());
+	private final BambiServletRequest theRequest;
 
-     public BambiServletResponse(HttpServletResponse _parent, boolean bBuffer)
-    {
-        parent=_parent;
-        if(bBuffer)
-        {
-            buffer = new ByteArrayIOStream();
-        }
-        else
-            buffer=null;
-    }
+	/**
+	 * construct a new {@link BambiServletResponse}
+	 * 
+	* @param _parent the original response
+	* @param bBuffer if true, buffer this
+	* @param request the matching request - used mainly for debugging context
+	*/
+	public BambiServletResponse(HttpServletResponse _parent, boolean bBuffer, BambiServletRequest request)
+	{
+		parent = _parent;
+		theRequest = request;
+		if (bBuffer)
+		{
+			buffer = new ByteArrayIOStream();
+		}
+		else
+			buffer = null;
+	}
 
-    public void addCookie(Cookie arg0)
-    {
-        parent.addCookie(arg0);
-    }
+	public void addCookie(Cookie arg0)
+	{
+		parent.addCookie(arg0);
+	}
 
-    public void addDateHeader(String arg0, long arg1)
-    {
-        parent.addDateHeader(arg0, arg1);
-    }
+	public void addDateHeader(String arg0, long arg1)
+	{
+		parent.addDateHeader(arg0, arg1);
+	}
 
-    public void addHeader(String arg0, String arg1)
-    {
-        parent.addHeader(arg0, arg1);
-    }
+	public void addHeader(String arg0, String arg1)
+	{
+		parent.addHeader(arg0, arg1);
+	}
 
-    public void addIntHeader(String arg0, int arg1)
-    {
-        parent.addIntHeader(arg0, arg1);
-    }
+	public void addIntHeader(String arg0, int arg1)
+	{
+		parent.addIntHeader(arg0, arg1);
+	}
 
-    public boolean containsHeader(String arg0)
-    {
-        return parent.containsHeader(arg0);
-    }
+	public boolean containsHeader(String arg0)
+	{
+		return parent.containsHeader(arg0);
+	}
 
-    public String encodeRedirectUrl(String arg0)
-    {
-        return parent.encodeRedirectUrl(arg0);
-    }
+	public String encodeRedirectUrl(String arg0)
+	{
+		return parent.encodeRedirectUrl(arg0);
+	}
 
-    public String encodeRedirectURL(String arg0)
-    {
-        return parent.encodeRedirectURL(arg0);
-    }
+	public String encodeRedirectURL(String arg0)
+	{
+		return parent.encodeRedirectURL(arg0);
+	}
 
-    public String encodeUrl(String arg0)
-    {
-        return parent.encodeUrl(arg0);
-    }
+	public String encodeUrl(String arg0)
+	{
+		return parent.encodeUrl(arg0);
+	}
 
-    public String encodeURL(String arg0)
-    {
-        return parent.encodeURL(arg0);
-    }
+	public String encodeURL(String arg0)
+	{
+		return parent.encodeURL(arg0);
+	}
 
-    public void flushBuffer() throws IOException
-    {
-        parent.flushBuffer();
-    }
+	public void flushBuffer() throws IOException
+	{
+		parent.flushBuffer();
+	}
 
-    public int getBufferSize()
-    {
-        return parent.getBufferSize();
-    }
+	public int getBufferSize()
+	{
+		return parent.getBufferSize();
+	}
 
-    public String getCharacterEncoding()
-    {
-        return parent.getCharacterEncoding();
-    }
+	public String getCharacterEncoding()
+	{
+		return parent.getCharacterEncoding();
+	}
 
-    public String getContentType()
-    {
-        return parent.getContentType();
-    }
+	public String getContentType()
+	{
+		return parent.getContentType();
+	}
 
-    public Locale getLocale()
-    {
-        return parent.getLocale();
-    }
+	public Locale getLocale()
+	{
+		return parent.getLocale();
+	}
 
-    /**
-     * never acces this directly - always use flush finally
-     */
-    public ServletOutputStream getOutputStream() throws NotImplementedException
-    {
-        throw new NotImplementedException("Use getBufferedOutputStream");
-    }
-    public OutputStream getBufferedOutputStream() throws IOException
-    {
-        return buffer==null ? parent.getOutputStream() : buffer;
-    }
-    public InputStream getBufferedInputStream() 
-    {
-        return buffer==null ? null : buffer.getInputStream();
-    }
-    public int getBufferedCount() 
-    {
-        return buffer==null ? -1 : buffer.size();
-    }
+	/**
+	 * never acces this directly - always use flush finally
+	 */
+	public ServletOutputStream getOutputStream() throws NotImplementedException
+	{
+		throw new NotImplementedException("Use getBufferedOutputStream");
+	}
 
-    public PrintWriter getWriter() throws IOException
-    {
-        return parent.getWriter();
-    }
+	public OutputStream getBufferedOutputStream() throws IOException
+	{
+		return buffer == null ? parent.getOutputStream() : buffer;
+	}
 
-    public boolean isCommitted()
-    {
-        return parent.isCommitted();
-    }
+	public InputStream getBufferedInputStream()
+	{
+		return buffer == null ? null : buffer.getInputStream();
+	}
 
-    public void reset()
-    {
-        parent.reset();
-    }
+	public int getBufferedCount()
+	{
+		return buffer == null ? -1 : buffer.size();
+	}
 
-    public void resetBuffer()
-    {
-        parent.resetBuffer();
-    }
+	public PrintWriter getWriter() throws IOException
+	{
+		return parent.getWriter();
+	}
 
-    public void sendError(int arg0, String arg1) throws IOException
-    {
-        parent.sendError(arg0, arg1);
-    }
+	public boolean isCommitted()
+	{
+		return parent.isCommitted();
+	}
 
-    public void sendError(int arg0) throws IOException
-    {
-        parent.sendError(arg0);
-    }
+	public void reset()
+	{
+		parent.reset();
+	}
 
-    public void sendRedirect(String arg0) throws IOException
-    {
-        parent.sendRedirect(arg0);
-    }
+	public void resetBuffer()
+	{
+		parent.resetBuffer();
+	}
 
-    public void setBufferSize(int arg0)
-    {
-        parent.setBufferSize(arg0);
-    }
+	public void sendError(int arg0, String arg1) throws IOException
+	{
+		parent.sendError(arg0, arg1);
+	}
 
-    public void setCharacterEncoding(String arg0)
-    {
-        parent.setCharacterEncoding(arg0);
-    }
+	public void sendError(int arg0) throws IOException
+	{
+		parent.sendError(arg0);
+	}
 
-    public void setContentLength(int arg0)
-    {
-        parent.setContentLength(arg0);
-    }
+	public void sendRedirect(String arg0) throws IOException
+	{
+		parent.sendRedirect(arg0);
+	}
 
-    public void setContentType(String arg0)
-    {
-        parent.setContentType(arg0);
-    }
+	public void setBufferSize(int arg0)
+	{
+		parent.setBufferSize(arg0);
+	}
 
-    public void setDateHeader(String arg0, long arg1)
-    {
-        parent.setDateHeader(arg0, arg1);
-    }
+	public void setCharacterEncoding(String arg0)
+	{
+		parent.setCharacterEncoding(arg0);
+	}
 
-    public void setHeader(String arg0, String arg1)
-    {
-        parent.setHeader(arg0, arg1);
-    }
+	public void setContentLength(int arg0)
+	{
+		parent.setContentLength(arg0);
+	}
 
-    public void setIntHeader(String arg0, int arg1)
-    {
-        parent.setIntHeader(arg0, arg1);
-    }
+	public void setContentType(String arg0)
+	{
+		parent.setContentType(arg0);
+	}
 
-    public void setLocale(Locale arg0)
-    {
-        parent.setLocale(arg0);
-    }
+	public void setDateHeader(String arg0, long arg1)
+	{
+		parent.setDateHeader(arg0, arg1);
+	}
 
-    public void setStatus(int arg0, String arg1)
-    {
-        parent.setStatus(arg0, arg1);
-    }
+	public void setHeader(String arg0, String arg1)
+	{
+		parent.setHeader(arg0, arg1);
+	}
 
-    public void setStatus(int arg0)
-    {
-        parent.setStatus(arg0);
-    }
+	public void setIntHeader(String arg0, int arg1)
+	{
+		parent.setIntHeader(arg0, arg1);
+	}
 
-    /**
-     * 
-     */
-    public void flush()
-    {
+	public void setLocale(Locale arg0)
+	{
+		parent.setLocale(arg0);
+	}
 
-        if(buffer!=null)
-        {
-            try{
-                ServletOutputStream outputStream = parent.getOutputStream();
-                IOUtils.copy(buffer.getInputStream(), outputStream);
-                outputStream.flush();
-                outputStream.close();
-                buffer=null;
-            }
-            catch (IOException e) {
-                log.error("Error while flushing response stream",e);
-            }
-        }
+	public void setStatus(int arg0, String arg1)
+	{
+		parent.setStatus(arg0, arg1);
+	}
 
-    }
+	public void setStatus(int arg0)
+	{
+		parent.setStatus(arg0);
+	}
+
+	/**
+	 * 
+	 */
+	public void flush()
+	{
+
+		if (buffer != null)
+		{
+			try
+			{
+				ServletOutputStream outputStream = parent.getOutputStream();
+				IOUtils.copy(buffer.getInputStream(), outputStream);
+				outputStream.flush();
+				outputStream.close();
+				buffer = null;
+			}
+			catch (IOException e)
+			{
+
+				log.error("Error while flushing response stream to: " + theRequest.getRequestURI(), e);
+			}
+		}
+
+	}
 
 }

@@ -38,7 +38,7 @@
  *
  * Usage of this software in commercial products is subject to restrictions. For
  * details please consult info@cip4.org.
-  *
+ *
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -69,61 +69,24 @@
  */
 package org.cip4.bambi.core;
 
-import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.node.JDFNode;
 
-
 /**
  * @author prosirai
- *
+ * 
  */
 public interface IStatusListener
 {
-    /**
-     * updates the amount for a given resource
-     * the amounts are collected but not signaled until signalstatus is called
-     * @param resID the resource id of the tracked resource
-     * @param good the number of good copies
-     * @param waste the number of waste copies, negative values specify that waste should be ignored
-     */
-    void updateAmount(String resID,double good, double waste);
-    
-    /**
-     * update the status information by starting a new phase
-     * all amounts that have been accumulated are linked to the prior phase
-     * should be called after all amounts have been appropriately set
-     * @param deviceStatus
-     * @param deviceStatusDetails
-     * @param nodeStatus
-     * @param nodeStatusDetails
-     * @param forceOut forces writing by any generator, even if the status remains the same and the trigger would not call for a write
-     */
-    void signalStatus(EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus, String nodeStatusDetails, boolean forceOut);
+	void updateAmount(String resID, double good, double waste);
 
-    /**
-     * setup the map of queueentryid and node
-     * 
-     * @param queueEntryID the queueentryid is associated to the node
-     * if {@link QueueEntry}==null, the entire list is cleared
-     * @param vPartMap the vector of partitions that are being tracked
-     * @param trackResourceID the id of the "major" resource to be counted for phasetimes
-     * @param node the jdf node that will be processed. this may be a group node with 
-     * additional sub nodes
-     * if node==null the queueentryid is removed from the map
-     */
-     public void setNode(String queueEntryID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID);
-     
-     /**
-      * get the device status
-      * @return
-      */
-     public EnumDeviceStatus getDeviceStatus();
-     
-     /**
-      * shut down this StatusListener
-      */
-     public void shutdown();
+	void signalStatus(EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus, String nodeStatusDetails, boolean forceOut);
+
+	public void setNode(String queueEntryID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID);
+
+	public EnumDeviceStatus getDeviceStatus();
+
+	public void shutdown();
 }
