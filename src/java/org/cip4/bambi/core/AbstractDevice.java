@@ -678,7 +678,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 	 */
 	public EnumDeviceStatus getDeviceStatus()
 	{
-		IStatusListener listener = getStatusListener(0);
+		StatusListener listener = getStatusListener(0);
 		if (listener == null)
 		{
 			return EnumDeviceStatus.Idle;
@@ -784,7 +784,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 	 * @param i the index of the DeviceProcessor to the the StatusListener of
 	 * @return the StatusListener
 	 */
-	public IStatusListener getStatusListener(int i)
+	public StatusListener getStatusListener(int i)
 	{
 		if (i >= _deviceProcessors.size())
 			return null;

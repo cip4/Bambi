@@ -134,8 +134,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		public JDFDoc doc = null;
 
 		/**
-		 * @param _type
-		 * @param _families
+		 * 
 		 */
 		public SubmitQueueEntryResponseHandler()
 		{
@@ -252,9 +251,14 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			StatusCounter statusCounter = _statusListener.getStatusCounter();
 			if (processor == null || statusCounter == null)
 				return;
+
 			processor.setAttribute(AttributeName.STARTTIME, statusCounter.getStartDate().getDateTimeISO());
 			processor.setAttribute(AttributeName.DEVICESTATUS, statusCounter.getStatus().getName());
 			processor.setAttribute("Device" + AttributeName.STATUSDETAILS, statusCounter.getStatusDetails());
+			double percentComplete = statusCounter.getPercentComplete();
+			percentComplete = 0.01 * ((long) (100 * percentComplete + 0.5));
+			processor.setAttribute(AttributeName.PERCENTCOMPLETED, percentComplete, null);
+
 			processor.setAttribute(AttributeName.QUEUEENTRYID, currentQE.getQueueEntryID());
 			final JDFNode node = currentQE.getJDF();
 			String typ = node.getType();
@@ -601,7 +605,10 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		_doShutdown = true;
 	}
 
-	public IStatusListener getStatusListener()
+	/**
+	 * @return the corresponding statuListener
+	 */
+	public StatusListener getStatusListener()
 	{
 		return _statusListener;
 	}

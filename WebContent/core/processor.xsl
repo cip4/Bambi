@@ -14,9 +14,11 @@ QueueEntryID: <xsl:value-of select="@QueueEntryID"/><br/>
 Node type: <xsl:value-of select="@Type"/><br/>
 Description: <xsl:value-of select="@DescriptiveName"/><br/>
 Start Time: <xsl:value-of select="@StartTime"/><br/>
+<xsl:if test="@PercentCompleted">
+Percent Completed: <xsl:value-of select="@PercentCompleted"/> % <br/>
+</xsl:if>
 Show JDF: <a><xsl:attribute name="href">../showJDF/<xsl:value-of select="../@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
 <xsl:value-of select="@QueueEntryID"/></a>
-
 
 
 <h2>Resources:</h2>

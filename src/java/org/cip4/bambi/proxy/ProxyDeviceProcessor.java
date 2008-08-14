@@ -79,7 +79,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IDeviceProperties;
-import org.cip4.bambi.core.IStatusListener;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
@@ -299,13 +298,13 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			map2.put(AttributeName.CONDITION, "Waste");
 			double amount = info.getAmountPoolSumDouble(AttributeName.ACTUALAMOUNT, map2);
 			if (amount > 0)
-				_statusListener.setTotal(id, amount, true);
+				_statusListener.updateTotal(id, amount, true);
 
 			map2 = new VJDFAttributeMap(map);
 			map2.put(AttributeName.CONDITION, "Good");
 			amount = info.getAmountPoolSumDouble(AttributeName.ACTUALAMOUNT, map2);
 			if (amount > 0)
-				_statusListener.setTotal(id, amount, false);
+				_statusListener.updateTotal(id, amount, false);
 
 			return true;
 		}
@@ -360,18 +359,23 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		}
 
 		/**
+		 * apply the phase as decribed by jobPhase and burn it into our listener
+		 * 
 		 * @param jobPhase
 		 */
 		private void applyPhase(JDFJobPhase jobPhase)
 		{
 			double deltaWaste = jobPhase.getWasteDifference(jp);
 			double deltaAmount = jobPhase.getAmountDifference(jp);
-			final IStatusListener statusListener = getStatusListener();
+			final StatusListener statusListener = getStatusListener();
 			final JDFDeviceInfo devInfo = (JDFDeviceInfo) jobPhase.getParentNode();
 			statusListener.updateAmount(_trackResource, deltaAmount, deltaWaste);
 			statusListener.signalStatus(devInfo.getDeviceStatus(), devInfo.getStatusDetails(), jobPhase.getStatus(), jobPhase.getStatusDetails(), false);
+			double percentCompleted = jp.getPercentCompleted();
+			if (percentCompleted > 0)
+				statusListener.setPercentComplete(percentCompleted);
 			log.info("Node Status :" + jobPhase.getStatus() + " " + jobPhase.getStatusDetails() + " " + deltaAmount
-					+ " " + deltaWaste);
+					+ " " + deltaWaste + " completed: " + percentCompleted);
 			jp = (JDFJobPhase) jp.replaceElement(jobPhase);
 		}
 
@@ -388,17 +392,10 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	/**
 	 * constructor
 	 * 
-	 * @param queueProcessor
-	 *            points to the QueueProcessor
-	 * @param statusListener
-	 *            points to the StatusListener
-	 * @param _callBack
-	 *            the converter call back too and from device
-	 * @param device
-	 *            the parent device that this processor does processing for
-	 * @param qeToProcess
-	 *            the queueentry that this processor will be working for
-	 * @param doc
+	 * @param qProc the devices queueprocessor
+	 * @param device the parent device that this processor does processing for
+	 * @param qeToProcess the queueentry that this processor will be working for
+	 * @param slaveURL the url of the slave device
 	 */
 	public ProxyDeviceProcessor(ProxyDevice device, QueueProcessor qProc, IQueueEntry qeToProcess, String slaveURL)
 	{
@@ -448,9 +445,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	}
 
 	/**
-	* @param hfURL
-	* @param qe
-	* @return
+	* @param fHF the hot folder destination
+	* @return EnumQueueEntryStatus the status of the submitted queueentry
 	*/
 	private EnumQueueEntryStatus submitToHF(File fHF)
 	{
@@ -484,6 +480,13 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		return qe.getQueueEntryStatus();
 	}
 
+	/**
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#processDoc(org.cip4.jdflib.node.JDFNode, org.cip4.jdflib.jmf.JDFQueueEntry)
+	 * @param nod the node to process
+	 * @param qe the queueentry of the node to process
+	 * @return nothing - this should never be called
+	 * @throws NotImplementedException whenever called...
+	 */
 	@Override
 	public EnumQueueEntryStatus processDoc(JDFNode nod, JDFQueueEntry qe)
 	{

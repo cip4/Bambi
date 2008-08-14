@@ -101,379 +101,398 @@ import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
-public class BambiTestCase extends TestCase {
-    protected final static String cwd =System.getProperty("user.dir");
-	protected final static String sm_dirTestData = cwd+File.separator+"test" + File.separator + "data" + File.separator;
-	protected final static String sm_dirTestTemp = cwd+File.separator+"test" + File.separator + "temp" + File.separator;
-    protected final static String sm_UrlTestData = "File:test/data/";
+public class BambiTestCase extends TestCase
+{
+	@Override
+	protected void setUp() throws Exception
+	{
+		// TODO Auto-generated method stub
+		super.setUp();
+		BaseGoldenTicket.setMisURL("http://kie-prosirai-lg:8080/httpdump/BambiTest");
+	}
 
-    
- //       protected static String simWorkerUrl="http://localhost:8080/SimWorker/jmf/sim";
-    protected static String proxyUrl="http://kie-prosirai-lg:8080/BambiProxy/jmf/proxy001";
-    protected static String simWorkerUrl="http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
-    protected static String manualWorkerUrl=null;
-    
-    protected JMFFactory jmfFactory=new JMFFactory(null);
-    protected int chunkSize=-1;
-    protected String transferEncoding=UrlUtil.BASE64;
+	protected final static String cwd = System.getProperty("user.dir");
+	protected final static String sm_dirTestData = cwd + File.separator + "test" + File.separator + "data"
+			+ File.separator;
+	protected final static String sm_dirTestTemp = cwd + File.separator + "test" + File.separator + "temp"
+			+ File.separator;
+	protected final static String sm_UrlTestData = "File:test/data/";
 
-    protected BaseGoldenTicket _theGT=null;
-    static class BambiTestProp implements IDeviceProperties
-    {
+	//       protected static String simWorkerUrl="http://localhost:8080/SimWorker/jmf/sim";
+	protected static String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/proxy001";
+	protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
+	protected static String manualWorkerUrl = null;
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getAppDir()
-         */
-        public File getAppDir()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+	protected JMFFactory jmfFactory = new JMFFactory(null);
+	protected int chunkSize = -1;
+	protected String transferEncoding = UrlUtil.BASE64;
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getBaseDir()
-         */
-        public File getBaseDir()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+	protected BaseGoldenTicket _theGT = null;
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
-         */
-        public IConverterCallback getCallBackClass()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+	static class BambiTestProp implements IDeviceProperties
+	{
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
-         */
-        public String getDeviceID()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getAppDir()
+		 */
+		public File getAppDir()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceType()
-         */
-        public String getDeviceType()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getBaseDir()
+		 */
+		public File getBaseDir()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
-         */
-        public String getDeviceURL()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
+		 */
+		public IConverterCallback getCallBackClass()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getErrorHF()
-         */
-        public File getErrorHF()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
+		 */
+		public String getDeviceID()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getInputHF()
-         */
-        public File getInputHF()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceType()
+		 */
+		public String getDeviceType()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getJDFDir()
-         */
-        public File getJDFDir()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
+		 */
+		public String getDeviceURL()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getMaxPush()
-         */
-        public int getMaxPush()
-        {
-            // TODO Auto-generated method stub
-            return 0;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getErrorHF()
+		 */
+		public File getErrorHF()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getOutputHF()
-         */
-        public File getOutputHF()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getInputHF()
+		 */
+		public File getInputHF()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getProxyControllerURL()
-         */
-        public String getProxyControllerURL()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getJDFDir()
+		 */
+		public File getJDFDir()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
-         */
-        public String getSlaveDeviceID()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getMaxPush()
+		 */
+		public int getMaxPush()
+		{
+			// TODO Auto-generated method stub
+			return 0;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveErrorHF()
-         */
-        public File getSlaveErrorHF()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getOutputHF()
+		 */
+		public File getOutputHF()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveInputHF()
-         */
-        public File getSlaveInputHF()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getProxyControllerURL()
+		 */
+		public String getProxyControllerURL()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveOutputHF()
-         */
-        public File getSlaveOutputHF()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
+		 */
+		public String getSlaveDeviceID()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveURL()
-         */
-        public String getSlaveURL()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveErrorHF()
+		 */
+		public File getSlaveErrorHF()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getTrackResource()
-         */
-        public String getTrackResource()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveInputHF()
+		 */
+		public File getSlaveInputHF()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
-         */
-        public String getTypeExpression()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveOutputHF()
+		 */
+		public File getSlaveOutputHF()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getAmountResources()
-         */
-        public VString getAmountResources()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveURL()
+		 */
+		public String getSlaveURL()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
-         */
-        public int getControllerHTTPChunk()
-        {
-            // TODO Auto-generated method stub
-            return 0;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getTrackResource()
+		 */
+		public String getTrackResource()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
-         */
-        public String getControllerMIMEEncoding()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
+		 */
+		public String getTypeExpression()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getReturnMIME()
-         */
-        public QEReturn getReturnMIME()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getAmountResources()
+		 */
+		public VString getAmountResources()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getContextURL()
-         */
-        public String getContextURL()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
+		 */
+		public int getControllerHTTPChunk()
+		{
+			// TODO Auto-generated method stub
+			return 0;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceAttribute(java.lang.String)
-         */
-        public String getDeviceAttribute(String key)
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
+		 */
+		public String getControllerMIMEEncoding()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceClass()
-         */
-        public IDevice getDeviceInstance()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getReturnMIME()
+		 */
+		public QEReturn getReturnMIME()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getWatchURL()
-         */
-        public String getWatchURL()
-        {
-            // TODO Auto-generated method stub
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getContextURL()
+		 */
+		public String getContextURL()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEExpansion()
-         */
-        public boolean getControllerMIMEExpansion()
-        {
-            // TODO Auto-generated method stub
-            return false;
-        }
-        
-    }
-    
-    ////////////////////////////////////////////////////////////////////////
-    
-    public BambiTestCase() {
-				
-		JDFJMF.setTheSenderID( "BambiTest" );
-    }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceAttribute(java.lang.String)
+		 */
+		public String getDeviceAttribute(String key)
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-    /**
-     * @return
-     */
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceClass()
+		 */
+		public IDevice getDeviceInstance()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getWatchURL()
+		 */
+		public String getWatchURL()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEExpansion()
+		 */
+		public boolean getControllerMIMEExpansion()
+		{
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+	}
+
+	////////////////////////////////////////////////////////////////////////
+
+	public BambiTestCase()
+	{
+
+		JDFJMF.setTheSenderID("BambiTest");
+	}
+
+	/**
+	 * @return
+	 */
 	protected String getTestURL()
 	{
-	    String url=null;
-	    url=UrlUtil.fileToUrl(new File(cwd), false);
-	    return url+"/test/data/";
+		String url = null;
+		url = UrlUtil.fileToUrl(new File(cwd), false);
+		return url + "/test/data/";
 	}
-	
+
 	/**
 	 * cleaning up, brute-force-sytle: send a AbortQueueEntry and a RemoveQueueEntry 
 	 * message to every QueueEntry in the Queue
 	 * @param url the URL of the device to send the command to
 	 */
-	protected void abortRemoveAll(String url) {		
-		JDFJMF jmf=JMFFactory.buildQueueStatus();
-		JDFResponse resp=jmfFactory.send2URLSynchResp(jmf, url, "testcase",2000);
-		if (resp==null) {
+	protected void abortRemoveAll(String url)
+	{
+		JDFJMF jmf = JMFFactory.buildQueueStatus();
+		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, url, "testcase", 2000);
+		if (resp == null)
+		{
 			System.err.println("failed to send QueueStatus");
 			return;
 		}
-		JDFQueue theQueue=resp.getQueue(0);
-		if (theQueue==null) {
+		JDFQueue theQueue = resp.getQueue(0);
+		if (theQueue == null)
+		{
 			return;
 		}
-		VElement qVec=theQueue.getQueueEntryVector();
-		int siz=qVec.size();
-		if (siz==0)
+		VElement qVec = theQueue.getQueueEntryVector();
+		int siz = qVec.size();
+		if (siz == 0)
 			return;
-		
-		for (int i=siz-1;i>=0;i--) {
-			String qeid=((JDFQueueEntry)qVec.get(i)).getQueueEntryID();
-			jmf=JMFFactory.buildAbortQueueEntry(qeid);
-			jmfFactory.send2URL(jmf, url, null,"testcase");
+
+		for (int i = siz - 1; i >= 0; i--)
+		{
+			String qeid = ((JDFQueueEntry) qVec.get(i)).getQueueEntryID();
+			jmf = JMFFactory.buildAbortQueueEntry(qeid);
+			jmfFactory.send2URL(jmf, url, null, "testcase");
 		}
-		
+
 		// wait to allow the worker to process the AbortQueueEntries,
 		// then send RemoveQueueEntry messages
 
-		for (int i=0;i<siz;i++) {
-			String qeid=((JDFQueueEntry)qVec.get(i)).getQueueEntryID();
-			jmf=JMFFactory.buildRemoveQueueEntry(qeid);
-			jmfFactory.send2URL(jmf,url,null,"testcase");
+		for (int i = 0; i < siz; i++)
+		{
+			String qeid = ((JDFQueueEntry) qVec.get(i)).getQueueEntryID();
+			jmf = JMFFactory.buildRemoveQueueEntry(qeid);
+			jmfFactory.send2URL(jmf, url, null, "testcase");
 		}
 	}
-	
-    // dummy so that we can simply run the directory as a test
-    public void testNothing() 
-    {
-        assertTrue(1==1);
-    }
-    
-    /**
-     * 
-     */
-    protected void submitMimetoURL(String url)
-    {
-        JDFDoc docJMF=new JDFDoc("JMF");
-        JDFJMF jmf=docJMF.getJMFRoot();
-        JDFCommand com = (JDFCommand)jmf.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
-        com.appendQueueSubmissionParams().setURL("dummy");
-        ensureCurrentGT();
-        _theGT.assign(null);
-        JDFNode n=_theGT.getNode();
 
-        Multipart mp = MimeUtil.buildMimePackage(docJMF, n.getOwnerDocument_JDFElement(), true);
+	// dummy so that we can simply run the directory as a test
+	public void testNothing()
+	{
+		assertTrue(1 == 1);
+	}
 
-        try {
-            MIMEDetails md=new MIMEDetails();
-            md.transferEncoding=transferEncoding;
-            md.httpDetails.chunkSize=chunkSize;
-            HttpURLConnection response = MimeUtil.writeToURL( mp,url,md );
-            assertEquals( 200,response.getResponseCode() );
-            MimeUtil.writeToURL( mp,UrlUtil.fileToUrl(new File("C:\\data\\test.mim"), false),md );
-        } catch (Exception e) {
-            fail( e.getMessage() ); // fail on exception
-        }
-    }
+	/**
+	 * requires assigned node...
+	 */
+	protected void submitMimetoURL(String url)
+	{
+		JDFDoc docJMF = new JDFDoc("JMF");
+		JDFJMF jmf = docJMF.getJMFRoot();
+		JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
+		com.appendQueueSubmissionParams().setURL("dummy");
+		ensureCurrentGT();
+		JDFNode n = _theGT.getNode();
 
-    /**
-     * @return
-     */
-    private void ensureCurrentGT()
-    {
-        if(_theGT!=null)
-            return;
-        VJDFAttributeMap vParts=new VJDFAttributeMap();
-        JDFAttributeMap map=new JDFAttributeMap("SignatureName","sig1");
-        map.put("SheetName","s1");
-        vParts.add(map);
-        _theGT= new MISCPGoldenTicket(2,EnumVersion.Version_1_3,2,2,false,vParts);
-    }
+		Multipart mp = MimeUtil.buildMimePackage(docJMF, n.getOwnerDocument_JDFElement(), true);
+
+		try
+		{
+			MIMEDetails md = new MIMEDetails();
+			md.transferEncoding = transferEncoding;
+			md.httpDetails.chunkSize = chunkSize;
+			HttpURLConnection response = MimeUtil.writeToURL(mp, url, md);
+			assertEquals(url, 200, response.getResponseCode());
+			MimeUtil.writeToURL(mp, UrlUtil.fileToUrl(new File("C:\\data\\test.mim"), false), md);
+		}
+		catch (Exception e)
+		{
+			fail(e.getMessage()); // fail on exception
+		}
+	}
+
+	/**
+	 * @return
+	 */
+	private void ensureCurrentGT()
+	{
+		if (_theGT != null)
+			return;
+		VJDFAttributeMap vParts = new VJDFAttributeMap();
+		JDFAttributeMap map = new JDFAttributeMap("SignatureName", "sig1");
+		map.put("SheetName", "s1");
+		vParts.add(map);
+		_theGT = new MISCPGoldenTicket(2, EnumVersion.Version_1_3, 2, 2, false, vParts);
+	}
 
 }

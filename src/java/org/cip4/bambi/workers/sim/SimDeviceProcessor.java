@@ -136,10 +136,6 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		 */
 		public class PhaseAmount implements Serializable
 		{
-
-			/**
-			 * 
-			 */
 			private static final long serialVersionUID = -8504631585951268571L;
 
 			/**
@@ -155,19 +151,21 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			protected String resourceName = "Output";
 
 			/**
-			 * @param resName
-			 * @param good
-			 * @param waste
-			 * @param speed
-			 *            speed / hour
+			 * @param resName the name or named process usage of the resource
+			 * @param _speed  speed / hour
+			 * @param condition good =true
 			 */
-			public PhaseAmount(String resName, double _speed, boolean condition)
+			PhaseAmount(String resName, double _speed, boolean condition)
 			{
 				resource = resourceName = resName;
 				bGood = condition;
 				speed = _speed;
 			}
 
+			/**
+			 * @see java.lang.Object#toString()
+			 * @return String the string
+			 */
 			@Override
 			public String toString()
 			{
@@ -176,7 +174,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 
 			/**
 			 * @param res
-			 * @return
+			 * @return true if this pjhaseAmount matches res
 			 */
 			public boolean matchesRes(String res)
 			{
@@ -194,9 +192,14 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 
 		}
 
+		// end of inner class PhaseAmount
+
 		private static final long serialVersionUID = 2262422293566643131L;
 		protected Vector<PhaseAmount> amounts = new Vector<PhaseAmount>();
 
+		/**
+		 * construction of a JobPhase
+		 */
 		public JobPhase()
 		{
 			super();
@@ -251,6 +254,10 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		protected long timeStarted = System.currentTimeMillis();
 		protected double errorChance = 0.00;
 
+		/**
+		 * @see java.lang.Object#toString()
+		 * @return String the string
+		 */
 		@Override
 		public String toString()
 		{
@@ -262,6 +269,9 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			return s;
 		}
 
+		/**
+		 * @return EnumDeviceStatus the deviceStatus
+		 */
 		public EnumDeviceStatus getDeviceStatus()
 		{
 			return deviceStatus;
@@ -344,7 +354,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		 * @param string
 		 * @return
 		 */
-		private PhaseAmount getPhaseAmount(String res)
+		PhaseAmount getPhaseAmount(String res)
 		{
 			for (int i = 0; i < amounts.size(); i++)
 			{
@@ -626,15 +636,27 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		return qes;
 	}
 
+	/**
+	 * process one phase for a given JDF node
+	 * @param n the currently processed node
+	 */
 	private void processPhase(JDFNode n)
 	{
-		JDFResourceLink rlAmount = getAmountLink(n);
-		String namedRes = rlAmount == null ? null : rlAmount.getrRef();
-		JobPhase phase = getCurrentJobPhase();
-		double all = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.ACTUALAMOUNT, n == null ? null : n.getNodeInfoPartMapVector());
+		final JDFResourceLink rlAmount = getAmountLink(n);
+		final String namedRes = rlAmount == null ? null : rlAmount.getrRef();
+		final JobPhase phase = getCurrentJobPhase();
+
+		VJDFAttributeMap nodeInfoPartMapVector = n.getNodeInfoPartMapVector();
+		if (nodeInfoPartMapVector == null)
+		{
+			nodeInfoPartMapVector = new VJDFAttributeMap();
+		}
+		nodeInfoPartMapVector.put(AttributeName.CONDITION, "Good");
+		double all = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.ACTUALAMOUNT, n == null ? null : nodeInfoPartMapVector);
 		if (all < 0)
 			all = 0;
-		double todoAmount = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.AMOUNT, n == null ? null : n.getNodeInfoPartMapVector());
+
+		double todoAmount = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.AMOUNT, n == null ? null : nodeInfoPartMapVector);
 		log.info("processing new job phase: " + phase.toString());
 		_statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, phase.nodeStatus, phase.nodeStatusDetails, false);
 		long deltaT = 1000;
@@ -649,8 +671,17 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 				if (pa != null)
 				{
 					final double phaseGood = phase.getOutput_Good(pa.resource, (int) deltaT);
-					final double phaseWaste = phase.getOutput_Waste(pa.resource, (int) deltaT);
-					_statusListener.updateAmount(pa.resource, phaseGood, phaseWaste);
+					if("percent".equalsIgnoreCase(pa.resource))
+					{
+						if(todoAmount<=0)
+							todoAmount=100; // percent, duh...
+						_statusListener.updatePercentComplete(phaseGood);
+					}
+					else
+					{
+						final double phaseWaste = phase.getOutput_Waste(pa.resource, (int) deltaT);
+						_statusListener.updateAmount(pa.resource, phaseGood, phaseWaste);
+					}
 					if (namedRes != null && pa.matchesRes(namedRes))
 					{
 						all += phaseGood;

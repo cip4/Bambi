@@ -69,6 +69,9 @@
  */
 package org.cip4.bambi.core;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.SignalDispatcher.Trigger;
@@ -92,7 +95,7 @@ import org.cip4.jdflib.util.StatusCounter;
  * @author Rainer Prosi
  * 
  */
-public class StatusListener implements IStatusListener
+public class StatusListener
 {
 
 	private static Log log = LogFactory.getLog(StatusListener.class.getName());
@@ -101,6 +104,7 @@ public class StatusListener implements IStatusListener
 	protected StatusCounter theCounter;
 	private JDFNode currentNode = null;
 	private long lastSave = 0;
+	private Set<String> resourceTotal = null;
 
 	/**
 	 * 
@@ -194,11 +198,69 @@ public class StatusListener implements IStatusListener
 	{
 		if (theCounter == null)
 			return;
+		if (isTotalRes(resID))
+			return;
 		theCounter.addPhase(resID, good, waste);
 		if (good + waste > 0)
 		{
 			dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int) (good + waste), null);
 		}
+		saveJDF(12345);
+	}
+
+	/**
+	 * checks whether the resource represented by resID is being updated in total mode - typically via resource signals
+	 * @param resID
+	 * @return true if resID has been updated in total mode
+	 */
+	private boolean isTotalRes(String resID)
+	{
+		final String rref = theCounter.getLinkID(resID);
+		if (rref == null)
+			return false;
+		return resourceTotal == null ? false : resourceTotal.contains(rref);
+	}
+
+	/**
+	 * add the resource represented by resID as being updated in total mode - typically via resource signals
+	 * @param resID the resourceID to add
+	 */
+	private void addTotalRes(String resID)
+	{
+		if (resourceTotal == null)
+			resourceTotal = new HashSet<String>();
+		final String rref = theCounter.getLinkID(resID);
+		if (rref == null)
+			return;
+		if (!resourceTotal.contains(rref))
+			resourceTotal.add(rref);
+	}
+
+	/**
+	 * set the total amount of a given resource by the value specified
+	 * @param percent the percent completed
+	 * 
+	 * 
+	 */
+	public void setPercentComplete(double percent)
+	{
+		if (theCounter == null)
+			return;
+		theCounter.setPercentComplete(percent);
+		saveJDF(12345);
+	}
+
+	/**
+	 * incrementally update the total amount of a given resource by the value specified
+	 * @param percent the percent completed
+	 * 
+	 * 
+	 */
+	public void updatePercentComplete(double percent)
+	{
+		if (theCounter == null)
+			return;
+		theCounter.updatePercentComplete(percent);
 		saveJDF(12345);
 	}
 
@@ -213,10 +275,11 @@ public class StatusListener implements IStatusListener
 	 *            if true, this is waste, else it is good
 	 * 
 	 */
-	public void setTotal(String resID, double amount, boolean waste)
+	public void updateTotal(String resID, double amount, boolean waste)
 	{
 		if (theCounter == null)
 			return;
+		addTotalRes(resID);
 		theCounter.setTotal(resID, amount, waste);
 		if (amount > 0)
 		{
@@ -269,6 +332,7 @@ public class StatusListener implements IStatusListener
 		if (!bSame)
 		{
 			saveJDF(-1);
+			resourceTotal = null;
 		}
 
 		if (!KElement.isWildCard(oldQEID))
@@ -276,6 +340,7 @@ public class StatusListener implements IStatusListener
 			log.info("removing subscription for: " + oldQEID);
 			dispatcher.removeSubScriptions(oldQEID, "*");
 		}
+
 		theCounter.setActiveNode(node, vPartMap, null);
 		theCounter.setFirstRefID(trackResourceID);
 		theCounter.setTrackWaste(trackResourceID, true); // always track waste
@@ -348,6 +413,10 @@ public class StatusListener implements IStatusListener
 		return theCounter;
 	}
 
+	/**
+	 * @see java.lang.Object#toString()
+	 * @return String - the string representation
+	 */
 	@Override
 	public String toString()
 	{
@@ -356,7 +425,7 @@ public class StatusListener implements IStatusListener
 
 	/**
 	 * @param inputMessage
-	 * @return
+	 * @return return true if inputMessage applies to this Listener
 	 */
 	public boolean matchesQuery(JDFMessage inputMessage)
 	{

@@ -31,7 +31,7 @@
       </tr>
       </table>
       
-       <hr/>
+       <hr/> 
   
   
      <h2>Queue Summary</h2>

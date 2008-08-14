@@ -3,6 +3,7 @@
 
 Each Device specifies one logical device with Queue, Processor(s) etc.
 TrackResource: the individual resource used for calculating amounts in phase jmfs
+"percent" is a special token for non-countable resources, e.g. a RIP
 AmountResources: Other resources that have amounts and may be set
 ProxyURL: URL of a device that reacts to requestQueueEntry
 DeviceURL: URL of this
@@ -20,7 +21,7 @@ ErrorHF: folder where unsuccessfuly completed jobs are placed
   	
    
   <Device DeviceID="DigiPrint" DeviceType="Digital Press" 
-  	TrackResource="Component:Output" AmountResources="Media:Input,UsageCounter" TypeExpression="(.)*DigitalPrinting(.)*"/>
+  	TrackResour"WebContent/workers/sim/config/devices.xml"ce="Component:Output" AmountResources="Media:Input,UsageCounter" TypeExpression="(.)*DigitalPrinting(.)*"/>
   
   <Device DeviceID="Speedmaster" DeviceType="Conventional Press" 
   	TrackResource="Component:Output" AmountResources="Media:Input" TypeExpression="(.)*ConventionalPrinting(.)*"/>
@@ -50,6 +51,6 @@ ErrorHF: folder where unsuccessfuly completed jobs are placed
   	<Device DeviceID="sim004" DeviceType="Bambi Simulation Device" 
   	TrackResource="Component:Output"/>
   	
-  	<Device DeviceID="sim005" DeviceType="Bambi Simulation Device" 
-  	TrackResource="Component:Output"/>
+  	<Device DeviceID="platesetter" DeviceType="Bambi Simulation Platesetter" TypeExpression="(.)*ImageSetting(.)*"
+  	TrackResource="ExposedMedia:Output"/>
 </application>
