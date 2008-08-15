@@ -21,6 +21,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.io.IOUtils;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 /*
 *
@@ -103,8 +104,8 @@ public class BambiServletRequest implements HttpServletRequest
 	private ByteArrayIOStream buffer;
 
 	/**
-	 * 
-	 * @throws IOException 
+	 * @param _parent the underlying HttpServletRequest
+	 * @param bufIt if true, the underlying streams are buffered and can be read multile times
 	 * 
 	 */
 	public BambiServletRequest(HttpServletRequest _parent, boolean bufIt)
@@ -127,8 +128,76 @@ public class BambiServletRequest implements HttpServletRequest
 	}
 
 	/**
+	 * 
+	 * get the deviceID for this request
+	 * @return the deviceID
+	 */
+	public String getDeviceID()
+	{
+		String deviceID = getParameter("id");
+		if (deviceID == null)
+		{
+			deviceID = getPathInfo();
+			deviceID = getDeviceIDFromURL(deviceID);
+		}
+		return deviceID;
+	}
+
+	/**
+	 * 
+	 * @param context
+	 * @return true if the context fits
+	 */
+	public boolean isMyContext(String context)
+	{
+		if (context == null)
+			return true;
+
+		String reqContext = getContext();
+		return context.equals(StringUtil.token(reqContext, 0, "/"));
+
+	}
+
+	/**
+	 * check whether this request is for deviceID
+	 * 
+	 * @param deviceID the deviceID to check
+	 * @return true if mine
+	 */
+	public boolean isMyRequest(final String deviceID)
+	{
+		if (deviceID == null)
+			return true;
+		final String reqDeviceID = getDeviceID();
+		return reqDeviceID == null || deviceID.equals(reqDeviceID);
+	}
+
+	/**
+	 * get the static context string
+	 * @return the context string
+	 */
+	public String getContext()
+	{
+		String context = getParameter("cmd");
+		if (context == null)
+		{
+			context = UrlUtil.getLocalURL(getContextPath(), getRequestURI());
+		}
+		return context;
+	}
+
+	/**
+	 * @param url
+	 * @return the deviceID
+	 */
+	public static String getDeviceIDFromURL(String url)
+	{
+		url = StringUtil.token(url, -1, "/");
+		return url;
+	}
+
+	/**
 	 * extract a boolean attribute from a given request
-	 * @param request
 	 * @param param
 	 * @return true if the parameter is"true", else false
 	 */
@@ -139,10 +208,9 @@ public class BambiServletRequest implements HttpServletRequest
 	}
 
 	/**
-	 * extract a double attribute from a given request
-	 * @param request
+	 * extract an integer attribute from a given request
 	 * @param param
-	 * @return
+	 * @return the integer parameter
 	 */
 	public int getIntegerParam(String param)
 	{
@@ -152,9 +220,8 @@ public class BambiServletRequest implements HttpServletRequest
 
 	/**
 	 * extract a double attribute from a given request
-	 * @param request
 	 * @param param
-	 * @return
+	 * @return the double parameter
 	 */
 	public double getDoubleParam(String param)
 	{

@@ -75,8 +75,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
@@ -825,9 +823,9 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 
 	}
 
-	protected boolean isMyRequest(HttpServletRequest request)
+	protected boolean isMyRequest(BambiServletRequest request)
 	{
-		return BambiServlet.isMyRequest(request, getDeviceID());
+		return request.isMyRequest(getDeviceID());
 	}
 
 	/**

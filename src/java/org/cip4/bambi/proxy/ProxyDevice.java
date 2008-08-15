@@ -574,7 +574,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		log.info("removing device proceesor");
 		_deviceProcessors.remove(processor);
-		final StatusListener statusListener = (StatusListener) processor.getStatusListener();
+		final StatusListener statusListener = processor.getStatusListener();
 		if (statusListener != null)
 			statusContainer.removeCounter(statusListener);
 		// zapp the subscription that we added for listening to the device
@@ -606,7 +606,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	/**
 	 * @param resp
 	 * @param slaveQEID
-	 * @return
+	 * @return the ProxyDeviceProcessor that handles messages from slaveQEID
 	 */
 	private ProxyDeviceProcessor getProcessorForSlaveQE(JDFResponse resp, final String slaveQEID)
 	{
@@ -630,7 +630,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		log.info("adding device proceesor");
 		_deviceProcessors.add(processor);
-		final StatusListener statusListener = (StatusListener) processor.getStatusListener();
+		final StatusListener statusListener = processor.getStatusListener();
 		if (statusListener != null)
 			statusContainer.addCounter(statusListener);
 	}
@@ -657,8 +657,8 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
-	 * @param outQEID
-	 * @return
+	 * @param bambiQEID
+	 * @return the queuentryID on the slave 
 	 */
 	private String getSlaveQEID(String bambiQEID)
 	{
@@ -690,12 +690,10 @@ public class ProxyDevice extends AbstractProxyDevice
 		return true;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
 	 * 
 	 * @see
-	 * org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core
-	 * .JDFDoc)
+	 * org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core.JDFDoc)
 	 */
 	@Override
 	public JDFNode getNodeFromDoc(JDFDoc doc)

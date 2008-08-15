@@ -77,8 +77,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IMessageHandler;
@@ -107,395 +105,438 @@ import org.cip4.jdflib.util.StringUtil;
  * the dispatcher / rootDev controller device
  * 
  */
-public class RootDevice extends AbstractDevice  
+public class RootDevice extends AbstractDevice
 {
-    protected HashMap<String,IDevice> _devices = null;
+	protected HashMap<String, IDevice> _devices = null;
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = -4412710163767830461L;
-    private static Log log = LogFactory.getLog(RootDevice.class.getName());
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4412710163767830461L;
+	private static Log log = LogFactory.getLog(RootDevice.class.getName());
 
+	public RootDevice(IDeviceProperties prop)
+	{
+		super(prop);
+		_devices = new HashMap<String, IDevice>();
+		_jmfHandler.setFilterOnDeviceID(false); // accept all
 
-    public RootDevice(IDeviceProperties prop)
-    {
-        super(prop);
-        _devices=new HashMap<String, IDevice>();
-        _jmfHandler.setFilterOnDeviceID(false); // accept all
+		log.info("created RootDevice '" + prop.getDeviceID() + "'");
+	}
 
-        log.info("created RootDevice '"+prop.getDeviceID()+"'");
-    }
+	@Override
+	protected void addHandlers()
+	{
+		super.addHandlers();
+		_jmfHandler.addHandler(this.new KnownDevicesHandler());
+		_jmfHandler.addHandler(this.new StatusHandler());
+		_jmfHandler.addHandler(this.new RootDispatchHandler(EnumType.Resource, new EnumFamily[] { EnumFamily.Query,
+				EnumFamily.Command }));
+		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.AbortQueueEntry, new EnumFamily[] { EnumFamily.Command }));
+		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.HoldQueueEntry, new EnumFamily[] { EnumFamily.Command }));
+		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.RemoveQueueEntry, new EnumFamily[] { EnumFamily.Command }));
+		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.ResumeQueueEntry, new EnumFamily[] { EnumFamily.Command }));
+	}
 
-    protected void addHandlers() {
-        super.addHandlers();
-        _jmfHandler.addHandler(this.new KnownDevicesHandler() );
-        _jmfHandler.addHandler(this.new StatusHandler());
-        _jmfHandler.addHandler(this.new RootDispatchHandler(EnumType.Resource,new EnumFamily[]{EnumFamily.Query,EnumFamily.Command}));
-        _jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.AbortQueueEntry,new EnumFamily[]{EnumFamily.Command}));
-        _jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.HoldQueueEntry,new EnumFamily[]{EnumFamily.Command}));
-        _jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.RemoveQueueEntry,new EnumFamily[]{EnumFamily.Command}));
-        _jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.ResumeQueueEntry,new EnumFamily[]{EnumFamily.Command}));
-    }
+	@Override
+	protected AbstractDeviceProcessor buildDeviceProcessor()
+	{
+		return null;
+	}
 
-    @Override
-    protected AbstractDeviceProcessor buildDeviceProcessor() {
-        return null;
-    }
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
+	 */
+	@Override
+	public boolean canAccept(JDFDoc doc)
+	{
+		Iterator<String> it = _devices.keySet().iterator();
+		while (it.hasNext())
+		{
+			AbstractDevice ad = (AbstractDevice) _devices.get(it.next());
+			if (ad.canAccept(doc))
+				return true;
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
-     */
-    @Override
-    public boolean canAccept(JDFDoc doc)
-    {
-        Iterator<String> it=_devices.keySet().iterator();
-        while(it.hasNext())
-        {
-            AbstractDevice ad=(AbstractDevice) _devices.get(it.next());
-            if(ad.canAccept(doc))
-                return true;
+		}
+		return false;
+	}
 
-        }
-        return false;
-    }
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core.JDFDoc)
+	 */
+	@Override
+	public JDFNode getNodeFromDoc(JDFDoc doc)
+	{
+		Iterator<String> it = _devices.keySet().iterator();
+		while (it.hasNext())
+		{
+			AbstractDevice ad = (AbstractDevice) _devices.get(it.next());
+			JDFNode n = ad.getNodeFromDoc(doc);
+			if (n != null)
+				return n;
+		}
+		return null;
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core.JDFDoc)
-     */
-    @Override
-    public JDFNode getNodeFromDoc(JDFDoc doc)
-    {
-        Iterator<String> it=_devices.keySet().iterator();
-        while(it.hasNext())
-        {
-            AbstractDevice ad=(AbstractDevice) _devices.get(it.next());
-            JDFNode n=ad.getNodeFromDoc(doc);
-            if(n!=null)
-                return n;
-        }
-        return null;
-    }
-    /**
-     * create a new device and add it to the map of devices.
-     * @param deviceID
-     * @param deviceType
-     * @return the Device, if device has been created. 
-     * null, if not (maybe device with deviceID is already present)
-     */
-    IDevice createDevice(IDeviceProperties prop,BambiServlet servlet)
-    {
-        if (_devices == null) {
-            log.info("map of devices is null, re-initialising map...");
-            _devices = new HashMap<String, IDevice>();
-        }
+	/**
+	 * create a new device and add it to the map of devices.
+	 * @param deviceID
+	 * @param deviceType
+	 * @return the Device, if device has been created. 
+	 * null, if not (maybe device with deviceID is already present)
+	 */
+	IDevice createDevice(IDeviceProperties prop, BambiServlet servlet)
+	{
+		if (_devices == null)
+		{
+			log.info("map of devices is null, re-initialising map...");
+			_devices = new HashMap<String, IDevice>();
+		}
 
-        String devID=prop.getDeviceID();
-        if (_devices.get(prop.getDeviceID()) != null) { 
-            log.warn("device "+devID+" is already existing");
-            return null;
-        }
-        IDevice dev;
-        if(servlet!=null)
-        {
-            dev= prop.getDeviceInstance();
-            if(dev instanceof AbstractDevice)
-            {
-                final AbstractDevice abstractDevice = ((AbstractDevice)dev);
-                abstractDevice.setRootDevice(this);
-            }
+		String devID = prop.getDeviceID();
+		if (_devices.get(prop.getDeviceID()) != null)
+		{
+			log.warn("device " + devID + " is already existing");
+			return null;
+		}
+		IDevice dev;
+		if (servlet != null)
+		{
+			dev = prop.getDeviceInstance();
+			if (dev instanceof AbstractDevice)
+			{
+				final AbstractDevice abstractDevice = ((AbstractDevice) dev);
+				abstractDevice.setRootDevice(this);
+			}
 
-            _devices.put(devID,dev);
+			_devices.put(devID, dev);
 
-        }
-        else
-        {
-            //TODO is rootDev in this?
-            dev=this;
-        }
-        log.info("created device "+devID);
-        return dev;
-    }
+		}
+		else
+		{
+			//TODO is rootDev in this?
+			dev = this;
+		}
+		log.info("created device " + devID);
+		return dev;
+	}
 
-    protected boolean handleKnownDevices(JDFMessage m, JDFResponse resp) {
-        if(m==null || resp==null)
-        {
-            return false;
-        }
-//      log.info("Handling "+m.getType());
-        EnumType typ=m.getEnumType();
-        if(EnumType.KnownDevices.equals(typ)) {
-            JDFDeviceList dl = resp.appendDeviceList();
-            appendDeviceInfo(dl); // write myself into the list...
-            Set<String> keys = _devices.keySet();
-            Object[] strKeys = keys.toArray();
-            for (int i=0; i<keys.size();i++) {
-                String key = (String)strKeys[i];
-                IDevice dev = _devices.get(key);
-                if (dev == null)
-                    log.error("device with key '"+key+"'not found");
-                else
-                    dev.appendDeviceInfo(dl);
-            }
-            return true;
-        }
+	protected boolean handleKnownDevices(JDFMessage m, JDFResponse resp)
+	{
+		if (m == null || resp == null)
+		{
+			return false;
+		}
+		//      log.info("Handling "+m.getType());
+		EnumType typ = m.getEnumType();
+		if (EnumType.KnownDevices.equals(typ))
+		{
+			JDFDeviceList dl = resp.appendDeviceList();
+			appendDeviceInfo(dl); // write myself into the list...
+			Set<String> keys = _devices.keySet();
+			Object[] strKeys = keys.toArray();
+			for (int i = 0; i < keys.size(); i++)
+			{
+				String key = (String) strKeys[i];
+				IDevice dev = _devices.get(key);
+				if (dev == null)
+					log.error("device with key '" + key + "'not found");
+				else
+					dev.appendDeviceInfo(dl);
+			}
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    /**
-     * 
-     * handler for the knowndevices query
-     */
-    protected class KnownDevicesHandler extends AbstractHandler
-    {
-        public KnownDevicesHandler() {
-            super(EnumType.KnownDevices,new EnumFamily[]{EnumFamily.Query});
-        }
+	/**
+	 * 
+	 * handler for the knowndevices query
+	 */
+	protected class KnownDevicesHandler extends AbstractHandler
+	{
+		public KnownDevicesHandler()
+		{
+			super(EnumType.KnownDevices, new EnumFamily[] { EnumFamily.Query });
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-         */
-        public boolean handleMessage(JDFMessage m, JDFResponse resp)
-        {
-            return handleKnownDevices(m, resp);
-        }
-    }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 */
+		@Override
+		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		{
+			return handleKnownDevices(m, resp);
+		}
+	}
 
-    ////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////
 
-    public class StatusHandler extends RootDispatchHandler
-    {
-        public StatusHandler()
-        {
-            super(EnumType.Status,new EnumFamily[]{EnumFamily.Query,EnumFamily.Command});
-        }
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-         */
-        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
-        {
-            final JDFStatusQuParams statusQuParams = inputMessage.getStatusQuParams();
-            boolean bQueue=statusQuParams==null ? false : statusQuParams.getQueueInfo();
-            boolean bGood= super.handleMessage(inputMessage, response);
-            if(bGood&&bQueue)
-            {
-                VElement vq=response.getChildElementVector(ElementName.QUEUE, null);
+	public class StatusHandler extends RootDispatchHandler
+	{
+		public StatusHandler()
+		{
+			super(EnumType.Status, new EnumFamily[] { EnumFamily.Query, EnumFamily.Command });
+		}
 
-                JDFQueue q=_theQueueProcessor.getQueue().copyToResponse(response, null);
-                int nQ=vq==null ? 0 : vq.size();
-                final JDFQueueEntry qe0 = q.getQueueEntry(0);
-                for(int i=0;i<nQ;i++)
-                {
-                    final JDFQueue qi = (JDFQueue) vq.elementAt(i);
-                    VElement vQE=qi.getQueueEntryVector();
-                    int nQE=vQE==null ? 0 : vQE.size(); 
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 */
+		@Override
+		public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+		{
+			final JDFStatusQuParams statusQuParams = inputMessage.getStatusQuParams();
+			boolean bQueue = statusQuParams == null ? false : statusQuParams.getQueueInfo();
+			boolean bGood = super.handleMessage(inputMessage, response);
+			if (bGood && bQueue)
+			{
+				VElement vq = response.getChildElementVector(ElementName.QUEUE, null);
 
-                    for(int j=0;j<nQE;j++)
-                    {
-                        q.copyElement(vQE.elementAt(j), qe0);
-                    }
-                }
-                QueueProcessor.removeBambiNSExtensions(q);
-            }
-            return bGood;
-        }
+				JDFQueue q = _theQueueProcessor.getQueue().copyToResponse(response, null);
+				int nQ = vq == null ? 0 : vq.size();
+				final JDFQueueEntry qe0 = q.getQueueEntry(0);
+				for (int i = 0; i < nQ; i++)
+				{
+					final JDFQueue qi = (JDFQueue) vq.elementAt(i);
+					VElement vQE = qi.getQueueEntryVector();
+					int nQE = vQE == null ? 0 : vQE.size();
 
-    }
-    /**
-     * 
-     * handler for the StopPersistentChannel command
-     */
-    public  class RootDispatchHandler extends DispatchHandler
-    {
-        public RootDispatchHandler(EnumType _type, EnumFamily[] _families)
-        {
-            super(_type,_families);
-        }
-        public RootDispatchHandler(String _type, EnumFamily[] _families)
-        {
-            super(_type,_families);
-        }
+					for (int j = 0; j < nQE; j++)
+					{
+						q.copyElement(vQE.elementAt(j), qe0);
+					}
+				}
+				QueueProcessor.removeBambiNSExtensions(q);
+			}
+			return bGood;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-         */
-        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
-        {
-            IDevice[] devs=getDeviceArray();
-            return super.handleMessage(inputMessage, response, devs,false);
-        }
-    }
-    /**
-     * 
-     * handler for the StopPersistentChannel command
-     */
-    public  class QueueDispatchHandler extends DispatchHandler
-    {
-        private IMessageHandler superHandler=null;
-        public QueueDispatchHandler(EnumType _type, EnumFamily[] _families)
-        {
-            super(_type,_families);       
-            superHandler=_jmfHandler.getHandler(_type.getName(), _families[0]);
-        }
-        public QueueDispatchHandler(String _type, EnumFamily[] _families)
-        {
-            super(_type,_families);       
-            superHandler=_jmfHandler.getHandler(_type, _families[0]);
-        }
+	}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-         */
-        public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
-        {
-            boolean bHandled=false;
-            if(superHandler!=null)
-                bHandled=superHandler.handleMessage(inputMessage, response);
-            if(bHandled)
-            {
-                int rc=response.getReturnCode();
-                bHandled=rc==0;
-            }
-            if(!bHandled)
-            {
-                IDevice[] devs=getDeviceArray();
-                bHandled= super.handleMessage(inputMessage, response, devs,true);
-            }
-            return bHandled;
-        }
-    }
+	/**
+	 * 
+	 * handler for the StopPersistentChannel command
+	 */
+	public class RootDispatchHandler extends DispatchHandler
+	{
+		public RootDispatchHandler(EnumType _type, EnumFamily[] _families)
+		{
+			super(_type, _families);
+		}
 
-    @Override
-    public void shutdown()
-    {
-        Set<String> keys=_devices.keySet();
-        Iterator<String> it=keys.iterator();
-        while (it.hasNext()) {
-            String devID=it.next();
-            AbstractDevice dev=(AbstractDevice) _devices.get(devID);
-            if(dev!=null)
-                dev.shutdown();
-        }
-        _devices.clear();
-        super.shutdown();
-    }
+		public RootDispatchHandler(String _type, EnumFamily[] _families)
+		{
+			super(_type, _families);
+		}
 
-    /**
-     * get a device
-     * @param deviceID ID of the device to get
-     * @return
-     */
-    @Override
-    public IDevice getDevice(String deviceID)
-    {
-        if (_devices == null) {
-            log.warn("list of devices is null");
-            return this;
-        }
-        else if(deviceID==null)   
-        {
-            log.info("attempting to retrieve null device - defaulting to root");
-            return this;           
-        }
-        return _devices.get(deviceID);
-    }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 */
+		@Override
+		public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+		{
+			IDevice[] devs = getDeviceArray();
+			return super.handleMessage(inputMessage, response, devs, false);
+		}
+	}
 
-    /**
-     * get an array of all child devices
-     * @return
-     */
-    public IDevice[] getDeviceArray()
-    {        
-        Vector<IDevice> deviceVector = ContainerUtil.toValueVector(_devices,true);
-        return deviceVector==null ? null : deviceVector.toArray(new IDevice[0]);
-    }
+	/**
+	 * 
+	 * handler for the StopPersistentChannel command
+	 */
+	public class QueueDispatchHandler extends DispatchHandler
+	{
+		private IMessageHandler superHandler = null;
 
-    /**
-     * remove device
-     * @param deviceID ID of the device to be removed
-     * @return
-     */
-    public boolean removeDevice(String deviceID)
-    {
-        if (_devices == null) {
-            log.error("list of devices is null");
-            return false;
-        }
-        if (_devices.get(deviceID) == null) {
-            log.warn("tried to removing non-existing device");
-            return false;
-        }
-        _devices.remove(deviceID);
-        return true;
-    }
-    protected boolean isMyRequest(HttpServletRequest request)
-    {
-        return BambiServlet.isMyRequest(request, null);
-    }
+		public QueueDispatchHandler(EnumType _type, EnumFamily[] _families)
+		{
+			super(_type, _families);
+			superHandler = _jmfHandler.getHandler(_type.getName(), _families[0]);
+		}
 
-    @Override
-    protected boolean showDevice(BambiServletRequest request,BambiServletResponse response, boolean refresh)
-    {
-        IDevice[] devices=getDeviceArray();
-        XMLDoc deviceList=new XMLDoc("DeviceList",null);
-        KElement listRoot=deviceList.getRoot();
-        listRoot.setAttribute(AttributeName.CONTEXT, "/"+BambiServlet.getBaseServletName(request));
-        XMLDevice dRoot=this.new XMLDevice(false,request.getContextPath());
+		public QueueDispatchHandler(String _type, EnumFamily[] _families)
+		{
+			super(_type, _families);
+			superHandler = _jmfHandler.getHandler(_type, _families[0]);
+		}
 
-        final KElement rootElem = dRoot.getRoot();
-        rootElem.setAttribute("Root", true,null);
-        listRoot.copyAttribute("DeviceType", rootElem, null, null, null);
-        listRoot.copyElement(rootElem, null);
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 */
+		@Override
+		public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+		{
+			boolean bHandled = false;
+			if (superHandler != null)
+				bHandled = superHandler.handleMessage(inputMessage, response);
+			if (bHandled)
+			{
+				int rc = response.getReturnCode();
+				bHandled = rc == 0;
+			}
+			if (!bHandled)
+			{
+				IDevice[] devs = getDeviceArray();
+				bHandled = super.handleMessage(inputMessage, response, devs, true);
+			}
+			return bHandled;
+		}
+	}
 
-        int listSize=devices==null ? 0 : devices.length;
-        for(int i=0;i<listSize;i++)
-        {
-            if(devices[i] instanceof AbstractDevice)
-            {
-                AbstractDevice ad=(AbstractDevice)devices[i];
-                XMLDevice dChild=ad.new XMLDevice(false,request.getContextPath());
-                final KElement childElem = dChild.getRoot();
-                childElem.setAttribute("Root", false,null);
-                listRoot.copyElement(childElem, null);
-            }
-            else
-            {
-                //TODO what if only interface?
-            }
-        }
+	@Override
+	public void shutdown()
+	{
+		Set<String> keys = _devices.keySet();
+		Iterator<String> it = keys.iterator();
+		while (it.hasNext())
+		{
+			String devID = it.next();
+			AbstractDevice dev = (AbstractDevice) _devices.get(devID);
+			if (dev != null)
+				dev.shutdown();
+		}
+		_devices.clear();
+		super.shutdown();
+	}
 
-        deviceList.setXSLTURL(getXSLT("overview", request.getContextPath()));
+	/**
+	 * get a device
+	 * @param deviceID ID of the device to get
+	 * @return the {@link IDevice} for a given device ID
+	 */
+	@Override
+	public IDevice getDevice(String deviceID)
+	{
+		if (_devices == null)
+		{
+			log.warn("list of devices is null");
+			return this;
+		}
+		else if (deviceID == null)
+		{
+			log.info("attempting to retrieve null device - defaulting to root");
+			return this;
+		}
+		return _devices.get(deviceID);
+	}
 
-        try
-        {
-            deviceList.write2Stream(response.getBufferedOutputStream(), 0,true);
-        }
-        catch (IOException x)
-        {
-            return false;
-        }
-        response.setContentType(MimeUtil.TEXT_XML);
-        return true;
+	/**
+	 * get the IConverterCallback for a given url
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDevice#getCallback(java.lang.String)
+	 * @param url
+	 * @return IConverterCallback the callback, null if none found
+	 */
+	@Override
+	public IConverterCallback getCallback(String url)
+	{
+		String devID = BambiServletRequest.getDeviceIDFromURL(url);
+		IDevice dev = devID == null ? null : getDevice(devID);
+		return (dev instanceof AbstractDevice) ? ((AbstractDevice) dev).getCallback(url) : _callback;
+	}
 
-    }
-    /**
-     * @return
-     */
-    public String getXSLT(String command, String contextPath)
-    {
-        String s=null;
-        if("overview".equalsIgnoreCase(command))
-            s= "/deviceList.xsl";
-        else
-            return super.getXSLT(command, contextPath);
-        if(contextPath!=null)
-        {
-            s="/"+StringUtil.token(contextPath, 0, "/")+s;
-        }
-        return s;
-    }
+	/**
+	 * get an array of all child devices
+	 * @return an array of all child devices
+	 */
+	public IDevice[] getDeviceArray()
+	{
+		Vector<IDevice> deviceVector = ContainerUtil.toValueVector(_devices, true);
+		return deviceVector == null ? null : deviceVector.toArray(new IDevice[0]);
+	}
 
-    //////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * remove device
+	 * @param deviceID ID of the device to be removed
+	 * @return
+	 */
+	public boolean removeDevice(String deviceID)
+	{
+		if (_devices == null)
+		{
+			log.error("list of devices is null");
+			return false;
+		}
+		if (_devices.get(deviceID) == null)
+		{
+			log.warn("tried to removing non-existing device");
+			return false;
+		}
+		_devices.remove(deviceID);
+		return true;
+	}
+
+	@Override
+	protected boolean isMyRequest(BambiServletRequest request)
+	{
+		return request.isMyRequest(null);
+	}
+
+	@Override
+	protected boolean showDevice(BambiServletRequest request, BambiServletResponse response, boolean refresh)
+	{
+		IDevice[] devices = getDeviceArray();
+		XMLDoc deviceList = new XMLDoc("DeviceList", null);
+		KElement listRoot = deviceList.getRoot();
+		listRoot.setAttribute(AttributeName.CONTEXT, "/" + BambiServlet.getBaseServletName(request));
+		XMLDevice dRoot = this.new XMLDevice(false, request.getContextPath());
+
+		final KElement rootElem = dRoot.getRoot();
+		rootElem.setAttribute("Root", true, null);
+		listRoot.copyAttribute("DeviceType", rootElem, null, null, null);
+		listRoot.copyElement(rootElem, null);
+
+		int listSize = devices == null ? 0 : devices.length;
+		for (int i = 0; i < listSize; i++)
+		{
+			if (devices[i] instanceof AbstractDevice)
+			{
+				AbstractDevice ad = (AbstractDevice) devices[i];
+				XMLDevice dChild = ad.new XMLDevice(false, request.getContextPath());
+				final KElement childElem = dChild.getRoot();
+				childElem.setAttribute("Root", false, null);
+				listRoot.copyElement(childElem, null);
+			}
+			else
+			{
+				//TODO what if only interface?
+			}
+		}
+
+		deviceList.setXSLTURL(getXSLT("overview", request.getContextPath()));
+
+		try
+		{
+			deviceList.write2Stream(response.getBufferedOutputStream(), 0, true);
+		}
+		catch (IOException x)
+		{
+			return false;
+		}
+		response.setContentType(MimeUtil.TEXT_XML);
+		return true;
+
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public String getXSLT(String command, String contextPath)
+	{
+		String s = null;
+		if ("overview".equalsIgnoreCase(command))
+			s = "/deviceList.xsl";
+		else
+			return super.getXSLT(command, contextPath);
+		if (contextPath != null)
+		{
+			s = "/" + StringUtil.token(contextPath, 0, "/") + s;
+		}
+		return s;
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////
 
 }

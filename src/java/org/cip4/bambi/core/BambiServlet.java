@@ -78,7 +78,6 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 
 import javax.mail.BodyPart;
@@ -99,7 +98,6 @@ import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
@@ -302,26 +300,7 @@ public class BambiServlet extends HttpServlet
 			processError(request, response, EnumType.Notification, 2, "proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
 			return;
 		}
-		IConverterCallback _callBack = getCallBack(request);
-
-		if (_callBack != null)
-		{
-			for (int i = 0; i < docJDF.length; i++)
-			{
-				final JDFDoc doc = docJDF[i];
-				KElement e = doc.getRoot();
-
-				final String localName = e == null ? null : e.getLocalName();
-				if (ElementName.JMF.equals(localName))
-				{
-					_callBack.prepareJMFForBambi(doc);
-				}
-				else if (ElementName.JDF.equals(localName))
-				{
-					_callBack.prepareJDFForBambi(doc);
-				}
-			}
-		}
+		// callbacks must be handled individually
 		processJMFDoc(request, response, docJDF[0]);
 	}
 
@@ -398,14 +377,13 @@ public class BambiServlet extends HttpServlet
 	{
 		if (rootDev instanceof AbstractDevice)
 		{
-			Map m = request.getParameterMap();
 			return ((AbstractDevice) rootDev).getCallback(request.getRequestURI());
 		}
 		else
 			return null;
 	}
 
-	protected IJMFHandler getTargetHandler(HttpServletRequest request)
+	protected IJMFHandler getTargetHandler(BambiServletRequest request)
 	{
 		IDevice device = getDeviceFromRequest(request);
 		if (device == null)
@@ -563,9 +541,9 @@ public class BambiServlet extends HttpServlet
 	/**
 	 * @param request
 	 */
-	protected IDevice getDeviceFromRequest(HttpServletRequest request)
+	protected IDevice getDeviceFromRequest(BambiServletRequest request)
 	{
-		String deviceID = getDeviceIDFromRequest(request);
+		String deviceID = request.getDeviceID();
 		RootDevice root = getRootDevice();
 		IDevice dev = root == null ? rootDev : root.getDevice(deviceID);
 		if (dev == null)
@@ -577,29 +555,12 @@ public class BambiServlet extends HttpServlet
 	}
 
 	/**
-	 * 
-	 * @param request the request to parse
+	 * @param url
 	 * @return
 	 */
-	public static String getDeviceIDFromRequest(HttpServletRequest request)
+	public static String getDeviceIDFromURL(String url)
 	{
-		String deviceID = request.getParameter("id");
-		if (deviceID == null)
-		{
-			deviceID = request.getPathInfo();
-			deviceID = getDeviceIDFromURL(deviceID);
-		}
-		return deviceID;
-	}
-
-	/**
-	 * @param deviceID
-	 * @return
-	 */
-	public static String getDeviceIDFromURL(String deviceID)
-	{
-		deviceID = StringUtil.token(deviceID, -1, "/");
-		return deviceID;
+		return BambiServletRequest.getDeviceIDFromURL(url);
 	}
 
 	/**
@@ -694,14 +655,9 @@ public class BambiServlet extends HttpServlet
 	 * @param request
 	 * @return
 	 */
-	public static String getContext(HttpServletRequest request)
+	public static String getContext(BambiServletRequest request)
 	{
-		String context = request.getParameter("cmd");
-		if (context == null)
-		{
-			context = UrlUtil.getLocalURL(request.getContextPath(), request.getRequestURI());
-		}
-		return context;
+		return request.getContext();
 	}
 
 	/**
@@ -712,14 +668,6 @@ public class BambiServlet extends HttpServlet
 	public static String getBaseServletName(HttpServletRequest request)
 	{
 		return StringUtil.token(request.getRequestURI(), 0, "/");
-	}
-
-	public static boolean isMyRequest(HttpServletRequest request, final String deviceID)
-	{
-		if (deviceID == null)
-			return true;
-		final String reqDeviceID = getDeviceIDFromRequest(request);
-		return reqDeviceID == null || deviceID.equals(reqDeviceID);
 	}
 
 	/**
@@ -739,7 +687,7 @@ public class BambiServlet extends HttpServlet
 	 * @param context
 	 * @return
 	 */
-	public static boolean isMyContext(HttpServletRequest request, String context)
+	public static boolean isMyContext(BambiServletRequest request, String context)
 	{
 		if (context == null)
 			return true;
@@ -747,6 +695,14 @@ public class BambiServlet extends HttpServlet
 		String reqContext = getContext(request);
 		return context.equals(StringUtil.token(reqContext, 0, "/"));
 
+	}
+
+	public static boolean isMyRequest(BambiServletRequest request, final String deviceID)
+	{
+		if (deviceID == null)
+			return true;
+		final String reqDeviceID = request.getDeviceID();
+		return reqDeviceID == null || deviceID.equals(reqDeviceID);
 	}
 
 	/**

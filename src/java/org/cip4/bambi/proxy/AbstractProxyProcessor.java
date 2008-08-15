@@ -100,6 +100,14 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	}
 
 	/**
+	 * @return the AbstractProxyDevice cast of _parent
+	 */
+	AbstractProxyDevice getParent()
+	{
+		return (AbstractProxyDevice) _parent;
+	}
+
+	/**
 	 * @param qurl
 	 * @param qe
 	 * @return
@@ -111,7 +119,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		JDFCommand com = (JDFCommand) jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command, null, 0);
 		JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
 
-		qsp.setReturnJMF(_parent.getDeviceURL());
+		qsp.setReturnJMF(getParent().getDeviceURLForSlave());
 		if (deviceOutputHF != null)
 		{
 			qsp.setReturnURL(deviceOutputHF.getPath());

@@ -524,7 +524,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		if (!EnumSlaveStatus.JMF.equals(getParent().getSlaveStatus()))
 			return;
 
-		ProxyDevice p = getParent();
+		AbstractProxyDevice p = getParent();
 		JDFJMF jmfs[] = p.createSubscriptions(devQEID);
 		JMFFactory factory = new JMFFactory(slaveCallBack);
 		String deviceID = p.getDeviceID();
@@ -532,14 +532,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		{
 			factory.send2URL(jmfs[i], slaveURL, null, deviceID);
 		} // TODO handle response        
-	}
-
-	/**
-	 * @return
-	 */
-	ProxyDevice getParent()
-	{
-		return (ProxyDevice) _parent;
 	}
 
 	/**
@@ -731,7 +723,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		if (!EnumSlaveStatus.NODEINFO.equals(getParent().getSlaveStatus()))
 			return;
 
-		ProxyDevice p = getParent();
+		AbstractProxyDevice p = getParent();
 		JDFJMF jmfs[] = p.createSubscriptions(null);
 		JDFNodeInfo ni = root.getCreateNodeInfo();
 		for (int i = 0; i < jmfs.length; i++)

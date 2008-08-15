@@ -225,6 +225,7 @@ public class QueueProcessor
 			if (qsp != null)
 			{
 				JDFDoc doc = qsp.getURLDoc();
+
 				if (doc == null)
 				{
 					updateEntry(null, null, m, resp);
@@ -1206,8 +1207,14 @@ public class QueueProcessor
 	}
 
 	/**
-	 * update the entry qe to be in the new status
-	 * @return JDFQueue the queue in its new status
+	 * update the QueueEntry qe to be in the new status
+	 * 
+	 * @param qe the QueueEntry to update
+	 * @param status the updated QueueEntry status
+	 * @param mess the message that triggers the update - may be null
+	 * @param resp the message response to be filled - may be null
+	 * 
+	 * @return JDFQueue the updated queue in its new status
 	 */
 	public JDFQueue updateEntry(JDFQueueEntry qe, EnumQueueEntryStatus status, JDFMessage mess, JDFResponse resp)
 	{
@@ -1247,8 +1254,9 @@ public class QueueProcessor
 		}
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see java.lang.Object#toString()
+	 * @return the string representation
 	 */
 	@Override
 	public String toString()

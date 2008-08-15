@@ -76,8 +76,6 @@ import java.net.HttpURLConnection;
 
 import javax.mail.Multipart;
 
-import junit.framework.TestCase;
-
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDevice;
 import org.cip4.bambi.core.IDeviceProperties;
@@ -89,6 +87,7 @@ import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.goldenticket.BaseGoldenTicket;
+import org.cip4.jdflib.goldenticket.BaseGoldenTicketTest;
 import org.cip4.jdflib.goldenticket.MISCPGoldenTicket;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -101,7 +100,13 @@ import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
-public class BambiTestCase extends TestCase
+/**
+ * @author Rainer Prosi, Heidelberger Druckmaschinen
+ * abstract test case for all bambi tests
+ * 
+ * note that this has some site specific details that must be modified
+ */
+public class BambiTestCase extends BaseGoldenTicketTest
 {
 	@Override
 	protected void setUp() throws Exception
@@ -386,16 +391,16 @@ public class BambiTestCase extends TestCase
 
 	}
 
-	////////////////////////////////////////////////////////////////////////
-
+	/**
+	 * banbi test case
+	 */
 	public BambiTestCase()
 	{
-
 		JDFJMF.setTheSenderID("BambiTest");
 	}
 
 	/**
-	 * @return
+	 * @return the url of the test
 	 */
 	protected String getTestURL()
 	{
@@ -446,7 +451,9 @@ public class BambiTestCase extends TestCase
 		}
 	}
 
-	// dummy so that we can simply run the directory as a test
+	/**
+	 *  dummy so that we can simply run the directory as a test
+	 */
 	public void testNothing()
 	{
 		assertTrue(1 == 1);
@@ -454,15 +461,25 @@ public class BambiTestCase extends TestCase
 
 	/**
 	 * requires assigned node...
+	 * @param url the url to send to
 	 */
 	protected void submitMimetoURL(String url)
+	{
+		JDFNode n = _theGT.getNode();
+		submitMimetoURL(n, url);
+	}
+
+	/**
+	 * @param n the node to send as root node
+	 * @param url the url to send to
+	 */
+	protected void submitMimetoURL(JDFNode n, String url)
 	{
 		JDFDoc docJMF = new JDFDoc("JMF");
 		JDFJMF jmf = docJMF.getJMFRoot();
 		JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
 		com.appendQueueSubmissionParams().setURL("dummy");
 		ensureCurrentGT();
-		JDFNode n = _theGT.getNode();
 
 		Multipart mp = MimeUtil.buildMimePackage(docJMF, n.getOwnerDocument_JDFElement(), true);
 
@@ -472,8 +489,8 @@ public class BambiTestCase extends TestCase
 			md.transferEncoding = transferEncoding;
 			md.httpDetails.chunkSize = chunkSize;
 			HttpURLConnection response = MimeUtil.writeToURL(mp, url, md);
-			assertEquals(url, 200, response.getResponseCode());
-			MimeUtil.writeToURL(mp, UrlUtil.fileToUrl(new File("C:\\data\\test.mim"), false), md);
+			if (!url.toLowerCase().startsWith("file:"))
+				assertEquals(url, 200, response.getResponseCode());
 		}
 		catch (Exception e)
 		{
@@ -482,7 +499,7 @@ public class BambiTestCase extends TestCase
 	}
 
 	/**
-	 * @return
+	 * ensure that we have some dummy golden ticket
 	 */
 	private void ensureCurrentGT()
 	{
