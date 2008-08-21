@@ -94,6 +94,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.MimeUtil;
@@ -478,7 +479,9 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		JDFDoc docJMF = new JDFDoc("JMF");
 		JDFJMF jmf = docJMF.getJMFRoot();
 		JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
-		com.appendQueueSubmissionParams().setURL("dummy");
+		JDFQueueSubmissionParams queueSubmissionParams = com.appendQueueSubmissionParams();
+		queueSubmissionParams.setURL("dummy");
+		queueSubmissionParams.setPriority(42);
 		ensureCurrentGT();
 
 		Multipart mp = MimeUtil.buildMimePackage(docJMF, n.getOwnerDocument_JDFElement(), true);

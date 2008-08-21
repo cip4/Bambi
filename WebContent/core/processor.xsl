@@ -1,23 +1,51 @@
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" 
-	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi" >
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
+  xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi">
 
 <!--  device processor -->
-<xsl:template match="bambi:Processor">
-<hr/>
-<h2>Processor Status</h2> 
-
-Processor Status:   <xsl:value-of select="@DeviceStatus"/> - Details: <xsl:value-of select="@DeviceStatusDetails"/> 
-<xsl:if test="@NodeStatus">
-<h2>Node Status</h2> 
-Node Status:   <xsl:value-of select="@NodeStatus"/> - Details: <xsl:value-of select="@NodeStatusDetails"/> <br/>
-QueueEntryID: <xsl:value-of select="@QueueEntryID"/><br/>
-Node type: <xsl:value-of select="@Type"/><br/>
-Description: <xsl:value-of select="@DescriptiveName"/><br/>
-Start Time: <xsl:value-of select="@StartTime"/><br/>
-<xsl:if test="@PercentCompleted">
-Percent Completed: <xsl:value-of select="@PercentCompleted"/> % <br/>
+  <xsl:template match="bambi:Processor">
+    <hr/>
+    <h2>Processor Status</h2>
+    Processor Status:
+    <xsl:value-of select="@DeviceStatus"/>
+    since
+    <xsl:value-of select="@StartTime"/>
+    <br/>
+    <xsl:if test="@DeviceStatusDetails">
+      Processor Status Details:
+      <xsl:value-of select="@DeviceStatusDetails"/>
+    </xsl:if>
+    <xsl:if test="@NodeStatus">
+      <h2>Node Status</h2>
+      Node Status:
+      <xsl:value-of select="@NodeStatus"/>
+      <br/>
+      <xsl:if test="@NodeStatusDetails">
+        Node Status Details:
+        <xsl:value-of select="@NodeStatusDetails"/>
+        <br/>
+      </xsl:if>
+      <xsl:if test="@PartIDKeys">
+        Node Partition Keys:
+        <xsl:value-of select="@PartIDKeys"/>
+        <br/>
+      </xsl:if>
+      QueueEntryID:
+      <xsl:value-of select="@QueueEntryID"/>
+      <br/>
+      Node type:
+      <xsl:value-of select="@Type"/>
+      <br/>
+      Description:
+      <xsl:value-of select="@DescriptiveName"/>
+      <br/>
+      Start Time:
+      <xsl:value-of select="@StartTime"/>
+      <br/>
+      <xsl:if test="@PercentCompleted">
+        Percent Completed:
+        <xsl:value-of select="@PercentCompleted"/>% <br/>
 </xsl:if>
-Show JDF: <a><xsl:attribute name="href">../showJDF/<xsl:value-of select="../@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
+  Show JDF:<a><xsl:attribute name="href">../showJDF/<xsl:value-of select="../@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
 <xsl:value-of select="@QueueEntryID"/></a>
 
 

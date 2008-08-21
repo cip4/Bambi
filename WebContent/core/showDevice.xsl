@@ -30,6 +30,9 @@
 
 		<h1><xsl:value-of select="$deviceType"/> - Simulation Device :<xsl:value-of select="$deviceID"/></h1>
 		<p align="center">
+			<table>
+			<tr valign="bottom">
+		
  			<xsl:choose>
 			<xsl:when test="@refresh='true'">
 			<a>
@@ -37,16 +40,33 @@
  			modify page</a> 
  			</xsl:when>
 			<xsl:otherwise>
+			<td>
 			<a>
+ 			<xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="$deviceID"/>?refresh=false</xsl:attribute>
+ 			reload once
+ 			</a>
+ 			</td>
+ 			<td width="15"/>
+ 			<td>
+ 			<a> 			
  			<xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="$deviceID"/>?refresh=true</xsl:attribute>
- 			reload continually</a> 
+ 			reload continually
+ 			</a> 
+ 			</td>
  			</xsl:otherwise>
 			</xsl:choose>
+			<td>
  			<img height="70" hspace="10" alt="logo">
  			<xsl:attribute name="src"><xsl:value-of select="$context"/>/logo.gif</xsl:attribute>
  			</img> 
+ 			</td>
+ 			<td>
  			Go to <a><xsl:attribute name="href"><xsl:value-of select="$context"/>/overview</xsl:attribute>
  			DeviceList</a> 
+ 			</td>
+ 			 </tr>
+ 			</table>
+ 			
 		</p>
 
 <!--  device info section   -->
@@ -89,7 +109,10 @@
 
 <!--  modifiable phase -->
 <xsl:template match="Phase">
-<h2>Current Job Phase</h2> 
+
+<br/>
+
+<h2>Current Job Phase Setup</h2> 
 
 
 <form style="margin-left: 20px">
@@ -117,10 +140,9 @@ Seconds to go: <xsl:value-of select="@Duration"/>; new time to go:
 </input>
 
 <hr/>
-<h3>Resource Amounts</h3>
-<xsl:apply-templates select="ResourceAmount"/>
-
+<h3>Resource Simulation Speed Setup</h3>
 <input type="submit" value="update phase"/>
+<xsl:apply-templates select="ResourceAmount"/>
 </form>
 </xsl:template>
 
