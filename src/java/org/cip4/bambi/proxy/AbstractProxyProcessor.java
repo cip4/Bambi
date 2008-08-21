@@ -162,13 +162,11 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 							if (r.getReturnCode() != 0 || !EnumType.SubmitQueueEntry.equals(r.getEnumType()))
 							{
 								log.error("Device returned rc=" + r.getReturnCode());
-
 								_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
 							}
 							else
 							{
 								JDFQueueEntry qeR = r.getQueueEntry(0);
-
 								if (qeR != null)
 								{
 									submitted(qeR.getQueueEntryID(), qeR.getQueueEntryStatus(), urlString);

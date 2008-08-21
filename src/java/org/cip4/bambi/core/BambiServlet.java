@@ -104,6 +104,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -295,11 +296,22 @@ public class BambiServlet extends HttpServlet
 			return;
 		}
 		JDFDoc docJDF[] = MimeUtil.getJMFSubmission(bp[0].getParent());
-		if (docJDF == null)
+		if (docJDF == null || docJDF.length == 0)
 		{
 			processError(request, response, EnumType.Notification, 2, "proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
 			return;
 		}
+		else if (docJDF.length == 1)
+		{
+			JDFMessage messageElement = docJDF[0].getJMFRoot().getMessageElement(null, null, 0);
+			EnumType typ = messageElement == null ? EnumType.Notification : messageElement.getEnumType();
+			if (typ == null)
+				typ = EnumType.Notification;
+			processError(request, response, typ, 2, "proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
+			return;
+
+		}
+
 		// callbacks must be handled individually
 		processJMFDoc(request, response, docJDF[0]);
 	}

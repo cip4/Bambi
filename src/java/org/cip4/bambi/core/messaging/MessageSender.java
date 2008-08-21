@@ -146,7 +146,9 @@ public class MessageSender implements Runnable
 			senderID = jmf == null ? null : jmf.getSenderID();
 			url = detailedURL;
 			if (hdet == null)
+			{
 				mimeDet = null;
+			}
 			else
 			{
 				mimeDet = new MIMEDetails();

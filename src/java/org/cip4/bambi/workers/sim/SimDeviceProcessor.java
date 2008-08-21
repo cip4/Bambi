@@ -277,6 +277,9 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			return deviceStatus;
 		}
 
+		/**
+		 * @param _deviceStatus the device statis to set
+		 */
 		public void setDeviceStatus(EnumDeviceStatus _deviceStatus)
 		{
 			this.deviceStatus = _deviceStatus;
@@ -297,6 +300,9 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			return nodeStatus;
 		}
 
+		/**
+		 * @param _nodeStatus
+		 */
 		public void setNodeStatus(EnumNodeStatus _nodeStatus)
 		{
 			this.nodeStatus = _nodeStatus;
@@ -671,10 +677,10 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 				if (pa != null)
 				{
 					final double phaseGood = phase.getOutput_Good(pa.resource, (int) deltaT);
-					if("percent".equalsIgnoreCase(pa.resource))
+					if ("percent".equalsIgnoreCase(pa.resource))
 					{
-						if(todoAmount<=0)
-							todoAmount=100; // percent, duh...
+						if (todoAmount <= 0)
+							todoAmount = 100; // percent, duh...
 						_statusListener.updatePercentComplete(phaseGood);
 					}
 					else
@@ -866,6 +872,12 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		}
 	}
 
+	/**
+	 * stop the processor with the new status (either completed or aborted)
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#stopProcessing(org.cip4.jdflib.core.JDFElement.EnumNodeStatus)
+	 * @param newStatus
+	 */
 	@Override
 	public void stopProcessing(EnumNodeStatus newStatus)
 	{

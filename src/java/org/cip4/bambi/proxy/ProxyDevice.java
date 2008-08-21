@@ -83,6 +83,7 @@ import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
+import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -122,12 +123,15 @@ public class ProxyDevice extends AbstractProxyDevice
 
 			JDFDoc d = null;
 			JDFResponse response = null;
-
-			for (int i = 1; i < counters.size(); i++)
+			boolean first = true;
+			for (int i = 0; i < counters.size(); i++)
 			{
 				StatusListener listener = counters.elementAt(i);
 				if (!listener.matchesQuery(m))
 					continue;
+				EnumDeviceStatus subStatus = listener.getDeviceStatus();
+				if (subStatus == null || EnumDeviceStatus.Idle.equals(subStatus))
+					continue; // skip waiting in queue or idle
 
 				StatusCounter counter = listener.getStatusCounter();
 				if (d == null)
@@ -139,22 +143,26 @@ public class ProxyDevice extends AbstractProxyDevice
 				final JDFDoc docJMFPhaseTime = counter.getDocJMFPhaseTime();
 				if (docJMFPhaseTime == null)
 					continue;
-				final JDFResponse response2 = docJMFPhaseTime.getJMFRoot().getResponse(0);
-				JDFDeviceInfo di2 = response2.getDeviceInfo(0);
-				String devID = di2.getDeviceID();
-				JDFDeviceInfo di3 = KElement.isWildCard(devID) ? null : (JDFDeviceInfo) response.getChildWithAttribute(ElementName.DEVICEINFO, AttributeName.DEVICEID, null, devID, 0, true);
-				if (di3 != null)
+				if (!first)
 				{
-					VElement phases = di2.getChildElementVector(ElementName.JOBPHASE, null, null, true, -1, false);
-					for (int j = 0; j < phases.size(); j++)
+					final JDFResponse response2 = docJMFPhaseTime.getJMFRoot().getResponse(0);
+					JDFDeviceInfo di2 = response2.getDeviceInfo(0);
+					String devID = di2.getDeviceID();
+					JDFDeviceInfo di3 = KElement.isWildCard(devID) ? null : (JDFDeviceInfo) response.getChildWithAttribute(ElementName.DEVICEINFO, AttributeName.DEVICEID, null, devID, 0, true);
+					if (di3 != null)
 					{
-						di3.copyElement(phases.elementAt(j), null);
+						VElement phases = di2.getChildElementVector(ElementName.JOBPHASE, null, null, true, -1, false);
+						for (int j = 0; j < phases.size(); j++)
+						{
+							di3.copyElement(phases.elementAt(j), null);
+						}
+					}
+					else
+					{
+						response.copyElement(di2, null);
 					}
 				}
-				else
-				{
-					response.copyElement(di2, null);
-				}
+				first = false;
 			}
 			return d;
 		}

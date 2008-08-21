@@ -200,7 +200,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		/**
 		 * XML representation of this simDevice
 		 * fore use as html display using an XSLT
-		 * @param dev
+		 * @param contextPath http context in which this is called
+		 * @param prop properties with device details
 		 */
 		public XMLProxyDevice(String contextPath, IProxyProperties prop)
 		{
@@ -210,6 +211,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		}
 	}
 
+	/**
+	 * @param prop properties with device details
+	 */
 	public AbstractProxyDevice(IDeviceProperties properties)
 	{
 		super(properties);

@@ -78,6 +78,7 @@ import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
@@ -88,65 +89,81 @@ import org.cip4.jdflib.node.JDFNode;
  */
 public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 {
-    private static Log log = LogFactory.getLog(ProxyDispatcherProcessor.class);
-    private static final long serialVersionUID = -384333582645081254L;
-    private IProxyProperties proxyProperties;
+	private static Log log = LogFactory.getLog(ProxyDispatcherProcessor.class);
+	private static final long serialVersionUID = -384333582645081254L;
+	private final IProxyProperties proxyProperties;
 
-    /**
-     */
-    public ProxyDispatcherProcessor(ProxyDevice parent)
-    {
-        super();
-        _parent=parent;
-        proxyProperties=parent.getProxyProperties();
+	/**
+	 * @param parent the owner device
+	 */
+	public ProxyDispatcherProcessor(ProxyDevice parent)
+	{
+		super();
+		_parent = parent;
+		proxyProperties = parent.getProxyProperties();
 
-    }
+	}
 
-    public EnumQueueEntryStatus processDoc(JDFNode nod, JDFQueueEntry qe) 
-    {
-        //nop - the submission processor does the real work
-        return EnumQueueEntryStatus.Waiting;
+	/**
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#processDoc(org.cip4.jdflib.node.JDFNode, org.cip4.jdflib.jmf.JDFQueueEntry)
+	 * @param nod
+	 * @param qe
+	 * @return always Waiting
+	 */
+	@Override
+	public EnumQueueEntryStatus processDoc(JDFNode nod, JDFQueueEntry qe)
+	{
+		//nop - the submission processor does the real work
+		return EnumQueueEntryStatus.Waiting;
 
-    }
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.AbstractDeviceProcessor#stopProcessing(org.cip4.jdflib.core.JDFElement.EnumNodeStatus)
-     */
-    @Override
-    public void stopProcessing(EnumNodeStatus newStatus)
-    {
-        //TODO call abortqe
+	/**
+	 * @param root the Kelement root
+	 * this is not really a processor to display - ignore call
+	 */
+	@Override
+	public void addToDisplayXML(KElement root)
+	{
+		return;
+	}
 
-    }
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#stopProcessing(org.cip4.jdflib.core.JDFElement.EnumNodeStatus)
+	 */
+	@Override
+	public void stopProcessing(EnumNodeStatus newStatus)
+	{
+		//TODO call abortqe
 
-    @Override
-    protected boolean finalizeProcessDoc(EnumQueueEntryStatus qes)
-    {
-        // nop
-        return _parent.activeProcessors()<1+proxyProperties.getMaxPush();
-    }
+	}
 
-    @Override
-    protected void initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
-    {
-        currentQE=null;
-        if(_parent.activeProcessors()>=1+proxyProperties.getMaxPush())
-        {
-            BambiNSExtension.setDeviceURL(qe, null);
-            return; // no more push
-        }
-        qe.setDeviceID(proxyProperties.getSlaveDeviceID());
-        IQueueEntry iqe=new QueueEntry(node,qe);
-        ((ProxyDevice)_parent).submitQueueEntry(iqe, proxyProperties.getSlaveURL()); 
-    }
+	@Override
+	protected boolean finalizeProcessDoc(EnumQueueEntryStatus qes)
+	{
+		// nop
+		return _parent.activeProcessors() < 1 + proxyProperties.getMaxPush();
+	}
 
-    @Override
-    public IQueueEntry getCurrentQE()
-    {
-        // we never have a qe of our own
-        return null;
-    }
- 
+	@Override
+	protected void initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
+	{
+		currentQE = null;
+		if (_parent.activeProcessors() >= 1 + proxyProperties.getMaxPush())
+		{
+			BambiNSExtension.setDeviceURL(qe, null);
+			return; // no more push
+		}
+		qe.setDeviceID(proxyProperties.getSlaveDeviceID());
+		IQueueEntry iqe = new QueueEntry(node, qe);
+		((ProxyDevice) _parent).submitQueueEntry(iqe, proxyProperties.getSlaveURL());
+	}
 
+	@Override
+	public IQueueEntry getCurrentQE()
+	{
+		// we never have a qe of our own
+		return null;
+	}
 
 }

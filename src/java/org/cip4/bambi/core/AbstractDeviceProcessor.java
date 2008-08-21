@@ -104,8 +104,10 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
 import org.cip4.jdflib.resource.process.JDFUsageCounter;
+import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StatusCounter;
+import org.cip4.jdflib.util.StringUtil;
 
 /**
  * abstract parent class for device processors <br>
@@ -219,6 +221,13 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		public void fill()
 		{
 			KElement processor = root.appendElement(BambiNSExtension.MY_NS_PREFIX + "Processor", BambiNSExtension.MY_NS);
+			StatusCounter sc = _statusListener.getStatusCounter();
+			if (sc != null)
+			{
+				JDFDate startDate = sc.getStartDate();
+				if (startDate != null)
+					processor.setAttribute(AttributeName.STARTTIME, BambiServlet.formatLong(startDate.getTimeInMillis()));
+			}
 			if (currentQE == null)
 			{
 				processor.setAttribute("DeviceStatus", "Idle");
@@ -229,11 +238,16 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			JDFNode n = currentQE.getJDF();
 			VJDFAttributeMap vm = n.getNodeInfoPartMapVector();
 			JDFAttributeMap map = vm == null ? null : vm.elementAt(0);
+			if (vm != null)
+			{
+				String mapString = vm.showKeys(" \n ", " ");
+				processor.setAttribute("PartIDKeys", mapString, null);
+			}
 			final EnumNodeStatus nodeStatus = n.getPartStatus(map);
 			if (deviceStatus != null && nodeStatus != null)
 			{
 				processor.setAttribute("NodeStatus", nodeStatus.getName(), null);
-				processor.setAttribute("NodeStatusDetails", n.getStatusDetails());
+				processor.setAttribute("NodeStatusDetails", StringUtil.getNonEmpty(n.getPartStatusDetails(map)));
 				fillPhaseTime(processor);
 			}
 			else
@@ -252,9 +266,8 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			if (processor == null || statusCounter == null)
 				return;
 
-			processor.setAttribute(AttributeName.STARTTIME, statusCounter.getStartDate().getDateTimeISO());
 			processor.setAttribute(AttributeName.DEVICESTATUS, statusCounter.getStatus().getName());
-			processor.setAttribute("Device" + AttributeName.STATUSDETAILS, statusCounter.getStatusDetails());
+			processor.setAttribute("Device" + AttributeName.STATUSDETAILS, StringUtil.getNonEmpty(statusCounter.getStatusDetails()));
 			double percentComplete = statusCounter.getPercentComplete();
 			percentComplete = 0.01 * ((long) (100 * percentComplete + 0.5));
 			processor.setAttribute(AttributeName.PERCENTCOMPLETED, percentComplete, null);
@@ -292,7 +305,11 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		}
 
 		/**
-		 * @param string
+		 * add amounts for display
+		 * 
+		 * @param jp the element to add to
+		 * @param resID the resource id
+		 * @param resName the resource name
 		 */
 		private void addAmount(KElement jp, String resID, String resName)
 		{

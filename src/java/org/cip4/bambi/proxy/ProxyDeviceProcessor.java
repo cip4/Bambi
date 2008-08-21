@@ -359,7 +359,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		}
 
 		/**
-		 * apply the phase as decribed by jobPhase and burn it into our listener
+		 * apply the phase as described by jobPhase and burn it into our listener
 		 * 
 		 * @param jobPhase
 		 */
@@ -505,7 +505,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		setupStatusListener(currentQE.getJDF(), currentQE.getQueueEntry());
 		if (EnumQueueEntryStatus.Waiting.equals(newStatus))
 		{
-			_statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.Waiting, "Submitted", false);
+			_statusListener.signalStatus(EnumDeviceStatus.Idle, "Submitted", EnumNodeStatus.Waiting, "Submitted", false);
 		}
 		else
 		{
@@ -707,6 +707,19 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	private String getSlaveDeviceID()
 	{
 		return currentQE.getQueueEntry().getDeviceID();
+	}
+
+	/**
+	 * @param root the Kelement root
+	 * does not fill idle (e.g. queued) elements
+	 */
+	@Override
+	public void addToDisplayXML(KElement root)
+	{
+		EnumDeviceStatus deviceStatus = _statusListener.getDeviceStatus();
+		if (deviceStatus == null || EnumDeviceStatus.Idle.equals(deviceStatus))
+			return;
+		super.addToDisplayXML(root);
 	}
 
 	/**
