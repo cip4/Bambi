@@ -77,8 +77,10 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.SignalDispatcher;
+import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -95,18 +97,29 @@ import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.VectorMap;
 
 /**
- *
- * @author  rainer
+ * Class that buffers messages for subscriptions and integrates the results over time
+ * 
+ * @author  rainer prosi
  */
 public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 {
-	private static class MessageIdentifier implements Cloneable
+	/**
+	 * class that identifies messages. if equal, messages are integrated, else they are retained independently
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen
+	 *
+	 */
+	protected static class MessageIdentifier implements Cloneable
 	{
 		protected String misChannelID = null;
 		protected String slaveChannelID = null;
 		protected String msgType = null;
 		protected String senderID = null;
 
+		/**
+		 * 
+		 * @param m the message
+		 * @param jmfSenderID the senderID of the jmf package; if null extract if from the message
+		 */
 		MessageIdentifier(JDFMessage m, String jmfSenderID)
 		{
 			if (m == null)
@@ -346,6 +359,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 			{
 				jmf = null;
 			}
+
 			response.deleteNode();// always zapp the dummy response
 			inputMessage.deleteNode(); // also zapp the query
 			return jmf;
@@ -449,7 +463,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 			return true;
 		}
 
-		private void handleSingleSignal(JDFSignal inSignal, MessageIdentifier mi)
+		protected void handleSingleSignal(JDFSignal inSignal, MessageIdentifier mi)
 		{
 			synchronized (messageMap)
 			{
@@ -475,10 +489,12 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 		}
 
 		/**
+		 * split signals by originating device (senderID)
+		 * 
 		 * @param theSignal
-		 * @return
+		 * @return the vector of signals
 		 */
-		private VElement splitSignals(JDFSignal theSignal)
+		protected VElement splitSignals(JDFSignal theSignal)
 		{
 			VElement devInfos = theSignal.getChildElementVector(ElementName.DEVICEINFO, null);
 			VElement sigs = new VElement();
@@ -594,4 +610,42 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 		}
 	}
 
+	/**
+	 * 
+	 * handler for the Status Query
+	 */
+	public static class NotificationHandler extends NotificationBufferHandler
+	{
+
+		StatusListener theStatusListener;
+
+		public NotificationHandler(SignalDispatcher dispatcher, StatusListener listener)
+		{
+			super(dispatcher);
+			theStatusListener = listener;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 */
+		@Override
+		public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+		{
+			if (theStatusListener == null)
+				return false;
+			if (!theStatusListener.matchesQuery(inputMessage))
+				return false;
+
+			JDFDoc notification = theStatusListener.getStatusCounter().getDocJMFNotification(true);
+			if (notification != null) //fills the buffer
+			{
+				JDFJMF jmf = notification.getJMFRoot();
+				VElement v = jmf.getMessageVector(EnumFamily.Signal, EnumType.Notification);
+				int siz = v == null ? 0 : v.size();
+				for (int i = 0; i < siz; i++)
+					super.handleMessage((JDFMessage) v.get(i), jmf.getCreateResponse(0));
+			}
+			return super.handleMessage(inputMessage, response);
+		}
+	}
 }

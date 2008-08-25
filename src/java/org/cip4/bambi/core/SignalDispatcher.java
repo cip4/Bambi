@@ -124,7 +124,7 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public final class SignalDispatcher
 {
-	private static final Log log = LogFactory.getLog(SignalDispatcher.class.getName());
+	protected static final Log log = LogFactory.getLog(SignalDispatcher.class.getName());
 	private HashMap<String, MsgSubscription> subscriptionMap = null; // map of slaveChannelID / Subscription
 	private IMessageHandler messageHandler = null;
 	private Vector<Trigger> triggers = null;
@@ -494,6 +494,9 @@ public final class SignalDispatcher
 					if (t.amount < 0)
 					{
 						v.add(subClone);
+						if (sub.repeatTime <= 0) // don't update with real time in order to retain synchronized delta t
+							sub.lastTime = System.currentTimeMillis() / 1000;
+
 					}
 					else if (t.amount > 0)
 					{
@@ -505,6 +508,9 @@ public final class SignalDispatcher
 							{
 								sub.lastAmount = next; // not a typo - modify of nthe original subscription
 								v.add(subClone);
+								if (sub.repeatTime <= 0) // don't update with real time in order to retain synchronized delta t
+									sub.lastTime = System.currentTimeMillis() / 1000;
+
 							}
 						}
 					}

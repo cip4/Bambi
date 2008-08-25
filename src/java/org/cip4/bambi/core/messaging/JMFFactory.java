@@ -86,6 +86,7 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFRequestQueueEntryParams;
@@ -105,7 +106,7 @@ import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
  */
 public class JMFFactory
 {
-	static class CallURL implements Comparable<CallURL>
+	public static class CallURL implements Comparable<CallURL>
 	{
 		final IConverterCallback callback;
 		String url;
@@ -114,9 +115,18 @@ public class JMFFactory
 		 * get the base url that is used to define equal senders
 		 * @return the base url
 		 */
-		String getBaseURL()
+		public String getBaseURL()
 		{
-			return StringUtil.token(url, 0, "/?") + "//" + StringUtil.token(url, 1, "/?");
+			if (url == null)
+				return null;
+			VString v = StringUtil.tokenize(url, "/?", true);
+			int len = v.size();
+			if (len > 6)
+				len = 6; //6= host / / root </?> last 
+			StringBuffer b = new StringBuffer();
+			for (int i = 0; i < len; i++)
+				b.append(v.get(i));
+			return b.toString();
 		}
 
 		/**
@@ -124,7 +134,7 @@ public class JMFFactory
 		 * @param _url the url
 		 * 
 		 */
-		protected CallURL(IConverterCallback _callback, String _url)
+		public CallURL(IConverterCallback _callback, String _url)
 		{
 			callback = _callback;
 			url = _url;

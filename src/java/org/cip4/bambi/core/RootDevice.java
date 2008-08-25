@@ -124,14 +124,19 @@ public class RootDevice extends AbstractDevice
 		log.info("created RootDevice '" + prop.getDeviceID() + "'");
 	}
 
+	/**
+	 * add handlers to this
+	 * @see org.cip4.bambi.core.AbstractDevice#addHandlers()
+	 */
 	@Override
 	protected void addHandlers()
 	{
-		super.addHandlers();
+		// not here - these should be grabbed by catchall		super.addHandlers();
 		_jmfHandler.addHandler(this.new KnownDevicesHandler());
 		_jmfHandler.addHandler(this.new StatusHandler());
-		_jmfHandler.addHandler(this.new RootDispatchHandler(EnumType.Resource, new EnumFamily[] { EnumFamily.Query,
-				EnumFamily.Command }));
+		// this guy is the catchall
+		_jmfHandler.addHandler(this.new RootDispatchHandler("*", new EnumFamily[] { EnumFamily.Query,
+				EnumFamily.Command, EnumFamily.Signal }));
 		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.AbortQueueEntry, new EnumFamily[] { EnumFamily.Command }));
 		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.HoldQueueEntry, new EnumFamily[] { EnumFamily.Command }));
 		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.RemoveQueueEntry, new EnumFamily[] { EnumFamily.Command }));

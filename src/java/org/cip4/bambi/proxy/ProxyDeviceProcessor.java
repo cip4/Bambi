@@ -82,6 +82,7 @@ import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.bambi.proxy.AbstractProxyDevice.EnumSlaveStatus;
@@ -108,6 +109,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.resource.JDFEvent;
@@ -127,8 +129,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 {
 	static Log log = LogFactory.getLog(ProxyDeviceProcessor.class);
 	private static final long serialVersionUID = -384123582645081254L;
-	private QueueEntryStatusContainer qsc;
 	private final String _slaveURL;
+	private final NotificationQueryHandler notificationQueryHandler;
 
 	protected class StatusSignalHandler
 	{
@@ -201,8 +203,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			if (v == null)
 				return false;
 
-			qsc.applyPhase(jobPhase);
-			_queueProcessor.updateEntry(qsc.qe, jobPhase.getQueueEntryStatus(), null, null);
+			applyPhase(jobPhase);
+			_queueProcessor.updateEntry(getQueueEntry(), jobPhase.getQueueEntryStatus(), null, null);
 			return true;
 
 		}
@@ -244,6 +246,23 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 				_statusListener.setEvent(e.getEventID(), e.getEventValue(), n.getCommentText());
 			}
 			return true;
+		}
+	}
+
+	/**
+	 * buffered notification handler that distributes notifications
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen
+	 *
+	 */
+	protected class NotificationQueryHandler extends NotificationHandler
+	{
+		/**
+		 * 
+		 */
+		public NotificationQueryHandler()
+		{
+			super(getParent().getSignalDispatcher(), _statusListener);
+			families = new EnumFamily[] { EnumFamily.Query };
 		}
 	}
 
@@ -311,82 +330,50 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	}
 
 	/**
-	 * this baby handles all status updates that are stored in the queuentry
+	 * return true if this processor is responsible for processing a given
+	 * queuentry as specified by qe
 	 * 
-	 * @author prosirai
-	 * 
+	 * @param qe
+	 *            the queuentry
+	 * @return true if we are processing qe
 	 */
-	protected class QueueEntryStatusContainer
+	public boolean matchesQueueEntry(JDFQueueEntry _qe)
 	{
-		protected JDFQueueEntry qe;
-		protected KElement theContainer;
-		protected JDFNode theNode;
-		protected JDFJobPhase jp;
+		JDFQueueEntry qe = currentQE == null ? null : currentQE.getQueueEntry();
+		return _qe != null && qe != null && qe.getQueueEntryID().equals(_qe.getQueueEntryID());
+	}
 
-		public QueueEntryStatusContainer()
-		{
-			qe = currentQE.getQueueEntry();
-			theNode = currentQE.getJDF();
-			theContainer = BambiNSExtension.getCreateStatusContainer(qe);
-			jp = (JDFJobPhase) theContainer.appendElement(ElementName.JOBPHASE);
-			jp.setStatus(EnumNodeStatus.Waiting); // TODO evaluate qe
-		}
+	/**
+	 * return true if this processor is responsible for processing a given
+	 * node as specified by ni
+	 * 
+	 * @param ni the NodeIdentifier to match against
+	 * @return true if ni matches this
+	 */
+	public boolean matchesNode(NodeIdentifier ni)
+	{
+		JDFQueueEntry qe = currentQE == null ? null : currentQE.getQueueEntry();
+		return qe == null ? false : qe.matchesNodeIdentifier(ni);
+	}
 
-		/**
-		 * return true if this processor is responsible for processing a given
-		 * queuentry as specified by qe
-		 * 
-		 * @param qe
-		 *            the queuentry
-		 * @return true if we are processing qe
-		 */
-		public boolean matchesQueueEntry(JDFQueueEntry _qe)
-		{
-			return _qe != null && qe != null && qe.getQueueEntryID().equals(_qe.getQueueEntryID());
-		}
-
-		/**
-		 * return true if this processor is responsible for processing a given
-		 * node as specified by ni
-		 * 
-		 * @param ni
-		 *            the node identifier (jobid, jobpartid, part*)
-		 * @return true if we are processing ni
-		 */
-		public boolean matchesQueueEntry(NodeIdentifier ni)
-		{
-			return qe.matchesNodeIdentifier(ni);
-		}
-
-		/**
-		 * apply the phase as described by jobPhase and burn it into our listener
-		 * 
-		 * @param jobPhase
-		 */
-		private void applyPhase(JDFJobPhase jobPhase)
-		{
-			double deltaWaste = jobPhase.getWasteDifference(jp);
-			double deltaAmount = jobPhase.getAmountDifference(jp);
-			final StatusListener statusListener = getStatusListener();
-			final JDFDeviceInfo devInfo = (JDFDeviceInfo) jobPhase.getParentNode();
-			statusListener.updateAmount(_trackResource, deltaAmount, deltaWaste);
-			statusListener.signalStatus(devInfo.getDeviceStatus(), devInfo.getStatusDetails(), jobPhase.getStatus(), jobPhase.getStatusDetails(), false);
-			double percentCompleted = jp.getPercentCompleted();
-			if (percentCompleted > 0)
-				statusListener.setPercentComplete(percentCompleted);
-			log.info("Node Status :" + jobPhase.getStatus() + " " + jobPhase.getStatusDetails() + " " + deltaAmount
-					+ " " + deltaWaste + " completed: " + percentCompleted);
-			jp = (JDFJobPhase) jp.replaceElement(jobPhase);
-		}
-
-		/**
-		 * 
-		 */
-		public void delete()
-		{
-			if (theContainer != null)
-				theContainer.deleteNode();
-		}
+	/**
+	 * apply the phase as described by jobPhase and burn it into our listener
+	 * 
+	 * @param jobPhase
+	 */
+	private void applyPhase(JDFJobPhase jobPhase)
+	{
+		final StatusListener statusListener = getStatusListener();
+		final JDFDeviceInfo devInfo = (JDFDeviceInfo) jobPhase.getParentNode();
+		double deltaAmount = jobPhase.getPhaseAmount();
+		double deltaWaste = jobPhase.getPhaseWaste();
+		statusListener.setAmount(_trackResource, deltaAmount, deltaWaste, jobPhase.getAmount(), jobPhase.getWaste());
+		statusListener.signalStatus(devInfo.getDeviceStatus(), devInfo.getStatusDetails(), jobPhase.getStatus(), jobPhase.getStatusDetails(), false);
+		double percentCompleted = jobPhase.getPercentCompleted();
+		if (percentCompleted > 0)
+			statusListener.setPercentComplete(percentCompleted);
+		log.info("Node Status :" + jobPhase.getStatus() + " " + jobPhase.getStatusDetails() + " " + deltaAmount + " "
+				+ deltaWaste + " completed: " + percentCompleted);
 	}
 
 	/**
@@ -400,9 +387,10 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	public ProxyDeviceProcessor(ProxyDevice device, QueueProcessor qProc, IQueueEntry qeToProcess, String slaveURL)
 	{
 		super(device);
+
 		_statusListener = new StatusListener(device.getSignalDispatcher(), device.getDeviceID());
+		notificationQueryHandler = new NotificationQueryHandler();
 		currentQE = qeToProcess;
-		qsc = this.new QueueEntryStatusContainer();
 
 		init(qProc, _statusListener, _parent.getProperties());
 
@@ -427,7 +415,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			MIMEDetails ud = new MIMEDetails();
 			ud.httpDetails.chunkSize = proxyProperties.getSlaveHTTPChunk();
 			boolean expandMime = proxyProperties.getSlaveMIMEExpansion();
-			qes = submitToQueue(qURL, deviceOutputHF, ud, expandMime);
+			IQueueEntry iqe = submitToQueue(qURL, deviceOutputHF, ud, expandMime);
+			qes = iqe.getQueueEntry().getQueueEntryStatus();
 		}
 		else
 		{
@@ -445,9 +434,9 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	}
 
 	/**
-	* @param fHF the hot folder destination
-	* @return EnumQueueEntryStatus the status of the submitted queueentry
-	*/
+	 * @param fHF the hot folder destination
+	 * @return EnumQueueEntryStatus the status of the submitted queueentry
+	 */
 	private EnumQueueEntryStatus submitToHF(File fHF)
 	{
 		JDFQueueEntry qe = currentQE.getQueueEntry();
@@ -539,33 +528,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	 */
 	private JDFQueueEntry getQueueEntry()
 	{
-		return qsc.qe;
-	}
-
-	/**
-	 * @return the internal jobphase for this processor
-	 */
-	public JDFJobPhase getJobPhase()
-	{
-		return qsc.jp;
-	}
-
-	/**
-	 * @param qe
-	 * @return
-	 */
-	public boolean matchesQueueEntry(JDFQueueEntry qe)
-	{
-		return qsc.matchesQueueEntry(qe);
-	}
-
-	/**
-	 * @param ni the NodeIdentifier to match against
-	 * @return true if ni matches this
-	 */
-	public boolean matchesNode(NodeIdentifier ni)
-	{
-		return qsc.matchesQueueEntry(ni);
+		return currentQE == null ? null : currentQE.getQueueEntry();
 	}
 
 	@Override
@@ -575,20 +538,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		super.init(queueProcessor, statusListener, devProperties);
 		JDFQueueEntry qe = getQueueEntry();
 		log.info("processQueueEntry queuentryID=" + qe.getQueueEntryID());
-		JDFNode nod = getJDFNode();
-
-		//		updateNISubscriptions(nod);
-		if (slaveCallBack != null)
-			slaveCallBack.updateJDFForExtern(nod.getOwnerDocument_JDFElement());
-
-	}
-
-	/**
-	 * @return
-	 */
-	JDFNode getJDFNode()
-	{
-		return qsc.theNode;
 	}
 
 	@Override
@@ -665,8 +614,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	protected boolean finalizeProcessDoc(EnumQueueEntryStatus qes)
 	{
 		boolean b = super.finalizeProcessDoc(qes);
-		// qsc.delete(); // better to retain. remove only when removing qe
-		qsc = null;
 		shutdown(); // remove ourselves out of the processors list
 		return b;
 	}
@@ -689,6 +636,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	public boolean handleNotificationSignal(JDFMessage m, JDFResponse resp)
 	{
 		return this.new NotificationSignalHandler().handleSignal(m, resp);
+
 	}
 
 	/**
@@ -744,6 +692,16 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 		log.info("creating subscription for doc:" + root.getJobID(true) + " - " + root.getJobPartID(false) + " to "
 				+ p.getSlaveURL());
+	}
+
+	/**
+	 * @param m 
+	 * @param resp 
+	 * @return true if handled
+	 */
+	public boolean handleNotificationQuery(JDFMessage m, JDFResponse resp)
+	{
+		return notificationQueryHandler.handleMessage(m, resp);
 	}
 
 }

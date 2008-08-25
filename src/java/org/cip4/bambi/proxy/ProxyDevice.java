@@ -96,6 +96,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFRequestQueueEntryParams;
+import org.cip4.jdflib.jmf.JDFResourceQuParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
@@ -108,19 +109,16 @@ import org.cip4.jdflib.util.StatusCounter;
 public class ProxyDevice extends AbstractProxyDevice
 {
 	/**
-	 * return the jmf root of the status jmf that contains all modules, null if
-	 * no modules are active
-	 * 
-	 * @return
+	* class that handles merging of messages
 	 */
-	protected class MultiCounter
+	protected class ResonseMerger
 	{
-
-		private final Vector<StatusListener> counters = new Vector<StatusListener>();
 
 		private JDFDoc getStatusResponse(JDFMessage m)
 		{
-
+			Vector<StatusListener> counters = getStatusListeners();
+			if (counters == null)
+				return null;
 			JDFDoc d = null;
 			JDFResponse response = null;
 			boolean first = true;
@@ -168,29 +166,16 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 * @param statusCounter
-		 */
-		public void removeCounter(StatusListener statusCounter)
-		{
-			counters.remove(statusCounter);
-		}
-
-		/**
-		 * @param statusCounter
-		 */
-		public void addCounter(StatusListener statusCounter)
-		{
-			counters.add(statusCounter);
-		}
-
-		/**
 		 * @param m  the query input message
 		 * @return JDFDoc the response message
 		 */
 		public boolean fillResourceResponse(JDFMessage m, JDFResponse response)
 		{
+			Vector<StatusListener> counters = getStatusListeners();
+			if (counters == null)
+				return false;
 			boolean bRet = false;
-			for (int i = 1; i < counters.size(); i++)
+			for (int i = 0; i < counters.size(); i++)
 			{
 				StatusListener listener = counters.elementAt(i);
 				if (!listener.matchesQuery(m))
@@ -201,8 +186,27 @@ public class ProxyDevice extends AbstractProxyDevice
 				if (docJMFResource == null)
 					continue;
 				JDFMessage response2 = docJMFResource.getJMFRoot().getResponse(0);
+				JDFResourceQuParams signalRQP = null;
 				if (response2 == null)
+				{
 					response2 = docJMFResource.getJMFRoot().getSignal(0);
+					if (response2 != null)
+					{
+						signalRQP = response2.getResourceQuParams();
+						if (signalRQP != null)
+						{
+							JDFResourceQuParams queryRQP = m.getResourceQuParams();
+							if (queryRQP == null)
+							{
+								m.copyElement(signalRQP, null);
+							}
+							else
+							{
+								queryRQP.mergeElement(signalRQP, false);
+							}
+						}
+					}
+				}
 				VElement v = response2 == null ? null : response2.getChildElementVector(ElementName.RESOURCEINFO, null);
 				int riSize = v == null ? 0 : v.size();
 				for (int ii = 0; ii < riSize; ii++)
@@ -213,12 +217,39 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 			return bRet;
 		}
+
+		/**
+		 * @param m
+		 * @param resp
+		 * @return true if a notification was filled
+		 */
+		public boolean fillNotifications(JDFMessage m, JDFResponse resp)
+		{
+			Vector<ProxyDeviceProcessor> procs = getProxyProcessors();
+			if (procs == null)
+				return false;
+			boolean bRet = false;
+			JDFJMF jmfm = m.getJMFRoot();
+			JDFJMF jmfr = resp.getJMFRoot();
+			for (int i = 0; i < procs.size(); i++)
+			{
+				bRet = procs.get(i).handleNotificationQuery(m, resp) || bRet;
+				// undo handler delete
+				jmfm.moveElement(m, null);
+				jmfm.moveElement(resp, null);
+			}
+			// final zapp om m and r from list of signals
+			m.deleteNode();
+			resp.deleteNode();
+			return bRet;
+
+		}
 	} // end of inner class MultiCounter
 
 	//////////////////////////////////////////////////////////////////////////////////
 
 	private static final Log log = LogFactory.getLog(ProxyDevice.class.getName());
-	protected MultiCounter statusContainer;
+	protected ResonseMerger statusContainer;
 
 	/**
 	 * simple dispatcher
@@ -356,6 +387,30 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 	}
+
+	protected class NotificationQueryHandler extends AbstractHandler
+	{
+		public NotificationQueryHandler()
+		{
+			super(EnumType.Notification, new EnumFamily[] { EnumFamily.Query });
+		}
+
+		/*
+		 * (non-Javadoc)
+		 *
+		 * @see
+		 * org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.
+		 * JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 */
+		@Override
+		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		{
+			if (statusContainer == null)
+				return false;
+
+			return statusContainer.fillNotifications(m, resp);
+		}
+	}// end of inner class NotificationQueryHandler
 
 	protected class ResourceQueryHandler extends ResourceHandler
 	{
@@ -518,12 +573,35 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		super(properties);
 		final IProxyProperties proxyProperties = getProxyProperties();
-		statusContainer = new MultiCounter();
+		statusContainer = new ResonseMerger();
 		_jmfHandler.setFilterOnDeviceID(false);
 		int maxPush = proxyProperties.getMaxPush();
 		if (maxPush > 0)
 			_theQueueProcessor.getQueue().setMaxRunningEntries(maxPush);
 		// TODO correctly dispatch them
+	}
+
+	/**
+	 * @return vector of status listeners
+	 */
+	public Vector<StatusListener> getStatusListeners()
+	{
+		Vector<ProxyDeviceProcessor> procs = getProxyProcessors();
+		if (procs == null)
+			return null;
+		int size = procs.size();
+		if (size == 0)
+			return null;
+		Vector<StatusListener> v = new Vector<StatusListener>(size);
+		for (int i = 0; i < size; i++)
+		{
+			ProxyDeviceProcessor pd = procs.get(i);
+			StatusListener l = pd.getStatusListener();
+			if (l != null)
+				v.add(l);
+		}
+		return v.size() == 0 ? null : v;
+
 	}
 
 	@Override
@@ -534,9 +612,10 @@ public class ProxyDevice extends AbstractProxyDevice
 		_jmfHandler.addHandler(this.new ReturnQueueEntryHandler());
 		_jmfHandler.addHandler(this.new StatusSignalHandler());
 		_jmfHandler.addHandler(this.new StatusQueryHandler());
+		_jmfHandler.addHandler(this.new ResourceQueryHandler());
 		_jmfHandler.addHandler(this.new ResourceSignalHandler());
 		_jmfHandler.addHandler(this.new NotificationSignalHandler());
-		_jmfHandler.addHandler(this.new ResourceQueryHandler());
+		_jmfHandler.addHandler(this.new NotificationQueryHandler());
 	}
 
 	/**
@@ -583,8 +662,6 @@ public class ProxyDevice extends AbstractProxyDevice
 		log.info("removing device proceesor");
 		_deviceProcessors.remove(processor);
 		final StatusListener statusListener = processor.getStatusListener();
-		if (statusListener != null)
-			statusContainer.removeCounter(statusListener);
 		// zapp the subscription that we added for listening to the device
 		// TODO
 		// _parent.getSignalDispatcher().removeSubScription(slaveChannelID);
@@ -594,15 +671,16 @@ public class ProxyDevice extends AbstractProxyDevice
 	/**
 	 * gets the device processor for a given queuentry
 	 * 
-	 * @param queueEntryID
-	 *            - if null use any
 	 * @return the processor that is processing queueEntryID, null if none
 	 *         matches
 	 */
 	protected Vector<ProxyDeviceProcessor> getProxyProcessors()
 	{
-		Vector<ProxyDeviceProcessor> v = new Vector<ProxyDeviceProcessor>();
-		for (int i = 0; i < _deviceProcessors.size(); i++)
+		int size = _deviceProcessors.size();
+		if (size == 0)
+			return null;
+		Vector<ProxyDeviceProcessor> v = new Vector<ProxyDeviceProcessor>(size);
+		for (int i = 0; i < size; i++)
 		{
 			AbstractDeviceProcessor theDeviceProcessor = _deviceProcessors.get(i);
 			if (theDeviceProcessor instanceof ProxyDeviceProcessor)
@@ -638,18 +716,15 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		log.info("adding device proceesor");
 		_deviceProcessors.add(processor);
-		final StatusListener statusListener = processor.getStatusListener();
-		if (statusListener != null)
-			statusContainer.addCounter(statusListener);
 	}
 
 	/**
-	 * @param outQEID
-	 * @return
+	 * @param slaveQEID
+	 * @return the bambi qeid for a given slave qeid
 	 */
-	private String getIncomingQEID(String outQEID)
+	protected String getIncomingQEID(String slaveQEID)
 	{
-		if (outQEID == null || _deviceProcessors == null)
+		if (slaveQEID == null || _deviceProcessors == null)
 			return null;
 		for (int i = 0; i < _deviceProcessors.size(); i++)
 		{
@@ -657,8 +732,8 @@ public class ProxyDevice extends AbstractProxyDevice
 			if (!(aProc instanceof ProxyDeviceProcessor))
 				continue;
 			ProxyDeviceProcessor proc = (ProxyDeviceProcessor) aProc;
-			final String slaveQEID = proc.getSlaveQEID();
-			if (outQEID.equals(slaveQEID))
+			final String procSlaveQEID = proc.getSlaveQEID();
+			if (slaveQEID.equals(procSlaveQEID))
 				return proc.getCurrentQE().getQueueEntryID();
 		}
 		return null;
@@ -731,8 +806,9 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		super.init();
 		if (_theStatusListener == null)
+		{
 			_theStatusListener = new StatusListener(_theSignalDispatcher, getDeviceID());
-
+		}
 	}
 
 }

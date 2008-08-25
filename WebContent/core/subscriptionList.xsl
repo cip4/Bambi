@@ -37,7 +37,9 @@
           </tr>
           <xsl:apply-templates select="MsgSubscription"/>
         </table>
+        
         <hr/>
+        
         <h2>Message Sender Channels</h2>
         <table cellspacing="2" border="1">
           <tr>
@@ -47,6 +49,7 @@
             <th align="left"> Messages Sent</th>
             <th align="left"> Last time Sent</th>
             <th align="left"> Last time Queued</th>
+            <th align="left"> Active since</th>
             <th align="left"> Remove Sender</th>
           </tr>
           <xsl:apply-templates select="MessageSender"/>
@@ -128,6 +131,9 @@
       </td>
       <td align="left">
         <xsl:value-of select="@LastQueued"/>
+      </td>
+      <td align="left">
+        <xsl:value-of select="@CreationDate"/>
       </td>
       <td align="center">
         <form>

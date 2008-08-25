@@ -82,7 +82,7 @@ import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
-import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationBufferHandler;
+import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
@@ -119,7 +119,6 @@ import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.QueueHotFolder;
 import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.StatusCounter;
@@ -137,6 +136,14 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public abstract class AbstractDevice implements IDevice, IGetHandler
 {
+	/**
+	 * @return the queueprocessor of this device
+	 */
+	public QueueProcessor getQueueProcessor()
+	{
+		return _theQueueProcessor;
+	}
+
 	/**
 	 * 
 	 * @author prosirai
@@ -342,6 +349,9 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 			boolean b = false;
 			JDFNotification notif = (JDFNotification) response.removeChild(ElementName.NOTIFICATION, null, 0);
 
+			JDFJMF jmfin = inputMessage.getJMFRoot();
+			JDFJMF jmfresp = response.getJMFRoot();
+			boolean bSignal = false;
 			for (int i = 0; i < devs.length; i++)
 			{
 				IMessageHandler mh = devs[i].getHandler(inputMessage.getType(), inputMessage.getFamily());
@@ -359,7 +369,27 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 					{
 						notif = (JDFNotification) response.removeChild(ElementName.NOTIFICATION, null, 0);
 					}
+					JDFJMF jmfinAfter = inputMessage.getJMFRoot();
+
+					// undo cleanup of pur signalse; else npe in 2nd loop...
+					if (jmfinAfter == null)
+					{
+						bSignal = true;
+						jmfin.moveElement(inputMessage, null);
+					}
+					jmfinAfter = response.getJMFRoot();
+					if (jmfinAfter == null)
+					{
+						bSignal = true;
+						jmfin.moveElement(response, null);
+					}
 				}
+			}
+			// cleanup pure signals
+			if (bSignal)
+			{
+				inputMessage.deleteNode();
+				response.deleteNode();
 			}
 			if (b)
 				response.setReturnCode(0);
@@ -398,42 +428,6 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 			if (bOK)
 				addQueueToStatusResponse(inputMessage, response);
 			return bOK;
-		}
-	}
-
-	/**
-	 * 
-	 * handler for the Status Query
-	 */
-	public class NotificationHandler extends NotificationBufferHandler
-	{
-
-		public NotificationHandler()
-		{
-			super(_theSignalDispatcher);
-		}
-
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-		 */
-		@Override
-		public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
-		{
-			if (_theStatusListener == null)
-				return false;
-			if (!_theStatusListener.matchesQuery(inputMessage))
-				return false;
-
-			JDFDoc notification = _theStatusListener.getStatusCounter().getDocJMFNotification(true);
-			if (notification != null) //fills the buffer
-			{
-				JDFJMF jmf = notification.getJMFRoot();
-				VElement v = jmf.getMessageVector(EnumFamily.Signal, EnumType.Notification);
-				int siz = v == null ? 0 : v.size();
-				for (int i = 0; i < siz; i++)
-					super.handleMessage((JDFMessage) v.get(i), jmf.getCreateResponse(0));
-			}
-			return super.handleMessage(inputMessage, response);
 		}
 	}
 
@@ -544,7 +538,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 		addHandler(this.new KnownDevicesHandler());
 		addHandler(this.new ResourceHandler());
 		addHandler(this.new StatusHandler());
-		addHandler(this.new NotificationHandler());
+		addHandler(new NotificationHandler(_theSignalDispatcher, _theStatusListener));
 	}
 
 	/**
@@ -912,15 +906,23 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 		{
 			return false;
 		}
-		response.setContentType(MimeUtil.TEXT_XML);
+		response.setContentType(UrlUtil.TEXT_XML);
 		return true;
 	}
 
+	/**
+	 * get the root controller
+	 * @return the root controller
+	 */
 	public RootDevice get_rootDevice()
 	{
 		return _rootDevice;
 	}
 
+	/**
+	 * set the root controller device
+	 * @param rootDevice the root controller
+	 */
 	public void setRootDevice(RootDevice rootDevice)
 	{
 		this._rootDevice = rootDevice;

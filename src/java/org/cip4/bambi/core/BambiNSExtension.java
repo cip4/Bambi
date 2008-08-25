@@ -71,7 +71,6 @@
 
 package org.cip4.bambi.core;
 
-
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.KElement;
@@ -87,311 +86,327 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 public class BambiNSExtension
 {
 
-    /**
-     * 
-     */
-    private static final String STATUS_CONTAINER = "StatusContainer";
-    private static String slaveURL="SlaveURL";
+	/**
+	 * 
+	 */
+	private static final String STATUS_CONTAINER = "StatusContainer";
+	private static String slaveURL = "SlaveURL";
 
-    protected BambiNSExtension(){/* never construct - static class */}
-   
-    public static final String MY_NS = "www.cip4.org/Bambi";
-    public static final String MY_NS_PREFIX = "bambi:";
-    
-    /**
-     * 
-     * @param e the element to work on
-     * @param attName the local attribute name to set
-     * @param attVal the attribute value to set
-     */
-    public static void setMyNSAttribute(KElement e, String attName,String attVal)
-    {
-        if(e==null)
-        {
-            throw new JDFException("setMyNSAttribute: setting on null element");
-        }
-        e.setAttribute(MY_NS_PREFIX+attName,attVal,MY_NS);       
-    }
-    
-    /**
-     * @param e the element to work on
-     * @param attName the local element name to get
-     * @param iSkip get the nth element
-     * @return the element
-     * 
-     */
-    public static KElement getCreateMyNSElement(KElement e, String elmName, int iSkip)
-    {
-        return e==null ? null : e.getCreateElement(elmName, MY_NS, iSkip);
-    }
-    /**
-     * @param e the element to work on
-     * @param attName the local element name to get
-     * @param iSkip get the nth element
-     * @return the element
-     * 
-     */
-    public static KElement getMyNSElement(KElement e, String elmName, int iSkip)
-    {
-        return e==null ? null : e.getElement(elmName, MY_NS, iSkip);
-    }
-    /**
-     * @param e the element to work on
-     * @param attName the local element name to get
-     * @param iSkip get the nth element
-     * @return the element
-     * 
-     */
-    public static KElement removeMyNSElement(KElement e, String elmName, int iSkip)
-    {
-        return e==null ? null : e.removeChild(elmName, MY_NS, iSkip);
-    }
-    /**
-     * @param e the element to work on
-     * @param attName the local attribute name to set
-     * @return the attribute value, null if none exists
-     * 
-     */
-    public static String getMyNSAttribute(KElement e, String attName)
-    {
-        return e==null ? null : e.getAttribute(attName, MY_NS, null);
-    }
-    /**
-     * @param e the element to work on
-     * @param attName the local attribute name to set
-     * @return the attribute value, null if none exists
-     * 
-     */
-    public static String getMyNSString(String attName)
-    {
-        return  MY_NS_PREFIX+attName;
-    }
-    
-    /**
-     * 
-     * @param e the element to work on
-     * @param attName the local attribute name to remove
-     */
-    public static void removeMyNSAttribute(KElement e, String attName)
-    {
-        if(e==null)
-        {
-            throw new JDFException("setMyNSAttribute: setting on null element");
-        }
-        e.removeAttribute(MY_NS_PREFIX+attName,MY_NS);       
-    }
-    
-    /**
-     * 
-     */
-    public static KElement getStatusContainer(JDFQueueEntry qe)
-    {
-       return getMyNSElement(qe,STATUS_CONTAINER,0);
-    }
-    /**
-     * 
-     */
-    public static KElement getCreateStatusContainer(JDFQueueEntry qe)
-    {
-       return getCreateMyNSElement(qe,STATUS_CONTAINER,0);
-    }
-    /**
-     * remove all Bambi specific elements and attributes from the given KElement
-     * @param ke the KElement to clean up
-     */
-    public static void removeBambiExtensions(KElement ke)
-    {
-        if(ke!=null)
-            ke.removeExtensions(MY_NS);
-    }
+	protected BambiNSExtension()
+	{/* never construct - static class */
+	}
 
-    /*** docURL *************************************************************/
-    /**
-     * the URL where the JDFDoc can be grabbed
-     */
-    public static final String docURL="DocURL";
-   /**
-     * set the location of the JDF
-     * @param ke the KElement to work on
-     * @param docURL the location of the JDF
-     */
-    public static void setDocURL(KElement ke, String _docURL)
-    {
-        setMyNSAttribute(ke,docURL,_docURL);       
-    }
-    
-    /**
-     * get the location of the JDF
-     * @param ke the KElement to work on
-     * @return docURL the location of the JDF
-     */
-    public static String getDocURL(KElement ke)
-    {
-        return getMyNSAttribute(ke,docURL);
-    }
-        
-    /**
-     * get the associated JDF
-     * @param ke the KElement to work on
-     * @return docURL the location of the JDF
-     */
-    public static JDFDoc getDocFromURL(KElement ke)
-    {
-        String url=getMyNSAttribute(ke,docURL);
-        return JDFDoc.parseURL(url, null);
-    }
-   /*** returnURL **********************************************************/
-    /**
-     * the URL to send the JDFDoc back to after processing
-     */
-    public static final String returnURL="ReturnURL";
-    /**
-      * set the location to send the ReturnQueueEntry to
-      * @param ke the KElement to work on
-      * @param theReturnURL the location to send the ReturnQueueEntry to
-      */
-     public static void setReturnURL(KElement ke, String theReturnURL)
-     {
-         setMyNSAttribute(ke,returnURL,theReturnURL);       
-     }
-     
-     /**
-      * get the location to send the ReturnQueueEntry to
-      * @param ke the KElement to work on
-      * @return the location to send the ReturnQueueEntry to
-      */
-     public static String getReturnURL(KElement ke)
-     {
-         return getMyNSAttribute(ke,returnURL);
-     }
-     
-     /*** returnJMF *********************************************************/
-     /**
-      * the URL to send the ReturnJMF to
-      */
-     public static final String returnJMF="ReturnJMF";
-     /**
-       * set the location to send the ReturnJMF to
-       * @param ke the KElement to work on
-       * @param theReturnJMF the location to send the ReturnJMF to
-       */
-      public static void setReturnJMF(KElement ke, String theReturnJMF)
-      {
-          setMyNSAttribute(ke,returnJMF,theReturnJMF);       
-      }
-      
-      /**
-       * get the location to send the ReturnJMF to
-       * @param ke the KElement to work on
-       * @return the location to send the ReturnJMF to
-       */
-      public static String getReturnJMF(KElement ke)
-      {
-          return getMyNSAttribute(ke,returnJMF);
-      }
-    
-      /*** deviceID *********************************************************/
-      /**
-       * the ID of the device processing the QueueEntry
-       */
-      public static final String deviceID="DeviceID";
-      /**
-        * set the ID of the device processing the QueueEntry
-        * @param ke the KElement to work on
-        * @param theDeviceID the ID of the device processing the QueueEntry
-        */
-       public static void setDeviceID(KElement ke, String theDeviceID)
-       {
-           setMyNSAttribute(ke,deviceID,theDeviceID);       
-       }
-       
-       /**
-        * get the ID of the device processing the QueueEntry
-        * @param ke the KElement to work on
-        * @return the ID of the device processing the QueueEntry
-        */
-       public static String getDeviceID(KElement ke)
-       {
-           return getMyNSAttribute(ke,deviceID);
-       }
-       
-       /*** deviceURL *********************************************************/
-       /**
-        * the URL of the device processing the QueueEntry
-        */
-       public static final String deviceURL="DeviceURL";
-       /**
-         * set the URL of the device processing the QueueEntry
-         * @param ke the KElement to work on
-         * @param theDeviceID the URL of the device processing the QueueEntry
-         */
-        public static void setDeviceURL(KElement ke, String theDeviceURL)
-        {
-            setMyNSAttribute(ke,deviceURL,theDeviceURL);       
-        }
-        
-        /**
-         * get the URL of the device processing the QueueEntry
-         * @param ke the KElement to work on
-         * @return the URL of the device processing the QueueEntry
-         */
-        public static String getDeviceURL(KElement ke)
-        {
-            return getMyNSAttribute(ke,deviceURL);
-        }
-        
-///////////////////////////////////////////////////////////////////////
-        
-        /**
-         * the queue entry tracking subelement
-         */
-        public static final String slaveQueueEntryID="SlaveQueueEntryID";
+	public static final String MY_NS = "www.cip4.org/Bambi";
+	public static final String MY_NS_PREFIX = "bambi:";
 
-         /**
-         * @param qe
-         * @param outputQEID
-         */
-        public static void setSlaveQueueEntryID(KElement qe, String outputQEID)
-        {
-            setMyNSAttribute(qe, slaveQueueEntryID, outputQEID);        
-        }
-        /**
-         * @param qe the queuentry to check
-         */
-        public static String  getSlaveQueueEntryID(KElement qe)
-        {
-            return getMyNSAttribute(qe, slaveQueueEntryID);        
-        }
-        
-        /**
-         * @param qt
-         * @param outputQEID
-         */
-        public static JDFQueueEntry  getSlaveQueueEntry(JDFQueue q, String slaveID)
-        {
-            if(KElement.isWildCard(slaveID))
-                return null;
-            
-            VElement v=q.getQueueEntryVector();
-            if(v==null)
-                return null;
-            int size = v.size();
-            for(int i=0;i<size;i++)
-            {
-                JDFQueueEntry qe=(JDFQueueEntry)v.elementAt(i);
-                if(slaveID.equals(qe.getAttribute(slaveQueueEntryID, MY_NS, null)))
-                    return qe;
-            }
-            return null;
-        }
+	/**
+	 * 
+	 * @param e the element to work on
+	 * @param attName the local attribute name to set
+	 * @param attVal the attribute value to set
+	 */
+	public static void setMyNSAttribute(KElement e, String attName, String attVal)
+	{
+		if (e == null)
+		{
+			throw new JDFException("setMyNSAttribute: setting on null element");
+		}
+		e.setAttribute(MY_NS_PREFIX + attName, attVal, MY_NS);
+	}
 
-        /**
-         * @param root
-         * @param slaveURL
-         */
-        public static void setSlaveURL(KElement root, String _slaveURL)
-        {
-            setMyNSAttribute(root, slaveURL, _slaveURL);        
-        }
-   
+	/**
+	 * @param e the element to work on
+	 * @param attName the local element name to get
+	 * @param iSkip get the nth element
+	 * @return the element
+	 * 
+	 */
+	public static KElement getCreateMyNSElement(KElement e, String elmName, int iSkip)
+	{
+		return e == null ? null : e.getCreateElement(elmName, MY_NS, iSkip);
+	}
+
+	/**
+	 * @param e the element to work on
+	 * @param attName the local element name to get
+	 * @param iSkip get the nth element
+	 * @return the element
+	 * 
+	 */
+	public static KElement getMyNSElement(KElement e, String elmName, int iSkip)
+	{
+		return e == null ? null : e.getElement(elmName, MY_NS, iSkip);
+	}
+
+	/**
+	 * @param e the element to work on
+	 * @param attName the local element name to get
+	 * @param iSkip get the nth element
+	 * @return the element
+	 * 
+	 */
+	public static KElement removeMyNSElement(KElement e, String elmName, int iSkip)
+	{
+		return e == null ? null : e.removeChild(elmName, MY_NS, iSkip);
+	}
+
+	/**
+	 * @param e the element to work on
+	 * @param attName the local attribute name to set
+	 * @return the attribute value, null if none exists
+	 * 
+	 */
+	public static String getMyNSAttribute(KElement e, String attName)
+	{
+		return e == null ? null : e.getAttribute(attName, MY_NS, null);
+	}
+
+	/**
+	 * @param e the element to work on
+	 * @param attName the local attribute name to set
+	 * @return the attribute value, null if none exists
+	 * 
+	 */
+	public static String getMyNSString(String attName)
+	{
+		return MY_NS_PREFIX + attName;
+	}
+
+	/**
+	 * 
+	 * @param e the element to work on
+	 * @param attName the local attribute name to remove
+	 */
+	public static void removeMyNSAttribute(KElement e, String attName)
+	{
+		if (e == null)
+		{
+			throw new JDFException("setMyNSAttribute: setting on null element");
+		}
+		e.removeAttribute(MY_NS_PREFIX + attName, MY_NS);
+	}
+
+	/**
+	 * 
+	 */
+	public static KElement getStatusContainer(JDFQueueEntry qe)
+	{
+		return getMyNSElement(qe, STATUS_CONTAINER, 0);
+	}
+
+	/**
+	 * 
+	 */
+	public static KElement getCreateStatusContainer(JDFQueueEntry qe)
+	{
+		return getCreateMyNSElement(qe, STATUS_CONTAINER, 0);
+	}
+
+	/**
+	 * remove all Bambi specific elements and attributes from the given KElement
+	 * @param ke the KElement to clean up
+	 */
+	public static void removeBambiExtensions(KElement ke)
+	{
+		if (ke != null)
+			ke.removeExtensions(MY_NS);
+	}
+
+	/*** docURL *************************************************************/
+	/**
+	 * the URL where the JDFDoc can be grabbed
+	 */
+	public static final String docURL = "DocURL";
+
+	/**
+	  * set the location of the JDF
+	  * @param ke the KElement to work on
+	  * @param docURL the location of the JDF
+	  */
+	public static void setDocURL(KElement ke, String _docURL)
+	{
+		setMyNSAttribute(ke, docURL, _docURL);
+	}
+
+	/**
+	 * get the location of the JDF
+	 * @param ke the KElement to work on
+	 * @return docURL the location of the JDF
+	 */
+	public static String getDocURL(KElement ke)
+	{
+		return getMyNSAttribute(ke, docURL);
+	}
+
+	/**
+	 * get the associated JDF
+	 * @param ke the KElement to work on
+	 * @return docURL the location of the JDF
+	 */
+	public static JDFDoc getDocFromURL(KElement ke)
+	{
+		String url = getMyNSAttribute(ke, docURL);
+		return JDFDoc.parseURL(url, null);
+	}
+
+	/*** returnURL **********************************************************/
+	/**
+	 * the URL to send the JDFDoc back to after processing
+	 */
+	public static final String returnURL = "ReturnURL";
+
+	/**
+	  * set the location to send the ReturnQueueEntry to
+	  * @param ke the KElement to work on
+	  * @param theReturnURL the location to send the ReturnQueueEntry to
+	  */
+	public static void setReturnURL(KElement ke, String theReturnURL)
+	{
+		setMyNSAttribute(ke, returnURL, theReturnURL);
+	}
+
+	/**
+	 * get the location to send the ReturnQueueEntry to
+	 * @param ke the KElement to work on
+	 * @return the location to send the ReturnQueueEntry to
+	 */
+	public static String getReturnURL(KElement ke)
+	{
+		return getMyNSAttribute(ke, returnURL);
+	}
+
+	/*** returnJMF *********************************************************/
+	/**
+	 * the URL to send the ReturnJMF to
+	 */
+	public static final String returnJMF = "ReturnJMF";
+
+	/**
+	  * set the location to send the ReturnJMF to
+	  * @param ke the KElement to work on
+	  * @param theReturnJMF the location to send the ReturnJMF to
+	  */
+	public static void setReturnJMF(KElement ke, String theReturnJMF)
+	{
+		setMyNSAttribute(ke, returnJMF, theReturnJMF);
+	}
+
+	/**
+	 * get the location to send the ReturnJMF to
+	 * @param ke the KElement to work on
+	 * @return the location to send the ReturnJMF to
+	 */
+	public static String getReturnJMF(KElement ke)
+	{
+		return getMyNSAttribute(ke, returnJMF);
+	}
+
+	/*** deviceID *********************************************************/
+	/**
+	 * the ID of the device processing the QueueEntry
+	 */
+	public static final String deviceID = "DeviceID";
+
+	/**
+	  * set the ID of the device processing the QueueEntry
+	  * @param ke the KElement to work on
+	  * @param theDeviceID the ID of the device processing the QueueEntry
+	  */
+	public static void setDeviceID(KElement ke, String theDeviceID)
+	{
+		setMyNSAttribute(ke, deviceID, theDeviceID);
+	}
+
+	/**
+	 * get the ID of the device processing the QueueEntry
+	 * @param ke the KElement to work on
+	 * @return the ID of the device processing the QueueEntry
+	 */
+	public static String getDeviceID(KElement ke)
+	{
+		return getMyNSAttribute(ke, deviceID);
+	}
+
+	/*** deviceURL *********************************************************/
+	/**
+	 * the URL of the device processing the QueueEntry
+	 */
+	public static final String deviceURL = "DeviceURL";
+
+	/**
+	  * set the URL of the device processing the QueueEntry
+	  * @param ke the KElement to work on
+	  * @param theDeviceID the URL of the device processing the QueueEntry
+	  */
+	public static void setDeviceURL(KElement ke, String theDeviceURL)
+	{
+		setMyNSAttribute(ke, deviceURL, theDeviceURL);
+	}
+
+	/**
+	 * get the URL of the device processing the QueueEntry
+	 * @param ke the KElement to work on
+	 * @return the URL of the device processing the QueueEntry
+	 */
+	public static String getDeviceURL(KElement ke)
+	{
+		return getMyNSAttribute(ke, deviceURL);
+	}
+
+	///////////////////////////////////////////////////////////////////////
+
+	/**
+	 * the queue entry tracking subelement
+	 */
+	public static final String slaveQueueEntryID = "SlaveQueueEntryID";
+
+	/**
+	* @param qe
+	* @param outputQEID
+	*/
+	public static void setSlaveQueueEntryID(KElement qe, String outputQEID)
+	{
+		setMyNSAttribute(qe, slaveQueueEntryID, outputQEID);
+	}
+
+	/**
+	 * @param qe the queuentry to check
+	 */
+	public static String getSlaveQueueEntryID(KElement qe)
+	{
+		return getMyNSAttribute(qe, slaveQueueEntryID);
+	}
+
+	/**
+	 * @param q 
+	 * @param slaveID 
+	 * @return the QueueEntry with the matching slave qeid
+	 */
+	public static JDFQueueEntry getSlaveQueueEntry(JDFQueue q, String slaveID)
+	{
+		if (KElement.isWildCard(slaveID))
+			return null;
+
+		VElement v = q.getQueueEntryVector();
+		if (v == null)
+			return null;
+		int size = v.size();
+		for (int i = 0; i < size; i++)
+		{
+			JDFQueueEntry qe = (JDFQueueEntry) v.elementAt(i);
+			if (slaveID.equals(qe.getAttribute(slaveQueueEntryID, MY_NS, null)))
+				return qe;
+		}
+		return null;
+	}
+
+	/**
+	 * @param root
+	 * @param slaveURL
+	 */
+	public static void setSlaveURL(KElement root, String _slaveURL)
+	{
+		setMyNSAttribute(root, slaveURL, _slaveURL);
+	}
+
 }

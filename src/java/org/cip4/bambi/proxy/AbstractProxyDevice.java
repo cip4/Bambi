@@ -293,7 +293,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		String deviceURL = getDeviceURLForSlave();
 		jmfs[0] = JMFFactory.buildStatusSubscription(deviceURL, 10., 0, queueEntryID);
 		jmfs[1] = JMFFactory.buildResourceSubscription(deviceURL, 10., 0, queueEntryID);
-		jmfs[2] = JMFFactory.buildNotificationSubscription(deviceURL, 10., 0);
+		jmfs[2] = JMFFactory.buildNotificationSubscription(deviceURL, 0., 0);
 		return jmfs;
 	}
 

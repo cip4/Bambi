@@ -127,6 +127,7 @@ public class MessageSender implements Runnable
 	private final Object mutexDispatch = new Object();
 	private int sent = 0;
 	private int idle = 0;
+	private long created = 0;
 	private long lastQueued = 0;
 	private long lastSent = 0;
 
@@ -169,7 +170,7 @@ public class MessageSender implements Runnable
 	/**
 	 * trivial response handler that simply grabs the response and passes it back through
 	 * getResponse() / isHandled()
-	 * @author prosirai
+	 * @author Rainer Prosi
 	 *
 	 */
 	public static class MessageResponseHandler implements IResponseHandler
@@ -180,6 +181,9 @@ public class MessageSender implements Runnable
 		private Object mutex = new Object();
 		private int abort = 0; // 0 no abort handling, 1= abort on timeou, 2= has been aborted
 
+		/**
+		 * 
+		 */
 		public MessageResponseHandler()
 		{
 			super();
@@ -187,6 +191,10 @@ public class MessageSender implements Runnable
 
 		/* (non-Javadoc)
 		 * @see org.cip4.bambi.core.messaging.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 */
+		/**
+		 * @see org.cip4.bambi.core.messaging.IResponseHandler#handleMessage()
+		 * @return true if handled
 		 */
 		public boolean handleMessage()
 		{
@@ -293,12 +301,13 @@ public class MessageSender implements Runnable
 	/**
 	 * constructor
 	 * @param theUrl the URL to send the message to
-	 * @param callbck the converter callback to use, null if no modification is required                
+	 * @param callback the converter callback to use, null if no modification is required                
 	 */
 	public MessageSender(String theUrl, IConverterCallback callback)
 	{
 		_messages = new Vector<MessageDetails>();
 		callURL = new CallURL(callback, theUrl);
+		created = System.currentTimeMillis();
 	}
 
 	/**
@@ -310,6 +319,7 @@ public class MessageSender implements Runnable
 	{
 		_messages = new Vector<MessageDetails>();
 		callURL = cu;
+		created = System.currentTimeMillis();
 	}
 
 	/**
@@ -550,6 +560,12 @@ public class MessageSender implements Runnable
 		return vDumps.getOne(senderID, 1);
 	}
 
+	/**
+	 * add debug dump directories for a given senderID
+	 * @param senderID
+	 * @param inDump
+	 * @param outDump
+	 */
 	public static void addDumps(String senderID, DumpDir inDump, DumpDir outDump)
 	{
 		vDumps.putOne(senderID, inDump);
@@ -557,9 +573,11 @@ public class MessageSender implements Runnable
 	}
 
 	/**
-	 * queses a message for the URL that this MessageSender belongs to
+	 * queues a message for the URL that this MessageSender belongs to
 	 * also updates the message for a given recipient if required
 	 * @param jmf the message to send
+	 * @param handler 
+	 * @param url 
 	 * @return true, if the message is successfully queued. 
 	 *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
 	 */
@@ -595,9 +613,13 @@ public class MessageSender implements Runnable
 	}
 
 	/**
-	 * queses a message for the URL that this MessageSender belongs to
+	 * queues a message for the URL that this MessageSender belongs to
 	 * also updates the message for a given recipient if required
-	 * @param jmf the message to send
+	 * @param multpart 
+	 * @param handler 
+	 * @param md 
+	 * @param senderID 
+	 * @param url 
 	 * @return true, if the message is successfully queued. 
 	 *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
 	 */
@@ -613,6 +635,10 @@ public class MessageSender implements Runnable
 		return true;
 	}
 
+	/**
+	 * @see java.lang.Object#toString()
+	 * @return
+	 */
 	@Override
 	public String toString()
 	{
@@ -636,6 +662,7 @@ public class MessageSender implements Runnable
 			ms.setAttribute("NumSent", sent, null);
 			ms.setAttribute("LastQueued", BambiServlet.formatLong(lastQueued), null);
 			ms.setAttribute("LastSent", BambiServlet.formatLong(lastSent), null);
+			ms.setAttribute(AttributeName.CREATIONDATE, BambiServlet.formatLong(created), null);
 			ms.setAttribute("Active", !doShutDown, null);
 		}
 	}

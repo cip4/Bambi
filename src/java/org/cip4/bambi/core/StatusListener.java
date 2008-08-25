@@ -69,9 +69,6 @@
  */
 package org.cip4.bambi.core;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.SignalDispatcher.Trigger;
@@ -104,7 +101,6 @@ public class StatusListener
 	protected StatusCounter theCounter;
 	private JDFNode currentNode = null;
 	private long lastSave = 0;
-	private Set<String> resourceTotal = null;
 
 	/**
 	 * 
@@ -179,61 +175,27 @@ public class StatusListener
 			return;
 		}
 		theCounter.setEvent(eventID, eventValue, comment);
-		flush("Event");
+		flush("Notification");
 	}
 
 	/**
 	 * updates the amount for a given resource the amounts are collected but not
-	 * signaled until signalstatus is called
+	 * signaled until @see signalStatus() is called
 	 * 
-	 * @param resID
-	 *            the resource id of the tracked resource
-	 * @param good
-	 *            the number of good copies
-	 * @param waste
-	 *            the number of waste copies, negative values specify that waste
-	 *            should be ignored
+	 * @param resID the resource id of the tracked resource
+	 * @param good the number of good copies
+	 * @param waste the number of waste copies, 0  specifies that waste should be ignored
 	 */
 	public void updateAmount(String resID, double good, double waste)
 	{
 		if (theCounter == null)
 			return;
-		if (isTotalRes(resID))
-			return;
-		theCounter.addPhase(resID, good, waste);
+		theCounter.addPhase(resID, good, waste, true);
 		if (good + waste > 0)
 		{
 			dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int) (good + waste), null);
 		}
 		saveJDF(12345);
-	}
-
-	/**
-	 * checks whether the resource represented by resID is being updated in total mode - typically via resource signals
-	 * @param resID
-	 * @return true if resID has been updated in total mode
-	 */
-	private boolean isTotalRes(String resID)
-	{
-		final String rref = theCounter.getLinkID(resID);
-		if (rref == null)
-			return false;
-		return resourceTotal == null ? false : resourceTotal.contains(rref);
-	}
-
-	/**
-	 * add the resource represented by resID as being updated in total mode - typically via resource signals
-	 * @param resID the resourceID to add
-	 */
-	private void addTotalRes(String resID)
-	{
-		if (resourceTotal == null)
-			resourceTotal = new HashSet<String>();
-		final String rref = theCounter.getLinkID(resID);
-		if (rref == null)
-			return;
-		if (!resourceTotal.contains(rref))
-			resourceTotal.add(rref);
 	}
 
 	/**
@@ -279,11 +241,10 @@ public class StatusListener
 	{
 		if (theCounter == null)
 			return;
-		addTotalRes(resID);
 		theCounter.setTotal(resID, amount, waste);
 		if (amount > 0)
 		{
-			dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int) (amount), null);
+			dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int) amount, null);
 		}
 		saveJDF(12345);
 	}
@@ -332,7 +293,6 @@ public class StatusListener
 		if (!bSame)
 		{
 			saveJDF(-1);
-			resourceTotal = null;
 		}
 
 		if (!KElement.isWildCard(oldQEID))
@@ -471,9 +431,30 @@ public class StatusListener
 		return true;
 	}
 
+	/**
+	 * @param _rootDispatcher
+	 */
 	public void setRootDispatcher(SignalDispatcher _rootDispatcher)
 	{
 		this.rootDispatcher = _rootDispatcher;
+	}
+
+	/**
+	 * @param resID the resource id of the tracked resource
+	 * @param deltaAmount the number of good copies
+	 * @param deltaWaste the number of waste copies, 0  specifies that waste should be ignored
+	 * @param amount
+	 * @param waste
+	 */
+	public void setAmount(String resID, double deltaAmount, double deltaWaste, double amount, double waste)
+	{
+		if (theCounter == null)
+			return;
+		theCounter.setPhase(resID, deltaAmount, deltaWaste);
+		if (amount >= deltaAmount)
+			theCounter.setTotal(resID, amount, false);
+		if (waste >= deltaWaste)
+			theCounter.setTotal(resID, waste, true);
 	}
 
 }

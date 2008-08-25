@@ -16,6 +16,8 @@ import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.bambi.core.queues.IQueueEntry;
+import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -43,7 +45,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	protected IConverterCallback slaveCallBack;
 
 	/**
-	* 
+	* @param parent the parent device
 	*/
 	public AbstractProxyProcessor(AbstractProxyDevice parent)
 	{
@@ -87,9 +89,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	}
 
 	/**
-	 * @param qe
-	 * @param node
-	 * @param qeR
+	 * @param devQEID 
+	 * @param newStatus 
+	 * @param slaveURL 
 	 */
 	protected void submitted(String devQEID, EnumQueueEntryStatus newStatus, String slaveURL)
 	{
@@ -109,11 +111,13 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 	/**
 	 * @param qurl
-	 * @param qe
+	 * @param deviceOutputHF 
+	 * @param ud 
+	 * @param expandMime 
 	 * @return
 	 * TODO mime or not mime...
 	 */
-	protected EnumQueueEntryStatus submitToQueue(URL qurl, File deviceOutputHF, MIMEDetails ud, boolean expandMime)
+	protected IQueueEntry submitToQueue(URL qurl, File deviceOutputHF, MIMEDetails ud, boolean expandMime)
 	{
 		JDFJMF jmf = JDFJMF.createJMF(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
 		JDFCommand com = (JDFCommand) jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command, null, 0);
@@ -195,7 +199,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
 			_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
 		}
-		return qe.getQueueEntryStatus();
+		return new QueueEntry(nod, qe);
 	}
 
 	/**
