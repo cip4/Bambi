@@ -80,98 +80,108 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.StatusCounter;
 
-public class ProxyTest extends BambiTestCase {
-	
+public class ProxyTest extends BambiTestCase
+{
+
 	@Override
-	public void setUp() throws Exception {
-       
+	public void setUp() throws Exception
+	{
+
 		super.setUp();
-//		abortRemoveAll(proxyUrl);
+		//		abortRemoveAll(proxyUrl);
 	}
-	
-	private void submitMimeToProxy() {
-        submitMimetoURL(proxyUrl);
+
+	private void submitMimeToProxy()
+	{
+		submitMimetoURL(proxyUrl);
 	}
-	
-	public void testSubmitQueueEntry_MIME() {
+
+	public void testSubmitQueueEntry_MIME()
+	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmfStat, proxyUrl, null,2000);
-		assertNotNull( resp );
-		assertEquals( 0,resp.getReturnCode() );
+		JDFResponse resp = jmfFactory.send2URLSynchResp(jmfStat, proxyUrl, null, null, 2000);
+		assertNotNull(resp);
+		assertEquals(0, resp.getReturnCode());
 		JDFQueue q = resp.getQueue(0);
-		assertNotNull( q );
-		int oldSize=q.getEntryCount();
+		assertNotNull(q);
+		int oldSize = q.getEntryCount();
 		submitMimeToProxy();
-        
-        // check that the QE is on the proxy
+
+		// check that the QE is on the proxy
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-        resp=jmfFactory.send2URLSynchResp(jmf, proxyUrl, null,2000);
-        assertNotNull( resp );
-        assertEquals( 0,resp.getReturnCode() );
-        q=resp.getQueue(0);
-        assertNotNull( q );
-        int newCount=q.getEntryCount();
-        assertEquals( oldSize+1,newCount );
-        
+		resp = jmfFactory.send2URLSynchResp(jmf, proxyUrl, null, null, 2000);
+		assertNotNull(resp);
+		assertEquals(0, resp.getReturnCode());
+		q = resp.getQueue(0);
+		assertNotNull(q);
+		int newCount = q.getEntryCount();
+		assertEquals(oldSize + 1, newCount);
+
 	}
-       public void testAbortQueueEntry() throws InterruptedException {
+
+	public void testAbortQueueEntry() throws InterruptedException
+	{
 		submitMimeToProxy();
-		
-		int loops=0;
-		boolean hasRunningQE=false;
-		while (loops<10 && !hasRunningQE) {
+
+		int loops = 0;
+		boolean hasRunningQE = false;
+		while (loops < 10 && !hasRunningQE)
+		{
 			loops++;
 			Thread.sleep(1000);
 			JDFJMF jmf = JMFFactory.buildQueueStatus();
-            
-	        JDFResponse resp=jmfFactory.send2URLSynchResp(jmf, proxyUrl, null,2000);
-	        assertNotNull( resp );
-	        assertEquals( 0,resp.getReturnCode() );
-	        JDFQueue q=resp.getQueue(0);
-	        assertNotNull( q );
-	        
-	        VElement elem=q.getQueueEntryVector();
-	        assertTrue( elem.size()>0 );
-	        
-	        for (int i=0;i<elem.size();i++) {
-	        	JDFQueueEntry qe=(JDFQueueEntry) elem.get(i);
-	        	assertNotNull( qe );
-	        	if ( EnumQueueEntryStatus.Running.equals(qe.getQueueEntryStatus()) ) {
-	        		hasRunningQE=true;
-	        		break;   		
-	        	}
-	        }
+
+			JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, proxyUrl, null, null, 2000);
+			assertNotNull(resp);
+			assertEquals(0, resp.getReturnCode());
+			JDFQueue q = resp.getQueue(0);
+			assertNotNull(q);
+
+			VElement elem = q.getQueueEntryVector();
+			assertTrue(elem.size() > 0);
+
+			for (int i = 0; i < elem.size(); i++)
+			{
+				JDFQueueEntry qe = (JDFQueueEntry) elem.get(i);
+				assertNotNull(qe);
+				if (EnumQueueEntryStatus.Running.equals(qe.getQueueEntryStatus()))
+				{
+					hasRunningQE = true;
+					break;
+				}
+			}
 		}
-        assertTrue( hasRunningQE );        
+		assertTrue(hasRunningQE);
 	}
 
-    public void testSubmitQueueEntry_MIME_Many() {
-            // get number of QueueEntries before submitting
-            JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-            JDFResponse resp = jmfFactory.send2URLSynchResp(jmfStat, proxyUrl, "foo",20000);
-            assertNotNull( resp );
-            assertEquals( 0,resp.getReturnCode() );
-            JDFQueue q = resp.getQueue(0);
-            assertNotNull( q );
-            int oldSize=q.getEntryCount();
-    
-            // check that the QE is on the proxy
-            JDFJMF jmf = JMFFactory.buildQueueStatus();
-            for(int i=0;i<2213;i++)
-            {
-                System.out.println("submitting "+i);
-                submitMimeToProxy();
-                resp=jmfFactory.send2URLSynchResp(jmf, proxyUrl, null,5000);
-                assertNotNull( "loop "+i,resp );
-                assertEquals( 0,resp.getReturnCode() );
-                q=resp.getQueue(0);
-                assertNotNull( q );
-                int newCount=q.getEntryCount();
-                StatusCounter.sleep(1000);
-               // assertEquals( oldSize+i,newCount );
-            }
-    
-    //        abortRemoveAll(simWorkerUrl);
-        }
+	public void testSubmitQueueEntry_MIME_Many()
+	{
+		// get number of QueueEntries before submitting
+		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
+		JDFResponse resp = jmfFactory.send2URLSynchResp(jmfStat, proxyUrl, null, "foo", 20000);
+		assertNotNull(resp);
+		assertEquals(0, resp.getReturnCode());
+		JDFQueue q = resp.getQueue(0);
+		assertNotNull(q);
+		int oldSize = q.getEntryCount();
+
+		// check that the QE is on the proxy
+		JDFJMF jmf = JMFFactory.buildQueueStatus();
+		for (int i = 0; i < 2213; i++)
+		{
+			System.out.println("submitting " + i);
+			submitMimeToProxy();
+			resp = jmfFactory.send2URLSynchResp(jmf, proxyUrl, null, null, 5000);
+			assertNotNull("loop " + i, resp);
+			assertEquals(0, resp.getReturnCode());
+			q = resp.getQueue(0);
+			assertNotNull(q);
+			int newCount = q.getEntryCount();
+			StatusCounter.sleep(1000);
+			// assertEquals( oldSize+i,newCount );
+		}
+
+		//        abortRemoveAll(simWorkerUrl);
+	}
 }

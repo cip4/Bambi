@@ -24,6 +24,13 @@
         <xsl:value-of select="@NodeStatusDetails"/>
         <br/>
       </xsl:if>
+      Job ID:
+      <xsl:value-of select="@JobID"/>
+      <xsl:if test="@JobPartID">
+        /
+        <xsl:value-of select="@JobPartID"/>
+      </xsl:if>
+      <br/>
       <xsl:if test="@PartIDKeys">
         Node Partition Keys:
         <xsl:value-of select="@PartIDKeys"/>

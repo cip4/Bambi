@@ -70,30 +70,32 @@
 */
 
 package org.cip4.bambi;
+
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
 
+public class WebAppTest extends BambiTestCase
+{
 
-public class WebAppTest extends BambiTestCase {
-	
-	public void testDeviceStatus() 
+	public void testDeviceStatus()
 	{
-		JDFJMF jmfStatus=JMFFactory.buildStatus();
-		VString urls=new VString();
+		JDFJMF jmfStatus = JMFFactory.buildStatus();
+		VString urls = new VString();
 		urls.add(proxyUrl);
 		urls.add(simWorkerUrl);
 		urls.add(manualWorkerUrl);
-		
-		for (int i=0;i<urls.size();i++) {
-			String url=urls.get(i);
-			JDFResponse resp=jmfFactory.send2URLSynchResp(jmfStatus, url, null,2000);
-			assertNotNull( resp );
-			JDFDeviceInfo di=resp.getDeviceInfo(0);
-			assertNotNull( di );
-			assertNotNull( di.getDeviceStatus() );
+
+		for (int i = 0; i < urls.size(); i++)
+		{
+			String url = urls.get(i);
+			JDFResponse resp = jmfFactory.send2URLSynchResp(jmfStatus, url, null, null, 2000);
+			assertNotNull(resp);
+			JDFDeviceInfo di = resp.getDeviceInfo(0);
+			assertNotNull(di);
+			assertNotNull(di.getDeviceStatus());
 		}
 	}
 }

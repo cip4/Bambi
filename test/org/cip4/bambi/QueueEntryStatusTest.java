@@ -89,228 +89,267 @@ import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.MimeUtil;
 
-public class QueueEntryStatusTest extends BambiTestCase {
+public class QueueEntryStatusTest extends BambiTestCase
+{
 
-	private JDFQueue getQueue() {
+	private JDFQueue getQueue()
+	{
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null,2000);
-		assertNotNull( resp );
-        assertEquals( 0,resp.getReturnCode() );
+		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		assertNotNull(resp);
+		assertEquals(0, resp.getReturnCode());
 
-        JDFQueue qu = resp.getQueue(0);
-        assertTrue( qu!=null );
+		JDFQueue qu = resp.getQueue(0);
+		assertTrue(qu != null);
 		return qu;
 	}
-	
-	private JDFQueueEntry getRunningQueueEntry() {
+
+	private JDFQueueEntry getRunningQueueEntry()
+	{
 		JDFQueue qu = getQueue();
-        VElement qev = qu.getQueueEntryVector();
-        assertNotNull( qev );
-        
-        // find a runnig QueueEntry
-        JDFQueueEntry runningQE = null;
-        for (int i=0;i<qev.size();i++)
-        {
-        	JDFQueueEntry qe = (JDFQueueEntry) qev.get(i);
-        	if ( EnumQueueEntryStatus.Running.equals(qe.getQueueEntryStatus()) ) {
-        		runningQE = qe;
-        		break;
-        	}
-        }
+		VElement qev = qu.getQueueEntryVector();
+		assertNotNull(qev);
+
+		// find a runnig QueueEntry
+		JDFQueueEntry runningQE = null;
+		for (int i = 0; i < qev.size(); i++)
+		{
+			JDFQueueEntry qe = (JDFQueueEntry) qev.get(i);
+			if (EnumQueueEntryStatus.Running.equals(qe.getQueueEntryStatus()))
+			{
+				runningQE = qe;
+				break;
+			}
+		}
 		return runningQE;
 	}
-	
+
 	private EnumQueueEntryStatus getQueueEntryStatus(String queueEntryID)
 	{
 		JDFQueue qu = getQueue();
 		JDFQueueEntry que = qu.getQueueEntry(queueEntryID);
-		return que==null ? null : que.getQueueEntryStatus();
+		return que == null ? null : que.getQueueEntryStatus();
 	}
-	
+
 	@Override
-	public void setUp() throws Exception 
+	public void setUp() throws Exception
 	{
 		super.setUp();
 		abortRemoveAll(simWorkerUrl);
-		
-		JDFQueueEntry runningQE=null;
-        
+
+		JDFQueueEntry runningQE = null;
+
 		// submit a new, fresh qe
 		System.out.println("submitting new QueueEntry");
-		JDFDoc docJMF=new JDFDoc("JMF");
-		JDFJMF jmfSubmit=docJMF.getJMFRoot();
-		JDFCommand com = (JDFCommand)jmfSubmit.appendMessageElement(JDFMessage.EnumFamily.Command,JDFMessage.EnumType.SubmitQueueEntry);
+		JDFDoc docJMF = new JDFDoc("JMF");
+		JDFJMF jmfSubmit = docJMF.getJMFRoot();
+		JDFCommand com = (JDFCommand) jmfSubmit.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
 		JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
-		qsp.setURL( "cid:"+sm_dirTestData+"Elk_ConventionalPrinting.jdf" );
+		qsp.setURL("cid:" + sm_dirTestData + "Elk_ConventionalPrinting.jdf");
 
 		JDFParser p = new JDFParser();
-		JDFDoc docJDF = p.parseFile( sm_dirTestData+"Elk_ConventionalPrinting.jdf" );
+		JDFDoc docJDF = p.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf");
 		Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, true);
 
-		try {
-			HttpURLConnection response = MimeUtil.writeToURL( mp,simWorkerUrl );
-			assertEquals( 200,response.getResponseCode() );
-		} catch (Exception e) {
-			fail( e.getMessage() ); 
+		try
+		{
+			HttpURLConnection response = MimeUtil.writeToURL(mp, simWorkerUrl);
+			assertEquals(200, response.getResponseCode());
 		}
-		
+		catch (Exception e)
+		{
+			fail(e.getMessage());
+		}
+
 		// give the device some time to start processing
-		boolean hasRunningQE=false;
-		int counter=0;
-		while (counter<10 && !hasRunningQE) {
-			try {
+		boolean hasRunningQE = false;
+		int counter = 0;
+		while (counter < 10 && !hasRunningQE)
+		{
+			try
+			{
 				Thread.sleep(750);
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e)
+			{
 				e.printStackTrace();
 			}
-			
+
 			runningQE = getRunningQueueEntry();
-			if (runningQE!=null)
-				hasRunningQE=true;
+			if (runningQE != null)
+				hasRunningQE = true;
 			counter++;
 		}
 
-		assertTrue( hasRunningQE );
+		assertTrue(hasRunningQE);
 	}
-	
+
 	public void testSuspendResumeQE()
 	{
 		JDFQueueEntry runningQE = getRunningQueueEntry();
-		assertNotNull( runningQE );
+		assertNotNull(runningQE);
 		String qeID = runningQE.getQueueEntryID();
-		
-		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry( qeID );
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null,2000);
-		assertEquals( 0,resp.getReturnCode() );
+
+		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry(qeID);
+		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		assertEquals(0, resp.getReturnCode());
 		// give the device some time to suspend the QE
-		boolean hasSuspended=false;
-		byte suspCounter=0;
-		while (!hasSuspended && suspCounter<10) {
-			try {
+		boolean hasSuspended = false;
+		byte suspCounter = 0;
+		while (!hasSuspended && suspCounter < 10)
+		{
+			try
+			{
 				Thread.sleep(750);
-			} catch (InterruptedException e) {
-				fail( "interrupted during Thread.sleep()" );
 			}
-			if ( EnumQueueEntryStatus.Suspended.equals( getQueueEntryStatus(qeID) ) ) {
-				hasSuspended=true;
+			catch (InterruptedException e)
+			{
+				fail("interrupted during Thread.sleep()");
+			}
+			if (EnumQueueEntryStatus.Suspended.equals(getQueueEntryStatus(qeID)))
+			{
+				hasSuspended = true;
 			}
 			suspCounter++;
 		}
-        assertTrue( hasSuspended );
-		
-		jmf = JMFFactory.buildResumeQueueEntry( qeID );
-		resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null,2000);
-		assertEquals( 0, resp.getReturnCode() );
-		boolean hasSucceeded=false;
-		EnumQueueEntryStatus status=null;
-		int counter=0;
-		while (counter<10 && !hasSucceeded) {
+		assertTrue(hasSuspended);
+
+		jmf = JMFFactory.buildResumeQueueEntry(qeID);
+		resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		assertEquals(0, resp.getReturnCode());
+		boolean hasSucceeded = false;
+		EnumQueueEntryStatus status = null;
+		int counter = 0;
+		while (counter < 10 && !hasSucceeded)
+		{
 			// give the device some time to resume the QE
-			try {
+			try
+			{
 				Thread.sleep(750);
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e)
+			{
 				e.printStackTrace();
 			}
 			// now the qe should be either Waiting or Running, Completed is allowed as well
 			status = getQueueEntryStatus(qeID);
-			if (status.equals(EnumQueueEntryStatus.Running)
-					|| status.equals(EnumQueueEntryStatus.Waiting) 
-					|| status.equals(EnumQueueEntryStatus.Completed) ) {
+			if (status.equals(EnumQueueEntryStatus.Running) || status.equals(EnumQueueEntryStatus.Waiting)
+					|| status.equals(EnumQueueEntryStatus.Completed))
+			{
 				assertTrue(true);
-				hasSucceeded=true;
+				hasSucceeded = true;
 			}
 			counter++;
 		}
-		
-		if ( !hasSucceeded ) {
-			if (status==null) {
+
+		if (!hasSucceeded)
+		{
+			if (status == null)
+			{
 				fail("status is null");
-			} else {
-				fail("status is " + status.getName()+", should be Running or Waiting");
+			}
+			else
+			{
+				fail("status is " + status.getName() + ", should be Running or Waiting");
 			}
 		}
-		
+
 	}
-	
+
 	public void testAbortRemoveQE()
 	{
 		JDFQueueEntry runningQE = getRunningQueueEntry();
-		assertNotNull( runningQE );
+		assertNotNull(runningQE);
 		String qeID = runningQE.getQueueEntryID();
-		
-		JDFJMF jmf = JMFFactory.buildAbortQueueEntry( qeID );
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null,2000);
-		assertEquals( 0, resp.getReturnCode() );
+
+		JDFJMF jmf = JMFFactory.buildAbortQueueEntry(qeID);
+		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		assertEquals(0, resp.getReturnCode());
 		// give the device some time to abort the QE
-        try {
+		try
+		{
 			Thread.sleep(2500);
-		} catch (InterruptedException e) {
+		}
+		catch (InterruptedException e)
+		{
 			e.printStackTrace();
 		}
-		assertEquals(EnumQueueEntryStatus.Aborted.getName(), getQueueEntryStatus(qeID).getName() );
-		
-		jmf = JMFFactory.buildRemoveQueueEntry( qeID );
-		resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null,2000);
-		assertEquals( 0, resp.getReturnCode() );
+		assertEquals(EnumQueueEntryStatus.Aborted.getName(), getQueueEntryStatus(qeID).getName());
+
+		jmf = JMFFactory.buildRemoveQueueEntry(qeID);
+		resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		assertEquals(0, resp.getReturnCode());
 		// give the device some time to remove the QE
-        try {
+		try
+		{
 			Thread.sleep(1000);
-		} catch (InterruptedException e) {
+		}
+		catch (InterruptedException e)
+		{
 			e.printStackTrace();
 		}
 		// now the qe should be gone
-		assertNull("QueueEntry is still present",  getQueueEntryStatus(qeID));
+		assertNull("QueueEntry is still present", getQueueEntryStatus(qeID));
 	}
-	
+
 	public void testSuspendAbortQE()
 	{
 		JDFQueueEntry runningQE = getRunningQueueEntry();
-		assertNotNull( runningQE );
+		assertNotNull(runningQE);
 		String qeID = runningQE.getQueueEntryID();
-		
-		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry( qeID );
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null,2000);
-		assertEquals( 0, resp.getReturnCode() );
+
+		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry(qeID);
+		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		assertEquals(0, resp.getReturnCode());
 		// give the device some time to suspend the QE
-        try {
+		try
+		{
 			Thread.sleep(2500);
-		} catch (InterruptedException e) {
+		}
+		catch (InterruptedException e)
+		{
 			e.printStackTrace();
 		}
-		assertEquals(EnumQueueEntryStatus.Suspended.getName(), getQueueEntryStatus(qeID).getName() );
-		
-		jmf = JMFFactory.buildAbortQueueEntry( qeID );
-		resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null,2000);
-		assertEquals( 0, resp.getReturnCode() );
-		
+		assertEquals(EnumQueueEntryStatus.Suspended.getName(), getQueueEntryStatus(qeID).getName());
+
+		jmf = JMFFactory.buildAbortQueueEntry(qeID);
+		resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		assertEquals(0, resp.getReturnCode());
+
 		// give the device some time to remove the QE
-		boolean hasAborted=false;
-		EnumQueueEntryStatus status=null;
-		int counter=0;
-		while (counter<10 && !hasAborted) {
-			try {
+		boolean hasAborted = false;
+		EnumQueueEntryStatus status = null;
+		int counter = 0;
+		while (counter < 10 && !hasAborted)
+		{
+			try
+			{
 				Thread.sleep(750);
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e)
+			{
 				e.printStackTrace();
 			}
-			
+
 			// check whether the QEStatus is Aborted
 			status = getQueueEntryStatus(qeID);
-			if ( EnumQueueEntryStatus.Aborted.equals(status) ) {
+			if (EnumQueueEntryStatus.Aborted.equals(status))
+			{
 				assertTrue(true);
-				hasAborted=true;
+				hasAborted = true;
 			}
 			counter++;
 		}
-		
+
 		// now the qe should be gone
-		assertTrue( hasAborted );
+		assertTrue(hasAborted);
 	}
-	
+
 	public void testRogueWaves() throws Exception
 	{
-		for (int i=0;i<20;i++) {
-			System.out.println("run #"+i);
+		for (int i = 0; i < 20; i++)
+		{
+			System.out.println("run #" + i);
 			setUp();
 			testSuspendResumeQE();
 			tearDown();
