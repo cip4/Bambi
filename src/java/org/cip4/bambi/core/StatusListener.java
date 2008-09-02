@@ -86,6 +86,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.util.StatusCounter;
 
 /**
@@ -254,7 +255,7 @@ public class StatusListener
 	 * current node with a returned node, e.g from a proxy device
 	 * 
 	 * @param node
-	 *            the JDFNode used to overwrotie the local JDF node
+	 *            the JDFNode used to overwrite the local JDF node
 	 */
 	public void replaceNode(JDFNode node)
 	{
@@ -412,20 +413,16 @@ public class StatusListener
 	}
 
 	/**
-	 * @param q
+	 * @param jobID 
+	 * @param jobPartID 
+	 * @param queueEntryID 
 	 * @return
 	 */
 	private boolean matchesIDs(String jobID, String jobPartID, String queueEntryID)
 	{
-		String id2 = currentNode == null ? null : currentNode.getJobID(true);
-		// if(!KElement.isWildCard(jobID)&&!jobID.equals(id2))
-		// return false;
-		// id2 = currentNode==null ? null : currentNode.getJobPartID(false);
-		// if(!KElement.isWildCard(jobPartID)&&!id2.startsWith(jobPartID)) //
-		// assume dot notation
-		// return false;
-		id2 = currentNode == null ? null : theCounter.getQueueEntryID();
-		if (!KElement.isWildCard(jobPartID) && !jobPartID.equals(jobPartID))
+		NodeIdentifier niIn = new NodeIdentifier(jobID, jobPartID, null);
+		NodeIdentifier niCurrent = currentNode == null ? new NodeIdentifier() : currentNode.getIdentifier();
+		if (!niIn.matches(niCurrent) && !niCurrent.matches(niIn))
 			return false;
 
 		return true;

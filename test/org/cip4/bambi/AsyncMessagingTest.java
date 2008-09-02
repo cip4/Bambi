@@ -82,102 +82,105 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 
-public class AsyncMessagingTest extends BambiTestCase implements IResponseHandler {
-	protected VString messageIDs=null;
+public class AsyncMessagingTest extends BambiTestCase implements IResponseHandler
+{
+	protected VString messageIDs = null;
 	HttpURLConnection c;
+
 	@Override
-	public void setUp() throws Exception {
-		super.setUp();
-		messageIDs=new VString();
-	}
-	
-	public void testSendQueueStatus() throws InterruptedException 
+	public void setUp() throws Exception
 	{
-        final MessageSender messageSender = new MessageSender(simWorkerUrl,null);
-        Thread t=new Thread(messageSender,"Sender_Test");
-		for (int i=0;i<10;i++) {
-			JDFJMF stat=JMFFactory.buildStatus();
-			String msgID=stat.getMessageElement(null, null, 0).getID();
-            messageSender.queueMessage(stat, this, simWorkerUrl);
+		super.setUp();
+		messageIDs = new VString();
+	}
+
+	public void testSendQueueStatus() throws InterruptedException
+	{
+		final MessageSender messageSender = new MessageSender(simWorkerUrl);
+		Thread t = new Thread(messageSender, "Sender_Test");
+		for (int i = 0; i < 10; i++)
+		{
+			JDFJMF stat = JMFFactory.buildStatus();
+			String msgID = stat.getMessageElement(null, null, 0).getID();
+			messageSender.queueMessage(stat, this, simWorkerUrl, null);
 			messageIDs.add(msgID);
 			t.start();
 		}
-		
+
 		// now wait until all responses have been received
-		int counter=0;
-		while (messageIDs.size()>0 && counter < 10) {
+		int counter = 0;
+		while (messageIDs.size() > 0 && counter < 10)
+		{
 			Thread.sleep(1000);
 		}
-		assertEquals( 0,messageIDs.size() );
-	}
-	
-
-	public boolean handleMessage() {
-		
-        return true;
+		assertEquals(0, messageIDs.size());
 	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.messaging.IMessageHandler#getFamilies()
-     */
-    public EnumFamily[] getFamilies()
-        {
-            return new EnumFamily[]{EnumFamily.Response};
-        }
-    
+	public boolean handleMessage()
+	{
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.messaging.IMessageHandler#getMessageType()
-     */
-    public EnumType getMessageType()
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
+		return true;
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
-     */
-    public HttpURLConnection getConnection()
-    {
-       return c;
-    }
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.messaging.IMessageHandler#getFamilies()
+	 */
+	public EnumFamily[] getFamilies()
+	{
+		return new EnumFamily[] { EnumFamily.Response };
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.messaging.IResponseHandler#setConnection(java.net.HttpURLConnection)
-     */
-    public void setConnection(HttpURLConnection con)
-    {
-        c=con;
-        
-    }
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.messaging.IMessageHandler#getMessageType()
+	 */
+	public EnumType getMessageType()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java.io.BufferedInputStream)
-     */
-    public void setBufferedStream(BufferedInputStream bis)
-    {
-        // TODO Auto-generated method stub
-        
-    }
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
+	 */
+	public HttpURLConnection getConnection()
+	{
+		return c;
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.messaging.IResponseHandler#waitHandled(int)
-     */
-    public void waitHandled(int milliSeconds, boolean b)
-    {
-        // TODO Auto-generated method stub
-        
-    }
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.messaging.IResponseHandler#setConnection(java.net.HttpURLConnection)
+	 */
+	public void setConnection(HttpURLConnection con)
+	{
+		c = con;
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.messaging.IResponseHandler#isAborted()
-     */
-    public boolean isAborted()
-    {
-        // TODO Auto-generated method stub
-        return false;
-    }
+	}
 
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java.io.BufferedInputStream)
+	 */
+	public void setBufferedStream(BufferedInputStream bis)
+	{
+		// TODO Auto-generated method stub
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.messaging.IResponseHandler#waitHandled(int)
+	 */
+	public void waitHandled(int milliSeconds, boolean b)
+	{
+		// TODO Auto-generated method stub
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.messaging.IResponseHandler#isAborted()
+	 */
+	public boolean isAborted()
+	{
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }

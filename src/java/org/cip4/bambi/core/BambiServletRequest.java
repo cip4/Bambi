@@ -300,6 +300,18 @@ public class BambiServletRequest implements HttpServletRequest
 		return parent.getInputStream();
 	}
 
+	/**
+	 * flush the buffer an dull it
+	 */
+	public void flush()
+	{
+		buffer = null;
+	}
+
+	/**
+	 * get the buffered input stream
+	 * @return the buffered stream, null if this is not buffered and the inputstream throws an exception
+	 */
 	public InputStream getBufferedInputStream()
 	{
 		try

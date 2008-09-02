@@ -315,7 +315,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		}
 		if (jmf != null)
 		{
-			new JMFFactory(_slaveCallback).send2URLSynch(jmf, slaveURL, getDeviceID(), 3000);
+			new JMFFactory().send2URLSynch(jmf, slaveURL, _slaveCallback, getDeviceID(), 3000);
 		}
 	}
 

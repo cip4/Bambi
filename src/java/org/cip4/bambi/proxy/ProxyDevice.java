@@ -794,7 +794,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			JDFJMF jmf = JMFFactory.buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
 			if (jmf != null)
 			{
-				new JMFFactory(_callback).send2URL(jmf, getProxyProperties().getSlaveURL(), null, getDeviceID());
+				new JMFFactory().send2URL(jmf, getProxyProperties().getSlaveURL(), null, _slaveCallback, getDeviceID());
 			}
 		}
 		JDFQueueEntry qe = super.stopProcessing(queueEntryID, status);

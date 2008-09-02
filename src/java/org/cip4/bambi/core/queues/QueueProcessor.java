@@ -225,7 +225,6 @@ public class QueueProcessor
 			if (qsp != null)
 			{
 				JDFDoc doc = qsp.getURLDoc();
-
 				if (doc == null)
 				{
 					updateEntry(null, null, m, resp);
@@ -253,12 +252,14 @@ public class QueueProcessor
 					return true; // error was filled by handler
 				}
 				fixEntry(qe, doc);
+				System.gc();
 				if (qe == null)
 				{
 					return true;
 				}
 				else
 				{
+					resp.removeChild(ElementName.QUEUEENTRY, null, 0);
 					JDFQueueEntry qeNew = (JDFQueueEntry) resp.copyElement(qe, null);
 					BambiNSExtension.removeBambiExtensions(qeNew);
 					updateEntry(qe, null, m, resp);
@@ -894,13 +895,9 @@ public class QueueProcessor
 				log.error("failed to create base dir at location " + _queueFile.getParentFile());
 		}
 
-		if (_parentDevice.getJDFDir() != null)
-		{ // will be null in unit tests
-			File jdfDir = _parentDevice.getJDFDir();
-			if (!jdfDir.exists())
-				if (!jdfDir.mkdirs())
-					log.error("failed to create JDFDir at location " + jdfDir.getAbsolutePath());
-		}
+		File jdfDir = _parentDevice.getJDFDir();
+		if (!jdfDir.exists() && !jdfDir.mkdirs())
+			log.error("failed to create JDFDir at location " + jdfDir.getAbsolutePath());
 
 		JDFDoc d = JDFDoc.parseFile(_queueFile.getAbsolutePath());
 		if (d == null)
@@ -1114,6 +1111,9 @@ public class QueueProcessor
 	/**
 	 * @param newQE
 	 * @param theJDF
+	 * @param returnURL the returnURL to add to the qe
+	 * @param returnJMF 
+	 * @return true if successful
 	 */
 	protected boolean storeDoc(JDFQueueEntry newQE, JDFDoc theJDF, String returnURL, String returnJMF)
 	{
@@ -1342,7 +1342,7 @@ public class QueueProcessor
 				mimeDetails.httpDetails.chunkSize = properties.getControllerHTTPChunk();
 				mimeDetails.transferEncoding = properties.getControllerMIMEEncoding();
 				mimeDetails.modifyBoundarySemicolon = StringUtil.parseBoolean(properties.getDeviceAttribute("FixMIMEBoundarySemicolon"), false);
-				response = new JMFFactory(_parentDevice.getCallback(null)).send2URLSynch(mp, returnJMF, mimeDetails, devID, 10000);
+				response = new JMFFactory().send2URLSynch(mp, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
 			}
 			else
 			// http
@@ -1351,7 +1351,7 @@ public class QueueProcessor
 				HTTPDetails hDet = new HTTPDetails();
 				hDet.chunkSize = properties.getControllerHTTPChunk();
 
-				response = new JMFFactory(_parentDevice.getCallback(null)).send2URLSynch(jmf, returnJMF, _parentDevice.getDeviceID(), 10000);
+				response = new JMFFactory().send2URLSynch(jmf, returnJMF, _parentDevice.getCallback(null), _parentDevice.getDeviceID(), 10000);
 			}
 			int responseCode;
 			if (response != null)
@@ -1468,10 +1468,11 @@ public class QueueProcessor
 	{
 		if (queue == null)
 			return;
-		final int queueSize = queue.getQueueSize();
+		VElement v = queue.getQueueEntryVector();
+		final int queueSize = v == null ? 0 : v.size();
 		for (int i = 0; i < queueSize; i++)
 		{
-			BambiNSExtension.removeBambiExtensions(queue.getQueueEntry(i));
+			BambiNSExtension.removeBambiExtensions(v.elementAt(i));
 		}
 	}
 

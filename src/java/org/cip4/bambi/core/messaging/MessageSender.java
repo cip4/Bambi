@@ -139,13 +139,15 @@ public class MessageSender implements Runnable
 		protected MIMEDetails mimeDet;
 		protected String senderID = null;
 		protected String url = null;
+		protected IConverterCallback callback;
 
-		protected MessageDetails(JDFJMF _jmf, IResponseHandler _respHandler, HTTPDetails hdet, String detailedURL)
+		protected MessageDetails(JDFJMF _jmf, IResponseHandler _respHandler, IConverterCallback _callback, HTTPDetails hdet, String detailedURL)
 		{
 			respHandler = _respHandler;
 			jmf = _jmf;
 			senderID = jmf == null ? null : jmf.getSenderID();
 			url = detailedURL;
+			callback = _callback;
 			if (hdet == null)
 			{
 				mimeDet = null;
@@ -157,13 +159,14 @@ public class MessageSender implements Runnable
 			}
 		}
 
-		protected MessageDetails(Multipart _mime, IResponseHandler _respHandler, MIMEDetails mdet, String _senderID, String _url)
+		protected MessageDetails(Multipart _mime, IResponseHandler _respHandler, IConverterCallback _callback, MIMEDetails mdet, String _senderID, String _url)
 		{
 			respHandler = _respHandler;
 			mime = _mime;
 			mimeDet = mdet;
 			senderID = _senderID;
 			url = _url;
+			callback = _callback;
 		}
 	}
 
@@ -301,12 +304,11 @@ public class MessageSender implements Runnable
 	/**
 	 * constructor
 	 * @param theUrl the URL to send the message to
-	 * @param callback the converter callback to use, null if no modification is required                
 	 */
-	public MessageSender(String theUrl, IConverterCallback callback)
+	public MessageSender(String theUrl)
 	{
 		_messages = new Vector<MessageDetails>();
-		callURL = new CallURL(callback, theUrl);
+		callURL = new CallURL(theUrl);
 		created = System.currentTimeMillis();
 	}
 
@@ -581,17 +583,16 @@ public class MessageSender implements Runnable
 	 * @return true, if the message is successfully queued. 
 	 *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
 	 */
-	public boolean queueMessage(JDFJMF jmf, IResponseHandler handler, String url)
+	public boolean queueMessage(JDFJMF jmf, IResponseHandler handler, String url, IConverterCallback _callBack)
 	{
 		if (doShutDown || doShutDownGracefully)
 		{
 			return false;
 		}
-		IConverterCallback _callBack = callURL == null ? null : callURL.callback;
 		if (_callBack != null)
 			_callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
 
-		MessageDetails messageDetails = new MessageDetails(jmf, handler, null, url);
+		MessageDetails messageDetails = new MessageDetails(jmf, handler, _callBack, null, url);
 		queueMessageDetails(messageDetails);
 		return true;
 	}
@@ -623,14 +624,14 @@ public class MessageSender implements Runnable
 	 * @return true, if the message is successfully queued. 
 	 *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
 	 */
-	public boolean queueMimeMessage(Multipart multpart, IResponseHandler handler, MIMEDetails md, String senderID, String url)
+	public boolean queueMimeMessage(Multipart multpart, IResponseHandler handler, IConverterCallback callback, MIMEDetails md, String senderID, String url)
 	{
 		if (doShutDown || doShutDownGracefully)
 		{
 			return false;
 		}
 
-		MessageDetails messageDetails = new MessageDetails(multpart, handler, md, senderID, url);
+		MessageDetails messageDetails = new MessageDetails(multpart, handler, callback, md, senderID, url);
 		queueMessageDetails(messageDetails);
 		return true;
 	}

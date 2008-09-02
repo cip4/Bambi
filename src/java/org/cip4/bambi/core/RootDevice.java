@@ -483,7 +483,9 @@ public class RootDevice extends AbstractDevice
 	{
 		IDevice[] devices = getDeviceArray();
 		XMLDoc deviceList = new XMLDoc("DeviceList", null);
+
 		KElement listRoot = deviceList.getRoot();
+		listRoot.setAttribute("NumRequests", numRequests, null);
 		listRoot.setAttribute(AttributeName.CONTEXT, "/" + BambiServlet.getBaseServletName(request));
 		XMLDevice dRoot = this.new XMLDevice(false, request.getContextPath());
 

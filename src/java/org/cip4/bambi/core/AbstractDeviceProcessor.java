@@ -101,6 +101,7 @@ import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
 import org.cip4.jdflib.resource.process.JDFUsageCounter;
@@ -248,6 +249,9 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			{
 				processor.setAttribute("NodeStatus", nodeStatus.getName(), null);
 				processor.setAttribute("NodeStatusDetails", StringUtil.getNonEmpty(n.getPartStatusDetails(map)));
+				EnumActivation activation = n.getActivation(true);
+				if (activation != null)
+					processor.setAttribute("NodeActivation", activation.getName());
 				fillPhaseTime(processor);
 			}
 			else

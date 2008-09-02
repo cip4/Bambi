@@ -75,7 +75,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -179,10 +178,13 @@ public class BambiServlet extends HttpServlet
 	protected DumpDir bambiDumpOut = null;
 	protected boolean dumpGet = false;
 	protected boolean dumpEmpty = false;
+	/**
+	 * cludge to get port number
+	 */
 	public static int port = 0;
 
 	/** Initializes the servlet.
-	 * @throws MalformedURLException 
+	 * @throws ServletException 
 	 */
 	@Override
 	public void init(ServletConfig config) throws ServletException
@@ -207,7 +209,7 @@ public class BambiServlet extends HttpServlet
 			String iniDumpGet = config.getInitParameter("bambiDumpGet");
 			dumpGet = iniDumpGet == null ? false : "true".compareToIgnoreCase(iniDumpGet) == 0;
 			String iniDumpEmpty = config.getInitParameter("bambiDumpEmpty");
-			dumpGet = iniDumpEmpty == null ? false : "true".compareToIgnoreCase(iniDumpEmpty) == 0;
+			dumpEmpty = iniDumpEmpty == null ? false : "true".compareToIgnoreCase(iniDumpEmpty) == 0;
 		}
 		return dump;
 	}
@@ -259,6 +261,9 @@ public class BambiServlet extends HttpServlet
 	/**
 	 * @param request
 	 * @param response
+	 * @param messageType 
+	 * @param returnCode 
+	 * @param notification 
 	 */
 	protected void processError(BambiServletRequest request, BambiServletResponse response, EnumType messageType, int returnCode, String notification)
 	{
@@ -437,7 +442,8 @@ public class BambiServlet extends HttpServlet
 		}
 	}
 
-	/** Handles the HTTP <code>POST</code> method.
+	/** 
+	 * Handles the HTTP <code>POST</code> method.
 	 * @param request servlet request
 	 * @param response servlet response
 	 * @throws IOException 
@@ -449,8 +455,8 @@ public class BambiServlet extends HttpServlet
 		BambiServletRequest bufRequest = null;
 		BambiServletResponse bufResponse = null;
 
-		String header = "Context Path: " + request.getRequestURI();
-		header += "\nMethod: Post\nContext Type: " + request.getContentType();
+		String header = getDumpHeader(request);
+
 		if (bambiDumpIn != null)
 		{
 			bufRequest = new BambiServletRequest(request, true);
@@ -500,6 +506,19 @@ public class BambiServlet extends HttpServlet
 			File f = bambiDumpOut.newFileFromStream(header, buf);
 		}
 		bufResponse.flush();
+		bufRequest.flush(); // avoid mem leaks
+	}
+
+	/**
+	 * @param request
+	 * @return
+	 */
+	private String getDumpHeader(HttpServletRequest request)
+	{
+		String header = "Context Path: " + request.getRequestURI();
+		header += "\nMethod: Post\nContext Type: " + request.getContentType();
+		header += "\nRemote host: " + request.getRemoteHost();
+		return header;
 	}
 
 	/**
@@ -605,9 +624,7 @@ public class BambiServlet extends HttpServlet
 		boolean bHandled = false;
 		BambiServletRequest bufRequest = null;
 		BambiServletResponse bufResponse = null;
-
-		String header = "Context Path: " + request.getRequestURI();
-		header += "\nMethod: Get\nContext Type: " + request.getContentType();
+		String header = getDumpHeader(request);
 		if (dumpGet && bambiDumpIn != null)
 		{
 			bufRequest = new BambiServletRequest(request, true);
@@ -651,6 +668,7 @@ public class BambiServlet extends HttpServlet
 			File f = bambiDumpOut.newFileFromStream(header, buf);
 		}
 		bufResponse.flush();
+		bufRequest.flush(); // avoid mem leaks
 
 	}
 
@@ -720,7 +738,7 @@ public class BambiServlet extends HttpServlet
 	/**
 	 * create devices based on the list of devices given in a file
 	 * @param props 
-	 * @param configFile the file containing the list of devices 
+	 * @param dump the file where to dump debug requesets
 	 * @return true if successfull, otherwise false
 	 */
 	protected boolean createDevices(MultiDeviceProperties props, String dump)
@@ -780,6 +798,11 @@ public class BambiServlet extends HttpServlet
 		// TODO find correct server port at startup
 		if (port == 0) // quick hack
 			port = arg0.getServerPort();
+		if (rootDev instanceof AbstractDevice)
+		{
+			((AbstractDevice) rootDev).incNumRequests();
+		}
+
 		super.service(arg0, arg1);
 
 	}

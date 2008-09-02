@@ -515,11 +515,11 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 		AbstractProxyDevice p = getParent();
 		JDFJMF jmfs[] = p.createSubscriptions(devQEID);
-		JMFFactory factory = new JMFFactory(slaveCallBack);
+		JMFFactory factory = new JMFFactory();
 		String deviceID = p.getDeviceID();
 		for (int i = 0; i < jmfs.length; i++)
 		{
-			factory.send2URL(jmfs[i], slaveURL, null, deviceID);
+			factory.send2URL(jmfs[i], slaveURL, null, slaveCallBack, deviceID);
 		} // TODO handle response        
 	}
 

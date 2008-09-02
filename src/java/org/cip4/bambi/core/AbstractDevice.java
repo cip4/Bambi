@@ -166,6 +166,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 			setXSLTURL(getXSLT(SHOW_DEVICE, contextPath));
 
 			deviceRoot.setAttribute(AttributeName.CONTEXT, contextPath);
+			deviceRoot.setAttribute("NumRequests", numRequests, null);
 			deviceRoot.setAttribute(AttributeName.DEVICEID, getDeviceID());
 			deviceRoot.setAttribute(AttributeName.DEVICETYPE, getDeviceType());
 			deviceRoot.setAttribute("DeviceURL", getDeviceURL());
@@ -443,6 +444,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 	protected IConverterCallback _callback = null;
 	protected RootDevice _rootDevice = null;
 	protected StatusListener _theStatusListener = null;
+	protected long numRequests = 0;
 
 	/**
 	 * creates a new device instance
@@ -817,6 +819,14 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 
 	}
 
+	/**
+	 * increments the request counter
+	 */
+	void incNumRequests()
+	{
+		numRequests++;
+	}
+
 	protected boolean isMyRequest(BambiServletRequest request)
 	{
 		return request.isMyRequest(getDeviceID());
@@ -832,7 +842,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 			return;
 		final String queueURL = getDeviceURL();
 		JDFJMF jmf = JMFFactory.buildRequestQueueEntry(queueURL, getDeviceID());
-		new JMFFactory(_callback).send2URL(jmf, proxyURL, null, getDeviceID()); // TODO handle reponse
+		new JMFFactory().send2URL(jmf, proxyURL, null, _callback, getDeviceID()); // TODO handle reponse
 	}
 
 	public SignalDispatcher getSignalDispatcher()
@@ -948,8 +958,12 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 		boolean bQueue = statusQuParams == null ? false : statusQuParams.getQueueInfo();
 		if (bQueue)
 		{
-			JDFQueue qq = (JDFQueue) response.copyElement(_theQueueProcessor.getQueue(), null);
-			QueueProcessor.removeBambiNSExtensions(qq);
+			JDFQueue queue = _theQueueProcessor.getQueue();
+			synchronized (queue)
+			{
+				JDFQueue qq = (JDFQueue) response.copyElement(queue, null);
+				QueueProcessor.removeBambiNSExtensions(qq);
+			}
 		}
 	}
 

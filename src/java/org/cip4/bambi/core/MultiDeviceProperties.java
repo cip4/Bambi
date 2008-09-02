@@ -92,7 +92,6 @@ import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
 
-
 /**
  * container for the properties of several Bambi devices
  * 
@@ -100,435 +99,450 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public class MultiDeviceProperties
 {
-    /**
-     * properties for a single device
-     * @author boegerni
-     *
-     */
-    protected KElement root;
-    private URL contextURL;
-    private ServletContext context;
+	/**
+	 * properties for a single device
+	 * @author boegerni
+	 *
+	 */
+	protected KElement root;
+	private URL contextURL;
+	private final ServletContext context;
 
-    public class DeviceProperties implements IDeviceProperties {
-        /**
-         * constructor
-         */
-        protected KElement devRoot;
-        protected DeviceProperties(KElement _devRoot) {
-            devRoot=_devRoot;
-        }
-        
-        public KElement getDevRoot()
-        {
-            return devRoot;
-        }
+	public class DeviceProperties implements IDeviceProperties
+	{
+		/**
+		 * constructor
+		 */
+		protected KElement devRoot;
 
+		protected DeviceProperties(KElement _devRoot)
+		{
+			devRoot = _devRoot;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
-         */
-        public String getDeviceURL() {
-            try
-            {
-                InetAddress localHost = InetAddress.getLocalHost();
-                contextURL=new URL("http://"+localHost.getHostName()+":"+getPort()+"/"+StringUtil.token(context.getResource("/").toExternalForm(),-1,"/"));
-            }
-            catch (UnknownHostException x1)
-            {
-                //
-            }
-            catch (MalformedURLException x2)
-            {
-                // 
-            }
+		public KElement getDevRoot()
+		{
+			return devRoot;
+		}
 
-            return contextURL.toExternalForm()+"/jmf/"+getDeviceID();
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
+		 */
+		public String getDeviceURL()
+		{
+			try
+			{
+				InetAddress localHost = InetAddress.getLocalHost();
+				contextURL = new URL("http://" + localHost.getHostName() + ":" + getPort() + "/"
+						+ StringUtil.token(context.getResource("/").toExternalForm(), -1, "/"));
+			}
+			catch (UnknownHostException x1)
+			{
+				//
+			}
+			catch (MalformedURLException x2)
+			{
+				// 
+			}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
-         */
-        public IConverterCallback getCallBackClass()
-        {
-            String _callBackName=getCallBackClassName();
+			return contextURL.toExternalForm() + "/jmf/" + getDeviceID();
+		}
 
-            if(_callBackName!=null)
-            {
-                try
-                {
-                    Class c=Class.forName(_callBackName);
-                    return (IConverterCallback) c.newInstance();
-                }
-                catch (Exception x)
-                {
-                    log.error("Cannot instantiate callback class: "+_callBackName);
-                }
-            }
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
+		 */
+		public IConverterCallback getCallBackClass()
+		{
+			String _callBackName = getCallBackClassName();
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
-         */
-        public String getCallBackClassName()
-        {
-            String name= devRoot.getAttribute("CallBackName",null,null);
-            if(name==null)
-                name= root.getAttribute("CallBackName",null,null);
-            return name;
-        }
+			if (_callBackName != null)
+			{
+				try
+				{
+					Class c = Class.forName(_callBackName);
+					return (IConverterCallback) c.newInstance();
+				}
+				catch (Exception x)
+				{
+					log.error("Cannot instantiate callback class: " + _callBackName);
+				}
+			}
+			return null;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
-         */
-        public IDevice getDeviceInstance()
-        {
-            String _deviceName=getDeviceClassName();
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
+		 */
+		public String getCallBackClassName()
+		{
+			String name = devRoot.getAttribute("CallBackName", null, null);
+			if (name == null)
+				name = root.getAttribute("CallBackName", null, null);
+			return name;
+		}
 
-            if(_deviceName!=null)
-            {
-                try
-                {
-                    Class c=Class.forName(_deviceName);
-                    Constructor con=c.getConstructor(new Class[]{IDeviceProperties.class});
-                    return (IDevice) con.newInstance(new Object[]{this});
-                }
-                catch (Exception x)
-                {
-                    log.error("Cannot instantiate Device class: "+_deviceName);
-                }
-            }
-            return null;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
+		 */
+		public IDevice getDeviceInstance()
+		{
+			String _deviceName = getDeviceClassName();
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
-         */
-        public String getDeviceClassName()
-        {
-            return getDeviceAttribute("DeviceClass",null,"org.cip4.bambi.workers.sim.SimDevice");
-        }
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
-         */
-        public String getDeviceID() {
-            return getDeviceAttribute("DeviceID",null,null);        
-        }
+			if (_deviceName != null)
+			{
+				try
+				{
+					Class c = Class.forName(_deviceName);
+					Constructor con = c.getConstructor(new Class[] { IDeviceProperties.class });
+					return (IDevice) con.newInstance(new Object[] { this });
+				}
+				catch (Exception x)
+				{
+					log.error("Cannot instantiate Device class: " + _deviceName);
+				}
+			}
+			return null;
+		}
 
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
+		 */
+		public String getDeviceClassName()
+		{
+			return getDeviceAttribute("DeviceClass", null, "org.cip4.bambi.workers.sim.SimDevice");
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getProxyURL()
-         */
-        public String getProxyControllerURL() {
-            return getDeviceAttribute("ProxyURL",null,null);        
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
+		 */
+		public String getDeviceID()
+		{
+			return getDeviceAttribute("DeviceID", null, null);
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceType()
-         */
-        public String getDeviceType() {
-            return getDeviceAttribute("DeviceType",null,null);        
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getProxyURL()
+		 */
+		public String getProxyControllerURL()
+		{
+			return getDeviceAttribute("ProxyURL", null, null);
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#toString()
-         */
-        @Override
-        public String toString() {
-            return "[ DeviceProperties: "+devRoot.toString()+"]";           
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceType()
+		 */
+		public String getDeviceType()
+		{
+			return getDeviceAttribute("DeviceType", null, null);
+		}
 
-        protected File getFile(String file)
-        {
-            final String fil=devRoot.getAttribute(file,null,null);
-            return fil==null ? getRootFile(file) : new File(fil);
-        } 
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#toString()
+		 */
+		@Override
+		public String toString()
+		{
+			return "[ DeviceProperties: " + devRoot.toString() + "]";
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceErrorHF()
-         */
-        public File getErrorHF()
-        {
-            return getFile("ErrorHF");
-        }
+		protected File getFile(String file)
+		{
+			final String fil = devRoot.getAttribute(file, null, null);
+			return fil == null ? getRootFile(file) : new File(fil);
+		}
 
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceErrorHF()
+		 */
+		public File getErrorHF()
+		{
+			return getFile("ErrorHF");
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceOutputHF()
-         */
-        public File getOutputHF()
-        {
-            return getFile("OutputHF");
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceOutputHF()
+		 */
+		public File getOutputHF()
+		{
+			return getFile("OutputHF");
+		}
 
+		/**
+		 * @return
+		 */
+		public File getInputHF()
+		{
+			return getFile("InputHF");
+		}
 
-        /**
-         * @return
-         */
-        public File getInputHF()
-        {
-            return getFile("InputHF");
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getBaseDir()
+		 */
+		public File getBaseDir()
+		{
+			return MultiDeviceProperties.this.getBaseDir();
+		}
 
+		public File getAppDir()
+		{
+			return MultiDeviceProperties.this.getAppDir();
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getBaseDir()
-         */
-        public File getBaseDir()
-        {
-            File fBase=getAppDir();
-            File f= getRootFile("BaseDir");
-            return FileUtil.getFileInDirectory(fBase, f);
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getJDFDir()
+		 */
+		public File getJDFDir()
+		{
+			File f = MultiDeviceProperties.this.getJDFDir();
+			return FileUtil.getFileInDirectory(f, new File(getDeviceID()));
+		}
 
-        public File getAppDir()
-        {
-            return getRootFile("AppDir");
-        }
+		/**
+		 * get the tracked resource - defaults to "Output"
+		 * 
+		 * @see org.cip4.bambi.core.IDeviceProperties#getTrackResource()
+		 */
+		public String getTrackResource()
+		{
+			return getDeviceAttribute("TrackResource", null, "Output");
+		}
 
+		public String getDeviceAttribute(String key)
+		{
+			return getDeviceAttribute(key, null, null);
 
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getJDFDir()
-         */
-        public File getJDFDir()
-        {
-            File fBase=getBaseDir();
-            File f= getFile("JDFDir");
-            return FileUtil.getFileInDirectory(fBase, f);
-        }
+		public String getDeviceAttribute(String key, String ns, String def)
+		{
+			String val = devRoot.getAttribute(key, ns, null);
+			if (val == null)
+				val = root.getAttribute(key, ns, def);
+			return val;
 
+		}
 
-        /**
-         * get the tracked resource - defaults to "Output"
-         * 
-         * @see org.cip4.bambi.core.IDeviceProperties#getTrackResource()
-         */
-        public String getTrackResource()
-        {
-            return getDeviceAttribute("TrackResource",null,"Output");
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
+		 */
+		public String getTypeExpression()
+		{
+			return getDeviceAttribute(AttributeName.TYPEEXPRESSION);
+		}
 
-        public String getDeviceAttribute(String key)
-        {
-            return getDeviceAttribute(key, null, null);
-                
-        }
-        public String getDeviceAttribute(String key, String ns, String def)
-        {
-            String val= devRoot.getAttribute(key, ns, null);
-            if(val==null)
-                val= root.getAttribute(key, ns, def);
-            return val;
-                
-        }
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
-         */
-        public String getTypeExpression()
-        {
-            return getDeviceAttribute(AttributeName.TYPEEXPRESSION);
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getAmountResources()
+		 */
+		public VString getAmountResources()
+		{
+			VString v = StringUtil.tokenize(getDeviceAttribute("AmountResources", null, null), ",", false);
+			final String trackResource = getTrackResource();
+			if (v == null)
+			{
+				return StringUtil.tokenize(trackResource, null, false);
+			}
+			v.appendUnique(trackResource);
+			return v;
+		}
 
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
+		 */
+		public int getControllerHTTPChunk()
+		{
+			return StringUtil.parseInt(getDeviceAttribute("HTTPChunk"), 10000);
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getAmountResources()
-         */
-        public VString getAmountResources()
-        {
-            VString v= StringUtil.tokenize(getDeviceAttribute("AmountResources", null, null), ",", false);
-            final String trackResource = getTrackResource();
-            if (v==null)
-            {
-                return StringUtil.tokenize(trackResource, null, false);
-            }
-            v.appendUnique(trackResource);
-            return v;
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
+		 */
+		public String getControllerMIMEEncoding()
+		{
+			return getDeviceAttribute("MIMETransferEncoding", null, MimeUtil.BASE64);
+		}
 
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEExpansion()
+		 */
+		public boolean getControllerMIMEExpansion()
+		{
+			return StringUtil.parseBoolean(getDeviceAttribute("MIMEExpansion"), false);
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
-         */
-        public int getControllerHTTPChunk()
-        {
-            return StringUtil.parseInt(getDeviceAttribute("HTTPChunk"), 10000);
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getReturnMIME()
+		 */
+		public QEReturn getReturnMIME()
+		{
+			String s = getDeviceAttribute("MIMEReturn", null, "MIME");
+			try
+			{
+				return QEReturn.valueOf(s);
+			}
+			catch (Exception x)
+			{
+				return QEReturn.MIME;
+			}
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
-         */
-        public String getControllerMIMEEncoding()
-        {
-            return getDeviceAttribute("MIMETransferEncoding",null,MimeUtil.BASE64);
-        }
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEExpansion()
-         */
-        public boolean getControllerMIMEExpansion()
-        {
-            return StringUtil.parseBoolean(getDeviceAttribute("MIMEExpansion"),false);
-        }
+		public String getContextURL()
+		{
+			return contextURL == null ? null : contextURL.toExternalForm();
+		}
 
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getWatchURL()
+		 */
+		public String getWatchURL()
+		{
+			return getDeviceAttribute("WatchURL", null, null);
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getReturnMIME()
-         */
-        public QEReturn getReturnMIME()
-        {
-            String s=getDeviceAttribute("MIMEReturn",null,"MIME");
-            try
-            {
-                return QEReturn.valueOf(s);
-            }
-            catch(Exception x)
-            {
-                return QEReturn.MIME;
-            }
-        }
+	}
 
-        public String getContextURL()
-        {
-            return contextURL==null ? null : contextURL.toExternalForm();
-        }
+	private static final Log log = LogFactory.getLog(MultiDeviceProperties.class.getName());
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getWatchURL()
-         */
-        public String getWatchURL()
-        {
-            return getDeviceAttribute("WatchURL",null,null);                   
-        }
+	/**
+	 * create device properties for the devices defined in the config file
+	 * @param appDir     the location of the web application in the server
+	 * @param configFile the config file
+	 */
+	public MultiDeviceProperties(ServletContext _context, File configFile)
+	{
+		context = _context;
+		// to evaluate current name and send it back rather than 127.0.0.1
+		File baseDir = new File(context.getRealPath(""));
+		JDFParser p = new JDFParser();
+		XMLDoc doc = p.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
+		root = doc == null ? null : doc.getRoot();
+		if (root == null)
+		{
+			log.fatal("failed to parse " + configFile + ", rootDev is null");
+		}
+		else
+		{
+			root.setAttribute("AppDir", baseDir.getAbsolutePath());
+		}
+		try
+		{
+			InetAddress localHost = InetAddress.getLocalHost();
+			contextURL = new URL("http://" + localHost.getHostName() + ":" + getPort() + "/"
+					+ StringUtil.token(context.getResource("/").toExternalForm(), -1, "/"));
+		}
+		catch (UnknownHostException x1)
+		{
+			//
+		}
+		catch (MalformedURLException x2)
+		{
+			// 
+		}
 
-      }
+	}
 
-    private static final Log log = LogFactory.getLog(MultiDeviceProperties.class.getName());
+	/**
+	 * @return
+	 */
+	private int getPort()
+	{
+		//TODO extract from servlet
+		return root.getIntAttribute("Port", null, BambiServlet.port);
 
-    /**
-     * create device properties for the devices defined in the config file
-     * @param appDir     the location of the web application in the server
-     * @param configFile the config file
-     */
-    public MultiDeviceProperties(ServletContext _context, File configFile)
-    {
-        context=_context;
-        // to evaluate current name and send it back rather than 127.0.0.1
-        File baseDir=new File(context.getRealPath(""));
-        JDFParser p = new JDFParser();
-        XMLDoc doc = p.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
-        root = doc==null ? null : doc.getRoot();
-        if (root==null) {
-            log.fatal( "failed to parse "+configFile+", rootDev is null" );
-        }
-        else
-        {
-            root.setAttribute("AppDir", baseDir.getAbsolutePath());
-        }
-        try
-        {
-            InetAddress localHost = InetAddress.getLocalHost();
-            contextURL=new URL("http://"+localHost.getHostName()+":"+getPort()+"/"+StringUtil.token(context.getResource("/").toExternalForm(),-1,"/"));
-        }
-        catch (UnknownHostException x1)
-        {
-            //
-        }
-        catch (MalformedURLException x2)
-        {
-            // 
-        }
+	}
 
-    }
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.IMultiDeviceProperties#count()
+	 */
+	public int count()
+	{
+		return root.numChildElements(ElementName.DEVICE, null);
+	}
 
-    /**
-     * @return
-     */
-    private int getPort()
-    {
-        //TODO extract from servlet
-        return root.getIntAttribute("Port", null, BambiServlet.port);
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.IMultiDeviceProperties#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		return "[ MultiDeviceProperties: " + contextURL + "\n" + root + "]";
+	}
 
-    }
+	/**
+	 * @return the application directory
+	 */
+	public File getAppDir()
+	{
+		return getRootFile("AppDir");
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.IMultiDeviceProperties#count()
-     */
-    public int count() {
-        return root.numChildElements(ElementName.DEVICE, null);
-    }
+	/**
+	 * get the base directory for data
+	 * @return  the base directory for data
+	 */
+	public File getBaseDir()
+	{
+		File f = getRootFile("BaseDir");
+		if (!FileUtil.isAbsoluteFile(f))
+		{
+			File fBase = getAppDir();
+			f = FileUtil.getFileInDirectory(fBase, f);
+		}
+		return f;
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.IMultiDeviceProperties#toString()
-     */
-    @Override
-    public String toString() {
-        return "[ MultiDeviceProperties: "+contextURL+"\n"+root+"]";           
-    }
+	/**
+	 * @return the jdf directory
+	 */
+	public File getJDFDir()
+	{
+		File fBase = getBaseDir();
+		File f = getRootFile("JDFDir");
+		return FileUtil.getFileInDirectory(fBase, f);
+	}
 
-    /**
-     * @return
-     */
-    public File getAppDir()
-    {
-        return getRootFile("AppDir");
-    }
+	/**
+	 * @param file the file type to search
+	 * @return a File representing the directory
+	 */
+	protected File getRootFile(String file)
+	{
+		final String fil = root.getAttribute(file, null, null);
+		return fil == null ? null : new File(fil);
+	}
 
-    public File getBaseDir()
-    {
-        File fBase=getAppDir();
-        File f= getRootFile("BaseDir");
-        return FileUtil.getFileInDirectory(fBase, f);
-    }
+	/**
+	 * 
+	 * @return the sender ID...
+	 */
+	public String getSenderID()
+	{
+		return root.getAttribute(AttributeName.SENDERID);
+	}
 
-    /**
-     * @return
-     */
-    public File getJDFDir()
-    {
-        File fBase=getBaseDir();
-        File f= getRootFile("JDFDir");
-        return FileUtil.getFileInDirectory(fBase, f);
-    }
+	/**
+	 * @return the vector of device elements
+	 */
+	public VElement getDevices()
+	{
+		return root.getChildElementVector(ElementName.DEVICE, null);
+	}
 
-    /**
-     * @param string
-     * @return
-     */
-    protected File getRootFile(String file)
-    {
-        final String fil=root.getAttribute(file,null,null);
-        return fil==null ? null : new File(fil);
-    }
+	/**
+	 * 
+	 * @return the root application node
+	 */
+	public KElement getRoot()
+	{
+		return root;
+	}
 
-    /**
-     * 
-     * @return
-     */
-    public String getSenderID()
-    {
-        return root.getAttribute(AttributeName.SENDERID);
-    }
-
-    /**
-     * @return
-     */
-    public VElement getDevices()
-    {
-        return root.getChildElementVector(ElementName.DEVICE, null);
-     }
-
-    public KElement getRoot()
-    {
-        return root;
-    }
-
-    /**
-     * @param element
-     * @return
-     */
-    public IDeviceProperties createDevice(KElement element)
-    {
-         return this.new DeviceProperties(element);
-    }
+	/**
+	 * @param element the xml element to parse
+	 * @return a IDeviceProperties parsed from the element
+	 */
+	public IDeviceProperties createDevice(KElement element)
+	{
+		return this.new DeviceProperties(element);
+	}
 
 }

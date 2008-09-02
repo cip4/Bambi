@@ -64,7 +64,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 		Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, expandMime);
 		SubmitQueueEntryResponseHandler sqh = new SubmitQueueEntryResponseHandler();
-		new JMFFactory(slaveCallBack).send2URL(mp, strUrl, sqh, urlDet, _parent.getDeviceID());
+		new JMFFactory().send2URL(mp, strUrl, sqh, slaveCallBack, urlDet, _parent.getDeviceID());
 		sqh.waitHandled(30000, true);
 		if (sqh.doc == null)
 		{

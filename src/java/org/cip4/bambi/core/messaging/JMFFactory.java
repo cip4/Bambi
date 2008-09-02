@@ -108,7 +108,6 @@ public class JMFFactory
 {
 	public static class CallURL implements Comparable<CallURL>
 	{
-		final IConverterCallback callback;
 		String url;
 
 		/**
@@ -134,9 +133,8 @@ public class JMFFactory
 		 * @param _url the url
 		 * 
 		 */
-		public CallURL(IConverterCallback _callback, String _url)
+		public CallURL(String _url)
 		{
-			callback = _callback;
 			url = _url;
 			url = getBaseURL();
 		}
@@ -145,13 +143,13 @@ public class JMFFactory
 		public int hashCode()
 		{
 			final String baseUrl = getBaseURL();
-			return (callback == null ? 0 : callback.hashCode()) + (baseUrl == null ? 0 : baseUrl.hashCode());
+			return (baseUrl == null ? 0 : baseUrl.hashCode());
 		}
 
 		@Override
 		public String toString()
 		{
-			return "[CallURL: " + callback + " - " + getBaseURL() + "]";
+			return "[CallURL: " + getBaseURL() + "]";
 		}
 
 		@Override
@@ -160,8 +158,7 @@ public class JMFFactory
 			if (!(obj instanceof CallURL))
 				return false;
 			CallURL other = (CallURL) obj;
-			return ContainerUtil.equals(getBaseURL(), other.getBaseURL())
-					&& ContainerUtil.equals(callback, other.callback);
+			return ContainerUtil.equals(getBaseURL(), other.getBaseURL());
 		}
 
 		/**
@@ -183,12 +180,10 @@ public class JMFFactory
 	private static Log log = LogFactory.getLog(JMFFactory.class.getName());
 	static HashMap<CallURL, MessageSender> senders = new HashMap<CallURL, MessageSender>();
 	private static int nThreads = 0;
-	private final IConverterCallback callback;
 
-	public JMFFactory(IConverterCallback _callback)
+	public JMFFactory()
 	{
 		super();
-		callback = _callback;
 	}
 
 	/**
@@ -368,7 +363,7 @@ public class JMFFactory
 	 * @param url the URL to send the JMF to
 	 * @return the response if successful, otherwise null
 	 */
-	public void send2URL(Multipart mp, String url, IResponseHandler handler, MIMEDetails md, String deviceID)
+	public void send2URL(Multipart mp, String url, IResponseHandler handler, IConverterCallback callback, MIMEDetails md, String deviceID)
 	{
 
 		if (mp == null || url == null)
@@ -382,8 +377,8 @@ public class JMFFactory
 			return;
 		}
 
-		MessageSender ms = getCreateMessageSender(url, callback);
-		ms.queueMimeMessage(mp, handler, md, deviceID, url);
+		MessageSender ms = getCreateMessageSender(url);
+		ms.queueMimeMessage(mp, handler, callback, md, deviceID, url);
 	}
 
 	/**
@@ -394,7 +389,7 @@ public class JMFFactory
 	 * @param milliSeconds timout to wait
 	 * @return the response if successful, otherwise null
 	 */
-	public void send2URL(JDFJMF jmf, String url, IResponseHandler handler, String senderID)
+	public void send2URL(JDFJMF jmf, String url, IResponseHandler handler, IConverterCallback callback, String senderID)
 	{
 
 		if (jmf == null || url == null)
@@ -408,10 +403,10 @@ public class JMFFactory
 			return;
 		}
 
-		MessageSender ms = getCreateMessageSender(url, callback);
+		MessageSender ms = getCreateMessageSender(url);
 		if (senderID != null)
 			jmf.setSenderID(senderID);
-		ms.queueMessage(jmf, handler, url);
+		ms.queueMessage(jmf, handler, url, callback);
 	}
 
 	/**
@@ -422,10 +417,10 @@ public class JMFFactory
 	 * @param milliSeconds timout to wait
 	 * @return the response if successful, otherwise null
 	 */
-	public HttpURLConnection send2URLSynch(JDFJMF jmf, String url, String senderID, int milliSeconds)
+	public HttpURLConnection send2URLSynch(JDFJMF jmf, String url, IConverterCallback callback, String senderID, int milliSeconds)
 	{
 		MessageResponseHandler handler = new MessageResponseHandler();
-		send2URL(jmf, url, handler, senderID);
+		send2URL(jmf, url, handler, callback, senderID);
 		handler.waitHandled(milliSeconds, true);
 		return handler.getConnection();
 	}
@@ -438,10 +433,10 @@ public class JMFFactory
 	 * @param milliSeconds timout to wait
 	 * @return the response if successful, otherwise null
 	 */
-	public JDFResponse send2URLSynchResp(JDFJMF jmf, String url, String senderID, int milliSeconds)
+	public JDFResponse send2URLSynchResp(JDFJMF jmf, String url, IConverterCallback callback, String senderID, int milliSeconds)
 	{
 		MessageResponseHandler handler = new MessageResponseHandler();
-		send2URL(jmf, url, handler, senderID);
+		send2URL(jmf, url, handler, callback, senderID);
 		handler.waitHandled(milliSeconds, true);
 		HttpURLConnection uc = handler.getConnection();
 		if (uc != null)
@@ -462,10 +457,10 @@ public class JMFFactory
 	 * @param url the URL to send the JMF to
 	 * @return the response if successful, otherwise null
 	 */
-	public HttpURLConnection send2URLSynch(Multipart mp, String url, MIMEDetails md, String senderID, int milliSeconds)
+	public HttpURLConnection send2URLSynch(Multipart mp, String url, IConverterCallback callback, MIMEDetails md, String senderID, int milliSeconds)
 	{
 		MessageResponseHandler handler = new MessageResponseHandler();
-		send2URL(mp, url, handler, md, senderID);
+		send2URL(mp, url, handler, callback, md, senderID);
 		handler.waitHandled(milliSeconds, true);
 		return handler.getConnection();
 	}
@@ -519,11 +514,11 @@ public class JMFFactory
 	 * @return the MessageSender that will queue and dispatch the message
 	 * 
 	 */
-	public static MessageSender getCreateMessageSender(String url, IConverterCallback callBack)
+	public static MessageSender getCreateMessageSender(String url)
 	{
 		if (url == null)
 			return null;
-		CallURL cu = new CallURL(callBack, url);
+		CallURL cu = new CallURL(url);
 
 		synchronized (senders)
 		{
