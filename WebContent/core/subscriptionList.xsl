@@ -51,6 +51,7 @@
             <th align="left"> Last time Queued</th>
             <th align="left"> Active since</th>
             <th align="left"> Remove Sender</th>
+            <th align="left"> Flush unsent Messages</th>
           </tr>
           <xsl:apply-templates select="MessageSender"/>
         </table>
@@ -144,6 +145,17 @@
             <xsl:attribute name="value"><xsl:value-of select="@URL"/></xsl:attribute>
           </input>
           <input type="submit" value="remove"/>
+        </form>
+      </td>
+      <td align="center">
+        <form>
+          <xsl:attribute name="action"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of
+            select="../@DeviceID"/></xsl:attribute>
+          <input type="hidden" name="FlushSender" value="true"/>
+          <input type="hidden" name="URL">
+            <xsl:attribute name="value"><xsl:value-of select="@URL"/></xsl:attribute>
+          </input>
+          <input type="submit" value="flush"/>
         </form>
       </td>
     </tr>

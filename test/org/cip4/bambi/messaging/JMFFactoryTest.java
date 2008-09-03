@@ -175,6 +175,17 @@ public class JMFFactoryTest extends BambiTestCase
 		assertEquals(105, resp.getReturnCode());
 	}
 
+	/**
+	 * 
+	 */
+	public void testStopPersistentChammel()
+	{
+		JDFJMF jmf = JMFFactory.buildStopPersistentChannel("m_080902_103826750_000344", "http://kie-prosirai-lg:8080/misconnector/slavejmf/MISConnector");
+		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		assertNotNull(resp);
+		assertEquals(105, resp.getReturnCode());
+	}
+
 	public void testQueueStatus()
 	{
 		JDFJMF jmf = JMFFactory.buildQueueStatus();

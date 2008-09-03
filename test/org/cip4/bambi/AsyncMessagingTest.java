@@ -77,6 +77,7 @@ import java.net.HttpURLConnection;
 import org.cip4.bambi.core.messaging.IResponseHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
+import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -96,7 +97,7 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 
 	public void testSendQueueStatus() throws InterruptedException
 	{
-		final MessageSender messageSender = new MessageSender(simWorkerUrl);
+		final MessageSender messageSender = new MessageSender(new CallURL(simWorkerUrl));
 		Thread t = new Thread(messageSender, "Sender_Test");
 		for (int i = 0; i < 10; i++)
 		{
