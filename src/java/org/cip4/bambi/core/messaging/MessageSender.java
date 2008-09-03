@@ -87,13 +87,20 @@ import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
 import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.DumpDir;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.VectorMap;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
@@ -130,6 +137,7 @@ public class MessageSender implements Runnable
 	private long created = 0;
 	private long lastQueued = 0;
 	private long lastSent = 0;
+	private static File baseLocation = null;
 
 	protected class MessageDetails
 	{
@@ -167,6 +175,78 @@ public class MessageSender implements Runnable
 			senderID = _senderID;
 			url = _url;
 			callback = _callback;
+		}
+
+		/**
+		 * @param element
+		 */
+		public MessageDetails(KElement element)
+		{
+			url = element.getAttribute(AttributeName.URL, null, null);
+			senderID = element.getAttribute(AttributeName.SENDERID, null, null);
+			String cbClass = element.getAttribute("CallbackClass", null, null);
+			if (cbClass != null)
+			{
+				try
+				{
+					Class c = Class.forName(cbClass);
+					callback = (IConverterCallback) c.newInstance();
+				}
+				catch (Exception x)
+				{
+					log.warn("Illegal callback class - limp along with null");// nop
+				}
+			}
+			jmf = (JDFJMF) element.getElement(ElementName.JMF);
+			if (jmf == null)
+			{
+				String mimeURL = element.getAttribute("MimeUrl", null, null);
+				if (mimeURL != null)
+					mime = MimeUtil.getMultiPart(mimeURL);
+				if (mime != null)
+				{
+					File mimFile = UrlUtil.urlToFile(mimeURL);
+					boolean bZapp = mimFile.delete();
+					if (!bZapp)
+						mimFile.deleteOnExit();
+
+				}
+				String encoding = element.getAttribute("TransferEncoding", null, null);
+				if (encoding != null)
+				{
+					mimeDet = new MIMEDetails();
+					mimeDet.transferEncoding = encoding;
+				}
+			}
+		}
+
+		/**
+		 * @param ms
+		 * @param i 
+		 */
+		void appendToXML(KElement ms, int i)
+		{
+			KElement message = ms.appendElement("Message");
+			message.setAttribute(AttributeName.URL, url);
+			message.setAttribute(AttributeName.SENDERID, senderID);
+			if (callback != null)
+				message.setAttribute("CallbackClass", callback.getClass().getCanonicalName());
+			if (jmf != null)
+			{
+				message.copyElement(jmf, null);
+			}
+			else
+			// mime
+			{
+				if (mimeDet != null)
+				{
+					message.setAttribute("TransferEncoding", mimeDet.transferEncoding);
+				}
+				String mimNam = "Mime" + i + ".mim";
+				File mim = FileUtil.getFileInDirectory(getPersistLocation().getParentFile(), new File(mimNam));
+				MimeUtil.writeToFile(mime, mim.getAbsolutePath(), mimeDet);
+				message.setAttribute("MimeUrl", UrlUtil.fileToUrl(mim, false));
+			}
 		}
 	}
 
@@ -303,17 +383,6 @@ public class MessageSender implements Runnable
 
 	/**
 	 * constructor
-	 * @param theUrl the URL to send the message to
-	 */
-	public MessageSender(String theUrl)
-	{
-		_messages = new Vector<MessageDetails>();
-		callURL = new CallURL(theUrl);
-		created = System.currentTimeMillis();
-	}
-
-	/**
-	 * constructor
 	 * @param cu the URL to send the message to
 	 */
 
@@ -331,6 +400,7 @@ public class MessageSender implements Runnable
 	 */
 	public void run()
 	{
+		readFromBase();
 		while (!doShutDown)
 		{
 			sendReturn sentFirstMessage;
@@ -382,6 +452,80 @@ public class MessageSender implements Runnable
 				}
 			}
 		}
+		write2Base();
+	}
+
+	/**
+	 * 
+	 */
+	private void write2Base()
+	{
+		File f = getPersistLocation();
+		if (f == null)
+			return;
+		if (_messages.size() == 0)
+		{
+			f.delete(); // it's empty we can zapp it
+			return;
+		}
+		KElement root = appendToXML(null, true);
+		root.getOwnerDocument_KElement().write2File(f, 2, false);
+	}
+
+	/**
+	 * 
+	 */
+	private void readFromBase()
+	{
+		File f = getPersistLocation();
+		if (f == null)
+			return;
+		if (!f.exists()) // nothing queued ,ciao
+		{
+			return;
+		}
+		JDFParser p = new JDFParser();
+		JDFDoc d = p.parseFile(f);
+		synchronized (_messages)
+		{
+			if (d != null)
+			{
+				KElement root = d.getRoot();
+				sent = root.getIntAttribute("NumSent", null, 0);
+				lastQueued = root.getIntAttribute("LastQueued", null, 0);
+				lastSent = root.getIntAttribute("LastSent", null, 0);
+				created = root.getIntAttribute(AttributeName.CREATIONDATE, null, 0);
+				VElement v = root.getChildElementVector("Message", null);
+				for (int i = 0; i < v.size(); i++)
+					_messages.add(new MessageDetails(v.get(i)));
+			}
+		}
+	}
+
+	/**
+	 * @return the file 
+	 */
+	private File getPersistLocation()
+	{
+		String loc = callURL.getBaseURL();
+		loc = StringUtil.replaceCharSet(loc, ":\\", "/", 0);
+		while (loc.indexOf("//") >= 0)
+			loc = StringUtil.replaceString(loc, "//", "/");
+		if (loc == null)
+		{
+			log.error("cannot persist jmf to null");
+			return null;
+		}
+		loc += ".xml";
+		File f = FileUtil.getFileInDirectory(baseLocation, new File(loc));
+		File locParent = f.getParentFile();
+		locParent.mkdirs();
+		if (!locParent.isDirectory())
+		{
+			log.error("cannot create deirectory to persist jmf: " + f.getAbsolutePath());
+			return null;
+		}
+		return f;
 	}
 
 	/**
@@ -531,6 +675,7 @@ public class MessageSender implements Runnable
 		{
 			doShutDown = true;
 		}
+		JMFFactory.senders.remove(callURL);
 	}
 
 	/**
@@ -638,7 +783,7 @@ public class MessageSender implements Runnable
 
 	/**
 	 * @see java.lang.Object#toString()
-	 * @return
+	 * @return the string
 	 */
 	@Override
 	public String toString()
@@ -651,13 +796,15 @@ public class MessageSender implements Runnable
 	/**
 	 * creates a descriptive xml Object for this MessageSender
 	 * 
-	 * @param root the parent into which I append myself
+	 * @param root the parent into which I append myself, if null create a new document
+	 * @param writeMessages if true, write out the messages
 	 */
-	public void appendToXML(KElement root)
+	public KElement appendToXML(KElement root, boolean writeMessages)
 	{
+
+		KElement ms = root == null ? new XMLDoc("MessageSender", null).getRoot() : root.appendElement("MessageSender");
 		synchronized (_messages)
 		{
-			KElement ms = root.appendElement("MessageSender");
 			ms.setAttribute(AttributeName.URL, callURL.url);
 			ms.setAttribute(AttributeName.SIZE, _messages.size(), null);
 			ms.setAttribute("NumSent", sent, null);
@@ -665,6 +812,38 @@ public class MessageSender implements Runnable
 			ms.setAttribute("LastSent", BambiServlet.formatLong(lastSent), null);
 			ms.setAttribute(AttributeName.CREATIONDATE, BambiServlet.formatLong(created), null);
 			ms.setAttribute("Active", !doShutDown, null);
+			if (writeMessages)
+			{
+				for (int i = 0; i < _messages.size(); i++)
+				{
+					_messages.get(i).appendToXML(ms, i);
+				}
+			}
+		}
+		return ms;
+	}
+
+	/**
+	 * set the base directory for serializing and deserializing messages
+	 * @param _baseLocation the baseLocation to set
+	 */
+	public static void setBaseLocation(File _baseLocation)
+	{
+		// this is static and can therefore only be set once for consistency
+		if (baseLocation == null)
+			MessageSender.baseLocation = _baseLocation;
+	}
+
+	/**
+	 * 
+	 */
+	public void flushMessages()
+	{
+		synchronized (_messages)
+		{
+			_messages.clear();
+			File pers = getPersistLocation().getParentFile();
+			FileUtil.deleteAll(pers);
 		}
 	}
 

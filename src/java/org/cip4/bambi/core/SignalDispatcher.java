@@ -182,6 +182,10 @@ public final class SignalDispatcher
 				boolean bStopSender = request.getBooleanParam("StopSender");
 				if (bStopSender)
 					stopSender(request, response);
+				boolean bFlushSender = request.getBooleanParam("FlushSender");
+				if (bFlushSender)
+					flushSender(request, response);
+
 			}
 
 			listChannels(request);
@@ -220,7 +224,30 @@ public final class SignalDispatcher
 				MessageSender messageSender = v.get(i);
 				if (messageSender.matchesURL(url))
 				{
-					JMFFactory.shutDown(messageSender.getCallURL(), true);
+					messageSender.shutDown(true);
+				}
+			}
+		}
+
+		/**
+		 * @param request
+		 * @param response
+		 */
+		private void flushSender(BambiServletRequest request, BambiServletResponse response)
+		{
+			String url = request.getParameter(AttributeName.URL);
+			URL myURL = UrlUtil.StringToURL(url);
+			if (myURL == null)
+				return;
+			url = myURL.toExternalForm();
+			Vector<MessageSender> v = JMFFactory.getAllMessageSenders();
+			int size = v == null ? 0 : v.size();
+			for (int i = 0; i < size; i++)
+			{
+				MessageSender messageSender = v.get(i);
+				if (messageSender.matchesURL(url))
+				{
+					messageSender.flushMessages();
 				}
 			}
 		}
@@ -235,7 +262,7 @@ public final class SignalDispatcher
 			for (int i = 0; i < size; i++)
 			{
 
-				v.get(i).appendToXML(root);
+				v.get(i).appendToXML(root, false);
 			}
 		}
 

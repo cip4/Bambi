@@ -198,7 +198,7 @@ public class MultiDeviceProperties
 				}
 				catch (Exception x)
 				{
-					log.error("Cannot instantiate Device class: " + _deviceName);
+					log.error("Cannot instantiate Device class: " + _deviceName, x);
 				}
 			}
 			return null;
@@ -498,6 +498,17 @@ public class MultiDeviceProperties
 		File fBase = getBaseDir();
 		File f = getRootFile("JDFDir");
 		return FileUtil.getFileInDirectory(fBase, f);
+	}
+
+	/**
+	 * @return the jmf persistance directory
+	 */
+	public File getJMFDir()
+	{
+		File f = getRootFile("JMFDir");
+		if (f == null)
+			f = new File("C:/BambiData/JMFDir");
+		return f;
 	}
 
 	/**

@@ -554,6 +554,7 @@ public class BambiServlet extends HttpServlet
 	protected void loadProperties(ServletContext context, File config, String dump)
 	{
 		MultiDeviceProperties props = new MultiDeviceProperties(context, config);
+		MessageSender.setBaseLocation(props.getJMFDir());
 		createDevices(props, dump);
 	}
 

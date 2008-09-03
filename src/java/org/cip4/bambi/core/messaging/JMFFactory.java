@@ -87,10 +87,12 @@ import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFRequestQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFStopPersChParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -467,7 +469,8 @@ public class JMFFactory
 
 	/**
 	 * 
-	 * @param url
+	 * @param cu the callURL to shut down, if null all of them
+	 * @param graceFully 
 	 */
 	public static void shutDown(CallURL cu, boolean graceFully)
 	{
@@ -482,7 +485,6 @@ public class JMFFactory
 				{
 					shutDown(s, graceFully);
 				}
-				senders.remove(s);
 			}
 		}
 		else
@@ -552,5 +554,22 @@ public class JMFFactory
 
 			return ms;
 		}
+	}
+
+	/**
+	 * build a stopPersistentChannelParams message
+	 * @param channelID
+	 * @param url the url of the subscription
+	 * @return the jmf
+	 */
+	public static JDFJMF buildStopPersistentChannel(String channelID, String url)
+	{
+		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.StopPersistentChannel);
+		JDFCommand c = jmf.getCommand(0);
+		JDFStopPersChParams scp = c.appendStopPersChParams();
+		scp.setChannelID(channelID);
+		scp.setURL(url);
+		return jmf;
+
 	}
 }
