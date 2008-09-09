@@ -768,7 +768,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 	}
 
 	@Override
-	protected void initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
+	protected boolean initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
 	{
 		_jobPhases = resumeQueueEntry(qe);
 		if (_jobPhases == null)
@@ -782,11 +782,11 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			_jobPhases = new ArrayList<JobPhase>();
 			_jobPhases.add(initFirstPhase(node));
 		}
-		super.initializeProcessDoc(node, qe);
+		boolean bOK = super.initializeProcessDoc(node, qe);
 		if (qe == null || node == null)
 		{
 			log.error("proccessing null job");
-			return;
+			return false;
 		}
 		qe.setDeviceID(_devProperties.getDeviceID());
 		final String queueEntryID = qe.getQueueEntryID();
@@ -804,6 +804,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 				jp.updateAmountLinks(rl);
 			}
 		}
+		return bOK;
 	}
 
 	/**

@@ -73,6 +73,7 @@ package org.cip4.bambi.proxy;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -85,17 +86,22 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.messaging.JMFBufferHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.QueueHotFolder;
 import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.StringUtil;
@@ -105,7 +111,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 {
 
 	/**
-	 * 
+	 * the url flag for incoming messages
 	 */
 	public static final String SLAVEJMF = "slavejmf";
 	private static final Log log = LogFactory.getLog(AbstractProxyDevice.class.getName());
@@ -120,6 +126,58 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected EnumSlaveStatus slaveStatus = null;
 	protected IConverterCallback _slaveCallback;
 	protected String slaveURL = null;
+
+	protected class QueueSynchronizeHandler extends MessageResponseHandler
+	{
+
+		@Override
+		public boolean handleMessage()
+		{
+			super.handleMessage();
+			JDFResponse r = getResponse();
+			if (r != null)
+			{
+				JDFQueue q = r.getQueue(0);
+				if (q != null)
+				{
+					Map<String, JDFQueueEntry> slaveMap = q.getQueueEntryIDMap();
+					JDFQueue myQueue = _theQueueProcessor.getQueue();
+					synchronized (myQueue)
+					{
+						VElement vQ = myQueue.getQueueEntryVector();
+						for (int i = 0; i < vQ.size(); i++)
+						{
+							JDFQueueEntry qe = (JDFQueueEntry) vQ.get(i);
+							String slaveQEID = BambiNSExtension.getSlaveQueueEntryID(qe);
+							if (slaveQEID != null)
+							{
+								JDFQueueEntry slaveQE = slaveMap.get(slaveQEID);
+								if (slaveQE != null)
+								{
+									EnumQueueEntryStatus status = slaveQE.getQueueEntryStatus();
+									if (!ContainerUtil.equals(status, qe.getQueueEntryStatus()))
+									{
+										_theQueueProcessor.updateEntry(qe, status, null, null);
+										if (EnumQueueEntryStatus.Completed.equals(status))
+											stopProcessing(qe.getQueueEntryID(), EnumNodeStatus.Completed);
+										else if (EnumQueueEntryStatus.Aborted.equals(status))
+											stopProcessing(qe.getQueueEntryID(), EnumNodeStatus.Aborted);
+										else if (EnumQueueEntryStatus.Suspended.equals(status))
+											stopProcessing(qe.getQueueEntryID(), EnumNodeStatus.Suspended);
+									}
+								}
+								else
+								{
+									_theQueueProcessor.updateEntry(qe, EnumQueueEntryStatus.Removed, null, null);
+								}
+							}
+						}
+					}
+				}
+			}
+			return true; // we always assume ok 
+		}
+	}
 
 	protected class ReturnHFListner implements QueueHotFolderListener
 	{
@@ -315,7 +373,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		}
 		if (jmf != null)
 		{
-			new JMFFactory().send2URLSynch(jmf, slaveURL, _slaveCallback, getDeviceID(), 3000);
+			JMFFactory.send2URLSynch(jmf, slaveURL, _slaveCallback, getDeviceID(), 3000);
 		}
 	}
 
@@ -339,7 +397,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @return the slaveURL
+	 * @return the url of this proxy that the slave sends messages to
 	 */
 	public String getDeviceURLForSlave()
 	{

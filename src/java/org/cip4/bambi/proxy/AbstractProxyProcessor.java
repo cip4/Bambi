@@ -64,7 +64,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 		Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, expandMime);
 		SubmitQueueEntryResponseHandler sqh = new SubmitQueueEntryResponseHandler();
-		new JMFFactory().send2URL(mp, strUrl, sqh, slaveCallBack, urlDet, _parent.getDeviceID());
+		JMFFactory.send2URL(mp, strUrl, sqh, slaveCallBack, urlDet, _parent.getDeviceID());
 		sqh.waitHandled(30000, true);
 		if (sqh.doc == null)
 		{
@@ -89,14 +89,14 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	}
 
 	/**
-	 * @param devQEID 
+	 * @param slaveQEID 
 	 * @param newStatus 
 	 * @param slaveURL 
 	 */
-	protected void submitted(String devQEID, EnumQueueEntryStatus newStatus, String slaveURL)
+	protected void submitted(String slaveQEID, EnumQueueEntryStatus newStatus, String slaveURL)
 	{
 		JDFQueueEntry qe = currentQE.getQueueEntry();
-		BambiNSExtension.setSlaveQueueEntryID(qe, devQEID);
+		BambiNSExtension.setSlaveQueueEntryID(qe, slaveQEID);
 		BambiNSExtension.setDeviceURL(qe, slaveURL);
 		_queueProcessor.updateEntry(qe, newStatus, null, null);
 	}
@@ -114,7 +114,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 * @param deviceOutputHF 
 	 * @param ud 
 	 * @param expandMime 
-	 * @return
+	 * @return the updated queuentry, null if the submit failed
 	 * TODO mime or not mime...
 	 */
 	protected IQueueEntry submitToQueue(URL qurl, File deviceOutputHF, MIMEDetails ud, boolean expandMime)
@@ -163,10 +163,16 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 						}
 						else
 						{
-							if (r.getReturnCode() != 0 || !EnumType.SubmitQueueEntry.equals(r.getEnumType()))
+							if (!EnumType.SubmitQueueEntry.equals(r.getEnumType())) // total snafu???
 							{
 								log.error("Device returned rc=" + r.getReturnCode());
 								_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+							}
+							else if (r.getReturnCode() != 0)
+							{
+								int rc = r.getReturnCode();
+								if (rc == 112) // queue closed - wait until open
+									return null; // no change
 							}
 							else
 							{

@@ -129,7 +129,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
 	protected static String manualWorkerUrl = null;
 
-	protected JMFFactory jmfFactory = new JMFFactory();
 	protected int chunkSize = -1;
 	protected String transferEncoding = UrlUtil.BASE64;
 
@@ -418,7 +417,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected void abortRemoveAll(String url)
 	{
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, url, null, "testcase", 2000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, url, null, "testcase", 2000);
 		if (resp == null)
 		{
 			System.err.println("failed to send QueueStatus");
@@ -438,7 +437,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		{
 			String qeid = ((JDFQueueEntry) qVec.get(i)).getQueueEntryID();
 			jmf = JMFFactory.buildAbortQueueEntry(qeid);
-			jmfFactory.send2URL(jmf, url, null, null, "testcase");
+			JMFFactory.send2URL(jmf, url, null, null, "testcase");
 		}
 
 		// wait to allow the worker to process the AbortQueueEntries,
@@ -448,7 +447,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		{
 			String qeid = ((JDFQueueEntry) qVec.get(i)).getQueueEntryID();
 			jmf = JMFFactory.buildRemoveQueueEntry(qeid);
-			jmfFactory.send2URL(jmf, url, null, null, "testcase");
+			JMFFactory.send2URL(jmf, url, null, null, "testcase");
 		}
 	}
 

@@ -73,8 +73,6 @@ package org.cip4.bambi.workers.sim;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
@@ -109,272 +107,285 @@ import org.cip4.jdflib.util.UrlUtil;
  * @author boegerni
  * 
  */
-public class SimDevice extends AbstractDevice implements IGetHandler{
-    /**
-     * 
-     */
+public class SimDevice extends AbstractDevice implements IGetHandler
+{
+	/**
+	 * 
+	 */
 
-    private static final long serialVersionUID = -8412710163767830461L;
-    private static Log log = LogFactory.getLog(SimDevice.class.getName());
-    protected String _trackResource=null; // the "major" resource to track
-    protected VString amountResources=null;
-    protected String _typeExpression=null; // the regexp that defines the valid types
+	private static final long serialVersionUID = -8412710163767830461L;
+	private static Log log = LogFactory.getLog(SimDevice.class.getName());
+	protected String _trackResource = null; // the "major" resource to track
+	protected VString amountResources = null;
+	protected String _typeExpression = null; // the regexp that defines the valid types
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
-     */
-    @Override
-    public boolean canAccept(JDFDoc doc)
-    {
-        if(doc!=null && _typeExpression==null)
-            return true;
-        return getAcceptableNodes(doc)!=null;
-    }
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
+	 */
+	@Override
+	public boolean canAccept(JDFDoc doc)
+	{
+		if (doc != null && _typeExpression == null)
+			return true;
+		return getAcceptableNodes(doc) != null;
+	}
 
-    public JDFNode getNodeFromDoc(JDFDoc doc)
-    {
-        VElement v=getAcceptableNodes(doc);
-        return (JDFNode) (v==null ? null : v.get(0));
-    }
+	@Override
+	public JDFNode getNodeFromDoc(JDFDoc doc)
+	{
+		VElement v = getAcceptableNodes(doc);
+		return (JDFNode) (v == null ? null : v.get(0));
+	}
 
-    /**
-     * @param doc
-     * @return
-     */
-    public VElement getAcceptableNodes(JDFDoc doc)
-    {
-        //TODO plug in devcaps
-        if(doc==null)
-            return null;
+	/**
+	 * @param doc
+	 * @return
+	 */
+	public VElement getAcceptableNodes(JDFDoc doc)
+	{
+		//TODO plug in devcaps
+		if (doc == null)
+			return null;
 
-        JDFNode n=doc.getJDFRoot();
-        VElement v=n.getvJDFNode(null, null, false);
-        for(int i=v.size()-1;i>=0;i--)
-        {
-            JDFNode n2=(JDFNode)v.elementAt(i);
-            if(!canAccept(n2))
-                v.remove(n2);
-        }
-        return v.size()==0 ? null : v;
-    }
+		JDFNode n = doc.getJDFRoot();
+		VElement v = n.getvJDFNode(null, null, false);
+		for (int i = v.size() - 1; i >= 0; i--)
+		{
+			JDFNode n2 = (JDFNode) v.elementAt(i);
+			if (!canAccept(n2))
+				v.remove(n2);
+		}
+		return v.size() == 0 ? null : v;
+	}
 
+	/**
+	 * @param n2
+	 */
+	private boolean canAccept(JDFNode n2)
+	{
+		String types = n2.getTypesString();
+		return StringUtil.matches(types, _typeExpression);
+	}
 
-    /**
-     * @param n2
-     */
-    private boolean canAccept(JDFNode n2)
-    {
-        String types=n2.getTypesString();
-        return StringUtil.matches(types, _typeExpression);
-    }
-    /**
-     * 
-     * @author prosirai
-     *
-     */
-    protected class XMLSimDevice
-    {
+	/**
+	 * 
+	 * @author prosirai
+	 *
+	 */
+	protected class XMLSimDevice
+	{
 
-        private JobPhase currentJobPhase;
-        XMLDevice d;
-        /**
-         * XML representation of this simDevice
-         * fore use as html display using an XSLT
-         * @param dev
-         */
-        public XMLSimDevice(String contextPath)
-        {
-            d=new XMLDevice(true,contextPath);
+		private final JobPhase currentJobPhase;
+		XMLDevice d;
 
-            currentJobPhase = getCurrentJobPhase();
-            if(currentJobPhase!=null)
-            {
-                addPhase();
-            }          
-        }
+		/**
+		 * XML representation of this simDevice
+		 * fore use as html display using an XSLT
+		 * @param dev
+		 */
+		public XMLSimDevice(String contextPath)
+		{
+			d = new XMLDevice(true, contextPath);
 
-        /**
-         * @param currentJobPhase
-         * @return
-         */
-        private KElement addPhase()
-        {
-            KElement root=d.getRoot();
-            KElement phase=root.appendElement("Phase");
+			currentJobPhase = getCurrentJobPhase();
+			if (currentJobPhase != null)
+			{
+				addPhase();
+			}
+		}
 
-            final EnumDeviceStatus deviceStatus = currentJobPhase.getDeviceStatus();
-            final EnumNodeStatus nodeStatus = currentJobPhase.getNodeStatus();
-            if(deviceStatus!=null  && nodeStatus!=null)
-            {
-                phase.setAttribute("DeviceStatus",deviceStatus.getName(),null);
-                phase.setAttribute("DeviceStatusDetails",currentJobPhase.getDeviceStatusDetails());
-                phase.setAttribute("NodeStatus",nodeStatus.getName(),null);
-                phase.setAttribute("NodeStatusDetails",currentJobPhase.getNodeStatusDetails());
-                phase.setAttribute(AttributeName.DURATION,currentJobPhase.getTimeToGo()/1000.,null);  
-                VString v=currentJobPhase.getAmountResourceNames();
-                int vSiz=v==null ? 0 : v.size();
-                for(int i=0;i<vSiz;i++)
-                {
-                    addAmount(v.stringAt(i), phase);
-                }
-                BambiServlet.addOptionList(deviceStatus,EnumDeviceStatus.getEnumList(),phase,"DeviceStatus");
-                BambiServlet.addOptionList(nodeStatus,EnumNodeStatus.getEnumList(),phase,"NodeStatus");
-            }
-            else
-            {
-                log.error("null status - bailing out");
-            }
-            return null;
-        }
+		/**
+		 * @param currentJobPhase
+		 * @return
+		 */
+		private KElement addPhase()
+		{
+			KElement root = d.getRoot();
+			KElement phase = root.appendElement("Phase");
 
+			final EnumDeviceStatus deviceStatus = currentJobPhase.getDeviceStatus();
+			final EnumNodeStatus nodeStatus = currentJobPhase.getNodeStatus();
+			if (deviceStatus != null && nodeStatus != null)
+			{
+				phase.setAttribute("DeviceStatus", deviceStatus.getName(), null);
+				phase.setAttribute("DeviceStatusDetails", currentJobPhase.getDeviceStatusDetails());
+				phase.setAttribute("NodeStatus", nodeStatus.getName(), null);
+				phase.setAttribute("NodeStatusDetails", currentJobPhase.getNodeStatusDetails());
+				phase.setAttribute(AttributeName.DURATION, currentJobPhase.getTimeToGo() / 1000., null);
+				VString v = currentJobPhase.getAmountResourceNames();
+				int vSiz = v == null ? 0 : v.size();
+				for (int i = 0; i < vSiz; i++)
+				{
+					addAmount(v.stringAt(i), phase);
+				}
+				BambiServlet.addOptionList(deviceStatus, EnumDeviceStatus.getEnumList(), phase, "DeviceStatus");
+				BambiServlet.addOptionList(nodeStatus, EnumNodeStatus.getEnumList(), phase, "NodeStatus");
+			}
+			else
+			{
+				log.error("null status - bailing out");
+			}
+			return null;
+		}
 
-        /**
-         * @param string
-         */
-        private void addAmount(String resString, KElement jp)
-        {
-            if(jp==null)
-                return;
-            KElement amount=jp.appendElement("ResourceAmount");
-            amount.setAttribute("ResourceName", resString);
-            amount.setAttribute("ResourceIndex", jp.numChildElements("ResourceAmount", null)-1,null);
-            amount.setAttribute("Waste", !currentJobPhase.getOutput_Condition(resString),null);            
-            amount.setAttribute("Speed", currentJobPhase.getOutput_Speed(resString),null);            
-        }        
-    }   
+		/**
+		 * @param string
+		 */
+		private void addAmount(String resString, KElement jp)
+		{
+			if (jp == null)
+				return;
+			KElement amount = jp.appendElement("ResourceAmount");
+			amount.setAttribute("ResourceName", resString);
+			amount.setAttribute("ResourceIndex", jp.numChildElements("ResourceAmount", null) - 1, null);
+			amount.setAttribute("Waste", !currentJobPhase.getOutput_Condition(resString), null);
+			amount.setAttribute("Speed", currentJobPhase.getOutput_Speed(resString), null);
+		}
+	}
 
+	public String getTrackResource()
+	{
+		return _trackResource;
+	}
 
+	/**
+	 * check whether this resource should track amounts
+	 * @param resLink
+	 * @return
+	 */
+	boolean isAmountResource(JDFResourceLink resLink)
+	{
+		if (resLink == null || amountResources == null)
+			return false;
+		for (int i = 0; i < amountResources.size(); i++)
+		{
+			if (resLink.matchesString(amountResources.get(i)))
+				return true;
+		}
+		return false;
+	}
 
-    public String getTrackResource()
-    {
-        return _trackResource;
-    }
+	@Override
+	protected boolean showDevice(BambiServletRequest request, BambiServletResponse response, boolean refresh)
+	{
+		if (refresh)
+			return super.showDevice(request, response, refresh); // skip the phase stuff
 
-    /**
-     * check whether this resource should track amounts
-     * @param resLink
-     * @return
-     */
-    boolean isAmountResource(JDFResourceLink resLink)
-    {
-        if(resLink==null || amountResources==null)
-            return false;
-        for(int i=0;i<amountResources.size();i++)
-        {
-            if(resLink.matchesString(amountResources.get(i)))
-                return true;
-        }        
-        return false;
-    }
-    @Override
-    protected boolean showDevice(BambiServletRequest request, BambiServletResponse response, boolean refresh)
-    {
-        if(refresh)
-            return super.showDevice(request, response, refresh); // skip the phase stuff
+		XMLSimDevice simDevice = this.new XMLSimDevice(request.getContextRoot());
+		try
+		{
+			simDevice.d.write2Stream(response.getBufferedOutputStream(), 0, true);
+		}
+		catch (IOException x)
+		{
+			return false;
+		}
+		response.setContentType(UrlUtil.TEXT_XML);
+		return true;
+	}
 
-        XMLSimDevice simDevice=this.new XMLSimDevice(request.getContextRoot());
-        try
-        {
-            simDevice.d.write2Stream(response.getBufferedOutputStream(), 0,true);
-        }
-        catch (IOException x)
-        {
-            return false;
-        }
-        response.setContentType(UrlUtil.TEXT_XML);
-        return true;
-    }
+	public JobPhase getCurrentJobPhase()
+	{
+		return ((SimDeviceProcessor) _deviceProcessors.get(0)).getCurrentJobPhase();
+	}
 
-    public JobPhase getCurrentJobPhase()
-    {
-        return ((SimDeviceProcessor)_deviceProcessors.get(0)).getCurrentJobPhase();
-    }
+	/**
+	 * build a new job phase with info from a given request. 
+	 * JobPhase parameter 'timeToGo' will remain with its default value 0, since it
+	 * is not used in the context of ManualDevice.doNextJobPhase()
+	 * @param request request to get the job phase info from
+	 * @return the new JobPhase
+	 */
+	private JobPhase buildJobPhaseFromRequest(BambiServletRequest request)
+	{
+		JobPhase current = getCurrentJobPhase();
 
+		JobPhase newPhase = (JobPhase) (current == null ? new JobPhase() : current.clone());
+		newPhase.timeToGo = Integer.MAX_VALUE; // until modified...
 
-    /**
-     * build a new job phase with info from a given request. 
-     * JobPhase parameter 'timeToGo' will remain with its default value 0, since it
-     * is not used in the context of ManualDevice.doNextJobPhase()
-     * @param request request to get the job phase info from
-     * @return the new JobPhase
-     */
-    private JobPhase buildJobPhaseFromRequest(BambiServletRequest request) {
-        JobPhase current=getCurrentJobPhase();
+		String status = request.getParameter("DeviceStatus");
+		if (status != null)
+		{
+			newPhase.deviceStatus = EnumDeviceStatus.getEnum(status);
+		}
+		newPhase.deviceStatusDetails = request.getParameter("DeviceStatusDetails");
 
-        JobPhase newPhase = (JobPhase) (current==null ? new JobPhase() : current.clone());
-        newPhase.timeToGo=Integer.MAX_VALUE; // until modified...
+		status = request.getParameter("NodeStatus");
+		if (status != null)
+		{
+			newPhase.nodeStatus = EnumNodeStatus.getEnum(status);
+			if (EnumNodeStatus.Aborted.equals(newPhase.nodeStatus)
+					|| EnumNodeStatus.Completed.equals(newPhase.nodeStatus)
+					|| EnumNodeStatus.Suspended.equals(newPhase.nodeStatus))
+				newPhase.timeToGo = 0;
 
-        String status = request.getParameter("DeviceStatus");
-        if (status != null) {
-            newPhase.deviceStatus = EnumDeviceStatus.getEnum( status );
-        }
-        newPhase.deviceStatusDetails = request.getParameter("DeviceStatusDetails");
+		}
+		newPhase.nodeStatusDetails = request.getParameter("NodeStatusDetails");
 
-        status = request.getParameter("NodeStatus");
-        if (status != null) {
-            newPhase.nodeStatus = EnumNodeStatus.getEnum(status);
-            if(EnumNodeStatus.Aborted.equals(newPhase.nodeStatus)||EnumNodeStatus.Completed.equals(newPhase.nodeStatus)||EnumNodeStatus.Suspended.equals(newPhase.nodeStatus))
-                newPhase.timeToGo=0;
+		for (int i = 0; i < 10; i++)
+		{
+			final String parameter = request.getParameter("Res" + i);
+			if (parameter == null)
+				break;
+			newPhase.setAmount(parameter, request.getDoubleParam("Speed" + i), !request.getBooleanParam("Waste" + i));
 
-        }
-        newPhase.nodeStatusDetails = request.getParameter("NodeStatusDetails");
+		}
+		if (!KElement.isWildCard(request.getParameter(AttributeName.DURATION)))
+			newPhase.setTimeToGo(1000 * (int) request.getDoubleParam(AttributeName.DURATION));
+		else if (current != null)
+			newPhase.setTimeToGo(current.getTimeToGo());
 
-        for(int i=0;i<10;i++)
-        {
-            final String parameter = request.getParameter("Res"+i);
-            if(parameter==null)
-                break;
-            newPhase.setAmount(parameter, 
-                    request.getDoubleParam("Speed"+i),
-                    !request.getBooleanParam("Waste"+i) );
+		return newPhase;
+	}
 
-        }
-        if(!KElement.isWildCard(request.getParameter(AttributeName.DURATION)))
-            newPhase.setTimeToGo(1000*(int)request.getDoubleParam(AttributeName.DURATION));
-        else if(current!=null)
-            newPhase.setTimeToGo(current.getTimeToGo());
+	/* (non-Javadoc)
+	 * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
+	 */
+	@Override
+	public boolean handleGet(BambiServletRequest request, BambiServletResponse response)
+	{
+		if (isMyRequest(request) && BambiServlet.isMyContext(request, "processNextPhase"))
+		{
+			return processNextPhase(request, response);
+		}
+		return super.handleGet(request, response);
+	}
 
+	private boolean processNextPhase(BambiServletRequest request, BambiServletResponse response)
+	{
 
-        return newPhase;
-    }
+		JobPhase nextPhase = buildJobPhaseFromRequest(request);
+		((SimDeviceProcessor) _deviceProcessors.get(0)).doNextPhase(nextPhase);
+		StatusCounter.sleep(1000); // allow device to switch phases before displaying page
+		showDevice(request, response, false);
+		return true;
+	}
 
+	/**
+	 * @param prop the properties of the device
+	 */
+	public SimDevice(IDeviceProperties prop)
+	{
+		super(prop);
+		_trackResource = prop.getTrackResource();
+		_typeExpression = prop.getTypeExpression();
+		amountResources = prop.getAmountResources();
+		log.info("created SimDevice '" + prop.getDeviceID() + "'");
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
-     */
-    public boolean handleGet(BambiServletRequest request, BambiServletResponse response)
-    {
-        if(isMyRequest(request) && BambiServlet.isMyContext(request,"processNextPhase"))       
-        {
-            return processNextPhase(request,response);
-        }
-        return super.handleGet(request, response);
-    }
+	@Override
+	protected AbstractDeviceProcessor buildDeviceProcessor()
+	{
+		return new SimDeviceProcessor();
+	}
 
-
-    private boolean processNextPhase(BambiServletRequest request, BambiServletResponse response) {
-
-        JobPhase nextPhase = buildJobPhaseFromRequest(request);
-        ((SimDeviceProcessor)_deviceProcessors.get(0)).doNextPhase(nextPhase);
-        StatusCounter.sleep(1000); // allow device to switch phases before displaying page
-        showDevice(request,response,false);
-        return true;
-    }
-
- 
-
-    public SimDevice(IDeviceProperties prop)
-    {
-        super(prop);
-        _trackResource=prop.getTrackResource();
-        _typeExpression=prop.getTypeExpression();
-        amountResources=prop.getAmountResources();
-        log.info("created SimDevice '"+prop.getDeviceID()+"'");
-    }
-
-    @Override
-    protected AbstractDeviceProcessor buildDeviceProcessor() {
-        return new SimDeviceProcessor();
-    }
+	/**
+	 * reload the queue
+	 */
+	@Override
+	protected void reloadQueue()
+	{
+		//nop
+	}
 
 }

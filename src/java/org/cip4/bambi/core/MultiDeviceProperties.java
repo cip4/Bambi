@@ -198,7 +198,7 @@ public class MultiDeviceProperties
 				}
 				catch (Exception x)
 				{
-					log.error("Cannot instantiate Device class: " + _deviceName, x);
+					log.fatal("Cannot instantiate Device class: " + _deviceName, x);
 				}
 			}
 			return null;
@@ -294,7 +294,13 @@ public class MultiDeviceProperties
 		public File getJDFDir()
 		{
 			File f = MultiDeviceProperties.this.getJDFDir();
-			return FileUtil.getFileInDirectory(f, new File(getDeviceID()));
+			String deviceID = getDeviceID();
+			if (deviceID == null)
+			{
+				log.fatal("missing deviceID in Config - bailung out " + toString());
+				return null;
+			}
+			return FileUtil.getFileInDirectory(f, new File(deviceID));
 		}
 
 		/**

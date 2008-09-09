@@ -127,10 +127,23 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  */
 public class ProxyDeviceProcessor extends AbstractProxyProcessor
 {
+	/**
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#isActive()
+	 * @return true if this processor has not yet received a stop message
+	 */
+	@Override
+	public boolean isActive()
+	{
+		if (stopTime == 0)
+			return !_doShutdown;
+		//TODO clean up orphans
+		return false;
+	}
+
 	static Log log = LogFactory.getLog(ProxyDeviceProcessor.class);
 	private static final long serialVersionUID = -384123582645081254L;
-	private final String _slaveURL;
 	private final NotificationQueryHandler notificationQueryHandler;
+	protected long stopTime = 0; // this is the stopprocessing time 0 means I'm alive
 
 	protected class StatusSignalHandler
 	{
@@ -382,9 +395,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	 * @param qProc the devices queueprocessor
 	 * @param device the parent device that this processor does processing for
 	 * @param qeToProcess the queueentry that this processor will be working for
-	 * @param slaveURL the url of the slave device
 	 */
-	public ProxyDeviceProcessor(ProxyDevice device, QueueProcessor qProc, IQueueEntry qeToProcess, String slaveURL)
+	public ProxyDeviceProcessor(ProxyDevice device, QueueProcessor qProc, IQueueEntry qeToProcess)
 	{
 		super(device);
 
@@ -393,11 +405,14 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		currentQE = qeToProcess;
 
 		init(qProc, _statusListener, _parent.getProperties());
+	}
 
-		if (slaveURL == null)
-			slaveURL = getParent().getProxyProperties().getSlaveURL();
-		_slaveURL = slaveURL;
-
+	/**
+	 * @param slaveURL
+	 * @return true if the recipient queue end received the ticket
+	 */
+	public boolean submit(String slaveURL)
+	{
 		URL qURL;
 		try
 		{
@@ -416,7 +431,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			ud.httpDetails.chunkSize = proxyProperties.getSlaveHTTPChunk();
 			boolean expandMime = proxyProperties.getSlaveMIMEExpansion();
 			IQueueEntry iqe = submitToQueue(qURL, deviceOutputHF, ud, expandMime);
-			qes = iqe.getQueueEntry().getQueueEntryStatus();
+			qes = iqe == null ? null : iqe.getQueueEntry().getQueueEntryStatus();
 		}
 		else
 		{
@@ -428,9 +443,10 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		if (qes == null || EnumQueueEntryStatus.Aborted.equals(qes))
 		{
 			// TODO handle errors
-			log.error("submitting queueentry unsuccessful: " + qeToProcess.getQueueEntryID());
+			log.error("submitting queueentry unsuccessful: " + currentQE.getQueueEntryID());
 			shutdown();
 		}
+		return qes != null;
 	}
 
 	/**
@@ -515,11 +531,10 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 		AbstractProxyDevice p = getParent();
 		JDFJMF jmfs[] = p.createSubscriptions(devQEID);
-		JMFFactory factory = new JMFFactory();
 		String deviceID = p.getDeviceID();
 		for (int i = 0; i < jmfs.length; i++)
 		{
-			factory.send2URL(jmfs[i], slaveURL, null, slaveCallBack, deviceID);
+			JMFFactory.send2URL(jmfs[i], slaveURL, null, slaveCallBack, deviceID);
 		} // TODO handle response        
 	}
 
@@ -548,24 +563,22 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		((ProxyDevice) _parent).removeProcessor(this);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.cip4.bambi.core.AbstractDeviceProcessor#stopProcessing(org.cip4.jdflib
-	 * .core.JDFElement.EnumNodeStatus)
+	/**
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#stopProcessing(org.cip4.jdflib.core.JDFElement.EnumNodeStatus)
+	 * @param newStatus
 	 */
 	@Override
 	public void stopProcessing(EnumNodeStatus newStatus)
 	{
 		final String slaveQE = getSlaveQEID();
 		getParent().stopSlaveProcess(slaveQE, newStatus);
+		stopTime = System.currentTimeMillis();
 	}
 
 	/**
 	 * @param m
 	 * @param resp
-	 * @return
+	 * @return true if all went well
 	 */
 	protected boolean returnFromSlave(JDFMessage m, JDFResponse resp)
 	{

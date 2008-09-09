@@ -100,7 +100,7 @@ public class ProxyTest extends BambiTestCase
 	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmfStat, proxyUrl, null, null, 2000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmfStat, proxyUrl, null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		JDFQueue q = resp.getQueue(0);
@@ -110,7 +110,7 @@ public class ProxyTest extends BambiTestCase
 
 		// check that the QE is on the proxy
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-		resp = jmfFactory.send2URLSynchResp(jmf, proxyUrl, null, null, 2000);
+		resp = JMFFactory.send2URLSynchResp(jmf, proxyUrl, null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		q = resp.getQueue(0);
@@ -132,7 +132,7 @@ public class ProxyTest extends BambiTestCase
 			Thread.sleep(1000);
 			JDFJMF jmf = JMFFactory.buildQueueStatus();
 
-			JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, proxyUrl, null, null, 2000);
+			JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, proxyUrl, null, null, 2000);
 			assertNotNull(resp);
 			assertEquals(0, resp.getReturnCode());
 			JDFQueue q = resp.getQueue(0);
@@ -159,7 +159,7 @@ public class ProxyTest extends BambiTestCase
 	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmfStat, proxyUrl, null, "foo", 20000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmfStat, proxyUrl, null, "foo", 20000);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		JDFQueue q = resp.getQueue(0);
@@ -172,7 +172,7 @@ public class ProxyTest extends BambiTestCase
 		{
 			System.out.println("submitting " + i);
 			submitMimeToProxy();
-			resp = jmfFactory.send2URLSynchResp(jmf, proxyUrl, null, null, 5000);
+			resp = JMFFactory.send2URLSynchResp(jmf, proxyUrl, null, null, 5000);
 			assertNotNull("loop " + i, resp);
 			assertEquals(0, resp.getReturnCode());
 			q = resp.getQueue(0);

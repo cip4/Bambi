@@ -302,9 +302,10 @@ public class StatusListener
 			dispatcher.removeSubScriptions(oldQEID, "*");
 		}
 
+		theCounter.setTrackWaste("*", true); // always track waste
 		theCounter.setActiveNode(node, vPartMap, null);
+		theCounter.setTrackWaste("*", true); // always track waste
 		theCounter.setFirstRefID(trackResourceID);
-		theCounter.setTrackWaste(trackResourceID, true); // always track waste
 		theCounter.setQueueEntryID(queueEntryID);
 		while (node != null)
 		{

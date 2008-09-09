@@ -44,9 +44,9 @@
             </td>
           </tr>
         </table>
-        <hr/> 
-  
- <!--  queue summary table  -->
+        <hr/>
+
+        <!--  queue summary table  -->
         <h2>Queue Summary</h2>
         <table cellspacing="2" border="1">
           <xsl:choose>
@@ -127,8 +127,8 @@
           </xsl:if>
         </table>
         <br/>
-         
-         <!--  global queue buttons -->
+
+        <!--  global queue buttons -->
         <table cellspacing="2" border="0">
           <tr>
             <td align="center" colspan="2">Incoming Entries</td>
@@ -186,7 +186,7 @@
         </table>
         <hr/>
         <h2>Queue Details</h2>
-<!--  queueentry table description  -->
+        <!--  queueentry table description  -->
         <table cellspacing="1" border="1">
           <tr bgcolor="#bbbbbb">
             <th align="left">QueueEntryID</th>
@@ -196,6 +196,9 @@
             <th align="left">End Date / Time</th>
             <th align="left">JobID</th>
             <th align="left">JobPartID</th>
+            <xsl:if test="@bambi:SlaveURL='true'">
+              <th align="left">Slave QueueEntryID</th>
+            </xsl:if>
             <th align="center">Device</th>
             <th align="center">Status</th>
             <th align="center">Show JDF</th>
@@ -212,7 +215,7 @@
     </html>
   </xsl:template>
 
-<!--      QueueEntry template  -->
+  <!--      QueueEntry template  -->
   <xsl:template match="jdf:QueueEntry">
     <xsl:variable name="context" select="../@Context"/>
     <tr>
@@ -255,6 +258,11 @@
       <td align="left">
         <xsl:value-of select="@JobPartID"/>
       </td>
+      <xsl:if test="../@bambi:SlaveURL='true'">
+        <td align="left">
+          <xsl:value-of select="@bambi:SlaveQueueEntryID"/>
+        </td>
+      </xsl:if>
       <td>
         <a>
           <xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of
@@ -263,8 +271,8 @@
           <xsl:value-of select="@DeviceID"/>
         </a>
       </td>
-      <td nowrap="true">      
-<!-- calls the optionList -->
+      <td nowrap="true">
+        <!-- calls the optionList -->
         <form>
           <xsl:attribute name="action"><xsl:value-of select="$context"/>/modifyQE/<xsl:value-of
             select="../@DeviceID"/></xsl:attribute>

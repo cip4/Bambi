@@ -544,6 +544,15 @@ public class RootDevice extends AbstractDevice
 		return s;
 	}
 
+	/**
+	 * @see org.cip4.bambi.core.AbstractDevice#reloadQueue()
+	 */
+	@Override
+	protected void reloadQueue()
+	{
+		// nop
+	}
+
 	//////////////////////////////////////////////////////////////////////////////////
 
 }

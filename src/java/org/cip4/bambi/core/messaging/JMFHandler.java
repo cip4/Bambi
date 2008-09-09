@@ -420,7 +420,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 */
 	private void unhandledMessage(JDFMessage m, JDFResponse resp)
 	{
-		errorResponse(resp, "Message not handled: " + m.getType() + "; Family: " + m.getFamily().getName(), 5);
+		errorResponse(resp, "Message not handled: " + m.getType() + "; Family: " + m.getFamily().getName() + " id="
+				+ m.getID(), 5);
 	}
 
 	/**

@@ -368,7 +368,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 							_statusListener.signalStatus(EnumDeviceStatus.Idle, null, null, null, false);
 						synchronized (_myListener)
 						{
-							_myListener.wait(10000); // just in case                        
+							_myListener.wait(10000); // 10000 is just in case                        
 						}
 					}
 					catch (InterruptedException x)
@@ -387,9 +387,19 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	}
 
 	/**
+	 * 
+	 * @return true if this processor is active
+	 */
+	public boolean isActive()
+	{
+		return currentQE != null;
+	}
+
+	/**
 	 * initialize the IDeviceProcessor
-	 * @param _queueProcessor
-	 * @param _statusListener
+	 * @param queueProcessor
+	 * @param statusListener
+	 * @param devProperties 
 	 */
 	public void init(QueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties)
 	{
@@ -431,8 +441,10 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			log.error("no JDF Node for: " + queueEntryID);
 			return false;
 		}
-		boolean bOK = true;
-		initializeProcessDoc(node, qe);
+		boolean bOK = initializeProcessDoc(node, qe);
+
+		if (!bOK)
+			return bOK;
 
 		EnumQueueEntryStatus qes;
 		try
@@ -494,15 +506,17 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	}
 
 	/**
-	 * genric setup of processing 
-	 * @param queueEntryID the queueEntryID of the job to process
+	 * generic setup of processing 
+	 * @param node the node to process
+	 * @param qe the queueEntryID of the job to process
+	 * @return true if ok 
 	 */
-	protected void initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
+	protected boolean initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
 	{
 		currentQE = new QueueEntry(node, qe);
 		_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Running, null, null);
 		setupStatusListener(node, qe);
-
+		return true;
 	}
 
 	/**

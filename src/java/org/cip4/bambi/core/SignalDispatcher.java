@@ -132,7 +132,6 @@ public final class SignalDispatcher
 	protected boolean doShutdown = false;
 	protected String deviceID = null;
 	private int lastCalled = 0;
-	private final JMFFactory jmfFactory;
 	private final IConverterCallback callback;
 	protected Dispatcher theDispatcher;
 	private String ignoreURL = null;
@@ -485,7 +484,7 @@ public final class SignalDispatcher
 			final JDFJMF signalJMF = sub.getSignal();
 			if (signalJMF != null)
 			{
-				jmfFactory.send2URL(signalJMF, url, null, callback, deviceID);
+				JMFFactory.send2URL(signalJMF, url, null, callback, deviceID);
 
 				if (sub.trigger != null)
 					sub.trigger.setQueued();
@@ -648,7 +647,7 @@ public final class SignalDispatcher
 			boolean b = messageHandler.handleMessage(q, r);
 			if (!b)
 			{
-				log.error("Unhandled message: " + q.getType());
+				log.debug("Unhandled message: " + q.getType());
 				return null;
 			}
 			int nResp = jmf.numChildElements(ElementName.RESPONSE, null);
@@ -924,7 +923,6 @@ public final class SignalDispatcher
 		new Thread(theDispatcher, "SignalDispatcher_" + deviceID).start();
 		log.info("dispatcher thread 'SignalDispatcher_" + deviceID + "' started");
 		callback = cb;
-		jmfFactory = new JMFFactory();
 	}
 
 	/**

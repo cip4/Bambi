@@ -99,6 +99,7 @@ import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.VectorMap;
@@ -197,7 +198,9 @@ public class MessageSender implements Runnable
 					log.warn("Illegal callback class - limp along with null");// nop
 				}
 			}
-			jmf = (JDFJMF) element.getElement(ElementName.JMF);
+			KElement jmf1 = element.getElement(ElementName.JMF);
+			// must clone the root
+			jmf = (JDFJMF) (jmf1 == null ? null : new JDFDoc(ElementName.JMF).getRoot().mergeElement(jmf1, false));
 			if (jmf == null)
 			{
 				String mimeURL = element.getAttribute("MimeUrl", null, null);
@@ -258,7 +261,7 @@ public class MessageSender implements Runnable
 	 */
 	public static class MessageResponseHandler implements IResponseHandler
 	{
-		private final JDFResponse resp = null;
+		protected JDFResponse resp = null;
 		private HttpURLConnection connect = null;
 		protected BufferedInputStream bufferedInput = null;
 		private Object mutex = new Object();
@@ -282,6 +285,17 @@ public class MessageSender implements Runnable
 		public boolean handleMessage()
 		{
 			finalizeHandling();
+			if (bufferedInput != null)
+			{
+				JDFParser p = new JDFParser();
+				JDFDoc d = p.parseStream(bufferedInput);
+				if (d != null)
+				{
+					JDFJMF jmf = d.getJMFRoot();
+					if (jmf != null)
+						resp = jmf.getResponse(0);
+				}
+			}
 			return true;
 		}
 
@@ -401,6 +415,7 @@ public class MessageSender implements Runnable
 	public void run()
 	{
 		readFromBase();
+		StatusCounter.sleep(10000); // wait a while before sending messages so that all processors are alive before we start throwing messages
 		while (!doShutDown)
 		{
 			sendReturn sentFirstMessage;
@@ -470,6 +485,7 @@ public class MessageSender implements Runnable
 		}
 		KElement root = appendToXML(null, true);
 		root.getOwnerDocument_KElement().write2File(f, 2, false);
+		_messages.clear();
 	}
 
 	/**
@@ -488,6 +504,9 @@ public class MessageSender implements Runnable
 		JDFDoc d = p.parseFile(f);
 		synchronized (_messages)
 		{
+			Vector<MessageDetails> vTmp = new Vector<MessageDetails>();
+			vTmp.addAll(_messages);
+			_messages.clear();
 			if (d != null)
 			{
 				KElement root = d.getRoot();
@@ -499,6 +518,7 @@ public class MessageSender implements Runnable
 				for (int i = 0; i < v.size(); i++)
 					_messages.add(new MessageDetails(v.get(i)));
 			}
+			_messages.addAll(vTmp);
 		}
 	}
 
@@ -576,6 +596,7 @@ public class MessageSender implements Runnable
 			try
 			{
 				HttpURLConnection con;
+
 				String header = "URL: " + mh.url;
 
 				if (jmf != null)
@@ -615,6 +636,7 @@ public class MessageSender implements Runnable
 
 				if (con != null)
 				{
+					con.setReadTimeout(8000); // 8 seconds should suffice
 					header += "\nResponse code:" + con.getResponseCode();
 					header += "\nContent type:" + con.getContentType();
 					header += "\nContent length:" + con.getContentLength();
@@ -676,6 +698,13 @@ public class MessageSender implements Runnable
 			doShutDown = true;
 		}
 		JMFFactory.senders.remove(callURL);
+		if (mutexDispatch != null)
+		{
+			synchronized (mutexDispatch)
+			{
+				mutexDispatch.notifyAll();
+			}
+		}
 	}
 
 	/**

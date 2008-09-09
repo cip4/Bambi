@@ -129,14 +129,14 @@ public class JMFFactoryTest extends BambiTestCase
 	public void testStatus()
 	{
 		JDFJMF jmf = JMFFactory.buildStatus();
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		JDFDeviceInfo di = resp.getDeviceInfo(0);
 		assertTrue(di != null);
 
 		jmf = JMFFactory.buildStatus();
-		resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		resp.getDeviceInfo(0);
@@ -146,7 +146,7 @@ public class JMFFactoryTest extends BambiTestCase
 	public void testSuspendQueueEntry()
 	{
 		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry("12345");
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
@@ -154,7 +154,7 @@ public class JMFFactoryTest extends BambiTestCase
 	public void testResumeQueueEntry()
 	{
 		JDFJMF jmf = JMFFactory.buildResumeQueueEntry("12345");
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
@@ -162,7 +162,7 @@ public class JMFFactoryTest extends BambiTestCase
 	public void testAbortQueueEntry()
 	{
 		JDFJMF jmf = JMFFactory.buildAbortQueueEntry("12345");
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
@@ -170,7 +170,7 @@ public class JMFFactoryTest extends BambiTestCase
 	public void testRemoveQueueEntry()
 	{
 		JDFJMF jmf = JMFFactory.buildRemoveQueueEntry("12345");
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
@@ -181,7 +181,7 @@ public class JMFFactoryTest extends BambiTestCase
 	public void testStopPersistentChammel()
 	{
 		JDFJMF jmf = JMFFactory.buildStopPersistentChannel("m_080902_103826750_000344", "http://kie-prosirai-lg:8080/misconnector/slavejmf/MISConnector");
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
@@ -189,7 +189,7 @@ public class JMFFactoryTest extends BambiTestCase
 	public void testQueueStatus()
 	{
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		JDFQueue q = resp.getQueue(0);
@@ -232,7 +232,7 @@ public class JMFFactoryTest extends BambiTestCase
 	{
 		long t = System.currentTimeMillis();
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 		JDFQueue q = resp.getQueue(0);
 		assertNotNull(q);
 		int queueSize = q.getQueueSize();
@@ -244,12 +244,12 @@ public class JMFFactoryTest extends BambiTestCase
 			System.out.println("Pre abort," + i);
 			String qeID = ((JDFQueueEntry) v.elementAt(i)).getQueueEntryID();
 			jmf = JMFFactory.buildAbortQueueEntry(qeID);
-			resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+			resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 			assertNotNull(resp);
 			assertEquals(0, resp.getReturnCode());
 
 			jmf = JMFFactory.buildRemoveQueueEntry(qeID);
-			resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+			resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 			long t2 = System.currentTimeMillis();
 			assertNotNull(resp);
 			// a return code of 106="Failed, QueueEntry is already executing" is possible
@@ -267,7 +267,7 @@ public class JMFFactoryTest extends BambiTestCase
 		Thread.sleep(1000);
 
 		jmf = JMFFactory.buildQueueStatus();
-		resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 		q = resp.getQueue(0);
 		assertNotNull(q);
 		queueSize = q.getQueueSize();
@@ -284,7 +284,7 @@ public class JMFFactoryTest extends BambiTestCase
 			}
 			// clean up
 			jmf = JMFFactory.buildRemoveQueueEntry(qe.getQueueEntryID());
-			resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+			resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 		}
 	}
 
@@ -292,7 +292,7 @@ public class JMFFactoryTest extends BambiTestCase
 	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmfStat, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmfStat, simWorkerUrl, null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		JDFQueue q = resp.getQueue(0);

@@ -485,12 +485,19 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 			_deviceProcessors.add(newDevProc);
 		}
 
+		reloadQueue();
+
 		final File hfURL = _devProperties.getInputHF();
 		createHotFolder(hfURL);
 
 		addHandlers();
 		addWatchSubscriptions();
 	}
+
+	/**
+	 * 
+	 */
+	protected abstract void reloadQueue();
 
 	/**
 	 * add generic subscriptions in case watchurl!=null
@@ -842,7 +849,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 			return;
 		final String queueURL = getDeviceURL();
 		JDFJMF jmf = JMFFactory.buildRequestQueueEntry(queueURL, getDeviceID());
-		new JMFFactory().send2URL(jmf, proxyURL, null, _callback, getDeviceID()); // TODO handle reponse
+		JMFFactory.send2URL(jmf, proxyURL, null, _callback, getDeviceID()); // TODO handle reponse
 	}
 
 	public SignalDispatcher getSignalDispatcher()
@@ -894,12 +901,17 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 	}
 
 	/**
-	 * @return
+	 * @return the number of active processors
 	 */
 	public int activeProcessors()
 	{
-		// TODO Auto-generated method stub
-		return _deviceProcessors.size();
+		int siz = _deviceProcessors == null ? 0 : _deviceProcessors.size();
+		for (int i = siz - 1; i >= 0; i--)
+		{
+			if (!_deviceProcessors.get(i).isActive())
+				siz--;
+		}
+		return siz;
 	}
 
 	protected boolean showDevice(BambiServletRequest request, BambiServletResponse response, boolean refresh)
@@ -1014,6 +1026,16 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 	{
 		shutdown();
 		super.finalize();
+	}
+
+	/**
+	 * continue with a queueentry at startup
+	 * 
+	 * @param qe the queueentry to continue with 
+	 */
+	public void continueQE(JDFQueueEntry qe)
+	{
+		// nop 
 	}
 
 }

@@ -183,7 +183,7 @@ public class JMFFactory
 	static HashMap<CallURL, MessageSender> senders = new HashMap<CallURL, MessageSender>();
 	private static int nThreads = 0;
 
-	public JMFFactory()
+	private JMFFactory() // all static
 	{
 		super();
 	}
@@ -365,7 +365,7 @@ public class JMFFactory
 	 * @param url the URL to send the JMF to
 	 * @return the response if successful, otherwise null
 	 */
-	public void send2URL(Multipart mp, String url, IResponseHandler handler, IConverterCallback callback, MIMEDetails md, String deviceID)
+	public static void send2URL(Multipart mp, String url, IResponseHandler handler, IConverterCallback callback, MIMEDetails md, String deviceID)
 	{
 
 		if (mp == null || url == null)
@@ -391,7 +391,7 @@ public class JMFFactory
 	 * @param milliSeconds timout to wait
 	 * @return the response if successful, otherwise null
 	 */
-	public void send2URL(JDFJMF jmf, String url, IResponseHandler handler, IConverterCallback callback, String senderID)
+	public static void send2URL(JDFJMF jmf, String url, IResponseHandler handler, IConverterCallback callback, String senderID)
 	{
 
 		if (jmf == null || url == null)
@@ -419,7 +419,7 @@ public class JMFFactory
 	 * @param milliSeconds timout to wait
 	 * @return the response if successful, otherwise null
 	 */
-	public HttpURLConnection send2URLSynch(JDFJMF jmf, String url, IConverterCallback callback, String senderID, int milliSeconds)
+	public static HttpURLConnection send2URLSynch(JDFJMF jmf, String url, IConverterCallback callback, String senderID, int milliSeconds)
 	{
 		MessageResponseHandler handler = new MessageResponseHandler();
 		send2URL(jmf, url, handler, callback, senderID);
@@ -435,7 +435,7 @@ public class JMFFactory
 	 * @param milliSeconds timout to wait
 	 * @return the response if successful, otherwise null
 	 */
-	public JDFResponse send2URLSynchResp(JDFJMF jmf, String url, IConverterCallback callback, String senderID, int milliSeconds)
+	public static JDFResponse send2URLSynchResp(JDFJMF jmf, String url, IConverterCallback callback, String senderID, int milliSeconds)
 	{
 		MessageResponseHandler handler = new MessageResponseHandler();
 		send2URL(jmf, url, handler, callback, senderID);
@@ -459,7 +459,7 @@ public class JMFFactory
 	 * @param url the URL to send the JMF to
 	 * @return the response if successful, otherwise null
 	 */
-	public HttpURLConnection send2URLSynch(Multipart mp, String url, IConverterCallback callback, MIMEDetails md, String senderID, int milliSeconds)
+	public static HttpURLConnection send2URLSynch(Multipart mp, String url, IConverterCallback callback, MIMEDetails md, String senderID, int milliSeconds)
 	{
 		MessageResponseHandler handler = new MessageResponseHandler();
 		send2URL(mp, url, handler, callback, md, senderID);
@@ -511,7 +511,6 @@ public class JMFFactory
 	 * get an existing MessageSender for a given url or callback
 	 * 
 	 * @param url the URL to send a message to
-	 * @param callBack the callback to use
 	 * 
 	 * @return the MessageSender that will queue and dispatch the message
 	 * 
@@ -524,7 +523,6 @@ public class JMFFactory
 
 		synchronized (senders)
 		{
-
 			MessageSender ms = senders.get(cu);
 			if (ms != null && !ms.isRunning())
 			{
@@ -534,25 +532,32 @@ public class JMFFactory
 			}
 			if (ms == null)
 			{
-				// cleanup idle threads
-				Iterator<MessageSender> it = senders.values().iterator();
-				Vector<MessageSender> v = new Vector<MessageSender>();
-				while (it.hasNext())
-				{
-					MessageSender ms2 = it.next();
-					if (!ms2.isRunning())
-						v.add(ms2);
-				}
-				for (int i = 0; i < v.size(); i++)
-					senders.remove(v.get(i));
-
+				cleanIdleSenders();
 				ms = new MessageSender(cu);
 				senders.put(cu, ms);
 				new Thread(ms, "MessageSender_" + nThreads++ + "_" + cu.getBaseURL()).start();
-
 			}
-
 			return ms;
+		}
+	}
+
+	/**
+	 * cleanup idle threads
+	 */
+	private static void cleanIdleSenders()
+	{
+		Iterator<MessageSender> it = senders.values().iterator();
+		Vector<MessageSender> v = new Vector<MessageSender>();
+		while (it.hasNext())
+		{
+			MessageSender ms2 = it.next();
+			if (!ms2.isRunning())
+				v.add(ms2);
+		}
+		for (int i = 0; i < v.size(); i++)
+		{
+			senders.remove(v.get(i));
+			log.info("removing idle message sender " + v.get(i).getCallURL().getBaseURL());
 		}
 	}
 

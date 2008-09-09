@@ -146,17 +146,22 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 	}
 
 	@Override
-	protected void initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
+	protected boolean initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
 	{
 		currentQE = null;
 		if (_parent.activeProcessors() >= 1 + proxyProperties.getMaxPush())
 		{
 			BambiNSExtension.setDeviceURL(qe, null);
-			return; // no more push
+			return false; // no more push
 		}
 		qe.setDeviceID(proxyProperties.getSlaveDeviceID());
 		IQueueEntry iqe = new QueueEntry(node, qe);
-		((ProxyDevice) _parent).submitQueueEntry(iqe, proxyProperties.getSlaveURL());
+		ProxyDeviceProcessor pdb = ((ProxyDevice) _parent).submitQueueEntry(iqe, proxyProperties.getSlaveURL());
+		if (pdb == null)
+		{
+			BambiNSExtension.setDeviceURL(qe, null); // see above clean up any multuple markers
+		}
+		return pdb != null;
 	}
 
 	@Override

@@ -755,7 +755,9 @@ public class BambiServlet extends HttpServlet
 		boolean needController = v.size() > 1;
 		while (iter.hasNext())
 		{
-			IDeviceProperties prop = props.createDevice(iter.next());
+			KElement next = iter.next();
+			log.info("Creating Device " + next.getAttribute("DeviceID"));
+			IDeviceProperties prop = props.createDevice(next);
 			IDevice d = null;
 			if (rootDev == null)
 			{
@@ -764,6 +766,7 @@ public class BambiServlet extends HttpServlet
 					d = prop.getDeviceInstance();
 					if (!(d instanceof RootDevice))
 					{
+						log.info("Updating Root Device " + next.getAttribute("DeviceID"));
 						d.shutdown();
 						d = new RootDevice(prop);
 					}

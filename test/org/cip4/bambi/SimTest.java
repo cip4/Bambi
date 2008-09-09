@@ -108,7 +108,7 @@ public class SimTest extends BambiTestCase
 	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmfStat, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmfStat, simWorkerUrl, null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		JDFQueue q = resp.getQueue(0);
@@ -118,7 +118,7 @@ public class SimTest extends BambiTestCase
 
 		// check that the QE is on the proxy
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-		resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		q = resp.getQueue(0);
@@ -141,7 +141,7 @@ public class SimTest extends BambiTestCase
 	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = jmfFactory.send2URLSynchResp(jmfStat, simWorkerUrl, null, "foo", 2000);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmfStat, simWorkerUrl, null, "foo", 2000);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		JDFQueue q = resp.getQueue(0);
@@ -154,7 +154,7 @@ public class SimTest extends BambiTestCase
 		{
 			System.out.println("submitting " + i);
 			submitMimeToSim();
-			resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+			resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 			assertNotNull(resp);
 			assertEquals(0, resp.getReturnCode());
 			q = resp.getQueue(0);
@@ -179,7 +179,7 @@ public class SimTest extends BambiTestCase
 			Thread.sleep(1000);
 			JDFJMF jmf = JMFFactory.buildQueueStatus();
 
-			JDFResponse resp = jmfFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+			JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 			assertNotNull(resp);
 			assertEquals(0, resp.getReturnCode());
 			JDFQueue q = resp.getQueue(0);

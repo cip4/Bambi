@@ -220,7 +220,7 @@ public class QueueProcessor
 			{
 				return false;
 			}
-			log.info("Handling  SubmitQueueEntry");
+			log.debug("Handling  SubmitQueueEntry");
 			JDFQueueSubmissionParams qsp = m.getQueueSubmissionParams(0);
 			if (qsp != null)
 			{
@@ -322,7 +322,7 @@ public class QueueProcessor
 			{
 				return false;
 			}
-			log.info("Handling " + m.getType());
+			log.debug("Handling " + m.getType());
 			JDFQueueEntry qe = getMessageQueueEntry(m, resp);
 			if (qe == null)
 			{
@@ -372,7 +372,7 @@ public class QueueProcessor
 			{
 				return false;
 			}
-			log.info("Handling " + m.getType());
+			log.debug("Handling " + m.getType());
 			JDFQueueEntry qe = getMessageQueueEntry(m, resp);
 			if (qe == null)
 			{
@@ -544,7 +544,7 @@ public class QueueProcessor
 			{
 				return false;
 			}
-			log.info("Handling " + m.getType());
+			log.debug("Handling " + m.getType());
 			EnumType typ = m.getEnumType();
 			if (EnumType.ResumeQueueEntry.equals(typ))
 			{
@@ -602,7 +602,7 @@ public class QueueProcessor
 			{
 				return false;
 			}
-			log.info("Handling " + m.getType());
+			log.debug("Handling " + m.getType());
 			JDFFlushQueueParams fqp = m.getFlushQueueParams(0);
 			JDFQueueFilter qf = fqp == null ? null : fqp.getQueueFilter();
 			JDFQueueFilter qfo = m.getQueueFilter(0);
@@ -784,7 +784,7 @@ public class QueueProcessor
 			{
 				return false;
 			}
-			log.info("Handling " + m.getType());
+			log.debug("Handling " + m.getType());
 			JDFQueueEntry qe = getMessageQueueEntry(m, resp);
 			if (qe == null)
 			{
@@ -896,41 +896,20 @@ public class QueueProcessor
 		}
 
 		File jdfDir = _parentDevice.getJDFDir();
-		if (!jdfDir.exists() && !jdfDir.mkdirs())
-			log.error("failed to create JDFDir at location " + jdfDir.getAbsolutePath());
+		if (jdfDir == null || !jdfDir.exists() && !jdfDir.mkdirs())
+		{
+			log.fatal("failed to create JDFDir at location " + (jdfDir == null ? null : jdfDir.getAbsolutePath()));
+		}
 
-		JDFDoc d = JDFDoc.parseFile(_queueFile.getAbsolutePath());
-		if (d == null)
-		{
-			d = JDFDoc.parseFile(_queueFile.getAbsolutePath() + ".bak");
-			if (d != null)
-				log.warn("problems reading queue file - using backup");
-		}
-		if (d != null)
-		{
-			log.info("refreshing queue");
-			_theQueue = (JDFQueue) d.getRoot();
-			_theQueue.holdQueue();
-			// make sure that all QueueEntries are suspended on restart 
-			VElement qev = _theQueue.getQueueEntryVector();
-			int qSize = qev == null ? 0 : qev.size();
-			for (int i = 0; i < qSize; i++)
-			{
-				JDFQueueEntry qe = (JDFQueueEntry) qev.get(i);
-				EnumQueueEntryStatus stat = qe.getQueueEntryStatus();
-				if (EnumQueueEntryStatus.Running.equals(stat))
-				{
-					qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
-				}
-			}
-		}
-		else
-		{
-			d = new JDFDoc(ElementName.QUEUE);
-			log.info("creating new queue");
-			_theQueue = (JDFQueue) d.getRoot();
-			_theQueue.setQueueStatus(EnumQueueStatus.Waiting);
-		}
+		startupParent(deviceID);
+
+	}
+
+	/**
+	 * @param deviceID
+	 */
+	private void setQueueProperties(String deviceID)
+	{
 		_theQueue.setAutomated(true);
 		_theQueue.setDeviceID(deviceID);
 		_theQueue.setMaxCompletedEntries(100);
@@ -939,6 +918,59 @@ public class QueueProcessor
 		_theQueue.setCleanupCallback(new QueueEntryCleanup()); // zapps any attached files when removing qe
 		_theQueue.setExecuteCallback(new CanExecuteCallBack(deviceID, BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL)));
 		BambiNSExtension.setMyNSAttribute(_theQueue, "EnsureNS", "Dummy"); // ensure that some bambi ns exists
+	}
+
+	/**
+	 * @param deviceID
+	 */
+	private void startupParent(String deviceID)
+	{
+		JDFDoc d = readQueueFile();
+		if (d != null)
+		{
+			log.info("refreshing queue");
+			_theQueue = (JDFQueue) d.getRoot();
+			_theQueue.holdQueue();
+			// make sure that all QueueEntries are suspended on restart 
+			// and that all devices are notified of the starte of the queue
+			VElement qev = _theQueue.getQueueEntryVector();
+			setQueueProperties(deviceID);
+
+			int qSize = qev == null ? 0 : qev.size();
+			for (int i = 0; i < qSize; i++)
+			{
+				JDFQueueEntry qe = (JDFQueueEntry) qev.get(i);
+				EnumQueueEntryStatus stat = qe.getQueueEntryStatus();
+				//				if (EnumQueueEntryStatus.Running.equals(stat))
+				//				{
+				//					qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
+				//				}
+			}
+		}
+		else
+		{
+			d = new JDFDoc(ElementName.QUEUE);
+			log.info("creating new queue");
+			_theQueue = (JDFQueue) d.getRoot();
+			_theQueue.setQueueStatus(EnumQueueStatus.Waiting);
+			setQueueProperties(deviceID);
+
+		}
+	}
+
+	/**
+	 * @return
+	 */
+	private JDFDoc readQueueFile()
+	{
+		JDFDoc d = JDFDoc.parseFile(_queueFile.getAbsolutePath());
+		if (d == null)
+		{
+			d = JDFDoc.parseFile(_queueFile.getAbsolutePath() + ".bak");
+			if (d != null)
+				log.warn("problems reading queue file - using backup");
+		}
+		return d;
 	}
 
 	/**
@@ -988,9 +1020,9 @@ public class QueueProcessor
 
 	/**
 	 * @param qe
-	 * @return
+	 * @return an IQueueEntry thar corresponds to the qe, null if none is there
 	 */
-	private IQueueEntry getIQueueEntry(JDFQueueEntry qe)
+	public IQueueEntry getIQueueEntry(JDFQueueEntry qe)
 	{
 		if (qe == null)
 			return null;
@@ -1007,13 +1039,14 @@ public class QueueProcessor
 		return new QueueEntry(n, qe);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.cip4.bambi.IQueueProcessor#addListener(java.lang.Object)
+	/**
+	 * add a listner object that is notified of queue changes
+	 * @param listner 
 	 */
-	public void addListener(Object o)
+	public void addListener(Object listner)
 	{
 		log.info("adding new listener");
-		_listeners.add(o);
+		_listeners.add(listner);
 	}
 
 	/* (non-Javadoc)
@@ -1342,7 +1375,7 @@ public class QueueProcessor
 				mimeDetails.httpDetails.chunkSize = properties.getControllerHTTPChunk();
 				mimeDetails.transferEncoding = properties.getControllerMIMEEncoding();
 				mimeDetails.modifyBoundarySemicolon = StringUtil.parseBoolean(properties.getDeviceAttribute("FixMIMEBoundarySemicolon"), false);
-				response = new JMFFactory().send2URLSynch(mp, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
+				response = JMFFactory.send2URLSynch(mp, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
 			}
 			else
 			// http
@@ -1351,7 +1384,7 @@ public class QueueProcessor
 				HTTPDetails hDet = new HTTPDetails();
 				hDet.chunkSize = properties.getControllerHTTPChunk();
 
-				response = new JMFFactory().send2URLSynch(jmf, returnJMF, _parentDevice.getCallback(null), _parentDevice.getDeviceID(), 10000);
+				response = JMFFactory.send2URLSynch(jmf, returnJMF, _parentDevice.getCallback(null), _parentDevice.getDeviceID(), 10000);
 			}
 			int responseCode;
 			if (response != null)
@@ -1504,7 +1537,7 @@ public class QueueProcessor
 		{
 			return false;
 		}
-		log.info("Handling " + m.getType());
+		log.debug("Handling " + m.getType());
 		JDFQueueEntry qe = getMessageQueueEntry(m, resp);
 		if (qe == null)
 		{
