@@ -1444,6 +1444,9 @@ public class QueueProcessor
 				log.warn("No return URL, No HF, No Nothing  specified, bailing out");
 			}
 		}
+		// remove any subscriptions in case they are still around
+		if (queueEntryID != null)
+			_parentDevice.getSignalDispatcher().removeSubScriptions(queueEntryID, null);
 	}
 
 	/**

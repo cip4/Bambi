@@ -998,12 +998,12 @@ public final class SignalDispatcher
 		{
 			return null;
 		}
-
-		if (ContainerUtil.equals(deviceID, BambiServlet.getDeviceIDFromURL(sub.url)))
-		{
-			log.warn("subscribing to self - ignore: " + deviceID);
-			return null;
-		}
+		// no longer required
+		//		if (ContainerUtil.equals(deviceID, BambiServlet.getDeviceIDFromURL(sub.url)))
+		//		{
+		//			log.warn("subscribing to self - ignore: " + deviceID);
+		//			return null;
+		//		}
 		if (subscriptionMap.containsKey(sub.channelID))
 		{
 			log.error("subscription already exists for:" + sub.channelID);

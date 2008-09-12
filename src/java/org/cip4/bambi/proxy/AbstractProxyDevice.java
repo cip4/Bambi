@@ -151,7 +151,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 							String slaveQEID = BambiNSExtension.getSlaveQueueEntryID(qe);
 							if (slaveQEID != null)
 							{
-								JDFQueueEntry slaveQE = slaveMap.get(slaveQEID);
+								JDFQueueEntry slaveQE = slaveMap == null ? null : slaveMap.get(slaveQEID);
 								if (slaveQE != null)
 								{
 									EnumQueueEntryStatus status = slaveQE.getQueueEntryStatus();
@@ -168,6 +168,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 								}
 								else
 								{
+									log.info("Slave queueentry " + slaveQEID + " was removed");
 									_theQueueProcessor.updateEntry(qe, EnumQueueEntryStatus.Removed, null, null);
 								}
 							}
