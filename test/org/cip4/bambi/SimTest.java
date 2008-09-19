@@ -71,6 +71,8 @@
 
 package org.cip4.bambi;
 
+import java.net.MalformedURLException;
+
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
@@ -98,13 +100,13 @@ public class SimTest extends BambiTestCase
 		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/platesetter";
 	}
 
-	private void submitMimeToSim()
+	private void submitMimeToSim() throws MalformedURLException
 	{
 		// build SubmitQueueEntry
 		submitMimetoURL(simWorkerUrl);
 	}
 
-	public void testSubmitQueueEntry_MIME()
+	public void testSubmitQueueEntry_MIME() throws Exception
 	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
@@ -132,12 +134,11 @@ public class SimTest extends BambiTestCase
 	public void testSubmitQueueEntry_Home() throws Exception
 	{
 		// get number of QueueEntries before submitting
-		String url = testUrl = "http://10.51.201.140:8889/jmfportal";
-		submitMimetoURL(url);
+		submitMimetoURL(simWorkerUrl);
 
 	}
 
-	public void testSubmitQueueEntry_MIME_Many()
+	public void testSubmitQueueEntry_MIME_Many() throws Exception
 	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
@@ -167,7 +168,10 @@ public class SimTest extends BambiTestCase
 		//        abortRemoveAll(simWorkerUrl);
 	}
 
-	public void testAbortQueueEntry() throws InterruptedException
+	/**
+	 * @throws Exception
+	 */
+	public void testAbortQueueEntry() throws Exception
 	{
 		submitMimeToSim();
 
@@ -204,7 +208,10 @@ public class SimTest extends BambiTestCase
 
 	}
 
-	public void testPlateSetter() throws InterruptedException
+	/**
+	 * @throws Exception
+	 */
+	public void testPlateSetter() throws Exception
 	{
 		_theGT = new MISPreGoldenTicket(1, EnumVersion.Version_1_3, 2, 2, null);
 		MISPreGoldenTicket pgt = (MISPreGoldenTicket) _theGT;

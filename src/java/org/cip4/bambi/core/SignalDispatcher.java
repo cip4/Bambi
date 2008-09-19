@@ -110,6 +110,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.pool.JDFAncestorPool;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
@@ -132,7 +133,7 @@ public final class SignalDispatcher
 	protected boolean doShutdown = false;
 	protected String deviceID = null;
 	private int lastCalled = 0;
-	private final IConverterCallback callback;
+	final IConverterCallback callback;
 	protected Dispatcher theDispatcher;
 	private String ignoreURL = null;
 
@@ -156,9 +157,7 @@ public final class SignalDispatcher
 
 		/**
 		 * XML representation of this simDevice
-		 * fore use as html display using an XSLT
-		 * @param addProcs TODO
-		 * @param dev
+		 * for use as html display using an XSLT
 		 */
 		public XMLSubscriptions()
 		{
@@ -403,13 +402,8 @@ public final class SignalDispatcher
 	/////////////////////////////////////////////////////////////
 	protected class Dispatcher implements Runnable
 	{
-		public Dispatcher()
-		{
-			super();
-		}
-
 		/**
-		 * this is the time clocked thread
+		 * this is the time clocked dispatcher thread
 		 */
 		public void run()
 		{
@@ -432,7 +426,7 @@ public final class SignalDispatcher
 				}
 				catch (InterruptedException x)
 				{
-					//
+					//nop
 				}
 			}
 		}
@@ -440,7 +434,7 @@ public final class SignalDispatcher
 		/**
 		 * 
 		 */
-		private void flush()
+		void flush()
 		{
 			int n = 0;
 			while (true)
@@ -484,15 +478,16 @@ public final class SignalDispatcher
 			final JDFJMF signalJMF = sub.getSignal();
 			if (signalJMF != null)
 			{
+				signalJMF.collectICSVersions();
 				JMFFactory.send2URL(signalJMF, url, null, callback, deviceID);
-
-				if (sub.trigger != null)
-					sub.trigger.setQueued();
 			}
 			else
 			{
 				log.debug("no Signal for subscription: " + sub);
 			}
+			// also notify that the trigger was processed in case of failure - else we wait a long time...
+			if (sub.trigger != null)
+				sub.trigger.setQueued();
 		}
 
 		/**
@@ -1024,7 +1019,7 @@ public final class SignalDispatcher
 
 	/**
 	 * @param subMess
-	 * @return
+	 * @return true if the message comes from a spam url that should be ignored
 	 */
 	private boolean isIgnoreURL(IJMFSubscribable subMess)
 	{
@@ -1043,16 +1038,41 @@ public final class SignalDispatcher
 	/**
 	 * add a subscription
 	 * returns the slaveChannelID of the new subscription, null if snafu
+	 * 
 	 * @param node the node to search for inline jmfs
 	 * @param queueEntryID the associated QueueEntryID, may be null.
 	 * @return the channelIDs of the subscriptions, if successful, else null
 	 */
-
-	public VString addSubscriptions(JDFNode n, String queueEntryID)
+	public VString addSubscriptions(JDFNode node, String queueEntryID)
 	{
-		final JDFNodeInfo nodeInfo = n.getNodeInfo();
-		if (nodeInfo == null)
+		if (node == null)
 			return null;
+		JDFNodeInfo nodeInfo = node.getNodeInfo();
+		VString vs = nodeInfo == null ? null : addSubscriptions(nodeInfo, queueEntryID);
+		if (vs == null)
+		{
+			nodeInfo = (JDFNodeInfo) node.getAncestorElement(ElementName.NODEINFO, null);
+			vs = nodeInfo == null ? null : addSubscriptions(nodeInfo, queueEntryID);
+		}
+		// look in depth
+		if (vs == null)
+		{
+			JDFAncestorPool ap = node.getRoot().getAncestorPool();
+			if (ap != null)
+				nodeInfo = (JDFNodeInfo) ap.getAncestorElement(ElementName.NODEINFO, null, "JMF");
+			vs = nodeInfo == null ? null : addSubscriptions(nodeInfo, queueEntryID);
+		}
+
+		return vs;
+	}
+
+	/**
+	 * @param nodeInfo
+	 * @param queueEntryID
+	 * @return the channelIDs of the subscriptions, if successful, else null
+	 */
+	private VString addSubscriptions(final JDFNodeInfo nodeInfo, String queueEntryID)
+	{
 		VElement vJMF = nodeInfo.getChildElementVector(ElementName.JMF, null, null, true, 0, true);
 		int siz = vJMF == null ? 0 : vJMF.size();
 		if (siz == 0)

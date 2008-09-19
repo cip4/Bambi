@@ -566,12 +566,14 @@ public class BambiServlet extends HttpServlet
 	{
 		rootDev.shutdown();
 		JMFFactory.shutDown(null, true);
-		StatusCounter.sleep(1234); // leave some time for cleanup
+		StatusCounter.sleep(5234); // leave some time for cleanup
+		JMFFactory.shutDown(null, false);
 		super.destroy();
 	}
 
 	/**
 	 * @param request
+	 * @return the device to process this request
 	 */
 	protected IDevice getDeviceFromRequest(BambiServletRequest request)
 	{
@@ -778,6 +780,7 @@ public class BambiServlet extends HttpServlet
 				rootDev = d;
 			}
 			else
+			// we already have a root / dispatcher device - use it as base
 			{
 				RootDevice rd = getRootDevice();
 				d = rd.createDevice(prop, this);

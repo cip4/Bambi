@@ -273,26 +273,51 @@ public class BambiServletResponse implements HttpServletResponse
 		parent.setDateHeader(arg0, arg1);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#setHeader(java.lang.String, java.lang.String)
+	 * @param arg0
+	 * @param arg1
+	 */
 	public void setHeader(String arg0, String arg1)
 	{
 		parent.setHeader(arg0, arg1);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#setIntHeader(java.lang.String, int)
+	 * @param arg0
+	 * @param arg1
+	 */
 	public void setIntHeader(String arg0, int arg1)
 	{
 		parent.setIntHeader(arg0, arg1);
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#setLocale(java.util.Locale)
+	 * @param arg0
+	 */
 	public void setLocale(Locale arg0)
 	{
 		parent.setLocale(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#setStatus(int, java.lang.String)
+	 * @param arg0
+	 * @param arg1
+	 * @deprecated
+	 */
+	@Deprecated
 	public void setStatus(int arg0, String arg1)
 	{
 		parent.setStatus(arg0, arg1);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#setStatus(int)
+	 * @param arg0
+	 */
 	public void setStatus(int arg0)
 	{
 		parent.setStatus(arg0);
@@ -316,7 +341,6 @@ public class BambiServletResponse implements HttpServletResponse
 			}
 			catch (IOException e)
 			{
-
 				log.error("Error while flushing response stream to: " + theRequest.getRequestURI(), e);
 			}
 		}

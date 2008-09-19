@@ -91,12 +91,15 @@ public class ProxyTest extends BambiTestCase
 		//		abortRemoveAll(proxyUrl);
 	}
 
-	private void submitMimeToProxy()
+	private void submitMimeToProxy() throws Exception
 	{
 		submitMimetoURL(proxyUrl);
 	}
 
-	public void testSubmitQueueEntry_MIME()
+	/**
+	 * @throws Exception
+	 */
+	public void testSubmitQueueEntry_MIME() throws Exception
 	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
@@ -120,7 +123,10 @@ public class ProxyTest extends BambiTestCase
 
 	}
 
-	public void testAbortQueueEntry() throws InterruptedException
+	/**
+	 * @throws Exception
+	 */
+	public void testAbortQueueEntry() throws Exception
 	{
 		submitMimeToProxy();
 
@@ -155,7 +161,7 @@ public class ProxyTest extends BambiTestCase
 		assertTrue(hasRunningQE);
 	}
 
-	public void testSubmitQueueEntry_MIME_Many()
+	public void testSubmitQueueEntry_MIME_Many() throws Exception
 	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();

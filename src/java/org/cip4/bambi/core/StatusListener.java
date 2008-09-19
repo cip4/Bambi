@@ -76,6 +76,7 @@ import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
@@ -87,7 +88,9 @@ import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StatusCounter;
+import org.cip4.jdflib.util.StringUtil;
 
 /**
  * @author Rainer Prosi
@@ -107,12 +110,14 @@ public class StatusListener
 	 * 
 	 * @param dispatch
 	 * @param deviceID
+	 * @param icsVersions the default ics versions
 	 */
-	public StatusListener(SignalDispatcher dispatch, String deviceID)
+	public StatusListener(SignalDispatcher dispatch, String deviceID, VString icsVersions)
 	{
 		dispatcher = dispatch;
 		theCounter = new StatusCounter(null, null, null);
 		theCounter.setDeviceID(deviceID);
+		theCounter.setIcsVersions(icsVersions);
 	}
 
 	/**
@@ -124,10 +129,11 @@ public class StatusListener
 		dispatcher.flush();
 		if (rootDispatcher != null)
 		{
-			rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
+			Trigger[] t2 = rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
 			rootDispatcher.flush();
+			Trigger.waitQueued(t, 12000);
 		}
-		Trigger.waitQueued(t, 2000);
+		Trigger.waitQueued(t, 12000);
 	}
 
 	/**
@@ -153,7 +159,7 @@ public class StatusListener
 		boolean bMod = theCounter.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
 		if (bMod || forceOut)
 		{
-			flush("Status");
+			flush(null);
 		}
 	}
 
@@ -417,7 +423,7 @@ public class StatusListener
 	 * @param jobID 
 	 * @param jobPartID 
 	 * @param queueEntryID 
-	 * @return
+	 * @return true if jobID jobPartID and qeID match or are wildcards
 	 */
 	private boolean matchesIDs(String jobID, String jobPartID, String queueEntryID)
 	{
@@ -426,7 +432,8 @@ public class StatusListener
 		if (!niIn.matches(niCurrent) && !niCurrent.matches(niIn))
 			return false;
 
-		return true;
+		queueEntryID = StringUtil.getNonEmpty(queueEntryID);
+		return queueEntryID == null || ContainerUtil.equals(queueEntryID, theCounter.getQueueEntryID());
 	}
 
 	/**

@@ -439,6 +439,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		if (node == null)
 		{
 			log.error("no JDF Node for: " + queueEntryID);
+			finalizeProcessDoc(EnumQueueEntryStatus.Aborted);
 			return false;
 		}
 		boolean bOK = initializeProcessDoc(node, qe);

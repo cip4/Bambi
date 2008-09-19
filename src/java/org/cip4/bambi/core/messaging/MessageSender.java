@@ -114,7 +114,7 @@ public class MessageSender implements Runnable
 {
 	private final CallURL callURL;
 
-	private enum sendReturn
+	private enum SendReturn
 	{
 		sent, empty, error, removed
 	}
@@ -418,31 +418,31 @@ public class MessageSender implements Runnable
 		StatusCounter.sleep(10000); // wait a while before sending messages so that all processors are alive before we start throwing messages
 		while (!doShutDown)
 		{
-			sendReturn sentFirstMessage;
+			SendReturn sentFirstMessage;
 			try
 			{
-				synchronized (_messages)
+				sentFirstMessage = sendFirstMessage();
+				if (sentFirstMessage == SendReturn.sent)
 				{
-					sentFirstMessage = sendFirstMessage();
-					if (sentFirstMessage == sendReturn.sent)
+					synchronized (_messages)
 					{
 						_messages.remove(0);
 						sent++;
 						lastSent = System.currentTimeMillis();
 						idle = 0;
 					}
+				}
 
-					if (doShutDownGracefully && (_messages.isEmpty() || idle > 10)) // idle > 10 blasts this away if doShutDownGracefully and we are having problems
-					{
-						doShutDown = true;
-					}
+				if (doShutDownGracefully && (_messages.isEmpty() || idle > 10)) // idle > 10 blasts this away if doShutDownGracefully and we are having problems
+				{
+					doShutDown = true;
 				}
 			}
 			catch (Exception x)
 			{
-				sentFirstMessage = sendReturn.error;
+				sentFirstMessage = SendReturn.error;
 			}
-			if (sentFirstMessage != sendReturn.sent)
+			if (sentFirstMessage != SendReturn.sent)
 			{
 				if (idle++ > 3600)
 				{
@@ -452,7 +452,7 @@ public class MessageSender implements Runnable
 				}
 				else
 				{ // stepwise increment - try every second 10 times, then every minute, then every 5 minutes 
-					final int wait = (sendReturn.error == sentFirstMessage && idle > 10) ? (idle > 100 ? 300000 : 60000) : 1000;
+					final int wait = (SendReturn.error == sentFirstMessage && idle > 10) ? (idle > 100 ? 300000 : 60000) : 1000;
 					try
 					{
 						synchronized (mutexDispatch)
@@ -511,9 +511,9 @@ public class MessageSender implements Runnable
 			{
 				KElement root = d.getRoot();
 				sent = root.getIntAttribute("NumSent", null, 0);
-				lastQueued = root.getIntAttribute("LastQueued", null, 0);
-				lastSent = root.getIntAttribute("LastSent", null, 0);
-				created = root.getIntAttribute(AttributeName.CREATIONDATE, null, 0);
+				lastQueued = root.getLongAttribute("iLastQueued", null, 0);
+				lastSent = root.getLongAttribute("iLastSent", null, 0);
+				created = root.getLongAttribute("i" + AttributeName.CREATIONDATE, null, 0);
 				VElement v = root.getChildElementVector("Message", null);
 				for (int i = 0; i < v.size(); i++)
 					_messages.add(new MessageDetails(v.get(i)));
@@ -554,132 +554,147 @@ public class MessageSender implements Runnable
 	 * @return boolean true if the message is assumed sent
 	 *                 false if an error was detected and the Message must remain in the queue
 	 */
-	private sendReturn sendFirstMessage()
+	private SendReturn sendFirstMessage()
 	{
+		MessageDetails mh;
+		JDFJMF jmf;
+		Multipart mp;
+
+		// don't synchronize the whole thing - otherwise the get handler may be blocked
 		synchronized (_messages)
 		{
 
-			if (_messages == null || _messages.isEmpty())
-				return sendReturn.empty;
+			if (_messages.isEmpty())
+				return SendReturn.empty;
 
-			sendReturn b = sendReturn.sent;
-			MessageDetails mh = _messages.get(0);
+			mh = _messages.get(0);
 			if (mh == null)
 			{
 				_messages.remove(0);
-				return sendReturn.removed; // should never happen
+				return SendReturn.removed; // should never happen
 			}
-			final DumpDir outDump = getOutDump(mh.senderID);
-			final DumpDir inDump = getInDump(mh.senderID);
 
-			JDFJMF jmf = mh.jmf;
-			Multipart mp = mh.mime;
+			jmf = mh.jmf;
+			mp = mh.mime;
 			if (KElement.isWildCard(mh.url))
 			{
 				log.error("Sending to bad url - bailing out! " + mh.url);
-				return sendReturn.error; // snafu anyhow but not sent but no retry useful
+				return SendReturn.error; // snafu anyhow but not sent but no retry useful
 			}
 			if (jmf == null && mp == null)
 			{
 				log.error("Sending neither mime nor jmf - bailing out?");
 				_messages.remove(0);
-				return sendReturn.removed; // need no resend - will remove
+				return SendReturn.removed; // need no resend - will remove
 			}
 
 			if (mh.respHandler != null && mh.respHandler.isAborted())
 			{
 				_messages.remove(0);
 				log.warn("removed aborted message to: " + mh.url);
-				return sendReturn.removed;
+				return SendReturn.removed;
+			}
+			if (jmf == null && mp == null)
+			{
+				log.error("Sending neither mime nor jmf - bailing out?");
+				_messages.remove(0);
+				return SendReturn.removed; // nothing to send; remove it
 			}
 
-			try
+		}
+		return sendHTTP(mh, jmf, mp);
+	}
+
+	/**
+	 * @param mh the messagedetails
+	 * @param jmf the jmf to send
+	 * @param mp the mime to send
+	 * @return the success as a sendreturn enum
+	 */
+	private SendReturn sendHTTP(MessageDetails mh, JDFJMF jmf, Multipart mp)
+	{
+		SendReturn b = SendReturn.sent;
+		try
+		{
+			HttpURLConnection con;
+			String header = "URL: " + mh.url;
+			final DumpDir outDump = getOutDump(mh.senderID);
+			final DumpDir inDump = getInDump(mh.senderID);
+			if (jmf != null)
 			{
-				HttpURLConnection con;
-
-				String header = "URL: " + mh.url;
-
-				if (jmf != null)
+				final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
+				HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
+				con = jmfDoc.write2HTTPURL(new URL(mh.url), hd);
+				if (outDump != null)
 				{
-					final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
-					HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
-					con = jmfDoc.write2HTTPURL(new URL(mh.url), hd);
-					if (outDump != null)
+					File dump = outDump.newFile(header);
+					if (dump != null)
 					{
-						File dump = outDump.newFile(header);
-						if (dump != null)
-						{
-							FileOutputStream fos = new FileOutputStream(dump, true);
-							jmfDoc.write2Stream(fos, 0, true);
-						}
+						FileOutputStream fos = new FileOutputStream(dump, true);
+						jmfDoc.write2Stream(fos, 0, true);
 					}
 				}
-				else if (mp != null)
+			}
+			else
+			// mime
+			{
+				con = MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
+				if (outDump != null)
 				{
-					con = MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
-					if (outDump != null)
+					File dump = outDump.newFile(header);
+					if (dump != null)
 					{
-						File dump = outDump.newFile(header);
-						if (dump != null)
-						{
-							FileOutputStream fos = new FileOutputStream(dump, true);
-							MimeUtil.writeToStream(mp, fos, mh.mimeDet);
-						}
+						FileOutputStream fos = new FileOutputStream(dump, true);
+						MimeUtil.writeToStream(mp, fos, mh.mimeDet);
 					}
 				}
-				else
-				{
-					log.error("Sending neither mime nor jmf - bailing out?");
-					_messages.remove(0);
-					return sendReturn.removed; // nothing to send; remove it
-				}
+			}
 
+			if (con != null)
+			{
+				con.setReadTimeout(8000); // 8 seconds should suffice
+				header += "\nResponse code:" + con.getResponseCode();
+				header += "\nContent type:" + con.getContentType();
+				header += "\nContent length:" + con.getContentLength();
+			}
+
+			if (con != null && con.getResponseCode() == 200)
+			{
+				BufferedInputStream bis = new BufferedInputStream(con.getInputStream());
+				bis.mark(1000000);
+
+				if (inDump != null)
+				{
+					inDump.newFileFromStream(header, bis);
+				}
+				if (mh.respHandler != null)
+				{
+					mh.respHandler.setConnection(con);
+					mh.respHandler.setBufferedStream(bis);
+					b = mh.respHandler.handleMessage() ? SendReturn.sent : SendReturn.error;
+				}
+			}
+			else
+			{
+				b = SendReturn.error;
+				if (idle == 0)// only warn on first try
+					log.warn("could not send message to " + mh.url + " rc= "
+							+ ((con == null) ? -1 : con.getResponseCode()));
 				if (con != null)
 				{
-					con.setReadTimeout(8000); // 8 seconds should suffice
-					header += "\nResponse code:" + con.getResponseCode();
-					header += "\nContent type:" + con.getContentType();
-					header += "\nContent length:" + con.getContentLength();
-				}
-
-				if (con != null && con.getResponseCode() == 200)
-				{
-					BufferedInputStream bis = new BufferedInputStream(con.getInputStream());
-					bis.mark(1000000);
-
 					if (inDump != null)
 					{
-						inDump.newFileFromStream(header, bis);
-					}
-					if (mh.respHandler != null)
-					{
-						mh.respHandler.setConnection(con);
-						mh.respHandler.setBufferedStream(bis);
-						b = mh.respHandler.handleMessage() ? sendReturn.sent : sendReturn.error;
-					}
-				}
-				else
-				{
-					b = sendReturn.error;
-					if (idle == 0)// only warn on first try
-						log.warn("could not send message to " + mh.url + " rc= "
-								+ ((con == null) ? -1 : con.getResponseCode()));
-					if (con != null)
-					{
-						if (inDump != null)
-						{
-							inDump.newFile(header);
-						}
+						inDump.newFile(header);
 					}
 				}
 			}
-			catch (Exception e)
-			{
-				log.error("Exception in sendfirstmessage", e);
-				b = sendReturn.error;
-			}
-			return b;
 		}
+		catch (Exception e)
+		{
+			log.error("Exception in sendfirstmessage", e);
+			b = SendReturn.error;
+		}
+		return b;
 	}
 
 	/**
@@ -754,6 +769,7 @@ public class MessageSender implements Runnable
 	 * @param jmf the message to send
 	 * @param handler 
 	 * @param url 
+	 * @param _callBack 
 	 * @return true, if the message is successfully queued. 
 	 *         false, if this MessageSender is unable to accept further messages (i. e. it is shutting down). 
 	 */
@@ -763,6 +779,7 @@ public class MessageSender implements Runnable
 		{
 			return false;
 		}
+
 		if (_callBack != null)
 			_callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
 
@@ -792,6 +809,7 @@ public class MessageSender implements Runnable
 	 * also updates the message for a given recipient if required
 	 * @param multpart 
 	 * @param handler 
+	 * @param callback 
 	 * @param md 
 	 * @param senderID 
 	 * @param url 
@@ -827,6 +845,7 @@ public class MessageSender implements Runnable
 	 * 
 	 * @param root the parent into which I append myself, if null create a new document
 	 * @param writeMessages if true, write out the messages
+	 * @return the appended element
 	 */
 	public KElement appendToXML(KElement root, boolean writeMessages)
 	{
@@ -840,7 +859,12 @@ public class MessageSender implements Runnable
 			ms.setAttribute("LastQueued", BambiServlet.formatLong(lastQueued), null);
 			ms.setAttribute("LastSent", BambiServlet.formatLong(lastSent), null);
 			ms.setAttribute(AttributeName.CREATIONDATE, BambiServlet.formatLong(created), null);
+
 			ms.setAttribute("Active", !doShutDown, null);
+			ms.setAttribute("iLastQueued", StringUtil.formatLong(lastQueued), null);
+			ms.setAttribute("iLastSent", StringUtil.formatLong(lastSent), null);
+			ms.setAttribute("i" + AttributeName.CREATIONDATE, StringUtil.formatLong(created), null);
+
 			if (writeMessages)
 			{
 				for (int i = 0; i < _messages.size(); i++)

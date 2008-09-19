@@ -268,7 +268,15 @@ public class MultiDeviceProperties
 		}
 
 		/**
-		 * @return
+		 * @return a vector of ICS versions
+		 */
+		public VString getICSVersions()
+		{
+			return StringUtil.tokenize(getDeviceAttribute(AttributeName.ICSVERSIONS), null, false);
+		}
+
+		/**
+		 * @return the input hot folder of the device
 		 */
 		public File getInputHF()
 		{
@@ -313,12 +321,23 @@ public class MultiDeviceProperties
 			return getDeviceAttribute("TrackResource", null, "Output");
 		}
 
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceAttribute(java.lang.String)
+		 * @param key
+		 * @return the device attribute
+		 */
 		public String getDeviceAttribute(String key)
 		{
 			return getDeviceAttribute(key, null, null);
 
 		}
 
+		/**
+		 * @param key
+		 * @param ns
+		 * @param def the default if not found
+		 * @return the device attribute
+		 */
 		public String getDeviceAttribute(String key, String ns, String def)
 		{
 			String val = devRoot.getAttribute(key, ns, null);

@@ -851,7 +851,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		super.init();
 		if (_theStatusListener == null)
 		{
-			_theStatusListener = new StatusListener(_theSignalDispatcher, getDeviceID());
+			_theStatusListener = new StatusListener(_theSignalDispatcher, getDeviceID(), getICSVersions());
 		}
 	}
 

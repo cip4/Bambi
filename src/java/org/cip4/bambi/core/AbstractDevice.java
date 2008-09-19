@@ -95,6 +95,7 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
@@ -477,7 +478,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 		if (newDevProc != null)
 		{
 			newDevProc.setParent(this);
-			_theStatusListener = new StatusListener(_theSignalDispatcher, getDeviceID());
+			_theStatusListener = new StatusListener(_theSignalDispatcher, getDeviceID(), getICSVersions());
 			newDevProc.init(_theQueueProcessor, _theStatusListener, _devProperties);
 			String deviceProcessorClass = newDevProc.getClass().getSimpleName();
 			new Thread(newDevProc, deviceProcessorClass + "_" + deviceID).start();
@@ -649,7 +650,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 
 	/**
 	 * get the JMFHandler of this device
-	 * @return
+	 * @return the jmfHandler for this device
 	 */
 	public IJMFHandler getHandler()
 	{
@@ -657,7 +658,21 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 	}
 
 	/**
-	 * @return
+	 * @return the static ICS versions of this
+	 */
+	public VString getICSVersions()
+	{
+		if (_devProperties instanceof DeviceProperties)
+		{
+			return ((DeviceProperties) _devProperties).getICSVersions();
+		}
+		return null;
+	}
+
+	/**
+	 * @param command the command to execute
+	 * @param contextPath the context path of the request
+	 * @return the matching xslt
 	 */
 	public String getXSLT(String command, String contextPath)
 	{

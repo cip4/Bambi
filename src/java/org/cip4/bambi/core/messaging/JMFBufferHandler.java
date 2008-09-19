@@ -86,6 +86,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFJobPhase;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -419,6 +420,29 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 					{
 						s.deleteNode();
 						continue;
+					}
+					JDFDeviceInfo di = s.getDeviceInfo(0);
+					if (di != null)
+					{
+						VElement vjp = di.getChildElementVector(ElementName.JOBPHASE, null);
+						int siz = vjp == null ? 0 : vjp.size();
+						boolean bMatch = false;
+						for (int j = 0; j < siz; j++)
+						{
+							JDFJobPhase jp = (JDFJobPhase) vjp.get(j);
+							if (jp.getIdentifier().matches(sqp.getIdentifier())
+									|| ContainerUtil.equals(sqp.getQueueEntryID(), jp.getQueueEntryID()))
+							{
+								bMatch = true;
+								break;
+							}
+
+						}
+						if (!bMatch)
+						{
+							s.deleteNode();
+							continue;
+						}
 					}
 				}
 				// remove unwanted queue elements

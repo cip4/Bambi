@@ -73,6 +73,8 @@ package org.cip4.bambi;
 
 import java.io.File;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import javax.mail.Multipart;
 
@@ -128,6 +130,8 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected static String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/proxy001";
 	protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
 	protected static String manualWorkerUrl = null;
+	protected static String returnJMF = "http://localhost:8080/httpDump/returnJMF";
+	protected static String returnURL = null;//"http://localhost:8080/httpDump/returnURL";
 
 	protected int chunkSize = -1;
 	protected String transferEncoding = UrlUtil.BASE64;
@@ -462,8 +466,9 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	/**
 	 * requires assigned node...
 	 * @param url the url to send to
+	 * @throws MalformedURLException 
 	 */
-	protected void submitMimetoURL(String url)
+	protected void submitMimetoURL(String url) throws MalformedURLException
 	{
 		JDFNode n = _theGT.getNode();
 		submitMimetoURL(n, url);
@@ -472,8 +477,9 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	/**
 	 * @param n the node to send as root node
 	 * @param url the url to send to
+	 * @throws MalformedURLException 
 	 */
-	protected void submitMimetoURL(JDFNode n, String url)
+	protected void submitMimetoURL(JDFNode n, String url) throws MalformedURLException
 	{
 		JDFDoc docJMF = new JDFDoc("JMF");
 		JDFJMF jmf = docJMF.getJMFRoot();
@@ -481,6 +487,10 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		JDFQueueSubmissionParams queueSubmissionParams = com.appendQueueSubmissionParams();
 		queueSubmissionParams.setURL("dummy");
 		queueSubmissionParams.setPriority(42);
+		if (returnJMF != null)
+			queueSubmissionParams.setReturnJMF(new URL(returnJMF));
+		if (returnURL != null)
+			queueSubmissionParams.setReturnURL(new URL(returnURL));
 		ensureCurrentGT();
 
 		Multipart mp = MimeUtil.buildMimePackage(docJMF, n.getOwnerDocument_JDFElement(), true);

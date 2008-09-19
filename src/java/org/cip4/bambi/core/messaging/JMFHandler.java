@@ -77,6 +77,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IDevice;
 import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.jdflib.core.AttributeName;
@@ -406,6 +407,10 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		if (vMess != null && vMess.size() > 0)
 		{
 			jmfResp.setSenderID(getSenderID());
+			if (_parentDevice instanceof AbstractDevice)
+				jmfResp.setICSVersions(((AbstractDevice) _parentDevice).getICSVersions());
+			jmfResp.collectICSVersions();
+
 			return jmfResp.getOwnerDocument_JDFElement();
 		}
 		else

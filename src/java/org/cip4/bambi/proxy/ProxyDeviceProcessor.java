@@ -116,6 +116,7 @@ import org.cip4.jdflib.resource.JDFEvent;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
@@ -184,7 +185,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 		/**
 		 * @param info
-		 * @param match
+		 * @return true if handled
 		 */
 		private boolean handleDeviceInfo(JDFDeviceInfo info)
 		{
@@ -197,6 +198,22 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			boolean b = false;
 			for (int i = 0; i < jobPhases.size(); i++)
 				b = handleStatusUpdate((JDFJobPhase) jobPhases.get(i)) || b;
+
+			if (b)// only handle counters if anything is processed by us
+			{
+				final StatusCounter statusCounter = getStatusListener().getStatusCounter();
+				if (info.hasAttribute(AttributeName.PRODUCTIONCOUNTER))
+				{
+					double pc = info.getProductionCounter();
+					statusCounter.setCurrentCounter(pc);
+				}
+				if (info.hasAttribute(AttributeName.TOTALPRODUCTIONCOUNTER))
+				{
+					double pc = info.getTotalProductionCounter();
+					statusCounter.setTotalCounter(pc);
+				}
+			}
+
 			return b;
 		}
 
@@ -206,6 +223,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		 * 
 		 * @param jobPhase
 		 *            the jobphase containing the status information
+		 * @return true if handled
 		 */
 		private boolean handleStatusUpdate(JDFJobPhase jobPhase)
 		{
@@ -400,7 +418,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	{
 		super(device);
 
-		_statusListener = new StatusListener(device.getSignalDispatcher(), device.getDeviceID());
+		_statusListener = new StatusListener(device.getSignalDispatcher(), device.getDeviceID(), device.getICSVersions());
 		notificationQueryHandler = new NotificationQueryHandler();
 		currentQE = qeToProcess;
 
@@ -665,7 +683,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	/**
 	 * @return the deviceID of the slave
 	 */
-	private String getSlaveDeviceID()
+	String getSlaveDeviceID()
 	{
 		return currentQE.getQueueEntry().getDeviceID();
 	}

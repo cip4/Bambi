@@ -930,22 +930,23 @@ public class QueueProcessor
 		{
 			log.info("refreshing queue");
 			_theQueue = (JDFQueue) d.getRoot();
-			_theQueue.holdQueue();
-			// make sure that all QueueEntries are suspended on restart 
-			// and that all devices are notified of the starte of the queue
+			boolean bHold = false;
 			VElement qev = _theQueue.getQueueEntryVector();
-			setQueueProperties(deviceID);
-
 			int qSize = qev == null ? 0 : qev.size();
 			for (int i = 0; i < qSize; i++)
 			{
 				JDFQueueEntry qe = (JDFQueueEntry) qev.get(i);
-				EnumQueueEntryStatus stat = qe.getQueueEntryStatus();
-				//				if (EnumQueueEntryStatus.Running.equals(stat))
-				//				{
-				//					qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
-				//				}
+				EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+				if (EnumQueueEntryStatus.Running.equals(status) || EnumQueueEntryStatus.Waiting.equals(status))
+				{
+					bHold = true;
+					break;
+				}
 			}
+			if (bHold)
+				_theQueue.holdQueue();
+
+			setQueueProperties(deviceID);
 		}
 		else
 		{
@@ -1304,6 +1305,7 @@ public class QueueProcessor
 	{
 		JDFDoc docJMF = new JDFDoc("JMF");
 		JDFJMF jmf = docJMF.getJMFRoot();
+		jmf.setICSVersions(_parentDevice.getICSVersions());
 		JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.ReturnQueueEntry);
 		JDFReturnQueueEntryParams returnQEParams = com.appendReturnQueueEntryParams();
 
