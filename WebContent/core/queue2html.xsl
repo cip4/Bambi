@@ -23,6 +23,9 @@
           - Queue Status:
           <xsl:value-of select="@Status"/>
         </h1>
+        <h2>
+          <xsl:value-of select="@DescriptiveName"/>
+        </h2>
         <hr/>
         <table cellspacing="22" border="0">
           <tr>

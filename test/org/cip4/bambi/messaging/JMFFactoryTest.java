@@ -107,7 +107,6 @@ public class JMFFactoryTest extends BambiTestCase
 	public void setUp() throws Exception
 	{
 		super.setUp();
-		abortRemoveAll(simWorkerUrl);
 	}
 
 	/**
@@ -129,48 +128,81 @@ public class JMFFactoryTest extends BambiTestCase
 	public void testStatus()
 	{
 		JDFJMF jmf = JMFFactory.buildStatus();
-		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		JDFDeviceInfo di = resp.getDeviceInfo(0);
 		assertTrue(di != null);
 
 		jmf = JMFFactory.buildStatus();
-		resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		resp.getDeviceInfo(0);
 		assertTrue(di != null);
 	}
 
+	/**
+	 * @param jmf
+	 * @return the response
+	 */
+	private JDFResponse sendToURL(JDFJMF jmf, String url)
+	{
+		JDFResponse resp = jmf.getOwnerDocument_JDFElement().write2URL(url).getJMFRoot().getResponse(0);
+		return resp;
+	}
+
+	/**
+	 * 
+	 */
 	public void testSuspendQueueEntry()
 	{
 		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry("12345");
-		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
 
+	/**
+	 * 
+	 */
 	public void testResumeQueueEntry()
 	{
 		JDFJMF jmf = JMFFactory.buildResumeQueueEntry("12345");
-		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
 
+	/**
+	 * 
+	 */
 	public void testAbortQueueEntry()
 	{
 		JDFJMF jmf = JMFFactory.buildAbortQueueEntry("12345");
-		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
 
+	/**
+	 * 
+	 */
+	public void testCreateSubsriptions()
+	{
+		JDFJMF[] jmfs = JMFFactory.createSubscriptions("url", "id", 30., 20);
+		assertEquals(jmfs.length, 3);
+		JDFJMF jmf = jmfs[0];
+		assertEquals(JDFJMF.getTheSenderID(), jmf.getSenderID());
+	}
+
+	/**
+	 * 
+	 */
 	public void testRemoveQueueEntry()
 	{
 		JDFJMF jmf = JMFFactory.buildRemoveQueueEntry("12345");
-		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
@@ -181,15 +213,18 @@ public class JMFFactoryTest extends BambiTestCase
 	public void testStopPersistentChammel()
 	{
 		JDFJMF jmf = JMFFactory.buildStopPersistentChannel("m_080902_103826750_000344", "http://kie-prosirai-lg:8080/misconnector/slavejmf/MISConnector");
-		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
 
+	/**
+	 * 
+	 */
 	public void testQueueStatus()
 	{
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		JDFQueue q = resp.getQueue(0);
@@ -232,7 +267,7 @@ public class JMFFactoryTest extends BambiTestCase
 	{
 		long t = System.currentTimeMillis();
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
-		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		JDFQueue q = resp.getQueue(0);
 		assertNotNull(q);
 		int queueSize = q.getQueueSize();
@@ -288,11 +323,14 @@ public class JMFFactoryTest extends BambiTestCase
 		}
 	}
 
+	/**
+	 * @throws Exception
+	 */
 	public void testSubmitQueueEntry_MIME() throws Exception
 	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = JMFFactory.send2URLSynchResp(jmfStat, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = sendToURL(jmfStat, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		JDFQueue q = resp.getQueue(0);

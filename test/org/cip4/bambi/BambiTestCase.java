@@ -78,8 +78,8 @@ import java.net.URL;
 
 import javax.mail.Multipart;
 
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IConverterCallback;
-import org.cip4.bambi.core.IDevice;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.JDFDoc;
@@ -369,7 +369,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		/* (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceClass()
 		 */
-		public IDevice getDeviceInstance()
+		public AbstractDevice getDeviceInstance()
 		{
 			// TODO Auto-generated method stub
 			return null;
@@ -391,6 +391,16 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		{
 			// TODO Auto-generated method stub
 			return false;
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getConfigDir()
+		 * @return
+		 */
+		public File getConfigDir()
+		{
+			// TODO Auto-generated method stub
+			return null;
 		}
 
 	}
