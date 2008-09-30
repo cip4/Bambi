@@ -94,6 +94,7 @@ import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.VectorMap;
 
@@ -158,7 +159,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 			return ret;
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see java.lang.Object#clone()
 		 */
 		@Override
@@ -187,7 +188,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 					+ senderID + "]";
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
 		@Override
@@ -210,7 +211,8 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 
 		/**
 		 * if obj matches, i.e. any null element of object is also considered matching
-		 * @param
+		 * @param msg
+		 * @return true if msg matches this
 		 */
 		public boolean matches(MessageIdentifier msg)
 		{
@@ -225,7 +227,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 			return true;
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see java.lang.Object#hashCode()
 		 */
 		@Override
@@ -416,10 +418,15 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 				if (sqp != null)
 				{
 					JDFStatusQuParams sqpSig = s.getStatusQuParams();
-					if (sqpSig != null && !sqpSig.getIdentifier().matches(sqp.getIdentifier()))
+					final NodeIdentifier sqpIdentifier = sqpSig.getIdentifier();
+					if (sqpSig != null && !sqpIdentifier.matches(sqp.getIdentifier()))
 					{
 						s.deleteNode();
 						continue;
+					}
+					else if (sqpIdentifier.equals(new NodeIdentifier()))
+					{
+						continue; // no filter
 					}
 					JDFDeviceInfo di = s.getDeviceInfo(0);
 					if (di != null)

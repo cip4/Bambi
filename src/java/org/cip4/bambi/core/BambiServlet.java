@@ -160,10 +160,9 @@ public class BambiServlet extends HttpServlet
 		public boolean handleGet(BambiServletRequest request, BambiServletResponse response)
 		{
 			String context = getContext(request);
-			if (KElement.isWildCard(context) || context.equalsIgnoreCase("overview")
-					&& (rootDev instanceof AbstractDevice))
+			if (KElement.isWildCard(context) || context.equalsIgnoreCase("overview"))
 			{
-				return ((AbstractDevice) rootDev).showDevice(request, response, false);
+				return (rootDev).showDevice(request, response, false);
 			}
 			else
 				return false;
@@ -172,7 +171,7 @@ public class BambiServlet extends HttpServlet
 
 	//protected IConverterCallback _callBack = null;
 	private static Log log = LogFactory.getLog(BambiServlet.class.getName());
-	protected IDevice rootDev = null;
+	protected AbstractDevice rootDev = null;
 	private final List<IGetHandler> _getHandlers = new Vector<IGetHandler>();
 	protected DumpDir bambiDumpIn = null;
 	protected DumpDir bambiDumpOut = null;
@@ -271,7 +270,7 @@ public class BambiServlet extends HttpServlet
 		JDFJMF error = JDFJMF.createJMF(EnumFamily.Response, messageType);
 		JDFResponse r = error.getResponse(0);
 		r.setReturnCode(returnCode);
-		r.setErrorText(notification);
+		r.setErrorText(notification, null);
 		response.setContentType(UrlUtil.VND_JMF);
 		IConverterCallback _callBack = getCallBack(request);
 		if (_callBack != null)
@@ -291,6 +290,7 @@ public class BambiServlet extends HttpServlet
 	 * process a multipart request - including job submission
 	 * @param request
 	 * @param response
+	 * @param bp the mime body parts
 	 */
 	protected void processMultipleDocuments(BambiServletRequest request, BambiServletResponse response, BodyPart[] bp)
 	{
@@ -388,21 +388,16 @@ public class BambiServlet extends HttpServlet
 
 	/**
 	 * @param request
-	 * @return
+	 * @return the call back for a given request
 	 */
 	private IConverterCallback getCallBack(BambiServletRequest request)
 	{
-		if (rootDev instanceof AbstractDevice)
-		{
-			return ((AbstractDevice) rootDev).getCallback(request.getRequestURI());
-		}
-		else
-			return null;
+		return rootDev.getCallback(request.getRequestURI());
 	}
 
 	protected IJMFHandler getTargetHandler(BambiServletRequest request)
 	{
-		IDevice device = getDeviceFromRequest(request);
+		AbstractDevice device = getDeviceFromRequest(request);
 		if (device == null)
 			return rootDev.getHandler(); // device not found
 		return (device.getHandler());
@@ -499,11 +494,11 @@ public class BambiServlet extends HttpServlet
 				IOUtils.copy(is, os);
 			}
 		}
-		if (bambiDumpOut != null && dumpEmpty || bufResponse.getBufferedCount() > 0)
+		if (bambiDumpOut != null && (dumpEmpty || bufResponse.getBufferedCount() > 0))
 		{
 			InputStream buf = bufResponse.getBufferedInputStream();
 
-			File f = bambiDumpOut.newFileFromStream(header, buf);
+			bambiDumpOut.newFileFromStream(header, buf);
 		}
 		bufResponse.flush();
 		bufRequest.flush(); // avoid mem leaks
@@ -575,11 +570,11 @@ public class BambiServlet extends HttpServlet
 	 * @param request
 	 * @return the device to process this request
 	 */
-	protected IDevice getDeviceFromRequest(BambiServletRequest request)
+	protected AbstractDevice getDeviceFromRequest(BambiServletRequest request)
 	{
 		String deviceID = request.getDeviceID();
 		RootDevice root = getRootDevice();
-		IDevice dev = root == null ? rootDev : root.getDevice(deviceID);
+		AbstractDevice dev = root == null ? rootDev : root.getDevice(deviceID);
 		if (dev == null)
 		{
 			log.info("invalid request: device with id=" + deviceID == null ? "null" : deviceID + " not found");
@@ -590,7 +585,7 @@ public class BambiServlet extends HttpServlet
 
 	/**
 	 * @param url
-	 * @return
+	 * @return the dviceID
 	 */
 	public static String getDeviceIDFromURL(String url)
 	{
@@ -760,7 +755,7 @@ public class BambiServlet extends HttpServlet
 			KElement next = iter.next();
 			log.info("Creating Device " + next.getAttribute("DeviceID"));
 			IDeviceProperties prop = props.createDevice(next);
-			IDevice d = null;
+			AbstractDevice d = null;
 			if (rootDev == null)
 			{
 				if (needController)
@@ -793,7 +788,7 @@ public class BambiServlet extends HttpServlet
 				MessageSender.addDumps(d != null ? d.getDeviceID() : "Bambi", bambiDumpIn, bambiDumpOut);
 			}
 			if (d instanceof IGetHandler)
-				_getHandlers.add(0, (IGetHandler) d);
+				_getHandlers.add(0, d);
 
 		}
 		return true;
@@ -807,7 +802,7 @@ public class BambiServlet extends HttpServlet
 			port = arg0.getServerPort();
 		if (rootDev instanceof AbstractDevice)
 		{
-			((AbstractDevice) rootDev).incNumRequests();
+			(rootDev).incNumRequests();
 		}
 
 		super.service(arg0, arg1);

@@ -87,6 +87,7 @@ import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.bambi.proxy.AbstractProxyDevice.EnumSlaveStatus;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
+import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -255,6 +256,10 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 			JDFSignal s = (JDFSignal) m;
 			JDFNotification n = s.getNotification();
+			NodeIdentifier ni = n.getIdentifier();
+			VElement vMatch = currentQE.getJDF().getJDFRoot().getMatchingNodes(ni);
+			if (vMatch == null)
+				return false;
 			String notifType = n.getType();
 			boolean b = false;
 			if (ElementName.EVENT.equals(notifType))
@@ -271,7 +276,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		{
 			JDFEvent e = n.getEvent();
 			if (e == null)
-				JMFHandler.errorResponse(resp, "missing event in Event signal", 1);
+				JMFHandler.errorResponse(resp, "missing event in Event signal", 1, EnumClass.Error);
 			else
 			{
 				_statusListener.setEvent(e.getEventID(), e.getEventValue(), n.getCommentText());
@@ -403,7 +408,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		double percentCompleted = jobPhase.getPercentCompleted();
 		if (percentCompleted > 0)
 			statusListener.setPercentComplete(percentCompleted);
-		log.info("Node Status :" + jobPhase.getStatus() + " " + jobPhase.getStatusDetails() + " " + deltaAmount + " "
+		log.debug("Node Status :" + jobPhase.getStatus() + " " + jobPhase.getStatusDetails() + " " + deltaAmount + " "
 				+ deltaWaste + " completed: " + percentCompleted);
 	}
 
@@ -548,7 +553,9 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			return;
 
 		AbstractProxyDevice p = getParent();
-		JDFJMF jmfs[] = p.createSubscriptions(devQEID);
+		String deviceURL = p.getDeviceURLForSlave();
+
+		JDFJMF jmfs[] = JMFFactory.createSubscriptions(deviceURL, devQEID, 10., 0);
 		String deviceID = p.getDeviceID();
 		for (int i = 0; i < jmfs.length; i++)
 		{
@@ -610,7 +617,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		{
 			String errorMsg = "failed to parse the JDFDoc from the incoming " + "ReturnQueueEntry with QueueEntryID="
 					+ currentQE.getQueueEntryID();
-			JMFHandler.errorResponse(resp, errorMsg, 2);
+			JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
 		}
 		else
 		{
@@ -716,10 +723,14 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			return;
 
 		AbstractProxyDevice p = getParent();
-		JDFJMF jmfs[] = p.createSubscriptions(null);
+		JDFJMF jmfs[] = JMFFactory.createSubscriptions(p.getDeviceURLForSlave(), null, 10., 0);
 		JDFNodeInfo ni = root.getCreateNodeInfo();
+		String senderID = getParent().getDeviceID();
 		for (int i = 0; i < jmfs.length; i++)
-			ni.copyElement(jmfs[i], null);
+		{
+			JDFJMF newJMF = (JDFJMF) ni.copyElement(jmfs[i], null);
+			newJMF.setSenderID(senderID);
+		}
 
 		log.info("creating subscription for doc:" + root.getJobID(true) + " - " + root.getJobPartID(false) + " to "
 				+ p.getSlaveURL());

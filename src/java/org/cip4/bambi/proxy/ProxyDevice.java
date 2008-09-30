@@ -84,6 +84,7 @@ import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
+import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -112,7 +113,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	/**
 	* class that handles merging of messages
 	 */
-	protected class ResonseMerger
+	protected class ResponseMerger
 	{
 
 		private JDFDoc getStatusResponse(JDFMessage m)
@@ -250,7 +251,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	//////////////////////////////////////////////////////////////////////////////////
 
 	private static final Log log = LogFactory.getLog(ProxyDevice.class.getName());
-	protected ResonseMerger statusContainer;
+	protected ResponseMerger statusContainer;
 
 	/**
 	 * simple dispatcher
@@ -285,13 +286,13 @@ public class ProxyDevice extends AbstractProxyDevice
 			JDFRequestQueueEntryParams qep = m.getRequestQueueEntryParams(0);
 			if (qep == null)
 			{
-				JMFHandler.errorResponse(resp, "QueueEntryParams missing in RequestQueueEntry message", 7);
+				JMFHandler.errorResponse(resp, "QueueEntryParams missing in RequestQueueEntry message", 7, EnumClass.Error);
 				return true;
 			}
 			final String queueURL = qep.getQueueURL();
 			if (queueURL == null || queueURL.length() < 1)
 			{
-				JMFHandler.errorResponse(resp, "QueueURL is missing", 7);
+				JMFHandler.errorResponse(resp, "QueueURL is missing", 7, EnumClass.Error);
 				return true;
 			}
 
@@ -307,12 +308,12 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 			else if (qe == null)
 			{
-				JMFHandler.errorResponse(resp, "No QueueEntry is available for request", 108);
+				JMFHandler.errorResponse(resp, "No QueueEntry is available for request", 108, EnumClass.Error);
 			}
 			else
 			{
 				String qeStatus = qe.getQueueEntryStatus().getName();
-				JMFHandler.errorResponse(resp, "requested QueueEntry is " + qeStatus, 106);
+				JMFHandler.errorResponse(resp, "requested QueueEntry is " + qeStatus, 106, EnumClass.Error);
 			}
 			return true;
 		}
@@ -344,7 +345,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
 			if (retQEParams == null)
 			{
-				JMFHandler.errorResponse(resp, "ReturnQueueEntryParams missing in ReturnQueueEntry message", 7);
+				JMFHandler.errorResponse(resp, "ReturnQueueEntryParams missing in ReturnQueueEntry message", 7, EnumClass.Error);
 				return true;
 			}
 
@@ -545,7 +546,7 @@ public class ProxyDevice extends AbstractProxyDevice
 					b = handleIdle(m, resp);
 
 				if (!b)
-					JMFHandler.errorResponse(resp, "Unknown QueueEntry: " + qeid, 103);
+					JMFHandler.errorResponse(resp, "Unknown QueueEntry: " + qeid, 103, EnumClass.Error);
 			}
 			else
 			{
@@ -574,7 +575,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		super(properties);
 		final IProxyProperties proxyProperties = getProxyProperties();
-		statusContainer = new ResonseMerger();
+		statusContainer = new ResponseMerger();
 		_jmfHandler.setFilterOnDeviceID(false);
 		int maxPush = proxyProperties.getMaxPush();
 		if (maxPush > 0)
@@ -712,7 +713,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		if (proc == null)
 		{
 			String errorMsg = "QueueEntry with ID=" + slaveQEID + " is not being processed";
-			JMFHandler.errorResponse(resp, errorMsg, 2);
+			JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
 		}
 		return proc;
 	}

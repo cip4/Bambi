@@ -457,7 +457,11 @@ public class MessageSender implements Runnable
 					{
 						synchronized (mutexDispatch)
 						{
+							//							long l1 = System.currentTimeMillis();
 							mutexDispatch.wait(wait);
+							//							long l2 = System.currentTimeMillis();
+							//							if (l2 - l1 < wait)
+							//								System.out.println("out " + wait + " : " + (l2 - l1));
 						}
 					}
 					catch (InterruptedException x)

@@ -74,48 +74,54 @@ import java.io.File;
 
 import org.cip4.jdflib.core.VString;
 
-public interface IDeviceProperties {
+public interface IDeviceProperties
+{
 
-    /**
-     * generic catchall
-     * @param key
-     * @return
-     */
-    public String getDeviceAttribute(String key); 
-        
-    /**
-     * queueentry return type
-     *
-     */
-    public enum QEReturn{HF,HTTP,MIME}
-    /**
-     * get the URL to communicate with this device
-     * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
-     */
-    public String getDeviceURL();
-    /**
-     * get the URL to communicate with the root of this device
-     * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
-     */
-    public String getContextURL();
-     
-    /**
-     * get the URL of the device hotfolder, if null the device does not support a JDF input hot folder
-     * @return the device hotfolder URL. Drop JDFs to this URL, if you want to submit to the device without JMF. 
-     */
-    public File getInputHF();
+	/**
+	 * generic catchall
+	 * @param key
+	 * @return
+	 */
+	public String getDeviceAttribute(String key);
 
-    /**
-     * get the DeviceID of this device
-     * @return the deviceID
-     */
-    public String getDeviceID();
+	/**
+	 * queueentry return type
+	 *
+	 */
+	public enum QEReturn
+	{
+		HF, HTTP, MIME
+	}
 
-    /**
-     * get the Name, ProcessUsage or Usage of the major resource to track
-     * @return the deviceID
-     */
-    public String getTrackResource();
+	/**
+	 * get the URL to communicate with this device
+	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+	 */
+	public String getDeviceURL();
+
+	/**
+	 * get the URL to communicate with the root of this device
+	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+	 */
+	public String getContextURL();
+
+	/**
+	 * get the URL of the device hotfolder, if null the device does not support a JDF input hot folder
+	 * @return the device hotfolder URL. Drop JDFs to this URL, if you want to submit to the device without JMF. 
+	 */
+	public File getInputHF();
+
+	/**
+	 * get the DeviceID of this device
+	 * @return the deviceID
+	 */
+	public String getDeviceID();
+
+	/**
+	 * get the Name, ProcessUsage or Usage of the major resource to track
+	 * @return the deviceID
+	 */
+	public String getTrackResource();
 
 	/**
 	 * get the URL of the proxy this device is requesting JDFs from.
@@ -129,88 +135,92 @@ public interface IDeviceProperties {
 	 */
 	public String getDeviceType();
 
+	/**
+	 * get the application context dir of the web application
+	 * @return the base dir of the web application
+	 */
+	public File getAppDir();
 
-	
-    /**
-     * get the application context dir of the web application
-     * @return the base dir of the web application
-     */
-    public File getAppDir();
-    
-    /**
-     * get the base dir of the web application
-     * @return the base dir of the web application
-     */
-    public File getBaseDir();
-	
+	/**
+	 * get the application configuration dir of the web application
+	 * @return the configuration dir of the Device
+	 */
+	public File getConfigDir();
+
+	/**
+	 * get the base dir of the web application
+	 * @return the base dir of the web application
+	 */
+	public File getBaseDir();
+
 	/**
 	 * get the directory containing the JDF documents
 	 * @return the directory containing the JDF documents
 	 */
 	public File getJDFDir();
-		
-    /**
-     * returns the name of the IDevice that specifies the converter name
-     * @return {@link IConverterCallback} the callback to use, null if none is specified
-     */
-    public IDevice getDeviceInstance();
-    /**
-     * returns the name of the IConverterCallback that specifies the converter name
-     * @return {@link IConverterCallback} the callback to use, null if none is specified
-     */
-    public IConverterCallback getCallBackClass();
+
+	/**
+	 * returns the name of the IDevice that specifies the converter name
+	 * @return {@link IConverterCallback} the callback to use, null if none is specified
+	 */
+	public AbstractDevice getDeviceInstance();
+
+	/**
+	 * returns the name of the IConverterCallback that specifies the converter name
+	 * @return {@link IConverterCallback} the callback to use, null if none is specified
+	 */
+	public IConverterCallback getCallBackClass();
 
 	/**
 	 * get a String representation of this DeviceProperty
 	 */
 	public String toString();
 
-    /**
-     * @return
-     */
-    public File getOutputHF();
-    
-    /**
-     * if true, qes are returned as MIME, else 
-     * @return
-     */
-    public QEReturn getReturnMIME();
+	/**
+	 * @return
+	 */
+	public File getOutputHF();
 
-    /**
-     * @return
-     */
-    public File getErrorHF();
+	/**
+	 * @return
+	 */
+	public QEReturn getReturnMIME();
 
-    /**
-     * get the URL to send generic subscriptions to
-     * @return the device URL. Status, Resource signals will be sent here regardless of any other subscriptions
-     */
-    public String getWatchURL();
+	/**
+	 * @return the error hot folder
+	 */
+	public File getErrorHF();
 
-    /**
-     * @return the type regular expression that the device accepts
-     */
-    public String getTypeExpression();
+	/**
+	 * get the URL to send generic subscriptions to
+	 * @return the device URL. Status, Resource signals will be sent here regardless of any other subscriptions
+	 */
+	public String getWatchURL();
 
-    /**
-     * @return the vector of amount counting resource names
-     */
-    public VString getAmountResources();
-    
-    /**
-     * get the HTTP chunking to communicate with this device
-     * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
-     */
-    public int getControllerHTTPChunk();
-    
-    /**
-     * @return the default body part encoding
-     */
-    public String getControllerMIMEEncoding();
-    
-    /**
-     * @return true if referenced files should be included in the mime package
-     */
-    public boolean getControllerMIMEExpansion();
+	/**
+	 * @return the type regular expression that the device accepts
+	 */
+	public String getTypeExpression();
+
+	/**
+	 * @return the vector of amount counting resource names
+	 */
+	public VString getAmountResources();
+
+	/**
+	 * get the HTTP chunking to communicate with this device
+	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+	 */
+	public int getControllerHTTPChunk();
+
+	/**
+	 * @return the default body part encoding
+	 */
+	public String getControllerMIMEEncoding();
+
+	/**
+	 * @return true if referenced files should be included in the mime package
+	 */
+	public boolean getControllerMIMEExpansion();
 
 }

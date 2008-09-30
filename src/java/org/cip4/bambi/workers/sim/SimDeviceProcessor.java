@@ -70,12 +70,7 @@
  */
 package org.cip4.bambi.workers.sim;
 
-import java.beans.XMLDecoder;
-import java.beans.XMLEncoder;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,6 +100,7 @@ import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
 
@@ -504,99 +500,29 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 	 * @return a {@link List} of {@link JobPhase}. Returns null if no remaining
 	 *         phases have been found.
 	 */
-	@SuppressWarnings("unchecked")
 	protected List<JobPhase> resumeQueueEntry(JDFQueueEntry qe)
 	{
 		List<JobPhase> phases = null;
 		String queueEntryID = qe.getQueueEntryID();
-		String fileName = _devProperties.getBaseDir() + queueEntryID + "_phases.xml";
-		if (!new File(fileName).canRead())
-		{
-			return null;
-		}
-		XMLDecoder dec = null;
-		try
-		{
-			dec = new XMLDecoder(new FileInputStream(fileName));
-			phases = (List<JobPhase>) dec.readObject();
-		}
-		catch (IOException e)
-		{
-			log.error("error while deserializing: " + e.getMessage());
-		}
-		finally
-		{
-			if (dec != null)
-				dec.close();
-		}
-
-		// delete file with remaining phases after loading
-		boolean deleted = (new File(fileName)).delete();
-		if (!deleted)
-		{
-			log.warn("failed to delete file with remaining job phases after " + "resuming ->'" + fileName + "'");
-		}
-		log.info("successfully loaded remaining phases from " + fileName);
-		return phases;
-	}
-
-	/**
-	 * get an ArrayList with all JobPhases
-	 * 
-	 * @return
-	 */
-	public List<JobPhase> getJobPhases()
-	{
-		return _jobPhases;
+		return null;
+		//TODO persist correctly
 	}
 
 	/**
 	 * remember where we stopped, so we can resume later
-	 * 
-	 * @param queueEntryID
-	 *            the ID of the queue we are talking about
-	 * @param currentPhase
-	 *            the last phase that has been processed
-	 * @param remainingPhaseTime
-	 *            how long is the first phase to run after resuming
 	 */
 	protected void persistRemainingPhases()
 	{
 		if (currentQE == null)
 			return;
-
-		// add all remaining phases to a new list
-		List<JobPhase> phases = new ArrayList<JobPhase>();
-		for (int i = 0; i < _jobPhases.size(); i++)
-		{
-			phases.add(_jobPhases.get(i));
-		}
-		final String queueEntryID = currentQE.getQueueEntryID();
-
-		// serialize the remaining job phases
-		String fileName = _devProperties.getBaseDir() + queueEntryID + "_phases.xml";
-		XMLEncoder enc = null;
-		try
-		{
-			enc = new XMLEncoder(new FileOutputStream(fileName));
-			enc.writeObject(phases);
-		}
-		catch (IOException e)
-		{
-			log.error("error while persisting: " + e.getMessage());
-		}
-		finally
-		{
-			if (enc != null)
-				enc.close();
-		}
-		log.info("remaining phases have been saved to " + fileName);
+		return;
+		//TODO persist correctly
 	}
 
 	/**
-	 * get the current job phase, null if none is ther
+	 * get the current job phase, null if none is there
 	 * 
-	 * @return
+	 * @return the current phase
 	 */
 	public JobPhase getCurrentJobPhase()
 	{
@@ -610,16 +536,16 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 	}
 
 	/**
-	* process a queue entry
-	* 
-	* @param node the JDF node to process
-	* @param qe the JDF queueentry that corresponds to this
-	* @return EnumQueueEntryStatus the final status of the queuentry 
-	*/
+	 * process a queue entry
+	 * 
+	 * @param n the JDF node to process
+	 * @param qe the JDF queueentry that corresponds to this
+	 * @return EnumQueueEntryStatus the final status of the queuentry 
+	 */
 	@Override
 	public EnumQueueEntryStatus processDoc(JDFNode n, JDFQueueEntry qe)
 	{
-		log.info("processing JDF: ");
+		log.debug("processing JDF: ");
 		JobPhase lastPhase = null;
 		while (_jobPhases.size() > 0)
 		{
@@ -663,7 +589,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			all = 0;
 
 		double todoAmount = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.AMOUNT, n == null ? null : nodeInfoPartMapVector);
-		log.info("processing new job phase: " + phase.toString());
+		log.debug("processing new job phase: " + phase.toString());
 		_statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, phase.nodeStatus, phase.nodeStatusDetails, false);
 		long deltaT = 1000;
 		while (phase.timeToGo > 0)
@@ -694,7 +620,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 						if (all > todoAmount && todoAmount > 0)
 						{
 							phase.timeToGo = 0;
-							log.info("phase end for resource: " + namedRes);
+							log.debug("phase end for resource: " + namedRes);
 							reachedEnd = true;
 						}
 					}
@@ -720,7 +646,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 
 	/**
 	 * @param n
-	 * @return
+	 * @return the "main" amount link
 	 */
 	private JDFResourceLink getAmountLink(JDFNode n)
 	{
@@ -767,15 +693,20 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		return b;
 	}
 
+	/**
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#initializeProcessDoc(org.cip4.jdflib.node.JDFNode, org.cip4.jdflib.jmf.JDFQueueEntry)
+	 * @param node
+	 * @param qe
+	 * @return true if successful
+	 */
 	@Override
 	protected boolean initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
 	{
-		_jobPhases = resumeQueueEntry(qe);
-		if (_jobPhases == null)
-		{
-			_jobPhases = loadJobFromFile(_devProperties.getAppDir() + "/config/job_" + _devProperties.getDeviceID()
-					+ ".xml");
-		}
+		File configDir = _parent.getProperties().getConfigDir();
+		_jobPhases = loadJobFromFile(configDir, "job_" + _parent.getDeviceID() + ".xml");
+		if (_jobPhases == null) // fall back to the default simulation in case we do not have job specific settings
+			_jobPhases = loadJobFromFile(configDir, "job.xml");
 		// we want at least one setup dummy
 		if (_jobPhases == null)
 		{
@@ -788,7 +719,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			log.error("proccessing null job");
 			return false;
 		}
-		qe.setDeviceID(_devProperties.getDeviceID());
+		qe.setDeviceID(_parent.getDeviceID());
 		final String queueEntryID = qe.getQueueEntryID();
 		log.info("Processing queueentry " + queueEntryID);
 		int jobPhaseSize = _jobPhases == null ? 0 : _jobPhases.size();
@@ -811,21 +742,20 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 	 * load Bambi job definition from file. <br>
 	 * The list of job phases is emptied when an error occurs during parsing
 	 * fileName
-	 * 
-	 * @param fileName
-	 *            file to load
+	 * @param configdir the configuration directory
+	 * @param fileName the file to load
 	 * @return true, if successful
 	 */
-	private List<JobPhase> loadJobFromFile(String fileName)
+	private List<JobPhase> loadJobFromFile(File configdir, String fileName)
 	{
-		File f = new File(fileName);
+		File f = FileUtil.getFileInDirectory(configdir, new File(fileName));
 		if (!f.canRead())
 		{
 			log.info("No preset file :" + fileName);
 			return null;
 		}
 		JDFParser p = new JDFParser();
-		JDFDoc doc = p.parseFile(fileName);
+		JDFDoc doc = p.parseFile(f);
 		if (doc == null)
 		{
 			log.error("Job File " + fileName + " not found, using default");
@@ -855,8 +785,8 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 
 	/**
 	 * randomize phase durations and add random error phases 
+	 * @param phases 
 	 * @param randomTime the given time of each job phase is to vary by ... percent
-	 * @param errorPos random errors to create (as percentage of the total numbers of original job phases)
 	 */
 	private void randomizeJobPhases(List<JobPhase> phases, double randomTime)
 	{
@@ -900,7 +830,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 	/**
 	 * proceed to the next job phase
 	 * 
-	 * @param newPhase
+	 * @param nextPhase
 	 *            the next job phase to process.<br>
 	 *            Phase timeToGo is ignored in this class, it is advancing to
 	 *            the next phase solely by doNextPhase().
@@ -917,9 +847,14 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		_jobPhases.add(pos, nextPhase);
 	}
 
+	/**
+	 * 
+	 * @param node
+	 * @return the initial joob phase
+	 */
 	protected JobPhase initFirstPhase(JDFNode node)
 	{
-		log.info("initializing first phase");
+		log.debug("initializing first phase");
 		JobPhase firstPhase = new JobPhase();
 		firstPhase.deviceStatus = EnumDeviceStatus.Setup;
 		firstPhase.deviceStatusDetails = "Setup";
@@ -948,6 +883,10 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		return firstPhase;
 	}
 
+	/**
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#toString()
+	 * @return the string
+	 */
 	@Override
 	public String toString()
 	{

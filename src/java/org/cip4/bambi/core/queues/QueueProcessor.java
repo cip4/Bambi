@@ -230,7 +230,7 @@ public class QueueProcessor
 					updateEntry(null, null, m, resp);
 					String errorMsg = "failed to get JDFDoc from '" + qsp.getURL() + "' on SubmitQueueEntry";
 					errorMsg += "\r\nin thread: " + Thread.currentThread().getName();
-					JMFHandler.errorResponse(resp, errorMsg, 9);
+					JMFHandler.errorResponse(resp, errorMsg, 9, EnumClass.Error);
 					return true;
 				}
 				final IConverterCallback callback = _parentDevice.getCallback(null);
@@ -243,11 +243,11 @@ public class QueueProcessor
 				if (rc != 0)
 				{
 					if (rc == 112)
-						JMFHandler.errorResponse(resp, "Submission failed - queue is not accepting new submissions", rc);
+						JMFHandler.errorResponse(resp, "Submission failed - queue is not accepting new submissions", rc, EnumClass.Error);
 					else if (rc == 116)
-						JMFHandler.errorResponse(resp, "Submission failed - identical queue entry exists", rc);
+						JMFHandler.errorResponse(resp, "Submission failed - identical queue entry exists", rc, EnumClass.Error);
 					else
-						JMFHandler.errorResponse(resp, "failed to add entry: invalid or missing message parameters", 9);
+						JMFHandler.errorResponse(resp, "failed to add entry: invalid or missing message parameters", 9, EnumClass.Error);
 
 					return true; // error was filled by handler
 				}
@@ -266,7 +266,7 @@ public class QueueProcessor
 				}
 				return true;
 			}
-			JMFHandler.errorResponse(resp, "QueueSubmissionParams are missing or invalid", 9);
+			JMFHandler.errorResponse(resp, "QueueSubmissionParams are missing or invalid", 9, EnumClass.Error);
 			log.error("QueueSubmissionParams are missing or invalid");
 			return true;
 		}
@@ -348,7 +348,7 @@ public class QueueProcessor
 			{
 				String statName = status.getName();
 				updateEntry(qe, status, m, resp);
-				JMFHandler.errorResponse(resp, "cannot remove QueueEntry with ID=" + qeid + ", it is " + statName, 106);
+				JMFHandler.errorResponse(resp, "cannot remove QueueEntry with ID=" + qeid + ", it is " + statName, 106, EnumClass.Error);
 			}
 			return true;
 		}
@@ -391,18 +391,18 @@ public class QueueProcessor
 				updateEntry(qe, status, m, resp);
 				if (EnumQueueEntryStatus.Held.equals(status))
 				{
-					JMFHandler.errorResponse(resp, "cannot suspend QueueEntry with ID=" + qeid + ", it is already held", 113);
+					JMFHandler.errorResponse(resp, "cannot suspend QueueEntry with ID=" + qeid + ", it is already held", 113, EnumClass.Error);
 				}
 				else if (EnumQueueEntryStatus.Running.equals(status) || EnumQueueEntryStatus.Suspended.equals(status))
 				{
 					JMFHandler.errorResponse(resp, "cannot hold QueueEntry with ID=" + qeid + ", it is "
-							+ status.getName(), 106);
+							+ status.getName(), 106, EnumClass.Error);
 				}
 
 				else if (EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
 				{
 					JMFHandler.errorResponse(resp, "cannot hold QueueEntry with ID=" + qeid + ", it is already "
-							+ status.getName(), 114);
+							+ status.getName(), 114, EnumClass.Error);
 				}
 				else
 					return false; //???
@@ -567,7 +567,7 @@ public class QueueProcessor
 				{
 					updateEntry(qe, status, m, resp);
 					JMFHandler.errorResponse(resp, "cannot resume QueueEntry with ID=" + qeid + ", it is "
-							+ status.getName(), 113);
+							+ status.getName(), 113, EnumClass.Error);
 					return true;
 				}
 
@@ -575,7 +575,7 @@ public class QueueProcessor
 				{
 					updateEntry(qe, status, m, resp);
 					JMFHandler.errorResponse(resp, "cannot resume QueueEntry with ID=" + qeid + ", it is already "
-							+ status.getName(), 115);
+							+ status.getName(), 115, EnumClass.Error);
 					return true;
 				}
 			}
@@ -815,18 +815,18 @@ public class QueueProcessor
 				if (EnumQueueEntryStatus.Suspended.equals(status))
 				{
 					JMFHandler.errorResponse(resp, "cannot suspend QueueEntry with ID=" + qeid
-							+ ", it is already suspended", 113);
+							+ ", it is already suspended", 113, EnumClass.Error);
 				}
 				else if (EnumQueueEntryStatus.Waiting.equals(status) || EnumQueueEntryStatus.Held.equals(status))
 				{
 					String errorMsg = "cannot suspend QueueEntry with ID=" + qeid + ", it is " + status.getName();
-					JMFHandler.errorResponse(resp, errorMsg, 115);
+					JMFHandler.errorResponse(resp, errorMsg, 115, EnumClass.Error);
 				}
 				else if (EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
 				{
 					String errorMsg = "cannot suspend QueueEntry with ID=" + qeid + ", it is already "
 							+ status.getName();
-					JMFHandler.errorResponse(resp, errorMsg, 114);
+					JMFHandler.errorResponse(resp, errorMsg, 114, EnumClass.Error);
 				}
 				else
 					return false;
@@ -915,6 +915,7 @@ public class QueueProcessor
 		_theQueue.setMaxCompletedEntries(100);
 		_theQueue.setMaxWaitingEntries(100000);
 		_theQueue.setMaxRunningEntries(1);
+		_theQueue.setDescriptiveName("Queue for " + _parentDevice.getDeviceType());
 		_theQueue.setCleanupCallback(new QueueEntryCleanup()); // zapps any attached files when removing qe
 		_theQueue.setExecuteCallback(new CanExecuteCallBack(deviceID, BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL)));
 		BambiNSExtension.setMyNSAttribute(_theQueue, "EnsureNS", "Dummy"); // ensure that some bambi ns exists
@@ -1301,11 +1302,17 @@ public class QueueProcessor
 		return s;
 	}
 
+	/**
+	 * @param qe
+	 * @param finishedNodes
+	 * @param docJDF
+	 */
 	public void returnQueueEntry(JDFQueueEntry qe, VString finishedNodes, JDFDoc docJDF)
 	{
 		JDFDoc docJMF = new JDFDoc("JMF");
 		JDFJMF jmf = docJMF.getJMFRoot();
 		jmf.setICSVersions(_parentDevice.getICSVersions());
+		jmf.setSenderID(_parentDevice.getDeviceID());
 		JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.ReturnQueueEntry);
 		JDFReturnQueueEntryParams returnQEParams = com.appendReturnQueueEntryParams();
 
@@ -1448,7 +1455,7 @@ public class QueueProcessor
 		}
 		// remove any subscriptions in case they are still around
 		if (queueEntryID != null)
-			_parentDevice.getSignalDispatcher().removeSubScriptions(queueEntryID, null);
+			_parentDevice.getSignalDispatcher().removeSubScriptions(queueEntryID, null, null);
 	}
 
 	/**
@@ -1489,7 +1496,7 @@ public class QueueProcessor
 		JDFQueueEntry qe = _theQueue.getQueueEntry(qeid);
 		if (qe == null)
 		{
-			JMFHandler.errorResponse(resp, "found no QueueEntry with QueueEntryID=" + qeid, 105);
+			JMFHandler.errorResponse(resp, "found no QueueEntry with QueueEntryID=" + qeid, 105, EnumClass.Error);
 		}
 		return qe;
 
@@ -1554,13 +1561,13 @@ public class QueueProcessor
 		if (EnumQueueEntryStatus.Completed.equals(status))
 		{
 			updateEntry(qe, status, m, resp);
-			JMFHandler.errorResponse(resp, "cannot abort QueueEntry with ID=" + qeid + ", it is already completed", 114);
+			JMFHandler.errorResponse(resp, "cannot abort QueueEntry with ID=" + qeid + ", it is already completed", 114, EnumClass.Error);
 			return true;
 		}
 		else if (EnumQueueEntryStatus.Aborted.equals(status))
 		{
 			updateEntry(qe, status, m, resp);
-			JMFHandler.errorResponse(resp, "cannot abort QueueEntry with ID=" + qeid + ", it is already aborted", 113);
+			JMFHandler.errorResponse(resp, "cannot abort QueueEntry with ID=" + qeid + ", it is already aborted", 113, EnumClass.Error);
 			return true;
 		}
 		else if (EnumQueueEntryStatus.Waiting.equals(status)) // no need to check processors - it is still waiting

@@ -271,13 +271,13 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @param prop properties with device details
+	 * @param properties properties with device details
 	 */
 	public AbstractProxyDevice(IDeviceProperties properties)
 	{
 		super(properties);
 		IProxyProperties proxyProperties = getProxyProperties();
-		final File fDeviceJDFOutput = properties.getOutputHF();
+		final File fDeviceJDFOutput = proxyProperties.getSlaveOutputHF();
 		_slaveCallback = proxyProperties.getSlaveCallBackClass();
 		slaveURL = proxyProperties.getSlaveURL();
 		if (fDeviceJDFOutput != null)
@@ -290,7 +290,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			slaveJDFOutput = new QueueHotFolder(fDeviceJDFOutput, hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Completed), rqCommand);
 		}
 
-		final File fDeviceErrorOutput = properties.getErrorHF();
+		final File fDeviceErrorOutput = proxyProperties.getSlaveErrorHF();
 		if (fDeviceErrorOutput != null)
 		{
 			File hfStorage = new File(_devProperties.getBaseDir() + File.separator + "HFDevTmpStorage" + File.separator
@@ -340,20 +340,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			slaveJDFError.stop();
 		if (slaveJDFOutput != null)
 			slaveJDFOutput.stop();
-	}
-
-	/**
-	 * create a set of default subscriptions
-	 *@return the array of subscriptions to be sent
-	 */
-	protected JDFJMF[] createSubscriptions(String queueEntryID)
-	{
-		JDFJMF jmfs[] = new JDFJMF[3];
-		String deviceURL = getDeviceURLForSlave();
-		jmfs[0] = JMFFactory.buildStatusSubscription(deviceURL, 10., 0, queueEntryID);
-		jmfs[1] = JMFFactory.buildResourceSubscription(deviceURL, 10., 0, queueEntryID);
-		jmfs[2] = JMFFactory.buildNotificationSubscription(deviceURL, 0., 0);
-		return jmfs;
 	}
 
 	/**

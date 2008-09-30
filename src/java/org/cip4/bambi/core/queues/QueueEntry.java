@@ -77,69 +77,87 @@ import org.cip4.jdflib.node.JDFNode;
 
 /**
  * simple QueueEntry / JDF pair
- * @author prosirai
+ * @author Rainer Prosi
  * 
  */
 public class QueueEntry implements IQueueEntry
 {
-    private static Log log = LogFactory.getLog(QueueEntry.class.getName());
-   
-    private JDFNode _theNode;
-    private JDFQueueEntry _theQueueEntry;
-    
-    public QueueEntry(JDFNode node, JDFQueueEntry qe) {
-        super();
-        log.info("constructing new QueueEntry");
-        _theNode=node;
-        _theQueueEntry=qe;
-        qe.setIdentifier(node.getIdentifier());
-        if(_theNode==null || _theQueueEntry==null)
-            log.error("null elements in QueueEntry");
-    }
+	private static Log log = LogFactory.getLog(QueueEntry.class.getName());
 
-    public JDFNode getJDF() {
-        return _theNode;
-    }
-    
-    public JDFQueueEntry getQueueEntry() {
-        return _theQueueEntry;
-    }
-    
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @Override
-	public String toString() {
-        String s="[QueueEntry: ] \nQueueEntry : ";
-        s+=_theQueueEntry==null ?"null \n" : _theQueueEntry.getQueueEntryID() + "\n"+_theQueueEntry.toString();
-        s+="\n Doc: "+_theNode==null ?"null \n": _theNode.toString();
-        return s;
-    }
+	private JDFNode _theNode;
+	private JDFQueueEntry _theQueueEntry;
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.queues.IQueueEntry#getQueueEntryID()
-     */
-    public String getQueueEntryID()
-    {
-        return _theQueueEntry==null ? null : _theQueueEntry.getQueueEntryID();
-    }
+	/**
+	 * @param node
+	 * @param qe
+	 */
+	public QueueEntry(JDFNode node, JDFQueueEntry qe)
+	{
+		super();
+		_theNode = node;
+		_theQueueEntry = qe;
+		qe.setIdentifier(node.getIdentifier());
+		if (_theNode == null || _theQueueEntry == null)
+			log.error("null elements in QueueEntry");
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.queues.IQueueEntry#setJDF(org.cip4.jdflib.core.JDFDoc)
-     */
-    public void setJDF(JDFNode node)
-    {
-       _theNode=node;
-        
-    }
+	/**
+	 * @see org.cip4.bambi.core.queues.IQueueEntry#getJDF()
+	 * @return the jdf node
+	 */
+	public JDFNode getJDF()
+	{
+		return _theNode;
+	}
 
-    /* (non-Javadoc)
-     * @see org.cip4.bambi.core.queues.IQueueEntry#setQueueEntry(org.cip4.jdflib.jmf.JDFQueueEntry)
-     */
-    public void setQueueEntry(JDFQueueEntry qe)
-    {
-        _theQueueEntry=qe;
-        
-    }
-    
+	/**
+	 * @see org.cip4.bambi.core.queues.IQueueEntry#getQueueEntry()
+	 * @return the queue entry
+	 */
+	public JDFQueueEntry getQueueEntry()
+	{
+		return _theQueueEntry;
+	}
+
+	/**
+	* @see java.lang.Object#toString()
+	* @return the string
+	*/
+	@Override
+	public String toString()
+	{
+		String s = "[QueueEntry: ] \nQueueEntry : ";
+		s += _theQueueEntry == null ? "null \n" : _theQueueEntry.getQueueEntryID() + "\n" + _theQueueEntry.toString();
+		s += "\n Doc: " + _theNode == null ? "null \n" : _theNode.toString();
+		return s;
+	}
+
+	/**
+	* @see org.cip4.bambi.core.queues.IQueueEntry#getQueueEntryID()
+	* @return the queue entry id, null if none is there
+	*/
+	public String getQueueEntryID()
+	{
+		return _theQueueEntry == null ? null : _theQueueEntry.getQueueEntryID();
+	}
+
+	/**
+	* @see org.cip4.bambi.core.queues.IQueueEntry#setJDF(org.cip4.jdflib.node.JDFNode)
+	* @param node
+	*/
+	public void setJDF(JDFNode node)
+	{
+		_theNode = node;
+
+	}
+
+	/**
+	* @see org.cip4.bambi.core.queues.IQueueEntry#setQueueEntry(org.cip4.jdflib.jmf.JDFQueueEntry)
+	* @param qe
+	*/
+	public void setQueueEntry(JDFQueueEntry qe)
+	{
+		_theQueueEntry = qe;
+
+	}
 }

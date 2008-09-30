@@ -74,12 +74,12 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			HttpURLConnection connection = sqh.getConnection();
 			if (connection == null)
 			{
-				r.setErrorText("Invalid http connection");
+				r.setErrorText("Invalid http connection", null);
 			}
 			else
 			{
 				int responseCode = connection.getResponseCode();
-				r.setErrorText("Invalid http response - RC=" + responseCode);
+				r.setErrorText(("Invalid http response - RC=" + responseCode), null);
 			}
 			r.setReturnCode(3); // TODO correct rcs
 			return respJMF.getOwnerDocument_JDFElement();

@@ -89,7 +89,7 @@ import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
+import org.cip4.jdflib.auto.JDFAutoSubmissionMethods.EnumPackaging;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -111,7 +111,7 @@ import org.cip4.jdflib.jmf.JDFResourceQuParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
-import org.cip4.jdflib.jmf.JDFSubscription;
+import org.cip4.jdflib.jmf.JDFSubmissionMethods;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
@@ -135,7 +135,7 @@ import org.cip4.jdflib.util.UrlUtil;
  * @author boegerni
  * 
  */
-public abstract class AbstractDevice implements IDevice, IGetHandler
+public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 {
 	/**
 	 * @return the queueprocessor of this device
@@ -227,6 +227,46 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 			}
 
 			return false;
+		}
+	}
+
+	/**
+	 * 
+	 * handler for the KnownDevices query
+	 */
+	protected class SubmissionMethodsHandler extends AbstractHandler
+	{
+
+		public SubmissionMethodsHandler()
+		{
+			super(EnumType.SubmissionMethods, new EnumFamily[] { EnumFamily.Query });
+		}
+
+		/**
+		 * 
+		 */
+		@Override
+		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		{
+			// "I am the known device"
+			if (m == null || resp == null)
+			{
+				return false;
+			}
+			log.debug("Handling " + m.getType());
+			EnumType typ = m.getEnumType();
+			if (EnumType.SubmissionMethods.equals(typ))
+			{
+				JDFSubmissionMethods sm = resp.appendSubmissionMethods();
+				Vector<EnumPackaging> v = new Vector<EnumPackaging>();
+				v.add(EnumPackaging.MIME);
+				sm.setPackaging(v);
+				sm.setURLSchemes(new VString("http,file", ","));
+				if (_submitHotFolder != null)
+					sm.setHotFolder(UrlUtil.fileToUrl(_submitHotFolder.getHfDirectory(), false));
+			}
+
+			return true;
 		}
 	}
 
@@ -409,13 +449,19 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 	public class StatusHandler extends AbstractHandler
 	{
 
+		/**
+		 * 
+		 */
 		public StatusHandler()
 		{
 			super(EnumType.Status, new EnumFamily[] { EnumFamily.Query });
 		}
 
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		/**
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @param inputMessage
+		 * @param response
+		 * @return true if handled
 		 */
 		@Override
 		public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
@@ -502,22 +548,32 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 
 	/**
 	 * add generic subscriptions in case watchurl!=null
+	 * we'll assume 30 seconds is reasonable...
 	 */
 	protected void addWatchSubscriptions()
 	{
 		final String watchURL = _devProperties.getWatchURL();
 		if (watchURL == null)
 			return;
-		JDFQuery status = JDFJMF.createJMF(EnumFamily.Query, EnumType.Status).getQuery(0);
-		JDFStatusQuParams sqp = status.appendStatusQuParams();
-		sqp.setQueueInfo(true);
-		sqp.setJobDetails(EnumJobDetails.Brief);
-		JDFSubscription sub = status.appendSubscription();
-		sub.setURL(watchURL);
-		sub.setRepeatTime(30);
-		sub.appendObservationTarget().setObservationPath("*");
-		_theSignalDispatcher.addSubscription(status, null);
 
+		JDFJMF[] jmfs = JMFFactory.createSubscriptions(watchURL, null, 30., 0);
+		if (jmfs == null)
+			return;
+		for (int i = 0; i < jmfs.length; i++)
+		{
+			JDFQuery query = jmfs[i].getQuery(0);
+			updateWatchSubscription(query);
+			_theSignalDispatcher.addSubscription(query, null);
+		}
+	}
+
+	/**
+	 * hook to clean up watch subscriptions
+	 * @param query
+	 */
+	protected void updateWatchSubscription(JDFQuery query)
+	{
+		//nop		
 	}
 
 	/**
@@ -548,11 +604,12 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 		addHandler(this.new KnownDevicesHandler());
 		addHandler(this.new ResourceHandler());
 		addHandler(this.new StatusHandler());
+		addHandler(this.new SubmissionMethodsHandler());
 		addHandler(new NotificationHandler(_theSignalDispatcher, _theStatusListener));
 	}
 
 	/**
-	 * register an emplyee with this device
+	 * register an employee with this device
 	 * @param emp
 	 */
 	public void addEmployee(JDFEmployee emp)
@@ -571,28 +628,37 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 
 	/**
 	 * get the device type of this device
-	 * @return
+	 * @return the device type
 	 */
 	public String getDeviceType()
 	{
 		return _devProperties.getDeviceType();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.cip4.bambi.IDevice#getDeviceID()
+	/**
+	 * @return the device ID
 	 */
 	public String getDeviceID()
 	{
 		return _devProperties.getDeviceID();
 	}
 
-	public IDevice getDevice(String deviceID)
+	/**
+	 * @param deviceID
+	 * @return the device with ID
+	 */
+	public AbstractDevice getDevice(String deviceID)
 	{
 		if (KElement.isWildCard(deviceID))
 			return this;
 		return (ContainerUtil.equals(deviceID, getDeviceID())) ? this : null;
 	}
 
+	/**
+	 * @see org.cip4.bambi.core.messaging.IJMFHandler#processJMF(org.cip4.jdflib.core.JDFDoc)
+	 * @param doc
+	 * @return the doc representing the response
+	 */
 	public JDFDoc processJMF(JDFDoc doc)
 	{
 		log.info("JMF processed by " + _devProperties.getDeviceID());
@@ -610,15 +676,31 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 
 	/**
 	 * append the JDFDeviceInfo of this device to a given JDFDeviceList
+	 * 
 	 * @param dl the JDFDeviceList, where the JDFDeviceInfo will be appended
+	 * 
 	 * @return true, if successful
 	 */
 	public boolean appendDeviceInfo(JDFDeviceList dl)
 	{
 		JDFDeviceInfo info = dl.appendDeviceInfo();
+
 		JDFDevice dev = info.appendDevice();
+		fillJDFDevice(dev);
+		info.setDeviceStatus(getDeviceStatus());
+		info.setDeviceID(getDeviceID());
+		return true;
+	}
+
+	/**
+	 * @param dev the device to fill
+	 */
+	protected void fillJDFDevice(JDFDevice dev)
+	{
 		dev.setDeviceID(getDeviceID());
+		dev.setJMFSenderID(getDeviceID());
 		dev.setDeviceType(getDeviceType());
+		dev.setDescriptiveName(getDeviceType());
 		dev.setJMFURL(getDeviceURL());
 		dev.setJDFInputURL(UrlUtil.fileToUrl(_devProperties.getInputHF(), false));
 		dev.setJDFOutputURL(UrlUtil.fileToUrl(_devProperties.getOutputHF(), false));
@@ -635,8 +717,6 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 				dev.copyElement(deviceCap, null);
 			}
 		}
-		info.setDeviceStatus(getDeviceStatus());
-		return true;
 	}
 
 	/**
@@ -892,7 +972,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 	}
 
 	/**
-	 * @return
+	 * @return the root directory for JDFs
 	 */
 	public File getJDFDir()
 	{
@@ -900,15 +980,15 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 	}
 
 	/**
-	 * @return
+	 * @return the tomcat base directory
 	 */
 	public File getBaseDir()
 	{
 		return _devProperties.getBaseDir();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.cip4.bambi.core.IDevice#getDeviceURL()
+	/**
+	 * @return the url of this device
 	 */
 	public String getDeviceURL()
 	{
@@ -997,6 +1077,7 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 	/**
 	 * @param response
 	 * @param docJMF
+	 * @return true if successful
 	 */
 	protected boolean copyPhaseTimeFromCounter(JDFResponse response, JDFDoc docJMF)
 	{
@@ -1013,9 +1094,10 @@ public abstract class AbstractDevice implements IDevice, IGetHandler
 		{
 			JDFResponse r = root.getResponse(i);
 			JDFResponse rResp = respRoot.getCreateResponse(i);
-			rResp.setType(response.getType());
-			rResp.copyAttribute(AttributeName.REFID, response);
-			VElement v = r.getChildElementVector(ElementName.DEVICEINFO, null);
+			String id = rResp.getID();
+			rResp.setAttributes(r);
+			rResp.setID(id);
+			VElement v = r.getChildElementVector(null, null);
 			int siz = v == null ? 0 : v.size();
 
 			for (int j = 0; j < siz; j++)

@@ -126,7 +126,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	protected QueueProcessor _queueProcessor;
 	protected StatusListener _statusListener;
 	protected Object _myListener; // the mutex for waiting and reawakening
-	protected IDeviceProperties _devProperties = null;
+	//	protected IDeviceProperties _devProperties = null;
 	protected boolean _doShutdown = false;
 	protected IQueueEntry currentQE;
 	protected String _trackResource = null;
@@ -410,14 +410,13 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			_queueProcessor.addListener(_myListener);
 		_statusListener = statusListener;
 		_statusListener.getStatusCounter().setDeviceID(devProperties.getDeviceID());
-		_devProperties = devProperties;
 		_trackResource = devProperties.getTrackResource();
 	}
 
 	/**
 	* process a queue entry
 	* 
-	* @param node the JDF node to process
+	* @param n the JDF node to process
 	* @param qe the JDF queueentry that corresponds to this
 	* @return EnumQueueEntryStatus the final status of the queuentry 
 	*/
@@ -656,15 +655,6 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	public IQueueEntry getCurrentQE()
 	{
 		return currentQE;
-	}
-
-	/**
-	 * get the device properties
-	 * @return
-	 */
-	public IDeviceProperties getProperties()
-	{
-		return _devProperties;
 	}
 
 	/**

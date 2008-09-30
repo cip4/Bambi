@@ -181,10 +181,11 @@ public class MultiDeviceProperties
 			return name;
 		}
 
-		/* (non-Javadoc)
-		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceInstance()
+		 * @return the device instance
 		 */
-		public IDevice getDeviceInstance()
+		public AbstractDevice getDeviceInstance()
 		{
 			String _deviceName = getDeviceClassName();
 
@@ -192,9 +193,9 @@ public class MultiDeviceProperties
 			{
 				try
 				{
-					Class c = Class.forName(_deviceName);
-					Constructor con = c.getConstructor(new Class[] { IDeviceProperties.class });
-					return (IDevice) con.newInstance(new Object[] { this });
+					Class<?> c = Class.forName(_deviceName);
+					Constructor<?> con = c.getConstructor(new Class[] { IDeviceProperties.class });
+					return (AbstractDevice) con.newInstance(new Object[] { this });
 				}
 				catch (Exception x)
 				{
@@ -423,6 +424,15 @@ public class MultiDeviceProperties
 			return getDeviceAttribute("WatchURL", null, null);
 		}
 
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getConfigDir()
+		 * @return the configuration directory
+		 */
+		public File getConfigDir()
+		{
+			return MultiDeviceProperties.this.getConfigDir();
+		}
+
 	}
 
 	private static final Log log = LogFactory.getLog(MultiDeviceProperties.class.getName());
@@ -483,8 +493,9 @@ public class MultiDeviceProperties
 		return root.numChildElements(ElementName.DEVICE, null);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.cip4.bambi.core.IMultiDeviceProperties#toString()
+	/**
+	 * @see java.lang.Object#toString()
+	 * @return the string representation
 	 */
 	@Override
 	public String toString()
@@ -498,6 +509,15 @@ public class MultiDeviceProperties
 	public File getAppDir()
 	{
 		return getRootFile("AppDir");
+	}
+
+	/**
+	 * @return the configuration directory
+	 */
+	public File getConfigDir()
+	{
+		File f = getRootFile("AppDir");
+		return FileUtil.getFileInDirectory(f, new File("config"));
 	}
 
 	/**

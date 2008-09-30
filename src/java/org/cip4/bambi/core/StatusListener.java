@@ -305,7 +305,7 @@ public class StatusListener
 		if (!KElement.isWildCard(oldQEID))
 		{
 			log.info("removing subscription for: " + oldQEID);
-			dispatcher.removeSubScriptions(oldQEID, "*");
+			dispatcher.removeSubScriptions(oldQEID, "*", null);
 		}
 
 		theCounter.setTrackWaste("*", true); // always track waste
