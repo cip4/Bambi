@@ -508,7 +508,20 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			{
 				unhandledMessage(inputMessage, response);
 			}
-
+			VString icsVersions = _parentDevice.getICSVersions();
+			if (icsVersions != null)
+			{
+				VString respVersions = response.getICSVersions();
+				if (respVersions != null)
+				{
+					respVersions.appendUnique(icsVersions);
+					response.setICSVersions(respVersions);
+				}
+				else
+				{
+					response.setICSVersions(icsVersions);
+				}
+			}
 			return handled;
 		}
 		catch (Exception x)

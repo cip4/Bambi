@@ -1229,39 +1229,51 @@ public final class SignalDispatcher
 
 	/**
 	 * trigger a subscription based on slave ChannelID
-	 * @param slaveChannelID the channelid of the channel to trigger
+	 * @param channelID the channelid of the channel to trigger
 	 * @param queueEntryID the queuentryid of the active queueentry
 	 * @param nodeIdentifier the nodeIdentifier of the active task
-	 * @param amount the amount produced since the last call, 0 if unknown, -1 for a global trigger
+	 * @param amount the amount produced since the last call, 0 if unknown, -1 for a global trigger 
+	 * @param ignoreIfTime if true, don't trigger if a time subscription exists
+	 * @param last if true this is the last call and we notify the mutex
+	 * @return the Trigger
 	 */
-	private Trigger triggerChannel(String channelID, String queueEntryID, NodeIdentifier nodeIdentifier, int amount, boolean last)
+	public Trigger triggerChannel(String channelID, String queueEntryID, NodeIdentifier nodeIdentifier, int amount, boolean last, boolean ignoreIfTime)
 	{
-		Trigger tNew = new Trigger(queueEntryID, nodeIdentifier, channelID, amount);
-		synchronized (triggers)
+		MsgSubscription s = subscriptionMap.get(channelID);
+		Trigger tNew = null;
+		if (s != null)
 		{
-			Trigger t = getTrigger(tNew);
+			if (!ignoreIfTime || s.repeatTime <= 0)
+			{
 
-			if (t == null)
-			{
-				triggers.add(tNew);
-			}
-			else if (amount >= 0 && t.amount >= 0) // -1 always forces a trigger
-			{
-				t.amount += amount;
-				tNew = t;
-			}
-			else if (t.amount > 0 && amount < 0)
-			{
-				t.amount = amount;
-				tNew = t;
-			}
-			else if (t.amount < 0 && amount < 0)// always add a trigger if amount<0
-			{
-				triggers.add(tNew);
+				tNew = new Trigger(queueEntryID, nodeIdentifier, channelID, amount);
+				synchronized (triggers)
+				{
+					Trigger t = getTrigger(tNew);
+
+					if (t == null)
+					{
+						triggers.add(tNew);
+					}
+					else if (amount >= 0 && t.amount >= 0) // -1 always forces a trigger
+					{
+						t.amount += amount;
+						tNew = t;
+					}
+					else if (t.amount > 0 && amount < 0)
+					{
+						t.amount = amount;
+						tNew = t;
+					}
+					else if (t.amount < 0 && amount < 0)// always add a trigger if amount<0
+					{
+						triggers.add(tNew);
+					}
+				}
+				if (amount != 0)
+					lastCalled++;
 			}
 		}
-		if (amount != 0)
-			lastCalled++;
 		if (last && lastCalled > 0)
 		{
 			synchronized (mutex)
@@ -1293,10 +1305,11 @@ public final class SignalDispatcher
 
 	/**
 	 * trigger a subscription based on queuentryID
-	 * @param the queuentryid of the active queueentry
 	 * @param queueEntryID the queuentryid of the active queueentry
-	 * @param nodeIdentifier the nodeIdentifier of the active task
+	 * @param nodeID the nodeIdentifier of the active task
 	 * @param amount the amount produced since the last call, 0 if unknown, -1 for a global trigger
+	 * @param msgType 
+	 * @return the list of actual triggers
 	 */
 
 	public Trigger[] triggerQueueEntry(String queueEntryID, NodeIdentifier nodeID, int amount, String msgType)
@@ -1312,7 +1325,7 @@ public final class SignalDispatcher
 			MsgSubscription sub = v.get(i);
 			if (sub.matchesQueueEntry(queueEntryID) && sub.matchesType(msgType))
 			{
-				locTriggers[n++] = triggerChannel(sub.channelID, queueEntryID, nodeID, amount, i + 1 == si);
+				locTriggers[n++] = triggerChannel(sub.channelID, queueEntryID, nodeID, amount, i + 1 == si, false);
 			}
 		}
 		if (n == 0)

@@ -70,6 +70,7 @@
  */
 package org.cip4.bambi.core.messaging;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
@@ -369,7 +370,10 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 		}
 	}
 
-	/* (non-Javadoc)
+	/**
+	 * @param inSignal 
+	 * @param response 
+	 * @return true if handled
 	 * @see org.cip4.bambi.core.messaging.JMFBufferHandler#handleSignal(org.cip4.jdflib.jmf.JDFSignal, org.cip4.jdflib.jmf.JDFResponse)
 	 */
 	protected boolean handleSignal(JDFSignal inSignal, JDFResponse response)
@@ -382,7 +386,10 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 			synchronized (messageMap)
 			{
 				for (int i = 0; i < mi.length; i++)
+				{
 					messageMap.putOne(mi[i], inSignal);
+					_theDispatcher.triggerChannel(mi[i].misChannelID, null, null, -1, i + 1 == mi.length, true);
+				}
 				return true;
 			}
 		}
@@ -396,6 +403,8 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 	 */
 	public static class StatusBufferHandler extends JMFBufferHandler
 	{
+		private final HashMap<MessageIdentifier, JDFSignal> lastSent;
+
 		/* (non-Javadoc)
 		 * @see org.cip4.bambi.core.messaging.JMFBufferHandler#getSignals(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
@@ -418,13 +427,13 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 				if (sqp != null)
 				{
 					JDFStatusQuParams sqpSig = s.getStatusQuParams();
-					final NodeIdentifier sqpIdentifier = sqpSig.getIdentifier();
+					final NodeIdentifier sqpIdentifier = sqpSig == null ? null : sqpSig.getIdentifier();
 					if (sqpSig != null && !sqpIdentifier.matches(sqp.getIdentifier()))
 					{
 						s.deleteNode();
 						continue;
 					}
-					else if (sqpIdentifier.equals(new NodeIdentifier()))
+					else if (sqpIdentifier == null || sqpIdentifier.equals(new NodeIdentifier()))
 					{
 						continue; // no filter
 					}
@@ -469,6 +478,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 		public StatusBufferHandler(SignalDispatcher dispatcher)
 		{
 			super("Status", new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dispatcher);
+			lastSent = new HashMap<MessageIdentifier, JDFSignal>();
 		}
 
 		/* (non-Javadoc)
@@ -479,18 +489,25 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 		{
 			Set<String> requests = _theDispatcher.getChannels(theSignal.getEnumType(), theSignal.getSenderID());
 			VElement vSigs = splitSignals(theSignal);
-			for (int i = 0; i < vSigs.size(); i++)
+			synchronized (lastSent) // we don't need any races here
 			{
-				JDFSignal inSignal = (JDFSignal) vSigs.get(i);
-				MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
-				if (mi != null)
+				for (int i = 0; i < vSigs.size(); i++)
 				{
-					for (int ii = 0; ii < mi.length; ii++)
+					JDFSignal inSignal = (JDFSignal) vSigs.get(i);
+					MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
+					if (mi != null)
 					{
-						handleSingleSignal(inSignal, mi[ii]);
+						for (int ii = 0; ii < mi.length; ii++)
+						{
+							JDFSignal lastSignal = lastSent.get(mi[ii]);
+							handleSingleSignal(inSignal, mi[ii]);
+							_theDispatcher.triggerChannel(mi[ii].misChannelID, null, null, -1, false, isSameStatusSignal(inSignal, lastSignal));
+							lastSent.put(mi[ii], inSignal);
+						}
 					}
 				}
 			}
+
 			return true;
 		}
 
@@ -560,6 +577,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 							sigs.add(s);
 						}
 						s.setSenderID(did);
+						s.setTime(theSignal.getTime());
 						s.moveElement(di, null);
 					}
 				}
@@ -594,10 +612,12 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 		/**
 		 * @param inSignal
 		 * @param last
-		 * @return
+		 * @return true if the signals are equivalent
 		 */
 		private boolean isSameStatusSignal(JDFSignal inSignal, JDFSignal last)
 		{
+			if (last == null)
+				return inSignal == null;
 			boolean bAllSame = true;
 			for (int i = 0; bAllSame; i++)
 			{

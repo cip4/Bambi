@@ -107,6 +107,10 @@ import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
+/**
+ * @author Rainer Prosi, Heidelberger Druckmaschinen
+ *
+ */
 public abstract class AbstractProxyDevice extends AbstractDevice
 {
 
@@ -118,6 +122,10 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected QueueHotFolder slaveJDFOutput = null;
 	protected QueueHotFolder slaveJDFError = null;
 
+	/**
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen
+	 * enumeration how to set up synchronization of status with the slave
+	 */
 	public enum EnumSlaveStatus
 	{
 		JMF, NODEINFO
