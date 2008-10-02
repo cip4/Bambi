@@ -200,7 +200,7 @@ public class BambiServlet extends HttpServlet
 
 	private String initializeDumps(ServletConfig config)
 	{
-		String dump = config.getInitParameter("bambiDump");
+		String dump = StringUtil.getNonEmpty(config.getInitParameter("bambiDump"));
 		if (dump != null)
 		{
 			bambiDumpIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("in")));
