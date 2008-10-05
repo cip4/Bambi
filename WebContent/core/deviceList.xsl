@@ -7,7 +7,8 @@
     <html>
       <xsl:variable name="context" select="@Context"/>
       <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+  <!--      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>  -->
+       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
         <link rel="stylesheet" type="text/css">
           <xsl:attribute name="href"><xsl:value-of select="$context"/>/css/styles_pc.css</xsl:attribute>
         </link>
@@ -53,6 +54,7 @@
             <th align="left"> Queue Status</th>
             <th align="left"> # Running</th>
             <th align="left"> # Waiting</th>
+            <th align="left"> # Completed</th>
           </tr>
           <xsl:apply-templates select="XMLDevice[@Root='false']"/>
         </table>
@@ -65,9 +67,8 @@
       </body>
     </html>
   </xsl:template>
-  
+
   <!--   root controller spec   -->
-  
   <xsl:template match="XMLDevice[@Root='true']">
     <xsl:variable name="context" select="../@Context"/>
     <tr>
@@ -100,11 +101,13 @@
       <td align="left">
         <xsl:value-of select="@QueueWaiting"/>
       </td>
+      <td align="left">
+        <xsl:value-of select="@QueueCompleted"/>
+      </td>
     </tr>
   </xsl:template>
-   
+
   <!--   device spec   -->
-  
   <xsl:template match="XMLDevice[@Root='false']">
     <xsl:variable name="context" select="../@Context"/>
     <tr>
@@ -139,6 +142,9 @@
       </td>
       <td align="left">
         <xsl:value-of select="@QueueWaiting"/>
+      </td>
+      <td align="left">
+        <xsl:value-of select="@QueueCompleted"/>
       </td>
     </tr>
   </xsl:template>

@@ -125,7 +125,7 @@ public class MultiDeviceProperties
 			return devRoot;
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
 		 */
 		public String getDeviceURL()
@@ -148,7 +148,7 @@ public class MultiDeviceProperties
 			return contextURL.toExternalForm() + "/jmf/" + getDeviceID();
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
 		 */
 		public IConverterCallback getCallBackClass()
@@ -170,7 +170,7 @@ public class MultiDeviceProperties
 			return null;
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
 		 */
 		public String getCallBackClassName()
@@ -205,7 +205,7 @@ public class MultiDeviceProperties
 			return null;
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
 		 */
 		public String getDeviceClassName()
@@ -213,7 +213,7 @@ public class MultiDeviceProperties
 			return getDeviceAttribute("DeviceClass", null, "org.cip4.bambi.workers.sim.SimDevice");
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
 		 */
 		public String getDeviceID()
@@ -221,7 +221,7 @@ public class MultiDeviceProperties
 			return getDeviceAttribute("DeviceID", null, null);
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getProxyURL()
 		 */
 		public String getProxyControllerURL()
@@ -229,7 +229,7 @@ public class MultiDeviceProperties
 			return getDeviceAttribute("ProxyURL", null, null);
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceType()
 		 */
 		public String getDeviceType()
@@ -237,7 +237,7 @@ public class MultiDeviceProperties
 			return getDeviceAttribute("DeviceType", null, null);
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#toString()
 		 */
 		@Override
@@ -252,7 +252,7 @@ public class MultiDeviceProperties
 			return fil == null ? getRootFile(file) : new File(fil);
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceErrorHF()
 		 */
 		public File getErrorHF()
@@ -260,7 +260,7 @@ public class MultiDeviceProperties
 			return getFile("ErrorHF");
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceOutputHF()
 		 */
 		public File getOutputHF()
@@ -284,7 +284,7 @@ public class MultiDeviceProperties
 			return getFile("InputHF");
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getBaseDir()
 		 */
 		public File getBaseDir()
@@ -297,7 +297,7 @@ public class MultiDeviceProperties
 			return MultiDeviceProperties.this.getAppDir();
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getJDFDir()
 		 */
 		public File getJDFDir()
@@ -325,7 +325,7 @@ public class MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceAttribute(java.lang.String)
 		 * @param key
-		 * @return the device attribute
+		 * @return the device attribute, null if none exists
 		 */
 		public String getDeviceAttribute(String key)
 		{
@@ -348,7 +348,20 @@ public class MultiDeviceProperties
 
 		}
 
-		/* (non-Javadoc)
+		/**
+		 * @param xpath the element relative xpath
+		 * @return the device attribute
+		 */
+		public KElement getDeviceElement(String xpath)
+		{
+			KElement el = devRoot.getXPathElement(xpath);
+			if (el == null)
+				el = root.getXPathElement(xpath);
+			return el;
+
+		}
+
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
 		 */
 		public String getTypeExpression()
@@ -356,7 +369,7 @@ public class MultiDeviceProperties
 			return getDeviceAttribute(AttributeName.TYPEEXPRESSION);
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getAmountResources()
 		 */
 		public VString getAmountResources()
@@ -371,7 +384,7 @@ public class MultiDeviceProperties
 			return v;
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
 		 */
 		public int getControllerHTTPChunk()
@@ -379,7 +392,7 @@ public class MultiDeviceProperties
 			return StringUtil.parseInt(getDeviceAttribute("HTTPChunk"), 10000);
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
 		 */
 		public String getControllerMIMEEncoding()
@@ -387,7 +400,7 @@ public class MultiDeviceProperties
 			return getDeviceAttribute("MIMETransferEncoding", null, MimeUtil.BASE64);
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEExpansion()
 		 */
 		public boolean getControllerMIMEExpansion()
@@ -395,7 +408,7 @@ public class MultiDeviceProperties
 			return StringUtil.parseBoolean(getDeviceAttribute("MIMEExpansion"), false);
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getReturnMIME()
 		 */
 		public QEReturn getReturnMIME()
@@ -416,7 +429,7 @@ public class MultiDeviceProperties
 			return contextURL == null ? null : contextURL.toExternalForm();
 		}
 
-		/* (non-Javadoc)
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getWatchURL()
 		 */
 		public String getWatchURL()

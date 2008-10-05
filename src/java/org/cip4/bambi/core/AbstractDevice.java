@@ -176,10 +176,13 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			EnumQueueStatus queueStatus = jdfQueue == null ? null : jdfQueue.getQueueStatus();
 			int running = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Running);
 			int waiting = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Waiting);
+			int completed = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Completed)
+					+ jdfQueue.numEntries(EnumQueueEntryStatus.Aborted);
 
 			deviceRoot.setAttribute("QueueStatus", queueStatus == null ? "Unknown" : queueStatus.getName());
 			deviceRoot.setAttribute("QueueWaiting", waiting, null);
 			deviceRoot.setAttribute("QueueRunning", running, null);
+			deviceRoot.setAttribute("QueueCompleted", completed, null);
 			if (addProcs)
 				addProcessors();
 
