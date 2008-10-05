@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="**/.svn/*" including="com/heidelberg/canon/*.java|com/heidelberg/hdmproxy/|com/heidelberg/hp/*.java|com/heidelberg/misconnector/|com/heidelberg/nexpress/*.java|com/heidelberg/potato/|com/heidelberg/simulator/*.java|com/heidelberg/xerox/*.java|org/cip4/bambi/core/*.java|org/cip4/bambi/core/messaging/*.java|org/cip4/bambi/core/queues/*.java|org/cip4/bambi/proxy/*.java|org/cip4/bambi/workers/*.java|org/cip4/bambi/workers/core/*.java|org/cip4/bambi/workers/manual/*.java|org/cip4/bambi/workers/sim/*.java" kind="src" path="src/java"/>
-	<classpathentry excluding="**/.svn/*" including="com/heidelberg/canon/*.java|com/heidelberg/misconnector/|org/cip4/bambi/*.java|org/cip4/bambi/*/*.java" kind="src" path="test"/>
+	<classpathentry excluding="**/.svn/*|com/heidelberg/util/|com/heidelberg/util/" including="com/heidelberg/bambiutil/|com/heidelberg/canon/*.java|com/heidelberg/hdmproxy/|com/heidelberg/hp/*.java|com/heidelberg/misconnector/|com/heidelberg/nexpress/*.java|com/heidelberg/potato/|com/heidelberg/simulator/*.java|com/heidelberg/xerox/*.java|org/cip4/bambi/core/*.java|org/cip4/bambi/core/messaging/*.java|org/cip4/bambi/core/queues/*.java|org/cip4/bambi/proxy/*.java|org/cip4/bambi/workers/*.java|org/cip4/bambi/workers/core/*.java|org/cip4/bambi/workers/manual/*.java|org/cip4/bambi/workers/sim/*.java" kind="src" path="src/java"/>
+	<classpathentry excluding="**/.svn/*" including="com/heidelberg/bambiutil/|com/heidelberg/canon/*.java|com/heidelberg/hdmproxy/*.java|com/heidelberg/hp/*.java|com/heidelberg/misconnector/|org/cip4/bambi/*.java|org/cip4/bambi/*/*.java" kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3.8.1"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/JDFLibJ"/>
