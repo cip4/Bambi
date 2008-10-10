@@ -148,6 +148,8 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 			return null;
 
 		JDFNode n = doc.getJDFRoot();
+		if (n == null)
+			return null;
 		VElement v = n.getvJDFNode(null, null, false);
 		for (int i = v.size() - 1; i >= 0; i--)
 		{

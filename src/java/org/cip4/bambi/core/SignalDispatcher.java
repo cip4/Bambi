@@ -113,6 +113,7 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.pool.JDFAncestorPool;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -620,7 +621,8 @@ public final class SignalDispatcher
 			}
 			JDFJMF ownerJMF = ((JDFMessage) m).getJMFRoot();
 			jmfDeviceID = ownerJMF != null ? ownerJMF.getDeviceID() : null;
-			if ("".equals(jmfDeviceID))
+			if ("".equals(jmfDeviceID) || ContainerUtil.equals(jmfDeviceID, deviceID))
+				// zapp any filters to myself - they represent all my kids
 				jmfDeviceID = null;
 
 		}
@@ -1004,13 +1006,13 @@ public final class SignalDispatcher
 			if (EnumType.Status.equals(messageType))
 			{
 				JDFStatusQuParams sqp = m.getStatusQuParams();
-				String qeid = sqp == null ? null : sqp.getQueueEntryID();
+				String qeid = sqp == null ? null : StringUtil.getNonEmpty(sqp.getQueueEntryID());
 				return qeid;
 			}
 			else if (EnumType.Resource.equals(messageType))
 			{
 				JDFResourceQuParams rqp = m.getResourceQuParams();
-				String qeid = rqp == null ? null : rqp.getQueueEntryID();
+				String qeid = rqp == null ? null : StringUtil.getNonEmpty(rqp.getQueueEntryID());
 				return qeid;
 			}
 		}

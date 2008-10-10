@@ -32,6 +32,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
 /**
@@ -55,17 +56,24 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 	}
 
-	protected JDFDoc writeToQueue(JDFDoc docJMF, JDFDoc docJDF, String strUrl, MIMEDetails urlDet, boolean expandMime) throws IOException
+	protected JDFDoc writeToQueue(JDFDoc docJMF, JDFDoc docJDF, String strUrl, MIMEDetails urlDet, boolean expandMime, boolean isMime) throws IOException
 	{
 		if (strUrl == null)
 		{
 			log.error("writeToQueue: attempting to write to null url");
 			return null;
 		}
-		Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, expandMime);
 		SubmitQueueEntryResponseHandler sqh = new SubmitQueueEntryResponseHandler();
-		JMFFactory.send2URL(mp, strUrl, sqh, slaveCallBack, urlDet, _parent.getDeviceID());
-		sqh.waitHandled(30000, true);
+		if (isMime)
+		{
+			Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, expandMime);
+			JMFFactory.send2URL(mp, strUrl, sqh, slaveCallBack, urlDet, _parent.getDeviceID());
+		}
+		else
+		{
+			JMFFactory.send2URL(docJMF.getJMFRoot(), strUrl, sqh, slaveCallBack, _parent.getDeviceID());
+		}
+		sqh.waitHandled(100000, true);
 		if (sqh.doc == null)
 		{
 			JDFCommand c = docJMF.getJMFRoot().getCommand(0);
@@ -114,10 +122,10 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 * @param deviceOutputHF 
 	 * @param ud 
 	 * @param expandMime 
+	 * @param isMime 
 	 * @return the updated queuentry, null if the submit failed
-	 * TODO mime or not mime...
 	 */
-	protected IQueueEntry submitToQueue(URL qurl, File deviceOutputHF, MIMEDetails ud, boolean expandMime)
+	protected IQueueEntry submitToQueue(URL qurl, File deviceOutputHF, MIMEDetails ud, boolean expandMime, boolean isMime)
 	{
 		JDFJMF jmf = JDFJMF.createJMF(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
 
@@ -127,7 +135,8 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		AbstractProxyDevice proxyParent = getParent();
 		jmf.setICSVersions(proxyParent.getICSVersions());
 
-		qsp.setReturnJMF(proxyParent.getDeviceURLForSlave());
+		String deviceURLForSlave = proxyParent.getDeviceURLForSlave();
+		qsp.setReturnJMF(deviceURLForSlave);
 		if (deviceOutputHF != null)
 		{
 			qsp.setReturnURL(deviceOutputHF.getPath());
@@ -139,18 +148,31 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 		if (slaveCallBack != null)
 		{
-			slaveCallBack.updateJDFForExtern(nod.getOwnerDocument_JDFElement());
+			if (isMime)
+				slaveCallBack.updateJDFForExtern(nod.getOwnerDocument_JDFElement());
 			slaveCallBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
 		}
 
-		qsp.setURL("dummy"); // replaced by mimeutil
+		if (isMime)
+		{
+			qsp.setURL("dummy"); // replaced by mimeutil
+		}
+		else
+		// setup http get for JDF
+		{
+			String jdfURL = proxyParent.getDeviceURL();
+			jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/" + AbstractProxyDevice.SLAVEJMF + "/");
+			nod.getOwnerDocument_JDFElement().write2File((String) null, 0, true);
+			jdfURL += "?Callback=true&qeID=" + qe.getQueueEntryID();
+			qsp.setURL(jdfURL);
+		}
 		if (nod != null)
 		{
 			try
 			{
 				final String urlString = qurl == null ? null : qurl.toExternalForm();
 
-				JDFDoc d = writeToQueue(jmf.getOwnerDocument_JDFElement(), nod.getOwnerDocument_JDFElement(), urlString, ud, expandMime);
+				JDFDoc d = writeToQueue(jmf.getOwnerDocument_JDFElement(), nod.getOwnerDocument_JDFElement(), urlString, ud, expandMime, isMime);
 				if (d != null)
 				{
 					JDFJMF jmfResp = d.getJMFRoot();

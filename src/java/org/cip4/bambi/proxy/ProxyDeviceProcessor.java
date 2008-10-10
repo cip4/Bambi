@@ -452,8 +452,11 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			final File deviceOutputHF = proxyProperties.getSlaveOutputHF();
 			MIMEDetails ud = new MIMEDetails();
 			ud.httpDetails.chunkSize = proxyProperties.getSlaveHTTPChunk();
+			ud.transferEncoding = proxyProperties.getSlaveMIMEEncoding();
 			boolean expandMime = proxyProperties.getSlaveMIMEExpansion();
-			IQueueEntry iqe = submitToQueue(qURL, deviceOutputHF, ud, expandMime);
+			boolean isMime = proxyProperties.isSlaveMimePackaging();
+
+			IQueueEntry iqe = submitToQueue(qURL, deviceOutputHF, ud, expandMime, isMime);
 			qes = iqe == null ? null : iqe.getQueueEntry().getQueueEntryStatus();
 		}
 		else

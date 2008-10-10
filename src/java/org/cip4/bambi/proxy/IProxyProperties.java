@@ -75,63 +75,78 @@ import java.io.File;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 
-public interface IProxyProperties extends IDeviceProperties {
+public interface IProxyProperties extends IDeviceProperties
+{
 
-    /**
-     * queueentry return type
-     *
-     */
-    public enum QEReturn{HF,HTTP,MIME}
-    /**
-     * @return
-     */
-    public File getSlaveInputHF();
-    /**
-     * @return
-     */
-    public File getSlaveOutputHF();
-    /**
-     * @return
-     */
-    public File getSlaveErrorHF();
-    /**
-     * get the URL to communicate with this device
-     * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
-     */
-    public String getSlaveURL();
+	/**
+	 * queueentry return type
+	 *
+	 */
+	public enum QEReturn
+	{
+		HF, HTTP, MIME
+	}
 
-    /**
-     * get the URL of this proxy for the slave
-     */    
-    public String getDeviceURLForSlave();
-    /**
-     * @return
-     */
-    public String getSlaveDeviceID();
+	/**
+	 * @return
+	 */
+	public File getSlaveInputHF();
 
-    /**
-     * @return
-     */
-    public int getMaxPush();
-    /**
-     * get the HTTP chunking to communicate with this device
-     * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
-     */
-    public int getSlaveHTTPChunk();
+	/**
+	 * @return
+	 */
+	public File getSlaveOutputHF();
 
-    /**
-     * @return the default body part encoding
-     */
-    public String getSlaveMIMEEncoding();
+	/**
+	 * @return
+	 */
+	public File getSlaveErrorHF();
 
-    /**
-     * @return true if referenced files should be included in the mime package
-     */
-    public boolean getSlaveMIMEExpansion();
+	/**
+	 * get the URL to communicate with this device
+	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+	 */
+	public String getSlaveURL();
 
-    /**
-     * @return the callback class to and from the slave device
-     */
-    public IConverterCallback getSlaveCallBackClass();
+	/**
+	 * get the URL of this proxy for the slave
+	 */
+	public String getDeviceURLForSlave();
+
+	/**
+	 * @return
+	 */
+	public String getSlaveDeviceID();
+
+	/**
+	 * @return
+	 */
+	public int getMaxPush();
+
+	/**
+	 * get the HTTP chunking to communicate with this device
+	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+	 */
+	public int getSlaveHTTPChunk();
+
+	/**
+	 * @return the default body part encoding
+	 */
+	public String getSlaveMIMEEncoding();
+
+	/**
+	 * @return the default packaging, one of MIME or POST
+	 */
+	public boolean isSlaveMimePackaging();
+
+	/**
+	 * @return true if referenced files should be included in the mime package
+	 */
+	public boolean getSlaveMIMEExpansion();
+
+	/**
+	 * @return the callback class to and from the slave device
+	 */
+	public IConverterCallback getSlaveCallBackClass();
 
 }

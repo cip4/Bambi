@@ -96,7 +96,7 @@ public class QueueEntry implements IQueueEntry
 		super();
 		_theNode = node;
 		_theQueueEntry = qe;
-		qe.setIdentifier(node.getIdentifier());
+		qe.setIdentifier(node == null ? null : node.getIdentifier());
 		if (_theNode == null || _theQueueEntry == null)
 			log.error("null elements in QueueEntry");
 	}

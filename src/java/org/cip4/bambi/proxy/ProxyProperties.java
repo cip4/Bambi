@@ -82,7 +82,6 @@ import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.StringUtil;
 
-
 /**
  * container for the properties of several Bambi devices
  * 
@@ -90,169 +89,176 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public class ProxyProperties extends MultiDeviceProperties
 {
-    /**
-     * properties for a single device
-     * @author boegerni
-     *
-     */
- 
-   private static final Log log = LogFactory.getLog(ProxyProperties.class.getName());
-   
-   public class ProxyDeviceProperties extends DeviceProperties implements IProxyProperties 
-   {
-        /**
-         * constructor
-         */
-         protected ProxyDeviceProperties(KElement elem) {
-            super(elem);
-        }
-        
-         /* (non-Javadoc)
-          * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
-          */
-         public IConverterCallback getSlaveCallBackClass()
-         {
-             String _callBackName=getSlaveCallBackClassName();
+	/**
+	 * properties for a single device
+	 * @author boegerni
+	 *
+	 */
 
-             if(_callBackName!=null)
-             {
-                 try
-                 {
-                     Class c=Class.forName(_callBackName);
-                     return (IConverterCallback) c.newInstance();
-                 }
-                 catch (Exception x)
-                 {
-                     log.error("Cannot instantiate callback class: "+_callBackName);
-                 }
-             }
-             return null;
-         }
-         
-         /* (non-Javadoc)
-          * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
-          */
-         public String getSlaveCallBackClassName()
-         {
-             String name= devRoot.getAttribute("SlaveCallBackName",null,null);
-             if(name==null)
-                 name= root.getAttribute("SlaveCallBackName",null,null);
-             return name;
-         }
+	private static final Log log = LogFactory.getLog(ProxyProperties.class.getName());
 
-         
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
-         */
-        public String getSlaveDeviceID()
-        {
-            String s= devRoot.getAttribute("SlaveDeviceID",null,null);
-            if(s!=null)
-                return s;
-            s=getSlaveURL();
-            if(s!=null)
-                s=StringUtil.token(s, -1, "/");
-            return s;
-        }
+	public class ProxyDeviceProperties extends DeviceProperties implements IProxyProperties
+	{
+		/**
+		 * constructor
+		 */
+		protected ProxyDeviceProperties(KElement elem)
+		{
+			super(elem);
+		}
 
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
+		 */
+		public IConverterCallback getSlaveCallBackClass()
+		{
+			String _callBackName = getSlaveCallBackClassName();
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveErrorHF()
-         */
-        public File getSlaveErrorHF()
-        {
-            return getFile("SlaveErrorHF");
-        }
+			if (_callBackName != null)
+			{
+				try
+				{
+					Class c = Class.forName(_callBackName);
+					return (IConverterCallback) c.newInstance();
+				}
+				catch (Exception x)
+				{
+					log.error("Cannot instantiate callback class: " + _callBackName);
+				}
+			}
+			return null;
+		}
 
-        /**
-         * get the URL of this proxy for the slave
-         */
-        public String getDeviceURLForSlave() {
-           String s=getDeviceURL();
-           return StringUtil.replaceString(s, "/jmf/", "/"+AbstractProxyDevice.SLAVEJMF+"/");
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
+		 */
+		public String getSlaveCallBackClassName()
+		{
+			String name = devRoot.getAttribute("SlaveCallBackName", null, null);
+			if (name == null)
+				name = root.getAttribute("SlaveCallBackName", null, null);
+			return name;
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveInputHF()
-         */
-        public File getSlaveInputHF()
-        {
-            return getFile("SlaveInputHF");
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
+		 */
+		public String getSlaveDeviceID()
+		{
+			String s = devRoot.getAttribute("SlaveDeviceID", null, null);
+			if (s != null)
+				return s;
+			s = getSlaveURL();
+			if (s != null)
+				s = StringUtil.token(s, -1, "/");
+			return s;
+		}
 
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveErrorHF()
+		 */
+		public File getSlaveErrorHF()
+		{
+			return getFile("SlaveErrorHF");
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveOutputHF()
-         */
-        public File getSlaveOutputHF()
-        {
-            return getFile("SlaveOutputHF");
-        }
+		/**
+		 * get the URL of this proxy for the slave - includes last '/'
+		 * @return the url
+		 */
+		public String getDeviceURLForSlave()
+		{
+			String s = getDeviceURL();
+			return StringUtil.replaceString(s, "/jmf/", "/" + AbstractProxyDevice.SLAVEJMF + "/");
+		}
 
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveInputHF()
+		 */
+		public File getSlaveInputHF()
+		{
+			return getFile("SlaveInputHF");
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getSlaveURL()
-         */
-        public String getSlaveURL()
-        {
-            return devRoot.getAttribute("SlaveURL",null,null);
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveOutputHF()
+		 */
+		public File getSlaveOutputHF()
+		{
+			return getFile("SlaveOutputHF");
+		}
 
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveURL()
+		 */
+		public String getSlaveURL()
+		{
+			return devRoot.getAttribute("SlaveURL", null, null);
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getMaxPush()
-         */
-        public int getMaxPush()
-        {
-            return StringUtil.parseInt(getDeviceAttribute("MaxPush"), 0);
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getMaxPush()
+		 */
+		public int getMaxPush()
+		{
+			return StringUtil.parseInt(getDeviceAttribute("MaxPush"), 0);
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
-         */
-        public int getSlaveHTTPChunk()
-        {
-            return StringUtil.parseInt(getDeviceAttribute("SlaveHTTPChunk"), getControllerHTTPChunk());
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
+		 */
+		public int getSlaveHTTPChunk()
+		{
+			return StringUtil.parseInt(getDeviceAttribute("SlaveHTTPChunk"), getControllerHTTPChunk());
+		}
 
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
+		 */
+		public String getSlaveMIMEEncoding()
+		{
+			return getDeviceAttribute("SlaveMIMETransferEncoding", null, getControllerMIMEEncoding());
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
-         */
-        public String getSlaveMIMEEncoding()
-        {
-            return getDeviceAttribute("SlaveMIMETransferEncoding",null,getControllerMIMEEncoding());
-        }
+		/* (non-Javadoc)
+		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveMIMEExpansion()
+		 */
+		public boolean getSlaveMIMEExpansion()
+		{
+			return StringUtil.parseBoolean(getDeviceAttribute("SlaveMIMETransferExpansion"), getControllerMIMEExpansion());
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveMIMEExpansion()
-         */
-        public boolean getSlaveMIMEExpansion()
-        {
-            return StringUtil.parseBoolean(getDeviceAttribute("SlaveMIMETransferExpansion"),getControllerMIMEExpansion());
-        }
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#isSlaveMimePackaging()
+		 * @return true if slave accepts mime,
+		 * @default is true
+		 */
+		public boolean isSlaveMimePackaging()
+		{
+			return StringUtil.parseBoolean(getDeviceAttribute("SlaveMimePackaging"), true);
+		}
 
-    }
+	}
 
+	/**
+	 * create device properties for the devices defined in the config file
+	 * @param appDir     the location of the web application in the server
+	 * @param configFile the config file
+	 */
+	public ProxyProperties(ServletContext _context, File configFile)
+	{
+		super(_context, configFile);
 
-    /**
-     * create device properties for the devices defined in the config file
-     * @param appDir     the location of the web application in the server
-     * @param configFile the config file
-     */
-    public ProxyProperties(ServletContext _context, File configFile)
-    {
-       super(_context,configFile);
+	}
 
-    }
-
-    /**
-     * @param element
-     * @return
-     */
-    public IDeviceProperties createDevice(KElement element)
-    {
-         return this.new ProxyDeviceProperties(element);
-    }
+	/**
+	 * @param element
+	 * @return
+	 */
+	@Override
+	public IDeviceProperties createDevice(KElement element)
+	{
+		return this.new ProxyDeviceProperties(element);
+	}
 
 }

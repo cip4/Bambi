@@ -397,7 +397,7 @@ public class MultiDeviceProperties
 		 */
 		public String getControllerMIMEEncoding()
 		{
-			return getDeviceAttribute("MIMETransferEncoding", null, MimeUtil.BASE64);
+			return getDeviceAttribute("MIMETransferEncoding", null, MimeUtil.BINARY);
 		}
 
 		/**

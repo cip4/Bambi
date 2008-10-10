@@ -75,6 +75,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.util.Vector;
 
@@ -97,6 +98,8 @@ import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
+import org.cip4.bambi.proxy.AbstractProxyDevice;
+import org.cip4.bambi.proxy.IProxyProperties;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -105,6 +108,7 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFComment;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFException;
+import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -628,6 +632,7 @@ public class QueueProcessor
 				return false;
 			}
 			final String qeID = request.getParameter(QE_ID);
+			final boolean callback = request.getBooleanParam("Callback");
 			String fil = getJDFStorage(qeID);
 			if (fil == null)
 				return false;
@@ -637,9 +642,28 @@ public class QueueProcessor
 			try
 			{
 				InputStream is = new FileInputStream(f);
-				IOUtils.copy(is, response.getBufferedOutputStream());
+				if (callback && (_parentDevice instanceof AbstractProxyDevice))
+				{
+					IProxyProperties pp = ((AbstractProxyDevice) _parentDevice).getProxyProperties();
+					IConverterCallback call = pp.getSlaveCallBackClass();
+					if (call != null)
+					{
+						JDFParser p = new JDFParser();
+						JDFDoc doc = p.parseStream(is);
+						if (doc != null)
+						{
+							call.updateJDFForExtern(doc);
+							OutputStream os = response.getBufferedOutputStream();
+							doc.write2Stream(os, 0, true);
+							is = null;
+						}
+					}
+				}
+				if (is != null) // we copied after parsing
+					IOUtils.copy(is, response.getBufferedOutputStream());
+
 				boolean bJDF = request.getBooleanParam(isJDF);
-				response.setContentType(bJDF ? MimeUtil.VND_JDF : MimeUtil.TEXT_XML);
+				response.setContentType(bJDF ? UrlUtil.VND_JDF : UrlUtil.TEXT_XML);
 			}
 			catch (FileNotFoundException x)
 			{
@@ -1051,16 +1075,16 @@ public class QueueProcessor
 		_listeners.add(listner);
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see org.cip4.bambi.IQueueProcessor#removeListener(java.lang.Object)
 	 */
 	public void removeListener(Object o)
 	{
-		log.info("removing listener");
+		log.info("removing listener for " + _parentDevice != null ? _parentDevice.getDeviceID() : " unknown ");
 		_listeners.remove(o);
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see org.cip4.bambi.IQueueProcessor#addEntry(org.cip4.jdflib.jmf.JDFCommand, org.cip4.jdflib.core.JDFDoc)
 	 */
 	public JDFQueueEntry addEntry(JDFCommand submitQueueEntry, JDFResponse r, JDFDoc theJDF)
@@ -1129,7 +1153,7 @@ public class QueueProcessor
 			        r.setReturnCode(116);                           
 			    }
 			}
-			*/
+			 */
 
 			if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
 			{

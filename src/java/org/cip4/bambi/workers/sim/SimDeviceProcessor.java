@@ -103,6 +103,7 @@ import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * abstract parent class for device processors, with aditional functionality for
@@ -636,7 +637,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			if (phase.timeToGo > 0 && !_doShutdown)
 			{
 				randomErrors(phase);
-				StatusCounter.sleep(123);
+				ThreadUtil.sleep(123);
 				long t1 = System.currentTimeMillis();
 				deltaT = t1 - t0;
 				phase.timeToGo -= deltaT;
