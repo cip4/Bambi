@@ -7,8 +7,8 @@
     <html>
       <xsl:variable name="context" select="@Context"/>
       <head>
-  <!--      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>  -->
-       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <!--      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>  -->
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
         <link rel="stylesheet" type="text/css">
           <xsl:attribute name="href"><xsl:value-of select="$context"/>/css/styles_pc.css</xsl:attribute>
         </link>
@@ -39,6 +39,7 @@
             <th align="left"> Queue Status</th>
             <th align="left"> # Running</th>
             <th align="left"> # Waiting</th>
+            <th align="left"> # Completed</th>
           </tr>
           <xsl:apply-templates select="XMLDevice[@Root='true']"/>
         </table>

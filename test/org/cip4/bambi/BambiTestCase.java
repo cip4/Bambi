@@ -117,6 +117,8 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		// TODO Auto-generated method stub
 		super.setUp();
 		BaseGoldenTicket.setMisURL("http://kie-prosirai-lg:8080/httpdump/BambiTest");
+		_theGT = new MISCPGoldenTicket(1, null, 1, 1, true, null);
+		_theGT.assign(null);
 	}
 
 	protected final static String cwd = System.getProperty("user.dir");
@@ -126,9 +128,9 @@ public class BambiTestCase extends BaseGoldenTicketTest
 			+ File.separator;
 	protected final static String sm_UrlTestData = "File:test/data/";
 
-	//       protected static String simWorkerUrl="http://localhost:8080/SimWorker/jmf/sim";
+	protected static String simWorkerUrl = "http://localhost:8080/SimWorker/jmf/sim001";
 	protected static String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/proxy001";
-	protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
+	//protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
 	protected static String manualWorkerUrl = null;
 	protected static String returnJMF = "http://localhost:8080/httpDump/returnJMF";
 	protected static String returnURL = null;//"http://localhost:8080/httpDump/returnURL";

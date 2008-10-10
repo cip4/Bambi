@@ -71,14 +71,14 @@
 
 package org.cip4.bambi;
 
-import java.net.MalformedURLException;
-
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.goldenticket.MISGoldenTicket;
 import org.cip4.jdflib.goldenticket.MISPreGoldenTicket;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
@@ -88,49 +88,76 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.util.StatusCounter;
 
+/**
+ * @author Rainer Prosi, Heidelberger Druckmaschinen
+ *
+ */
 public class SimTest extends BambiTestCase
 {
 	protected static String testUrl = "http://192.168.40.71:8889/jmfportal";
 
+	/**
+	 * @see org.cip4.bambi.BambiTestCase#setUp()
+	 * @throws Exception
+	 */
 	@Override
 	public void setUp() throws Exception
 	{
 
 		super.setUp();
-		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/platesetter";
+		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim001";
 	}
 
-	private void submitMimeToSim() throws MalformedURLException
-	{
-		// build SubmitQueueEntry
-		submitMimetoURL(simWorkerUrl);
-	}
-
+	/**
+	 * @throws Exception
+	 */
 	public void testSubmitQueueEntry_MIME() throws Exception
 	{
 		// get number of QueueEntries before submitting
 		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = JMFFactory.send2URLSynchResp(jmfStat, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = send2URL(jmfStat, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		JDFQueue q = resp.getQueue(0);
 		assertNotNull(q);
-		int oldSize = q.getEntryCount();
-		submitMimeToSim();
+		// build SubmitQueueEntry
+		submitMimetoURL(simWorkerUrl);
 
-		// check that the QE is on the proxy
-		JDFJMF jmf = JMFFactory.buildQueueStatus();
-		resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
-		assertNotNull(resp);
-		assertEquals(0, resp.getReturnCode());
-		q = resp.getQueue(0);
-		assertNotNull(q);
-		int newCount = q.getEntryCount();
-		assertEquals(oldSize + 1, newCount);
-
-		abortRemoveAll(simWorkerUrl);
 	}
 
+	/**
+	 * @throws Exception
+	 */
+	public void testSubmitQueueEntry_Subscription() throws Exception
+	{
+		// get number of QueueEntries before submitting
+		JDFJMF jmfStat = JMFFactory.buildStatusSubscription("http://localhost:8080/httpdump/BambiTest", 0, 0, null);
+		jmfStat.getQuery(0).getStatusQuParams().setJobID("j1");
+		JDFResponse resp = send2URL(jmfStat, simWorkerUrl);
+		assertNotNull(resp);
+		assertEquals(0, resp.getReturnCode());
+		_theGT.getNode().setJobID("j1");
+		((MISGoldenTicket) _theGT).bNodeInfoSubscription = false;
+		submitMimetoURL(simWorkerUrl);
+
+	}
+
+	/**
+	 * @param jmfStat
+	 * @param url
+	 * @return the response
+	 */
+	private JDFResponse send2URL(JDFJMF jmfStat, String url)
+	{
+		if (jmfStat == null || url == null)
+			return null;
+		JDFDoc dResp = jmfStat.getOwnerDocument_JDFElement().write2URL(url);
+		return dResp.getJMFRoot().getResponse(0);
+	}
+
+	/**
+	 * @throws Exception
+	 */
 	public void testSubmitQueueEntry_Home() throws Exception
 	{
 		// get number of QueueEntries before submitting
@@ -154,7 +181,8 @@ public class SimTest extends BambiTestCase
 		for (int i = 0; i < 222; i++)
 		{
 			System.out.println("submitting " + i);
-			submitMimeToSim();
+			// build SubmitQueueEntry
+			submitMimetoURL(simWorkerUrl);
 			resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 			assertNotNull(resp);
 			assertEquals(0, resp.getReturnCode());
@@ -173,7 +201,8 @@ public class SimTest extends BambiTestCase
 	 */
 	public void testAbortQueueEntry() throws Exception
 	{
-		submitMimeToSim();
+		// build SubmitQueueEntry
+		submitMimetoURL(simWorkerUrl);
 
 		int loops = 0;
 		boolean hasRunningQE = false;
@@ -222,7 +251,8 @@ public class SimTest extends BambiTestCase
 		JDFResource r = node.getResource(ElementName.EXPOSEDMEDIA, null, 0);
 		JDFResourceLink rl = node.getLink(r, null);
 		rl.setAmount(4, null);
-		submitMimeToSim();
+		// build SubmitQueueEntry
+		submitMimetoURL(simWorkerUrl);
 	}
 
 }
