@@ -364,7 +364,9 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 				jmf = null;
 			}
 
-			response.deleteNode();// always zapp the dummy response
+			if (!response.getSubscribed())
+				response.deleteNode();// always zapp the dummy response except in a subscription
+
 			inputMessage.deleteNode(); // also zapp the query
 			return jmf;
 		}
@@ -489,20 +491,25 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 		{
 			Set<String> requests = _theDispatcher.getChannels(theSignal.getEnumType(), theSignal.getSenderID());
 			VElement vSigs = splitSignals(theSignal);
-			synchronized (lastSent) // we don't need any races here
+			for (int i = 0; i < vSigs.size(); i++)
 			{
-				for (int i = 0; i < vSigs.size(); i++)
+				JDFSignal inSignal = (JDFSignal) vSigs.get(i);
+				MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
+				if (mi != null)
 				{
-					JDFSignal inSignal = (JDFSignal) vSigs.get(i);
-					MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
-					if (mi != null)
+					for (int ii = 0; ii < mi.length; ii++)
 					{
-						for (int ii = 0; ii < mi.length; ii++)
+						JDFSignal lastSignal;
+						synchronized (lastSent) // we don't need any races here
 						{
-							JDFSignal lastSignal = lastSent.get(mi[ii]);
-							handleSingleSignal(inSignal, mi[ii]);
-							_theDispatcher.triggerChannel(mi[ii].misChannelID, null, null, -1, false, isSameStatusSignal(inSignal, lastSignal));
+							lastSignal = lastSent.get(mi[ii]);
+						}
+						handleSingleSignal(inSignal, mi[ii]);
+						_theDispatcher.triggerChannel(mi[ii].misChannelID, null, null, -1, false, isSameStatusSignal(inSignal, lastSignal));
+						synchronized (lastSent)
+						{
 							lastSent.put(mi[ii], inSignal);
+
 						}
 					}
 				}

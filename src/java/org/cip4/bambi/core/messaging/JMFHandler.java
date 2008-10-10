@@ -512,7 +512,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			if (icsVersions != null)
 			{
 				VString respVersions = response.getICSVersions();
-				if (respVersions != null)
+				if (respVersions != null && respVersions.size() > 0)
 				{
 					respVersions.appendUnique(icsVersions);
 					response.setICSVersions(respVersions);

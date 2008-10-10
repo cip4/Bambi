@@ -111,8 +111,8 @@ import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
-import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -498,7 +498,11 @@ public class BambiServlet extends HttpServlet
 		{
 			InputStream buf = bufResponse.getBufferedInputStream();
 
-			bambiDumpOut.newFileFromStream(header, buf);
+			File in = bambiDumpOut.newFileFromStream(header, buf);
+			if (in != null)
+			{
+				in.renameTo(new File(StringUtil.newExtension(in.getName(), ".post.resp.txt")));
+			}
 		}
 		bufResponse.flush();
 		bufRequest.flush(); // avoid mem leaks
@@ -561,7 +565,7 @@ public class BambiServlet extends HttpServlet
 	{
 		rootDev.shutdown();
 		JMFFactory.shutDown(null, true);
-		StatusCounter.sleep(5234); // leave some time for cleanup
+		ThreadUtil.sleep(5234); // leave some time for cleanup
 		JMFFactory.shutDown(null, false);
 		super.destroy();
 	}
@@ -783,9 +787,14 @@ public class BambiServlet extends HttpServlet
 			}
 			if (dump != null)
 			{
-				bambiDumpIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("in")));
-				bambiDumpOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("out")));
-				MessageSender.addDumps(d != null ? d.getDeviceID() : "Bambi", bambiDumpIn, bambiDumpOut);
+				bambiDumpIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inServer")));
+				bambiDumpOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outServer")));
+				String senderID = d != null ? d.getDeviceID() : "Bambi";
+				DumpDir dumpSendIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inMessage."
+						+ senderID)));
+				DumpDir dumpSendOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outMessage."
+						+ senderID)));
+				MessageSender.addDumps(senderID, dumpSendIn, dumpSendOut);
 			}
 			if (d instanceof IGetHandler)
 				_getHandlers.add(0, d);

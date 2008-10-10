@@ -99,14 +99,12 @@ import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
-import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
-import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResourceQuParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
@@ -121,7 +119,6 @@ import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.QueueHotFolder;
-import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -272,54 +269,6 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			return true;
 		}
 	}
-
-	protected class HFListner implements QueueHotFolderListener
-	{
-		private IConverterCallback _callBack = null;
-
-		/**
-		 * @param callBackClass
-		 */
-		public HFListner(IConverterCallback callBackClass)
-		{
-			_callBack = callBackClass;
-		}
-
-		public void submitted(JDFJMF submissionJMF)
-		{
-			log.info("HFListner:submitted");
-			JDFCommand command = submissionJMF.getCommand(0);
-
-			if (_callBack != null)
-				_callBack.prepareJMFForBambi(submissionJMF.getOwnerDocument_JDFElement());
-
-			JDFQueueSubmissionParams qsp = command.getQueueSubmissionParams(0);
-
-			JDFDoc doc = qsp.getURLDoc();
-			if (doc == null)
-			{
-				log.warn("could not process JDF File");
-			}
-			else
-			{
-				if (_callBack != null)
-					_callBack.prepareJDFForBambi(doc);
-
-				JDFQueueEntry qe = _theQueueProcessor.addEntry(command, null, doc);
-				if (qe == null)
-					log.warn("_theQueue.addEntry returned null");
-				final String tmpURL = qsp.getURL();
-				final File tmpFile = UrlUtil.urlToFile(tmpURL);
-				if (tmpFile != null)
-				{
-					if (!tmpFile.delete())
-						log.warn("failed to delete temporary file " + tmpFile.getAbsolutePath());
-				}
-			}
-		}
-	}
-
-	////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * 
@@ -482,7 +431,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		}
 	}
 
-	private static final Log log = LogFactory.getLog(AbstractDevice.class.getName());
+	static final Log log = LogFactory.getLog(AbstractDevice.class.getName());
 	protected static final String SHOW_DEVICE = "showDevice";
 	protected static final String SHOW_SUBSCRIPTIONS = "showSubscriptions";
 	protected QueueProcessor _theQueueProcessor = null;
@@ -593,13 +542,12 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		hfStorage.mkdirs(); // just in case
 		if (hfStorage.isDirectory())
 		{
-			_submitHotFolder = new QueueHotFolder(hfURL, hfStorage, null, new HFListner(_devProperties.getCallBackClass()), null);
+			_submitHotFolder = new QueueHotFolder(hfURL, hfStorage, "jdf", new QueueHFListener(_theQueueProcessor, _devProperties.getCallBackClass()), null);
 		}
 		else
 		{
 			log.error("input hot folder could not be created " + hfURL);
 		}
-
 	}
 
 	protected void addHandlers()
@@ -1092,12 +1040,14 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		}
 		JDFJMF respRoot = response.getJMFRoot();
 		int nResp = root.numChildElements(ElementName.RESPONSE, null);
+		String refID = response.getrefID();
 
 		for (int i = 0; i < nResp; i++)
 		{
 			JDFResponse r = root.getResponse(i);
 			JDFResponse rResp = respRoot.getCreateResponse(i);
 			String id = rResp.getID();
+			rResp.setrefID(refID);
 			rResp.setAttributes(r);
 			rResp.setID(id);
 			VElement v = r.getChildElementVector(null, null);

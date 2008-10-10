@@ -9,7 +9,8 @@
 	   	<property name="BambCore.name" value="BambiCore" />
 		<property file="version.properties"/>
 		<property name="src.dir" value="./src" />
-		<property name="core.src.dir" value="${src.dir}/java/org/cip4/bambi/core" />
+		<property name="core.src.dir" value="${src.dir}/java/org/cip4/bambi/core" /> 
+		<property name="proxy.src.dir" value="${src.dir}/java/org/cip4/bambi/proxy" /> 
 		<property name="lib.dir" value="${src.dir}/lib" />
 		<property name="bin.dir" value="./bin/core" />
 		<property name="dist.dir" value="./dist/core" />
@@ -34,6 +35,7 @@
 		<echo>Compiling BambiCore...</echo>
 		<javac destdir="${bin.dir}" debug="${build.debug}" optimize="${build.optimize}" >
 			<src path="${core.src.dir}" />
+			<src path="${proxy.src.dir}" />
 			<classpath refid="project.class.path" />
 			<include name="**/*.java" />
 		</javac>

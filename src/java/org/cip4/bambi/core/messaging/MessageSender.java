@@ -99,8 +99,8 @@ import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
-import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.VectorMap;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
@@ -415,7 +415,7 @@ public class MessageSender implements Runnable
 	public void run()
 	{
 		readFromBase();
-		StatusCounter.sleep(10000); // wait a while before sending messages so that all processors are alive before we start throwing messages
+		ThreadUtil.sleep(10000); // wait a while before sending messages so that all processors are alive before we start throwing messages
 		while (!doShutDown)
 		{
 			SendReturn sentFirstMessage;
@@ -636,6 +636,7 @@ public class MessageSender implements Runnable
 					{
 						FileOutputStream fos = new FileOutputStream(dump, true);
 						jmfDoc.write2Stream(fos, 0, true);
+						fos.close();
 					}
 				}
 			}
@@ -650,6 +651,7 @@ public class MessageSender implements Runnable
 					{
 						FileOutputStream fos = new FileOutputStream(dump, true);
 						MimeUtil.writeToStream(mp, fos, mh.mimeDet);
+						fos.close();
 					}
 				}
 			}
