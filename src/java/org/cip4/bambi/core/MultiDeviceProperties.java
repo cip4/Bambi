@@ -452,7 +452,7 @@ public class MultiDeviceProperties
 
 	/**
 	 * create device properties for the devices defined in the config file
-	 * @param appDir     the location of the web application in the server
+	 * @param _context     the location of the web application in the server
 	 * @param configFile the config file
 	 */
 	public MultiDeviceProperties(ServletContext _context, File configFile)
@@ -470,6 +470,19 @@ public class MultiDeviceProperties
 		else
 		{
 			root.setAttribute("AppDir", baseDir.getAbsolutePath());
+			File deviceDir = getBaseDir();
+			XMLDoc d2 = p.parseFile(FileUtil.getFileInDirectory(deviceDir, configFile));
+			if (d2 != null) // using config default
+			{
+				root = d2.getRoot();
+				log.info("using updated device config");
+			}
+			else
+			// using updated devices
+			{
+				deviceDir.mkdirs();
+				doc.write2File(FileUtil.getFileInDirectory(deviceDir, configFile), 2, false);
+			}
 		}
 		try
 		{

@@ -162,7 +162,7 @@ public class BambiServlet extends HttpServlet
 			String context = getContext(request);
 			if (KElement.isWildCard(context) || context.equalsIgnoreCase("overview"))
 			{
-				return (rootDev).showDevice(request, response, false);
+				return rootDev.showDevice(request, response, false);
 			}
 			else
 				return false;
@@ -172,7 +172,6 @@ public class BambiServlet extends HttpServlet
 	//protected IConverterCallback _callBack = null;
 	private static Log log = LogFactory.getLog(BambiServlet.class.getName());
 	protected AbstractDevice rootDev = null;
-	private final List<IGetHandler> _getHandlers = new Vector<IGetHandler>();
 	protected DumpDir bambiDumpIn = null;
 	protected DumpDir bambiDumpOut = null;
 	protected boolean dumpGet = false;
@@ -193,9 +192,6 @@ public class BambiServlet extends HttpServlet
 		final String dump = initializeDumps(config);
 		log.info("Initializing servlet for " + context.getServletContextName());
 		loadProperties(context, new File("/config/devices.xml"), dump);
-
-		// doGet handlers
-		_getHandlers.add(this.new OverviewHandler());
 	}
 
 	private String initializeDumps(ServletConfig config)
@@ -547,8 +543,9 @@ public class BambiServlet extends HttpServlet
 
 	/**
 	 * loads properties
-	 * @param context the serbvlet context information
+	 * @param context the servlet context information
 	 * @param config the name of the Java config xml file
+	 * @param dump the file where to dump debug requests
 	 */
 	protected void loadProperties(ServletContext context, File config, String dump)
 	{
@@ -640,27 +637,29 @@ public class BambiServlet extends HttpServlet
 			bufRequest = new BambiServletRequest(request, false);
 			bufResponse = new BambiServletResponse(response, false, bufRequest);
 		}
-
-		try
-		{
-			final int size = _getHandlers.size();
-			// simply loop over all handlers until you are done
-			for (int i = 0; i < size; i++)
-			{
-				IGetHandler ig = _getHandlers.get(i);
-				bHandled = ig.handleGet(bufRequest, bufResponse);
-				if (bHandled)
-					break;
-			}
-			// rootDev also dispatches to all other devices
-			if (!bHandled && getRootDevice() != null)
-				bHandled = getRootDevice().handleGet(bufRequest, bufResponse);
-		}
-		catch (Exception x)
-		{
-			int i = 0;
-			// nop
-		}
+		bHandled = new OverviewHandler().handleGet(bufRequest, bufResponse);
+		if (!bHandled)
+			bHandled = rootDev.getGetDispatchHandler().handleGet(bufRequest, bufResponse);
+		//		try
+		//		{
+		//			final int size = _getHandlers.size();
+		//			// simply loop over all handlers until you are done
+		//			for (int i = 0; i < size; i++)
+		//			{
+		//				IGetHandler ig = _getHandlers.get(i);
+		//				bHandled = ig.handleGet(bufRequest, bufResponse);
+		//				if (bHandled)
+		//					break;
+		//			}
+		//			// rootDev also dispatches to all other devices
+		//			if (!bHandled && getRootDevice() != null)
+		//				bHandled = getRootDevice().handleGet(bufRequest, bufResponse);
+		//		}
+		//		catch (Exception x)
+		//		{
+		//			int i = 0;
+		//			// nop
+		//		}
 		if (!bHandled)
 			this.new UnknownErrorHandler().handleGet(bufRequest, bufResponse);
 
@@ -740,12 +739,11 @@ public class BambiServlet extends HttpServlet
 	/**
 	 * create devices based on the list of devices given in a file
 	 * @param props 
-	 * @param dump the file where to dump debug requesets
-	 * @return true if successfull, otherwise false
+	 * @param dump the file where to dump debug requests
+	 * @return true if successful, otherwise false
 	 */
 	protected boolean createDevices(MultiDeviceProperties props, String dump)
 	{
-
 		Vector<File> dirs = new Vector<File>();
 		dirs.add(props.getBaseDir());
 		dirs.add(props.getJDFDir());
@@ -782,7 +780,7 @@ public class BambiServlet extends HttpServlet
 			// we already have a root / dispatcher device - use it as base
 			{
 				RootDevice rd = getRootDevice();
-				d = rd.createDevice(prop, this);
+				d = rd.createDevice(prop);
 
 			}
 			if (dump != null)
@@ -796,9 +794,6 @@ public class BambiServlet extends HttpServlet
 						+ senderID)));
 				MessageSender.addDumps(senderID, dumpSendIn, dumpSendOut);
 			}
-			if (d instanceof IGetHandler)
-				_getHandlers.add(0, d);
-
 		}
 		return true;
 	}
@@ -809,10 +804,7 @@ public class BambiServlet extends HttpServlet
 		// TODO find correct server port at startup
 		if (port == 0) // quick hack
 			port = arg0.getServerPort();
-		if (rootDev instanceof AbstractDevice)
-		{
-			(rootDev).incNumRequests();
-		}
+		rootDev.incNumRequests();
 
 		super.service(arg0, arg1);
 

@@ -188,12 +188,12 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * create a new device and add it to the map of devices.
-	 * @param deviceID
-	 * @param deviceType
+	 * reload if the device is already in
+	 * @param prop
 	 * @return the Device, if device has been created. 
 	 * null, if not (maybe device with deviceID is already present)
 	 */
-	AbstractDevice createDevice(IDeviceProperties prop, BambiServlet servlet)
+	AbstractDevice createDevice(IDeviceProperties prop)
 	{
 		if (_devices == null)
 		{
@@ -202,29 +202,16 @@ public class RootDevice extends AbstractDevice
 		}
 
 		String devID = prop.getDeviceID();
-		if (_devices.get(prop.getDeviceID()) != null)
+		AbstractDevice abstractDevice = _devices.get(devID);
+		if (abstractDevice != null)
 		{
-			log.warn("device " + devID + " is already existing");
-			return null;
+			abstractDevice.shutdown(); // just in case
+			log.info("device " + devID + " is already existing");
+			_devices.remove(devID);
 		}
-		AbstractDevice dev;
-		if (servlet != null)
-		{
-			dev = prop.getDeviceInstance();
-			if (dev instanceof AbstractDevice)
-			{
-				final AbstractDevice abstractDevice = (dev);
-				abstractDevice.setRootDevice(this);
-			}
-
-			_devices.put(devID, dev);
-
-		}
-		else
-		{
-			//TODO is rootDev in this?
-			dev = this;
-		}
+		AbstractDevice dev = prop.getDeviceInstance();
+		dev.setRootDevice(this);
+		_devices.put(devID, dev);
 		log.info("created device " + devID);
 		return dev;
 	}
@@ -364,6 +351,33 @@ public class RootDevice extends AbstractDevice
 	 * 
 	 * handler for the StopPersistentChannel command
 	 */
+	public class RootGetDispatchHandler implements IGetHandler
+	{
+
+		/**
+		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
+		 * @param request
+		 * @param response
+		 * @return true if handled
+		 */
+		public boolean handleGet(BambiServletRequest request, BambiServletResponse response)
+		{
+			AbstractDevice[] devs = getDeviceArray();
+			boolean b = false;
+			for (int i = 0; i < devs.length; i++)
+			{
+				b = devs[i].handleGet(request, response);
+				if (b)
+					return b;
+			}
+			return RootDevice.this.handleGet(request, response);
+		}
+	}
+
+	/**
+	 * 
+	 * handler for the StopPersistentChannel command
+	 */
 	public class QueueDispatchHandler extends DispatchHandler
 	{
 		private IMessageHandler superHandler = null;
@@ -447,6 +461,16 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
+	 * @return the gethandler for this device
+	 * 
+	 */
+	@Override
+	public IGetHandler getGetDispatchHandler()
+	{
+		return this.new RootGetDispatchHandler();
+	}
+
+	/**
 	 * get the IConverterCallback for a given url
 	 * 
 	 * @see org.cip4.bambi.core.AbstractDevice#getCallback(java.lang.String)
@@ -474,7 +498,7 @@ public class RootDevice extends AbstractDevice
 	/**
 	 * remove device
 	 * @param deviceID ID of the device to be removed
-	 * @return
+	 * @return true if success
 	 */
 	public boolean removeDevice(String deviceID)
 	{

@@ -70,21 +70,19 @@
  */
 package org.cip4.bambi.core;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * interface that handles doGet()
  * @author prosirai
  *
  */
-public interface IGetHandler {
+public interface IGetHandler
+{
 
 	/**
 	 * set the URL to communicate with this device (in other words: send JMFs to this URL)
 	 * @param request the url request to handle
-     * @param response the response to fill
-     * @return boolean true if the request was handled and the response has been filled 
+	 * @param response the response to fill
+	 * @return boolean true if the request was handled and the response has been filled 
 	 */
 	public boolean handleGet(BambiServletRequest request, BambiServletResponse response);
 

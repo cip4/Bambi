@@ -444,21 +444,18 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	@Override
 	protected AbstractDeviceProcessor buildDeviceProcessor()
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean canAccept(JDFDoc doc)
 	{
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public JDFNode getNodeFromDoc(JDFDoc doc)
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 

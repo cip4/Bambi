@@ -92,8 +92,8 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -288,6 +288,8 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 
 	public JobPhase getCurrentJobPhase()
 	{
+		if (_deviceProcessors == null || _deviceProcessors.size() == 0)
+			return null;
 		return ((SimDeviceProcessor) _deviceProcessors.get(0)).getCurrentJobPhase();
 	}
 
@@ -340,8 +342,11 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 		return newPhase;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
+	/**
+	 * @see org.cip4.bambi.core.AbstractDevice#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
+	 * @param request
+	 * @param response
+	 * @return true if handled
 	 */
 	@Override
 	public boolean handleGet(BambiServletRequest request, BambiServletResponse response)
@@ -355,10 +360,9 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 
 	private boolean processNextPhase(BambiServletRequest request, BambiServletResponse response)
 	{
-
 		JobPhase nextPhase = buildJobPhaseFromRequest(request);
 		((SimDeviceProcessor) _deviceProcessors.get(0)).doNextPhase(nextPhase);
-		StatusCounter.sleep(1000); // allow device to switch phases before displaying page
+		ThreadUtil.sleep(1000); // allow device to switch phases before displaying page
 		showDevice(request, response, false);
 		return true;
 	}

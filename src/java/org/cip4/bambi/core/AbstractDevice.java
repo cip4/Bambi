@@ -783,6 +783,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		if (_theSignalDispatcher != null)
 		{
 			_theSignalDispatcher.shutdown();
+			_theSignalDispatcher = null;
 		}
 
 		if (_deviceProcessors != null)
@@ -791,17 +792,19 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			{
 				_deviceProcessors.get(i).shutdown();
 			}
+			_deviceProcessors.clear();
 		}
 
 		if (_submitHotFolder != null)
 		{
 			_submitHotFolder.stop();
 		}
+		_submitHotFolder = null;
 	}
 
 	/**
 	 * build a new QueueProcessor
-	 * @return
+	 * @return the new queueprocessor
 	 */
 	protected QueueProcessor buildQueueProcessor()
 	{
@@ -833,11 +836,16 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 */
 	public StatusListener getStatusListener(int i)
 	{
-		if (i >= _deviceProcessors.size())
+		if (_deviceProcessors == null || i >= _deviceProcessors.size())
 			return null;
 		return _deviceProcessors.get(i).getStatusListener();
 	}
 
+	/**
+	 * @see org.cip4.bambi.core.messaging.IJMFHandler#addSubscriptionHandler(org.cip4.jdflib.jmf.JDFMessage.EnumType, org.cip4.bambi.core.messaging.IMessageHandler)
+	 * @param typ
+	 * @param handler
+	 */
 	public void addSubscriptionHandler(EnumType typ, IMessageHandler handler)
 	{
 		_jmfHandler.addSubscriptionHandler(typ, handler);
@@ -846,8 +854,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	/**
 	 * @param request
 	 * @param response
-	 * @param context
-	 * @return
+	 * @return true if handled
 	 */
 	public boolean handleGet(BambiServletRequest request, BambiServletResponse response)
 	{
@@ -856,7 +863,21 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 		if (BambiServlet.isMyContext(request, SHOW_DEVICE))
 		{
-			return showDevice(request, response, request.getBooleanParam("refresh"));
+			if (request.getBooleanParam("restart") && getRootDevice() != null)
+			{
+				AbstractDevice newDev = getRootDevice().createDevice(_devProperties);
+				return newDev.showDevice(request, response, request.getBooleanParam("refresh"));
+			}
+			else if (request.getBooleanParam("shutdown") && getRootDevice() != null)
+			{
+				shutdown();
+				getRootDevice().removeDevice(getDeviceID());
+				return getRootDevice().handleGet(request, response);
+			}
+			else
+			{
+				return showDevice(request, response, request.getBooleanParam("refresh"));
+			}
 		}
 		if (BambiServlet.isMyContext(request, SHOW_SUBSCRIPTIONS))
 		{
@@ -982,7 +1003,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * get the root controller
 	 * @return the root controller
 	 */
-	public RootDevice get_rootDevice()
+	RootDevice getRootDevice()
 	{
 		return _rootDevice;
 	}
@@ -1086,6 +1107,15 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	public void continueQE(JDFQueueEntry qe)
 	{
 		// nop 
+	}
+
+	/**
+	 * @return the gethandler for this device
+	 * 
+	 */
+	public IGetHandler getGetDispatchHandler()
+	{
+		return this;
 	}
 
 }

@@ -480,7 +480,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			{
 				if (_parent != null)
 				{
-					RootDevice rootDevice = _parent.get_rootDevice();
+					RootDevice rootDevice = _parent.getRootDevice();
 					if (rootDevice != null)
 					{
 						currentQE = rootDevice._theQueueProcessor.getNextEntry(_parent.getDeviceID());

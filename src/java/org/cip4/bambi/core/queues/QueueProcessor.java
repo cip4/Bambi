@@ -688,27 +688,27 @@ public class QueueProcessor
 		{
 			if (BambiServlet.isMyContext(request, "showQueue"))
 			{
-				boolean bHold = StringUtil.parseBoolean(request.getParameter("hold"), false);
+				boolean bHold = request.getBooleanParam("hold");
 				if (bHold)
 				{
 					_theQueue.holdQueue();
 				}
-				boolean bClose = StringUtil.parseBoolean(request.getParameter("close"), false);
+				boolean bClose = request.getBooleanParam("close");
 				if (bClose)
 				{
 					_theQueue.closeQueue();
 				}
-				boolean bResume = StringUtil.parseBoolean(request.getParameter("resume"), false);
+				boolean bResume = request.getBooleanParam("resume");
 				if (bResume)
 				{
 					_theQueue.resumeQueue();
 				}
-				boolean bOpen = StringUtil.parseBoolean(request.getParameter("open"), false);
+				boolean bOpen = request.getBooleanParam("open");
 				if (bOpen)
 				{
 					_theQueue.openQueue();
 				}
-				boolean bFlush = StringUtil.parseBoolean(request.getParameter("flush"), false);
+				boolean bFlush = request.getBooleanParam("flush");
 				if (bFlush)
 				{
 					_theQueue.flushQueue(null);
