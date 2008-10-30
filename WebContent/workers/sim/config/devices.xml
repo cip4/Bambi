@@ -11,11 +11,12 @@
   <Device DeviceID="SimWorkerRoot" DeviceType="Bambi Sim Device Root"/>
   <Device DeviceID="manual002" DeviceType="Bambi Manual HotFolder Device" TrackResource="Component:Output"
     InputHF="C:/BambiHF/manual002/Input" OutputHF="C:/BambiHF/manual002/Output" ErrorHF="C:/BambiHF/manual002/Error"/>
-  <Device DeviceID="manual001" DeviceType="Bambi Manual Device" TrackResource="Component:Output"/>
-  <Device DeviceID="sim001" DeviceType="Bambi Simulation Device" TrackResource="Component:Output"/>
-  <Device DeviceID="sim002" DeviceType="Bambi Simulation Device" TrackResource="Component:Output"/>
-  <Device DeviceID="sim003" DeviceType="Bambi Simulation Device" TrackResource="Component:Output"/>
-  <Device DeviceID="sim004" DeviceType="Bambi Simulation Device" TrackResource="Component:Output"/>
-  <Device DeviceID="platesetter" DeviceType="Bambi Simulation Platesetter" TypeExpression="(.)*ImageSetting(.)*"
-    TrackResource="ExposedMedia:Output"/>
+  <!--
+    <Device DeviceID="manual001" DeviceType="Bambi Manual Device" TrackResource="Component:Output"/> <Device
+    DeviceID="sim001" DeviceType="Bambi Simulation Device" TrackResource="Component:Output"/> <Device DeviceID="sim002"
+    DeviceType="Bambi Simulation Device" TrackResource="Component:Output"/> <Device DeviceID="sim003" DeviceType="Bambi
+    Simulation Device" TrackResource="Component:Output"/> <Device DeviceID="sim004" DeviceType="Bambi Simulation Device"
+    TrackResource="Component:Output"/> <Device DeviceID="platesetter" DeviceType="Bambi Simulation Platesetter"
+    TypeExpression="(.)*ImageSetting(.)*" TrackResource="ExposedMedia:Output"/>
+  -->
 </application>
