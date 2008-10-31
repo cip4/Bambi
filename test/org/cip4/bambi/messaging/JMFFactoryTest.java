@@ -190,10 +190,12 @@ public class JMFFactoryTest extends BambiTestCase
 	 */
 	public void testCreateSubsriptions()
 	{
-		JDFJMF[] jmfs = JMFFactory.createSubscriptions("url", "id", 30., 20);
+		JDFJMF[] jmfs = JMFFactory.createSubscriptions("http://www.example.com", "id", 30., 20);
 		assertEquals(jmfs.length, 3);
 		JDFJMF jmf = jmfs[0];
 		assertEquals(JDFJMF.getTheSenderID(), jmf.getSenderID());
+		for (int i = 0; i < jmfs.length; i++)
+			jmfs[i].getOwnerDocument_JDFElement().write2File(sm_dirTestDataTemp + "JMFSubscription" + i + ".jmf", 2, false);
 	}
 
 	/**
