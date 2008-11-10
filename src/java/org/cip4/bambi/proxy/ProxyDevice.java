@@ -111,29 +111,35 @@ import org.cip4.jdflib.util.StatusCounter;
 public class ProxyDevice extends AbstractProxyDevice
 {
 	/**
-	* class that handles merging of messages
+	 * class that handles merging of messages
 	 */
 	protected class ResponseMerger
 	{
 
-		private JDFDoc getStatusResponse(JDFMessage m)
+		private JDFDoc getStatusResponse(final JDFMessage m)
 		{
-			Vector<StatusListener> counters = getStatusListeners();
+			final Vector<StatusListener> counters = getStatusListeners();
 			if (counters == null)
+			{
 				return null;
+			}
 			JDFDoc d = null;
 			JDFResponse response = null;
 			boolean first = true;
 			for (int i = 0; i < counters.size(); i++)
 			{
-				StatusListener listener = counters.elementAt(i);
+				final StatusListener listener = counters.elementAt(i);
 				if (!listener.matchesQuery(m))
+				{
 					continue;
-				EnumDeviceStatus subStatus = listener.getDeviceStatus();
+				}
+				final EnumDeviceStatus subStatus = listener.getDeviceStatus();
 				if (subStatus == null || EnumDeviceStatus.Idle.equals(subStatus))
+				{
 					continue; // skip waiting in queue or idle
+				}
 
-				StatusCounter counter = listener.getStatusCounter();
+				final StatusCounter counter = listener.getStatusCounter();
 				if (d == null)
 				{
 					d = counter.getDocJMFPhaseTime();
@@ -142,16 +148,18 @@ public class ProxyDevice extends AbstractProxyDevice
 
 				final JDFDoc docJMFPhaseTime = counter.getDocJMFPhaseTime();
 				if (docJMFPhaseTime == null)
+				{
 					continue;
+				}
 				if (!first)
 				{
 					final JDFResponse response2 = docJMFPhaseTime.getJMFRoot().getResponse(0);
-					JDFDeviceInfo di2 = response2.getDeviceInfo(0);
-					String devID = di2.getDeviceID();
-					JDFDeviceInfo di3 = KElement.isWildCard(devID) ? null : (JDFDeviceInfo) response.getChildWithAttribute(ElementName.DEVICEINFO, AttributeName.DEVICEID, null, devID, 0, true);
+					final JDFDeviceInfo di2 = response2.getDeviceInfo(0);
+					final String devID = di2.getDeviceID();
+					final JDFDeviceInfo di3 = KElement.isWildCard(devID) ? null : (JDFDeviceInfo) response.getChildWithAttribute(ElementName.DEVICEINFO, AttributeName.DEVICEID, null, devID, 0, true);
 					if (di3 != null)
 					{
-						VElement phases = di2.getChildElementVector(ElementName.JOBPHASE, null, null, true, -1, false);
+						final VElement phases = di2.getChildElementVector(ElementName.JOBPHASE, null, null, true, -1, false);
 						for (int j = 0; j < phases.size(); j++)
 						{
 							di3.copyElement(phases.elementAt(j), null);
@@ -168,25 +176,31 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 * @param m  the query input message
+		 * @param m the query input message
 		 * @return JDFDoc the response message
 		 */
-		public boolean fillResourceResponse(JDFMessage m, JDFResponse response)
+		public boolean fillResourceResponse(final JDFMessage m, final JDFResponse response)
 		{
-			Vector<StatusListener> counters = getStatusListeners();
+			final Vector<StatusListener> counters = getStatusListeners();
 			if (counters == null)
+			{
 				return false;
+			}
 			boolean bRet = false;
 			for (int i = 0; i < counters.size(); i++)
 			{
-				StatusListener listener = counters.elementAt(i);
+				final StatusListener listener = counters.elementAt(i);
 				if (!listener.matchesQuery(m))
+				{
 					continue;
+				}
 
-				StatusCounter counter = listener.getStatusCounter();
+				final StatusCounter counter = listener.getStatusCounter();
 				final JDFDoc docJMFResource = counter.getDocJMFResource();
 				if (docJMFResource == null)
+				{
 					continue;
+				}
 				JDFMessage response2 = docJMFResource.getJMFRoot().getResponse(0);
 				JDFResourceQuParams signalRQP = null;
 				if (response2 == null)
@@ -197,7 +211,7 @@ public class ProxyDevice extends AbstractProxyDevice
 						signalRQP = response2.getResourceQuParams();
 						if (signalRQP != null)
 						{
-							JDFResourceQuParams queryRQP = m.getResourceQuParams();
+							final JDFResourceQuParams queryRQP = m.getResourceQuParams();
 							if (queryRQP == null)
 							{
 								m.copyElement(signalRQP, null);
@@ -209,8 +223,8 @@ public class ProxyDevice extends AbstractProxyDevice
 						}
 					}
 				}
-				VElement v = response2 == null ? null : response2.getChildElementVector(ElementName.RESOURCEINFO, null);
-				int riSize = v == null ? 0 : v.size();
+				final VElement v = response2 == null ? null : response2.getChildElementVector(ElementName.RESOURCEINFO, null);
+				final int riSize = v == null ? 0 : v.size();
 				for (int ii = 0; ii < riSize; ii++)
 				{
 					response.moveElement(v.get(ii), null);
@@ -225,14 +239,16 @@ public class ProxyDevice extends AbstractProxyDevice
 		 * @param resp
 		 * @return true if a notification was filled
 		 */
-		public boolean fillNotifications(JDFMessage m, JDFResponse resp)
+		public boolean fillNotifications(final JDFMessage m, final JDFResponse resp)
 		{
-			Vector<ProxyDeviceProcessor> procs = getProxyProcessors();
+			final Vector<ProxyDeviceProcessor> procs = getProxyProcessors();
 			if (procs == null)
+			{
 				return false;
+			}
 			boolean bRet = false;
-			JDFJMF jmfm = m.getJMFRoot();
-			JDFJMF jmfr = resp.getJMFRoot();
+			final JDFJMF jmfm = m.getJMFRoot();
+			final JDFJMF jmfr = resp.getJMFRoot();
 			for (int i = 0; i < procs.size(); i++)
 			{
 				bRet = procs.get(i).handleNotificationQuery(m, resp) || bRet;
@@ -248,34 +264,31 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 	} // end of inner class MultiCounter
 
-	//////////////////////////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////////////////////////
 
 	private static final Log log = LogFactory.getLog(ProxyDevice.class.getName());
 	protected ResponseMerger statusContainer;
 
 	/**
 	 * simple dispatcher
-	 * 
 	 * @author prosirai
-	 * 
 	 */
 	protected class RequestQueueEntryHandler extends AbstractHandler
 	{
 
 		public RequestQueueEntryHandler()
 		{
-			super(EnumType.RequestQueueEntry, new EnumFamily[] { EnumFamily.Command });
+			super(EnumType.RequestQueueEntry, new EnumFamily[]
+			{ EnumFamily.Command });
 		}
 
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see
-		 * org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.
-		 * JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			if (m == null)
 			{
@@ -283,7 +296,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 			// TODO retain rqe in case we cannot submit now
 			// check for valid RequestQueueEntryParams
-			JDFRequestQueueEntryParams qep = m.getRequestQueueEntryParams(0);
+			final JDFRequestQueueEntryParams qep = m.getRequestQueueEntryParams(0);
 			if (qep == null)
 			{
 				JMFHandler.errorResponse(resp, "QueueEntryParams missing in RequestQueueEntry message", 7, EnumClass.Error);
@@ -298,10 +311,9 @@ public class ProxyDevice extends AbstractProxyDevice
 
 			final NodeIdentifier nid = qep.getNodeIdentifier();
 			// submit a specific QueueEntry
-			IQueueEntry iqe = _theQueueProcessor.getQueueEntry(nid);
-			JDFQueueEntry qe = iqe == null ? null : iqe.getQueueEntry();
-			if (qe != null && EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus())
-					&& KElement.isWildCard(qe.getDeviceID()))
+			final IQueueEntry iqe = _theQueueProcessor.getQueueEntry(nid);
+			final JDFQueueEntry qe = iqe == null ? null : iqe.getQueueEntry();
+			if (qe != null && EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && KElement.isWildCard(qe.getDeviceID()))
 			{
 				qe.setDeviceID(m.getSenderID());
 				submitQueueEntry(iqe, queueURL);
@@ -312,7 +324,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 			else
 			{
-				String qeStatus = qe.getQueueEntryStatus().getName();
+				final String qeStatus = qe.getQueueEntryStatus().getName();
 				JMFHandler.errorResponse(resp, "requested QueueEntry is " + qeStatus, 106, EnumClass.Error);
 			}
 			return true;
@@ -324,25 +336,24 @@ public class ProxyDevice extends AbstractProxyDevice
 
 		public ReturnQueueEntryHandler()
 		{
-			super(EnumType.ReturnQueueEntry, new EnumFamily[] { EnumFamily.Command });
+			super(EnumType.ReturnQueueEntry, new EnumFamily[]
+			{ EnumFamily.Command });
 		}
 
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see
-		 * org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.
-		 * JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			if (m == null)
 			{
 				return false;
 			}
 			log.debug("Handling " + m.getType());
-			JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
+			final JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
 			if (retQEParams == null)
 			{
 				JMFHandler.errorResponse(resp, "ReturnQueueEntryParams missing in ReturnQueueEntry message", 7, EnumClass.Error);
@@ -350,9 +361,11 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 
 			final String outQEID = retQEParams.getQueueEntryID();
-			ProxyDeviceProcessor proc = getProcessorForSlaveQE(resp, outQEID);
+			final ProxyDeviceProcessor proc = getProcessorForSlaveQE(resp, outQEID);
 			if (proc != null)
+			{
 				proc.returnFromSlave(m, resp);
+			}
 			return true;
 		}
 	}
@@ -367,24 +380,28 @@ public class ProxyDevice extends AbstractProxyDevice
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see
-		 * org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.
-		 * JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			if (statusContainer == null)
+			{
 				return false;
+			}
 
-			JDFDoc docJMF = statusContainer.getStatusResponse(m);
+			final JDFDoc docJMF = statusContainer.getStatusResponse(m);
 
 			if (docJMF == null)
+			{
 				return super.handleMessage(m, resp); // idle is handled by super
+			}
 
-			boolean bOK = copyPhaseTimeFromCounter(resp, docJMF);
+			final boolean bOK = copyPhaseTimeFromCounter(resp, docJMF);
 			if (bOK)
+			{
 				addQueueToStatusResponse(m, resp);
+			}
 			return bOK;
 		}
 
@@ -394,21 +411,22 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		public NotificationQueryHandler()
 		{
-			super(EnumType.Notification, new EnumFamily[] { EnumFamily.Query });
+			super(EnumType.Notification, new EnumFamily[]
+			{ EnumFamily.Query });
 		}
 
 		/*
 		 * (non-Javadoc)
-		 *
-		 * @see
-		 * org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.
-		 * JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * 
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			if (statusContainer == null)
+			{
 				return false;
+			}
 
 			return statusContainer.fillNotifications(m, resp);
 		}
@@ -423,48 +441,47 @@ public class ProxyDevice extends AbstractProxyDevice
 
 		/*
 		 * (non-Javadoc)
-		 *
-		 * @see
-		 * org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.
-		 * JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * 
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			if (statusContainer == null)
+			{
 				return false;
+			}
 
-			boolean bHandeled = statusContainer.fillResourceResponse(m, resp);
+			final boolean bHandeled = statusContainer.fillResourceResponse(m, resp);
 			return bHandeled ? bHandeled : super.handleMessage(m, resp);
 		}
 	}// end of inner class ResourceQueryHandler
 
-	////////////////////////////////////////////////////////////////////	
+	// //////////////////////////////////////////////////////////////////
 	protected class NotificationSignalHandler extends AbstractHandler
 	{
 		public NotificationSignalHandler()
 		{
-			super(EnumType.Notification, new EnumFamily[] { EnumFamily.Signal });
+			super(EnumType.Notification, new EnumFamily[]
+			{ EnumFamily.Signal });
 		}
 
 		/*
 		 * (non-Javadoc)
-		 *
-		 * @see
-		 * org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.
-		 * JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * 
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			if (m == null)
 			{
 				return false;
 			}
 			log.debug("Handling " + m.getType() + " " + m.getID());
-			Vector<ProxyDeviceProcessor> v = getProxyProcessors();
+			final Vector<ProxyDeviceProcessor> v = getProxyProcessors();
 			boolean b = false;
-			int size = v == null ? 0 : v.size();
+			final int size = v == null ? 0 : v.size();
 			for (int i = 0; i < size; i++)
 			{
 				b = v.get(i).handleNotificationSignal(m, resp) || b;
@@ -473,32 +490,31 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 	}// end of inner class ResourceQueryHandler
 
-	////////////////////////////////////////////////////////////////////	
+	// //////////////////////////////////////////////////////////////////
 	protected class ResourceSignalHandler extends AbstractHandler
 	{
 		public ResourceSignalHandler()
 		{
-			super(EnumType.Resource, new EnumFamily[] { EnumFamily.Signal });
+			super(EnumType.Resource, new EnumFamily[]
+			{ EnumFamily.Signal });
 		}
 
 		/*
 		 * (non-Javadoc)
-		 *
-		 * @see
-		 * org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.
-		 * JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * 
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			if (m == null)
 			{
 				return false;
 			}
 			log.debug("Handling " + m.getType() + " " + m.getID());
-			Vector<ProxyDeviceProcessor> v = getProxyProcessors();
+			final Vector<ProxyDeviceProcessor> v = getProxyProcessors();
 			boolean b = false;
-			int size = v == null ? 0 : v.size();
+			final int size = v == null ? 0 : v.size();
 			for (int i = 0; i < size; i++)
 			{
 				b = v.get(i).handleResourceSignal(m, resp) || b;
@@ -507,46 +523,49 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 	}// end of inner class ResourceQueryHandler
 
-	////////////////////////////////////////////////////////////////////
+	// //////////////////////////////////////////////////////////////////
 	protected class StatusSignalHandler extends AbstractHandler
 	{
 
 		public StatusSignalHandler()
 		{
-			super(EnumType.Status, new EnumFamily[] { EnumFamily.Signal });
+			super(EnumType.Status, new EnumFamily[]
+			{ EnumFamily.Signal });
 		}
 
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see
-		 * org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.
-		 * JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			if (m == null)
 			{
 				return false;
 			}
 			log.debug("Handling " + m.getType() + " " + m.getID());
-			Vector<ProxyDeviceProcessor> v = getProxyProcessors();
+			final Vector<ProxyDeviceProcessor> v = getProxyProcessors();
 			boolean b = false;
-			int size = v == null ? 0 : v.size();
+			final int size = v == null ? 0 : v.size();
 			for (int i = 0; i < size; i++)
 			{
 				b = v.get(i).handleStatusSignal(m, resp) || b;
 			}
 			if (!b)
 			{
-				JDFStatusQuParams sqp = m.getStatusQuParams();
-				String qeid = (sqp != null) ? sqp.getQueueEntryID() : null;
+				final JDFStatusQuParams sqp = m.getStatusQuParams();
+				final String qeid = (sqp != null) ? sqp.getQueueEntryID() : null;
 				if (KElement.isWildCard(qeid))
+				{
 					b = handleIdle(m, resp);
+				}
 
 				if (!b)
+				{
 					JMFHandler.errorResponse(resp, "Unknown QueueEntry: " + qeid, 103, EnumClass.Error);
+				}
 			}
 			else
 			{
@@ -559,28 +578,30 @@ public class ProxyDevice extends AbstractProxyDevice
 		/**
 		 * @return true if handled
 		 */
-		private boolean handleIdle(JDFMessage m, JDFResponse resp)
+		private boolean handleIdle(final JDFMessage m, final JDFResponse resp)
 		{
 			log.debug("handling idle status signal...");
 			return true;
 		}
 	}// end of inner class StatusSignalHandler
 
-	////////////////////////////////////////////////////////////////////////////
+	// //////////////////////////////////////////////////////////////////////////
 	// ///////
 
 	// ////////////////////////////////////////////////////////////////
 
-	public ProxyDevice(IDeviceProperties properties)
+	public ProxyDevice(final IDeviceProperties properties)
 	{
 		super(properties);
 		final IProxyProperties proxyProperties = getProxyProperties();
 		statusContainer = new ResponseMerger();
 		_jmfHandler.setFilterOnDeviceID(false);
-		int maxPush = proxyProperties.getMaxPush();
+		final int maxPush = proxyProperties.getMaxPush();
 		if (maxPush > 0)
+		{
 			_theQueueProcessor.getQueue().setMaxRunningEntries(maxPush);
-		// TODO correctly dispatch them
+			// TODO correctly dispatch them
+		}
 	}
 
 	/**
@@ -588,19 +609,25 @@ public class ProxyDevice extends AbstractProxyDevice
 	 */
 	public Vector<StatusListener> getStatusListeners()
 	{
-		Vector<ProxyDeviceProcessor> procs = getProxyProcessors();
+		final Vector<ProxyDeviceProcessor> procs = getProxyProcessors();
 		if (procs == null)
+		{
 			return null;
-		int size = procs.size();
+		}
+		final int size = procs.size();
 		if (size == 0)
+		{
 			return null;
-		Vector<StatusListener> v = new Vector<StatusListener>(size);
+		}
+		final Vector<StatusListener> v = new Vector<StatusListener>(size);
 		for (int i = 0; i < size; i++)
 		{
-			ProxyDeviceProcessor pd = procs.get(i);
-			StatusListener l = pd.getStatusListener();
+			final ProxyDeviceProcessor pd = procs.get(i);
+			final StatusListener l = pd.getStatusListener();
 			if (l != null)
+			{
 				v.add(l);
+			}
 		}
 		return v.size() == 0 ? null : v;
 
@@ -625,10 +652,10 @@ public class ProxyDevice extends AbstractProxyDevice
 	 * @param queueURL
 	 * @return true if the processor is added
 	 */
-	public ProxyDeviceProcessor submitQueueEntry(IQueueEntry iqe, String queueURL)
+	public ProxyDeviceProcessor submitQueueEntry(final IQueueEntry iqe, final String queueURL)
 	{
 		ProxyDeviceProcessor pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, iqe);
-		boolean submit = pdp.submit(queueURL);
+		final boolean submit = pdp.submit(queueURL);
 		if (submit && pdp.isActive())
 		{
 			addProcessor(pdp);
@@ -647,28 +674,27 @@ public class ProxyDevice extends AbstractProxyDevice
 	protected AbstractDeviceProcessor buildDeviceProcessor()
 	{
 		if (getProxyProperties().getMaxPush() <= 0)
+		{
 			return null;
+		}
 		return new ProxyDispatcherProcessor(this);
 	}
 
 	/**
 	 * get a simple file name for the JDF in a queueentry
-	 * 
-	 * @param qe
-	 *            the JDFQueueEntry to name mangle
+	 * @param qe the JDFQueueEntry to name mangle
 	 * @return the file name for the jdf
 	 */
-	public String getNameFromQE(JDFQueueEntry qe)
+	public String getNameFromQE(final JDFQueueEntry qe)
 	{
 		return "q" + qe.getQueueEntryID() + ".jdf";
 	}
 
 	/**
 	 * remove a processor from the list of active processors
-	 * 
 	 * @param processor
 	 */
-	public void removeProcessor(AbstractDeviceProcessor processor)
+	public void removeProcessor(final AbstractDeviceProcessor processor)
 	{
 		log.info("removing device proceesor");
 		_deviceProcessors.remove(processor);
@@ -681,21 +707,23 @@ public class ProxyDevice extends AbstractProxyDevice
 
 	/**
 	 * gets the device processor for a given queuentry
-	 * 
-	 * @return the processor that is processing queueEntryID, null if none
-	 *         matches
+	 * @return the processor that is processing queueEntryID, null if none matches
 	 */
 	protected Vector<ProxyDeviceProcessor> getProxyProcessors()
 	{
-		int size = _deviceProcessors.size();
+		final int size = _deviceProcessors.size();
 		if (size == 0)
+		{
 			return null;
-		Vector<ProxyDeviceProcessor> v = new Vector<ProxyDeviceProcessor>(size);
+		}
+		final Vector<ProxyDeviceProcessor> v = new Vector<ProxyDeviceProcessor>(size);
 		for (int i = 0; i < size; i++)
 		{
-			AbstractDeviceProcessor theDeviceProcessor = _deviceProcessors.get(i);
+			final AbstractDeviceProcessor theDeviceProcessor = _deviceProcessors.get(i);
 			if (theDeviceProcessor instanceof ProxyDeviceProcessor)
+			{
 				v.add((ProxyDeviceProcessor) theDeviceProcessor);
+			}
 		}
 		return v.size() == 0 ? null : v;
 	}
@@ -705,14 +733,14 @@ public class ProxyDevice extends AbstractProxyDevice
 	 * @param slaveQEID
 	 * @return the ProxyDeviceProcessor that handles messages from slaveQEID
 	 */
-	private ProxyDeviceProcessor getProcessorForSlaveQE(JDFResponse resp, final String slaveQEID)
+	private ProxyDeviceProcessor getProcessorForSlaveQE(final JDFResponse resp, final String slaveQEID)
 	{
 		final String inQEID = getIncomingQEID(slaveQEID);
-		ProxyDeviceProcessor proc = inQEID == null ? null : (ProxyDeviceProcessor) getProcessor(inQEID);
+		final ProxyDeviceProcessor proc = inQEID == null ? null : (ProxyDeviceProcessor) getProcessor(inQEID);
 
 		if (proc == null)
 		{
-			String errorMsg = "QueueEntry with ID=" + slaveQEID + " is not being processed";
+			final String errorMsg = "QueueEntry with ID=" + slaveQEID + " is not being processed";
 			JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
 		}
 		return proc;
@@ -720,10 +748,9 @@ public class ProxyDevice extends AbstractProxyDevice
 
 	/**
 	 * remove a processor from the list of active processors
-	 * 
 	 * @param processor
 	 */
-	public void addProcessor(AbstractDeviceProcessor processor)
+	public void addProcessor(final AbstractDeviceProcessor processor)
 	{
 		log.info("adding device proceesor");
 		_deviceProcessors.add(processor);
@@ -733,53 +760,64 @@ public class ProxyDevice extends AbstractProxyDevice
 	 * @param slaveQEID
 	 * @return the bambi qeid for a given slave qeid
 	 */
-	protected String getIncomingQEID(String slaveQEID)
+	protected String getIncomingQEID(final String slaveQEID)
 	{
 		if (slaveQEID == null || _deviceProcessors == null)
+		{
 			return null;
+		}
 		for (int i = 0; i < _deviceProcessors.size(); i++)
 		{
-			AbstractDeviceProcessor aProc = _deviceProcessors.get(i);
+			final AbstractDeviceProcessor aProc = _deviceProcessors.get(i);
 			if (!(aProc instanceof ProxyDeviceProcessor))
+			{
 				continue;
-			ProxyDeviceProcessor proc = (ProxyDeviceProcessor) aProc;
+			}
+			final ProxyDeviceProcessor proc = (ProxyDeviceProcessor) aProc;
 			final String procSlaveQEID = proc.getSlaveQEID();
 			if (slaveQEID.equals(procSlaveQEID))
+			{
 				return proc.getCurrentQE().getQueueEntryID();
+			}
 		}
 		return null;
 	}
 
 	/**
 	 * @param bambiQEID
-	 * @return the queuentryID on the slave 
+	 * @return the queuentryID on the slave
 	 */
-	private String getSlaveQEID(String bambiQEID)
+	private String getSlaveQEID(final String bambiQEID)
 	{
 		if (bambiQEID == null || _deviceProcessors == null)
+		{
 			return null;
+		}
 		for (int i = 0; i < _deviceProcessors.size(); i++)
 		{
-			AbstractDeviceProcessor aProc = _deviceProcessors.get(i);
+			final AbstractDeviceProcessor aProc = _deviceProcessors.get(i);
 			if (!(aProc instanceof ProxyDeviceProcessor))
+			{
 				continue;
-			ProxyDeviceProcessor proc = (ProxyDeviceProcessor) aProc;
+			}
+			final ProxyDeviceProcessor proc = (ProxyDeviceProcessor) aProc;
 			final String qeID = proc.getCurrentQE().getQueueEntryID();
 			if (bambiQEID.equals(qeID))
+			{
 				return proc.getSlaveQEID();
+			}
 		}
-		JDFQueueEntry qe = _theQueueProcessor.getQueue().getQueueEntry(bambiQEID);
+		final JDFQueueEntry qe = _theQueueProcessor.getQueue().getQueueEntry(bambiQEID);
 		return BambiNSExtension.getSlaveQueueEntryID(qe);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
+	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
 	 */
 	@Override
-	public boolean canAccept(JDFDoc doc)
+	public boolean canAccept(final JDFDoc doc)
 	{
 		return true;
 	}
@@ -790,59 +828,57 @@ public class ProxyDevice extends AbstractProxyDevice
 	@Override
 	protected void reloadQueue()
 	{
-		JDFQueue q = _theQueueProcessor.getQueue();
+		final JDFQueue q = _theQueueProcessor.getQueue();
 		BambiNSExtension.setSlaveURL(q, "true");
-		VElement qev = q.getQueueEntryVector();
+		final VElement qev = q.getQueueEntryVector();
 
-		int qSize = qev == null ? 0 : qev.size();
+		final int qSize = qev == null ? 0 : qev.size();
 		for (int i = 0; i < qSize; i++)
 		{
-			JDFQueueEntry qe = (JDFQueueEntry) qev.get(i);
-			EnumQueueEntryStatus stat = qe.getQueueEntryStatus();
+			final JDFQueueEntry qe = (JDFQueueEntry) qev.get(i);
+			final EnumQueueEntryStatus stat = qe.getQueueEntryStatus();
 			if (!qe.isCompleted() && BambiNSExtension.getSlaveQueueEntryID(qe) != null)
 			{
-				IQueueEntry iqe = _theQueueProcessor.getIQueueEntry(qe);
+				final IQueueEntry iqe = _theQueueProcessor.getIQueueEntry(qe);
 				if (iqe == null)
 				{
 					log.error("no Queue entry refreshing queue " + qe.getQueueEntryID());
 				}
 				else
 				{
-					ProxyDeviceProcessor pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, iqe);
+					final ProxyDeviceProcessor pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, iqe);
 					pdp.submitted(BambiNSExtension.getSlaveQueueEntryID(qe), qe.getQueueEntryStatus(), BambiNSExtension.getDeviceURL(qe));
 					addProcessor(pdp);
 				}
 			}
 		}
-		JDFJMF jmfQS = JMFFactory.buildQueueStatus();
-		JMFFactory.send2URL(jmfQS, getSlaveURL(), new QueueSynchronizeHandler(), getSlaveCallback(), getDeviceID());
+		final JDFJMF jmfQS = JMFFactory.buildQueueStatus();
+		JMFFactory.send2URL(jmfQS, getProxyProperties().getSlaveURL(), new QueueSynchronizeHandler(), getSlaveCallback(), getDeviceID());
 	}
 
 	/**
-	 * 
-	 * @see
-	 * org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core.JDFDoc)
+	 * @see org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core.JDFDoc)
 	 */
 	@Override
-	public JDFNode getNodeFromDoc(JDFDoc doc)
+	public JDFNode getNodeFromDoc(final JDFDoc doc)
 	{
 		// TODO Auto-generated method stub
 		return doc.getJDFRoot();
 	}
 
 	@Override
-	public JDFQueueEntry stopProcessing(String queueEntryID, EnumNodeStatus status)
+	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status)
 	{
 		if (status == null)
 		{
 
-			JDFJMF jmf = JMFFactory.buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
+			final JDFJMF jmf = JMFFactory.buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
 			if (jmf != null)
 			{
 				JMFFactory.send2URL(jmf, getProxyProperties().getSlaveURL(), null, _slaveCallback, getDeviceID());
 			}
 		}
-		JDFQueueEntry qe = super.stopProcessing(queueEntryID, status);
+		final JDFQueueEntry qe = super.stopProcessing(queueEntryID, status);
 		return qe;
 	}
 

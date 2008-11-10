@@ -73,6 +73,8 @@ package org.cip4.bambi.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.logging.Log;
@@ -126,11 +128,9 @@ import org.cip4.jdflib.util.UrlUtil;
 /**
  * basis for JDF devices. <br>
  * Devices are defined in /WebContent/config/devices.xml<br>
- * Derived classes should be final: if they were ever subclassed, the DeviceProcessor thread 
- * would be started before the constructor from the subclass has a chance to fire.
- * 
+ * Derived classes should be final: if they were ever subclassed, the DeviceProcessor thread would be started before the constructor from the subclass has a
+ * chance to fire.
  * @author boegerni
- * 
  */
 public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 {
@@ -143,45 +143,47 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	}
 
 	/**
-	 * 
 	 * @author prosirai
-	 *
 	 */
 	protected class XMLDevice extends XMLDoc
 	{
 
 		/**
-		 * XML representation of this simDevice
-		 * fore use as html display using an XSLT
+		 * XML representation of this simDevice fore use as html display using an XSLT
 		 * @param addProcs TODO
-		 * @param contextPath 
+		 * @param contextPath
 		 * @param dev
 		 */
-		public XMLDevice(boolean addProcs, String contextPath)
+		public XMLDevice(final boolean addProcs, final BambiServletRequest request)
 		{
 			super("XMLDevice", null);
-			KElement deviceRoot = getRoot();
+			final KElement deviceRoot = getRoot();
+			final String contextPath = request.getContextPath();
+			final boolean bModify = request.getBooleanParam("modify");
 			setXSLTURL(getXSLT(SHOW_DEVICE, contextPath));
 
 			deviceRoot.setAttribute(AttributeName.CONTEXT, contextPath);
+			deviceRoot.setAttribute("modify", bModify, null);
 			deviceRoot.setAttribute("NumRequests", numRequests, null);
 			deviceRoot.setAttribute(AttributeName.DEVICEID, getDeviceID());
 			deviceRoot.setAttribute(AttributeName.DEVICETYPE, getDeviceType());
 			deviceRoot.setAttribute("DeviceURL", getDeviceURL());
+			deviceRoot.setAttribute("WatchURL", getProperties().getWatchURL());
 			deviceRoot.setAttribute(AttributeName.DEVICESTATUS, getDeviceStatus().getName());
-			JDFQueue jdfQueue = _theQueueProcessor.getQueue();
-			EnumQueueStatus queueStatus = jdfQueue == null ? null : jdfQueue.getQueueStatus();
-			int running = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Running);
-			int waiting = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Waiting);
-			int completed = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Completed)
-					+ jdfQueue.numEntries(EnumQueueEntryStatus.Aborted);
+			final JDFQueue jdfQueue = _theQueueProcessor.getQueue();
+			final EnumQueueStatus queueStatus = jdfQueue == null ? null : jdfQueue.getQueueStatus();
+			final int running = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Running);
+			final int waiting = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Waiting);
+			final int completed = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Completed) + jdfQueue.numEntries(EnumQueueEntryStatus.Aborted);
 
 			deviceRoot.setAttribute("QueueStatus", queueStatus == null ? "Unknown" : queueStatus.getName());
 			deviceRoot.setAttribute("QueueWaiting", waiting, null);
 			deviceRoot.setAttribute("QueueRunning", running, null);
 			deviceRoot.setAttribute("QueueCompleted", completed, null);
 			if (addProcs)
+			{
 				addProcessors();
+			}
 
 		}
 
@@ -195,7 +197,6 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	}
 
 	/**
-	 * 
 	 * handler for the KnownDevices query
 	 */
 	protected class KnownDevicesHandler extends AbstractHandler
@@ -203,14 +204,17 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 		public KnownDevicesHandler()
 		{
-			super(EnumType.KnownDevices, new EnumFamily[] { EnumFamily.Query });
+			super(EnumType.KnownDevices, new EnumFamily[]
+			{ EnumFamily.Query });
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			// "I am the known device"
 			if (m == null || resp == null)
@@ -218,10 +222,10 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 				return false;
 			}
 			log.debug("Handling " + m.getType());
-			EnumType typ = m.getEnumType();
+			final EnumType typ = m.getEnumType();
 			if (EnumType.KnownDevices.equals(typ))
 			{
-				JDFDeviceList dl = resp.appendDeviceList();
+				final JDFDeviceList dl = resp.appendDeviceList();
 				appendDeviceInfo(dl);
 				return true;
 			}
@@ -231,7 +235,6 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	}
 
 	/**
-	 * 
 	 * handler for the KnownDevices query
 	 */
 	protected class SubmissionMethodsHandler extends AbstractHandler
@@ -239,14 +242,15 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 		public SubmissionMethodsHandler()
 		{
-			super(EnumType.SubmissionMethods, new EnumFamily[] { EnumFamily.Query });
+			super(EnumType.SubmissionMethods, new EnumFamily[]
+			{ EnumFamily.Query });
 		}
 
 		/**
 		 * 
 		 */
 		@Override
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			// "I am the known device"
 			if (m == null || resp == null)
@@ -254,16 +258,18 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 				return false;
 			}
 			log.debug("Handling " + m.getType());
-			EnumType typ = m.getEnumType();
+			final EnumType typ = m.getEnumType();
 			if (EnumType.SubmissionMethods.equals(typ))
 			{
-				JDFSubmissionMethods sm = resp.appendSubmissionMethods();
-				Vector<EnumPackaging> v = new Vector<EnumPackaging>();
+				final JDFSubmissionMethods sm = resp.appendSubmissionMethods();
+				final Vector<EnumPackaging> v = new Vector<EnumPackaging>();
 				v.add(EnumPackaging.MIME);
 				sm.setPackaging(v);
 				sm.setURLSchemes(new VString("http,file", ","));
 				if (_submitHotFolder != null)
+				{
 					sm.setHotFolder(UrlUtil.fileToUrl(_submitHotFolder.getHfDirectory(), false));
+				}
 			}
 
 			return true;
@@ -271,7 +277,6 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	}
 
 	/**
-	 * 
 	 * handler for the StopPersistentChannel command
 	 */
 	public class ResourceHandler extends AbstractHandler
@@ -279,28 +284,35 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 		public ResourceHandler()
 		{
-			super(EnumType.Resource, new EnumFamily[] { EnumFamily.Query });
+			super(EnumType.Resource, new EnumFamily[]
+			{ EnumFamily.Query });
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
-		public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 		{
 			if (_theStatusListener == null)
+			{
 				return false;
-			StatusCounter sc = _theStatusListener.getStatusCounter();
-			JDFDoc docJMFResource = sc == null ? null : sc.getDocJMFResource();
+			}
+			final StatusCounter sc = _theStatusListener.getStatusCounter();
+			final JDFDoc docJMFResource = sc == null ? null : sc.getDocJMFResource();
 			if (docJMFResource == null)
+			{
 				return false;
+			}
 			final JDFSignal response2 = docJMFResource.getJMFRoot().getSignal(0);
 			response.mergeElement(response2, false);
 			response.removeAttribute(AttributeName.REFID);
-			JDFResourceQuParams inRQP = inputMessage.getResourceQuParams();
+			final JDFResourceQuParams inRQP = inputMessage.getResourceQuParams();
 			if (inRQP != null)
 			{
-				JDFResourceQuParams rqPStatusListner = (JDFResourceQuParams) response.removeChild(ElementName.RESOURCEQUPARAMS, null, 0);
+				final JDFResourceQuParams rqPStatusListner = (JDFResourceQuParams) response.removeChild(ElementName.RESOURCEQUPARAMS, null, 0);
 				inRQP.copyAttribute(AttributeName.JOBID, rqPStatusListner);
 				inRQP.copyAttribute(AttributeName.JOBPARTID, rqPStatusListner);
 				inRQP.copyAttribute(AttributeName.QUEUEENTRYID, rqPStatusListner);
@@ -315,19 +327,18 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	}
 
 	/**
-	 * 
-	 * generic dispatcher handler for  dispatching to the respective low level processors
+	 * generic dispatcher handler for dispatching to the respective low level processors
 	 */
 	protected abstract class DispatchHandler extends JMFHandler.AbstractHandler
 	{
 
-		public DispatchHandler(String _type, EnumFamily[] _families)
+		public DispatchHandler(final String _type, final EnumFamily[] _families)
 		{
 			super(_type, _families);
 			// TODO Auto-generated constructor stub
 		}
 
-		public DispatchHandler(EnumType _type, EnumFamily[] _families)
+		public DispatchHandler(final EnumType _type, final EnumFamily[] _families)
 		{
 			super(_type, _families);
 		}
@@ -335,27 +346,29 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		/**
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
-		public boolean handleMessage(JDFMessage inputMessage, JDFResponse response, IJMFHandler[] devs, boolean checkReturnCode)
+		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response, final IJMFHandler[] devs, final boolean checkReturnCode)
 		{
 
 			if (devs == null)
+			{
 				return false;
+			}
 			boolean b = false;
 			JDFNotification notif = (JDFNotification) response.removeChild(ElementName.NOTIFICATION, null, 0);
 
-			JDFJMF jmfin = inputMessage.getJMFRoot();
-			JDFJMF jmfresp = response.getJMFRoot();
+			final JDFJMF jmfin = inputMessage.getJMFRoot();
+			final JDFJMF jmfresp = response.getJMFRoot();
 			boolean bSignal = false;
 			for (int i = 0; i < devs.length; i++)
 			{
-				IMessageHandler mh = devs[i].getHandler(inputMessage.getType(), inputMessage.getFamily());
+				final IMessageHandler mh = devs[i].getHandler(inputMessage.getType(), inputMessage.getFamily());
 				if (mh != null)
 				{
 					response.setReturnCode(0);
 					boolean b1 = mh.handleMessage(inputMessage, response);
 					if (b1 && checkReturnCode)
 					{
-						int rc = response.getReturnCode();
+						final int rc = response.getReturnCode();
 						b1 = rc == 0;
 					}
 					b = b1 || b;
@@ -386,16 +399,19 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 				response.deleteNode();
 			}
 			if (b)
+			{
 				response.setReturnCode(0);
+			}
 			else if (notif != null)
+			{
 				response.moveElement(notif, null);
+			}
 
 			return b;
 		}
 	}
 
 	/**
-	 * 
 	 * handler for the Status Query
 	 */
 	public class StatusHandler extends AbstractHandler
@@ -406,7 +422,8 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		 */
 		public StatusHandler()
 		{
-			super(EnumType.Status, new EnumFamily[] { EnumFamily.Query });
+			super(EnumType.Status, new EnumFamily[]
+			{ EnumFamily.Query });
 		}
 
 		/**
@@ -416,17 +433,23 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		 * @return true if handled
 		 */
 		@Override
-		public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 		{
 			if (_theStatusListener == null)
+			{
 				return false;
+			}
 			if (!_theStatusListener.matchesQuery(inputMessage))
+			{
 				return false;
+			}
 
-			JDFDoc docJMF = _theStatusListener.getStatusCounter().getDocJMFPhaseTime();
-			boolean bOK = copyPhaseTimeFromCounter(response, docJMF);
+			final JDFDoc docJMF = _theStatusListener.getStatusCounter().getDocJMFPhaseTime();
+			final boolean bOK = copyPhaseTimeFromCounter(response, docJMF);
 			if (bOK)
+			{
 				addQueueToStatusResponse(inputMessage, response);
+			}
 			return bOK;
 		}
 	}
@@ -449,7 +472,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * creates a new device instance
 	 * @param prop the properties for the device
 	 */
-	public AbstractDevice(IDeviceProperties prop)
+	public AbstractDevice(final IDeviceProperties prop)
 	{
 		super();
 		_devProperties = prop;
@@ -470,15 +493,15 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		_theQueueProcessor = buildQueueProcessor();
 		_theQueueProcessor.addHandlers(_jmfHandler);
 
-		String deviceID = _devProperties.getDeviceID();
+		final String deviceID = _devProperties.getDeviceID();
 		_deviceProcessors = new Vector<AbstractDeviceProcessor>();
-		AbstractDeviceProcessor newDevProc = buildDeviceProcessor();
+		final AbstractDeviceProcessor newDevProc = buildDeviceProcessor();
 		if (newDevProc != null)
 		{
 			newDevProc.setParent(this);
 			_theStatusListener = new StatusListener(_theSignalDispatcher, getDeviceID(), getICSVersions());
 			newDevProc.init(_theQueueProcessor, _theStatusListener, _devProperties);
-			String deviceProcessorClass = newDevProc.getClass().getSimpleName();
+			final String deviceProcessorClass = newDevProc.getClass().getSimpleName();
 			new Thread(newDevProc, deviceProcessorClass + "_" + deviceID).start();
 			log.info("device processor thread started: " + deviceProcessorClass + "_" + deviceID);
 			_deviceProcessors.add(newDevProc);
@@ -499,21 +522,24 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	protected abstract void reloadQueue();
 
 	/**
-	 * add generic subscriptions in case watchurl!=null
-	 * we'll assume 30 seconds is reasonable...
+	 * add generic subscriptions in case watchurl!=null we'll assume 30 seconds is reasonable...
 	 */
 	protected void addWatchSubscriptions()
 	{
 		final String watchURL = _devProperties.getWatchURL();
 		if (watchURL == null)
+		{
 			return;
+		}
 
-		JDFJMF[] jmfs = JMFFactory.createSubscriptions(watchURL, null, 30., 0);
+		final JDFJMF[] jmfs = JMFFactory.createSubscriptions(watchURL, null, 30., 0);
 		if (jmfs == null)
+		{
 			return;
+		}
 		for (int i = 0; i < jmfs.length; i++)
 		{
-			JDFQuery query = jmfs[i].getQuery(0);
+			final JDFQuery query = jmfs[i].getQuery(0);
 			updateWatchSubscription(query);
 			_theSignalDispatcher.addSubscription(query, null);
 		}
@@ -523,22 +549,23 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * hook to clean up watch subscriptions
 	 * @param query
 	 */
-	protected void updateWatchSubscription(JDFQuery query)
+	protected void updateWatchSubscription(final JDFQuery query)
 	{
-		//nop		
+		// nop
 	}
 
 	/**
 	 * creates the hotfolder on the file system
 	 * @param hfURL the URL of the hotfolder to create. If hfURL is null, no hotfolder will be created.
 	 */
-	protected void createHotFolder(File hfURL)
+	protected void createHotFolder(final File hfURL)
 	{
 		if (hfURL == null)
+		{
 			return;
+		}
 		log.info("enabling input hot folder: " + hfURL);
-		File hfStorage = new File(_devProperties.getBaseDir() + File.separator + "HFTmpStorage" + File.separator
-				+ _devProperties.getDeviceID());
+		final File hfStorage = new File(_devProperties.getBaseDir() + File.separator + "HFTmpStorage" + File.separator + _devProperties.getDeviceID());
 		hfStorage.mkdirs(); // just in case
 		if (hfStorage.isDirectory())
 		{
@@ -563,7 +590,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * register an employee with this device
 	 * @param emp
 	 */
-	public void addEmployee(JDFEmployee emp)
+	public void addEmployee(final JDFEmployee emp)
 	{
 		_theStatusListener.getStatusCounter().addEmployee(emp);
 	}
@@ -572,7 +599,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * register an emplyee with this device
 	 * @param emp
 	 */
-	public void removeEmployee(JDFEmployee emp)
+	public void removeEmployee(final JDFEmployee emp)
 	{
 		_theStatusListener.getStatusCounter().removeEmployee(emp);
 	}
@@ -598,10 +625,12 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * @param deviceID
 	 * @return the device with ID
 	 */
-	public AbstractDevice getDevice(String deviceID)
+	public AbstractDevice getDevice(final String deviceID)
 	{
 		if (KElement.isWildCard(deviceID))
+		{
 			return this;
+		}
 		return (ContainerUtil.equals(deviceID, getDeviceID())) ? this : null;
 	}
 
@@ -610,7 +639,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * @param doc
 	 * @return the doc representing the response
 	 */
-	public JDFDoc processJMF(JDFDoc doc)
+	public JDFDoc processJMF(final JDFDoc doc)
 	{
 		log.info("JMF processed by " + _devProperties.getDeviceID());
 		return _jmfHandler.processJMF(doc);
@@ -627,16 +656,14 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 	/**
 	 * append the JDFDeviceInfo of this device to a given JDFDeviceList
-	 * 
 	 * @param dl the JDFDeviceList, where the JDFDeviceInfo will be appended
-	 * 
 	 * @return true, if successful
 	 */
-	public boolean appendDeviceInfo(JDFDeviceList dl)
+	public boolean appendDeviceInfo(final JDFDeviceList dl)
 	{
-		JDFDeviceInfo info = dl.appendDeviceInfo();
+		final JDFDeviceInfo info = dl.appendDeviceInfo();
 
-		JDFDevice dev = info.appendDevice();
+		final JDFDevice dev = info.appendDevice();
 		fillJDFDevice(dev);
 		info.setDeviceStatus(getDeviceStatus());
 		info.setDeviceID(getDeviceID());
@@ -646,7 +673,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	/**
 	 * @param dev the device to fill
 	 */
-	protected void fillJDFDevice(JDFDevice dev)
+	protected void fillJDFDevice(final JDFDevice dev)
 	{
 		dev.setDeviceID(getDeviceID());
 		dev.setJMFSenderID(getDeviceID());
@@ -660,11 +687,11 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 		if (_devProperties instanceof DeviceProperties)
 		{
-			DeviceProperties dp = (DeviceProperties) _devProperties;
-			KElement root = dp.getDevRoot();
+			final DeviceProperties dp = (DeviceProperties) _devProperties;
+			final KElement root = dp.getDevRoot();
 			if (root != null)
 			{
-				KElement deviceCap = root.getElement(ElementName.DEVICECAP);
+				final KElement deviceCap = root.getElement(ElementName.DEVICECAP);
 				dev.copyElement(deviceCap, null);
 			}
 		}
@@ -674,7 +701,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * add a MessageHandler to this devices JMFHandler
 	 * @param handler the MessageHandler to add
 	 */
-	public void addHandler(IMessageHandler handler)
+	public void addHandler(final IMessageHandler handler)
 	{
 		_jmfHandler.addHandler(handler);
 	}
@@ -705,13 +732,17 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * @param contextPath the context path of the request
 	 * @return the matching xslt
 	 */
-	public String getXSLT(String command, String contextPath)
+	public String getXSLT(final String command, final String contextPath)
 	{
 		String s = null;
 		if ("showQueue".equalsIgnoreCase(command))
+		{
 			s = "/queue2html.xsl";
+		}
 		if ("showDevice".equalsIgnoreCase(command))
+		{
 			s = "/showDevice.xsl";
+		}
 		if (s != null && contextPath != null)
 		{
 			s = "/" + StringUtil.token(contextPath, 0, "/") + s;
@@ -725,7 +756,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 */
 	public EnumDeviceStatus getDeviceStatus()
 	{
-		StatusListener listener = getStatusListener(0);
+		final StatusListener listener = getStatusListener(0);
 		if (listener == null)
 		{
 			return EnumDeviceStatus.Idle;
@@ -746,11 +777,13 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * @param status target status of the QueueEntry (Suspended,Aborted,Held)
 	 * @return the updated QueueEntry
 	 */
-	public JDFQueueEntry stopProcessing(String queueEntryID, EnumNodeStatus status)
+	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status)
 	{
-		AbstractDeviceProcessor theDeviceProcessor = getProcessor(queueEntryID);
+		final AbstractDeviceProcessor theDeviceProcessor = getProcessor(queueEntryID);
 		if (theDeviceProcessor == null)
+		{
 			return null;
+		}
 		theDeviceProcessor.stopProcessing(status);
 		final IQueueEntry currentQE = theDeviceProcessor.getCurrentQE();
 		return currentQE == null ? null : currentQE.getQueueEntry();
@@ -761,16 +794,20 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * @param queueEntryID - if null use any
 	 * @return the processor that is processing queueEntryID, null if none matches
 	 */
-	protected AbstractDeviceProcessor getProcessor(String queueEntryID)
+	protected AbstractDeviceProcessor getProcessor(final String queueEntryID)
 	{
 		for (int i = 0; i < _deviceProcessors.size(); i++)
 		{
-			AbstractDeviceProcessor theDeviceProcessor = _deviceProcessors.get(i);
-			IQueueEntry iqe = theDeviceProcessor.getCurrentQE();
-			if (iqe == null) // processor is currently idle
+			final AbstractDeviceProcessor theDeviceProcessor = _deviceProcessors.get(i);
+			final IQueueEntry iqe = theDeviceProcessor.getCurrentQE();
+			if (iqe == null)
+			{
 				continue;
-			if (queueEntryID == null || queueEntryID.equals(iqe.getQueueEntryID())) // gotcha
+			}
+			if (queueEntryID == null || queueEntryID.equals(iqe.getQueueEntryID()))
+			{
 				return theDeviceProcessor;
+			}
 		}
 		return null; // none here
 	}
@@ -834,19 +871,22 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * @param i the index of the DeviceProcessor to the the StatusListener of
 	 * @return the StatusListener
 	 */
-	public StatusListener getStatusListener(int i)
+	public StatusListener getStatusListener(final int i)
 	{
 		if (_deviceProcessors == null || i >= _deviceProcessors.size())
+		{
 			return null;
+		}
 		return _deviceProcessors.get(i).getStatusListener();
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.messaging.IJMFHandler#addSubscriptionHandler(org.cip4.jdflib.jmf.JDFMessage.EnumType, org.cip4.bambi.core.messaging.IMessageHandler)
+	 * @see org.cip4.bambi.core.messaging.IJMFHandler#addSubscriptionHandler(org.cip4.jdflib.jmf.JDFMessage.EnumType,
+	 *      org.cip4.bambi.core.messaging.IMessageHandler)
 	 * @param typ
 	 * @param handler
 	 */
-	public void addSubscriptionHandler(EnumType typ, IMessageHandler handler)
+	public void addSubscriptionHandler(final EnumType typ, final IMessageHandler handler)
 	{
 		_jmfHandler.addSubscriptionHandler(typ, handler);
 	}
@@ -856,16 +896,18 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * @param response
 	 * @return true if handled
 	 */
-	public boolean handleGet(BambiServletRequest request, BambiServletResponse response)
+	public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
 	{
 		if (!isMyRequest(request))
+		{
 			return false;
+		}
 
 		if (BambiServlet.isMyContext(request, SHOW_DEVICE))
 		{
 			if (request.getBooleanParam("restart") && getRootDevice() != null)
 			{
-				AbstractDevice newDev = getRootDevice().createDevice(_devProperties);
+				final AbstractDevice newDev = getRootDevice().createDevice(_devProperties);
 				return newDev.showDevice(request, response, request.getBooleanParam("refresh"));
 			}
 			else if (request.getBooleanParam("shutdown") && getRootDevice() != null)
@@ -876,6 +918,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			}
 			else
 			{
+				updateDevice(request);
 				return showDevice(request, response, request.getBooleanParam("refresh"));
 			}
 		}
@@ -885,12 +928,76 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		}
 		if (_theQueueProcessor != null)
 		{
-			boolean bH = _theQueueProcessor.handleGet(request, response);
+			final boolean bH = _theQueueProcessor.handleGet(request, response);
 			if (bH)
+			{
 				return true;
+			}
 		}
 		return false;
 
+	}
+
+	/**
+	 * @param request
+	 */
+	protected void updateDevice(final BambiServletRequest request)
+	{
+
+		final Enumeration en = request.getParameterNames();
+		final Set s = ContainerUtil.toHashSet(en);
+
+		final String watchURL = request.getParameter("WatchURL");
+		if (watchURL != null && s.contains("WatchURL"))
+		{
+			updateWatchURL(watchURL);
+		}
+
+		final String deviceType = request.getParameter("DeviceType");
+		if (deviceType != null && s.contains("DeviceType"))
+		{
+			updateDeviceType(deviceType);
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void updateWatchURL(final String newWatchURL)
+	{
+		if (newWatchURL == null)
+		{
+			return;
+		}
+		final IDeviceProperties properties = getProperties();
+		final String oldWatchURL = properties.getWatchURL();
+		if (ContainerUtil.equals(oldWatchURL, newWatchURL))
+		{
+			return;
+		}
+		properties.setWatchURL(newWatchURL);
+		_theSignalDispatcher.removeSubScriptions(null, oldWatchURL, null);
+		addWatchSubscriptions();
+		properties.serialize();
+	}
+
+	/**
+	 * 
+	 */
+	private void updateDeviceType(final String newDeviceType)
+	{
+		if (newDeviceType == null)
+		{
+			return;
+		}
+		final IDeviceProperties properties = getProperties();
+		final String oldDeviceType = properties.getDeviceType();
+		if (ContainerUtil.equals(oldDeviceType, newDeviceType))
+		{
+			return;
+		}
+		properties.setDeviceType(newDeviceType);
+		properties.serialize();
 	}
 
 	/**
@@ -901,7 +1008,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		numRequests++;
 	}
 
-	protected boolean isMyRequest(BambiServletRequest request)
+	protected boolean isMyRequest(final BambiServletRequest request)
 	{
 		return request.isMyRequest(getDeviceID());
 	}
@@ -913,9 +1020,11 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	{
 		final String proxyURL = _devProperties.getProxyControllerURL();
 		if (KElement.isWildCard(proxyURL))
+		{
 			return;
+		}
 		final String queueURL = getDeviceURL();
-		JDFJMF jmf = JMFFactory.buildRequestQueueEntry(queueURL, getDeviceID());
+		final JDFJMF jmf = JMFFactory.buildRequestQueueEntry(queueURL, getDeviceID());
 		JMFFactory.send2URL(jmf, proxyURL, null, _callback, getDeviceID()); // TODO handle reponse
 	}
 
@@ -924,12 +1033,12 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		return _theSignalDispatcher;
 	}
 
-	public IConverterCallback getCallback(String url)
+	public IConverterCallback getCallback(final String url)
 	{
 		return _callback;
 	}
 
-	public void setCallback(IConverterCallback callback)
+	public void setCallback(final IConverterCallback callback)
 	{
 		this._callback = callback;
 	}
@@ -976,27 +1085,42 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		for (int i = siz - 1; i >= 0; i--)
 		{
 			if (!_deviceProcessors.get(i).isActive())
+			{
 				siz--;
+			}
 		}
 		return siz;
 	}
 
-	protected boolean showDevice(BambiServletRequest request, BambiServletResponse response, boolean refresh)
+	protected boolean showDevice(final BambiServletRequest request, final BambiServletResponse response, final boolean refresh)
 	{
-		XMLDevice simDevice = this.new XMLDevice(true, request.getContextRoot());
+
+		final XMLDevice simDevice = getSimDevice(request);
 		if (refresh)
+		{
 			simDevice.getRoot().setAttribute("refresh", true, null);
+		}
 
 		try
 		{
 			simDevice.write2Stream(response.getBufferedOutputStream(), 0, true);
 		}
-		catch (IOException x)
+		catch (final IOException x)
 		{
 			return false;
 		}
 		response.setContentType(UrlUtil.TEXT_XML);
 		return true;
+	}
+
+	/**
+	 * @param request
+	 * @return
+	 */
+	protected XMLDevice getSimDevice(final BambiServletRequest request)
+	{
+		final XMLDevice simDevice = this.new XMLDevice(true, request);
+		return simDevice;
 	}
 
 	/**
@@ -1012,17 +1136,21 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * set the root controller device
 	 * @param rootDevice the root controller
 	 */
-	public void setRootDevice(RootDevice rootDevice)
+	public void setRootDevice(final RootDevice rootDevice)
 	{
 		this._rootDevice = rootDevice;
 		if (_theStatusListener != null && _rootDevice != null)
+		{
 			_theStatusListener.setRootDispatcher(_rootDevice._theSignalDispatcher);
+		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.messaging.IJMFHandler#getHandler(org.cip4.jdflib.jmf.JDFMessage.EnumType, org.cip4.jdflib.jmf.JDFMessage.EnumFamily)
 	 */
-	public IMessageHandler getHandler(String typ, EnumFamily family)
+	public IMessageHandler getHandler(final String typ, final EnumFamily family)
 	{
 		return _jmfHandler == null ? null : _jmfHandler.getHandler(typ, family);
 	}
@@ -1031,16 +1159,16 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * @param inputMessage
 	 * @param response
 	 */
-	protected void addQueueToStatusResponse(JDFMessage inputMessage, JDFResponse response)
+	protected void addQueueToStatusResponse(final JDFMessage inputMessage, final JDFResponse response)
 	{
 		final JDFStatusQuParams statusQuParams = inputMessage.getStatusQuParams();
-		boolean bQueue = statusQuParams == null ? false : statusQuParams.getQueueInfo();
+		final boolean bQueue = statusQuParams == null ? false : statusQuParams.getQueueInfo();
 		if (bQueue)
 		{
-			JDFQueue queue = _theQueueProcessor.getQueue();
+			final JDFQueue queue = _theQueueProcessor.getQueue();
 			synchronized (queue)
 			{
-				JDFQueue qq = (JDFQueue) response.copyElement(queue, null);
+				final JDFQueue qq = (JDFQueue) response.copyElement(queue, null);
 				QueueProcessor.removeBambiNSExtensions(qq);
 			}
 		}
@@ -1051,28 +1179,28 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * @param docJMF
 	 * @return true if successful
 	 */
-	protected boolean copyPhaseTimeFromCounter(JDFResponse response, JDFDoc docJMF)
+	protected boolean copyPhaseTimeFromCounter(final JDFResponse response, final JDFDoc docJMF)
 	{
-		JDFJMF root = docJMF == null ? null : docJMF.getJMFRoot();
+		final JDFJMF root = docJMF == null ? null : docJMF.getJMFRoot();
 		if (root == null)
 		{
 			log.error("StatusHandler.handleMessage: StatusCounter response = null");
 			return false;
 		}
-		JDFJMF respRoot = response.getJMFRoot();
-		int nResp = root.numChildElements(ElementName.RESPONSE, null);
-		String refID = response.getrefID();
+		final JDFJMF respRoot = response.getJMFRoot();
+		final int nResp = root.numChildElements(ElementName.RESPONSE, null);
+		final String refID = response.getrefID();
 
 		for (int i = 0; i < nResp; i++)
 		{
-			JDFResponse r = root.getResponse(i);
-			JDFResponse rResp = respRoot.getCreateResponse(i);
-			String id = rResp.getID();
+			final JDFResponse r = root.getResponse(i);
+			final JDFResponse rResp = respRoot.getCreateResponse(i);
+			final String id = rResp.getID();
 			rResp.setrefID(refID);
 			rResp.setAttributes(r);
 			rResp.setID(id);
-			VElement v = r.getChildElementVector(null, null);
-			int siz = v == null ? 0 : v.size();
+			final VElement v = r.getChildElementVector(null, null);
+			final int siz = v == null ? 0 : v.size();
 
 			for (int j = 0; j < siz; j++)
 			{
@@ -1084,12 +1212,13 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 	/**
 	 * flushes any and all message queues
-	 *
 	 */
 	public void flush()
 	{
 		if (_theSignalDispatcher != null)
+		{
 			_theSignalDispatcher.flush();
+		}
 	}
 
 	@Override
@@ -1101,17 +1230,15 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 	/**
 	 * continue with a queueentry at startup
-	 * 
-	 * @param qe the queueentry to continue with 
+	 * @param qe the queueentry to continue with
 	 */
-	public void continueQE(JDFQueueEntry qe)
+	public void continueQE(final JDFQueueEntry qe)
 	{
-		// nop 
+		// nop
 	}
 
 	/**
 	 * @return the gethandler for this device
-	 * 
 	 */
 	public IGetHandler getGetDispatchHandler()
 	{

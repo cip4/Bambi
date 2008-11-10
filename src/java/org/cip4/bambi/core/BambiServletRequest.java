@@ -24,79 +24,78 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /*
-*
-* The CIP4 Software License, Version 1.0
-*
-*
-* Copyright (c) 2001-2008 The International Cooperation for the Integration of 
-* Processes in  Prepress, Press and Postpress (CIP4).  All rights 
-* reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions
-* are met:
-*
-* 1. Redistributions of source code must retain the above copyright
-*    notice, this list of conditions and the following disclaimer. 
-*
-* 2. Redistributions in binary form must reproduce the above copyright
-*    notice, this list of conditions and the following disclaimer in
-*    the documentation and/or other materials provided with the
-*    distribution.
-*
-* 3. The end-user documentation included with the redistribution,
-*    if any, must include the following acknowledgment:  
-*       "This product includes software developed by the
-*        The International Cooperation for the Integration of 
-*        Processes in  Prepress, Press and Postpress (www.cip4.org)"
-*    Alternately, this acknowledgment may appear in the software itself,
-*    if and wherever such third-party acknowledgments normally appear.
-*
-* 4. The names "CIP4" and "The International Cooperation for the Integration of 
-*    Processes in  Prepress, Press and Postpress" must
-*    not be used to endorse or promote products derived from this
-*    software without prior written permission. For written 
-*    permission, please contact info@cip4.org.
-*
-* 5. Products derived from this software may not be called "CIP4",
-*    nor may "CIP4" appear in their name, without prior written
-*    permission of the CIP4 organization
-*
-* Usage of this software in commercial products is subject to restrictions. For
-* details please consult info@cip4.org.
-*
-* THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
-* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-* OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
-* THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
-* ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-* USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
-* OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-* SUCH DAMAGE.
-* ====================================================================
-*
-* This software consists of voluntary contributions made by many
-* individuals on behalf of the The International Cooperation for the Integration 
-* of Processes in Prepress, Press and Postpress and was
-* originally based on software 
-* copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
-* copyright (c) 1999-2001, Agfa-Gevaert N.V. 
-*  
-* For more information on The International Cooperation for the 
-* Integration of Processes in  Prepress, Press and Postpress , please see
-* <http://www.cip4.org/>.
-*  
-* 
-*/
+ *
+ * The CIP4 Software License, Version 1.0
+ *
+ *
+ * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer. 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * 3. The end-user documentation included with the redistribution,
+ *    if any, must include the following acknowledgment:  
+ *       "This product includes software developed by the
+ *        The International Cooperation for the Integration of 
+ *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
+ *    Alternately, this acknowledgment may appear in the software itself,
+ *    if and wherever such third-party acknowledgments normally appear.
+ *
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ *    Processes in  Prepress, Press and Postpress" must
+ *    not be used to endorse or promote products derived from this
+ *    software without prior written permission. For written 
+ *    permission, please contact info@cip4.org.
+ *
+ * 5. Products derived from this software may not be called "CIP4",
+ *    nor may "CIP4" appear in their name, without prior written
+ *    permission of the CIP4 organization
+ *
+ * Usage of this software in commercial products is subject to restrictions. For
+ * details please consult info@cip4.org.
+ *
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
+ * THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
+ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the The International Cooperation for the Integration 
+ * of Processes in Prepress, Press and Postpress and was
+ * originally based on software 
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
+ *  
+ * For more information on The International Cooperation for the 
+ * Integration of Processes in  Prepress, Press and Postpress , please see
+ * <http://www.cip4.org/>.
+ *  
+ * 
+ */
 /**
  * buffered servlet request class
  * @author prosirai
- *
  */
 public class BambiServletRequest implements HttpServletRequest
 {
@@ -106,9 +105,8 @@ public class BambiServletRequest implements HttpServletRequest
 	/**
 	 * @param _parent the underlying HttpServletRequest
 	 * @param bufIt if true, the underlying streams are buffered and can be read multile times
-	 * 
 	 */
-	public BambiServletRequest(HttpServletRequest _parent, boolean bufIt)
+	public BambiServletRequest(final HttpServletRequest _parent, final boolean bufIt)
 	{
 		parent = _parent;
 		if (bufIt)
@@ -118,17 +116,18 @@ public class BambiServletRequest implements HttpServletRequest
 			{
 				IOUtils.copy(parent.getInputStream(), buffer);
 			}
-			catch (IOException x)
+			catch (final IOException x)
 			{
 				// nop - keep what we have
 			}
 		}
 		else
+		{
 			buffer = null;
+		}
 	}
 
 	/**
-	 * 
 	 * get the deviceID for this request
 	 * @return the deviceID
 	 */
@@ -144,30 +143,32 @@ public class BambiServletRequest implements HttpServletRequest
 	}
 
 	/**
-	 * 
 	 * @param context
 	 * @return true if the context fits
 	 */
-	public boolean isMyContext(String context)
+	public boolean isMyContext(final String context)
 	{
 		if (context == null)
+		{
 			return true;
+		}
 
-		String reqContext = getContext();
+		final String reqContext = getContext();
 		return context.equals(StringUtil.token(reqContext, 0, "/"));
 
 	}
 
 	/**
 	 * check whether this request is for deviceID
-	 * 
 	 * @param deviceID the deviceID to check
 	 * @return true if mine
 	 */
 	public boolean isMyRequest(final String deviceID)
 	{
 		if (deviceID == null)
+		{
 			return true;
+		}
 		final String reqDeviceID = getDeviceID();
 		return reqDeviceID == null || deviceID.equals(reqDeviceID);
 	}
@@ -201,7 +202,7 @@ public class BambiServletRequest implements HttpServletRequest
 	 * @param param
 	 * @return true if the parameter is"true", else false
 	 */
-	public boolean getBooleanParam(String param)
+	public boolean getBooleanParam(final String param)
 	{
 		final String val = getParameter(param);
 		return StringUtil.parseBoolean(val, false);
@@ -212,7 +213,7 @@ public class BambiServletRequest implements HttpServletRequest
 	 * @param param
 	 * @return the integer parameter
 	 */
-	public int getIntegerParam(String param)
+	public int getIntegerParam(final String param)
 	{
 		final String val = getParameter(param);
 		return StringUtil.parseInt(val, 0);
@@ -223,13 +224,13 @@ public class BambiServletRequest implements HttpServletRequest
 	 * @param param
 	 * @return the double parameter
 	 */
-	public double getDoubleParam(String param)
+	public double getDoubleParam(final String param)
 	{
 		final String val = getParameter(param);
 		return StringUtil.parseDouble(val, 0.0);
 	}
 
-	public Object getAttribute(String arg0)
+	public Object getAttribute(final String arg0)
 	{
 		return parent.getAttribute(arg0);
 	}
@@ -266,7 +267,7 @@ public class BambiServletRequest implements HttpServletRequest
 
 	public String getContextRoot()
 	{
-		String s = parent.getContextPath();
+		final String s = parent.getContextPath();
 		return "/" + StringUtil.token(s, 0, "/");
 	}
 
@@ -275,12 +276,12 @@ public class BambiServletRequest implements HttpServletRequest
 		return parent.getCookies();
 	}
 
-	public long getDateHeader(String arg0)
+	public long getDateHeader(final String arg0)
 	{
 		return parent.getDateHeader(arg0);
 	}
 
-	public String getHeader(String arg0)
+	public String getHeader(final String arg0)
 	{
 		return parent.getHeader(arg0);
 	}
@@ -290,7 +291,7 @@ public class BambiServletRequest implements HttpServletRequest
 		return parent.getHeaderNames();
 	}
 
-	public Enumeration getHeaders(String arg0)
+	public Enumeration getHeaders(final String arg0)
 	{
 		return parent.getHeaders(arg0);
 	}
@@ -318,13 +319,13 @@ public class BambiServletRequest implements HttpServletRequest
 		{
 			return buffer != null ? buffer.getInputStream() : parent.getInputStream();
 		}
-		catch (Exception e)
+		catch (final Exception e)
 		{
 			return null;
 		}
 	}
 
-	public int getIntHeader(String arg0)
+	public int getIntHeader(final String arg0)
 	{
 		return parent.getIntHeader(arg0);
 	}
@@ -359,7 +360,7 @@ public class BambiServletRequest implements HttpServletRequest
 		return parent.getMethod();
 	}
 
-	public String getParameter(String arg0)
+	public String getParameter(final String arg0)
 	{
 		return parent.getParameter(arg0);
 	}
@@ -374,7 +375,7 @@ public class BambiServletRequest implements HttpServletRequest
 		return parent.getParameterNames();
 	}
 
-	public String[] getParameterValues(String arg0)
+	public String[] getParameterValues(final String arg0)
 	{
 		return parent.getParameterValues(arg0);
 	}
@@ -405,7 +406,7 @@ public class BambiServletRequest implements HttpServletRequest
 	}
 
 	@Deprecated
-	public String getRealPath(String arg0)
+	public String getRealPath(final String arg0)
 	{
 		return parent.getRealPath(arg0);
 	}
@@ -430,7 +431,7 @@ public class BambiServletRequest implements HttpServletRequest
 		return parent.getRemoteUser();
 	}
 
-	public RequestDispatcher getRequestDispatcher(String arg0)
+	public RequestDispatcher getRequestDispatcher(final String arg0)
 	{
 		return parent.getRequestDispatcher(arg0);
 	}
@@ -475,7 +476,7 @@ public class BambiServletRequest implements HttpServletRequest
 		return parent.getSession();
 	}
 
-	public HttpSession getSession(boolean arg0)
+	public HttpSession getSession(final boolean arg0)
 	{
 		return parent.getSession(arg0);
 	}
@@ -511,27 +512,29 @@ public class BambiServletRequest implements HttpServletRequest
 		return parent.isSecure();
 	}
 
-	public boolean isUserInRole(String arg0)
+	public boolean isUserInRole(final String arg0)
 	{
 		return parent.isUserInRole(arg0);
 	}
 
-	public void removeAttribute(String arg0)
+	public void removeAttribute(final String arg0)
 	{
 		parent.removeAttribute(arg0);
 	}
 
-	public void setAttribute(String arg0, Object arg1)
+	public void setAttribute(final String arg0, final Object arg1)
 	{
 		parent.setAttribute(arg0, arg1);
 	}
 
-	public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException
+	public void setCharacterEncoding(final String arg0) throws UnsupportedEncodingException
 	{
 		parent.setCharacterEncoding(arg0);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override

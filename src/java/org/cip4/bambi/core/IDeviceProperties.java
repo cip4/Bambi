@@ -86,7 +86,6 @@ public interface IDeviceProperties
 
 	/**
 	 * queueentry return type
-	 *
 	 */
 	public enum QEReturn
 	{
@@ -95,19 +94,19 @@ public interface IDeviceProperties
 
 	/**
 	 * get the URL to communicate with this device
-	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device.
 	 */
 	public String getDeviceURL();
 
 	/**
 	 * get the URL to communicate with the root of this device
-	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device.
 	 */
 	public String getContextURL();
 
 	/**
 	 * get the URL of the device hotfolder, if null the device does not support a JDF input hot folder
-	 * @return the device hotfolder URL. Drop JDFs to this URL, if you want to submit to the device without JMF. 
+	 * @return the device hotfolder URL. Drop JDFs to this URL, if you want to submit to the device without JMF.
 	 */
 	public File getInputHF();
 
@@ -134,6 +133,12 @@ public interface IDeviceProperties
 	 * @return the DeviceType of this device
 	 */
 	public String getDeviceType();
+
+	/**
+	 * set the DeviceType of this device
+	 * @param deviceType the DeviceType of this device
+	 */
+	public void setDeviceType(String deviceType);
 
 	/**
 	 * get the application context dir of the web application
@@ -198,6 +203,11 @@ public interface IDeviceProperties
 	public String getWatchURL();
 
 	/**
+	 * set the URL to send generic subscriptions to
+	 */
+	public void setWatchURL(String WatchURL);
+
+	/**
 	 * @return the type regular expression that the device accepts
 	 */
 	public String getTypeExpression();
@@ -209,7 +219,7 @@ public interface IDeviceProperties
 
 	/**
 	 * get the HTTP chunking to communicate with this device
-	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device.
 	 */
 	public int getControllerHTTPChunk();
 
@@ -222,5 +232,11 @@ public interface IDeviceProperties
 	 * @return true if referenced files should be included in the mime package
 	 */
 	public boolean getControllerMIMEExpansion();
+
+	/**
+	 * serialize this (write)
+	 * @return true if successful
+	 */
+	public boolean serialize();
 
 }

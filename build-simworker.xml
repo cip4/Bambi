@@ -7,6 +7,9 @@
 		<echo>Initializing. Using build settings from ./build.properties...</echo>
 		<!-- Sets properties -->
 		<tstamp/>
+
+		<property name="ant.build.javac.target" value="1.5" />
+
    		<property name="SimWorker.name" value="SimWorker" />
 		<property file="version.properties"/>
 		<property name="src.dir" value="./src" />

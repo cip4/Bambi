@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:bambi="www.cip4.org/Bambi"
-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:strip-space elements="*"/>
   <xsl:output method="html"/>
   <xsl:template match="/XMLDevice">
@@ -10,6 +9,7 @@
       <xsl:variable name="deviceURL" select="@DeviceURL"/>
       <xsl:variable name="deviceStatus" select="@DeviceStatus"/>
       <xsl:variable name="context" select="@Context"/>
+      <xsl:variable name="modify" select="@modify"/>
       <head>
         <link rel="stylesheet" type="text/css">
           <xsl:attribute name="href"><xsl:value-of select="$context"/>/css/styles_pc.css</xsl:attribute>
@@ -24,11 +24,12 @@
         </title>
         <xsl:if test="@refresh='true'">
           <meta http-equiv="refresh">
-            <xsl:attribute name="content">15; URL=<xsl:value-of select="$context"/>/showDevice/<xsl:value-of
-              select="$deviceID"/>?refresh=true</xsl:attribute>
+            <xsl:attribute name="content">15; URL=<xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="$deviceID"/>?refresh=true</xsl:attribute>
           </meta>
         </xsl:if>
       </head>
+
+      <!-- Body only  -->
       <body>
         <img height="70" alt="logo">
           <xsl:attribute name="src"><xsl:value-of select="$context"/>/logo.gif</xsl:attribute>
@@ -44,24 +45,21 @@
               <xsl:choose>
                 <xsl:when test="@refresh='true'">
                   <a>
-                    <xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of
-                      select="$deviceID"/>?refresh=false</xsl:attribute>
+                    <xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="$deviceID"/>?refresh=false</xsl:attribute>
                     modify page
                   </a>
                 </xsl:when>
                 <xsl:otherwise>
                   <td>
                     <a>
-                      <xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of
-                        select="$deviceID"/>?refresh=false</xsl:attribute>
+                      <xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="$deviceID"/>?refresh=false</xsl:attribute>
                       reload once
                     </a>
                   </td>
                   <td width="15"/>
                   <td>
                     <a>
-                      <xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of
-                        select="$deviceID"/>?refresh=true</xsl:attribute>
+                      <xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="$deviceID"/>?refresh=true</xsl:attribute>
                       reload continually
                     </a>
                   </td>
@@ -90,48 +88,88 @@
           <tr>
             <td>
               <form style="margin-left: 20px">
-                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of
-                  select="@DeviceID"/></xsl:attribute>
+                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
                 <input type="hidden" name="refresh" value="false"/>
                 <input type="submit" value="refresh page"/>
               </form>
             </td>
             <td>
               <form style="margin-left: 20px">
-                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of
-                  select="@DeviceID"/></xsl:attribute>
+                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
                 <input type="hidden" name="shutdown" value="true"/>
                 <input type="submit" value="shutdown"/>
               </form>
             </td>
             <td>
               <form style="margin-left: 20px">
-                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of
-                  select="@DeviceID"/></xsl:attribute>
+                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
                 <input type="submit" value="restart"/>
                 <input type="hidden" name="restart" value="true"/>
               </form>
             </td>
+            <xsl:if test="$modify!='true'">
+              <td>
+                <form style="margin-left: 20px">
+                  <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+                  <input type="submit" value="modify"/>
+                  <input type="hidden" name="modify" value="true"/>
+                  <input type="hidden" name="refresh" value="false"/>
+                </form>
+              </td>
+            </xsl:if>
           </tr>
         </table>
         <br/>
         <hr/>
         <br/>
         <div style="margin-left: 20px">
-          <b>ID:</b>
-          <xsl:value-of select="$deviceID"/>
-          <br/>
-          <b>Class:</b>
-          <xsl:value-of select="$deviceType"/>
-          <br/>
-          <b>URL:</b>
-          <xsl:value-of select="$deviceURL"/>
-          <br/>
-          <xsl:if test="@bambi:SlaveURL">
-            <b>Slave URL:</b>
-            <xsl:value-of select="@bambi:SlaveURL"/>
-            <br/>
-          </xsl:if>
+          <form style="margin-left: 20px">
+            <table>
+              <xsl:attribute name="action">.</xsl:attribute>
+
+              <xsl:call-template name="modifyString">
+                <xsl:with-param name="attLabel" select="'ID: '"/>
+                <xsl:with-param name="attName" select="'unused'"/>
+                <xsl:with-param name="attVal" select="$deviceID"/>
+                <xsl:with-param name="modify" select="'false'"/>
+              </xsl:call-template>
+
+             <xsl:call-template name="modifyString">
+                <xsl:with-param name="attLabel" select="'URL: '"/>
+                <xsl:with-param name="attName" select="'DeviceURL'"/>
+                <xsl:with-param name="attVal" select="$deviceURL"/>
+                <xsl:with-param name="modify" select="'false'"/>
+              </xsl:call-template>
+
+              <xsl:call-template name="modifyString">
+                <xsl:with-param name="attLabel" select="'Device Class: '"/>
+                <xsl:with-param name="attName" select="'DeviceType'"/>
+                <xsl:with-param name="attVal" select="$deviceType"/>
+                <xsl:with-param name="modify" select="$modify"/>
+              </xsl:call-template>
+
+               <xsl:call-template name="modifyString">
+                <xsl:with-param name="attLabel" select="'Watch URL: '"/>
+                <xsl:with-param name="attName" select="'WatchURL'"/>
+                <xsl:with-param name="attVal" select="@WatchURL"/>
+                <xsl:with-param name="modify" select="$modify"/>
+              </xsl:call-template>
+
+              <xsl:if test="@bambi:SlaveURL">
+                <xsl:call-template name="modifyString">
+                  <xsl:with-param name="attLabel" select="'Slave URL: '"/>
+                  <xsl:with-param name="attName" select="'bambi:SlaveURL'"/>
+                  <xsl:with-param name="attVal" select="@bambi:SlaveURL"/>
+                  <xsl:with-param name="modify" select="$modify"/>
+                </xsl:call-template>
+              </xsl:if>
+              <xsl:if test="$modify='true'">
+                <tr>
+                  <input type="submit" value="Modify"/>
+                </tr>
+              </xsl:if>
+            </table>
+          </form>
         </div>
         <hr/>
         <!-- call queues and phases -->
@@ -140,15 +178,13 @@
           <tr>
             <td>
               <form style="margin-left: 20px">
-                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of
-                  select="@DeviceID"/></xsl:attribute>
+                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
                 <input type="submit" value="show queue"/>
               </form>
             </td>
             <td>
               <form style="margin-left: 20px">
-                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showSubscriptions/<xsl:value-of
-                  select="@DeviceID"/></xsl:attribute>
+                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showSubscriptions/<xsl:value-of select="@DeviceID"/></xsl:attribute>
                 <input type="submit" value="show subscriptions"/>
               </form>
             </td>
@@ -158,7 +194,9 @@
       </body>
     </html>
   </xsl:template>
+
   <xsl:include href="processor.xsl"/>
+  <xsl:include href="modifyString.xsl"/>
 
   <!--  modifiable phase -->
   <xsl:template match="Phase">

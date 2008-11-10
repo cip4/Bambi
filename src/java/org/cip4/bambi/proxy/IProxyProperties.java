@@ -80,7 +80,6 @@ public interface IProxyProperties extends IDeviceProperties
 
 	/**
 	 * queueentry return type
-	 *
 	 */
 	public enum QEReturn
 	{
@@ -104,9 +103,14 @@ public interface IProxyProperties extends IDeviceProperties
 
 	/**
 	 * get the URL to communicate with this device
-	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device.
 	 */
 	public String getSlaveURL();
+
+	/**
+	 * @param newSlaveURL
+	 */
+	public void setSlaveURL(String newSlaveURL);
 
 	/**
 	 * get the URL of this proxy for the slave
@@ -125,7 +129,7 @@ public interface IProxyProperties extends IDeviceProperties
 
 	/**
 	 * get the HTTP chunking to communicate with this device
-	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device. 
+	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device.
 	 */
 	public int getSlaveHTTPChunk();
 

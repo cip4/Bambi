@@ -94,7 +94,6 @@ import org.cip4.jdflib.util.StringUtil;
 
 /**
  * container for the properties of several Bambi devices
- * 
  * @author boegerni
  */
 public class MultiDeviceProperties
@@ -102,7 +101,6 @@ public class MultiDeviceProperties
 	/**
 	 * properties for a single device
 	 * @author boegerni
-	 *
 	 */
 	protected KElement root;
 	private URL contextURL;
@@ -115,7 +113,7 @@ public class MultiDeviceProperties
 		 */
 		protected KElement devRoot;
 
-		protected DeviceProperties(KElement _devRoot)
+		protected DeviceProperties(final KElement _devRoot)
 		{
 			devRoot = _devRoot;
 		}
@@ -132,15 +130,14 @@ public class MultiDeviceProperties
 		{
 			try
 			{
-				InetAddress localHost = InetAddress.getLocalHost();
-				contextURL = new URL("http://" + localHost.getHostName() + ":" + getPort() + "/"
-						+ StringUtil.token(context.getResource("/").toExternalForm(), -1, "/"));
+				final InetAddress localHost = InetAddress.getLocalHost();
+				contextURL = new URL("http://" + localHost.getHostName() + ":" + getPort() + "/" + StringUtil.token(context.getResource("/").toExternalForm(), -1, "/"));
 			}
-			catch (UnknownHostException x1)
+			catch (final UnknownHostException x1)
 			{
 				//
 			}
-			catch (MalformedURLException x2)
+			catch (final MalformedURLException x2)
 			{
 				// 
 			}
@@ -153,16 +150,16 @@ public class MultiDeviceProperties
 		 */
 		public IConverterCallback getCallBackClass()
 		{
-			String _callBackName = getCallBackClassName();
+			final String _callBackName = getCallBackClassName();
 
 			if (_callBackName != null)
 			{
 				try
 				{
-					Class c = Class.forName(_callBackName);
+					final Class c = Class.forName(_callBackName);
 					return (IConverterCallback) c.newInstance();
 				}
-				catch (Exception x)
+				catch (final Exception x)
 				{
 					log.error("Cannot instantiate callback class: " + _callBackName);
 				}
@@ -177,7 +174,9 @@ public class MultiDeviceProperties
 		{
 			String name = devRoot.getAttribute("CallBackName", null, null);
 			if (name == null)
+			{
 				name = root.getAttribute("CallBackName", null, null);
+			}
 			return name;
 		}
 
@@ -187,17 +186,19 @@ public class MultiDeviceProperties
 		 */
 		public AbstractDevice getDeviceInstance()
 		{
-			String _deviceName = getDeviceClassName();
+			final String _deviceName = getDeviceClassName();
 
 			if (_deviceName != null)
 			{
 				try
 				{
-					Class<?> c = Class.forName(_deviceName);
-					Constructor<?> con = c.getConstructor(new Class[] { IDeviceProperties.class });
-					return (AbstractDevice) con.newInstance(new Object[] { this });
+					final Class<?> c = Class.forName(_deviceName);
+					final Constructor<?> con = c.getConstructor(new Class[]
+					{ IDeviceProperties.class });
+					return (AbstractDevice) con.newInstance(new Object[]
+					{ this });
 				}
-				catch (Exception x)
+				catch (final Exception x)
 				{
 					log.fatal("Cannot instantiate Device class: " + _deviceName, x);
 				}
@@ -238,6 +239,14 @@ public class MultiDeviceProperties
 		}
 
 		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#setDeviceType()
+		 */
+		public void setDeviceType(final String deviceType)
+		{
+			devRoot.setAttribute("DeviceType", deviceType);
+		}
+
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#toString()
 		 */
 		@Override
@@ -246,7 +255,7 @@ public class MultiDeviceProperties
 			return "[ DeviceProperties: " + devRoot.toString() + "]";
 		}
 
-		protected File getFile(String file)
+		protected File getFile(final String file)
 		{
 			final String fil = devRoot.getAttribute(file, null, null);
 			return fil == null ? getRootFile(file) : new File(fil);
@@ -302,8 +311,8 @@ public class MultiDeviceProperties
 		 */
 		public File getJDFDir()
 		{
-			File f = MultiDeviceProperties.this.getJDFDir();
-			String deviceID = getDeviceID();
+			final File f = MultiDeviceProperties.this.getJDFDir();
+			final String deviceID = getDeviceID();
 			if (deviceID == null)
 			{
 				log.fatal("missing deviceID in Config - bailung out " + toString());
@@ -314,7 +323,6 @@ public class MultiDeviceProperties
 
 		/**
 		 * get the tracked resource - defaults to "Output"
-		 * 
 		 * @see org.cip4.bambi.core.IDeviceProperties#getTrackResource()
 		 */
 		public String getTrackResource()
@@ -327,7 +335,7 @@ public class MultiDeviceProperties
 		 * @param key
 		 * @return the device attribute, null if none exists
 		 */
-		public String getDeviceAttribute(String key)
+		public String getDeviceAttribute(final String key)
 		{
 			return getDeviceAttribute(key, null, null);
 
@@ -339,11 +347,13 @@ public class MultiDeviceProperties
 		 * @param def the default if not found
 		 * @return the device attribute
 		 */
-		public String getDeviceAttribute(String key, String ns, String def)
+		public String getDeviceAttribute(final String key, final String ns, final String def)
 		{
 			String val = devRoot.getAttribute(key, ns, null);
 			if (val == null)
+			{
 				val = root.getAttribute(key, ns, def);
+			}
 			return val;
 
 		}
@@ -352,11 +362,13 @@ public class MultiDeviceProperties
 		 * @param xpath the element relative xpath
 		 * @return the device attribute
 		 */
-		public KElement getDeviceElement(String xpath)
+		public KElement getDeviceElement(final String xpath)
 		{
 			KElement el = devRoot.getXPathElement(xpath);
 			if (el == null)
+			{
 				el = root.getXPathElement(xpath);
+			}
 			return el;
 
 		}
@@ -374,7 +386,7 @@ public class MultiDeviceProperties
 		 */
 		public VString getAmountResources()
 		{
-			VString v = StringUtil.tokenize(getDeviceAttribute("AmountResources", null, null), ",", false);
+			final VString v = StringUtil.tokenize(getDeviceAttribute("AmountResources", null, null), ",", false);
 			final String trackResource = getTrackResource();
 			if (v == null)
 			{
@@ -413,12 +425,12 @@ public class MultiDeviceProperties
 		 */
 		public QEReturn getReturnMIME()
 		{
-			String s = getDeviceAttribute("MIMEReturn", null, "MIME");
+			final String s = getDeviceAttribute("MIMEReturn", null, "MIME");
 			try
 			{
 				return QEReturn.valueOf(s);
 			}
-			catch (Exception x)
+			catch (final Exception x)
 			{
 				return QEReturn.MIME;
 			}
@@ -438,6 +450,14 @@ public class MultiDeviceProperties
 		}
 
 		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#setWatchURL()
+		 */
+		public void setWatchURL(final String watchURL)
+		{
+			devRoot.setAttribute("WatchURL", watchURL);
+		}
+
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getConfigDir()
 		 * @return the configuration directory
 		 */
@@ -446,22 +466,29 @@ public class MultiDeviceProperties
 			return MultiDeviceProperties.this.getConfigDir();
 		}
 
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#serialize()
+		 */
+		public boolean serialize()
+		{
+			return MultiDeviceProperties.this.serialize();
+		}
 	}
 
 	private static final Log log = LogFactory.getLog(MultiDeviceProperties.class.getName());
 
 	/**
 	 * create device properties for the devices defined in the config file
-	 * @param _context     the location of the web application in the server
+	 * @param _context the location of the web application in the server
 	 * @param configFile the config file
 	 */
-	public MultiDeviceProperties(ServletContext _context, File configFile)
+	public MultiDeviceProperties(final ServletContext _context, final File configFile)
 	{
 		context = _context;
 		// to evaluate current name and send it back rather than 127.0.0.1
-		File baseDir = new File(context.getRealPath(""));
-		JDFParser p = new JDFParser();
-		XMLDoc doc = p.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
+		final File baseDir = new File(context.getRealPath(""));
+		final JDFParser p = new JDFParser();
+		final XMLDoc doc = p.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
 		root = doc == null ? null : doc.getRoot();
 		if (root == null)
 		{
@@ -470,8 +497,9 @@ public class MultiDeviceProperties
 		else
 		{
 			root.setAttribute("AppDir", baseDir.getAbsolutePath());
-			File deviceDir = getBaseDir();
-			XMLDoc d2 = p.parseFile(FileUtil.getFileInDirectory(deviceDir, configFile));
+			final File deviceDir = getBaseDir();
+			final File fileInDirectory = FileUtil.getFileInDirectory(deviceDir, configFile);
+			final XMLDoc d2 = p.parseFile(fileInDirectory);
 			if (d2 != null) // using config default
 			{
 				root = d2.getRoot();
@@ -481,20 +509,20 @@ public class MultiDeviceProperties
 			// using updated devices
 			{
 				deviceDir.mkdirs();
-				doc.write2File(FileUtil.getFileInDirectory(deviceDir, configFile), 2, false);
+				doc.setOriginalFileName(fileInDirectory.getAbsolutePath());
+				serialize();
 			}
 		}
 		try
 		{
-			InetAddress localHost = InetAddress.getLocalHost();
-			contextURL = new URL("http://" + localHost.getHostName() + ":" + getPort() + "/"
-					+ StringUtil.token(context.getResource("/").toExternalForm(), -1, "/"));
+			final InetAddress localHost = InetAddress.getLocalHost();
+			contextURL = new URL("http://" + localHost.getHostName() + ":" + getPort() + "/" + StringUtil.token(context.getResource("/").toExternalForm(), -1, "/"));
 		}
-		catch (UnknownHostException x1)
+		catch (final UnknownHostException x1)
 		{
 			//
 		}
-		catch (MalformedURLException x2)
+		catch (final MalformedURLException x2)
 		{
 			// 
 		}
@@ -502,16 +530,26 @@ public class MultiDeviceProperties
 	}
 
 	/**
+	 * serialize this to it's default location
+	 */
+	public boolean serialize()
+	{
+		return root.getOwnerDocument_KElement().write2File((String) null, 2, false);
+	}
+
+	/**
 	 * @return
 	 */
 	private int getPort()
 	{
-		//TODO extract from servlet
+		// TODO extract from servlet
 		return root.getIntAttribute("Port", null, BambiServlet.port);
 
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IMultiDeviceProperties#count()
 	 */
 	public int count()
@@ -542,20 +580,20 @@ public class MultiDeviceProperties
 	 */
 	public File getConfigDir()
 	{
-		File f = getRootFile("AppDir");
+		final File f = getRootFile("AppDir");
 		return FileUtil.getFileInDirectory(f, new File("config"));
 	}
 
 	/**
 	 * get the base directory for data
-	 * @return  the base directory for data
+	 * @return the base directory for data
 	 */
 	public File getBaseDir()
 	{
 		File f = getRootFile("BaseDir");
 		if (!FileUtil.isAbsoluteFile(f))
 		{
-			File fBase = getAppDir();
+			final File fBase = getAppDir();
 			f = FileUtil.getFileInDirectory(fBase, f);
 		}
 		return f;
@@ -566,8 +604,8 @@ public class MultiDeviceProperties
 	 */
 	public File getJDFDir()
 	{
-		File fBase = getBaseDir();
-		File f = getRootFile("JDFDir");
+		final File fBase = getBaseDir();
+		final File f = getRootFile("JDFDir");
 		return FileUtil.getFileInDirectory(fBase, f);
 	}
 
@@ -578,7 +616,9 @@ public class MultiDeviceProperties
 	{
 		File f = getRootFile("JMFDir");
 		if (f == null)
+		{
 			f = new File("C:/BambiData/JMFDir");
+		}
 		return f;
 	}
 
@@ -586,14 +626,13 @@ public class MultiDeviceProperties
 	 * @param file the file type to search
 	 * @return a File representing the directory
 	 */
-	protected File getRootFile(String file)
+	protected File getRootFile(final String file)
 	{
 		final String fil = root.getAttribute(file, null, null);
 		return fil == null ? null : new File(fil);
 	}
 
 	/**
-	 * 
 	 * @return the sender ID...
 	 */
 	public String getSenderID()
@@ -610,7 +649,6 @@ public class MultiDeviceProperties
 	}
 
 	/**
-	 * 
 	 * @return the root application node
 	 */
 	public KElement getRoot()
@@ -622,7 +660,7 @@ public class MultiDeviceProperties
 	 * @param element the xml element to parse
 	 * @return a IDeviceProperties parsed from the element
 	 */
-	public IDeviceProperties createDevice(KElement element)
+	public IDeviceProperties createDevice(final KElement element)
 	{
 		return this.new DeviceProperties(element);
 	}
