@@ -69,81 +69,77 @@
  * 
  */
 
-package org.cip4.bambi.core;
+package org.cip4.bambi.messaging;
+
+import java.io.IOException;
+import java.net.URL;
+
+import javax.mail.Multipart;
 
 import org.cip4.bambi.BambiTestCase;
-import org.cip4.bambi.core.SignalDispatcher.Trigger;
-import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
+import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFQuery;
-import org.cip4.jdflib.jmf.JDFSubscription;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.util.ThreadUtil;
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
+import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StatusCounter;
 
 /**
- * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- * 
- * 10.12.2008
+ * @author Rainer Prosi, Heidelberger Druckmaschinen
+ *
  */
-public class SignalDispatcherTest extends BambiTestCase
+public class MessageSenderTest extends BambiTestCase
 {
-
-	SignalDispatcher d;
 
 	/**
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
+	 * @throws Exception
 	 */
+	String snafu = "http://www.foobar.snafu/next";
+
 	@Override
-	public void setUp()
+	public void setUp() throws Exception
 	{
-		final JMFHandler h = new JMFHandler(null);
-		d = new SignalDispatcher(h, null, null);
-
-		d.addHandlers(h);
+		super.setUp();
+		simWorkerUrl = "http://kie-prosirai-lg:8080/speedmaster/jmf/MAN75";
 	}
 
 	/**
-	 * 
+	 * @throws Exception
 	 */
-	public void testAddSubscription()
+	public void testSerialize() throws Exception
 	{
-		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
-		final JDFQuery q = jmf.getQuery(0);
-		final JDFSubscription s = q.appendSubscription();
-		s.setRepeatTime(1.0);
-		s.setURL("http://localhost:8080/httpdump/");
-		assertNotNull(d.addSubscription(q, null));
-		assertNull(d.addSubscription(q, null));
-		s.setRepeatTime(5.0);
-		q.setID("1234");
-		assertNotNull(d.addSubscription(q, null));
-		ThreadUtil.sleep(4000);
-		d.shutdown();
+		JDFJMF jmf = JMFFactory.buildStatusSubscription(snafu, 1, 0, null);
+		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		assertNotNull(resp);
+		submitToQueue(new URL(simWorkerUrl));
+		StatusCounter.sleep(10);
 	}
 
-	/**
-	 * 
-	 */
-	public void testWaitQueued()
+	protected void submitToQueue(URL qurl) throws Exception
 	{
-		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
-		final JDFQuery q = jmf.getQuery(0);
-		final JDFSubscription s = q.appendSubscription();
-		s.setRepeatTime(1.0);
-		s.setURL("http://localhost:8080/httpdump/");
-		assertNotNull(d.addSubscription(q, null));
-		assertNull(d.addSubscription(q, null));
-		s.setRepeatTime(5.0);
-		q.setID("1234");
-		assertNotNull(d.addSubscription(q, null));
-		final Trigger[] ts = d.triggerQueueEntry(null, null, -1, null);
-		assertNotNull(ts);
-		final long t0 = System.currentTimeMillis();
-		Trigger.waitQueued(ts, 4000);
-		final long t1 = System.currentTimeMillis();
-		assertTrue(t1 - t0 < 3000);
-		d.shutdown();
+		JDFJMF jmf = JDFJMF.createJMF(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
+		JDFCommand com = (JDFCommand) jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command, null, 0);
+		JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
+		qsp.setURL("dummy"); // replaced by mimeutil
+
+		qsp.setReturnJMF(snafu);
+		JDFNode nod = new JDFParser().parseString("<JDF Type=\"ConventionalPrinting\" ID=\"a1\"/>").getJDFRoot();
+		final String urlString = qurl == null ? null : qurl.toExternalForm();
+
+		writeToQueue(jmf.getOwnerDocument_JDFElement(), nod.getOwnerDocument_JDFElement(), urlString);
+
+	}
+
+	protected void writeToQueue(JDFDoc docJMF, JDFDoc docJDF, String strUrl) throws IOException
+	{
+		Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
+		JMFFactory.send2URL(mp, strUrl, null, null, null, "did");
 	}
 
 }

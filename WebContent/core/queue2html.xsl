@@ -8,10 +8,12 @@
         <link rel="stylesheet" type="text/css">
           <xsl:attribute name="href"><xsl:value-of select="$context"/>/css/styles_pc.css</xsl:attribute>
         </link>
+        <xsl:if test="@refresh">
         <meta http-equiv="refresh">
           <xsl:attribute name="content">15; URL=<xsl:value-of select="$context"/>/showQueue/<xsl:value-of
             select="@DeviceID"/>?refresh=true</xsl:attribute>
         </meta>
+        </xsl:if>
       </head>
       <body>
         <img height="70" alt="logo">

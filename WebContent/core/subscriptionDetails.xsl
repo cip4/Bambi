@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+>
   <xsl:strip-space elements="*"/>
-  <xsl:output method="html"/>
+  <xsl:output method="html" cdata-section-elements="jdf:JMF jdf:Query"/>
   <xsl:template match="/SubscriptionList">
     <xsl:variable name="context" select="@Context"/>
     <html>
@@ -37,33 +39,19 @@
           <xsl:apply-templates select="MsgSubscription"/>
         </table>
 
+        <a>
+          <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showSubscriptions/<xsl:value-of select="@DeviceID"/>
+                  </xsl:attribute>
+          Back to Subscription List
+        </a>
         <hr/>
 
-        <h2>Message Sender Channels</h2>
-        <table cellspacing="2" border="1">
-          <tr>
-            <th align="left"> Base URL</th>
-            <th align="left"> Currently active</th>
-            <th align="left"> Messages Pending</th>
-            <th align="left"> Messages Sent</th>
-            <th align="left"> Last time Sent</th>
-            <th align="left"> Last time Queued</th>
-            <th align="left"> Active since</th>
-            <th align="left"> Remove Sender</th>
-            <th align="left"> Flush unsent Messages</th>
-          </tr>
-          <xsl:apply-templates select="MessageSender"/>
-        </table>
+        <xsl:apply-templates select="MsgSubscription/Sub"/>
         <hr/>
-        <ul>
-          <xsl:apply-templates select="RemovedChannel"/>
-        </ul>
-        <hr/>
-        <a>
-          <xsl:attribute name="href">../showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
-          back to device
-          <xsl:value-of select="@DeviceID"/>
-        </a>
+        <xsl:apply-templates select="MsgSubscription/Last"/>
+
+
+
       </body>
     </html>
   </xsl:template>
@@ -116,60 +104,33 @@
     </tr>
   </xsl:template>
   <!--  end of template MsgSubscription  -->
-  <xsl:template match="MessageSender">
-    <tr>
-      <td align="left">
-        <xsl:value-of select="@URL"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@Active"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@Size"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@NumSent"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@LastSent"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@LastQueued"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@CreationDate"/>
-      </td>
-      <td align="center">
-        <form>
-          <xsl:attribute name="action"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/></xsl:attribute>
-          <input type="hidden" name="StopSender" value="true"/>
-          <input type="hidden" name="URL">
-            <xsl:attribute name="value"><xsl:value-of select="@URL"/></xsl:attribute>
-          </input>
-          <input type="submit" value="remove"/>
-        </form>
-      </td>
-      <td align="center">
-        <form>
-          <xsl:attribute name="action"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/></xsl:attribute>
-          <input type="hidden" name="FlushSender" value="true"/>
-          <input type="hidden" name="URL">
-            <xsl:attribute name="value"><xsl:value-of select="@URL"/></xsl:attribute>
-          </input>
-          <input type="submit" value="flush"/>
-        </form>
-      </td>
-    </tr>
-  </xsl:template>
+
   <!--  end of template MessageSender  -->
-  <xsl:template match="RemovedChannel">
-    <li>
-      Subscription
-      <xsl:value-of select="@ChannelID"/>
-      to
-      <xsl:value-of select="@URL"/>
-      has been removed.
-    </li>
+  <xsl:template match="Sub">
+    <h2>Subscription Details</h2>
+    <code>
+      <xsl:apply-templates select="jdf:Query"/>
+    </code>
+
   </xsl:template>
+  <xsl:template match="Last">
+    <h2>Last Queued Message Details</h2>
+    <code>
+      <xsl:apply-templates select="jdf:JMF"/>
+    </code>
+  </xsl:template>
+  <xsl:template match="jdf:*">
+    <br/>
+   &lt;<b><xsl:value-of select="name()" disable-output-escaping="yes" /></b>
+<xsl:for-each select="@*">
+<br/><xsl:text> </xsl:text>
+<i><xsl:value-of select="name()"/></i>="<xsl:value-of select="."/>"
+</xsl:for-each>&gt;
+           <xsl:apply-templates select="jdf:*"/>
+           <b>
+<br/>&lt;/<xsl:value-of select="name()" disable-output-escaping="yes" />&gt;
+</b>
+</xsl:template>
+ 
   <!--  end of template RemovedChannel  -->
 </xsl:stylesheet>

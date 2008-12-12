@@ -72,6 +72,7 @@
 package org.cip4.bambi;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -83,6 +84,7 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
@@ -102,6 +104,7 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen abstract test case for all bambi tests note that this has some site specific details that must be modified
@@ -588,7 +591,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		}
 		ensureCurrentGT();
 
-		final Multipart mp = MimeUtil.buildMimePackage(docJMF, n.getOwnerDocument_JDFElement(), true);
+		final Multipart mp = MimeUtil.buildMimePackage(docJMF, n.getOwnerDocument_JDFElement(), false);
 
 		try
 		{
@@ -605,6 +608,33 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		{
 			fail(e.getMessage()); // fail on exception
 		}
+	}
+
+	/**
+	 * @param jmf the jmf to send
+	 * @param url the url to send to
+	 * @throws MalformedURLException
+	 */
+	protected JDFDoc submitJMFtoURL(final JDFJMF jmf, final String url)
+	{
+		try
+		{
+			final HTTPDetails md = new HTTPDetails();
+			md.chunkSize = chunkSize;
+			final HttpURLConnection urlCon = jmf.getOwnerDocument_JDFElement().write2HTTPURL(new URL(url), md);
+			assertEquals(url, 200, urlCon.getResponseCode());
+			final JDFParser parser = new JDFParser();
+			final InputStream inStream = urlCon.getInputStream();
+
+			parser.parseStream(inStream);
+			final JDFDoc docResponse = parser.getDocument() == null ? null : new JDFDoc(parser.getDocument());
+			return docResponse;
+		}
+		catch (final Exception e)
+		{
+			fail(e.getMessage()); // fail on exception
+		}
+		return null;
 	}
 
 	/**
