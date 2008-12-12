@@ -84,7 +84,7 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 
 /**
- *
+ * 
  * @author prosirai
  */
 public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
@@ -96,7 +96,7 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 	/**
 	 * @param parent the owner device
 	 */
-	public ProxyDispatcherProcessor(ProxyDevice parent)
+	public ProxyDispatcherProcessor(final ProxyDevice parent)
 	{
 		super();
 		_parent = parent;
@@ -111,42 +111,42 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 	 * @return always Waiting
 	 */
 	@Override
-	public EnumQueueEntryStatus processDoc(JDFNode nod, JDFQueueEntry qe)
+	public EnumQueueEntryStatus processDoc(final JDFNode nod, final JDFQueueEntry qe)
 	{
-		//nop - the submission processor does the real work
+		// nop - the submission processor does the real work
 		return EnumQueueEntryStatus.Waiting;
 
 	}
 
 	/**
-	 * @param root the Kelement root
-	 * this is not really a processor to display - ignore call
+	 * @param root the Kelement root this is not really a processor to display - ignore call
 	 */
 	@Override
-	public void addToDisplayXML(KElement root)
+	public void addToDisplayXML(final KElement root)
 	{
 		return;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#stopProcessing(org.cip4.jdflib.core.JDFElement.EnumNodeStatus)
 	 */
 	@Override
-	public void stopProcessing(EnumNodeStatus newStatus)
+	public EnumNodeStatus stopProcessing(final EnumNodeStatus newStatus)
 	{
-		//TODO call abortqe
-
+		return null;
 	}
 
 	@Override
-	protected boolean finalizeProcessDoc(EnumQueueEntryStatus qes)
+	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{
 		// nop
 		return _parent.activeProcessors() < 1 + proxyProperties.getMaxPush();
 	}
 
 	@Override
-	protected boolean initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
+	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
 	{
 		currentQE = null;
 		if (_parent.activeProcessors() >= 1 + proxyProperties.getMaxPush())
@@ -155,8 +155,8 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 			return false; // no more push
 		}
 		qe.setDeviceID(proxyProperties.getSlaveDeviceID());
-		IQueueEntry iqe = new QueueEntry(node, qe);
-		ProxyDeviceProcessor pdb = ((ProxyDevice) _parent).submitQueueEntry(iqe, proxyProperties.getSlaveURL());
+		final IQueueEntry iqe = new QueueEntry(node, qe);
+		final ProxyDeviceProcessor pdb = ((ProxyDevice) _parent).submitQueueEntry(iqe, proxyProperties.getSlaveURL());
 		if (pdb == null)
 		{
 			BambiNSExtension.setDeviceURL(qe, null); // see above clean up any multuple markers

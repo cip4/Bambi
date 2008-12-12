@@ -131,7 +131,7 @@ public class MultiDeviceProperties
 			try
 			{
 				final InetAddress localHost = InetAddress.getLocalHost();
-				contextURL = new URL("http://" + localHost.getHostName() + ":" + getPort() + "/" + StringUtil.token(context.getResource("/").toExternalForm(), -1, "/"));
+				contextURL = new URL("http://" + localHost.getHostAddress() + ":" + getPort() + "/" + StringUtil.token(context.getResource("/").toExternalForm(), -1, "/"));
 			}
 			catch (final UnknownHostException x1)
 			{
@@ -193,10 +193,8 @@ public class MultiDeviceProperties
 				try
 				{
 					final Class<?> c = Class.forName(_deviceName);
-					final Constructor<?> con = c.getConstructor(new Class[]
-					{ IDeviceProperties.class });
-					return (AbstractDevice) con.newInstance(new Object[]
-					{ this });
+					final Constructor<?> con = c.getConstructor(new Class[] { IDeviceProperties.class });
+					return (AbstractDevice) con.newInstance(new Object[] { this });
 				}
 				catch (final Exception x)
 				{
@@ -252,9 +250,13 @@ public class MultiDeviceProperties
 		@Override
 		public String toString()
 		{
-			return "[ DeviceProperties: " + devRoot.toString() + "]";
+			return "[ DeviceProperties: " + devRoot == null ? "null" : devRoot.toString() + "]";
 		}
 
+		/**
+		 * @param file
+		 * @return
+		 */
 		protected File getFile(final String file)
 		{
 			final String fil = devRoot.getAttribute(file, null, null);

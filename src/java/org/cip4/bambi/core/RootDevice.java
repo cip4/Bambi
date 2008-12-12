@@ -98,8 +98,8 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * the dispatcher / rootDev controller device
@@ -137,16 +137,11 @@ public class RootDevice extends AbstractDevice
 		_jmfHandler.addHandler(this.new KnownDevicesHandler());
 		_jmfHandler.addHandler(this.new StatusHandler());
 		// this guy is the catchall
-		_jmfHandler.addHandler(this.new RootDispatchHandler("*", new EnumFamily[]
-		{ EnumFamily.Query, EnumFamily.Command, EnumFamily.Signal }));
-		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.AbortQueueEntry, new EnumFamily[]
-		{ EnumFamily.Command }));
-		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.HoldQueueEntry, new EnumFamily[]
-		{ EnumFamily.Command }));
-		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.RemoveQueueEntry, new EnumFamily[]
-		{ EnumFamily.Command }));
-		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.ResumeQueueEntry, new EnumFamily[]
-		{ EnumFamily.Command }));
+		_jmfHandler.addHandler(this.new RootDispatchHandler("*", new EnumFamily[] { EnumFamily.Query, EnumFamily.Command, EnumFamily.Signal }));
+		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.AbortQueueEntry, new EnumFamily[] { EnumFamily.Command }));
+		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.HoldQueueEntry, new EnumFamily[] { EnumFamily.Command }));
+		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.RemoveQueueEntry, new EnumFamily[] { EnumFamily.Command }));
+		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.ResumeQueueEntry, new EnumFamily[] { EnumFamily.Command }));
 	}
 
 	@Override
@@ -265,8 +260,7 @@ public class RootDevice extends AbstractDevice
 	{
 		public KnownDevicesHandler()
 		{
-			super(EnumType.KnownDevices, new EnumFamily[]
-			{ EnumFamily.Query });
+			super(EnumType.KnownDevices, new EnumFamily[] { EnumFamily.Query });
 		}
 
 		/*
@@ -287,8 +281,7 @@ public class RootDevice extends AbstractDevice
 	{
 		public StatusHandler()
 		{
-			super(EnumType.Status, new EnumFamily[]
-			{ EnumFamily.Query, EnumFamily.Command });
+			super(EnumType.Status, new EnumFamily[] { EnumFamily.Query, EnumFamily.Command });
 		}
 
 		/*
@@ -550,7 +543,7 @@ public class RootDevice extends AbstractDevice
 		final KElement listRoot = deviceList.getRoot();
 		listRoot.setAttribute("NumRequests", numRequests, null);
 		listRoot.setAttribute(AttributeName.CONTEXT, "/" + BambiServlet.getBaseServletName(request));
-		final XMLDevice dRoot = this.new XMLDevice(false, request);
+		final XMLDevice dRoot = getXMLDevice(false, request);
 
 		final KElement rootElem = dRoot.getRoot();
 		rootElem.setAttribute("Root", true, null);
@@ -560,18 +553,11 @@ public class RootDevice extends AbstractDevice
 		final int listSize = devices == null ? 0 : devices.length;
 		for (int i = 0; i < listSize; i++)
 		{
-			if (devices[i] instanceof AbstractDevice)
-			{
-				final AbstractDevice ad = devices[i];
-				final XMLDevice dChild = ad.new XMLDevice(false, request);
-				final KElement childElem = dChild.getRoot();
-				childElem.setAttribute("Root", false, null);
-				listRoot.copyElement(childElem, null);
-			}
-			else
-			{
-				// TODO what if only interface?
-			}
+			final AbstractDevice ad = devices[i];
+			final XMLDevice dChild = ad.getXMLDevice(false, request);
+			final KElement childElem = dChild.getRoot();
+			childElem.setAttribute("Root", false, null);
+			listRoot.copyElement(childElem, null);
 		}
 
 		deviceList.setXSLTURL(getXSLT("overview", request.getContextPath()));
@@ -584,7 +570,7 @@ public class RootDevice extends AbstractDevice
 		{
 			return false;
 		}
-		response.setContentType(MimeUtil.TEXT_XML);
+		response.setContentType(UrlUtil.TEXT_XML);
 		return true;
 
 	}

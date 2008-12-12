@@ -320,8 +320,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		public NotificationQueryHandler()
 		{
 			super(getParent().getSignalDispatcher(), _statusListener);
-			families = new EnumFamily[]
-			{ EnumFamily.Query };
+			families = new EnumFamily[] { EnumFamily.Query };
 		}
 	}
 
@@ -631,11 +630,15 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	 * @param newStatus
 	 */
 	@Override
-	public void stopProcessing(final EnumNodeStatus newStatus)
+	public EnumNodeStatus stopProcessing(final EnumNodeStatus newStatus)
 	{
 		final String slaveQE = getSlaveQEID();
-		getParent().stopSlaveProcess(slaveQE, newStatus);
-		stopTime = System.currentTimeMillis();
+		final EnumNodeStatus status = getParent().stopSlaveProcess(slaveQE, newStatus);
+		if (status != null)
+		{
+			stopTime = System.currentTimeMillis();
+		}
+		return status;
 	}
 
 	/**

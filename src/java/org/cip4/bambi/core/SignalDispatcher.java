@@ -70,6 +70,7 @@
  */
 package org.cip4.bambi.core;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
@@ -93,6 +94,7 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.JDFNodeInfo;
+import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -113,6 +115,8 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.pool.JDFAncestorPool;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
@@ -126,6 +130,7 @@ public final class SignalDispatcher
 {
 	protected static final Log log = LogFactory.getLog(SignalDispatcher.class.getName());
 	private HashMap<String, MsgSubscription> subscriptionMap = null; // map of slaveChannelID / Subscription
+	private final SubscriptionStore storage;
 	IMessageHandler messageHandler = null;
 	private Vector<Trigger> triggers = null;
 	protected Object mutex = null;
@@ -173,25 +178,29 @@ public final class SignalDispatcher
 			{
 				stopChannel(request, response);
 			}
+			final boolean bStopSender = request.getBooleanParam("StopSender");
+			if (bStopSender)
+			{
+				stopSender(request, response);
+			}
+			final boolean bFlushSender = request.getBooleanParam("FlushSender");
+			if (bFlushSender)
+			{
+				flushSender(request, response);
+			}
+			final String details = request.getParameter("DetailID");
+
+			if (details == null)
+			{
+				listChannels(request, details);
+				listDispatchers(request);
+				setXSLTURL("/" + BambiServlet.getBaseServletName(request) + "/subscriptionList.xsl");
+			}
 			else
 			{
-				final boolean bStopSender = request.getBooleanParam("StopSender");
-				if (bStopSender)
-				{
-					stopSender(request, response);
-				}
-				final boolean bFlushSender = request.getBooleanParam("FlushSender");
-				if (bFlushSender)
-				{
-					flushSender(request, response);
-				}
-
+				showDetails(request, details);
+				setXSLTURL("/" + BambiServlet.getBaseServletName(request) + "/subscriptionDetails.xsl");
 			}
-
-			listChannels(request);
-			listDispatchers(request);
-
-			setXSLTURL("/" + BambiServlet.getBaseServletName(request) + "/subscriptionList.xsl");
 
 			try
 			{
@@ -265,15 +274,15 @@ public final class SignalDispatcher
 			final int size = v == null ? 0 : v.size();
 			for (int i = 0; i < size; i++)
 			{
-
 				v.get(i).appendToXML(root, false);
 			}
 		}
 
 		/**
 		 * @param request
+		 * @param details
 		 */
-		private void listChannels(final BambiServletRequest request)
+		public void listChannels(final BambiServletRequest request, final String details)
 		{
 			final Vector<MsgSubscription> v = ContainerUtil.toValueVector(subscriptionMap, true);
 			root.setAttribute(AttributeName.DEVICEID, deviceID);
@@ -282,7 +291,21 @@ public final class SignalDispatcher
 			final int size = v == null ? 0 : v.size();
 			for (int i = 0; i < size; i++)
 			{
-				v.get(i).appendToXML(root);
+				v.get(i).appendToXML(root, details);
+			}
+		}
+
+		/**
+		 * @param details
+		 */
+		private void showDetails(final BambiServletRequest request, final String details)
+		{
+			final MsgSubscription sub = subscriptionMap.get(details);
+			root.setAttribute(AttributeName.DEVICEID, deviceID);
+			root.setAttribute(AttributeName.CONTEXT, "/" + BambiServlet.getBaseServletName(request));
+			if (sub != null)
+			{
+				sub.appendToXML(root, details);
 			}
 		}
 
@@ -301,12 +324,75 @@ public final class SignalDispatcher
 			if (sub != null)
 			{
 				final KElement e = root.appendElement("RemovedChannel");
-				sub.setXML(e);
+				sub.setXML(e, null);
 			}
 		}
 	}
 
+	protected class SubscriptionStore
+	{
+		private final RollingBackupFile backup;
+		private boolean loading = false;
+
+		protected SubscriptionStore(final File dir)
+		{
+			backup = new RollingBackupFile(FileUtil.getFileInDirectory(dir, new File("subscriptions.xml")), 8);
+		}
+
+		/**
+		 * load subscriptions from file
+		 */
+		public void load()
+		{
+			loading = true;
+			final JDFParser parser = new JDFParser();
+			parser.bKElementOnly = true;
+			final XMLDoc d = parser.parseFile(backup);
+			final KElement root = d == null ? null : d.getRoot();
+			try
+			{
+				if (root != null)
+				{
+					final VElement v = root.getChildElementVector(MsgSubscription.SUBSCRIPTION_ELEMENT, null);
+					for (int i = 0; i < v.size(); i++)
+					{
+						final MsgSubscription sub = new MsgSubscription(v.get(i));
+						synchronized (subscriptionMap)
+						{
+							if (sub != null && sub.channelID != null)
+							{
+								subscriptionMap.put(sub.channelID, sub);
+								log.info("reloading subscription for channelID=" + sub.channelID);
+							}
+						}
+					}
+				}
+			}
+			catch (final Exception x)
+			{
+				log.error("unknown exception while loading subscriptions", x);
+			}
+			loading = false;
+		}
+
+		/**
+		 * write all subscriptions to disk
+		 */
+		public void persist()
+		{
+			if (loading)
+			{
+				return;
+			}
+			final XMLSubscriptions xmls = new XMLSubscriptions();
+			xmls.listChannels(null, "*");
+			xmls.write2File(backup.getNewFile(), 2, false);
+		}
+
+	}
+
 	// ///////////////////////////////////////////////////////////
+
 	protected static class Trigger
 	{
 		protected String queueEntryID;
@@ -457,17 +543,14 @@ public final class SignalDispatcher
 			{
 				n++;
 				int size;
-				synchronized (triggers)
+				final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
+				size = triggerVector.size();
+				// spam them out
+				for (int i = 0; i < size; i++)
 				{
-					final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
-					size = triggerVector.size();
-					// spam them out
-					for (int i = 0; i < size; i++)
-					{
-						final MsgSubscription sub = triggerVector.elementAt(i);
-						log.debug("Trigger Signalling :" + i + " slaveChannelID=" + sub.channelID);
-						queueMessageInSender(sub);
-					}
+					final MsgSubscription sub = triggerVector.elementAt(i);
+					log.debug("Trigger Signalling :" + i + " slaveChannelID=" + sub.channelID);
+					queueMessageInSender(sub);
 				}
 				// select pending time subscriptions
 				final Vector<MsgSubscription> subVector = getTimeSubscriptions();
@@ -543,27 +626,20 @@ public final class SignalDispatcher
 					if (t.amount < 0)
 					{
 						v.add(subClone);
-						// if (sub.repeatTime <= 0) // don't update with real time in order to retain synchronized delta t
-						// sub.lastTime = System.currentTimeMillis() / 1000;
-
 					}
-					else
-						if (t.amount > 0)
+					else if (t.amount > 0)
+					{
+						if (subClone.repeatAmount > 0)
 						{
-							if (subClone.repeatAmount > 0)
+							final int last = subClone.lastAmount;
+							final int next = last + t.amount;
+							if (next / sub.repeatAmount > last / sub.repeatAmount)
 							{
-								final int last = subClone.lastAmount;
-								final int next = last + t.amount;
-								if (next / sub.repeatAmount > last / sub.repeatAmount)
-								{
-									sub.lastAmount = next; // not a typo - modify of nthe original subscription
-									v.add(subClone);
-									// if (sub.repeatTime <= 0) // don't update with real time in order to retain synchronized delta t
-									// sub.lastTime = System.currentTimeMillis() / 1000;
-
-								}
+								sub.lastAmount = next; // not a typo - modify of nthe original subscription
+								v.add(subClone);
 							}
 						}
+					}
 				}
 				// remove active triggers that will be returned
 				for (int j = 0; j < v.size(); j++)
@@ -592,13 +668,13 @@ public final class SignalDispatcher
 					MsgSubscription sub = next.getValue();
 					if (sub.repeatTime > 0)
 					{
-						if (now - sub.lastTime >= sub.repeatTime)
+						if (now - sub.lastTry >= sub.repeatTime)
 						{
-							sub.lastTime += sub.repeatTime;
+							sub.lastTry += sub.repeatTime;
 							// we had a snafu with a long break or are in setup - synchronize to now
-							if (sub.lastTime < now)
+							if (sub.lastTry < now)
 							{
-								sub.lastTime = now;
+								sub.lastTry = now;
 							}
 							sub = (MsgSubscription) sub.clone();
 							subVector.add(sub);
@@ -612,11 +688,22 @@ public final class SignalDispatcher
 
 	private class MsgSubscription implements Cloneable
 	{
+		/**
+		 * 
+		 */
+		protected static final String SUBSCRIPTION_ELEMENT = "MsgSubscription";
 		protected String channelID = null;
 		protected String queueEntry = null;
 		protected String url = null;
 		protected int repeatAmount, lastAmount = 0;
+		/**
+		 * the last successful submission
+		 */
 		protected long lastTime = 0;
+		/**
+		 * the last submission attempt
+		 */
+		protected long lastTry = 0;
 		protected long repeatTime = 0;
 		protected JDFMessage theMessage = null;
 		protected JDFJMF lastSentJMF = null;
@@ -727,7 +814,6 @@ public final class SignalDispatcher
 			{
 				log.error("no subscription for ChannelID=" + channelID);
 			}
-
 		}
 
 		/**
@@ -804,19 +890,19 @@ public final class SignalDispatcher
 					+ " repeatTime=" + repeatTime + " lastTime=" + lastTime + "\nURL=" + url + " device ID=" + jmfDeviceID + " Sent=" + sentMessages + "]";
 		}
 
-		protected KElement appendToXML(final KElement parent)
+		protected KElement appendToXML(final KElement parent, final String details)
 		{
 			if (parent == null)
 			{
 				return null;
 			}
-			final KElement sub = parent.appendElement("MsgSubscription");
-			setXML(sub);
+			final KElement sub = parent.appendElement(SUBSCRIPTION_ELEMENT);
+			setXML(sub, details);
 			return sub;
 
 		}
 
-		private void setXML(final KElement sub)
+		private void setXML(final KElement sub, final String details)
 		{
 			sub.setAttribute(AttributeName.CHANNELID, channelID);
 			sub.setAttribute(AttributeName.DEVICEID, jmfDeviceID);
@@ -827,7 +913,37 @@ public final class SignalDispatcher
 			sub.setAttribute(AttributeName.TYPE, theMessage.getType());
 			sub.setAttribute("Sent", sentMessages, null);
 			sub.setAttribute("LastTime", sentMessages == 0 ? " - " : BambiServlet.formatLong(lastTime * 1000));
-			sub.copyElement(theMessage, null);
+			if ("*".equals(details) || ContainerUtil.equals(channelID, details))
+			{
+				sub.appendElement("Sub").copyElement(theMessage, null);
+				if (lastSentJMF != null)
+				{
+					sub.appendElement("Last").copyElement(lastSentJMF, null);
+				}
+			}
+		}
+
+		/**
+		 * creates a MsgSubscription from an XML element
+		 * 
+		 * - must be maintained in synch with @see setXML (duh...)
+		 * @param sub
+		 */
+		MsgSubscription(final KElement sub)
+		{
+			channelID = sub.getAttribute(AttributeName.CHANNELID, null, null);
+			jmfDeviceID = sub.getAttribute(AttributeName.DEVICEID, null, null);
+			queueEntry = sub.getAttribute(AttributeName.QUEUEENTRYID, null, null);
+			url = sub.getAttribute(AttributeName.URL, null, null);
+			repeatTime = sub.getLongAttribute(AttributeName.REPEATTIME, null, 0);
+			repeatAmount = sub.getIntAttribute(AttributeName.REPEATSTEP, null, 0);
+			sentMessages = sub.getIntAttribute("Sent", null, 0);
+			final KElement subsub = sub.getElement("Sub");
+			if (subsub != null)
+			{
+				final JDFJMF jmf = new JDFDoc("JMF").getJMFRoot();
+				theMessage = (JDFMessage) jmf.copyElement(subsub.getFirstChildElement(), null);
+			}
 		}
 
 		/**
@@ -951,8 +1067,7 @@ public final class SignalDispatcher
 		 */
 		public StopPersistentChannelHandler()
 		{
-			super(EnumType.StopPersistentChannel, new EnumFamily[]
-			{ EnumFamily.Command });
+			super(EnumType.StopPersistentChannel, new EnumFamily[] { EnumFamily.Command });
 		}
 
 		/**
@@ -1025,12 +1140,13 @@ public final class SignalDispatcher
 	/**
 	 * constructor
 	 * @param _messageHandler message handler
-	 * @param devID ID of the device this SignalHandler is working for. Required for debugging purposes only.
+	 * @param dev device for this ID of the device this SignalHandler is working for. Required for debugging purposes only.
 	 * @param cb the callback to modify any outgoing signals or incoming signal responses
 	 */
-	public SignalDispatcher(final IMessageHandler _messageHandler, final String devID, final IConverterCallback cb)
+	public SignalDispatcher(final IMessageHandler _messageHandler, final AbstractDevice dev, final IConverterCallback cb)
 	{
-		deviceID = devID;
+		deviceID = dev == null ? "testID" : dev.getDeviceID();
+		storage = new SubscriptionStore(dev == null ? null : dev.getDeviceDir());
 		subscriptionMap = new HashMap<String, MsgSubscription>();
 		// queueEntryMap=new VectorMap<String, String>();
 		messageHandler = _messageHandler;
@@ -1040,6 +1156,7 @@ public final class SignalDispatcher
 		new Thread(theDispatcher, "SignalDispatcher_" + deviceID).start();
 		log.info("dispatcher thread 'SignalDispatcher_" + deviceID + "' started");
 		callback = cb;
+		storage.load();
 	}
 
 	/**
@@ -1085,13 +1202,12 @@ public final class SignalDispatcher
 				final String qeid = sqp == null ? null : StringUtil.getNonEmpty(sqp.getQueueEntryID());
 				return qeid;
 			}
-			else
-				if (EnumType.Resource.equals(messageType))
-				{
-					final JDFResourceQuParams rqp = m.getResourceQuParams();
-					final String qeid = rqp == null ? null : StringUtil.getNonEmpty(rqp.getQueueEntryID());
-					return qeid;
-				}
+			else if (EnumType.Resource.equals(messageType))
+			{
+				final JDFResourceQuParams rqp = m.getResourceQuParams();
+				final String qeid = rqp == null ? null : StringUtil.getNonEmpty(rqp.getQueueEntryID());
+				return qeid;
+			}
 		}
 		catch (final JDFException x)
 		{ /* nop */
@@ -1105,7 +1221,7 @@ public final class SignalDispatcher
 	 * @param queueEntryID the associated QueueEntryID, may be null.
 	 * @return the slaveChannelID of the subscription, if successful, else null
 	 */
-	public String addSubscription(final IJMFSubscribable subMess, final String queueEntryID)
+	public synchronized String addSubscription(final IJMFSubscribable subMess, final String queueEntryID)
 	{
 		if (subMess == null)
 		{
@@ -1123,12 +1239,6 @@ public final class SignalDispatcher
 		{
 			return null;
 		}
-		// no longer required
-		// if (ContainerUtil.equals(deviceID, BambiServlet.getDeviceIDFromURL(sub.url)))
-		// {
-		// log.warn("subscribing to self - ignore: " + deviceID);
-		// return null;
-		// }
 		if (subscriptionMap.containsKey(sub.channelID))
 		{
 			log.error("subscription already exists for:" + sub.channelID);
@@ -1144,6 +1254,7 @@ public final class SignalDispatcher
 			subscriptionMap.put(sub.channelID, sub);
 		}
 		sub.trigger.queueEntryID = queueEntryID;
+		storage.persist();
 		return sub.channelID;
 	}
 
@@ -1261,6 +1372,7 @@ public final class SignalDispatcher
 			ret = subscriptionMap.remove(channelID);
 		}
 		log.debug("removing subscription for channelid=" + channelID);
+		storage.persist();
 		return ret;
 	}
 
@@ -1351,23 +1463,20 @@ public final class SignalDispatcher
 					{
 						triggers.add(tNew);
 					}
-					else
-						if (amount >= 0 && t.amount >= 0) // -1 always forces a trigger
-						{
-							t.amount += amount;
-							tNew = t;
-						}
-						else
-							if (t.amount > 0 && amount < 0)
-							{
-								t.amount = amount;
-								tNew = t;
-							}
-							else
-								if (t.amount < 0 && amount < 0)// always add a trigger if amount<0
-								{
-									triggers.add(tNew);
-								}
+					else if (amount >= 0 && t.amount >= 0) // -1 always forces a trigger
+					{
+						t.amount += amount;
+						tNew = t;
+					}
+					else if (t.amount > 0 && amount < 0)
+					{
+						t.amount = amount;
+						tNew = t;
+					}
+					else if (t.amount < 0 && amount < 0)// always add a trigger if amount<0
+					{
+						triggers.add(tNew);
+					}
 				}
 				if (amount != 0)
 				{
@@ -1467,30 +1576,38 @@ public final class SignalDispatcher
 		doShutdown = true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	/**
+	 * @param request
+	 * @param response
+	 * @return
 	 */
 	public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
 	{
 		return this.new XMLSubscriptions().handleGet(request, response);
 	}
 
+	/**
+	 * return all subscription channels for a given message type and device id
+	 * @param typ the message type filter
+	 * @param senderID the senderid filter
+	 * @return set of channelID values that match the filters
+	 */
 	public Set<String> getChannels(final EnumType typ, final String senderID)
 	{
-		final Set<String> keySet = subscriptionMap.keySet();
-
-		final Iterator<String> it = keySet.iterator();
 		final Set<String> keySet2 = new HashSet<String>();
 		final String nam = typ == null ? null : typ.getName();
-		while (it.hasNext())
+		synchronized (subscriptionMap)
 		{
-			final String key = it.next();
-			final MsgSubscription sub = subscriptionMap.get(key);
-			if (nam == null || nam.equals(sub.getMessageType()) && (sub.jmfDeviceID == null || sub.jmfDeviceID.equals(senderID)))
+			final Set<String> keySet = subscriptionMap.keySet();
+			final Iterator<String> it = keySet.iterator();
+			while (it.hasNext())
 			{
-				keySet2.add(key);
+				final String key = it.next();
+				final MsgSubscription sub = subscriptionMap.get(key);
+				if (nam == null || nam.equals(sub.getMessageType()) && (sub.jmfDeviceID == null || sub.jmfDeviceID.equals(senderID)))
+				{
+					keySet2.add(key);
+				}
 			}
 		}
 		return keySet2;

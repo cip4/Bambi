@@ -108,6 +108,11 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.util.StatusCounter;
 
+/**
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+ * 
+ * 04.12.2008
+ */
 public class ProxyDevice extends AbstractProxyDevice
 {
 	/**
@@ -278,8 +283,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 		public RequestQueueEntryHandler()
 		{
-			super(EnumType.RequestQueueEntry, new EnumFamily[]
-			{ EnumFamily.Command });
+			super(EnumType.RequestQueueEntry, new EnumFamily[] { EnumFamily.Command });
 		}
 
 		/*
@@ -336,8 +340,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 		public ReturnQueueEntryHandler()
 		{
-			super(EnumType.ReturnQueueEntry, new EnumFamily[]
-			{ EnumFamily.Command });
+			super(EnumType.ReturnQueueEntry, new EnumFamily[] { EnumFamily.Command });
 		}
 
 		/*
@@ -411,8 +414,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		public NotificationQueryHandler()
 		{
-			super(EnumType.Notification, new EnumFamily[]
-			{ EnumFamily.Query });
+			super(EnumType.Notification, new EnumFamily[] { EnumFamily.Query });
 		}
 
 		/*
@@ -462,8 +464,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		public NotificationSignalHandler()
 		{
-			super(EnumType.Notification, new EnumFamily[]
-			{ EnumFamily.Signal });
+			super(EnumType.Notification, new EnumFamily[] { EnumFamily.Signal });
 		}
 
 		/*
@@ -495,8 +496,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		public ResourceSignalHandler()
 		{
-			super(EnumType.Resource, new EnumFamily[]
-			{ EnumFamily.Signal });
+			super(EnumType.Resource, new EnumFamily[] { EnumFamily.Signal });
 		}
 
 		/*
@@ -529,8 +529,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 		public StatusSignalHandler()
 		{
-			super(EnumType.Status, new EnumFamily[]
-			{ EnumFamily.Signal });
+			super(EnumType.Status, new EnumFamily[] { EnumFamily.Signal });
 		}
 
 		/*
@@ -862,10 +861,12 @@ public class ProxyDevice extends AbstractProxyDevice
 	@Override
 	public JDFNode getNodeFromDoc(final JDFDoc doc)
 	{
-		// TODO Auto-generated method stub
 		return doc.getJDFRoot();
 	}
 
+	/**
+	 * @see org.cip4.bambi.core.AbstractDevice#stopProcessing(java.lang.String, org.cip4.jdflib.core.JDFElement.EnumNodeStatus)
+	 */
 	@Override
 	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status)
 	{
@@ -875,7 +876,14 @@ public class ProxyDevice extends AbstractProxyDevice
 			final JDFJMF jmf = JMFFactory.buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
 			if (jmf != null)
 			{
-				JMFFactory.send2URL(jmf, getProxyProperties().getSlaveURL(), null, _slaveCallback, getDeviceID());
+				final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(status);
+				JMFFactory.send2URL(jmf, getProxyProperties().getSlaveURL(), ah, _slaveCallback, getDeviceID());
+				ah.waitHandled(5555, false);
+				final EnumNodeStatus newStatus = ah.getFinalStatus();
+				if (newStatus == null)
+				{
+					return null;
+				}
 			}
 		}
 		final JDFQueueEntry qe = super.stopProcessing(queueEntryID, status);

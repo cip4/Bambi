@@ -115,7 +115,7 @@ public class JMFFactory
 {
 	/**
 	 * @author Rainer Prosi, Heidelberger Druckmaschinen
-	 *
+	 * 
 	 */
 	public static class CallURL implements Comparable<CallURL>
 	{
@@ -128,14 +128,20 @@ public class JMFFactory
 		public String getBaseURL()
 		{
 			if (url == null)
+			{
 				return null;
-			VString v = StringUtil.tokenize(url, "/?", true);
+			}
+			final VString v = StringUtil.tokenize(url, "/?", true);
 			int len = v.size();
 			if (len > 6)
-				len = 6; //6= host / / root </?> last 
-			StringBuffer b = new StringBuffer();
+			{
+				len = 6; // 6= host / / root </?> last
+			}
+			final StringBuffer b = new StringBuffer();
 			for (int i = 0; i < len; i++)
+			{
 				b.append(v.get(i));
+			}
 			return b.toString();
 		}
 
@@ -144,7 +150,7 @@ public class JMFFactory
 		 * @param _url the url
 		 * 
 		 */
-		public CallURL(String _url)
+		public CallURL(final String _url)
 		{
 			url = _url;
 			url = getBaseURL();
@@ -164,11 +170,13 @@ public class JMFFactory
 		}
 
 		@Override
-		public boolean equals(Object obj)
+		public boolean equals(final Object obj)
 		{
 			if (!(obj instanceof CallURL))
+			{
 				return false;
-			CallURL other = (CallURL) obj;
+			}
+			final CallURL other = (CallURL) obj;
 			return ContainerUtil.equals(getBaseURL(), other.getBaseURL());
 		}
 
@@ -178,7 +186,7 @@ public class JMFFactory
 		 * @param o the other callURL to compare to
 		 * @return -1 if this is smaller
 		 */
-		public int compareTo(CallURL o)
+		public int compareTo(final CallURL o)
 		{
 			return ContainerUtil.compare(url, o == null ? null : o.url);
 		}
@@ -186,7 +194,7 @@ public class JMFFactory
 
 	// end of inner class CallURL
 
-	//////////////////////////////////////////////////////////////
+	// ////////////////////////////////////////////////////////////
 
 	private static Log log = LogFactory.getLog(JMFFactory.class.getName());
 	static HashMap<CallURL, MessageSender> senders = new HashMap<CallURL, MessageSender>();
@@ -203,9 +211,9 @@ public class JMFFactory
 	 * @param queueEntryId queue entry ID of the queue to suspend
 	 * @return the message
 	 */
-	public static JDFJMF buildSuspendQueueEntry(String queueEntryId)
+	public static JDFJMF buildSuspendQueueEntry(final String queueEntryId)
 	{
-		JDFJMF jmf = buildQueueEntryCommand(queueEntryId, EnumType.SuspendQueueEntry);
+		final JDFJMF jmf = buildQueueEntryCommand(queueEntryId, EnumType.SuspendQueueEntry);
 		return jmf;
 	}
 
@@ -214,9 +222,9 @@ public class JMFFactory
 	 * @param queueEntryId queue entry ID of the queue to hold
 	 * @return the message
 	 */
-	public static JDFJMF buildHoldQueueEntry(String queueEntryId)
+	public static JDFJMF buildHoldQueueEntry(final String queueEntryId)
 	{
-		JDFJMF jmf = buildQueueEntryCommand(queueEntryId, EnumType.HoldQueueEntry);
+		final JDFJMF jmf = buildQueueEntryCommand(queueEntryId, EnumType.HoldQueueEntry);
 		return jmf;
 	}
 
@@ -225,9 +233,9 @@ public class JMFFactory
 	 * @param queueEntryId queue entry ID of the queue to resume
 	 * @return the message
 	 */
-	public static JDFJMF buildResumeQueueEntry(String queueEntryId)
+	public static JDFJMF buildResumeQueueEntry(final String queueEntryId)
 	{
-		JDFJMF jmf = buildQueueEntryCommand(queueEntryId, EnumType.ResumeQueueEntry);
+		final JDFJMF jmf = buildQueueEntryCommand(queueEntryId, EnumType.ResumeQueueEntry);
 		return jmf;
 	}
 
@@ -236,23 +244,26 @@ public class JMFFactory
 	 * @param queueEntryId queue entry ID of the queue to abort
 	 * @return the message
 	 */
-	public static JDFJMF buildAbortQueueEntry(String queueEntryId)
+	public static JDFJMF buildAbortQueueEntry(final String queueEntryId)
 	{
-		JDFJMF jmf = buildQueueEntryCommand(queueEntryId, EnumType.AbortQueueEntry);
+		final JDFJMF jmf = buildQueueEntryCommand(queueEntryId, EnumType.AbortQueueEntry);
 		return jmf;
 	}
 
 	/**
 	 * @param queueEntryId
-	 * @param typ 
+	 * @param typ
 	 * @return the jmf
 	 */
-	private static JDFJMF buildQueueEntryCommand(String queueEntryId, EnumType typ)
+	private static JDFJMF buildQueueEntryCommand(final String queueEntryId, final EnumType typ)
 	{
 		if (queueEntryId == null)
+		{
 			return null;
-		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, typ);
-		jmf.getCommand(0).appendQueueEntryDef().setQueueEntryID(queueEntryId);
+		}
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, typ);
+		final JDFCommand command = jmf.getCommand(0);
+		command.appendQueueEntryDef().setQueueEntryID(queueEntryId);
 		return jmf;
 	}
 
@@ -261,9 +272,9 @@ public class JMFFactory
 	 * @param queueEntryId queue entry ID of the queue to remove
 	 * @return the message
 	 */
-	public static JDFJMF buildRemoveQueueEntry(String queueEntryId)
+	public static JDFJMF buildRemoveQueueEntry(final String queueEntryId)
 	{
-		JDFJMF jmf = buildQueueEntryCommand(queueEntryId, EnumType.RemoveQueueEntry);
+		final JDFJMF jmf = buildQueueEntryCommand(queueEntryId, EnumType.RemoveQueueEntry);
 		return jmf;
 	}
 
@@ -273,23 +284,23 @@ public class JMFFactory
 	 */
 	public static JDFJMF buildStatus()
 	{
-		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Status);
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Status);
 		return jmf;
 	}
 
 	/**
 	 * build a JMF Status subscription
-	 * @param subscriberURL 
-	 * @param repeatTime 
-	 * @param repeatStep 
-	 * @param queueEntryID 
+	 * @param subscriberURL
+	 * @param repeatTime
+	 * @param repeatStep
+	 * @param queueEntryID
 	 * @return the message
 	 */
-	public static JDFJMF buildStatusSubscription(String subscriberURL, double repeatTime, int repeatStep, String queueEntryID)
+	public static JDFJMF buildStatusSubscription(final String subscriberURL, final double repeatTime, final int repeatStep, final String queueEntryID)
 	{
 		final JDFJMF jmf = buildSubscription(EnumType.Status, subscriberURL, repeatTime, repeatStep);
-		JDFQuery query = jmf.getQuery(0);
-		JDFStatusQuParams statusQuParams = query.getCreateStatusQuParams(0);
+		final JDFQuery query = jmf.getQuery(0);
+		final JDFStatusQuParams statusQuParams = query.getCreateStatusQuParams(0);
 		statusQuParams.setJobDetails(EnumJobDetails.Brief);
 		statusQuParams.setDeviceDetails(EnumDeviceDetails.Brief);
 
@@ -302,33 +313,35 @@ public class JMFFactory
 
 	/**
 	 * build a JMF Resource subscription
-	 * @param subscriberURL 
-	 * @param repeatTime 
-	 * @param repeatStep 
-	 * @param queueEntryID 
+	 * @param subscriberURL
+	 * @param repeatTime
+	 * @param repeatStep
+	 * @param queueEntryID
 	 * @return the message
 	 */
-	public static JDFJMF buildResourceSubscription(String subscriberURL, double repeatTime, int repeatStep, String queueEntryID)
+	public static JDFJMF buildResourceSubscription(final String subscriberURL, final double repeatTime, final int repeatStep, final String queueEntryID)
 	{
 		final JDFJMF jmf = buildSubscription(EnumType.Resource, subscriberURL, repeatTime, repeatStep);
-		JDFQuery query = jmf.getQuery(0);
-		JDFResourceQuParams resourceQuParams = query.getCreateResourceQuParams(0);
-		Vector<EnumResourceClass> c = new Vector<EnumResourceClass>();
+		final JDFQuery query = jmf.getQuery(0);
+		final JDFResourceQuParams resourceQuParams = query.getCreateResourceQuParams(0);
+		final Vector<EnumResourceClass> c = new Vector<EnumResourceClass>();
 		c.add(EnumResourceClass.Consumable);
 		c.add(EnumResourceClass.Handling);
 		c.add(EnumResourceClass.Implementation);
 		resourceQuParams.setClasses(c);
 		if (queueEntryID != null)
+		{
 			resourceQuParams.setQueueEntryID(queueEntryID);
+		}
 		return jmf;
 	}
 
 	/**
 	 * build a JMF Notification subscription
-	 * @param subscriberURL 
+	 * @param subscriberURL
 	 * @return the message
 	 */
-	public static JDFJMF buildNotificationSubscription(String subscriberURL)
+	public static JDFJMF buildNotificationSubscription(final String subscriberURL)
 	{
 		final JDFJMF jmf = buildSubscription(EnumType.Notification, subscriberURL, 0, 0);
 		return jmf;
@@ -336,22 +349,26 @@ public class JMFFactory
 
 	/**
 	 * build a generic subscription for a given type
-	 * @param typ 
-	 * @param subscriberURL 
-	 * @param repeatTime 
-	 * @param repeatStep 
+	 * @param typ
+	 * @param subscriberURL
+	 * @param repeatTime
+	 * @param repeatStep
 	 * @return the message
 	 */
-	private static JDFJMF buildSubscription(EnumType typ, String subscriberURL, double repeatTime, int repeatStep)
+	private static JDFJMF buildSubscription(final EnumType typ, final String subscriberURL, final double repeatTime, final int repeatStep)
 	{
 		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, typ);
 		final JDFQuery q = jmf.getQuery(0);
 		final JDFSubscription s = q.appendSubscription();
 		s.setURL(subscriberURL);
 		if (repeatTime > 0)
+		{
 			s.setRepeatTime(repeatTime);
+		}
 		if (repeatStep > 0)
+		{
 			s.setRepeatStep(repeatStep);
+		}
 		s.appendObservationTarget().setObservationPath("*");
 
 		return jmf;
@@ -363,24 +380,23 @@ public class JMFFactory
 	 */
 	public static JDFJMF buildQueueStatus()
 	{
-		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.QueueStatus);
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.QueueStatus);
 		return jmf;
 	}
 
 	/**
 	 * build a JMF RequestQueueEntry command <br/>
-	 *    default: JMFFactory.buildRequestQueueEntry(theQueueURL,null)
-	 * @param queueURL the queue URL of the device sending the command
-	 * 				   ("where do you want your SubmitQE's delivered to?")
+	 * default: JMFFactory.buildRequestQueueEntry(theQueueURL,null)
+	 * @param queueURL the queue URL of the device sending the command ("where do you want your SubmitQE's delivered to?")
 	 * @param deviceID the DeviceID of the worker requesting the QE (default=null)
 	 * @return the message
 	 */
-	public static JDFJMF buildRequestQueueEntry(String queueURL, String deviceID)
+	public static JDFJMF buildRequestQueueEntry(final String queueURL, final String deviceID)
 	{
-		// maybe replace DeviceID with DeviceType, just to be able to decrease the 
+		// maybe replace DeviceID with DeviceType, just to be able to decrease the
 		// Proxy's knowledge about querying devices?
-		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.RequestQueueEntry);
-		JDFRequestQueueEntryParams qep = jmf.getCommand(0).appendRequestQueueEntryParams();
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.RequestQueueEntry);
+		final JDFRequestQueueEntryParams qep = jmf.getCommand(0).appendRequestQueueEntryParams();
 		qep.setQueueURL(queueURL);
 		BambiNSExtension.setDeviceID(qep, deviceID);
 		return jmf;
@@ -389,14 +405,14 @@ public class JMFFactory
 	/**
 	 * sends a mime multipart message to a given URL
 	 * 
-	 * @param mp 
+	 * @param mp
 	 * @param url the URL to send the JMF to
-	 * @param handler 
-	 * @param callback 
-	 * @param md 
-	 * @param deviceID 
+	 * @param handler
+	 * @param callback
+	 * @param md
+	 * @param deviceID
 	 */
-	public static void send2URL(Multipart mp, String url, IResponseHandler handler, IConverterCallback callback, MIMEDetails md, String deviceID)
+	public static void send2URL(final Multipart mp, final String url, final IResponseHandler handler, final IConverterCallback callback, final MIMEDetails md, final String deviceID)
 	{
 		if (shutdown)
 		{
@@ -407,14 +423,14 @@ public class JMFFactory
 		{
 			if (log != null)
 			{
-				// this method is prone for crashing on shutdown, thus checking for 
+				// this method is prone for crashing on shutdown, thus checking for
 				// log!=null is important
 				log.error("failed to send JDFMessage, message and/or URL is null");
 			}
 			return;
 		}
 
-		MessageSender ms = getCreateMessageSender(url);
+		final MessageSender ms = getCreateMessageSender(url);
 		ms.queueMimeMessage(mp, handler, callback, md, deviceID, url);
 	}
 
@@ -422,11 +438,11 @@ public class JMFFactory
 	 * sends a JMF message to a given URL
 	 * @param jmf the message to send
 	 * @param url the URL to send the JMF to
-	 * @param handler 
-	 * @param callback 
+	 * @param handler
+	 * @param callback
 	 * @param senderID the senderID of the caller
 	 */
-	public static void send2URL(JDFJMF jmf, String url, IResponseHandler handler, IConverterCallback callback, String senderID)
+	public static void send2URL(final JDFJMF jmf, final String url, final IResponseHandler handler, final IConverterCallback callback, final String senderID)
 	{
 		if (shutdown)
 		{
@@ -442,9 +458,11 @@ public class JMFFactory
 			return;
 		}
 
-		MessageSender ms = getCreateMessageSender(url);
+		final MessageSender ms = getCreateMessageSender(url);
 		if (senderID != null)
+		{
 			jmf.setSenderID(senderID);
+		}
 		ms.queueMessage(jmf, handler, url, callback);
 	}
 
@@ -452,14 +470,14 @@ public class JMFFactory
 	 * sends a JMF message to a given URL sychronusly
 	 * @param jmf the message to send
 	 * @param url the URL to send the JMF to
-	 * @param callback 
+	 * @param callback
 	 * @param senderID the senderID of the caller
 	 * @param milliSeconds timeout to wait
 	 * @return the response if successful, otherwise null
 	 */
-	public static HttpURLConnection send2URLSynch(JDFJMF jmf, String url, IConverterCallback callback, String senderID, int milliSeconds)
+	public static HttpURLConnection send2URLSynch(final JDFJMF jmf, final String url, final IConverterCallback callback, final String senderID, final int milliSeconds)
 	{
-		MessageResponseHandler handler = new MessageResponseHandler();
+		final MessageResponseHandler handler = new MessageResponseHandler();
 		send2URL(jmf, url, handler, callback, senderID);
 		handler.waitHandled(milliSeconds, true);
 		return handler.getConnection();
@@ -469,20 +487,20 @@ public class JMFFactory
 	 * sends a JMF message to a given URL sychronusly
 	 * @param jmf the message to send
 	 * @param url the URL to send the JMF to
-	 * @param callback 
+	 * @param callback
 	 * @param senderID the senderID of the caller
 	 * @param milliSeconds timeout to wait
 	 * @return the response if successful, otherwise null
 	 */
-	public static JDFResponse send2URLSynchResp(JDFJMF jmf, String url, IConverterCallback callback, String senderID, int milliSeconds)
+	public static JDFResponse send2URLSynchResp(final JDFJMF jmf, final String url, final IConverterCallback callback, final String senderID, final int milliSeconds)
 	{
-		MessageResponseHandler handler = new MessageResponseHandler();
+		final MessageResponseHandler handler = new MessageResponseHandler();
 		send2URL(jmf, url, handler, callback, senderID);
 		handler.waitHandled(milliSeconds, true);
-		HttpURLConnection uc = handler.getConnection();
+		final HttpURLConnection uc = handler.getConnection();
 		if (uc != null)
 		{
-			JDFDoc d = new JDFParser().parseStream(handler.getBufferedStream());
+			final JDFDoc d = new JDFParser().parseStream(handler.getBufferedStream());
 			if (d != null)
 			{
 				final JDFJMF root = d.getJMFRoot();
@@ -496,16 +514,16 @@ public class JMFFactory
 	 * sends a mime multipart package to a given URL synchronously
 	 * @param mp the mime multipart to send
 	 * @param url the URL to send the JMF to
-	 * @param callback 
-	 * @param md 
-	 * @param senderID 
-	 * @param milliSeconds 
+	 * @param callback
+	 * @param md
+	 * @param senderID
+	 * @param milliSeconds
 	 * 
 	 * @return the response if successful, otherwise null
 	 */
-	public static HttpURLConnection send2URLSynch(Multipart mp, String url, IConverterCallback callback, MIMEDetails md, String senderID, int milliSeconds)
+	public static HttpURLConnection send2URLSynch(final Multipart mp, final String url, final IConverterCallback callback, final MIMEDetails md, final String senderID, final int milliSeconds)
 	{
-		MessageResponseHandler handler = new MessageResponseHandler();
+		final MessageResponseHandler handler = new MessageResponseHandler();
 		send2URL(mp, url, handler, callback, md, senderID);
 		handler.waitHandled(milliSeconds, true);
 		return handler.getConnection();
@@ -514,17 +532,17 @@ public class JMFFactory
 	/**
 	 * 
 	 * @param cu the callURL to shut down, if null all of them
-	 * @param graceFully 
+	 * @param graceFully
 	 */
-	public static void shutDown(CallURL cu, boolean graceFully)
+	public static void shutDown(final CallURL cu, final boolean graceFully)
 	{
 		if (cu == null) // null = all
 		{
 			final Set<CallURL> keySet = senders.keySet();
-			CallURL[] as = keySet.toArray(new CallURL[keySet.size()]);
+			final CallURL[] as = keySet.toArray(new CallURL[keySet.size()]);
 			for (int i = 0; i < as.length; i++)
 			{
-				CallURL s = as[i];
+				final CallURL s = as[i];
 				if (s != null)
 				{
 					shutDown(s, graceFully);
@@ -534,7 +552,7 @@ public class JMFFactory
 		else
 		// individual url
 		{
-			MessageSender ms = senders.get(cu);
+			final MessageSender ms = senders.get(cu);
 			if (ms != null)
 			{
 				ms.shutDown(graceFully);
@@ -559,11 +577,13 @@ public class JMFFactory
 	 * @return the MessageSender that will queue and dispatch the message
 	 * 
 	 */
-	public static MessageSender getCreateMessageSender(String url)
+	public static MessageSender getCreateMessageSender(final String url)
 	{
 		if (url == null)
+		{
 			return null;
-		CallURL cu = new CallURL(url);
+		}
+		final CallURL cu = new CallURL(url);
 
 		synchronized (senders)
 		{
@@ -590,13 +610,15 @@ public class JMFFactory
 	 */
 	private static void cleanIdleSenders()
 	{
-		Iterator<MessageSender> it = senders.values().iterator();
-		Vector<MessageSender> v = new Vector<MessageSender>();
+		final Iterator<MessageSender> it = senders.values().iterator();
+		final Vector<MessageSender> v = new Vector<MessageSender>();
 		while (it.hasNext())
 		{
-			MessageSender ms2 = it.next();
+			final MessageSender ms2 = it.next();
 			if (!ms2.isRunning())
+			{
 				v.add(ms2);
+			}
 		}
 		for (int i = 0; i < v.size(); i++)
 		{
@@ -607,17 +629,17 @@ public class JMFFactory
 
 	/**
 	 * create a set of default subscriptions
-	 * @param url 
-	 * @param queueEntryID 
-	 * @param repeatTime 
-	 * @param repeatStep 
+	 * @param url
+	 * @param queueEntryID
+	 * @param repeatTime
+	 * @param repeatStep
 	 *@return the array of subscriptions to be sent
 	 */
-	public static JDFJMF[] createSubscriptions(String url, String queueEntryID, double repeatTime, int repeatStep)
+	public static JDFJMF[] createSubscriptions(final String url, final String queueEntryID, final double repeatTime, final int repeatStep)
 	{
-		JDFJMF jmfs[] = new JDFJMF[3];
+		final JDFJMF jmfs[] = new JDFJMF[3];
 		jmfs[0] = buildStatusSubscription(url, repeatTime, repeatStep, queueEntryID);
-		jmfs[1] = buildResourceSubscription(url, repeatTime, repeatStep, queueEntryID);
+		jmfs[1] = buildResourceSubscription(url, 0, 0, queueEntryID);
 		jmfs[2] = buildNotificationSubscription(url);
 		return jmfs;
 	}
@@ -628,11 +650,11 @@ public class JMFFactory
 	 * @param url the url of the subscription
 	 * @return the jmf
 	 */
-	public static JDFJMF buildStopPersistentChannel(String channelID, String url)
+	public static JDFJMF buildStopPersistentChannel(final String channelID, final String url)
 	{
-		JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.StopPersistentChannel);
-		JDFCommand c = jmf.getCommand(0);
-		JDFStopPersChParams scp = c.appendStopPersChParams();
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.StopPersistentChannel);
+		final JDFCommand c = jmf.getCommand(0);
+		final JDFStopPersChParams scp = c.appendStopPersChParams();
 		scp.setChannelID(channelID);
 		scp.setURL(url);
 		return jmf;

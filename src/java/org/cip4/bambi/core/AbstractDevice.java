@@ -120,6 +120,7 @@ import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.QueueHotFolder;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
@@ -154,9 +155,10 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		 * @param contextPath
 		 * @param dev
 		 */
-		public XMLDevice(final boolean addProcs, final BambiServletRequest request)
+		protected XMLDevice(final boolean addProcs, final BambiServletRequest request)
 		{
 			super("XMLDevice", null);
+			prepare();
 			final KElement deviceRoot = getRoot();
 			final String contextPath = request.getContextPath();
 			final boolean bModify = request.getBooleanParam("modify");
@@ -187,6 +189,14 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 		}
 
+		/**
+		 * hook to call any preparation setup prior to constructing
+		 */
+		protected void prepare()
+		{
+			// nop
+		}
+
 		private void addProcessors()
 		{
 			for (int i = 0; i < _deviceProcessors.size(); i++)
@@ -204,8 +214,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 		public KnownDevicesHandler()
 		{
-			super(EnumType.KnownDevices, new EnumFamily[]
-			{ EnumFamily.Query });
+			super(EnumType.KnownDevices, new EnumFamily[] { EnumFamily.Query });
 		}
 
 		/*
@@ -242,8 +251,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 		public SubmissionMethodsHandler()
 		{
-			super(EnumType.SubmissionMethods, new EnumFamily[]
-			{ EnumFamily.Query });
+			super(EnumType.SubmissionMethods, new EnumFamily[] { EnumFamily.Query });
 		}
 
 		/**
@@ -284,8 +292,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 		public ResourceHandler()
 		{
-			super(EnumType.Resource, new EnumFamily[]
-			{ EnumFamily.Query });
+			super(EnumType.Resource, new EnumFamily[] { EnumFamily.Query });
 		}
 
 		/*
@@ -422,8 +429,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		 */
 		public StatusHandler()
 		{
-			super(EnumType.Status, new EnumFamily[]
-			{ EnumFamily.Query });
+			super(EnumType.Status, new EnumFamily[] { EnumFamily.Query });
 		}
 
 		/**
@@ -484,7 +490,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		_jmfHandler = new JMFHandler(this);
 
 		_callback = _devProperties.getCallBackClass();
-		_theSignalDispatcher = new SignalDispatcher(_jmfHandler, getDeviceID(), _callback);
+		_theSignalDispatcher = new SignalDispatcher(_jmfHandler, this, _callback);
 		_theSignalDispatcher.addHandlers(_jmfHandler);
 
 		_jmfHandler.setDispatcher(_theSignalDispatcher);
@@ -565,7 +571,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			return;
 		}
 		log.info("enabling input hot folder: " + hfURL);
-		final File hfStorage = new File(_devProperties.getBaseDir() + File.separator + "HFTmpStorage" + File.separator + _devProperties.getDeviceID());
+		final File hfStorage = new File(getDeviceDir() + File.separator + "HFTmpStorage");
 		hfStorage.mkdirs(); // just in case
 		if (hfStorage.isDirectory())
 		{
@@ -728,6 +734,18 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	}
 
 	/**
+	 * factory for the XML representation of this simDevice fore use as html display using an XSLT
+	 * 
+	 * @param addProcs
+	 * @param request
+	 * @return the XMLDEvice
+	 */
+	public XMLDevice getXMLDevice(final boolean addProcs, final BambiServletRequest request)
+	{
+		return new XMLDevice(addProcs, request);
+	}
+
+	/**
 	 * @param command the command to execute
 	 * @param contextPath the context path of the request
 	 * @return the matching xslt
@@ -837,6 +855,13 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			_submitHotFolder.stop();
 		}
 		_submitHotFolder = null;
+
+		if (_theQueueProcessor != null)
+		{
+			_theQueueProcessor.shutdown();
+		}
+		_theQueueProcessor = null;
+
 	}
 
 	/**
@@ -882,7 +907,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 	/**
 	 * @see org.cip4.bambi.core.messaging.IJMFHandler#addSubscriptionHandler(org.cip4.jdflib.jmf.JDFMessage.EnumType,
-	 *      org.cip4.bambi.core.messaging.IMessageHandler)
+	 * org.cip4.bambi.core.messaging.IMessageHandler)
 	 * @param typ
 	 * @param handler
 	 */
@@ -1061,11 +1086,19 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	}
 
 	/**
-	 * @return the tomcat base directory
+	 * @return the application base directory
 	 */
 	public File getBaseDir()
 	{
 		return _devProperties.getBaseDir();
+	}
+
+	/**
+	 * @return the application base directory for an individual device
+	 */
+	public File getDeviceDir()
+	{
+		return FileUtil.getFileInDirectory(getBaseDir(), new File(getDeviceID()));
 	}
 
 	/**
@@ -1095,7 +1128,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	protected boolean showDevice(final BambiServletRequest request, final BambiServletResponse response, final boolean refresh)
 	{
 
-		final XMLDevice simDevice = getSimDevice(request);
+		final XMLDevice simDevice = getXMLDevice(true, request);
 		if (refresh)
 		{
 			simDevice.getRoot().setAttribute("refresh", true, null);
@@ -1111,16 +1144,6 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		}
 		response.setContentType(UrlUtil.TEXT_XML);
 		return true;
-	}
-
-	/**
-	 * @param request
-	 * @return
-	 */
-	protected XMLDevice getSimDevice(final BambiServletRequest request)
-	{
-		final XMLDevice simDevice = this.new XMLDevice(true, request);
-		return simDevice;
 	}
 
 	/**

@@ -117,13 +117,13 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		 * @param typ
 		 * @param _family
 		 */
-		public MessageType(EnumType typ, EnumFamily _family)
+		public MessageType(final EnumType typ, final EnumFamily _family)
 		{
 			type = typ.getName();
 			family = _family;
 		}
 
-		public MessageType(String typ, EnumFamily _family)
+		public MessageType(final String typ, final EnumFamily _family)
 		{
 			type = typ;
 			family = _family;
@@ -135,11 +135,13 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
 		@Override
-		public boolean equals(Object arg0)
+		public boolean equals(final Object arg0)
 		{
 			if (!(arg0 instanceof MessageType))
+			{
 				return false;
-			MessageType mt = (MessageType) arg0;
+			}
+			final MessageType mt = (MessageType) arg0;
 			return ContainerUtil.equals(family, mt.family) && ContainerUtil.equals(type, mt.type);
 		}
 
@@ -199,12 +201,10 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see
-		 * org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.
-		 * JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
-		public boolean handleMessage(JDFMessage m, JDFResponse resp)
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			if (m == null || resp == null)
 			{
@@ -216,51 +216,59 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 
 		/**
 		 * create the KnownMessages Response from the internal hashMap
-		 * @param m 
-		 * @param resp 
+		 * @param m
+		 * @param resp
 		 * 
 		 * @return true if handled correctly
 		 */
-		private boolean handleKnownMessages(JDFMessage m, JDFMessage resp)
+		private boolean handleKnownMessages(final JDFMessage m, final JDFMessage resp)
 		{
 			if (m == null)
+			{
 				return false;
+			}
 			if (!EnumFamily.Query.equals(m.getFamily()))
+			{
 				return false;
+			}
 
-			Iterator<MessageType> it = messageMap.keySet().iterator();
-			HashMap<String, Vector<EnumFamily>> hTypeFamily = new HashMap<String, Vector<EnumFamily>>();
+			final Iterator<MessageType> it = messageMap.keySet().iterator();
+			final HashMap<String, Vector<EnumFamily>> hTypeFamily = new HashMap<String, Vector<EnumFamily>>();
 			while (it.hasNext())
 			{
-				MessageType typ = it.next();
+				final MessageType typ = it.next();
 				if (hTypeFamily.get(typ.type) == null)
 				{
-					Vector<EnumFamily> v = new Vector<EnumFamily>();
+					final Vector<EnumFamily> v = new Vector<EnumFamily>();
 					v.add(typ.family);
 					hTypeFamily.put(typ.type, v);
 				}
 				else
 				{
-					Vector<EnumFamily> v = hTypeFamily.get(typ.type);
+					final Vector<EnumFamily> v = hTypeFamily.get(typ.type);
 					v.add(typ.family);
 				}
 			}
 
-			Iterator<Entry<String, Vector<EnumFamily>>> iTyp = hTypeFamily.entrySet().iterator();
+			final Iterator<Entry<String, Vector<EnumFamily>>> iTyp = hTypeFamily.entrySet().iterator();
 			while (iTyp.hasNext())
 			{
-				String typ = iTyp.next().getKey();
+				final String typ = iTyp.next().getKey();
 				log.debug("Known Message: " + typ);
 				if (KElement.isWildCard(typ))
+				{
 					continue; // skip "*"
+				}
 
-				JDFMessageService ms = resp.appendMessageService();
+				final JDFMessageService ms = resp.appendMessageService();
 				ms.setType(typ);
 				ms.setFamilies(hTypeFamily.get(typ));
 				ms.setJMFRole(EnumJMFRole.Receiver);
 				ms.setURLSchemes(new VString("http", null));
 				if (subscriptionMap.get(typ) != null)
+				{
 					ms.setPersistent(true);
+				}
 			}
 			return true;
 		}
@@ -279,7 +287,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		 * @param _type the message type
 		 * @param _families the array of families
 		 */
-		public AbstractHandler(EnumType _type, EnumFamily[] _families)
+		public AbstractHandler(final EnumType _type, final EnumFamily[] _families)
 		{
 			type = _type.getName();
 			families = _families;
@@ -289,7 +297,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		 * @param _type the message type
 		 * @param _families the array of families
 		 */
-		public AbstractHandler(String _type, EnumFamily[] _families)
+		public AbstractHandler(final String _type, final EnumFamily[] _families)
 		{
 			type = _type;
 			families = _families;
@@ -325,7 +333,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	/**
 	 * @param dev
 	 */
-	public JMFHandler(AbstractDevice dev)
+	public JMFHandler(final AbstractDevice dev)
 	{
 		super();
 		messageMap = new HashMap<MessageType, IMessageHandler>();
@@ -339,46 +347,47 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	/**
 	 * add a message handler
 	 * 
-	 * @param handler
-	 *            the handler associated with the event
+	 * @param handler the handler associated with the event
 	 */
-	public void addHandler(IMessageHandler handler)
+	public void addHandler(final IMessageHandler handler)
 	{
-		String typ = handler.getMessageType();
-		EnumFamily[] families = handler.getFamilies();
+		final String typ = handler.getMessageType();
+		final EnumFamily[] families = handler.getFamilies();
 		if (typ == null || families == null)
 		{
 			log.error("Unknown message type or family in addhandler - bailing out ");
 			return;
 		}
 		for (int i = 0; i < families.length; i++)
+		{
 			messageMap.put(new MessageType(typ, families[i]), handler);
+		}
 	}
 
 	/**
 	 * return a handler for a given type and family.
 	 * 
-	 * @param typ
-	 *            the message type, "*" is a wildcard that will be called in
-	 *            case no individual handler exists
-	 * @param family
-	 *            the family
+	 * @param typ the message type, "*" is a wildcard that will be called in case no individual handler exists
+	 * @param family the family
 	 * @return the handler, null if none exists
 	 */
-	public IMessageHandler getHandler(String typ, EnumFamily family)
+	public IMessageHandler getHandler(final String typ, final EnumFamily family)
 	{
 		IMessageHandler h = messageMap.get(new MessageType(typ, family));
 		if (h == null)
+		{
 			h = messageMap.get(new MessageType("*", family));
+		}
 		return h;
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.messaging.IJMFHandler#addSubscriptionHandler(org.cip4.jdflib.jmf.JDFMessage.EnumType, org.cip4.bambi.core.messaging.IMessageHandler)
+	 * @see org.cip4.bambi.core.messaging.IJMFHandler#addSubscriptionHandler(org.cip4.jdflib.jmf.JDFMessage.EnumType,
+	 * org.cip4.bambi.core.messaging.IMessageHandler)
 	 * @param typ
 	 * @param handler
 	 */
-	public void addSubscriptionHandler(EnumType typ, IMessageHandler handler)
+	public void addSubscriptionHandler(final EnumType typ, final IMessageHandler handler)
 	{
 		subscriptionMap.put(typ, handler);
 	}
@@ -386,33 +395,34 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	/**
 	 * the big processing dispatcher
 	 * 
-	 * @param doc
-	 *            the JDFDoc holding the JMF which is to be processed
+	 * @param doc the JDFDoc holding the JMF which is to be processed
 	 * @return the JDFDoc holding the JMF response
 	 */
-	public JDFDoc processJMF(JDFDoc doc)
+	public JDFDoc processJMF(final JDFDoc doc)
 	{
-		JDFJMF jmf = doc.getJMFRoot();
-		JDFJMF jmfResp = jmf.createResponse();
+		final JDFJMF jmf = doc.getJMFRoot();
+		final JDFJMF jmfResp = jmf.createResponse();
 		VElement vMess = jmf.getMessageVector(null, null);
 		final int messSize = vMess.size();
 		for (int i = 0; i < messSize; i++)
 		{
-			JDFMessage m = (JDFMessage) vMess.elementAt(i);
-			String id = m.getID();
+			final JDFMessage m = (JDFMessage) vMess.elementAt(i);
+			final String id = m.getID();
 
-			JDFResponse mResp = (JDFResponse) (id == null ? null : jmfResp.getChildWithAttribute(ElementName.RESPONSE, AttributeName.REFID, null, id, 0, true));
+			final JDFResponse mResp = (JDFResponse) (id == null ? null : jmfResp.getChildWithAttribute(ElementName.RESPONSE, AttributeName.REFID, null, id, 0, true));
 			if (mResp == null)
 			{
 				log.error("no response provided ??? " + id + " " + jmf);
 			}
 			if (_signalDispatcher != null)
+			{
 				_signalDispatcher.findSubscription(m, mResp);
+			}
 			handleMessage(m, mResp);
 
 			if (m instanceof JDFSignal && mResp != null)
 			{
-				int retCode = mResp.getReturnCode();
+				final int retCode = mResp.getReturnCode();
 				if (retCode == 0)
 				{
 					mResp.deleteNode();
@@ -428,7 +438,9 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			return jmfResp.getOwnerDocument_JDFElement();
 		}
 		else
+		{
 			return null;
+		}
 	}
 
 	/**
@@ -437,10 +449,9 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 * @param m
 	 * @param resp
 	 */
-	private void unhandledMessage(JDFMessage m, JDFResponse resp)
+	private void unhandledMessage(final JDFMessage m, final JDFResponse resp)
 	{
-		errorResponse(resp, "Message not handled: " + m.getType() + "; Family: " + m.getFamily().getName() + " id="
-				+ m.getID(), 5, EnumClass.Error);
+		errorResponse(resp, "Message not handled: " + m.getType() + "; Family: " + m.getFamily().getName() + " id=" + m.getID(), 5, EnumClass.Error);
 	}
 
 	/**
@@ -448,10 +459,10 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 * 
 	 * @param resp the response to make an error
 	 * @param text the explicit error text
-	 * @param rc  the jmf response returncode
+	 * @param rc the jmf response returncode
 	 * @param errorClass TODO
 	 */
-	public static void errorResponse(JDFResponse resp, String text, int rc, EnumClass errorClass)
+	public static void errorResponse(final JDFResponse resp, final String text, final int rc, final EnumClass errorClass)
 	{
 		if (resp != null)
 		{
@@ -481,50 +492,56 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 
 	/**
 	 * the handler implements itself as a generic handler
-	 * @param inputMessage 
-	 * @param response 
+	 * @param inputMessage
+	 * @param response
 	 * @return true if handled
 	 */
-	public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+	public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 	{
 		if (inputMessage == null)
+		{
 			return false;
+		}
 		try
 		{
 			final EnumFamily family = inputMessage.getFamily();
 			final String typ = inputMessage.getType();
 			if (bFilterOnDeviceID)
 			{
-				String deviceID = inputMessage.getJMFRoot().getDeviceID();
+				final String deviceID = inputMessage.getJMFRoot().getDeviceID();
 				if (!KElement.isWildCard(deviceID) && !ContainerUtil.equals(deviceID, getSenderID()))
+				{
 					return false;
+				}
 			}
 			final IMessageHandler handler = getHandler(typ, family);
 			boolean handled = handler != null;
 
 			if (handler != null)
+			{
 				handled = handler.handleMessage(inputMessage, response);
+			}
 			if (!inputMessage.hasAttribute(subscribed) && !handled)
 			{
 				unhandledMessage(inputMessage, response);
 			}
-			VString icsVersions = _parentDevice.getICSVersions();
+			final VString icsVersions = _parentDevice.getICSVersions();
 			if (icsVersions != null)
 			{
-				VString respVersions = response.getICSVersions();
+				final VString respVersions = response == null ? null : response.getICSVersions();
 				if (respVersions != null && respVersions.size() > 0)
 				{
 					respVersions.appendUnique(icsVersions);
 					response.setICSVersions(respVersions);
 				}
-				else
+				else if (response != null)
 				{
 					response.setICSVersions(icsVersions);
 				}
 			}
 			return handled;
 		}
-		catch (Exception x)
+		catch (final Exception x)
 		{
 			log.error("Unhandled Exception in handleMessage", x);
 			return false;
@@ -538,15 +555,15 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	@Override
 	public String toString()
 	{
-		String msgMap = "MessageMap (size=" + messageMap.size() + ")=[" + messageMap.toString() + "]";
-		String subMap = "SubsriptionMap (size=" + subscriptionMap.size() + ")=[" + subscriptionMap.toString() + "]";
+		final String msgMap = "MessageMap (size=" + messageMap.size() + ")=[" + messageMap.toString() + "]";
+		final String subMap = "SubsriptionMap (size=" + subscriptionMap.size() + ")=[" + subscriptionMap.toString() + "]";
 		return "JMFHandler: " + msgMap + ", " + subMap;
 	}
 
 	/**
 	 * @param signalDispatcher
 	 */
-	public void setDispatcher(SignalDispatcher signalDispatcher)
+	public void setDispatcher(final SignalDispatcher signalDispatcher)
 	{
 		_signalDispatcher = signalDispatcher;
 
@@ -571,7 +588,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	/**
 	 * @param filterOnDeviceID
 	 */
-	public void setFilterOnDeviceID(boolean filterOnDeviceID)
+	public void setFilterOnDeviceID(final boolean filterOnDeviceID)
 	{
 		bFilterOnDeviceID = filterOnDeviceID;
 	}

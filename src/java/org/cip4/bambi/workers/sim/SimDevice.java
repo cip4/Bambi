@@ -183,11 +183,12 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 
 		/**
 		 * XML representation of this simDevice fore use as html display using an XSLT
-		 * @param dev
+		 * @param bProc
+		 * @param request
 		 */
-		public XMLSimDevice(final BambiServletRequest request)
+		public XMLSimDevice(final boolean bProc, final BambiServletRequest request)
 		{
-			super(true, request);
+			super(bProc, request);
 
 			currentJobPhase = getCurrentJobPhase();
 			if (currentJobPhase != null)
@@ -274,13 +275,14 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 	}
 
 	/**
+	 * @param bProc if true add processors
 	 * @param request
 	 * @return
 	 */
 	@Override
-	protected XMLDevice getSimDevice(final BambiServletRequest request)
+	public XMLDevice getXMLDevice(final boolean bProc, final BambiServletRequest request)
 	{
-		final XMLDevice simDevice = this.new XMLSimDevice(request);
+		final XMLDevice simDevice = this.new XMLSimDevice(bProc, request);
 		return simDevice;
 	}
 

@@ -112,21 +112,20 @@ import org.cip4.jdflib.util.StringUtil;
 
 /**
  * abstract parent class for device processors <br>
- * The device processor is the actual working part of a device. 
+ * The device processor is the actual working part of a device.
  * @author boegerni
- *
+ * 
  */
 public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 {
 	private static Log log = LogFactory.getLog(AbstractDeviceProcessor.class.getName());
 	/**
-	 * note: the queue processor points to the queue processor of the device, 
-	 * it !does not! copy it
+	 * note: the queue processor points to the queue processor of the device, it !does not! copy it
 	 */
 	protected QueueProcessor _queueProcessor;
 	protected StatusListener _statusListener;
 	protected Object _myListener; // the mutex for waiting and reawakening
-	//	protected IDeviceProperties _devProperties = null;
+	// protected IDeviceProperties _devProperties = null;
 	protected boolean _doShutdown = false;
 	protected IQueueEntry currentQE;
 	protected String _trackResource = null;
@@ -144,13 +143,15 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			super();
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
 		public boolean handleMessage()
 		{
-			HttpURLConnection uc = getConnection();
+			final HttpURLConnection uc = getConnection();
 			boolean handled = false;
 			if (uc == null)
 			{
@@ -171,16 +172,16 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 					}
 					bufferedInput.reset();
 
-					Multipart mpRet = MimeUtil.getMultiPart(bufferedInput);
+					final Multipart mpRet = MimeUtil.getMultiPart(bufferedInput);
 					if (mpRet != null)
 					{
 						try
 						{
-							BodyPart bp = mpRet.getBodyPart(0);
+							final BodyPart bp = mpRet.getBodyPart(0);
 							doc = MimeUtil.getJDFDoc(bp);
 							handled = true;
 						}
-						catch (MessagingException e)
+						catch (final MessagingException e)
 						{
 							// nop - try simple doc
 						}
@@ -193,7 +194,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 					}
 				}
 			}
-			catch (IOException x)
+			catch (final IOException x)
 			{
 				handled = false;
 			}
@@ -210,7 +211,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		 */
 		KElement root;
 
-		public XMLDeviceProcessor(KElement _root)
+		public XMLDeviceProcessor(final KElement _root)
 		{
 			root = _root;
 		}
@@ -221,13 +222,15 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		 */
 		public void fill()
 		{
-			KElement processor = root.appendElement(BambiNSExtension.MY_NS_PREFIX + "Processor", BambiNSExtension.MY_NS);
-			StatusCounter sc = _statusListener.getStatusCounter();
+			final KElement processor = root.appendElement(BambiNSExtension.MY_NS_PREFIX + "Processor", BambiNSExtension.MY_NS);
+			final StatusCounter sc = _statusListener.getStatusCounter();
 			if (sc != null)
 			{
-				JDFDate startDate = sc.getStartDate();
+				final JDFDate startDate = sc.getStartDate();
 				if (startDate != null)
+				{
 					processor.setAttribute(AttributeName.STARTTIME, BambiServlet.formatLong(startDate.getTimeInMillis()));
+				}
 			}
 			if (currentQE == null)
 			{
@@ -236,12 +239,12 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			}
 
 			final EnumDeviceStatus deviceStatus = _statusListener.getDeviceStatus();
-			JDFNode n = currentQE.getJDF();
-			VJDFAttributeMap vm = n.getNodeInfoPartMapVector();
-			JDFAttributeMap map = vm == null ? null : vm.elementAt(0);
+			final JDFNode n = currentQE.getJDF();
+			final VJDFAttributeMap vm = n.getNodeInfoPartMapVector();
+			final JDFAttributeMap map = vm == null ? null : vm.elementAt(0);
 			if (vm != null)
 			{
-				String mapString = vm.showKeys(" \n ", " ");
+				final String mapString = vm.showKeys(" \n ", " ");
 				processor.setAttribute("PartIDKeys", mapString, null);
 			}
 			final EnumNodeStatus nodeStatus = n.getPartStatus(map);
@@ -249,9 +252,11 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			{
 				processor.setAttribute("NodeStatus", nodeStatus.getName(), null);
 				processor.setAttribute("NodeStatusDetails", StringUtil.getNonEmpty(n.getPartStatusDetails(map)));
-				EnumActivation activation = n.getActivation(true);
+				final EnumActivation activation = n.getActivation(true);
 				if (activation != null)
+				{
 					processor.setAttribute("NodeActivation", activation.getName());
+				}
 				fillPhaseTime(processor);
 			}
 			else
@@ -264,11 +269,13 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		 * @param processor
 		 * @param pt
 		 */
-		private void fillPhaseTime(KElement processor)
+		private void fillPhaseTime(final KElement processor)
 		{
-			StatusCounter statusCounter = _statusListener.getStatusCounter();
+			final StatusCounter statusCounter = _statusListener.getStatusCounter();
 			if (processor == null || statusCounter == null)
+			{
 				return;
+			}
 
 			processor.setAttribute(AttributeName.DEVICESTATUS, statusCounter.getStatus().getName());
 			processor.setAttribute("Device" + AttributeName.STATUSDETAILS, StringUtil.getNonEmpty(statusCounter.getStatusDetails()));
@@ -280,21 +287,23 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			final JDFNode node = currentQE.getJDF();
 			String typ = node.getType();
 			if (node.isTypesNode())
+			{
 				typ += " - " + node.getAttribute(AttributeName.TYPES);
+			}
 
 			processor.setAttribute("Type", typ);
 			processor.copyAttribute(AttributeName.DESCRIPTIVENAME, node);
 			processor.setAttribute("JobID", node.getJobID(true));
 			processor.setAttribute("JobPartID", node.getJobPartID(false));
 
-			JDFResourceLink rls[] = statusCounter.getAmountLinks();
-			int siz = rls == null ? 0 : rls.length;
+			final JDFResourceLink rls[] = statusCounter.getAmountLinks();
+			final int siz = rls == null ? 0 : rls.length;
 			for (int i = 0; i < siz; i++)
 			{
 				String linkedResName = rls[i].getLinkedResourceName();
 				if (ElementName.USAGECOUNTER.equals(linkedResName))
 				{
-					JDFUsageCounter uc = (JDFUsageCounter) rls[i].getTarget();
+					final JDFUsageCounter uc = (JDFUsageCounter) rls[i].getTarget();
 					if (uc != null && !KElement.isWildCard(uc.getCounterID()))
 					{
 						linkedResName += ":" + uc.getCounterID();
@@ -315,11 +324,13 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		 * @param resID the resource id
 		 * @param resName the resource name
 		 */
-		private void addAmount(KElement jp, String resID, String resName)
+		private void addAmount(final KElement jp, final String resID, final String resName)
 		{
 			if (jp == null)
+			{
 				return;
-			StatusCounter sc = _statusListener.getStatusCounter();
+			}
+			final StatusCounter sc = _statusListener.getStatusCounter();
 			final double phaseAmount = sc.getPhaseAmount(resID);
 			final double totalAmount = sc.getTotalAmount(resID);
 			final double totalWaste = sc.getTotalWaste(resID);
@@ -329,7 +340,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 
 			if ((phaseAmount + phaseWaste + totalAmount + totalWaste > 0) || (plannedAmount > 0) || (plannedWaste > 0))
 			{
-				KElement amount = jp.appendElement(BambiNSExtension.MY_NS_PREFIX + "PhaseAmount", BambiNSExtension.MY_NS);
+				final KElement amount = jp.appendElement(BambiNSExtension.MY_NS_PREFIX + "PhaseAmount", BambiNSExtension.MY_NS);
 				amount.setAttribute("ResourceName", resName);
 				amount.setAttribute("PlannedAmount", plannedAmount, null);
 				amount.setAttribute("PlannedWaste", plannedWaste, null);
@@ -363,27 +374,33 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 					try
 					{
 						if (log != null)
+						{
 							log.debug("waiting");
+						}
 						if (_statusListener != null)
+						{
 							_statusListener.signalStatus(EnumDeviceStatus.Idle, null, null, null, false);
+						}
 						synchronized (_myListener)
 						{
-							_myListener.wait(10000); // 10000 is just in case                        
+							_myListener.wait(10000); // 10000 is just in case
 						}
 					}
-					catch (InterruptedException x)
+					catch (final InterruptedException x)
 					{
 						log.warn("interrupted while idle");
 					}
 				}
 			}
-			catch (Exception x)
+			catch (final Exception x)
 			{
 				log.error("unhandled exception in processor", x);
 			}
 		}
 		if (_queueProcessor != null)
+		{
 			_queueProcessor.removeListener(_myListener);
+		}
 	}
 
 	/**
@@ -399,42 +416,50 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	 * initialize the IDeviceProcessor
 	 * @param queueProcessor
 	 * @param statusListener
-	 * @param devProperties 
+	 * @param devProperties
 	 */
-	public void init(QueueProcessor queueProcessor, StatusListener statusListener, IDeviceProperties devProperties)
+	public void init(final QueueProcessor queueProcessor, final StatusListener statusListener, final IDeviceProperties devProperties)
 	{
 		log.info(this.getClass().getName() + " construct");
 		_myListener = new Object();
 		_queueProcessor = queueProcessor;
 		if (_queueProcessor != null)
+		{
 			_queueProcessor.addListener(_myListener);
+		}
 		_statusListener = statusListener;
 		_statusListener.getStatusCounter().setDeviceID(devProperties.getDeviceID());
 		_trackResource = devProperties.getTrackResource();
 	}
 
 	/**
-	* process a queue entry
-	* 
-	* @param n the JDF node to process
-	* @param qe the JDF queueentry that corresponds to this
-	* @return EnumQueueEntryStatus the final status of the queuentry 
-	*/
+	 * process a queue entry
+	 * 
+	 * @param n the JDF node to process
+	 * @param qe the JDF queueentry that corresponds to this
+	 * @return EnumQueueEntryStatus the final status of the queuentry
+	 */
 	public abstract EnumQueueEntryStatus processDoc(JDFNode n, JDFQueueEntry qe);
 
 	final private boolean processQueueEntry()
 	{
 		currentQE = getQEFromParent();
 		if (currentQE == null)
+		{
 			return false;
-		JDFQueueEntry qe = currentQE.getQueueEntry();
+		}
+		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		if (qe == null)
+		{
 			return false;
+		}
 		final String queueEntryID = qe.getQueueEntryID();
 		if (queueEntryID != null)
+		{
 			log.debug("processing: " + queueEntryID);
+		}
 
-		JDFNode node = currentQE.getJDF();
+		final JDFNode node = currentQE.getJDF();
 		if (node == null)
 		{
 			log.error("no JDF Node for: " + queueEntryID);
@@ -444,7 +469,9 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		boolean bOK = initializeProcessDoc(node, qe);
 
 		if (!bOK)
+		{
 			return bOK;
+		}
 
 		EnumQueueEntryStatus qes;
 		try
@@ -453,11 +480,13 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			if (qes == null)
 			{
 				if (log != null)
+				{
 					log.error("QueueEntryStatus is null");
+				}
 				bOK = false;
 			}
 		}
-		catch (Exception x)
+		catch (final Exception x)
 		{
 			log.error("error processing JDF: " + x);
 			qes = EnumQueueEntryStatus.Aborted;
@@ -480,13 +509,13 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			{
 				if (_parent != null)
 				{
-					RootDevice rootDevice = _parent.getRootDevice();
+					final RootDevice rootDevice = _parent.getRootDevice();
 					if (rootDevice != null)
 					{
 						currentQE = rootDevice._theQueueProcessor.getNextEntry(_parent.getDeviceID());
 						if (currentQE != null)
 						{
-							//grab the qe and pass it on to the devices queue...
+							// grab the qe and pass it on to the devices queue...
 							final JDFQueue queue = _parent._theQueueProcessor.getQueue();
 							JDFQueueEntry queueEntry = currentQE.getQueueEntry();
 							queueEntry = (JDFQueueEntry) queue.moveElement(queueEntry, null);
@@ -506,12 +535,12 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	}
 
 	/**
-	 * generic setup of processing 
+	 * generic setup of processing
 	 * @param node the node to process
 	 * @param qe the queueEntryID of the job to process
-	 * @return true if ok 
+	 * @return true if ok
 	 */
-	protected boolean initializeProcessDoc(JDFNode node, JDFQueueEntry qe)
+	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
 	{
 		currentQE = new QueueEntry(node, qe);
 		_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Running, null, null);
@@ -526,21 +555,25 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	 * @param vResLinks
 	 * @param vSiz
 	 */
-	protected void setupStatusListener(JDFNode node, JDFQueueEntry qe)
+	protected void setupStatusListener(final JDFNode node, final JDFQueueEntry qe)
 	{
 		if (node == null || qe == null)
+		{
 			return;
+		}
 		final String queueEntryID = qe.getQueueEntryID();
-		VElement vResLinks = node.getResourceLinks(null);
-		int vSiz = (vResLinks == null) ? 0 : vResLinks.size();
+		final VElement vResLinks = node.getResourceLinks(null);
+		final int vSiz = (vResLinks == null) ? 0 : vResLinks.size();
 		VJDFAttributeMap vPartMap = qe.getPartMapVector();
 		if (vPartMap == null)
+		{
 			vPartMap = node.getNodeInfoPartMapVector();
+		}
 
 		String trackResourceID = null;
 		for (int i = 0; i < vSiz; i++)
 		{
-			JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
+			final JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
 			if (trackResourceID == null && rl.matchesString(_trackResource))
 			{
 				trackResourceID = rl.getrRef();
@@ -548,24 +581,25 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			}
 		}
 
-		//heuristics in case we didn't find anything
+		// heuristics in case we didn't find anything
 		if (trackResourceID == null)
 		{
 			String inConsume = null;
 			String outQuantity = null;
 			for (int i = 0; i < vSiz; i++)
 			{
-				JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
-				JDFResource r = rl.getLinkRoot();
-				EnumResourceClass c = r.getResourceClass();
-				if (EnumResourceClass.Consumable.equals(c) || EnumResourceClass.Handling.equals(c)
-						|| EnumResourceClass.Quantity.equals(c))
+				final JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
+				final JDFResource r = rl.getLinkRoot();
+				final EnumResourceClass c = r.getResourceClass();
+				if (EnumResourceClass.Consumable.equals(c) || EnumResourceClass.Handling.equals(c) || EnumResourceClass.Quantity.equals(c))
 				{
-					EnumUsage inOut = rl.getUsage();
+					final EnumUsage inOut = rl.getUsage();
 					if (EnumUsage.Input.equals(inOut))
 					{
 						if (EnumResourceClass.Consumable.equals(c))
+						{
 							inConsume = rl.getrRef();
+						}
 					}
 					else
 					{
@@ -598,7 +632,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	 * @param qes the final queue entry status of the entry
 	 * @return true if successfully processed
 	 */
-	protected boolean finalizeProcessDoc(EnumQueueEntryStatus qes)
+	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{
 		if (currentQE != null)
 		{
@@ -617,7 +651,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		}
 		_statusListener.flush(null);
 		_statusListener.setNode(null, null, null, null);
-		JDFQueueEntry qe = currentQE.getQueueEntry();
+		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		_queueProcessor.updateEntry(qe, qes, null, null);
 		_queueProcessor.returnQueueEntry(qe, null, null);
 
@@ -628,12 +662,11 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	}
 
 	/**
-	 * stops the currently processed task, 
-	 * called e.g. from the queueprocessor upon AbortQueueEntry
+	 * stops the currently processed task, called e.g. from the queueprocessor upon AbortQueueEntry
 	 * @param newStatus
 	 * @return the new status, null in case of snafu
 	 */
-	public abstract void stopProcessing(EnumNodeStatus newStatus);
+	public abstract EnumNodeStatus stopProcessing(EnumNodeStatus newStatus);
 
 	public void shutdown()
 	{
@@ -660,7 +693,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	/**
 	 * @param rootDev
 	 */
-	public void addToDisplayXML(KElement root)
+	public void addToDisplayXML(final KElement root)
 	{
 		this.new XMLDeviceProcessor(root).fill();
 	}
@@ -668,14 +701,13 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	@Override
 	public String toString()
 	{
-		return "Abstract Device Processor: Current Entry: "
-				+ (currentQE != null ? currentQE.getQueueEntryID() : "no current entry") + "]";
+		return "Abstract Device Processor: Current Entry: " + (currentQE != null ? currentQE.getQueueEntryID() : "no current entry") + "]";
 	}
 
 	/**
 	 * @param device
 	 */
-	public void setParent(AbstractDevice device)
+	public void setParent(final AbstractDevice device)
 	{
 		_parent = device;
 	}
