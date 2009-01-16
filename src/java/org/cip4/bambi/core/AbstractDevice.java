@@ -761,6 +761,14 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		{
 			s = "/showDevice.xsl";
 		}
+		if ("showJDF".equalsIgnoreCase(command))
+		{
+			s = "/jdf.xsl";
+		}
+		if ("showXJDF".equalsIgnoreCase(command))
+		{
+			s = "/xjdf.xsl";
+		}
 		if (s != null && contextPath != null)
 		{
 			s = "/" + StringUtil.token(contextPath, 0, "/") + s;
@@ -1083,6 +1091,20 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	public File getJDFDir()
 	{
 		return _devProperties.getJDFDir();
+	}
+
+	/**
+	 * return the name of the file storage for a given queueentryid
+	 * @param newQEID
+	 * @return {@link String} the file name of the storage
+	 */
+	public String getJDFStorage(final String newQEID)
+	{
+		if (newQEID == null)
+		{
+			return null;
+		}
+		return getJDFDir() + File.separator + newQEID + ".jdf";
 	}
 
 	/**

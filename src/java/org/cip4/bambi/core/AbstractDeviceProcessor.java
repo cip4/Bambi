@@ -206,19 +206,18 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 
 	private class XMLDeviceProcessor
 	{
-		/**
-		 * @param rootDev
-		 */
 		KElement root;
 
+		/**
+		 * @param _root
+		 */
 		public XMLDeviceProcessor(final KElement _root)
 		{
 			root = _root;
 		}
 
 		/**
-		 * @param currentJobPhase
-		 * @return
+		 * 
 		 */
 		public void fill()
 		{

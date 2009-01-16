@@ -71,18 +71,13 @@
 package org.cip4.bambi.core.queues;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.util.Vector;
 
 import javax.mail.Multipart;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
@@ -99,8 +94,6 @@ import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
-import org.cip4.bambi.proxy.AbstractProxyDevice;
-import org.cip4.bambi.proxy.IProxyProperties;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -110,7 +103,6 @@ import org.cip4.jdflib.core.JDFComment;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.JDFNodeInfo;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -654,72 +646,6 @@ public class QueueProcessor
 		}
 	}
 
-	/**
-	 * @author prosirai
-	 * 
-	 */
-	protected class ShowJDFHandler implements IGetHandler
-	{
-		public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
-		{
-			if (!BambiServlet.isMyContext(request, "showJDF"))
-			{
-				return false;
-			}
-			final String qeID = request.getParameter(QE_ID);
-			final boolean callback = request.getBooleanParam("Callback");
-			final String fil = getJDFStorage(qeID);
-			if (fil == null)
-			{
-				return false;
-			}
-			final File f = new File(fil);
-			if (!f.canRead())
-			{
-				return false;
-			}
-			try
-			{
-				InputStream is = new FileInputStream(f);
-				if (callback && (_parentDevice instanceof AbstractProxyDevice))
-				{
-					final IProxyProperties pp = ((AbstractProxyDevice) _parentDevice).getProxyProperties();
-					final IConverterCallback call = pp.getSlaveCallBackClass();
-					if (call != null)
-					{
-						final JDFParser p = new JDFParser();
-						final JDFDoc doc = p.parseStream(is);
-						if (doc != null)
-						{
-							call.updateJDFForExtern(doc);
-							final OutputStream os = response.getBufferedOutputStream();
-							doc.write2Stream(os, 0, true);
-							is = null;
-						}
-					}
-				}
-				if (is != null)
-				{
-					IOUtils.copy(is, response.getBufferedOutputStream());
-				}
-
-				final boolean bJDF = request.getBooleanParam(isJDF);
-				response.setContentType(bJDF ? UrlUtil.VND_JDF : UrlUtil.TEXT_XML);
-			}
-			catch (final FileNotFoundException x)
-			{
-				return false;
-			}
-			catch (final IOException x)
-			{
-				return false;
-			}
-			return true;
-		}
-	}
-
-	// ////////////////////////////////////////////////////////////////////////////////
-
 	protected class QueueGetHandler extends XMLDoc implements IGetHandler
 	{
 		/*
@@ -926,18 +852,22 @@ public class QueueProcessor
 	private static final long serialVersionUID = -876551736245089033L;
 	/**
 	 */
-	private static final String QE_STATUS = "qeStatus";
-	private static final String QE_ID = "qeID";
-	private static final String isJDF = "isJDF";
-	private static final String SHOW_QUEUE = "showQueue";
-	private static final String SHOW_JDF = "showJDF";
-	private static final String MODIFY_QE = "modifyQE";
+	static final String QE_STATUS = "qeStatus";
+	static final String QE_ID = "qeID";
+	static final String isJDF = "isJDF";
+	static final String SHOW_QUEUE = "showQueue";
+	static final String SHOW_JDF = "showJDF";
+	static final String SHOW_XJDF = "showXJDF";
+	static final String MODIFY_QE = "modifyQE";
 
 	protected JDFQueue _theQueue;
 	private final Vector<Object> _listeners;
 	protected AbstractDevice _parentDevice = null;
 	private long lastPersist = 0;
 
+	/**
+	 * @param theParentDevice
+	 */
 	public QueueProcessor(final AbstractDevice theParentDevice)
 	{
 		super();
@@ -1292,11 +1222,7 @@ public class QueueProcessor
 	 */
 	public String getJDFStorage(final String newQEID)
 	{
-		if (newQEID == null)
-		{
-			return null;
-		}
-		return _parentDevice.getJDFDir() + File.separator + newQEID + ".jdf";
+		return _parentDevice.getJDFStorage(newQEID);
 	}
 
 	protected void notifyListeners()
@@ -1667,7 +1593,11 @@ public class QueueProcessor
 		boolean b = this.new QueueGetHandler().handleGet(request, response);
 		if (!b)
 		{
-			b = this.new ShowJDFHandler().handleGet(request, response);
+			b = new ShowJDFHandler(_parentDevice).handleGet(request, response);
+		}
+		if (!b)
+		{
+			b = new ShowXJDFHandler(_parentDevice).handleGet(request, response);
 		}
 		return b;
 	}
