@@ -977,8 +977,8 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	protected void updateDevice(final BambiServletRequest request)
 	{
 
-		final Enumeration en = request.getParameterNames();
-		final Set s = ContainerUtil.toHashSet(en);
+		final Enumeration<String> en = request.getParameterNames();
+		final Set<String> s = ContainerUtil.toHashSet(en);
 
 		final String watchURL = request.getParameter("WatchURL");
 		if (watchURL != null && s.contains("WatchURL"))
