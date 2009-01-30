@@ -88,6 +88,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
@@ -640,6 +641,19 @@ public class MultiDeviceProperties
 	public String getSenderID()
 	{
 		return root.getAttribute(AttributeName.SENDERID);
+	}
+
+	/**
+	 * @return the sender ID...
+	 */
+	public EnumVersion getJDFVersion()
+	{
+		EnumVersion v = EnumVersion.getEnum(root.getAttribute(AttributeName.VERSION));
+		if (v == null)
+		{
+			v = EnumVersion.Version_1_3;
+		}
+		return v;
 	}
 
 	/**

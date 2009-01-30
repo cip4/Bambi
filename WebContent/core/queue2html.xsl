@@ -206,7 +206,6 @@
             </xsl:if>
             <th align="center">Device</th>
             <th align="center">Status</th>
-            <th align="center">Show JDF</th>
           </tr>
           <xsl:apply-templates/>
         </table>
@@ -243,8 +242,12 @@
         <xsl:attribute name="bgcolor">#dddddd</xsl:attribute>
       </xsl:if>
       <td align="left">
+       <a>
+          <xsl:attribute name="href"><xsl:value-of select="$context"/>/showJDF/<xsl:value-of
+            select="../@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
         <xsl:value-of select="@QueueEntryID"/>
-      </td>
+       </a>
+       </td>
       <td align="left">
         <xsl:value-of select="@Priority"/>
       </td>
@@ -288,14 +291,7 @@
           <input type="submit" value="modify entry"/>
         </form>
       </td>
-      <td nowrap="true">
-        <a>
-          <xsl:attribute name="href"><xsl:value-of select="$context"/>/showJDF/<xsl:value-of
-            select="../@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
-          Show JDF
-        </a>
-      </td>
-    </tr>
+      </tr>
   </xsl:template>
   <xsl:include href="optionlist.xsl"/>
 </xsl:stylesheet>

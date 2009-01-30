@@ -80,6 +80,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.util.JDFDate;
+import org.cip4.jdflib.util.StringUtil;
 
 /**
  * provides Bambi specific XML extensions for JDF and JMF
@@ -223,6 +224,11 @@ public class BambiNSExtension
 	 * the URL where the JDFDoc can be grabbed
 	 */
 	public static final String docURL = "DocURL";
+	/*** docURL *************************************************************/
+	/**
+	 * the URL where the JDFDoc can be grabbed
+	 */
+	public static final String docMod = "DocMod";
 
 	/**
 	 * set the location of the JDF
@@ -446,6 +452,24 @@ public class BambiNSExtension
 		{
 			return null;
 		}
+	}
+
+	/**
+	 * @param newQE
+	 * @param currentTimeMillis
+	 */
+	public static void setDocModified(final KElement newQE, final long currentTimeMillis)
+	{
+		setMyNSAttribute(newQE, docMod, StringUtil.formatLong(currentTimeMillis));
+	}
+
+	/**
+	 * @param newQE
+	 * @return currentTimeMillis
+	 */
+	public static long getDocModified(final KElement newQE)
+	{
+		return StringUtil.parseLong(getMyNSAttribute(newQE, docMod), -1);
 	}
 
 }

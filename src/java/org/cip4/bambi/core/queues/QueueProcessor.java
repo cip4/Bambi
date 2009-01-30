@@ -853,7 +853,7 @@ public class QueueProcessor
 	/**
 	 */
 	static final String QE_STATUS = "qeStatus";
-	static final String QE_ID = "qeID";
+	public static final String QE_ID = "qeID";
 	static final String isJDF = "isJDF";
 	static final String SHOW_QUEUE = "showQueue";
 	static final String SHOW_JDF = "showJDF";
@@ -1203,6 +1203,7 @@ public class QueueProcessor
 		final String theDocFile = getJDFStorage(newQEID);
 		final boolean ok = theJDF.write2File(theDocFile, 0, true);
 		BambiNSExtension.setDocURL(newQE, theDocFile);
+		BambiNSExtension.setDocModified(newQE, System.currentTimeMillis());
 		if (!KElement.isWildCard(returnJMF))
 		{
 			BambiNSExtension.setReturnJMF(newQE, returnJMF);
@@ -1583,13 +1584,12 @@ public class QueueProcessor
 	// //////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
-	 * 
-	 * 
-	 * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
+	 * @param request
+	 * @param response
+	 * @return
 	 */
 	public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
 	{
-
 		boolean b = this.new QueueGetHandler().handleGet(request, response);
 		if (!b)
 		{

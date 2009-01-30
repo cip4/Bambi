@@ -50,6 +50,8 @@
         <xsl:with-param name="x5" select="'ID'"/>
         </xsl:call-template>
         <hr/>
+        <xsl:call-template name="summarizeSets"/>
+        <hr/>
         <xsl:apply-templates/>
         <a>
           <xsl:attribute name="href">./<xsl:value-of select="@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
@@ -64,7 +66,7 @@
   <xsl:template match="xjdf:Comment">
      <table >
       <tr>
-        <td >
+        <td>
         <em>
       User Comment:
       <xsl:if test="@Name">
@@ -143,20 +145,47 @@
   </xsl:template>
 
   <!--   ///////////////////////////////////////////////// -->
-
+ 
+   <xsl:template match="xjdf:PartAmount">
+   <h4>Amounts:</h4>
+   <xsl:apply-templates/>
+     <xsl:call-template name="printAttributelines">
+       <xsl:with-param name="prefix" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
+ 
+ <!--   ///////////////////////////////////////////////// -->
+ 
+   <xsl:template match="xjdf:Position">
+   <h4>Fold Sheet Position (Position):</h4>
+   <xsl:apply-templates/>
+     <xsl:call-template name="printAttributes">
+       <xsl:with-param name="prefix" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
+   <!--   ///////////////////////////////////////////////// -->
+   
+  <xsl:template match="xjdf:StripCellParams">
+   <h4>Page Cell Details (StripCellParams):</h4>
+   <xsl:apply-templates/>
+     <xsl:call-template name="printAttributelines">
+       <xsl:with-param name="prefix" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
+   <!--   ///////////////////////////////////////////////// -->
   <xsl:template match="xjdf:Part">
-    <xsl:call-template name="printAttributes">
-      <xsl:with-param name="prefix" select="'Partition:'"/>
-    </xsl:call-template>
-  </xsl:template>
-
-  <!--   ///////////////////////////////////////////////// -->
-
-  <xsl:template match="xjdf:MISDetails">
-    <xsl:call-template name="printAttributes">
-      <xsl:with-param name="prefix" select="'Cost Charging:'"/>
-    </xsl:call-template>
-    <xsl:apply-templates/>
+     <xsl:call-template name="printAttributes">
+       <xsl:with-param name="prefix" select="'Partition:'"/>
+     </xsl:call-template>
+   </xsl:template>
+ 
+   <!--   ///////////////////////////////////////////////// -->
+ 
+   <xsl:template match="xjdf:MISDetails">
+     <xsl:call-template name="printAttributes">
+       <xsl:with-param name="prefix" select="'Cost Charging:'"/>
+     </xsl:call-template>
+     <xsl:apply-templates/>
   </xsl:template>
   <!--   ///////////////////////////////////////////////// -->
 
@@ -295,13 +324,18 @@
   <!--   ///////////////////////////////////////////////// -->
   <xsl:template match="xjdf:Product">
     <h4>
-    <a>
-		    <xsl:attribute name="name"><xsl:value-of select="@ID"/></xsl:attribute>
-    </a>
+      <a>
+        <xsl:attribute name="name"><xsl:value-of select="@ID"/></xsl:attribute>
+      </a>
       Product:
-     </h4>
+      <xsl:if test="@DescriptiveName">
+        (
+        <xsl:value-of select="@DescriptiveName"/>
+        )
+      </xsl:if>
+    </h4>
     <xsl:call-template name="printAttributelines">
-      <!--  <xsl:with-param name="x1" select="'Name'"/>  -->
+      <xsl:with-param name="x1" select="'DescriptiveName'"/>
     </xsl:call-template>
     <xsl:apply-templates/>
   </xsl:template>
@@ -412,6 +446,84 @@
   </xsl:template>
  <!--   ///////////////////////////////////////////////// -->
 
+  <xsl:template match="xjdf:Address">
+  <h4>Address:</h4>
+    <xsl:if test="@Street">
+      <xsl:value-of select="@Street"/>
+      <br/>
+    </xsl:if>
+    <xsl:if test="@PostBox">
+      <xsl:value-of select="@PostBox"/>
+      <br/>
+    </xsl:if>
+    <xsl:if test="ExtendedAddress">
+      <xsl:value-of select="ExtendedAddress"/>
+      <br/>
+    </xsl:if>
+    <xsl:if test="@CountryCode">
+      <xsl:value-of select="@CountryCode"/>
+      <xsl:text> </xsl:text>
+    </xsl:if>
+    <xsl:if test="@PostalCode">
+      <xsl:value-of select="@PostalCode"/>
+      <xsl:text> </xsl:text>
+    </xsl:if>
+    <xsl:if test="@City">
+      <xsl:value-of select="@City"/>
+      <br/>
+    </xsl:if>
+    <xsl:if test="@Region">
+      <xsl:value-of select="@Region"/>
+      <xsl:text> </xsl:text>
+    </xsl:if>
+    <xsl:if test="@Country">
+      <xsl:value-of select="@Country"/>
+      <br/>
+    </xsl:if>
+    <hr/>
+  </xsl:template>
+  
+  <!-- ........................................ -->
+   <xsl:template match="xjdf:CutBlock">
+  <h4>Cutblock: <xsl:value-of select="@BlockName"/></h4>
+   <xsl:call-template name="printAttributelines">
+      <xsl:with-param name="printme" select="''"/>
+     <xsl:with-param name="x1" select="'BlockName'"/>
+    </xsl:call-template>
+   <xsl:apply-templates/>
+ 
+  </xsl:template>
+  <!-- ........................................ -->
+   
+   <xsl:template match="xjdf:Person">
+    <xsl:if test="@NamePrefix">
+      <xsl:value-of select="@NamePrefix"/>
+      <xsl:text> </xsl:text>
+    </xsl:if>
+    <xsl:if test="@FirstName">
+      <xsl:value-of select="@FirstName"/>
+      <xsl:text> </xsl:text>
+    </xsl:if>
+    <xsl:if test="@FamilyName">
+      <xsl:value-of select="@FamilyName"/>
+      <xsl:text> </xsl:text>
+    </xsl:if>
+   <xsl:if test="@NameSuffix">
+      <xsl:value-of select="@NameSuffix"/>
+      <xsl:text> </xsl:text>
+    </xsl:if>
+   <xsl:call-template name="printAttributes">
+      <xsl:with-param name="printme" select="''"/>
+     <xsl:with-param name="x1" select="'NamePrefix'"/>
+     <xsl:with-param name="x2" select="'FirstName'"/>
+     <xsl:with-param name="x3" select="'FamilyName'"/>
+     <xsl:with-param name="x4" select="'NameSuffix'"/>
+    </xsl:call-template>
+    <xsl:apply-templates/>
+ 
+  </xsl:template>
+ <!--   ///////////////////////////////////////////////// -->
+
   <xsl:template match="xjdf:NumberSpan">
     <xsl:call-template name="span"/>
   </xsl:template>
@@ -450,6 +562,9 @@
   </xsl:template>
 
   <!--   ///////////////////////////////////////////////// -->
+    <!--  nop! -->
+  <xsl:template match="xjdf:SpawnInfo">
+  </xsl:template>
 <!--   ///////////////////////////////////////////////// -->
 
   <xsl:template name="span">
@@ -494,6 +609,11 @@
   <xsl:template match="xjdf:*">
     <xsl:param name="pre"/>
     <xsl:param name="printme" select="'y'"/>
+    <xsl:if test="$printme">
+      <h4>
+        <xsl:value-of select="name()"/>
+      </h4>
+    </xsl:if>
     <xsl:variable name="pre2">
       <xsl:if test="$printme">
         <xsl:if test="$pre">
@@ -517,7 +637,7 @@
     <xsl:param name="header"/>
     <h2>
     <a>
-    <xsl:attribute name="href"><xsl:value-of select="@ID"/></xsl:attribute>
+    <xsl:attribute name="name"><xsl:value-of select="@ID"/></xsl:attribute>
     </a>
       <xsl:if test="@Usage">
         <xsl:value-of select="@Usage"/>
@@ -532,7 +652,10 @@
         <xsl:value-of select="@ProcessUsage"/>
         )
       </xsl:if>
-      - Parts: <xsl:value-of select="count(xjdf:Parameter) + count(xjdf:Resource)+ count(xjdf:Intent)"/>
+      <xsl:variable name="cnt" select="count(xjdf:Parameter) + count(xjdf:Resource)+ count(xjdf:Intent)"/>
+      <xsl:if test="$cnt &gt; 1">
+      - Parts: <xsl:value-of select="$cnt"/>
+      </xsl:if>
     </h2>
     
     <xsl:call-template name="printAttributelines">
@@ -551,9 +674,17 @@
    <h3><a>
     <xsl:attribute name="name"><xsl:value-of select="@ID"/></xsl:attribute>
     </a>
-   <xsl:value-of select="../@Name"/> Status=<xsl:value-of select="@Status"/></h3>
+   <xsl:value-of select="../@Name"/> Status=<xsl:value-of select="@Status"/>
+   <xsl:if test="@DescriptiveName">
+   <xsl:text> </xsl:text>
+   (
+   <xsl:value-of select="@DescriptiveName"/>
+   )
+   </xsl:if>
+   </h3>
     <xsl:call-template name="printAttributelines">
       <xsl:with-param name="x1" select="'Status'"/>    
+     <xsl:with-param name="x2" select="'DescriptiveName'"/>    
     </xsl:call-template>
     <xsl:apply-templates>
       <xsl:with-param name="printme" select="''"/>
@@ -625,6 +756,7 @@
           <xsl:when test="$x6 = name()"/>
           <xsl:when test="$x7 = name()"/>
           <xsl:when test="$x8 = name()"/>
+          <xsl:when test=". = ''"/>
            <xsl:when test="'ID' = name()"/>
           <xsl:when test="string-length(name())>3 and string-length(name()) = 3 + string-length(substring-before(name(),'Ref'))">
           <tr valign="top">
@@ -672,9 +804,9 @@
       <tr>
         <xsl:if test="normalize-space($prefix) != ''">
           <td nowrap="true">
-          <em>
+          <b>
             <xsl:value-of select="$prefix"/>
-            </em>
+            </b>
           </td>
         </xsl:if>
 
@@ -688,10 +820,13 @@
             <xsl:when test="$x6 = name()"/>
             <xsl:when test="$x7 = name()"/>
             <xsl:when test="$x8 = name()"/>
+           <xsl:when test=". = ''"/>
            <xsl:when test="'ID' = name()"/>
             <xsl:otherwise>
               <td nowrap="true">
+              <em>
                 <xsl:value-of select="name()"/>
+                </em>
               </td>
               <td>
                 =
@@ -707,5 +842,52 @@
   </xsl:template>
 
   <!--   ///////////////////////////////////////////////// -->
+  <xsl:template name="summarizeLine">
+    <tr>
+      <td>
+        <a>
+          <xsl:attribute name="href">#<xsl:value-of select="@ID"/></xsl:attribute>
+          <xsl:value-of select="@Name"/>
+        </a>
 
+      </td>
+     <td>
+          <xsl:value-of select="@Usage"/>
+        </td>
+     <td>
+          <xsl:value-of select="@ID"/>
+       </td>
+    </tr>
+  </xsl:template>
+  <!--   ///////////////////////////////////////////////// -->
+  <xsl:template name="summarizeSets">
+    <xsl:param name="x1" select="''"/>
+    <xsl:param name="x2" select="''"/>
+    <xsl:param name="x3" select="''"/>
+    <xsl:param name="x4" select="''"/>
+    <xsl:param name="x5" select="''"/>
+    <xsl:param name="x6" select="''"/>
+    <xsl:param name="x7" select="''"/>
+    <xsl:param name="x8" select="''"/>
+    <table Border="0" cellspacing="0">
+      <th >
+        <td colspan="3">
+          List of Root Resources
+        </td>
+      </th>
+
+      <xsl:for-each select="xjdf:ResourceSet">
+        <xsl:call-template name="summarizeLine"/>
+      </xsl:for-each>
+      <xsl:for-each select="xjdf:ParameterSet">
+        <xsl:call-template name="summarizeLine"/>
+      </xsl:for-each>
+      <xsl:for-each select="xjdf:IntentSet">
+        <xsl:call-template name="summarizeLine"/>
+      </xsl:for-each>
+
+    </table>
+  </xsl:template>
+
+  <!--   ///////////////////////////////////////////////// -->
 </xsl:stylesheet>

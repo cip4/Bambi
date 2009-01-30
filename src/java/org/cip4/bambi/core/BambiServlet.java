@@ -98,10 +98,12 @@ import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -760,7 +762,8 @@ public class BambiServlet extends HttpServlet
 		dirs.add(props.getBaseDir());
 		dirs.add(props.getJDFDir());
 		createDirs(dirs);
-
+		final EnumVersion version = props.getJDFVersion();
+		JDFElement.setDefaultJDFVersion(version);
 		final VElement v = props.getDevices();
 		final Iterator<KElement> iter = v.iterator();
 		final boolean needController = v.size() > 1;
