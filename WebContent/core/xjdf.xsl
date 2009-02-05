@@ -609,6 +609,65 @@
   <xsl:template match="xjdf:*">
     <xsl:param name="pre"/>
     <xsl:param name="printme" select="'y'"/>
+
+    <xsl:call-template name="default">
+      <xsl:with-param name="pre" select="$pre"/>
+      <xsl:with-param name="printme" select="$printme"/>
+    </xsl:call-template>
+  </xsl:template>
+  <!--   ///////////////////////////////////////////////// -->
+
+  <!--   ///////////////////////////////////////////////// -->
+ <xsl:template match="xjdf:ScreenSelector">
+       <xsl:call-template name="short">
+      <xsl:with-param name="printme" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
+<xsl:template match="xjdf:ColorSpaceConversionOp">
+       <xsl:call-template name="short">
+      <xsl:with-param name="printme" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
+ <!--   ///////////////////////////////////////////////// -->
+ <xsl:template match="xjdf:ObjectResolution">
+       <xsl:call-template name="short">
+      <xsl:with-param name="printme" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
+<!--   ///////////////////////////////////////////////// -->
+ <xsl:template match="xjdf:ImageCompression">
+       <xsl:call-template name="short">
+      <xsl:with-param name="printme" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
+ <!--   ///////////////////////////////////////////////// -->
+  <xsl:template match="xjdf:ThinPDFParams">
+       <xsl:call-template name="short">
+      <xsl:with-param name="printme" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
+ <!--   ///////////////////////////////////////////////// -->
+  <xsl:template match="xjdf:AdvancedParams">
+       <xsl:call-template name="short">
+      <xsl:with-param name="printme" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
+ <!--   ///////////////////////////////////////////////// -->
+
+  <xsl:template name="short">
+      <h4>
+        <xsl:value-of select="name()"/>
+      </h4>
+     <xsl:call-template name="default">
+     <xsl:with-param name="printme" select="''"/>
+    </xsl:call-template>
+  </xsl:template>
+
+ <!--   ///////////////////////////////////////////////// -->
+
+  <xsl:template name="default">
+    <xsl:param name="pre"/>
+    <xsl:param name="printme" select="'y'"/>
     <xsl:if test="$printme">
       <h4>
         <xsl:value-of select="name()"/>
@@ -630,7 +689,6 @@
       <xsl:with-param name="pre" select="$pre2"/>
     </xsl:apply-templates>
   </xsl:template>
-
   <!--   ///////////////////////////////////////////////// -->
 
   <xsl:template name="set">
