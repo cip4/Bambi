@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -74,6 +74,11 @@ import java.io.File;
 
 import org.cip4.jdflib.core.VString;
 
+/**
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+ * 
+ * 09.02.2009
+ */
 public interface IDeviceProperties
 {
 
@@ -109,6 +114,11 @@ public interface IDeviceProperties
 	 * @return the device hotfolder URL. Drop JDFs to this URL, if you want to submit to the device without JMF.
 	 */
 	public File getInputHF();
+
+	/**
+	 * @param hf the hot folder
+	 */
+	public void setInputHF(File hf);
 
 	/**
 	 * get the DeviceID of this device
@@ -178,6 +188,7 @@ public interface IDeviceProperties
 
 	/**
 	 * get a String representation of this DeviceProperty
+	 * @return this representation of this DeviceProperty
 	 */
 	public String toString();
 
@@ -185,6 +196,11 @@ public interface IDeviceProperties
 	 * @return
 	 */
 	public File getOutputHF();
+
+	/**
+	 * @param hf the hot folder
+	 */
+	public void setOutputHF(File hf);
 
 	/**
 	 * @return
@@ -197,6 +213,11 @@ public interface IDeviceProperties
 	public File getErrorHF();
 
 	/**
+	 * @param hf the hot folder
+	 */
+	public void setErrorHF(File hf);
+
+	/**
 	 * get the URL to send generic subscriptions to
 	 * @return the device URL. Status, Resource signals will be sent here regardless of any other subscriptions
 	 */
@@ -204,8 +225,9 @@ public interface IDeviceProperties
 
 	/**
 	 * set the URL to send generic subscriptions to
+	 * @param watchURL
 	 */
-	public void setWatchURL(String WatchURL);
+	public void setWatchURL(String watchURL);
 
 	/**
 	 * @return the type regular expression that the device accepts

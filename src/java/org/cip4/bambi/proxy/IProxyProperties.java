@@ -75,6 +75,13 @@ import java.io.File;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 
+/**
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+ * 
+ * interface for the proxy device serialization
+ * 
+ * 13.02.2009
+ */
 public interface IProxyProperties extends IDeviceProperties
 {
 
@@ -83,13 +90,39 @@ public interface IProxyProperties extends IDeviceProperties
 	 */
 	public enum QEReturn
 	{
-		HF, HTTP, MIME
+		/**
+		 * hot folder
+		 */
+		HF,
+		/**
+		 * http - duh!
+		 */
+		HTTP,
+		/**
+		 * mime
+		 */
+		MIME
 	}
 
 	/**
 	 * @return
 	 */
 	public File getSlaveInputHF();
+
+	/**
+	 * @param hf the hot folder
+	 */
+	public void setSlaveErrorHF(File hf);
+
+	/**
+	 * @param hf the hot folder
+	 */
+	public void setSlaveInputHF(File hf);
+
+	/**
+	 * @param hf the hot folder
+	 */
+	public void setSlaveOutputHF(File hf);
 
 	/**
 	 * @return
@@ -113,7 +146,12 @@ public interface IProxyProperties extends IDeviceProperties
 	public void setSlaveURL(String newSlaveURL);
 
 	/**
-	 * get the URL of this proxy for the slave
+	 * @param newSlaveID
+	 */
+	public void setSlaveDeviceID(String newSlaveID);
+
+	/**
+	 * @return the URL of this proxy for the slave
 	 */
 	public String getDeviceURLForSlave();
 

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -95,6 +95,11 @@ public class ProxyProperties extends MultiDeviceProperties
 
 	private static final Log log = LogFactory.getLog(ProxyProperties.class.getName());
 
+	/**
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+	 * 
+	 * 11.02.2009
+	 */
 	public class ProxyDeviceProperties extends DeviceProperties implements IProxyProperties
 	{
 		/**
@@ -105,10 +110,8 @@ public class ProxyProperties extends MultiDeviceProperties
 			super(elem);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveCallBackClass()
 		 */
 		public IConverterCallback getSlaveCallBackClass()
 		{
@@ -129,10 +132,8 @@ public class ProxyProperties extends MultiDeviceProperties
 			return null;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
+		/**
+		 * @return
 		 */
 		public String getSlaveCallBackClassName()
 		{
@@ -144,10 +145,8 @@ public class ProxyProperties extends MultiDeviceProperties
 			return name;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveDeviceID()
 		 */
 		public String getSlaveDeviceID()
 		{
@@ -164,10 +163,8 @@ public class ProxyProperties extends MultiDeviceProperties
 			return s;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveErrorHF()
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveErrorHF()
 		 */
 		public File getSlaveErrorHF()
 		{
@@ -184,79 +181,87 @@ public class ProxyProperties extends MultiDeviceProperties
 			return StringUtil.replaceString(s, "/jmf/", "/" + AbstractProxyDevice.SLAVEJMF + "/");
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveInputHF()
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveInputHF()
 		 */
 		public File getSlaveInputHF()
 		{
 			return getFile("SlaveInputHF");
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveOutputHF()
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveOutputHF()
 		 */
 		public File getSlaveOutputHF()
 		{
 			return getFile("SlaveOutputHF");
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveURL()
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveInputHF(java.io.File)
+		 */
+		public void setSlaveInputHF(final File hf)
+		{
+			setFile("SlaveInputHF", hf);
+		}
+
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveOutputHF(java.io.File)
+		 */
+		public void setSlaveOutputHF(final File hf)
+		{
+			setFile("SlaveOutputHF", hf);
+		}
+
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveErrorHF(java.io.File)
+		 */
+		public void setSlaveErrorHF(final File hf)
+		{
+			setFile("SlaveErrorHF", hf);
+		}
+
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveURL()
 		 */
 		public String getSlaveURL()
 		{
 			return devRoot.getAttribute("SlaveURL", null, null);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveURL()
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveURL(java.lang.String)
 		 */
 		public void setSlaveURL(final String slaveURL)
 		{
 			devRoot.setAttribute("SlaveURL", slaveURL, null);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getMaxPush()
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#getMaxPush()
 		 */
 		public int getMaxPush()
 		{
 			return StringUtil.parseInt(getDeviceAttribute("MaxPush"), 0);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveHTTPChunk()
 		 */
 		public int getSlaveHTTPChunk()
 		{
 			return StringUtil.parseInt(getDeviceAttribute("SlaveHTTPChunk"), getControllerHTTPChunk());
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveMIMEEncoding()
 		 */
 		public String getSlaveMIMEEncoding()
 		{
 			return getDeviceAttribute("SlaveMIMETransferEncoding", null, getControllerMIMEEncoding());
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
+		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveMIMEExpansion()
 		 */
 		public boolean getSlaveMIMEExpansion()
@@ -274,11 +279,19 @@ public class ProxyProperties extends MultiDeviceProperties
 			return StringUtil.parseBoolean(getDeviceAttribute("SlaveMimePackaging"), true);
 		}
 
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveDeviceID(java.lang.String)
+		 */
+		public void setSlaveDeviceID(final String newSlaveID)
+		{
+			devRoot.setAttribute("SlaveDeviceID", newSlaveID, null);
+		}
+
 	}
 
 	/**
 	 * create device properties for the devices defined in the config file
-	 * @param appDir the location of the web application in the server
+	 * @param _context the servlet context
 	 * @param configFile the config file
 	 */
 	public ProxyProperties(final ServletContext _context, final File configFile)

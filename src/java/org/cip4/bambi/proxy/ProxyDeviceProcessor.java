@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -98,6 +98,7 @@ import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
@@ -119,6 +120,7 @@ import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StatusCounter;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
@@ -145,9 +147,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	static Log log = LogFactory.getLog(ProxyDeviceProcessor.class);
 	private static final long serialVersionUID = -384123582645081254L;
 	private final NotificationQueryHandler notificationQueryHandler;
-	protected long stopTime = 0; // this is the stopprocessing time 0 means I'm
-
-	// alive
+	protected long stopTime = 0; // this is the stop-processing time 0 means I'm alive
 
 	protected class StatusSignalHandler
 	{
@@ -162,12 +162,13 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			{
 				return false;
 			}
-
 			final JDFStatusQuParams sqp = m.getStatusQuParams();
-			NodeIdentifier ni = null;
+			final String qeid = sqp == null ? null : sqp.getQueueEntryID();
+			NodeIdentifier ni = sqp == null ? null : sqp.getIdentifier();
+			// final String qeid = getQEIDFromMessage(m);
+			// NodeIdentifier ni = getNIFromMessage(m);
 			if (sqp != null)
 			{
-				final String qeid = sqp.getQueueEntryID();
 				final boolean matches = KElement.isWildCard(qeid) || ContainerUtil.equals(getSlaveQEID(), qeid);
 				if (!matches)
 				{
@@ -192,6 +193,77 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			}
 
 			return b;
+		}
+
+		/**
+		 * @param sqp
+		 * @return
+		 */
+		private String getQEIDFromMessage(final JDFMessage m)
+		{
+			final JDFStatusQuParams sqp = m.getStatusQuParams();
+			String qeid = sqp == null ? null : sqp.getQueueEntryID();
+			if (qeid == null)
+			{
+				for (int i = 0; true; i++)
+				{
+					final JDFDeviceInfo di = m.getDeviceInfo(i);
+					if (di == null)
+					{
+						break;
+					}
+					for (int j = 0; true; j++)
+					{
+						final JDFJobPhase jp = di.getJobPhase(0);
+						if (jp == null)
+						{
+							break;
+						}
+						qeid = StringUtil.getNonEmpty(jp.getQueueEntryID());
+						if (qeid != null)
+						{
+							break; // heureka
+						}
+
+					}
+				}
+			}
+			return qeid;
+		}
+
+		/**
+		 * @param sqp
+		 * @return
+		 */
+		private NodeIdentifier getNIFromMessage(final JDFMessage m)
+		{
+			final JDFStatusQuParams sqp = m.getStatusQuParams();
+			NodeIdentifier ni = sqp == null ? null : sqp.getIdentifier();
+			if (ni == null)
+			{
+				for (int i = 0; true; i++)
+				{
+					final JDFDeviceInfo di = m.getDeviceInfo(i);
+					if (di == null)
+					{
+						break;
+					}
+					for (int j = 0; true; j++)
+					{
+						final JDFJobPhase jp = di.getJobPhase(0);
+						if (jp == null)
+						{
+							break;
+						}
+						ni = jp.getIdentifier();
+						if (ni != null)
+						{
+							break; // heureka
+						}
+					}
+				}
+			}
+			return ni;
 		}
 
 		/**
@@ -474,7 +546,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			qURL = null;
 		}
 		EnumQueueEntryStatus qes = null;
-		if (qURL != null)
+		final File hf = getParent().getProxyProperties().getSlaveInputHF();
+		if (qURL != null && hf == null)
 		{
 			final IProxyProperties proxyProperties = getParent().getProxyProperties();
 			final File deviceOutputHF = proxyProperties.getSlaveOutputHF();
@@ -487,13 +560,9 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			final IQueueEntry iqe = submitToQueue(qURL, deviceOutputHF, ud, expandMime, isMime);
 			qes = iqe == null ? null : iqe.getQueueEntry().getQueueEntryStatus();
 		}
-		else
+		else if (hf != null)
 		{
-			final File hf = getParent().getProxyProperties().getSlaveInputHF();
-			if (hf != null)
-			{
-				qes = submitToHF(hf);
-			}
+			qes = submitToHF(hf);
 		}
 
 		if (qes == null || EnumQueueEntryStatus.Aborted.equals(qes))
@@ -512,8 +581,9 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	private EnumQueueEntryStatus submitToHF(final File fHF)
 	{
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
-		final JDFNode nod = getCloneJDFForSlave();
-		if (nod == null)
+		final JDFNode node = getCloneJDFForSlave();
+		KElement modNode = node;
+		if (node == null)
 		{
 			// TODO abort!
 			log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
@@ -523,11 +593,12 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		{
 			if (slaveCallBack != null)
 			{
-				slaveCallBack.updateJDFForExtern(nod.getOwnerDocument_JDFElement());
+				final XMLDoc d = slaveCallBack.updateJDFForExtern(node.getOwnerDocument_JDFElement());
+				modNode = d.getRoot();
 			}
 			final File fLoc = new File(((ProxyDevice) _parent).getNameFromQE(qe));
 			final File fileInHF = FileUtil.getFileInDirectory(fHF, fLoc);
-			final boolean bWritten = nod.getOwnerDocument_JDFElement().write2File(fileInHF, 0, true);
+			final boolean bWritten = modNode.getOwnerDocument_KElement().write2File(fileInHF, 0, true);
 			if (bWritten)
 			{
 				submitted("qe" + JDFElement.uniqueID(0), EnumQueueEntryStatus.Running, UrlUtil.fileToUrl(fileInHF, true));

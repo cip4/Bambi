@@ -170,7 +170,23 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			deviceRoot.setAttribute(AttributeName.DEVICEID, getDeviceID());
 			deviceRoot.setAttribute(AttributeName.DEVICETYPE, getDeviceType());
 			deviceRoot.setAttribute("DeviceURL", getDeviceURL());
-			deviceRoot.setAttribute("WatchURL", getProperties().getWatchURL());
+			final IDeviceProperties properties = getProperties();
+			deviceRoot.setAttribute("WatchURL", properties.getWatchURL());
+			final File inputHF = properties.getInputHF();
+			if (inputHF != null)
+			{
+				deviceRoot.setAttribute("InputHF", inputHF.getPath());
+			}
+			final File outputHF = properties.getOutputHF();
+			if (outputHF != null)
+			{
+				deviceRoot.setAttribute("OutputHF", outputHF.getPath());
+			}
+			final File errorHF = properties.getErrorHF();
+			if (errorHF != null)
+			{
+				deviceRoot.setAttribute("ErrorHF", errorHF.getPath());
+			}
 			deviceRoot.setAttribute(AttributeName.DEVICESTATUS, getDeviceStatus().getName());
 			final JDFQueue jdfQueue = _theQueueProcessor.getQueue();
 			final EnumQueueStatus queueStatus = jdfQueue == null ? null : jdfQueue.getQueueStatus();
@@ -566,6 +582,15 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 */
 	protected void createHotFolder(final File hfURL)
 	{
+		if (ContainerUtil.equals(hfURL, _submitHotFolder == null ? null : _submitHotFolder.getHfDirectory()))
+		{
+			return; // no change - bail out
+		}
+		if (_submitHotFolder != null)
+		{
+			_submitHotFolder.stop();
+			_submitHotFolder = null;
+		}
 		if (hfURL == null)
 		{
 			return;
@@ -985,6 +1010,21 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		{
 			updateWatchURL(watchURL);
 		}
+		if (s.contains("InputHF"))
+		{
+			final String hf = request.getParameter("InputHF");
+			updateInputHF(hf);
+		}
+		if (s.contains("OutputHF"))
+		{
+			final String hf = request.getParameter("OutputHF");
+			updateOutputHF(hf);
+		}
+		if (s.contains("ErrorHF"))
+		{
+			final String hf = request.getParameter("ErrorHF");
+			updateErrorHF(hf);
+		}
 
 		final String deviceType = request.getParameter("DeviceType");
 		if (deviceType != null && s.contains("DeviceType"))
@@ -998,10 +1038,6 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 */
 	private void updateWatchURL(final String newWatchURL)
 	{
-		if (newWatchURL == null)
-		{
-			return;
-		}
 		final IDeviceProperties properties = getProperties();
 		final String oldWatchURL = properties.getWatchURL();
 		if (ContainerUtil.equals(oldWatchURL, newWatchURL))
@@ -1012,6 +1048,56 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		_theSignalDispatcher.removeSubScriptions(null, oldWatchURL, null);
 		addWatchSubscriptions();
 		properties.serialize();
+	}
+
+	/**
+	 * 
+	 */
+	private void updateInputHF(String newHF)
+	{
+		newHF = StringUtil.getNonEmpty(newHF);
+		final IDeviceProperties properties = getProperties();
+		final File oldHF = properties.getInputHF();
+		final File newHFF = newHF == null ? null : new File(newHF);
+		if (!ContainerUtil.equals(oldHF, newHFF))
+		{
+			final File hf = newHF == null ? null : new File(newHF);
+			properties.setInputHF(hf);
+			properties.serialize();
+			createHotFolder(hf);
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void updateOutputHF(String newHF)
+	{
+		newHF = StringUtil.getNonEmpty(newHF);
+		final IDeviceProperties properties = getProperties();
+		final File oldHF = properties.getOutputHF();
+		final File newHFF = newHF == null ? null : new File(newHF);
+		if (!ContainerUtil.equals(oldHF, newHFF))
+		{
+			properties.setOutputHF(newHF == null ? null : new File(newHF));
+			properties.serialize();
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void updateErrorHF(String newHF)
+	{
+		newHF = StringUtil.getNonEmpty(newHF);
+		final IDeviceProperties properties = getProperties();
+		final File oldHF = properties.getErrorHF();
+		final File newHFF = newHF == null ? null : new File(newHF);
+		if (!ContainerUtil.equals(oldHF, newHFF))
+		{
+			properties.setErrorHF(newHF == null ? null : new File(newHF));
+			properties.serialize();
+		}
 	}
 
 	/**

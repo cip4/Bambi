@@ -8,21 +8,35 @@
         <link rel="stylesheet" type="text/css" href="../css/styles_pc.css"/>
         <link rel="icon" href="favicon.ico" type="image/x-icon"/>
         <title>
-          JDF Job Ticket
+          JDF Job Ticket Summary
           <xsl:value-of select="@JobID"/>
         </title>
       </head>
       <body>
         <img src="../logo.gif" height="70" alt="logo"/>
-        <a>
-          <xsl:attribute name="href"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
-          Back to Queue
+        <table>
+          <tr>
+            <td>
+              <a>
+                <xsl:attribute name="href"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+                Back to Queue
+              </a>
+            </td>
+            <td>
+              <a>
+                <xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+                Back to Device
+              </a>
+            </td>
+            <td>
+              <a>
+                <xsl:attribute name="href"><xsl:value-of select="$context"/>/showJDF/<xsl:value-of select="@DeviceID"/>?raw=true&amp;qeID=<xsl:value-of
+            select="@QueueEntryID"/></xsl:attribute>
+          Show JDF XML Source
         </a>
-        .
-        <a>
-          <xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
-          Back to Device
-        </a>
+        </td>
+        </tr>
+        </table>
         <h1>
           JDF Job Ticket
           <xsl:value-of select="@JobID"/>
@@ -38,12 +52,6 @@
           <xsl:call-template name="jdf"/> <!-- add myself -->
           <xsl:apply-templates select="jdf:JDF"/>
         </table>
-        <hr/>
-        <a>
-          <xsl:attribute name="href"><xsl:value-of select="$context"/>/showJDF/<xsl:value-of select="@DeviceID"/>?raw=true&amp;qeID=<xsl:value-of
-            select="@QueueEntryID"/></xsl:attribute>
-          Show Raw JDF
-        </a>
 
       </body>
     </html>

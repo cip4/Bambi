@@ -564,23 +564,26 @@ public class MessageSender implements Runnable
 	private File getPersistLocation()
 	{
 		String loc = callURL.getBaseURL();
-		loc = StringUtil.replaceCharSet(loc, ":\\", "/", 0);
-		while (loc.indexOf("//") >= 0)
-		{
-			loc = StringUtil.replaceString(loc, "//", "/");
-		}
 		if (loc == null)
 		{
 			log.error("cannot persist jmf to null");
 			return null;
 		}
+		loc = StringUtil.replaceCharSet(loc, ":\\", "/", 0);
+		while (loc.indexOf("//") >= 0)
+		{
+			loc = StringUtil.replaceString(loc, "//", "/");
+		}
 		loc += ".xml";
 		final File f = FileUtil.getFileInDirectory(baseLocation, new File(loc));
 		final File locParent = f.getParentFile();
-		locParent.mkdirs();
-		if (!locParent.isDirectory())
+		if (locParent != null)
 		{
-			log.error("cannot create deirectory to persist jmf: " + f.getAbsolutePath());
+			locParent.mkdirs();
+		}
+		if (locParent == null || !locParent.isDirectory())
+		{
+			log.error("cannot create directory to persist jmf: " + f.getAbsolutePath());
 			return null;
 		}
 		return f;

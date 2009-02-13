@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -573,7 +573,6 @@ public class BambiServlet extends HttpServlet
 	protected void loadProperties(final ServletContext context, final File config, final String dump)
 	{
 		final MultiDeviceProperties props = new MultiDeviceProperties(context, config);
-		MessageSender.setBaseLocation(props.getJMFDir());
 		createDevices(props, dump);
 	}
 
@@ -758,6 +757,7 @@ public class BambiServlet extends HttpServlet
 	 */
 	protected boolean createDevices(final MultiDeviceProperties props, final String dump)
 	{
+		MessageSender.setBaseLocation(props.getJMFDir());
 		final Vector<File> dirs = new Vector<File>();
 		dirs.add(props.getBaseDir());
 		dirs.add(props.getJDFDir());

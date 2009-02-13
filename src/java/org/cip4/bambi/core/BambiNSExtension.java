@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -95,13 +95,22 @@ public class BambiNSExtension
 	 */
 	private static final String STATUS_CONTAINER = "StatusContainer";
 	private static String slaveURL = "SlaveURL";
+	private static String slaveInputHF = "SlaveInputHF";
+	private static String slaveOutputHF = "SlaveOutputHF";
+	private static String slaveErrorHF = "SlaveErrorHF";
 	private static String slaveSubmissionTime = "SlaveSubmissionTime";
 
 	protected BambiNSExtension()
 	{/* never construct - static class */
 	}
 
+	/**
+	 * the Bambi namespace uri
+	 */
 	public static final String MY_NS = "www.cip4.org/Bambi";
+	/**
+	 * the Bambi namespace prefix
+	 */
 	public static final String MY_NS_PREFIX = "bambi:";
 
 	/**
@@ -420,11 +429,38 @@ public class BambiNSExtension
 
 	/**
 	 * @param root
-	 * @param slaveURL
+	 * @param _slaveURL
 	 */
 	public static void setSlaveURL(final KElement root, final String _slaveURL)
 	{
 		setMyNSAttribute(root, slaveURL, _slaveURL);
+	}
+
+	/**
+	 * @param root
+	 * @param hf
+	 */
+	public static void setSlaveInputHF(final KElement root, final String hf)
+	{
+		setMyNSAttribute(root, slaveInputHF, hf);
+	}
+
+	/**
+	 * @param root
+	 * @param hf
+	 */
+	public static void setSlaveOutputHF(final KElement root, final String hf)
+	{
+		setMyNSAttribute(root, slaveOutputHF, hf);
+	}
+
+	/**
+	 * @param root
+	 * @param hf
+	 */
+	public static void setSlaveErrorHF(final KElement root, final String hf)
+	{
+		setMyNSAttribute(root, slaveErrorHF, hf);
 	}
 
 	/**

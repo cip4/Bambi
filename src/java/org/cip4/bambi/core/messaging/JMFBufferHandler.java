@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -336,7 +336,22 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 		}
 
 		final String senderID = inputMessage.getSenderID();
-		for (int i = 0; i < ignoreSenderIDs.size(); i++)
+		ignoreContains(senderID);
+		return false;
+	}
+
+	/**
+	 * check for the substring senderID in ignoreSenderIDs
+	 * @param senderID
+	 */
+	protected boolean ignoreContains(final String senderID)
+	{
+		if (ignoreSenderIDs == null)
+		{
+			return false;
+		}
+		final int size = ignoreSenderIDs.size();
+		for (int i = 0; i < size; i++)
 		{
 			if (senderID.indexOf(ignoreSenderIDs.get(i)) >= 0)
 			{

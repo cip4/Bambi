@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -126,7 +126,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected final static String sm_dirTestTemp = cwd + File.separator + "test" + File.separator + "temp" + File.separator;
 	protected final static String sm_UrlTestData = "File:test/data/";
 
-	protected static String simWorkerUrl = "http://localhost:8080/SimWorker/jmf/sim001";
+	protected static String simWorkerUrl = "http://localhost:8080/SimWorker/jmf/manual002";
 	protected static String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/proxy001";
 	// protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
 	protected static String manualWorkerUrl = null;
@@ -481,6 +481,33 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 * @see org.cip4.bambi.core.IDeviceProperties#setWatchURL(java.lang.String)
 		 */
 		public void setWatchURL(final String WatchURL)
+		{
+			// TODO Auto-generated method stub
+
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#setErrorHF(java.io.File)
+		 */
+		public void setErrorHF(final File hf)
+		{
+			// TODO Auto-generated method stub
+
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#setInputHF(java.io.File)
+		 */
+		public void setInputHF(final File hf)
+		{
+			// TODO Auto-generated method stub
+
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#setOutputHF(java.io.File)
+		 */
+		public void setOutputHF(final File hf)
 		{
 			// TODO Auto-generated method stub
 

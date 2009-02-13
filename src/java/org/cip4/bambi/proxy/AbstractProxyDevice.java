@@ -88,6 +88,7 @@ import org.cip4.bambi.core.messaging.JMFBufferHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
@@ -274,7 +275,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			}
 			if (_jmfHandler != null)
 			{
-				final JDFNode n = doc.getJDFRoot();
+				final KElement n = doc.getRoot();
 				if (n == null)
 				{
 					log.warn("could not process JDF File");
@@ -282,7 +283,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				}
 
 				// assume the rootDev was the executed baby...
-				rqp.setAttribute(hfStatus.getName(), n.getID());
+				rqp.setAttribute(hfStatus.getName(), n.getAttribute(AttributeName.ID));
 				// let the standard returnqe handler do the work
 				final JDFDoc responseJMF = _jmfHandler.processJMF(submissionJMF.getOwnerDocument_JDFElement());
 				try
@@ -338,8 +339,30 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			// proxies never show processors
 			super(false, request);
-			final KElement root = getRoot();
-			BambiNSExtension.setSlaveURL(root, getProxyProperties().getSlaveURL());
+			updateSlaveFolders();
+		}
+
+		/**
+		 * 
+		 */
+		private void updateSlaveFolders()
+		{
+			final KElement deviceRoot = getRoot();
+			final IProxyProperties proxyProperties = getProxyProperties();
+			if (proxyProperties != null)
+			{
+				deviceRoot.setAttribute("SlaveURL", proxyProperties.getSlaveURL());
+				deviceRoot.setAttribute("DeviceURLForSlave", proxyProperties.getDeviceURLForSlave());
+
+				File hf = proxyProperties.getSlaveInputHF();
+				deviceRoot.setAttribute("SlaveInputHF", hf == null ? null : hf.getPath());
+				hf = proxyProperties.getSlaveOutputHF();
+				deviceRoot.setAttribute("SlaveOutputHF", hf == null ? null : hf.getPath());
+				hf = proxyProperties.getSlaveErrorHF();
+				deviceRoot.setAttribute("SlaveErrorHF", hf == null ? null : hf.getPath());
+				final String id = proxyProperties.getSlaveDeviceID();
+				deviceRoot.setAttribute("SlaveDeviceID", id == null ? null : id);
+			}
 		}
 	}
 
@@ -350,26 +373,63 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	{
 		super(properties);
 		final IProxyProperties proxyProperties = getProxyProperties();
-		final File fDeviceJDFOutput = proxyProperties.getSlaveOutputHF();
 		_slaveCallback = proxyProperties.getSlaveCallBackClass();
+
+		prepareSlaveHotfolders(proxyProperties);
+		_jmfHandler.setFilterOnDeviceID(false);
+		_theSignalDispatcher.setIgnoreURL(getDeviceURLForSlave());
+	}
+
+	/**
+	 * prepare output and error hot folders if they are specified
+	 * @param proxyProperties
+	 */
+	private void prepareSlaveHotfolders(final IProxyProperties proxyProperties)
+	{
+		final File fDeviceJDFOutput = proxyProperties.getSlaveOutputHF();
 		if (fDeviceJDFOutput != null)
 		{
-			final File hfStorage = new File(getDeviceDir() + File.separator + "HFDevTmpStorage");
-			log.info("Device output HF:" + fDeviceJDFOutput.getPath() + " device ID= " + proxyProperties.getSlaveDeviceID());
-			final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
-			slaveJDFOutput = new QueueHotFolder(fDeviceJDFOutput, hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Completed), rqCommand);
+			reloadSlaveOutputHF(fDeviceJDFOutput);
 		}
 
 		final File fDeviceErrorOutput = proxyProperties.getSlaveErrorHF();
 		if (fDeviceErrorOutput != null)
 		{
-			final File hfStorage = new File(_devProperties.getBaseDir() + File.separator + "HFDevTmpStorage" + File.separator + _devProperties.getDeviceID());
-			log.info("Device error output HF:" + fDeviceErrorOutput.getPath() + " device ID= " + getSlaveDeviceID());
-			final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
-			slaveJDFError = new QueueHotFolder(fDeviceErrorOutput, hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Aborted), rqCommand);
+			reloadSlaveErrorHF(fDeviceErrorOutput);
 		}
-		_jmfHandler.setFilterOnDeviceID(false);
-		_theSignalDispatcher.setIgnoreURL(getDeviceURLForSlave());
+	}
+
+	/**
+	 * @param fDeviceErrorOutput
+	 */
+	private void reloadSlaveErrorHF(final File fDeviceErrorOutput)
+	{
+		if (slaveJDFError != null)
+		{
+			slaveJDFError.stop();
+			slaveJDFError = null;
+		}
+		final File hfStorage = new File(_devProperties.getBaseDir() + File.separator + "HFDevTmpStorage" + File.separator + _devProperties.getDeviceID());
+		log.info("Device error output HF:" + fDeviceErrorOutput.getPath() + " device ID= " + getSlaveDeviceID());
+		final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
+		slaveJDFError = new QueueHotFolder(fDeviceErrorOutput, hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Aborted), rqCommand);
+	}
+
+	/**
+	 * @param proxyProperties
+	 * @param fDeviceJDFOutput
+	 */
+	private void reloadSlaveOutputHF(final File fDeviceJDFOutput)
+	{
+		if (slaveJDFOutput != null)
+		{
+			slaveJDFOutput.stop();
+			slaveJDFOutput = null;
+		}
+		final File hfStorage = new File(getDeviceDir() + File.separator + "HFDevTmpStorage");
+		log.info("Device output HF:" + fDeviceJDFOutput.getPath() + " device ID= " + getSlaveDeviceID());
+		final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
+		slaveJDFOutput = new QueueHotFolder(fDeviceJDFOutput, hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Completed), rqCommand);
 	}
 
 	/*
@@ -522,15 +582,83 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	{
 		super.updateDevice(request);
 
-		final Enumeration en = request.getParameterNames();
-		final Set s = ContainerUtil.toHashSet(en);
+		final Enumeration<String> en = request.getParameterNames();
+		final Set<String> s = ContainerUtil.toHashSet(en);
 
-		final String watchURL = request.getParameter("@bambi:SlaveURL");
-		if (watchURL != null && s.contains("@bambi:SlaveURL"))
+		String slave = request.getParameter("@SlaveURL");
+		if (slave != null && s.contains("@SlaveURL"))
 		{
-			updateSlaveURL(watchURL);
+			updateSlaveURL(slave);
+		}
+		slave = request.getParameter("@SlaveDeviceID");
+		if (slave != null && s.contains("@SlaveDeviceID"))
+		{
+			updateSlaveDeviceID(slave);
+		}
+		String hf = request.getParameter("SlaveInputHF");
+		if (hf != null && s.contains("SlaveInputHF"))
+		{
+			updateSlaveInputHF(hf);
+		}
+		hf = request.getParameter("SlaveOutputHF");
+		if (hf != null && s.contains("SlaveOutputHF"))
+		{
+			updateSlaveOutputHF(hf);
+		}
+		hf = request.getParameter("SlaveErrorHF");
+		if (hf != null && s.contains("SlaveErrorHF"))
+		{
+			updateSlaveErrorHF(hf);
 		}
 
+	}
+
+	/**
+	 * 
+	 */
+	private void updateSlaveErrorHF(String newHF)
+	{
+		newHF = StringUtil.getNonEmpty(newHF);
+		final IProxyProperties properties = getProxyProperties();
+		final File oldHF = properties.getSlaveErrorHF();
+		final File newHFF = newHF == null ? null : new File(newHF);
+		if (!ContainerUtil.equals(oldHF, newHFF))
+		{
+			properties.setSlaveErrorHF(newHFF);
+			properties.serialize();
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void updateSlaveOutputHF(String newHF)
+	{
+		newHF = StringUtil.getNonEmpty(newHF);
+		final IProxyProperties properties = getProxyProperties();
+		final File oldHF = properties.getSlaveOutputHF();
+		final File newHFF = newHF == null ? null : new File(newHF);
+		if (!ContainerUtil.equals(oldHF, newHFF))
+		{
+			properties.setSlaveOutputHF(newHFF);
+			properties.serialize();
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void updateSlaveInputHF(String newHF)
+	{
+		newHF = StringUtil.getNonEmpty(newHF);
+		final IProxyProperties properties = getProxyProperties();
+		final File oldHF = properties.getSlaveInputHF();
+		final File newHFF = newHF == null ? null : new File(newHF);
+		if (!ContainerUtil.equals(oldHF, newHFF))
+		{
+			properties.setSlaveInputHF(newHFF);
+			properties.serialize();
+		}
 	}
 
 	/**
@@ -549,6 +677,25 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			return;
 		}
 		properties.setSlaveURL(newSlaveURL);
+		properties.serialize();
+	}
+
+	/**
+	 * 
+	 */
+	private void updateSlaveDeviceID(final String newSlave)
+	{
+		if (newSlave == null)
+		{
+			return;
+		}
+		final IProxyProperties properties = getProxyProperties();
+		final String oldSlave = properties.getSlaveURL();
+		if (ContainerUtil.equals(oldSlave, newSlave))
+		{
+			return;
+		}
+		properties.setSlaveDeviceID(newSlave);
 		properties.serialize();
 	}
 

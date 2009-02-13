@@ -3,6 +3,7 @@
   <xsl:strip-space elements="*"/>
   <!--  device processor -->
   <xsl:template match="xjdf:XJDF">
+    <xsl:variable name="context" select="@Context"/>
     <html>
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
@@ -17,17 +18,36 @@
       </head>
       <body>
         <img src="../logo.gif" height="70" alt="logo"/>
-        <a>
-          <xsl:attribute name="href">./<xsl:value-of select="@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
-          Back to List of JDF nodes
-        </a>
-        -
-        <a>
-          <xsl:attribute name="href">./<xsl:value-of select="@DeviceID"/>?raw=true&amp;qeID=<xsl:value-of
+        <table>
+          <tr>
+            <td>
+              <a>
+                <xsl:attribute name="href"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+                Back to Queue
+              </a>
+            </td>
+            <td>
+              <a>
+                <xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+                Back to Device
+              </a>
+            </td>
+            <td>
+              <a>
+                <xsl:attribute name="href">./<xsl:value-of select="@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
+                Back to List of JDF nodes
+              </a>
+            </td>
+            <td>
+              <a>
+                <xsl:attribute name="href">./<xsl:value-of select="@DeviceID"/>?raw=true&amp;qeID=<xsl:value-of
             select="@QueueEntryID"/>&amp;JobPartID=<xsl:value-of select="@JobPartID"/></xsl:attribute>
           Show Raw XJDF
         </a>
-        
+            </td>
+          </tr>
+        </table>
+
         <h1>
           JDF Single Node
           <xsl:value-of select="@JobID"/>
@@ -39,24 +59,28 @@
             <xsl:attribute name="href"><xsl:value-of select="@CommentURL"/></xsl:attribute>
             External Job Description
           </a>
-          </xsl:if>
+        </xsl:if>
 
         <hr/>
         <xsl:call-template name="printAttributelines">
           <xsl:with-param name="x1" select="'Context'"/>
           <xsl:with-param name="x2" select="'xsi:type'"/>
           <xsl:with-param name="x3" select="'DeviceID'"/>
-         <xsl:with-param name="x4" select="'CommentURL'"/>
-        <xsl:with-param name="x5" select="'ID'"/>
+          <xsl:with-param name="x4" select="'CommentURL'"/>
+          <xsl:with-param name="x5" select="'ID'"/>
         </xsl:call-template>
         <hr/>
-        <xsl:call-template name="summarizeSets"/>
+        <table Border="0" cellspacing="0">
+          <xsl:call-template name="summarizeSets">
+            <xsl:with-param name="usage" select="'Input'"/>
+          </xsl:call-template>
+          <tr/>
+          <xsl:call-template name="summarizeSets">
+            <xsl:with-param name="usage" select="'Output'"/>
+          </xsl:call-template>
+        </table>
         <hr/>
         <xsl:apply-templates/>
-        <a>
-          <xsl:attribute name="href">./<xsl:value-of select="@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
-          Back to JDF node List
-        </a>
       </body>
     </html>
   </xsl:template>
@@ -64,16 +88,16 @@
   <!--   ///////////////////////////////////////////////// -->
 
   <xsl:template match="xjdf:Comment">
-     <table >
+    <table>
       <tr>
         <td>
-        <em>
-      User Comment:
-      <xsl:if test="@Name">
-        -
-        <xsl:value-of select="@Name"/>
-      </xsl:if>
-      </em>
+          <em>
+            User Comment:
+            <xsl:if test="@Name">
+              -
+              <xsl:value-of select="@Name"/>
+            </xsl:if>
+          </em>
         </td>
         <td border="2">
           <xsl:value-of select="."/>
@@ -145,47 +169,77 @@
   </xsl:template>
 
   <!--   ///////////////////////////////////////////////// -->
- 
-   <xsl:template match="xjdf:PartAmount">
-   <h4>Amounts:</h4>
-   <xsl:apply-templates/>
-     <xsl:call-template name="printAttributelines">
-       <xsl:with-param name="prefix" select="''"/>
-     </xsl:call-template>
-   </xsl:template>
- 
- <!--   ///////////////////////////////////////////////// -->
- 
-   <xsl:template match="xjdf:Position">
-   <h4>Fold Sheet Position (Position):</h4>
-   <xsl:apply-templates/>
-     <xsl:call-template name="printAttributes">
-       <xsl:with-param name="prefix" select="''"/>
-     </xsl:call-template>
-   </xsl:template>
-   <!--   ///////////////////////////////////////////////// -->
-   
+
+  <xsl:template match="xjdf:PartAmount">
+    <h4>Amounts:</h4>
+    <xsl:call-template name="printAttributelines">
+      <xsl:with-param name="prefix" select="''"/>
+    </xsl:call-template>
+    <xsl:apply-templates/>
+  </xsl:template>
+
+  <!--   ///////////////////////////////////////////////// -->
+
+  <xsl:template match="xjdf:Position">
+    <h4>Fold Sheet Position (Position):</h4>
+    <xsl:call-template name="printAttributes">
+      <xsl:with-param name="prefix" select="''"/>
+    </xsl:call-template>
+    <xsl:apply-templates/>
+  </xsl:template>
+  <!--   ///////////////////////////////////////////////// -->
+
   <xsl:template match="xjdf:StripCellParams">
-   <h4>Page Cell Details (StripCellParams):</h4>
-   <xsl:apply-templates/>
-     <xsl:call-template name="printAttributelines">
-       <xsl:with-param name="prefix" select="''"/>
-     </xsl:call-template>
-   </xsl:template>
-   <!--   ///////////////////////////////////////////////// -->
+    <h4>Page Cell Details (StripCellParams):</h4>
+    <xsl:call-template name="printAttributelines">
+      <xsl:with-param name="prefix" select="''"/>
+    </xsl:call-template>
+    <xsl:apply-templates/>
+  </xsl:template>
+  <!--   ///////////////////////////////////////////////// -->
+  <xsl:template match="xjdf:JMF">
+    <h4>JMF Message:</h4>
+    <xsl:call-template name="printAttributelines">
+      <xsl:with-param name="prefix" select="''"/>
+      <xsl:with-param name="x1" select="'xsi:type'"/>
+    </xsl:call-template>
+    <xsl:apply-templates/>
+  </xsl:template>
+  <!--   ///////////////////////////////////////////////// -->
+  <xsl:template name="message">
+    <h4>
+      <xsl:value-of select="name()"/>
+      - Type:
+      <xsl:value-of select="@Type"/>
+    </h4>
+    <xsl:call-template name="printAttributelines">
+      <xsl:with-param name="prefix" select="''"/>
+      <xsl:with-param name="x1" select="'xsi:type'"/>
+      <xsl:with-param name="x2" select="'Type'"/>
+    </xsl:call-template>
+    <xsl:apply-templates/>
+  </xsl:template>
+
+  <xsl:template match="xjdf:Query">
+    <xsl:call-template name="message">
+      <xsl:with-param name="prefix" select="''"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <!--   ///////////////////////////////////////////////// -->
   <xsl:template match="xjdf:Part">
-     <xsl:call-template name="printAttributes">
-       <xsl:with-param name="prefix" select="'Partition:'"/>
-     </xsl:call-template>
-   </xsl:template>
- 
-   <!--   ///////////////////////////////////////////////// -->
- 
-   <xsl:template match="xjdf:MISDetails">
-     <xsl:call-template name="printAttributes">
-       <xsl:with-param name="prefix" select="'Cost Charging:'"/>
-     </xsl:call-template>
-     <xsl:apply-templates/>
+    <xsl:call-template name="printAttributes">
+      <xsl:with-param name="prefix" select="'Partition:'"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <!--   ///////////////////////////////////////////////// -->
+
+  <xsl:template match="xjdf:MISDetails">
+    <xsl:call-template name="printAttributes">
+      <xsl:with-param name="prefix" select="'Cost Charging:'"/>
+    </xsl:call-template>
+    <xsl:apply-templates/>
   </xsl:template>
   <!--   ///////////////////////////////////////////////// -->
 
@@ -732,7 +786,10 @@
    <h3><a>
     <xsl:attribute name="name"><xsl:value-of select="@ID"/></xsl:attribute>
     </a>
-   <xsl:value-of select="../@Name"/> Status=<xsl:value-of select="@Status"/>
+   <xsl:value-of select="../@Name"/> 
+  <xsl:if test="@Status">
+   Status=<xsl:value-of select="@Status"/>
+   </xsl:if>
    <xsl:if test="@DescriptiveName">
    <xsl:text> </xsl:text>
    (
@@ -753,15 +810,15 @@
   <!--   ///////////////////////////////////////////////// -->
   <xsl:template name="printRefs">
     <xsl:param name="val" select="."/>
-    <xsl:param name="n" select="1"/>
-       <xsl:if test=". = $val">
-    <td nowrap="true">
+    <xsl:param name="n" select="''"/>
+    <xsl:if test="not(. = $val)">
+      <td nowrap="true">
         <xsl:value-of select="substring-before(name(),'Ref')"/>
-    </td>		     
-   <td nowrap="true">
+      </td>
+      <td nowrap="true">
         =
-    </td>		     
-</xsl:if>
+    </td>
+    </xsl:if>
 
     <td nowrap="true" width="80">
       <a>
@@ -773,7 +830,7 @@
             <xsl:attribute name="href">#<xsl:value-of select="substring-before($val,' ')"/></xsl:attribute>
           </xsl:otherwise>
         </xsl:choose>
-        <xsl:value-of select="substring-before(name(),'Ref')"/><xsl:value-of select="$n"/>
+        <xsl:value-of select="substring-before(name(),'Ref')"/>: <xsl:value-of select="$val"/> 
       </a>
     </td>
     <!-- remove string up to blank and recurse with remaining right string -->
@@ -901,24 +958,30 @@
 
   <!--   ///////////////////////////////////////////////// -->
   <xsl:template name="summarizeLine">
-    <tr>
-      <td>
-        <a>
-          <xsl:attribute name="href">#<xsl:value-of select="@ID"/></xsl:attribute>
-          <xsl:value-of select="@Name"/>
-        </a>
-
-      </td>
-     <td>
+    <xsl:param name="usage"/>
+    <xsl:if test="not($usage) or $usage = @Usage">
+      <tr>
+        <td>
+          <a>
+            <xsl:attribute name="href">#<xsl:value-of select="@ID"/></xsl:attribute>
+            <xsl:value-of select="@Name"/>
+          </a>
+        </td>
+        <td>
           <xsl:value-of select="@Usage"/>
         </td>
-     <td>
-          <xsl:value-of select="@ID"/>
-       </td>
-    </tr>
+        <td>
+          <a>
+            <xsl:attribute name="href">#<xsl:value-of select="@ID"/></xsl:attribute>
+            <xsl:value-of select="@ID"/>
+          </a>
+        </td>
+      </tr>
+    </xsl:if>
   </xsl:template>
   <!--   ///////////////////////////////////////////////// -->
   <xsl:template name="summarizeSets">
+    <xsl:param name="usage" select="''"/>
     <xsl:param name="x1" select="''"/>
     <xsl:param name="x2" select="''"/>
     <xsl:param name="x3" select="''"/>
@@ -927,24 +990,38 @@
     <xsl:param name="x6" select="''"/>
     <xsl:param name="x7" select="''"/>
     <xsl:param name="x8" select="''"/>
-    <table Border="0" cellspacing="0">
-      <th >
-        <td colspan="3">
-          List of Root Resources
+    <th>
+      List of Root
+      <xsl:value-of select="$usage"/>
+      Resources
+    </th>
+      <tr>
+        <td>
+          Resource Type
         </td>
-      </th>
+        <td>
+          Input / Output
+        </td>
+        <td>
+          Resource ID
+        </td>
+      </tr>
 
+      <xsl:for-each select="xjdf:IntentSet">
+        <xsl:call-template name="summarizeLine">
+          <xsl:with-param name="usage" select="$usage"/>
+        </xsl:call-template>
+      </xsl:for-each>
       <xsl:for-each select="xjdf:ResourceSet">
-        <xsl:call-template name="summarizeLine"/>
+        <xsl:call-template name="summarizeLine">
+          <xsl:with-param name="usage" select="$usage"/>
+        </xsl:call-template>
       </xsl:for-each>
       <xsl:for-each select="xjdf:ParameterSet">
-        <xsl:call-template name="summarizeLine"/>
+        <xsl:call-template name="summarizeLine">
+          <xsl:with-param name="usage" select="$usage"/>
+        </xsl:call-template>
       </xsl:for-each>
-      <xsl:for-each select="xjdf:IntentSet">
-        <xsl:call-template name="summarizeLine"/>
-      </xsl:for-each>
-
-    </table>
   </xsl:template>
 
   <!--   ///////////////////////////////////////////////// -->

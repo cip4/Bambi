@@ -752,7 +752,7 @@ public class QueueProcessor
 			}
 
 			updateEntry(qe, status, null, null);
-			if (EnumQueueEntryStatus.Aborted.equals(qe.getQueueEntryStatus()) || EnumQueueEntryStatus.Completed.equals(qe.getQueueEntryStatus()))
+			if (qe != null && (EnumQueueEntryStatus.Aborted.equals(qe.getQueueEntryStatus()) || EnumQueueEntryStatus.Completed.equals(qe.getQueueEntryStatus())))
 			{
 				returnQueueEntry(qe, null, null);
 			}
@@ -1024,6 +1024,8 @@ public class QueueProcessor
 
 	/**
 	 * get the next queue entry only waiting entries that have not been forwarded to a lower level device are taken into account
+	 * @param deviceID
+	 * @return
 	 */
 	public IQueueEntry getNextEntry(final String deviceID)
 	{

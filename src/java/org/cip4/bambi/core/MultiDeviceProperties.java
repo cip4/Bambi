@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -104,9 +104,14 @@ public class MultiDeviceProperties
 	 * @author boegerni
 	 */
 	protected KElement root;
-	private URL contextURL;
-	private final ServletContext context;
+	URL contextURL;
+	final ServletContext context;
 
+	/**
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+	 * 
+	 * 13.02.2009
+	 */
 	public class DeviceProperties implements IDeviceProperties
 	{
 		/**
@@ -119,6 +124,9 @@ public class MultiDeviceProperties
 			devRoot = _devRoot;
 		}
 
+		/**
+		 * @return
+		 */
 		public KElement getDevRoot()
 		{
 			return devRoot;
@@ -169,7 +177,7 @@ public class MultiDeviceProperties
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
+		 * @return
 		 */
 		public String getCallBackClassName()
 		{
@@ -255,17 +263,26 @@ public class MultiDeviceProperties
 		}
 
 		/**
-		 * @param file
+		 * @param attribute
 		 * @return
 		 */
-		protected File getFile(final String file)
+		protected File getFile(final String attribute)
 		{
-			final String fil = devRoot.getAttribute(file, null, null);
-			return fil == null ? getRootFile(file) : new File(fil);
+			final String fil = devRoot.getAttribute(attribute, null, null);
+			return fil == null ? getRootFile(attribute) : new File(fil);
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceErrorHF()
+		 * @param attribute the attribute to set the fial as
+		 */
+		protected void setFile(final String attribute, final File file)
+		{
+			final String fil = file == null ? null : file.getPath();
+			devRoot.setAttribute(attribute, fil);
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getErrorHF()
 		 */
 		public File getErrorHF()
 		{
@@ -273,11 +290,27 @@ public class MultiDeviceProperties
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceOutputHF()
+		 * @see org.cip4.bambi.core.IDeviceProperties#setErrorHF(java.io.File)
+		 */
+		public void setErrorHF(final File hf)
+		{
+			setFile("ErrorHF", hf);
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getOutputHF()
 		 */
 		public File getOutputHF()
 		{
 			return getFile("OutputHF");
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#setOutputHF(java.io.File)
+		 */
+		public void setOutputHF(final File hf)
+		{
+			setFile("OutputHF", hf);
 		}
 
 		/**
@@ -294,6 +327,14 @@ public class MultiDeviceProperties
 		public File getInputHF()
 		{
 			return getFile("InputHF");
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#setInputHF(java.io.File)
+		 */
+		public void setInputHF(final File hf)
+		{
+			setFile("InputHF", hf);
 		}
 
 		/**
@@ -476,6 +517,7 @@ public class MultiDeviceProperties
 		{
 			return MultiDeviceProperties.this.serialize();
 		}
+
 	}
 
 	private static final Log log = LogFactory.getLog(MultiDeviceProperties.class.getName());
@@ -543,7 +585,7 @@ public class MultiDeviceProperties
 	/**
 	 * @return
 	 */
-	private int getPort()
+	int getPort()
 	{
 		// TODO extract from servlet
 		return root.getIntAttribute("Port", null, BambiServlet.port);

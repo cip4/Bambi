@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -112,7 +112,7 @@ public class StatusListener
 	 * @param deviceID
 	 * @param icsVersions the default ics versions
 	 */
-	public StatusListener(SignalDispatcher dispatch, String deviceID, VString icsVersions)
+	public StatusListener(final SignalDispatcher dispatch, final String deviceID, final VString icsVersions)
 	{
 		dispatcher = dispatch;
 		theCounter = new StatusCounter(null, null, null);
@@ -123,13 +123,13 @@ public class StatusListener
 	/**
 	 * @param msgType the type of messages to flush our, null if any
 	 */
-	public void flush(String msgType)
+	public void flush(final String msgType)
 	{
-		Trigger[] t = dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
+		final Trigger[] t = dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
 		dispatcher.flush();
 		if (rootDispatcher != null)
 		{
-			Trigger[] t2 = rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
+			final Trigger[] t2 = rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
 			rootDispatcher.flush();
 			Trigger.waitQueued(t, 12000);
 		}
@@ -137,26 +137,23 @@ public class StatusListener
 	}
 
 	/**
-	 * update the status information by starting a new phase all amounts that
-	 * have been accumulated are linked to the prior phase should be called
-	 * after all amounts have been appropriately set
+	 * update the status information by starting a new phase all amounts that have been accumulated are linked to the prior phase should be called after all
+	 * amounts have been appropriately set
 	 * 
 	 * @param deviceStatus
 	 * @param deviceStatusDetails
 	 * @param nodeStatus
 	 * @param nodeStatusDetails
-	 * @param forceOut
-	 *            forces writing by any generator, even if the status remains
-	 *            the same and the trigger would not call for a write
+	 * @param forceOut forces writing by any generator, even if the status remains the same and the trigger would not call for a write
 	 */
-	public void signalStatus(EnumDeviceStatus deviceStatus, String deviceStatusDetails, EnumNodeStatus nodeStatus, String nodeStatusDetails, boolean forceOut)
+	public void signalStatus(final EnumDeviceStatus deviceStatus, final String deviceStatusDetails, final EnumNodeStatus nodeStatus, final String nodeStatusDetails, final boolean forceOut)
 	{
 		if (theCounter == null)
 		{
 			log.error("updating null status tracker");
 			return;
 		}
-		boolean bMod = theCounter.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
+		final boolean bMod = theCounter.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
 		if (bMod || forceOut)
 		{
 			flush(null);
@@ -167,14 +164,11 @@ public class StatusListener
 	 * set event, append the Event element and optionally the comment<br/>
 	 * overwrites existing values
 	 * 
-	 * @param eventID
-	 *            Event/@EventID to set
-	 * @param eventValue
-	 *            Event/@EventValue to set
-	 * @param comment
-	 *            the comment text, if null no comment is set
+	 * @param eventID Event/@EventID to set
+	 * @param eventValue Event/@EventValue to set
+	 * @param comment the comment text, if null no comment is set
 	 */
-	public void setEvent(String eventID, String eventValue, String comment)
+	public void setEvent(final String eventID, final String eventValue, final String comment)
 	{
 		if (theCounter == null)
 		{
@@ -186,17 +180,18 @@ public class StatusListener
 	}
 
 	/**
-	 * updates the amount for a given resource the amounts are collected but not
-	 * signaled until @see signalStatus() is called
+	 * updates the amount for a given resource the amounts are collected but not signaled until @see signalStatus() is called
 	 * 
 	 * @param resID the resource id of the tracked resource
 	 * @param good the number of good copies
-	 * @param waste the number of waste copies, 0  specifies that waste should be ignored
+	 * @param waste the number of waste copies, 0 specifies that waste should be ignored
 	 */
-	public void updateAmount(String resID, double good, double waste)
+	public void updateAmount(final String resID, final double good, final double waste)
 	{
 		if (theCounter == null)
+		{
 			return;
+		}
 		theCounter.addPhase(resID, good, waste, true);
 		if (good + waste > 0)
 		{
@@ -211,10 +206,12 @@ public class StatusListener
 	 * 
 	 * 
 	 */
-	public void setPercentComplete(double percent)
+	public void setPercentComplete(final double percent)
 	{
 		if (theCounter == null)
+		{
 			return;
+		}
 		theCounter.setPercentComplete(percent);
 		saveJDF(12345);
 	}
@@ -225,10 +222,12 @@ public class StatusListener
 	 * 
 	 * 
 	 */
-	public void updatePercentComplete(double percent)
+	public void updatePercentComplete(final double percent)
 	{
 		if (theCounter == null)
+		{
 			return;
+		}
 		theCounter.updatePercentComplete(percent);
 		saveJDF(12345);
 	}
@@ -236,18 +235,17 @@ public class StatusListener
 	/**
 	 * update the total amount of a given resource to the value specified
 	 * 
-	 * @param resID
-	 *            the resource id
-	 * @param amount
-	 *            the total amount top set
-	 * @param waste
-	 *            if true, this is waste, else it is good
+	 * @param resID the resource id
+	 * @param amount the total amount top set
+	 * @param waste if true, this is waste, else it is good
 	 * 
 	 */
-	public void updateTotal(String resID, double amount, boolean waste)
+	public void updateTotal(final String resID, final double amount, final boolean waste)
 	{
 		if (theCounter == null)
+		{
 			return;
+		}
 		theCounter.setTotal(resID, amount, waste);
 		if (amount > 0)
 		{
@@ -257,20 +255,20 @@ public class StatusListener
 	}
 
 	/**
-	 * replace the currently tracked node with node used to overwrite the
-	 * current node with a returned node, e.g from a proxy device
+	 * replace the currently tracked node with node used to overwrite the current node with a returned node, e.g from a proxy device
 	 * 
-	 * @param node
-	 *            the JDFNode used to overwrite the local JDF node
+	 * @param node the JDFNode used to overwrite the local JDF node
 	 */
-	public void replaceNode(JDFNode node)
+	public void replaceNode(final JDFNode node)
 	{
 		if (node != null)
 		{
-			String location = currentNode == null ? null : currentNode.getOwnerDocument_JDFElement().getOriginalFileName();
+			final String location = currentNode == null ? null : currentNode.getOwnerDocument_JDFElement().getOriginalFileName();
 			currentNode = node;
 			if (location != null)
+			{
 				currentNode.getOwnerDocument_JDFElement().setOriginalFileName(location);
+			}
 			saveJDF(-1);
 		}
 	}
@@ -278,24 +276,18 @@ public class StatusListener
 	/**
 	 * setup the map of queueentryid and node
 	 * 
-	 * @param queueEntryID
-	 *            the queueentryid is associated to the node if
-	 *            {@link QueueEntry}==null, the entire list is cleared
-	 * @param vPartMap
-	 *            the vector of partitions that are being tracked
-	 * @param trackResourceID
-	 *            the id of the "major" resource to be counted for phasetimes
-	 * @param node
-	 *            the jdf node that will be processed. this may be a group node
-	 *            with additional sub nodes if node==null the queueentryid is
-	 *            removed from the map
+	 * @param queueEntryID the queueentryid is associated to the node if {@link QueueEntry}==null, the entire list is cleared
+	 * @param vPartMap the vector of partitions that are being tracked
+	 * @param trackResourceID the id of the "major" resource to be counted for phasetimes
+	 * @param node the jdf node that will be processed. this may be a group node with additional sub nodes if node==null the queueentryid is removed from the
+	 * map
 	 */
-	public void setNode(String queueEntryID, JDFNode node, VJDFAttributeMap vPartMap, String trackResourceID)
+	public void setNode(final String queueEntryID, JDFNode node, final VJDFAttributeMap vPartMap, final String trackResourceID)
 	{
-		String oldQEID = theCounter.getQueueEntryID();
+		final String oldQEID = theCounter.getQueueEntryID();
 		theCounter.writeAll(); // write all stuff in the counter to the node
 		saveJDF(-1);
-		boolean bSame = currentNode == node;
+		final boolean bSame = currentNode == node;
 		currentNode = node;
 		if (!bSame)
 		{
@@ -324,13 +316,14 @@ public class StatusListener
 	/**
 	 * save the currently active jdf
 	 * 
-	 * @param timeSinceLast
-	 *            milliseconds time to leave between saves
+	 * @param timeSinceLast milliseconds time to leave between saves
 	 */
-	private void saveJDF(int timeSinceLast)
+	private void saveJDF(final int timeSinceLast)
 	{
 		if (currentNode == null)
+		{
 			return;
+		}
 		if (System.currentTimeMillis() - lastSave > timeSinceLast)
 		{
 			final JDFDoc ownerDoc = currentNode.getOwnerDocument_JDFElement();
@@ -345,10 +338,9 @@ public class StatusListener
 	/**
 	 * get the device status
 	 * 
-	 * @return the device status. <br/> Returns EnumDeviceStatus.Idle if the
-	 *         StatusCounter is null. <br/> Returns EnumDeviceStatus.Unknown, if
-	 *         the StatusListener was unable to retrieve the status from the
-	 *         StatusCounter.
+	 * @return the device status. <br/>
+	 * Returns EnumDeviceStatus.Idle if the StatusCounter is null. <br/>
+	 * Returns EnumDeviceStatus.Unknown, if the StatusListener was unable to retrieve the status from the StatusCounter.
 	 */
 	public EnumDeviceStatus getDeviceStatus()
 	{
@@ -357,9 +349,9 @@ public class StatusListener
 			return EnumDeviceStatus.Idle;
 		}
 
-		JDFDoc docJMF = theCounter.getDocJMFPhaseTime();
-		JDFResponse r = docJMF == null ? null : docJMF.getJMFRoot().getResponse(-1);
-		JDFDeviceInfo di = r == null ? null : r.getDeviceInfo(0);
+		final JDFDoc docJMF = theCounter.getDocJMFPhaseTime();
+		final JDFResponse r = docJMF == null ? null : docJMF.getJMFRoot().getResponse(-1);
+		final JDFDeviceInfo di = r == null ? null : r.getDeviceInfo(0);
 		return di == null ? EnumDeviceStatus.Idle : di.getDeviceStatus();
 	}
 
@@ -395,42 +387,52 @@ public class StatusListener
 	 * @param inputMessage
 	 * @return return true if inputMessage applies to this Listener
 	 */
-	public boolean matchesQuery(JDFMessage inputMessage)
+	public boolean matchesQuery(final JDFMessage inputMessage)
 	{
 		if (inputMessage == null)
+		{
 			return false;
+		}
 		if (!(inputMessage instanceof JDFQuery))
+		{
 			return false;
-		JDFQuery q = (JDFQuery) inputMessage;
+		}
+		final JDFQuery q = (JDFQuery) inputMessage;
 		if (EnumType.Status.equals(q.getEnumType()))
 		{
-			JDFStatusQuParams sqp = q.getStatusQuParams();
+			final JDFStatusQuParams sqp = q.getStatusQuParams();
 			if (sqp == null)
+			{
 				return true;
+			}
 			return matchesIDs(sqp.getJobID(), sqp.getJobPartID(), sqp.getQueueEntryID());
 		}
 		else if (EnumType.Resource.equals(q.getEnumType()))
 		{
-			JDFResourceQuParams rqp = q.getResourceQuParams();
+			final JDFResourceQuParams rqp = q.getResourceQuParams();
 			if (rqp == null)
+			{
 				return true;
+			}
 			return matchesIDs(rqp.getJobID(), rqp.getJobPartID(), rqp.getQueueEntryID());
 		}
 		return true;
 	}
 
 	/**
-	 * @param jobID 
-	 * @param jobPartID 
-	 * @param queueEntryID 
+	 * @param jobID
+	 * @param jobPartID
+	 * @param queueEntryID
 	 * @return true if jobID jobPartID and qeID match or are wildcards
 	 */
-	private boolean matchesIDs(String jobID, String jobPartID, String queueEntryID)
+	private boolean matchesIDs(final String jobID, final String jobPartID, String queueEntryID)
 	{
-		NodeIdentifier niIn = new NodeIdentifier(jobID, jobPartID, null);
-		NodeIdentifier niCurrent = currentNode == null ? new NodeIdentifier() : currentNode.getIdentifier();
+		final NodeIdentifier niIn = new NodeIdentifier(jobID, jobPartID, null);
+		final NodeIdentifier niCurrent = currentNode == null ? new NodeIdentifier() : currentNode.getIdentifier();
 		if (!niIn.matches(niCurrent) && !niCurrent.matches(niIn))
+		{
 			return false;
+		}
 
 		queueEntryID = StringUtil.getNonEmpty(queueEntryID);
 		return queueEntryID == null || ContainerUtil.equals(queueEntryID, theCounter.getQueueEntryID());
@@ -439,7 +441,7 @@ public class StatusListener
 	/**
 	 * @param _rootDispatcher
 	 */
-	public void setRootDispatcher(SignalDispatcher _rootDispatcher)
+	public void setRootDispatcher(final SignalDispatcher _rootDispatcher)
 	{
 		this.rootDispatcher = _rootDispatcher;
 	}
@@ -447,19 +449,25 @@ public class StatusListener
 	/**
 	 * @param resID the resource id of the tracked resource
 	 * @param deltaAmount the number of good copies
-	 * @param deltaWaste the number of waste copies, 0  specifies that waste should be ignored
+	 * @param deltaWaste the number of waste copies, 0 specifies that waste should be ignored
 	 * @param amount
 	 * @param waste
 	 */
-	public void setAmount(String resID, double deltaAmount, double deltaWaste, double amount, double waste)
+	public void setAmount(final String resID, final double deltaAmount, final double deltaWaste, final double amount, final double waste)
 	{
 		if (theCounter == null)
+		{
 			return;
+		}
 		theCounter.setPhase(resID, deltaAmount, deltaWaste);
 		if (amount >= deltaAmount)
+		{
 			theCounter.setTotal(resID, amount, false);
+		}
 		if (waste >= deltaWaste)
+		{
 			theCounter.setTotal(resID, waste, true);
+		}
 	}
 
 }
