@@ -358,7 +358,6 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		public DispatchHandler(final String _type, final EnumFamily[] _families)
 		{
 			super(_type, _families);
-			// TODO Auto-generated constructor stub
 		}
 
 		public DispatchHandler(final EnumType _type, final EnumFamily[] _families)
@@ -366,9 +365,6 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			super(_type, _families);
 		}
 
-		/**
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-		 */
 		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response, final IJMFHandler[] devs, final boolean checkReturnCode)
 		{
 

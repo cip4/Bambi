@@ -76,6 +76,7 @@ import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiServletRequest;
 import org.cip4.bambi.core.BambiServletResponse;
 import org.cip4.bambi.core.IGetHandler;
+import org.cip4.bambi.core.BambiServlet.UnknownErrorHandler;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
@@ -111,15 +112,29 @@ public abstract class ShowHandler implements IGetHandler
 		final String fil = _parentDevice.getJDFStorage(qeID);
 		if (fil == null)
 		{
-			return false;
+			return errorShow(request, response, qeID);
 		}
 		final File f = new File(fil);
 		if (!f.canRead())
 		{
-			return false;
+			return errorShow(request, response, qeID);
 		}
 
 		return processFile(request, response, f);
+	}
+
+	/**
+	 * @param request
+	 * @param response
+	 * @param qeid
+	 * @return
+	 */
+	private boolean errorShow(final BambiServletRequest request, final BambiServletResponse response, final String qeid)
+	{
+		final UnknownErrorHandler eh = new UnknownErrorHandler(this);
+		eh.setDetails("Unknown QueueEntry: " + qeid);
+		eh.setMessage("Cannot Show JDF");
+		return eh.handleGet(request, response);
 	}
 
 	/**

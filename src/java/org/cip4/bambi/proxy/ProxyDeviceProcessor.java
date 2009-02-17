@@ -125,7 +125,9 @@ import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
 /**
- * @author prosirai
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+ * 
+ * 16.10.2008
  */
 public class ProxyDeviceProcessor extends AbstractProxyProcessor
 {

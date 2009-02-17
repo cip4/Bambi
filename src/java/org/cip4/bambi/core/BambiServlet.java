@@ -135,19 +135,71 @@ public class BambiServlet extends HttpServlet
 	 * @author prosirai
 	 * 
 	 */
-	protected class UnknownErrorHandler implements IGetHandler
+	public static class UnknownErrorHandler implements IGetHandler
 	{
+		private String details = null;
+		private String message = "No handler for URL";
+		private Object parent = null;
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+		/**
+		 * @param _parent
+		 */
+		public UnknownErrorHandler(final Object _parent)
+		{
+			super();
+			parent = _parent;
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
 		 */
 		public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
 		{
-
-			showErrorPage("No handler for URL", request.getPathInfo(), request, response);
+			showErrorPage(message, details, request, response);
 			return true;
+		}
+
+		/**
+		 * @param d the error details string
+		 */
+		public void setDetails(final String d)
+		{
+			details = d;
+		}
+
+		/**
+		 * @param d the error details string
+		 */
+		public void setMessage(final String m)
+		{
+			message = m;
+		}
+
+		/**
+		 * display an error on error.jsp
+		 * @param errorMsg short message describing the error
+		 * @param errorDetails detailed error info
+		 * @param request required to forward the page
+		 * @param response required to forward the page
+		 */
+		protected void showErrorPage(final String errorMsg, final String errorDetails, final BambiServletRequest request, final BambiServletResponse response)
+		{
+			final XMLDoc d = new XMLDoc("BambiError", null);
+			final KElement err = d.getRoot();
+			err.setAttribute("errorOrigin", parent.getClass().getName());
+			err.setAttribute("errorMsg", errorMsg);
+			err.setAttribute("errorDetails", errorDetails);
+			err.setAttribute("Context", request.getContextRoot());
+			err.setAttribute("URL", request.getCompleteRequestURL());
+			d.setXSLTURL(request.getContextRoot() + "/error.xsl");
+			try
+			{
+				d.write2Stream(response.getBufferedOutputStream(), 2, false);
+			}
+			catch (final IOException x)
+			{
+				// nop
+			}
 		}
 	}
 
@@ -234,33 +286,6 @@ public class BambiServlet extends HttpServlet
 					log.error("failed to create directory " + f);
 				}
 			}
-		}
-	}
-
-	/**
-	 * display an error on error.jsp
-	 * @param errorMsg short message describing the error
-	 * @param errorDetails detailed error info
-	 * @param request required to forward the page
-	 * @param response required to forward the page
-	 */
-	protected void showErrorPage(final String errorMsg, final String errorDetails, final BambiServletRequest request, final BambiServletResponse response)
-	{
-		final XMLDoc d = new XMLDoc("BambiError", null);
-		final KElement err = d.getRoot();
-		err.setAttribute("errorOrigin", this.getClass().getName());
-		err.setAttribute("errorMsg", errorMsg);
-		err.setAttribute("errorDetails", errorDetails);
-		err.setAttribute("Context", request.getContextRoot());
-		err.setAttribute("URL", request.getContextPath());
-		d.setXSLTURL(request.getContextRoot() + "/error.xsl");
-		try
-		{
-			d.write2Stream(response.getBufferedOutputStream(), 2, false);
-		}
-		catch (final IOException x)
-		{
-			// nop
 		}
 	}
 
@@ -381,7 +406,7 @@ public class BambiServlet extends HttpServlet
 			}
 			else
 			{
-				final JDFJMF jmf = jmfDoc == null ? null : jmfDoc.getJMFRoot();
+				final JDFJMF jmf = jmfDoc.getJMFRoot();
 				if (jmf != null)
 				{
 					VElement v = jmf.getMessageVector(null, null);
@@ -464,24 +489,15 @@ public class BambiServlet extends HttpServlet
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws IOException
 	{
 		log.debug("Processing post request for: " + request.getPathInfo());
-		BambiServletRequest bufRequest = null;
-		BambiServletResponse bufResponse = null;
 
-		final String header = getDumpHeader(request);
-
-		if (bambiDumpIn != null)
+		final boolean bBuf = bambiDumpIn != null;
+		final BambiServletRequest bufRequest = new BambiServletRequest(request, bBuf);
+		final BambiServletResponse bufResponse = new BambiServletResponse(response, bBuf, bufRequest);
+		final String header = getDumpHeader(bufRequest);
+		if (bBuf)
 		{
-			bufRequest = new BambiServletRequest(request, true);
-			bufResponse = new BambiServletResponse(response, true, bufRequest);
-
 			final String h2 = header + "\nContext Length: " + request.getContentLength();
 			bambiDumpIn.newFileFromStream(h2, bufRequest.getBufferedInputStream());
-		}
-		else
-		{
-			bufRequest = new BambiServletRequest(request, false);
-			bufResponse = new BambiServletResponse(response, false, bufRequest);
-
 		}
 
 		final String contentType = request.getContentType();
@@ -503,11 +519,17 @@ public class BambiServlet extends HttpServlet
 			}
 			else
 			{
-				log.warn("Unknown ContentType: " + contentType);
+				String ctWarn = "Unknown HTTP ContentType: " + contentType;
+				log.error(ctWarn);
 				response.setContentType("text/plain");
 
 				final OutputStream os = bufResponse.getBufferedOutputStream();
 				final InputStream is = bufRequest.getBufferedInputStream();
+				ctWarn += "\nFor JMF , please use: " + UrlUtil.VND_JMF;
+				ctWarn += "\nFor JDF , please use: " + UrlUtil.VND_JDF;
+				ctWarn += "\nFor MIME, please use: " + MimeUtil.MULTIPART_RELATED;
+				ctWarn += "\n\n Input Message:\n\n";
+				os.write(ctWarn.getBytes());
 				IOUtils.copy(is, os);
 			}
 		}
@@ -529,9 +551,9 @@ public class BambiServlet extends HttpServlet
 	 * @param request
 	 * @return
 	 */
-	private String getDumpHeader(final HttpServletRequest request)
+	private String getDumpHeader(final BambiServletRequest request)
 	{
-		String header = "Context Path: " + request.getRequestURI();
+		String header = "Context Path: " + request.getCompleteRequestURL();
 		header += "\nMethod: Post\nContext Type: " + request.getContentType();
 		header += "\nRemote host: " + request.getRemoteHost();
 		return header;
@@ -618,7 +640,7 @@ public class BambiServlet extends HttpServlet
 	/**
 	 * add a set of options to an xml file
 	 * @param e the default enum
-	 * @param it the iterator over all enums
+	 * @param l the list of all enums
 	 * @param parent the parent element to add the list to
 	 * @param name the name of the option list form
 	 */
@@ -644,24 +666,16 @@ public class BambiServlet extends HttpServlet
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
 	{
-		boolean bHandled = false;
-		BambiServletRequest bufRequest = null;
-		BambiServletResponse bufResponse = null;
-		final String header = getDumpHeader(request);
-		if (dumpGet && bambiDumpIn != null)
+		final boolean bBuf = dumpGet && bambiDumpIn != null;
+		final BambiServletRequest bufRequest = new BambiServletRequest(request, bBuf);
+		final BambiServletResponse bufResponse = new BambiServletResponse(response, bBuf, bufRequest);
+		final String header = getDumpHeader(bufRequest);
+		if (bBuf)
 		{
-			bufRequest = new BambiServletRequest(request, true);
-			bufResponse = new BambiServletResponse(response, true, bufRequest);
-
 			final String h2 = header + "\nContext Length: " + request.getContentLength();
 			bambiDumpIn.newFileFromStream(h2, bufRequest.getBufferedInputStream());
 		}
-		else
-		{
-			bufRequest = new BambiServletRequest(request, false);
-			bufResponse = new BambiServletResponse(response, false, bufRequest);
-		}
-		bHandled = new OverviewHandler().handleGet(bufRequest, bufResponse);
+		boolean bHandled = new OverviewHandler().handleGet(bufRequest, bufResponse);
 		if (!bHandled)
 		{
 			bHandled = rootDev.getGetDispatchHandler().handleGet(bufRequest, bufResponse);
@@ -669,13 +683,14 @@ public class BambiServlet extends HttpServlet
 
 		if (!bHandled)
 		{
-			this.new UnknownErrorHandler().handleGet(bufRequest, bufResponse);
+			final UnknownErrorHandler unknownErrorHandler = new UnknownErrorHandler(this);
+			unknownErrorHandler.handleGet(bufRequest, bufResponse);
 		}
 
 		if (dumpGet && bambiDumpOut != null)
 		{
 			final InputStream buf = bufResponse.getBufferedInputStream();
-			final File f = bambiDumpOut.newFileFromStream(header, buf);
+			bambiDumpOut.newFileFromStream(header, buf);
 		}
 		bufResponse.flush();
 		bufRequest.flush(); // avoid mem leaks
@@ -739,6 +754,11 @@ public class BambiServlet extends HttpServlet
 
 	}
 
+	/**
+	 * @param request
+	 * @param deviceID
+	 * @return
+	 */
 	public static boolean isMyRequest(final BambiServletRequest request, final String deviceID)
 	{
 		if (deviceID == null)
@@ -820,9 +840,6 @@ public class BambiServlet extends HttpServlet
 			port = arg0.getServerPort();
 		}
 		rootDev.incNumRequests();
-
 		super.service(arg0, arg1);
-
 	}
-
 }

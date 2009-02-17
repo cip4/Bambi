@@ -28,7 +28,7 @@ import org.cip4.jdflib.util.UrlUtil;
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -491,56 +491,92 @@ public class BambiServletRequest implements HttpServletRequest
 		return parent.isRequestedSessionIdFromCookie();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#isRequestedSessionIdFromUrl()
+	 */
 	@Deprecated
 	public boolean isRequestedSessionIdFromUrl()
 	{
 		return parent.isRequestedSessionIdFromUrl();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#isRequestedSessionIdFromURL()
+	 */
 	public boolean isRequestedSessionIdFromURL()
 	{
 		return parent.isRequestedSessionIdFromURL();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#isRequestedSessionIdValid()
+	 */
 	public boolean isRequestedSessionIdValid()
 	{
 		return parent.isRequestedSessionIdValid();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#isSecure()
+	 */
 	public boolean isSecure()
 	{
 		return parent.isSecure();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#isUserInRole(java.lang.String)
+	 */
 	public boolean isUserInRole(final String arg0)
 	{
 		return parent.isUserInRole(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#removeAttribute(java.lang.String)
+	 */
 	public void removeAttribute(final String arg0)
 	{
 		parent.removeAttribute(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#setAttribute(java.lang.String, java.lang.Object)
+	 */
 	public void setAttribute(final String arg0, final Object arg1)
 	{
 		parent.setAttribute(arg0, arg1);
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#setCharacterEncoding(java.lang.String)
+	 */
 	public void setCharacterEncoding(final String arg0) throws UnsupportedEncodingException
 	{
 		parent.setCharacterEncoding(arg0);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/**
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString()
 	{
-		return "BambiServletRequest: \nURI=" + getRequestURI();
+		return "BambiServletRequest: \nURI=" + getCompleteRequestURL();
+	}
+
+	/**
+	 * @return the complete request URL including parameters
+	 */
+	public String getCompleteRequestURL()
+	{
+		String details = getRequestURL().toString();
+		final String q = getQueryString();
+		if (StringUtil.getNonEmpty(q) != null)
+		{
+			details += "?" + q;
+		}
+		return details;
 	}
 
 }

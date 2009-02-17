@@ -225,6 +225,15 @@
       <xsl:with-param name="prefix" select="''"/>
     </xsl:call-template>
   </xsl:template>
+  <!--   ///////////////////////////////////////////////// -->
+
+  <xsl:template match="xjdf:Subscription">
+    <h4>Persistent Channel Subscription:</h4>
+    <xsl:call-template name="printAttributes">
+      <xsl:with-param name="prefix" select="''"/>
+    </xsl:call-template>
+    <xsl:apply-templates/>
+  </xsl:template>
 
   <!--   ///////////////////////////////////////////////// -->
   <xsl:template match="xjdf:Part">
