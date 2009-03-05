@@ -105,10 +105,13 @@ import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
 import org.cip4.jdflib.resource.process.JDFUsageCounter;
+import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * abstract parent class for device processors <br>
@@ -512,16 +515,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 					if (rootDevice != null)
 					{
 						currentQE = rootDevice._theQueueProcessor.getNextEntry(_parent.getDeviceID());
-						if (currentQE != null)
-						{
-							// grab the qe and pass it on to the devices queue...
-							final JDFQueue queue = _parent._theQueueProcessor.getQueue();
-							JDFQueueEntry queueEntry = currentQE.getQueueEntry();
-							queueEntry = (JDFQueueEntry) queue.moveElement(queueEntry, null);
-							// sort the root queue as it doesn't know that it lost a kid
-							rootDevice._theQueueProcessor.getQueue().sortChildren();
-							currentQE.setQueueEntry(queueEntry);
-						}
+						importQEFromRoot(rootDevice);
 					}
 				}
 				if (currentQE == null)
@@ -530,6 +524,39 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 				}
 			}
 			return currentQE;
+		}
+	}
+
+	/**
+	 * @param rootDevice
+	 */
+	private void importQEFromRoot(final RootDevice rootDevice)
+	{
+		if (currentQE != null)
+		{
+			// grab the qe and pass it on to the devices queue...
+			final JDFQueue queue = _parent._theQueueProcessor.getQueue();
+			JDFQueueEntry queueEntry = currentQE.getQueueEntry();
+			final String queueEntryID = queueEntry.getQueueEntryID();
+			log.info("extracting queue entry from root queue: qeid=" + queueEntryID);
+			queueEntry = (JDFQueueEntry) queue.moveElement(queueEntry, null);
+
+			// sort the root queue as it doesn't know that it lost a kid
+			rootDevice._theQueueProcessor.getQueue().sortChildren();
+			currentQE.setQueueEntry(queueEntry);
+
+			// clean up file references to the stored docuuments
+			final String oldFil = BambiNSExtension.getDocURL(queueEntry);
+			final String newFil = _parent.getJDFStorage(queueEntryID);
+			if (!ContainerUtil.equals(oldFil, newFil))
+			{
+				final boolean bMoved = FileUtil.moveFile(UrlUtil.urlToFile(oldFil), UrlUtil.urlToFile(newFil));
+				if (bMoved)
+				{
+					BambiNSExtension.setDocURL(queueEntry, newFil);
+					currentQE.getJDF().getOwnerDocument_KElement().setOriginalFileName(newFil);
+				}
+			}
 		}
 	}
 

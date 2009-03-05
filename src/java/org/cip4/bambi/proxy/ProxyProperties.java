@@ -246,6 +246,14 @@ public class ProxyProperties extends MultiDeviceProperties
 		}
 
 		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveURL(java.lang.String)
+		 */
+		public void setMaxPush(final int push)
+		{
+			devRoot.setAttribute("MaxPush", push, null);
+		}
+
+		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveHTTPChunk()
 		 */
 		public int getSlaveHTTPChunk()

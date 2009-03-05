@@ -339,19 +339,20 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			// proxies never show processors
 			super(false, request);
-			updateSlaveFolders();
+			updateSlaveProperties();
 		}
 
 		/**
 		 * 
 		 */
-		private void updateSlaveFolders()
+		private void updateSlaveProperties()
 		{
 			final KElement deviceRoot = getRoot();
 			final IProxyProperties proxyProperties = getProxyProperties();
 			if (proxyProperties != null)
 			{
 				deviceRoot.setAttribute("SlaveURL", proxyProperties.getSlaveURL());
+				deviceRoot.setAttribute("MaxPush", proxyProperties.getMaxPush(), null);
 				deviceRoot.setAttribute("DeviceURLForSlave", proxyProperties.getDeviceURLForSlave());
 
 				File hf = proxyProperties.getSlaveInputHF();
@@ -585,16 +586,22 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		final Enumeration<String> en = request.getParameterNames();
 		final Set<String> s = ContainerUtil.toHashSet(en);
 
-		String slave = request.getParameter("@SlaveURL");
-		if (slave != null && s.contains("@SlaveURL"))
+		String slave = request.getParameter("SlaveURL");
+		if (slave != null && s.contains("SlaveURL"))
 		{
 			updateSlaveURL(slave);
 		}
-		slave = request.getParameter("@SlaveDeviceID");
-		if (slave != null && s.contains("@SlaveDeviceID"))
+		slave = request.getParameter("SlaveDeviceID");
+		if (slave != null && s.contains("SlaveDeviceID"))
 		{
 			updateSlaveDeviceID(slave);
 		}
+		slave = request.getParameter("MaxPush");
+		if (slave != null && s.contains("MaxPush"))
+		{
+			updateMaxPush(slave);
+		}
+
 		String hf = request.getParameter("SlaveInputHF");
 		if (hf != null && s.contains("SlaveInputHF"))
 		{
@@ -677,6 +684,26 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			return;
 		}
 		properties.setSlaveURL(newSlaveURL);
+		properties.serialize();
+	}
+
+	/**
+	 * 
+	 */
+	private void updateMaxPush(final String push)
+	{
+		final int iPush = StringUtil.parseInt(push, -1);
+		if (iPush < 0)
+		{
+			return;
+		}
+		final IProxyProperties properties = getProxyProperties();
+		final int oldPush = properties.getMaxPush();
+		if (oldPush == iPush)
+		{
+			return;
+		}
+		properties.setMaxPush(iPush);
 		properties.serialize();
 	}
 

@@ -235,6 +235,11 @@ public interface IDeviceProperties
 	public String getTypeExpression();
 
 	/**
+	 * @param exp the type regular expression that the device accepts
+	 */
+	public void setTypeExpression(String exp);
+
+	/**
 	 * @return the vector of amount counting resource names
 	 */
 	public VString getAmountResources();

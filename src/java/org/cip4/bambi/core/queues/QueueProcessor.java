@@ -641,6 +641,7 @@ public class QueueProcessor
 			_theQueue.copyToResponse(resp, qfo);
 			final JDFFlushQueueInfo flushQueueInfo = resp.appendFlushQueueInfo();
 			flushQueueInfo.setQueueEntryDefsFromQE(zapped);
+			persist(0);
 
 			return true;
 		}
@@ -655,37 +656,47 @@ public class QueueProcessor
 		 */
 		public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
 		{
+			boolean modified = false;
 			if (BambiServlet.isMyContext(request, "showQueue"))
 			{
+				final EnumQueueStatus qStatus = _theQueue.getQueueStatus();
+				EnumQueueStatus qStatusNew = null;
 				final boolean bHold = request.getBooleanParam("hold");
 				if (bHold)
 				{
-					_theQueue.holdQueue();
+					qStatusNew = _theQueue.holdQueue();
 				}
 				final boolean bClose = request.getBooleanParam("close");
 				if (bClose)
 				{
-					_theQueue.closeQueue();
+					qStatusNew = _theQueue.closeQueue();
 				}
 				final boolean bResume = request.getBooleanParam("resume");
 				if (bResume)
 				{
-					_theQueue.resumeQueue();
+					qStatusNew = _theQueue.resumeQueue();
 				}
 				final boolean bOpen = request.getBooleanParam("open");
 				if (bOpen)
 				{
-					_theQueue.openQueue();
+					qStatusNew = _theQueue.openQueue();
 				}
 				final boolean bFlush = request.getBooleanParam("flush");
 				if (bFlush)
 				{
-					_theQueue.flushQueue(null);
+					final VElement v = _theQueue.flushQueue(null);
+					modified = v != null;
 				}
+				if (qStatusNew != null)
+				{
+					modified = modified || !ContainerUtil.equals(qStatusNew, qStatus);
+				}
+
 			}
 			else if (BambiServlet.isMyContext(request, "modifyQE"))
 			{
 				updateQE(request);
+				modified = true;
 			}
 			else
 			{
@@ -713,6 +724,10 @@ public class QueueProcessor
 				return false;
 			}
 			response.setContentType(UrlUtil.TEXT_XML);
+			if (modified)
+			{
+				persist(0);
+			}
 			return true;
 		}
 

@@ -513,6 +513,15 @@ public class BambiTestCase extends BaseGoldenTicketTest
 
 		}
 
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#setTypeExpression(java.lang.String)
+		 */
+		public void setTypeExpression(final String exp)
+		{
+			// TODO Auto-generated method stub
+
+		}
+
 	}
 
 	/**

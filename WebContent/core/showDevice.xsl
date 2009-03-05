@@ -126,7 +126,11 @@
           <form style="margin-left: 20px">
             <table>
               <xsl:attribute name="action">.</xsl:attribute>
-              <tr><td colspan="3"><h3>Details of the Bambi device</h3></td></tr>
+              <tr>
+                <td colspan="3">
+                  <h3>Details of the Bambi device</h3>
+                </td>
+              </tr>
 
               <xsl:call-template name="modifyString">
                 <xsl:with-param name="attLabel" select="'ID: '"/>
@@ -157,9 +161,16 @@
                 <xsl:with-param name="attName" select="'WatchURL'"/>
                 <xsl:with-param name="attVal" select="@WatchURL"/>
                 <xsl:with-param name="modify" select="$modify"/>
-                <xsl:with-param name="desc">
-                  <xsl:attribute name="select">Single URL that receives messages (Status, Resource, Notification) from the device. If empty, no non-subscribed messages are sent.</xsl:attribute>
-                </xsl:with-param>
+                <xsl:with-param name="desc"
+                  select="'Single URL that receives messages (Status, Resource, Notification) from the device. If empty, no non-subscribed messages are sent.'"/>
+              </xsl:call-template>
+
+              <xsl:call-template name="modifyString">
+                <xsl:with-param name="attLabel" select="'JDF Type expression: '"/>
+                <xsl:with-param name="attName" select="'TypeExpression'"/>
+                <xsl:with-param name="attVal" select="@TypeExpression"/>
+                <xsl:with-param name="modify" select="$modify"/>
+                <xsl:with-param name="desc" select="'Regular expression of types that are accepted by this device.'"/>
               </xsl:call-template>
 
               <xsl:call-template name="modifyString">
@@ -183,16 +194,26 @@
                 <xsl:with-param name="modify" select="$modify"/>
                 <xsl:with-param name="desc" select="'Output error folder for the proxy. Aborted jdf files will be dropped here. This is for testing only.'"/>
               </xsl:call-template>
-              
+
               <xsl:if test="@SlaveURL">
-              <tr><td colspan="3"><h3>Details of the Slave(3rd Party) device</h3></td></tr>
+                <tr>
+                  <td colspan="3">
+                    <h3>Details of the Slave(3rd Party) device</h3>
+                  </td>
+                </tr>
                 <xsl:call-template name="modifyString">
                   <xsl:with-param name="attLabel" select="'Proxy URL for Slave: '"/>
                   <xsl:with-param name="attName" select="'DeviceURLForSlave'"/>
                   <xsl:with-param name="attVal" select="@DeviceURLForSlave"/>
                   <xsl:with-param name="modify" select="'false'"/>
-                 <xsl:with-param name="desc"
-                    select="'URL of the slave (3rd party) device.'"/>
+                  <xsl:with-param name="desc" select="'URL of the proxy device for the slave (3rd party device).'"/>
+                </xsl:call-template>
+                <xsl:call-template name="modifyString">
+                  <xsl:with-param name="attLabel" select="'Slave Entries: '"/>
+                  <xsl:with-param name="attName" select="'MaxPush'"/>
+                  <xsl:with-param name="attVal" select="@MaxPush"/>
+                  <xsl:with-param name="modify" select="$modify"/>
+                  <xsl:with-param name="desc" select="'Maximum number of concurrent entries to actively send to the device. If 0, device will pull entries.'"/>
                 </xsl:call-template>
                 <xsl:call-template name="modifyString">
                   <xsl:with-param name="attLabel" select="'Slave Input Hot Folder: '"/>
@@ -223,16 +244,14 @@
                   <xsl:with-param name="attName" select="'SlaveURL'"/>
                   <xsl:with-param name="attVal" select="@SlaveURL"/>
                   <xsl:with-param name="modify" select="$modify"/>
-                 <xsl:with-param name="desc"
-                    select="'URL of the slave (3rd party) device.'"/>
+                  <xsl:with-param name="desc" select="'URL of the slave (3rd party) device.'"/>
                 </xsl:call-template>
-               <xsl:call-template name="modifyString">
+                <xsl:call-template name="modifyString">
                   <xsl:with-param name="attLabel" select="'Slave DeviceID: '"/>
                   <xsl:with-param name="attName" select="'SlaveDeviceID'"/>
                   <xsl:with-param name="attVal" select="@SlaveDeviceID"/>
                   <xsl:with-param name="modify" select="$modify"/>
-                 <xsl:with-param name="desc"
-                    select="'Device ID of the slave (3rd party) device.'"/>
+                  <xsl:with-param name="desc" select="'Device ID of the slave (3rd party) device.'"/>
                 </xsl:call-template>
               </xsl:if>
               <xsl:if test="$modify='true'">

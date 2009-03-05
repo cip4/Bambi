@@ -370,7 +370,10 @@ public class BambiServletRequest implements HttpServletRequest
 		return parent.getParameterMap();
 	}
 
-	public Enumeration getParameterNames()
+	/**
+	 * @see javax.servlet.ServletRequest#getParameterNames()
+	 */
+	public Enumeration<String> getParameterNames()
 	{
 		return parent.getParameterNames();
 	}

@@ -90,8 +90,8 @@ import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.util.FileUtil;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * container for the properties of several Bambi devices
@@ -426,6 +426,14 @@ public class MultiDeviceProperties
 		}
 
 		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#setTypeExpression(java.lang.String)
+		 */
+		public void setTypeExpression(final String exp)
+		{
+			devRoot.setAttribute(AttributeName.TYPEEXPRESSION, exp);
+		}
+
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getAmountResources()
 		 */
 		public VString getAmountResources()
@@ -441,7 +449,7 @@ public class MultiDeviceProperties
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
+		 * @see org.cip4.bambi.core.IDeviceProperties#getControllerHTTPChunk()
 		 */
 		public int getControllerHTTPChunk()
 		{
@@ -449,11 +457,11 @@ public class MultiDeviceProperties
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
+		 * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEEncoding()
 		 */
 		public String getControllerMIMEEncoding()
 		{
-			return getDeviceAttribute("MIMETransferEncoding", null, MimeUtil.BINARY);
+			return getDeviceAttribute("MIMETransferEncoding", null, UrlUtil.BINARY);
 		}
 
 		/**
@@ -494,7 +502,7 @@ public class MultiDeviceProperties
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.IDeviceProperties#setWatchURL()
+		 * @see org.cip4.bambi.core.IDeviceProperties#setWatchURL(java.lang.String)
 		 */
 		public void setWatchURL(final String watchURL)
 		{

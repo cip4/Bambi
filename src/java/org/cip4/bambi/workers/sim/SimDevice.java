@@ -71,6 +71,9 @@
 
 package org.cip4.bambi.workers.sim;
 
+import java.util.Enumeration;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
@@ -90,6 +93,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 
@@ -113,9 +117,7 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 	protected VString amountResources = null;
 	protected String _typeExpression = null; // the regexp that defines the valid types
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/**
 	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
 	 */
 	@Override
@@ -128,6 +130,9 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 		return getAcceptableNodes(doc) != null;
 	}
 
+	/**
+	 * @see org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core.JDFDoc)
+	 */
 	@Override
 	public JDFNode getNodeFromDoc(final JDFDoc doc)
 	{
@@ -189,6 +194,8 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 		public XMLSimDevice(final boolean bProc, final BambiServletRequest request)
 		{
 			super(bProc, request);
+			final KElement deviceRoot = getRoot();
+			deviceRoot.setAttribute(AttributeName.TYPEEXPRESSION, getProperties().getTypeExpression());
 
 			currentJobPhase = getCurrentJobPhase();
 			if (currentJobPhase != null)
@@ -248,6 +255,9 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 		}
 	}
 
+	/**
+	 * @return
+	 */
 	public String getTrackResource()
 	{
 		return _trackResource;
@@ -286,6 +296,9 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 		return simDevice;
 	}
 
+	/**
+	 * @return
+	 */
 	public JobPhase getCurrentJobPhase()
 	{
 		if (_deviceProcessors == null || _deviceProcessors.size() == 0)
@@ -401,4 +414,35 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 		// nop
 	}
 
+	/**
+	 * 
+	 */
+	private void updateTypeExpression(final String newTypeX)
+	{
+		final IDeviceProperties properties = getProperties();
+		final String old = properties.getTypeExpression();
+		if (!ContainerUtil.equals(old, newTypeX))
+		{
+			properties.setTypeExpression(newTypeX);
+			properties.serialize();
+		}
+	}
+
+	/**
+	 * @param request
+	 */
+	@Override
+	protected void updateDevice(final BambiServletRequest request)
+	{
+		super.updateDevice(request);
+
+		final Enumeration<String> en = request.getParameterNames();
+		final Set<String> s = ContainerUtil.toHashSet(en);
+
+		final String exp = request.getParameter(AttributeName.TYPEEXPRESSION);
+		if (exp != null && s.contains(AttributeName.TYPEEXPRESSION))
+		{
+			updateTypeExpression(exp);
+		}
+	}
 }

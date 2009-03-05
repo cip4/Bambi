@@ -166,6 +166,11 @@ public interface IProxyProperties extends IDeviceProperties
 	public int getMaxPush();
 
 	/**
+	 * @param push
+	 */
+	public void setMaxPush(int push);
+
+	/**
 	 * get the HTTP chunking to communicate with this device
 	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device.
 	 */

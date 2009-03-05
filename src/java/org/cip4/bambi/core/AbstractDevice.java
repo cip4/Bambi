@@ -1036,14 +1036,13 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	{
 		final IDeviceProperties properties = getProperties();
 		final String oldWatchURL = properties.getWatchURL();
-		if (ContainerUtil.equals(oldWatchURL, newWatchURL))
+		if (!ContainerUtil.equals(oldWatchURL, newWatchURL))
 		{
-			return;
+			properties.setWatchURL(newWatchURL);
+			_theSignalDispatcher.removeSubScriptions(null, oldWatchURL, null);
+			addWatchSubscriptions();
+			properties.serialize();
 		}
-		properties.setWatchURL(newWatchURL);
-		_theSignalDispatcher.removeSubScriptions(null, oldWatchURL, null);
-		addWatchSubscriptions();
-		properties.serialize();
 	}
 
 	/**
