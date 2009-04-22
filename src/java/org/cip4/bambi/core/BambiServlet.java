@@ -540,7 +540,7 @@ public class BambiServlet extends HttpServlet
 			final File in = bambiDumpOut.newFileFromStream(header, buf);
 			if (in != null)
 			{
-				in.renameTo(new File(StringUtil.newExtension(in.getName(), ".post.resp.txt")));
+				in.renameTo(new File(StringUtil.newExtension(in.getPath(), ".post.resp.txt")));
 			}
 		}
 		bufResponse.flush();

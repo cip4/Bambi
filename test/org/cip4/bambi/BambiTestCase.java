@@ -85,11 +85,13 @@ import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
+import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.goldenticket.BaseGoldenTicket;
 import org.cip4.jdflib.goldenticket.BaseGoldenTicketTest;
 import org.cip4.jdflib.goldenticket.MISCPGoldenTicket;
@@ -600,8 +602,21 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 */
 	protected void submitMimetoURL(final String url) throws MalformedURLException
 	{
+		final JDFDoc doc = _theGT.getNode().getOwnerDocument_JDFElement();
+		submitMimetoURL(doc, url);
+	}
+
+	/**
+	 * requires assigned node...
+	 * @param url the url to send to
+	 * @throws MalformedURLException
+	 */
+	protected void submitXtoURL(final String url) throws MalformedURLException
+	{
 		final JDFNode n = _theGT.getNode();
-		submitMimetoURL(n, url);
+		final XJDF20 xc = new XJDF20();
+		final KElement e = xc.makeNewJDF(n, null);
+		submitMimetoURL(new JDFDoc(e.getOwnerDocument()), url);
 	}
 
 	/**
@@ -609,7 +624,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 * @param url the url to send to
 	 * @throws MalformedURLException
 	 */
-	protected void submitMimetoURL(final JDFNode n, final String url) throws MalformedURLException
+	protected void submitMimetoURL(final JDFDoc d, final String url) throws MalformedURLException
 	{
 		final JDFDoc docJMF = new JDFDoc("JMF");
 		final JDFJMF jmf = docJMF.getJMFRoot();
@@ -627,7 +642,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		}
 		ensureCurrentGT();
 
-		final Multipart mp = MimeUtil.buildMimePackage(docJMF, n.getOwnerDocument_JDFElement(), false);
+		final Multipart mp = MimeUtil.buildMimePackage(docJMF, d, false);
 
 		try
 		{

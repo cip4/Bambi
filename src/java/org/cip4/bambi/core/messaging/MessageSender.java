@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -476,8 +476,9 @@ public class MessageSender implements Runnable
 			catch (final Exception x)
 			{
 				sentFirstMessage = SendReturn.error;
+				log.error("Error sending message: ", x);
 			}
-			if (sentFirstMessage != SendReturn.sent)
+			if (sentFirstMessage != SendReturn.sent && sentFirstMessage != SendReturn.removed)
 			{
 				if (idle++ > 3600)
 				{
@@ -657,17 +658,24 @@ public class MessageSender implements Runnable
 	private SendReturn sendHTTP(final MessageDetails mh, final JDFJMF jmf, final Multipart mp)
 	{
 		SendReturn b = SendReturn.sent;
+		final URL url = mh == null ? null : UrlUtil.StringToURL(mh.url);
+		if (url == null || (!UrlUtil.isHttp(mh.url) && !UrlUtil.isHttps(mh.url)))
+		{
+			log.error("Invalid url: " + url);
+			_messages.remove(0);
+			return SendReturn.removed;
+		}
 		try
 		{
 			HttpURLConnection con;
-			String header = "URL: " + mh.url;
+			String header = "URL: " + url;
 			final DumpDir outDump = getOutDump(mh.senderID);
 			final DumpDir inDump = getInDump(mh.senderID);
 			if (jmf != null)
 			{
 				final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
 				final HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
-				con = jmfDoc.write2HTTPURL(new URL(mh.url), hd);
+				con = jmfDoc.write2HTTPURL(url, hd);
 				if (outDump != null)
 				{
 					final File dump = outDump.newFile(header);

@@ -86,7 +86,7 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
-import org.cip4.jdflib.util.StatusCounter;
+import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
@@ -94,7 +94,6 @@ import org.cip4.jdflib.util.StatusCounter;
  */
 public class SimTest extends BambiTestCase
 {
-	protected static String testUrl = "http://192.168.40.71:8889/jmfportal";
 
 	/**
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
@@ -105,7 +104,8 @@ public class SimTest extends BambiTestCase
 	{
 
 		super.setUp();
-		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim001";
+		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/manual002";
+		// simWorkerUrl = "http://127.0.0.1:8080/speedmaster/jmf/XL105";
 	}
 
 	/**
@@ -160,11 +160,9 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-	public void testSubmitQueueEntry_Home() throws Exception
+	public void testSubmitQueueEntry_X() throws Exception
 	{
-		// get number of QueueEntries before submitting
-		submitMimetoURL(simWorkerUrl);
-
+		submitXtoURL(simWorkerUrl);
 	}
 
 	/**
@@ -183,7 +181,7 @@ public class SimTest extends BambiTestCase
 
 		// check that the QE is on the proxy
 		final JDFJMF jmf = JMFFactory.buildQueueStatus();
-		for (int i = 0; i < 222; i++)
+		for (int i = 0; i < 22; i++)
 		{
 			System.out.println("submitting " + i);
 			// build SubmitQueueEntry
@@ -193,8 +191,8 @@ public class SimTest extends BambiTestCase
 			assertEquals(0, resp.getReturnCode());
 			q = resp.getQueue(0);
 			assertNotNull(q);
-			final int newCount = q.getEntryCount();
-			StatusCounter.sleep(1000);
+			// final int newCount = q.getEntryCount();
+			ThreadUtil.sleep(1000);
 			// assertEquals( oldSize+i,newCount );
 		}
 

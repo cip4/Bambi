@@ -609,6 +609,7 @@ public final class SignalDispatcher
 			synchronized (triggers)
 			{
 				final Vector<MsgSubscription> v = new Vector<MsgSubscription>();
+				final Vector<Trigger> vSnafu = new Vector<Trigger>();
 				final Iterator<Trigger> it = triggers.iterator(); // active triggers
 				while (it.hasNext())
 				{
@@ -618,6 +619,7 @@ public final class SignalDispatcher
 					final MsgSubscription sub = subscriptionMap.get(channelID);
 					if (sub == null)
 					{
+						vSnafu.add(t);
 						continue; // snafu
 					}
 					final MsgSubscription subClone = (MsgSubscription) sub.clone();
@@ -642,6 +644,19 @@ public final class SignalDispatcher
 					}
 				}
 				// remove active triggers that will be returned
+				for (int j = 0; j < vSnafu.size(); j++)
+				{
+					final boolean b = triggers.remove(vSnafu.get(j));
+					if (!b)
+					{
+						log.error("Snafu removing trigger");
+					}
+					else
+					{
+						log.info("removing spurious trigger");
+					}
+
+				}
 				for (int j = 0; j < v.size(); j++)
 				{
 					final MsgSubscription sub = v.elementAt(j);
@@ -1232,11 +1247,19 @@ public final class SignalDispatcher
 		{
 			return null;
 		}
+
 		log.info("adding subscription ");
 		final MsgSubscription sub = new MsgSubscription(subMess, queueEntryID);
-		sub.setQueueEntryID(queueEntryID);
-		if (sub.channelID == null || sub.url == null)
+		final String url = sub.getURL();
+		if (!UrlUtil.isURL(url))
 		{
+			log.error("Attempting to subscribe to invalid URL: " + url);
+			return null;
+		}
+		sub.setQueueEntryID(queueEntryID);
+		if (sub.channelID == null)
+		{
+			log.error("Null ChannelID while attempting to subscribe to URL: " + url);
 			return null;
 		}
 		if (subscriptionMap.containsKey(sub.channelID))

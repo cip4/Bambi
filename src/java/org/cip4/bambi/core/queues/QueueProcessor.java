@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -234,7 +234,7 @@ public class QueueProcessor
 			final JDFQueueSubmissionParams qsp = m.getQueueSubmissionParams(0);
 			if (qsp != null)
 			{
-				final JDFDoc doc = qsp.getURLDoc();
+				JDFDoc doc = qsp.getURLDoc();
 				if (doc == null)
 				{
 					updateEntry(null, null, m, resp);
@@ -246,11 +246,11 @@ public class QueueProcessor
 				final IConverterCallback callback = _parentDevice.getCallback(null);
 				if (callback != null)
 				{
-					callback.prepareJDFForBambi(doc);
+					doc = callback.prepareJDFForBambi(doc);
 				}
 
 				final JDFQueueEntry qe = addEntry((JDFCommand) m, resp, doc);
-				final int rc = resp == null ? 9 : resp.getReturnCode();
+				final int rc = resp.getReturnCode();
 
 				if (rc != 0)
 				{
@@ -1066,7 +1066,7 @@ public class QueueProcessor
 
 	/**
 	 * @param qe
-	 * @return an IQueueEntry thar corresponds to the qe, null if none is there
+	 * @return an IQueueEntry that corresponds to the qe, null if none is there
 	 */
 	public IQueueEntry getIQueueEntry(final JDFQueueEntry qe)
 	{
@@ -1257,7 +1257,7 @@ public class QueueProcessor
 
 	/**
 	 * make the memory queue persistent
-	 * @param milliseconds length of time since last persist, if 0 always persist
+	 * @param milliseconds length of time since last persist, if 0 force persist
 	 * 
 	 */
 	public void persist(final long milliseconds)
@@ -1504,7 +1504,7 @@ public class QueueProcessor
 			if (!bAborted && deviceOutputHF != null)
 			{
 				deviceOutputHF.mkdirs();
-				bOK = docJDF.write2File(FileUtil.getFileInDirectory(deviceOutputHF, new File(docJDF.getOriginalFileName())), 0, true);
+				bOK = docJDF.write2File(FileUtil.getFileInDirectory(deviceOutputHF, new File(new File(docJDF.getOriginalFileName()).getName())), 0, true);
 				log.info("JDF for " + queueEntryID + " has " + (bOK ? "" : "not ") + "been written to good output: " + deviceOutputHF);
 			}
 			else if (bAborted && deviceErrorHF != null)

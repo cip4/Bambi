@@ -50,8 +50,7 @@
             <th align="left">Types</th>
           </tr>
           <xsl:call-template name="jdf"/> <!-- add myself -->
-          <xsl:apply-templates select="jdf:JDF"/>
-        </table>
+         </table>
 
       </body>
     </html>

@@ -600,7 +600,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		for (int i = 0; i < vSiz; i++)
 		{
 			final JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
-			if (trackResourceID == null && rl.matchesString(_trackResource))
+			if (rl.matchesString(_trackResource))
 			{
 				trackResourceID = rl.getrRef();
 				break;

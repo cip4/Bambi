@@ -69,6 +69,8 @@
  */
 package org.cip4.bambi.core;
 
+import java.util.Vector;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.SignalDispatcher.Trigger;
@@ -88,6 +90,7 @@ import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
@@ -121,7 +124,7 @@ public class StatusListener
 	}
 
 	/**
-	 * @param msgType the type of messages to flush our, null if any
+	 * @param msgType the type of messages to flush out, null if any/all types
 	 */
 	public void flush(final String msgType)
 	{
@@ -131,7 +134,7 @@ public class StatusListener
 		{
 			final Trigger[] t2 = rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
 			rootDispatcher.flush();
-			Trigger.waitQueued(t, 12000);
+			Trigger.waitQueued(t2, 12000);
 		}
 		Trigger.waitQueued(t, 12000);
 	}
@@ -470,4 +473,15 @@ public class StatusListener
 		}
 	}
 
+	/**
+	 * @param employees
+	 */
+	public void setEmployees(final Vector<JDFEmployee> employees)
+	{
+		if (theCounter == null)
+		{
+			return;
+		}
+		theCounter.replaceEmployees(employees);
+	}
 }

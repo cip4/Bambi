@@ -150,17 +150,13 @@ public class ProxyProperties extends MultiDeviceProperties
 		 */
 		public String getSlaveDeviceID()
 		{
-			String s = devRoot.getAttribute("SlaveDeviceID", null, null);
+			final String s = devRoot.getAttribute("SlaveDeviceID", null, null);
 			if (s != null)
 			{
 				return s;
 			}
-			s = getSlaveURL();
-			if (s != null)
-			{
-				s = StringUtil.token(s, -1, "/");
-			}
-			return s;
+			// if not set, assume proxy and slave are identical
+			return getDeviceID();
 		}
 
 		/**

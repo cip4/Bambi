@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -86,6 +86,7 @@ import org.cip4.bambi.workers.sim.SimDeviceProcessor.JobPhase.PhaseAmount;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.JDFParser;
@@ -100,6 +101,7 @@ import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
+import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
@@ -123,8 +125,44 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 	 * @author boegerni
 	 * 
 	 */
-	public static class JobPhase implements Serializable, Cloneable
+	public static class JobPhase implements Cloneable
 	{
+		/**
+		 * 
+		 */
+		public class PhaseEmployees
+		{
+			/**
+			 * 
+			 */
+			Vector<JDFEmployee> theEmployee = new Vector<JDFEmployee>();
+
+			/**
+			 * @param e
+			 */
+			public PhaseEmployees(final KElement e)
+			{
+				if (e != null)
+				{
+					final VElement v = e.getChildElementVector(ElementName.EMPLOYEE, null);
+					for (int i = 0; i < v.size(); i++)
+					{
+						final JDFEmployee emp = (JDFEmployee) new JDFDoc(ElementName.EMPLOYEE).getRoot();
+						emp.mergeElement(v.get(i), false);
+						theEmployee.add(emp);
+					}
+				}
+			}
+
+			/**
+			 * @return
+			 */
+			public Vector<JDFEmployee> getEmployees()
+			{
+				return theEmployee;
+			}
+		}
+
 		/**
 		 * 
 		 */
@@ -187,8 +225,6 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		}
 
 		// end of inner class PhaseAmount
-
-		private static final long serialVersionUID = 2262422293566643131L;
 		protected Vector<PhaseAmount> amounts = new Vector<PhaseAmount>();
 
 		/**
@@ -211,6 +247,8 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			nodeStatus = EnumNodeStatus.getEnum(phaseElement.getXPathAttribute("@NodeStatus", "Waiting"));
 			nodeStatusDetails = phaseElement.getXPathAttribute("@NodeStatusDetails", "");
 			timeToGo = 1000 * StringUtil.parseInt(phaseElement.getXPathAttribute("@Duration", "0"), 0);
+			employee = new PhaseEmployees(phaseElement);
+
 			if (phaseElement.hasAttribute("Error"))
 			{
 				errorChance = StringUtil.parseDouble(phaseElement.getXPathAttribute("@Error", "0"), 0) * 0.001;
@@ -253,6 +291,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		protected int timeToGo = 0;
 		protected long timeStarted = System.currentTimeMillis();
 		protected double errorChance = 0.00;
+		protected PhaseEmployees employee = null;
 
 		/**
 		 * @see java.lang.Object#toString()
@@ -291,11 +330,17 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			return deviceStatusDetails;
 		}
 
+		/**
+		 * @param _deviceStatusDetails
+		 */
 		public void setDeviceStatusDetails(final String _deviceStatusDetails)
 		{
 			this.deviceStatusDetails = _deviceStatusDetails;
 		}
 
+		/**
+		 * @return
+		 */
 		public EnumNodeStatus getNodeStatus()
 		{
 			return nodeStatus;
@@ -324,11 +369,20 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			return timeToGo;
 		}
 
+		/**
+		 * @param duration
+		 */
 		public void setTimeToGo(final int duration)
 		{
 			this.timeToGo = duration;
 		}
 
+		/**
+		 * @param resName
+		 * @param speed
+		 * @param bGood
+		 * @return
+		 */
 		public PhaseAmount setAmount(final String resName, final double speed, final boolean bGood)
 		{
 			PhaseAmount pa = getPhaseAmount(resName);
@@ -345,6 +399,10 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			return pa;
 		}
 
+		/**
+		 * @param res
+		 * @return
+		 */
 		public double getOutput_Speed(final String res)
 		{
 			final PhaseAmount pa = getPhaseAmount(res);
@@ -461,6 +519,14 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 					pa.resource = rl.getrRef();
 				}
 			}
+		}
+
+		/**
+		 * @return
+		 */
+		public Vector<JDFEmployee> getEmployees()
+		{
+			return employee == null ? null : employee.getEmployees();
 		}
 	}
 
@@ -610,6 +676,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			all = 0;
 		}
 
+		_statusListener.setEmployees(phase.getEmployees());
 		double todoAmount = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.AMOUNT, n == null ? null : nodeInfoPartMapVector);
 		log.debug("processing new job phase: " + phase.toString());
 		_statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, phase.nodeStatus, phase.nodeStatusDetails, false);

@@ -1030,14 +1030,21 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	}
 
 	/**
-	 * 
+	 * update watchurl from the UI
 	 */
-	private void updateWatchURL(final String newWatchURL)
+	private void updateWatchURL(String newWatchURL)
 	{
 		final IDeviceProperties properties = getProperties();
 		final String oldWatchURL = properties.getWatchURL();
 		if (!ContainerUtil.equals(oldWatchURL, newWatchURL))
 		{
+			newWatchURL = StringUtil.getNonEmpty(newWatchURL);
+			// explicit empty strings must be handled
+			if (newWatchURL != null && !UrlUtil.isHttp(newWatchURL))
+			{
+				log.warn("attempting to set invalid watch url: (" + newWatchURL + ") ignore");
+				return;
+			}
 			properties.setWatchURL(newWatchURL);
 			_theSignalDispatcher.removeSubScriptions(null, oldWatchURL, null);
 			addWatchSubscriptions();

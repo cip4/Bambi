@@ -71,7 +71,20 @@
 
 package org.cip4.bambi.core.queues;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+
 import org.cip4.bambi.BambiTestCase;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.jmf.JDFCommand;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
+import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
 /**
  * test for the various queue processor functions
@@ -90,6 +103,30 @@ public class QueueProcessorTest extends BambiTestCase
 
 	public void testAbortQE()
 	{
+
+	}
+
+	public void testReturnQE() throws IOException, MessagingException
+	{
+		final JDFDoc docJMF = new JDFDoc("JMF");
+		final JDFJMF jmf = docJMF.getJMFRoot();
+		jmf.setSenderID("DeviceID");
+		final JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.ReturnQueueEntry);
+		final JDFReturnQueueEntryParams returnQEParams = com.appendReturnQueueEntryParams();
+
+		final String queueEntryID = "qe1";
+		returnQEParams.setQueueEntryID(queueEntryID);
+		final JDFDoc docJDF = JDFDoc.parseFile("C:\\data\\jdf\\foo.jdf");
+		returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
+		final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
+		final MIMEDetails mimeDetails = new MIMEDetails();
+		mimeDetails.httpDetails.chunkSize = 0;
+		mimeDetails.transferEncoding = MimeUtil.BINARY;
+		mimeDetails.modifyBoundarySemicolon = false;
+		final HttpURLConnection uc = MimeUtil.writeToURL(mp, "http://192.168.14.167:58080/jdfreturn", mimeDetails);
+		System.out.println(uc);
+		uc.getResponseCode();
+		System.out.println(uc.getResponseCode());
 
 	}
 

@@ -453,7 +453,7 @@ public class MultiDeviceProperties
 		 */
 		public int getControllerHTTPChunk()
 		{
-			return StringUtil.parseInt(getDeviceAttribute("HTTPChunk"), 10000);
+			return StringUtil.parseInt(getDeviceAttribute("HTTPChunk"), -1);
 		}
 
 		/**
