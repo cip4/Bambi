@@ -143,10 +143,10 @@ public class ShowXJDFHandler extends ShowHandler
 
 			prepareRoot(doc, request, "showXJDF");
 
+			response.setContentType(UrlUtil.TEXT_XML);
 			final OutputStream os = response.getBufferedOutputStream();
 			doc.write2Stream(os, 0, true);
 
-			response.setContentType(UrlUtil.TEXT_XML);
 		}
 		catch (final FileNotFoundException x)
 		{

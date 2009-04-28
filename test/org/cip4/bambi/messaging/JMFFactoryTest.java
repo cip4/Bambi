@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -94,7 +94,7 @@ import org.cip4.jdflib.util.MimeUtil;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
- *
+ * 
  */
 public class JMFFactoryTest extends BambiTestCase
 {
@@ -131,7 +131,7 @@ public class JMFFactoryTest extends BambiTestCase
 		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
-		JDFDeviceInfo di = resp.getDeviceInfo(0);
+		final JDFDeviceInfo di = resp.getDeviceInfo(0);
 		assertTrue(di != null);
 
 		jmf = JMFFactory.buildStatus();
@@ -146,9 +146,9 @@ public class JMFFactoryTest extends BambiTestCase
 	 * @param jmf
 	 * @return the response
 	 */
-	private JDFResponse sendToURL(JDFJMF jmf, String url)
+	private JDFResponse sendToURL(final JDFJMF jmf, final String url)
 	{
-		JDFResponse resp = jmf.getOwnerDocument_JDFElement().write2URL(url).getJMFRoot().getResponse(0);
+		final JDFResponse resp = jmf.getOwnerDocument_JDFElement().write2URL(url).getJMFRoot().getResponse(0);
 		return resp;
 	}
 
@@ -157,8 +157,8 @@ public class JMFFactoryTest extends BambiTestCase
 	 */
 	public void testSuspendQueueEntry()
 	{
-		JDFJMF jmf = JMFFactory.buildSuspendQueueEntry("12345");
-		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
+		final JDFJMF jmf = JMFFactory.buildSuspendQueueEntry("12345");
+		final JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
@@ -168,8 +168,8 @@ public class JMFFactoryTest extends BambiTestCase
 	 */
 	public void testResumeQueueEntry()
 	{
-		JDFJMF jmf = JMFFactory.buildResumeQueueEntry("12345");
-		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
+		final JDFJMF jmf = JMFFactory.buildResumeQueueEntry("12345");
+		final JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
@@ -179,8 +179,8 @@ public class JMFFactoryTest extends BambiTestCase
 	 */
 	public void testAbortQueueEntry()
 	{
-		JDFJMF jmf = JMFFactory.buildAbortQueueEntry("12345");
-		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
+		final JDFJMF jmf = JMFFactory.buildAbortQueueEntry("12345");
+		final JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
@@ -190,12 +190,14 @@ public class JMFFactoryTest extends BambiTestCase
 	 */
 	public void testCreateSubsriptions()
 	{
-		JDFJMF[] jmfs = JMFFactory.createSubscriptions("http://www.example.com", "id", 30., 20);
+		final JDFJMF[] jmfs = JMFFactory.createSubscriptions("http://www.example.com", "id", 30., 20);
 		assertEquals(jmfs.length, 3);
-		JDFJMF jmf = jmfs[0];
+		final JDFJMF jmf = jmfs[0];
 		assertEquals(JDFJMF.getTheSenderID(), jmf.getSenderID());
 		for (int i = 0; i < jmfs.length; i++)
+		{
 			jmfs[i].getOwnerDocument_JDFElement().write2File(sm_dirTestDataTemp + "JMFSubscription" + i + ".jmf", 2, false);
+		}
 	}
 
 	/**
@@ -203,8 +205,8 @@ public class JMFFactoryTest extends BambiTestCase
 	 */
 	public void testRemoveQueueEntry()
 	{
-		JDFJMF jmf = JMFFactory.buildRemoveQueueEntry("12345");
-		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
+		final JDFJMF jmf = JMFFactory.buildRemoveQueueEntry("12345");
+		final JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
@@ -214,8 +216,9 @@ public class JMFFactoryTest extends BambiTestCase
 	 */
 	public void testStopPersistentChammel()
 	{
-		JDFJMF jmf = JMFFactory.buildStopPersistentChannel("m_080902_103826750_000344", "http://kie-prosirai-lg:8080/misconnector/slavejmf/MISConnector");
-		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
+		final JDFJMF jmf = JMFFactory.buildStopPersistentChannel("m_080902_103826750_000344", "http://kie-prosirai-lg:8080/misconnector/slavejmf/MISConnector");
+		jmf.getOwnerDocument_KElement().write2File(sm_dirTestDataTemp + "StopChannel.jmf", 2, false);
+		final JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());
 	}
@@ -225,20 +228,20 @@ public class JMFFactoryTest extends BambiTestCase
 	 */
 	public void testQueueStatus()
 	{
-		JDFJMF jmf = JMFFactory.buildQueueStatus();
-		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
+		final JDFJMF jmf = JMFFactory.buildQueueStatus();
+		final JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
-		JDFQueue q = resp.getQueue(0);
+		final JDFQueue q = resp.getQueue(0);
 		assertNotNull(q);
-		int qSize = q.getQueueSize();
+		final int qSize = q.getQueueSize();
 		if (qSize > 0)
 		{
-			VElement v = q.getQueueEntryVector();
+			final VElement v = q.getQueueEntryVector();
 			assertEquals(v.size(), qSize);
 			for (int i = 0; i < qSize; i++)
 			{
-				JDFQueueEntry qe = (JDFQueueEntry) v.elementAt(i);
+				final JDFQueueEntry qe = (JDFQueueEntry) v.elementAt(i);
 				assertTrue(qe != null);
 			}
 		}
@@ -250,13 +253,13 @@ public class JMFFactoryTest extends BambiTestCase
 	 */
 	public void testMultiStatus() throws Exception
 	{
-		long t = System.currentTimeMillis();
+		final long t = System.currentTimeMillis();
 		for (int i = 0; i < 100; i++)
 		{
-			long t1 = System.currentTimeMillis();
+			final long t1 = System.currentTimeMillis();
 			System.out.println("Pre status," + i);
 			testQueueStatus();
-			long t2 = System.currentTimeMillis();
+			final long t2 = System.currentTimeMillis();
 			System.out.println("Post status," + i + " single: " + (t2 - t1) + " total: " + (t2 - t));
 
 		}
@@ -267,19 +270,19 @@ public class JMFFactoryTest extends BambiTestCase
 	 */
 	public void testAbortAll() throws Exception
 	{
-		long t = System.currentTimeMillis();
+		final long t = System.currentTimeMillis();
 		JDFJMF jmf = JMFFactory.buildQueueStatus();
 		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		JDFQueue q = resp.getQueue(0);
 		assertNotNull(q);
 		int queueSize = q.getQueueSize();
-		VElement v = q.getQueueEntryVector();
+		final VElement v = q.getQueueEntryVector();
 		int numRunning = 0;
 		for (int i = 0; i < v.size(); i++)
 		{
-			long t1 = System.currentTimeMillis();
+			final long t1 = System.currentTimeMillis();
 			System.out.println("Pre abort," + i);
-			String qeID = ((JDFQueueEntry) v.elementAt(i)).getQueueEntryID();
+			final String qeID = ((JDFQueueEntry) v.elementAt(i)).getQueueEntryID();
 			jmf = JMFFactory.buildAbortQueueEntry(qeID);
 			resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 			assertNotNull(resp);
@@ -287,13 +290,15 @@ public class JMFFactoryTest extends BambiTestCase
 
 			jmf = JMFFactory.buildRemoveQueueEntry(qeID);
 			resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
-			long t2 = System.currentTimeMillis();
+			final long t2 = System.currentTimeMillis();
 			assertNotNull(resp);
 			// a return code of 106="Failed, QueueEntry is already executing" is possible
 			// and does not indicate an error
-			int retCode = resp.getReturnCode();
+			final int retCode = resp.getReturnCode();
 			if (retCode == 106)
+			{
 				numRunning++;
+			}
 			if (retCode != 0 && retCode != 106)
 			{
 				fail("RemoveQueueEntry failed, return code is " + retCode);
@@ -308,13 +313,13 @@ public class JMFFactoryTest extends BambiTestCase
 		q = resp.getQueue(0);
 		assertNotNull(q);
 		queueSize = q.getQueueSize();
-		// only then-running now-aborted QueueEntries are allowed to remain, all others should 
+		// only then-running now-aborted QueueEntries are allowed to remain, all others should
 		// be removed
 		assertEquals(numRunning, queueSize);
 		for (int i = 0; i < queueSize; i++)
 		{
-			JDFQueueEntry qe = q.getQueueEntry(i);
-			EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+			final JDFQueueEntry qe = q.getQueueEntry(i);
+			final EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 			if (EnumQueueEntryStatus.Aborted.equals(status))
 			{
 				fail("QueueEntryStatus is " + status.getName() + ", but should be Aborted");
@@ -331,30 +336,30 @@ public class JMFFactoryTest extends BambiTestCase
 	public void testSubmitQueueEntry_MIME() throws Exception
 	{
 		// get number of QueueEntries before submitting
-		JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = sendToURL(jmfStat, simWorkerUrl);
+		final JDFJMF jmfStat = JMFFactory.buildQueueStatus();
+		final JDFResponse resp = sendToURL(jmfStat, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
-		JDFQueue q = resp.getQueue(0);
+		final JDFQueue q = resp.getQueue(0);
 		assertNotNull(q);
 
 		// build SubmitQueueEntry
-		JDFDoc docJMF = new JDFDoc("JMF");
-		JDFJMF jmf = docJMF.getJMFRoot();
-		JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
-		JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
+		final JDFDoc docJMF = new JDFDoc("JMF");
+		final JDFJMF jmf = docJMF.getJMFRoot();
+		final JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
+		final JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
 		qsp.setURL("cid:" + sm_dirTestData + "Elk_ConventionalPrinting.jdf");
 
-		JDFParser p = new JDFParser();
-		JDFDoc docJDF = p.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf");
-		Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, true);
+		final JDFParser p = new JDFParser();
+		final JDFDoc docJDF = p.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf");
+		final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, true);
 
 		try
 		{
-			HttpURLConnection response = MimeUtil.writeToURL(mp, simWorkerUrl);
+			final HttpURLConnection response = MimeUtil.writeToURL(mp, simWorkerUrl);
 			assertEquals(200, response.getResponseCode());
 		}
-		catch (Exception e)
+		catch (final Exception e)
 		{
 			fail(e.getMessage()); // fail on exception
 		}

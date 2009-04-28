@@ -98,7 +98,6 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -150,9 +149,7 @@ public class RootDevice extends AbstractDevice
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/**
 	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
 	 */
 	@Override
@@ -171,9 +168,7 @@ public class RootDevice extends AbstractDevice
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/**
 	 * @see org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core.JDFDoc)
 	 */
 	@Override
@@ -277,8 +272,16 @@ public class RootDevice extends AbstractDevice
 
 	// //////////////////////////////////////////////////////////////////////
 
+	/**
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+	 * 
+	 * Apr 28, 2009
+	 */
 	public class StatusHandler extends RootDispatchHandler
 	{
+		/**
+		 * 
+		 */
 		public StatusHandler()
 		{
 			super(EnumType.Status, new EnumFamily[] { EnumFamily.Query, EnumFamily.Command });
@@ -561,6 +564,7 @@ public class RootDevice extends AbstractDevice
 		}
 
 		deviceList.setXSLTURL(getXSLT("overview", request.getContextPath()));
+		response.setContentType(UrlUtil.APPLICATION_XML);
 
 		try
 		{
@@ -570,7 +574,6 @@ public class RootDevice extends AbstractDevice
 		{
 			return false;
 		}
-		response.setContentType(UrlUtil.TEXT_XML);
 		return true;
 
 	}
@@ -592,7 +595,7 @@ public class RootDevice extends AbstractDevice
 		}
 		if (contextPath != null)
 		{
-			s = "/" + StringUtil.token(contextPath, 0, "/") + s;
+			s = getXSLTBaseFromContext(contextPath) + s;
 		}
 		return s;
 	}

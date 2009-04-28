@@ -116,7 +116,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	@Override
 	protected void setUp() throws Exception
 	{
-		// TODO Auto-generated method stub
 		super.setUp();
 		BaseGoldenTicket.setMisURL("http://kie-prosirai-lg:8080/httpdump/BambiTest");
 		_theGT = new MISCPGoldenTicket(1, null, 1, 1, true, null);

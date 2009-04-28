@@ -792,9 +792,19 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		}
 		if (s != null && contextPath != null)
 		{
-			s = "/" + StringUtil.token(contextPath, 0, "/") + s;
+			s = getXSLTBaseFromContext(contextPath) + s;
 		}
 		return s;
+	}
+
+	/**
+	 * @param contextPath
+	 * @return
+	 */
+	protected String getXSLTBaseFromContext(final String contextPath)
+	{
+		final String s2 = "/" + StringUtil.token(contextPath, 0, "/");
+		return s2;
 	}
 
 	/**
