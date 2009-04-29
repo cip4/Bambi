@@ -657,46 +657,18 @@ public class QueueProcessor
 		public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
 		{
 			boolean modified = false;
+			String sortBy = StringUtil.getNonEmpty(request.getParameter("SortBy"));
 			if (BambiServlet.isMyContext(request, "showQueue"))
 			{
-				final EnumQueueStatus qStatus = _theQueue.getQueueStatus();
-				EnumQueueStatus qStatusNew = null;
-				final boolean bHold = request.getBooleanParam("hold");
-				if (bHold)
-				{
-					qStatusNew = _theQueue.holdQueue();
-				}
-				final boolean bClose = request.getBooleanParam("close");
-				if (bClose)
-				{
-					qStatusNew = _theQueue.closeQueue();
-				}
-				final boolean bResume = request.getBooleanParam("resume");
-				if (bResume)
-				{
-					qStatusNew = _theQueue.resumeQueue();
-				}
-				final boolean bOpen = request.getBooleanParam("open");
-				if (bOpen)
-				{
-					qStatusNew = _theQueue.openQueue();
-				}
-				final boolean bFlush = request.getBooleanParam("flush");
-				if (bFlush)
-				{
-					final VElement v = _theQueue.flushQueue(null);
-					modified = v != null;
-				}
-				if (qStatusNew != null)
-				{
-					modified = modified || !ContainerUtil.equals(qStatusNew, qStatus);
-				}
-
+				modified = applyModification(request, modified);
 			}
 			else if (BambiServlet.isMyContext(request, "modifyQE"))
 			{
 				updateQE(request);
 				modified = true;
+				// ensure identical sorting as last time by undoing the sort inversion
+				sortBy = lastSortBy;
+				nextinvert = nextinvert == null ? lastSortBy : null;
 			}
 			else
 			{
@@ -707,6 +679,8 @@ public class QueueProcessor
 			{
 				root.mergeElement(_theQueue, false);
 			}
+
+			sortOutput(sortBy, root);
 			root.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
 			if (_theQueue.numChildElements(ElementName.QUEUEENTRY, null) < 1000)
 			{
@@ -729,6 +703,70 @@ public class QueueProcessor
 				persist(0);
 			}
 			return true;
+		}
+
+		/**
+		 * @param request
+		 * @param modified
+		 * @return
+		 */
+		private boolean applyModification(final BambiServletRequest request, boolean modified)
+		{
+			final EnumQueueStatus qStatus = _theQueue.getQueueStatus();
+			EnumQueueStatus qStatusNew = null;
+			final boolean bHold = request.getBooleanParam("hold");
+			if (bHold)
+			{
+				qStatusNew = _theQueue.holdQueue();
+			}
+			final boolean bClose = request.getBooleanParam("close");
+			if (bClose)
+			{
+				qStatusNew = _theQueue.closeQueue();
+			}
+			final boolean bResume = request.getBooleanParam("resume");
+			if (bResume)
+			{
+				qStatusNew = _theQueue.resumeQueue();
+			}
+			final boolean bOpen = request.getBooleanParam("open");
+			if (bOpen)
+			{
+				qStatusNew = _theQueue.openQueue();
+			}
+			final boolean bFlush = request.getBooleanParam("flush");
+			if (bFlush)
+			{
+				final VElement v = _theQueue.flushQueue(null);
+				modified = v != null;
+			}
+			if (qStatusNew != null)
+			{
+				modified = modified || !ContainerUtil.equals(qStatusNew, qStatus);
+			}
+
+			return modified;
+		}
+
+		/**
+		 * @param request
+		 * @param root
+		 */
+		private void sortOutput(final String sortBy, final KElement root)
+		{
+			// sort according to the given attribute
+			if (sortBy != null)
+			{
+				final boolean invert = sortBy.equals(lastSortBy) && sortBy.equals(nextinvert);
+				nextinvert = invert ? null : sortBy;
+				lastSortBy = sortBy;
+				root.sortChildren(new KElement.SingleAttributeComparator(sortBy, invert));
+			}
+			else
+			{
+				nextinvert = null;
+				lastSortBy = null;
+			}
 		}
 
 		/**
@@ -865,6 +903,9 @@ public class QueueProcessor
 	protected static final Log log = LogFactory.getLog(QueueProcessor.class.getName());
 	private RollingBackupFile _queueFile = null;
 	private static final long serialVersionUID = -876551736245089033L;
+	static String nextinvert = null;
+	static String lastSortBy = null;
+
 	/**
 	 */
 	static final String QE_STATUS = "qeStatus";
