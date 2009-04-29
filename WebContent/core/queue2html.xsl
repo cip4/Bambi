@@ -227,7 +227,6 @@
                 <xsl:with-param name="display" select="'Slave QueueEntryID'"/>
                 <xsl:with-param name="attName" select="'bambi:SlaveQueueEntryID'"/>
               </xsl:call-template>
-              <th align="left"></th>
             </xsl:if>
             <th align="center">Device</th>
              <xsl:call-template name="qeHeader">
