@@ -1058,7 +1058,7 @@ public class QueueProcessor
 	/**
 	 * get a qe by nodeidentifier only waiting entries that have not been forwarded to a lower level device are taken into account
 	 * 
-	 * @param queueEntryID the JDFNode.NodeIdentifier
+	 * @param nodeID the JDFNode.NodeIdentifier
 	 * @return
 	 */
 	public IQueueEntry getQueueEntry(final NodeIdentifier nodeID)
@@ -1623,7 +1623,7 @@ public class QueueProcessor
 	/**
 	 * remove all Bambi namespace extensions from a given queue
 	 * @param queue the queue to filter
-	 * @return a queue without Bambi namespaces
+	 * 
 	 */
 	public static void removeBambiNSExtensions(final JDFQueue queue)
 	{
