@@ -288,6 +288,8 @@
 
   <xsl:include href="processor.xsl"/>
   <xsl:include href="modifyString.xsl"/>
+  <xsl:include href="DeviceExtension.xsl"/>
+
 
   <!--  modifiable phase -->
   <xsl:template match="Phase">
@@ -349,7 +351,6 @@
     <br/>
     <xsl:apply-templates/>
   </xsl:template>
-
 
 
   <!-- add more templates -->

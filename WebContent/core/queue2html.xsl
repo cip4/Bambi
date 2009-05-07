@@ -248,7 +248,6 @@
   <xsl:template name="qeHeader">
     <xsl:param name="display"/>
     <xsl:param name="attName"/>
-
     <th align="left">
       <a>
         <xsl:attribute name="href">.?SortBy=<xsl:value-of select="$attName"/></xsl:attribute>

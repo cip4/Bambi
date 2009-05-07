@@ -146,6 +146,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		sqh.waitHandled(10000, true);
 		if (sqh.doc == null)
 		{
+			log.warn("submission timeout sending to " + strUrl);
 			final JDFCommand c = docJMF.getJMFRoot().getCommand(0);
 			final JDFJMF respJMF = c.createResponse();
 			final JDFResponse r = respJMF.getResponse(0);
@@ -157,7 +158,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			else
 			{
 				final int responseCode = connection.getResponseCode();
-				r.setErrorText(("Invalid http response - RC=" + responseCode), null);
+				final String errorText = "Invalid http response - RC=" + responseCode;
+				log.warn(errorText);
+				r.setErrorText(errorText, null);
 			}
 			r.setReturnCode(3); // TODO correct rcs
 			return respJMF.getOwnerDocument_JDFElement();
