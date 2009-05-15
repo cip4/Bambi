@@ -649,8 +649,7 @@ public class QueueProcessor
 
 	protected class QueueGetHandler extends XMLDoc implements IGetHandler
 	{
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
 		 * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
 		 */
@@ -658,6 +657,7 @@ public class QueueProcessor
 		{
 			boolean modified = false;
 			String sortBy = StringUtil.getNonEmpty(request.getParameter("SortBy"));
+			final String filter = StringUtil.getNonEmpty(request.getParameter("filter"));
 			if (BambiServlet.isMyContext(request, "showQueue"))
 			{
 				modified = applyModification(request, modified);
@@ -680,7 +680,7 @@ public class QueueProcessor
 				root.mergeElement(_theQueue, false);
 			}
 
-			sortOutput(sortBy, root);
+			sortOutput(sortBy, root, filter);
 			root.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
 			if (_theQueue.numChildElements(ElementName.QUEUEENTRY, null) < 1000)
 			{
@@ -749,11 +749,28 @@ public class QueueProcessor
 		}
 
 		/**
-		 * @param request
+		 * the filter is case insensitive
+		 * @param sortBy
 		 * @param root
+		 * @param filter the regexp to filter by (.)* is added before and after the filter
 		 */
-		private void sortOutput(final String sortBy, final KElement root)
+		private void sortOutput(final String sortBy, final KElement root, String filter)
 		{
+			if (filter != null)
+			{
+				root.setAttribute("filter", filter);
+				filter = "(.)*" + filter + "(.)*";
+				final VElement v = root.getChildElementVector(ElementName.QUEUEENTRY, null);
+				final String lowFilter = filter.toLowerCase();
+				for (int i = 0; i < v.size(); i++)
+				{
+					final KElement e = v.get(i);
+					if (!e.toDisplayXML(0).toLowerCase().matches(lowFilter))
+					{
+						e.deleteNode();
+					}
+				}
+			}
 			// sort according to the given attribute
 			if (sortBy != null)
 			{
@@ -900,11 +917,11 @@ public class QueueProcessor
 		}
 	}
 
-	protected static final Log log = LogFactory.getLog(QueueProcessor.class.getName());
+	protected final Log log;
 	private RollingBackupFile _queueFile = null;
 	private static final long serialVersionUID = -876551736245089033L;
-	static String nextinvert = null;
-	static String lastSortBy = null;
+	String nextinvert = null;
+	String lastSortBy = null;
 
 	/**
 	 */
@@ -927,6 +944,7 @@ public class QueueProcessor
 	public QueueProcessor(final AbstractDevice theParentDevice)
 	{
 		super();
+		log = LogFactory.getLog(QueueProcessor.class.getName());
 		_parentDevice = theParentDevice;
 		_listeners = new Vector<Object>();
 
@@ -1150,13 +1168,14 @@ public class QueueProcessor
 	 * stub that allows moving data from the jdfdoc to the queueentry
 	 * @param qe
 	 * @param doc
+	 * @return the updated queueEntryID
 	 */
-	protected void fixEntry(final JDFQueueEntry qe, final JDFDoc doc)
+	protected String fixEntry(final JDFQueueEntry qe, final JDFDoc doc)
 	{
 		final JDFNode n = doc == null ? null : doc.getJDFRoot();
 		if (qe == null || n == null)
 		{
-			return;
+			return null;
 		}
 		final int prio = qe.getPriority();
 		if (prio > 0)
@@ -1167,15 +1186,17 @@ public class QueueProcessor
 				ni.setJobPriority(prio);
 			}
 		}
+		final String qeID = qe.getQueueEntryID();
+		return qeID;
 	}
 
 	/**
 	 * @param submitQueueEntry the sqe command
-	 * @param r the response to fill
+	 * @param newResponse the response to fill
 	 * @param theJDF the JDFDoc to submit
 	 * @return the new qe, null if failed
 	 */
-	public JDFQueueEntry addEntry(final JDFCommand submitQueueEntry, JDFResponse r, final JDFDoc theJDF)
+	public JDFQueueEntry addEntry(final JDFCommand submitQueueEntry, JDFResponse newResponse, final JDFDoc theJDF)
 	{
 		if (submitQueueEntry == null || theJDF == null)
 		{
@@ -1198,24 +1219,25 @@ public class QueueProcessor
 			}
 
 			final JDFResponse r2 = qsp.addEntry(_theQueue, null);
-			if (r != null)
+			if (newResponse != null)
 			{
-				r.mergeElement(r2, false);
+				newResponse.mergeElement(r2, false);
 			}
 			else
 			{
-				r = r2;
+				newResponse = r2;
 			}
-			if (r == null || r.getReturnCode() != 0)
+			if (newResponse == null || newResponse.getReturnCode() != 0)
 			{
+				log.warn("invalid response while adding queue entry");
 				return null;
 			}
 
-			final JDFQueueEntry newQE = r.getQueueEntry(0);
+			final JDFQueueEntry newQE = newResponse.getQueueEntry(0);
 
-			if (r.getReturnCode() != 0 || newQE == null)
+			if (newResponse.getReturnCode() != 0 || newQE == null)
 			{
-				log.warn("error submitting queueentry: " + r.getReturnCode());
+				log.warn("error submitting queueentry: " + newResponse.getReturnCode());
 				return null;
 			}
 			final String qeID = newQE.getQueueEntryID();
@@ -1223,8 +1245,8 @@ public class QueueProcessor
 			fixEntry(newQE, theJDF);
 			if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
 			{
-				r.setReturnCode(120);
-				log.error("error storing queueentry: " + r.getReturnCode());
+				newResponse.setReturnCode(120);
+				log.error("error storing queueentry: " + newResponse.getReturnCode());
 				return null;
 			}
 			persist(0);
@@ -1340,6 +1362,7 @@ public class QueueProcessor
 		{
 			if (qe != null && status != null)
 			{
+				final EnumQueueEntryStatus oldStatus = qe.getQueueEntryStatus();
 				if (status.equals(EnumQueueEntryStatus.Removed))
 				{
 					qe.setQueueEntryStatus(status);
@@ -1359,12 +1382,20 @@ public class QueueProcessor
 						qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
 					}
 				}
+				else if (status.equals(EnumQueueEntryStatus.Waiting))
+				{
+					qe.removeAttribute(AttributeName.DEVICEID);
+					qe.removeAttribute(AttributeName.STARTTIME);
+					qe.removeAttribute(AttributeName.ENDTIME);
+					BambiNSExtension.setDeviceURL(qe, null);
+					qe.setQueueEntryStatus(status);
+				}
 				else
 				{
 					qe.setQueueEntryStatus(status);
 				}
 
-				if (!status.equals(qe.getQueueEntryStatus()))
+				if (!status.equals(oldStatus))
 				{
 					persist(0);
 					notifyListeners();
@@ -1492,7 +1523,7 @@ public class QueueProcessor
 				mimeDetails.httpDetails.chunkSize = properties.getControllerHTTPChunk();
 				mimeDetails.transferEncoding = properties.getControllerMIMEEncoding();
 				mimeDetails.modifyBoundarySemicolon = StringUtil.parseBoolean(properties.getDeviceAttribute("FixMIMEBoundarySemicolon"), false);
-				response = JMFFactory.send2URLSynch(mp, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
+				response = JMFFactory.getJMFFactory().send2URLSynch(mp, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
 			}
 			else
 			// http
@@ -1501,7 +1532,7 @@ public class QueueProcessor
 				final HTTPDetails hDet = new HTTPDetails();
 				hDet.chunkSize = properties.getControllerHTTPChunk();
 
-				response = JMFFactory.send2URLSynch(jmf, returnJMF, _parentDevice.getCallback(null), _parentDevice.getDeviceID(), 10000);
+				response = JMFFactory.getJMFFactory().send2URLSynch(jmf, returnJMF, _parentDevice.getCallback(null), _parentDevice.getDeviceID(), 10000);
 			}
 			int responseCode;
 			if (response != null)

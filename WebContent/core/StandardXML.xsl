@@ -5,6 +5,10 @@
     <xsl:param name="printme" select="'y'"/>
     <xsl:if test="$printme">
       <h4>
+       <xsl:if test="$pre">
+          <xsl:value-of select="$pre"/>
+          /
+        </xsl:if>
         <xsl:value-of select="name()"/>
       </h4>
     </xsl:if>
@@ -123,15 +127,54 @@
               </td>
               <td>
                 =
-                <xsl:value-of select="."/>
+                <xsl:value-of select="."/> 
               </td>
-              <td>
-              </td>
-            </xsl:otherwise>
+              <td width="2%"/>
+             </xsl:otherwise>
           </xsl:choose>
         </xsl:for-each>
       </tr>
     </table>
+  </xsl:template>
+  
+    <!--   ///////////////////////////////////////////////// -->
+	  <xsl:template name="printRefs">
+	    <xsl:param name="val" select="."/>
+	    <xsl:param name="n" select="''"/>
+	    <xsl:if test="not(. = $val)">
+	      <td nowrap="true">
+	        <xsl:value-of select="substring-before(name(),'Ref')"/>
+	      </td>
+	      <td nowrap="true">
+	        =
+	    </td>
+	    </xsl:if>
+	
+	    <td nowrap="true" width="80">
+	      <a>
+	        <xsl:choose>
+	          <xsl:when test="string-length(substring-before($val,' '))=0">
+	            <xsl:attribute name="href">#<xsl:value-of select="$val"/></xsl:attribute>
+	          </xsl:when>
+	          <xsl:otherwise>
+	            <xsl:attribute name="href">#<xsl:value-of select="substring-before($val,' ')"/></xsl:attribute>
+	          </xsl:otherwise>
+	        </xsl:choose>
+	        <xsl:value-of select="substring-before(name(),'Ref')"/>: <xsl:value-of select="$val"/> 
+	      </a>
+	    </td>
+	    <!-- remove string up to blank and recurse with remaining right string -->
+	    <xsl:if test="string-length(substring-after($val,' ')) != 0">
+	      <xsl:call-template name="printRefs">
+	        <xsl:with-param name="val">
+	          <xsl:value-of select="substring-after($val,' ')"/>
+	        </xsl:with-param>
+	       <xsl:with-param name="n">
+	          <xsl:value-of select="$n + 1"/>
+	        </xsl:with-param>
+	      </xsl:call-template>
+	    </xsl:if>
+	
   </xsl:template>
 
 </xsl:stylesheet>

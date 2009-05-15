@@ -104,7 +104,8 @@ public class SimTest extends BambiTestCase
 	{
 
 		super.setUp();
-		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/manual002";
+		bUpdateJobID = true;
+		// simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/manual002";
 		// simWorkerUrl = "http://127.0.0.1:8080/speedmaster/jmf/XL105";
 	}
 
@@ -114,11 +115,7 @@ public class SimTest extends BambiTestCase
 	public void testSubmitQueueEntry_MIME() throws Exception
 	{
 		// get number of QueueEntries before submitting
-		final JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		final JDFResponse resp = send2URL(jmfStat, simWorkerUrl);
-		assertNotNull(resp);
-		assertEquals(0, resp.getReturnCode());
-		final JDFQueue q = resp.getQueue(0);
+		final JDFQueue q = getQueueStatus(simWorkerUrl);
 		assertNotNull(q);
 		// build SubmitQueueEntry
 		submitMimetoURL(simWorkerUrl);
@@ -131,7 +128,7 @@ public class SimTest extends BambiTestCase
 	public void testSubmitQueueEntry_Subscription() throws Exception
 	{
 		// get number of QueueEntries before submitting
-		final JDFJMF jmfStat = JMFFactory.buildStatusSubscription("http://localhost:8080/httpdump/BambiTest", 0, 0, null);
+		final JDFJMF jmfStat = JMFFactory.getJMFFactory().buildStatusSubscription("http://localhost:8080/httpdump/BambiTest", 0, 0, null);
 		jmfStat.getQuery(0).getStatusQuParams().setJobID("j1");
 		final JDFResponse resp = send2URL(jmfStat, simWorkerUrl);
 		assertNotNull(resp);
@@ -162,7 +159,15 @@ public class SimTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_X() throws Exception
 	{
-		submitXtoURL(simWorkerUrl);
+		for (int i = 0; i < 1000; i++)
+		{
+			if (i != 0)
+			{
+				ThreadUtil.sleep(1000);
+			}
+			System.out.println("Submit " + i);
+			submitXtoURL(simWorkerUrl);
+		}
 	}
 
 	/**
@@ -170,33 +175,22 @@ public class SimTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_MIME_Many() throws Exception
 	{
-		// get number of QueueEntries before submitting
-		final JDFJMF jmfStat = JMFFactory.buildQueueStatus();
-		JDFResponse resp = JMFFactory.send2URLSynchResp(jmfStat, simWorkerUrl, null, "foo", 2000);
-		assertNotNull(resp);
-		assertEquals(0, resp.getReturnCode());
-		JDFQueue q = resp.getQueue(0);
+		final JDFQueue q = getQueueStatus(simWorkerUrl);
 		assertNotNull(q);
 		final int oldSize = q.getEntryCount();
 
 		// check that the QE is on the proxy
-		final JDFJMF jmf = JMFFactory.buildQueueStatus();
-		for (int i = 0; i < 22; i++)
+		final JDFJMF jmf = JMFFactory.getJMFFactory().buildQueueStatus();
+		for (int i = 1; i < 22; i++)
 		{
 			System.out.println("submitting " + i);
 			// build SubmitQueueEntry
 			submitMimetoURL(simWorkerUrl);
-			resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
-			assertNotNull(resp);
-			assertEquals(0, resp.getReturnCode());
-			q = resp.getQueue(0);
-			assertNotNull(q);
-			// final int newCount = q.getEntryCount();
 			ThreadUtil.sleep(1000);
-			// assertEquals( oldSize+i,newCount );
+			final JDFQueue q2 = getQueueStatus(simWorkerUrl);
+			final int newCount = q2.getEntryCount();
+			assertEquals(oldSize + i, newCount);
 		}
-
-		// abortRemoveAll(simWorkerUrl);
 	}
 
 	/**
@@ -209,13 +203,14 @@ public class SimTest extends BambiTestCase
 
 		int loops = 0;
 		boolean hasRunningQE = false;
+		final JMFFactory factory = JMFFactory.getJMFFactory();
 		while (loops < 10 && !hasRunningQE)
 		{
 			loops++;
 			Thread.sleep(1000);
-			final JDFJMF jmf = JMFFactory.buildQueueStatus();
+			final JDFJMF jmf = factory.buildQueueStatus();
 
-			final JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+			final JDFResponse resp = factory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 			assertNotNull(resp);
 			assertEquals(0, resp.getReturnCode());
 			final JDFQueue q = resp.getQueue(0);

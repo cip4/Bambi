@@ -549,7 +549,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		}
 		EnumQueueEntryStatus qes = null;
 		final File hf = getParent().getProxyProperties().getSlaveInputHF();
-		if (qURL != null && hf == null)
+		if (qURL != null)
 		{
 			final IProxyProperties proxyProperties = getParent().getProxyProperties();
 			final File deviceOutputHF = proxyProperties.getSlaveOutputHF();
@@ -562,11 +562,11 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			final IQueueEntry iqe = submitToQueue(qURL, deviceOutputHF, ud, expandMime, isMime);
 			qes = iqe == null ? null : iqe.getQueueEntry().getQueueEntryStatus();
 		}
-		else if (hf != null)
+		// try again in case of no url or failure
+		if ((qes == null || EnumQueueEntryStatus.Aborted.equals(qes)) && hf != null)
 		{
 			qes = submitToHF(hf);
 		}
-
 		if (qes == null || EnumQueueEntryStatus.Aborted.equals(qes))
 		{
 			// TODO handle errors
@@ -603,7 +603,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			final boolean bWritten = modNode.getOwnerDocument_KElement().write2File(fileInHF, 0, true);
 			if (bWritten)
 			{
-				submitted("qe" + JDFElement.uniqueID(0), EnumQueueEntryStatus.Running, UrlUtil.fileToUrl(fileInHF, true));
+				submitted("qe" + JDFElement.uniqueID(0), EnumQueueEntryStatus.Running, UrlUtil.fileToUrl(fileInHF, true), null);
 			}
 			else
 			{
@@ -631,11 +631,12 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	 * @param qe
 	 * @param node
 	 * @param qeR
+	 * @param slaveDeviceID
 	 */
 	@Override
-	protected void submitted(final String devQEID, final EnumQueueEntryStatus newStatus, final String slaveURL)
+	protected void submitted(final String devQEID, final EnumQueueEntryStatus newStatus, final String slaveURL, final String slaveDeviceID)
 	{
-		super.submitted(devQEID, newStatus, slaveURL);
+		super.submitted(devQEID, newStatus, slaveURL, slaveDeviceID);
 		setupStatusListener(currentQE.getJDF(), currentQE.getQueueEntry());
 		if (EnumQueueEntryStatus.Waiting.equals(newStatus))
 		{
@@ -665,11 +666,11 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		final AbstractProxyDevice p = getParent();
 		final String deviceURL = p.getDeviceURLForSlave();
 
-		final JDFJMF jmfs[] = JMFFactory.createSubscriptions(deviceURL, devQEID, 10., 0);
+		final JDFJMF jmfs[] = JMFFactory.getJMFFactory().createSubscriptions(deviceURL, devQEID, 10., 0);
 		final String deviceID = p.getDeviceID();
 		for (int i = 0; i < jmfs.length; i++)
 		{
-			JMFFactory.send2URL(jmfs[i], slaveURL, null, slaveCallBack, deviceID);
+			JMFFactory.getJMFFactory().send2URL(jmfs[i], slaveURL, null, slaveCallBack, deviceID);
 		} // TODO handle response
 	}
 
@@ -841,7 +842,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		}
 
 		final AbstractProxyDevice p = getParent();
-		final JDFJMF jmfs[] = JMFFactory.createSubscriptions(p.getDeviceURLForSlave(), null, 10., 0);
+		final JDFJMF jmfs[] = JMFFactory.getJMFFactory().createSubscriptions(p.getDeviceURLForSlave(), null, 10., 0);
 		final JDFNodeInfo ni = root.getCreateNodeInfo();
 		final String senderID = getParent().getDeviceID();
 		for (int i = 0; i < jmfs.length; i++)

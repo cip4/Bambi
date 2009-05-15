@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
->
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:strip-space elements="*"/>
   <xsl:output method="html" cdata-section-elements="jdf:JMF jdf:Query"/>
   <xsl:template match="/SubscriptionList">
@@ -105,32 +104,32 @@
   </xsl:template>
   <!--  end of template MsgSubscription  -->
 
+
+  <xsl:include href="StandardXML.xsl"/>
+  <xsl:include href="xjdf.xsl"/>
+
   <!--  end of template MessageSender  -->
   <xsl:template match="Sub">
     <h2>Subscription Details</h2>
-    <code>
-      <xsl:apply-templates select="jdf:Query"/>
-    </code>
+    <xsl:apply-templates select="jdf:Query"/>
 
   </xsl:template>
   <xsl:template match="Last">
     <h2>Last Queued Message Details</h2>
-    <code>
-      <xsl:apply-templates select="jdf:JMF"/>
-    </code>
+    <xsl:apply-templates select="jdf:JMF"/>
   </xsl:template>
-  <xsl:template match="jdf:*">
-    <br/>
-   &lt;<b><xsl:value-of select="name()" disable-output-escaping="yes" /></b>
-<xsl:for-each select="@*">
-<br/><xsl:text> </xsl:text>
-<i><xsl:value-of select="name()"/></i>="<xsl:value-of select="."/>"
-</xsl:for-each>&gt;
-           <xsl:apply-templates select="jdf:*"/>
-           <b>
-<br/>&lt;/<xsl:value-of select="name()" disable-output-escaping="yes" />&gt;
-</b>
-</xsl:template>
- 
+
+
+
+  <xsl:template match="*">
+    <xsl:param name="pre"/>
+    <xsl:param name="printme" select="'y'"/>
+
+    <xsl:call-template name="default">
+      <xsl:with-param name="pre" select="$pre"/>
+      <xsl:with-param name="printme" select="$printme"/>
+    </xsl:call-template>
+  </xsl:template>
+
   <!--  end of template RemovedChannel  -->
 </xsl:stylesheet>

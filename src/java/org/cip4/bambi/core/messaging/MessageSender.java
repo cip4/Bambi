@@ -770,7 +770,7 @@ public class MessageSender implements Runnable
 		{
 			doShutDown = true;
 		}
-		JMFFactory.senders.remove(callURL);
+		JMFFactory.getJMFFactory().senders.remove(callURL);
 		if (mutexDispatch != null)
 		{
 			synchronized (mutexDispatch)

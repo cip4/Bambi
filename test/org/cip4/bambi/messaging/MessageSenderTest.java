@@ -87,11 +87,11 @@ import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.MimeUtil;
-import org.cip4.jdflib.util.StatusCounter;
+import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
- *
+ * 
  */
 public class MessageSenderTest extends BambiTestCase
 {
@@ -114,32 +114,33 @@ public class MessageSenderTest extends BambiTestCase
 	 */
 	public void testSerialize() throws Exception
 	{
-		JDFJMF jmf = JMFFactory.buildStatusSubscription(snafu, 1, 0, null);
-		JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		final JMFFactory factory = JMFFactory.getJMFFactory();
+		final JDFJMF jmf = factory.buildStatusSubscription(snafu, 1, 0, null);
+		final JDFResponse resp = factory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 		assertNotNull(resp);
 		submitToQueue(new URL(simWorkerUrl));
-		StatusCounter.sleep(10);
+		ThreadUtil.sleep(10);
 	}
 
-	protected void submitToQueue(URL qurl) throws Exception
+	protected void submitToQueue(final URL qurl) throws Exception
 	{
-		JDFJMF jmf = JDFJMF.createJMF(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
-		JDFCommand com = (JDFCommand) jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command, null, 0);
-		JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
+		final JDFJMF jmf = JDFJMF.createJMF(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
+		final JDFCommand com = (JDFCommand) jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command, null, 0);
+		final JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
 		qsp.setURL("dummy"); // replaced by mimeutil
 
 		qsp.setReturnJMF(snafu);
-		JDFNode nod = new JDFParser().parseString("<JDF Type=\"ConventionalPrinting\" ID=\"a1\"/>").getJDFRoot();
+		final JDFNode nod = new JDFParser().parseString("<JDF Type=\"ConventionalPrinting\" ID=\"a1\"/>").getJDFRoot();
 		final String urlString = qurl == null ? null : qurl.toExternalForm();
 
 		writeToQueue(jmf.getOwnerDocument_JDFElement(), nod.getOwnerDocument_JDFElement(), urlString);
 
 	}
 
-	protected void writeToQueue(JDFDoc docJMF, JDFDoc docJDF, String strUrl) throws IOException
+	protected void writeToQueue(final JDFDoc docJMF, final JDFDoc docJDF, final String strUrl) throws IOException
 	{
-		Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
-		JMFFactory.send2URL(mp, strUrl, null, null, null, "did");
+		final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
+		JMFFactory.getJMFFactory().send2URL(mp, strUrl, null, null, null, "did");
 	}
 
 }

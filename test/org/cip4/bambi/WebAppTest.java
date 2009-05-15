@@ -90,7 +90,8 @@ public class WebAppTest extends BambiTestCase
 	 */
 	public void testDeviceStatus()
 	{
-		final JDFJMF jmfStatus = JMFFactory.buildStatus();
+		final JMFFactory factory = JMFFactory.getJMFFactory();
+		final JDFJMF jmfStatus = factory.buildStatus();
 		final VString urls = new VString();
 		urls.add(proxyUrl);
 		urls.add(simWorkerUrl);
@@ -99,7 +100,7 @@ public class WebAppTest extends BambiTestCase
 		for (int i = 0; i < urls.size(); i++)
 		{
 			final String url = urls.get(i);
-			final JDFResponse resp = JMFFactory.send2URLSynchResp(jmfStatus, url, null, null, 2000);
+			final JDFResponse resp = factory.send2URLSynchResp(jmfStatus, url, null, null, 2000);
 			assertNotNull(resp);
 			final JDFDeviceInfo di = resp.getDeviceInfo(0);
 			assertNotNull(di);

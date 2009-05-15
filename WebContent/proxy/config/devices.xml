@@ -5,10 +5,10 @@
   -->
 <application BaseDir="C:/BambiData/proxy/" JDFDir="JDFDir" DeviceClass="org.cip4.bambi.proxy.ProxyDevice">
   <Device DeviceID="proxyRoot" DeviceType="Bambi Proxy Root" DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/devices/proxy001"/>
-  <Device DeviceID="proxy001" DeviceType="Bambi Pull Proxy" SlaveStatus="JMF"
-    DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/devices/proxy001" SlaveURL="http://kie-prosirai-lg:8080/SimWorker/devices/sim001"
-    MaxPush="10"/>
-  <Device DeviceID="proxy002" DeviceType="Bambi Push Proxy for SimWorker/Manual002" SlaveStatus="NodeInfo"
-    DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/devices/proxy002" SlaveURL="http://kie-prosirai-lg:8080/SimWorker/devices/manual002"
-    MaxPush="1" InputHF="C:/BambiHF/proxy002/Input" OutputHF="C:/BambiHF/proxy002/Output" ErrorHF="C:/BambiHF/proxy002/Error"/>
+  <Device DeviceID="pullproxy" DeviceType="Bambi Pull Proxy" SlaveStatus="JMF"
+    DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/devices/pullproxy" SlaveURL="http://kie-prosirai-lg:8080/SimWorker/devices/sim001"
+    MaxPush="0" InputHF="C:/BambiHF/pullproxy/Input" OutputHF="C:/BambiHF/pusllroxy/Output" ErrorHF="C:/BambiHF/pullhproxy/Error"/>
+  <Device DeviceID="pushproxy" DeviceType="Bambi Push Proxy for SimWorker/Sim002" SlaveStatus="NodeInfo"
+    DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/devices/pushproxy" SlaveURL="http://kie-prosirai-lg:8080/SimWorker/devices/sim002"
+    MaxPush="10" InputHF="C:/BambiHF/pushproxy/Input" OutputHF="C:/BambiHF/pushproxy/Output" ErrorHF="C:/BambiHF/pushproxy/Error"/>
 </application>

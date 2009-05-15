@@ -72,41 +72,27 @@
 package org.cip4.bambi;
 
 import java.io.File;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
-
-import javax.mail.Multipart;
 
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
-import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
-import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.goldenticket.BaseGoldenTicket;
 import org.cip4.jdflib.goldenticket.BaseGoldenTicketTest;
 import org.cip4.jdflib.goldenticket.MISCPGoldenTicket;
-import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
-import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
-import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
-import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen abstract test case for all bambi tests note that this has some site specific details that must be modified
@@ -127,13 +113,15 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected final static String sm_dirTestTemp = cwd + File.separator + "test" + File.separator + "temp" + File.separator;
 	protected final static String sm_UrlTestData = "File:test/data/";
 
-	protected static String simWorkerUrl = "http://localhost:8080/SimWorker/jmf/manual002";
-	protected static String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/proxy001";
+	protected static String simWorkerUrl = "http://localhost:8080/SimWorker/jmf/sim002";
+	protected static String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy";
+	protected static String proxySlaveUrl = "http://kie-prosirai-lg:8080/BambiProxy/slavejmf/pushproxy";
 	// protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
 	protected static String manualWorkerUrl = null;
 	protected static String returnJMF = "http://localhost:8080/httpDump/returnJMF";
 	protected static String returnURL = null;// "http://localhost:8080/httpDump/returnURL";
 
+	protected boolean bUpdateJobID = false;
 	protected int chunkSize = -1;
 	protected String transferEncoding = UrlUtil.BASE64;
 
@@ -549,8 +537,9 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 */
 	protected void abortRemoveAll(final String url)
 	{
-		JDFJMF jmf = JMFFactory.buildQueueStatus();
-		final JDFResponse resp = JMFFactory.send2URLSynchResp(jmf, url, null, "testcase", 2000);
+		final JMFFactory factory = JMFFactory.getJMFFactory();
+		JDFJMF jmf = factory.buildQueueStatus();
+		final JDFResponse resp = factory.send2URLSynchResp(jmf, url, null, "testcase", 2000);
 		if (resp == null)
 		{
 			System.err.println("failed to send QueueStatus");
@@ -571,8 +560,8 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		for (int i = siz - 1; i >= 0; i--)
 		{
 			final String qeid = ((JDFQueueEntry) qVec.get(i)).getQueueEntryID();
-			jmf = JMFFactory.buildAbortQueueEntry(qeid);
-			JMFFactory.send2URL(jmf, url, null, null, "testcase");
+			jmf = factory.buildAbortQueueEntry(qeid);
+			factory.send2URL(jmf, url, null, null, "testcase");
 		}
 
 		// wait to allow the worker to process the AbortQueueEntries,
@@ -581,8 +570,8 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		for (int i = 0; i < siz; i++)
 		{
 			final String qeid = ((JDFQueueEntry) qVec.get(i)).getQueueEntryID();
-			jmf = JMFFactory.buildRemoveQueueEntry(qeid);
-			JMFFactory.send2URL(jmf, url, null, null, "testcase");
+			jmf = factory.buildRemoveQueueEntry(qeid);
+			factory.send2URL(jmf, url, null, null, "testcase");
 		}
 	}
 
@@ -613,9 +602,11 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected void submitXtoURL(final String url) throws MalformedURLException
 	{
 		final JDFNode n = _theGT.getNode();
-		final XJDF20 xc = new XJDF20();
-		final KElement e = xc.makeNewJDF(n, null);
-		submitMimetoURL(new JDFDoc(e.getOwnerDocument()), url);
+		final BambiTestHelper helper = new BambiTestHelper();
+		helper.returnJMF = returnJMF;
+		helper.chunkSize = chunkSize;
+		helper.transferEncoding = transferEncoding;
+		helper.submitXtoURL(n, url);
 	}
 
 	/**
@@ -625,39 +616,17 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 */
 	protected void submitMimetoURL(final JDFDoc d, final String url) throws MalformedURLException
 	{
-		final JDFDoc docJMF = new JDFDoc("JMF");
-		final JDFJMF jmf = docJMF.getJMFRoot();
-		final JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
-		final JDFQueueSubmissionParams queueSubmissionParams = com.appendQueueSubmissionParams();
-		queueSubmissionParams.setURL("dummy");
-		queueSubmissionParams.setPriority(42);
-		if (returnJMF != null)
-		{
-			queueSubmissionParams.setReturnJMF(new URL(returnJMF));
-		}
-		if (returnURL != null)
-		{
-			queueSubmissionParams.setReturnURL(new URL(returnURL));
-		}
 		ensureCurrentGT();
+		final BambiTestHelper helper = new BambiTestHelper();
+		helper.returnJMF = returnJMF;
+		helper.chunkSize = chunkSize;
+		helper.transferEncoding = transferEncoding;
+		helper.submitMimetoURL(d, url);
+	}
 
-		final Multipart mp = MimeUtil.buildMimePackage(docJMF, d, false);
-
-		try
-		{
-			final MIMEDetails md = new MIMEDetails();
-			md.transferEncoding = transferEncoding;
-			md.httpDetails.chunkSize = chunkSize;
-			final HttpURLConnection response = MimeUtil.writeToURL(mp, url, md);
-			if (!url.toLowerCase().startsWith("file:"))
-			{
-				assertEquals(url, 200, response.getResponseCode());
-			}
-		}
-		catch (final Exception e)
-		{
-			fail(e.getMessage()); // fail on exception
-		}
+	protected JDFQueue getQueueStatus(final String qURL)
+	{
+		return new BambiTestHelper().getQueueStatus(qURL);
 	}
 
 	/**
@@ -667,24 +636,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 */
 	protected JDFDoc submitJMFtoURL(final JDFJMF jmf, final String url)
 	{
-		try
-		{
-			final HTTPDetails md = new HTTPDetails();
-			md.chunkSize = chunkSize;
-			final HttpURLConnection urlCon = jmf.getOwnerDocument_JDFElement().write2HTTPURL(new URL(url), md);
-			assertEquals(url, 200, urlCon.getResponseCode());
-			final JDFParser parser = new JDFParser();
-			final InputStream inStream = urlCon.getInputStream();
-
-			parser.parseStream(inStream);
-			final JDFDoc docResponse = parser.getDocument() == null ? null : new JDFDoc(parser.getDocument());
-			return docResponse;
-		}
-		catch (final Exception e)
-		{
-			fail(e.getMessage()); // fail on exception
-		}
-		return null;
+		return new BambiTestHelper().submitJMFtoURL(jmf, url);
 	}
 
 	/**

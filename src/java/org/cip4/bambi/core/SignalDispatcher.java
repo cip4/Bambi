@@ -228,7 +228,7 @@ public final class SignalDispatcher
 				return;
 			}
 			url = myURL.toExternalForm();
-			final Vector<MessageSender> v = JMFFactory.getAllMessageSenders();
+			final Vector<MessageSender> v = JMFFactory.getJMFFactory().getAllMessageSenders();
 			final int size = v == null ? 0 : v.size();
 			for (int i = 0; i < size; i++)
 			{
@@ -253,7 +253,7 @@ public final class SignalDispatcher
 				return;
 			}
 			url = myURL.toExternalForm();
-			final Vector<MessageSender> v = JMFFactory.getAllMessageSenders();
+			final Vector<MessageSender> v = JMFFactory.getJMFFactory().getAllMessageSenders();
 			final int size = v == null ? 0 : v.size();
 			for (int i = 0; i < size; i++)
 			{
@@ -270,7 +270,7 @@ public final class SignalDispatcher
 		 */
 		private void listDispatchers(final BambiServletRequest request)
 		{
-			final Vector<MessageSender> v = JMFFactory.getAllMessageSenders();
+			final Vector<MessageSender> v = JMFFactory.getJMFFactory().getAllMessageSenders();
 			final int size = v == null ? 0 : v.size();
 			for (int i = 0; i < size; i++)
 			{
@@ -580,7 +580,7 @@ public final class SignalDispatcher
 			if (signalJMF != null)
 			{
 				signalJMF.collectICSVersions();
-				JMFFactory.send2URL(signalJMF, url, null, callback, deviceID);
+				JMFFactory.getJMFFactory().send2URL(signalJMF, url, null, callback, deviceID);
 				final MsgSubscription realSubSubscription = subscriptionMap.get(sub.channelID);
 				if (realSubSubscription != null)
 				{

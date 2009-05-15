@@ -137,11 +137,11 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		if (isMime)
 		{
 			final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, expandMime);
-			JMFFactory.send2URL(mp, strUrl, sqh, slaveCallBack, urlDet, _parent.getDeviceID());
+			JMFFactory.getJMFFactory().send2URL(mp, strUrl, sqh, slaveCallBack, urlDet, _parent.getDeviceID());
 		}
 		else
 		{
-			JMFFactory.send2URL(docJMF.getJMFRoot(), strUrl, sqh, slaveCallBack, _parent.getDeviceID());
+			JMFFactory.getJMFFactory().send2URL(docJMF.getJMFRoot(), strUrl, sqh, slaveCallBack, _parent.getDeviceID());
 		}
 		sqh.waitHandled(10000, true);
 		if (sqh.doc == null)
@@ -173,13 +173,18 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 * @param slaveQEID
 	 * @param newStatus
 	 * @param slaveURL
+	 * @param slaveDeviceID the deviceID as returned from the slave
 	 */
-	protected void submitted(final String slaveQEID, final EnumQueueEntryStatus newStatus, final String slaveURL)
+	protected void submitted(final String slaveQEID, final EnumQueueEntryStatus newStatus, final String slaveURL, final String slaveDeviceID)
 	{
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		BambiNSExtension.setSlaveQueueEntryID(qe, slaveQEID);
 		BambiNSExtension.setSlaveSubmissionTime(qe, new JDFDate());
 		BambiNSExtension.setDeviceURL(qe, slaveURL);
+		if (StringUtil.getNonEmpty(slaveDeviceID) != null)
+		{
+			qe.setDeviceID(slaveDeviceID);
+		}
 		_queueProcessor.updateEntry(qe, newStatus, null, null);
 	}
 
@@ -217,8 +222,8 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 		// fix for returning
 
-		final JDFNode node = getCloneJDFForSlave();
-		KElement modNode = node;
+		final JDFNode node = getCloneJDFForSlave(); // the retained internal node
+		KElement modNode = node; // the external node
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 
 		if (slaveCallBack != null)
@@ -282,7 +287,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 								final JDFQueueEntry qeR = r.getQueueEntry(0);
 								if (qeR != null)
 								{
-									submitted(qeR.getQueueEntryID(), qeR.getQueueEntryStatus(), urlString);
+									submitted(qeR.getQueueEntryID(), qeR.getQueueEntryStatus(), urlString, r.getSenderID());
 								}
 								else
 								{

@@ -137,7 +137,7 @@
           </xsl:if>
         </table>
         <br/>
-
+        <hr/>
         <!--  global queue buttons -->
         <table cellspacing="2" border="0">
           <tr>
@@ -145,6 +145,10 @@
             <td/>
             <td align="center" colspan="2">Outgoing Entries</td>
             <td/>
+            <td align="center" colspan="2">refresh Queue</td>
+            <td align="center" colspan="2">
+              Filter Queue
+            </td>
             <td align="center" colspan="2">
               <em>Danger flushes entire Queue!</em>
             </td>
@@ -183,14 +187,31 @@
             <td align="center">
               <form>
                 <xsl:attribute name="action"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+                <input type="submit" value="refresh queue"/>
+              </form>
+            </td>
+            <td width="10"/>
+
+            <td align="center">
+              <form>
+                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+                <input type="text" name="filter">
+                  <xsl:attribute name="value"><xsl:value-of select="@filter"/></xsl:attribute>
+                </input>
+                <input type="submit" value="filter queue"/>
+              </form>
+            </td>
+            <td width="10"/>
+            <td align="center">
+              <form>
+                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
                 <input type="hidden" name="flush" value="true"/>
                 <input type="submit" value="flush queue"/>
               </form>
             </td>
           </tr>
         </table>
-        <hr/>
-        <h2>Queue Details</h2>
+        <h2>Queue Entry Details</h2>
         <!--  queueentry table description  -->
         <table cellspacing="1" border="1">
           <tr bgcolor="#bbbbbb">
@@ -229,10 +250,10 @@
               </xsl:call-template>
             </xsl:if>
             <th align="center">Device</th>
-             <xsl:call-template name="qeHeader">
-                <xsl:with-param name="display" select="'Status'"/>
-                <xsl:with-param name="attName" select="''"/>
-              </xsl:call-template>
+            <xsl:call-template name="qeHeader">
+              <xsl:with-param name="display" select="'Status'"/>
+              <xsl:with-param name="attName" select="''"/>
+            </xsl:call-template>
           </tr>
           <xsl:apply-templates/>
         </table>
@@ -250,7 +271,9 @@
     <xsl:param name="attName"/>
     <th align="left">
       <a>
-        <xsl:attribute name="href">.?SortBy=<xsl:value-of select="$attName"/></xsl:attribute>
+        <xsl:attribute name="href">
+                 <xsl:value-of select="@Context"/>/showQueue/<xsl:value-of select="@DeviceID"/>?SortBy=<xsl:value-of select="$attName"/><xsl:if test="@filter">&amp;filter=<xsl:value-of select="@filter"/></xsl:if></xsl:attribute>
+
         <xsl:value-of select="$display"/>
       </a>
     </th>

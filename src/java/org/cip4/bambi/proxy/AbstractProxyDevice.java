@@ -492,16 +492,16 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		JDFJMF jmf = null;
 		if (EnumNodeStatus.Aborted.equals(newStatus))
 		{
-			jmf = JMFFactory.buildAbortQueueEntry(slaveQE);
+			jmf = JMFFactory.getJMFFactory().buildAbortQueueEntry(slaveQE);
 		}
 		else if (EnumNodeStatus.Suspended.equals(newStatus))
 		{
-			jmf = JMFFactory.buildSuspendQueueEntry(slaveQE);
+			jmf = JMFFactory.getJMFFactory().buildSuspendQueueEntry(slaveQE);
 		}
 		if (jmf != null)
 		{
 			final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(newStatus);
-			JMFFactory.send2URL(jmf, getProxyProperties().getSlaveURL(), ah, _slaveCallback, getDeviceID());
+			JMFFactory.getJMFFactory().send2URL(jmf, getProxyProperties().getSlaveURL(), ah, _slaveCallback, getDeviceID());
 			ah.waitHandled(5000, false);
 			return ah.getFinalStatus();
 		}

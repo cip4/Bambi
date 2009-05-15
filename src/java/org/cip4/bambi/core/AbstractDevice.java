@@ -550,7 +550,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			return;
 		}
 
-		final JDFJMF[] jmfs = JMFFactory.createSubscriptions(watchURL, null, 30., 0);
+		final JDFJMF[] jmfs = JMFFactory.getJMFFactory().createSubscriptions(watchURL, null, 30., 0);
 		if (jmfs == null)
 		{
 			return;
@@ -1155,20 +1155,31 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			return;
 		}
 		final String queueURL = getDeviceURL();
-		final JDFJMF jmf = JMFFactory.buildRequestQueueEntry(queueURL, getDeviceID());
-		JMFFactory.send2URL(jmf, proxyURL, null, _callback, getDeviceID()); // TODO handle reponse
+		final JMFFactory factory = JMFFactory.getJMFFactory();
+		final JDFJMF jmf = factory.buildRequestQueueEntry(queueURL, null);
+		factory.send2URL(jmf, proxyURL, null, _callback, getDeviceID()); // TODO handle reponse
 	}
 
+	/**
+	 * @return
+	 */
 	public SignalDispatcher getSignalDispatcher()
 	{
 		return _theSignalDispatcher;
 	}
 
+	/**
+	 * @param url
+	 * @return
+	 */
 	public IConverterCallback getCallback(final String url)
 	{
 		return _callback;
 	}
 
+	/**
+	 * @param callback
+	 */
 	public void setCallback(final IConverterCallback callback)
 	{
 		this._callback = callback;

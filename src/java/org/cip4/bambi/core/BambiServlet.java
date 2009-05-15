@@ -229,8 +229,18 @@ public class BambiServlet extends HttpServlet
 		}
 	}
 
+	/**
+	 * 
+	 */
+	public BambiServlet()
+	{
+		super();
+		log = LogFactory.getLog(BambiServlet.class.getName());
+		log.info("Constructing logger");
+	}
+
 	// protected IConverterCallback _callBack = null;
-	private static Log log = LogFactory.getLog(BambiServlet.class.getName());
+	private Log log = null;
 	protected AbstractDevice rootDev = null;
 	protected DumpDir bambiDumpIn = null;
 	protected DumpDir bambiDumpOut = null;
@@ -605,10 +615,11 @@ public class BambiServlet extends HttpServlet
 	public void destroy()
 	{
 		rootDev.shutdown();
-		JMFFactory.shutDown(null, true);
+		final JMFFactory factory = JMFFactory.getJMFFactory();
+		factory.shutDown(null, true);
 		super.destroy();
 		ThreadUtil.sleep(5234); // leave some time for cleanup
-		JMFFactory.shutDown(null, false);
+		factory.shutDown(null, false);
 	}
 
 	/**

@@ -313,7 +313,7 @@ public class ProxyDevice extends AbstractProxyDevice
 				return true;
 			}
 
-			final NodeIdentifier nid = qep.getNodeIdentifier();
+			final NodeIdentifier nid = new NodeIdentifier(qep.getJobID(), qep.getJobPartID(), qep.getPartMapVector());
 			// submit a specific QueueEntry
 			final IQueueEntry iqe = _theQueueProcessor.getQueueEntry(nid);
 			final JDFQueueEntry qe = iqe == null ? null : iqe.getQueueEntry();
@@ -329,7 +329,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			else
 			{
 				final String qeStatus = qe.getQueueEntryStatus().getName();
-				JMFHandler.errorResponse(resp, "requested QueueEntry is " + qeStatus, 106, EnumClass.Error);
+				JMFHandler.errorResponse(resp, "requested QueueEntry is " + qeStatus + " or on Device: " + qe.getDeviceID(), 106, EnumClass.Error);
 			}
 			return true;
 		}
@@ -846,13 +846,14 @@ public class ProxyDevice extends AbstractProxyDevice
 				else
 				{
 					final ProxyDeviceProcessor pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, iqe);
-					pdp.submitted(BambiNSExtension.getSlaveQueueEntryID(qe), qe.getQueueEntryStatus(), BambiNSExtension.getDeviceURL(qe));
+					pdp.submitted(BambiNSExtension.getSlaveQueueEntryID(qe), qe.getQueueEntryStatus(), BambiNSExtension.getDeviceURL(qe), qe.getDeviceID());
 					addProcessor(pdp);
 				}
 			}
 		}
-		final JDFJMF jmfQS = JMFFactory.buildQueueStatus();
-		JMFFactory.send2URL(jmfQS, getProxyProperties().getSlaveURL(), new QueueSynchronizeHandler(), getSlaveCallback(), getDeviceID());
+		final JMFFactory factory = JMFFactory.getJMFFactory();
+		final JDFJMF jmfQS = factory.buildQueueStatus();
+		factory.send2URL(jmfQS, getProxyProperties().getSlaveURL(), new QueueSynchronizeHandler(), getSlaveCallback(), getDeviceID());
 	}
 
 	/**
@@ -873,11 +874,11 @@ public class ProxyDevice extends AbstractProxyDevice
 		if (status == null)
 		{
 
-			final JDFJMF jmf = JMFFactory.buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
+			final JDFJMF jmf = JMFFactory.getJMFFactory().buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
 			if (jmf != null)
 			{
 				final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(status);
-				JMFFactory.send2URL(jmf, getProxyProperties().getSlaveURL(), ah, _slaveCallback, getDeviceID());
+				JMFFactory.getJMFFactory().send2URL(jmf, getProxyProperties().getSlaveURL(), ah, _slaveCallback, getDeviceID());
 				ah.waitHandled(5555, false);
 				final EnumNodeStatus newStatus = ah.getFinalStatus();
 				if (newStatus == null)

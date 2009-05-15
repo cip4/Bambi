@@ -198,24 +198,35 @@
   </xsl:template>
   <!--   ///////////////////////////////////////////////// -->
   <xsl:template match="xjdf:JMF">
-    <h4>JMF Message:</h4>
-    <xsl:call-template name="printAttributelines">
+    <h3>JMF Message Header - Sent at:  <xsl:value-of select="@TimeStamp"/> by Sender: <xsl:value-of select="@SenderID"/></h3>
+    <xsl:call-template name="printAttributes">
       <xsl:with-param name="prefix" select="''"/>
       <xsl:with-param name="x1" select="'xsi:type'"/>
+      <xsl:with-param name="x2" select="'TimeStamp'"/>
+     <xsl:with-param name="x3" select="'SenderID'"/>
     </xsl:call-template>
     <xsl:apply-templates/>
   </xsl:template>
   <!--   ///////////////////////////////////////////////// -->
   <xsl:template name="message">
-    <h4>
+ <hr/>
+     <h4>
       <xsl:value-of select="name()"/>
       - Type:
       <xsl:value-of select="@Type"/>
+      <xsl:if test="@Time">
+      Sent at: <xsl:value-of select="@Time"/>
+      </xsl:if>
+     <xsl:if test="@SenderID">
+     by Sender: <xsl:value-of select="@SenderID"/>
+      </xsl:if>
     </h4>
-    <xsl:call-template name="printAttributelines">
+    <xsl:call-template name="printAttributes">
       <xsl:with-param name="prefix" select="''"/>
       <xsl:with-param name="x1" select="'xsi:type'"/>
       <xsl:with-param name="x2" select="'Type'"/>
+     <xsl:with-param name="x3" select="'SenderID'"/>
+    <xsl:with-param name="x4" select="'Time'"/>
     </xsl:call-template>
     <xsl:apply-templates/>
   </xsl:template>
@@ -225,6 +236,28 @@
       <xsl:with-param name="prefix" select="''"/>
     </xsl:call-template>
   </xsl:template>
+ <xsl:template match="xjdf:Signal">
+    <xsl:call-template name="message">
+      <xsl:with-param name="prefix" select="''"/>
+    </xsl:call-template>
+  </xsl:template>
+   <xsl:template match="xjdf:Command">
+	    <xsl:call-template name="message">
+	      <xsl:with-param name="prefix" select="''"/>
+	    </xsl:call-template>
+	  </xsl:template>
+ <xsl:template match="xjdf:Response">
+    <xsl:call-template name="message">
+      <xsl:with-param name="prefix" select="''"/>
+    </xsl:call-template>
+  </xsl:template>
+   <xsl:template match="xjdf:Registration">
+	    <xsl:call-template name="message">
+	      <xsl:with-param name="prefix" select="''"/>
+	    </xsl:call-template>
+	  </xsl:template>
+
+
   <!--   ///////////////////////////////////////////////// -->
 
   <xsl:template match="xjdf:Subscription">
@@ -667,18 +700,7 @@
     </table>
   </xsl:template>
 
-  <!--   ///////////////////////////////////////////////// -->
-
-  <xsl:template match="xjdf:*">
-    <xsl:param name="pre"/>
-    <xsl:param name="printme" select="'y'"/>
-
-    <xsl:call-template name="default">
-      <xsl:with-param name="pre" select="$pre"/>
-      <xsl:with-param name="printme" select="$printme"/>
-    </xsl:call-template>
-  </xsl:template>
-  <!--   ///////////////////////////////////////////////// -->
+   <!--   ///////////////////////////////////////////////// -->
 
   <!--   ///////////////////////////////////////////////// -->
  <xsl:template match="xjdf:ScreenSelector">
@@ -686,7 +708,32 @@
       <xsl:with-param name="printme" select="''"/>
      </xsl:call-template>
    </xsl:template>
+<xsl:template match="xjdf:ObservationTarget">
+       <xsl:call-template name="short">
+      <xsl:with-param name="printme" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
 <xsl:template match="xjdf:ColorSpaceConversionOp">
+       <xsl:call-template name="short">
+      <xsl:with-param name="printme" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
+<xsl:template match="xjdf:DeviceInfo">
+       <xsl:call-template name="short">
+      <xsl:with-param name="printme" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
+<xsl:template match="xjdf:ResourceInfo">
+       <xsl:call-template name="short">
+      <xsl:with-param name="printme" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
+<xsl:template match="xjdf:ResourceQuParams">
+       <xsl:call-template name="short">
+      <xsl:with-param name="printme" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
+<xsl:template match="xjdf:StatusQuParams">
        <xsl:call-template name="short">
       <xsl:with-param name="printme" select="''"/>
      </xsl:call-template>
@@ -716,6 +763,30 @@
      </xsl:call-template>
    </xsl:template>
  <!--   ///////////////////////////////////////////////// -->
+ 
+ 
+   <xsl:template match="xjdf:*">
+      <xsl:param name="pre"/>
+      <xsl:param name="printme" select="'y'"/>
+  
+      <xsl:call-template name="default">
+        <xsl:with-param name="pre" select="$pre"/>
+        <xsl:with-param name="printme" select="$printme"/>
+      </xsl:call-template>
+    </xsl:template>
+ 
+   <!--   ///////////////////////////////////////////////// -->
+  <xsl:template match="*">
+     <xsl:param name="pre"/>
+     <xsl:param name="printme" select="'y'"/>
+ 
+     <xsl:call-template name="default">
+       <xsl:with-param name="pre" select="$pre"/>
+       <xsl:with-param name="printme" select="$printme"/>
+     </xsl:call-template>
+   </xsl:template>
+
+  <!--   ///////////////////////////////////////////////// -->
 
   <xsl:template name="short">
       <h4>
@@ -788,46 +859,6 @@
       <xsl:with-param name="printme" select="''"/>
     </xsl:apply-templates>
     <hr/>
-  </xsl:template>
-
-  <!--   ///////////////////////////////////////////////// -->
-  <xsl:template name="printRefs">
-    <xsl:param name="val" select="."/>
-    <xsl:param name="n" select="''"/>
-    <xsl:if test="not(. = $val)">
-      <td nowrap="true">
-        <xsl:value-of select="substring-before(name(),'Ref')"/>
-      </td>
-      <td nowrap="true">
-        =
-    </td>
-    </xsl:if>
-
-    <td nowrap="true" width="80">
-      <a>
-        <xsl:choose>
-          <xsl:when test="string-length(substring-before($val,' '))=0">
-            <xsl:attribute name="href">#<xsl:value-of select="$val"/></xsl:attribute>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:attribute name="href">#<xsl:value-of select="substring-before($val,' ')"/></xsl:attribute>
-          </xsl:otherwise>
-        </xsl:choose>
-        <xsl:value-of select="substring-before(name(),'Ref')"/>: <xsl:value-of select="$val"/> 
-      </a>
-    </td>
-    <!-- remove string up to blank and recurse with remaining right string -->
-    <xsl:if test="string-length(substring-after($val,' ')) != 0">
-      <xsl:call-template name="printRefs">
-        <xsl:with-param name="val">
-          <xsl:value-of select="substring-after($val,' ')"/>
-        </xsl:with-param>
-       <xsl:with-param name="n">
-          <xsl:value-of select="$n + 1"/>
-        </xsl:with-param>
-      </xsl:call-template>
-    </xsl:if>
-
   </xsl:template>
 
   <!--   ///////////////////////////////////////////////// -->
