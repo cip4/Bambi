@@ -119,6 +119,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	// protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
 	protected static String manualWorkerUrl = null;
 	protected static String returnJMF = "http://localhost:8080/httpDump/returnJMF";
+	protected static String subscriptionURL = "http://localhost:8080/httpdump/testSubscriptions";
 	protected static String returnURL = null;// "http://localhost:8080/httpDump/returnURL";
 
 	protected boolean bUpdateJobID = false;

@@ -214,6 +214,8 @@
       <xsl:value-of select="name()"/>
       - Type:
       <xsl:value-of select="@Type"/>
+      - ID:
+      <xsl:value-of select="@ID"/>
       <xsl:if test="@Time">
       Sent at: <xsl:value-of select="@Time"/>
       </xsl:if>
@@ -738,6 +740,11 @@
       <xsl:with-param name="printme" select="''"/>
      </xsl:call-template>
    </xsl:template>
+<xsl:template match="xjdf:JobPhase">
+  <xsl:call-template name="status">
+    <xsl:with-param name="printme" select="''"/>
+  </xsl:call-template>
+</xsl:template>
  <!--   ///////////////////////////////////////////////// -->
  <xsl:template match="xjdf:ObjectResolution">
        <xsl:call-template name="short">
@@ -797,6 +804,16 @@
     </xsl:call-template>
   </xsl:template>
 
+  <xsl:template name="status">
+      <h4>
+        <xsl:value-of select="name()"/>:
+       <xsl:value-of select="@Status"/>
+      </h4>
+     <xsl:call-template name="default">
+     <xsl:with-param name="printme" select="''"/>
+    <xsl:with-param name="x1" select="'Status'"/>
+    </xsl:call-template>
+  </xsl:template>
  <!--   ///////////////////////////////////////////////// -->
 
   <xsl:template name="set">

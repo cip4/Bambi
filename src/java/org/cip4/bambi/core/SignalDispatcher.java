@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -109,12 +109,15 @@ import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFStopPersChParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
+import org.cip4.jdflib.jmf.JDFSubscriptionFilter;
+import org.cip4.jdflib.jmf.JDFSubscriptionInfo;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
 import org.cip4.jdflib.pool.JDFAncestorPool;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
@@ -129,7 +132,7 @@ import org.cip4.jdflib.util.UrlUtil;
 public final class SignalDispatcher
 {
 	protected static final Log log = LogFactory.getLog(SignalDispatcher.class.getName());
-	private HashMap<String, MsgSubscription> subscriptionMap = null; // map of slaveChannelID / Subscription
+	protected HashMap<String, MsgSubscription> subscriptionMap = null; // map of slaveChannelID / Subscription
 	private final SubscriptionStore storage;
 	IMessageHandler messageHandler = null;
 	private Vector<Trigger> triggers = null;
@@ -190,15 +193,33 @@ public final class SignalDispatcher
 			}
 			final String details = request.getParameter("DetailID");
 
+			final int pos = request.getIntegerParam("pos");
 			if (details == null)
 			{
-				listChannels(request, details);
-				listDispatchers(request);
-				setXSLTURL("/" + BambiServlet.getBaseServletName(request) + "/subscriptionList.xsl");
+				final boolean bListSenders = request.getBooleanParam("ListSenders");
+				setXMLRoot(request);
+				if (bListSenders)
+				{
+					listDispatchers(request, true, pos);
+					if (pos > 0)
+					{
+						setXSLTURL("/" + BambiServlet.getBaseServletName(request) + "/subscriptionDetails.xsl");
+					}
+					else
+					{
+						setXSLTURL("/" + BambiServlet.getBaseServletName(request) + "/subscriptionList.xsl");
+					}
+				}
+				else
+				{
+					listChannels(request, details);
+					listDispatchers(request, false, -1);
+					setXSLTURL("/" + BambiServlet.getBaseServletName(request) + "/subscriptionList.xsl");
+				}
 			}
 			else
 			{
-				showDetails(request, details);
+				showDetails(request, details, pos);
 				setXSLTURL("/" + BambiServlet.getBaseServletName(request) + "/subscriptionDetails.xsl");
 			}
 
@@ -268,13 +289,30 @@ public final class SignalDispatcher
 		/**
 		 * @param request
 		 */
-		private void listDispatchers(final BambiServletRequest request)
+		private void listDispatchers(final BambiServletRequest request, final boolean bListSenders, final int pos)
 		{
-			final Vector<MessageSender> v = JMFFactory.getJMFFactory().getAllMessageSenders();
-			final int size = v == null ? 0 : v.size();
-			for (int i = 0; i < size; i++)
+			final String url = request.getParameter(AttributeName.URL);
+			final URL myURL = UrlUtil.StringToURL(url);
+			if (myURL == null)
 			{
-				v.get(i).appendToXML(root, false);
+				final Vector<MessageSender> v = JMFFactory.getJMFFactory().getAllMessageSenders();
+				final int size = v == null ? 0 : v.size();
+				for (int i = 0; i < size; i++)
+				{
+					v.get(i).appendToXML(root, false, pos);
+				}
+			}
+			else
+			{
+				final MessageSender ms = JMFFactory.getJMFFactory().getCreateMessageSender(url);
+				if (ms != null)
+				{
+					ms.appendToXML(root, false, pos);
+				}
+				else
+				{
+					log.warn("No MessageSender for URL: " + url);
+				}
 			}
 		}
 
@@ -285,27 +323,35 @@ public final class SignalDispatcher
 		public void listChannels(final BambiServletRequest request, final String details)
 		{
 			final Vector<MsgSubscription> v = ContainerUtil.toValueVector(subscriptionMap, true);
-			root.setAttribute(AttributeName.DEVICEID, deviceID);
-			root.setAttribute(AttributeName.CONTEXT, "/" + BambiServlet.getBaseServletName(request));
 
 			final int size = v == null ? 0 : v.size();
 			for (int i = 0; i < size; i++)
 			{
-				v.get(i).appendToXML(root, details);
+				v.get(i).appendToXML(root, details, -1);
 			}
 		}
 
 		/**
-		 * @param details
+		 * @param request
 		 */
-		private void showDetails(final BambiServletRequest request, final String details)
+		protected void setXMLRoot(final BambiServletRequest request)
 		{
-			final MsgSubscription sub = subscriptionMap.get(details);
 			root.setAttribute(AttributeName.DEVICEID, deviceID);
 			root.setAttribute(AttributeName.CONTEXT, "/" + BambiServlet.getBaseServletName(request));
+		}
+
+		/**
+		 * @param request the http request to handle
+		 * @param details
+		 * @param pos
+		 */
+		private void showDetails(final BambiServletRequest request, final String details, final int pos)
+		{
+			final MsgSubscription sub = subscriptionMap.get(details);
+			setXMLRoot(request);
 			if (sub != null)
 			{
-				sub.appendToXML(root, details);
+				sub.appendToXML(root, details, pos);
 			}
 		}
 
@@ -324,7 +370,7 @@ public final class SignalDispatcher
 			if (sub != null)
 			{
 				final KElement e = root.appendElement("RemovedChannel");
-				sub.setXML(e, null);
+				sub.setXML(e, null, -1);
 			}
 		}
 	}
@@ -385,6 +431,7 @@ public final class SignalDispatcher
 				return;
 			}
 			final XMLSubscriptions xmls = new XMLSubscriptions();
+			xmls.setXMLRoot(null);
 			xmls.listChannels(null, "*");
 			xmls.write2File(backup.getNewFile(), 2, false);
 		}
@@ -579,13 +626,13 @@ public final class SignalDispatcher
 			final JDFJMF signalJMF = sub.getSignal();
 			if (signalJMF != null)
 			{
-				signalJMF.collectICSVersions();
 				JMFFactory.getJMFFactory().send2URL(signalJMF, url, null, callback, deviceID);
 				final MsgSubscription realSubSubscription = subscriptionMap.get(sub.channelID);
 				if (realSubSubscription != null)
 				{
 					realSubSubscription.lastTime = System.currentTimeMillis() / 1000;
-					realSubSubscription.lastSentJMF = signalJMF;
+					realSubSubscription.lastSentJMF.push(signalJMF);
+					realSubSubscription.sentMessages++;
 				}
 			}
 			else
@@ -701,11 +748,11 @@ public final class SignalDispatcher
 		}
 	}
 
+	/**
+	 * 
+	 */
 	private class MsgSubscription implements Cloneable
 	{
-		/**
-		 * 
-		 */
 		protected static final String SUBSCRIPTION_ELEMENT = "MsgSubscription";
 		protected String channelID = null;
 		protected String queueEntry = null;
@@ -721,10 +768,10 @@ public final class SignalDispatcher
 		protected long lastTry = 0;
 		protected long repeatTime = 0;
 		protected JDFMessage theMessage = null;
-		protected JDFJMF lastSentJMF = null;
+		protected FastFiFo<JDFJMF> lastSentJMF = new FastFiFo<JDFJMF>(100);
 		protected Trigger trigger = null;
 		protected int sentMessages = 0;
-		protected String jmfDeviceID = null;
+		protected String jmfDeviceID = null; // the senderID of the incoming (subscribed) jmf
 
 		MsgSubscription(final IJMFSubscribable m, final String qeid)
 		{
@@ -815,20 +862,7 @@ public final class SignalDispatcher
 				return;
 			}
 			// this is a clone - need to update "the" subscription
-			final MsgSubscription parent = subscriptionMap.get(channelID);
 			jmfOut.collectICSVersions();
-			if (parent != null)
-			{
-				synchronized (parent)
-				{
-					parent.sentMessages++;
-					parent.lastSentJMF = jmfOut;
-				}
-			}
-			else
-			{
-				log.error("no subscription for ChannelID=" + channelID);
-			}
 		}
 
 		/**
@@ -905,36 +939,92 @@ public final class SignalDispatcher
 					+ " repeatTime=" + repeatTime + " lastTime=" + lastTime + "\nURL=" + url + " device ID=" + jmfDeviceID + " Sent=" + sentMessages + "]";
 		}
 
-		protected KElement appendToXML(final KElement parent, final String details)
+		/**
+		 * 
+		 * @param parent
+		 * @param details
+		 * @param pos
+		 * @return
+		 */
+		protected KElement appendToXML(final KElement parent, final String details, final int pos)
 		{
 			if (parent == null)
 			{
 				return null;
 			}
 			final KElement sub = parent.appendElement(SUBSCRIPTION_ELEMENT);
-			setXML(sub, details);
+			setXML(sub, details, pos);
 			return sub;
 
 		}
 
-		private void setXML(final KElement sub, final String details)
+		/**
+		 * 
+		 * @param sub
+		 * @param details
+		 */
+		protected void setXML(final KElement sub, final String details, int pos)
+		{
+			setSubscriptionInfo(sub);
+			setSubscription(sub);
+			sub.setAttribute(AttributeName.TYPE, theMessage.getType());
+			sub.setAttribute("Sent", sentMessages, null);
+			sub.setAttribute("LastTime", sentMessages == 0 ? " - " : BambiServlet.formatLong(lastTime * 1000));
+			if (pos <= 0)
+			{
+				pos = 1;
+			}
+			if ("*".equals(details) || ContainerUtil.equals(channelID, details))
+			{
+				sub.appendElement("Sub").copyElement(theMessage, null);
+				final int n = lastSentJMF.getFill();
+				final JDFJMF[] sentArray = lastSentJMF.peekArray();
+				if (sentArray != null)
+				{
+					for (int i = sentArray.length - 1; i >= 0; i--)
+					{
+						final KElement message = sub.appendElement("Message");
+						if (pos == sentArray.length - i)
+						{
+							message.copyElement(sentArray[i], null);
+						}
+						else
+						{
+							message.setAttribute(AttributeName.TIMESTAMP, sentArray[i].getTimeStamp().getDateTimeISO());
+						}
+					}
+				}
+			}
+		}
+
+		/**
+		 * @param sub
+		 */
+		protected void setSubscription(final KElement sub)
+		{
+			sub.setAttribute(AttributeName.URL, url);
+			sub.setAttribute(AttributeName.REPEATTIME, repeatTime, null);
+			sub.setAttribute(AttributeName.REPEATSTEP, repeatAmount, null);
+		}
+
+		/**
+		 * @param sub
+		 */
+		protected void setSubscriptionInfo(final KElement sub)
 		{
 			sub.setAttribute(AttributeName.CHANNELID, channelID);
 			sub.setAttribute(AttributeName.DEVICEID, jmfDeviceID);
 			sub.setAttribute(AttributeName.QUEUEENTRYID, queueEntry);
-			sub.setAttribute(AttributeName.URL, url);
-			sub.setAttribute(AttributeName.REPEATTIME, repeatTime, null);
-			sub.setAttribute(AttributeName.REPEATSTEP, repeatAmount, null);
-			sub.setAttribute(AttributeName.TYPE, theMessage.getType());
-			sub.setAttribute("Sent", sentMessages, null);
-			sub.setAttribute("LastTime", sentMessages == 0 ? " - " : BambiServlet.formatLong(lastTime * 1000));
-			if ("*".equals(details) || ContainerUtil.equals(channelID, details))
+			sub.setAttribute(AttributeName.SENDERID, deviceID);
+			if (theMessage != null)
 			{
-				sub.appendElement("Sub").copyElement(theMessage, null);
-				if (lastSentJMF != null)
-				{
-					sub.appendElement("Last").copyElement(lastSentJMF, null);
-				}
+				sub.setAttribute(AttributeName.MESSAGETYPE, theMessage.getType());
+				final EnumFamily family = theMessage.getFamily();
+				sub.setAttribute(AttributeName.FAMILY, family == null ? "Unknown" : family.getName());
+			}
+			else
+			{
+				log.error("No message for subscription, bailing out" + sub);
 			}
 		}
 
@@ -1075,10 +1165,8 @@ public final class SignalDispatcher
 	 */
 	public class StopPersistentChannelHandler extends AbstractHandler
 	{
-
 		/**
-		 * @param _type
-		 * @param _families
+		 * 
 		 */
 		public StopPersistentChannelHandler()
 		{
@@ -1150,6 +1238,50 @@ public final class SignalDispatcher
 			// do nothing in this version
 
 		}
+	}
+
+	/**
+	 * handler for the StopPersistentChannel command
+	 */
+	public class KnownSubscriptionsHandler extends AbstractHandler
+	{
+		/**
+		 * 
+		 */
+		public KnownSubscriptionsHandler()
+		{
+			super(EnumType.KnownSubscriptions, new EnumFamily[] { EnumFamily.Query });
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @param inputMessage
+		 * @param response
+		 * @return true if handled
+		 */
+		@Override
+		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
+		{
+			final JDFSubscriptionFilter sf = inputMessage.getSubscriptionFilter();
+			final String senderID = sf == null ? null : sf.getDeviceID();
+
+			final Set<String> ss = getChannels(null, senderID);
+			final Vector<MsgSubscription> v = ContainerUtil.toValueVector(subscriptionMap);
+			for (int i = 0; i < v.size(); i++)
+			{
+				final MsgSubscription sub = v.get(i);
+				if (!ss.contains(sub.channelID))
+				{
+					continue;
+				}
+				final JDFSubscriptionInfo subscriptionInfo = response.appendSubscriptionInfo();
+				sub.setSubscriptionInfo(subscriptionInfo);
+				final JDFSubscription subscription = subscriptionInfo.appendSubscription();
+				sub.setSubscription(subscription);
+			}
+			return true;
+		}
+
 	}
 
 	/**
@@ -1376,7 +1508,8 @@ public final class SignalDispatcher
 
 	/**
 	 * remove a know subscription by channelid
-	 * @param slaveChannelID the slaveChannelID of the subscription to remove
+	 * @param channelID the channelID of the subscription to remove
+	 * @return the removed subscription, null if nothing was removed
 	 */
 	public MsgSubscription removeSubScription(final String channelID)
 	{
@@ -1584,11 +1717,13 @@ public final class SignalDispatcher
 	}
 
 	/**
+	 * add all JMF handlers that this dispatcher can handle
 	 * @param jmfHandler
 	 */
 	public void addHandlers(final IJMFHandler jmfHandler)
 	{
 		jmfHandler.addHandler(this.new StopPersistentChannelHandler());
+		jmfHandler.addHandler(this.new KnownSubscriptionsHandler());
 	}
 
 	/**

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -73,30 +73,57 @@ package org.cip4.bambi;
 
 import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.KElement.EnumValidationLevel;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQuery;
+import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSubscription;
+import org.cip4.jdflib.jmf.JDFSubscriptionInfo;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.util.StatusCounter;
+import org.cip4.jdflib.util.ThreadUtil;
 
-public class DispatcherTest extends BambiTestCase {
+/**
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+ * 
+ * May 17, 2009
+ */
+public class DispatcherTest extends BambiTestCase
+{
 
+	/**
+     * 
+     */
+	public void testAddSubscription()
+	{
+		final JMFHandler h = new JMFHandler(null);
+		final SignalDispatcher d = new SignalDispatcher(h, null, null);
 
-    public void testAddSubscription()
-    {
-        JMFHandler h=new JMFHandler(null);
-        SignalDispatcher d=new SignalDispatcher(h, null,null);
+		d.addHandlers(h);
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
+		final JDFQuery q = jmf.getQuery(0);
+		final JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(1.0);
+		s.setURL("http://localhost:8080/httpdump/");
+		d.addSubscription(q, null);
+		ThreadUtil.sleep(4000);
+		d.shutdown();
+	}
 
-        d.addHandlers(h);
-        JDFJMF jmf=JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
-        JDFQuery q=jmf.getQuery(0);
-        JDFSubscription s=q.appendSubscription();
-        s.setRepeatTime(1.0);
-        s.setURL("http://localhost:8080/httpdump/");
-        d.addSubscription(q, null);
-        StatusCounter.sleep(4000);
-        d.shutdown();
-    }
+	/**
+     * 
+     */
+	public void testKnownSubscriptions()
+	{
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownSubscriptions);
+		final JDFQuery q = jmf.getQuery(0);
+		final JDFDoc dResp = submitJMFtoURL(jmf, simWorkerUrl);
+		final JDFResponse response = dResp.getJMFRoot().getResponse(0);
+		final JDFSubscriptionInfo subInfo = response.getSubscriptionInfo(0);
+		assertNotNull(subInfo);
+		dResp.write2File(sm_dirTestDataTemp + "SubscriptionInfo.jmf", 2, false);
+		assertTrue(subInfo.isValid(EnumValidationLevel.Complete));
+	}
 
 }

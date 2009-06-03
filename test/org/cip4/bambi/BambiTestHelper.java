@@ -114,11 +114,11 @@ public class BambiTestHelper extends JDFTestCaseBase
 	public String returnURL = null;// "http://localhost:8080/httpDump/returnURL";
 
 	/**
-	 * banbi test case
+	 * bambi test case
 	 */
 	public BambiTestHelper()
 	{
-
+		// nop
 	}
 
 	/**

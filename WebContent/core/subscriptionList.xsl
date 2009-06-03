@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:bambi="www.cip4.org/Bambi" xmlns:xjdf="http://www.CIP4.org/JDFSchema_1_1"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+>
   <xsl:strip-space elements="*"/>
   <xsl:output method="html"/>
   <xsl:template match="/SubscriptionList">
     <xsl:variable name="context" select="@Context"/>
+    <xsl:variable name="deviceID" select="@DeviceID"/>
     <html>
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
@@ -20,25 +23,26 @@
           <xsl:value-of select="@DeviceID"/>
           - Subscriptions
         </h1>
-        <h2>Subscriptions</h2>
-        <table cellspacing="2" border="1">
-          <tr>
-            <th align="left"> Channel ID</th>
-            <th align="left"> Device ID</th>
-            <th align="left"> QueueEntry ID</th>
-            <th align="left"> Signal Type</th>
-            <th align="left"> Subscription URL</th>
-            <th align="left"> Repeat Time</th>
-            <th align="left"> Repeat Step</th>
-            <th align="left"> Messages Queued</th>
-            <th align="left"> Last time Queued</th>
-            <th align="left"> Remove Subscription</th>
-          </tr>
-          <xsl:apply-templates select="MsgSubscription"/>
-        </table>
+        <xsl:if test="MsgSubscription">
+          <h2>Subscriptions</h2>
+          <table cellspacing="2" border="1">
+            <tr>
+              <th align="left"> Channel ID</th>
+              <th align="left"> Device ID</th>
+              <th align="left"> QueueEntry ID</th>
+              <th align="left"> Signal Type</th>
+              <th align="left"> Subscription URL</th>
+              <th align="left"> Repeat Time</th>
+              <th align="left"> Repeat Step</th>
+              <th align="left"> Messages Queued</th>
+              <th align="left"> Last time Queued</th>
+              <th align="left"> Remove Subscription</th>
+            </tr>
+            <xsl:apply-templates select="MsgSubscription"/>
+          </table>
 
-        <hr/>
-
+          <hr/>
+        </xsl:if>
         <h2>Message Sender Channels</h2>
         <table cellspacing="2" border="1">
           <tr>
@@ -49,6 +53,7 @@
             <th align="left"> Last time Sent</th>
             <th align="left"> Last time Queued</th>
             <th align="left"> Active since</th>
+            <th align="left"> Show Sent Messages</th>
             <th align="left"> Remove Sender</th>
             <th align="left"> Flush unsent Messages</th>
           </tr>
@@ -58,6 +63,21 @@
         <ul>
           <xsl:apply-templates select="RemovedChannel"/>
         </ul>
+
+        <xsl:if test="MessageSender/Message">
+          <h2>Queued Messages</h2>
+          <table cellspacing="2" border="1">
+            <tr>
+              <th align="left"> JMF ID</th>
+              <th align="left"> Sent Time</th>
+              <th align="left"> Full URL</th>
+            </tr>
+            <xsl:apply-templates select="MessageSender/Message"/>
+          </table>
+
+          <hr/>
+        </xsl:if>
+
         <hr/>
         <a>
           <xsl:attribute name="href">../showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
@@ -73,7 +93,7 @@
     <tr>
       <td align="left">
         <a>
-          <xsl:attribute name="href"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="@DeviceID"/>?DetailID=<xsl:value-of
+          <xsl:attribute name="href"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/>?DetailID=<xsl:value-of
             select="@ChannelID"/>
                   </xsl:attribute>
           <xsl:value-of select="@ChannelID"/>
@@ -142,6 +162,16 @@
       <td align="center">
         <form>
           <xsl:attribute name="action"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/></xsl:attribute>
+          <input type="hidden" name="ListSenders" value="true"/>
+          <input type="hidden" name="URL">
+            <xsl:attribute name="value"><xsl:value-of select="@URL"/></xsl:attribute>
+          </input>
+          <input type="submit" value="List Senders"/>
+        </form>
+      </td>
+      <td align="center">
+        <form>
+          <xsl:attribute name="action"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/></xsl:attribute>
           <input type="hidden" name="StopSender" value="true"/>
           <input type="hidden" name="URL">
             <xsl:attribute name="value"><xsl:value-of select="@URL"/></xsl:attribute>
@@ -172,4 +202,35 @@
     </li>
   </xsl:template>
   <!--  end of template RemovedChannel  -->
+  <xsl:template match="Message">
+    <tr>
+      <td>
+        <xsl:value-of select="position()"/>
+        <form>
+          <xsl:attribute name="action"><xsl:value-of select="/SubscriptionList/@Context"/>/showSubscriptions/<xsl:value-of select="/SubscriptionList/@DeviceID"/></xsl:attribute>
+          <input type="hidden" name="ListSenders" value="true"/>
+          <input type="hidden" name="URL">
+            <xsl:attribute name="value"><xsl:value-of select="@URL"/></xsl:attribute>
+          </input>
+          <input type="hidden" name="pos">
+            <xsl:attribute name="value"><xsl:value-of select="position()"/></xsl:attribute>
+          </input>
+          <input type="submit" value="Show Details"/>
+        </form>
+      </td>
+      <td>
+        <xsl:choose>
+          <xsl:when test="xjdf:JMF/@TimeStamp">
+            <xsl:value-of select="xjdf:JMF/@TimeStamp"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="@TimeStamp"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </td>
+      <td>
+        <xsl:value-of select="@URL"/>
+      </td>
+    </tr>
+  </xsl:template>
 </xsl:stylesheet>

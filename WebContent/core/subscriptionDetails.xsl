@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+>
   <xsl:strip-space elements="*"/>
   <xsl:output method="html" cdata-section-elements="jdf:JMF jdf:Query"/>
   <xsl:template match="/SubscriptionList">
@@ -21,23 +22,24 @@
           <xsl:value-of select="@DeviceID"/>
           - Subscriptions
         </h1>
-        <h2>Subscriptions</h2>
-        <table cellspacing="2" border="1">
-          <tr>
-            <th align="left"> Channel ID</th>
-            <th align="left"> Device ID</th>
-            <th align="left"> QueueEntry ID</th>
-            <th align="left"> Signal Type</th>
-            <th align="left"> Subscription URL</th>
-            <th align="left"> Repeat Time</th>
-            <th align="left"> Repeat Step</th>
-            <th align="left"> Messages Queued</th>
-            <th align="left"> Last time Queued</th>
-            <th align="left"> Remove Subscription</th>
-          </tr>
-          <xsl:apply-templates select="MsgSubscription"/>
-        </table>
-
+        <xsl:if test="MsgSubscription">
+          <h2>Subscriptions</h2>
+          <table cellspacing="2" border="1">
+            <tr>
+              <th align="left"> Channel ID</th>
+              <th align="left"> Device ID</th>
+              <th align="left"> QueueEntry ID</th>
+              <th align="left"> Signal Type</th>
+              <th align="left"> Subscription URL</th>
+              <th align="left"> Repeat Time</th>
+              <th align="left"> Repeat Step</th>
+              <th align="left"> Messages Queued</th>
+              <th align="left"> Last time Queued</th>
+              <th align="left"> Remove Subscription</th>
+            </tr>
+            <xsl:apply-templates select="MsgSubscription"/>
+          </table>
+        </xsl:if>
         <a>
           <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showSubscriptions/<xsl:value-of select="@DeviceID"/>
                   </xsl:attribute>
@@ -45,10 +47,23 @@
         </a>
         <hr/>
 
-        <xsl:apply-templates select="MsgSubscription/Sub"/>
-        <hr/>
-        <xsl:apply-templates select="MsgSubscription/Last"/>
-
+        <xsl:if test="MsgSubscription/Sub">
+          <xsl:apply-templates select="MsgSubscription/Sub"/>
+          <hr/>
+        </xsl:if>
+        <xsl:apply-templates select="MessageSender/Message"/>
+        <xsl:if test="MsgSubscription/Message">
+          <hr/>
+          <h2>Previously Queued Messages</h2>
+          <table>
+            <tr>
+              <th>Position</th>
+              <th>Time Sent</th>
+              <th>Message</th>
+            </tr>
+            <xsl:apply-templates select="MsgSubscription/Message"/>
+          </table>
+        </xsl:if>
 
 
       </body>
@@ -60,7 +75,7 @@
     <tr>
       <td align="left">
         <a>
-          <xsl:attribute name="href"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="@DeviceID"/>?DetailID=<xsl:value-of
+          <xsl:attribute name="href"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/>?DetailID=<xsl:value-of
             select="@ChannelID"/>
                   </xsl:attribute>
           <xsl:value-of select="@ChannelID"/>
@@ -114,11 +129,44 @@
     <xsl:apply-templates select="jdf:Query"/>
 
   </xsl:template>
-  <xsl:template match="Last">
+  <xsl:template match="MessageSender/Message">
     <h2>Last Queued Message Details</h2>
     <xsl:apply-templates select="jdf:JMF"/>
   </xsl:template>
 
+  <xsl:template match="MessageSender">
+    <h2>Queued Message Details</h2>
+    <xsl:apply-templates select="jdf:JMF"/>
+  </xsl:template>
+
+  <xsl:template match="Message">
+    <xsl:variable name="pos" select="position()"/>
+    <tr valign="top">
+      <td>
+        <a>
+          <xsl:attribute name="name">m<xsl:value-of select="position()"/></xsl:attribute>
+        </a>
+        <a>
+          <xsl:attribute name="href"><xsl:value-of select="/SubscriptionList/@Context"/>/showSubscriptions/<xsl:value-of select="/SubscriptionList/@DeviceID"/>?pos=<xsl:value-of
+            select="$pos"/>&amp;DetailID=<xsl:value-of select="/SubscriptionList/MsgSubscription/@ChannelID"/>#m<xsl:value-of select="$pos"/></xsl:attribute>
+         JMF # <xsl:value-of select="$pos"/> 
+           </a>
+       </td>
+       <td>
+         <xsl:choose>
+           <xsl:when test="jdf:JMF/@TimeStamp">
+             <xsl:value-of select="jdf:JMF/@TimeStamp"/>
+           </xsl:when>
+           <xsl:otherwise>
+             <xsl:value-of select="@TimeStamp"/>
+           </xsl:otherwise>
+         </xsl:choose>
+       </td>
+       <td>
+           <xsl:apply-templates select="jdf:JMF"/>
+       </td>
+      </tr>
+  </xsl:template>
 
 
   <xsl:template match="*">

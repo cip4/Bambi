@@ -97,6 +97,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.DumpDir;
+import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
@@ -131,6 +132,7 @@ public class MessageSender implements Runnable
 	private boolean doShutDown = false;
 	private boolean doShutDownGracefully = false;
 	private Vector<MessageDetails> _messages = null;
+	protected FastFiFo<MessageDetails> sentMessages = null;
 	private static Log log = LogFactory.getLog(MessageSender.class.getName());
 	private static VectorMap<String, DumpDir> vDumps = new VectorMap<String, DumpDir>();
 	private final Object mutexDispatch = new Object();
@@ -141,6 +143,13 @@ public class MessageSender implements Runnable
 	private long lastSent = 0;
 	private static File baseLocation = null;
 
+	/**
+	 * MessageDetails describes one jmf or mime package that is queued for a given url
+	 * 
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+	 * 
+	 * before May 26, 2009
+	 */
 	protected class MessageDetails
 	{
 		protected JDFJMF jmf = null;
@@ -151,6 +160,14 @@ public class MessageSender implements Runnable
 		protected String url = null;
 		protected IConverterCallback callback;
 
+		/**
+		 * constructor for a single jmf message
+		 * @param _jmf the jmf to send
+		 * @param _respHandler the response handler to handle the response after the message is queued
+		 * @param _callback the callback to apply to the message prior to sending it
+		 * @param hdet the http details
+		 * @param detailedURL the complete, fully expanded url to send to
+		 */
 		protected MessageDetails(final JDFJMF _jmf, final IResponseHandler _respHandler, final IConverterCallback _callback, final HTTPDetails hdet, final String detailedURL)
 		{
 			respHandler = _respHandler;
@@ -169,6 +186,15 @@ public class MessageSender implements Runnable
 			}
 		}
 
+		/**
+		 * 
+		 * @param _mime
+		 * @param _respHandler the response handler to handle the response after the message is queued
+		 * @param _callback the callback to apply to the message prior to sending it
+		 * @param hdet the http details
+		 * @param _senderID the senderID of the sender
+		 * @param _url the complete, fully expanded url to send to
+		 */
 		protected MessageDetails(final Multipart _mime, final IResponseHandler _respHandler, final IConverterCallback _callback, final MIMEDetails mdet, final String _senderID, final String _url)
 		{
 			respHandler = _respHandler;
@@ -180,7 +206,8 @@ public class MessageSender implements Runnable
 		}
 
 		/**
-		 * @param element
+		 * constructor when deserializing from a file
+		 * @param element the serialized representation
 		 */
 		public MessageDetails(final KElement element)
 		{
@@ -196,7 +223,7 @@ public class MessageSender implements Runnable
 				}
 				catch (final Exception x)
 				{
-					log.warn("Illegal callback class - limp along with null");// nop
+					log.warn("Illegal callback class - limp along with null: " + cbClass);// nop
 				}
 			}
 			final KElement jmf1 = element.getElement(ElementName.JMF);
@@ -229,33 +256,40 @@ public class MessageSender implements Runnable
 		}
 
 		/**
-		 * @param ms
+		 * @param messageList
 		 * @param i
 		 */
-		void appendToXML(final KElement ms, final int i)
+		void appendToXML(final KElement messageList, final int i)
 		{
-			final KElement message = ms.appendElement("Message");
+			final KElement message = messageList.appendElement("Message");
 			message.setAttribute(AttributeName.URL, url);
 			message.setAttribute(AttributeName.SENDERID, senderID);
-			if (callback != null)
+			if (i >= 0)
 			{
-				message.setAttribute("CallbackClass", callback.getClass().getCanonicalName());
-			}
-			if (jmf != null)
-			{
-				message.copyElement(jmf, null);
-			}
-			else
-			// mime
-			{
-				if (mimeDet != null)
+				if (callback != null)
 				{
-					message.setAttribute("TransferEncoding", mimeDet.transferEncoding);
+					message.setAttribute("CallbackClass", callback.getClass().getCanonicalName());
 				}
-				final String mimNam = "Mime" + i + ".mim";
-				final File mim = FileUtil.getFileInDirectory(getPersistLocation().getParentFile(), new File(mimNam));
-				MimeUtil.writeToFile(mime, mim.getAbsolutePath(), mimeDet);
-				message.setAttribute("MimeUrl", UrlUtil.fileToUrl(mim, false));
+				if (jmf != null)
+				{
+					message.copyElement(jmf, null);
+				}
+				else
+				// mime
+				{
+					if (mimeDet != null)
+					{
+						message.setAttribute("TransferEncoding", mimeDet.transferEncoding);
+					}
+					final String mimNam = "Mime" + i + ".mim";
+					final File mim = FileUtil.getFileInDirectory(getPersistLocation().getParentFile(), new File(mimNam));
+					MimeUtil.writeToFile(mime, mim.getAbsolutePath(), mimeDet);
+					message.setAttribute("MimeUrl", UrlUtil.fileToUrl(mim, false));
+				}
+			}
+			else if (jmf != null)
+			{
+				message.copyAttribute(AttributeName.TIMESTAMP, jmf);
 			}
 		}
 	}
@@ -344,18 +378,15 @@ public class MessageSender implements Runnable
 			return connect;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
+		/**
+		 * @see org.cip4.bambi.core.messaging.IResponseHandler#setConnection(java.net.HttpURLConnection)
 		 */
 		public void setConnection(final HttpURLConnection uc)
 		{
 			connect = uc;
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
 		 * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java .io.BufferedInputStream)
 		 */
@@ -437,6 +468,7 @@ public class MessageSender implements Runnable
 	public MessageSender(final CallURL cu)
 	{
 		_messages = new Vector<MessageDetails>();
+		sentMessages = new FastFiFo<MessageDetails>(42);
 		callURL = cu;
 		created = System.currentTimeMillis();
 	}
@@ -514,7 +546,7 @@ public class MessageSender implements Runnable
 				f.delete(); // it's empty we can zapp it
 				return;
 			}
-			final KElement root = appendToXML(null, true);
+			final KElement root = appendToXML(null, true, -1);
 			root.getOwnerDocument_KElement().write2File(f, 2, false);
 			_messages.clear();
 		}
@@ -522,17 +554,19 @@ public class MessageSender implements Runnable
 	}
 
 	/**
-	 * 
+	 * read all queued messages
 	 */
 	private void readFromBase()
 	{
 		final File f = getPersistLocation();
 		if (f == null)
 		{
+			log.error("cannot read persistant message file, bailing out");
 			return;
 		}
 		if (!f.exists()) // nothing queued ,ciao
 		{
+			log.warn("no persistant message file exists, bailing out! " + f);
 			return;
 		}
 		final JDFParser p = new JDFParser();
@@ -542,6 +576,7 @@ public class MessageSender implements Runnable
 			final Vector<MessageDetails> vTmp = new Vector<MessageDetails>();
 			vTmp.addAll(_messages);
 			_messages.clear();
+			// adding existing messages prior to vTmp - they must be sent first
 			if (d != null)
 			{
 				final KElement root = d.getRoot();
@@ -560,9 +595,9 @@ public class MessageSender implements Runnable
 	}
 
 	/**
-	 * @return the file
+	 * @return the file where we persist
 	 */
-	private File getPersistLocation()
+	protected File getPersistLocation()
 	{
 		String loc = callURL.getBaseURL();
 		if (loc == null)
@@ -597,12 +632,11 @@ public class MessageSender implements Runnable
 	 */
 	private SendReturn sendFirstMessage()
 	{
-		MessageDetails mh;
+		MessageDetails mesDetails;
 		JDFJMF jmf;
 		Multipart mp;
 
-		// don't synchronize the whole thing - otherwise the get handler may be
-		// blocked
+		// don't synchronize the whole thing - otherwise the get handler may be blocked
 		synchronized (_messages)
 		{
 
@@ -611,18 +645,19 @@ public class MessageSender implements Runnable
 				return SendReturn.empty;
 			}
 
-			mh = _messages.get(0);
-			if (mh == null)
+			mesDetails = _messages.get(0);
+			if (mesDetails == null)
 			{
 				_messages.remove(0);
+				log.warn("removed null queued message in message queue");
 				return SendReturn.removed; // should never happen
 			}
 
-			jmf = mh.jmf;
-			mp = mh.mime;
-			if (KElement.isWildCard(mh.url))
+			jmf = mesDetails.jmf;
+			mp = mesDetails.mime;
+			if (KElement.isWildCard(mesDetails.url))
 			{
-				log.error("Sending to bad url - bailing out! " + mh.url);
+				log.error("Sending to bad url - bailing out! " + mesDetails.url);
 				return SendReturn.error; // snafu anyhow but not sent but no retry useful
 			}
 			if (jmf == null && mp == null)
@@ -632,10 +667,10 @@ public class MessageSender implements Runnable
 				return SendReturn.removed; // need no resend - will remove
 			}
 
-			if (mh.respHandler != null && mh.respHandler.isAborted())
+			if (mesDetails.respHandler != null && mesDetails.respHandler.isAborted())
 			{
 				_messages.remove(0);
-				log.warn("removed aborted message to: " + mh.url);
+				log.warn("removed aborted message to: " + mesDetails.url);
 				return SendReturn.removed;
 			}
 			if (jmf == null && mp == null)
@@ -646,7 +681,8 @@ public class MessageSender implements Runnable
 			}
 
 		}
-		return sendHTTP(mh, jmf, mp);
+		sentMessages.push(mesDetails); // TODO add to display
+		return sendHTTP(mesDetails, jmf, mp);
 	}
 
 	/**
@@ -904,10 +940,11 @@ public class MessageSender implements Runnable
 	 * creates a descriptive xml Object for this MessageSender
 	 * 
 	 * @param root the parent into which I append myself, if null create a new document
-	 * @param writeMessages if true, write out the messages
+	 * @param writePendingMessages if true, write out the messages
+	 * @param posQueuedMessages
 	 * @return the appended element
 	 */
-	public KElement appendToXML(final KElement root, final boolean writeMessages)
+	public KElement appendToXML(final KElement root, final boolean writePendingMessages, final int posQueuedMessages)
 	{
 
 		final KElement ms = root == null ? new XMLDoc("MessageSender", null).getRoot() : root.appendElement("MessageSender");
@@ -925,12 +962,26 @@ public class MessageSender implements Runnable
 			ms.setAttribute("iLastSent", StringUtil.formatLong(lastSent), null);
 			ms.setAttribute("i" + AttributeName.CREATIONDATE, StringUtil.formatLong(created), null);
 
-			if (writeMessages)
+			if (writePendingMessages)
 			{
 				for (int i = 0; i < _messages.size(); i++)
 				{
 					_messages.get(i).appendToXML(ms, i);
 				}
+			}
+			else if (posQueuedMessages == 0)
+			{
+				final MessageDetails[] old = sentMessages.peekArray();
+				final int len = old == null ? 0 : old.length;
+				for (int i = len - 1; i >= 0; i--)
+				{
+					old[i].appendToXML(ms, -1);
+				}
+			}
+			else if (posQueuedMessages > 0)
+			{
+				final MessageDetails old = sentMessages.peek(sentMessages.getFill() - posQueuedMessages);
+				old.appendToXML(ms, posQueuedMessages);
 			}
 		}
 		return ms;
@@ -951,7 +1002,7 @@ public class MessageSender implements Runnable
 	}
 
 	/**
-	 * 
+	 * remove all unsent messages without sending them
 	 */
 	public void flushMessages()
 	{
