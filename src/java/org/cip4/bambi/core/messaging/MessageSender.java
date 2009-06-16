@@ -93,6 +93,7 @@ import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.ContainerUtil;
@@ -272,7 +273,9 @@ public class MessageSender implements Runnable
 				}
 				if (jmf != null)
 				{
-					message.copyElement(jmf, null);
+					final XJDF20 xjdf20 = new XJDF20();
+					xjdf20.bUpdateVersion = false;
+					message.copyElement(xjdf20.makeNewJMF(jmf), null);
 				}
 				else
 				// mime

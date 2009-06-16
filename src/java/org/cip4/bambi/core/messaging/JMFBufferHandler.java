@@ -81,6 +81,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
+import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -93,6 +94,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFJobPhase;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResourceQuParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
@@ -100,6 +102,7 @@ import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
@@ -280,21 +283,23 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 
 	protected VectorMap<MessageIdentifier, JDFSignal> messageMap = new VectorMap<MessageIdentifier, JDFSignal>();
 	protected SignalDispatcher _theDispatcher;
+	protected QueueProcessor _theQueueProc; // required for mapping to queueentries
 
 	/**
 	 * @param _type
 	 * @param _families
+	 * @param dispatcher
+	 * @param qProc the queueprocessor that this buffer handles - used to dispatch qe specific subscriptions
 	 */
-	public JMFBufferHandler(final String typ, final EnumFamily[] _families, final SignalDispatcher dispatcher)
+	public JMFBufferHandler(final String _type, final EnumFamily[] _families, final SignalDispatcher dispatcher, final QueueProcessor qProc)
 	{
-		super(typ, _families);
+		super(_type, _families);
 		_theDispatcher = dispatcher;
+		_theQueueProc = qProc;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage , org.cip4.jdflib.jmf.JDFMessage)
+	/**
+	 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 	 */
 	@Override
 	public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
@@ -362,7 +367,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 	}
 
 	/**
-	 * @param ignoreSenderIDs
+	 * @param _ignoreSenderIDs
 	 */
 	public void setIgnoreSendersIDs(final VString _ignoreSenderIDs)
 	{
@@ -408,6 +413,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 					{
 						// copy the potentially inherited senderID
 						final JDFSignal signal = sis.get(i);
+						// make sure we only update copies
 						final JDFSignal sNew = (JDFSignal) jmf.copyElement(signal, null);
 						if (isMySignal(inputMessage, sNew))
 						{
@@ -445,9 +451,9 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 	}
 
 	/**
-	 * return true if the signal corresponds to the input query
-	 * 
+	 * return true if the signal corresponds to the input query<br/>
 	 * works on the copy. Thus any overwriting methods should or may modify signal
+	 * 
 	 * @param inputMessage the query to check against
 	 * @param signal the signal to check
 	 * @return true if matches; if false, the copy of signal will be deleted
@@ -455,6 +461,17 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 	protected boolean isMySignal(final JDFMessage inputMessage, final JDFSignal signal)
 	{
 		return true;
+	}
+
+	/**
+	 * get the first queueentryID that this signal applies to, return null if none was found
+	 * 
+	 * @param inSignal the incoming signal to check
+	 * @return
+	 */
+	protected String getQueueEntryIDForSignal(final JDFSignal inSignal)
+	{
+		return null;
 	}
 
 	/**
@@ -484,7 +501,8 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 	 */
 	protected boolean handleSignal(final JDFSignal inSignal, final JDFResponse response)
 	{
-		final Set<String> requests = _theDispatcher.getChannels(inSignal.getEnumType(), inSignal.getSenderID());
+		final String qeID = getQueueEntryIDForSignal(inSignal);
+		final Set<String> requests = _theDispatcher.getChannels(inSignal.getEnumType(), inSignal.getSenderID(), qeID);
 		final MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
 
 		if (mi != null)
@@ -494,7 +512,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 				for (int i = 0; i < mi.length; i++)
 				{
 					messageMap.putOne(mi[i], inSignal);
-					_theDispatcher.triggerChannel(mi[i].misChannelID, null, null, -1, i + 1 == mi.length, true);
+					_theDispatcher.triggerChannel(mi[i].misChannelID, qeID, null, -1, i + 1 == mi.length, true);
 				}
 				return true;
 			}
@@ -509,6 +527,9 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 	 */
 	public static class StatusBufferHandler extends JMFBufferHandler
 	{
+		private long lastIdle = 0;
+		private boolean addIdle = false;
+
 		/**
 		 * @return
 		 */
@@ -550,10 +571,10 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 				return false;
 			}
 
-			if (!sqpIdentifier.equals(new NodeIdentifier()))
+			final JDFDeviceInfo di = signal.getDeviceInfo(0);
+			if (di != null)
 			{
-				final JDFDeviceInfo di = signal.getDeviceInfo(0);
-				if (di != null)
+				if (!sqpIdentifier.equals(new NodeIdentifier()))
 				{
 					final VElement vjp = di.getChildElementVector(ElementName.JOBPHASE, null);
 					final int siz = vjp == null ? 0 : vjp.size();
@@ -603,10 +624,11 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 
 		/**
 		 * @param dispatcher the message dispatcher that sends out signals
+		 * @param qProc
 		 */
-		public StatusBufferHandler(final SignalDispatcher dispatcher)
+		public StatusBufferHandler(final SignalDispatcher dispatcher, final QueueProcessor qProc)
 		{
-			super("Status", new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dispatcher);
+			super("Status", new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dispatcher, qProc);
 			lastSent = new HashMap<MessageIdentifier, JDFSignal>();
 		}
 
@@ -617,11 +639,12 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 			{
 				return false;
 			}
-			final Set<String> requests = _theDispatcher.getChannels(theSignal.getEnumType(), theSignal.getSenderID());
 			final VElement vSigs = splitSignals(theSignal);
 			for (int i = 0; i < vSigs.size(); i++)
 			{
 				final JDFSignal inSignal = (JDFSignal) vSigs.get(i);
+				final String qeID = getQueueEntryIDForSignal(inSignal);
+				final Set<String> requests = _theDispatcher.getChannels(theSignal.getEnumType(), inSignal.getSenderID(), qeID);
 				final MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
 				if (mi != null)
 				{
@@ -633,7 +656,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 							lastSignal = lastSent.get(mi[ii]);
 						}
 						handleSingleSignal(inSignal, mi[ii]);
-						_theDispatcher.triggerChannel(mi[ii].misChannelID, null, null, -1, false, isSameStatusSignal(inSignal, lastSignal));
+						_theDispatcher.triggerChannel(mi[ii].misChannelID, qeID, null, -1, false, isSameStatusSignal(inSignal, lastSignal));
 						synchronized (lastSent)
 						{
 							lastSent.put(mi[ii], inSignal);
@@ -687,7 +710,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 					final String idle = StringUtil.getNonEmpty(di.getAttribute(AttributeName.IDLESTARTTIME));
 					if (idle == null)
 					{
-						di.setIdleStartTime(null);
+						di.setIdleStartTime(inSignal.getTime());
 					}
 				}
 			}
@@ -701,7 +724,8 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 		protected Vector<JDFSignal> getSignalsFromMap(final MessageIdentifier mi)
 		{
 			Vector<JDFSignal> sis = messageMap.get(mi);
-			if (sis == null || sis.size() == 0)
+			// only add ever so often...
+			if (addIdle && (sis == null || sis.size() == 0))
 			{
 				synchronized (lastSent)
 				{
@@ -722,6 +746,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 						}
 						if (bIdle)
 						{
+
 							if (sis == null)
 							{
 								sis = new Vector<JDFSignal>();
@@ -848,6 +873,58 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 			return bAllSame;
 		}
 
+		/**
+		 * same as super, only that we set addIdle once per complete call <br/>
+		 * only update idle stuff every 60 seconds
+		 * @see org.cip4.bambi.core.messaging.JMFBufferHandler#getSignals(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 */
+		@Override
+		protected JDFJMF getSignals(final JDFMessage inputMessage, final JDFResponse response)
+		{
+			final long currentTimeMillis = System.currentTimeMillis();
+			addIdle = currentTimeMillis - lastIdle > 60000;
+			if (addIdle)
+			{
+				lastIdle = currentTimeMillis;
+			}
+			return super.getSignals(inputMessage, response);
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.JMFBufferHandler#getQueueEntryIDForSignal(org.cip4.jdflib.jmf.JDFSignal)
+		 */
+		@Override
+		protected String getQueueEntryIDForSignal(final JDFSignal inSignal)
+		{
+			String qeid = null;
+			NodeIdentifier ni = null;
+			final JDFStatusQuParams sqp = inSignal.getStatusQuParams();
+			if (sqp != null)
+			{
+				qeid = StringUtil.getNonEmpty(sqp.getQueueEntryID());
+				ni = sqp.getIdentifier();
+			}
+			if (qeid == null && ni == null)
+			{
+				final JDFDeviceInfo di = inSignal.getDeviceInfo(0);
+				for (int i = 0; true; i++)
+				{
+					final JDFJobPhase jp = di.getJobPhase(i);
+					if (jp == null)
+					{
+						break;
+					}
+					qeid = StringUtil.getNonEmpty(jp.getQueueEntryID());
+					ni = jp.getIdentifier();
+					if (qeid != null || ni != null)
+					{
+						break;
+					}
+				}
+			}
+			final JDFQueueEntry qe = _theQueueProc.getQueueEntry(qeid, ni);
+			return qe == null ? null : qe.getQueueEntryID();
+		}
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////
@@ -862,11 +939,29 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 
 		/**
 		 * @param dispatcher the dispatcher
+		 * @param qProc
 		 */
-		public NotificationBufferHandler(final SignalDispatcher dispatcher)
+		public NotificationBufferHandler(final SignalDispatcher dispatcher, final QueueProcessor qProc)
 		{
-			super("Notification", new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dispatcher);
+			super("Notification", new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dispatcher, qProc);
 		}
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.JMFBufferHandler#getQueueEntryIDForSignal(org.cip4.jdflib.jmf.JDFSignal)
+		 */
+		@Override
+		protected String getQueueEntryIDForSignal(final JDFSignal inSignal)
+		{
+			NodeIdentifier ni = null;
+			final JDFNotification not = inSignal.getNotification();
+			if (not != null)
+			{
+				ni = not.getIdentifier();
+			}
+			final JDFQueueEntry qe = _theQueueProc.getQueueEntry(null, ni);
+			return qe == null ? null : qe.getQueueEntryID();
+		}
+
 	}
 
 	/**
@@ -874,16 +969,16 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 	 * 
 	 * 04.12.2008
 	 */
-	// //////////////////////////////////////////////////////////////////////////////////
 	public static class ResourceBufferHandler extends JMFBufferHandler
 	{
 
 		/**
 		 * @param dispatcher the dispatcher
+		 * @param qProc
 		 */
-		public ResourceBufferHandler(final SignalDispatcher dispatcher)
+		public ResourceBufferHandler(final SignalDispatcher dispatcher, final QueueProcessor qProc)
 		{
-			super("Resource", new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dispatcher);
+			super("Resource", new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dispatcher, qProc);
 		}
 
 		/**
@@ -909,26 +1004,47 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 			}
 			return niSig.matches(ni);
 		}
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.JMFBufferHandler#getQueueEntryIDForSignal(org.cip4.jdflib.jmf.JDFSignal)
+		 */
+		@Override
+		protected String getQueueEntryIDForSignal(final JDFSignal inSignal)
+		{
+			String qeid = null;
+			NodeIdentifier ni = null;
+			final JDFResourceQuParams rqp = inSignal.getResourceQuParams();
+			if (rqp != null)
+			{
+				qeid = StringUtil.getNonEmpty(rqp.getQueueEntryID());
+				ni = rqp.getIdentifier();
+			}
+			final JDFQueueEntry qe = _theQueueProc.getQueueEntry(qeid, ni);
+			return qe == null ? null : qe.getQueueEntryID();
+		}
 	}
 
 	/**
-	 * handler for the Status Query
+	 * handler for the Notification Query
 	 */
 	public static class NotificationHandler extends NotificationBufferHandler
 	{
 
 		StatusListener theStatusListener;
 
-		public NotificationHandler(final SignalDispatcher dispatcher, final StatusListener listener)
+		/**
+		 * @param dispatcher
+		 * @param listener
+		 * @param qProc
+		 */
+		public NotificationHandler(final SignalDispatcher dispatcher, final StatusListener listener, final QueueProcessor qProc)
 		{
-			super(dispatcher);
+			super(dispatcher, qProc);
 			theStatusListener = listener;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		/**
+		 * @see org.cip4.bambi.core.messaging.JMFBufferHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)

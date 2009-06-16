@@ -119,8 +119,6 @@
   </xsl:template>
   <!--  end of template MsgSubscription  -->
 
-
-  <xsl:include href="StandardXML.xsl"/>
   <xsl:include href="xjdf.xsl"/>
 
   <!--  end of template MessageSender  -->

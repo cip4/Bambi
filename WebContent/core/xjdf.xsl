@@ -543,6 +543,31 @@
     </xsl:call-template>
   </xsl:template>
  <!--   ///////////////////////////////////////////////// -->
+ <xsl:template match="xjdf:Milestone">
+   <xsl:variable name="prefix">
+       Milestone: <xsl:value-of select="@MilestoneType"/>
+    </xsl:variable>
+    <xsl:call-template name="printAttributes">
+      <xsl:with-param name="prefix" select="$prefix"/>
+     <xsl:with-param name="x1" select="'MilestoneType'"/>
+     </xsl:call-template>
+  </xsl:template>
+ <!--   ///////////////////////////////////////////////// -->
+
+ <xsl:template match="xjdf:Device">
+    <h4>
+      Device: 
+      <xsl:if test="@DeviceID">
+      <xsl:text> </xsl:text>
+     <xsl:value-of select="@DeviceID"/>
+     </xsl:if>
+    </h4>
+    <xsl:call-template name="printAttributelines">
+      <xsl:with-param name="x1" select="'DeviceID'"/>
+    </xsl:call-template>
+    <xsl:apply-templates/>
+   </xsl:template>
+ <!--   ///////////////////////////////////////////////// -->
 
   <xsl:template match="xjdf:Address">
   <h4>Address:</h4>

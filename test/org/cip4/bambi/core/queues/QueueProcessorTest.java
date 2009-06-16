@@ -101,11 +101,10 @@ public class QueueProcessorTest extends BambiTestCase
 		super.setUp();
 	}
 
-	public void testAbortQE()
-	{
-
-	}
-
+	/**
+	 * @throws IOException
+	 * @throws MessagingException
+	 */
 	public void testReturnQE() throws IOException, MessagingException
 	{
 		final JDFDoc docJMF = new JDFDoc("JMF");

@@ -554,7 +554,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected void addHandlers()
 	{
 		super.addHandlers();
-		addHandler(new JMFBufferHandler("*", new EnumFamily[] { EnumFamily.Signal }, _theSignalDispatcher));
+		addHandler(new JMFBufferHandler("*", new EnumFamily[] { EnumFamily.Signal }, _theSignalDispatcher, _theQueueProcessor));
 	}
 
 	@Override

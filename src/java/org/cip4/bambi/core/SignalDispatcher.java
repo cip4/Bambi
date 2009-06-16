@@ -99,6 +99,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.ifaces.IJMFSubscribable;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -121,6 +122,7 @@ import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -251,12 +253,15 @@ public final class SignalDispatcher
 			url = myURL.toExternalForm();
 			final Vector<MessageSender> v = JMFFactory.getJMFFactory().getAllMessageSenders();
 			final int size = v == null ? 0 : v.size();
-			for (int i = 0; i < size; i++)
+			if (v != null)
 			{
-				final MessageSender messageSender = v.get(i);
-				if (messageSender.matchesURL(url))
+				for (int i = 0; i < size; i++)
 				{
-					messageSender.shutDown(true);
+					final MessageSender messageSender = v.get(i);
+					if (messageSender.matchesURL(url))
+					{
+						messageSender.shutDown(true);
+					}
 				}
 			}
 		}
@@ -566,17 +571,7 @@ public final class SignalDispatcher
 				{
 					log.error("unhandled Exception in flush", x);
 				}
-				try
-				{
-					synchronized (mutex)
-					{
-						mutex.wait(1000);
-					}
-				}
-				catch (final InterruptedException x)
-				{
-					// nop
-				}
+				ThreadUtil.wait(mutex, 1000);
 			}
 		}
 
@@ -986,7 +981,10 @@ public final class SignalDispatcher
 						final KElement message = sub.appendElement("Message");
 						if (pos == sentArray.length - i)
 						{
-							message.copyElement(sentArray[i], null);
+							final XJDF20 x2 = new XJDF20();
+							x2.bUpdateVersion = false;
+
+							message.copyElement(x2.makeNewJMF(sentArray[i]), null);
 						}
 						else
 						{
@@ -1263,9 +1261,10 @@ public final class SignalDispatcher
 		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 		{
 			final JDFSubscriptionFilter sf = inputMessage.getSubscriptionFilter();
-			final String senderID = sf == null ? null : sf.getDeviceID();
+			final String senderID = sf == null ? null : StringUtil.getNonEmpty(sf.getDeviceID());
+			final String qeID = sf == null ? null : StringUtil.getNonEmpty(sf.getQueueEntryID());
 
-			final Set<String> ss = getChannels(null, senderID);
+			final Set<String> ss = getChannels(null, senderID, qeID);
 			final Vector<MsgSubscription> v = ContainerUtil.toValueVector(subscriptionMap);
 			for (int i = 0; i < v.size(); i++)
 			{
@@ -1748,12 +1747,13 @@ public final class SignalDispatcher
 	 * return all subscription channels for a given message type and device id
 	 * @param typ the message type filter
 	 * @param senderID the senderid filter
+	 * @param queueEntryID
 	 * @return set of channelID values that match the filters
 	 */
-	public Set<String> getChannels(final EnumType typ, final String senderID)
+	public Set<String> getChannels(final EnumType typ, final String senderID, final String queueEntryID)
 	{
 		final Set<String> keySet2 = new HashSet<String>();
-		final String nam = typ == null ? null : typ.getName();
+		final String typNam = typ == null ? null : typ.getName();
 		synchronized (subscriptionMap)
 		{
 			final Set<String> keySet = subscriptionMap.keySet();
@@ -1762,7 +1762,11 @@ public final class SignalDispatcher
 			{
 				final String key = it.next();
 				final MsgSubscription sub = subscriptionMap.get(key);
-				if (nam == null || nam.equals(sub.getMessageType()) && (sub.jmfDeviceID == null || sub.jmfDeviceID.equals(senderID)))
+				boolean bMatch = sub.matchesQueueEntry(queueEntryID);
+				bMatch = bMatch && (typNam == null || typNam.equals(sub.getMessageType()));
+				bMatch = bMatch && (sub.jmfDeviceID == null || sub.jmfDeviceID.equals(senderID));
+
+				if (bMatch)
 				{
 					keySet2.add(key);
 				}

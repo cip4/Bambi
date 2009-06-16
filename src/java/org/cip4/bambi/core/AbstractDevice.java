@@ -610,7 +610,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		addHandler(this.new ResourceHandler());
 		addHandler(this.new StatusHandler());
 		addHandler(this.new SubmissionMethodsHandler());
-		addHandler(new NotificationHandler(_theSignalDispatcher, _theStatusListener));
+		addHandler(new NotificationHandler(_theSignalDispatcher, _theStatusListener, getQueueProcessor()));
 	}
 
 	/**

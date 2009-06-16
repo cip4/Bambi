@@ -87,7 +87,11 @@ import org.cip4.bambi.proxy.AbstractProxyDevice;
 import org.cip4.bambi.proxy.IProxyProperties;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.JDFParser;
+import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -173,5 +177,28 @@ public class ShowJDFHandler extends ShowHandler
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * copy all move all partitioned common nodeinfo status values into the root
+	 * @see org.cip4.bambi.core.queues.ShowHandler#prepareRoot(org.cip4.jdflib.core.JDFDoc, org.cip4.bambi.core.BambiServletRequest, java.lang.String)
+	 */
+	@Override
+	protected void prepareRoot(final JDFDoc doc, final BambiServletRequest request, final String command)
+	{
+		super.prepareRoot(doc, request, command);
+		final JDFNode n = doc.getJDFRoot();
+		final VElement v = n.getvJDFNode(null, null, false);
+		for (int i = 0; i < v.size(); i++)
+		{
+			final JDFNode n2 = (JDFNode) v.get(i);
+			final JDFNodeInfo ni = n2.getNodeInfo();
+			// get the status from leaves only
+			final EnumNodeStatus s = n2.getVectorPartStatus(ni == null ? null : ni.getPartMapVector(false));
+			if (s != null)
+			{
+				n2.setStatus(s);
+			}
+		}
 	}
 }

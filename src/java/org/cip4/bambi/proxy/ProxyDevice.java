@@ -315,7 +315,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 			final NodeIdentifier nid = new NodeIdentifier(qep.getJobID(), qep.getJobPartID(), qep.getPartMapVector());
 			// submit a specific QueueEntry
-			final IQueueEntry iqe = _theQueueProcessor.getQueueEntry(nid);
+			final IQueueEntry iqe = _theQueueProcessor.getWaitingQueueEntry(nid);
 			final JDFQueueEntry qe = iqe == null ? null : iqe.getQueueEntry();
 			if (qe != null && EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && KElement.isWildCard(qe.getDeviceID()))
 			{

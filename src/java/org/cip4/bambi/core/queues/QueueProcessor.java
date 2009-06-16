@@ -1074,12 +1074,45 @@ public class QueueProcessor
 	}
 
 	/**
+	 * get a qe by nodeidentifier - all Entries are evaluated
+	 * @param slaveQueueEntryID
+	 * @param nodeID the JDFNode.NodeIdentifier
+	 * @return
+	 */
+	public JDFQueueEntry getQueueEntry(final String slaveQueueEntryID, NodeIdentifier nodeID)
+	{
+
+		JDFQueueEntry qe = BambiNSExtension.getSlaveQueueEntry(_theQueue, slaveQueueEntryID);
+		if (qe == null)
+		{
+			qe = _theQueue.getQueueEntry(nodeID, 0);
+		}
+		if (nodeID == null)
+		{
+			return qe;
+		}
+
+		if (qe == null && nodeID.getPartMapVector() != null)
+		{
+			nodeID = new NodeIdentifier(nodeID); // copy because we zapp internally
+			nodeID.setTo(nodeID.getJobID(), nodeID.getJobPartID(), null);
+			qe = _theQueue.getQueueEntry(nodeID, 0);
+		}
+		if (qe == null && nodeID.getJobPartID() != null)
+		{
+			nodeID.setTo(nodeID.getJobID(), null, null);
+			qe = _theQueue.getQueueEntry(nodeID, 0);
+		}
+		return qe;
+	}
+
+	/**
 	 * get a qe by nodeidentifier only waiting entries that have not been forwarded to a lower level device are taken into account
 	 * 
 	 * @param nodeID the JDFNode.NodeIdentifier
 	 * @return
 	 */
-	public IQueueEntry getQueueEntry(final NodeIdentifier nodeID)
+	public IQueueEntry getWaitingQueueEntry(final NodeIdentifier nodeID)
 	{
 
 		final VElement vQE = _theQueue.getQueueEntryVector(nodeID);
@@ -1363,7 +1396,11 @@ public class QueueProcessor
 			if (qe != null && status != null)
 			{
 				final EnumQueueEntryStatus oldStatus = qe.getQueueEntryStatus();
-				if (status.equals(EnumQueueEntryStatus.Removed))
+				if (ContainerUtil.equals(oldStatus, status))
+				{
+					// nop
+				}
+				else if (status.equals(EnumQueueEntryStatus.Removed))
 				{
 					qe.setQueueEntryStatus(status);
 					final String docURL = BambiNSExtension.getDocURL(qe);
@@ -1467,7 +1504,7 @@ public class QueueProcessor
 			log.error("cannot load the JDFDoc to return");
 			return;
 		}
-		if (finishedNodes == null)
+		if (finishedNodes == null || finishedNodes.size() == 0)
 		{
 			final JDFNode n = docJDF.getJDFRoot();
 			if (n == null)

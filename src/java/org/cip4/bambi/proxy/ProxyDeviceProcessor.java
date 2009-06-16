@@ -393,7 +393,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		 */
 		public NotificationQueryHandler()
 		{
-			super(getParent().getSignalDispatcher(), _statusListener);
+			super(getParent().getSignalDispatcher(), _statusListener, getParent().getQueueProcessor());
 			families = new EnumFamily[] { EnumFamily.Query };
 		}
 	}
