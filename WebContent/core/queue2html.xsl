@@ -1,3 +1,4 @@
+<!--  Copyright 2009 CIP4 -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi">
   <xsl:output method="html"/>
   <xsl:template match="jdf:Queue">
@@ -236,6 +237,10 @@
               <xsl:with-param name="attName" select="'EndTime'"/>
             </xsl:call-template>
             <xsl:call-template name="qeHeader">
+              <xsl:with-param name="display" select="'Description'"/>
+              <xsl:with-param name="attName" select="'DescriptiveName'"/>
+            </xsl:call-template>
+           <xsl:call-template name="qeHeader">
               <xsl:with-param name="display" select="'Job ID'"/>
               <xsl:with-param name="attName" select="'JobID'"/>
             </xsl:call-template>
@@ -269,11 +274,11 @@
   <xsl:template name="qeHeader">
     <xsl:param name="display"/>
     <xsl:param name="attName"/>
-    <th align="left">
+    <th align="center">
       <a>
         <xsl:attribute name="href">
-                 <xsl:value-of select="@Context"/>/showQueue/<xsl:value-of select="@DeviceID"/>?SortBy=<xsl:value-of select="$attName"/><xsl:if test="@filter">&amp;filter=<xsl:value-of select="@filter"/></xsl:if></xsl:attribute>
-
+                 <xsl:value-of select="@Context"/>/showQueue/<xsl:value-of select="@DeviceID"/>?SortBy=<xsl:value-of select="$attName"/><xsl:if test="@filter">&amp;filter=<xsl:value-of select="@filter"/></xsl:if>
+        </xsl:attribute>
         <xsl:value-of select="$display"/>
       </a>
     </th>
@@ -311,13 +316,22 @@
         <xsl:value-of select="@Priority"/>
       </td>
       <td align="left">
-        <xsl:value-of select="@SubmissionTime"/>
+           <xsl:call-template name="dateTime">
+              <xsl:with-param name="val" select="@SubmissionTime"/>
+            </xsl:call-template>
+       </td>
+      <td align="left">
+          <xsl:call-template name="dateTime">
+              <xsl:with-param name="val" select="@StartTime"/>
+            </xsl:call-template>
       </td>
       <td align="left">
-        <xsl:value-of select="@StartTime"/>
+          <xsl:call-template name="dateTime">
+              <xsl:with-param name="val" select="@EndTime"/>
+            </xsl:call-template>
       </td>
       <td align="left">
-        <xsl:value-of select="@EndTime"/>
+        <xsl:value-of select="@DescriptiveName"/>
       </td>
       <td align="left">
         <xsl:value-of select="@JobID"/>
@@ -351,4 +365,5 @@
     </tr>
   </xsl:template>
   <xsl:include href="optionlist.xsl"/>
+  <xsl:include href="StandardXML.xsl"/>
 </xsl:stylesheet>

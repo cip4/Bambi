@@ -159,7 +159,7 @@ public class StatusListener
 		final boolean bMod = theCounter.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
 		if (bMod || forceOut)
 		{
-			flush(null);
+			flush("Status");
 		}
 	}
 

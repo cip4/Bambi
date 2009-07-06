@@ -140,9 +140,8 @@ public final class SignalDispatcher
 	private Vector<Trigger> triggers = null;
 	protected Object mutex = null;
 	protected boolean doShutdown = false;
-	protected String deviceID = null;
+	protected AbstractDevice device = null;
 	private int lastCalled = 0;
-	final IConverterCallback callback;
 	protected Dispatcher theDispatcher;
 	private String ignoreURL = null;
 
@@ -341,7 +340,7 @@ public final class SignalDispatcher
 		 */
 		protected void setXMLRoot(final BambiServletRequest request)
 		{
-			root.setAttribute(AttributeName.DEVICEID, deviceID);
+			root.setAttribute(AttributeName.DEVICEID, device.getDeviceID());
 			root.setAttribute(AttributeName.CONTEXT, "/" + BambiServlet.getBaseServletName(request));
 		}
 
@@ -502,14 +501,7 @@ public final class SignalDispatcher
 		 */
 		protected void setQueued()
 		{
-			if (mutex == null)
-			{
-				return; // pure time subscriptions are reused and never block!
-			}
-			synchronized (mutex)
-			{
-				mutex.notifyAll();
-			}
+				ThreadUtil.notifyAll(mutex);
 			mutex = null;
 		}
 
@@ -621,7 +613,7 @@ public final class SignalDispatcher
 			final JDFJMF signalJMF = sub.getSignal();
 			if (signalJMF != null)
 			{
-				JMFFactory.getJMFFactory().send2URL(signalJMF, url, null, callback, deviceID);
+				device.sendJMF(signalJMF, url, null);
 				final MsgSubscription realSubSubscription = subscriptionMap.get(sub.channelID);
 				if (realSubSubscription != null)
 				{
@@ -796,7 +788,7 @@ public final class SignalDispatcher
 			}
 			final JDFJMF ownerJMF = ((JDFMessage) m).getJMFRoot();
 			jmfDeviceID = ownerJMF != null ? ownerJMF.getDeviceID() : null;
-			if ("".equals(jmfDeviceID) || ContainerUtil.equals(jmfDeviceID, deviceID))
+			if ("".equals(jmfDeviceID) || ContainerUtil.equals(jmfDeviceID, device.getDeviceID()))
 			{
 				// zapp any filters to myself - they represent all my kids
 				jmfDeviceID = null;
@@ -984,12 +976,10 @@ public final class SignalDispatcher
 							final XJDF20 x2 = new XJDF20();
 							x2.bUpdateVersion = false;
 
-							message.copyElement(x2.makeNewJMF(sentArray[i]), null);
+							final KElement newJMF = message.copyElement(x2.makeNewJMF(sentArray[i]), null);
+							newJMF.setAttribute(AttributeName.TIMESTAMP, sentArray[i].getTimeStamp().getDateTimeISO());
 						}
-						else
-						{
-							message.setAttribute(AttributeName.TIMESTAMP, sentArray[i].getTimeStamp().getDateTimeISO());
-						}
+						message.setAttribute(AttributeName.TIMESTAMP, sentArray[i].getTimeStamp().getDateTimeISO());
 					}
 				}
 			}
@@ -1013,7 +1003,7 @@ public final class SignalDispatcher
 			sub.setAttribute(AttributeName.CHANNELID, channelID);
 			sub.setAttribute(AttributeName.DEVICEID, jmfDeviceID);
 			sub.setAttribute(AttributeName.QUEUEENTRYID, queueEntry);
-			sub.setAttribute(AttributeName.SENDERID, deviceID);
+			sub.setAttribute(AttributeName.SENDERID, device.getDeviceID());
 			if (theMessage != null)
 			{
 				sub.setAttribute(AttributeName.MESSAGETYPE, theMessage.getType());
@@ -1289,10 +1279,11 @@ public final class SignalDispatcher
 	 * @param dev device for this ID of the device this SignalHandler is working for. Required for debugging purposes only.
 	 * @param cb the callback to modify any outgoing signals or incoming signal responses
 	 */
-	public SignalDispatcher(final IMessageHandler _messageHandler, final AbstractDevice dev, final IConverterCallback cb)
+	public SignalDispatcher(final IMessageHandler _messageHandler, final AbstractDevice dev)
 	{
-		deviceID = dev == null ? "testID" : dev.getDeviceID();
+		final String deviceID = dev == null ? "testID" : dev.getDeviceID();
 		storage = new SubscriptionStore(dev == null ? null : dev.getDeviceDir());
+		device = dev;
 		subscriptionMap = new HashMap<String, MsgSubscription>();
 		// queueEntryMap=new VectorMap<String, String>();
 		messageHandler = _messageHandler;
@@ -1301,7 +1292,6 @@ public final class SignalDispatcher
 		theDispatcher = new Dispatcher();
 		new Thread(theDispatcher, "SignalDispatcher_" + deviceID).start();
 		log.info("dispatcher thread 'SignalDispatcher_" + deviceID + "' started");
-		callback = cb;
 		storage.load();
 	}
 
@@ -1780,10 +1770,7 @@ public final class SignalDispatcher
 	 */
 	public void flush()
 	{
-		synchronized (mutex)
-		{
-			mutex.notifyAll();
-		}
+		ThreadUtil.notifyAll(mutex);
 	}
 
 }

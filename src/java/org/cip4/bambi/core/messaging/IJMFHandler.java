@@ -1,14 +1,8 @@
-package org.cip4.bambi.core.messaging;
-
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-
 /*--------------------------------------------------------------------------------------------------
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -72,42 +66,38 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
  * <http://www.cip4.org/>.
  *
  */
+package org.cip4.bambi.core.messaging;
+
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 
 /**
  * this interface specifies the interface of a message dispatcher/handler
  * 
  * @author prosirai
- *
+ * 
  */
 public interface IJMFHandler
 {
-    /**
-     * add a message handler
-     * @param handler the handler associated with the event
-     */
-    public void addHandler(IMessageHandler handler);
-	
-    /**
-	 * add message type to map of subscribale messages
-	 * @param typ     the type of the subscribale message
-	 * @param handler the message handler
+	/**
+	 * add a message handler
+	 * @param handler the handler associated with the event
 	 */
-	public void addSubscriptionHandler(EnumType typ, IMessageHandler handler);
-    
-    /**
-     * the big processing dispatcher
-     * 
-     * @param doc the JDFDoc holding the JMF which is to be processed
-     * @param dispatcher the signal dispatcher that handles subscriptions
-     * @return the JDFDoc holding the JMF response
-     */
-    public JDFDoc processJMF(JDFDoc doc);
-    
-    /**
-     * @param typ the message type
-     * @param family the family
-     * @return the IMessageHandler, null if none exists
-     */
-    public IMessageHandler getHandler(String typ, EnumFamily family);
+	public void addHandler(IMessageHandler handler);
+
+	/**
+	 * the big processing dispatcher
+	 * 
+	 * @param doc the JDFDoc holding the JMF which is to be processed
+	 * @return the JDFDoc holding the JMF response
+	 */
+	public JDFDoc processJMF(JDFDoc doc);
+
+	/**
+	 * @param typ the message type
+	 * @param family the family
+	 * @return the IMessageHandler, null if none exists
+	 */
+	public IMessageHandler getHandler(String typ, EnumFamily family);
 
 }

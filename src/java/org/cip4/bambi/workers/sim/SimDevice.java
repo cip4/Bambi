@@ -121,13 +121,13 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
 	 */
 	@Override
-	public boolean canAccept(final JDFDoc doc)
+	public int canAccept(final JDFDoc doc)
 	{
 		if (doc != null && _typeExpression == null)
 		{
-			return true;
+			return 0;
 		}
-		return getAcceptableNodes(doc) != null;
+		return getAcceptableNodes(doc) == null ? 101 : 0;
 	}
 
 	/**

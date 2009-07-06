@@ -85,6 +85,7 @@ import org.cip4.bambi.core.BambiServletRequest;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.messaging.JMFBufferHandler;
+import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -95,6 +96,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -147,10 +149,11 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 		/**
 		 * @param newStatus the status type of the original message, e.g Aborted for AbortQE
+		 * @param refID the refID of the outgoing message
 		 */
-		public QueueEntryAbortHandler(final EnumNodeStatus newStatus)
+		public QueueEntryAbortHandler(final EnumNodeStatus newStatus, final String refID)
 		{
-			super();
+			super(refID);
 			this.newStatus = newStatus;
 		}
 
@@ -171,7 +174,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		 */
 		public EnumNodeStatus getFinalStatus()
 		{
-			final JDFResponse response = getResponse();
+			final JDFMessage response = getFinalMessage();
 			if (response != null)
 			{
 				if (response.getReturnCode() == 0)
@@ -190,14 +193,14 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		 */
 		public QueueSynchronizeHandler()
 		{
-			super();
+			super(null);
 		}
 
 		@Override
 		public boolean handleMessage()
 		{
 			super.handleMessage();
-			final JDFResponse r = getResponse();
+			final JDFMessage r = getFinalMessage();
 			if (r != null)
 			{
 				final JDFQueue q = r.getQueue(0);
@@ -490,22 +493,37 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected EnumNodeStatus stopSlaveProcess(final String slaveQE, final EnumNodeStatus newStatus)
 	{
 		JDFJMF jmf = null;
+		final JMFBuilder builder = getBuilderForSlave();
 		if (EnumNodeStatus.Aborted.equals(newStatus))
 		{
-			jmf = JMFFactory.getJMFFactory().buildAbortQueueEntry(slaveQE);
+			jmf = builder.buildAbortQueueEntry(slaveQE);
 		}
 		else if (EnumNodeStatus.Suspended.equals(newStatus))
 		{
-			jmf = JMFFactory.getJMFFactory().buildSuspendQueueEntry(slaveQE);
+			jmf = builder.buildSuspendQueueEntry(slaveQE);
 		}
 		if (jmf != null)
 		{
-			final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(newStatus);
+			final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(newStatus, jmf.getCommand(0).getID());
 			JMFFactory.getJMFFactory().send2URL(jmf, getProxyProperties().getSlaveURL(), ah, _slaveCallback, getDeviceID());
 			ah.waitHandled(5000, false);
 			return ah.getFinalStatus();
 		}
 		return null;
+	}
+
+	/**
+	 * get the JMF Builder for messages to the slave device
+	 * @return
+	 */
+	protected JMFBuilder getBuilderForSlave()
+	{
+		final JMFBuilder builder = new JMFBuilder();
+		if (getProxyProperties().getDeviceURLForSlave() != null)
+		{
+			builder.setAcknowledgeURL(getProxyProperties().getDeviceURLForSlave());
+		}
+		return builder;
 	}
 
 	/**
@@ -529,6 +547,10 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		return getProxyProperties().getDeviceURLForSlave();
 	}
 
+	/**
+	 * get the correct callback assuming that all slave urls contain the string "/slavejmf"
+	 * @see org.cip4.bambi.core.AbstractDevice#getCallback(java.lang.String)
+	 */
 	@Override
 	public IConverterCallback getCallback(final String url)
 	{
@@ -561,12 +583,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected AbstractDeviceProcessor buildDeviceProcessor()
 	{
 		return null;
-	}
-
-	@Override
-	public boolean canAccept(final JDFDoc doc)
-	{
-		return false;
 	}
 
 	@Override

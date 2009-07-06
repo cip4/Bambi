@@ -71,6 +71,7 @@
 
 package org.cip4.bambi;
 
+import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
@@ -91,7 +92,7 @@ public class WebAppTest extends BambiTestCase
 	public void testDeviceStatus()
 	{
 		final JMFFactory factory = JMFFactory.getJMFFactory();
-		final JDFJMF jmfStatus = factory.buildStatus();
+		final JDFJMF jmfStatus = new JMFBuilder().buildStatus();
 		final VString urls = new VString();
 		urls.add(proxyUrl);
 		urls.add(simWorkerUrl);

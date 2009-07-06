@@ -28,4 +28,6 @@
 		<Amount Resource="Media:Input" />
 		<Amount Resource="UsageCounter:Input" />
 	</JobPhase>
+  <JobPhase Duration="9999999" DeviceStatus="Idle" Error="2">
+  </JobPhase>
 </BambiJob>

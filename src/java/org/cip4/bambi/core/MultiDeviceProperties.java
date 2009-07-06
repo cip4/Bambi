@@ -584,6 +584,7 @@ public class MultiDeviceProperties
 
 	/**
 	 * serialize this to it's default location
+	 * @return true if success
 	 */
 	public boolean serialize()
 	{

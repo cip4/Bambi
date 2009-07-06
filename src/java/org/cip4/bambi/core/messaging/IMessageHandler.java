@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -77,29 +77,42 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 
 /**
  * IMessageHandler is the interface for a generic message handler
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  * 
- * @author prosirai
- *
+ * before June 28, 2009
  */
 public interface IMessageHandler
 {
-    /**
-     * handle the message specified in inputMessage
-     * 
-     * @param inputMessage the input message to handle
-     * @param response the response to fill
-     * @return true if the message was handled, else false
-     */
-    public boolean handleMessage(JDFMessage inputMessage, JDFResponse response);
+	/**
+	 * can this message be subscribed as a persistant channel?
+	 * 
+	 * @return true if the message can be subscribed to
+	 */
+	public boolean isSubScribable();
 
-    /**
-     * @return handled message type
-     */
-    public String getMessageType();
+	/**
+	 * can this message be acknowledged asynchronously?
+	 * 
+	 * @return true if the message can be subscribed to
+	 */
+	public boolean isAcknowledge();
 
-    /**
-     * @param typ
-     * @return
-     */
-    public EnumFamily[] getFamilies();
+	/**
+	 * handle the message specified in inputMessage
+	 * 
+	 * @param inputMessage the input message to handle
+	 * @param response the response to fill
+	 * @return true if the message was handled, else false
+	 */
+	public boolean handleMessage(JDFMessage inputMessage, JDFResponse response);
+
+	/**
+	 * @return handled message type
+	 */
+	public String getMessageType();
+
+	/**
+	 * @return the list of families that this handler handles
+	 */
+	public EnumFamily[] getFamilies();
 }

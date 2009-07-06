@@ -80,8 +80,11 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.core.messaging.AcknowledgeMap;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
+import org.cip4.bambi.core.messaging.IResponseHandler;
+import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationHandler;
@@ -306,15 +309,16 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	public class ResourceHandler extends AbstractHandler
 	{
 
+		/**
+		 * 
+		 */
 		public ResourceHandler()
 		{
 			super(EnumType.Resource, new EnumFamily[] { EnumFamily.Query });
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		/**
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
@@ -344,6 +348,15 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			{
 				inputMessage.moveElement(response.getElement(ElementName.RESOURCEQUPARAMS, null, 0), null);
 			}
+			return true;
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#isSubScribable()
+		 */
+		@Override
+		public boolean isSubScribable()
+		{
 			return true;
 		}
 
@@ -435,7 +448,6 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 */
 	public class StatusHandler extends AbstractHandler
 	{
-
 		/**
 		 * 
 		 */
@@ -470,6 +482,15 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			}
 			return bOK;
 		}
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#isSubScribable()
+		 */
+		@Override
+		public boolean isSubScribable()
+		{
+			return true;
+		}
 	}
 
 	static final Log log = LogFactory.getLog(AbstractDevice.class.getName());
@@ -502,7 +523,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		_jmfHandler = new JMFHandler(this);
 
 		_callback = _devProperties.getCallBackClass();
-		_theSignalDispatcher = new SignalDispatcher(_jmfHandler, this, _callback);
+		_theSignalDispatcher = new SignalDispatcher(_jmfHandler, this);
 		_theSignalDispatcher.addHandlers(_jmfHandler);
 
 		_jmfHandler.setDispatcher(_theSignalDispatcher);
@@ -550,7 +571,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			return;
 		}
 
-		final JDFJMF[] jmfs = JMFFactory.getJMFFactory().createSubscriptions(watchURL, null, 30., 0);
+		final JDFJMF[] jmfs = new JMFBuilder().createSubscriptions(watchURL, null, 30., 0);
 		if (jmfs == null)
 		{
 			return;
@@ -611,6 +632,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		addHandler(this.new StatusHandler());
 		addHandler(this.new SubmissionMethodsHandler());
 		addHandler(new NotificationHandler(_theSignalDispatcher, _theStatusListener, getQueueProcessor()));
+		addHandler(AcknowledgeMap.getMap());
 	}
 
 	/**
@@ -919,10 +941,11 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	protected abstract AbstractDeviceProcessor buildDeviceProcessor();
 
 	/**
-	 * returns true if the device cann process the jdf ticket
-	 * @return
+	 * returns 0 if the device can process the jdf ticket
+	 * @param doc
+	 * @return 0 if successful, else the error code
 	 */
-	public abstract boolean canAccept(JDFDoc doc);
+	public abstract int canAccept(JDFDoc doc);
 
 	/**
 	 * @param doc
@@ -942,17 +965,6 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			return null;
 		}
 		return _deviceProcessors.get(i).getStatusListener();
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.messaging.IJMFHandler#addSubscriptionHandler(org.cip4.jdflib.jmf.JDFMessage.EnumType,
-	 * org.cip4.bambi.core.messaging.IMessageHandler)
-	 * @param typ
-	 * @param handler
-	 */
-	public void addSubscriptionHandler(final EnumType typ, final IMessageHandler handler)
-	{
-		_jmfHandler.addSubscriptionHandler(typ, handler);
 	}
 
 	/**
@@ -1145,6 +1157,22 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	}
 
 	/**
+	 * send a jmf via the factory, setting all defaults to this device
+	 * 
+	 * @param jmf the jmf to send
+	 * @param url the url to send to
+	 * @param responseHandler the response handler - may be null
+	 * 
+	 * @return true if successfully queued
+	 */
+	public boolean sendJMF(final JDFJMF jmf, final String url, final IResponseHandler responseHandler)
+	{
+		JMFFactory.getJMFFactory().send2URL(jmf, url, responseHandler, getCallback(url), getDeviceID()); // TODO handle reponse
+
+		return true;
+	}
+
+	/**
 	 * sends a request for a new qe to the proxy
 	 */
 	public void sendRequestQueueEntry()
@@ -1155,9 +1183,8 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			return;
 		}
 		final String queueURL = getDeviceURL();
-		final JMFFactory factory = JMFFactory.getJMFFactory();
-		final JDFJMF jmf = factory.buildRequestQueueEntry(queueURL, null);
-		factory.send2URL(jmf, proxyURL, null, _callback, getDeviceID()); // TODO handle reponse
+		final JDFJMF jmf = new JMFBuilder().buildRequestQueueEntry(queueURL, null);
+		sendJMF(jmf, proxyURL, null);
 	}
 
 	/**

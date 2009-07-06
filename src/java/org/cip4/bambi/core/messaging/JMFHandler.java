@@ -173,13 +173,6 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 */
 	private static final long serialVersionUID = -8902151736245089033L;
 	protected HashMap<MessageType, IMessageHandler> messageMap; // key = type ,
-	// value =
-	// IMessageHandler
-	// TODO handle subscriptions
-	protected HashMap<EnumType, IMessageHandler> subscriptionMap; // key = type
-	// , value =
-	// subscriptions
-	// handled
 	protected SignalDispatcher _signalDispatcher;
 	protected boolean bFilterOnDeviceID = false;
 	protected AbstractDevice _parentDevice = null;
@@ -223,6 +216,26 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		 */
 		private boolean handleKnownMessages(final JDFMessage m, final JDFMessage resp)
 		{
+			/**
+			 * small helper to collect data for filling into messageservice elements
+			 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+			 * 
+			 * Jun 29, 2009
+			 */
+			class MessageStuff
+			{
+				protected Vector<EnumFamily> vFamily;
+				protected boolean bSubscribe;
+				protected boolean bAcknowledge;
+
+				protected MessageStuff()
+				{
+					vFamily = new Vector<EnumFamily>();
+					bSubscribe = false;
+					bAcknowledge = false;
+				}
+			}
+
 			if (m == null)
 			{
 				return false;
@@ -233,24 +246,30 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			}
 
 			final Iterator<MessageType> it = messageMap.keySet().iterator();
-			final HashMap<String, Vector<EnumFamily>> hTypeFamily = new HashMap<String, Vector<EnumFamily>>();
+			final HashMap<String, MessageStuff> hTypeFamily = new HashMap<String, MessageStuff>();
 			while (it.hasNext())
 			{
 				final MessageType typ = it.next();
+				final IMessageHandler h = messageMap.get(typ);
 				if (hTypeFamily.get(typ.type) == null)
 				{
-					final Vector<EnumFamily> v = new Vector<EnumFamily>();
-					v.add(typ.family);
-					hTypeFamily.put(typ.type, v);
+					final MessageStuff ms = new MessageStuff();
+
+					ms.vFamily.add(typ.family);
+					ms.bAcknowledge = h.isAcknowledge();
+					ms.bSubscribe = h.isSubScribable();
+					hTypeFamily.put(typ.type, ms);
 				}
 				else
 				{
-					final Vector<EnumFamily> v = hTypeFamily.get(typ.type);
-					v.add(typ.family);
+					final MessageStuff ms = hTypeFamily.get(typ.type);
+					ms.vFamily.add(typ.family);
+					ms.bAcknowledge = ms.bAcknowledge || h.isAcknowledge();
+					ms.bSubscribe = ms.bSubscribe || h.isSubScribable();
 				}
 			}
 
-			final Iterator<Entry<String, Vector<EnumFamily>>> iTyp = hTypeFamily.entrySet().iterator();
+			final Iterator<Entry<String, MessageStuff>> iTyp = hTypeFamily.entrySet().iterator();
 			while (iTyp.hasNext())
 			{
 				final String typ = iTyp.next().getKey();
@@ -262,13 +281,12 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 
 				final JDFMessageService ms = resp.appendMessageService();
 				ms.setType(typ);
-				ms.setFamilies(hTypeFamily.get(typ));
+				final MessageStuff messageStuff = hTypeFamily.get(typ);
+				ms.setFamilies(messageStuff.vFamily);
 				ms.setJMFRole(EnumJMFRole.Receiver);
 				ms.setURLSchemes(new VString("http", null));
-				if (subscriptionMap.get(typ) != null)
-				{
-					ms.setPersistent(true);
-				}
+				ms.setPersistent(messageStuff.bSubscribe);
+				ms.setAcknowledge(messageStuff.bAcknowledge);
 			}
 			return true;
 		}
@@ -328,6 +346,34 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		{
 			return type;
 		}
+
+		/**
+		 * the default is false
+		 * @see org.cip4.bambi.core.messaging.IMessageHandler#isSubScribable()
+		 */
+		public boolean isSubScribable()
+		{
+			return false;
+		}
+
+		/**
+		 * the default is false
+		 * @see org.cip4.bambi.core.messaging.IMessageHandler#isAcknowledge()
+		 */
+		public boolean isAcknowledge()
+		{
+			return false;
+		}
+
+		/**
+		 * @see java.lang.Object#toString()
+		 * @return the string representation
+		 */
+		@Override
+		public String toString()
+		{
+			return "AbstractHandler: " + getMessageType() + ", " + getFamilies();
+		}
 	}
 
 	/**
@@ -337,7 +383,6 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	{
 		super();
 		messageMap = new HashMap<MessageType, IMessageHandler>();
-		subscriptionMap = new HashMap<EnumType, IMessageHandler>();
 		addHandler(this.new KnownMessagesHandler());
 		_signalDispatcher = null;
 		_parentDevice = dev;
@@ -379,17 +424,6 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			h = messageMap.get(new MessageType("*", family));
 		}
 		return h;
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.messaging.IJMFHandler#addSubscriptionHandler(org.cip4.jdflib.jmf.JDFMessage.EnumType,
-	 * org.cip4.bambi.core.messaging.IMessageHandler)
-	 * @param typ
-	 * @param handler
-	 */
-	public void addSubscriptionHandler(final EnumType typ, final IMessageHandler handler)
-	{
-		subscriptionMap.put(typ, handler);
 	}
 
 	/**
@@ -556,8 +590,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	public String toString()
 	{
 		final String msgMap = "MessageMap (size=" + messageMap.size() + ")=[" + messageMap.toString() + "]";
-		final String subMap = "SubsriptionMap (size=" + subscriptionMap.size() + ")=[" + subscriptionMap.toString() + "]";
-		return "JMFHandler: " + msgMap + ", " + subMap;
+		return "JMFHandler: " + msgMap;
 	}
 
 	/**
@@ -591,6 +624,22 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	public void setFilterOnDeviceID(final boolean filterOnDeviceID)
 	{
 		bFilterOnDeviceID = filterOnDeviceID;
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.messaging.IMessageHandler#isSubScribable()
+	 */
+	public boolean isSubScribable()
+	{
+		return false;
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.messaging.IMessageHandler#isAcknowledge()
+	 */
+	public boolean isAcknowledge()
+	{
+		return false;
 	}
 
 }

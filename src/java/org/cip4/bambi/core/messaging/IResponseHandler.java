@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -74,46 +74,76 @@ package org.cip4.bambi.core.messaging;
 import java.io.BufferedInputStream;
 import java.net.HttpURLConnection;
 
+import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFResponse;
+
 /**
- * IMessageHandler is the interface for a generic response handler
+ * IResponseHandler is the interface for a generic http response handler
  * 
  * @author prosirai
- *
+ * 
  */
-public interface IResponseHandler 
+public interface IResponseHandler
 {
 
-    /**
-     * handle the message specified in inputMessage
-     * note that the mutex should be 
-     * 
-     * @return true if the message was handled, else false
-     */
-    public boolean handleMessage();
-    /**
-     * @return handled message type
-     */
-    public HttpURLConnection getConnection();
-    /**
-     * @return handled message type
-     */
-    public void setConnection(HttpURLConnection con);
-    /**
-     * @param bis
-     */
-    public void setBufferedStream(BufferedInputStream bis);
-    
-    /**
-     * wait for the handleMessage to complete
-     * @param milliSeconds
-     * @param abort if abortTimeOut, don't send after timeout millisecconds
-     */
-    public void waitHandled(int milliSeconds, boolean abortTimeOut);
-    
-    /**
-     * true if this messages timed out
-     * @return
-     */
-    public boolean  isAborted();
+	/**
+	 * handle the message specified in inputMessage note that the mutex should be nulled when complete<br/>
+	 * This class also handles Acknowledges
+	 * 
+	 * @return true if the message was handled, else false
+	 */
+	public boolean handleMessage();
+
+	/**
+	 * @return handled message type
+	 */
+	public HttpURLConnection getConnection();
+
+	/**
+	 * @param con the url connection
+	 */
+	public void setConnection(HttpURLConnection con);
+
+	/**
+	 * @param _callBack the callBack to set
+	 */
+	public void setCallBack(final IConverterCallback _callBack);
+
+	/**
+	 * @param bis
+	 */
+	public void setBufferedStream(BufferedInputStream bis);
+
+	/**
+	 * wait for the handleMessage to complete
+	 * @param milliSeconds
+	 * @param abortTimeOut if abortTimeOut, don't send after timeout millisecconds
+	 */
+	public void waitHandled(int milliSeconds, boolean abortTimeOut);
+
+	/**
+	 * true if this messages timed out
+	 * @return
+	 */
+	public boolean isAborted();
+
+	/**
+	 * set the response
+	 * @param response the Response or Acknowledge Message
+	 */
+	public void setMessage(JDFMessage response);
+
+	/**
+	 * get the initial response
+	 * @return the initial response
+	 */
+	public JDFResponse getResponse();
+
+	/**
+	 * get the final Response or Acknowledge Message
+	 * @return the Response or Acknowledge Message
+	 */
+	public JDFMessage getFinalMessage();
 
 }

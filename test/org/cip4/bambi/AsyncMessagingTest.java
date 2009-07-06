@@ -74,12 +74,15 @@ package org.cip4.bambi;
 import java.io.BufferedInputStream;
 import java.net.HttpURLConnection;
 
+import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.IResponseHandler;
-import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 
@@ -101,7 +104,7 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 		final Thread t = new Thread(messageSender, "Sender_Test");
 		for (int i = 0; i < 10; i++)
 		{
-			final JDFJMF stat = JMFFactory.getJMFFactory().buildStatus();
+			final JDFJMF stat = new JMFBuilder().buildStatus();
 			final String msgID = stat.getMessageElement(null, null, 0).getID();
 			messageSender.queueMessage(stat, this, simWorkerUrl, null);
 			messageIDs.add(msgID);
@@ -176,26 +179,67 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.messaging.IResponseHandler#waitHandled(int)
+	/**
+	 * @see org.cip4.bambi.core.messaging.IResponseHandler#setResponse(org.cip4.jdflib.jmf.JDFMessage)
 	 */
-	public void waitHandled(final int milliSeconds, final boolean b)
+	public void setResponse(final JDFMessage response)
 	{
 		// TODO Auto-generated method stub
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/**
+	 * @see org.cip4.bambi.core.messaging.IResponseHandler#setCallBack(org.cip4.bambi.core.IConverterCallback)
+	 */
+	public void setCallBack(final IConverterCallback back)
+	{
+		// TODO Auto-generated method stub
+
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.messaging.IResponseHandler#getFinalMessage()
+	 */
+	public JDFMessage getFinalMessage()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.messaging.IResponseHandler#getResponse()
+	 */
+	public JDFResponse getResponse()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/**
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#isAborted()
 	 */
 	public boolean isAborted()
 	{
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.messaging.IResponseHandler#setMessage(org.cip4.jdflib.jmf.JDFMessage)
+	 */
+	public void setMessage(final JDFMessage response)
+	{
+		// TODO Auto-generated method stub
+
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.messaging.IResponseHandler#waitHandled(int, boolean)
+	 */
+	public void waitHandled(final int milliSeconds, final boolean abortTimeOut)
+	{
+		// TODO Auto-generated method stub
+
 	}
 
 }

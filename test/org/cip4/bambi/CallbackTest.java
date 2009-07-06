@@ -88,103 +88,103 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.UrlUtil;
 
-public class CallbackTest extends BambiTestCase {
+public class CallbackTest extends BambiTestCase
+{
 
+	/**
+	 * needed here to define the callback class
+	 * @author prosirai
+	 * 
+	 */
+	protected static class MyProp extends BambiTestProp
+	{
 
-    /**
-     * needed here to define the callback class
-     * @author prosirai
-     *
-     */
-    protected static class MyProp extends BambiTestProp
-    {
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
+		 */
+		@Override
+		public IConverterCallback getCallBackClass()
+		{
+			// TODO Auto-generated method stub
 
+			final String callback = "org.cip4.bambi.MyTestCallback";
+			if (callback != null)
+			{
+				try
+				{
+					// Class c=Class.forName("MyTestCallback");
+					final Class c = Class.forName(callback);
+					return (IConverterCallback) c.newInstance();
+				}
+				catch (final Exception x)
+				{
+				}
+			}
+			return null;
 
+		}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
-         */
-        public IConverterCallback getCallBackClass()
-        {
-            // TODO Auto-generated method stub
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
+		 */
+		@Override
+		public String getDeviceID()
+		{
+			// TODO Auto-generated method stub
+			return "d1";
+		}
 
-            String callback="org.cip4.bambi.MyTestCallback";
-            if(callback!=null)
-            {
-                try
-                {
-//                  Class c=Class.forName("MyTestCallback");
-                    Class c=Class.forName(callback);
-                    return (IConverterCallback) c.newInstance();
-                }
-                catch (Exception x)
-                {
-                }
-            }
-            return null;
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.cip4.bambi.core.IDeviceProperties#getHotFolderURL()
+		 */
+		public String getHotFolderURL()
+		{
+			// TODO Auto-generated method stub
+			return sm_dirTestTemp + "HFURL";
+		}
 
-        }
+	}
 
+	public void testAddCallback()
+	{
+		final MyProp myProp = new MyProp();
+		final JMFHandler h = new JMFHandler(null);
+		final SignalDispatcher d = new SignalDispatcher(h, null);
+		System.out.println(new MyTestCallback().getClass().getCanonicalName());
+		d.addHandlers(h);
+		final File f = new File(sm_dirTestData + "subscriptions.jmf");
+		f.delete();
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
+		final JDFQuery q = jmf.getQuery(0);
+		final JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(1.0);
+		UrlUtil.urlToFile(getTestURL()).mkdirs();
+		s.setURL(getTestURL() + "subscriptions.jmf");
+		d.addSubscription(q, null);
+		StatusCounter.sleep(2000);
+		assertTrue(f.exists());
+		final JDFDoc doc = new JDFParser().parseFile(f.getPath());
+		final JDFJMF jmf2 = doc.getJMFRoot();
+		assertEquals(jmf2.getAttribute("bambi:callback"), "updateJMFForExtern");
+		d.shutdown();
+		assertTrue(f.delete());
+	}
 
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
-         */
-        public String getDeviceID()
-        {
-            // TODO Auto-generated method stub
-            return "d1";
-        }
+	public void testHFCallback() throws Exception
+	{
+		final MyProp myProp = new MyProp();
+		final AbstractDevice d = new SimDevice(myProp);
+		final String s = myProp.getHotFolderURL();
+		new File(s).mkdirs();
+		final JDFDoc doc = new JDFDoc("JDF");
+		doc.write2File(s + File.separator + "dummy.jdf", 2, true);
+		Thread.sleep(2000);
 
-
-
-        /* (non-Javadoc)
-         * @see org.cip4.bambi.core.IDeviceProperties#getHotFolderURL()
-         */
-        public String getHotFolderURL()
-        {
-            // TODO Auto-generated method stub
-            return sm_dirTestTemp+"HFURL";
-        }
-
- 
-
-  
-    }
-    public void testAddCallback()
-    {
-        final MyProp myProp = new MyProp();
-        JMFHandler h=new JMFHandler(null);
-        SignalDispatcher d=new SignalDispatcher(h, null,null);
-        System.out.println(new MyTestCallback().getClass().getCanonicalName());
-        d.addHandlers(h);
-        File f=new File(sm_dirTestData+"subscriptions.jmf");
-        f.delete();
-        JDFJMF jmf=JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
-        JDFQuery q=jmf.getQuery(0);
-        JDFSubscription s=q.appendSubscription();
-        s.setRepeatTime(1.0);
-        UrlUtil.urlToFile(getTestURL()).mkdirs();
-        s.setURL(getTestURL()+"subscriptions.jmf");
-        d.addSubscription(q, null);
-        StatusCounter.sleep(2000);
-        assertTrue( f.exists() ); 
-        JDFDoc doc=new JDFParser().parseFile(f.getPath());
-        JDFJMF jmf2=doc.getJMFRoot();
-        assertEquals(jmf2.getAttribute("bambi:callback"), "updateJMFForExtern");
-        d.shutdown();
-        assertTrue( f.delete() );
-    }
-
-    public void testHFCallback() throws Exception
-    {
-        final MyProp myProp = new MyProp();
-        AbstractDevice d=new SimDevice(myProp);
-        String s=myProp.getHotFolderURL();
-        new File(s).mkdirs();
-        JDFDoc doc=new JDFDoc("JDF");
-        doc.write2File(s+File.separator+"dummy.jdf", 2,true);
-        Thread.sleep(2000);
-        
-        
-    }
+	}
 }

@@ -61,6 +61,24 @@
   <!--  one / node -->
   <xsl:template match="jdf:JDF" name="jdf">
     <tr>
+      <xsl:if test="@Status='InProgress'">
+        <xsl:attribute name="bgcolor">#aaffaa</xsl:attribute>
+      </xsl:if>
+      <xsl:if test="@Status='Waiting'">
+        <xsl:attribute name="bgcolor">#aaaaff</xsl:attribute>
+      </xsl:if>
+      <xsl:if test="@Status='Spawned'">
+        <xsl:attribute name="bgcolor">#aaffaa</xsl:attribute>
+      </xsl:if>
+      <xsl:if test="@Status='Part'">
+        <xsl:attribute name="bgcolor">#ffffaa</xsl:attribute>
+      </xsl:if>
+      <xsl:if test="@Status='Aborted'">
+        <xsl:attribute name="bgcolor">#ffaaaa</xsl:attribute>
+      </xsl:if>
+      <xsl:if test="@Status='Completed'">
+        <xsl:attribute name="bgcolor">#dddddd</xsl:attribute>
+      </xsl:if>
     <td>
         <a>
           <xsl:attribute name="href"><xsl:value-of select="/jdf:JDF/@Context"/>/showJDF/<xsl:value-of select="/jdf:JDF/@DeviceID"/>?qeID=<xsl:value-of

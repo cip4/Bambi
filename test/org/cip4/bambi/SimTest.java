@@ -71,6 +71,7 @@
 
 package org.cip4.bambi;
 
+import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
@@ -105,6 +106,8 @@ public class SimTest extends BambiTestCase
 
 		super.setUp();
 		bUpdateJobID = true;
+		acknowledgeURL = "http://localhost:8080/httpdump/acknowledgeURL";
+
 		// simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/manual002";
 		// simWorkerUrl = "http://127.0.0.1:8080/speedmaster/jmf/XL105";
 	}
@@ -128,7 +131,7 @@ public class SimTest extends BambiTestCase
 	public void testSubmitQueueEntry_Subscription() throws Exception
 	{
 		// get number of QueueEntries before submitting
-		final JDFJMF jmfStat = JMFFactory.getJMFFactory().buildStatusSubscription("http://localhost:8080/httpdump/BambiTest", 0, 0, null);
+		final JDFJMF jmfStat = new JMFBuilder().buildStatusSubscription("http://localhost:8080/httpdump/BambiTest", 0, 0, null);
 		jmfStat.getQuery(0).getStatusQuParams().setJobID("j1");
 		final JDFResponse resp = send2URL(jmfStat, simWorkerUrl);
 		assertNotNull(resp);
@@ -180,7 +183,7 @@ public class SimTest extends BambiTestCase
 		final int oldSize = q.getEntryCount();
 
 		// check that the QE is on the proxy
-		final JDFJMF jmf = JMFFactory.getJMFFactory().buildQueueStatus();
+		final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
 		for (int i = 1; i < 22; i++)
 		{
 			System.out.println("submitting " + i);
@@ -208,7 +211,7 @@ public class SimTest extends BambiTestCase
 		{
 			loops++;
 			Thread.sleep(1000);
-			final JDFJMF jmf = factory.buildQueueStatus();
+			final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
 
 			final JDFResponse resp = factory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
 			assertNotNull(resp);

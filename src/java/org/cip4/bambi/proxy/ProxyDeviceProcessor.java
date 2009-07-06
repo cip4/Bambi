@@ -81,6 +81,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
+import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationHandler;
@@ -666,7 +667,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		final AbstractProxyDevice p = getParent();
 		final String deviceURL = p.getDeviceURLForSlave();
 
-		final JDFJMF jmfs[] = JMFFactory.getJMFFactory().createSubscriptions(deviceURL, devQEID, 10., 0);
+		final JDFJMF jmfs[] = new JMFBuilder().createSubscriptions(deviceURL, devQEID, 10., 0);
 		final String deviceID = p.getDeviceID();
 		for (int i = 0; i < jmfs.length; i++)
 		{
@@ -842,7 +843,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		}
 
 		final AbstractProxyDevice p = getParent();
-		final JDFJMF jmfs[] = JMFFactory.getJMFFactory().createSubscriptions(p.getDeviceURLForSlave(), null, 10., 0);
+		final JDFJMF jmfs[] = new JMFBuilder().createSubscriptions(p.getDeviceURLForSlave(), null, 10., 0);
 		final JDFNodeInfo ni = root.getCreateNodeInfo();
 		final String senderID = getParent().getDeviceID();
 		for (int i = 0; i < jmfs.length; i++)

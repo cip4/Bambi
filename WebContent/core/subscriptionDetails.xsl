@@ -12,15 +12,18 @@
         <link rel="stylesheet" type="text/css" href="../css/styles_pc.css"/>
         <link rel="icon" href="favicon.ico" type="image/x-icon"/>
         <title>
+          Device
           <xsl:value-of select="@DeviceID"/>
-          - Subscriptions
+          - Subscription
         </title>
       </head>
       <body>
         <img src="../logo.gif" height="70" alt="logo"/>
         <h1>
+          Device
           <xsl:value-of select="@DeviceID"/>
-          - Subscriptions
+          - Subscription ChannelID=
+          <xsl:value-of select="MsgSubscription/@ChannelID"/>
         </h1>
         <xsl:if test="MsgSubscription">
           <h2>Subscriptions</h2>
@@ -40,11 +43,27 @@
             <xsl:apply-templates select="MsgSubscription"/>
           </table>
         </xsl:if>
-        <a>
-          <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showSubscriptions/<xsl:value-of select="@DeviceID"/>
-                  </xsl:attribute>
-          Back to Subscription List
-        </a>
+        <table>
+          <tr>
+            <td>
+              <a>
+                <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showSubscriptions/<xsl:value-of select="@DeviceID"/>
+          </xsl:attribute>
+                Back to Subscription List
+              </a>
+            </td>
+            <td>
+              -
+        </td>
+            <td>
+              <a>
+                <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showDevice/<xsl:value-of select="@DeviceID"/>
+          </xsl:attribute>
+                Back to Device
+              </a>
+            </td>
+          </tr>
+        </table>
         <hr/>
 
         <xsl:if test="MsgSubscription/Sub">

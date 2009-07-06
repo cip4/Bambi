@@ -79,6 +79,7 @@ import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
+import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
@@ -810,15 +811,14 @@ public class ProxyDevice extends AbstractProxyDevice
 		return BambiNSExtension.getSlaveQueueEntryID(qe);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
 	 * 
 	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
 	 */
 	@Override
-	public boolean canAccept(final JDFDoc doc)
+	public int canAccept(final JDFDoc doc)
 	{
-		return true;
+		return 0;
 	}
 
 	/**
@@ -851,8 +851,8 @@ public class ProxyDevice extends AbstractProxyDevice
 				}
 			}
 		}
+		final JDFJMF jmfQS = new JMFBuilder().buildQueueStatus();
 		final JMFFactory factory = JMFFactory.getJMFFactory();
-		final JDFJMF jmfQS = factory.buildQueueStatus();
 		factory.send2URL(jmfQS, getProxyProperties().getSlaveURL(), new QueueSynchronizeHandler(), getSlaveCallback(), getDeviceID());
 	}
 
@@ -874,10 +874,10 @@ public class ProxyDevice extends AbstractProxyDevice
 		if (status == null)
 		{
 
-			final JDFJMF jmf = JMFFactory.getJMFFactory().buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
+			final JDFJMF jmf = new JMFBuilder().buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
 			if (jmf != null)
 			{
-				final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(status);
+				final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(status, jmf.getCommand(0).getID());
 				JMFFactory.getJMFFactory().send2URL(jmf, getProxyProperties().getSlaveURL(), ah, _slaveCallback, getDeviceID());
 				ah.waitHandled(5555, false);
 				final EnumNodeStatus newStatus = ah.getFinalStatus();

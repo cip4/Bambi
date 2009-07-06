@@ -73,6 +73,7 @@ package org.cip4.bambi.core.queues;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.HashMap;
 import java.util.Vector;
 
 import javax.mail.Multipart;
@@ -90,6 +91,7 @@ import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.bambi.core.IDeviceProperties.QEReturn;
+import org.cip4.bambi.core.messaging.AcknowledgeThread;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
@@ -97,6 +99,7 @@ import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.auto.JDFAutoQueueFilter.EnumUpdateGranularity;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFComment;
@@ -132,6 +135,7 @@ import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
@@ -145,6 +149,61 @@ import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 public class QueueProcessor
 {
 
+	/**
+	 * class that handles queue differences
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+	 * 
+	 * July 6, 2009
+	 */
+	protected class QueueDelta
+	{
+		protected JDFQueue lastQueue;
+		private final long creationTime;
+
+		/**
+		 * 
+		 */
+		public QueueDelta()
+		{
+			lastQueue = (JDFQueue) ((XMLDoc) _theQueue.getOwnerDocument_KElement().clone()).getRoot();
+			creationTime = System.currentTimeMillis();
+		}
+
+		/**
+		 * clean up stored queues that have not been touched for a while
+		 */
+		protected void cleanOrphans()
+		{
+			final Vector<String> v = ContainerUtil.getKeyVector(deltaMap);
+			if (v != null)
+			{
+				for (int i = 0; i < v.size(); i++)
+				{
+					final String key = v.get(i);
+					final QueueDelta delta = deltaMap.get(key);
+					if (delta.isOrphan())
+					{
+						deltaMap.remove(key);
+					}
+				}
+			}
+		}
+
+		/**
+		 * @return true if we haven't touched this guy for a while
+		 */
+		private boolean isOrphan()
+		{
+			return System.currentTimeMillis() - creationTime > 1000 * 60 * 66; // retain a bit over an hour
+		}
+	}
+
+	/**
+	 * 
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+	 * 
+	 * Jul 6, 2009
+	 */
 	protected class CanExecuteCallBack extends ExecuteCallback
 	{
 
@@ -264,7 +323,7 @@ public class QueueProcessor
 					}
 					else
 					{
-						JMFHandler.errorResponse(resp, "failed to add entry: invalid or missing message parameters", 9, EnumClass.Error);
+						JMFHandler.errorResponse(resp, "failed to add entry: invalid or missing message parameters", rc, EnumClass.Error);
 					}
 
 					return true; // error was filled by handler
@@ -316,6 +375,15 @@ public class QueueProcessor
 				return false;
 			}
 			updateEntry(null, null, m, resp);
+			return true;
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#isSubScribable()
+		 */
+		@Override
+		public boolean isSubScribable()
+		{
 			return true;
 		}
 	}
@@ -543,11 +611,6 @@ public class QueueProcessor
 			super(EnumType.AbortQueueEntry, new EnumFamily[] { EnumFamily.Command });
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
@@ -638,7 +701,7 @@ public class QueueProcessor
 			final JDFQueueFilter qf = fqp == null ? null : fqp.getQueueFilter();
 			final JDFQueueFilter qfo = m.getQueueFilter(0);
 			final VElement zapped = _theQueue.flushQueue(qf);
-			_theQueue.copyToResponse(resp, qfo);
+			_theQueue.copyToResponse(resp, qfo, null);
 			final JDFFlushQueueInfo flushQueueInfo = resp.appendFlushQueueInfo();
 			flushQueueInfo.setQueueEntryDefsFromQE(zapped);
 			persist(0);
@@ -754,7 +817,34 @@ public class QueueProcessor
 		 * @param root
 		 * @param filter the regexp to filter by (.)* is added before and after the filter
 		 */
-		private void sortOutput(final String sortBy, final KElement root, String filter)
+		private void sortOutput(final String sortBy, final KElement root, final String filter)
+		{
+			filterList(root, filter);
+			// sort according to the given attribute
+			if (sortBy != null)
+			{
+				boolean invert = sortBy.equals(lastSortBy) && sortBy.equals(nextinvert);
+				nextinvert = invert ? null : sortBy;
+				lastSortBy = sortBy;
+				if (sortBy.endsWith("Time"))
+				{
+					invert = !invert; // initial sort should be late first
+				}
+				root.sortChildren(new KElement.SingleAttributeComparator(sortBy, invert));
+			}
+			else
+			{
+				nextinvert = null;
+				lastSortBy = null;
+			}
+		}
+
+		/**
+		 * filter the queue by string
+		 * @param root
+		 * @param filter
+		 */
+		private void filterList(final KElement root, String filter)
 		{
 			if (filter != null)
 			{
@@ -770,19 +860,6 @@ public class QueueProcessor
 						e.deleteNode();
 					}
 				}
-			}
-			// sort according to the given attribute
-			if (sortBy != null)
-			{
-				final boolean invert = sortBy.equals(lastSortBy) && sortBy.equals(nextinvert);
-				nextinvert = invert ? null : sortBy;
-				lastSortBy = sortBy;
-				root.sortChildren(new KElement.SingleAttributeComparator(sortBy, invert));
-			}
-			else
-			{
-				nextinvert = null;
-				lastSortBy = null;
 			}
 		}
 
@@ -937,6 +1014,7 @@ public class QueueProcessor
 	private final Vector<Object> _listeners;
 	protected AbstractDevice _parentDevice = null;
 	private long lastPersist = 0;
+	protected final HashMap<String, QueueDelta> deltaMap;
 
 	/**
 	 * @param theParentDevice
@@ -947,7 +1025,7 @@ public class QueueProcessor
 		log = LogFactory.getLog(QueueProcessor.class.getName());
 		_parentDevice = theParentDevice;
 		_listeners = new Vector<Object>();
-
+		deltaMap = new HashMap<String, QueueDelta>();
 		init();
 	}
 
@@ -956,16 +1034,14 @@ public class QueueProcessor
 	 */
 	public void addHandlers(final IJMFHandler jmfHandler)
 	{
-		jmfHandler.addHandler(this.new SubmitQueueEntryHandler());
-		final QueueStatusHandler qsh = this.new QueueStatusHandler();
-		jmfHandler.addHandler(qsh);
-		jmfHandler.addSubscriptionHandler(EnumType.QueueStatus, qsh);
-		jmfHandler.addHandler(this.new RemoveQueueEntryHandler());
-		jmfHandler.addHandler(this.new HoldQueueEntryHandler());
-		jmfHandler.addHandler(this.new AbortQueueEntryHandler());
+		jmfHandler.addHandler(new AcknowledgeThread(this.new SubmitQueueEntryHandler(), _parentDevice));
+		jmfHandler.addHandler(this.new QueueStatusHandler());
+		jmfHandler.addHandler(new AcknowledgeThread(this.new RemoveQueueEntryHandler(), _parentDevice));
+		jmfHandler.addHandler(new AcknowledgeThread(this.new HoldQueueEntryHandler(), _parentDevice));
+		jmfHandler.addHandler(new AcknowledgeThread(this.new AbortQueueEntryHandler(), _parentDevice));
 		jmfHandler.addHandler(this.new ResumeQueueEntryHandler());
 		jmfHandler.addHandler(this.new SuspendQueueEntryHandler());
-		jmfHandler.addHandler(this.new FlushQueueHandler());
+		jmfHandler.addHandler(new AcknowledgeThread(this.new FlushQueueHandler(), _parentDevice));
 		jmfHandler.addHandler(this.new OpenQueueHandler());
 		jmfHandler.addHandler(this.new CloseQueueHandler());
 		jmfHandler.addHandler(this.new HoldQueueHandler());
@@ -1083,7 +1159,7 @@ public class QueueProcessor
 	{
 
 		JDFQueueEntry qe = BambiNSExtension.getSlaveQueueEntry(_theQueue, slaveQueueEntryID);
-		if (qe == null)
+		if (qe == null && nodeID != null)
 		{
 			qe = _theQueue.getQueueEntry(nodeID, 0);
 		}
@@ -1236,8 +1312,13 @@ public class QueueProcessor
 			log.error("error submitting new queueentry");
 			return null;
 		}
-		if (!_parentDevice.canAccept(theJDF))
+		final int canAccept = _parentDevice.canAccept(theJDF);
+		if (canAccept != 0)
 		{
+			if (newResponse != null)
+			{
+				JMFHandler.errorResponse(newResponse, "unable to queue request", canAccept, EnumClass.Error);
+			}
 			return null;
 		}
 
@@ -1283,7 +1364,7 @@ public class QueueProcessor
 				return null;
 			}
 			persist(0);
-			notifyListeners();
+			notifyListeners(qeID);
 			return _theQueue.getQueueEntry(qeID);
 		}
 	}
@@ -1339,16 +1420,15 @@ public class QueueProcessor
 		return _parentDevice.getJDFStorage(newQEID);
 	}
 
-	protected void notifyListeners()
+	protected void notifyListeners(final String qeID)
 	{
 		for (int i = 0; i < _listeners.size(); i++)
 		{
 			final Object elementAt = _listeners.elementAt(i);
-			synchronized (elementAt)
-			{
-				elementAt.notifyAll();
-			}
+			ThreadUtil.notifyAll(elementAt);
 		}
+		final SignalDispatcher signalDispatcher = _parentDevice.getSignalDispatcher();
+		signalDispatcher.triggerQueueEntry(qeID, null, -1, EnumType.QueueStatus.getName());
 	}
 
 	/**
@@ -1435,16 +1515,16 @@ public class QueueProcessor
 				if (!status.equals(oldStatus))
 				{
 					persist(0);
-					notifyListeners();
+					notifyListeners(qe.getQueueEntryID());
 				}
 				else
 				{
-					persist(10000); // write queue just in case every 10 seconds
+					persist(60000); // write queue just in case every 10 seconds
 				}
 			}
 			else if (mess != null && !EnumFamily.Query.equals(mess.getFamily()))
 			{
-				persist(10000); // write queue just in case every 10 seconds
+				persist(60000); // write queue just in case every 10 seconds
 			}
 			if (resp == null)
 			{
@@ -1460,10 +1540,40 @@ public class QueueProcessor
 			{
 				// nop
 			}
-			final JDFQueue q = _theQueue.copyToResponse(resp, qf);
+			final JDFQueue q = _theQueue.copyToResponse(resp, qf, getLastQueue(resp, qf));
 			removeBambiNSExtensions(q);
 			return q;
 		}
+	}
+
+	/**
+	 * get the last queue for a differential channelid <br/>
+	 * also update the que to a copy of the current state for the next call
+	 * 
+	 * @param resp
+	 * @param qf
+	 * @return
+	 */
+	private JDFQueue getLastQueue(final JDFResponse resp, final JDFQueueFilter qf)
+	{
+		if (resp == null || qf == null)
+		{
+			return null;
+		}
+		final String refID = StringUtil.getNonEmpty(resp.getrefID());
+		if (refID == null || !EnumUpdateGranularity.ChangesOnly.equals(qf.getUpdateGranularity()))
+		{
+			return null;
+		}
+		final QueueDelta delta = deltaMap.get(refID);
+		deltaMap.put(refID, new QueueDelta());
+		if (delta == null)
+		{
+			return null;
+		}
+		delta.cleanOrphans();
+		return delta.lastQueue;
+
 	}
 
 	/**

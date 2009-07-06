@@ -107,7 +107,7 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 
 /**
- * abstract parent class for device processors, with aditional functionality for JobPhases <br>
+ * abstract parent class for device processors, with additional functionality for JobPhases <br>
  * The device processor is the actual working part of a device. The individual job phases of the job are executed here.
  * 
  * @author boegerni
@@ -115,9 +115,9 @@ import org.cip4.jdflib.util.ThreadUtil;
  */
 public class SimDeviceProcessor extends AbstractDeviceProcessor
 {
-
 	private static Log log = LogFactory.getLog(SimDeviceProcessor.class.getName());
 	protected List<JobPhase> _jobPhases = null;
+	protected JobPhase idlePhase = null;
 
 	/**
 	 * a single job phase
@@ -444,6 +444,9 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			return v;
 		}
 
+		/**
+		 * @see java.lang.Object#clone()
+		 */
 		@Override
 		public Object clone()
 		{
@@ -553,9 +556,9 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 
 	/**
 	 * initialize the IDeviceProcessor
-	 * 
-	 * @param _queueProcessor
-	 * @param _statusListener
+	 * @param queueProcessor
+	 * @param statusListener
+	 * @param devProperties
 	 */
 	@Override
 	public void init(final QueueProcessor queueProcessor, final StatusListener statusListener, final IDeviceProperties devProperties)
@@ -565,6 +568,10 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 
 	}
 
+	/**
+	 * suspend this - also persist remaining tasks
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#suspend()
+	 */
 	@Override
 	protected void suspend()
 	{
@@ -770,7 +777,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 	 */
 	protected void randomErrors(final JobPhase phase)
 	{
-		if (phase.errorChance <= 0)
+		if (phase == null || phase.errorChance <= 0)
 		{
 			return;
 		}
@@ -800,12 +807,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 	@Override
 	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
 	{
-		final File configDir = _parent.getProperties().getConfigDir();
-		_jobPhases = loadJobFromFile(configDir, "job_" + _parent.getDeviceID() + ".xml");
-		if (_jobPhases == null)
-		{
-			_jobPhases = loadJobFromFile(configDir, "job.xml");
-		}
+		loadJob();
 		// we want at least one setup dummy
 		if (_jobPhases == null)
 		{
@@ -835,6 +837,40 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			}
 		}
 		return bOK;
+	}
+
+	/**
+	 * load a job and ensure that a local copy of the sim file is created
+	 */
+	private void loadJob()
+	{
+		File deviceDir = _parent.getProperties().getBaseDir();
+		deviceDir = FileUtil.getFileInDirectory(deviceDir, new File("config"));
+		final String deviceFile = "job_" + _parent.getDeviceID() + ".xml";
+		_jobPhases = loadJobFromFile(deviceDir, deviceFile);
+		final File configDir = _parent.getProperties().getConfigDir();
+		File srcFile = null;
+		if (_jobPhases == null)
+		{
+			_jobPhases = loadJobFromFile(configDir, deviceFile);
+			srcFile = _jobPhases == null ? null : FileUtil.getFileInDirectory(configDir, new File(deviceFile));
+		}
+		if (_jobPhases == null)
+		{
+			_jobPhases = loadJobFromFile(deviceDir, "job.xml");
+			srcFile = _jobPhases == null ? null : FileUtil.getFileInDirectory(deviceDir, new File("job.xml"));
+		}
+		if (_jobPhases == null)
+		{
+			_jobPhases = loadJobFromFile(configDir, "job.xml");
+			srcFile = _jobPhases == null ? null : FileUtil.getFileInDirectory(configDir, new File("job.xml"));
+		}
+		if (srcFile != null)
+		{
+			final File destFile = FileUtil.getFileInDirectory(deviceDir, new File(deviceFile));
+			FileUtil.copyFile(srcFile, destFile);
+			log.info("copying sim file to local directory: " + destFile);
+		}
 	}
 
 	/**
@@ -874,6 +910,17 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		{
 			log.warn("no job phases were added from " + fileName);
 			return null;
+		}
+		else
+		{
+			idlePhase = null;
+			final JobPhase tmpPhase = phaseList.get(phaseList.size() - 1);
+			if (EnumDeviceStatus.Idle.equals(tmpPhase.deviceStatus))
+			{
+				idlePhase = tmpPhase;
+				phaseList.remove(idlePhase);
+				log.info("defined an idle phase");
+			}
 		}
 		log.debug("created new job from " + fileName + " with " + phaseList.size() + " job phases.");
 		randomizeJobPhases(phaseList, simJob.getRealAttribute("RandomFactor", null, 0.0));
@@ -952,7 +999,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 	/**
 	 * 
 	 * @param node
-	 * @return the initial joob phase
+	 * @return the initial job phase
 	 */
 	protected JobPhase initFirstPhase(final JDFNode node)
 	{
@@ -1008,6 +1055,17 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			}
 		}
 		return "Abstract Worker Device Processor: " + super.toString() + "\nPhases: " + b.toString() + "]";
+	}
+
+	/**
+	 * same as super but also randomize some errors
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#idleProcess()
+	 */
+	@Override
+	protected void idleProcess()
+	{
+		super.idleProcess();
+		randomErrors(idlePhase);
 	}
 
 }

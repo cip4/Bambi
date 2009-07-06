@@ -73,7 +73,7 @@ package org.cip4.bambi.messaging;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestHelper;
-import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 
@@ -101,8 +101,7 @@ public class MessageSenderTest extends BambiTestCase
 	 */
 	public void testSerialize() throws Exception
 	{
-		final JMFFactory factory = JMFFactory.getJMFFactory();
-		final JDFJMF jmf = factory.buildStatusSubscription(snafu, 1, 0, null);
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription(snafu, 1, 0, null);
 		final JDFDoc resp = new BambiTestHelper().submitJMFtoURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 	}

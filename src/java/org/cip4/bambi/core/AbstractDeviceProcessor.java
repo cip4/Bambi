@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -70,15 +70,6 @@
  */
 package org.cip4.bambi.core;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-
-import javax.mail.BodyPart;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
@@ -89,8 +80,6 @@ import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
@@ -108,7 +97,6 @@ import org.cip4.jdflib.resource.process.JDFUsageCounter;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFDate;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -121,7 +109,7 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 {
-	private static Log log = LogFactory.getLog(AbstractDeviceProcessor.class.getName());
+	protected static Log log = LogFactory.getLog(AbstractDeviceProcessor.class.getName());
 	/**
 	 * note: the queue processor points to the queue processor of the device, it !does not! copy it
 	 */
@@ -136,14 +124,14 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 
 	protected class SubmitQueueEntryResponseHandler extends MessageResponseHandler
 	{
-		public JDFDoc doc = null;
 
 		/**
+		 * @param refID
 		 * 
 		 */
-		public SubmitQueueEntryResponseHandler()
+		public SubmitQueueEntryResponseHandler(final String refID)
 		{
-			super();
+			super(refID);
 		}
 
 		/*
@@ -154,55 +142,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		@Override
 		public boolean handleMessage()
 		{
-			final HttpURLConnection uc = getConnection();
-			boolean handled = false;
-			if (uc == null)
-			{
-				finalizeHandling();
-				return false; // file
-			}
-			int rc;
-			try
-			{
-				rc = uc.getResponseCode();
-				if (rc == 200)
-				{
-					if (bufferedInput == null)
-					{
-						final InputStream inputStream = uc.getInputStream();
-						bufferedInput = new BufferedInputStream(inputStream);
-						bufferedInput.mark(1000000);
-					}
-					bufferedInput.reset();
-
-					final Multipart mpRet = MimeUtil.getMultiPart(bufferedInput);
-					if (mpRet != null)
-					{
-						try
-						{
-							final BodyPart bp = mpRet.getBodyPart(0);
-							doc = MimeUtil.getJDFDoc(bp);
-							handled = true;
-						}
-						catch (final MessagingException e)
-						{
-							// nop - try simple doc
-						}
-					}
-					if (!handled)
-					{
-						bufferedInput.reset();
-						doc = new JDFParser().parseStream(bufferedInput);
-						handled = true;
-					}
-				}
-			}
-			catch (final IOException x)
-			{
-				handled = false;
-			}
-			finalizeHandling();
-			return handled;
+			return super.handleMessage();
 		}
 
 	}
@@ -379,10 +319,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 						{
 							log.debug("waiting");
 						}
-						if (_statusListener != null)
-						{
-							_statusListener.signalStatus(EnumDeviceStatus.Idle, null, null, null, false);
-						}
+						idleProcess();
 						synchronized (_myListener)
 						{
 							_myListener.wait(10000); // 10000 is just in case
@@ -402,6 +339,17 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		if (_queueProcessor != null)
 		{
 			_queueProcessor.removeListener(_myListener);
+		}
+	}
+
+	/**
+	 * do whatever needs to be done on idle by default, just tell the StatusListner that we are bored
+	 */
+	protected void idleProcess()
+	{
+		if (_statusListener != null)
+		{
+			_statusListener.signalStatus(EnumDeviceStatus.Idle, null, null, null, false);
 		}
 	}
 
@@ -675,7 +623,8 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 				abort();
 			}
 		}
-		_statusListener.flush(null);
+		_statusListener.flush("Resource");
+		_statusListener.flush("Status");
 		_statusListener.setNode(null, null, null, null);
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		_queueProcessor.updateEntry(qe, qes, null, null);
@@ -694,6 +643,9 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	 */
 	public abstract EnumNodeStatus stopProcessing(EnumNodeStatus newStatus);
 
+	/**
+	 * @see org.cip4.bambi.core.IDeviceProcessor#shutdown()
+	 */
 	public void shutdown()
 	{
 		_doShutdown = true;

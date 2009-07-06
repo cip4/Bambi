@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -153,19 +153,19 @@ public class RootDevice extends AbstractDevice
 	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
 	 */
 	@Override
-	public boolean canAccept(final JDFDoc doc)
+	public int canAccept(final JDFDoc doc)
 	{
 		final Iterator<String> it = _devices.keySet().iterator();
 		while (it.hasNext())
 		{
 			final AbstractDevice ad = _devices.get(it.next());
-			if (ad.canAccept(doc))
+			if (ad.canAccept(doc) == 0)
 			{
-				return true;
+				return 0;
 			}
 
 		}
-		return false;
+		return 101;
 	}
 
 	/**
@@ -287,10 +287,8 @@ public class RootDevice extends AbstractDevice
 			super(EnumType.Status, new EnumFamily[] { EnumFamily.Query, EnumFamily.Command });
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		/**
+		 * @see org.cip4.bambi.core.RootDevice.RootDispatchHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
@@ -302,7 +300,7 @@ public class RootDevice extends AbstractDevice
 			{
 				final VElement vq = response.getChildElementVector(ElementName.QUEUE, null);
 
-				final JDFQueue q = _theQueueProcessor.getQueue().copyToResponse(response, null);
+				final JDFQueue q = _theQueueProcessor.getQueue().copyToResponse(response, null, null);
 				final int nQ = vq == null ? 0 : vq.size();
 				final JDFQueueEntry qe0 = q.getQueueEntry(0);
 				for (int i = 0; i < nQ; i++)
@@ -395,12 +393,20 @@ public class RootDevice extends AbstractDevice
 	{
 		private IMessageHandler superHandler = null;
 
+		/**
+		 * @param _type
+		 * @param _families
+		 */
 		public QueueDispatchHandler(final EnumType _type, final EnumFamily[] _families)
 		{
 			super(_type, _families);
 			superHandler = _jmfHandler.getHandler(_type.getName(), _families[0]);
 		}
 
+		/**
+		 * @param _type
+		 * @param _families
+		 */
 		public QueueDispatchHandler(final String _type, final EnumFamily[] _families)
 		{
 			super(_type, _families);

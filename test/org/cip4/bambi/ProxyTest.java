@@ -71,6 +71,7 @@
 
 package org.cip4.bambi;
 
+import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
@@ -100,28 +101,7 @@ public class ProxyTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_MIME() throws Exception
 	{
-		// get number of QueueEntries before submitting
-		final JMFFactory factory = JMFFactory.getJMFFactory();
-		final JDFJMF jmfStat = factory.buildQueueStatus();
-		JDFDoc dresp = submitJMFtoURL(jmfStat, proxyUrl);
-		JDFResponse resp = dresp.getJMFRoot().getResponse(0);
-		assertEquals(0, resp.getReturnCode());
-		JDFQueue q = resp.getQueue(0);
-		assertNotNull(q);
-		final int oldSize = q.getEntryCount();
 		submitMimetoURL(proxyUrl);
-
-		// check that the QE is on the proxy
-		final JDFJMF jmf = factory.buildQueueStatus();
-		dresp = submitJMFtoURL(jmf, proxyUrl);
-		resp = dresp.getJMFRoot().getResponse(0);
-		assertNotNull(resp);
-		assertEquals(0, resp.getReturnCode());
-		q = resp.getQueue(0);
-		assertNotNull(q);
-		final int newCount = q.getEntryCount();
-		assertEquals(oldSize + 1, newCount);
-
 	}
 
 	/**
@@ -138,7 +118,7 @@ public class ProxyTest extends BambiTestCase
 		{
 			loops++;
 			Thread.sleep(1000);
-			final JDFJMF jmf = factory.buildQueueStatus();
+			final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
 
 			final JDFDoc dresp = submitJMFtoURL(jmf, proxyUrl);
 			final JDFResponse resp = dresp.getJMFRoot().getResponse(0);
@@ -200,7 +180,7 @@ public class ProxyTest extends BambiTestCase
 				final String jobID = qe.getJobID();
 				final String jobPartID = qe.getJobPartID();
 				final NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
-				final JDFJMF pull = factory.buildRequestQueueEntry(simWorkerUrl, ni);
+				final JDFJMF pull = new JMFBuilder().buildRequestQueueEntry(simWorkerUrl, ni);
 				// pull.getCommand(0).setSenderID("sim001"); // needed for the senderID
 				final JDFDoc dresp2 = submitJMFtoURL(pull, proxySlaveUrl);
 				assertNotNull(dresp2);

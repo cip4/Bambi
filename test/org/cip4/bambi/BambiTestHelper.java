@@ -78,7 +78,7 @@ import java.net.URL;
 
 import javax.mail.Multipart;
 
-import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.jdflib.JDFTestCaseBase;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -92,7 +92,6 @@ import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
-import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.node.JDFNode;
@@ -107,11 +106,13 @@ import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 public class BambiTestHelper extends JDFTestCaseBase
 {
 
+	// these are generally overwritten!
 	public boolean bUpdateJobID = false;
 	public int chunkSize = -1;
 	public String transferEncoding = UrlUtil.BASE64;
-	public String returnJMF = "http://localhost:8080/httpDump/returnJMF";
-	public String returnURL = null;// "http://localhost:8080/httpDump/returnURL";
+	public String returnJMF = "http://localhost:8080/httpdump/returnJMF";
+	public String returnURL = null;// "http://localhost:8080/httpdump/returnURL";
+	public String acknowledgeURL = null;// "http://localhost:8080/httpdump/acknowledgeURL";
 
 	/**
 	 * bambi test case
@@ -122,71 +123,32 @@ public class BambiTestHelper extends JDFTestCaseBase
 	}
 
 	/**
-	 * cleaning up, brute-force-sytle: send a AbortQueueEntry and a RemoveQueueEntry message to every QueueEntry in the Queue
-	 * @param url the URL of the device to send the command to
-	 */
-	public void abortRemoveAll(final String url)
-	{
-		final JMFFactory factory = JMFFactory.getJMFFactory();
-		JDFJMF jmf = factory.buildQueueStatus();
-		final JDFResponse resp = factory.send2URLSynchResp(jmf, url, null, "testcase", 2000);
-		if (resp == null)
-		{
-			System.err.println("failed to send QueueStatus");
-			return;
-		}
-		final JDFQueue theQueue = resp.getQueue(0);
-		if (theQueue == null)
-		{
-			return;
-		}
-		final VElement qVec = theQueue.getQueueEntryVector();
-		final int siz = qVec.size();
-		if (siz == 0)
-		{
-			return;
-		}
-
-		for (int i = siz - 1; i >= 0; i--)
-		{
-			final String qeid = ((JDFQueueEntry) qVec.get(i)).getQueueEntryID();
-			jmf = factory.buildAbortQueueEntry(qeid);
-			factory.send2URL(jmf, url, null, null, "testcase");
-		}
-
-		// wait to allow the worker to process the AbortQueueEntries,
-		// then send RemoveQueueEntry messages
-
-		for (int i = 0; i < siz; i++)
-		{
-			final String qeid = ((JDFQueueEntry) qVec.get(i)).getQueueEntryID();
-			jmf = factory.buildRemoveQueueEntry(qeid);
-			factory.send2URL(jmf, url, null, null, "testcase");
-		}
-	}
-
-	/**
 	 * requires assigned node...
+	 * @param n
 	 * @param url the url to send to
+	 * @return
 	 * @throws MalformedURLException
 	 */
-	public void submitXtoURL(final JDFNode n, final String url) throws MalformedURLException
+	public HttpURLConnection submitXtoURL(final JDFNode n, final String url) throws MalformedURLException
 	{
 		final XJDF20 xc = new XJDF20();
 		final KElement e = xc.makeNewJDF(n, null);
-		submitMimetoURL(new JDFDoc(e.getOwnerDocument()), url);
+		final HttpURLConnection con = submitMimetoURL(new JDFDoc(e.getOwnerDocument()), url);
+		return con;
 	}
 
 	/**
-	 * @param n the node to send as root node
+	 * @param d the doc to send as root node
 	 * @param url the url to send to
+	 * @return
 	 * @throws MalformedURLException
 	 */
-	public void submitMimetoURL(final JDFDoc d, final String url) throws MalformedURLException
+	public HttpURLConnection submitMimetoURL(final JDFDoc d, final String url) throws MalformedURLException
 	{
 		final JDFDoc docJMF = new JDFDoc("JMF");
 		final JDFJMF jmf = docJMF.getJMFRoot();
 		final JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
+		com.setAcknowledgeURL(acknowledgeURL);
 		final JDFQueueSubmissionParams queueSubmissionParams = com.appendQueueSubmissionParams();
 		queueSubmissionParams.setURL("dummy");
 		queueSubmissionParams.setPriority(42);
@@ -202,12 +164,13 @@ public class BambiTestHelper extends JDFTestCaseBase
 
 		final Multipart mp = MimeUtil.buildMimePackage(docJMF, d, false);
 
+		HttpURLConnection response = null;
 		try
 		{
 			final MIMEDetails md = new MIMEDetails();
 			md.transferEncoding = transferEncoding;
 			md.httpDetails.chunkSize = chunkSize;
-			final HttpURLConnection response = MimeUtil.writeToURL(mp, url, md);
+			response = MimeUtil.writeToURL(mp, url, md);
 			if (!url.toLowerCase().startsWith("file:"))
 			{
 				assertEquals(url, 200, response.getResponseCode());
@@ -217,6 +180,7 @@ public class BambiTestHelper extends JDFTestCaseBase
 		{
 			fail(e.getMessage()); // fail on exception
 		}
+		return response;
 	}
 
 	/**
@@ -237,10 +201,13 @@ public class BambiTestHelper extends JDFTestCaseBase
 		}
 	}
 
+	/**
+	 * @param qURL
+	 * @return
+	 */
 	public JDFQueue getQueueStatus(final String qURL)
 	{
-		final JMFFactory factory = JMFFactory.getJMFFactory();
-		final JDFJMF jmf = factory.buildQueueStatus();
+		final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
 		final JDFDoc dresp = submitJMFtoURL(jmf, qURL);
 		final JDFResponse resp = dresp.getJMFRoot().getResponse(0);
 		assertNotNull(resp);
@@ -253,7 +220,7 @@ public class BambiTestHelper extends JDFTestCaseBase
 	/**
 	 * @param jmf the jmf to send
 	 * @param url the url to send to
-	 * @throws MalformedURLException
+	 * @return
 	 */
 	public JDFDoc submitJMFtoURL(final JDFJMF jmf, final String url)
 	{

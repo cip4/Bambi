@@ -79,6 +79,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
 
+import javax.mail.BodyPart;
+import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
 import org.apache.commons.logging.Log;
@@ -95,11 +97,13 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
@@ -134,7 +138,7 @@ public class MessageSender implements Runnable
 	private boolean doShutDownGracefully = false;
 	private Vector<MessageDetails> _messages = null;
 	protected FastFiFo<MessageDetails> sentMessages = null;
-	private static Log log = LogFactory.getLog(MessageSender.class.getName());
+	protected static Log log = LogFactory.getLog(MessageSender.class.getName());
 	private static VectorMap<String, DumpDir> vDumps = new VectorMap<String, DumpDir>();
 	private final Object mutexDispatch = new Object();
 	private int sent = 0;
@@ -160,6 +164,7 @@ public class MessageSender implements Runnable
 		protected String senderID = null;
 		protected String url = null;
 		protected IConverterCallback callback;
+		protected long createTime;
 
 		/**
 		 * constructor for a single jmf message
@@ -171,11 +176,11 @@ public class MessageSender implements Runnable
 		 */
 		protected MessageDetails(final JDFJMF _jmf, final IResponseHandler _respHandler, final IConverterCallback _callback, final HTTPDetails hdet, final String detailedURL)
 		{
-			respHandler = _respHandler;
 			jmf = _jmf;
 			senderID = jmf == null ? null : jmf.getSenderID();
 			url = detailedURL;
-			callback = _callback;
+			createTime = System.currentTimeMillis();
+			setRespHandler(_respHandler, _callback);
 			if (hdet == null)
 			{
 				mimeDet = null;
@@ -198,16 +203,32 @@ public class MessageSender implements Runnable
 		 */
 		protected MessageDetails(final Multipart _mime, final IResponseHandler _respHandler, final IConverterCallback _callback, final MIMEDetails mdet, final String _senderID, final String _url)
 		{
-			respHandler = _respHandler;
 			mime = _mime;
 			mimeDet = mdet;
 			senderID = _senderID;
 			url = _url;
-			callback = _callback;
+			setRespHandler(_respHandler, _callback);
+
 		}
 
 		/**
-		 * constructor when deserializing from a file
+		 * @param _respHandler
+		 * @param _callback
+		 */
+		private void setRespHandler(final IResponseHandler _respHandler, final IConverterCallback _callback)
+		{
+			respHandler = _respHandler;
+			callback = _callback;
+			if (respHandler != null && _callback != null)
+			{
+				respHandler.setCallBack(_callback);
+			}
+		}
+
+		/**
+		 * constructor when deserializing from a file <br/>
+		 * note that the handlers are NOT reconstructed at startup - some synchronization may be lost
+		 * 
 		 * @param element the serialized representation
 		 */
 		public MessageDetails(final KElement element)
@@ -219,7 +240,7 @@ public class MessageSender implements Runnable
 			{
 				try
 				{
-					final Class c = Class.forName(cbClass);
+					final Class<?> c = Class.forName(cbClass);
 					callback = (IConverterCallback) c.newInstance();
 				}
 				catch (final Exception x)
@@ -273,9 +294,8 @@ public class MessageSender implements Runnable
 				}
 				if (jmf != null)
 				{
-					final XJDF20 xjdf20 = new XJDF20();
-					xjdf20.bUpdateVersion = false;
-					message.copyElement(xjdf20.makeNewJMF(jmf), null);
+					final KElement makeNewJMF = displayJMF(jmf);
+					message.copyElement(makeNewJMF, null);
 				}
 				else
 				// mime
@@ -284,16 +304,37 @@ public class MessageSender implements Runnable
 					{
 						message.setAttribute("TransferEncoding", mimeDet.transferEncoding);
 					}
-					final String mimNam = "Mime" + i + ".mim";
-					final File mim = FileUtil.getFileInDirectory(getPersistLocation().getParentFile(), new File(mimNam));
-					MimeUtil.writeToFile(mime, mim.getAbsolutePath(), mimeDet);
-					message.setAttribute("MimeUrl", UrlUtil.fileToUrl(mim, false));
+					BodyPart bp = null;
+					try
+					{
+						bp = mime == null ? null : mime.getBodyPart(0);
+					}
+					catch (final MessagingException e)
+					{
+						// nop
+					}
+					final JDFDoc jmfBP = MimeUtil.getJDFDoc(bp);
+					final JDFJMF _jmf = jmfBP == null ? null : jmfBP.getJMFRoot();
+					final KElement makeNewJMF = displayJMF(_jmf);
+					message.copyElement(makeNewJMF, null);
 				}
 			}
-			else if (jmf != null)
+			else
 			{
-				message.copyAttribute(AttributeName.TIMESTAMP, jmf);
+				final JDFDate d = new JDFDate(createTime);
+				message.setAttribute(AttributeName.TIMESTAMP, d.getDateTimeISO());
 			}
+		}
+
+		/**
+		 * @param _jmf
+		 */
+		private KElement displayJMF(final JDFJMF _jmf)
+		{
+			final XJDF20 xjdf20 = new XJDF20();
+			xjdf20.bUpdateVersion = false;
+			final KElement makeNewJMF = xjdf20.makeNewJMF(_jmf);
+			return makeNewJMF;
 		}
 	}
 
@@ -305,48 +346,114 @@ public class MessageSender implements Runnable
 	 */
 	public static class MessageResponseHandler implements IResponseHandler
 	{
-		protected JDFResponse resp = null;
-		private HttpURLConnection connect = null;
-		protected BufferedInputStream bufferedInput = null;
+		protected JDFResponse resp;
+		protected JDFMessage finalMessage;
+		private HttpURLConnection connect;
+		protected BufferedInputStream bufferedInput;
 		private Object mutex = new Object();
-		private int abort = 0; // 0 no abort handling, 1= abort on timeout, 2= has
-
-		// been aborted
+		private int abort = 0; // 0 no abort handling, 1= abort on timeout, 2= has been aborted
+		protected String refID;
+		private IConverterCallback callBack = null;
+		private final long startTime;
 
 		/**
-		 * 
+		 * @return the callBack
 		 */
-		public MessageResponseHandler()
+		public IConverterCallback getCallBack()
 		{
-			super();
+			return callBack;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.messaging.IMessageHandler#handleMessage(org.cip4 .jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		/**
+		 * @param _callBack the callBack to set
 		 */
+		public void setCallBack(final IConverterCallback _callBack)
+		{
+			this.callBack = _callBack;
+		}
+
+		/**
+		 * @param _refID the ID of the sent message
+		 * 
+		 */
+		public MessageResponseHandler(final String _refID)
+		{
+			super();
+			refID = _refID;
+			resp = null;
+			finalMessage = null;
+			connect = null;
+			bufferedInput = null;
+			startTime = System.currentTimeMillis();
+		}
+
 		/**
 		 * @see org.cip4.bambi.core.messaging.IResponseHandler#handleMessage()
-		 * @return true if handled
+		 * @return true if handled, even if not finalized
 		 */
 		public boolean handleMessage()
 		{
-			finalizeHandling();
-			if (bufferedInput != null)
+			if (bufferedInput != null && finalMessage == null)
 			{
-				final JDFParser p = new JDFParser();
-				final JDFDoc d = p.parseStream(bufferedInput);
+				JDFDoc d = MimeUtil.getJDFDoc(bufferedInput, 0);
+				if (callBack != null && d != null)
+				{
+					log.info("preparing jmf response");
+					d = callBack.prepareJMFForBambi(d);
+				}
 				if (d != null)
 				{
 					final JDFJMF jmf = d.getJMFRoot();
 					if (jmf != null)
 					{
-						resp = jmf.getResponse(0);
+						resp = jmf.getResponse(refID);
+						if (resp != null)
+						{
+							if (checkAcknowledge())
+							{
+								return true;
+							}
+						}
+						else
+						{
+							finalMessage = jmf.getAcknowledge(refID);
+						}
 					}
 				}
 			}
+			else if (resp != null && checkAcknowledge())
+			{
+				return true;
+			}
+
+			finalizeHandling();
 			return true;
+		}
+
+		/**
+		 * @param r
+		 */
+		private boolean checkAcknowledge()
+		{
+			final JDFResponse r = resp;
+			final boolean isAcknowledgeResponse = r.getAcknowledged();
+			if (isAcknowledgeResponse) // must wait for an acknowledge
+			{
+				String refIDMes = StringUtil.getNonEmpty(r.getrefID());
+				if (refIDMes == null)
+				{
+					refIDMes = refID;
+				}
+				final AcknowledgeMap aMap = AcknowledgeMap.getMap();
+				aMap.addHandler(refIDMes, this);
+				return true;
+			}
+			else
+			// the response is "the" final response
+			{
+				finalMessage = resp;
+			}
+			return false;
 		}
 
 		/**
@@ -359,21 +466,40 @@ public class MessageSender implements Runnable
 				return;
 			}
 			abort = 0;
-			synchronized (mutex)
-			{
-				mutex.notifyAll();
-			}
+			ThreadUtil.notifyAll(mutex);
 			mutex = null;
+			if (resp != null)
+			{
+				String rID = resp.getAttribute(AttributeName.REFID, null, null);
+				if (refID == null)
+				{
+					rID = refID;
+				}
+				if (rID != null)
+				{
+					final AcknowledgeMap aMap = AcknowledgeMap.getMap();
+					aMap.removeHandler(rID);
+				}
+			}
 		}
 
-		public JDFResponse getResponse()
+		/**
+		 * @return the Acknowledge or Response that was handled
+		 */
+		public JDFMessage getFinalMessage()
 		{
-			return resp;
+			return finalMessage;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
+		/**
+		 * @param message the Acknowledge or Response that was handled
+		 */
+		public void setMessage(final JDFMessage message)
+		{
+			finalMessage = message;
+		}
+
+		/**
 		 * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
 		 */
 		public HttpURLConnection getConnection()
@@ -398,10 +524,8 @@ public class MessageSender implements Runnable
 			bufferedInput = bis;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java .io.BufferedInputStream)
+		/**
+		 * @return the buffered input stream, may also be null in case of snafu
 		 */
 		public InputStream getBufferedStream()
 		{
@@ -425,7 +549,8 @@ public class MessageSender implements Runnable
 		}
 
 		/**
-		 * @param i
+		 * @param i milliseconds to wait
+		 * @param bAbort if true, abort handling after timeout
 		 */
 		public void waitHandled(final int i, final boolean bAbort)
 		{
@@ -451,14 +576,25 @@ public class MessageSender implements Runnable
 			}
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
+		/**
 		 * @see org.cip4.bambi.core.messaging.IResponseHandler#isAborted()
 		 */
 		public boolean isAborted()
 		{
+			final long t = System.currentTimeMillis();
+			if (t - startTime > 1000 * 24 * 60 * 60)
+			{
+				return true;
+			}
 			return mutex == null ? false : abort == 2;
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.IResponseHandler#getResponse()
+		 */
+		public JDFResponse getResponse()
+		{
+			return resp;
 		}
 	}
 
@@ -780,6 +916,11 @@ public class MessageSender implements Runnable
 						inDump.newFile(header);
 					}
 				}
+				if (mh.respHandler != null)
+				{
+					mh.respHandler.setConnection(con);
+					mh.respHandler.handleMessage(); // make sure we tell anyone who is waiting that the wait is over...
+				}
 			}
 		}
 		catch (final Exception e)
@@ -810,13 +951,7 @@ public class MessageSender implements Runnable
 			doShutDown = true;
 		}
 		JMFFactory.getJMFFactory().senders.remove(callURL);
-		if (mutexDispatch != null)
-		{
-			synchronized (mutexDispatch)
-			{
-				mutexDispatch.notifyAll();
-			}
-		}
+		ThreadUtil.notifyAll(mutexDispatch);
 	}
 
 	/**
@@ -899,10 +1034,7 @@ public class MessageSender implements Runnable
 			_messages.add(messageDetails);
 			lastQueued = System.currentTimeMillis();
 		}
-		synchronized (mutexDispatch)
-		{
-			mutexDispatch.notifyAll();
-		}
+		ThreadUtil.notifyAll(mutexDispatch);
 	}
 
 	/**

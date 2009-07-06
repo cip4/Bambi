@@ -299,6 +299,15 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 	}
 
 	/**
+	 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#isSubScribable()
+	 */
+	@Override
+	public boolean isSubScribable()
+	{
+		return true;
+	}
+
+	/**
 	 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 	 */
 	@Override

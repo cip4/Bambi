@@ -72,11 +72,13 @@
 package org.cip4.bambi;
 
 import java.io.File;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
+import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VElement;
@@ -113,14 +115,15 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected final static String sm_dirTestTemp = cwd + File.separator + "test" + File.separator + "temp" + File.separator;
 	protected final static String sm_UrlTestData = "File:test/data/";
 
-	protected static String simWorkerUrl = "http://localhost:8080/SimWorker/jmf/sim002";
-	protected static String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy";
-	protected static String proxySlaveUrl = "http://kie-prosirai-lg:8080/BambiProxy/slavejmf/pushproxy";
+	protected String simWorkerUrl = "http://localhost:8080/SimWorker/jmf/sim002";
+	protected String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy";
+	protected String proxySlaveUrl = "http://kie-prosirai-lg:8080/BambiProxy/slavejmf/pushproxy";
 	// protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
-	protected static String manualWorkerUrl = null;
-	protected static String returnJMF = "http://localhost:8080/httpDump/returnJMF";
-	protected static String subscriptionURL = "http://localhost:8080/httpdump/testSubscriptions";
-	protected static String returnURL = null;// "http://localhost:8080/httpDump/returnURL";
+	protected String manualWorkerUrl = null;
+	protected String returnJMF = "http://localhost:8080/httpdump/returnJMF";
+	protected String subscriptionURL = "http://localhost:8080/httpdump/testSubscriptions";
+	protected String returnURL = null;// "http://localhost:8080/httpdump/returnURL";
+	protected String acknowledgeURL = null;// "http://localhost:8080/httpdump/returnURL";
 
 	protected boolean bUpdateJobID = false;
 	protected int chunkSize = -1;
@@ -539,7 +542,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected void abortRemoveAll(final String url)
 	{
 		final JMFFactory factory = JMFFactory.getJMFFactory();
-		JDFJMF jmf = factory.buildQueueStatus();
+		JDFJMF jmf = new JMFBuilder().buildQueueStatus();
 		final JDFResponse resp = factory.send2URLSynchResp(jmf, url, null, "testcase", 2000);
 		if (resp == null)
 		{
@@ -561,7 +564,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		for (int i = siz - 1; i >= 0; i--)
 		{
 			final String qeid = ((JDFQueueEntry) qVec.get(i)).getQueueEntryID();
-			jmf = factory.buildAbortQueueEntry(qeid);
+			jmf = new JMFBuilder().buildAbortQueueEntry(qeid);
 			factory.send2URL(jmf, url, null, null, "testcase");
 		}
 
@@ -571,7 +574,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		for (int i = 0; i < siz; i++)
 		{
 			final String qeid = ((JDFQueueEntry) qVec.get(i)).getQueueEntryID();
-			jmf = factory.buildRemoveQueueEntry(qeid);
+			jmf = new JMFBuilder().buildRemoveQueueEntry(qeid);
 			factory.send2URL(jmf, url, null, null, "testcase");
 		}
 	}
@@ -589,10 +592,10 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 * @param url the url to send to
 	 * @throws MalformedURLException
 	 */
-	protected void submitMimetoURL(final String url) throws MalformedURLException
+	protected HttpURLConnection submitMimetoURL(final String url) throws MalformedURLException
 	{
 		final JDFDoc doc = _theGT.getNode().getOwnerDocument_JDFElement();
-		submitMimetoURL(doc, url);
+		return submitMimetoURL(doc, url);
 	}
 
 	/**
@@ -615,14 +618,15 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 * @param url the url to send to
 	 * @throws MalformedURLException
 	 */
-	protected void submitMimetoURL(final JDFDoc d, final String url) throws MalformedURLException
+	protected HttpURLConnection submitMimetoURL(final JDFDoc d, final String url) throws MalformedURLException
 	{
 		ensureCurrentGT();
 		final BambiTestHelper helper = new BambiTestHelper();
 		helper.returnJMF = returnJMF;
 		helper.chunkSize = chunkSize;
 		helper.transferEncoding = transferEncoding;
-		helper.submitMimetoURL(d, url);
+		helper.acknowledgeURL = acknowledgeURL;
+		return helper.submitMimetoURL(d, url);
 	}
 
 	protected JDFQueue getQueueStatus(final String qURL)
