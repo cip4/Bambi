@@ -71,10 +71,14 @@
 
 package org.cip4.bambi;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+
 import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
@@ -102,6 +106,22 @@ public class ProxyTest extends BambiTestCase
 	public void testSubmitQueueEntry_MIME() throws Exception
 	{
 		submitMimetoURL(proxyUrl);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	public void testResubmitQueueEntry_MIME() throws Exception
+	{
+		// get number of QueueEntries before submitting
+		final JDFQueue q = getQueueStatus(proxyUrl);
+		assertNotNull(q);
+		// build SubmitQueueEntry
+		final HttpURLConnection uc = resubmitMimetoURL("qe_090713_140246586_056621", proxyUrl);
+		final InputStream is = uc.getInputStream();
+		final JDFDoc doc = new JDFParser().parseStream(is);
+		assertNotNull(doc);
+
 	}
 
 	/**

@@ -71,11 +71,15 @@
 
 package org.cip4.bambi;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+
 import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
@@ -122,6 +126,22 @@ public class SimTest extends BambiTestCase
 		assertNotNull(q);
 		// build SubmitQueueEntry
 		submitMimetoURL(simWorkerUrl);
+
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	public void testResubmitQueueEntry_MIME() throws Exception
+	{
+		// get number of QueueEntries before submitting
+		final JDFQueue q = getQueueStatus(simWorkerUrl);
+		assertNotNull(q);
+		// build SubmitQueueEntry
+		final HttpURLConnection uc = resubmitMimetoURL("qe_090713_090719387_976641", simWorkerUrl);
+		final InputStream is = uc.getInputStream();
+		final JDFDoc doc = new JDFParser().parseStream(is);
+		assertNotNull(doc);
 
 	}
 
@@ -184,15 +204,15 @@ public class SimTest extends BambiTestCase
 
 		// check that the QE is on the proxy
 		final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
-		for (int i = 1; i < 22; i++)
+		for (int i = 1; i < 22222; i++)
 		{
 			System.out.println("submitting " + i);
 			// build SubmitQueueEntry
 			submitMimetoURL(simWorkerUrl);
-			ThreadUtil.sleep(1000);
-			final JDFQueue q2 = getQueueStatus(simWorkerUrl);
-			final int newCount = q2.getEntryCount();
-			assertEquals(oldSize + i, newCount);
+			ThreadUtil.sleep(5000);
+			// final JDFQueue q2 = getQueueStatus(simWorkerUrl);
+			// final int newCount = q2.getEntryCount();
+			// assertEquals(oldSize + i, newCount);
 		}
 	}
 

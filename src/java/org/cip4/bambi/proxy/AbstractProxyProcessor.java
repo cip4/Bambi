@@ -83,6 +83,7 @@ import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -96,9 +97,11 @@ import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFResubmissionParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFNotification;
@@ -108,12 +111,138 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
 /**
+ * also used for resubmitqueueentry
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  * 
  * before 13.02.2009
  */
 public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 {
+	protected class QueueResubmitter
+	{
+		final private String slaveQEID;
+		final private String myQEID;
+		final private JDFDoc doc;
+
+		/**
+		 * @param _doc
+		 * @param slaveID
+		 * @param localqeID
+		 */
+		public QueueResubmitter(final JDFDoc _doc, final String slaveID, final String localqeID)
+		{
+			this.doc = _doc;
+			slaveQEID = slaveID;
+			myQEID = localqeID;
+		}
+
+		/**
+		 * @return
+		 */
+		public int resubmit()
+		{
+			final AbstractProxyDevice device = (AbstractProxyDevice) _parent;
+
+			final IProxyProperties proxyProperties = getParent().getProxyProperties();
+			final String slaveURL = proxyProperties.getSlaveURL();
+			if (slaveURL == null)
+			{
+				return 106; // already running if only hot folder; ciao
+			}
+			final MIMEDetails ud = new MIMEDetails();
+			ud.httpDetails.chunkSize = proxyProperties.getSlaveHTTPChunk();
+			ud.transferEncoding = proxyProperties.getSlaveMIMEEncoding();
+			final boolean expandMime = proxyProperties.getSlaveMIMEExpansion();
+			final boolean isMime = proxyProperties.isSlaveMimePackaging();
+
+			final JDFNode node = doc.getJDFRoot(); // the retained internal node
+			KElement modNode = node; // the external node
+			final JMFBuilder b = getBuilderForSlave();
+			final JDFJMF jmf = b.buildResubmitQueueEntry(slaveQEID, null);
+			final JDFResubmissionParams rsp = jmf.getCommand(0).getResubmissionParams(0);
+			if (slaveCallBack != null)
+			{
+				if (isMime)
+				{
+					final JDFDoc d = slaveCallBack.updateJDFForExtern(new JDFDoc(node.getOwnerDocument()));
+					modNode = d.getRoot();
+				}
+				slaveCallBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+			}
+
+			if (isMime)
+			{
+				rsp.setURL("dummy"); // replaced by mimeutil
+			}
+			else
+			// setup http get for JDF
+			{
+				String jdfURL = device.getDeviceURL();
+				jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/" + AbstractProxyDevice.SLAVEJMF + "/");
+				modNode.getOwnerDocument_KElement().write2File((String) null, 0, true);
+				jdfURL += "?Callback=true&qeID=" + myQEID;
+				rsp.setURL(jdfURL);
+			}
+			if (modNode != null)
+			{
+				try
+				{
+
+					final JDFMessage r = writeToQueue(jmf.getOwnerDocument_JDFElement(), modNode.getOwnerDocument_KElement(), slaveURL, ud, expandMime, isMime);
+					if (r != null)
+					{
+						if (!EnumType.ResubmitQueueEntry.equals(r.getEnumType())) // total snafu???
+						{
+							return 1;
+						}
+						else
+						{
+							rc = r.getReturnCode();
+							return rc;
+						}
+					}
+					else
+					{
+						log.error("resubmit- no response at: " + slaveURL);
+						return 1;
+					}
+				}
+				catch (final IOException x)
+				{
+					log.error("resubmit - IOEXception at: ", x);
+					modNode = null;
+				}
+			}
+			return 1;
+		}
+	}
+
+	protected class SubmitQueueEntryResponseHandler extends MessageResponseHandler
+	{
+
+		/**
+		 * @param refID
+		 * 
+		 */
+		public SubmitQueueEntryResponseHandler(final String refID)
+		{
+			super(refID);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 */
+		@Override
+		public boolean handleMessage()
+		{
+			final boolean b = super.handleMessage();
+			return b;
+		}
+
+	}
+
 	protected int rc;
 	protected JDFNotification notification;
 	private static Log log = LogFactory.getLog(AbstractProxyProcessor.class);
@@ -160,21 +289,8 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		{
 			JMFFactory.getJMFFactory().send2URL(docJMF.getJMFRoot(), strUrl, sqh, slaveCallBack, _parent.getDeviceID());
 		}
-		sqh.waitHandled(10000, false);
-		JDFMessage handlerResponse = sqh.getResponse();
-		if (handlerResponse != null)
-		{
-			JDFMessage finalResp = sqh.getFinalMessage();
-			if (finalResp == null)
-			{
-				sqh.waitHandled(120000, true);
-				finalResp = sqh.getFinalMessage();
-			}
-			if (finalResp != null)
-			{
-				handlerResponse = finalResp;
-			}
-		}
+		sqh.waitHandled(10000, 30000, false);
+		final JDFMessage handlerResponse = handleQueueAcknowledge(sqh);
 		if (handlerResponse == null)
 		{
 			log.warn("submission timeout sending to " + strUrl);
@@ -196,6 +312,29 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			return r;
 		}
 
+		return handlerResponse;
+	}
+
+	/**
+	 * @param sqh
+	 * @return
+	 */
+	private JDFMessage handleQueueAcknowledge(final MessageResponseHandler sqh)
+	{
+		JDFMessage handlerResponse = sqh.getResponse();
+		if (handlerResponse != null)
+		{
+			JDFMessage finalResp = sqh.getFinalMessage();
+			if (finalResp == null)
+			{
+				sqh.waitHandled(120000, -1, true);
+				finalResp = sqh.getFinalMessage();
+			}
+			if (finalResp != null)
+			{
+				handlerResponse = finalResp;
+			}
+		}
 		return handlerResponse;
 	}
 
@@ -252,8 +391,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 		// fix for returning
 
-		final JDFNode node = getCloneJDFForSlave(); // the retained internal node
-		KElement modNode = node; // the external node
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		if (qe != null)
 		{
@@ -262,6 +399,8 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			qsp.copyAttribute(AttributeName.DESCRIPTIVENAME, qe);
 		}
 
+		final JDFNode node = getCloneJDFForSlave(); // the retained internal node
+		KElement modNode = node; // the external node
 		if (slaveCallBack != null)
 		{
 			if (isMime)
@@ -348,7 +487,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		{
 			return null;
 		}
-		final JDFDoc docClone = (JDFDoc) nod.getOwnerDocument_JDFElement().clone();
+		final JDFDoc docClone = nod.getOwnerDocument_JDFElement().clone();
 		final JDFNode rootClone = docClone.getJDFRoot();
 		JDFNode nodClone = rootClone.getJobPart(nod.getJobPartID(false), nod.getJobID(true));
 		if (nodClone == null)
@@ -386,5 +525,43 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				vJMF.get(j).deleteNode();
 			}
 		}
+	}
+
+	/**
+	 * @param doc
+	 * @param queueEntryID
+	 * @return
+	 */
+	public int canAccept(final JDFDoc doc, final String queueEntryID)
+	{
+		if (queueEntryID == null)
+		{
+			return 0;
+		}
+		final String slaveID = getSlaveQEID(queueEntryID);
+		if (slaveID == null)
+		{
+			return 0;
+		}
+		return new QueueResubmitter(doc, slaveID, queueEntryID).resubmit();
+
+	}
+
+	/**
+	 * @param queueEntryID
+	 * @return
+	 */
+	private String getSlaveQEID(final String queueEntryID)
+	{
+		final JDFQueue q = getParent().getQueueProcessor().getQueue();
+		return BambiNSExtension.getSlaveQueueEntryID(q.getQueueEntry(queueEntryID));
+	}
+
+	/**
+	 * @return the QueuentryID as submitted to the slave device
+	 */
+	public String getSlaveQEID()
+	{
+		return currentQE == null ? null : BambiNSExtension.getSlaveQueueEntryID(currentQE.getQueueEntry());
 	}
 }

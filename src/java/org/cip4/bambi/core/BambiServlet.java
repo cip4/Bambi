@@ -168,7 +168,7 @@ public class BambiServlet extends HttpServlet
 		}
 
 		/**
-		 * @param d the error details string
+		 * @param m the error details string
 		 */
 		public void setMessage(final String m)
 		{
@@ -602,10 +602,10 @@ public class BambiServlet extends HttpServlet
 	 * @param config the name of the Java config xml file
 	 * @param dump the file where to dump debug requests
 	 */
-	protected void loadProperties(final ServletContext context, final File config, final String dump)
+	protected boolean loadProperties(final ServletContext context, final File config, final String dump)
 	{
 		final MultiDeviceProperties props = new MultiDeviceProperties(context, config);
-		createDevices(props, dump);
+		return createDevices(props, dump);
 	}
 
 	/**
@@ -788,6 +788,7 @@ public class BambiServlet extends HttpServlet
 	 */
 	protected boolean createDevices(final MultiDeviceProperties props, final String dump)
 	{
+		boolean created = false;
 		MessageSender.setBaseLocation(props.getJMFDir());
 		final Vector<File> dirs = new Vector<File>();
 		dirs.add(props.getBaseDir());
@@ -803,43 +804,62 @@ public class BambiServlet extends HttpServlet
 			final KElement next = iter.next();
 			log.info("Creating Device " + next.getAttribute("DeviceID"));
 			final IDeviceProperties prop = props.createDevice(next);
-			AbstractDevice d = null;
-			if (rootDev == null)
-			{
-				if (needController)
-				{
-					d = prop.getDeviceInstance();
-					if (!(d instanceof RootDevice))
-					{
-						log.info("Updating Root Device " + next.getAttribute("DeviceID"));
-						d.shutdown();
-						d = new RootDevice(prop);
-					}
-				}
-				else
-				{
-					d = prop.getDeviceInstance();
-				}
-				rootDev = d;
-			}
-			else
-			// we already have a root / dispatcher device - use it as base
-			{
-				final RootDevice rd = getRootDevice();
-				d = rd.createDevice(prop);
-
-			}
-			if (dump != null)
+			final AbstractDevice d = createDevice(prop, needController);
+			created = created || d != null;
+			if (d != null && dump != null)
 			{
 				bambiDumpIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inServer")));
 				bambiDumpOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outServer")));
-				final String senderID = d != null ? d.getDeviceID() : "Bambi";
+				final String senderID = d.getDeviceID();
 				final DumpDir dumpSendIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inMessage." + senderID)));
 				final DumpDir dumpSendOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outMessage." + senderID)));
 				MessageSender.addDumps(senderID, dumpSendIn, dumpSendOut);
 			}
 		}
-		return true;
+		return created;
+	}
+
+	/**
+	 * @param needController
+	 * @param next
+	 * @param prop
+	 * @return
+	 */
+	private AbstractDevice createDevice(final IDeviceProperties prop, final boolean needController)
+	{
+		AbstractDevice d = null;
+		if (rootDev == null)
+		{
+			if (needController)
+			{
+				d = prop.getDeviceInstance();
+				if (!(d instanceof RootDevice))
+				{
+					log.info("Updating Root Device " + prop.getDeviceID());
+					d.shutdown();
+					d = new RootDevice(prop);
+				}
+			}
+			else
+			{
+				d = prop.getDeviceInstance();
+			}
+			rootDev = d;
+		}
+		else
+		// we already have a root / dispatcher device - use it as base
+		{
+			final RootDevice rd = getRootDevice();
+			d = rd.createDevice(prop);
+
+		}
+		if (d.mustDie())
+		{
+			d.shutdown();
+			d = null;
+		}
+
+		return d;
 	}
 
 	@Override

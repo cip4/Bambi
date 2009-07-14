@@ -84,6 +84,7 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.core.KElement.EnumValidationLevel;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.goldenticket.BaseGoldenTicket;
@@ -523,6 +524,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	public BambiTestCase()
 	{
 		JDFJMF.setTheSenderID("BambiTest");
+		// simWorkerUrl = "http://localhost:8080/misconnector/jmf/MISConnector";
 	}
 
 	/**
@@ -603,6 +605,17 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 * @param url the url to send to
 	 * @throws MalformedURLException
 	 */
+	protected HttpURLConnection resubmitMimetoURL(final String qeID, final String url) throws MalformedURLException
+	{
+		final JDFDoc doc = _theGT.getNode().getOwnerDocument_JDFElement();
+		return resubmitMimetoURL(qeID, doc, url);
+	}
+
+	/**
+	 * requires assigned node...
+	 * @param url the url to send to
+	 * @throws MalformedURLException
+	 */
 	protected void submitXtoURL(final String url) throws MalformedURLException
 	{
 		final JDFNode n = _theGT.getNode();
@@ -627,6 +640,22 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		helper.transferEncoding = transferEncoding;
 		helper.acknowledgeURL = acknowledgeURL;
 		return helper.submitMimetoURL(d, url);
+	}
+
+	/**
+	 * @param d the doc of the root node
+	 * @param url the url to send to
+	 * @throws MalformedURLException
+	 */
+	protected HttpURLConnection resubmitMimetoURL(final String qeid, final JDFDoc d, final String url) throws MalformedURLException
+	{
+		ensureCurrentGT();
+		final BambiTestHelper helper = new BambiTestHelper();
+		helper.returnJMF = returnJMF;
+		helper.chunkSize = chunkSize;
+		helper.transferEncoding = transferEncoding;
+		helper.acknowledgeURL = acknowledgeURL;
+		return helper.resubmitMimetoURL(qeid, d, url);
 	}
 
 	protected JDFQueue getQueueStatus(final String qURL)
@@ -658,6 +687,18 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		map.put("SheetName", "s1");
 		vParts.add(map);
 		_theGT = new MISCPGoldenTicket(2, EnumVersion.Version_1_3, 2, 2, false, vParts);
+	}
+
+	/**
+	 * @param jmf
+	 * @return the response
+	 */
+	protected JDFResponse sendToURL(final JDFJMF jmf, final String url)
+	{
+		final JDFJMF respRoot = jmf.getOwnerDocument_JDFElement().write2URL(url).getJMFRoot();
+		final JDFResponse resp = respRoot.getResponse(0);
+		assertTrue(resp.getJMFRoot().isValid(EnumValidationLevel.Complete));
+		return resp;
 	}
 
 }

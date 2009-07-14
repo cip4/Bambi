@@ -122,31 +122,6 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	protected String _trackResource = null;
 	protected AbstractDevice _parent = null;
 
-	protected class SubmitQueueEntryResponseHandler extends MessageResponseHandler
-	{
-
-		/**
-		 * @param refID
-		 * 
-		 */
-		public SubmitQueueEntryResponseHandler(final String refID)
-		{
-			super(refID);
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-		 */
-		@Override
-		public boolean handleMessage()
-		{
-			return super.handleMessage();
-		}
-
-	}
-
 	private class XMLDeviceProcessor
 	{
 		KElement root;

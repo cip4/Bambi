@@ -103,10 +103,10 @@ public class ProxyServlet extends BambiServlet
 	private Log log = null;
 
 	@Override
-	protected void loadProperties(final ServletContext context, final File config, final String deviceID)
+	protected boolean loadProperties(final ServletContext context, final File config, final String deviceID)
 	{
 		final MultiDeviceProperties props = new ProxyProperties(context, config);
-		createDevices(props, deviceID);
+		return createDevices(props, deviceID);
 	}
 
 }

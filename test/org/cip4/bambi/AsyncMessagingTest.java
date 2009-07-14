@@ -236,7 +236,7 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	/**
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#waitHandled(int, boolean)
 	 */
-	public void waitHandled(final int milliSeconds, final boolean abortTimeOut)
+	public void waitHandled(final int milliSeconds, final int milliSeconds2, final boolean abortTimeOut)
 	{
 		// TODO Auto-generated method stub
 

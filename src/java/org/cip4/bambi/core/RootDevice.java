@@ -88,6 +88,7 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.jmf.JDFDeviceFilter;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -150,16 +151,16 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
+	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc, java.lang.String)
 	 */
 	@Override
-	public int canAccept(final JDFDoc doc)
+	public int canAccept(final JDFDoc doc, final String queueEntryID)
 	{
 		final Iterator<String> it = _devices.keySet().iterator();
 		while (it.hasNext())
 		{
 			final AbstractDevice ad = _devices.get(it.next());
-			if (ad.canAccept(doc) == 0)
+			if (ad.canAccept(doc, queueEntryID) == 0)
 			{
 				return 0;
 			}
@@ -215,39 +216,6 @@ public class RootDevice extends AbstractDevice
 		return dev;
 	}
 
-	protected boolean handleKnownDevices(final JDFMessage m, final JDFResponse resp)
-	{
-		if (m == null || resp == null)
-		{
-			return false;
-		}
-		// log.info("Handling "+m.getType());
-		final EnumType typ = m.getEnumType();
-		if (EnumType.KnownDevices.equals(typ))
-		{
-			final JDFDeviceList dl = resp.appendDeviceList();
-			appendDeviceInfo(dl); // write myself into the list...
-			final Set<String> keys = _devices.keySet();
-			final Object[] strKeys = keys.toArray();
-			for (int i = 0; i < keys.size(); i++)
-			{
-				final String key = (String) strKeys[i];
-				final AbstractDevice dev = _devices.get(key);
-				if (dev == null)
-				{
-					log.error("device with key '" + key + "'not found");
-				}
-				else
-				{
-					dev.appendDeviceInfo(dl);
-				}
-			}
-			return true;
-		}
-
-		return false;
-	}
-
 	/**
 	 * handler for the knowndevices query
 	 */
@@ -267,6 +235,45 @@ public class RootDevice extends AbstractDevice
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			return handleKnownDevices(m, resp);
+		}
+
+		protected boolean handleKnownDevices(final JDFMessage m, final JDFResponse resp)
+		{
+			if (m == null || resp == null)
+			{
+				return false;
+			}
+			// log.info("Handling "+m.getType());
+			final EnumType typ = m.getEnumType();
+			if (EnumType.KnownDevices.equals(typ))
+			{
+				final JDFDeviceList dl = resp.appendDeviceList();
+				appendDeviceInfo(dl); // write myself into the list...
+				final Set<String> keys = _devices.keySet();
+				final Object[] strKeys = keys.toArray();
+				for (int i = 0; i < keys.size(); i++)
+				{
+					final String key = (String) strKeys[i];
+					final AbstractDevice dev = _devices.get(key);
+					if (dev == null)
+					{
+						log.error("device with key '" + key + "'not found");
+					}
+					else
+					{
+						dev.appendDeviceInfo(dl);
+					}
+				}
+				final JDFDeviceFilter filter = m.getDeviceFilter(0);
+				if (filter != null)
+				{
+					filter.applyTo(dl);
+				}
+
+				return true;
+			}
+
+			return false;
 		}
 	}
 

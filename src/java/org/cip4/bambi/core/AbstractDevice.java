@@ -104,6 +104,7 @@ import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.jmf.JDFDeviceFilter;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -253,8 +254,14 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			final EnumType typ = m.getEnumType();
 			if (EnumType.KnownDevices.equals(typ))
 			{
+
 				final JDFDeviceList dl = resp.appendDeviceList();
 				appendDeviceInfo(dl);
+				final JDFDeviceFilter filter = m.getDeviceFilter(0);
+				if (filter != null)
+				{
+					filter.applyTo(dl);
+				}
 				return true;
 			}
 
@@ -864,6 +871,10 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			return null;
 		}
 		theDeviceProcessor.stopProcessing(status);
+		if (status == null && StringUtil.getNonEmpty(queueEntryID) != null)
+		{
+			getSignalDispatcher().removeSubScriptions(queueEntryID, null, null);
+		}
 		final IQueueEntry currentQE = theDeviceProcessor.getCurrentQE();
 		return currentQE == null ? null : currentQE.getQueueEntry();
 	}
@@ -943,9 +954,10 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	/**
 	 * returns 0 if the device can process the jdf ticket
 	 * @param doc
+	 * @param queueEntryID, may be null in case of a new submission
 	 * @return 0 if successful, else the error code
 	 */
-	public abstract int canAccept(JDFDoc doc);
+	public abstract int canAccept(JDFDoc doc, String queueEntryID);
 
 	/**
 	 * @param doc
@@ -1424,6 +1436,15 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	public IGetHandler getGetDispatchHandler()
 	{
 		return this;
+	}
+
+	/**
+	 * must I go? used e.g. for licesing
+	 * @return
+	 */
+	public boolean mustDie()
+	{
+		return false;
 	}
 
 }

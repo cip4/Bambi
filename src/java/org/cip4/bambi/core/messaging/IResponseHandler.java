@@ -117,10 +117,11 @@ public interface IResponseHandler
 
 	/**
 	 * wait for the handleMessage to complete
-	 * @param milliSeconds
+	 * @param wait1 milliseconds to wait for a connection
+	 * @param wait2 milliseconds to wait for the response after the connection has been established
 	 * @param abortTimeOut if abortTimeOut, don't send after timeout millisecconds
 	 */
-	public void waitHandled(int milliSeconds, boolean abortTimeOut);
+	public void waitHandled(int wait1, int wait2, boolean abortTimeOut);
 
 	/**
 	 * true if this messages timed out

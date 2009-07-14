@@ -96,7 +96,7 @@ public class BambiServletTest extends BambiTestCase
 	{
 		final XMLDoc d = new XMLDoc("test", null);
 		d.getRoot().setText("Some odd message");
-		final HttpURLConnection uc = d.write2HTTPURL(UrlUtil.StringToURL(simWorkerUrl), UrlUtil.TEXT_HTML, null);
+		final HttpURLConnection uc = d.write2HTTPURL(UrlUtil.stringToURL(simWorkerUrl), UrlUtil.TEXT_HTML, null);
 		assertNotNull(uc);
 		final InputStream is = uc.getInputStream();
 		assertNotNull(is);

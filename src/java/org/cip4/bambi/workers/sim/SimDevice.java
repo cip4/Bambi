@@ -83,8 +83,11 @@ import org.cip4.bambi.core.BambiServletRequest;
 import org.cip4.bambi.core.BambiServletResponse;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
+import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.workers.sim.SimDeviceProcessor.JobPhase;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
+import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFResourceLink;
@@ -92,6 +95,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StringUtil;
@@ -118,11 +122,26 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 	protected String _typeExpression = null; // the regexp that defines the valid types
 
 	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
+	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc, java.lang.String)
 	 */
 	@Override
-	public int canAccept(final JDFDoc doc)
+	public int canAccept(final JDFDoc doc, final String queueEntryID)
 	{
+		if (queueEntryID != null)
+		{
+			final JDFQueueEntry qe = getQueueProcessor().getQueue().getQueueEntry(queueEntryID);
+			if (qe == null)
+			{
+				log.error("no qe: " + queueEntryID);
+				return 105;
+			}
+			if (EnumQueueEntryStatus.Running.equals(qe.getQueueEntryStatus()))
+
+			{
+				JMFHandler.errorResponse(null, "Queuentry already running - QueueEntryID: " + queueEntryID, 106, EnumClass.Error);
+			}
+		}
+
 		if (doc != null && _typeExpression == null)
 		{
 			return 0;

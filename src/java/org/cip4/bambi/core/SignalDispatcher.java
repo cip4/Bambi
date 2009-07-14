@@ -187,6 +187,11 @@ public final class SignalDispatcher
 			{
 				stopSender(request, response);
 			}
+			final String pause = request.getParameter("pause");
+			if (StringUtil.isBoolean(pause))
+			{
+				pauseResumeSender(request, response);
+			}
 			final boolean bFlushSender = request.getBooleanParam("FlushSender");
 			if (bFlushSender)
 			{
@@ -241,26 +246,42 @@ public final class SignalDispatcher
 		 * @param request
 		 * @param response
 		 */
-		private void stopSender(final BambiServletRequest request, final BambiServletResponse response)
+		private void pauseResumeSender(final BambiServletRequest request, final BambiServletResponse response)
 		{
-			String url = request.getParameter(AttributeName.URL);
-			final URL myURL = UrlUtil.StringToURL(url);
-			if (myURL == null)
-			{
-				return;
-			}
-			url = myURL.toExternalForm();
-			final Vector<MessageSender> v = JMFFactory.getJMFFactory().getAllMessageSenders();
-			final int size = v == null ? 0 : v.size();
+			final String url = request.getParameter(AttributeName.URL);
+			final Vector<MessageSender> v = JMFFactory.getJMFFactory().getMessageSenders(url);
+			final boolean pause = request.getBooleanParam("pause");
 			if (v != null)
 			{
-				for (int i = 0; i < size; i++)
+				for (int i = 0; i < v.size(); i++)
 				{
 					final MessageSender messageSender = v.get(i);
-					if (messageSender.matchesURL(url))
+					if (pause)
 					{
-						messageSender.shutDown(true);
+						messageSender.pause();
 					}
+					else
+					{
+						messageSender.resume();
+					}
+				}
+			}
+		}
+
+		/**
+		 * @param request
+		 * @param response
+		 */
+		private void stopSender(final BambiServletRequest request, final BambiServletResponse response)
+		{
+			final String url = request.getParameter(AttributeName.URL);
+			final Vector<MessageSender> v = JMFFactory.getJMFFactory().getMessageSenders(url);
+			if (v != null)
+			{
+				for (int i = 0; i < v.size(); i++)
+				{
+					final MessageSender messageSender = v.get(i);
+					messageSender.shutDown(true);
 				}
 			}
 		}
@@ -271,20 +292,13 @@ public final class SignalDispatcher
 		 */
 		private void flushSender(final BambiServletRequest request, final BambiServletResponse response)
 		{
-			String url = request.getParameter(AttributeName.URL);
-			final URL myURL = UrlUtil.StringToURL(url);
-			if (myURL == null)
+			final String url = request.getParameter(AttributeName.URL);
+			final Vector<MessageSender> v = JMFFactory.getJMFFactory().getMessageSenders(url);
+			if (v != null)
 			{
-				return;
-			}
-			url = myURL.toExternalForm();
-			final Vector<MessageSender> v = JMFFactory.getJMFFactory().getAllMessageSenders();
-			final int size = v == null ? 0 : v.size();
-			for (int i = 0; i < size; i++)
-			{
-				final MessageSender messageSender = v.get(i);
-				if (messageSender.matchesURL(url))
+				for (int i = 0; i < v.size(); i++)
 				{
+					final MessageSender messageSender = v.get(i);
 					messageSender.flushMessages();
 				}
 			}
@@ -296,14 +310,16 @@ public final class SignalDispatcher
 		private void listDispatchers(final BambiServletRequest request, final boolean bListSenders, final int pos)
 		{
 			final String url = request.getParameter(AttributeName.URL);
-			final URL myURL = UrlUtil.StringToURL(url);
-			if (myURL == null)
+			final URL myURL = UrlUtil.stringToURL(url);
+			if (myURL == null || pos < 0)
 			{
-				final Vector<MessageSender> v = JMFFactory.getJMFFactory().getAllMessageSenders();
-				final int size = v == null ? 0 : v.size();
-				for (int i = 0; i < size; i++)
+				final Vector<MessageSender> v = JMFFactory.getJMFFactory().getMessageSenders(null);
+				if (v != null)
 				{
-					v.get(i).appendToXML(root, false, pos);
+					for (final MessageSender ms : v)
+					{
+						ms.appendToXML(root, false, pos);
+					}
 				}
 			}
 			else
@@ -327,11 +343,12 @@ public final class SignalDispatcher
 		public void listChannels(final BambiServletRequest request, final String details)
 		{
 			final Vector<MsgSubscription> v = ContainerUtil.toValueVector(subscriptionMap, true);
-
-			final int size = v == null ? 0 : v.size();
-			for (int i = 0; i < size; i++)
+			if (v != null)
 			{
-				v.get(i).appendToXML(root, details, -1);
+				for (final MsgSubscription ms : v)
+				{
+					ms.appendToXML(root, details, -1);
+				}
 			}
 		}
 
@@ -409,7 +426,7 @@ public final class SignalDispatcher
 						final MsgSubscription sub = new MsgSubscription(v.get(i));
 						synchronized (subscriptionMap)
 						{
-							if (sub != null && sub.channelID != null)
+							if (sub.channelID != null)
 							{
 								subscriptionMap.put(sub.channelID, sub);
 								log.info("reloading subscription for channelID=" + sub.channelID);
@@ -501,12 +518,14 @@ public final class SignalDispatcher
 		 */
 		protected void setQueued()
 		{
-				ThreadUtil.notifyAll(mutex);
+			ThreadUtil.notifyAll(mutex);
 			mutex = null;
 		}
 
 		/**
 		 * wait for all trigger to be queued by the dispatcher
+		 * @param triggers
+		 * @param milliseconds
 		 */
 		public static void waitQueued(final Trigger[] triggers, final int milliseconds)
 		{
@@ -522,6 +541,7 @@ public final class SignalDispatcher
 
 		/**
 		 * wait for this to be queued
+		 * @param milliseconds
 		 */
 		public void waitQueued(final int milliseconds)
 		{
@@ -548,6 +568,8 @@ public final class SignalDispatcher
 	// ///////////////////////////////////////////////////////////
 	protected class Dispatcher implements Runnable
 	{
+		long timeSpent = 0;
+
 		/**
 		 * this is the time clocked dispatcher thread
 		 */
@@ -572,6 +594,7 @@ public final class SignalDispatcher
 		 */
 		void flush()
 		{
+			final long t0 = System.currentTimeMillis();
 			int n = 0;
 			while (true)
 			{
@@ -601,6 +624,7 @@ public final class SignalDispatcher
 					break; // flushed all
 				}
 			}
+			timeSpent += System.currentTimeMillis() - t0;
 		}
 
 		/**
@@ -1223,8 +1247,31 @@ public final class SignalDispatcher
 		 */
 		private void addToResponse(final JDFResponse response, final MsgSubscription sub)
 		{
-			// do nothing in this version
-
+			if (response == null)
+			{
+				return;
+			}
+			if (sub == null)
+			{
+				JMFHandler.errorResponse(response, "No matching subscriptions found", 111, EnumClass.Error);
+			}
+			else
+			{
+				final VString vs = StringUtil.tokenize(response.getDescriptiveName(), ":", false);
+				if (vs.size() < 2)
+				{
+					response.setDescriptiveName("Removed Channels: 1");
+				}
+				else
+				{
+					int i = StringUtil.parseInt(vs.elementAt(1), -1);
+					if (i > 0)
+					{
+						i++;
+						response.setDescriptiveName("Removed Channels: " + i);
+					}
+				}
+			}
 		}
 	}
 
@@ -1277,7 +1324,6 @@ public final class SignalDispatcher
 	 * constructor
 	 * @param _messageHandler message handler
 	 * @param dev device for this ID of the device this SignalHandler is working for. Required for debugging purposes only.
-	 * @param cb the callback to modify any outgoing signals or incoming signal responses
 	 */
 	public SignalDispatcher(final IMessageHandler _messageHandler, final AbstractDevice dev)
 	{

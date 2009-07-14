@@ -755,14 +755,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		return true;
 	}
 
-	/**
-	 * @return the QueuentryID as submitted to the slave device
-	 */
-	public String getSlaveQEID()
-	{
-		return currentQE == null ? null : BambiNSExtension.getSlaveQueueEntryID(currentQE.getQueueEntry());
-	}
-
 	@Override
 	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{

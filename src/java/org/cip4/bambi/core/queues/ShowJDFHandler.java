@@ -92,6 +92,7 @@ import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -198,6 +199,43 @@ public class ShowJDFHandler extends ShowHandler
 			if (s != null)
 			{
 				n2.setStatus(s);
+			}
+		}
+		updateStatusFromChildren(v);
+	}
+
+	/**
+	 * @param v
+	 */
+	private void updateStatusFromChildren(final VElement v)
+	{
+		boolean mod = true;
+		while (mod)
+		{
+			mod = false;
+			for (int i = 0; i < v.size(); i++)
+			{
+				final JDFNode n2 = (JDFNode) v.get(i);
+				final VElement v2 = n2.getvJDFNode(null, null, true);
+				if (v2 != null && v2.size() > 0)
+				{
+					EnumNodeStatus s2 = ((JDFNode) v2.get(0)).getStatus();
+					for (int ii = 1; ii < v2.size(); ii++)
+					{
+						final JDFNode n3 = (JDFNode) v2.get(ii);
+						final EnumNodeStatus s3 = n3.getStatus();
+						if (s3 != s2)
+						{
+							s2 = EnumNodeStatus.Part;
+							break;
+						}
+					}
+					if (s2 != null && !ContainerUtil.equals(s2, n2.getStatus()))
+					{
+						mod = true;
+						n2.setStatus(s2);
+					}
+				}
 			}
 		}
 	}

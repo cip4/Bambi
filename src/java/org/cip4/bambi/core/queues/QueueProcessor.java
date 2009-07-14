@@ -114,14 +114,17 @@ import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFFlushQueueInfo;
 import org.cip4.jdflib.jmf.JDFFlushQueueParams;
+import org.cip4.jdflib.jmf.JDFIDInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFNewJDFQuParams;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueEntryDef;
 import org.cip4.jdflib.jmf.JDFQueueFilter;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFResubmissionParams;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -165,7 +168,7 @@ public class QueueProcessor
 		 */
 		public QueueDelta()
 		{
-			lastQueue = (JDFQueue) ((XMLDoc) _theQueue.getOwnerDocument_KElement().clone()).getRoot();
+			lastQueue = (JDFQueue) _theQueue.getOwnerDocument_KElement().clone().getRoot();
 			creationTime = System.currentTimeMillis();
 		}
 
@@ -277,10 +280,9 @@ public class QueueProcessor
 			super(EnumType.SubmitQueueEntry, new EnumFamily[] { EnumFamily.Command });
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -348,6 +350,143 @@ public class QueueProcessor
 		}
 	}
 
+	protected class ResubmitQueueEntryHandler extends AbstractHandler
+	{
+
+		public ResubmitQueueEntryHandler()
+		{
+			super(EnumType.ResubmitQueueEntry, new EnumFamily[] { EnumFamily.Command });
+		}
+
+		/**
+		 * 
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 */
+		@Override
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
+		{
+			if (m == null || resp == null)
+			{
+				return false;
+			}
+			log.debug("Handling  ResubmitQueueEntry");
+			final JDFResubmissionParams qsp = m.getResubmissionParams(0);
+			if (qsp != null)
+			{
+				final String qeID = qsp.getQueueEntryID();
+				final JDFQueueEntry qe = _theQueue.getQueueEntry(qeID);
+				if (qe == null)
+				{
+					JMFHandler.errorResponse(resp, "unknown QueueEntryID: " + qeID, 105, EnumClass.Error);
+					return true;
+				}
+				else
+				{
+					JDFDoc doc = qsp.getURLDoc();
+					if (doc == null)
+					{
+						updateEntry(null, null, m, resp);
+						String errorMsg = "failed to get JDFDoc from '" + qsp.getURL() + "' on SubmitQueueEntry";
+						errorMsg += "\r\nin thread: " + Thread.currentThread().getName();
+						JMFHandler.errorResponse(resp, errorMsg, 9, EnumClass.Error);
+						return true;
+					}
+					final IConverterCallback callback = _parentDevice.getCallback(null);
+					if (callback != null)
+					{
+						doc = callback.prepareJDFForBambi(doc);
+					}
+					final int canAccept = _parentDevice.canAccept(doc, qeID);
+					if (canAccept != 0)
+					{
+						JMFHandler.errorResponse(resp, "unable to queue request", canAccept, EnumClass.Error);
+						return true;
+					}
+					else
+					{
+						updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp);
+						storeDoc(qe, doc, null, null);
+						return true;
+					}
+				}
+			}
+			JMFHandler.errorResponse(resp, "QueueSubmissionParams are missing or invalid", 9, EnumClass.Error);
+			log.error("QueueSubmissionParams are missing or invalid");
+			return true;
+		}
+	}
+
+	/**
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+	 * 
+	 * July 10, 2009
+	 */
+	public class NewJDFQueryHandler extends AbstractHandler
+	{
+		/**
+		 * 
+		 */
+		public NewJDFQueryHandler()
+		{
+			super(EnumType.NewJDF, new EnumFamily[] { EnumFamily.Query });
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 */
+		@Override
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
+		{
+			if (m == null || resp == null)
+			{
+				return false;
+			}
+			final JDFNewJDFQuParams nqParams = m.getNewJDFQuParams(0);
+			if (nqParams == null || !nqParams.hasAttribute(AttributeName.JOBID))
+			{
+				JMFHandler.errorResponse(resp, "missing or insufficient NewJDFQuParams", 7, EnumClass.Error);
+				return false;
+			}
+			final String qeID = StringUtil.getNonEmpty(nqParams.getQueueEntryID());
+			JDFQueueEntry qe = null;
+			if (qeID != null)
+			{
+				qe = _theQueue.getQueueEntry(qeID);
+			}
+			final NodeIdentifier identifier = nqParams.getIdentifier();
+			if (qe == null)
+			{
+				qe = _theQueue.getQueueEntry(identifier, 0);
+			}
+			if (qe == null && nqParams.hasAttribute(AttributeName.JOBPARTID))
+			{
+				qe = _theQueue.getQueueEntry(new NodeIdentifier(nqParams.getJobID(), null, null), 0);
+			}
+			if (qe == null)
+			{
+				log.warn("could not find queueentry for " + identifier);
+				return false;
+			}
+			final IQueueEntry iqe = getIQueueEntry(qe);
+			JDFNode n = iqe.getJDF();
+			if (n == null)
+			{
+				log.error("could not find JDF node in queue for " + identifier);
+				return false;
+			}
+			n = n.getJobPart(identifier);
+			if (n == null)
+			{
+				log.warn("could not find JDF node in JDF for " + identifier);
+				return false;
+			}
+			final JDFIDInfo idi = JDFIDInfo.createFromJDF(n, resp);
+			log.info("NewJDF handled for " + idi.getJobPartID());
+			return true;
+		}
+
+	}
+
 	/**
 	 * public in order to enable reference from updating devices
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -375,7 +514,8 @@ public class QueueProcessor
 				return false;
 			}
 			updateEntry(null, null, m, resp);
-			return true;
+			// if the filter removed the queue, this is a nop and can be zapped
+			return (resp.getQueue(0) != null);
 		}
 
 		/**
@@ -684,10 +824,9 @@ public class QueueProcessor
 			super(EnumType.FlushQueue, new EnumFamily[] { EnumFamily.Command });
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -706,7 +845,24 @@ public class QueueProcessor
 			flushQueueInfo.setQueueEntryDefsFromQE(zapped);
 			persist(0);
 
+			removeOrphanJDFs();
+
 			return true;
+		}
+
+		/**
+		 * 
+		 */
+		private void removeOrphanJDFs()
+		{
+			final File[] crap = FileUtil.listFilesWithExtension(_parentDevice.getJDFDir(), "jdf");
+			if (crap != null)
+			{
+				for (final File kill : crap)
+				{
+					kill.delete();
+				}
+			}
 		}
 	}
 
@@ -1046,6 +1202,8 @@ public class QueueProcessor
 		jmfHandler.addHandler(this.new CloseQueueHandler());
 		jmfHandler.addHandler(this.new HoldQueueHandler());
 		jmfHandler.addHandler(this.new ResumeQueueHandler());
+		jmfHandler.addHandler(this.new NewJDFQueryHandler());
+		jmfHandler.addHandler(this.new ResubmitQueueEntryHandler());
 	}
 
 	protected void init()
@@ -1312,7 +1470,7 @@ public class QueueProcessor
 			log.error("error submitting new queueentry");
 			return null;
 		}
-		final int canAccept = _parentDevice.canAccept(theJDF);
+		final int canAccept = _parentDevice.canAccept(theJDF, null);
 		if (canAccept != 0)
 		{
 			if (newResponse != null)
@@ -1476,6 +1634,7 @@ public class QueueProcessor
 			if (qe != null && status != null)
 			{
 				final EnumQueueEntryStatus oldStatus = qe.getQueueEntryStatus();
+				final String queueEntryID = qe.getQueueEntryID();
 				if (ContainerUtil.equals(oldStatus, status))
 				{
 					// nop
@@ -1488,6 +1647,7 @@ public class QueueProcessor
 					{
 						new File(docURL).delete();
 					}
+					_parentDevice.getSignalDispatcher().removeSubScriptions(queueEntryID, null, null);
 				}
 				else if (status.equals(EnumQueueEntryStatus.Running))
 				{

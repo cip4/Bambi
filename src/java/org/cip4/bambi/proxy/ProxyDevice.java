@@ -706,7 +706,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
-	 * gets the device processor for a given queuentry
+	 * gets the device processor for a given queueEntry
 	 * @return the processor that is processing queueEntryID, null if none matches
 	 */
 	protected Vector<ProxyDeviceProcessor> getProxyProcessors()
@@ -812,16 +812,6 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
-	 * 
-	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc)
-	 */
-	@Override
-	public int canAccept(final JDFDoc doc)
-	{
-		return 0;
-	}
-
-	/**
 	 * reload the queue
 	 */
 	@Override
@@ -879,7 +869,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			{
 				final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(status, jmf.getCommand(0).getID());
 				JMFFactory.getJMFFactory().send2URL(jmf, getProxyProperties().getSlaveURL(), ah, _slaveCallback, getDeviceID());
-				ah.waitHandled(5555, false);
+				ah.waitHandled(5555, 30000, false);
 				final EnumNodeStatus newStatus = ah.getFinalStatus();
 				if (newStatus == null)
 				{

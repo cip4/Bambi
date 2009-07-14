@@ -383,6 +383,9 @@
   <xsl:template match="xjdf:Modified">
     <xsl:call-template name="audit"/>
   </xsl:template>
+  <xsl:template match="xjdf:Deleted">
+    <xsl:call-template name="audit"/>
+  </xsl:template>
   <xsl:template match="xjdf:PhaseTime">
     <xsl:call-template name="audit"/>
   </xsl:template>
@@ -495,14 +498,42 @@
   <!--   ///////////////////////////////////////////////// -->
 
   <xsl:template match="xjdf:Media">
+     <h4>
+       Media - <xsl:value-of select="@MediaType"/>
+     </h4>
+     <xsl:call-template name="printAttributelines">
+       <xsl:with-param name="x1" select="'MediaType'"/>
+     </xsl:call-template>
+   <xsl:apply-templates/>
+   </xsl:template>
+ 
+   <!--   ///////////////////////////////////////////////// -->
+ <xsl:template match="xjdf:Queue">
     <h4>
-      Media - <xsl:value-of select="@MediaType"/>
+      Queue Status: <xsl:value-of select="@Status"/> <xsl:value-of select="@Size"/>
     </h4>
     <xsl:call-template name="printAttributelines">
-      <xsl:with-param name="x1" select="'MediaType'"/>
+      <xsl:with-param name="x1" select="'Status'"/>
+      <xsl:with-param name="x2" select="'Size'"/>
     </xsl:call-template>
-  </xsl:template>
+       <xsl:apply-templates/>
+ </xsl:template>
+ <xsl:template match="xjdf:QueueEntry">
+    <h4>
+      QueueEntry <xsl:value-of select="@QueueEntryID"/> Status: <xsl:value-of select="@Status"/> 
+    </h4>
+    <xsl:call-template name="printAttributelines">
+      <xsl:with-param name="x1" select="'Status'"/>
+      <xsl:with-param name="x2" select="'QueueEntryID'"/>
+    </xsl:call-template>
+       <xsl:apply-templates/>
+ </xsl:template>
 
+<xsl:template match="xjdf:QueueFilter">
+       <xsl:call-template name="short">
+      <xsl:with-param name="printme" select="''"/>
+     </xsl:call-template>
+   </xsl:template>
   <!--   ///////////////////////////////////////////////// -->
 
   <xsl:template match="xjdf:DeviceColorantOrder">
@@ -555,15 +586,51 @@
  <!--   ///////////////////////////////////////////////// -->
 
  <xsl:template match="xjdf:Device">
-    <h4>
-      Device: 
-      <xsl:if test="@DeviceID">
+     <h4>
+       Device: 
+       <xsl:if test="@DeviceID">
+       <xsl:text> </xsl:text>
+      <xsl:value-of select="@DeviceID"/>
+      </xsl:if>
+     </h4>
+     <xsl:call-template name="printAttributelines">
+       <xsl:with-param name="x1" select="'DeviceID'"/>
+     </xsl:call-template>
+     <xsl:apply-templates/>
+    </xsl:template>
+  <!--   ///////////////////////////////////////////////// -->
+<xsl:template match="xjdf:NodeInfo">
+    <h3>
+    <font>
+       <xsl:if test="@NodeStatus='Running'">
+        <xsl:attribute name="color">#00ff00</xsl:attribute>
+      </xsl:if>
+      <xsl:if test="@NodeStatus='Waiting'">
+        <xsl:attribute name="color">#0000ff</xsl:attribute>
+      </xsl:if>
+      <xsl:if test="@NodeStatus='Spawned'">
+        <xsl:attribute name="color">#00ff00</xsl:attribute>
+      </xsl:if>
+       <xsl:if test="@NodeStatus='Aborted'">
+        <xsl:attribute name="color">#ff0000</xsl:attribute>
+      </xsl:if>
+      <xsl:if test="@NodeStatus='Completed'">
+        <xsl:attribute name="color">#66aa66</xsl:attribute>
+      </xsl:if>
+     Job Step Information - Status: 
+      <xsl:if test="@NodeStatus">
       <xsl:text> </xsl:text>
-     <xsl:value-of select="@DeviceID"/>
+     <xsl:value-of select="@NodeStatus"/>
      </xsl:if>
-    </h4>
+     <xsl:if test="@NodeStatusDetails">
+      <xsl:text> / </xsl:text>
+     <xsl:value-of select="@NodeStatusDetails"/>
+     </xsl:if>
+     </font>
+    </h3>
     <xsl:call-template name="printAttributelines">
-      <xsl:with-param name="x1" select="'DeviceID'"/>
+      <xsl:with-param name="x1" select="'NodeStatus'"/>
+     <xsl:with-param name="x2" select="'NodeStatusDetails'"/>
     </xsl:call-template>
     <xsl:apply-templates/>
    </xsl:template>

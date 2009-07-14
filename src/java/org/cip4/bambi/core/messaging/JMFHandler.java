@@ -87,6 +87,7 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessageService;
@@ -95,6 +96,7 @@ import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.EnumUtil;
 
 /**
  * 
@@ -494,7 +496,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 * @param resp the response to make an error
 	 * @param text the explicit error text
 	 * @param rc the jmf response returncode
-	 * @param errorClass TODO
+	 * @param errorClass the error class of the message
 	 */
 	public static void errorResponse(final JDFResponse resp, final String text, final int rc, final EnumClass errorClass)
 	{
@@ -503,7 +505,14 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			resp.setReturnCode(rc);
 			resp.setErrorText(text, errorClass);
 		}
-		log.warn("JMF error: rc=" + rc + " " + text);
+		if (EnumClass.Error.equals(errorClass))
+		{
+			log.error("JMF error: rc=" + rc + " " + text);
+		}
+		else
+		{
+			log.warn("JMF error: rc=" + rc + " " + text);
+		}
 	}
 
 	/**
@@ -560,17 +569,21 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 				unhandledMessage(inputMessage, response);
 			}
 			final VString icsVersions = _parentDevice.getICSVersions();
-			if (icsVersions != null)
+			if (response != null)
 			{
-				final VString respVersions = response == null ? null : response.getICSVersions();
-				if (respVersions != null && respVersions.size() > 0)
+				if (icsVersions != null && EnumUtil.aLessEqualsThanB(EnumVersion.Version_1_4, inputMessage.getMaxVersion(true))
+						&& EnumUtil.aLessEqualsThanB(EnumVersion.Version_1_4, response.getMaxVersion(true)))
 				{
-					respVersions.appendUnique(icsVersions);
-					response.setICSVersions(respVersions);
-				}
-				else if (response != null)
-				{
-					response.setICSVersions(icsVersions);
+					final VString respVersions = response.getICSVersions();
+					if (respVersions != null && respVersions.size() > 0)
+					{
+						respVersions.appendUnique(icsVersions);
+						response.setICSVersions(respVersions);
+					}
+					else
+					{
+						response.setICSVersions(icsVersions);
+					}
 				}
 			}
 			return handled;

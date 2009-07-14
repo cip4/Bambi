@@ -90,6 +90,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 
 /**
@@ -295,7 +296,7 @@ public class JMFFactory
 	{
 		final MessageResponseHandler handler = new MessageResponseHandler(null);
 		send2URL(jmf, url, handler, callback, senderID);
-		handler.waitHandled(milliSeconds, true);
+		handler.waitHandled(milliSeconds, 10000, true);
 		return handler.getConnection();
 	}
 
@@ -312,7 +313,7 @@ public class JMFFactory
 	{
 		final MessageResponseHandler handler = new MessageResponseHandler(null);
 		send2URL(jmf, url, handler, callback, senderID);
-		handler.waitHandled(milliSeconds, true);
+		handler.waitHandled(milliSeconds, 10000, true);
 		final HttpURLConnection uc = handler.getConnection();
 		if (uc != null)
 		{
@@ -341,7 +342,7 @@ public class JMFFactory
 	{
 		final MessageResponseHandler handler = new MessageResponseHandler(null);
 		send2URL(mp, url, handler, callback, md, senderID);
-		handler.waitHandled(milliSeconds, true);
+		handler.waitHandled(milliSeconds, 10000, true);
 		return handler.getConnection();
 	}
 
@@ -378,11 +379,34 @@ public class JMFFactory
 	}
 
 	/**
-	 * @return Vector of all known message senders
+	 * @return Vector of all known message senders matching url; null if none match
+	 * @param url the url to match, if null all
 	 */
-	public Vector<MessageSender> getAllMessageSenders()
+	public Vector<MessageSender> getMessageSenders(String url)
 	{
-		return ContainerUtil.toValueVector(senders, true);
+		url = UrlUtil.normalize(url);
+		Vector<MessageSender> v = ContainerUtil.toValueVector(senders, true);
+		if (StringUtil.getNonEmpty(url) == null)
+		{
+			return v;
+		}
+
+		if (v != null)
+		{
+			for (int i = v.size() - 1; i >= 0; i--)
+			{
+				final MessageSender messageSender = v.get(i);
+				if (!messageSender.matchesURL(url))
+				{
+					v.remove(i);
+				}
+			}
+			if (v.size() == 0)
+			{
+				v = null;
+			}
+		}
+		return v;
 	}
 
 	/**

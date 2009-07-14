@@ -94,6 +94,7 @@ import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFResubmissionParams;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -181,6 +182,52 @@ public class BambiTestHelper extends JDFTestCaseBase
 			fail(e.getMessage()); // fail on exception
 		}
 		return response;
+	}
+
+	/**
+	 * @param qeID the queuentryID to resubmit
+	 * @param d the doc to send as root node
+	 * @param url the url to send to
+	 * @return
+	 * @throws MalformedURLException
+	 */
+	public HttpURLConnection resubmitMimetoURL(final String qeID, final JDFDoc d, final String url) throws MalformedURLException
+	{
+		final JMFBuilder builder = getBuilder();
+		final JDFJMF jmf = builder.buildResubmitQueueEntry(qeID, "dummy");
+		final JDFDoc docJMF = jmf.getOwnerDocument_JDFElement();
+		final JDFCommand com = jmf.getCommand(0);
+		final JDFResubmissionParams rsp = com.getResubmissionParams(0);
+
+		final Multipart mp = MimeUtil.buildMimePackage(docJMF, d, false);
+
+		HttpURLConnection response = null;
+		try
+		{
+			final MIMEDetails md = new MIMEDetails();
+			md.transferEncoding = transferEncoding;
+			md.httpDetails.chunkSize = chunkSize;
+			response = MimeUtil.writeToURL(mp, url, md);
+			if (!url.toLowerCase().startsWith("file:"))
+			{
+				assertEquals(url, 200, response.getResponseCode());
+			}
+		}
+		catch (final Exception e)
+		{
+			fail(e.getMessage()); // fail on exception
+		}
+		return response;
+	}
+
+	/**
+	 * @return
+	 */
+	private JMFBuilder getBuilder()
+	{
+		final JMFBuilder builder = new JMFBuilder();
+		builder.setAcknowledgeURL(acknowledgeURL);
+		return builder;
 	}
 
 	/**

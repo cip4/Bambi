@@ -216,7 +216,8 @@
         <!--  queueentry table description  -->
         <table cellspacing="1" border="1">
           <tr bgcolor="#bbbbbb">
-            <xsl:call-template name="qeHeader">
+          <th align="center">#</th>
+             <xsl:call-template name="qeHeader">
               <xsl:with-param name="display" select="'QueueEntryID'"/>
               <xsl:with-param name="attName" select="'QueueEntryID'"/>
             </xsl:call-template>
@@ -306,6 +307,9 @@
         <xsl:attribute name="bgcolor">#dddddd</xsl:attribute>
       </xsl:if>
       <td align="left">
+          <xsl:value-of select="position()"/>
+      </td>
+     <td align="left">
         <a>
           <xsl:attribute name="href"><xsl:value-of select="$context"/>/showJDF/<xsl:value-of select="../@DeviceID"/>?qeID=<xsl:value-of
             select="@QueueEntryID"/></xsl:attribute>

@@ -23,10 +23,15 @@
           <xsl:value-of select="@DeviceID"/>
           - Subscriptions
         </h1>
+        <xsl:call-template name="links"/>
         <xsl:if test="MsgSubscription">
-          <h2>Subscriptions</h2>
+          <h2>
+            Subscriptions:
+            <xsl:value-of select="count(MsgSubscription)"/>
+          </h2>
           <table cellspacing="2" border="1">
             <tr>
+              <th align="left"> # </th>
               <th align="left"> Channel ID</th>
               <th align="left"> Device ID</th>
               <th align="left"> QueueEntry ID</th>
@@ -47,13 +52,14 @@
         <table cellspacing="2" border="1">
           <tr>
             <th align="left"> Base URL</th>
-            <th align="left"> Currently active</th>
+            <th align="left"> Status</th>
             <th align="left"> Messages Pending</th>
             <th align="left"> Messages Sent</th>
             <th align="left"> Last time Sent</th>
             <th align="left"> Last time Queued</th>
             <th align="left"> Active since</th>
             <th align="left"> Show Sent Messages</th>
+            <th align="left"> pause / resume</th>
             <th align="left"> Remove Sender</th>
             <th align="left"> Flush unsent Messages</th>
           </tr>
@@ -79,11 +85,7 @@
         </xsl:if>
 
         <hr/>
-        <a>
-          <xsl:attribute name="href">../showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
-          back to device
-          <xsl:value-of select="@DeviceID"/>
-        </a>
+        <xsl:call-template name="links"/>
       </body>
     </html>
   </xsl:template>
@@ -91,6 +93,24 @@
   <!--  end of template SubscriptionList  -->
   <xsl:template match="MsgSubscription">
     <tr>
+      <xsl:choose>
+        <xsl:when test="@LastTime=' - '">
+          <xsl:choose>
+            <xsl:when test="@Sent='0'">
+              <xsl:attribute name="bgcolor">#ffaaaa</xsl:attribute>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:attribute name="bgcolor">#ffffaa</xsl:attribute>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:attribute name="bgcolor">#aaffaa</xsl:attribute>
+        </xsl:otherwise>
+      </xsl:choose>
+      <td align="left">
+        <xsl:value-of select="position()"/>
+      </td>
       <td align="left">
         <a>
           <xsl:attribute name="href"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/>?DetailID=<xsl:value-of
@@ -136,13 +156,59 @@
     </tr>
   </xsl:template>
   <!--  end of template MsgSubscription  -->
+
   <xsl:template match="MessageSender">
     <tr>
+      <xsl:choose>
+        <!-- something is waiting -->
+        <xsl:when test="@Size!='0'">
+          <xsl:choose>
+            <xsl:when test="@pause='true'">
+              <xsl:attribute name="bgcolor">#ffccaa</xsl:attribute>
+            </xsl:when>
+            <xsl:when test="@Active='true'">
+              <xsl:attribute name="bgcolor">#ffffaa</xsl:attribute>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:attribute name="bgcolor">#ffaaaa</xsl:attribute>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:when>
+        <xsl:when test="@pause='true'">
+          <xsl:attribute name="bgcolor">#ffccaa</xsl:attribute>
+        </xsl:when>
+        <xsl:when test="@Active='true'">
+          <xsl:attribute name="bgcolor">#aaffaa</xsl:attribute>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:attribute name="bgcolor">#aaaaff</xsl:attribute>
+        </xsl:otherwise>
+      </xsl:choose>
       <td align="left">
         <xsl:value-of select="@URL"/>
       </td>
       <td align="left">
-        <xsl:value-of select="@Active"/>
+        <xsl:choose>
+          <xsl:when test="@Active='false'">
+            down
+          </xsl:when>
+          <xsl:when test="@pause='true'">
+            paused
+          </xsl:when>
+          <xsl:when test="@Size!='0'">
+            <xsl:choose>
+              <xsl:when test="@idle!='0'">
+                dispatch errors
+              </xsl:when>
+              <xsl:otherwise>
+                back log
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:when>
+          <xsl:otherwise>
+            active
+          </xsl:otherwise>
+        </xsl:choose>
       </td>
       <td align="left">
         <xsl:value-of select="@Size"/>
@@ -167,6 +233,24 @@
             <xsl:attribute name="value"><xsl:value-of select="@URL"/></xsl:attribute>
           </input>
           <input type="submit" value="List Senders"/>
+        </form>
+      </td>
+      <td align="center">
+        <form>
+          <xsl:attribute name="action"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/></xsl:attribute>
+          <input type="hidden" name="URL">
+            <xsl:attribute name="value"><xsl:value-of select="@URL"/></xsl:attribute>
+          </input>
+          <xsl:choose>
+            <xsl:when test="@pause='true'">
+              <input type="hidden" name="pause" value="false"/>
+              <input type="submit" value="resume"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <input type="hidden" name="pause" value="true"/>
+              <input type="submit" value="pause"/>
+            </xsl:otherwise>
+          </xsl:choose>
         </form>
       </td>
       <td align="center">
@@ -232,5 +316,39 @@
         <xsl:value-of select="@URL"/>
       </td>
     </tr>
+  </xsl:template>
+  <xsl:template name="links">
+    <table>
+      <tr>
+        <td>
+          <a>
+            <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showSubscriptions/<xsl:value-of select="@DeviceID"/>
+            </xsl:attribute>
+            refresh
+          </a>
+        </td>
+        <td>
+          -
+          </td>
+        <td>
+          <a>
+            <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showDevice/<xsl:value-of select="@DeviceID"/>
+            </xsl:attribute>
+            Back to Device
+          </a>
+        </td>
+        <td>
+          -
+          </td>
+        <td>
+          <a>
+            <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showQueue/<xsl:value-of select="@DeviceID"/>
+            </xsl:attribute>
+            Back to Queue
+          </a>
+        </td>
+      </tr>
+    </table>
+    <hr/>
   </xsl:template>
 </xsl:stylesheet>

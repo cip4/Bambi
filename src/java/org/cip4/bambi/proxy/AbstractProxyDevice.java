@@ -120,7 +120,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * the url flag for incoming messages
 	 */
 	public static final String SLAVEJMF = "slavejmf";
-	private static final Log log = LogFactory.getLog(AbstractProxyDevice.class.getName());
+	protected static final Log log = LogFactory.getLog(AbstractProxyDevice.class.getName());
 	protected QueueHotFolder slaveJDFOutput = null;
 	protected QueueHotFolder slaveJDFError = null;
 
@@ -506,14 +506,14 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(newStatus, jmf.getCommand(0).getID());
 			JMFFactory.getJMFFactory().send2URL(jmf, getProxyProperties().getSlaveURL(), ah, _slaveCallback, getDeviceID());
-			ah.waitHandled(5000, false);
+			ah.waitHandled(5000, 10000, false);
 			return ah.getFinalStatus();
 		}
 		return null;
 	}
 
 	/**
-	 * get the JMF Builder for messages to the slave device
+	 * get the JMF Builder for messages to the slave device; also allow for asynch submission handling
 	 * @return
 	 */
 	protected JMFBuilder getBuilderForSlave()
@@ -759,6 +759,24 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	{
 		// TODO Auto-generated method stub
 
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc, java.lang.String)
+	 */
+	@Override
+	public int canAccept(final JDFDoc doc, final String queueEntryID)
+	{
+		if (queueEntryID == null)
+		{
+			return 0;
+		}
+		final AbstractProxyProcessor proc = (AbstractProxyProcessor) getProcessor(queueEntryID);
+		if (proc == null)
+		{
+			return 0; // no processor is working on queueEntryID - assume ok
+		}
+		return proc.canAccept(doc, queueEntryID);
 	}
 
 }

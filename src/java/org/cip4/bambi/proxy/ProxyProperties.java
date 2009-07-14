@@ -121,7 +121,7 @@ public class ProxyProperties extends MultiDeviceProperties
 			{
 				try
 				{
-					final Class c = Class.forName(_callBackName);
+					final Class<?> c = Class.forName(_callBackName);
 					return (IConverterCallback) c.newInstance();
 				}
 				catch (final Exception x)
@@ -242,6 +242,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		}
 
 		/**
+		 * @param push the max number of jobs to push to the slave device
 		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveURL(java.lang.String)
 		 */
 		public void setMaxPush(final int push)

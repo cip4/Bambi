@@ -144,27 +144,6 @@ public class JMFFactoryTest extends BambiTestCase
 	}
 
 	/**
-	 * @param jmf
-	 * @return the response
-	 */
-	private JDFResponse sendToURL(final JDFJMF jmf, final String url)
-	{
-		final JDFResponse resp = jmf.getOwnerDocument_JDFElement().write2URL(url).getJMFRoot().getResponse(0);
-		return resp;
-	}
-
-	/**
-	 * 
-	 */
-	public void testSuspendQueueEntry()
-	{
-		final JDFJMF jmf = new JMFBuilder().buildSuspendQueueEntry("12345");
-		final JDFResponse resp = sendToURL(jmf, simWorkerUrl);
-		assertNotNull(resp);
-		assertEquals(105, resp.getReturnCode());
-	}
-
-	/**
 	 * 
 	 */
 	public void testResumeQueueEntry()
@@ -178,49 +157,9 @@ public class JMFFactoryTest extends BambiTestCase
 	/**
 	 * 
 	 */
-	public void testAbortQueueEntry()
-	{
-		final JDFJMF jmf = new JMFBuilder().buildAbortQueueEntry("12345");
-		final JDFResponse resp = sendToURL(jmf, simWorkerUrl);
-		assertNotNull(resp);
-		assertEquals(105, resp.getReturnCode());
-	}
-
-	/**
-	 * 
-	 */
-	public void testCreateSubsriptions()
-	{
-		final JDFJMF[] jmfs = new JMFBuilder().createSubscriptions(subscriptionURL, null, 30., 20);
-		assertEquals(jmfs.length, 3);
-		final JDFJMF jmf = jmfs[0];
-		assertEquals(JDFJMF.getTheSenderID(), jmf.getSenderID());
-		for (int i = 0; i < jmfs.length; i++)
-		{
-			jmfs[i].getOwnerDocument_JDFElement().write2File(sm_dirTestDataTemp + "JMFSubscription" + i + ".jmf", 2, false);
-			final JDFResponse resp = sendToURL(jmfs[i], simWorkerUrl);
-			assertNotNull(resp);
-		}
-	}
-
-	/**
-	 * 
-	 */
 	public void testRemoveQueueEntry()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildRemoveQueueEntry("12345");
-		final JDFResponse resp = sendToURL(jmf, simWorkerUrl);
-		assertNotNull(resp);
-		assertEquals(105, resp.getReturnCode());
-	}
-
-	/**
-	 * 
-	 */
-	public void testStopPersistentChammel()
-	{
-		final JDFJMF jmf = new JMFBuilder().buildStopPersistentChannel("m_080902_103826750_000344", "http://kie-prosirai-lg:8080/misconnector/slavejmf/MISConnector");
-		jmf.getOwnerDocument_KElement().write2File(sm_dirTestDataTemp + "StopChannel.jmf", 2, false);
 		final JDFResponse resp = sendToURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 		assertEquals(105, resp.getReturnCode());

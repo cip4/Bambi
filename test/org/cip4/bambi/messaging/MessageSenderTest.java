@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -93,13 +93,12 @@ public class MessageSenderTest extends BambiTestCase
 	public void setUp() throws Exception
 	{
 		super.setUp();
-		simWorkerUrl = "http://kie-prosirai-lg:8080/speedmaster/jmf/MAN75";
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	public void testSerialize() throws Exception
+	public void testBadURL() throws Exception
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription(snafu, 1, 0, null);
 		final JDFDoc resp = new BambiTestHelper().submitJMFtoURL(jmf, simWorkerUrl);

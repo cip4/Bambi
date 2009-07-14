@@ -110,6 +110,7 @@ import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.VectorMap;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 
 /**
@@ -140,12 +141,14 @@ public class MessageSender implements Runnable
 	protected FastFiFo<MessageDetails> sentMessages = null;
 	protected static Log log = LogFactory.getLog(MessageSender.class.getName());
 	private static VectorMap<String, DumpDir> vDumps = new VectorMap<String, DumpDir>();
-	private final Object mutexDispatch = new Object();
+	private final MyMutex mutexDispatch = new MyMutex();
+	private final MyMutex mutexPause = new MyMutex();
 	private int sent = 0;
 	private int idle = 0;
 	private long created = 0;
 	private long lastQueued = 0;
 	private long lastSent = 0;
+	private boolean pause = false;
 	private static File baseLocation = null;
 
 	/**
@@ -350,7 +353,7 @@ public class MessageSender implements Runnable
 		protected JDFMessage finalMessage;
 		private HttpURLConnection connect;
 		protected BufferedInputStream bufferedInput;
-		private Object mutex = new Object();
+		private MyMutex mutex = new MyMutex();
 		private int abort = 0; // 0 no abort handling, 1= abort on timeout, 2= has been aborted
 		protected String refID;
 		private IConverterCallback callBack = null;
@@ -393,39 +396,41 @@ public class MessageSender implements Runnable
 		 */
 		public boolean handleMessage()
 		{
-			if (bufferedInput != null && finalMessage == null)
+			if (finalMessage == null)
 			{
-				JDFDoc d = MimeUtil.getJDFDoc(bufferedInput, 0);
-				if (callBack != null && d != null)
+				if (bufferedInput != null)
 				{
-					log.info("preparing jmf response");
-					d = callBack.prepareJMFForBambi(d);
-				}
-				if (d != null)
-				{
-					final JDFJMF jmf = d.getJMFRoot();
-					if (jmf != null)
+					JDFDoc d = MimeUtil.getJDFDoc(bufferedInput, 0);
+					if (callBack != null && d != null)
 					{
-						resp = jmf.getResponse(refID);
-						if (resp != null)
+						log.info("preparing jmf response");
+						d = callBack.prepareJMFForBambi(d);
+					}
+					if (d != null)
+					{
+						final JDFJMF jmf = d.getJMFRoot();
+						if (jmf != null)
 						{
-							if (checkAcknowledge())
+							resp = jmf.getResponse(refID);
+							if (resp != null)
 							{
-								return true;
+								if (checkAcknowledge())
+								{
+									return true;
+								}
 							}
-						}
-						else
-						{
-							finalMessage = jmf.getAcknowledge(refID);
+							else
+							{
+								finalMessage = jmf.getAcknowledge(refID);
+							}
 						}
 					}
 				}
+				else if (resp != null && checkAcknowledge())
+				{
+					return true;
+				}
 			}
-			else if (resp != null && checkAcknowledge())
-			{
-				return true;
-			}
-
 			finalizeHandling();
 			return true;
 		}
@@ -549,26 +554,22 @@ public class MessageSender implements Runnable
 		}
 
 		/**
-		 * @param i milliseconds to wait
+		 * @param wait1 milliseconds to wait for a connection
+		 * @param wait2 milliseconds to wait for the response after the connection has been established
+		 * 
 		 * @param bAbort if true, abort handling after timeout
 		 */
-		public void waitHandled(final int i, final boolean bAbort)
+		public void waitHandled(final int wait1, final int wait2, final boolean bAbort)
 		{
 			if (mutex == null)
 			{
 				return;
 			}
 			abort = bAbort ? 1 : 0;
-			synchronized (mutex)
+			ThreadUtil.wait(mutex, wait1);
+			if (mutex != null && connect != null && wait2 >= 0) // we have established a connection but have not yet read anything
 			{
-				try
-				{
-					mutex.wait(i);
-				}
-				catch (final InterruptedException x)
-				{
-					// nop
-				}
+				ThreadUtil.wait(mutex, wait2);
 			}
 			if (abort == 1)
 			{
@@ -619,11 +620,14 @@ public class MessageSender implements Runnable
 	public void run()
 	{
 		readFromBase();
-		ThreadUtil.sleep(10000); // wait a while before sending messages so that
-		// all processors are alive before we start
-		// throwing messages
+		// wait a while before sending messages so that all processors are alive before we start throwing messages
+		ThreadUtil.sleep(10000);
 		while (!doShutDown)
 		{
+			if (pause)
+			{
+				ThreadUtil.wait(mutexPause, 0);
+			}
 			SendReturn sentFirstMessage;
 			try
 			{
@@ -693,6 +697,23 @@ public class MessageSender implements Runnable
 	}
 
 	/**
+	 * pause this sender until resume is called the thread still exists
+	 */
+	public void pause()
+	{
+		pause = true;
+	}
+
+	/**
+	 * resume this sender after pause was called
+	 */
+	public void resume()
+	{
+		pause = false;
+		ThreadUtil.notifyAll(mutexPause);
+	}
+
+	/**
 	 * read all queued messages
 	 */
 	private void readFromBase()
@@ -708,8 +729,8 @@ public class MessageSender implements Runnable
 			log.warn("no persistant message file exists, bailing out! " + f);
 			return;
 		}
-		final JDFParser p = new JDFParser();
-		final JDFDoc d = p.parseFile(f);
+
+		final JDFDoc d = new JDFParser().parseFile(f);
 		synchronized (_messages)
 		{
 			final Vector<MessageDetails> vTmp = new Vector<MessageDetails>();
@@ -719,6 +740,7 @@ public class MessageSender implements Runnable
 			if (d != null)
 			{
 				final KElement root = d.getRoot();
+				pause = root.getBoolAttribute("pause", null, false);
 				sent = root.getIntAttribute("NumSent", null, 0);
 				lastQueued = root.getLongAttribute("iLastQueued", null, 0);
 				lastSent = root.getLongAttribute("iLastSent", null, 0);
@@ -820,7 +842,7 @@ public class MessageSender implements Runnable
 			}
 
 		}
-		sentMessages.push(mesDetails); // TODO add to display
+		sentMessages.push(mesDetails);
 		return sendHTTP(mesDetails, jmf, mp);
 	}
 
@@ -833,8 +855,8 @@ public class MessageSender implements Runnable
 	private SendReturn sendHTTP(final MessageDetails mh, final JDFJMF jmf, final Multipart mp)
 	{
 		SendReturn b = SendReturn.sent;
-		final URL url = mh == null ? null : UrlUtil.StringToURL(mh.url);
-		if (url == null || (!UrlUtil.isHttp(mh.url) && !UrlUtil.isHttps(mh.url)))
+		final URL url = mh == null ? null : UrlUtil.stringToURL(mh.url);
+		if (url == null || mh == null || (!UrlUtil.isHttp(mh.url) && !UrlUtil.isHttps(mh.url)))
 		{
 			log.error("Invalid url: " + url);
 			_messages.remove(0);
@@ -880,7 +902,11 @@ public class MessageSender implements Runnable
 
 			if (con != null)
 			{
-				con.setReadTimeout(8000); // 8 seconds should suffice
+				if (mh.respHandler != null)
+				{
+					mh.respHandler.setConnection(con);
+				}
+				con.setReadTimeout(30000); // 30 seconds should suffice
 				header += "\nResponse code:" + con.getResponseCode();
 				header += "\nContent type:" + con.getContentType();
 				header += "\nContent length:" + con.getContentLength();
@@ -1034,7 +1060,10 @@ public class MessageSender implements Runnable
 			_messages.add(messageDetails);
 			lastQueued = System.currentTimeMillis();
 		}
-		ThreadUtil.notifyAll(mutexDispatch);
+		if (!pause)
+		{
+			ThreadUtil.notifyAll(mutexDispatch);
+		}
 	}
 
 	/**
@@ -1092,6 +1121,8 @@ public class MessageSender implements Runnable
 			ms.setAttribute("LastSent", BambiServlet.formatLong(lastSent), null);
 			ms.setAttribute(AttributeName.CREATIONDATE, BambiServlet.formatLong(created), null);
 
+			ms.setAttribute("pause", pause, null);
+			ms.setAttribute("idle", idle, null);
 			ms.setAttribute("Active", !doShutDown, null);
 			ms.setAttribute("iLastQueued", StringUtil.formatLong(lastQueued), null);
 			ms.setAttribute("iLastSent", StringUtil.formatLong(lastSent), null);
@@ -1107,10 +1138,12 @@ public class MessageSender implements Runnable
 			else if (posQueuedMessages == 0)
 			{
 				final MessageDetails[] old = sentMessages.peekArray();
-				final int len = old == null ? 0 : old.length;
-				for (int i = len - 1; i >= 0; i--)
+				if (old != null)
 				{
-					old[i].appendToXML(ms, -1);
+					for (int i = old.length - 1; i >= 0; i--)
+					{
+						old[i].appendToXML(ms, -1);
+					}
 				}
 			}
 			else if (posQueuedMessages > 0)
