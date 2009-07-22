@@ -21,15 +21,21 @@
               <xsl:attribute name="name"><xsl:value-of select="$attName"/></xsl:attribute>
             </input>
           </xsl:when>
+          <xsl:when test="contains($attName,'URL')">
+            <a>
+              <xsl:attribute name="href"><xsl:value-of select="$attVal"/></xsl:attribute>
+              <xsl:value-of select="$attVal"/>
+            </a>
+          </xsl:when>
           <xsl:otherwise>
             <xsl:value-of select="$attVal"/>
           </xsl:otherwise>
         </xsl:choose>
       </td>
       <td>
-          <xsl:if test="$desc">
-           <xsl:value-of select="$desc"/>
-          </xsl:if>
+        <xsl:if test="$desc">
+          <xsl:value-of select="$desc"/>
+        </xsl:if>
       </td>
     </tr>
   </xsl:template>

@@ -199,7 +199,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		}
 
 		/**
-		 * @param sqp
+		 * @param m
 		 * @return
 		 */
 		private String getQEIDFromMessage(final JDFMessage m)

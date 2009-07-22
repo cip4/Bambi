@@ -70,7 +70,6 @@
  */
 package org.cip4.bambi.core.messaging;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -99,6 +98,7 @@ import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FastFiFo;
@@ -352,7 +352,7 @@ public class MessageSender implements Runnable
 		protected JDFResponse resp;
 		protected JDFMessage finalMessage;
 		private HttpURLConnection connect;
-		protected BufferedInputStream bufferedInput;
+		protected ByteArrayIOStream bufferedInput;
 		private MyMutex mutex = new MyMutex();
 		private int abort = 0; // 0 no abort handling, 1= abort on timeout, 2= has been aborted
 		protected String refID;
@@ -400,7 +400,7 @@ public class MessageSender implements Runnable
 			{
 				if (bufferedInput != null)
 				{
-					JDFDoc d = MimeUtil.getJDFDoc(bufferedInput, 0);
+					JDFDoc d = MimeUtil.getJDFDoc(bufferedInput.getInputStream(), 0);
 					if (callBack != null && d != null)
 					{
 						log.info("preparing jmf response");
@@ -521,10 +521,9 @@ public class MessageSender implements Runnable
 		}
 
 		/**
-		 * 
-		 * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java .io.BufferedInputStream)
+		 * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java.io.InputStream)
 		 */
-		public void setBufferedStream(final BufferedInputStream bis)
+		public void setBufferedStream(final ByteArrayIOStream bis)
 		{
 			bufferedInput = bis;
 		}
@@ -536,7 +535,7 @@ public class MessageSender implements Runnable
 		{
 			if (bufferedInput != null)
 			{
-				return bufferedInput;
+				return bufferedInput.getInputStream();
 			}
 			if (connect == null)
 			{
@@ -544,13 +543,15 @@ public class MessageSender implements Runnable
 			}
 			try
 			{
-				bufferedInput = new BufferedInputStream(connect.getInputStream());
+				final InputStream inputStream = connect.getInputStream();
+				bufferedInput = new ByteArrayIOStream(inputStream);
+				inputStream.close();
 			}
 			catch (final IOException x)
 			{
 				// nop
 			}
-			return bufferedInput;
+			return bufferedInput.getInputStream();
 		}
 
 		/**
@@ -914,12 +915,12 @@ public class MessageSender implements Runnable
 
 			if (con != null && con.getResponseCode() == 200)
 			{
-				final BufferedInputStream bis = new BufferedInputStream(con.getInputStream());
-				bis.mark(1000000);
+				final ByteArrayIOStream bis = new ByteArrayIOStream(con.getInputStream());
+				con.getInputStream().close(); // copy and close so that the connection stream can be reused by keep-alive
 
 				if (inDump != null)
 				{
-					inDump.newFileFromStream(header, bis);
+					inDump.newFileFromStream(header, bis.getInputStream());
 				}
 				if (mh.respHandler != null)
 				{
@@ -941,6 +942,7 @@ public class MessageSender implements Runnable
 					{
 						inDump.newFile(header);
 					}
+					con.getInputStream().close();
 				}
 				if (mh.respHandler != null)
 				{

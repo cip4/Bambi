@@ -296,6 +296,9 @@ public class BambiServletRequest implements HttpServletRequest
 		return parent.getHeaders(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getInputStream()
+	 */
 	public ServletInputStream getInputStream() throws IOException
 	{
 		return parent.getInputStream();
@@ -307,6 +310,14 @@ public class BambiServletRequest implements HttpServletRequest
 	public void flush()
 	{
 		buffer = null;
+		try
+		{
+			parent.getInputStream().close();
+		}
+		catch (final IOException e)
+		{
+			// nop
+		}
 	}
 
 	/**

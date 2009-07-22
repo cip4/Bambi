@@ -664,6 +664,9 @@ public class MultiDeviceProperties
 	}
 
 	/**
+	 * the jmf persistance directory <br/>
+	 * defaults to a sibling of JDFDir called JMFDir
+	 * 
 	 * @return the jmf persistance directory
 	 */
 	public File getJMFDir()
@@ -671,7 +674,11 @@ public class MultiDeviceProperties
 		File f = getRootFile("JMFDir");
 		if (f == null)
 		{
-			f = new File("C:/BambiData/JMFDir");
+			f = getJDFDir();
+			if (f != null)
+			{
+				f = FileUtil.getFileInDirectory(f.getParentFile(), new File("JMFDir"));
+			}
 		}
 		return f;
 	}

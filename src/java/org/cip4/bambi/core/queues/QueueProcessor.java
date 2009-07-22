@@ -74,6 +74,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Vector;
 
 import javax.mail.Multipart;
@@ -850,20 +851,6 @@ public class QueueProcessor
 			return true;
 		}
 
-		/**
-		 * 
-		 */
-		private void removeOrphanJDFs()
-		{
-			final File[] crap = FileUtil.listFilesWithExtension(_parentDevice.getJDFDir(), "jdf");
-			if (crap != null)
-			{
-				for (final File kill : crap)
-				{
-					kill.delete();
-				}
-			}
-		}
 	}
 
 	protected class QueueGetHandler extends XMLDoc implements IGetHandler
@@ -1169,7 +1156,7 @@ public class QueueProcessor
 	protected JDFQueue _theQueue;
 	private final Vector<Object> _listeners;
 	protected AbstractDevice _parentDevice = null;
-	private long lastPersist = 0;
+	protected long lastPersist = 0;
 	protected final HashMap<String, QueueDelta> deltaMap;
 
 	/**
@@ -1288,6 +1275,7 @@ public class QueueProcessor
 			setQueueProperties(deviceID);
 
 		}
+		removeOrphanJDFs();
 	}
 
 	/**
@@ -1578,6 +1566,42 @@ public class QueueProcessor
 		return _parentDevice.getJDFStorage(newQEID);
 	}
 
+	/**
+	 * 
+	 */
+	protected void removeOrphanJDFs()
+	{
+		final File[] crap;
+		final HashSet<File> hs;
+		synchronized (_theQueue)
+		{
+
+			crap = FileUtil.listFilesWithExtension(_parentDevice.getJDFDir(), "jdf");
+			hs = new HashSet<File>();
+			final VElement v = _theQueue.getQueueEntryVector();
+			for (int i = 0; i < v.size(); i++)
+			{
+				final JDFQueueEntry qe = (JDFQueueEntry) v.get(i);
+				final String docURL = BambiNSExtension.getDocURL(qe);
+				if (docURL != null)
+				{
+					hs.add(new File(StringUtil.token(docURL, -1, "/")));
+				}
+			}
+		}
+		if (crap != null)
+		{
+			for (final File kill : crap)
+			{
+				if (!hs.contains(kill))
+				{
+					kill.delete();
+					log.warn("removing orphan JDF:" + kill.getName());
+				}
+			}
+		}
+	}
+
 	protected void notifyListeners(final String qeID)
 	{
 		for (int i = 0; i < _listeners.size(); i++)
@@ -1806,7 +1830,8 @@ public class QueueProcessor
 			callBack.updateJDFForExtern(docJDF);
 			callBack.updateJMFForExtern(docJMF);
 		}
-		docJDF.write2File((String) null, 0, true);
+		// do not store the updated final returned version
+		// storeDoc(qe, docJDF, null, null);
 		final String returnURL = BambiNSExtension.getReturnURL(qe);
 		final String returnJMF = BambiNSExtension.getReturnJMF(qe);
 		final IDeviceProperties properties = _parentDevice.getProperties();

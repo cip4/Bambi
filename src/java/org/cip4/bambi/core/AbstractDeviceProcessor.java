@@ -164,7 +164,7 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 				final String mapString = vm.showKeys(" \n ", " ");
 				processor.setAttribute("PartIDKeys", mapString, null);
 			}
-			final EnumNodeStatus nodeStatus = n.getPartStatus(map);
+			final EnumNodeStatus nodeStatus = n.getPartStatus(map, 0);
 			if (deviceStatus != null && nodeStatus != null)
 			{
 				processor.setAttribute("NodeStatus", nodeStatus.getName(), null);

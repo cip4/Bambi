@@ -980,6 +980,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	}
 
 	/**
+	 * handles http get requests - typically web pages...
 	 * @param request
 	 * @param response
 	 * @return true if handled
@@ -991,7 +992,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			return false;
 		}
 
-		if (BambiServlet.isMyContext(request, SHOW_DEVICE))
+		if (BambiServlet.isMyContext(request, SHOW_DEVICE) || BambiServlet.isMyContext(request, "jmf") || BambiServlet.isMyContext(request, "slavejmf"))
 		{
 			if (request.getBooleanParam("restart") && getRootDevice() != null)
 			{
@@ -1023,7 +1024,6 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			}
 		}
 		return false;
-
 	}
 
 	/**

@@ -92,7 +92,7 @@ import org.cip4.jdflib.util.ByteArrayIOStream;
 /**
  * buffered servlet request class
  * @author prosirai
- *
+ * 
  */
 public class BambiServletResponse implements HttpServletResponse
 {
@@ -104,11 +104,11 @@ public class BambiServletResponse implements HttpServletResponse
 	/**
 	 * construct a new {@link BambiServletResponse}
 	 * 
-	* @param _parent the original response
-	* @param bBuffer if true, buffer this
-	* @param request the matching request - used mainly for debugging context
-	*/
-	public BambiServletResponse(HttpServletResponse _parent, boolean bBuffer, BambiServletRequest request)
+	 * @param _parent the original response
+	 * @param bBuffer if true, buffer this
+	 * @param request the matching request - used mainly for debugging context
+	 */
+	public BambiServletResponse(final HttpServletResponse _parent, final boolean bBuffer, final BambiServletRequest request)
 	{
 		parent = _parent;
 		theRequest = request;
@@ -117,50 +117,74 @@ public class BambiServletResponse implements HttpServletResponse
 			buffer = new ByteArrayIOStream();
 		}
 		else
+		{
 			buffer = null;
+		}
 	}
 
-	public void addCookie(Cookie arg0)
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#addCookie(javax.servlet.http.Cookie)
+	 */
+	public void addCookie(final Cookie arg0)
 	{
 		parent.addCookie(arg0);
 	}
 
-	public void addDateHeader(String arg0, long arg1)
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#addDateHeader(java.lang.String, long)
+	 */
+	public void addDateHeader(final String arg0, final long arg1)
 	{
 		parent.addDateHeader(arg0, arg1);
 	}
 
-	public void addHeader(String arg0, String arg1)
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#addHeader(java.lang.String, java.lang.String)
+	 */
+	public void addHeader(final String arg0, final String arg1)
 	{
 		parent.addHeader(arg0, arg1);
 	}
 
-	public void addIntHeader(String arg0, int arg1)
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#addIntHeader(java.lang.String, int)
+	 */
+	public void addIntHeader(final String arg0, final int arg1)
 	{
 		parent.addIntHeader(arg0, arg1);
 	}
 
-	public boolean containsHeader(String arg0)
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#containsHeader(java.lang.String)
+	 */
+	public boolean containsHeader(final String arg0)
 	{
 		return parent.containsHeader(arg0);
 	}
 
-	public String encodeRedirectUrl(String arg0)
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#encodeRedirectUrl(java.lang.String)
+	 */
+	@SuppressWarnings("deprecation")
+	public String encodeRedirectUrl(final String arg0)
 	{
 		return parent.encodeRedirectUrl(arg0);
 	}
 
-	public String encodeRedirectURL(String arg0)
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#encodeRedirectURL(java.lang.String)
+	 */
+	public String encodeRedirectURL(final String arg0)
 	{
 		return parent.encodeRedirectURL(arg0);
 	}
 
-	public String encodeUrl(String arg0)
+	public String encodeUrl(final String arg0)
 	{
 		return parent.encodeUrl(arg0);
 	}
 
-	public String encodeURL(String arg0)
+	public String encodeURL(final String arg0)
 	{
 		return parent.encodeURL(arg0);
 	}
@@ -233,42 +257,42 @@ public class BambiServletResponse implements HttpServletResponse
 		parent.resetBuffer();
 	}
 
-	public void sendError(int arg0, String arg1) throws IOException
+	public void sendError(final int arg0, final String arg1) throws IOException
 	{
 		parent.sendError(arg0, arg1);
 	}
 
-	public void sendError(int arg0) throws IOException
+	public void sendError(final int arg0) throws IOException
 	{
 		parent.sendError(arg0);
 	}
 
-	public void sendRedirect(String arg0) throws IOException
+	public void sendRedirect(final String arg0) throws IOException
 	{
 		parent.sendRedirect(arg0);
 	}
 
-	public void setBufferSize(int arg0)
+	public void setBufferSize(final int arg0)
 	{
 		parent.setBufferSize(arg0);
 	}
 
-	public void setCharacterEncoding(String arg0)
+	public void setCharacterEncoding(final String arg0)
 	{
 		parent.setCharacterEncoding(arg0);
 	}
 
-	public void setContentLength(int arg0)
+	public void setContentLength(final int arg0)
 	{
 		parent.setContentLength(arg0);
 	}
 
-	public void setContentType(String arg0)
+	public void setContentType(final String arg0)
 	{
 		parent.setContentType(arg0);
 	}
 
-	public void setDateHeader(String arg0, long arg1)
+	public void setDateHeader(final String arg0, final long arg1)
 	{
 		parent.setDateHeader(arg0, arg1);
 	}
@@ -278,7 +302,7 @@ public class BambiServletResponse implements HttpServletResponse
 	 * @param arg0
 	 * @param arg1
 	 */
-	public void setHeader(String arg0, String arg1)
+	public void setHeader(final String arg0, final String arg1)
 	{
 		parent.setHeader(arg0, arg1);
 	}
@@ -288,7 +312,7 @@ public class BambiServletResponse implements HttpServletResponse
 	 * @param arg0
 	 * @param arg1
 	 */
-	public void setIntHeader(String arg0, int arg1)
+	public void setIntHeader(final String arg0, final int arg1)
 	{
 		parent.setIntHeader(arg0, arg1);
 	}
@@ -297,7 +321,7 @@ public class BambiServletResponse implements HttpServletResponse
 	 * @see javax.servlet.ServletResponse#setLocale(java.util.Locale)
 	 * @param arg0
 	 */
-	public void setLocale(Locale arg0)
+	public void setLocale(final Locale arg0)
 	{
 		parent.setLocale(arg0);
 	}
@@ -309,7 +333,7 @@ public class BambiServletResponse implements HttpServletResponse
 	 * @deprecated
 	 */
 	@Deprecated
-	public void setStatus(int arg0, String arg1)
+	public void setStatus(final int arg0, final String arg1)
 	{
 		parent.setStatus(arg0, arg1);
 	}
@@ -318,7 +342,7 @@ public class BambiServletResponse implements HttpServletResponse
 	 * @see javax.servlet.http.HttpServletResponse#setStatus(int)
 	 * @param arg0
 	 */
-	public void setStatus(int arg0)
+	public void setStatus(final int arg0)
 	{
 		parent.setStatus(arg0);
 	}
@@ -333,13 +357,13 @@ public class BambiServletResponse implements HttpServletResponse
 		{
 			try
 			{
-				ServletOutputStream outputStream = parent.getOutputStream();
+				final ServletOutputStream outputStream = parent.getOutputStream();
 				IOUtils.copy(buffer.getInputStream(), outputStream);
 				outputStream.flush();
 				outputStream.close();
 				buffer = null;
 			}
-			catch (IOException e)
+			catch (final IOException e)
 			{
 				log.error("Error while flushing response stream to: " + theRequest.getRequestURI(), e);
 			}

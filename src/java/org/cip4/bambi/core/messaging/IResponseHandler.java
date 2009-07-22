@@ -71,12 +71,12 @@
 
 package org.cip4.bambi.core.messaging;
 
-import java.io.BufferedInputStream;
 import java.net.HttpURLConnection;
 
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.util.ByteArrayIOStream;
 
 /**
  * IResponseHandler is the interface for a generic http response handler
@@ -111,9 +111,9 @@ public interface IResponseHandler
 	public void setCallBack(final IConverterCallback _callBack);
 
 	/**
-	 * @param bis
+	 * @param bis the input stream - should be rereadable
 	 */
-	public void setBufferedStream(BufferedInputStream bis);
+	public void setBufferedStream(ByteArrayIOStream bis);
 
 	/**
 	 * wait for the handleMessage to complete

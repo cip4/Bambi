@@ -71,7 +71,6 @@
 
 package org.cip4.bambi;
 
-import java.io.BufferedInputStream;
 import java.net.HttpURLConnection;
 
 import org.cip4.bambi.core.IConverterCallback;
@@ -85,6 +84,7 @@ import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.util.ByteArrayIOStream;
 
 public class AsyncMessagingTest extends BambiTestCase implements IResponseHandler
 {
@@ -173,7 +173,7 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	 * 
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java.io.BufferedInputStream)
 	 */
-	public void setBufferedStream(final BufferedInputStream bis)
+	public void setBufferedStream(final ByteArrayIOStream bis)
 	{
 		// TODO Auto-generated method stub
 

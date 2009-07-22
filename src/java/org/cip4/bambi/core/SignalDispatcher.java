@@ -779,7 +779,7 @@ public final class SignalDispatcher
 		protected long lastTry = 0;
 		protected long repeatTime = 0;
 		protected JDFMessage theMessage = null;
-		protected FastFiFo<JDFJMF> lastSentJMF = new FastFiFo<JDFJMF>(100);
+		protected FastFiFo<JDFJMF> lastSentJMF = new FastFiFo<JDFJMF>(10);
 		protected Trigger trigger = null;
 		protected int sentMessages = 0;
 		protected String jmfDeviceID = null; // the senderID of the incoming (subscribed) jmf

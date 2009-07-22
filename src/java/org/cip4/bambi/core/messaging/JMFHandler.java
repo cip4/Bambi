@@ -88,6 +88,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.jmf.JDFAcknowledge;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessageService;
@@ -402,7 +403,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		final EnumFamily[] families = handler.getFamilies();
 		if (typ == null || families == null)
 		{
-			log.error("Unknown message type or family in addhandler - bailing out ");
+			log.error("Unknown message type or family in addhandler - bailing out! type=" + typ + " families=" + families);
 			return;
 		}
 		for (int i = 0; i < families.length; i++)
@@ -448,7 +449,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			final JDFResponse mResp = (JDFResponse) (id == null ? null : jmfResp.getChildWithAttribute(ElementName.RESPONSE, AttributeName.REFID, null, id, 0, true));
 			if (mResp == null)
 			{
-				log.error("no response provided ??? " + id + " " + jmf);
+				log.warn("no response provided ??? " + id + " " + m.getFamily() + " " + m.getType());
 			}
 			if (_signalDispatcher != null)
 			{
@@ -456,8 +457,9 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			}
 			handleMessage(m, mResp);
 
-			if (m instanceof JDFSignal && mResp != null)
+			if (((m instanceof JDFSignal) || (m instanceof JDFAcknowledge)) && mResp != null)
 			{
+				// TODO secure channel
 				final int retCode = mResp.getReturnCode();
 				if (retCode == 0)
 				{
@@ -487,7 +489,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 */
 	private void unhandledMessage(final JDFMessage m, final JDFResponse resp)
 	{
-		errorResponse(resp, "Message not handled: " + m.getType() + "; Family: " + m.getFamily().getName() + " id=" + m.getID(), 5, EnumClass.Error);
+		errorResponse(resp, "Message not handled: " + m.getType() + "; Family: " + m.getFamily().getName() + " id=" + m.getID(), 5, EnumClass.Warning);
 	}
 
 	/**

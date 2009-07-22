@@ -30,6 +30,20 @@
             </td>
             <td>
               <a>
+                <xsl:attribute name="href"><xsl:value-of select="$context"/>/showJDF/<xsl:value-of select="@DeviceID"/>?qeID=<xsl:value-of
+                  select="@QueueEntryID"/></xsl:attribute>
+                Show internal JDF
+              </a>
+            </td>
+            <td>
+              <a>
+                <xsl:attribute name="href"><xsl:value-of select="$context"/>/showJDF/<xsl:value-of select="@DeviceID"/>?fix=true&amp;qeID=<xsl:value-of
+            select="@QueueEntryID"/></xsl:attribute>
+          Show refined JDF
+        </a>
+        </td>
+            <td>
+              <a>
                 <xsl:attribute name="href"><xsl:value-of select="$context"/>/showJDF/<xsl:value-of select="@DeviceID"/>?raw=true&amp;qeID=<xsl:value-of
             select="@QueueEntryID"/></xsl:attribute>
           Show JDF XML Source
