@@ -560,6 +560,9 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 		addHandlers();
 		addWatchSubscriptions();
+
+		// defer message sending until everything is set up
+		_theSignalDispatcher.startup();
 	}
 
 	/**

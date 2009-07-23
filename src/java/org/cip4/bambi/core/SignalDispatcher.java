@@ -124,6 +124,7 @@ import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 
 /**
  * this class handles subscriptions <br>
@@ -138,7 +139,7 @@ public final class SignalDispatcher
 	private final SubscriptionStore storage;
 	IMessageHandler messageHandler = null;
 	private Vector<Trigger> triggers = null;
-	protected Object mutex = null;
+	protected MyMutex mutex = null;
 	protected boolean doShutdown = false;
 	protected AbstractDevice device = null;
 	private int lastCalled = 0;
@@ -467,7 +468,7 @@ public final class SignalDispatcher
 		protected NodeIdentifier nodeIdentifier;
 		protected String channelID;
 		protected int amount;
-		private Object mutex;
+		private MyMutex mutex;
 
 		public Trigger(final String _queueEntryID, final NodeIdentifier _workStepID, final String _channelID, final int _amount)
 		{
@@ -476,7 +477,7 @@ public final class SignalDispatcher
 			nodeIdentifier = _workStepID;
 			channelID = _channelID;
 			amount = _amount;
-			mutex = new Object();
+			mutex = new MyMutex();
 		}
 
 		/**
@@ -545,21 +546,7 @@ public final class SignalDispatcher
 		 */
 		public void waitQueued(final int milliseconds)
 		{
-			if (mutex == null)
-			{
-				return;
-			}
-			synchronized (mutex)
-			{
-				try
-				{
-					mutex.wait(milliseconds);
-				}
-				catch (final InterruptedException x)
-				{
-					// nop
-				}
-			}
+			ThreadUtil.wait(mutex, milliseconds);
 			mutex = null;
 		}
 
@@ -1327,18 +1314,15 @@ public final class SignalDispatcher
 	 */
 	public SignalDispatcher(final IMessageHandler _messageHandler, final AbstractDevice dev)
 	{
-		final String deviceID = dev == null ? "testID" : dev.getDeviceID();
 		storage = new SubscriptionStore(dev == null ? null : dev.getDeviceDir());
 		device = dev;
 		subscriptionMap = new HashMap<String, MsgSubscription>();
 		// queueEntryMap=new VectorMap<String, String>();
 		messageHandler = _messageHandler;
 		triggers = new Vector<Trigger>();
-		mutex = new Object();
+		mutex = new MyMutex();
+		theDispatcher = null;
 		theDispatcher = new Dispatcher();
-		new Thread(theDispatcher, "SignalDispatcher_" + deviceID).start();
-		log.info("dispatcher thread 'SignalDispatcher_" + deviceID + "' started");
-		storage.load();
 	}
 
 	/**
@@ -1679,7 +1663,7 @@ public final class SignalDispatcher
 		{
 			synchronized (mutex)
 			{
-				mutex.notifyAll();
+				flush();
 				lastCalled = 0;
 			}
 		}
@@ -1759,6 +1743,17 @@ public final class SignalDispatcher
 	{
 		jmfHandler.addHandler(this.new StopPersistentChannelHandler());
 		jmfHandler.addHandler(this.new KnownSubscriptionsHandler());
+	}
+
+	/**
+	 * start the dispatcher thread
+	 */
+	public void startup()
+	{
+		final String deviceID = device == null ? "testID" : device.getDeviceID();
+		new Thread(theDispatcher, "SignalDispatcher_" + deviceID).start();
+		log.info("dispatcher thread 'SignalDispatcher_" + deviceID + "' started");
+		storage.load();
 	}
 
 	/**
