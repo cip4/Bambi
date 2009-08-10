@@ -71,8 +71,6 @@ package org.cip4.bambi.core;
 
 import java.util.Vector;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.SignalDispatcher.Trigger;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
@@ -99,10 +97,9 @@ import org.cip4.jdflib.util.StringUtil;
  * @author Rainer Prosi
  * 
  */
-public class StatusListener
+public class StatusListener extends BambiLogFactory
 {
 
-	private static Log log = LogFactory.getLog(StatusListener.class.getName());
 	private final SignalDispatcher dispatcher;
 	private SignalDispatcher rootDispatcher = null;
 	protected StatusCounter theCounter;

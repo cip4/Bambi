@@ -76,8 +76,6 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
@@ -86,7 +84,6 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.messaging.JMFBufferHandler;
 import org.cip4.bambi.core.messaging.JMFBuilder;
-import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
@@ -120,7 +117,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * the url flag for incoming messages
 	 */
 	public static final String SLAVEJMF = "slavejmf";
-	protected static final Log log = LogFactory.getLog(AbstractProxyDevice.class.getName());
 	protected QueueHotFolder slaveJDFOutput = null;
 	protected QueueHotFolder slaveJDFError = null;
 
@@ -505,7 +501,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		if (jmf != null)
 		{
 			final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(newStatus, jmf.getCommand(0).getID());
-			JMFFactory.getJMFFactory().send2URL(jmf, getProxyProperties().getSlaveURL(), ah, _slaveCallback, getDeviceID());
+			getJMFFactory().send2URL(jmf, getProxyProperties().getSlaveURL(), ah, _slaveCallback, getDeviceID());
 			ah.waitHandled(5000, 10000, false);
 			return ah.getFinalStatus();
 		}
@@ -555,6 +551,10 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	public IConverterCallback getCallback(final String url)
 	{
 		if (StringUtil.hasToken(url, SLAVEJMF, "/", 0))
+		{
+			return _slaveCallback;
+		}
+		if (ContainerUtil.equals(getProxyProperties().getDeviceURLForSlave(), url))
 		{
 			return _slaveCallback;
 		}

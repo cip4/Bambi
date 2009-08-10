@@ -142,7 +142,7 @@ public class ShowXJDFHandler extends ShowHandler
 			final KElement xRoot = xjdf20.makeNewJDF(nPart, null);
 			doc = new JDFDoc(xRoot.getOwnerDocument());
 
-			prepareRoot(doc, request, "showXJDF");
+			doc = prepareRoot(doc, request, "showXJDF");
 
 			response.setContentType(UrlUtil.TEXT_XML);
 			final OutputStream os = response.getBufferedOutputStream();

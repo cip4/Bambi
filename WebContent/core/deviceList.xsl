@@ -64,6 +64,14 @@
           requests handled:
           <xsl:value-of select="@NumRequests"/>
         </p>
+       <p>
+          Free Memory:
+          <xsl:value-of select="@MemFree"/>
+        </p>
+       <p>
+          Total Allocated Memory:
+          <xsl:value-of select="@MemTotal"/>
+        </p>
         <p>Build @build.number@, @build.timestamp@</p>
       </body>
     </html>

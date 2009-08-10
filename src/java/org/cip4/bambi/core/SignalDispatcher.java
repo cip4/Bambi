@@ -80,8 +80,6 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.Map.Entry;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
@@ -132,13 +130,12 @@ import org.cip4.jdflib.util.ThreadUtil.MyMutex;
  * fire off.
  * @author prosirai
  */
-public final class SignalDispatcher
+public final class SignalDispatcher extends BambiLogFactory
 {
-	protected static final Log log = LogFactory.getLog(SignalDispatcher.class.getName());
 	protected HashMap<String, MsgSubscription> subscriptionMap = null; // map of slaveChannelID / Subscription
 	private final SubscriptionStore storage;
 	IMessageHandler messageHandler = null;
-	private Vector<Trigger> triggers = null;
+	protected Vector<Trigger> triggers = null;
 	protected MyMutex mutex = null;
 	protected boolean doShutdown = false;
 	protected AbstractDevice device = null;
@@ -250,7 +247,7 @@ public final class SignalDispatcher
 		private void pauseResumeSender(final BambiServletRequest request, final BambiServletResponse response)
 		{
 			final String url = request.getParameter(AttributeName.URL);
-			final Vector<MessageSender> v = JMFFactory.getJMFFactory().getMessageSenders(url);
+			final Vector<MessageSender> v = device.getJMFFactory().getMessageSenders(url);
 			final boolean pause = request.getBooleanParam("pause");
 			if (v != null)
 			{
@@ -276,12 +273,14 @@ public final class SignalDispatcher
 		private void stopSender(final BambiServletRequest request, final BambiServletResponse response)
 		{
 			final String url = request.getParameter(AttributeName.URL);
-			final Vector<MessageSender> v = JMFFactory.getJMFFactory().getMessageSenders(url);
+			final JMFFactory factory = device.getJMFFactory();
+			final Vector<MessageSender> v = factory.getMessageSenders(url);
 			if (v != null)
 			{
 				for (int i = 0; i < v.size(); i++)
 				{
 					final MessageSender messageSender = v.get(i);
+
 					messageSender.shutDown(true);
 				}
 			}
@@ -294,7 +293,7 @@ public final class SignalDispatcher
 		private void flushSender(final BambiServletRequest request, final BambiServletResponse response)
 		{
 			final String url = request.getParameter(AttributeName.URL);
-			final Vector<MessageSender> v = JMFFactory.getJMFFactory().getMessageSenders(url);
+			final Vector<MessageSender> v = device.getJMFFactory().getMessageSenders(url);
 			if (v != null)
 			{
 				for (int i = 0; i < v.size(); i++)
@@ -314,7 +313,7 @@ public final class SignalDispatcher
 			final URL myURL = UrlUtil.stringToURL(url);
 			if (myURL == null || pos < 0)
 			{
-				final Vector<MessageSender> v = JMFFactory.getJMFFactory().getMessageSenders(null);
+				final Vector<MessageSender> v = device.getJMFFactory().getMessageSenders(null);
 				if (v != null)
 				{
 					for (final MessageSender ms : v)
@@ -325,7 +324,7 @@ public final class SignalDispatcher
 			}
 			else
 			{
-				final MessageSender ms = JMFFactory.getJMFFactory().getCreateMessageSender(url);
+				final MessageSender ms = device.getJMFFactory().getCreateMessageSender(url);
 				if (ms != null)
 				{
 					ms.appendToXML(root, false, pos);
@@ -879,7 +878,7 @@ public final class SignalDispatcher
 			}
 			final VElement v = jmfOut.getMessageVector(EnumFamily.Signal, null);
 			final int siz = v == null ? 0 : v.size();
-			if (siz == 0)
+			if (siz == 0 || v == null)
 			{
 				return null;
 			}
@@ -975,7 +974,6 @@ public final class SignalDispatcher
 			if ("*".equals(details) || ContainerUtil.equals(channelID, details))
 			{
 				sub.appendElement("Sub").copyElement(theMessage, null);
-				final int n = lastSentJMF.getFill();
 				final JDFJMF[] sentArray = lastSentJMF.peekArray();
 				if (sentArray != null)
 				{
@@ -1705,7 +1703,7 @@ public final class SignalDispatcher
 	{
 		final Vector<MsgSubscription> v = ContainerUtil.toValueVector(subscriptionMap, false);
 		final int si = v == null ? 0 : v.size();
-		if (si == 0)
+		if (si == 0 || v == null)
 		{
 			return null;
 		}
@@ -1807,7 +1805,7 @@ public final class SignalDispatcher
 	}
 
 	/**
-	 * flush any waiting messages
+	 * flush any waiting messages by notifying the dispatcher thread
 	 */
 	public void flush()
 	{

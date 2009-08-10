@@ -15,8 +15,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 
 /*
@@ -94,11 +92,10 @@ import org.cip4.jdflib.util.ByteArrayIOStream;
  * @author prosirai
  * 
  */
-public class BambiServletResponse implements HttpServletResponse
+public class BambiServletResponse extends BambiLogFactory implements HttpServletResponse
 {
 	private final HttpServletResponse parent;
 	private ByteArrayIOStream buffer;
-	private static Log log = LogFactory.getLog(BambiServletResponse.class.getName());
 	private final BambiServletRequest theRequest;
 
 	/**
@@ -179,119 +176,189 @@ public class BambiServletResponse implements HttpServletResponse
 		return parent.encodeRedirectURL(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#encodeUrl(java.lang.String)
+	 */
+	@SuppressWarnings("deprecation")
 	public String encodeUrl(final String arg0)
 	{
 		return parent.encodeUrl(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#encodeURL(java.lang.String)
+	 */
 	public String encodeURL(final String arg0)
 	{
 		return parent.encodeURL(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#flushBuffer()
+	 */
 	public void flushBuffer() throws IOException
 	{
 		parent.flushBuffer();
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#getBufferSize()
+	 */
 	public int getBufferSize()
 	{
 		return parent.getBufferSize();
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#getCharacterEncoding()
+	 */
 	public String getCharacterEncoding()
 	{
 		return parent.getCharacterEncoding();
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#getContentType()
+	 */
 	public String getContentType()
 	{
 		return parent.getContentType();
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#getLocale()
+	 */
 	public Locale getLocale()
 	{
 		return parent.getLocale();
 	}
 
 	/**
-	 * never acces this directly - always use flush finally
+	 * never access this directly - always use flush finally
+	 * @return
+	 * @throws NotImplementedException
 	 */
 	public ServletOutputStream getOutputStream() throws NotImplementedException
 	{
 		throw new NotImplementedException("Use getBufferedOutputStream");
 	}
 
+	/**
+	 * @return
+	 * @throws IOException
+	 */
 	public OutputStream getBufferedOutputStream() throws IOException
 	{
 		return buffer == null ? parent.getOutputStream() : buffer;
 	}
 
+	/**
+	 * @return
+	 */
 	public InputStream getBufferedInputStream()
 	{
 		return buffer == null ? null : buffer.getInputStream();
 	}
 
+	/**
+	 * @return
+	 */
 	public int getBufferedCount()
 	{
 		return buffer == null ? -1 : buffer.size();
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#getWriter()
+	 */
 	public PrintWriter getWriter() throws IOException
 	{
 		return parent.getWriter();
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#isCommitted()
+	 */
 	public boolean isCommitted()
 	{
 		return parent.isCommitted();
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#reset()
+	 */
 	public void reset()
 	{
 		parent.reset();
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#resetBuffer()
+	 */
 	public void resetBuffer()
 	{
 		parent.resetBuffer();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#sendError(int, java.lang.String)
+	 */
 	public void sendError(final int arg0, final String arg1) throws IOException
 	{
 		parent.sendError(arg0, arg1);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#sendError(int)
+	 */
 	public void sendError(final int arg0) throws IOException
 	{
 		parent.sendError(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#sendRedirect(java.lang.String)
+	 */
 	public void sendRedirect(final String arg0) throws IOException
 	{
 		parent.sendRedirect(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#setBufferSize(int)
+	 */
 	public void setBufferSize(final int arg0)
 	{
 		parent.setBufferSize(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#setCharacterEncoding(java.lang.String)
+	 */
 	public void setCharacterEncoding(final String arg0)
 	{
 		parent.setCharacterEncoding(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#setContentLength(int)
+	 */
 	public void setContentLength(final int arg0)
 	{
 		parent.setContentLength(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.ServletResponse#setContentType(java.lang.String)
+	 */
 	public void setContentType(final String arg0)
 	{
 		parent.setContentType(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletResponse#setDateHeader(java.lang.String, long)
+	 */
 	public void setDateHeader(final String arg0, final long arg1)
 	{
 		parent.setDateHeader(arg0, arg1);

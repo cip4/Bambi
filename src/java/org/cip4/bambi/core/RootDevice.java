@@ -77,9 +77,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IMessageHandler;
+import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.core.AttributeName;
@@ -107,12 +106,12 @@ import org.cip4.jdflib.util.UrlUtil;
 public class RootDevice extends AbstractDevice
 {
 	protected HashMap<String, AbstractDevice> _devices = null;
+	private JMFFactory jmfFactory;
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -4412710163767830461L;
-	private static Log log = LogFactory.getLog(RootDevice.class.getName());
 
 	/**
 	 * @param prop
@@ -122,7 +121,6 @@ public class RootDevice extends AbstractDevice
 		super(prop);
 		_devices = new HashMap<String, AbstractDevice>();
 		_jmfHandler.setFilterOnDeviceID(false); // accept all
-
 		log.info("created RootDevice '" + prop.getDeviceID() + "'");
 	}
 
@@ -306,22 +304,27 @@ public class RootDevice extends AbstractDevice
 			if (bGood && bQueue)
 			{
 				final VElement vq = response.getChildElementVector(ElementName.QUEUE, null);
-
-				final JDFQueue q = _theQueueProcessor.getQueue().copyToResponse(response, null, null);
-				final int nQ = vq == null ? 0 : vq.size();
-				final JDFQueueEntry qe0 = q.getQueueEntry(0);
-				for (int i = 0; i < nQ; i++)
+				if (vq != null)
 				{
-					final JDFQueue qi = (JDFQueue) vq.elementAt(i);
-					final VElement vQE = qi.getQueueEntryVector();
-					final int nQE = vQE == null ? 0 : vQE.size();
-
-					for (int j = 0; j < nQE; j++)
+					final JDFQueue q = _theQueueProcessor.getQueue().copyToResponse(response, null, null);
+					final int nQ = vq.size();
+					final JDFQueueEntry qe0 = q.getQueueEntry(0);
+					for (int i = 0; i < nQ; i++)
 					{
-						q.copyElement(vQE.elementAt(j), qe0);
+						final JDFQueue qi = (JDFQueue) vq.elementAt(i);
+						final VElement vQE = qi.getQueueEntryVector();
+						if (vQE != null)
+						{
+							final int nQE = vQE.size();
+
+							for (int j = 0; j < nQE; j++)
+							{
+								q.copyElement(vQE.elementAt(j), qe0);
+							}
+						}
 					}
+					QueueProcessor.removeBambiNSExtensions(q);
 				}
-				QueueProcessor.removeBambiNSExtensions(q);
 			}
 			return bGood;
 		}
@@ -368,9 +371,8 @@ public class RootDevice extends AbstractDevice
 	/**
 	 * handler for the StopPersistentChannel command
 	 */
-	public class RootGetDispatchHandler implements IGetHandler
+	public class RootGetDispatchHandler extends BambiLogFactory implements IGetHandler
 	{
-
 		/**
 		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
 		 * @param request
@@ -454,25 +456,32 @@ public class RootDevice extends AbstractDevice
 	@Override
 	public void shutdown()
 	{
-		final Set<String> keys = _devices.keySet();
-		final Iterator<String> it = keys.iterator();
-		while (it.hasNext())
+		if (_devices != null)
 		{
-			final String devID = it.next();
-			final AbstractDevice dev = _devices.get(devID);
-			if (dev != null)
+			final Set<String> keys = _devices.keySet();
+			final Iterator<String> it = keys.iterator();
+			while (it.hasNext())
 			{
-				dev.shutdown();
+				final String devID = it.next();
+				final AbstractDevice dev = _devices.get(devID);
+				if (dev != null)
+				{
+					dev.shutdown();
+				}
 			}
+			_devices.clear();
 		}
-		_devices.clear();
+		if (jmfFactory != null)
+		{
+			jmfFactory.shutDown(null, true);
+		}
 		super.shutdown();
 	}
 
 	/**
 	 * get a device
 	 * @param deviceID ID of the device to get
-	 * @return the {@link IDevice} for a given device ID
+	 * @return the {@link AbstractDevice} for a given device ID
 	 */
 	@Override
 	public AbstractDevice getDevice(final String deviceID)
@@ -488,6 +497,19 @@ public class RootDevice extends AbstractDevice
 			return this;
 		}
 		return _devices.get(deviceID);
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.AbstractDevice#getJMFFactory()
+	 */
+	@Override
+	public JMFFactory getJMFFactory()
+	{
+		if (jmfFactory == null)
+		{
+			jmfFactory = new JMFFactory(getDeviceID());
+		}
+		return jmfFactory;
 	}
 
 	/**
@@ -559,6 +581,8 @@ public class RootDevice extends AbstractDevice
 		final KElement listRoot = deviceList.getRoot();
 		listRoot.setAttribute("NumRequests", numRequests, null);
 		listRoot.setAttribute(AttributeName.CONTEXT, "/" + BambiServlet.getBaseServletName(request));
+		listRoot.setAttribute("MemFree", Runtime.getRuntime().freeMemory(), null);
+		listRoot.setAttribute("MemTotal", Runtime.getRuntime().totalMemory(), null);
 		final XMLDevice dRoot = getXMLDevice(false, request);
 
 		final KElement rootElem = dRoot.getRoot();
@@ -566,14 +590,17 @@ public class RootDevice extends AbstractDevice
 		listRoot.copyAttribute("DeviceType", rootElem, null, null, null);
 		listRoot.copyElement(rootElem, null);
 
-		final int listSize = devices == null ? 0 : devices.length;
-		for (int i = 0; i < listSize; i++)
+		if (devices != null)
 		{
-			final AbstractDevice ad = devices[i];
-			final XMLDevice dChild = ad.getXMLDevice(false, request);
-			final KElement childElem = dChild.getRoot();
-			childElem.setAttribute("Root", false, null);
-			listRoot.copyElement(childElem, null);
+			final int listSize = devices.length;
+			for (int i = 0; i < listSize; i++)
+			{
+				final AbstractDevice ad = devices[i];
+				final XMLDevice dChild = ad.getXMLDevice(false, request);
+				final KElement childElem = dChild.getRoot();
+				childElem.setAttribute("Root", false, null);
+				listRoot.copyElement(childElem, null);
+			}
 		}
 
 		deviceList.setXSLTURL(getXSLT("overview", request.getContextPath()));

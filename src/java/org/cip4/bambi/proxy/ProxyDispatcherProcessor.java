@@ -71,8 +71,6 @@
 
 package org.cip4.bambi.proxy;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.queues.IQueueEntry;
@@ -89,7 +87,6 @@ import org.cip4.jdflib.node.JDFNode;
  */
 public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 {
-	private static Log log = LogFactory.getLog(ProxyDispatcherProcessor.class);
 	private static final long serialVersionUID = -384333582645081254L;
 	private final IProxyProperties proxyProperties;
 

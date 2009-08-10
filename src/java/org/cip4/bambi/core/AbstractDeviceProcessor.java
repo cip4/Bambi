@@ -70,9 +70,6 @@
  */
 package org.cip4.bambi.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
@@ -107,9 +104,8 @@ import org.cip4.jdflib.util.UrlUtil;
  * @author boegerni
  * 
  */
-public abstract class AbstractDeviceProcessor implements IDeviceProcessor
+public abstract class AbstractDeviceProcessor extends BambiLogFactory implements IDeviceProcessor
 {
-	protected static Log log = LogFactory.getLog(AbstractDeviceProcessor.class.getName());
 	/**
 	 * note: the queue processor points to the queue processor of the device, it !does not! copy it
 	 */
@@ -214,23 +210,26 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 			processor.setAttribute("JobPartID", node.getJobPartID(false));
 
 			final JDFResourceLink rls[] = statusCounter.getAmountLinks();
-			final int siz = rls == null ? 0 : rls.length;
-			for (int i = 0; i < siz; i++)
+			if (rls != null)
 			{
-				String linkedResName = rls[i].getLinkedResourceName();
-				if (ElementName.USAGECOUNTER.equals(linkedResName))
+				final int siz = rls.length;
+				for (int i = 0; i < siz; i++)
 				{
-					final JDFUsageCounter uc = (JDFUsageCounter) rls[i].getTarget();
-					if (uc != null && !KElement.isWildCard(uc.getCounterID()))
+					String linkedResName = rls[i].getLinkedResourceName();
+					if (ElementName.USAGECOUNTER.equals(linkedResName))
 					{
-						linkedResName += ":" + uc.getCounterID();
+						final JDFUsageCounter uc = (JDFUsageCounter) rls[i].getTarget();
+						if (uc != null && !KElement.isWildCard(uc.getCounterID()))
+						{
+							linkedResName += ":" + uc.getCounterID();
+						}
 					}
+					else if (ElementName.COMPONENT.equals(linkedResName))
+					{
+						linkedResName += ":" + rls[i].getUsage().getName();
+					}
+					addAmount(processor, rls[i].getrRef(), linkedResName);
 				}
-				else if (ElementName.COMPONENT.equals(linkedResName))
-				{
-					linkedResName += ":" + rls[i].getUsage().getName();
-				}
-				addAmount(processor, rls[i].getrRef(), linkedResName);
 			}
 		}
 
@@ -512,7 +511,6 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		}
 		final String queueEntryID = qe.getQueueEntryID();
 		final VElement vResLinks = node.getResourceLinks(null);
-		final int vSiz = (vResLinks == null) ? 0 : vResLinks.size();
 		VJDFAttributeMap vPartMap = qe.getPartMapVector();
 		if (vPartMap == null)
 		{
@@ -520,13 +518,17 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		}
 
 		String trackResourceID = null;
-		for (int i = 0; i < vSiz; i++)
+		if (vResLinks != null)
 		{
-			final JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
-			if (rl.matchesString(_trackResource))
+			final int vSiz = vResLinks.size();
+			for (int i = 0; i < vSiz; i++)
 			{
-				trackResourceID = rl.getrRef();
-				break;
+				final JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
+				if (rl.matchesString(_trackResource))
+				{
+					trackResourceID = rl.getrRef();
+					break;
+				}
 			}
 		}
 
@@ -535,24 +537,28 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 		{
 			String inConsume = null;
 			String outQuantity = null;
-			for (int i = 0; i < vSiz; i++)
+			if (vResLinks != null)
 			{
-				final JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
-				final JDFResource r = rl.getLinkRoot();
-				final EnumResourceClass c = r.getResourceClass();
-				if (EnumResourceClass.Consumable.equals(c) || EnumResourceClass.Handling.equals(c) || EnumResourceClass.Quantity.equals(c))
+				final int vSiz = vResLinks.size();
+				for (int i = 0; i < vSiz; i++)
 				{
-					final EnumUsage inOut = rl.getUsage();
-					if (EnumUsage.Input.equals(inOut))
+					final JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
+					final JDFResource r = rl.getLinkRoot();
+					final EnumResourceClass c = r.getResourceClass();
+					if (EnumResourceClass.Consumable.equals(c) || EnumResourceClass.Handling.equals(c) || EnumResourceClass.Quantity.equals(c))
 					{
-						if (EnumResourceClass.Consumable.equals(c))
+						final EnumUsage inOut = rl.getUsage();
+						if (EnumUsage.Input.equals(inOut))
 						{
-							inConsume = rl.getrRef();
+							if (EnumResourceClass.Consumable.equals(c))
+							{
+								inConsume = rl.getrRef();
+							}
 						}
-					}
-					else
-					{
-						outQuantity = rl.getrRef();
+						else
+						{
+							outQuantity = rl.getrRef();
+						}
 					}
 				}
 			}
@@ -644,13 +650,16 @@ public abstract class AbstractDeviceProcessor implements IDeviceProcessor
 	}
 
 	/**
-	 * @param rootDev
+	 * @param root
 	 */
 	public void addToDisplayXML(final KElement root)
 	{
 		this.new XMLDeviceProcessor(root).fill();
 	}
 
+	/**
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString()
 	{

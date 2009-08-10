@@ -51,17 +51,19 @@
         <h2>Message Sender Channels</h2>
         <table cellspacing="2" border="1">
           <tr>
-            <th align="left"> Base URL</th>
-            <th align="left"> Status</th>
-            <th align="left"> Messages Pending</th>
-            <th align="left"> Messages Sent</th>
-            <th align="left"> Last time Sent</th>
-            <th align="left"> Last time Queued</th>
-            <th align="left"> Active since</th>
+            <th align="left" title="Base URL of the Sender Channel"> Base URL</th>
+            <th align="left" title="Status of the Sender Channel"> Status</th>
+            <th align="left" title="Number of unsent messages pending"> JMF Pending</th>
+            <th align="left" title="Number of successfully sent messages"> JMF Sent</th>
+            <th align="left" title="Number of message send attempts, including unsuccessfull "> JMF Queued</th>
+            <th align="left" title="Number of heartbeat messages removed "> JMF Removed</th>
+            <th align="left" title="Time of last message sending"> Last time Sent</th>
+            <th align="left" title="Time the last message was queued for sending"> Last time Queued</th>
+            <th align="left" title="Time the message sender started up"> Active since</th>
             <th align="left"> Show Sent Messages</th>
-            <th align="left"> pause / resume</th>
-            <th align="left"> Remove Sender</th>
-            <th align="left"> Flush unsent Messages</th>
+            <th align="left" title="pause or resume sending of outqiong messages"> pause / resume</th>
+            <th align="left" title="remove this sender - does NOT flush pending messages"> Remove Sender</th>
+            <th align="left" title="Flush all queued but unsent messages irrevocibly"> Flush unsent Messages</th>
           </tr>
           <xsl:apply-templates select="MessageSender"/>
         </table>
@@ -217,6 +219,12 @@
         <xsl:value-of select="@NumSent"/>
       </td>
       <td align="left">
+        <xsl:value-of select="@NumTry"/>
+      </td>
+      <td align="left">
+        <xsl:value-of select="@NumRemove"/>
+      </td>
+      <td align="left">
         <xsl:value-of select="@LastSent"/>
       </td>
       <td align="left">
@@ -324,7 +332,7 @@
           <a>
             <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showSubscriptions/<xsl:value-of select="@DeviceID"/>
             </xsl:attribute>
-            refresh
+            refresh list
           </a>
         </td>
         <td>

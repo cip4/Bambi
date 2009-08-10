@@ -91,8 +91,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.enums.ValuedEnum;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
@@ -235,12 +233,11 @@ public class BambiServlet extends HttpServlet
 	public BambiServlet()
 	{
 		super();
-		log = LogFactory.getLog(BambiServlet.class.getName());
-		log.info("Constructing logger");
+		log = new BambiLogFactory(this.getClass()).getLog();
 	}
 
 	// protected IConverterCallback _callBack = null;
-	private Log log = null;
+	private BambiLog log = null;
 	protected AbstractDevice rootDev = null;
 	protected DumpDir bambiDumpIn = null;
 	protected DumpDir bambiDumpOut = null;

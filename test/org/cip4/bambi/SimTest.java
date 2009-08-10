@@ -112,7 +112,7 @@ public class SimTest extends BambiTestCase
 		bUpdateJobID = true;
 		acknowledgeURL = "http://localhost:8080/httpdump/acknowledgeURL";
 
-		// simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/manual002";
+		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/SimWorkerRoot";
 		// simWorkerUrl = "http://127.0.0.1:8080/speedmaster/jmf/XL105";
 	}
 
@@ -204,12 +204,12 @@ public class SimTest extends BambiTestCase
 
 		// check that the QE is on the proxy
 		final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
-		for (int i = 1; i < 22222; i++)
+		for (int i = 1; i < 222; i++)
 		{
 			System.out.println("submitting " + i);
 			// build SubmitQueueEntry
 			submitMimetoURL(simWorkerUrl);
-			ThreadUtil.sleep(5000);
+			ThreadUtil.sleep(50);
 			// final JDFQueue q2 = getQueueStatus(simWorkerUrl);
 			// final int newCount = q2.getEntryCount();
 			// assertEquals(oldSize + i, newCount);

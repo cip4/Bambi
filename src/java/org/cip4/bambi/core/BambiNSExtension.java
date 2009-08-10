@@ -130,7 +130,7 @@ public class BambiNSExtension
 
 	/**
 	 * @param e the element to work on
-	 * @param attName the local element name to get
+	 * @param elmName the local element name to get
 	 * @param iSkip get the nth element
 	 * @return the element
 	 * 
@@ -142,7 +142,7 @@ public class BambiNSExtension
 
 	/**
 	 * @param e the element to work on
-	 * @param attName the local element name to get
+	 * @param elmName the local element name to get
 	 * @param iSkip get the nth element
 	 * @return the element
 	 * 
@@ -154,7 +154,7 @@ public class BambiNSExtension
 
 	/**
 	 * @param e the element to work on
-	 * @param attName the local element name to get
+	 * @param elmName the local element name to get
 	 * @param iSkip get the nth element
 	 * @return the element
 	 * 
@@ -176,9 +176,8 @@ public class BambiNSExtension
 	}
 
 	/**
-	 * @param e the element to work on
 	 * @param attName the local attribute name to set
-	 * @return the attribute value, null if none exists
+	 * @return the fully qualified name
 	 * 
 	 */
 	public static String getMyNSString(final String attName)
@@ -201,6 +200,8 @@ public class BambiNSExtension
 	}
 
 	/**
+	 * @param qe
+	 * @return
 	 * 
 	 */
 	public static KElement getStatusContainer(final JDFQueueEntry qe)
@@ -209,6 +210,8 @@ public class BambiNSExtension
 	}
 
 	/**
+	 * @param qe
+	 * @return
 	 * 
 	 */
 	public static KElement getCreateStatusContainer(final JDFQueueEntry qe)
@@ -242,7 +245,7 @@ public class BambiNSExtension
 	/**
 	 * set the location of the JDF
 	 * @param ke the KElement to work on
-	 * @param docURL the location of the JDF
+	 * @param _docURL the location of the JDF
 	 */
 	public static void setDocURL(final KElement ke, final String _docURL)
 	{
@@ -357,7 +360,7 @@ public class BambiNSExtension
 	/**
 	 * set the URL of the device processing the QueueEntry
 	 * @param ke the KElement to work on
-	 * @param theDeviceID the URL of the device processing the QueueEntry
+	 * @param theDeviceURL the URL of the device processing the QueueEntry
 	 */
 	public static void setDeviceURL(final KElement ke, final String theDeviceURL)
 	{
@@ -392,6 +395,7 @@ public class BambiNSExtension
 
 	/**
 	 * @param qe the queuentry to check
+	 * @return
 	 */
 	public static String getSlaveQueueEntryID(final KElement qe)
 	{
@@ -474,7 +478,6 @@ public class BambiNSExtension
 
 	/**
 	 * @param qe
-	 * @param date
 	 * @return the submission time to the slave
 	 */
 	public static JDFDate getSlaveSubmissionTime(final JDFQueueEntry qe)

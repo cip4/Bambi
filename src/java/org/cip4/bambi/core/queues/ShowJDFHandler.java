@@ -142,8 +142,8 @@ public class ShowJDFHandler extends ShowHandler
 			if (!raw || callback && (_parentDevice instanceof AbstractProxyDevice))
 			{
 				final JDFParser p = new JDFParser();
-				final JDFDoc doc = p.parseStream(is);
-				prepareRoot(doc, request, "showJDF");
+				JDFDoc doc = p.parseStream(is);
+				doc = prepareRoot(doc, request, "showJDF");
 
 				if (callback)
 				{
@@ -185,9 +185,13 @@ public class ShowJDFHandler extends ShowHandler
 	 * @see org.cip4.bambi.core.queues.ShowHandler#prepareRoot(org.cip4.jdflib.core.JDFDoc, org.cip4.bambi.core.BambiServletRequest, java.lang.String)
 	 */
 	@Override
-	protected void prepareRoot(final JDFDoc doc, final BambiServletRequest request, final String command)
+	protected JDFDoc prepareRoot(JDFDoc doc, final BambiServletRequest request, final String command)
 	{
-		super.prepareRoot(doc, request, command);
+		doc = super.prepareRoot(doc, request, command);
+		if (doc == null)
+		{
+			return null;
+		}
 		final JDFNode n = doc.getJDFRoot();
 		final VElement v = n.getvJDFNode(null, null, false);
 		for (int i = 0; i < v.size(); i++)
@@ -202,6 +206,7 @@ public class ShowJDFHandler extends ShowHandler
 			}
 		}
 		updateStatusFromChildren(v);
+		return doc;
 	}
 
 	/**

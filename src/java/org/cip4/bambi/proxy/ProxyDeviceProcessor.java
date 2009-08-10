@@ -76,13 +76,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.messaging.JMFBuilder;
-import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
@@ -147,7 +144,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		return false;
 	}
 
-	static Log log = LogFactory.getLog(ProxyDeviceProcessor.class);
 	private static final long serialVersionUID = -384123582645081254L;
 	private final NotificationQueryHandler notificationQueryHandler;
 	protected long stopTime = 0; // this is the stop-processing time 0 means I'm alive
@@ -664,14 +660,13 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			return;
 		}
 
-		final AbstractProxyDevice p = getParent();
-		final String deviceURL = p.getDeviceURLForSlave();
+		final AbstractProxyDevice parentDevice = getParent();
+		final String deviceURL = parentDevice.getDeviceURLForSlave();
 
 		final JDFJMF jmfs[] = new JMFBuilder().createSubscriptions(deviceURL, devQEID, 10., 0);
-		final String deviceID = p.getDeviceID();
 		for (int i = 0; i < jmfs.length; i++)
 		{
-			JMFFactory.getJMFFactory().send2URL(jmfs[i], slaveURL, null, slaveCallBack, deviceID);
+			parentDevice.sendJMF(jmfs[i], slaveURL, null);
 		} // TODO handle response
 	}
 

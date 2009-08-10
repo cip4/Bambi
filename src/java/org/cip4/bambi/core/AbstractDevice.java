@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -77,16 +77,16 @@ import java.util.Enumeration;
 import java.util.Set;
 import java.util.Vector;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.AcknowledgeMap;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
+import org.cip4.bambi.core.messaging.IMessageOptimizer;
 import org.cip4.bambi.core.messaging.IResponseHandler;
 import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.messaging.StatusSignalComparator;
 import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
@@ -137,7 +137,7 @@ import org.cip4.jdflib.util.UrlUtil;
  * chance to fire.
  * @author boegerni
  */
-public abstract class AbstractDevice implements IGetHandler, IJMFHandler
+public abstract class AbstractDevice extends BambiLogFactory implements IGetHandler, IJMFHandler
 {
 	/**
 	 * @return the queueprocessor of this device
@@ -396,7 +396,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			JDFNotification notif = (JDFNotification) response.removeChild(ElementName.NOTIFICATION, null, 0);
 
 			final JDFJMF jmfin = inputMessage.getJMFRoot();
-			final JDFJMF jmfresp = response.getJMFRoot();
+
 			boolean bSignal = false;
 			for (int i = 0; i < devs.length; i++)
 			{
@@ -417,7 +417,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 					}
 					JDFJMF jmfinAfter = inputMessage.getJMFRoot();
 
-					// undo cleanup of pur signalse; else npe in 2nd loop...
+					// undo cleanup of pure signals; else npe in 2nd loop...
 					if (jmfinAfter == null)
 					{
 						bSignal = true;
@@ -448,6 +448,49 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 
 			return b;
 		}
+	}
+
+	/**
+	 * class that optimizes multiple status signals in case of network blocks
+	 * 
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+	 * 
+	 * Aug 9, 2009
+	 */
+	public class StatusOptimizer implements IMessageOptimizer
+	{
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.IMessageOptimizer#optimize(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 */
+		public optimizeResult optimize(final JDFMessage newMessage, final JDFMessage oldMessage)
+		{
+			if (newMessage == null || oldMessage == null)
+			{
+				return optimizeResult.noCheck;
+			}
+			if (!EnumType.Status.equals(oldMessage.getEnumType()))
+			{
+				return optimizeResult.noCheck;
+			}
+			if (!ContainerUtil.equals(newMessage.getSenderID(), oldMessage.getSenderID()))
+			{
+				return optimizeResult.noCheck;
+			}
+			if (!ContainerUtil.equals(newMessage.getFamily(), oldMessage.getFamily()))
+			{
+				return optimizeResult.noCheck;
+			}
+			final StatusSignalComparator ssc = new StatusSignalComparator();
+			if (ssc.isSameStatusSignal((JDFSignal) newMessage, (JDFSignal) oldMessage))
+			{
+				log.info("removing redundant status signal: " + oldMessage.getID());
+				ssc.mergeStatusSignal((JDFSignal) newMessage, (JDFSignal) oldMessage);
+				return optimizeResult.remove;
+			}
+			return optimizeResult.cont;
+		}
+
 	}
 
 	/**
@@ -500,7 +543,6 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		}
 	}
 
-	static final Log log = LogFactory.getLog(AbstractDevice.class.getName());
 	protected static final String SHOW_DEVICE = "showDevice";
 	protected static final String SHOW_SUBSCRIPTIONS = "showSubscriptions";
 	protected QueueProcessor _theQueueProcessor = null;
@@ -561,6 +603,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		addHandlers();
 		addWatchSubscriptions();
 
+		getJMFFactory().addOptimizer(EnumType.Status, new StatusOptimizer());
 		// defer message sending until everything is set up
 		_theSignalDispatcher.startup();
 	}
@@ -957,7 +1000,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	/**
 	 * returns 0 if the device can process the jdf ticket
 	 * @param doc
-	 * @param queueEntryID, may be null in case of a new submission
+	 * @param queueEntryID may be null in case of a new submission
 	 * @return 0 if successful, else the error code
 	 */
 	public abstract int canAccept(JDFDoc doc, String queueEntryID);
@@ -1182,8 +1225,7 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 */
 	public boolean sendJMF(final JDFJMF jmf, final String url, final IResponseHandler responseHandler)
 	{
-		JMFFactory.getJMFFactory().send2URL(jmf, url, responseHandler, getCallback(url), getDeviceID()); // TODO handle reponse
-
+		getJMFFactory().send2URL(jmf, url, responseHandler, getCallback(url), getDeviceID());
 		return true;
 	}
 
@@ -1323,9 +1365,22 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 	 * get the root controller
 	 * @return the root controller
 	 */
-	RootDevice getRootDevice()
+	protected RootDevice getRootDevice()
 	{
 		return _rootDevice;
+	}
+
+	/**
+	 * @return
+	 */
+	public JMFFactory getJMFFactory()
+	{
+		final RootDevice rootDevice = getRootDevice();
+		if (rootDevice == null)
+		{
+			return JMFFactory.getJMFFactory();
+		}
+		return rootDevice.getJMFFactory();
 	}
 
 	/**
@@ -1341,10 +1396,8 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.messaging.IJMFHandler#getHandler(org.cip4.jdflib.jmf.JDFMessage.EnumType, org.cip4.jdflib.jmf.JDFMessage.EnumFamily)
+	/**
+	 * @see org.cip4.bambi.core.messaging.IJMFHandler#getHandler(java.lang.String, org.cip4.jdflib.jmf.JDFMessage.EnumFamily)
 	 */
 	public IMessageHandler getHandler(final String typ, final EnumFamily family)
 	{
@@ -1396,11 +1449,13 @@ public abstract class AbstractDevice implements IGetHandler, IJMFHandler
 			rResp.setAttributes(r);
 			rResp.setID(id);
 			final VElement v = r.getChildElementVector(null, null);
-			final int siz = v == null ? 0 : v.size();
-
-			for (int j = 0; j < siz; j++)
+			if (v != null)
 			{
-				rResp.copyElement(v.elementAt(j), null);
+				final int siz = v.size();
+				for (int j = 0; j < siz; j++)
+				{
+					rResp.copyElement(v.elementAt(j), null);
+				}
 			}
 		}
 		return true;

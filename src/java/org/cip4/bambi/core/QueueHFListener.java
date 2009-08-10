@@ -16,9 +16,9 @@ import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
- *
+ * 
  */
-public class QueueHFListener implements QueueHotFolderListener
+public class QueueHFListener extends BambiLogFactory implements QueueHotFolderListener
 {
 	/**
 	 * 
@@ -27,10 +27,10 @@ public class QueueHFListener implements QueueHotFolderListener
 	private final QueueProcessor queueProc;
 
 	/**
-	 * @param qProc 
+	 * @param qProc
 	 * @param callBackClass
 	 */
-	public QueueHFListener(QueueProcessor qProc, IConverterCallback callBackClass)
+	public QueueHFListener(final QueueProcessor qProc, final IConverterCallback callBackClass)
 	{
 		queueProc = qProc;
 		_callBack = callBackClass;
@@ -40,35 +40,43 @@ public class QueueHFListener implements QueueHotFolderListener
 	 * @see org.cip4.jdflib.util.QueueHotFolderListener#submitted(org.cip4.jdflib.jmf.JDFJMF)
 	 * @param submissionJMF
 	 */
-	public void submitted(JDFJMF submissionJMF)
+	public void submitted(final JDFJMF submissionJMF)
 	{
-		AbstractDevice.log.info("HFListner:submitted");
-		JDFCommand command = submissionJMF.getCommand(0);
+		log.info("HFListner:submitted");
+		final JDFCommand command = submissionJMF.getCommand(0);
 
 		if (_callBack != null)
+		{
 			_callBack.prepareJMFForBambi(submissionJMF.getOwnerDocument_JDFElement());
+		}
 
-		JDFQueueSubmissionParams qsp = command.getQueueSubmissionParams(0);
+		final JDFQueueSubmissionParams qsp = command.getQueueSubmissionParams(0);
 
-		JDFDoc doc = qsp.getURLDoc();
+		final JDFDoc doc = qsp.getURLDoc();
 		if (doc == null)
 		{
-			AbstractDevice.log.warn("could not process JDF File");
+			log.warn("could not process JDF File");
 		}
 		else
 		{
 			if (_callBack != null)
+			{
 				_callBack.prepareJDFForBambi(doc);
+			}
 
-			JDFQueueEntry qe = queueProc.addEntry(command, null, doc);
+			final JDFQueueEntry qe = queueProc.addEntry(command, null, doc);
 			if (qe == null)
-				AbstractDevice.log.warn("_theQueue.addEntry returned null");
+			{
+				log.warn("_theQueue.addEntry returned null");
+			}
 			final String tmpURL = qsp.getURL();
 			final File tmpFile = UrlUtil.urlToFile(tmpURL);
 			if (tmpFile != null)
 			{
 				if (!tmpFile.delete())
-					AbstractDevice.log.warn("failed to delete temporary file " + tmpFile.getAbsolutePath());
+				{
+					log.warn("failed to delete temporary file " + tmpFile.getAbsolutePath());
+				}
 			}
 		}
 	}

@@ -75,9 +75,8 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.Map.Entry;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.jdflib.auto.JDFAutoMessageService.EnumJMFRole;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
@@ -103,9 +102,8 @@ import org.cip4.jdflib.util.EnumUtil;
  * 
  * @author rainer
  */
-public class JMFHandler implements IMessageHandler, IJMFHandler
+public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMFHandler
 {
-	protected static final Log log = LogFactory.getLog(JMFHandler.class.getName());
 	/**
 	 * attribute to ignore warnings for unhandled messages
 	 */
@@ -299,7 +297,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 * 
 	 * handler for the StopPersistentChannel command
 	 */
-	public static abstract class AbstractHandler implements IMessageHandler
+	public static abstract class AbstractHandler extends BambiLogFactory implements IMessageHandler
 	{
 		protected String type = null;
 		protected EnumFamily[] families = null;
@@ -509,11 +507,11 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		}
 		if (EnumClass.Error.equals(errorClass))
 		{
-			log.error("JMF error: rc=" + rc + " " + text);
+			getLog(JMFHandler.class).error("JMF error: rc=" + rc + " " + text);
 		}
 		else
 		{
-			log.warn("JMF error: rc=" + rc + " " + text);
+			getLog(JMFHandler.class).warn("JMF error: rc=" + rc + " " + text);
 		}
 	}
 

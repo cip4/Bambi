@@ -153,13 +153,13 @@ public abstract class ShowHandler implements IGetHandler
 	 * prepare the root jdf for display with xslt
 	 * @param doc
 	 */
-	protected void prepareRoot(JDFDoc doc, final BambiServletRequest request, final String command)
+	protected JDFDoc prepareRoot(JDFDoc doc, final BambiServletRequest request, final String command)
 	{
 		final KElement root = (doc == null) ? null : doc.getRoot();
 		final boolean raw = request.getBooleanParam("raw");
 		if (raw || root == null)
 		{
-			return;
+			return null;
 		}
 		final boolean fix = request.getBooleanParam("fix");
 		if (fix && _parentDevice.getCallback(null) != null)
@@ -169,11 +169,14 @@ public abstract class ShowHandler implements IGetHandler
 
 		root.setAttribute(AttributeName.DEVICEID, _parentDevice.getDeviceID());
 		final String contextPath = request.getContextPath();
+		if (doc == null)
+		{
+			return null;
+		}
 		doc.setXSLTURL(_parentDevice.getXSLT(command, contextPath));
-
 		root.setAttribute(AttributeName.CONTEXT, contextPath);
 		final String qeID = request.getParameter(QueueProcessor.QE_ID);
 		root.setAttribute(AttributeName.QUEUEENTRYID, qeID);
-
+		return doc;
 	}
 }

@@ -97,7 +97,8 @@ import org.cip4.jdflib.util.UrlUtil;
  * buffered servlet request class
  * @author prosirai
  */
-public class BambiServletRequest implements HttpServletRequest
+@SuppressWarnings("unchecked")
+public class BambiServletRequest extends BambiLogFactory implements HttpServletRequest
 {
 	private final HttpServletRequest parent;
 	private ByteArrayIOStream buffer;
@@ -230,67 +231,106 @@ public class BambiServletRequest implements HttpServletRequest
 		return StringUtil.parseDouble(val, 0.0);
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getAttribute(java.lang.String)
+	 */
 	public Object getAttribute(final String arg0)
 	{
 		return parent.getAttribute(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getAttributeNames()
+	 */
 	public Enumeration getAttributeNames()
 	{
 		return parent.getAttributeNames();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getAuthType()
+	 */
 	public String getAuthType()
 	{
 		return parent.getAuthType();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getCharacterEncoding()
+	 */
 	public String getCharacterEncoding()
 	{
 		return parent.getCharacterEncoding();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getContentLength()
+	 */
 	public int getContentLength()
 	{
 		return parent.getContentLength();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getContentType()
+	 */
 	public String getContentType()
 	{
 		return parent.getContentType();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getContextPath()
+	 */
 	public String getContextPath()
 	{
 		return parent.getContextPath();
 	}
 
+	/**
+	 * @return
+	 */
 	public String getContextRoot()
 	{
 		final String s = parent.getContextPath();
 		return "/" + StringUtil.token(s, 0, "/");
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getCookies()
+	 */
 	public Cookie[] getCookies()
 	{
 		return parent.getCookies();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getDateHeader(java.lang.String)
+	 */
 	public long getDateHeader(final String arg0)
 	{
 		return parent.getDateHeader(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getHeader(java.lang.String)
+	 */
 	public String getHeader(final String arg0)
 	{
 		return parent.getHeader(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getHeaderNames()
+	 */
 	public Enumeration getHeaderNames()
 	{
 		return parent.getHeaderNames();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getHeaders(java.lang.String)
+	 */
 	public Enumeration getHeaders(final String arg0)
 	{
 		return parent.getHeaders(arg0);
@@ -336,46 +376,73 @@ public class BambiServletRequest implements HttpServletRequest
 		}
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getIntHeader(java.lang.String)
+	 */
 	public int getIntHeader(final String arg0)
 	{
 		return parent.getIntHeader(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getLocalAddr()
+	 */
 	public String getLocalAddr()
 	{
 		return parent.getLocalAddr();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getLocale()
+	 */
 	public Locale getLocale()
 	{
 		return parent.getLocale();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getLocales()
+	 */
 	public Enumeration getLocales()
 	{
 		return parent.getLocales();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getLocalName()
+	 */
 	public String getLocalName()
 	{
 		return parent.getLocalName();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getLocalPort()
+	 */
 	public int getLocalPort()
 	{
 		return parent.getLocalPort();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getMethod()
+	 */
 	public String getMethod()
 	{
 		return parent.getMethod();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getParameter(java.lang.String)
+	 */
 	public String getParameter(final String arg0)
 	{
 		return parent.getParameter(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getParameterMap()
+	 */
 	public Map getParameterMap()
 	{
 		return parent.getParameterMap();
@@ -389,117 +456,186 @@ public class BambiServletRequest implements HttpServletRequest
 		return parent.getParameterNames();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getParameterValues(java.lang.String)
+	 */
 	public String[] getParameterValues(final String arg0)
 	{
 		return parent.getParameterValues(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getPathInfo()
+	 */
 	public String getPathInfo()
 	{
 		return parent.getPathInfo();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getPathTranslated()
+	 */
 	public String getPathTranslated()
 	{
 		return parent.getPathTranslated();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getProtocol()
+	 */
 	public String getProtocol()
 	{
 		return parent.getProtocol();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getQueryString()
+	 */
 	public String getQueryString()
 	{
 		return parent.getQueryString();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getReader()
+	 */
 	public BufferedReader getReader() throws IOException
 	{
 		return parent.getReader();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getRealPath(java.lang.String)
+	 */
 	@Deprecated
 	public String getRealPath(final String arg0)
 	{
 		return parent.getRealPath(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getRemoteAddr()
+	 */
 	public String getRemoteAddr()
 	{
 		return parent.getRemoteAddr();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getRemoteHost()
+	 */
 	public String getRemoteHost()
 	{
 		return parent.getRemoteHost();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getRemotePort()
+	 */
 	public int getRemotePort()
 	{
 		return parent.getRemotePort();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getRemoteUser()
+	 */
 	public String getRemoteUser()
 	{
 		return parent.getRemoteUser();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getRequestDispatcher(java.lang.String)
+	 */
 	public RequestDispatcher getRequestDispatcher(final String arg0)
 	{
 		return parent.getRequestDispatcher(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getRequestedSessionId()
+	 */
 	public String getRequestedSessionId()
 	{
 		return parent.getRequestedSessionId();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getRequestURI()
+	 */
 	public String getRequestURI()
 	{
 		return parent.getRequestURI();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getRequestURL()
+	 */
 	public StringBuffer getRequestURL()
 	{
 		return parent.getRequestURL();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getScheme()
+	 */
 	public String getScheme()
 	{
 		return parent.getScheme();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getServerName()
+	 */
 	public String getServerName()
 	{
 		return parent.getServerName();
 	}
 
+	/**
+	 * @see javax.servlet.ServletRequest#getServerPort()
+	 */
 	public int getServerPort()
 	{
 		return parent.getServerPort();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getServletPath()
+	 */
 	public String getServletPath()
 	{
 		return parent.getServletPath();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getSession()
+	 */
 	public HttpSession getSession()
 	{
 		return parent.getSession();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getSession(boolean)
+	 */
 	public HttpSession getSession(final boolean arg0)
 	{
 		return parent.getSession(arg0);
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#getUserPrincipal()
+	 */
 	public Principal getUserPrincipal()
 	{
 		return parent.getUserPrincipal();
 	}
 
+	/**
+	 * @see javax.servlet.http.HttpServletRequest#isRequestedSessionIdFromCookie()
+	 */
 	public boolean isRequestedSessionIdFromCookie()
 	{
 		return parent.isRequestedSessionIdFromCookie();

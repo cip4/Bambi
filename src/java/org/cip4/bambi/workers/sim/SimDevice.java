@@ -74,8 +74,6 @@ package org.cip4.bambi.workers.sim;
 import java.util.Enumeration;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiServlet;
@@ -116,7 +114,6 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 	 */
 
 	private static final long serialVersionUID = -8412710163767830461L;
-	private static Log log = LogFactory.getLog(SimDevice.class.getName());
 	protected String _trackResource = null; // the "major" resource to track
 	protected VString amountResources = null;
 	protected String _typeExpression = null; // the regexp that defines the valid types

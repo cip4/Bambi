@@ -94,7 +94,18 @@ public interface IDeviceProperties
 	 */
 	public enum QEReturn
 	{
-		HF, HTTP, MIME
+		/**
+		 * hot folder
+		 */
+		HF,
+		/**
+		 * pure http
+		 */
+		HTTP,
+		/**
+		 * MIME
+		 */
+		MIME
 	}
 
 	/**

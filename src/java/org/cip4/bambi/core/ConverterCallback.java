@@ -69,8 +69,6 @@
  */
 package org.cip4.bambi.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -86,9 +84,8 @@ import org.cip4.jdflib.util.StringUtil;
 /**
  * mother of all converters
  */
-public class ConverterCallback implements IConverterCallback
+public class ConverterCallback extends BambiLogFactory implements IConverterCallback
 {
-	private static Log log = LogFactory.getLog(ConverterCallback.class.getName());
 	private EnumVersion fixToExtern = null;
 	private EnumVersion fixToBambi = null;
 
@@ -143,7 +140,12 @@ public class ConverterCallback implements IConverterCallback
 	public JDFDoc prepareJDFForBambi(final JDFDoc doc)
 	{
 		final JDFNode n = doc.getJDFRoot();
-		if (n != null && !n.hasAttribute(AttributeName.JOBPARTID))
+		if (n == null)
+		{
+			log.warn("No JDF Node in document - do nothing");
+			return doc;
+		}
+		if (!n.hasAttribute(AttributeName.JOBPARTID))
 		{
 			log.warn("adding default root JobPartID='root'");
 			n.setJobPartID("root");

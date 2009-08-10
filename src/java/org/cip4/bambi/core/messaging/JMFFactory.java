@@ -79,8 +79,7 @@ import java.util.Vector;
 
 import javax.mail.Multipart;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.jdflib.core.JDFDoc;
@@ -88,10 +87,12 @@ import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 
 /**
  * factory for creating JMF messages
@@ -99,7 +100,7 @@ import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
  * @author boegerni
  * 
  */
-public class JMFFactory
+public class JMFFactory extends BambiLogFactory
 {
 	/**
 	 * @author Rainer Prosi, Heidelberger Druckmaschinen
@@ -192,16 +193,22 @@ public class JMFFactory
 
 	// ////////////////////////////////////////////////////////////
 
-	private static Log log = LogFactory.getLog(JMFFactory.class.getName());
 	private static JMFFactory theFactory = null;
-	private static Object mutex = new Object();
-	HashMap<CallURL, MessageSender> senders = new HashMap<CallURL, MessageSender>();
+	private static MyMutex factoryMutex = new MyMutex();
+	final HashMap<CallURL, MessageSender> senders = new HashMap<CallURL, MessageSender>();
 	private int nThreads = 0;
 	private final boolean shutdown = false;
+	private final HashMap<EnumType, IMessageOptimizer> optimizers;
+	private final String devID;
 
-	private JMFFactory() // all static
+	/**
+	 * @param deviceID
+	 */
+	public JMFFactory(final String deviceID) // all static
 	{
 		super();
+		optimizers = new HashMap<EnumType, IMessageOptimizer>();
+		devID = deviceID;
 	}
 
 	/**
@@ -209,11 +216,11 @@ public class JMFFactory
 	 */
 	public static JMFFactory getJMFFactory()
 	{
-		synchronized (mutex)
+		synchronized (factoryMutex)
 		{
 			if (theFactory == null)
 			{
-				theFactory = new JMFFactory();
+				theFactory = new JMFFactory("static");
 			}
 		}
 		return theFactory;
@@ -267,11 +274,7 @@ public class JMFFactory
 		}
 		if (jmf == null || url == null)
 		{
-			if (log != null)
-			{
-				// this method is prone for crashing on shutdown, thus checking for log!=null is important
-				log.error("failed to send JDFMessage, message and/or URL is null");
-			}
+			log.error("failed to send JDFMessage, message and/or URL is null");
 			return;
 		}
 
@@ -379,6 +382,27 @@ public class JMFFactory
 	}
 
 	/**
+	 * @param typ message type
+	 * @param opt the optimizer to call
+	 */
+	public void addOptimizer(final EnumType typ, final IMessageOptimizer opt)
+	{
+		if (typ != null && opt != null)
+		{
+			optimizers.put(typ, opt);
+		}
+	}
+
+	/**
+	 * @param typ
+	 * @return
+	 */
+	public IMessageOptimizer getOptimizer(final EnumType typ)
+	{
+		return typ == null ? null : optimizers.get(typ);
+	}
+
+	/**
 	 * @return Vector of all known message senders matching url; null if none match
 	 * @param url the url to match, if null all
 	 */
@@ -438,8 +462,9 @@ public class JMFFactory
 			{
 				cleanIdleSenders();
 				ms = new MessageSender(cu);
+				ms.setJMFFactory(this);
 				senders.put(cu, ms);
-				new Thread(ms, "MessageSender_" + nThreads++ + "_" + cu.getBaseURL()).start();
+				new Thread(ms, "MessageSender_" + devID + "_" + nThreads++ + "_" + cu.getBaseURL()).start();
 			}
 			return ms;
 		}

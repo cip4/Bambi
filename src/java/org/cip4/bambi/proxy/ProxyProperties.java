@@ -74,8 +74,6 @@ import java.io.File;
 
 import javax.servlet.ServletContext;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties;
@@ -92,8 +90,6 @@ public class ProxyProperties extends MultiDeviceProperties
 	 * properties for a single device
 	 * @author boegerni
 	 */
-
-	private static final Log log = LogFactory.getLog(ProxyProperties.class.getName());
 
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG

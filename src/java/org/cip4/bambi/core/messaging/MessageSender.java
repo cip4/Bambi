@@ -82,10 +82,10 @@ import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.bambi.core.messaging.IMessageOptimizer.optimizeResult;
 import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -98,6 +98,8 @@ import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFSignal;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.DumpDir;
@@ -114,13 +116,14 @@ import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 
 /**
- * allow a JMF message to be send in its own thread
+ * allow a JMF message to be sent in its own thread
  * 
  * @author boegerni
  */
-public class MessageSender implements Runnable
+public class MessageSender extends BambiLogFactory implements Runnable
 {
 	private final CallURL callURL;
+	protected JMFFactory myFactory;
 
 	private enum SendReturn
 	{
@@ -137,19 +140,122 @@ public class MessageSender implements Runnable
 
 	private boolean doShutDown = false;
 	private boolean doShutDownGracefully = false;
-	private Vector<MessageDetails> _messages = null;
+	protected Vector<MessageDetails> _messages = null;
 	protected FastFiFo<MessageDetails> sentMessages = null;
-	protected static Log log = LogFactory.getLog(MessageSender.class.getName());
 	private static VectorMap<String, DumpDir> vDumps = new VectorMap<String, DumpDir>();
 	private final MyMutex mutexDispatch = new MyMutex();
 	private final MyMutex mutexPause = new MyMutex();
+	private int trySend = 0;
 	private int sent = 0;
+	private int removedHeartbeat = 0;
 	private int idle = 0;
 	private long created = 0;
 	private long lastQueued = 0;
 	private long lastSent = 0;
 	private boolean pause = false;
 	private static File baseLocation = null;
+	private SenderQueueOptimizer optimizer = null;
+
+	protected class SenderQueueOptimizer extends BambiLogFactory
+	{
+		/**
+		 * 
+		 */
+		public SenderQueueOptimizer()
+		{
+			super();
+		}
+
+		/**
+		 * 
+		 * @param jmf
+		 */
+		protected void optimize(final JDFJMF jmf)
+		{
+			if (jmf == null)
+			{
+				return;
+			}
+			final VElement messages = jmf.getMessageVector(null, null);
+			if (messages == null)
+			{
+				return;
+			}
+			for (int i = 0; i < messages.size(); i++)
+			{
+				optimizeMessage((JDFMessage) messages.get(i));
+			}
+
+		}
+
+		/**
+		 * @param newMessage
+		 */
+		private void optimizeMessage(final JDFMessage newMessage)
+		{
+			if (!(newMessage instanceof JDFSignal))
+			{
+				return;
+			}
+			final EnumType typ = newMessage.getEnumType();
+			if (typ == null)
+			{
+				return;
+			}
+			final IMessageOptimizer opt = myFactory.getOptimizer(typ);
+			if (opt == null)
+			{
+				return;
+			}
+			for (int i = _messages.size() - 1; i >= 0; i--)
+			{
+				final JDFJMF jmf = _messages.get(i).jmf;
+				if (jmf == null)
+				{
+					continue; // don't optimize mime packages
+				}
+				final VElement v2 = jmf.getMessageVector(null, null);
+				if (v2 == null)
+				{
+					continue;
+				}
+				for (int ii = v2.size() - 1; ii >= 0; ii--)
+				{
+					final JDFMessage mOld = (JDFMessage) v2.get(ii);
+					if (mOld instanceof JDFSignal)
+					{
+						final optimizeResult res = opt.optimize(newMessage, mOld);
+						if (res == optimizeResult.remove)
+						{
+							removeMessage(mOld, i);
+						}
+						else if (res == optimizeResult.cont)
+						{
+							return; // we found a non matching message and must stop optimizing
+						}
+					}
+				}
+			}
+		}
+
+		/**
+		 * @param old
+		 * @param i
+		 */
+		private void removeMessage(final JDFMessage old, final int i)
+		{
+			final JDFJMF jmf = old.getJMFRoot();
+			jmf.removeChild(old);
+			log.info("removed redundant message: " + old.getID());
+			final VElement v = jmf.getMessageVector(null, null);
+			if (v.size() == 0)
+			{
+				log.info("removed redundant jmf: " + jmf.getID());
+				_messages.remove(i);
+				removedHeartbeat++;
+			}
+		}
+	}
 
 	/**
 	 * MessageDetails describes one jmf or mime package that is queued for a given url
@@ -158,7 +264,7 @@ public class MessageSender implements Runnable
 	 * 
 	 * before May 26, 2009
 	 */
-	protected class MessageDetails
+	protected class MessageDetails extends BambiLogFactory
 	{
 		protected JDFJMF jmf = null;
 		protected Multipart mime = null;
@@ -347,7 +453,7 @@ public class MessageSender implements Runnable
 	 * @author Rainer Prosi
 	 * 
 	 */
-	public static class MessageResponseHandler implements IResponseHandler
+	public static class MessageResponseHandler extends BambiLogFactory implements IResponseHandler
 	{
 		protected JDFResponse resp;
 		protected JDFMessage finalMessage;
@@ -521,7 +627,7 @@ public class MessageSender implements Runnable
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(java.io.InputStream)
+		 * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(org.cip4.jdflib.util.ByteArrayIOStream)
 		 */
 		public void setBufferedStream(final ByteArrayIOStream bis)
 		{
@@ -612,6 +718,8 @@ public class MessageSender implements Runnable
 		sentMessages = new FastFiFo<MessageDetails>(42);
 		callURL = cu;
 		created = System.currentTimeMillis();
+		optimizer = new SenderQueueOptimizer();
+		setJMFFactory(null);
 	}
 
 	/**
@@ -843,8 +951,16 @@ public class MessageSender implements Runnable
 			}
 
 		}
-		sentMessages.push(mesDetails);
-		return sendHTTP(mesDetails, jmf, mp);
+		final SendReturn sr = sendHTTP(mesDetails, jmf, mp);
+		if (SendReturn.sent == sr)
+		{
+			sentMessages.push(mesDetails);
+		}
+		else
+		{
+			log.warn("Error sending message details; return code=" + sr);
+		}
+		return sr;
 	}
 
 	/**
@@ -865,6 +981,7 @@ public class MessageSender implements Runnable
 		}
 		try
 		{
+			trySend++;
 			HttpURLConnection con;
 			String header = "URL: " + url;
 			final DumpDir outDump = getOutDump(mh.senderID);
@@ -978,7 +1095,7 @@ public class MessageSender implements Runnable
 		{
 			doShutDown = true;
 		}
-		JMFFactory.getJMFFactory().senders.remove(callURL);
+		myFactory.senders.remove(callURL);
 		ThreadUtil.notifyAll(mutexDispatch);
 	}
 
@@ -1059,6 +1176,7 @@ public class MessageSender implements Runnable
 	{
 		synchronized (_messages)
 		{
+			optimizer.optimize(messageDetails.jmf);
 			_messages.add(messageDetails);
 			lastQueued = System.currentTimeMillis();
 		}
@@ -1119,6 +1237,8 @@ public class MessageSender implements Runnable
 			ms.setAttribute(AttributeName.URL, callURL.url);
 			ms.setAttribute(AttributeName.SIZE, _messages.size(), null);
 			ms.setAttribute("NumSent", sent, null);
+			ms.setAttribute("NumTry", trySend, null);
+			ms.setAttribute("NumRemove", removedHeartbeat, null);
 			ms.setAttribute("LastQueued", BambiServlet.formatLong(lastQueued), null);
 			ms.setAttribute("LastSent", BambiServlet.formatLong(lastSent), null);
 			ms.setAttribute(AttributeName.CREATIONDATE, BambiServlet.formatLong(created), null);
@@ -1182,6 +1302,26 @@ public class MessageSender implements Runnable
 			final File pers = getPersistLocation().getParentFile();
 			FileUtil.deleteAll(pers);
 		}
+	}
+
+	/**
+	 * @param _myFactory the myFactory to set
+	 */
+	public void setJMFFactory(final JMFFactory _myFactory)
+	{
+		this.myFactory = _myFactory;
+		if (myFactory == null)
+		{
+			myFactory = JMFFactory.getJMFFactory();
+		}
+	}
+
+	/**
+	 * @return the myFactory
+	 */
+	public JMFFactory getJMFFactory()
+	{
+		return myFactory;
 	}
 
 }

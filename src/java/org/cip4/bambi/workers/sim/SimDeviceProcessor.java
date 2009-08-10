@@ -76,8 +76,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
@@ -115,7 +113,6 @@ import org.cip4.jdflib.util.ThreadUtil;
  */
 public class SimDeviceProcessor extends AbstractDeviceProcessor
 {
-	private static Log log = LogFactory.getLog(SimDeviceProcessor.class.getName());
 	protected List<JobPhase> _jobPhases = null;
 	protected JobPhase idlePhase = null;
 

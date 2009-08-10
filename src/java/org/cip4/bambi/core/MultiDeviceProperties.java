@@ -79,8 +79,6 @@ import java.net.UnknownHostException;
 
 import javax.servlet.ServletContext;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFParser;
@@ -97,7 +95,7 @@ import org.cip4.jdflib.util.UrlUtil;
  * container for the properties of several Bambi devices
  * @author boegerni
  */
-public class MultiDeviceProperties
+public class MultiDeviceProperties extends BambiLogFactory
 {
 	/**
 	 * properties for a single device
@@ -165,7 +163,7 @@ public class MultiDeviceProperties
 			{
 				try
 				{
-					final Class c = Class.forName(_callBackName);
+					final Class<?> c = Class.forName(_callBackName);
 					return (IConverterCallback) c.newInstance();
 				}
 				catch (final Exception x)
@@ -214,7 +212,7 @@ public class MultiDeviceProperties
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
+		 * @return
 		 */
 		public String getDeviceClassName()
 		{
@@ -230,7 +228,7 @@ public class MultiDeviceProperties
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.IDeviceProperties#getProxyURL()
+		 * @see org.cip4.bambi.core.IDeviceProperties#getProxyControllerURL()
 		 */
 		public String getProxyControllerURL()
 		{
@@ -246,7 +244,7 @@ public class MultiDeviceProperties
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.IDeviceProperties#setDeviceType()
+		 * @see org.cip4.bambi.core.IDeviceProperties#setDeviceType(java.lang.String)
 		 */
 		public void setDeviceType(final String deviceType)
 		{
@@ -345,6 +343,9 @@ public class MultiDeviceProperties
 			return MultiDeviceProperties.this.getBaseDir();
 		}
 
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getAppDir()
+		 */
 		public File getAppDir()
 		{
 			return MultiDeviceProperties.this.getAppDir();
@@ -488,6 +489,9 @@ public class MultiDeviceProperties
 			}
 		}
 
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getContextURL()
+		 */
 		public String getContextURL()
 		{
 			return contextURL == null ? null : contextURL.toExternalForm();
@@ -528,8 +532,6 @@ public class MultiDeviceProperties
 
 	}
 
-	private static final Log log = LogFactory.getLog(MultiDeviceProperties.class.getName());
-
 	/**
 	 * create device properties for the devices defined in the config file
 	 * @param _context the location of the web application in the server
@@ -543,7 +545,7 @@ public class MultiDeviceProperties
 		final JDFParser p = new JDFParser();
 		final XMLDoc doc = p.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
 		root = doc == null ? null : doc.getRoot();
-		if (root == null)
+		if (root == null || doc == null)
 		{
 			log.fatal("failed to parse " + configFile + ", rootDev is null");
 		}
@@ -601,10 +603,8 @@ public class MultiDeviceProperties
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IMultiDeviceProperties#count()
+	/**
+	 * @return
 	 */
 	public int count()
 	{

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -90,6 +90,11 @@ import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.MimeUtil;
 
+/**
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+ * 
+ * Aug 9, 2009
+ */
 public class QueueEntryStatusTest extends BambiTestCase
 {
 
@@ -133,6 +138,9 @@ public class QueueEntryStatusTest extends BambiTestCase
 		return que == null ? null : que.getQueueEntryStatus();
 	}
 
+	/**
+	 * @see org.cip4.bambi.BambiTestCase#setUp()
+	 */
 	@Override
 	public void setUp() throws Exception
 	{
@@ -188,6 +196,9 @@ public class QueueEntryStatusTest extends BambiTestCase
 		assertTrue(hasRunningQE);
 	}
 
+	/**
+	 * 
+	 */
 	public void testSuspendResumeQE()
 	{
 		final JDFQueueEntry runningQE = getRunningQueueEntry();
@@ -260,6 +271,9 @@ public class QueueEntryStatusTest extends BambiTestCase
 
 	}
 
+	/**
+	 * 
+	 */
 	public void testAbortRemoveQE()
 	{
 		final JDFQueueEntry runningQE = getRunningQueueEntry();
@@ -297,6 +311,9 @@ public class QueueEntryStatusTest extends BambiTestCase
 		assertNull("QueueEntry is still present", getQueueEntryStatus(qeID));
 	}
 
+	/**
+	 * 
+	 */
 	public void testSuspendAbortQE()
 	{
 		final JDFQueueEntry runningQE = getRunningQueueEntry();
@@ -351,6 +368,9 @@ public class QueueEntryStatusTest extends BambiTestCase
 		assertTrue(hasAborted);
 	}
 
+	/**
+	 * @throws Exception
+	 */
 	public void testRogueWaves() throws Exception
 	{
 		for (int i = 0; i < 20; i++)

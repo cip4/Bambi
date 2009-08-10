@@ -80,9 +80,8 @@ import java.util.Vector;
 import javax.mail.Multipart;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.BambiServletRequest;
@@ -150,7 +149,7 @@ import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
  * 
  * 
  */
-public class QueueProcessor
+public class QueueProcessor extends BambiLogFactory
 {
 
 	/**
@@ -1137,7 +1136,6 @@ public class QueueProcessor
 		}
 	}
 
-	protected final Log log;
 	private RollingBackupFile _queueFile = null;
 	private static final long serialVersionUID = -876551736245089033L;
 	String nextinvert = null;
@@ -1165,7 +1163,6 @@ public class QueueProcessor
 	public QueueProcessor(final AbstractDevice theParentDevice)
 	{
 		super();
-		log = LogFactory.getLog(QueueProcessor.class.getName());
 		_parentDevice = theParentDevice;
 		_listeners = new Vector<Object>();
 		deltaMap = new HashMap<String, QueueDelta>();
@@ -1855,7 +1852,7 @@ public class QueueProcessor
 				mimeDetails.httpDetails.chunkSize = properties.getControllerHTTPChunk();
 				mimeDetails.transferEncoding = properties.getControllerMIMEEncoding();
 				mimeDetails.modifyBoundarySemicolon = StringUtil.parseBoolean(properties.getDeviceAttribute("FixMIMEBoundarySemicolon"), false);
-				response = JMFFactory.getJMFFactory().send2URLSynch(mp, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
+				response = _parentDevice.getJMFFactory().send2URLSynch(mp, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
 			}
 			else
 			// http

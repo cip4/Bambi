@@ -73,8 +73,6 @@ package org.cip4.bambi.proxy;
 
 import java.util.Vector;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IDeviceProperties;
@@ -272,7 +270,6 @@ public class ProxyDevice extends AbstractProxyDevice
 
 	// ////////////////////////////////////////////////////////////////////////////////
 
-	private static final Log log = LogFactory.getLog(ProxyDevice.class.getName());
 	protected ResponseMerger statusContainer;
 
 	/**
@@ -915,7 +912,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 		}
 		final JDFJMF jmfQS = new JMFBuilder().buildQueueStatus();
-		final JMFFactory factory = JMFFactory.getJMFFactory();
+		final JMFFactory factory = getJMFFactory();
 		factory.send2URL(jmfQS, getProxyProperties().getSlaveURL(), new QueueSynchronizeHandler(), getSlaveCallback(), getDeviceID());
 	}
 
@@ -957,7 +954,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			if (jmf != null)
 			{
 				final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(status, jmf.getCommand(0).getID());
-				JMFFactory.getJMFFactory().send2URL(jmf, getProxyProperties().getSlaveURL(), ah, _slaveCallback, getDeviceID());
+				sendJMF(jmf, getProxyProperties().getSlaveURL(), ah);
 				ah.waitHandled(5555, 30000, false);
 				final EnumNodeStatus newStatus = ah.getFinalStatus();
 				if (newStatus == null)
