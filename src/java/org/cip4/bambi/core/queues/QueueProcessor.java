@@ -410,8 +410,8 @@ public class QueueProcessor extends BambiLogFactory
 					}
 				}
 			}
-			JMFHandler.errorResponse(resp, "QueueSubmissionParams are missing or invalid", 9, EnumClass.Error);
-			log.error("QueueSubmissionParams are missing or invalid");
+			JMFHandler.errorResponse(resp, "ResubmissionParams are missing or invalid", 9, EnumClass.Error);
+			log.error("ResubmissionParams are missing or invalid");
 			return true;
 		}
 	}
