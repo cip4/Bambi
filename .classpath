@@ -9,17 +9,13 @@
 	<classpathentry kind="lib" path="src/lib/commons-io-1.2.jar"/>
 	<classpathentry kind="lib" path="src/lib/commons-lang-2.3.jar"/>
 	<classpathentry kind="lib" path="src/lib/commons-logging-1.1.jar"/>
-	<classpathentry kind="lib" path="O:/Bambi/src/lib/JDFLibJ-2.1.4.jar"/>
+	<classpathentry kind="lib" path="src/lib/JDFLibJ-2.1.4.jar"/>
 	<classpathentry kind="lib" path="src/lib/servlet-api-2.4.jar"/>
 	<classpathentry kind="lib" path="src/lib/xercesImpl.jar"/>
 	<classpathentry kind="lib" path="src/lib/xml-apis.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="O:/Bambi/src/lib/mailapi.jar"/>
-	<classpathentry kind="lib" path="O:/Bambi/src/lib/JDFAccessAPI-J.jar"/>
-	<classpathentry kind="lib" path="O:/Bambi/src/lib/StorageInterface-J.jar"/>
-	<classpathentry kind="lib" path="O:/Bambi/src/lib/JMFTransfer-J.jar"/>
-	<classpathentry kind="lib" path="O:/Bambi/src/lib/PrinectUtils-J.jar"/>
-	<classpathentry kind="lib" path="O:/Bambi/src/lib/log4j.jar"/>
+	<classpathentry kind="lib" path="src/lib/mailapi.jar"/>
+	<classpathentry kind="lib" path="src/lib/log4j.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/xercesj"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
