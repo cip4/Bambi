@@ -516,6 +516,24 @@ public class BambiTestCase extends BaseGoldenTicketTest
 
 		}
 
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getQERetrieval()
+		 */
+		public QERetrieval getQERetrieval()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#setQERetrieval(org.cip4.bambi.core.IDeviceProperties.QERetrieval)
+		 */
+		public void setQERetrieval(final QERetrieval qer)
+		{
+			// TODO Auto-generated method stub
+
+		}
+
 	}
 
 	/**

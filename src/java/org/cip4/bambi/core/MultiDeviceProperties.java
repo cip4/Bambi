@@ -530,6 +530,31 @@ public class MultiDeviceProperties extends BambiLogFactory
 			return MultiDeviceProperties.this.serialize();
 		}
 
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getQERetrieval()
+		 */
+		public QERetrieval getQERetrieval()
+		{
+			final String deviceAttribute = getDeviceAttribute("PushPull", null, "PUSH");
+			try
+			{
+				return QERetrieval.valueOf(deviceAttribute);
+			}
+			catch (final IllegalArgumentException x)
+			{
+				return QERetrieval.PULL;
+			}
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#setQERetrieval(org.cip4.bambi.core.IDeviceProperties.QERetrieval)
+		 */
+		public void setQERetrieval(final QERetrieval qer)
+		{
+			final String s = qer == null ? "PULL" : qer.name();
+			devRoot.setAttribute("PushPull", s);
+		}
+
 	}
 
 	/**

@@ -78,7 +78,6 @@ import java.util.HashSet;
 import java.util.Vector;
 
 import javax.mail.Multipart;
-import javax.servlet.http.HttpServletRequest;
 
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiLogFactory;
@@ -90,6 +89,7 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.core.SignalDispatcher;
+import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.IDeviceProperties.QEReturn;
 import org.cip4.bambi.core.messaging.AcknowledgeThread;
 import org.cip4.bambi.core.messaging.IJMFHandler;
@@ -855,8 +855,10 @@ public class QueueProcessor extends BambiLogFactory
 	protected class QueueGetHandler extends XMLDoc implements IGetHandler
 	{
 		/**
+		 * @param request
+		 * @param response
+		 * @return
 		 * 
-		 * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
 		 */
 		public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
 		{
@@ -887,6 +889,8 @@ public class QueueProcessor extends BambiLogFactory
 
 			sortOutput(sortBy, root, filter);
 			root.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
+			final QERetrieval qer = _parentDevice.getProperties().getQERetrieval();
+			root.setAttribute("Pull", qer == QERetrieval.PULL || qer == QERetrieval.BOTH, null);
 			if (_theQueue.numChildElements(ElementName.QUEUEENTRY, null) < 1000)
 			{
 				root.setAttribute("Refresh", true, null);
@@ -1008,14 +1012,34 @@ public class QueueProcessor extends BambiLogFactory
 		/**
 		 * @param request
 		 */
-		private void updateQE(final HttpServletRequest request)
+		private void updateQE(final BambiServletRequest request)
 		{
 			final String qeID = request.getParameter(QE_ID);
 			if (qeID == null)
 			{
 				return;
 			}
+
 			JDFQueueEntry qe = _theQueue.getQueueEntry(qeID);
+			if (qe == null)
+			{
+				getLog().warn("invalid queuentryID in get request: qeid= null");
+				return;
+			}
+			if (request.getBooleanParam("submit"))
+			{
+				if (nextPush == null)
+				{
+					nextPush = qe;
+					notifyListeners(qe.getQueueEntryID());
+					ThreadUtil.sleep(500); // give the notified thread a moment to submit
+				}
+				else
+				{
+					getLog().warn("attempting to queue more than one job: qeid= " + qe.getQueueEntryID());
+				}
+				return;
+			}
 			final EnumQueueEntryStatus status = EnumQueueEntryStatus.getEnum(request.getParameter(QE_STATUS));
 			if (status == null)
 			{
@@ -1156,6 +1180,7 @@ public class QueueProcessor extends BambiLogFactory
 	protected AbstractDevice _parentDevice = null;
 	protected long lastPersist = 0;
 	protected final HashMap<String, QueueDelta> deltaMap;
+	protected JDFQueueEntry nextPush = null;
 
 	/**
 	 * @param theParentDevice
@@ -1163,6 +1188,7 @@ public class QueueProcessor extends BambiLogFactory
 	public QueueProcessor(final AbstractDevice theParentDevice)
 	{
 		super();
+		nextPush = null;
 		_parentDevice = theParentDevice;
 		_listeners = new Vector<Object>();
 		deltaMap = new HashMap<String, QueueDelta>();
@@ -1355,10 +1381,23 @@ public class QueueProcessor extends BambiLogFactory
 	 */
 	public IQueueEntry getNextEntry(final String deviceID)
 	{
+		final QERetrieval canPush = _parentDevice.getProperties().getQERetrieval();
 		synchronized (_theQueue)
 		{
-
-			final JDFQueueEntry theEntry = _theQueue.getNextExecutableQueueEntry();
+			final JDFQueueEntry theEntry;
+			if (nextPush != null) // we have an explicit selection
+			{
+				theEntry = nextPush;
+				nextPush = null;
+			}
+			else if (canPush == QERetrieval.PUSH || canPush == QERetrieval.BOTH)
+			{
+				theEntry = _theQueue.getNextExecutableQueueEntry();
+			}
+			else
+			{
+				theEntry = null;
+			}
 			if (theEntry != null)
 			{
 				if (deviceID != null)

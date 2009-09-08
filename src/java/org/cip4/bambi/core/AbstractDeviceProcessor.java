@@ -84,19 +84,15 @@ import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFResourceLink.EnumUsage;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
-import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
 import org.cip4.jdflib.resource.process.JDFUsageCounter;
-import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
-import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * abstract parent class for device processors <br>
@@ -367,7 +363,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 	final private boolean processQueueEntry()
 	{
-		currentQE = getQEFromParent();
+		currentQE = _parent.getQEFromParent();
 		if (currentQE == null)
 		{
 			return false;
@@ -403,10 +399,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			qes = processDoc(node, qe);
 			if (qes == null)
 			{
-				if (log != null)
-				{
-					log.error("QueueEntryStatus is null");
-				}
+				log.error("QueueEntryStatus is null");
 				bOK = false;
 			}
 		}
@@ -419,67 +412,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 		// Always finalize even if exceptions are caught
 		return finalizeProcessDoc(qes) && bOK;
-	}
-
-	/**
-	 * 
-	 */
-	protected IQueueEntry getQEFromParent()
-	{
-		synchronized (_queueProcessor.getQueue())
-		{
-			currentQE = _queueProcessor.getNextEntry(null);
-			if (currentQE == null)
-			{
-				if (_parent != null)
-				{
-					final RootDevice rootDevice = _parent.getRootDevice();
-					if (rootDevice != null)
-					{
-						currentQE = rootDevice._theQueueProcessor.getNextEntry(_parent.getDeviceID());
-						importQEFromRoot(rootDevice);
-					}
-				}
-				if (currentQE == null)
-				{
-					_parent.sendRequestQueueEntry();
-				}
-			}
-			return currentQE;
-		}
-	}
-
-	/**
-	 * @param rootDevice
-	 */
-	private void importQEFromRoot(final RootDevice rootDevice)
-	{
-		if (currentQE != null)
-		{
-			// grab the qe and pass it on to the devices queue...
-			final JDFQueue queue = _parent._theQueueProcessor.getQueue();
-			JDFQueueEntry queueEntry = currentQE.getQueueEntry();
-			final String queueEntryID = queueEntry.getQueueEntryID();
-			log.info("extracting queue entry from root queue: qeid=" + queueEntryID);
-			queueEntry = (JDFQueueEntry) queue.moveElement(queueEntry, null);
-
-			// sort the root queue as it doesn't know that it lost a kid
-			rootDevice._theQueueProcessor.getQueue().sortChildren();
-			currentQE.setQueueEntry(queueEntry);
-
-			// clean up file references to the stored docuuments
-			final String oldFil = BambiNSExtension.getDocURL(queueEntry);
-			final String newFil = _parent.getJDFStorage(queueEntryID);
-			if (!ContainerUtil.equals(oldFil, newFil))
-			{
-				final boolean bMoved = FileUtil.moveFile(UrlUtil.urlToFile(oldFil), UrlUtil.urlToFile(newFil));
-				if (bMoved)
-				{
-					BambiNSExtension.setDocURL(queueEntry, newFil);
-					currentQE.getJDF().getOwnerDocument_KElement().setOriginalFileName(newFil);
-				}
-			}
-		}
 	}
 
 	/**

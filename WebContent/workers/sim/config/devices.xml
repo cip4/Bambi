@@ -35,6 +35,8 @@
     InputHF="C:/BambiHF/sim001/Input" OutputHF="C:/BambiHF/sim001/Output" ErrorHF="C:/BambiHF/sim001/Error"/>
   <Device DeviceID="sim002" DeviceType="Bambi Simulation HotFolder Device 002" TrackResource="Component:Output"
     InputHF="C:/BambiHF/sim002/Input" OutputHF="C:/BambiHF/sim002/Output" ErrorHF="C:/BambiHF/sim002/Error"/>
+  <Device DeviceID="sim003" DeviceType="Bambi Pull Simulation Device 003" PushPull="Pull" TrackResource="Component:Output"
+    InputHF="C:/BambiHF/sim002/Input" OutputHF="C:/BambiHF/sim002/Output" ErrorHF="C:/BambiHF/sim002/Error"/>
  
  
   <!--

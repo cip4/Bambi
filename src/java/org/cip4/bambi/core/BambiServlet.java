@@ -94,7 +94,6 @@ import org.apache.commons.lang.enums.ValuedEnum;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
-import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFParser;
@@ -652,7 +651,7 @@ public class BambiServlet extends HttpServlet
 	 * @param parent the parent element to add the list to
 	 * @param name the name of the option list form
 	 */
-	public static void addOptionList(final ValuedEnum e, final List<EnumQueueEntryStatus> l, final KElement parent, final String name)
+	public static void addOptionList(final ValuedEnum e, final List<? extends ValuedEnum> l, final KElement parent, final String name)
 	{
 		if (e == null || parent == null)
 		{
@@ -661,7 +660,7 @@ public class BambiServlet extends HttpServlet
 		final KElement list = parent.appendElement(BambiNSExtension.MY_NS_PREFIX + "OptionList", BambiNSExtension.MY_NS);
 		list.setAttribute("name", name);
 		list.setAttribute("default", e.getName());
-		final Iterator<EnumQueueEntryStatus> it = l.iterator();
+		final Iterator<? extends ValuedEnum> it = l.iterator();
 		while (it.hasNext())
 		{
 			final ValuedEnum ve = it.next();

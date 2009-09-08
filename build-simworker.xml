@@ -13,8 +13,8 @@
    		<property name="SimWorker.name" value="SimWorker" />
 		<property file="version.properties"/>
 		<property name="src.dir" value="./src" />
-		<property name="sim.src.dir" value="${src.dir}/java/org/cip4/bambi/workers/sim" />
-		<property name="workerscore.src.dir" value="${src.dir}/java/org/cip4/bambi/workers/core" />
+		<property name="workerscore.src.dir" value="${src.dir}/java/org/cip4/bambi/workers" />
+		<property name="sim.src.dir" value="${workerscore.src.dir}/sim" />
 		<property name="web.src.dir" value="./WebContent/workers/sim" />
 		<property name="webcore.src.dir" value="./WebContent/core" />
 		<property name="web.config.dir" value="${web.src.dir}/config" />
@@ -40,6 +40,11 @@
 	</target>
 	<target name="compile" depends="-init" description="Compiles source code.">
 		<echo>Compiling...</echo>
+		<javac destdir="${bin.dir}" debug="${build.debug}">
+			<src path="${workerscore.src.dir}" />
+			<classpath refid="project.class.path" />
+			<include name="*.java" />
+		</javac>
 		<javac destdir="${bin.dir}" debug="${build.debug}">
 			<src path="${sim.src.dir}" />
 			<classpath refid="project.class.path" />

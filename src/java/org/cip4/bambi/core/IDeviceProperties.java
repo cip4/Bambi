@@ -109,6 +109,25 @@ public interface IDeviceProperties
 	}
 
 	/**
+	 * queueentry retrieval type - push or pull
+	 */
+	public enum QERetrieval
+	{
+		/**
+		 * push - the queue pushes queue entries to the device automatically
+		 */
+		PUSH,
+		/**
+		 * pull - the qe must be pulled from the queue explicitely
+		 */
+		PULL,
+		/**
+		 * push and pull - a pulled qe is selected if available, else push
+		 */
+		BOTH
+	}
+
+	/**
 	 * get the URL to communicate with this device
 	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device.
 	 */
@@ -212,6 +231,16 @@ public interface IDeviceProperties
 	 * @param hf the hot folder
 	 */
 	public void setOutputHF(File hf);
+
+	/**
+	 * @return the queueentry retrieval method - push or pull
+	 */
+	public QERetrieval getQERetrieval();
+
+	/**
+	 * @param qer the queueentry retrieval method - push or pull
+	 */
+	public void setQERetrieval(QERetrieval qer);
 
 	/**
 	 * @return

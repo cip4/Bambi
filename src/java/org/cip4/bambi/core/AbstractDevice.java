@@ -77,6 +77,7 @@ import java.util.Enumeration;
 import java.util.Set;
 import java.util.Vector;
 
+import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.AcknowledgeMap;
 import org.cip4.bambi.core.messaging.IJMFHandler;
@@ -911,17 +912,17 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status)
 	{
-		final AbstractDeviceProcessor theDeviceProcessor = getProcessor(queueEntryID);
-		if (theDeviceProcessor == null)
+		final AbstractDeviceProcessor deviceProcessor = getProcessor(queueEntryID);
+		if (deviceProcessor == null)
 		{
 			return null;
 		}
-		theDeviceProcessor.stopProcessing(status);
+		deviceProcessor.stopProcessing(status);
 		if (status == null && StringUtil.getNonEmpty(queueEntryID) != null)
 		{
 			getSignalDispatcher().removeSubScriptions(queueEntryID, null, null);
 		}
-		final IQueueEntry currentQE = theDeviceProcessor.getCurrentQE();
+		final IQueueEntry currentQE = deviceProcessor.getCurrentQE();
 		return currentQE == null ? null : currentQE.getQueueEntry();
 	}
 
@@ -1503,6 +1504,65 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public boolean mustDie()
 	{
 		return false;
+	}
+
+	/**
+	 * 
+	 */
+	protected IQueueEntry getQEFromParent()
+	{
+		synchronized (_theQueueProcessor.getQueue())
+		{
+			IQueueEntry currentQE = _theQueueProcessor.getNextEntry(null);
+			final QERetrieval canPush = getProperties().getQERetrieval();
+
+			if (currentQE == null && !(canPush == QERetrieval.PULL))
+			{
+				if (_rootDevice != null)
+				{
+					currentQE = _rootDevice._theQueueProcessor.getNextEntry(getDeviceID());
+					importQEFromRoot(currentQE);
+				}
+				if (currentQE == null)
+				{
+					sendRequestQueueEntry();
+				}
+			}
+			return currentQE;
+		}
+	}
+
+	/**
+	 * @param rootDevice
+	 */
+	private void importQEFromRoot(final IQueueEntry currentQE)
+	{
+		if (currentQE != null)
+		{
+			// grab the qe and pass it on to the devices queue...
+			final JDFQueue queue = _theQueueProcessor.getQueue();
+			JDFQueueEntry queueEntry = currentQE.getQueueEntry();
+			final String queueEntryID = queueEntry.getQueueEntryID();
+			log.info("extracting queue entry from root queue: qeid=" + queueEntryID);
+			queueEntry = (JDFQueueEntry) queue.moveElement(queueEntry, null);
+
+			// sort the root queue as it doesn't know that it lost a kid
+			_rootDevice._theQueueProcessor.getQueue().sortChildren();
+			currentQE.setQueueEntry(queueEntry);
+
+			// clean up file references to the stored docuuments
+			final String oldFil = BambiNSExtension.getDocURL(queueEntry);
+			final String newFil = getJDFStorage(queueEntryID);
+			if (!ContainerUtil.equals(oldFil, newFil))
+			{
+				final boolean bMoved = FileUtil.moveFile(UrlUtil.urlToFile(oldFil), UrlUtil.urlToFile(newFil));
+				if (bMoved)
+				{
+					BambiNSExtension.setDocURL(queueEntry, newFil);
+					currentQE.getJDF().getOwnerDocument_KElement().setOriginalFileName(newFil);
+				}
+			}
+		}
 	}
 
 }

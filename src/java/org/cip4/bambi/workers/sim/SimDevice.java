@@ -74,29 +74,20 @@ package org.cip4.bambi.workers.sim;
 import java.util.Enumeration;
 import java.util.Set;
 
-import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.BambiServletRequest;
 import org.cip4.bambi.core.BambiServletResponse;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
-import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.workers.WorkerDevice;
 import org.cip4.bambi.workers.sim.SimDeviceProcessor.JobPhase;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
-import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
-import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
-import org.cip4.jdflib.jmf.JDFQueueEntry;
-import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 
 /**
@@ -107,97 +98,18 @@ import org.cip4.jdflib.util.ThreadUtil;
  * to fire.
  * @author boegerni
  */
-public class SimDevice extends AbstractDevice implements IGetHandler
+public class SimDevice extends WorkerDevice implements IGetHandler
 {
 	/**
 	 * 
 	 */
 
 	private static final long serialVersionUID = -8412710163767830461L;
-	protected String _trackResource = null; // the "major" resource to track
-	protected VString amountResources = null;
-	protected String _typeExpression = null; // the regexp that defines the valid types
-
-	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc, java.lang.String)
-	 */
-	@Override
-	public int canAccept(final JDFDoc doc, final String queueEntryID)
-	{
-		if (queueEntryID != null)
-		{
-			final JDFQueueEntry qe = getQueueProcessor().getQueue().getQueueEntry(queueEntryID);
-			if (qe == null)
-			{
-				log.error("no qe: " + queueEntryID);
-				return 105;
-			}
-			if (EnumQueueEntryStatus.Running.equals(qe.getQueueEntryStatus()))
-
-			{
-				JMFHandler.errorResponse(null, "Queuentry already running - QueueEntryID: " + queueEntryID, 106, EnumClass.Error);
-			}
-		}
-
-		if (doc != null && _typeExpression == null)
-		{
-			return 0;
-		}
-		return getAcceptableNodes(doc) == null ? 101 : 0;
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core.JDFDoc)
-	 */
-	@Override
-	public JDFNode getNodeFromDoc(final JDFDoc doc)
-	{
-		final VElement v = getAcceptableNodes(doc);
-		return (JDFNode) (v == null ? null : v.get(0));
-	}
-
-	/**
-	 * @param doc
-	 * @return
-	 */
-	public VElement getAcceptableNodes(final JDFDoc doc)
-	{
-		// TODO plug in devcaps
-		if (doc == null)
-		{
-			return null;
-		}
-
-		final JDFNode n = doc.getJDFRoot();
-		if (n == null)
-		{
-			return null;
-		}
-		final VElement v = n.getvJDFNode(null, null, false);
-		for (int i = v.size() - 1; i >= 0; i--)
-		{
-			final JDFNode n2 = (JDFNode) v.elementAt(i);
-			if (!canAccept(n2))
-			{
-				v.remove(n2);
-			}
-		}
-		return v.size() == 0 ? null : v;
-	}
-
-	/**
-	 * @param n2
-	 */
-	private boolean canAccept(final JDFNode n2)
-	{
-		final String types = n2.getTypesString();
-		return StringUtil.matches(types, _typeExpression);
-	}
 
 	/**
 	 * @author prosirai
 	 */
-	protected class XMLSimDevice extends XMLDevice
+	protected class XMLSimDevice extends XMLWorkerDevice
 	{
 
 		private final JobPhase currentJobPhase;
@@ -210,9 +122,6 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 		public XMLSimDevice(final boolean bProc, final BambiServletRequest request)
 		{
 			super(bProc, request);
-			final KElement deviceRoot = getRoot();
-			deviceRoot.setAttribute(AttributeName.TYPEEXPRESSION, getProperties().getTypeExpression());
-
 			currentJobPhase = getCurrentJobPhase();
 			if (currentJobPhase != null)
 			{
@@ -224,6 +133,7 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 		 * @param currentJobPhase
 		 * @return
 		 */
+		@SuppressWarnings("unchecked")
 		private KElement addPhase()
 		{
 			final KElement root = getRoot();
@@ -239,17 +149,20 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 				phase.setAttribute("NodeStatusDetails", currentJobPhase.getNodeStatusDetails());
 				phase.setAttribute(AttributeName.DURATION, currentJobPhase.getTimeToGo() / 1000., null);
 				final VString v = currentJobPhase.getAmountResourceNames();
-				final int vSiz = v == null ? 0 : v.size();
-				for (int i = 0; i < vSiz; i++)
+				if (v != null)
 				{
-					addAmount(v.stringAt(i), phase);
+					final int vSiz = v.size();
+					for (int i = 0; i < vSiz; i++)
+					{
+						addAmount(v.stringAt(i), phase);
+					}
 				}
 				BambiServlet.addOptionList(deviceStatus, EnumDeviceStatus.getEnumList(), phase, "DeviceStatus");
 				BambiServlet.addOptionList(nodeStatus, EnumNodeStatus.getEnumList(), phase, "NodeStatus");
 			}
 			else
 			{
-				log.error("null status - bailing out");
+				getLog().error("null status - bailing out");
 			}
 			return null;
 		}
@@ -269,35 +182,6 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 			amount.setAttribute("Waste", !currentJobPhase.getOutput_Condition(resString), null);
 			amount.setAttribute("Speed", currentJobPhase.getOutput_Speed(resString), null);
 		}
-	}
-
-	/**
-	 * @return
-	 */
-	public String getTrackResource()
-	{
-		return _trackResource;
-	}
-
-	/**
-	 * check whether this resource should track amounts
-	 * @param resLink
-	 * @return
-	 */
-	boolean isAmountResource(final JDFResourceLink resLink)
-	{
-		if (resLink == null || amountResources == null)
-		{
-			return false;
-		}
-		for (int i = 0; i < amountResources.size(); i++)
-		{
-			if (resLink.matchesString(amountResources.get(i)))
-			{
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
@@ -409,25 +293,12 @@ public class SimDevice extends AbstractDevice implements IGetHandler
 	public SimDevice(final IDeviceProperties prop)
 	{
 		super(prop);
-		_trackResource = prop.getTrackResource();
-		_typeExpression = prop.getTypeExpression();
-		amountResources = prop.getAmountResources();
-		log.info("created SimDevice '" + prop.getDeviceID() + "'");
 	}
 
 	@Override
 	protected AbstractDeviceProcessor buildDeviceProcessor()
 	{
 		return new SimDeviceProcessor();
-	}
-
-	/**
-	 * reload the queue
-	 */
-	@Override
-	protected void reloadQueue()
-	{
-		// nop
 	}
 
 	/**

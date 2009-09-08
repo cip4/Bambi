@@ -284,6 +284,7 @@
       </a>
     </th>
   </xsl:template>
+  
   <!--      QueueEntry template  -->
   <xsl:template match="jdf:QueueEntry">
     <xsl:variable name="context" select="../@Context"/>
@@ -306,9 +307,24 @@
       <xsl:if test="@Status='Completed'">
         <xsl:attribute name="bgcolor">#dddddd</xsl:attribute>
       </xsl:if>
-      <td align="left">
-          <xsl:value-of select="position()"/>
-      </td>
+  <td align="left">
+    <xsl:value-of select="position()"/>
+    <!--  submission button for pulling jobs -->
+    <xsl:if test="../@Pull='true'">
+      <xsl:if test="@Status='Waiting'">
+        <xsl:if test="count(../jdf:QueueEntry[@Status='Running'])=0">
+          <form>
+            <xsl:attribute name="action"><xsl:value-of select="$context"/>/modifyQE/<xsl:value-of select="../@DeviceID"/></xsl:attribute>
+            <input type="hidden" name="qeID">
+              <xsl:attribute name="value"><xsl:value-of select="@QueueEntryID"/></xsl:attribute>
+            </input>
+            <input type="hidden" name="submit" value="true"/>
+            <input type="submit" value="submit"/>
+          </form>
+        </xsl:if>
+      </xsl:if>
+    </xsl:if>
+  </td>
      <td align="left">
         <a>
           <xsl:attribute name="href"><xsl:value-of select="$context"/>/showJDF/<xsl:value-of select="../@DeviceID"/>?qeID=<xsl:value-of

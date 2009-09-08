@@ -76,10 +76,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.queues.QueueProcessor;
+import org.cip4.bambi.workers.WorkerDevice;
+import org.cip4.bambi.workers.WorkerDeviceProcessor;
 import org.cip4.bambi.workers.sim.SimDeviceProcessor.JobPhase.PhaseAmount;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -111,7 +112,7 @@ import org.cip4.jdflib.util.ThreadUtil;
  * @author boegerni
  * 
  */
-public class SimDeviceProcessor extends AbstractDeviceProcessor
+public class SimDeviceProcessor extends WorkerDeviceProcessor
 {
 	protected List<JobPhase> _jobPhases = null;
 	protected JobPhase idlePhase = null;
@@ -322,6 +323,9 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			this.deviceStatus = _deviceStatus;
 		}
 
+		/**
+		 * @return
+		 */
 		public String getDeviceStatusDetails()
 		{
 			return deviceStatusDetails;
@@ -351,16 +355,25 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			this.nodeStatus = _nodeStatus;
 		}
 
+		/**
+		 * @return
+		 */
 		public String getNodeStatusDetails()
 		{
 			return nodeStatusDetails;
 		}
 
+		/**
+		 * @param _nodeStatusDetails
+		 */
 		public void setNodeStatusDetails(final String _nodeStatusDetails)
 		{
 			this.nodeStatusDetails = _nodeStatusDetails;
 		}
 
+		/**
+		 * @return
+		 */
 		public int getTimeToGo()
 		{
 			return timeToGo;
@@ -406,6 +419,10 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			return pa == null ? 0 : pa.speed;
 		}
 
+		/**
+		 * @param res
+		 * @return
+		 */
 		public boolean getOutput_Condition(final String res)
 		{
 			final PhaseAmount pa = getPhaseAmount(res);
@@ -444,8 +461,9 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 		/**
 		 * @see java.lang.Object#clone()
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public Object clone()
+		public JobPhase clone()
 		{
 			final JobPhase jp = new JobPhase();
 			jp.deviceStatus = deviceStatus;
@@ -1015,7 +1033,7 @@ public class SimDeviceProcessor extends AbstractDeviceProcessor
 			{
 				final JDFResourceLink rl = (JDFResourceLink) v.get(i);
 				final JDFResource linkRoot = rl.getLinkRoot();
-				if (linkRoot != null && ((SimDevice) _parent).isAmountResource(rl))
+				if (linkRoot != null && ((WorkerDevice) _parent).isAmountResource(rl))
 				{
 					final PhaseAmount pa = firstPhase.setAmount(rl.getNamedProcessUsage(), 0, false);
 					pa.resource = linkRoot.getID();
