@@ -159,7 +159,7 @@ public abstract class ShowHandler implements IGetHandler
 		final boolean raw = request.getBooleanParam("raw");
 		if (raw || root == null)
 		{
-			return null;
+			return doc;
 		}
 		final boolean fix = request.getBooleanParam("fix");
 		if (fix && _parentDevice.getCallback(null) != null)
