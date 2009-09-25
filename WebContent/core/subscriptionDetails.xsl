@@ -185,16 +185,5 @@
       </tr>
   </xsl:template>
 
-
-  <xsl:template match="*">
-    <xsl:param name="pre"/>
-    <xsl:param name="printme" select="'y'"/>
-
-    <xsl:call-template name="default">
-      <xsl:with-param name="pre" select="$pre"/>
-      <xsl:with-param name="printme" select="$printme"/>
-    </xsl:call-template>
-  </xsl:template>
-
   <!--  end of template RemovedChannel  -->
 </xsl:stylesheet>

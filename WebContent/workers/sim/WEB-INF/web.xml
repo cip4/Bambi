@@ -14,8 +14,7 @@
 		<servlet-class>org.cip4.bambi.core.BambiServlet</servlet-class>
 	<init-param>
 			<param-name>bambiDump</param-name>
-			<param-value>C:/bambidump/sim</param-value>
-			<description>If set, Local location (root) of the directory to dump to</description>
+			<param-value>/var/tmp/bambi/dump/sim</param-value>
 		</init-param>
 		<load-on-startup>10</load-on-startup>
 	</servlet>

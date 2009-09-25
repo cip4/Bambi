@@ -1,46 +1,54 @@
 
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:xjdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi">
-  <xsl:strip-space elements="*"/>
-  <!--  device processor -->
-  <xsl:template match="xjdf:XJDF">
-    <xsl:variable name="context" select="@Context"/>
-    <html>
-      <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
-        <link rel="stylesheet" type="text/css" href="../css/styles_pc.css"/>
-        <link rel="icon" href="favicon.ico" type="image/x-icon"/>
-        <title>
-          JDF Single Node
-          <xsl:value-of select="@JobID"/>
-          /
-          <xsl:value-of select="@JobPartID"/>
-        </title>
-      </head>
-      <body>
-        <img src="../logo.gif" height="70" alt="logo"/>
-        <table>
-          <tr>
-            <td>
-              <a>
-                <xsl:attribute name="href"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
-                Back to Queue
-              </a>
-            </td>
-            <td>
-              <a>
-                <xsl:attribute name="href"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
-                Back to Device
-              </a>
-            </td>
-            <td>
-              <a>
-                <xsl:attribute name="href">./<xsl:value-of select="@DeviceID"/>?qeID=<xsl:value-of select="@QueueEntryID"/></xsl:attribute>
-                Back to List of JDF nodes
-              </a>
-            </td>
-            <td>
-              <a>
-                <xsl:attribute name="href">./<xsl:value-of select="@DeviceID"/>?raw=true&amp;qeID=<xsl:value-of
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	version="1.0" xmlns:xjdf="http://www.CIP4.org/JDFSchema_1_1"
+	xmlns:bambi="www.cip4.org/Bambi">
+	<xsl:strip-space elements="*" />
+	<!--  device processor -->
+	<xsl:template match="xjdf:XJDF">
+		<xsl:variable name="context" select="@Context" />
+		<html>
+			<head>
+				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+				<link rel="stylesheet" type="text/css" href="../css/styles_pc.css" />
+				<link rel="icon" href="favicon.ico" type="image/x-icon" />
+				<title>
+					JDF Single Node
+					<xsl:value-of select="@JobID" />
+					/
+					<xsl:value-of select="@JobPartID" />
+				</title>
+			</head>
+			<body>
+				<img src="../logo.gif" height="70" alt="logo" />
+				<table>
+					<tr>
+						<td>
+							<a>
+								<xsl:attribute name="href"><xsl:value-of
+									select="$context" />/showQueue/<xsl:value-of
+									select="@DeviceID" /></xsl:attribute>
+								Back to Queue
+							</a>
+						</td>
+						<td>
+							<a>
+								<xsl:attribute name="href"><xsl:value-of
+									select="$context" />/showDevice/<xsl:value-of
+									select="@DeviceID" /></xsl:attribute>
+								Back to Device
+							</a>
+						</td>
+						<td>
+							<a>
+								<xsl:attribute name="href">./<xsl:value-of
+									select="@DeviceID" />?qeID=<xsl:value-of select="@QueueEntryID" /></xsl:attribute>
+								Back to List of JDF nodes
+							</a>
+						</td>
+						<td>
+							<a>
+								<xsl:attribute name="href">./<xsl:value-of
+									select="@DeviceID" />?raw=true&amp;qeID=<xsl:value-of
             select="@QueueEntryID"/>&amp;JobPartID=<xsl:value-of select="@JobPartID"/></xsl:attribute>
           Show Raw XJDF
         </a>
@@ -347,8 +355,8 @@
           =
           <xsl:value-of select="."/>
         </td>
-        <td>
-        </td>
+        <td/>
+        
       </xsl:for-each>
     </tr>
   </table>
@@ -404,8 +412,8 @@
   
  <!--   ///////////////////////////////////////////////// -->
  <xsl:template name="audit">
- <xsl:param name="header"></xsl:param>
- <xsl:param name="xx1"></xsl:param>
+ <xsl:param name="header"/>
+ <xsl:param name="xx1"/>
     <h3><xsl:value-of select="name()"/> Audit: <xsl:value-of select="@TimeStamp"/> 
     <xsl:if test="$header">
     - <xsl:value-of select="$header"/> 
@@ -486,7 +494,7 @@
     <h4>
       <xsl:value-of select="$header"/>
       <xsl:if test="@Ord">
-      <xsl:text> </xsl:text>
+      <xsl:text/> 
      <xsl:value-of select="@Ord"/>
      </xsl:if>
     </h4>
@@ -589,7 +597,7 @@
      <h4>
        Device: 
        <xsl:if test="@DeviceID">
-       <xsl:text> </xsl:text>
+       <xsl:text/> 
       <xsl:value-of select="@DeviceID"/>
       </xsl:if>
      </h4>
@@ -619,7 +627,7 @@
       </xsl:if>
      Job Step Information - Status: 
       <xsl:if test="@NodeStatus">
-      <xsl:text> </xsl:text>
+      <xsl:text/> 
      <xsl:value-of select="@NodeStatus"/>
      </xsl:if>
      <xsl:if test="@NodeStatusDetails">
@@ -652,11 +660,11 @@
     </xsl:if>
     <xsl:if test="@CountryCode">
       <xsl:value-of select="@CountryCode"/>
-      <xsl:text> </xsl:text>
+      <xsl:text/> 
     </xsl:if>
     <xsl:if test="@PostalCode">
       <xsl:value-of select="@PostalCode"/>
-      <xsl:text> </xsl:text>
+      <xsl:text/> 
     </xsl:if>
     <xsl:if test="@City">
       <xsl:value-of select="@City"/>
@@ -664,7 +672,7 @@
     </xsl:if>
     <xsl:if test="@Region">
       <xsl:value-of select="@Region"/>
-      <xsl:text> </xsl:text>
+      <xsl:text/> 
     </xsl:if>
     <xsl:if test="@Country">
       <xsl:value-of select="@Country"/>
@@ -688,19 +696,19 @@
    <xsl:template match="xjdf:Person">
     <xsl:if test="@NamePrefix">
       <xsl:value-of select="@NamePrefix"/>
-      <xsl:text> </xsl:text>
+      <xsl:text/> 
     </xsl:if>
     <xsl:if test="@FirstName">
       <xsl:value-of select="@FirstName"/>
-      <xsl:text> </xsl:text>
+      <xsl:text/> 
     </xsl:if>
     <xsl:if test="@FamilyName">
       <xsl:value-of select="@FamilyName"/>
-      <xsl:text> </xsl:text>
+      <xsl:text/> 
     </xsl:if>
    <xsl:if test="@NameSuffix">
       <xsl:value-of select="@NameSuffix"/>
-      <xsl:text> </xsl:text>
+      <xsl:text/> 
     </xsl:if>
    <xsl:call-template name="printAttributes">
       <xsl:with-param name="printme" select="''"/>
@@ -741,9 +749,6 @@
 <xsl:template match="xjdf:TimeSpan">
     <xsl:call-template name="span"/>
   </xsl:template>
- <xsl:template match="xjdf:IntegerSpan">
-    <xsl:call-template name="span"/>
-  </xsl:template>
   <xsl:template match="xjdf:EnumerationSpan">
     <xsl:call-template name="span"/>
   </xsl:template>
@@ -753,15 +758,15 @@
 
   <!--   ///////////////////////////////////////////////// -->
     <!--  nop! -->
-  <xsl:template match="xjdf:SpawnInfo">
-  </xsl:template>
+  <xsl:template match="xjdf:SpawnInfo"/>
+  
 <!--   ///////////////////////////////////////////////// -->
 
   <xsl:template name="span">
     <xsl:param name="header"/>
     <xsl:variable name="prefix">
       <xsl:value-of select="$header"/>
-      <xsl:text> </xsl:text>
+      <xsl:text/> 
       <xsl:value-of select="@Name"/>:
     </xsl:variable>
      
@@ -916,11 +921,11 @@
     </a>
       <xsl:if test="@Usage">
         <xsl:value-of select="@Usage"/>
-        <xsl:text> </xsl:text>
+        <xsl:text/> 
       </xsl:if>
 
       <xsl:value-of select="$header"/>
-        <xsl:text> </xsl:text>
+        <xsl:text/> 
       <xsl:value-of select="@Name"/>
       <xsl:if test="@ProcessUsage">
         (
@@ -954,7 +959,7 @@
    Status=<xsl:value-of select="@Status"/>
    </xsl:if>
    <xsl:if test="@DescriptiveName">
-   <xsl:text> </xsl:text>
+   <xsl:text/> 
    (
    <xsl:value-of select="@DescriptiveName"/>
    )
