@@ -852,8 +852,10 @@ public class QueueProcessor extends BambiLogFactory
 
 	}
 
-	protected class QueueGetHandler extends XMLDoc implements IGetHandler
+	protected class QueueGetHandler implements IGetHandler
 	{
+		private static final String FILTER_DIF = "_FILTER_DIF_";
+
 		/**
 		 * @param request
 		 * @param response
@@ -881,13 +883,14 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				return false;
 			}
-			final KElement root = setRoot(ElementName.QUEUE, null);
+			final XMLDoc doc = new JDFDoc(ElementName.QUEUE);
+			JDFQueue root = (JDFQueue) doc.getRoot();
 			synchronized (_theQueue)
 			{
 				root.mergeElement(_theQueue, false);
 			}
 
-			sortOutput(sortBy, root, filter);
+			root = sortOutput(sortBy, root, filter);
 			root.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
 			final QERetrieval qer = _parentDevice.getProperties().getQERetrieval();
 			root.setAttribute("Pull", qer == QERetrieval.PULL || qer == QERetrieval.BOTH, null);
@@ -895,12 +898,12 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				root.setAttribute("Refresh", true, null);
 			}
-			setXSLTURL(_parentDevice.getXSLT(SHOW_QUEUE, request.getContextPath()));
-			addOptions();
+			doc.setXSLTURL(_parentDevice.getXSLT(SHOW_QUEUE, request.getContextPath()));
+			addOptions(root);
 
 			try
 			{
-				write2Stream(response.getBufferedOutputStream(), 2, true);
+				doc.write2Stream(response.getBufferedOutputStream(), 2, true);
 			}
 			catch (final IOException x)
 			{
@@ -963,9 +966,9 @@ public class QueueProcessor extends BambiLogFactory
 		 * @param root
 		 * @param filter the regexp to filter by (.)* is added before and after the filter
 		 */
-		private void sortOutput(final String sortBy, final KElement root, final String filter)
+		private JDFQueue sortOutput(final String sortBy, JDFQueue root, final String filter)
 		{
-			filterList(root, filter);
+			root = filterList(root, filter);
 			// sort according to the given attribute
 			if (sortBy != null)
 			{
@@ -983,6 +986,7 @@ public class QueueProcessor extends BambiLogFactory
 				nextinvert = null;
 				lastSortBy = null;
 			}
+			return root;
 		}
 
 		/**
@@ -990,9 +994,24 @@ public class QueueProcessor extends BambiLogFactory
 		 * @param root
 		 * @param filter
 		 */
-		private void filterList(final KElement root, String filter)
+		private JDFQueue filterList(final JDFQueue root, String filter)
 		{
-			if (filter != null)
+			if (FILTER_DIF.equals(filter))
+			{
+				if (lastQueue != null)
+				{
+					synchronized (lastQueue)
+					{
+
+						final KElement lastQueueTmp = lastQueue;
+						final JDFQueueFilter f = (JDFQueueFilter) new JDFDoc(ElementName.QUEUEFILTER).getRoot();
+						f.setUpdateGranularity(EnumUpdateGranularity.ChangesOnly);
+						f.apply(root, (JDFQueue) lastQueueTmp);
+					}
+				}
+				lastQueue = _theQueue.getOwnerDocument_KElement().clone().getRoot();
+			}
+			else if (filter != null)
 			{
 				root.setAttribute("filter", filter);
 				filter = "(.)*" + filter + "(.)*";
@@ -1007,6 +1026,7 @@ public class QueueProcessor extends BambiLogFactory
 					}
 				}
 			}
+			return root;
 		}
 
 		/**
@@ -1074,9 +1094,8 @@ public class QueueProcessor extends BambiLogFactory
 		/**
 		 * 
 		 */
-		private void addOptions()
+		private void addOptions(final JDFQueue q)
 		{
-			final JDFQueue q = (JDFQueue) getRoot();
 			final VElement v = q.getQueueEntryVector();
 			for (int i = 0; i < v.size(); i++)
 			{
@@ -1164,6 +1183,7 @@ public class QueueProcessor extends BambiLogFactory
 	private static final long serialVersionUID = -876551736245089033L;
 	String nextinvert = null;
 	String lastSortBy = null;
+	protected static KElement lastQueue = null;
 
 	/**
 	 */
