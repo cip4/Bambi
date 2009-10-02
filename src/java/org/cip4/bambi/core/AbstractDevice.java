@@ -850,7 +850,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		final String command = request.getCommand();
 		final String contextPath = request.getContextPath();
 		String s = null;
-		if ("showQueue".equalsIgnoreCase(command))
+		if ("showQueue".equalsIgnoreCase(command) || "modifyQE".equalsIgnoreCase(command))
 		{
 			s = "/queue2html.xsl";
 		}
