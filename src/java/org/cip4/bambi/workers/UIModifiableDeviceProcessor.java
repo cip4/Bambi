@@ -1,7 +1,5 @@
-/*
- *
+/**
  * The CIP4 Software License, Version 1.0
- *
  *
  * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
@@ -70,63 +68,18 @@
  */
 package org.cip4.bambi.workers;
 
-import org.cip4.bambi.core.AbstractDeviceProcessor;
-import org.cip4.jdflib.core.KElement;
 
 /**
- * parent class for console device processors,
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  * 
- * @author Rainer Prosi
- * 
+ * Sep 29, 2009
  */
-public abstract class WorkerDeviceProcessor extends AbstractDeviceProcessor
+public abstract class UIModifiableDeviceProcessor extends WorkerDeviceProcessor
 {
-	/**
-	 * added to ensure a consistent hierarchy
-	 * 
-	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 * 
-	 * Oct 1, 2009
-	 */
-	protected class XMLWorkerProcessor extends XMLDeviceProcessor
-	{
-
-		/**
-		 * @param _root
-		 */
-		public XMLWorkerProcessor(final KElement _root)
-		{
-			super(_root);
-		}
-
-	}
 
 	/**
-	 * constructor
-	 */
-	public WorkerDeviceProcessor()
-	{
-		super();
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#toString()
-	 * @return the string
-	 */
-	@Override
-	public String toString()
-	{
-		return "Worker Device Processor: " + super.toString() + "]";
-	}
-
-	/**
-	 * @param root
 	 * @return
 	 */
-	@Override
-	protected XMLDeviceProcessor getXMLDeviceProcessor(final KElement root)
-	{
-		return this.new XMLWorkerProcessor(root);
-	}
+	public abstract JobPhase getCurrentJobPhase();
 
 }

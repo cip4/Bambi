@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:strip-space elements="*"/>
   <xsl:output method="html"/>
   <xsl:template match="/XMLDevice">
@@ -90,6 +90,7 @@
               <form style="margin-left: 20px">
                 <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
                 <input type="hidden" name="refresh" value="false"/>
+                <input type="hidden" name="setup" value="true"/>
                 <input type="submit" value="refresh page"/>
               </form>
             </td>
@@ -97,6 +98,7 @@
               <form style="margin-left: 20px">
                 <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
                 <input type="hidden" name="shutdown" value="true"/>
+                <input type="hidden" name="setup" value="true"/>
                 <input type="submit" value="shutdown"/>
               </form>
             </td>
@@ -104,6 +106,7 @@
               <form style="margin-left: 20px">
                 <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
                 <input type="submit" value="restart"/>
+                <input type="hidden" name="setup" value="true"/>
                 <input type="hidden" name="restart" value="true"/>
               </form>
             </td>
@@ -113,8 +116,17 @@
                   <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
                   <input type="submit" value="modify"/>
                   <input type="hidden" name="modify" value="true"/>
+                  <input type="hidden" name="setup" value="true"/>
                   <input type="hidden" name="refresh" value="false"/>
                 </form>
+              </td>
+            </xsl:if>
+            <xsl:if test="@login='true'">
+              <td>
+                <form style="margin-left: 20px">
+                  <xsl:attribute name="action"><xsl:value-of select="$context"/>/login/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+                  <input type="submit" value="login"/>
+                 </form>
               </td>
             </xsl:if>
           </tr>
@@ -352,7 +364,13 @@
     <xsl:apply-templates/>
   </xsl:template>
 
-
+  <xsl:template match="KnownEmployees">
+  <!--  nop here -->
+  </xsl:template>
+  <xsl:template match="jdf:Employee">
+  <!--  nop here -->
+  </xsl:template>
+  
   <!-- add more templates -->
   <!-- the catchall -->
   <xsl:template match="*">

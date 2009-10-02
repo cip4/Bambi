@@ -1,0 +1,185 @@
+<?xml version="1.0"?>
+<!-- <!DOCTYPE project SYSTEM "file:/Developer/Applications/apache-ant-1.6.2/dtd/ant.dtd"> -->
+<project name="console" default="war" basedir=".">
+	<description>Bambi's console worker</description>
+	<!-- Initializes -->
+	<target name="-init" description="Initializes the build. This task is automatically run before building.">
+		<echo>Initializing. Using build settings from ./build.properties...</echo>
+		<!-- Sets properties -->
+		<tstamp/>
+
+		<property name="ant.build.javac.target" value="1.5" />
+
+   		<property name="worker.name" value="console" />
+	
+		<property file="version.properties"/>
+		<property name="src.dir" value="./src" />
+		<property name="workerscore.src.dir" value="${src.dir}/java/org/cip4/bambi/workers" />
+		<property name="console.src.dir" value="${workerscore.src.dir}/console" />
+		<property name="web.src.dir" value="./WebContent/workers/console" />
+		<property name="webcore.src.dir" value="./WebContent/core" />
+		<property name="web.config.dir" value="${web.src.dir}/config" />
+		<property name="test.src.dir" value="./test" />
+		<property name="lib.dir" value="${src.dir}/lib" />
+		<property name="bin.dir" value="./bin/${worker.name}" />
+		<property name="dist.dir" value="./dist/${worker.name}" />
+		<property name="build.debug" value="true" />
+		<property name="base.filename" value="${worker.name}-${DSTAMP}" />
+		<property name="major.filename" value="${worker.name}" />		
+
+		<property name="verbose" value="true" />
+		<!-- Sets class path -->
+		<path id="project.class.path">
+			<pathelement path="${java.class.path}" />
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar" />
+			</fileset>
+		</path>
+		<!-- Creates directories -->
+		<mkdir dir="${bin.dir}" />
+		<mkdir dir="${dist.dir}" />
+	</target>
+	<target name="compile" depends="-init" description="Compiles source code.">
+		<echo>Compiling...</echo>
+		<javac destdir="${bin.dir}" debug="${build.debug}">
+			<src path="${workerscore.src.dir}" />
+			<classpath refid="project.class.path" />
+			<include name="*.java" />
+		</javac>
+		<javac destdir="${bin.dir}" debug="${build.debug}">
+			<src path="${console.src.dir}" />
+			<classpath refid="project.class.path" />
+			<include name="**/*.java" />
+		</javac>
+	</target>
+	<target name="jar" depends="compile" description="Bundles source code into a JAR file.">
+		<echo>Building JAR file...</echo>
+		<jar jarfile="${dist.dir}/${base.filename}.jar" basedir="${bin.dir}" />
+	</target>
+	<target name="major_jar" depends="jar" description="Builds a JAR archive containing the Worker binaries.">
+		<echo>Copying JAR file: ${dist.dir}/${major.filename}.jar</echo>
+		<copy file="${dist.dir}/${base.filename}.jar" tofile="${dist.dir}/${major.filename}.jar"/>
+	</target>
+
+	<target name="clean" depends="-init" description="Cleans the build.">
+		<echo>Cleaning...</echo>
+		<delete dir="${bin.dir}" />
+		<delete dir="${dist.dir}" />
+	</target>
+	<target name="war" depends="jar" description="Builds web application.">
+		<echo>Building Bambi...</echo>
+		<buildnumber />
+		<echo>Build number: ${build.number}</echo>
+		<!-- Builds exploded WAR file -->
+		<property name="war.dir" value="${dist.dir}/${base.filename}-war" />
+		<mkdir dir="${war.dir}" />
+		<copy todir="${war.dir}">
+			<fileset dir="${web.src.dir}">
+				<include name="**/*" />
+			</fileset>
+			<fileset dir="${webcore.src.dir}">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+		<copy todir="${war.dir}/WEB-INF">
+			<fileset dir="${web.src.dir}/WEB-INF">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+		<copy todir="${war.dir}/WEB-INF/lib" flatten="true">
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar" />
+				<exclude name="servlet*.jar" />
+				<exclude name="junit*.jar" />
+			</fileset>
+			<fileset dir="${dist.dir}">
+				<include name="${base.filename}.jar" />
+			</fileset>
+		</copy>
+		<!-- Update build number and timestamp in overview.jsp -->
+		<replace file="${war.dir}/deviceList.xsl">
+			<replacefilter token="@build.number@" value="${build.number}" />
+			<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
+		</replace>		
+		<!-- Builds compressed WAR file -->
+		<jar basedir="${war.dir}" destfile="${dist.dir}/${worker.name}.war" filesonly="false"/>
+	</target>
+		<target name="-tomcat-init" depends="-init">
+		<echo>Initializing optional targets for deploying directly into Tomcat...</echo>
+		<!-- Tomcat tasks -->
+		<!-- Configure the context path for this application -->
+		<property name="path" value="/${worker.name}" />
+		<!-- Configure properties to access the Manager application -->
+		<property name="tomcat.url" value="http://localhost:8080/manager" />
+		<property name="username" value="tomcat" />
+		<property name="password" value="tomcat" />
+		<echo>Web app Context Path: ${path}</echo>
+		<echo>Tomcat Manager URL: ${tomcat.url}</echo>
+		<echo>Tomcat Manager Login: ${username}/${password}</echo>
+		<echo>Loading Tomcat's Ant tasks. Make sure you have copied TOMCAT_HOME/server/lib/catalina-ant.jar to ANT_HOME/lib</echo>
+		<!-- Configure the custom Ant tasks for the Manager application -->
+		<taskdef name="deploy" classname="org.apache.catalina.ant.DeployTask" />
+		<taskdef name="install" classname="org.apache.catalina.ant.InstallTask" />
+		<taskdef name="list" classname="org.apache.catalina.ant.ListTask" />
+		<taskdef name="reload" classname="org.apache.catalina.ant.ReloadTask" />
+		<taskdef name="remove" classname="org.apache.catalina.ant.RemoveTask" />
+		<taskdef name="resources" classname="org.apache.catalina.ant.ResourcesTask" />
+		<taskdef name="roles" classname="org.apache.catalina.ant.RolesTask" />
+		<taskdef name="start" classname="org.apache.catalina.ant.StartTask" />
+		<taskdef name="stop" classname="org.apache.catalina.ant.StopTask" />
+		<taskdef name="undeploy" classname="org.apache.catalina.ant.UndeployTask" />
+	</target>
+	<target name="install" description="Install web application" depends="-tomcat-init,war">
+		<!-- tomcat's server need to be running for this task to complete succesfully -->
+		<install url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${worker.name}.war" />
+	</target>
+	<target name="redeploy" depends="-tomcat-init,war" description="Undeploys and redeploys the web application">
+		<!-- tomcat's server need to be running for this task to complete succesfully -->
+		<echo> Undeploys and Deploys the reference web application... </echo>
+		<undeploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}" />
+		<deploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${worker.name}.war" />
+	</target>
+	<target name="test" description="Runs JUnit tests." depends="compile">
+			<property name="test.bin.dir" value="${bin.dir}/test" />
+			<mkdir dir="${test.bin.dir}" />
+			<property name="test.reports.dir" value="${bin.dir}/test-reports" />
+			<mkdir dir="${test.reports.dir}" />
+			<!-- Compile test cases -->
+			<echo>Compiling unit tests...</echo>
+			<javac destdir="${test.bin.dir}" debug="${build.debug}" target="1.5" source="1.5">
+				<src path="${test.src.dir}" />
+				<classpath refid="project.class.path" />
+				<classpath path="${bin.dir}" />
+				<include name="**/*" />
+			</javac>
+			<!-- Run test cases -->
+			<echo>Running unit tests...</echo>
+			<property name="test.working.dir" value="${test.src.dir}" />
+			<junit timeout="60000" dir="${test.working.dir}" fork="true" tempdir="${test.bin.dir}" failureproperty="test.failure" errorproperty="test.error">
+				<formatter type="plain" />
+				<formatter type="xml" />
+				<classpath>
+					<pathelement path="${java.class.path}" />
+					<fileset dir="${lib.dir}">
+						<include name="**/*.jar" />
+					</fileset>
+					<pathelement path="${bin.dir}" />
+					<pathelement path="${test.bin.dir}" />
+					<pathelement path="${test.src.dir}" />
+				</classpath>
+				<batchtest fork="yes" todir="${test.reports.dir}">
+					<fileset dir="${test.bin.dir}">
+						<include name="**/*Test.class" />
+					</fileset>
+				</batchtest>
+			</junit>
+			<!-- Delete temp files -->
+			<delete>
+				<fileset dir="${test.working.dir}">
+					<include name="temp*" />
+					<include name="temp/*" />
+				</fileset>
+			</delete>
+			<echo>Tests reports can be found in: ${test.reports.dir}</echo>
+		</target>
+</project>

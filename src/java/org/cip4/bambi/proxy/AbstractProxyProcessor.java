@@ -357,7 +357,8 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	/**
 	 * @return the AbstractProxyDevice cast of _parent
 	 */
-	AbstractProxyDevice getParent()
+	@Override
+	public AbstractProxyDevice getParent()
 	{
 		return (AbstractProxyDevice) _parent;
 	}

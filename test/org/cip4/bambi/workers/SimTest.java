@@ -69,11 +69,12 @@
  * 
  */
 
-package org.cip4.bambi;
+package org.cip4.bambi.workers;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 
+import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -114,7 +115,7 @@ public class SimTest extends BambiTestCase
 
 		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/SimWorkerRoot";
 		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim003";
-		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim003";
+		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim002";
 		// simWorkerUrl = "http://127.0.0.1:8080/speedmaster/jmf/XL105";
 	}
 

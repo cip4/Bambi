@@ -71,23 +71,198 @@
 
 package org.cip4.bambi.workers.console;
 
+import java.io.File;
+import java.util.Vector;
+import java.util.zip.DataFormatException;
+
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiServletRequest;
+import org.cip4.bambi.core.BambiServletResponse;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
-import org.cip4.bambi.workers.WorkerDevice;
+import org.cip4.bambi.workers.JobPhase;
+import org.cip4.bambi.workers.UIModifiableDevice;
+import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
+import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.datatypes.JDFIntegerList;
+import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * a simple data input terminal/console JDF device . <br>
  * @author Rainer Prosi
  */
-public class ConsoleDevice extends WorkerDevice implements IGetHandler
+public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 {
 	/**
 	 * 
 	 */
 
 	private static final long serialVersionUID = -8412710163767830461L;
+	protected Vector<PhaseAction> actions;
+
+	/**
+	 * 
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+	 * 
+	 * Sep 29, 2009
+	 */
+	protected class ActionLoader
+	{
+		private final File actionFile;
+		private final File actionFileLocal;
+		private File actionPath;
+
+		/**
+		 * 
+		 */
+		public ActionLoader()
+		{
+			actionFile = new File("actions.xml");
+			actionFileLocal = new File("actions_" + getDeviceID() + ".xml");
+			actionPath = null;
+		}
+
+		protected Vector<PhaseAction> load()
+		{
+			File deviceDir = getProperties().getBaseDir();
+			deviceDir = FileUtil.getFileInDirectory(deviceDir, new File("config"));
+			Vector<PhaseAction> v = loadFile(deviceDir, true);
+			if (v == null)
+			{
+				v = loadFile(getProperties().getConfigDir(), true);
+			}
+			if (v == null)
+			{
+				v = loadFile(deviceDir, false);
+			}
+			if (v == null)
+			{
+				v = loadFile(getProperties().getConfigDir(), false);
+			}
+			if (v != null)
+			{
+				FileUtil.copyFileToDir(actionPath, deviceDir);
+			}
+			return v;
+		}
+
+		/**
+		 * @param deviceDir
+		 * @return
+		 */
+		private Vector<PhaseAction> loadFile(final File deviceDir, final boolean bLocalDevice)
+		{
+			final File actionPathLocal = FileUtil.getFileInDirectory(deviceDir, bLocalDevice ? actionFileLocal : actionFile);
+			final XMLDoc d = XMLDoc.parseFile(actionPathLocal.getAbsolutePath());
+			final KElement root = d == null ? null : d.getRoot();
+			if (root == null)
+			{
+				return null;
+			}
+			final VElement v = root.getChildElementVector("PhaseAction", null);
+			if (v == null)
+			{
+				return null;
+			}
+			actionPath = actionPathLocal;
+			final Vector<PhaseAction> vPA = new Vector<PhaseAction>(v.size());
+			for (int i = 0; i < v.size(); i++)
+			{
+				final PhaseAction pa = new PhaseAction(v.get(i));
+				pa.pos = i;
+				vPA.add(pa);
+			}
+			setNext(v, vPA);
+			return vPA;
+
+		}
+
+		/**
+		 * @param v
+		 * @param vPA
+		 */
+		private void setNext(final VElement v, final Vector<PhaseAction> vPA)
+		{
+			for (int i = 0; i < v.size(); i++)
+			{
+				final PhaseAction pa = vPA.get(i);
+				final String next = v.get(i).getAttribute("Next", null, null);
+				if (next != null)
+				{
+					try
+					{
+						final JDFIntegerList il = new JDFIntegerList(next);
+						for (int ii = 0; ii < il.size(); ii++)
+						{
+							final int pos = il.getInt(ii);
+							if (pos >= 0 && pos < vPA.size())
+							{
+								pa.next.add(vPA.get(pos));
+							}
+							else
+							{
+								getLog().warn("reference out of range in Action #" + i + "ref: " + pos);
+							}
+						}
+
+					}
+					catch (final DataFormatException e)
+					{
+						getLog().warn("No next steps in Action #" + i, e);
+					}
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * 
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+	 * 
+	 * Sep 29, 2009
+	 */
+	protected class PhaseAction
+	{
+		EnumNodeStatus nodeStatus;
+		EnumDeviceStatus deviceStatus;
+		String nodeStatusDetails;
+		String deviceStatusDetails;
+		String name;
+		int pos;
+		Vector<PhaseAction> next;
+
+		/**
+		 * @param action
+		 * 
+		 */
+		public PhaseAction(final KElement action)
+		{
+			nodeStatus = EnumNodeStatus.getEnum(action.getAttribute("NodeStatus"));
+			nodeStatusDetails = action.getAttribute("NodeStatusDetails");
+			deviceStatus = EnumDeviceStatus.getEnum(action.getAttribute("DeviceStatus"));
+			deviceStatusDetails = action.getAttribute("DeviceStatusDetails");
+			name = action.getAttribute(AttributeName.DESCRIPTIVENAME);
+			next = new Vector<PhaseAction>();
+		}
+
+		public KElement addToRoot(final KElement root)
+		{
+			final KElement action = root.appendElement("PhaseAction");
+			action.setAttribute("NodeStatus", nodeStatus.getName());
+			action.setAttribute("NodeStatusDetails", nodeStatusDetails);
+			action.setAttribute("DeviceStatus", deviceStatus.getName());
+			action.setAttribute("DeviceStatusDetails", deviceStatusDetails);
+			action.setAttribute(AttributeName.DESCRIPTIVENAME, name);
+			action.setAttribute("pos", pos, null);
+			return action;
+		}
+	}
 
 	/**
 	 * @author prosirai
@@ -96,15 +271,18 @@ public class ConsoleDevice extends WorkerDevice implements IGetHandler
 	{
 
 		/**
-		 * XML representation of this simDevice fore use as html display using an XSLT
+		 * XML representation of this simDevice for use as html display using an XSLT
 		 * @param bProc
 		 * @param request
 		 */
 		public XMLConsoleDevice(final boolean bProc, final BambiServletRequest request)
 		{
 			super(bProc, request);
-			// final KElement deviceRoot = getRoot();
-
+			final boolean bSetup = request.getBooleanParam("setup");
+			if (!bSetup)
+			{
+				// TODO
+			}
 		}
 	}
 
@@ -127,6 +305,7 @@ public class ConsoleDevice extends WorkerDevice implements IGetHandler
 	{
 		super(prop);
 		log.info("created ConsoleDevice '" + prop.getDeviceID() + "'");
+		actions = new ActionLoader().load();
 	}
 
 	/**
@@ -137,5 +316,58 @@ public class ConsoleDevice extends WorkerDevice implements IGetHandler
 	protected AbstractDeviceProcessor buildDeviceProcessor()
 	{
 		return new ConsoleDeviceProcessor();
+	}
+
+	/**
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDevice#getXSLT(java.lang.String, org.cip4.bambi.core.BambiServletRequest)
+	 */
+	@Override
+	public String getXSLT(final BambiServletRequest request)
+	{
+		final String contextPath = request.getContextPath();
+		final String command = request.getCommand();
+		if (("showDevice".equalsIgnoreCase(command) || "processNextPhase".equalsIgnoreCase(command)) && !request.getBooleanParam("setup"))
+		{
+			return getXSLTBaseFromContext(contextPath) + "/showConsole.xsl";
+		}
+		return super.getXSLT(request);
+	}
+
+	/**
+	 * @param currentAction
+	 * @return
+	 */
+	Vector<PhaseAction> getActions(final int currentAction)
+	{
+		if (currentAction < 0)
+		{
+			return actions;
+		}
+		final PhaseAction a = getAction(currentAction);
+		return a == null ? null : a.next;
+	}
+
+	@Override
+	protected boolean processNextPhase(final BambiServletRequest request, final BambiServletResponse response)
+	{
+		final JobPhase nextPhase = buildJobPhaseFromRequest(request);
+		((ConsoleDeviceProcessor) _deviceProcessors.get(0)).doNextPhase(nextPhase, request);
+		ThreadUtil.sleep(223);
+		showDevice(request, response, false);
+		return true;
+	}
+
+	/**
+	 * @param currentAction
+	 * @return
+	 */
+	private PhaseAction getAction(final int currentAction)
+	{
+		if (currentAction < 0 || currentAction >= actions.size())
+		{
+			return null;
+		}
+		return actions.get(currentAction);
 	}
 }

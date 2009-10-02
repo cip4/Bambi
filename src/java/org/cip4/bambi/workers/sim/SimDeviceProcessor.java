@@ -71,21 +71,21 @@
 package org.cip4.bambi.workers.sim;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.queues.QueueProcessor;
+import org.cip4.bambi.workers.JobPhase;
+import org.cip4.bambi.workers.UIModifiableDeviceProcessor;
 import org.cip4.bambi.workers.WorkerDevice;
-import org.cip4.bambi.workers.WorkerDeviceProcessor;
-import org.cip4.bambi.workers.sim.SimDeviceProcessor.JobPhase.PhaseAmount;
+import org.cip4.bambi.workers.JobPhase.PhaseAmount;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
-import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.JDFParser;
@@ -100,7 +100,6 @@ import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
-import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
@@ -112,441 +111,10 @@ import org.cip4.jdflib.util.ThreadUtil;
  * @author boegerni
  * 
  */
-public class SimDeviceProcessor extends WorkerDeviceProcessor
+public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 {
 	protected List<JobPhase> _jobPhases = null;
 	protected JobPhase idlePhase = null;
-
-	/**
-	 * a single job phase
-	 * 
-	 * @author boegerni
-	 * 
-	 */
-	public static class JobPhase implements Cloneable
-	{
-		/**
-		 * 
-		 */
-		public class PhaseEmployees
-		{
-			/**
-			 * 
-			 */
-			Vector<JDFEmployee> theEmployee = new Vector<JDFEmployee>();
-
-			/**
-			 * @param e
-			 */
-			public PhaseEmployees(final KElement e)
-			{
-				if (e != null)
-				{
-					final VElement v = e.getChildElementVector(ElementName.EMPLOYEE, null);
-					for (int i = 0; i < v.size(); i++)
-					{
-						final JDFEmployee emp = (JDFEmployee) new JDFDoc(ElementName.EMPLOYEE).getRoot();
-						emp.mergeElement(v.get(i), false);
-						theEmployee.add(emp);
-					}
-				}
-			}
-
-			/**
-			 * @return
-			 */
-			public Vector<JDFEmployee> getEmployees()
-			{
-				return theEmployee;
-			}
-		}
-
-		/**
-		 * 
-		 */
-		public class PhaseAmount implements Serializable
-		{
-			private static final long serialVersionUID = -8504631585951268571L;
-
-			/**
-			 * waste to be produced in this job phase
-			 */
-			protected boolean bGood = true;
-			/**
-			 * current speed/hour in this phase
-			 */
-			protected double speed = 0;
-
-			protected String resource = "Output";
-			protected String resourceName = "Output";
-
-			/**
-			 * @param resName the name or named process usage of the resource
-			 * @param _speed speed / hour
-			 * @param condition good =true
-			 */
-			PhaseAmount(final String resName, final double _speed, final boolean condition)
-			{
-				resource = resourceName = resName;
-				bGood = condition;
-				speed = _speed;
-			}
-
-			/**
-			 * @see java.lang.Object#toString()
-			 * @return String the string
-			 */
-			@Override
-			public String toString()
-			{
-				return "[ " + resourceName + " " + resource + (bGood ? " G: " : " W: ") + "Speed: " + speed + "]";
-			}
-
-			/**
-			 * @param res
-			 * @return true if this pjhaseAmount matches res
-			 */
-			public boolean matchesRes(final String res)
-			{
-				return resource.equals(res) || resourceName.equals(res);
-			}
-
-			@Override
-			protected Object clone()
-			{
-				final PhaseAmount pa = new PhaseAmount(null, speed, bGood);
-				pa.resource = resource;
-				pa.resourceName = resourceName;
-				return pa;
-			}
-
-		}
-
-		// end of inner class PhaseAmount
-		protected Vector<PhaseAmount> amounts = new Vector<PhaseAmount>();
-
-		/**
-		 * construction of a JobPhase
-		 */
-		public JobPhase()
-		{
-			super();
-		}
-
-		/**
-		 * 
-		 * @param phaseElement the xml element to parse
-		 */
-		public JobPhase(final KElement phaseElement)
-		{
-			super();
-			deviceStatus = EnumDeviceStatus.getEnum(phaseElement.getXPathAttribute("@DeviceStatus", "Idle"));
-			deviceStatusDetails = phaseElement.getXPathAttribute("@DeviceStatusDetails", "");
-			nodeStatus = EnumNodeStatus.getEnum(phaseElement.getXPathAttribute("@NodeStatus", "Waiting"));
-			nodeStatusDetails = phaseElement.getXPathAttribute("@NodeStatusDetails", "");
-			timeToGo = 1000 * StringUtil.parseInt(phaseElement.getXPathAttribute("@Duration", "0"), 0);
-			employee = new PhaseEmployees(phaseElement);
-
-			if (phaseElement.hasAttribute("Error"))
-			{
-				errorChance = StringUtil.parseDouble(phaseElement.getXPathAttribute("@Error", "0"), 0) * 0.001;
-			}
-			else
-			{
-				errorChance = StringUtil.parseDouble(phaseElement.getXPathAttribute("../@Error", "0"), 0) * 0.001;
-			}
-			final VElement vA = phaseElement.getChildElementVector("Amount", null);
-			for (int j = 0; j < vA.size(); j++)
-			{
-				final KElement am = vA.elementAt(j);
-				double speed = am.getRealAttribute("Speed", null, 0);
-				if (speed < 0)
-				{
-					speed = 0;
-				}
-				final boolean bGood = !am.getBoolAttribute("Waste", null, false);
-				// timeToGo is seconds, speed is / hour
-				setAmount(am.getAttribute("Resource"), speed, bGood);
-			}
-		}
-
-		/**
-		 * status to be displayed for this job phase
-		 */
-		protected EnumDeviceStatus deviceStatus = EnumDeviceStatus.Idle;
-
-		/**
-		 * device status details
-		 */
-		protected String deviceStatusDetails = "";
-
-		protected EnumNodeStatus nodeStatus = EnumNodeStatus.Waiting;
-		protected String nodeStatusDetails = "";
-
-		/**
-		 * timeToGo of job phase in milliseconds
-		 */
-		protected int timeToGo = 0;
-		protected long timeStarted = System.currentTimeMillis();
-		protected double errorChance = 0.00;
-		protected PhaseEmployees employee = null;
-
-		/**
-		 * @see java.lang.Object#toString()
-		 * @return String the string
-		 */
-		@Override
-		public String toString()
-		{
-			String s = "[JobPhase: Duration=" + timeToGo + ", DeviceStatus=" + deviceStatus.getName() + ", DeviceStatusDetails=" + deviceStatusDetails + ", NodeStatus=" + nodeStatus.getName()
-					+ ", NodeStatusDetails=" + nodeStatusDetails;
-			for (int i = 0; i < amounts.size(); i++)
-			{
-				s += "\n" + amounts.elementAt(i);
-			}
-			return s;
-		}
-
-		/**
-		 * @return EnumDeviceStatus the deviceStatus
-		 */
-		public EnumDeviceStatus getDeviceStatus()
-		{
-			return deviceStatus;
-		}
-
-		/**
-		 * @param _deviceStatus the device statis to set
-		 */
-		public void setDeviceStatus(final EnumDeviceStatus _deviceStatus)
-		{
-			this.deviceStatus = _deviceStatus;
-		}
-
-		/**
-		 * @return
-		 */
-		public String getDeviceStatusDetails()
-		{
-			return deviceStatusDetails;
-		}
-
-		/**
-		 * @param _deviceStatusDetails
-		 */
-		public void setDeviceStatusDetails(final String _deviceStatusDetails)
-		{
-			this.deviceStatusDetails = _deviceStatusDetails;
-		}
-
-		/**
-		 * @return
-		 */
-		public EnumNodeStatus getNodeStatus()
-		{
-			return nodeStatus;
-		}
-
-		/**
-		 * @param _nodeStatus
-		 */
-		public void setNodeStatus(final EnumNodeStatus _nodeStatus)
-		{
-			this.nodeStatus = _nodeStatus;
-		}
-
-		/**
-		 * @return
-		 */
-		public String getNodeStatusDetails()
-		{
-			return nodeStatusDetails;
-		}
-
-		/**
-		 * @param _nodeStatusDetails
-		 */
-		public void setNodeStatusDetails(final String _nodeStatusDetails)
-		{
-			this.nodeStatusDetails = _nodeStatusDetails;
-		}
-
-		/**
-		 * @return
-		 */
-		public int getTimeToGo()
-		{
-			return timeToGo;
-		}
-
-		/**
-		 * @param duration
-		 */
-		public void setTimeToGo(final int duration)
-		{
-			this.timeToGo = duration;
-		}
-
-		/**
-		 * @param resName
-		 * @param speed
-		 * @param bGood
-		 * @return
-		 */
-		public PhaseAmount setAmount(final String resName, final double speed, final boolean bGood)
-		{
-			PhaseAmount pa = getPhaseAmount(resName);
-			if (pa == null)
-			{
-				pa = this.new PhaseAmount(resName, speed, bGood);
-				amounts.add(pa);
-			}
-			else
-			{
-				pa.bGood = bGood;
-				pa.speed = speed;
-			}
-			return pa;
-		}
-
-		/**
-		 * @param res
-		 * @return
-		 */
-		public double getOutput_Speed(final String res)
-		{
-			final PhaseAmount pa = getPhaseAmount(res);
-			return pa == null ? 0 : pa.speed;
-		}
-
-		/**
-		 * @param res
-		 * @return
-		 */
-		public boolean getOutput_Condition(final String res)
-		{
-			final PhaseAmount pa = getPhaseAmount(res);
-			return pa == null ? true : pa.bGood;
-		}
-
-		/**
-		 * @param string
-		 * @return
-		 */
-		PhaseAmount getPhaseAmount(final String res)
-		{
-			for (int i = 0; i < amounts.size(); i++)
-			{
-				if (amounts.elementAt(i).matchesRes(res))
-				{
-					return amounts.elementAt(i);
-				}
-			}
-			return null;
-		}
-
-		/**
-		 * @return the list of amount counting resources in this phase
-		 */
-		public VString getAmountResourceNames()
-		{
-			final VString v = new VString();
-			for (int i = 0; i < amounts.size(); i++)
-			{
-				v.add(amounts.elementAt(i).resourceName);
-			}
-			return v;
-		}
-
-		/**
-		 * @see java.lang.Object#clone()
-		 */
-		@SuppressWarnings("unchecked")
-		@Override
-		public JobPhase clone()
-		{
-			final JobPhase jp = new JobPhase();
-			jp.deviceStatus = deviceStatus;
-			jp.deviceStatusDetails = deviceStatusDetails;
-			jp.timeToGo = timeToGo;
-			jp.nodeStatus = nodeStatus;
-			jp.nodeStatusDetails = nodeStatusDetails;
-			jp.errorChance = errorChance;
-			jp.amounts = (Vector<PhaseAmount>) amounts.clone();
-			return jp;
-		}
-
-		/**
-		 * @param resource
-		 * @param i
-		 * @return
-		 */
-		public double getOutput_Waste(final String resource, final int i)
-		{
-			if (getOutput_Condition(resource))
-			{
-				return 0;
-			}
-			return getOutput(resource, i);
-		}
-
-		private double getOutput(final String resource, final int i)
-		{
-			if (i <= 0)
-			{
-				return 0; // negative time??? duh
-			}
-			final double spd = getOutput_Speed(resource);
-			if (spd <= 0)
-			{
-				return 0;
-			}
-			return (spd * i) / (3600 * 1000);
-		}
-
-		/**
-		 * @param resource
-		 * @param i
-		 * @return
-		 */
-		public double getOutput_Good(final String resource, final int i)
-		{
-			if (!getOutput_Condition(resource))
-			{
-				return 0;
-			}
-			return getOutput(resource, i);
-		}
-
-		/**
-		 * update the abstract resourcelink names with real idref values from the link
-		 * 
-		 * @param rl
-		 */
-		public void updateAmountLinks(final JDFResourceLink rl)
-		{
-			if (rl == null || amounts == null)
-			{
-				return;
-			}
-			for (int i = 0; i < amounts.size(); i++)
-			{
-				final PhaseAmount pa = amounts.get(i);
-				if (rl.matchesString(pa.resource))
-				{
-					pa.resource = rl.getrRef();
-				}
-			}
-		}
-
-		/**
-		 * @return
-		 */
-		public Vector<JDFEmployee> getEmployees()
-		{
-			return employee == null ? null : employee.getEmployees();
-		}
-	}
 
 	/**
 	 * constructor
@@ -626,12 +194,9 @@ public class SimDeviceProcessor extends WorkerDeviceProcessor
 	 * 
 	 * @return the current phase
 	 */
+	@Override
 	public JobPhase getCurrentJobPhase()
 	{
-		// if(currentQE==null)
-		// _jobPhases.clear(); // just in case we have some remaining spurious
-		// phases
-
 		if (_jobPhases != null && _jobPhases.size() > 0)
 		{
 			return _jobPhases.get(0);
@@ -662,12 +227,12 @@ public class SimDeviceProcessor extends WorkerDeviceProcessor
 			return EnumQueueEntryStatus.Aborted;
 		}
 
-		EnumQueueEntryStatus qes = EnumNodeStatus.getQueueEntryStatus(lastPhase.nodeStatus);
+		EnumQueueEntryStatus qes = EnumNodeStatus.getQueueEntryStatus(lastPhase.getNodeStatus());
 		if (qes == null)
 		{
 			return EnumQueueEntryStatus.Aborted;
 		}
-		if (lastPhase.timeToGo <= 0 && EnumQueueEntryStatus.Running.equals(qes)) // final
+		if (lastPhase.getTimeToGo() <= 0 && EnumQueueEntryStatus.Running.equals(qes)) // final
 		// phase was active
 		{
 			qes = EnumQueueEntryStatus.Completed;
@@ -692,18 +257,18 @@ public class SimDeviceProcessor extends WorkerDeviceProcessor
 			nodeInfoPartMapVector = new VJDFAttributeMap();
 		}
 		nodeInfoPartMapVector.put(AttributeName.CONDITION, "Good");
-		double all = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.ACTUALAMOUNT, n == null ? null : nodeInfoPartMapVector);
+		double all = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.ACTUALAMOUNT, nodeInfoPartMapVector);
 		if (all < 0)
 		{
 			all = 0;
 		}
 
 		_statusListener.setEmployees(phase.getEmployees());
-		double todoAmount = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.AMOUNT, n == null ? null : nodeInfoPartMapVector);
+		double todoAmount = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.AMOUNT, nodeInfoPartMapVector);
 		log.debug("processing new job phase: " + phase.toString());
-		_statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, phase.nodeStatus, phase.nodeStatusDetails, false);
+		_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(), false);
 		long deltaT = 1000;
-		while (phase.timeToGo > 0)
+		while (phase.getTimeToGo() > 0)
 		{
 			final long t0 = System.currentTimeMillis();
 			final VString names = phase.getAmountResourceNames();
@@ -713,8 +278,8 @@ public class SimDeviceProcessor extends WorkerDeviceProcessor
 				final PhaseAmount pa = phase.getPhaseAmount(names.get(i));
 				if (pa != null)
 				{
-					final double phaseGood = phase.getOutput_Good(pa.resource, (int) deltaT);
-					if ("percent".equalsIgnoreCase(pa.resource))
+					final double phaseGood = phase.getOutput_Good(pa.getResource(), (int) deltaT);
+					if ("percent".equalsIgnoreCase(pa.getResource()))
 					{
 						if (todoAmount <= 0)
 						{
@@ -724,15 +289,15 @@ public class SimDeviceProcessor extends WorkerDeviceProcessor
 					}
 					else
 					{
-						final double phaseWaste = phase.getOutput_Waste(pa.resource, (int) deltaT);
-						_statusListener.updateAmount(pa.resource, phaseGood, phaseWaste);
+						final double phaseWaste = phase.getOutput_Waste(pa.getResource(), (int) deltaT);
+						_statusListener.updateAmount(pa.getResource(), phaseGood, phaseWaste);
 					}
 					if (namedRes != null && pa.matchesRes(namedRes))
 					{
 						all += phaseGood;
 						if (all > todoAmount && todoAmount > 0)
 						{
-							phase.timeToGo = 0;
+							phase.setTimeToGo(0);
 							log.debug("phase end for resource: " + namedRes);
 							reachedEnd = true;
 						}
@@ -741,18 +306,18 @@ public class SimDeviceProcessor extends WorkerDeviceProcessor
 			}
 			if (_doShutdown)
 			{
-				phase.timeToGo = 0;
+				phase.setTimeToGo(0);
 				reachedEnd = true;
 				log.info("external shutdown: " + phase.toString());
 			}
-			_statusListener.signalStatus(phase.deviceStatus, phase.deviceStatusDetails, phase.nodeStatus, phase.nodeStatusDetails, reachedEnd);
-			if (phase.timeToGo > 0 && !_doShutdown)
+			_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(), reachedEnd);
+			if (phase.getTimeToGo() > 0 && !_doShutdown)
 			{
 				randomErrors(phase);
 				ThreadUtil.sleep(123);
 				final long t1 = System.currentTimeMillis();
 				deltaT = t1 - t0;
-				phase.timeToGo -= deltaT;
+				phase.setTimeToGo(phase.getTimeToGo() - deltaT);
 			}
 		}
 	}
@@ -766,21 +331,24 @@ public class SimDeviceProcessor extends WorkerDeviceProcessor
 		final VJDFAttributeMap vMap = n.getNodeInfoPartMapVector();
 
 		final VElement v = n.getResourceLinks(new JDFAttributeMap(AttributeName.USAGE, EnumUsage.Output));
-		final int siz = v == null ? 0 : v.size();
-		for (int i = 0; i < siz; i++)
+		if (v != null)
 		{
-			final JDFResourceLink rl = (JDFResourceLink) v.elementAt(i);
-			try
+			final int siz = v.size();
+			for (int i = 0; i < siz; i++)
 			{
-				final double d = rl.getAmountPoolSumDouble(AttributeName.AMOUNT, vMap);
-				if (d >= 0)
+				final JDFResourceLink rl = (JDFResourceLink) v.elementAt(i);
+				try
 				{
-					return rl;
+					final double d = rl.getAmountPoolSumDouble(AttributeName.AMOUNT, vMap);
+					if (d >= 0)
+					{
+						return rl;
+					}
 				}
-			}
-			catch (final JDFException e)
-			{
-				// nop
+				catch (final JDFException e)
+				{
+					// nop
+				}
 			}
 		}
 		return null;
@@ -792,11 +360,11 @@ public class SimDeviceProcessor extends WorkerDeviceProcessor
 	 */
 	protected void randomErrors(final JobPhase phase)
 	{
-		if (phase == null || phase.errorChance <= 0)
+		if (phase == null || phase.getErrorChance() <= 0)
 		{
 			return;
 		}
-		if (Math.random() > phase.errorChance)
+		if (Math.random() > phase.getErrorChance())
 		{
 			return;
 		}
@@ -822,7 +390,7 @@ public class SimDeviceProcessor extends WorkerDeviceProcessor
 	@Override
 	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
 	{
-		loadJob();
+		new JobLoader().loadJob();
 		// we want at least one setup dummy
 		if (_jobPhases == null)
 		{
@@ -841,126 +409,143 @@ public class SimDeviceProcessor extends WorkerDeviceProcessor
 		final int jobPhaseSize = _jobPhases == null ? 0 : _jobPhases.size();
 
 		final VElement vResLinks = node.getResourceLinks(null);
-		final int vSiz = (vResLinks == null) ? 0 : vResLinks.size();
-		for (int i = 0; i < vSiz; i++)
+		if (vResLinks != null)
 		{
-			final JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
-			for (int j = 0; j < jobPhaseSize; j++)
+			final int vSiz = vResLinks.size();
+			for (int i = 0; i < vSiz; i++)
 			{
-				final JobPhase jp = _jobPhases.get(j);
-				jp.updateAmountLinks(rl);
+				final JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
+				for (int j = 0; j < jobPhaseSize; j++)
+				{
+					final JobPhase jp = _jobPhases.get(j);
+					jp.updateAmountLinks(rl);
+				}
 			}
 		}
 		return bOK;
 	}
 
 	/**
-	 * load a job and ensure that a local copy of the sim file is created
+	 * class to load .job files for simulation
+	 * 
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+	 * 
+	 * Sep 29, 2009
 	 */
-	private void loadJob()
+	private class JobLoader
 	{
-		File deviceDir = _parent.getProperties().getBaseDir();
-		deviceDir = FileUtil.getFileInDirectory(deviceDir, new File("config"));
-		final String deviceFile = "job_" + _parent.getDeviceID() + ".xml";
-		_jobPhases = loadJobFromFile(deviceDir, deviceFile);
-		final File configDir = _parent.getProperties().getConfigDir();
-		File srcFile = null;
-		if (_jobPhases == null)
+		protected JobLoader()
 		{
-			_jobPhases = loadJobFromFile(configDir, deviceFile);
-			srcFile = _jobPhases == null ? null : FileUtil.getFileInDirectory(configDir, new File(deviceFile));
-		}
-		if (_jobPhases == null)
-		{
-			_jobPhases = loadJobFromFile(deviceDir, "job.xml");
-			srcFile = _jobPhases == null ? null : FileUtil.getFileInDirectory(deviceDir, new File("job.xml"));
-		}
-		if (_jobPhases == null)
-		{
-			_jobPhases = loadJobFromFile(configDir, "job.xml");
-			srcFile = _jobPhases == null ? null : FileUtil.getFileInDirectory(configDir, new File("job.xml"));
-		}
-		if (srcFile != null)
-		{
-			final File destFile = FileUtil.getFileInDirectory(deviceDir, new File(deviceFile));
-			FileUtil.copyFile(srcFile, destFile);
-			log.info("copying sim file to local directory: " + destFile);
-		}
-	}
-
-	/**
-	 * load Bambi job definition from file. <br>
-	 * The list of job phases is emptied when an error occurs during parsing fileName
-	 * @param configdir the configuration directory
-	 * @param fileName the file to load
-	 * @return true, if successful
-	 */
-	private List<JobPhase> loadJobFromFile(final File configdir, final String fileName)
-	{
-		final File f = FileUtil.getFileInDirectory(configdir, new File(fileName));
-		if (!f.canRead())
-		{
-			log.info("No preset file :" + fileName);
-			return null;
-		}
-		final JDFParser p = new JDFParser();
-		final JDFDoc doc = p.parseFile(f);
-		if (doc == null)
-		{
-			log.error("Job File " + fileName + " not found, using default");
-			return null;
+			super();
 		}
 
-		final List<JobPhase> phaseList = new Vector<JobPhase>();
-		final KElement simJob = doc.getRoot();
-		final VElement v = simJob.getXPathElementVector("JobPhase", -1);
-		for (int i = 0; i < v.size(); i++)
-		{
-			final KElement phaseElement = v.elementAt(i);
-			final JobPhase phase = new JobPhase(phaseElement);
-			phaseList.add(phase);
-		}
+		protected File srcFile = null;
 
-		if (phaseList.size() == 0)
+		/**
+		 * load Bambi job definition from file. <br>
+		 * The list of job phases is emptied when an error occurs during parsing fileName
+		 * @param configdir the configuration directory
+		 * @param fileName the file to load
+		 * @return true, if successful
+		 */
+		private List<JobPhase> loadJobFromFile(final File configdir, final String fileName)
 		{
-			log.warn("no job phases were added from " + fileName);
-			return null;
-		}
-		else
-		{
-			idlePhase = null;
-			final JobPhase tmpPhase = phaseList.get(phaseList.size() - 1);
-			if (EnumDeviceStatus.Idle.equals(tmpPhase.deviceStatus))
+			final File f = FileUtil.getFileInDirectory(configdir, new File(fileName));
+			if (!f.canRead())
 			{
-				idlePhase = tmpPhase;
-				phaseList.remove(idlePhase);
-				log.info("defined an idle phase");
+				getLog().info("No preset file :" + fileName);
+				return null;
+			}
+			final JDFParser p = new JDFParser();
+			final JDFDoc doc = p.parseFile(srcFile);
+			if (doc == null)
+			{
+				getLog().error("Job File " + fileName + " not found, using default");
+				return null;
+			}
+			srcFile = f;
+			final List<JobPhase> phaseList = new Vector<JobPhase>();
+			final KElement simJob = doc.getRoot();
+			final VElement v = simJob.getXPathElementVector("JobPhase", -1);
+			for (int i = 0; i < v.size(); i++)
+			{
+				final KElement phaseElement = v.elementAt(i);
+				final JobPhase phase = new JobPhase(phaseElement);
+				phaseList.add(phase);
+			}
+
+			if (phaseList.size() == 0)
+			{
+				getLog().warn("no job phases were added from " + fileName);
+				return null;
+			}
+			else
+			{
+				idlePhase = null;
+				final JobPhase tmpPhase = phaseList.get(phaseList.size() - 1);
+				if (EnumDeviceStatus.Idle.equals(tmpPhase.getDeviceStatus()))
+				{
+					idlePhase = tmpPhase;
+					phaseList.remove(idlePhase);
+					getLog().info("defined an idle phase");
+				}
+			}
+			getLog().debug("created new job from " + fileName + " with " + phaseList.size() + " job phases.");
+			randomizeJobPhases(phaseList, simJob.getRealAttribute("RandomFactor", null, 0.0));
+
+			return phaseList;
+		}
+
+		/**
+		 * load a job and ensure that a local copy of the sim file is created
+		 */
+		protected void loadJob()
+		{
+			final AbstractDevice parent = getParent();
+			File deviceDir = parent.getProperties().getBaseDir();
+			deviceDir = FileUtil.getFileInDirectory(deviceDir, new File("config"));
+			final String deviceFile = "job_" + parent.getDeviceID() + ".xml";
+			_jobPhases = loadJobFromFile(deviceDir, deviceFile);
+			final File configDir = parent.getProperties().getConfigDir();
+			if (_jobPhases == null)
+			{
+				_jobPhases = loadJobFromFile(configDir, deviceFile);
+			}
+			if (_jobPhases == null)
+			{
+				_jobPhases = loadJobFromFile(deviceDir, "job.xml");
+			}
+			if (_jobPhases == null)
+			{
+				_jobPhases = loadJobFromFile(configDir, "job.xml");
+			}
+			if (srcFile != null)
+			{
+				final File destFile = FileUtil.getFileInDirectory(deviceDir, new File(deviceFile));
+				FileUtil.copyFile(srcFile, destFile);
+				getLog().info("copying sim file to local directory: " + destFile);
 			}
 		}
-		log.debug("created new job from " + fileName + " with " + phaseList.size() + " job phases.");
-		randomizeJobPhases(phaseList, simJob.getRealAttribute("RandomFactor", null, 0.0));
 
-		return phaseList;
-	}
-
-	/**
-	 * randomize phase durations and add random error phases
-	 * @param phases
-	 * @param randomTime the given time of each job phase is to vary by ... percent
-	 */
-	private void randomizeJobPhases(final List<JobPhase> phases, final double randomTime)
-	{
-		if (randomTime > 0.0 && phases != null)
+		/**
+		 * randomize phase durations and add random error phases
+		 * @param phases
+		 * @param randomTime the given time of each job phase is to vary by ... percent
+		 */
+		private void randomizeJobPhases(final List<JobPhase> phases, final double randomTime)
 		{
-			for (int i = 0; i < phases.size(); i++)
+			if (randomTime > 0.0 && phases != null)
 			{
-				double varyBy = Math.random() * randomTime / 100.0;
-				if (Math.random() < 0.5)
+				for (int i = 0; i < phases.size(); i++)
 				{
-					varyBy *= -1.0;
+					double varyBy = Math.random() * randomTime / 100.0;
+					if (Math.random() < 0.5)
+					{
+						varyBy *= -1.0;
+					}
+					final JobPhase phase = phases.get(i);
+					phase.setTimeToGo(phase.getTimeToGo() + (long) (phase.getTimeToGo() * varyBy));
 				}
-				final JobPhase phase = phases.get(i);
-				phase.timeToGo = phase.timeToGo + (int) (phase.timeToGo * varyBy);
 			}
 		}
 	}
@@ -979,7 +564,7 @@ public class SimDeviceProcessor extends WorkerDeviceProcessor
 			JobPhase p = getCurrentJobPhase();
 			if (p != null)
 			{
-				p.timeToGo = 0;
+				p.setTimeToGo(0);
 			}
 			_jobPhases.clear();
 			p = new JobPhase();
@@ -1005,7 +590,7 @@ public class SimDeviceProcessor extends WorkerDeviceProcessor
 		int pos = 0;
 		if (lastPhase != null)
 		{
-			lastPhase.timeToGo = 0;
+			lastPhase.setTimeToGo(0);
 			pos = 1;
 		}
 		_jobPhases.add(pos, nextPhase);
@@ -1020,23 +605,26 @@ public class SimDeviceProcessor extends WorkerDeviceProcessor
 	{
 		log.debug("initializing first phase");
 		final JobPhase firstPhase = new JobPhase();
-		firstPhase.deviceStatus = EnumDeviceStatus.Setup;
-		firstPhase.deviceStatusDetails = "Setup";
-		firstPhase.nodeStatus = EnumNodeStatus.Setup;
-		firstPhase.nodeStatusDetails = "Setup";
-		firstPhase.timeToGo = Integer.MAX_VALUE / 2;
+		firstPhase.setDeviceStatus(EnumDeviceStatus.Setup);
+		firstPhase.setDeviceStatusDetails("Setup");
+		firstPhase.setNodeStatus(EnumNodeStatus.Setup);
+		firstPhase.setNodeStatusDetails("Setup");
+		firstPhase.setTimeToGo(Integer.MAX_VALUE / 2);
 		if (node != null)
 		{
 			final VElement v = node.getResourceLinks(null);
-			final int s = v == null ? 0 : v.size();
-			for (int i = 0; i < s; i++)
+			if (v != null)
 			{
-				final JDFResourceLink rl = (JDFResourceLink) v.get(i);
-				final JDFResource linkRoot = rl.getLinkRoot();
-				if (linkRoot != null && ((WorkerDevice) _parent).isAmountResource(rl))
+				final int s = v.size();
+				for (int i = 0; i < s; i++)
 				{
-					final PhaseAmount pa = firstPhase.setAmount(rl.getNamedProcessUsage(), 0, false);
-					pa.resource = linkRoot.getID();
+					final JDFResourceLink rl = (JDFResourceLink) v.get(i);
+					final JDFResource linkRoot = rl.getLinkRoot();
+					if (linkRoot != null && ((WorkerDevice) _parent).isAmountResource(rl))
+					{
+						final PhaseAmount pa = firstPhase.setAmount(rl.getNamedProcessUsage(), 0, false);
+						pa.setResource(linkRoot.getID());
+					}
 				}
 			}
 		}

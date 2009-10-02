@@ -30,6 +30,10 @@
 		<servlet-name>SimWorkerServlet</servlet-name>
 		<url-pattern>/showDevice/*</url-pattern>
 	</servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>SimWorkerServlet</servlet-name>
+    <url-pattern>/login/*</url-pattern>
+  </servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>SimWorkerServlet</servlet-name>
 		<url-pattern>/showQueue/*</url-pattern>

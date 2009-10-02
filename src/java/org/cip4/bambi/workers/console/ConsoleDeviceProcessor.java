@@ -70,11 +70,18 @@
  */
 package org.cip4.bambi.workers.console;
 
+import java.util.Iterator;
+import java.util.Vector;
+
+import org.cip4.bambi.core.BambiServletRequest;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.queues.QueueProcessor;
-import org.cip4.bambi.workers.WorkerDeviceProcessor;
+import org.cip4.bambi.workers.JobPhase;
+import org.cip4.bambi.workers.UIModifiableDeviceProcessor;
+import org.cip4.bambi.workers.console.ConsoleDevice.PhaseAction;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
@@ -87,10 +94,58 @@ import org.cip4.jdflib.util.ThreadUtil.MyMutex;
  * @author Rainer Prosi
  * 
  */
-public class ConsoleDeviceProcessor extends WorkerDeviceProcessor
+public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 {
 	private final MyMutex completeMutex;
 	private EnumNodeStatus endStatus = null;
+	private JobPhase currentPhase;
+	protected int currentAction;
+	private boolean bStopJob = false;
+
+	/**
+	 * added to ensure a consistent hierarchy
+	 * 
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+	 * 
+	 * Oct 1, 2009
+	 */
+	protected class XMLConsoleProcessor extends XMLWorkerProcessor
+	{
+		/**
+		 * @param _root
+		 */
+		public XMLConsoleProcessor(final KElement _root)
+		{
+			super(_root);
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.AbstractDeviceProcessor.XMLDeviceProcessor#fill()
+		 */
+		@Override
+		public KElement fill()
+		{
+			final KElement proc = super.fill();
+			addActions(proc);
+			return proc;
+		}
+
+		/**
+		 * 
+		 */
+		private void addActions(final KElement processor)
+		{
+			final Vector<PhaseAction> vActions = getParent().getActions(currentAction);
+			if (vActions != null)
+			{
+				for (final Iterator<PhaseAction> iterator = vActions.iterator(); iterator.hasNext();)
+				{
+					final PhaseAction phaseAction = iterator.next();
+					phaseAction.addToRoot(processor);
+				}
+			}
+		}
+	}
 
 	/**
 	 * constructor
@@ -99,6 +154,8 @@ public class ConsoleDeviceProcessor extends WorkerDeviceProcessor
 	{
 		super();
 		completeMutex = new MyMutex();
+		currentAction = 0;
+		currentPhase = null;
 	}
 
 	/**
@@ -111,7 +168,7 @@ public class ConsoleDeviceProcessor extends WorkerDeviceProcessor
 	public void init(final QueueProcessor queueProcessor, final StatusListener statusListener, final IDeviceProperties devProperties)
 	{
 		super.init(queueProcessor, statusListener, devProperties);
-
+		_statusListener.getStatusCounter().setPhaseTimeAmounts(false);
 	}
 
 	/**
@@ -124,8 +181,60 @@ public class ConsoleDeviceProcessor extends WorkerDeviceProcessor
 	@Override
 	public EnumQueueEntryStatus processDoc(final JDFNode n, final JDFQueueEntry qe)
 	{
-		ThreadUtil.wait(completeMutex, -1);
+		// reqularly update the counter to avoid retaining double phasetimes too long
+		while (!bStopJob)
+		{
+			ThreadUtil.wait(completeMutex, 10000);
+			if (currentPhase != null)
+			{
+				setNextPhase(currentPhase, null);
+			}
+		}
 		return EnumNodeStatus.getQueueEntryStatus(endStatus);
+	}
+
+	/**
+	 * proceed to the next job phase
+	 * 
+	 * @param nextPhase the next job phase to process.<br>
+	 * Phase timeToGo is ignored in this class, it is advancing to the next phase solely by doNextPhase().
+	 * @param request
+	 */
+	public void doNextPhase(final JobPhase nextPhase, final BambiServletRequest request)
+	{
+		final JobPhase lastPhase = getCurrentJobPhase();
+		applyAmounts(lastPhase, request);
+		setNextPhase(nextPhase, request);
+	}
+
+	/**
+	 * @param phase
+	 * @param request
+	 */
+	private void setNextPhase(final JobPhase phase, final BambiServletRequest request)
+	{
+		final int nextAction = request == null ? currentAction : request.getIntegerParam("pos");
+		_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(), request != null);
+		currentPhase = phase;
+		endStatus = phase.getNodeStatus();
+		currentAction = nextAction;
+		// finalize the job
+		final Vector<PhaseAction> actions = getParent().getActions(currentAction);
+		if (actions == null || actions.isEmpty())
+		{
+			bStopJob = true;
+			ThreadUtil.notifyAll(completeMutex);
+		}
+	}
+
+	/**
+	 * @param lastPhase
+	 * @param request
+	 */
+	private void applyAmounts(final JobPhase lastPhase, final BambiServletRequest request)
+	{
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override
@@ -147,7 +256,11 @@ public class ConsoleDeviceProcessor extends WorkerDeviceProcessor
 	{
 		final boolean bOK = super.initializeProcessDoc(node, qe);
 		endStatus = bOK ? EnumNodeStatus.Aborted : node.getStatus();
-
+		bStopJob = !bOK;
+		if (bOK)
+		{
+			currentAction = 0;
+		}
 		return bOK;
 	}
 
@@ -167,9 +280,39 @@ public class ConsoleDeviceProcessor extends WorkerDeviceProcessor
 	@Override
 	public EnumNodeStatus stopProcessing(final EnumNodeStatus newStatus)
 	{
-		ThreadUtil.notifyAll(completeMutex);
+		bStopJob = true;
 		endStatus = newStatus;
+		ThreadUtil.notifyAll(completeMutex);
+
 		return endStatus;
+	}
+
+	/**
+	 * @see org.cip4.bambi.workers.UIModifiableDeviceProcessor#getCurrentJobPhase()
+	 */
+	@Override
+	public JobPhase getCurrentJobPhase()
+	{
+		return currentPhase;
+	}
+
+	/**
+	 * @param root
+	 * @return
+	 */
+	@Override
+	protected XMLDeviceProcessor getXMLDeviceProcessor(final KElement root)
+	{
+		return this.new XMLConsoleProcessor(root);
+	}
+
+	/**
+	 * @return the _parent
+	 */
+	@Override
+	public ConsoleDevice getParent()
+	{
+		return (ConsoleDevice) _parent;
 	}
 
 }

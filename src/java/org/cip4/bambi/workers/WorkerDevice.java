@@ -71,11 +71,16 @@
 
 package org.cip4.bambi.workers;
 
+import java.io.File;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.Vector;
 
 import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.BambiServletRequest;
+import org.cip4.bambi.core.BambiServletResponse;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
@@ -87,9 +92,12 @@ import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 
 /**
@@ -106,6 +114,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	protected String _trackResource = null; // the "major" resource to track
 	protected VString amountResources = null;
 	protected String _typeExpression = null; // the regexp that defines the valid types
+	protected EmployeeList employees;
 
 	/**
 	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc, java.lang.String)
@@ -188,7 +197,6 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	 */
 	protected class XMLWorkerDevice extends XMLDevice
 	{
-
 		/**
 		 * XML representation of this simDevice fore use as html display using an XSLT
 		 * @param bProc
@@ -199,8 +207,165 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 			super(bProc, request);
 			final KElement deviceRoot = getRoot();
 			deviceRoot.setAttribute(AttributeName.TYPEEXPRESSION, getProperties().getTypeExpression());
+			deviceRoot.setAttribute("login", true, null);
+			addEmployees();
+			addKnownEmployees();
+		}
+
+		/**
+		 * 
+		 */
+		private void addKnownEmployees()
+		{
+			final KElement deviceRoot = getRoot();
+			final KElement knownEmps = deviceRoot.appendElement("KnownEmployees");
+			final Vector<JDFEmployee> vEmpLoggedIn = _theStatusListener.getStatusCounter().getEmpoyees();
+			final Vector<JDFEmployee> vEmp = employees.vEmp;
+			for (int i = 0; i < vEmp.size(); i++)
+			{
+				final JDFEmployee knownEmp = vEmp.get(i);
+				boolean bAdd = true;
+				if (vEmpLoggedIn != null)
+				{
+					for (final Iterator iterator = vEmpLoggedIn.iterator(); iterator.hasNext();)
+					{
+						final JDFEmployee employee = (JDFEmployee) iterator.next();
+						if (knownEmp.matches(employee))
+						{
+							bAdd = false;
+							break;
+						}
+
+					}
+				}
+				if (bAdd)
+				{
+					knownEmps.copyElement(knownEmp, null);
+				}
+			}
+		}
+
+		/**
+		 * add the currently logged employees, duh
+		 */
+		private void addEmployees()
+		{
+			final KElement deviceRoot = getRoot();
+			final Vector<JDFEmployee> vEmp = _theStatusListener.getStatusCounter().getEmpoyees();
+			for (final Iterator<JDFEmployee> iterator = vEmp.iterator(); iterator.hasNext();)
+			{
+				final JDFEmployee employee = iterator.next();
+				deviceRoot.copyElement(employee, null);
+			}
+		}
+	}
+
+	protected class EmployeeList
+	{
+
+		/**
+		 * @param emp
+		 */
+		public EmployeeList(final Vector<JDFEmployee> emp)
+		{
+			super();
+			vEmp = emp;
+		}
+
+		protected Vector<JDFEmployee> vEmp; // the list of all employees
+
+		/**
+		 * @param personalID
+		 * @return
+		 */
+		public JDFEmployee getEmployee(final String personalID)
+		{
+			if (vEmp == null)
+			{
+				return null;
+			}
+			for (final Iterator<JDFEmployee> iterator = vEmp.iterator(); iterator.hasNext();)
+			{
+				final JDFEmployee emp = iterator.next();
+				if (emp.matches(personalID))
+				{
+					return emp;
+				}
+			}
+			return null;
+		}
+
+	}
+
+	/**
+	 * 
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+	 * 
+	 * Sep 29, 2009
+	 */
+	protected class EmployeeLoader
+	{
+		private final File employeeFile;
+		private File employeePath;
+
+		/**
+		 * 
+		 */
+		public EmployeeLoader()
+		{
+			employeeFile = new File("employees.xml");
+			employeePath = null;
+		}
+
+		protected EmployeeList load()
+		{
+			File deviceDir = getProperties().getBaseDir();
+			deviceDir = FileUtil.getFileInDirectory(deviceDir, new File("config"));
+			Vector<JDFEmployee> v = loadFile(deviceDir);
+			if (v == null)
+			{
+				v = loadFile(getProperties().getConfigDir());
+			}
+			if (v != null)
+			{
+				FileUtil.copyFileToDir(employeePath, deviceDir);
+			}
+			else
+			{
+				v = new Vector<JDFEmployee>();
+			}
+			return new EmployeeList(v);
+		}
+
+		/**
+		 * @param deviceDir
+		 * @return
+		 */
+		private Vector<JDFEmployee> loadFile(final File deviceDir)
+		{
+			final File employeePathLocal = FileUtil.getFileInDirectory(deviceDir, employeeFile);
+			final XMLDoc d = JDFDoc.parseFile(employeePathLocal.getAbsolutePath());
+			final KElement root = d == null ? null : d.getRoot();
+			if (root == null)
+			{
+				return null;
+			}
+			final VElement v = root.getChildElementVector("Employee", null);
+			if (v == null)
+			{
+				return null;
+			}
+			employeePath = employeePathLocal;
+			final Vector<JDFEmployee> vPA = new Vector<JDFEmployee>(v.size());
+			for (int i = 0; i < v.size(); i++)
+			{
+				final JDFEmployee pa = (JDFEmployee) v.get(i);
+				vPA.add(pa);
+			}
+			return vPA;
 
 		}
+
 	}
 
 	/**
@@ -210,6 +375,62 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	{
 		return _trackResource;
 	}
+
+	/**
+	 * @see org.cip4.bambi.core.AbstractDevice#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
+	 * @param request
+	 * @param response
+	 * @return true if handled
+	 */
+	@Override
+	public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
+	{
+		if (isMyRequest(request))
+		{
+			if (BambiServlet.isMyContext(request, "processNextPhase"))
+			{
+				return processNextPhase(request, response);
+			}
+			else if (BambiServlet.isMyContext(request, "login"))
+			{
+				return handleLogin(request, response);
+			}
+		}
+		return super.handleGet(request, response);
+	}
+
+	/**
+	 * handle login/logout of employees
+	 * @param request
+	 * @return
+	 */
+	private boolean handleLogin(final BambiServletRequest request, final BambiServletResponse response)
+	{
+		String personalID = StringUtil.getNonEmpty(request.getParameter(AttributeName.PERSONALID));
+		if (personalID != null)
+		{
+			final boolean bLogout = "logout".equals(request.getParameter("inout"));
+			personalID = StringUtil.token(personalID, 0, " ");
+			if (bLogout)
+			{
+				_theStatusListener.removeEmployee(employees.getEmployee(personalID));
+			}
+			else
+			{
+				_theStatusListener.addEmployee(employees.getEmployee(personalID));
+			}
+		}
+
+		showDevice(request, response, false);
+		return true;
+	}
+
+	/**
+	 * @param request
+	 * @param response
+	 * @return
+	 */
+	protected abstract boolean processNextPhase(BambiServletRequest request, BambiServletResponse response);
 
 	/**
 	 * check whether this resource should track amounts
@@ -250,6 +471,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 		_trackResource = prop.getTrackResource();
 		_typeExpression = prop.getTypeExpression();
 		amountResources = prop.getAmountResources();
+		employees = new EmployeeLoader().load();
 		log.info("created WorkerDevice '" + prop.getDeviceID() + "'");
 	}
 
@@ -283,5 +505,20 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 		{
 			updateTypeExpression(exp);
 		}
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.AbstractDevice#getXSLT(java.lang.String, org.cip4.bambi.core.BambiServletRequest)
+	 */
+	@Override
+	public String getXSLT(final BambiServletRequest request)
+	{
+		final String command = request.getCommand();
+		final String contextPath = request.getContextPath();
+		if ("login".equals(command))
+		{
+			return getXSLTBaseFromContext(contextPath) + "/login.xsl";
+		}
+		return super.getXSLT(request);
 	}
 }

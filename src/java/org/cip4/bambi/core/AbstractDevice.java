@@ -165,11 +165,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			super("XMLDevice", null);
 			prepare();
 			final KElement deviceRoot = getRoot();
-			final String contextPath = request.getContextPath();
-			final boolean bModify = request.getBooleanParam("modify");
-			setXSLTURL(getXSLT(SHOW_DEVICE, contextPath));
+			setXSLTURL(getXSLT(request));
 
-			deviceRoot.setAttribute(AttributeName.CONTEXT, contextPath);
+			deviceRoot.setAttribute(AttributeName.CONTEXT, request.getContextPath());
+			final boolean bModify = request.getBooleanParam("modify");
 			deviceRoot.setAttribute("modify", bModify, null);
 			deviceRoot.setAttribute("NumRequests", numRequests, null);
 			deviceRoot.setAttribute(AttributeName.DEVICEID, getDeviceID());
@@ -843,28 +842,33 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * @param command the command to execute
-	 * @param contextPath the context path of the request
+	 * @param request request
 	 * @return the matching xslt
 	 */
-	public String getXSLT(final String command, final String contextPath)
+	public String getXSLT(final BambiServletRequest request)
 	{
+		final String command = request.getCommand();
+		final String contextPath = request.getContextPath();
 		String s = null;
 		if ("showQueue".equalsIgnoreCase(command))
 		{
 			s = "/queue2html.xsl";
 		}
-		if ("showDevice".equalsIgnoreCase(command))
+		if ("showDevice".equalsIgnoreCase(command) || "processNextPhase".equalsIgnoreCase(command))
 		{
 			s = "/showDevice.xsl";
 		}
 		if ("showJDF".equalsIgnoreCase(command))
 		{
-			s = "/jdf.xsl";
-		}
-		if ("showXJDF".equalsIgnoreCase(command))
-		{
-			s = "/xjdf.xsl";
+			final String jobPartID = StringUtil.getNonEmpty(request.getParameter(AttributeName.JOBPARTID));
+			if (jobPartID == null)
+			{
+				s = "/jdf.xsl";
+			}
+			else
+			{
+				s = "/xjdf.xsl";
+			}
 		}
 		if (s != null && contextPath != null)
 		{

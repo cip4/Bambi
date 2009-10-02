@@ -143,7 +143,7 @@ public class ShowJDFHandler extends ShowHandler
 			{
 				final JDFParser p = new JDFParser();
 				JDFDoc doc = p.parseStream(is);
-				doc = prepareRoot(doc, request, "showJDF");
+				doc = prepareRoot(doc, request);
 
 				if (callback)
 				{
@@ -185,9 +185,9 @@ public class ShowJDFHandler extends ShowHandler
 	 * @see org.cip4.bambi.core.queues.ShowHandler#prepareRoot(org.cip4.jdflib.core.JDFDoc, org.cip4.bambi.core.BambiServletRequest, java.lang.String)
 	 */
 	@Override
-	protected JDFDoc prepareRoot(JDFDoc doc, final BambiServletRequest request, final String command)
+	protected JDFDoc prepareRoot(JDFDoc doc, final BambiServletRequest request)
 	{
-		doc = super.prepareRoot(doc, request, command);
+		doc = super.prepareRoot(doc, request);
 		if (doc == null)
 		{
 			return null;

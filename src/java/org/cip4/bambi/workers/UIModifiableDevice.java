@@ -1,9 +1,7 @@
-/*
- *
+/**
  * The CIP4 Software License, Version 1.0
  *
- *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -68,125 +66,93 @@
  *  
  * 
  */
+package org.cip4.bambi.workers;
 
-package org.cip4.bambi.workers.sim;
-
-import java.util.Enumeration;
-import java.util.Set;
-
-import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiServletRequest;
-import org.cip4.bambi.core.BambiServletResponse;
 import org.cip4.bambi.core.IDeviceProperties;
-import org.cip4.bambi.core.IGetHandler;
-import org.cip4.bambi.workers.JobPhase;
-import org.cip4.bambi.workers.UIModifiableDevice;
+import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.AttributeName;
-import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.ThreadUtil;
+import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 
 /**
- * a simple JDF device with a fixed list of job phases. <br>
- * Job phases are defined in <code>/WebContend/config/devices.xml</code> and loaded in the constructor. They can be randomized, and random error phases can be
- * added. An example job phase is provided in <code>example_job.xml</code>.<br>
- * This class should remain final: if it is ever subclassed, the DeviceProcessor thread would be started before the constructor from the subclass has a chance
- * to fire.
- * @author boegerni
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+ * 
+ * Sep 29, 2009
  */
-public class SimDevice extends UIModifiableDevice implements IGetHandler
+public abstract class UIModifiableDevice extends WorkerDevice
 {
-	/**
-	 * 
-	 */
-
-	private static final long serialVersionUID = -8412710163767830461L;
-
-	/**
-	 * @author prosirai
-	 */
-	protected class XMLSimDevice extends XMLDevice
-	{
-		/**
-		 * XML representation of this simDevice fore use as html display using an XSLT
-		 * @param bProc
-		 * @param request
-		 */
-		public XMLSimDevice(final boolean bProc, final BambiServletRequest request)
-		{
-			super(bProc, request);
-			final JobPhase currentJobPhase = getCurrentJobPhase();
-			if (currentJobPhase != null)
-			{
-				currentJobPhase.writeToParent(getRoot());
-			}
-		}
-	}
-
-	/**
-	 * @param bProc if true add processors
-	 * @param request
-	 * @return
-	 */
-	@Override
-	public XMLDevice getXMLDevice(final boolean bProc, final BambiServletRequest request)
-	{
-		final XMLDevice simDevice = this.new XMLSimDevice(bProc, request);
-		return simDevice;
-	}
-
-	@Override
-	protected boolean processNextPhase(final BambiServletRequest request, final BambiServletResponse response)
-	{
-		final JobPhase nextPhase = buildJobPhaseFromRequest(request);
-		((SimDeviceProcessor) _deviceProcessors.get(0)).doNextPhase(nextPhase);
-		ThreadUtil.sleep(1000); // allow device to switch phases before displaying page
-		showDevice(request, response, false);
-		return true;
-	}
-
 	/**
 	 * @param prop the properties of the device
 	 */
-	public SimDevice(final IDeviceProperties prop)
+	public UIModifiableDevice(final IDeviceProperties prop)
 	{
 		super(prop);
 	}
 
-	@Override
-	protected AbstractDeviceProcessor buildDeviceProcessor()
+	/**
+	 * @return
+	 */
+	public JobPhase getCurrentJobPhase()
 	{
-		return new SimDeviceProcessor();
+		if (_deviceProcessors == null || _deviceProcessors.size() == 0)
+		{
+			return null;
+		}
+		return ((UIModifiableDeviceProcessor) _deviceProcessors.get(0)).getCurrentJobPhase();
 	}
 
 	/**
-	 * 
+	 * build a new job phase with info from a given request. JobPhase parameter 'timeToGo' will remain with its default value 0, since it is not used in the
+	 * context of ManualDevice.doNextJobPhase()
+	 * @param request request to get the job phase info from
+	 * @return the new JobPhase
 	 */
-	private void updateTypeExpression(final String newTypeX)
+	protected JobPhase buildJobPhaseFromRequest(final BambiServletRequest request)
 	{
-		final IDeviceProperties properties = getProperties();
-		final String old = properties.getTypeExpression();
-		if (!ContainerUtil.equals(old, newTypeX))
+		final JobPhase current = getCurrentJobPhase();
+
+		final JobPhase newPhase = (current == null ? new JobPhase() : current.clone());
+		newPhase.setTimeToGo(Integer.MAX_VALUE); // until modified...
+
+		String status = request.getParameter("DeviceStatus");
+		if (status != null)
 		{
-			properties.setTypeExpression(newTypeX);
-			properties.serialize();
+			newPhase.setDeviceStatus(EnumDeviceStatus.getEnum(status));
 		}
-	}
+		newPhase.setDeviceStatusDetails(request.getParameter("DeviceStatusDetails"));
 
-	/**
-	 * @param request
-	 */
-	@Override
-	protected void updateDevice(final BambiServletRequest request)
-	{
-		super.updateDevice(request);
-
-		final Enumeration<String> en = request.getParameterNames();
-		final Set<String> s = ContainerUtil.toHashSet(en);
-
-		final String exp = request.getParameter(AttributeName.TYPEEXPRESSION);
-		if (exp != null && s.contains(AttributeName.TYPEEXPRESSION))
+		status = request.getParameter("NodeStatus");
+		if (status != null)
 		{
-			updateTypeExpression(exp);
+			newPhase.setNodeStatus(EnumNodeStatus.getEnum(status));
+			if (EnumNodeStatus.Aborted.equals(newPhase.getNodeStatus()) || EnumNodeStatus.Completed.equals(newPhase.getNodeStatus()) || EnumNodeStatus.Suspended.equals(newPhase.getNodeStatus()))
+			{
+				newPhase.setTimeToGo(0);
+			}
+
 		}
+		newPhase.setNodeStatusDetails(request.getParameter("NodeStatusDetails"));
+
+		for (int i = 0; i < 10; i++)
+		{
+			final String parameter = request.getParameter("Res" + i);
+			if (parameter == null)
+			{
+				break;
+			}
+			newPhase.setAmount(parameter, request.getDoubleParam("Speed" + i), !request.getBooleanParam("Waste" + i));
+
+		}
+		if (!KElement.isWildCard(request.getParameter(AttributeName.DURATION)))
+		{
+			newPhase.setTimeToGo(1000 * (int) request.getDoubleParam(AttributeName.DURATION));
+		}
+		else if (current != null)
+		{
+			newPhase.setTimeToGo(current.getTimeToGo());
+		}
+
+		return newPhase;
 	}
 }

@@ -898,7 +898,7 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				root.setAttribute("Refresh", true, null);
 			}
-			doc.setXSLTURL(_parentDevice.getXSLT(SHOW_QUEUE, request.getContextPath()));
+			doc.setXSLTURL(_parentDevice.getXSLT(request));
 			addOptions(root);
 
 			try

@@ -114,9 +114,9 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	protected String _trackResource = null;
 	protected AbstractDevice _parent = null;
 
-	private class XMLDeviceProcessor
+	protected class XMLDeviceProcessor
 	{
-		KElement root;
+		protected KElement root;
 
 		/**
 		 * @param _root
@@ -127,9 +127,10 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		}
 
 		/**
+		 * @return the added processor element
 		 * 
 		 */
-		public void fill()
+		public KElement fill()
 		{
 			final KElement processor = root.appendElement(BambiNSExtension.MY_NS_PREFIX + "Processor", BambiNSExtension.MY_NS);
 			final StatusCounter sc = _statusListener.getStatusCounter();
@@ -144,7 +145,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			if (currentQE == null)
 			{
 				processor.setAttribute("DeviceStatus", "Idle");
-				return;
+				return processor;
 			}
 
 			final EnumDeviceStatus deviceStatus = _statusListener.getDeviceStatus();
@@ -172,6 +173,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			{
 				log.error("null status - bailing out");
 			}
+			return processor;
 		}
 
 		/**
@@ -186,7 +188,11 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 				return;
 			}
 
-			processor.setAttribute(AttributeName.DEVICESTATUS, statusCounter.getStatus().getName());
+			final EnumDeviceStatus status = statusCounter.getStatus();
+			if (status != null)
+			{
+				processor.setAttribute(AttributeName.DEVICESTATUS, status.getName());
+			}
 			processor.setAttribute("Device" + AttributeName.STATUSDETAILS, StringUtil.getNonEmpty(statusCounter.getStatusDetails()));
 			double percentComplete = statusCounter.getPercentComplete();
 			percentComplete = 0.01 * ((long) (100 * percentComplete + 0.5));
@@ -586,7 +592,20 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 */
 	public void addToDisplayXML(final KElement root)
 	{
-		this.new XMLDeviceProcessor(root).fill();
+		final XMLDeviceProcessor xmlDeviceProcessor = getXMLDeviceProcessor(root);
+		if (xmlDeviceProcessor != null)
+		{
+			xmlDeviceProcessor.fill();
+		}
+	}
+
+	/**
+	 * @param root
+	 * @return
+	 */
+	protected XMLDeviceProcessor getXMLDeviceProcessor(final KElement root)
+	{
+		return this.new XMLDeviceProcessor(root);
 	}
 
 	/**
@@ -611,6 +630,14 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	{
 		shutdown();
 		super.finalize();
+	}
+
+	/**
+	 * @return the _parent
+	 */
+	public AbstractDevice getParent()
+	{
+		return _parent;
 	}
 
 }

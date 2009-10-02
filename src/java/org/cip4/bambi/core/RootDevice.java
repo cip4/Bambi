@@ -603,7 +603,7 @@ public class RootDevice extends AbstractDevice
 			}
 		}
 
-		deviceList.setXSLTURL(getXSLT("overview", request.getContextPath()));
+		deviceList.setXSLTURL(getXSLT(request));
 		response.setContentType(UrlUtil.APPLICATION_XML);
 
 		try
@@ -622,8 +622,10 @@ public class RootDevice extends AbstractDevice
 	 * @return
 	 */
 	@Override
-	public String getXSLT(final String command, final String contextPath)
+	public String getXSLT(final BambiServletRequest request)
 	{
+		final String contextPath = request.getContextPath();
+		final String command = request.getCommand();
 		String s = null;
 		if ("overview".equalsIgnoreCase(command))
 		{
@@ -631,7 +633,7 @@ public class RootDevice extends AbstractDevice
 		}
 		else
 		{
-			return super.getXSLT(command, contextPath);
+			return super.getXSLT(request);
 		}
 		if (contextPath != null)
 		{

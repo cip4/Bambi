@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.IOUtils;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -294,6 +295,26 @@ public class BambiServletRequest extends BambiLogFactory implements HttpServletR
 	{
 		final String s = parent.getContextPath();
 		return "/" + StringUtil.token(s, 0, "/");
+	}
+
+	/**
+	 * @return the tokenized request
+	 * 
+	 */
+	public VString getContextList()
+	{
+		final String s = parent.getRequestURL().toString();
+		final VString v = StringUtil.tokenize(s, "/", false);
+		return v;
+	}
+
+	/**
+	 * @return the 4th in line
+	 * 
+	 */
+	public String getCommand()
+	{
+		return getContextList().get(3); // http://host/servlet/command
 	}
 
 	/**

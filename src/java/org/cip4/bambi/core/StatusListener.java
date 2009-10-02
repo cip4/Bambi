@@ -157,6 +157,11 @@ public class StatusListener extends BambiLogFactory
 		if (bMod || forceOut)
 		{
 			flush("Status");
+			saveJDF(-1);
+		}
+		else
+		{
+			saveJDF(12345);
 		}
 	}
 
@@ -468,6 +473,43 @@ public class StatusListener extends BambiLogFactory
 		{
 			theCounter.setTotal(resID, waste, true);
 		}
+	}
+
+	/**
+	 * @param employee
+	 * @return
+	 */
+	public boolean removeEmployee(final JDFEmployee employee)
+	{
+		if (theCounter == null)
+		{
+			return false;
+		}
+		final boolean b = theCounter.removeEmployee(employee);
+		if (b)
+		{
+			saveJDF(-1);
+		}
+		return b;
+	}
+
+	/**
+	 * @param employee
+	 * @return
+	 */
+	public int addEmployee(final JDFEmployee employee)
+	{
+		if (theCounter == null)
+		{
+			return 0;
+		}
+		final int n0 = theCounter.addEmployee(null);
+		final int n1 = theCounter.addEmployee(employee);
+		if (n1 != n0)
+		{
+			saveJDF(-1);
+		}
+		return n1;
 	}
 
 	/**

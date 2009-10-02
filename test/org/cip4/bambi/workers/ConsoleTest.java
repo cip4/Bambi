@@ -1,7 +1,5 @@
-/*
- *
+/**
  * The CIP4 Software License, Version 1.0
- *
  *
  * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
@@ -70,63 +68,43 @@
  */
 package org.cip4.bambi.workers;
 
-import org.cip4.bambi.core.AbstractDeviceProcessor;
-import org.cip4.jdflib.core.KElement;
+import org.cip4.bambi.BambiTestCase;
+import org.cip4.jdflib.jmf.JDFQueue;
 
 /**
- * parent class for console device processors,
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  * 
- * @author Rainer Prosi
- * 
+ * October 1, 2009
  */
-public abstract class WorkerDeviceProcessor extends AbstractDeviceProcessor
+public class ConsoleTest extends BambiTestCase
 {
-	/**
-	 * added to ensure a consistent hierarchy
-	 * 
-	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 * 
-	 * Oct 1, 2009
-	 */
-	protected class XMLWorkerProcessor extends XMLDeviceProcessor
-	{
-
-		/**
-		 * @param _root
-		 */
-		public XMLWorkerProcessor(final KElement _root)
-		{
-			super(_root);
-		}
-
-	}
 
 	/**
-	 * constructor
-	 */
-	public WorkerDeviceProcessor()
-	{
-		super();
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#toString()
-	 * @return the string
+	 * @see org.cip4.bambi.BambiTestCase#setUp()
+	 * @throws Exception
 	 */
 	@Override
-	public String toString()
+	public void setUp() throws Exception
 	{
-		return "Worker Device Processor: " + super.toString() + "]";
+
+		super.setUp();
+		acknowledgeURL = "http://localhost:8080/httpdump/acknowledgeURL";
+
+		simWorkerUrl = "http://kie-prosirai-lg:8080/console/jmf/console001";
+		// simWorkerUrl = "http://127.0.0.1:8080/speedmaster/jmf/XL105";
 	}
 
 	/**
-	 * @param root
-	 * @return
+	 * @throws Exception
 	 */
-	@Override
-	protected XMLDeviceProcessor getXMLDeviceProcessor(final KElement root)
+	public void testSubmitQueueEntry_MIME() throws Exception
 	{
-		return this.new XMLWorkerProcessor(root);
+		// get number of QueueEntries before submitting
+		final JDFQueue q = getQueueStatus(simWorkerUrl);
+		assertNotNull(q);
+		// build SubmitQueueEntry
+		submitMimetoURL(simWorkerUrl);
+
 	}
 
 }
