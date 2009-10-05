@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+>
   <xsl:strip-space elements="*"/>
   <xsl:output method="html"/>
   <xsl:template match="/XMLDevice">
@@ -112,29 +114,61 @@
                 <input type="submit" value="device setup"/>
               </form>
             </td>
-           <xsl:if test="@login='true'">
+            <xsl:if test="@login='true'">
               <td>
                 <form style="margin-left: 20px">
                   <xsl:attribute name="action"><xsl:value-of select="$context"/>/login/<xsl:value-of select="@DeviceID"/></xsl:attribute>
                   <input type="submit" value="login"/>
-                 </form>
+                </form>
               </td>
             </xsl:if>
           </tr>
         </table>
+        <xsl:if test="jdf:Employee">
+          <h3>Employess currently logged into this device</h3>
+          <table>
+            <tbody>
+              <tr>
+                <th>Employee ID</th>
+                <th>Name</th>
+                <th>Roles</th>
+              </tr>
+              <xsl:for-each select="jdf:Employee">
+                <xsl:call-template name="showEmployee"/>
+              </xsl:for-each>
+            </tbody>
+          </table>
+        </xsl:if>
         <xsl:apply-templates/>
       </body>
     </html>
   </xsl:template>
 
   <xsl:include href="processor.xsl"/>
- <xsl:template match="jdf:Employee">
-  <!--  nop here -->
+
+  <!--  modifiable Employee -->
+  <xsl:template name="showEmployee">
+    <tr>
+      <td>
+        <xsl:value-of select="@ProductID"/>
+      </td>
+      <td>
+        <xsl:value-of select="jdf:Person/@DescriptiveName"/>
+      </td>
+      <td>
+        <xsl:value-of select="@Roles"/>
+      </td>
+    </tr>
   </xsl:template>
 
 
- <xsl:template match="KnownEmployees">
-  <!--  nop her -->
+  <xsl:template match="jdf:Employee">
+    <!--  nop here -->
+  </xsl:template>
+
+
+  <xsl:template match="KnownEmployees">
+    <!--  nop her -->
   </xsl:template>
 
   <!-- add more templates -->

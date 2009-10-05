@@ -884,32 +884,35 @@ public class QueueProcessor extends BambiLogFactory
 				return false;
 			}
 			final XMLDoc doc = new JDFDoc(ElementName.QUEUE);
-			JDFQueue root = (JDFQueue) doc.getRoot();
-			synchronized (_theQueue)
+			if (request.getBooleanParam("quiet") == false)
 			{
-				root.mergeElement(_theQueue, false);
-			}
+				JDFQueue root = (JDFQueue) doc.getRoot();
+				synchronized (_theQueue)
+				{
+					root.mergeElement(_theQueue, false);
+				}
 
-			root = sortOutput(sortBy, root, filter);
-			root.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
-			final QERetrieval qer = _parentDevice.getProperties().getQERetrieval();
-			root.setAttribute("Pull", qer == QERetrieval.PULL || qer == QERetrieval.BOTH, null);
-			if (_theQueue.numChildElements(ElementName.QUEUEENTRY, null) < 1000)
-			{
-				root.setAttribute("Refresh", true, null);
-			}
-			doc.setXSLTURL(_parentDevice.getXSLT(request));
-			addOptions(root);
+				root = sortOutput(sortBy, root, filter);
+				root.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
+				final QERetrieval qer = _parentDevice.getProperties().getQERetrieval();
+				root.setAttribute("Pull", qer == QERetrieval.PULL || qer == QERetrieval.BOTH, null);
+				if (_theQueue.numChildElements(ElementName.QUEUEENTRY, null) < 1000)
+				{
+					root.setAttribute("Refresh", true, null);
+				}
+				doc.setXSLTURL(_parentDevice.getXSLT(request));
+				addOptions(root);
 
-			try
-			{
-				doc.write2Stream(response.getBufferedOutputStream(), 2, true);
+				try
+				{
+					doc.write2Stream(response.getBufferedOutputStream(), 2, true);
+				}
+				catch (final IOException x)
+				{
+					return false;
+				}
+				response.setContentType(UrlUtil.TEXT_XML);
 			}
-			catch (final IOException x)
-			{
-				return false;
-			}
-			response.setContentType(UrlUtil.TEXT_XML);
 			if (modified)
 			{
 				persist(0);

@@ -104,7 +104,7 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	/**
 	 * @author prosirai
 	 */
-	protected class XMLSimDevice extends XMLDevice
+	protected class XMLSimDevice extends XMLWorkerDevice
 	{
 		/**
 		 * XML representation of this simDevice fore use as html display using an XSLT
