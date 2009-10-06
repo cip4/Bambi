@@ -125,7 +125,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 		 */
 		public Vector<JDFEmployee> getEmployees()
 		{
-			return theEmployee;
+			return theEmployee.size() == 0 ? null : theEmployee;
 		}
 	}
 
