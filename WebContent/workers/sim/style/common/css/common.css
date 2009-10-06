@@ -1,0 +1,32 @@
+body {
+	font-family: arial;
+	font-size: 13px;
+	margin: 0px;
+	padding: 0px;
+	height: 100%;
+}
+
+form {
+	height: 100%;
+}
+
+.layout-table {
+	border: 0px;
+	padding: 0px;
+	margin:10px auto;
+	width: 800px;
+	height: auto;
+	border-collapse: collapse;
+}
+
+.layout-header {
+	height: 100px;
+}
+
+.layout-menu {
+	height: 30px;
+}
+
+.layout-body {
+	height: auto;
+}

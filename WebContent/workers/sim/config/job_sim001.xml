@@ -12,7 +12,7 @@
 		<Amount Resource="Component:Output" Speed="1000" Waste="true"/>
 		<Amount Resource="Media:Input" Speed="4000" Waste="true" />
 		</JobPhase>
-	<JobPhase Duration="10" 
+	<JobPhase Duration="3" 
 		DeviceStatus="Running" DeviceStatusDetails="Good" 
 		NodeStatus="InProgress" NodeStatusDetails="producing node">
 		<Amount Resource="Component:Output" Speed="4000" />
