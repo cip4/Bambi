@@ -100,6 +100,7 @@ import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
+import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
@@ -263,7 +264,11 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			all = 0;
 		}
 
-		_statusListener.setEmployees(phase.getEmployees());
+		final Vector<JDFEmployee> employees = phase.getEmployees();
+		if (employees != null)
+		{
+			_statusListener.setEmployees(employees);
+		}
 		double todoAmount = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.AMOUNT, nodeInfoPartMapVector);
 		log.debug("processing new job phase: " + phase.toString());
 		_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(), false);
@@ -457,7 +462,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 				return null;
 			}
 			final JDFParser p = new JDFParser();
-			final JDFDoc doc = p.parseFile(srcFile);
+			final JDFDoc doc = p.parseFile(f);
 			if (doc == null)
 			{
 				getLog().error("Job File " + fileName + " not found, using default");
