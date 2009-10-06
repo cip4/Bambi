@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<XMLDevice Context="context" DeviceID="deviceId"
+		DeviceStatus="status" DeviceType="type"
+		DeviceURL="deviceUrl" ErrorHF="errorHF"
+		InputHF="inputHF" NumRequests="1"
+		OutputHF="outputHF" QueueCompleted="2"
+		QueueRunning="3" QueueStatus="QueueStatus" QueueWaiting="4" Root="true"
+		modify="true" />
