@@ -1,0 +1,169 @@
+<?xml version="1.0" ?>
+<!DOCTYPE databases PUBLIC "-//EXOLAB/Castor Mapping DTD Version 1.0//EN"
+                           "http://castor.org/mapping.dtd">
+<mapping>
+	<class name="org.cip4.bambi.richclient.value.DeviceListVO">
+		<map-to xml="DeviceList" />
+		<field name="context" type="string">
+			<bind-xml name="Context" node="attribute" />
+		</field>
+		<field name="deviceType" type="string">
+			<bind-xml name="DeviceType" node="attribute" />
+		</field>
+		<field name="memFree" type="long">
+			<bind-xml name="MemFree" node="attribute" />
+		</field>
+		<field name="memTotal" type="long">
+			<bind-xml name="MemTotal" node="attribute" />
+		</field>
+		<field name="numRequests" type="int">
+			<bind-xml name="NumRequests" node="attribute" />
+		</field>
+		<field name="devices" type="org.cip4.bambi.richclient.value.DeviceVO" collection="arraylist" >
+	      <bind-xml name="XMLDevice" node="element" />
+	   </field>
+	</class>
+
+	<class name="org.cip4.bambi.richclient.value.DeviceVO">
+		<map-to xml="XMLDevice" />
+		<field name="id" type="string">
+			<bind-xml name="DeviceID" node="attribute" />
+		</field>
+		<field name="context" type="string">
+			<bind-xml name="Context" node="attribute" />
+		</field>
+		<field name="status" type="string">
+			<bind-xml name="DeviceStatus" node="attribute" />
+		</field>
+		<field name="type" type="string">
+			<bind-xml name="DeviceType" node="attribute" />
+		</field>
+		<field name="url" type="string">
+			<bind-xml name="DeviceURL" node="attribute" />
+		</field>
+		<field name="numRequests" type="int">
+			<bind-xml name="NumRequests" node="attribute" />
+		</field>
+		<field name="root" type="boolean">
+			<bind-xml name="Root" node="attribute" />
+		</field>
+		<field name="modify" type="boolean">
+			<bind-xml name="modify" node="attribute" />
+		</field>
+		<field name="outputFolder" type="string">
+			<bind-xml name="OutputHF" node="attribute" />
+		</field>
+		<field name="inputFolder" type="string">
+			<bind-xml name="InputHF" node="attribute" />
+		</field>
+		<field name="errorFolder" type="string">
+			<bind-xml name="ErrorHF" node="attribute" />
+		</field>
+		<field name="queueWaiting" type="int">
+			<bind-xml name="QueueWaiting" node="attribute" />
+		</field>
+		<field name="queueCompleted" type="int">
+			<bind-xml name="QueueCompleted" node="attribute" />
+		</field>
+		<field name="queueRunning" type="int">
+			<bind-xml name="QueueRunning" node="attribute" />
+		</field>
+		<field name="queueStatus" type="string">
+			<bind-xml name="QueueStatus" node="attribute" />
+		</field>
+	</class>
+
+	<class name="org.cip4.bambi.richclient.value.QueueVO">
+		<map-to xml="Queue" />
+		<field name="context" type="string">
+			<bind-xml name="Context" node="attribute" />
+		</field>
+		<field name="descriptiveName" type="string">
+			<bind-xml name="DescriptiveName" node="attribute" />
+		</field>
+		<field name="deviceId" type="string">
+			<bind-xml name="DeviceID" node="attribute" />
+		</field>
+		<field name="pull" type="boolean">
+			<bind-xml name="Pull" node="attribute" />
+		</field>
+		<field name="refresh" type="boolean">
+			<bind-xml name="Refresh" node="attribute" />
+		</field>
+		<field name="status" type="string">
+			<bind-xml name="Status" node="attribute" />
+		</field>
+		<field name="queueEntries" type="org.cip4.bambi.richclient.value.QueueEntryVO" collection="arraylist" >
+	      <bind-xml name="QueueEntry" node="element" />
+	   </field>
+	</class>
+
+	<class name="org.cip4.bambi.richclient.value.QueueEntryVO">
+		<map-to xml="QueueEntry" />
+		<field name="descriptiveName" type="string">
+			<bind-xml name="DescriptiveName" node="attribute" />
+		</field>
+		<field name="jobId" type="string">
+			<bind-xml name="JobID" node="attribute" />
+		</field>
+		<field name="jobPartId" type="string">
+			<bind-xml name="JobPartID" node="attribute" />
+		</field>
+		<field name="priority" type="int">
+			<bind-xml name="Priority" node="attribute" />
+		</field>
+		<field name="queueEntryId" type="string">
+			<bind-xml name="QueueEntryID" node="attribute" />
+		</field>
+		<field name="startTime" type="date">
+			<bind-xml name="StartTime" node="attribute" />
+		</field>
+		<field name="endTime" type="date">
+			<bind-xml name="EndTime" node="attribute" />
+		</field>
+		<field name="status" type="string">
+			<bind-xml name="Status" node="attribute" />
+		</field>
+		<field name="submissionTime" type="date">
+			<bind-xml name="SubmissionTime" node="attribute" />
+		</field>
+	</class>
+	
+	<class name="org.cip4.bambi.richclient.value.MsgSubscriptionVO">
+		<map-to xml="MsgSubscription" />
+		<field name="channelId" type="string">
+			<bind-xml name="ChannelID" node="attribute" />
+		</field>
+		<field name="family" type="string">
+			<bind-xml name="Family" node="attribute" />
+		</field>
+		<field name="lastTime" type="string">
+			<bind-xml name="LastTime" node="attribute" />
+		</field>
+		<field name="messageType" type="string">
+			<bind-xml name="MessageType" node="attribute" />
+		</field>
+		<field name="queueEntryId" type="string">
+			<bind-xml name="QueueEntryID" node="attribute" />
+		</field>
+		<field name="repeatStep" type="int">
+			<bind-xml name="RepeatStep" node="attribute" />
+		</field>
+		<field name="repeatTime" type="int">
+			<bind-xml name="RepeatTime" node="attribute" />
+		</field>
+		<field name="senderId" type="string">
+			<bind-xml name="SenderID" node="attribute" />
+		</field>
+		<field name="sent" type="int">
+			<bind-xml name="Sent" node="attribute" />
+		</field>
+		<field name="type" type="string">
+			<bind-xml name="Type" node="attribute" />
+		</field>
+		<field name="url" type="string">
+			<bind-xml name="URL" node="attribute" />
+		</field>
+	</class>
+</mapping>
+
