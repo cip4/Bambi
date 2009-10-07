@@ -68,10 +68,14 @@
  */
 package org.cip4.bambi.richclient.web;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.EventListener;
 import java.util.EventObject;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.ajax4jsf.event.PushEventListener;
@@ -79,6 +83,7 @@ import org.cip4.bambi.richclient.data.DevicesContext;
 import org.cip4.bambi.richclient.data.DevicesContextFactory;
 import org.cip4.bambi.richclient.model.Device;
 import org.cip4.bambi.richclient.model.DeviceList;
+import org.cip4.bambi.richclient.model.QueueEntry;
 
 /**
  * Backing bean for devices functionality. This bean is Application scoped and just exists once. Thats important for performance!
@@ -110,6 +115,12 @@ public class DevicesBean implements Runnable {
 	private String selectedDeviceId;
 
 	private final Thread thread;
+
+	private List<QueueEntry> selectedDeviceQueue;
+
+	private Hashtable<String, Integer> hashSelectedDeviceQueue;
+
+	private Set<Integer> selectedDeviceQueueChanges;
 
 	/**
 	 * Default constructor. Initialize bean.
@@ -170,6 +181,17 @@ public class DevicesBean implements Runnable {
 	public void setSelectedDeviceId(String selectedDeviceId) {
 		// set id
 		this.selectedDeviceId = selectedDeviceId;
+
+		// reset queue storage
+		hashSelectedDeviceQueue = new Hashtable<String, Integer>();
+		selectedDeviceQueue = new ArrayList<QueueEntry>();
+
+		// load queue
+		Device device = devicesContext.getDevice(selectedDeviceId, sessionUuid);
+
+		for (QueueEntry entry : device.getQueue().getQueueEntries()) {
+			put2SelectedDeviceQueue(entry);
+		}
 	}
 
 	/**
@@ -194,6 +216,75 @@ public class DevicesBean implements Runnable {
 
 		// return selected device
 		return selectedDevice;
+	}
+
+	/**
+	 * Updates queue of selected device.
+	 * @return null (no action)
+	 */
+	public String updateQueue() {
+
+		if (selectedDeviceId == null) {
+			return null;
+		}
+
+		// reset selectedDeviceQueueChanges
+		selectedDeviceQueueChanges = new HashSet<Integer>();
+
+		// get queue changes
+		Device device = devicesContext.getDeviceDiff(selectedDeviceId, sessionUuid);
+
+		// iterate over all QueueEntry objects
+		for (QueueEntry entry : device.getQueue().getQueueEntries()) {
+			// update selectedDeviceQueue list
+			Integer pos = put2SelectedDeviceQueue(entry);
+
+			// memory position
+			selectedDeviceQueueChanges.add(pos);
+		}
+
+		// no action
+		return null;
+	}
+
+	/**
+	 * Inserts or updates a queueEntry in selectedDeviceQueue
+	 * @param entry QueueEntry to insert / update
+	 * @return position of QueueEntry in List
+	 */
+	private Integer put2SelectedDeviceQueue(QueueEntry entry) {
+		// position
+		Integer pos;
+
+		if (hashSelectedDeviceQueue.containsKey(entry.getQueueEntryId())) {
+			// update
+			pos = hashSelectedDeviceQueue.get(entry.getQueueEntryId());
+			selectedDeviceQueue.set(pos, entry);
+		} else {
+			// add
+			pos = selectedDeviceQueue.size();
+			hashSelectedDeviceQueue.put(entry.getQueueEntryId(), pos);
+			selectedDeviceQueue.add(entry);
+		}
+
+		// return position
+		return pos;
+	}
+
+	/**
+	 * Returns selected device queue.
+	 * @return selected device queue.
+	 */
+	public List<QueueEntry> getSelectedDeviceQueue() {
+		return selectedDeviceQueue;
+	}
+
+	/**
+	 * Returns selected keys of device queue changes.
+	 * @return selected keys of device queue changes.
+	 */
+	public Set<Integer> getSelectedDeviceQueueChanges() {
+		return selectedDeviceQueueChanges;
 	}
 
 	/**

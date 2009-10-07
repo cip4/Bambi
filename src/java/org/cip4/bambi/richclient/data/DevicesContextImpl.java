@@ -73,6 +73,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -105,6 +106,8 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 	private static final String URL_DEVICES_QUEUE_ROOT = "http://localhost:8080/richworker/showQueue/";
 
 	private static final String URL_DEVICES_SUBSCRIPTIONS = "http://localhost:8080/richworker/showSubscriptions/";
+
+	private final Hashtable<String, Long> hashSession = new Hashtable<String, Long>();
 
 	private static final int UPDATE_INTERVAL = 2000;
 
@@ -161,15 +164,37 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 		// get lazy queue
 		LazyQueue lazyQueue = cacheLazyQueues.get(deviceId);
 
-		return new Device.Builder(device).queue(lazyQueue.getQueue()).build();
+		// get queue diff update
+		Queue queue = lazyQueue.getQueue();
+
+		// set session properties
+		hashSession.put(sessionId, new Date().getTime());
+
+		// return result
+		return new Device.Builder(device).queue(queue).build();
 	}
 
 	/**
 	 * @see org.cip4.bambi.richclient.data.DevicesContext#getDeviceDiff(java.lang.String, java.lang.String)
 	 */
 	public Device getDeviceDiff(String deviceId, String sessionId) {
-		// TODO Implement lazy loading
-		return getDevice(deviceId, sessionId);
+		// find device
+		Device device = cacheDeviceList.findDeviceById(deviceId);
+
+		// get lazy queue
+		LazyQueue lazyQueue = cacheLazyQueues.get(deviceId);
+
+		// get last update of user (session)
+		long lastUpdate = hashSession.get(sessionId);
+
+		// get queue diff update
+		Queue queue = lazyQueue.getQueue(lastUpdate);
+
+		// set session properties
+		hashSession.put(sessionId, new Date().getTime());
+
+		// return result
+		return new Device.Builder(device).queue(queue).build();
 	}
 
 	/**
@@ -240,6 +265,9 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 
 				// update queue entries
 				updateQueueEntries();
+
+				// clean up
+				charlady();
 
 				// sleep
 				Thread.sleep(UPDATE_INTERVAL);
@@ -314,7 +342,7 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 		// iterate over all devices
 		for (Device device : cacheDeviceList.getDevices()) {
 			// build url (URL_DEVICES_QUEUE_ROOT + deviceId)
-			String sUrl = URL_DEVICES_QUEUE_ROOT + device.getId();
+			String sUrl = URL_DEVICES_QUEUE_ROOT + device.getId() + "?filter=_FILTER_DIF_";
 
 			// open connection and load stream
 			URL url = new URL(sUrl);
@@ -344,6 +372,13 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 			// store queue
 			lazyQueue.put(queue);
 		}
+	}
+
+	/**
+	 * Clean up DevicesContextImpl.
+	 */
+	private void charlady() {
+
 	}
 
 	/**

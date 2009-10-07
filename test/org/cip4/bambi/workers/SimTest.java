@@ -98,32 +98,29 @@ import org.cip4.jdflib.util.ThreadUtil;
  * @author Rainer Prosi, Heidelberger Druckmaschinen
  * 
  */
-public class SimTest extends BambiTestCase
-{
+public class SimTest extends BambiTestCase {
 
 	/**
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
 	 * @throws Exception
 	 */
 	@Override
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
 
 		super.setUp();
 		bUpdateJobID = true;
 		acknowledgeURL = "http://localhost:8080/httpdump/acknowledgeURL";
 
-		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/SimWorkerRoot";
-		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim003";
-		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim002";
+		// simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/SimWorkerRoot";
+		// simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim003";
+		simWorkerUrl = "http://localhost:8080/richworker/jmf/sim001";
 		// simWorkerUrl = "http://127.0.0.1:8080/speedmaster/jmf/XL105";
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	public void testSubmitQueueEntry_MIME() throws Exception
-	{
+	public void testSubmitQueueEntry_MIME() throws Exception {
 		// get number of QueueEntries before submitting
 		final JDFQueue q = getQueueStatus(simWorkerUrl);
 		assertNotNull(q);
@@ -135,8 +132,7 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-	public void testResubmitQueueEntry_MIME() throws Exception
-	{
+	public void testResubmitQueueEntry_MIME() throws Exception {
 		// get number of QueueEntries before submitting
 		final JDFQueue q = getQueueStatus(simWorkerUrl);
 		assertNotNull(q);
@@ -151,8 +147,7 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-	public void testSubmitQueueEntry_Subscription() throws Exception
-	{
+	public void testSubmitQueueEntry_Subscription() throws Exception {
 		// get number of QueueEntries before submitting
 		final JDFJMF jmfStat = new JMFBuilder().buildStatusSubscription("http://localhost:8080/httpdump/BambiTest", 0, 0, null);
 		jmfStat.getQuery(0).getStatusQuParams().setJobID("j1");
@@ -170,10 +165,8 @@ public class SimTest extends BambiTestCase
 	 * @param url
 	 * @return the response
 	 */
-	private JDFResponse send2URL(final JDFJMF jmfStat, final String url)
-	{
-		if (jmfStat == null || url == null)
-		{
+	private JDFResponse send2URL(final JDFJMF jmfStat, final String url) {
+		if (jmfStat == null || url == null) {
 			return null;
 		}
 		final JDFDoc dResp = jmfStat.getOwnerDocument_JDFElement().write2URL(url);
@@ -183,12 +176,9 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-	public void testSubmitQueueEntry_X() throws Exception
-	{
-		for (int i = 0; i < 1000; i++)
-		{
-			if (i != 0)
-			{
+	public void testSubmitQueueEntry_X() throws Exception {
+		for (int i = 0; i < 1000; i++) {
+			if (i != 0) {
 				ThreadUtil.sleep(1000);
 			}
 			System.out.println("Submit " + i);
@@ -199,16 +189,14 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-	public void testSubmitQueueEntry_MIME_Many() throws Exception
-	{
+	public void testSubmitQueueEntry_MIME_Many() throws Exception {
 		final JDFQueue q = getQueueStatus(simWorkerUrl);
 		assertNotNull(q);
 		final int oldSize = q.getEntryCount();
 
 		// check that the QE is on the proxy
 		final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
-		for (int i = 1; i < 222; i++)
-		{
+		for (int i = 1; i < 222; i++) {
 			System.out.println("submitting " + i);
 			// build SubmitQueueEntry
 			submitMimetoURL(simWorkerUrl);
@@ -222,16 +210,14 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-	public void testAbortQueueEntry() throws Exception
-	{
+	public void testAbortQueueEntry() throws Exception {
 		// build SubmitQueueEntry
 		submitMimetoURL(simWorkerUrl);
 
 		int loops = 0;
 		boolean hasRunningQE = false;
 		final JMFFactory factory = JMFFactory.getJMFFactory();
-		while (loops < 10 && !hasRunningQE)
-		{
+		while (loops < 10 && !hasRunningQE) {
 			loops++;
 			Thread.sleep(1000);
 			final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
@@ -245,12 +231,10 @@ public class SimTest extends BambiTestCase
 			final VElement elem = q.getQueueEntryVector();
 			assertTrue(elem.size() > 0);
 
-			for (int i = 0; i < elem.size(); i++)
-			{
+			for (int i = 0; i < elem.size(); i++) {
 				final JDFQueueEntry qe = (JDFQueueEntry) elem.get(i);
 				assertNotNull(qe);
-				if (EnumQueueEntryStatus.Running.equals(qe.getQueueEntryStatus()))
-				{
+				if (EnumQueueEntryStatus.Running.equals(qe.getQueueEntryStatus())) {
 					hasRunningQE = true;
 					break;
 				}
@@ -264,8 +248,7 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-	public void testPlateSetter() throws Exception
-	{
+	public void testPlateSetter() throws Exception {
 		_theGT = new MISPreGoldenTicket(1, EnumVersion.Version_1_3, 2, 2, null);
 		final MISPreGoldenTicket pgt = (MISPreGoldenTicket) _theGT;
 		_theGT.bExpandGrayBox = false;

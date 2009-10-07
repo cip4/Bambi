@@ -82,6 +82,8 @@ import org.cip4.bambi.richclient.model.QueueEntry;
  * @date 04.10.2009
  */
 class LazyQueue {
+	private final static String STATUS_REMOVED = "Removed";
+
 	private Queue queue;
 
 	/**
@@ -107,11 +109,34 @@ class LazyQueue {
 	 * @param queue QueueEntry object to put
 	 */
 	void put(QueueEntry queueEntry) {
+
+		// check whether queueEntry already exists
+		if (queueEntries.containsKey(queueEntry.getQueueEntryId())) {
+			// get it
+			QueueEntry obj = queueEntries.get(queueEntry.getQueueEntryId());
+
+			// don't update removed queue entries
+			if (obj.getStatus().equals(STATUS_REMOVED)) {
+				return;
+			}
+		} else if (queueEntry.getStatus().equals(STATUS_REMOVED)) {
+			// don't cache removed queue entries
+			return;
+		}
+
 		// put object to hashtable
 		queueEntries.put(queueEntry.getQueueEntryId(), queueEntry);
 
 		// store current time
 		updateLog.put(queueEntry.getQueueEntryId(), new Date().getTime());
+	}
+
+	/**
+	 * Removes an QueueEntry object from queue.
+	 * @param queue QueueEntry object to remove
+	 */
+	void remove(QueueEntry queueEntry) {
+		// remove from
 	}
 
 	/**

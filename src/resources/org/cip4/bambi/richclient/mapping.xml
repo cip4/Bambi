@@ -129,6 +129,19 @@
 		</field>
 	</class>
 	
+	<class name="org.cip4.bambi.richclient.value.SubscriptionListVO">
+		<map-to xml="SubscriptionList" />
+		<field name="context" type="string">
+			<bind-xml name="Context" node="attribute" />
+		</field>
+		<field name="deviceId" type="string">
+			<bind-xml name="DeviceID" node="attribute" />
+		</field>
+		<field name="msgSubscriptions" type="org.cip4.bambi.richclient.value.MsgSubscriptionVO" collection="arraylist" >
+	      <bind-xml name="MsgSubscription" node="element" />
+	   </field>
+	</class>
+	
 	<class name="org.cip4.bambi.richclient.value.MsgSubscriptionVO">
 		<map-to xml="MsgSubscription" />
 		<field name="channelId" type="string">

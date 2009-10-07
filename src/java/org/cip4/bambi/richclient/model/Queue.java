@@ -264,4 +264,13 @@ public class Queue {
 	public List<QueueEntry> getQueueEntries() {
 		return queueEntries;
 	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Queue of " + deviceId + "; size:" + Integer.toString(queueEntries.size());
+	}
+
 }

@@ -342,4 +342,15 @@ public class Device {
 		return msgSubscriptions;
 	}
 
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		if (queue.getQueueEntries() != null) {
+			return "Device: " + id + "; queue size:" + Integer.toString(queue.getQueueEntries().size());
+		} else {
+			return "Device: " + id + "; queue size: 0";
+		}
+	}
 }

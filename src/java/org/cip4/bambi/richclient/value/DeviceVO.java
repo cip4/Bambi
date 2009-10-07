@@ -355,4 +355,12 @@ public class DeviceVO {
 	public List<MsgSubscriptionVO> getMsgSubscriptions() {
 		return msgSubscriptions;
 	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Device: " + id;
+	}
 }

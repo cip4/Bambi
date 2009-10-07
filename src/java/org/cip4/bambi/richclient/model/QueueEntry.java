@@ -77,7 +77,7 @@ import org.cip4.bambi.richclient.value.QueueEntryVO;
  * @author smeissner
  * @date 04.10.2009
  */
-public class QueueEntry {
+public final class QueueEntry {
 	private final String descriptiveName;
 	private final String jobId;
 	private final String jobPartId;
@@ -268,4 +268,89 @@ public class QueueEntry {
 	public Date getSubmissionTime() {
 		return submissionTime;
 	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Id: " + queueEntryId + "; Status: " + status;
+	}
+
+	/**
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((descriptiveName == null) ? 0 : descriptiveName.hashCode());
+		result = prime * result + ((endTime == null) ? 0 : endTime.hashCode());
+		result = prime * result + ((jobId == null) ? 0 : jobId.hashCode());
+		result = prime * result + ((jobPartId == null) ? 0 : jobPartId.hashCode());
+		result = prime * result + priority;
+		result = prime * result + ((queueEntryId == null) ? 0 : queueEntryId.hashCode());
+		result = prime * result + ((startTime == null) ? 0 : startTime.hashCode());
+		result = prime * result + ((status == null) ? 0 : status.hashCode());
+		result = prime * result + ((submissionTime == null) ? 0 : submissionTime.hashCode());
+		return result;
+	}
+
+	/**
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		QueueEntry other = (QueueEntry) obj;
+		if (descriptiveName == null) {
+			if (other.descriptiveName != null)
+				return false;
+		} else if (!descriptiveName.equals(other.descriptiveName))
+			return false;
+		if (endTime == null) {
+			if (other.endTime != null)
+				return false;
+		} else if (!endTime.equals(other.endTime))
+			return false;
+		if (jobId == null) {
+			if (other.jobId != null)
+				return false;
+		} else if (!jobId.equals(other.jobId))
+			return false;
+		if (jobPartId == null) {
+			if (other.jobPartId != null)
+				return false;
+		} else if (!jobPartId.equals(other.jobPartId))
+			return false;
+		if (priority != other.priority)
+			return false;
+		if (queueEntryId == null) {
+			if (other.queueEntryId != null)
+				return false;
+		} else if (!queueEntryId.equals(other.queueEntryId))
+			return false;
+		if (startTime == null) {
+			if (other.startTime != null)
+				return false;
+		} else if (!startTime.equals(other.startTime))
+			return false;
+		if (status == null) {
+			if (other.status != null)
+				return false;
+		} else if (!status.equals(other.status))
+			return false;
+		if (submissionTime == null) {
+			if (other.submissionTime != null)
+				return false;
+		} else if (!submissionTime.equals(other.submissionTime))
+			return false;
+		return true;
+	}
+
 }

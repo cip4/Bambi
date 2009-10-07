@@ -196,4 +196,11 @@ public class QueueVO {
 		return queueEntries;
 	}
 
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Queue of " + deviceId + "; queue size:" + Integer.toString(queueEntries.size());
+	}
 }

@@ -34,6 +34,11 @@
 			overflow-y: auto;
 		}
 		
+		.subscription-table>tbody {
+			overflow-x: hidden;
+			overflow-y: auto;
+		}
+		
 		.dr-table {
 			border-collapse: separate;
 		}
@@ -45,8 +50,8 @@
 	-->
 	</style>
 	
-	<a4j:push interval="2000" eventProducer="#{devicesBean.addListener}"
-		reRender="deviceTable,requests,selectedDeviceDetail" ajaxSingle="true" />
+	<a4j:push interval="2000" eventProducer="#{devicesBean.addListener}" eventsQueue="requestQueue"
+		reRender="deviceTable,requests,selectedDeviceDetail,subscriptions" ajaxSingle="true" />
 
 	<rich:simpleTogglePanel switchType="client"
 		label="#{app['devices.title']}" style="margin: 10px">
@@ -158,8 +163,11 @@
 			  		</rich:toolBarGroup>
 	        	</rich:toolBar>
 	        	
-	            <rich:dataTable value="#{devicesBean.selectedDevice.queue.queueEntries}" var="entry" styleClass="queue-entry-table" width="100%" style="margin-top: 5px" >
-		         	<rich:column sortBy="#{entry.queueEntryId}" >
+	        	<!-- diff update queue entries -->
+	        	<a4j:poll action="#{devicesBean.updateQueue}" reRender="queueEntryStatus" ajaxSingle="true" immediate="true" />
+	        	
+	            <rich:dataTable value="#{devicesBean.selectedDeviceQueue}" var="entry" ajaxKeys="#{devicesBean.selectedDeviceQueueChanges}" styleClass="queue-entry-table" width="100%" style="margin-top: 5px" id="queueEntries" >
+		         	<rich:column sortBy="#{entry.queueEntryId}">
 		         		<f:facet name="header">
 		                    <h:outputText value="#{app['queueEntry.id']}"/>
 		                </f:facet>
@@ -211,12 +219,35 @@
 		         		<f:facet name="header">
 		                    <h:outputText value="#{app['queueEntry.status']}"/>
 		                </f:facet>
-						<h:outputText value="#{entry.status}"/>
+						<h:outputText id="queueEntryStatus" value="#{entry.status}" />
 					</rich:column>
 		         </rich:dataTable>
 	        </rich:tab>
-	        <rich:tab label="Second">
-	            Here is tab #2
+	        
+	        <!-- third tab: subscriptions -->
+	        <rich:tab label="#{app['device.detail.subscriptions']}">
+	            <rich:dataTable value="#{devicesBean.selectedDevice.msgSubscriptions}" var="subscription" styleClass="subscription-table" width="100%" style="margin-top: 5px" id="subscriptions" >
+		         	<rich:column sortBy="#{subscription.channelId}" >
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['subscription.channelId']}"/>
+		                </f:facet>
+						<h:outputText value="#{subscription.channelId}"/>
+					</rich:column>
+					<rich:column sortBy="#{subscription.url}" >
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['subscription.url']}"/>
+		                </f:facet>
+						<h:outputText value="#{subscription.url}"/>
+					</rich:column>
+					<rich:column sortBy="#{subscription.type}" >
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['subscription.type']}">
+		                    	<f:convertDateTime dateStyle="short"/>
+		                    </h:outputText>
+		                </f:facet>
+						<h:outputText value="#{subscription.type}"/>
+					</rich:column>
+		         </rich:dataTable>
 	        </rich:tab>
 	    </rich:tabPanel>
 		
