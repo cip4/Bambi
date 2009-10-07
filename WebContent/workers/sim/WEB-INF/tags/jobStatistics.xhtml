@@ -12,19 +12,19 @@
 		<!-- job statistics -->
 		<h:panelGrid columns="8">
 			<h:graphicImage value="/style/common/icons/db.png"
-				title="#{app['device.status.waiting']}" />
+				title="#{app['status.waiting']}" />
 			<h:outputText value="#{device.jobStatistic.waiting}" />
 	
 			<rich:spacer width="5" height="1" />
 	
 			<h:graphicImage value="/style/common/icons/agt_runit.png"
-				title="#{app['device.status.running']}" />
+				title="#{app['status.running']}" />
 			<h:outputText value="#{device.jobStatistic.running}" />
 	
 			<rich:spacer width="5" height="1" />
 	
 			<h:graphicImage value="/style/common/icons/lassists.png"
-				title="#{app['device.status.completed']}" />
+				title="#{app['status.completed']}" />
 			<h:outputText value="#{device.jobStatistic.completed}" />
 		</h:panelGrid>
 		<h:panelGrid columns="2">
