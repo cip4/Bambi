@@ -17,7 +17,6 @@
     <init-param>
       <param-name>bambiDump</param-name>
       <param-value>C:/bambidump/console</param-value>
-      <description>If set, Local location (root) of the directory to dump to</description>
     </init-param>
     <load-on-startup>10</load-on-startup>
   </servlet>

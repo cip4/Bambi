@@ -66,30 +66,66 @@
  *  
  * 
  */
-package org.cip4.bambi.richclient.service;
+package org.cip4.bambi.richclient.value;
+
+import java.util.List;
 
 /**
- * Factory for generating new instances of Device Services.
+ * MsgSubscription value object PoJo.
  * @author smeissner
- * @date 23.09.2009
+ * @date 06.10.2009
  */
-public class DeviceServiceFactory {
+public class SubscriptionListVO {
+	private String context;
+	private String deviceId;
+	private List<MsgSubscriptionVO> msgSubscriptions;
 
 	/**
-	 * Default constructor. Cannot be instantiated.
+	 * Getter for context attribute.
+	 * @return the context
 	 */
-	private DeviceServiceFactory() {
+	public String getContext() {
+		return context;
 	}
 
 	/**
-	 * Returns the singleton instance of a DeviceService.
-	 * @return
+	 * Setter for context attribute.
+	 * @param context the context to set
 	 */
-	public static DeviceService getInstance() {
-		// mock implementation
-		return new DeviceServiceMockImpl();
-
-		// return device service
-		// return DeviceServiceImpl.getInstance();
+	public void setContext(String context) {
+		this.context = context;
 	}
+
+	/**
+	 * Getter for deviceId attribute.
+	 * @return the deviceId
+	 */
+	public String getDeviceId() {
+		return deviceId;
+	}
+
+	/**
+	 * Setter for deviceId attribute.
+	 * @param deviceId the deviceId to set
+	 */
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
+	}
+
+	/**
+	 * Setter for msgSubscriptions attribute.
+	 * @param msgSubscriptions the msgSubscriptions to set
+	 */
+	public void setMsgSubscriptions(List<MsgSubscriptionVO> msgSubscriptions) {
+		this.msgSubscriptions = msgSubscriptions;
+	}
+
+	/**
+	 * Getter for msgSubscriptions attribute.
+	 * @return the msgSubscriptions
+	 */
+	public List<MsgSubscriptionVO> getMsgSubscriptions() {
+		return msgSubscriptions;
+	}
+
 }

@@ -74,12 +74,16 @@ import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Hashtable;
+import java.util.List;
 
 import org.cip4.bambi.richclient.model.Device;
 import org.cip4.bambi.richclient.model.DeviceList;
 import org.cip4.bambi.richclient.model.Queue;
 import org.cip4.bambi.richclient.value.DeviceListVO;
+import org.cip4.bambi.richclient.value.DeviceVO;
+import org.cip4.bambi.richclient.value.MsgSubscriptionVO;
 import org.cip4.bambi.richclient.value.QueueVO;
+import org.cip4.bambi.richclient.value.SubscriptionListVO;
 import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
@@ -254,7 +258,7 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 	 * @throws ValidationException
 	 * @throws MarshalException
 	 */
-	private void updateDevices() throws MarshalException, ValidationException, IOException, MappingException {
+	private void updateDevices() throws Exception {
 
 		DeviceListVO lstVO;
 
@@ -266,8 +270,32 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 		// load device list details
 		lstVO = (DeviceListVO) unmarshal(new InputStreamReader(cn.getInputStream()), DeviceListVO.class);
 
+		// set subscriptions
+		for (DeviceVO deviceVO : lstVO.getDevices()) {
+			deviceVO.setMsgSubscriptions(updateSubscriptions(deviceVO.getId()));
+		}
+
 		// map to DeviceList and cache
 		cacheDeviceList = new DeviceList.Builder(lstVO).build();
+	}
+
+	/**
+	 * Update subscriptions for a device.
+	 * @param deviceId
+	 * @return
+	 * @throws Exception
+	 */
+	private List<MsgSubscriptionVO> updateSubscriptions(String deviceId) throws Exception {
+		// open connection and load stream
+		URL url = new URL(URL_DEVICES_SUBSCRIPTIONS + deviceId);
+		URLConnection cn = url.openConnection();
+		cn.setDoOutput(true);
+
+		// load device list details
+		SubscriptionListVO lstVO = (SubscriptionListVO) unmarshal(new InputStreamReader(cn.getInputStream()), SubscriptionListVO.class);
+
+		// return MsgSubscriptionsVOs
+		return lstVO.getMsgSubscriptions();
 	}
 
 	/**
