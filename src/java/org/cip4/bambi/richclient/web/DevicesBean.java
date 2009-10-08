@@ -193,16 +193,8 @@ public class DevicesBean implements Runnable {
 		// set id
 		this.selectedDeviceId = selectedDeviceId;
 
-		// reset queue storage
-		hashSelectedDeviceQueue = new Hashtable<String, Integer>();
-		selectedDeviceQueue = new ArrayList<QueueEntry>();
-
-		// load queue
-		Device device = devicesContext.getDevice(selectedDeviceId, sessionUuid);
-
-		for (QueueEntry entry : device.getQueue().getQueueEntries()) {
-			put2SelectedDeviceQueue(entry);
-		}
+		// reset queue entries
+		resetQueueEntries();
 	}
 
 	/**
@@ -369,6 +361,18 @@ public class DevicesBean implements Runnable {
 	}
 
 	/**
+	 * Refreshes queue
+	 * @return null (no action)
+	 */
+	public String queueRefresh() {
+		// reset queue entries
+		resetQueueEntries();
+
+		// no navigation action
+		return null;
+	}
+
+	/**
 	 * Add Listener for pushing.
 	 * @param listener
 	 */
@@ -417,5 +421,21 @@ public class DevicesBean implements Runnable {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Reset queue entries
+	 */
+	private void resetQueueEntries() {
+		// reset queue storage
+		hashSelectedDeviceQueue = new Hashtable<String, Integer>();
+		selectedDeviceQueue = new ArrayList<QueueEntry>();
+
+		// load queue
+		Device device = devicesContext.getDevice(selectedDeviceId, sessionUuid);
+
+		for (QueueEntry entry : device.getQueue().getQueueEntries()) {
+			put2SelectedDeviceQueue(entry);
+		}
 	}
 }

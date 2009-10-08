@@ -161,6 +161,9 @@
 			  		<rich:toolBarGroup>
 					    <a4j:commandButton image="/style/common/icons/delete_table.png" action="#{devicesBean.queueFlush}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.flush']}" styleClass="toolbarIcon" />
 			  		</rich:toolBarGroup>
+					<rich:toolBarGroup location="right">
+						<a4j:commandButton image="/style/common/icons/reload_page.png" action="#{devicesBean.queueRefresh}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.refresh']}" styleClass="toolbarIcon" reRender="queueEntries" />
+					</rich:toolBarGroup>
 	        	</rich:toolBar>
 	        	
 	        	<!-- diff update queue entries -->

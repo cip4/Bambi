@@ -388,7 +388,7 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 	 */
 	void submitQueueParameter(String deviceId, String parameter) {
 		// build control url
-		String sUrl = URL_DEVICES_QUEUE_ROOT + deviceId + "?" + parameter;
+		String sUrl = URL_DEVICES_QUEUE_ROOT + deviceId + "?" + parameter + "&quiet=true";
 
 		try {
 			// open connection and load stream
