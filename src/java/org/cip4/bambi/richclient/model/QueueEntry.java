@@ -94,11 +94,14 @@ public final class QueueEntry {
 	 * @date 25.09.2009
 	 */
 	public static class Builder {
+		// mandatory
+		private final String queueEntryId;
+
+		// optional
 		private String descriptiveName;
 		private String jobId;
 		private String jobPartId;
 		private int priority;
-		private String queueEntryId;
 		private Date startTime;
 		private Date endTime;
 		private String status;
@@ -107,7 +110,8 @@ public final class QueueEntry {
 		/**
 		 * Default constructor.
 		 */
-		public Builder() {
+		public Builder(String queueEntryId) {
+			this.queueEntryId = queueEntryId;
 		}
 
 		/**
@@ -115,15 +119,33 @@ public final class QueueEntry {
 		 * @param deviceId device id
 		 */
 		public Builder(QueueEntryVO vo) {
+			queueEntryId = vo.getQueueEntryId();
+
 			descriptiveName = vo.getDescriptiveName();
 			jobId = vo.getJobId();
 			jobPartId = vo.getJobPartId();
 			priority = vo.getPriority();
-			queueEntryId = vo.getQueueEntryId();
 			startTime = vo.getStartTime();
 			endTime = vo.getEndTime();
 			status = vo.getStatus();
 			submissionTime = vo.getSubmissionTime();
+		}
+
+		/**
+		 * Custom builder constructor. Accepting a queue entry view object for initialize.
+		 * @param deviceId device id
+		 */
+		public Builder(QueueEntry entry) {
+			queueEntryId = entry.queueEntryId;
+
+			descriptiveName = entry.descriptiveName;
+			jobId = entry.jobId;
+			jobPartId = entry.jobPartId;
+			priority = entry.priority;
+			startTime = entry.startTime;
+			endTime = entry.endTime;
+			status = entry.status;
+			submissionTime = entry.submissionTime;
 		}
 
 		// Builder methods
@@ -144,11 +166,6 @@ public final class QueueEntry {
 
 		public Builder priority(int val) {
 			priority = val;
-			return this;
-		}
-
-		public Builder queueEntryId(String val) {
-			queueEntryId = val;
 			return this;
 		}
 

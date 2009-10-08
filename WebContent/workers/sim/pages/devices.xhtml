@@ -164,9 +164,9 @@
 	        	</rich:toolBar>
 	        	
 	        	<!-- diff update queue entries -->
-	        	<a4j:poll action="#{devicesBean.updateQueue}" reRender="queueEntryStatus" ajaxSingle="true" immediate="true" />
+	        	<a4j:poll action="#{devicesBean.updateQueue}" reRender="queueEntryStartTime, queueEntryEndTime, queueEntryStatus" ajaxSingle="true" immediate="true" interval="1000" />
 	        	
-	            <rich:dataTable value="#{devicesBean.selectedDeviceQueue}" var="entry" ajaxKeys="#{devicesBean.selectedDeviceQueueChanges}" styleClass="queue-entry-table" width="100%" style="margin-top: 5px" id="queueEntries" >
+	            <rich:dataTable value="#{devicesBean.selectedDeviceQueue}"  sortMode="single" sortPriority="#{devicesBean.queueEntrySortPriority}" var="entry" ajaxKeys="#{devicesBean.selectedDeviceQueueChanges}" styleClass="queue-entry-table" width="100%" style="margin-top: 5px" id="queueEntries" >
 		         	<rich:column sortBy="#{entry.queueEntryId}">
 		         		<f:facet name="header">
 		                    <h:outputText value="#{app['queueEntry.id']}"/>
@@ -179,7 +179,7 @@
 		                </f:facet>
 						<h:outputText value="#{entry.priority}"/>
 					</rich:column>
-					<rich:column sortBy="#{entry.submissionTime}" >
+					<rich:column sortBy="#{entry.submissionTime}" id="columnSubmission" >
 		         		<f:facet name="header">
 		                    <h:outputText value="#{app['queueEntry.submissionTime']}">
 		                    	<f:convertDateTime dateStyle="short"/>
@@ -193,7 +193,7 @@
 		                    	<f:convertDateTime dateStyle="short"/>
 		                    </h:outputText>
 		                </f:facet>
-						<h:outputText value="#{entry.startTime}"/>
+						<h:outputText id="queueEntryStartTime" value="#{entry.startTime}"/>
 					</rich:column>
 					<rich:column sortBy="#{entry.endTime}" >
 		         		<f:facet name="header">
@@ -201,7 +201,7 @@
 		                    	<f:convertDateTime dateStyle="short"/>
 		                    </h:outputText>
 		                </f:facet>
-						<h:outputText value="#{entry.endTime}"/>
+						<h:outputText id="queueEntryEndTime" value="#{entry.endTime}"/>
 					</rich:column>
 					<rich:column sortBy="#{entry.jobId}" >
 		         		<f:facet name="header">
