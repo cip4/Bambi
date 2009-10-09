@@ -561,7 +561,8 @@ public class QueueProcessor extends BambiLogFactory
 				abortQueueEntry(m, resp); // abort before removing
 			}
 			status = qe.getQueueEntryStatus();
-			if (EnumQueueEntryStatus.Held.equals(status) || EnumQueueEntryStatus.Waiting.equals(status) || EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
+			if (EnumQueueEntryStatus.Held.equals(status) || EnumQueueEntryStatus.Waiting.equals(status)
+					|| EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
 			{
 				final String queueEntryID = qe.getQueueEntryID();
 				final JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, null); // use null to flag a removal
@@ -621,12 +622,14 @@ public class QueueProcessor extends BambiLogFactory
 				}
 				else if (EnumQueueEntryStatus.Running.equals(status) || EnumQueueEntryStatus.Suspended.equals(status))
 				{
-					JMFHandler.errorResponse(resp, "cannot hold QueueEntry with ID=" + qeid + ", it is " + status.getName(), 106, EnumClass.Error);
+					JMFHandler.errorResponse(resp, "cannot hold QueueEntry with ID=" + qeid + ", it is "
+							+ status.getName(), 106, EnumClass.Error);
 				}
 
 				else if (EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
 				{
-					JMFHandler.errorResponse(resp, "cannot hold QueueEntry with ID=" + qeid + ", it is already " + status.getName(), 114, EnumClass.Error);
+					JMFHandler.errorResponse(resp, "cannot hold QueueEntry with ID=" + qeid + ", it is already "
+							+ status.getName(), 114, EnumClass.Error);
 				}
 				else
 				{
@@ -800,14 +803,16 @@ public class QueueProcessor extends BambiLogFactory
 				if (EnumQueueEntryStatus.Running.equals(status))
 				{
 					updateEntry(qe, status, m, resp);
-					JMFHandler.errorResponse(resp, "cannot resume QueueEntry with ID=" + qeid + ", it is " + status.getName(), 113, EnumClass.Error);
+					JMFHandler.errorResponse(resp, "cannot resume QueueEntry with ID=" + qeid + ", it is "
+							+ status.getName(), 113, EnumClass.Error);
 					return true;
 				}
 
 				if (EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
 				{
 					updateEntry(qe, status, m, resp);
-					JMFHandler.errorResponse(resp, "cannot resume QueueEntry with ID=" + qeid + ", it is already " + status.getName(), 115, EnumClass.Error);
+					JMFHandler.errorResponse(resp, "cannot resume QueueEntry with ID=" + qeid + ", it is already "
+							+ status.getName(), 115, EnumClass.Error);
 					return true;
 				}
 			}
@@ -996,23 +1001,19 @@ public class QueueProcessor extends BambiLogFactory
 		 * filter the queue by string
 		 * @param root
 		 * @param filter
+		 * @return 
 		 */
 		private JDFQueue filterList(final JDFQueue root, String filter)
 		{
 			if (FILTER_DIF.equals(filter))
 			{
+				JDFQueue lastQueue = getLastQueue(filter);
 				if (lastQueue != null)
 				{
-					synchronized (lastQueue)
-					{
-
-						final KElement lastQueueTmp = lastQueue;
-						final JDFQueueFilter f = (JDFQueueFilter) new JDFDoc(ElementName.QUEUEFILTER).getRoot();
-						f.setUpdateGranularity(EnumUpdateGranularity.ChangesOnly);
-						f.apply(root, (JDFQueue) lastQueueTmp);
-					}
+					final JDFQueueFilter f = (JDFQueueFilter) new JDFDoc(ElementName.QUEUEFILTER).getRoot();
+					f.setUpdateGranularity(EnumUpdateGranularity.ChangesOnly);
+					f.apply(root, lastQueue);
 				}
-				lastQueue = _theQueue.getOwnerDocument_KElement().clone().getRoot();
 			}
 			else if (filter != null)
 			{
@@ -1088,7 +1089,8 @@ public class QueueProcessor extends BambiLogFactory
 			}
 
 			updateEntry(qe, status, null, null);
-			if (qe != null && (EnumQueueEntryStatus.Aborted.equals(qe.getQueueEntryStatus()) || EnumQueueEntryStatus.Completed.equals(qe.getQueueEntryStatus())))
+			if (qe != null
+					&& (EnumQueueEntryStatus.Aborted.equals(qe.getQueueEntryStatus()) || EnumQueueEntryStatus.Completed.equals(qe.getQueueEntryStatus())))
 			{
 				returnQueueEntry(qe, null, null);
 			}
@@ -1161,7 +1163,8 @@ public class QueueProcessor extends BambiLogFactory
 				updateEntry(qe, status, m, resp);
 				if (EnumQueueEntryStatus.Suspended.equals(status))
 				{
-					JMFHandler.errorResponse(resp, "cannot suspend QueueEntry with ID=" + qeid + ", it is already suspended", 113, EnumClass.Error);
+					JMFHandler.errorResponse(resp, "cannot suspend QueueEntry with ID=" + qeid
+							+ ", it is already suspended", 113, EnumClass.Error);
 				}
 				else if (EnumQueueEntryStatus.Waiting.equals(status) || EnumQueueEntryStatus.Held.equals(status))
 				{
@@ -1170,7 +1173,8 @@ public class QueueProcessor extends BambiLogFactory
 				}
 				else if (EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
 				{
-					final String errorMsg = "cannot suspend QueueEntry with ID=" + qeid + ", it is already " + status.getName();
+					final String errorMsg = "cannot suspend QueueEntry with ID=" + qeid + ", it is already "
+							+ status.getName();
 					JMFHandler.errorResponse(resp, errorMsg, 114, EnumClass.Error);
 				}
 				else
@@ -1186,7 +1190,7 @@ public class QueueProcessor extends BambiLogFactory
 	private static final long serialVersionUID = -876551736245089033L;
 	String nextinvert = null;
 	String lastSortBy = null;
-	protected static KElement lastQueue = null;
+	//protected KElement lastQueue = null;
 
 	/**
 	 */
@@ -1246,7 +1250,8 @@ public class QueueProcessor extends BambiLogFactory
 
 		if (_queueFile == null)
 		{
-			_queueFile = new RollingBackupFile(_parentDevice.getBaseDir() + File.separator + "theQueue_" + deviceID + ".xml", 8);
+			_queueFile = new RollingBackupFile(_parentDevice.getBaseDir() + File.separator + "theQueue_" + deviceID
+					+ ".xml", 8);
 		}
 		if (_queueFile != null && _queueFile.getParentFile() != null && !_queueFile.getParentFile().exists())
 		{ // will be null in unit tests
@@ -1388,7 +1393,8 @@ public class QueueProcessor extends BambiLogFactory
 		for (int i = 0; i < siz; i++)
 		{
 			final JDFQueueEntry qe = (JDFQueueEntry) vQE.get(i);
-			if (EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && KElement.isWildCard(BambiNSExtension.getDeviceURL(qe)))
+			if (EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus())
+					&& KElement.isWildCard(BambiNSExtension.getDeviceURL(qe)))
 			{
 				return getIQueueEntry(qe);
 				// try next
@@ -1451,7 +1457,8 @@ public class QueueProcessor extends BambiLogFactory
 		final JDFDoc theDoc = JDFDoc.parseURL(docURL, null);
 		if (theDoc == null)
 		{
-			log.error("QueueProcessor in thread '" + Thread.currentThread().getName() + "' is unable to load the JDFDoc from '" + docURL + "'");
+			log.error("QueueProcessor in thread '" + Thread.currentThread().getName()
+					+ "' is unable to load the JDFDoc from '" + docURL + "'");
 			return null;
 		}
 
@@ -1808,6 +1815,15 @@ public class QueueProcessor extends BambiLogFactory
 		{
 			return null;
 		}
+		return getLastQueue(refID);
+	}
+
+	/**
+	 * @param refID
+	 * @return
+	 */
+	JDFQueue getLastQueue(final String refID)
+	{
 		final QueueDelta delta = deltaMap.get(refID);
 		deltaMap.put(refID, new QueueDelta());
 		if (delta == null)
@@ -1816,7 +1832,6 @@ public class QueueProcessor extends BambiLogFactory
 		}
 		delta.cleanOrphans();
 		return delta.lastQueue;
-
 	}
 
 	/**
@@ -1826,7 +1841,8 @@ public class QueueProcessor extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		String s = "[QueueProcessor: ] Status= " + _theQueue.getQueueStatus().getName() + " Num Entries: " + _theQueue.numEntries(null) + "\n Queue:\n";
+		String s = "[QueueProcessor: ] Status= " + _theQueue.getQueueStatus().getName() + " Num Entries: "
+				+ _theQueue.numEntries(null) + "\n Queue:\n";
 		s += _theQueue.toString();
 		return s;
 	}
@@ -1968,13 +1984,15 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				deviceOutputHF.mkdirs();
 				bOK = docJDF.write2File(FileUtil.getFileInDirectory(deviceOutputHF, new File(new File(docJDF.getOriginalFileName()).getName())), 0, true);
-				log.info("JDF for " + queueEntryID + " has " + (bOK ? "" : "not ") + "been written to good output: " + deviceOutputHF);
+				log.info("JDF for " + queueEntryID + " has " + (bOK ? "" : "not ") + "been written to good output: "
+						+ deviceOutputHF);
 			}
 			else if (bAborted && deviceErrorHF != null)
 			{
 				deviceErrorHF.mkdirs();
 				bOK = docJDF.write2File(FileUtil.getFileInDirectory(deviceErrorHF, new File(docJDF.getOriginalFileName())), 0, true);
-				log.info("JDF for " + queueEntryID + " has " + (bOK ? "" : "not ") + "been written to error output: " + deviceErrorHF);
+				log.info("JDF for " + queueEntryID + " has " + (bOK ? "" : "not ") + "been written to error output: "
+						+ deviceErrorHF);
 			}
 			else
 			{
