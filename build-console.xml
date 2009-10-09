@@ -99,6 +99,8 @@
 				<exclude name="standard*.jar" />
 				<exclude name="el-api.jar" />
 				<exclude name="castor*.jar" />
+				<exclude name="el-api.jar" />
+				<exclude name="jsp-api.jar" />
 			</fileset>
 			<fileset dir="${dist.dir}">
 				<include name="${base.filename}.jar" />
