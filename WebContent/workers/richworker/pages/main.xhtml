@@ -1,0 +1,32 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:a4j="http://richfaces.org/a4j"
+	xmlns:rich="http://richfaces.org/rich">
+
+<ui:composition template="/templates/layout.xhtml">
+	<!-- devices module -->
+	<ui:define name="main">
+		<ui:include src="/pages/devices.xhtml" />
+	</ui:define>
+	
+	<!-- head image -->		
+	<ui:define name="header">
+		<h:graphicImage value="/style/#{currentUserBean.style}/images/header.gif" />
+	</ui:define>
+	
+	<!-- clock module -->
+	<ui:define name="clock">
+		<ui:include src="/pages/clock.xhtml" />
+	</ui:define>
+	
+	<!-- settings module -->
+	<ui:define name="settings">
+		<ui:include src="/pages/settings.xhtml" />
+	</ui:define>
+	
+</ui:composition>
+
+</html>
