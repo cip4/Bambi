@@ -17,7 +17,7 @@
 		<property name="sim.src.dir" value="${workerscore.src.dir}/sim" />
 		<property name="rich.src.dir" value="${src.dir}/java/org/cip4/bambi/richclient" />
 		<property name="resources.dir" value="${src.dir}/resources" />
-		<property name="web.src.dir" value="./WebContent/workers/sim" />
+		<property name="web.src.dir" value="./WebContent/workers/richworker" />
 		<property name="webcore.src.dir" value="./WebContent/core" />
 		<property name="web.config.dir" value="${web.src.dir}/config" />
 		<property name="test.src.dir" value="./test" />
