@@ -70,9 +70,6 @@ package org.cip4.bambi.richclient.web;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
-import java.util.EventListener;
-import java.util.EventObject;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -91,17 +88,7 @@ import org.cip4.bambi.richclient.model.QueueEntry;
  * @author smeissner
  * @date 23.09.2009
  */
-/**
- * TODO Please insert comment!
- * @author smeissner
- * @date 08.10.2009
- */
-/**
- * TODO Please insert comment!
- * @author smeissner
- * @date 08.10.2009
- */
-public class DevicesBean implements Runnable {
+public class DevicesBean {
 
 	/**
 	 * expiration time in milliseconds.
@@ -125,8 +112,6 @@ public class DevicesBean implements Runnable {
 
 	private String selectedDeviceId;
 
-	private final Thread thread;
-
 	private List<QueueEntry> selectedDeviceQueue;
 
 	private Hashtable<String, Integer> hashSelectedDeviceQueue;
@@ -141,12 +126,6 @@ public class DevicesBean implements Runnable {
 
 		// generate session id
 		sessionUuid = UUID.randomUUID().toString();
-
-		// initialize pushing
-		thread = new Thread(this);
-		thread.setName("DeviceThread");
-		thread.setDaemon(false);
-		thread.start();
 	}
 
 	/**
@@ -219,16 +198,6 @@ public class DevicesBean implements Runnable {
 
 		// return selected device
 		return selectedDevice;
-	}
-
-	/**
-	 * Returns sort priority.
-	 * @return collection of sortpriority
-	 */
-	public Collection<String> getQueueEntrySortPriority() {
-		List<String> lst = new ArrayList<String>(1);
-		lst.add("columnSubmission");
-		return lst;
 	}
 
 	/**
@@ -370,36 +339,6 @@ public class DevicesBean implements Runnable {
 
 		// no navigation action
 		return null;
-	}
-
-	/**
-	 * Add Listener for pushing.
-	 * @param listener
-	 */
-	public void addListener(EventListener listener) {
-		synchronized (listener) {
-			if (this.listener != listener) {
-				this.listener = (PushEventListener) listener;
-			}
-		}
-	}
-
-	/**
-	 * Runnable implementation for supporting threading.
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
-		while (thread != null) {
-			try {
-				// new time string object
-				if (listener != null)
-					listener.onEvent(new EventObject(this));
-				Thread.sleep(2000);
-
-			} catch (InterruptedException e) {
-
-			}
-		}
 	}
 
 	/**

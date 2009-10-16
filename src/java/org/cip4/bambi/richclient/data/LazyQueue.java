@@ -124,11 +124,12 @@ class LazyQueue {
 			return;
 		}
 
+		// store current time
+		long time = new Date().getTime();
+		updateLog.put(queueEntry.getQueueEntryId(), Long.valueOf(time));
+
 		// put object to hashtable
 		queueEntries.put(queueEntry.getQueueEntryId(), queueEntry);
-
-		// store current time
-		updateLog.put(queueEntry.getQueueEntryId(), new Date().getTime());
 	}
 
 	/**
@@ -178,7 +179,10 @@ class LazyQueue {
 
 		// filter QueueEntry objects modified since last update
 		for (String key : updateLog.keySet()) {
-			if (updateLog.get(key) >= lastUpdate) {
+
+			long modifyTimeEntity = updateLog.get(key).longValue();
+
+			if (modifyTimeEntity >= lastUpdate) {
 				// add to result
 				lst.add(queueEntries.get(key));
 			}

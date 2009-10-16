@@ -50,8 +50,8 @@
 	-->
 	</style>
 	
-	<a4j:push interval="2000" eventProducer="#{devicesBean.addListener}" eventsQueue="requestQueue"
-		reRender="deviceTable,requests,selectedDeviceDetail,subscriptions" ajaxSingle="true" />
+	<a4j:poll interval="2000" reRender="deviceTable,requests,selectedDeviceDetail,subscriptions" />
+
 
 	<rich:simpleTogglePanel switchType="client"
 		label="#{app['devices.title']}" style="margin: 10px">
@@ -167,9 +167,9 @@
 	        	</rich:toolBar>
 	        	
 	        	<!-- diff update queue entries -->
-	        	<a4j:poll action="#{devicesBean.updateQueue}" reRender="queueEntryStartTime, queueEntryEndTime, queueEntryStatus" ajaxSingle="true" immediate="true" interval="1000" />
+	        	<a4j:poll interval="200" action="#{devicesBean.updateQueue}" reRender="queueEntryStartTime, queueEntryEndTime, queueEntryStatus" ajaxSingle="true" immediate="true" />
 	        	
-	            <rich:dataTable value="#{devicesBean.selectedDeviceQueue}"  sortMode="single" sortPriority="#{devicesBean.queueEntrySortPriority}" var="entry" ajaxKeys="#{devicesBean.selectedDeviceQueueChanges}" styleClass="queue-entry-table" width="100%" style="margin-top: 5px" id="queueEntries" >
+	            <rich:dataTable value="#{devicesBean.selectedDeviceQueue}" var="entry" ajaxKeys="#{devicesBean.selectedDeviceQueueChanges}" styleClass="queue-entry-table" width="100%" style="margin-top: 5px" id="queueEntries" >
 		         	<rich:column sortBy="#{entry.queueEntryId}">
 		         		<f:facet name="header">
 		                    <h:outputText value="#{app['queueEntry.id']}"/>

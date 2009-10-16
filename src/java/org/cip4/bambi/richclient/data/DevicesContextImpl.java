@@ -168,7 +168,7 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 		Queue queue = lazyQueue.getQueue();
 
 		// set session properties
-		hashSession.put(sessionId, new Date().getTime());
+		hashSession.put(sessionId, Long.valueOf(new Date().getTime()));
 
 		// return result
 		return new Device.Builder(device).queue(queue).build();
@@ -178,20 +178,28 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 	 * @see org.cip4.bambi.richclient.data.DevicesContext#getDeviceDiff(java.lang.String, java.lang.String)
 	 */
 	public Device getDeviceDiff(String deviceId, String sessionId) {
+
+		// get last update of user (session)
+		long lastUpdate = hashSession.get(sessionId).longValue();
+
+		// set session properties
+		hashSession.put(sessionId, Long.valueOf(new Date().getTime()));
+
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		// find device
 		Device device = cacheDeviceList.findDeviceById(deviceId);
 
 		// get lazy queue
 		LazyQueue lazyQueue = cacheLazyQueues.get(deviceId);
 
-		// get last update of user (session)
-		long lastUpdate = hashSession.get(sessionId);
-
 		// get queue diff update
 		Queue queue = lazyQueue.getQueue(lastUpdate);
-
-		// set session properties
-		hashSession.put(sessionId, new Date().getTime());
 
 		// return result
 		return new Device.Builder(device).queue(queue).build();
@@ -273,7 +281,7 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 				Thread.sleep(UPDATE_INTERVAL);
 			} catch (Exception e) {
 				// throw new error
-				// throw new Error(e);
+				throw new AssertionError(e);
 			}
 
 		}
@@ -378,7 +386,9 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 	 * Clean up DevicesContextImpl.
 	 */
 	private void charlady() {
+		// TODO: clean session
 
+		// TODO: clean cache
 	}
 
 	/**

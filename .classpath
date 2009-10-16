@@ -30,9 +30,7 @@
 	<classpathentry kind="lib" path="src/lib/richfaces-api-3.3.1.GA.jar"/>
 	<classpathentry kind="lib" path="src/lib/richfaces-impl-3.3.1.GA.jar"/>
 	<classpathentry kind="lib" path="src/lib/richfaces-ui-3.3.1.GA.jar"/>
-	<classpathentry kind="lib" path="src/lib/servlet-api.jar"/>
-	<classpathentry kind="lib" path="src/lib/el-api.jar"/>
-	<classpathentry kind="lib" path="src/lib/jsp-api.jar"/>
 	<classpathentry kind="lib" path="src/lib/standard.jar"/>
+	<classpathentry kind="lib" path="src/lib/servlet-api-2.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
