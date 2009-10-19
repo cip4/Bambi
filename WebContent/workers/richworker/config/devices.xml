@@ -29,6 +29,11 @@
 <application BaseDir="/var/tmp/bambi/sim/" JDFDir="JDFDir"
 	SenderID="SimDevice" Port="8080" CallBackName="org.cip4.bambi.extensions.ExtensionCallback">
 	<Device DeviceID="SimWorkerRoot" DeviceType="Bambi Sim Device Root" />
+	
+	<Device DeviceID="SM-1" DeviceType="Speedmaster XL 105"
+		TrackResource="Component:Output" InputHF="/var/tmp/bambi/sm-1/Input"
+		OutputHF="/var/tmp/bambi/sm-1/Output" ErrorHF="/var/tmp/bambi/sm-1/Error" />
+	
 	<Device DeviceID="sim001" DeviceType="Bambi Simulation HotFolder Device 001"
 		TrackResource="Component:Output" InputHF="/var/tmp/bambi/sim001/Input"
 		OutputHF="/var/tmp/bambi/sim001/Output" ErrorHF="/var/tmp/bambi/sim001/Error" />
@@ -40,19 +45,4 @@
 		OutputHF="/var/tmp/bambi/sim003/Output" ErrorHF="/var/tmp/bambi/sim003/Error" />
 
 
-	<!--
-		<Device DeviceID="manual001" DeviceType="Bambi Manual Device"
-		TrackResource="Component:Output"/> <Device DeviceID="sim001"
-		DeviceType="Bambi Simulation Device"
-		TrackResource="Component:Output"/> <Device DeviceID="sim002"
-		DeviceType="Bambi Simulation Device"
-		TrackResource="Component:Output"/> <Device DeviceID="sim003"
-		DeviceType="Bambi Simulation Device"
-		TrackResource="Component:Output"/> <Device DeviceID="sim004"
-		DeviceType="Bambi Simulation Device"
-		TrackResource="Component:Output"/> <Device DeviceID="platesetter"
-		DeviceType="Bambi Simulation Platesetter"
-		TypeExpression="(.)*ImageSetting(.)*"
-		TrackResource="ExposedMedia:Output"/>
-	-->
 </application>
