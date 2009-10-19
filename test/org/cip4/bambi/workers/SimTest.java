@@ -113,7 +113,7 @@ public class SimTest extends BambiTestCase {
 
 		// simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/SimWorkerRoot";
 		// simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim003";
-		simWorkerUrl = "http://localhost:8080/richworker/jmf/sim002";
+		simWorkerUrl = "http://localhost:8080/richworker/jmf/sm-1";
 		// simWorkerUrl = "http://127.0.0.1:8080/speedmaster/jmf/XL105";
 	}
 
