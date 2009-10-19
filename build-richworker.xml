@@ -23,6 +23,7 @@
 		<property name="test.src.dir" value="./test" />
 		<property name="lib.dir" value="${src.dir}/lib" />
 		<property name="bin.dir" value="./bin/richworker" />
+		<property name="tmp.dir" value="./tmp/richworker" />
 		<property name="dist.dir" value="./dist/richworker" />
 		<property name="build.debug" value="true" />
 		<property name="base.filename" value="${SimWorker.name}-${DSTAMP}" />
@@ -60,8 +61,15 @@
 	</target>
 	<target name="jar" depends="compile" description="Bundles source code into a JAR file.">
 		<echo>Building JAR file...</echo>
+
+		<native2ascii encoding="UTF-8" reverse="false" src="${resources.dir}/org/cip4/bambi/richclient" 
+					includes="*.properties" dest="${tmp.dir}/org/cip4/bambi/richclient" />
+		
 		<jar jarfile="${dist.dir}/${base.filename}.jar" basedir="${bin.dir}">
-			<fileset dir="${resources.dir}" />
+			<fileset dir="${resources.dir}">
+				<exclude name="**/*.properties" />
+			</fileset>
+			<fileset dir="${tmp.dir}" />
 		</jar>
 	</target>
 	<target name="major_jar" depends="jar" description="Builds a JAR archive containing the SimWorker binaries.">
@@ -106,6 +114,7 @@
 				<include name="${base.filename}.jar" />
 			</fileset>
 		</copy>
+		
 		<!-- Update build number and timestamp in overview.jsp -->
 		<replace file="${war.dir}/deviceList.xsl">
 			<replacefilter token="@build.number@" value="${build.number}" />
