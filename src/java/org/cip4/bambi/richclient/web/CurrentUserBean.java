@@ -68,6 +68,8 @@
  */
 package org.cip4.bambi.richclient.web;
 
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.Locale;
 
 import javax.faces.component.UIViewRoot;
@@ -125,6 +127,22 @@ public class CurrentUserBean {
 	public String getLocale() {
 		UIViewRoot viewRoot = FacesContext.getCurrentInstance().getViewRoot();
 		return viewRoot.getLocale().getLanguage();
+	}
+
+	/**
+	 * Returning time as string.
+	 * @return locale as string
+	 */
+	public String getTime() {
+		// get locale
+		UIViewRoot viewRoot = FacesContext.getCurrentInstance().getViewRoot();
+		Locale locale = viewRoot.getLocale();
+
+		// new time string object
+		DateFormat foramtter = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, locale);
+
+		// return time
+		return foramtter.format(new Date());
 	}
 
 	/**

@@ -18,11 +18,6 @@
 		<managed-bean-class>org.cip4.bambi.richclient.web.DevicesBean</managed-bean-class>
 		<managed-bean-scope>session</managed-bean-scope>
 	</managed-bean>
-	<managed-bean>
-		<managed-bean-name>clockBean</managed-bean-name>
-		<managed-bean-class>org.cip4.bambi.richclient.web.ClockBean</managed-bean-class>
-		<managed-bean-scope>application</managed-bean-scope>
-	</managed-bean>
 	<application>
 		<view-handler>com.sun.facelets.FaceletViewHandler</view-handler>
 		<locale-config>
