@@ -201,6 +201,11 @@ public class QueueVO {
 	 */
 	@Override
 	public String toString() {
+
+		if (queueEntries == null) {
+			return "Queue of " + deviceId + "; queue size: [NULL]";
+		}
+
 		return "Queue of " + deviceId + "; queue size:" + Integer.toString(queueEntries.size());
 	}
 }

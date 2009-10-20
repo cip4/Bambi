@@ -10,11 +10,12 @@
 	<h:panelGrid columns="5" style="margin-right: 10px">
 		<h:outputLabel value="#{app['settings.locale']}" for="Locale" />
 		<h:selectOneMenu value="#{currentUserBean.locale}" id="Locale" valueChangeListener="#{currentUserBean.changeLocale}" onchange="submit()" immediate="true">
-			<f:selectItem itemValue="en" itemLabel="#{app['settings.locale.en']}" />
-			<f:selectItem itemValue="de" itemLabel="#{app['settings.locale.de']}" />
-			<f:selectItem itemValue="jp" itemLabel="#{app['settings.locale.jp']}" />
-			<f:selectItem itemValue="se" itemLabel="#{app['settings.locale.se']}" />
-			<f:selectItem itemValue="by" itemLabel="#{app['settings.locale.by']}" />
+			<f:selectItem itemValue="en" itemLabel="English" />
+			<f:selectItem itemValue="de" itemLabel="German" />
+			<f:selectItem itemValue="jp" itemLabel="Japanese" />
+			<f:selectItem itemValue="se" itemLabel="Swedish" />
+			<f:selectItem itemValue="nl" itemLabel="Nederlands" />
+			<f:selectItem itemValue="by" itemLabel="Bavarian" />
 		</h:selectOneMenu>
 		
 		<rich:separator width="10" height="5" style="background-image: none;" />

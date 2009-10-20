@@ -3,7 +3,7 @@
 	xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facesconfig_1_2.xsd">
 
-	
+
 	<managed-bean>
 		<managed-bean-name>currentUserBean</managed-bean-name>
 		<managed-bean-class>org.cip4.bambi.richclient.web.CurrentUserBean</managed-bean-class>
@@ -25,6 +25,15 @@
 	</managed-bean>
 	<application>
 		<view-handler>com.sun.facelets.FaceletViewHandler</view-handler>
+		<locale-config>
+			<default-locale>en</default-locale>
+			<supported-locale>by</supported-locale>
+			<supported-locale>de</supported-locale>
+			<supported-locale>en</supported-locale>
+			<supported-locale>jp</supported-locale>
+			<supported-locale>se</supported-locale>
+			<supported-locale>nl</supported-locale>
+		</locale-config>
 		<resource-bundle>
 			<base-name>org.cip4.bambi.richclient.application</base-name>
 			<var>app</var>
