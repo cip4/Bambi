@@ -31,6 +31,8 @@
 			<supported-locale>dk</supported-locale>
 			<supported-locale>no</supported-locale>
 			<supported-locale>fr</supported-locale>
+			<supported-locale>tr</supported-locale>
+			<supported-locale>pl</supported-locale>
 		</locale-config>
 		<resource-bundle>
 			<base-name>org.cip4.bambi.richclient.application</base-name>
