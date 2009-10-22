@@ -30,6 +30,7 @@
 			<supported-locale>nl</supported-locale>
 			<supported-locale>dk</supported-locale>
 			<supported-locale>no</supported-locale>
+			<supported-locale>fr</supported-locale>
 		</locale-config>
 		<resource-bundle>
 			<base-name>org.cip4.bambi.richclient.application</base-name>
