@@ -15,4 +15,8 @@
 		<tag-name>deviceDetail</tag-name>
 		<source>deviceDetail.xhtml</source>
 	</tag>
+	<tag>
+		<tag-name>deviceExample</tag-name>
+		<source>deviceExample.xhtml</source>
+	</tag>
 </facelet-taglib>

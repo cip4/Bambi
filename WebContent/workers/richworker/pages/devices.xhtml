@@ -260,12 +260,23 @@
 	        	</rich:pickList>
 	        </rich:tab>
 	    </rich:tabPanel>
-		
-		 
-
-		 
-		
 	</rich:simpleTogglePanel>
+	
+	<rich:hotKey key="ctrl+b" handler="#{rich:component('pnlPrinter')}.show() ;return false;"/>
+	<rich:modalPanel id="pnlPrinter" width="500" height="450">
+        <f:facet name="header">
+            <h:panelGroup>
+                <h:outputText value="Sample Device"></h:outputText>
+            </h:panelGroup>
+        </f:facet>
+        <f:facet name="controls">
+            <h:panelGroup>
+                <h:graphicImage value="/style/common/images/close.png" id="hidelink"/>
+                <rich:componentControl for="pnlPrinter" attachTo="hidelink" operation="hide" event="onclick"/>
+            </h:panelGroup>
+        </f:facet>
+        <cip4:deviceExample />
+    </rich:modalPanel>
 </ui:composition>
 
 </html>
