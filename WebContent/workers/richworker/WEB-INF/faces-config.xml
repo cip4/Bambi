@@ -28,6 +28,7 @@
 			<supported-locale>jp</supported-locale>
 			<supported-locale>se</supported-locale>
 			<supported-locale>nl</supported-locale>
+			<supported-locale>dk</supported-locale>
 		</locale-config>
 		<resource-bundle>
 			<base-name>org.cip4.bambi.richclient.application</base-name>

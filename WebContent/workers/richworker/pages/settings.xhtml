@@ -11,10 +11,11 @@
 		<h:outputLabel value="#{app['settings.locale']}" for="Locale" />
 		<h:selectOneMenu value="#{currentUserBean.locale}" id="Locale" valueChangeListener="#{currentUserBean.changeLocale}" onchange="submit()" immediate="true">
 			<f:selectItem itemValue="en" itemLabel="English" />
+			<f:selectItem itemValue="dk" itemLabel="Danish" />
 			<f:selectItem itemValue="de" itemLabel="German" />
 			<f:selectItem itemValue="jp" itemLabel="Japanese" />
-			<f:selectItem itemValue="se" itemLabel="Swedish" />
 			<f:selectItem itemValue="nl" itemLabel="Nederlands" />
+			<f:selectItem itemValue="se" itemLabel="Swedish" />
 			<f:selectItem itemValue="by" itemLabel="Bavarian" />
 		</h:selectOneMenu>
 		
