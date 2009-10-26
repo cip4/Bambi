@@ -196,7 +196,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final EnumQueueStatus queueStatus = jdfQueue == null ? null : jdfQueue.getQueueStatus();
 			final int running = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Running);
 			final int waiting = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Waiting);
-			final int completed = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Completed) + jdfQueue.numEntries(EnumQueueEntryStatus.Aborted);
+			final int completed = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Completed)
+					+ jdfQueue.numEntries(EnumQueueEntryStatus.Aborted);
 
 			deviceRoot.setAttribute("QueueStatus", queueStatus == null ? "Unknown" : queueStatus.getName());
 			deviceRoot.setAttribute("QueueWaiting", waiting, null);
@@ -916,7 +917,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status)
 	{
-		final AbstractDeviceProcessor deviceProcessor = getProcessor(queueEntryID);
+		final AbstractDeviceProcessor deviceProcessor = getProcessor(queueEntryID, 0);
 		if (deviceProcessor == null)
 		{
 			return null;
@@ -933,21 +934,33 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	/**
 	 * gets the device processor for a given queuentry
 	 * @param queueEntryID - if null use any
+	 * @param n the index of the respective processor
 	 * @return the processor that is processing queueEntryID, null if none matches
 	 */
-	protected AbstractDeviceProcessor getProcessor(final String queueEntryID)
+	public AbstractDeviceProcessor getProcessor(final String queueEntryID, int n)
 	{
+		int nn = 0;
 		for (int i = 0; i < _deviceProcessors.size(); i++)
 		{
 			final AbstractDeviceProcessor theDeviceProcessor = _deviceProcessors.get(i);
 			final IQueueEntry iqe = theDeviceProcessor.getCurrentQE();
-			if (iqe == null)
+			if (iqe == null) // we have an idle proc
 			{
+				if (queueEntryID == null) // we are not searching by qeID
+				{
+					if (nn++ == n) // we have the right count
+					{
+						return theDeviceProcessor;
+					}
+				}
 				continue;
 			}
-			if (queueEntryID == null || queueEntryID.equals(iqe.getQueueEntryID()))
+			else if (queueEntryID == null || queueEntryID.equals(iqe.getQueueEntryID()))
 			{
-				return theDeviceProcessor;
+				if (nn++ == n)
+				{
+					return theDeviceProcessor;
+				}
 			}
 		}
 		return null; // none here
@@ -1043,7 +1056,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return false;
 		}
 
-		if (BambiServlet.isMyContext(request, SHOW_DEVICE) || BambiServlet.isMyContext(request, "jmf") || BambiServlet.isMyContext(request, "slavejmf"))
+		if (BambiServlet.isMyContext(request, SHOW_DEVICE) || BambiServlet.isMyContext(request, "jmf")
+				|| BambiServlet.isMyContext(request, "slavejmf"))
 		{
 			if (request.getBooleanParam("restart") && getRootDevice() != null)
 			{

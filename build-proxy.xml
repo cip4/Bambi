@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- <!DOCTYPE project SYSTEM "file:/Developer/Applications/apache-ant-1.6.2/dtd/ant.dtd"> -->
 <project name="BambiProxy" default="war" basedir=".">
-	<description>Bambi's sim worker</description>
+	<description>Bambi's proxy worker</description>
 	<!-- Initializes -->
 	<target name="-init" description="Initializes the build. This task is automatically run before building.">
 		<echo>Initializing. Using build settings from ./build.properties...</echo>
@@ -84,6 +84,13 @@
 				<include name="**/*.jar" />
 				<exclude name="servlet*.jar" />
 				<exclude name="junit*.jar" />
+				<exclude name="jsf*.jar" />
+				<exclude name="richf*.jar" />
+				<exclude name="jstl*.jar" />
+				<exclude name="standard*.jar" />
+				<exclude name="castor*.jar" />
+				<exclude name="el-api.jar" />
+				<exclude name="jsp-api.jar" />
 			</fileset>
 			<fileset dir="${dist.dir}">
 				<include name="${base.filename}.jar" />

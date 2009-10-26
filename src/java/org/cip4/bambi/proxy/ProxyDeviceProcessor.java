@@ -509,7 +509,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		{
 			statusListener.setPercentComplete(percentCompleted);
 		}
-		log.debug("Node Status :" + jobPhase.getStatus() + " " + jobPhase.getStatusDetails() + " " + deltaAmount + " " + deltaWaste + " completed: " + percentCompleted);
+		log.debug("Node Status :" + jobPhase.getStatus() + " " + jobPhase.getStatusDetails() + " " + deltaAmount + " "
+				+ deltaWaste + " completed: " + percentCompleted);
 	}
 
 	/**
@@ -647,6 +648,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	}
 
 	/**
+	 * @param slaveURL 
+	 * @param devQEID 
 	 * 
 	 */
 	private void createSubscriptionsForQE(final String slaveURL, final String devQEID)
@@ -663,6 +666,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		final AbstractProxyDevice parentDevice = getParent();
 		final String deviceURL = parentDevice.getDeviceURLForSlave();
 
+		// TODO check knownsubscriptions and globalize if possible
 		final JDFJMF jmfs[] = new JMFBuilder().createSubscriptions(deviceURL, devQEID, 10., 0);
 		for (int i = 0; i < jmfs.length; i++)
 		{
@@ -678,6 +682,12 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		return currentQE == null ? null : currentQE.getQueueEntry();
 	}
 
+	/**
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#init(org.cip4.bambi.core.queues.QueueProcessor, org.cip4.bambi.core.StatusListener, org.cip4.bambi.core.IDeviceProperties)
+	 * @param queueProcessor
+	 * @param statusListener
+	 * @param devProperties
+	*/
 	@Override
 	public void init(final QueueProcessor queueProcessor, final StatusListener statusListener, final IDeviceProperties devProperties)
 	{
@@ -687,6 +697,9 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		log.info("processQueueEntry queuentryID=" + qe.getQueueEntryID());
 	}
 
+	/**
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#shutdown()
+	*/
 	@Override
 	public void shutdown()
 	{
@@ -726,7 +739,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		if (doc == null)
 		{
-			final String errorMsg = "failed to parse the JDFDoc from the incoming " + "ReturnQueueEntry with QueueEntryID=" + currentQE.getQueueEntryID();
+			final String errorMsg = "failed to parse the JDFDoc from the incoming "
+					+ "ReturnQueueEntry with QueueEntryID=" + currentQE.getQueueEntryID();
 			JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
 		}
 		else
@@ -839,7 +853,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			newJMF.setSenderID(senderID);
 		}
 
-		log.info("creating subscription for doc:" + root.getJobID(true) + " - " + root.getJobPartID(false) + " to " + p.getDeviceURLForSlave());
+		log.info("creating subscription for doc:" + root.getJobID(true) + " - " + root.getJobPartID(false) + " to "
+				+ p.getDeviceURLForSlave());
 	}
 
 	/**

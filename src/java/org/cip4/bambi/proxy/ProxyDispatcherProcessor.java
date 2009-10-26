@@ -71,6 +71,8 @@
 
 package org.cip4.bambi.proxy;
 
+import java.util.HashSet;
+
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.queues.IQueueEntry;
@@ -116,6 +118,52 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 	}
 
 	/**
+	 * do whatever needs to be done on idle by default, just tell the StatusListner that we are bored
+	 */
+	@Override
+	protected void idleProcess()
+	{
+		// nop
+	}
+
+	/**
+	 * 
+	 */
+	private void cleanOrphans()
+	{
+		/**
+		 * clean up orphaned or duplicate processors
+		 */
+		HashSet<String> setQE = new HashSet<String>();
+		for (int i = 0; true; i++)
+		{
+			AbstractDeviceProcessor proc = _parent.getProcessor(null, i);
+			if (proc == null)
+				break;
+			if (!proc.isActive())
+			{
+				proc.shutdown();
+			}
+			else
+			{
+				IQueueEntry iqe = proc.getCurrentQE();
+				if (iqe != null)
+				{
+					String qe = iqe.getQueueEntryID();
+					if (setQE.contains(qe)) // remove duplicates
+					{
+						proc.shutdown();
+					}
+					else
+					{
+						setQE.add(qe);
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * @param root the Kelement root this is not really a processor to display - ignore call
 	 */
 	@Override
@@ -138,7 +186,7 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 	@Override
 	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{
-		// nop
+		cleanOrphans();
 		return _parent.activeProcessors() < 1 + proxyProperties.getMaxPush();
 	}
 
@@ -149,6 +197,7 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 		if (_parent.activeProcessors() >= 1 + proxyProperties.getMaxPush())
 		{
 			BambiNSExtension.setDeviceURL(qe, null);
+			cleanOrphans();
 			return false; // no more push
 		}
 		qe.setDeviceID(proxyProperties.getSlaveDeviceID());
@@ -156,7 +205,7 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 		final ProxyDeviceProcessor pdb = ((ProxyDevice) _parent).submitQueueEntry(iqe, proxyProperties.getSlaveURL());
 		if (pdb == null)
 		{
-			BambiNSExtension.setDeviceURL(qe, null); // see above clean up any multuple markers
+			BambiNSExtension.setDeviceURL(qe, null); // see above clean up any multiple markers
 		}
 		return pdb != null;
 	}
@@ -166,6 +215,17 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 	{
 		// we never have a qe of our own
 		return null;
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#isActive()
+	 * @return
+	*/
+	@Override
+	public boolean isActive()
+	{
+		// dispatchers are always active
+		return true;
 	}
 
 }

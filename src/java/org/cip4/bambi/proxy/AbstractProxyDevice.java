@@ -409,7 +409,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			slaveJDFError.stop();
 			slaveJDFError = null;
 		}
-		final File hfStorage = new File(_devProperties.getBaseDir() + File.separator + "HFDevTmpStorage" + File.separator + _devProperties.getDeviceID());
+		final File hfStorage = new File(_devProperties.getBaseDir() + File.separator + "HFDevTmpStorage"
+				+ File.separator + _devProperties.getDeviceID());
 		log.info("Device error output HF:" + fDeviceErrorOutput.getPath() + " device ID= " + getSlaveDeviceID());
 		final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
 		slaveJDFError = new QueueHotFolder(fDeviceErrorOutput, hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Aborted), rqCommand);
@@ -771,7 +772,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			return 0;
 		}
-		final AbstractProxyProcessor proc = (AbstractProxyProcessor) getProcessor(queueEntryID);
+		final AbstractProxyProcessor proc = (AbstractProxyProcessor) getProcessor(queueEntryID, 0);
 		if (proc == null)
 		{
 			return 0; // no processor is working on queueEntryID - assume ok

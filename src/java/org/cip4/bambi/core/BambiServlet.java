@@ -369,7 +369,9 @@ public class BambiServlet extends HttpServlet {
 					VElement v = jmf.getMessageVector(null, null);
 					final int nMess = v == null ? 0 : v.size();
 					v = jmf.getMessageVector(EnumFamily.Signal, null);
-					final int nSigs = v.size();
+					int nSigs = v.size();
+					v = jmf.getMessageVector(EnumFamily.Acknowledge, null);
+					nSigs += v.size();
 					if (nMess > nSigs || nMess == 0) {
 						processError(request, response, null, 1, "General Error Handling JMF");
 					}
@@ -440,7 +442,7 @@ public class BambiServlet extends HttpServlet {
 			bambiDumpIn.newFileFromStream(h2, bufRequest.getBufferedInputStream());
 		}
 
-		final String contentType = request.getContentType();
+		final String contentType = bufRequest.getContentType();
 		if (UrlUtil.VND_JMF.equals(contentType)) {
 			processJMFRequest(bufRequest, bufResponse, null);
 		} else if (UrlUtil.TEXT_XML.equals(contentType)) {
@@ -703,8 +705,10 @@ public class BambiServlet extends HttpServlet {
 				bambiDumpIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inServer")));
 				bambiDumpOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outServer")));
 				final String senderID = d.getDeviceID();
-				final DumpDir dumpSendIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inMessage." + senderID)));
-				final DumpDir dumpSendOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outMessage." + senderID)));
+				final DumpDir dumpSendIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inMessage."
+						+ senderID)));
+				final DumpDir dumpSendOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outMessage."
+						+ senderID)));
 				MessageSender.addDumps(senderID, dumpSendIn, dumpSendOut);
 			}
 		}

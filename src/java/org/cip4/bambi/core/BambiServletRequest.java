@@ -273,11 +273,18 @@ public class BambiServletRequest extends BambiLogFactory implements HttpServletR
 	}
 
 	/**
+	 * returns the content type - and only the content type, removing any spurious whitespace or additional information after a ";"
+	 * @return the content type as a string
+	 * 
 	 * @see javax.servlet.ServletRequest#getContentType()
 	 */
 	public String getContentType()
 	{
-		return parent.getContentType();
+		String s = parent.getContentType();
+		s = StringUtil.token(s, 0, ";");
+		if (s != null)
+			s = s.trim();
+		return s;
 	}
 
 	/**

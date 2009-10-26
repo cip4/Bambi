@@ -93,6 +93,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFJobPhase;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -315,7 +316,8 @@ public class ProxyDevice extends AbstractProxyDevice
 			// submit a specific QueueEntry
 			final IQueueEntry iqe = _theQueueProcessor.getWaitingQueueEntry(nid);
 			final JDFQueueEntry qe = iqe == null ? null : iqe.getQueueEntry();
-			if (qe != null && EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && KElement.isWildCard(qe.getDeviceID()))
+			if (qe != null && EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus())
+					&& KElement.isWildCard(qe.getDeviceID()))
 			{
 				qe.setDeviceID(m.getSenderID());
 				submitQueueEntry(iqe, queueURL);
@@ -327,7 +329,8 @@ public class ProxyDevice extends AbstractProxyDevice
 			else
 			{
 				final String qeStatus = qe.getQueueEntryStatus().getName();
-				JMFHandler.errorResponse(resp, "requested QueueEntry is " + qeStatus + " or on Device: " + qe.getDeviceID(), 106, EnumClass.Error);
+				JMFHandler.errorResponse(resp, "requested QueueEntry is " + qeStatus + " or on Device: "
+						+ qe.getDeviceID(), 106, EnumClass.Error);
 			}
 			return true;
 		}
@@ -553,8 +556,19 @@ public class ProxyDevice extends AbstractProxyDevice
 			{
 				final JDFStatusQuParams sqp = m.getStatusQuParams();
 				final String qeid = (sqp != null) ? sqp.getQueueEntryID() : null;
-				final NodeIdentifier ni = sqp == null ? null : sqp.getIdentifier();
-
+				NodeIdentifier ni = sqp == null ? null : sqp.getIdentifier();
+				if (ni == null)
+				{
+					JDFDeviceInfo di = m.getDeviceInfo(0);
+					if (di != null)
+					{
+						JDFJobPhase jp = di.getJobPhase(0);
+						if (jp != null)
+						{
+							ni = jp.getIdentifier();
+						}
+					}
+				}
 				if (KElement.isWildCard(qeid) && new NodeIdentifier().equals(ni))
 				{
 					b = handleIdle(m, resp);
@@ -805,7 +819,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	private ProxyDeviceProcessor getProcessorForSlaveQEID(final String slaveQEID)
 	{
 		final String inQEID = getIncomingQEID(slaveQEID);
-		ProxyDeviceProcessor proc = inQEID == null ? null : (ProxyDeviceProcessor) getProcessor(inQEID);
+		ProxyDeviceProcessor proc = inQEID == null ? null : (ProxyDeviceProcessor) getProcessor(inQEID, 0);
 
 		// we don't have an active proc, but this might be a multiple retQE - try to generate from old
 		if (proc == null && inQEID != null)
@@ -926,7 +940,11 @@ public class ProxyDevice extends AbstractProxyDevice
 		{
 			return null;
 		}
-		final ProxyDeviceProcessor pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, iqe);
+		ProxyDeviceProcessor pdp = (ProxyDeviceProcessor) getProcessor(iqe.getQueueEntryID(), 0);
+		if (pdp != null)
+			return pdp;
+
+		pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, iqe);
 		pdp.submitted(BambiNSExtension.getSlaveQueueEntryID(qe), qe.getQueueEntryStatus(), BambiNSExtension.getDeviceURL(qe), qe.getDeviceID());
 		addProcessor(pdp);
 		return pdp;
