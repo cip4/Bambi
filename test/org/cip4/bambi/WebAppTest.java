@@ -94,7 +94,6 @@ public class WebAppTest extends BambiTestCase
 		final JMFFactory factory = JMFFactory.getJMFFactory();
 		final JDFJMF jmfStatus = new JMFBuilder().buildStatus();
 		final VString urls = new VString();
-		urls.add(proxyUrl);
 		urls.add(simWorkerUrl);
 		urls.add(manualWorkerUrl);
 

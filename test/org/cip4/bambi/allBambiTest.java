@@ -73,6 +73,7 @@ import junit.framework.TestSuite;
 
 import org.cip4.bambi.core.SignalDispatcherTest;
 import org.cip4.bambi.messaging.JMFFactoryTest;
+import org.cip4.bambi.proxy.ProxyTest;
 
 /**
  * @author boegerni

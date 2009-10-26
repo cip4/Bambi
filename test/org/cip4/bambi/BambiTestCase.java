@@ -89,7 +89,10 @@ import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.goldenticket.BaseGoldenTicket;
 import org.cip4.jdflib.goldenticket.BaseGoldenTicketTest;
+import org.cip4.jdflib.goldenticket.IDPGoldenTicket;
 import org.cip4.jdflib.goldenticket.MISCPGoldenTicket;
+import org.cip4.jdflib.goldenticket.MISFinGoldenTicket;
+import org.cip4.jdflib.goldenticket.MISPreGoldenTicket;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -98,7 +101,9 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
- * @author Rainer Prosi, Heidelberger Druckmaschinen abstract test case for all bambi tests note that this has some site specific details that must be modified
+ * @author Rainer Prosi, Heidelberger Druckmaschinen 
+ * 
+ * abstract test case for all bambi tests note that this has some site specific details that must be modified
  */
 public class BambiTestCase extends BaseGoldenTicketTest
 {
@@ -107,17 +112,42 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	{
 		super.setUp();
 		BaseGoldenTicket.setMisURL("http://kie-prosirai-lg:8080/httpdump/BambiTest");
-		_theGT = new MISCPGoldenTicket(1, null, 1, 1, true, null);
+		if (enumGTType.MISCP.equals(gt))
+		{
+			_theGT = new MISCPGoldenTicket(1, null, 1, 2, true, null);
+			_theGT.addSheet("Sheet1");
+			_theGT.nCols = new int[] { 4, 4 };
+		}
+		else if (enumGTType.MISPRE.equals(gt))
+			_theGT = new MISPreGoldenTicket(2, EnumVersion.Version_1_3, 1, 2, null);
+		else if (enumGTType.IDP.equals(gt))
+			_theGT = new IDPGoldenTicket(1);
+		else if (enumGTType.MISFIN_STITCH.equals(gt))
+		{
+			_theGT = new MISFinGoldenTicket(1, null, 1, 2, null);
+			_theGT.addSheet("Sheet1");
+			_theGT.addSheet("Sheet2");
+			((MISFinGoldenTicket) _theGT).setCategory(MISFinGoldenTicket.MISFIN_STITCHFIN);
+		}
+
 		_theGT.assign(null);
 	}
 
+	protected enum enumGTType
+	{
+		MISCP, MISPRE, IDP, MISFIN_STITCH, MISFIN_FOLD
+	}
+
+	protected enumGTType gt = enumGTType.MISCP;
 	protected final static String cwd = System.getProperty("user.dir");
-	protected final static String sm_dirTestData = cwd + File.separator + "test" + File.separator + "data" + File.separator;
-	protected final static String sm_dirTestTemp = cwd + File.separator + "test" + File.separator + "temp" + File.separator;
+	protected final static String sm_dirTestData = cwd + File.separator + "test" + File.separator + "data"
+			+ File.separator;
+	protected final static String sm_dirTestTemp = cwd + File.separator + "test" + File.separator + "temp"
+			+ File.separator;
 	protected final static String sm_UrlTestData = "File:test/data/";
 
 	protected String simWorkerUrl = "http://localhost:8080/SimWorker/jmf/sim002";
-	protected String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy";
+	//	protected String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy";
 	protected String proxySlaveUrl = "http://kie-prosirai-lg:8080/BambiProxy/slavejmf/pushproxy";
 	// protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
 	protected String manualWorkerUrl = null;
@@ -610,6 +640,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	/**
 	 * requires assigned node...
 	 * @param url the url to send to
+	 * @return 
 	 * @throws MalformedURLException
 	 */
 	protected HttpURLConnection submitMimetoURL(final String url) throws MalformedURLException
@@ -620,7 +651,9 @@ public class BambiTestCase extends BaseGoldenTicketTest
 
 	/**
 	 * requires assigned node...
+	 * @param qeID 
 	 * @param url the url to send to
+	 * @return 
 	 * @throws MalformedURLException
 	 */
 	protected HttpURLConnection resubmitMimetoURL(final String qeID, final String url) throws MalformedURLException
@@ -645,8 +678,9 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	}
 
 	/**
-	 * @param n the node to send as root node
+	 * @param d 
 	 * @param url the url to send to
+	 * @return 
 	 * @throws MalformedURLException
 	 */
 	protected HttpURLConnection submitMimetoURL(final JDFDoc d, final String url) throws MalformedURLException
@@ -657,12 +691,15 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		helper.chunkSize = chunkSize;
 		helper.transferEncoding = transferEncoding;
 		helper.acknowledgeURL = acknowledgeURL;
+		helper.bUpdateJobID = bUpdateJobID;
 		return helper.submitMimetoURL(d, url);
 	}
 
 	/**
+	 * @param qeid 
 	 * @param d the doc of the root node
 	 * @param url the url to send to
+	 * @return 
 	 * @throws MalformedURLException
 	 */
 	protected HttpURLConnection resubmitMimetoURL(final String qeid, final JDFDoc d, final String url) throws MalformedURLException
@@ -684,7 +721,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	/**
 	 * @param jmf the jmf to send
 	 * @param url the url to send to
-	 * @throws MalformedURLException
+	 * @return 
 	 */
 	protected JDFDoc submitJMFtoURL(final JDFJMF jmf, final String url)
 	{
@@ -709,6 +746,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 
 	/**
 	 * @param jmf
+	 * @param url 
 	 * @return the response
 	 */
 	protected JDFResponse sendToURL(final JDFJMF jmf, final String url)
