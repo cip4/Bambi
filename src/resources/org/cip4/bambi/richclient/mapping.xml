@@ -71,6 +71,12 @@
 		<field name="queueStatus" type="string">
 			<bind-xml name="QueueStatus" node="attribute" />
 		</field>
+		<field name="typeExpression" type="string">
+			<bind-xml name="TypeExpression" node="attribute" />
+		</field>
+		<field name="watchUrl" type="string">
+			<bind-xml name="WatchURL" node="attribute" />
+		</field>
 	</class>
 
 	<class name="org.cip4.bambi.richclient.value.QueueVO">

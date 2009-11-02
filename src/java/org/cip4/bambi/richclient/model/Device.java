@@ -93,6 +93,8 @@ public class Device {
 	private final Hotfolder hotfolder;
 	private final JobStatistic jobStatistic;
 	private final Queue queue;
+	private final String typeExpression;
+	private final String watchUrl;
 	private final List<MsgSubscription> msgSubscriptions;
 
 	/**
@@ -115,6 +117,8 @@ public class Device {
 		private Hotfolder hotfolder = null;
 		private JobStatistic jobStatistic = null;
 		private Queue queue = null;
+		private String typeExpression;
+		private String watchUrl;
 		private List<MsgSubscription> msgSubscriptions = null;
 
 		/**
@@ -141,6 +145,8 @@ public class Device {
 			hotfolder = new Hotfolder.Builder(vo).build();
 			jobStatistic = new JobStatistic.Builder(vo).build();
 			queue = null;
+			typeExpression = vo.getTypeExpression();
+			watchUrl = vo.getWatchUrl();
 
 			// resolve devices list
 			if (vo.getMsgSubscriptions() != null) {
@@ -169,6 +175,8 @@ public class Device {
 			hotfolder = device.getHotfolder();
 			jobStatistic = device.getJobStatistic();
 			queue = device.queue;
+			typeExpression = device.typeExpression;
+			watchUrl = device.watchUrl;
 			msgSubscriptions = device.getMsgSubscriptions();
 		}
 
@@ -218,6 +226,16 @@ public class Device {
 			return this;
 		}
 
+		public Builder typeExpression(String val) {
+			typeExpression = val;
+			return this;
+		}
+
+		public Builder watchUrl(String val) {
+			watchUrl = val;
+			return this;
+		}
+
 		/**
 		 * Creates and returns a new device object.
 		 * @return device instance
@@ -243,6 +261,8 @@ public class Device {
 		hotfolder = builder.hotfolder;
 		jobStatistic = builder.jobStatistic;
 		queue = builder.queue;
+		typeExpression = builder.typeExpression;
+		watchUrl = builder.watchUrl;
 		msgSubscriptions = Collections.unmodifiableList(builder.msgSubscriptions);
 	}
 
@@ -332,6 +352,22 @@ public class Device {
 	 */
 	public Queue getQueue() {
 		return queue;
+	}
+
+	/**
+	 * Getter for typeExpression attribute.
+	 * @return the typeExpression
+	 */
+	public String getTypeExpression() {
+		return typeExpression;
+	}
+
+	/**
+	 * Getter for watchUrl attribute.
+	 * @return the watchUrl
+	 */
+	public String getWatchUrl() {
+		return watchUrl;
 	}
 
 	/**

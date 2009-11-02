@@ -76,12 +76,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.ajax4jsf.event.PushEventListener;
 import org.cip4.bambi.richclient.data.DevicesContext;
 import org.cip4.bambi.richclient.data.DevicesContextFactory;
 import org.cip4.bambi.richclient.model.Device;
 import org.cip4.bambi.richclient.model.DeviceList;
 import org.cip4.bambi.richclient.model.QueueEntry;
+import org.cip4.bambi.richclient.value.DeviceVO;
 
 /**
  * Backing bean for devices functionality. This bean is Application scoped and just exists once. Thats important for performance!
@@ -108,7 +108,7 @@ public class DevicesBean {
 
 	private Device selectedDevice;
 
-	PushEventListener listener;
+	private DeviceVO device2Modify;
 
 	private String selectedDeviceId;
 
@@ -198,6 +198,38 @@ public class DevicesBean {
 
 		// return selected device
 		return selectedDevice;
+	}
+
+	/**
+	 * Getter for device2Modify attribute.
+	 * @return the device2Modify
+	 */
+	public DeviceVO getDevice2Modify() {
+		if (device2Modify == null || selectedDevice == null) {
+			device2Modify = new DeviceVO();
+		} else if (!selectedDevice.getId().equals(device2Modify.getId())) {
+			device2Modify = new DeviceVO(selectedDevice);
+		}
+
+		return device2Modify;
+	}
+
+	/**
+	 * Submit changes.
+	 * @return null (no action)
+	 */
+	public String submitModifyDevice() {
+		// modified device object
+		Device device = new Device.Builder(device2Modify).build();
+
+		// submit changes
+		devicesContext.modifyDevice(device);
+
+		// set device2Modify null
+		device2Modify = null;
+
+		// no action
+		return null;
 	}
 
 	/**

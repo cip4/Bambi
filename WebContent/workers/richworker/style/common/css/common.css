@@ -17,6 +17,8 @@ form {
 	width: 800px;
 	height: auto;
 	border-collapse: collapse;
+	border-style: solid;
+	border: solid #000000 1px;
 }
 
 .layout-header {

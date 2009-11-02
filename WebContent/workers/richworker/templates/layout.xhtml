@@ -13,7 +13,7 @@
 		<link href="#{facesContext.externalContext.request.contextPath}/style/common/css/common.css" type="text/css" rel="Stylesheet"/>
 	</head>
 	<body>
-		<h:form>
+		
 			<div style="height: 100%">
 				<table class="layout-table" width="800px">
 					<tr class="layout-header">
@@ -23,10 +23,14 @@
 					</tr>
 					<tr class="layout-menu">
 						<td height="25">
-							<ui:insert name="clock">Time</ui:insert>
+							<h:form>
+								<ui:insert name="clock">Time</ui:insert>
+							</h:form>
 						</td>
 						<td height="25" align="right">
-							<ui:insert name="settings">Settings</ui:insert>
+							<h:form>
+								<ui:insert name="settings">Settings</ui:insert>
+							</h:form>
 						</td>
 					</tr>
 					<tr class="layout-body">
@@ -36,7 +40,6 @@
 					</tr>
 				</table>
 			</div>
-		</h:form>
 	</body>
 </f:view>
 </html>

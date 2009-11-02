@@ -70,6 +70,8 @@ package org.cip4.bambi.richclient.value;
 
 import java.util.List;
 
+import org.cip4.bambi.richclient.model.Device;
+
 /**
  * Device value Object PoJo, includes all device attributes.
  * @author smeissner
@@ -91,6 +93,8 @@ public class DeviceVO {
 	private int queueCompleted;
 	private int queueRunning;
 	private String queueStatus;
+	private String typeExpression;
+	private String watchUrl;
 	private List<MsgSubscriptionVO> msgSubscriptions;
 
 	/**
@@ -98,6 +102,29 @@ public class DeviceVO {
 	 */
 	public DeviceVO() {
 
+	}
+
+	/**
+	 * Default constructor.
+	 */
+	public DeviceVO(Device device) {
+		context = device.getContext();
+		id = device.getId();
+		status = device.getStatus();
+		type = device.getType();
+		url = device.getUrl();
+		numRequests = device.getNumRequests();
+		root = device.isRoot();
+		modify = device.isModify();
+		errorFolder = device.getHotfolder().getErrorFolder();
+		inputFolder = device.getHotfolder().getInputFolder();
+		outputFolder = device.getHotfolder().getOutputFolder();
+		queueWaiting = device.getJobStatistic().getWaiting();
+		queueCompleted = device.getJobStatistic().getCompleted();
+		queueRunning = device.getJobStatistic().getRunning();
+		queueStatus = device.getJobStatistic().getStatus();
+		watchUrl = device.getWatchUrl();
+		typeExpression = device.getTypeExpression();
 	}
 
 	/**
@@ -338,6 +365,38 @@ public class DeviceVO {
 	 */
 	public void setQueueStatus(String queueStatus) {
 		this.queueStatus = queueStatus;
+	}
+
+	/**
+	 * Getter for typeExpression attribute.
+	 * @return the typeExpression
+	 */
+	public String getTypeExpression() {
+		return typeExpression;
+	}
+
+	/**
+	 * Setter for typeExpression attribute.
+	 * @param typeExpression the typeExpression to set
+	 */
+	public void setTypeExpression(String typeExpression) {
+		this.typeExpression = typeExpression;
+	}
+
+	/**
+	 * Getter for watchUrl attribute.
+	 * @return the watchUrl
+	 */
+	public String getWatchUrl() {
+		return watchUrl;
+	}
+
+	/**
+	 * Setter for watchUrl attribute.
+	 * @param watchUrl the watchUrl to set
+	 */
+	public void setWatchUrl(String watchUrl) {
+		this.watchUrl = watchUrl;
 	}
 
 	/**

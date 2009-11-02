@@ -85,6 +85,18 @@ public interface DevicesContext {
 	public DeviceList getDeviceList();
 
 	/**
+	 * Modify device details.
+	 * @param device Modified device details
+	 */
+	public void modifyDevice(Device device);
+
+	/**
+	 * Restarts a devices.
+	 * @param deviceId Device to restart.
+	 */
+	public void restartDevice(String deviceId);
+
+	/**
 	 * Returns a single device object including all queue and subscription entities.
 	 * @param deviceId Device to load
 	 * @param sessionId Clients session Id

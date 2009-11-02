@@ -102,7 +102,7 @@ public class DevicesContextImplTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 
-		devicesContextImpl = new DevicesContextImpl();
+		devicesContextImpl = new DevicesContextImpl(true);
 	}
 
 	/**
@@ -224,6 +224,8 @@ public class DevicesContextImplTest extends TestCase {
 		assertEquals("Mapping DeviceVO.DeviceStatus is wrong!", "status", deviceVO.getStatus());
 		assertEquals("Mapping DeviceVO.DeviceType is wrong!", "type", deviceVO.getType());
 		assertEquals("Mapping DeviceVO.DeviceURL is wrong!", "deviceUrl", deviceVO.getUrl());
+		assertEquals("Mapping DeviceVO.TypeExpression is wrong!", "typeExpression", deviceVO.getTypeExpression());
+		assertEquals("Mapping DeviceVO.WatchURL is wrong!", "watchUrl", deviceVO.getWatchUrl());
 
 		assertEquals("Mapping DeviceVO.ErrorHF is wrong!", "errorHF", deviceVO.getErrorFolder());
 		assertEquals("Mapping DeviceVO.InputHF is wrong!", "inputHF", deviceVO.getInputFolder());
@@ -232,7 +234,7 @@ public class DevicesContextImplTest extends TestCase {
 		assertEquals("Mapping DeviceVO.QueueCompleted is wrong!", 2, deviceVO.getQueueCompleted());
 
 		assertEquals("Mapping DeviceVO.QueueRunning is wrong!", 3, deviceVO.getQueueRunning());
-		assertEquals("Mapping DeviceVO.QueueStatus is wrong!", "QueueStatus", deviceVO.getQueueStatus());
+		assertEquals("Mapping DeviceVO.QueueStatus is wrong!", "queueStatus", deviceVO.getQueueStatus());
 		assertEquals("Mapping DeviceVO.QueueWaiting is wrong!", 4, deviceVO.getQueueWaiting());
 		assertEquals("Mapping DeviceVO.Root is wrong!", true, deviceVO.isRoot());
 		assertEquals("Mapping DeviceVO.modify is wrong!", true, deviceVO.isModify());

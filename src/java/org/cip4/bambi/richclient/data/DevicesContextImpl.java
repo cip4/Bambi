@@ -105,6 +105,8 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 
 	private static final String URL_DEVICES_QUEUE_ROOT = "http://localhost:8080/richworker/showQueue/";
 
+	private static final String URL_DEVICES_DETAILS_ROOT = "http://localhost:8080/richworker/showDevice/";
+
 	private static final String URL_DEVICES_SUBSCRIPTIONS = "http://localhost:8080/richworker/showSubscriptions/";
 
 	private final Hashtable<String, Long> hashSession = new Hashtable<String, Long>();
@@ -129,22 +131,32 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 	 * Package private default constructor. Initializing component.
 	 */
 	DevicesContextImpl() {
+		this(false);
+	}
+
+	/**
+	 * Package private custom constructor Accepting a value for update. Initializing component.
+	 */
+	DevicesContextImpl(boolean isTest) {
 		// initialize caches
 		cacheLazyQueues = new Hashtable<String, LazyQueue>();
-
-		// load devices / queues
-		try {
-			updateDevices();
-			updateQueueEntries();
-		} catch (Exception e) {
-			throw new Error(e);
-		}
 
 		// initialize cacheUpdater thread
 		threadCacheUpdater = new Thread(this);
 		threadCacheUpdater.setName(THREAD_UPDATER_NAME);
 		threadCacheUpdater.setDaemon(true);
-		threadCacheUpdater.start();
+
+		if (!isTest) {
+			// load devices / queues
+			try {
+				updateDevices();
+				updateQueueEntries();
+			} catch (Exception e) {
+				throw new Error(e);
+			}
+
+			threadCacheUpdater.start();
+		}
 	}
 
 	/**
@@ -152,6 +164,45 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 	 */
 	public DeviceList getDeviceList() {
 		return cacheDeviceList;
+	}
+
+	/**
+	 * @see org.cip4.bambi.richclient.data.DevicesContext#modifyDevice(org.cip4.bambi.richclient.model.Device)
+	 */
+	public void modifyDevice(Device device) {
+		// build parameter list
+		StringBuilder paraBuilder = new StringBuilder();
+
+		// add parameter
+		paraBuilder.append("DeviceType=");
+		paraBuilder.append(device.getType());
+		paraBuilder.append("&WatchURL=");
+		paraBuilder.append(device.getWatchUrl());
+		paraBuilder.append("&TypeExpression=");
+		paraBuilder.append(device.getTypeExpression());
+		paraBuilder.append("&InputHF=");
+		paraBuilder.append(device.getHotfolder().getInputFolder());
+		paraBuilder.append("&OutputHF=");
+		paraBuilder.append(device.getHotfolder().getOutputFolder());
+		paraBuilder.append("&ErrorHF=");
+		paraBuilder.append(device.getHotfolder().getErrorFolder());
+
+		// submit parameter
+		submitQuery(URL_DEVICES_DETAILS_ROOT, device.getId(), paraBuilder.toString());
+
+		// restart device
+		restartDevice(device.getId());
+	}
+
+	/**
+	 * @see org.cip4.bambi.richclient.data.DevicesContext#restartDevice(java.lang.String)
+	 */
+	public void restartDevice(String deviceId) {
+		// control parameter
+		String ctlParam = "setup=true&restart=true";
+
+		// submit
+		submitQuery(URL_DEVICES_QUEUE_ROOT, deviceId, ctlParam);
 	}
 
 	/**
@@ -213,7 +264,7 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 		String ctlParam = "close=true";
 
 		// submit
-		submitQueueParameter(deviceId, ctlParam);
+		submitQuery(URL_DEVICES_QUEUE_ROOT, deviceId, ctlParam);
 	}
 
 	/**
@@ -224,7 +275,7 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 		String ctlParam = "flush=true";
 
 		// submit
-		submitQueueParameter(deviceId, ctlParam);
+		submitQuery(URL_DEVICES_QUEUE_ROOT, deviceId, ctlParam);
 	}
 
 	/**
@@ -235,7 +286,7 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 		String ctlParam = "hold=true";
 
 		// submit
-		submitQueueParameter(deviceId, ctlParam);
+		submitQuery(URL_DEVICES_QUEUE_ROOT, deviceId, ctlParam);
 	}
 
 	/**
@@ -246,7 +297,7 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 		String ctlParam = "open=true";
 
 		// submit
-		submitQueueParameter(deviceId, ctlParam);
+		submitQuery(URL_DEVICES_QUEUE_ROOT, deviceId, ctlParam);
 	}
 
 	/**
@@ -257,7 +308,7 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 		String ctlParam = "resume=true";
 
 		// submit
-		submitQueueParameter(deviceId, ctlParam);
+		submitQuery(URL_DEVICES_QUEUE_ROOT, deviceId, ctlParam);
 	}
 
 	/**
@@ -396,9 +447,10 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 	 * @param deviceId DeviceId of queue
 	 * @param parameter parameter to control
 	 */
-	void submitQueueParameter(String deviceId, String parameter) {
+	void submitQuery(String path, String deviceId, String parameter) {
 		// build control url
-		String sUrl = URL_DEVICES_QUEUE_ROOT + deviceId + "?" + parameter + "&quiet=true";
+		// String sUrl = URL_DEVICES_QUEUE_ROOT + deviceId + "?" + parameter + "&quiet=true";
+		String sUrl = path + deviceId + "?" + parameter + "&quiet=true";
 
 		try {
 			// open connection and load stream
