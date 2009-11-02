@@ -78,6 +78,7 @@ import junit.framework.TestCase;
 
 import org.cip4.bambi.richclient.value.DeviceListVO;
 import org.cip4.bambi.richclient.value.DeviceVO;
+import org.cip4.bambi.richclient.value.EmployeeVO;
 import org.cip4.bambi.richclient.value.MsgSubscriptionVO;
 import org.cip4.bambi.richclient.value.QueueEntryVO;
 import org.cip4.bambi.richclient.value.QueueVO;
@@ -238,6 +239,16 @@ public class DevicesContextImplTest extends TestCase {
 		assertEquals("Mapping DeviceVO.QueueWaiting is wrong!", 4, deviceVO.getQueueWaiting());
 		assertEquals("Mapping DeviceVO.Root is wrong!", true, deviceVO.isRoot());
 		assertEquals("Mapping DeviceVO.modify is wrong!", true, deviceVO.isModify());
+
+		// employees
+		assertEquals("Number Emplyoees is wrong.", 2, deviceVO.getEmployees().size());
+		EmployeeVO employeeVO = deviceVO.getEmployees().get(0);
+		assertEquals("Mapping EmployeeVO.ProductId is wrong!", "productId", employeeVO.getProductId());
+		assertEquals("Mapping EmployeeVO.Roles is wrong!", "roles", employeeVO.getRoles());
+		assertEquals("Mapping EmployeeVO.DescriptiveName is wrong!", "descriptiveName", employeeVO.getDescriptiveName());
+
+		// known employees
+		assertEquals("Number KnownEmplyoees is wrong.", 3, deviceVO.getKnownEmployees().size());
 	}
 
 	/**

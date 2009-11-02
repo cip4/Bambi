@@ -77,6 +77,12 @@
 		<field name="watchUrl" type="string">
 			<bind-xml name="WatchURL" node="attribute" />
 		</field>
+		<field name="employees" type="org.cip4.bambi.richclient.value.EmployeeVO" collection="arraylist" >
+	      <bind-xml name="Employee" node="element" />
+	   </field>
+	   <field name="knownEmployees" type="org.cip4.bambi.richclient.value.EmployeeVO" collection="arraylist" >
+	      <bind-xml name="Employee" location="KnownEmployees" node="element" />
+	   </field>
 	</class>
 
 	<class name="org.cip4.bambi.richclient.value.QueueVO">
@@ -182,6 +188,19 @@
 		</field>
 		<field name="url" type="string">
 			<bind-xml name="URL" node="attribute" />
+		</field>
+	</class>
+	
+	<class name="org.cip4.bambi.richclient.value.EmployeeVO">
+		<map-to xml="Employee" />
+		<field name="productId" type="string">
+			<bind-xml name="ProductID" node="attribute" />
+		</field>
+		<field name="roles" type="string">
+			<bind-xml name="Roles" node="attribute" />
+		</field>
+		<field name="descriptiveName" type="string">
+			<bind-xml name="DescriptiveName" location="Person" node="attribute" />
 		</field>
 	</class>
 </mapping>

@@ -7,23 +7,27 @@
 		InputHF="inputHF" NumRequests="1" OutputHF="outputHF" QueueCompleted="2"
 		QueueRunning="3" QueueStatus="queueStatus" QueueWaiting="4" Root="true"
 		modify="true" TypeExpression="typeExpression" WatchURL="watchUrl"
-		login="true" >
+		login="true">
+		<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
+			ProductID="productId" Roles="roles">
+			<Person DescriptiveName="descriptiveName" />
+		</Employee>
+		<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
+			ProductID="E3" Roles="Operator">
+			<Person DescriptiveName="John Doe" />
+		</Employee>
 		<KnownEmployees>
-			<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
-				ProductID="E1" Roles="Operator">
-				<Person DescriptiveName="Joe Cool" />
-			</Employee>
 			<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
 				ProductID="E2" Roles="Operator">
 				<Person DescriptiveName="Harry II" />
 			</Employee>
 			<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
-				ProductID="E3" Roles="Operator">
-				<Person DescriptiveName="John Doe" />
-			</Employee>
-			<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
 				ProductID="E4" Roles="Operator">
 				<Person DescriptiveName="Fool Hardy" />
+			</Employee>
+			<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
+				ProductID="E5" Roles="Operator">
+				<Person DescriptiveName="Edgar" />
 			</Employee>
 		</KnownEmployees>
 	</XMLDevice>

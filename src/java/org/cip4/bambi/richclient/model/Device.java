@@ -73,6 +73,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.cip4.bambi.richclient.value.DeviceVO;
+import org.cip4.bambi.richclient.value.EmployeeVO;
 import org.cip4.bambi.richclient.value.MsgSubscriptionVO;
 
 /**
@@ -96,6 +97,8 @@ public class Device {
 	private final String typeExpression;
 	private final String watchUrl;
 	private final List<MsgSubscription> msgSubscriptions;
+	private final List<Employee> employees;
+	private final List<Employee> knownEmployees;
 
 	/**
 	 * Builder class to create object.
@@ -120,6 +123,8 @@ public class Device {
 		private String typeExpression;
 		private String watchUrl;
 		private List<MsgSubscription> msgSubscriptions = null;
+		private List<Employee> employees = null;
+		private List<Employee> knownEmployees = null;
 
 		/**
 		 * Custom builder constructor. Accepting a deviceId for initialize.
@@ -148,7 +153,7 @@ public class Device {
 			typeExpression = vo.getTypeExpression();
 			watchUrl = vo.getWatchUrl();
 
-			// resolve devices list
+			// resolve subscriptions
 			if (vo.getMsgSubscriptions() != null) {
 				msgSubscriptions = new ArrayList<MsgSubscription>(vo.getMsgSubscriptions().size());
 
@@ -156,6 +161,26 @@ public class Device {
 					msgSubscriptions.add(new MsgSubscription.Builder(msgSubscriptionVO).build());
 			} else {
 				msgSubscriptions = new ArrayList<MsgSubscription>();
+			}
+
+			// employees
+			if (vo.getEmployees() != null) {
+				employees = new ArrayList<Employee>(vo.getEmployees().size());
+
+				for (EmployeeVO employeeVO : vo.getEmployees())
+					employees.add(new Employee.Builder(employeeVO).build());
+			} else {
+				employees = new ArrayList<Employee>();
+			}
+
+			// knownEmployees
+			if (vo.getKnownEmployees() != null) {
+				knownEmployees = new ArrayList<Employee>(vo.getKnownEmployees().size());
+
+				for (EmployeeVO employeeVO : vo.getKnownEmployees())
+					knownEmployees.add(new Employee.Builder(employeeVO).build());
+			} else {
+				knownEmployees = new ArrayList<Employee>();
 			}
 		}
 
@@ -177,6 +202,8 @@ public class Device {
 			queue = device.queue;
 			typeExpression = device.typeExpression;
 			watchUrl = device.watchUrl;
+			employees = device.getEmployees();
+			knownEmployees = device.getKnownEmployees();
 			msgSubscriptions = device.getMsgSubscriptions();
 		}
 
@@ -264,6 +291,8 @@ public class Device {
 		typeExpression = builder.typeExpression;
 		watchUrl = builder.watchUrl;
 		msgSubscriptions = Collections.unmodifiableList(builder.msgSubscriptions);
+		employees = Collections.unmodifiableList(builder.employees);
+		knownEmployees = Collections.unmodifiableList(builder.knownEmployees);
 	}
 
 	/**
@@ -376,6 +405,22 @@ public class Device {
 	 */
 	public List<MsgSubscription> getMsgSubscriptions() {
 		return msgSubscriptions;
+	}
+
+	/**
+	 * Getter for employees attribute.
+	 * @return the employees
+	 */
+	public List<Employee> getEmployees() {
+		return employees;
+	}
+
+	/**
+	 * Getter for knownEmployees attribute.
+	 * @return the knownEmployees
+	 */
+	public List<Employee> getKnownEmployees() {
+		return knownEmployees;
 	}
 
 	/**

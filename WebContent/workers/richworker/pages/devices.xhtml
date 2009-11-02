@@ -52,11 +52,16 @@
 			width: 400px;
 			border: solid #000000 1px;
 		}
+		
+		.loginUserBox {
+			width: 340px;
+			height: 375px;
+		}
 	-->
 	</style>
 	
 	<h:form>
-	<a4j:poll interval="2000" reRender="deviceTable,requests,selectedDeviceDetail,subscriptions,gridDeviceDetail" />
+	<a4j:poll interval="2000" reRender="deviceTable,requests,selectedDeviceDetail,subscriptions,gridDeviceDetail,pnlKnownEmployees,pnlEmployees" />
 
 	<rich:simpleTogglePanel switchType="client"
 		label="#{app['devices.title']}" style="margin: 10px">
@@ -176,15 +181,15 @@
 	        	<!-- toolbar -->
 	        	<rich:toolBar height="26" itemSeparator="grid">
 					<rich:toolBarGroup>
-						<a4j:commandButton image="/style/common/icons/fileopen.png" action="#{devicesBean.queueOpen}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.open']}" styleClass="toolbarIcon" />
-					    <a4j:commandButton image="/style/common/icons/fileclose.png" action="#{devicesBean.queueClose}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.close']}" styleClass="toolbarIcon" />
+						<a4j:commandButton image="/style/common/icons/fileopen.png" action="#{devicesBean.queueOpen}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.open']}" styleClass="toolbarIcon" reRender="deviceTable,requests,selectedDeviceDetail" />
+					    <a4j:commandButton image="/style/common/icons/fileclose.png" action="#{devicesBean.queueClose}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.close']}" styleClass="toolbarIcon" reRender="deviceTable,requests,selectedDeviceDetail" />
 					</rich:toolBarGroup>
 					<rich:toolBarGroup>
-						<a4j:commandButton image="/style/common/icons/player_pause.png" action="#{devicesBean.queueHold}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.hold']}" styleClass="toolbarIcon" />
-					    <a4j:commandButton image="/style/common/icons/player_play.png" action="#{devicesBean.queueResume}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.resume']}" styleClass="toolbarIcon" />
+						<a4j:commandButton image="/style/common/icons/player_pause.png" action="#{devicesBean.queueHold}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.hold']}" styleClass="toolbarIcon" reRender="deviceTable,requests,selectedDeviceDetail" />
+					    <a4j:commandButton image="/style/common/icons/player_play.png" action="#{devicesBean.queueResume}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.resume']}" styleClass="toolbarIcon" reRender="deviceTable,requests,selectedDeviceDetail"  />
 			  		</rich:toolBarGroup>
 			  		<rich:toolBarGroup>
-					    <a4j:commandButton image="/style/common/icons/delete_table.png" action="#{devicesBean.queueFlush}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.flush']}" styleClass="toolbarIcon" />
+					    <a4j:commandButton image="/style/common/icons/delete_table.png" action="#{devicesBean.queueFlush}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.flush']}" styleClass="toolbarIcon" reRender="deviceTable,requests,selectedDeviceDetail" />
 			  		</rich:toolBarGroup>
 					<rich:toolBarGroup location="right">
 						<a4j:commandButton image="/style/common/icons/reload_page.png" action="#{devicesBean.queueRefresh}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.refresh']}" styleClass="toolbarIcon" reRender="queueEntries" />
@@ -279,10 +284,68 @@
 	        </rich:tab>
 	        
 	        <!--  fourth tab -->
-	        <rich:tab label="#{app['device.detail.subscriptions']}">
-	        	<rich:pickList>
-	        	
-	        	</rich:pickList>
+	        <rich:tab label="#{app['device.detail.login']}">
+	        	<h:panelGrid columns="3">
+	        		<h:graphicImage value="/style/common/images/agt_family.png" />
+	        		<rich:spacer height="10px" width="10px"/>
+	        		<h:outputText value="#{app['device.detail.login.desc']}"/>
+	        		
+	        		<rich:spacer height="10px" width="10px"/>
+	        	</h:panelGrid>
+	        
+	        	<rich:dragIndicator id="indicatorEmployees" />
+				
+	        	<h:panelGrid columns="3" width="100%">
+	        		<rich:panel id="pnlKnownEmployees" styleClass="loginUserBox">
+	        			<f:facet name="header">
+		                    <h:outputText value="#{app['device.detail.knownEmployees']}" />
+		                </f:facet>
+		                <rich:dropSupport id="dropKnownEmployee" acceptedTypes="employee" dropValue="logout"
+		                    dropListener="#{devicesBean.processEmployeeDrop}" reRender="pnlKnownEmployees,pnlEmployees">
+		                </rich:dropSupport>
+		                <h:dataTable id="tblKnownEmployees" columns="1" value="#{devicesBean.selectedDevice.knownEmployees}"
+                    		var="knownEmployee" >
+                    		<h:column>
+								<a4j:outputPanel style="width:260px;border:1px solid gray;padding:2px" layout="block">
+		                            <rich:dragSupport dragIndicator="indicatorEmployees"
+		                                dragType="employee" dragValue="#{knownEmployee.productId}">
+		                                <rich:dndParam name="label" value="#{knownEmployee.descriptiveName}" />
+		                            </rich:dragSupport>
+		                            <h:panelGrid columns="2">
+			                            <h:graphicImage value="/style/common/icons/personal.png" />
+			                            <h:outputText value="#{knownEmployee.descriptiveName}" />
+		                            </h:panelGrid>
+		                        </a4j:outputPanel>                    		
+                    		</h:column>
+                    	</h:dataTable>
+	        		</rich:panel>
+	        		
+	        		<rich:spacer width="50px" height="1px"/>
+	        		
+	        		<rich:panel id="pnlEmployees" styleClass="loginUserBox">
+	        			<f:facet name="header">
+		                    <h:outputText value="#{app['device.detail.employees']}" />
+		                </f:facet>
+		                <rich:dropSupport id="dropEmployee" acceptedTypes="employee" dropValue="login"
+		                    dropListener="#{devicesBean.processEmployeeDrop}" reRender="pnlKnownEmployees,pnlEmployees">
+		                </rich:dropSupport>
+		                <h:dataTable id="tblEmployees" columns="1" value="#{devicesBean.selectedDevice.employees}"
+                    		var="employee" >
+                    		<h:column>
+								<a4j:outputPanel style="width:260px;border:1px solid gray;padding:2px" layout="block">
+		                            <rich:dragSupport dragIndicator="indicatorEmployees"
+		                                dragType="employee" dragValue="#{employee.productId}">
+		                                <rich:dndParam name="label" value="#{employee.descriptiveName}" />
+		                            </rich:dragSupport>
+		                            <h:panelGrid columns="2">
+			                            <h:graphicImage value="/style/common/icons/personal.png" />
+			                            <h:outputText value="#{employee.descriptiveName}" />
+		                            </h:panelGrid>
+		                        </a4j:outputPanel>                    		
+                    		</h:column>
+                    	</h:dataTable>
+	        		</rich:panel>
+	        	</h:panelGrid>
 	        </rich:tab>
 	    </rich:tabPanel>
 	</rich:simpleTogglePanel>
@@ -398,7 +461,7 @@
 					<rich:spacer width="1" height="5" />
 				</h:panelGrid>
 				
-				<a4j:commandButton value="#{app['modal.modify.save']}" action="#{devicesBean.submitModifyDevice}" reRender="gridDeviceDetail" onclick="#{rich:component('pnlModify')}.hide()" />
+				<a4j:commandButton value="#{app['modal.modify.save']}" action="#{devicesBean.submitModifyDevice}" reRender="deviceDetail,deviceTable" onclick="#{rich:component('pnlModify')}.hide()" />
 				<a4j:commandButton value="#{app['modal.modify.cancel']}" onclick="#{rich:component('pnlModify')}.hide(); return false;" />
 			</h:form>
     </rich:modalPanel>

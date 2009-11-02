@@ -76,7 +76,7 @@ import org.cip4.bambi.richclient.value.DeviceListVO;
 import org.cip4.bambi.richclient.value.DeviceVO;
 
 /**
- * DeviceList View Object PoJo, includes all device list attributes and a device-find-by-id method.
+ * DeviceList PoJo including static builder class.
  * @author smeissner
  * @date 28.09.2009
  */

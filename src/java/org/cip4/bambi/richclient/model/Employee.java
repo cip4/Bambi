@@ -66,93 +66,102 @@
  *  
  * 
  */
-package org.cip4.bambi.richclient.data;
+package org.cip4.bambi.richclient.model;
 
-import org.cip4.bambi.richclient.model.Device;
-import org.cip4.bambi.richclient.model.DeviceList;
+import org.cip4.bambi.richclient.value.EmployeeVO;
 
 /**
- * Business interface device data access.
+ * Employee PoJo including static builder class.
  * @author smeissner
- * @date 30.09.2009
+ * @date 02.11.2009
  */
-public interface DevicesContext {
+public class Employee {
+	private final String productId;
+	private final String roles;
+	private final String descriptiveName;
 
 	/**
-	 * Returns an overview of all devices in cache without queue and subscriptions.
-	 * @return list of device objects
+	 * Builder class to create object.
+	 * @author smeissner
+	 * @date 25.09.2009
 	 */
-	public DeviceList getDeviceList();
+	public static class Builder {
+		private String productId;
+		private String roles;
+		private String descriptiveName;
+
+		/**
+		 * Default constructor.
+		 */
+		public Builder() {
+		}
+
+		/**
+		 * Custom builder constructor. Accepting a device view object for initialize.
+		 * @param deviceId device id
+		 */
+		public Builder(EmployeeVO vo) {
+			productId = vo.getProductId();
+			roles = vo.getRoles();
+			descriptiveName = vo.getDescriptiveName();
+		}
+
+		// Builder methods
+		public Builder productId(String val) {
+			productId = val;
+			return this;
+		}
+
+		public Builder roles(String val) {
+			roles = val;
+			return this;
+		}
+
+		public Builder descriptiveName(String val) {
+			descriptiveName = val;
+			return this;
+		}
+
+		/**
+		 * Creates and returns a new device object.
+		 * @return device instance
+		 */
+		public Employee build() {
+			return new Employee(this);
+		}
+	}
 
 	/**
-	 * Modify device details.
-	 * @param device Modified device details
+	 * Private custom constructor for initializing employee object by builder.
+	 * @param builder Builder instance
 	 */
-	public void modifyDevice(Device device);
+	private Employee(Builder builder) {
+		productId = builder.productId;
+		roles = builder.roles;
+		descriptiveName = builder.descriptiveName;
+	}
 
 	/**
-	 * Restarts a devices.
-	 * @param deviceId Device to restart.
+	 * Getter for productId attribute.
+	 * @return the productId
 	 */
-	public void restartDevice(String deviceId);
+	public String getProductId() {
+		return productId;
+	}
 
 	/**
-	 * Returns a single device object including all queue and subscription entities.
-	 * @param deviceId Device to load
-	 * @param sessionId Clients session Id
-	 * @return Device object including all references
+	 * Getter for roles attribute.
+	 * @return the roles
 	 */
-	public Device getDevice(String deviceId, String sessionUuid);
+	public String getRoles() {
+		return roles;
+	}
 
 	/**
-	 * Returns a single device object including just the changes since last update.
-	 * @param deviceId Device to load
-	 * @param sessionId Clients session id
-	 * @return Device object including all changed references
+	 * Getter for descriptiveName attribute.
+	 * @return the descriptiveName
 	 */
-	public Device getDeviceDiff(String deviceId, String sessionId);
-
-	/**
-	 * Opens devices queue.
-	 * @param deviceId Devices id to open
-	 */
-	public void queueOpen(String deviceId);
-
-	/**
-	 * Closes devices queue.
-	 * @param deviceId Devices id to close
-	 */
-	public void queueClose(String deviceId);
-
-	/**
-	 * Holds devices queue.
-	 * @param deviceId Devices id to hold
-	 */
-	public void queueHold(String deviceId);
-
-	/**
-	 * Resumes devices queue.
-	 * @param deviceId Devices id to resume
-	 */
-	public void queueResume(String deviceId);
-
-	/**
-	 * Flushes devices queue.
-	 * @param deviceId Devices id to flush
-	 */
-	public void queueFlush(String deviceId);
-
-	/**
-	 * Login an employee for a device
-	 * @param deviceId Device to login
-	 * @param personalId Employee to login
-	 */
-	public void employeeLogin(String deviceId, String personalId);
-
-	/**
-	 * Logout an employee for a device.
-	 * @param deviceId Device to logout
-	 * @param personalId Employee to logout
-	 */
-	public void employeeLogout(String deviceId, String personalId);
+	public String getDescriptiveName() {
+		return descriptiveName;
+	}
 }

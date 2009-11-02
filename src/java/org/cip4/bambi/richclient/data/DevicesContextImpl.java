@@ -109,6 +109,8 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 
 	private static final String URL_DEVICES_SUBSCRIPTIONS = "http://localhost:8080/richworker/showSubscriptions/";
 
+	public static final String URL_DEVICES_INOUT = "http://localhost:8080/richworker/login/";
+
 	private final Hashtable<String, Long> hashSession = new Hashtable<String, Long>();
 
 	private static final int UPDATE_INTERVAL = 2000;
@@ -147,13 +149,8 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 		threadCacheUpdater.setDaemon(true);
 
 		if (!isTest) {
-			// load devices / queues
-			try {
-				updateDevices();
-				updateQueueEntries();
-			} catch (Exception e) {
-				throw new Error(e);
-			}
+			updateDevices();
+			updateQueueEntries();
 
 			threadCacheUpdater.start();
 		}
@@ -192,6 +189,9 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 
 		// restart device
 		restartDevice(device.getId());
+
+		// update
+		updateDevices();
 	}
 
 	/**
@@ -203,6 +203,9 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 
 		// submit
 		submitQuery(URL_DEVICES_QUEUE_ROOT, deviceId, ctlParam);
+
+		// update
+		updateDevices();
 	}
 
 	/**
@@ -239,7 +242,6 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -265,6 +267,9 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 
 		// submit
 		submitQuery(URL_DEVICES_QUEUE_ROOT, deviceId, ctlParam);
+
+		// update
+		updateDevices();
 	}
 
 	/**
@@ -276,6 +281,10 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 
 		// submit
 		submitQuery(URL_DEVICES_QUEUE_ROOT, deviceId, ctlParam);
+
+		// update
+		updateDevices();
+		updateQueueEntries();
 	}
 
 	/**
@@ -287,6 +296,9 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 
 		// submit
 		submitQuery(URL_DEVICES_QUEUE_ROOT, deviceId, ctlParam);
+
+		// update
+		updateDevices();
 	}
 
 	/**
@@ -298,6 +310,9 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 
 		// submit
 		submitQuery(URL_DEVICES_QUEUE_ROOT, deviceId, ctlParam);
+
+		// update
+		updateDevices();
 	}
 
 	/**
@@ -309,6 +324,37 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 
 		// submit
 		submitQuery(URL_DEVICES_QUEUE_ROOT, deviceId, ctlParam);
+
+		// update
+		updateDevices();
+	}
+
+	/**
+	 * @see org.cip4.bambi.richclient.data.DevicesContext#employeeLogin(java.lang.String, java.lang.String)
+	 */
+	public void employeeLogin(String deviceId, String personalId) {
+		// control paramter
+		String ctlParam = "PersonalID=" + personalId + "&inout=login";
+
+		// submit
+		submitQuery(URL_DEVICES_INOUT, deviceId, ctlParam);
+
+		// update devices
+		updateDevices();
+	}
+
+	/**
+	 * @see org.cip4.bambi.richclient.data.DevicesContext#employeeLogout(java.lang.String, java.lang.String)
+	 */
+	public void employeeLogout(String deviceId, String personalId) {
+		// control paramter
+		String ctlParam = "PersonalID=" + personalId + "&inout=logout";
+
+		// submit
+		submitQuery(URL_DEVICES_INOUT, deviceId, ctlParam);
+
+		// update devices
+		updateDevices();
 	}
 
 	/**
@@ -318,16 +364,16 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 	public void run() {
 		while (threadCacheUpdater != null) {
 
+			// update devices
+			updateDevices();
+
+			// update queue entries
+			updateQueueEntries();
+
+			// clean up
+			charlady();
+
 			try {
-				// update devices
-				updateDevices();
-
-				// update queue entries
-				updateQueueEntries();
-
-				// clean up
-				charlady();
-
 				// sleep
 				Thread.sleep(UPDATE_INTERVAL);
 			} catch (Exception e) {
@@ -345,25 +391,30 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 	 * @throws ValidationException
 	 * @throws MarshalException
 	 */
-	private void updateDevices() throws Exception {
+	private void updateDevices() {
 
 		DeviceListVO lstVO;
 
-		// open connection and load stream
-		URL url = new URL(URL_DEVICES_OVERVIEW);
-		URLConnection cn = url.openConnection();
-		cn.setDoOutput(true);
+		try {
+			// open connection and load stream
+			URL url = new URL(URL_DEVICES_OVERVIEW);
+			URLConnection cn = url.openConnection();
+			cn.setDoOutput(true);
 
-		// load device list details
-		lstVO = (DeviceListVO) unmarshal(new InputStreamReader(cn.getInputStream()), DeviceListVO.class);
+			// load device list details
+			lstVO = (DeviceListVO) unmarshal(new InputStreamReader(cn.getInputStream()), DeviceListVO.class);
 
-		// set subscriptions
-		for (DeviceVO deviceVO : lstVO.getDevices()) {
-			deviceVO.setMsgSubscriptions(updateSubscriptions(deviceVO.getId()));
+			// set subscriptions
+			for (DeviceVO deviceVO : lstVO.getDevices()) {
+				deviceVO.setMsgSubscriptions(updateSubscriptions(deviceVO.getId()));
+			}
+
+			// map to DeviceList and cache
+			cacheDeviceList = new DeviceList.Builder(lstVO).build();
+		} catch (Exception ex) {
+			// new empty list
+			cacheDeviceList = new DeviceList.Builder().build();
 		}
-
-		// map to DeviceList and cache
-		cacheDeviceList = new DeviceList.Builder(lstVO).build();
 	}
 
 	/**
@@ -392,7 +443,7 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 	 * @throws ValidationException
 	 * @throws MarshalException
 	 */
-	private void updateQueueEntries() throws MarshalException, ValidationException, IOException, MappingException {
+	private void updateQueueEntries() {
 		// check for devices
 		if (cacheDeviceList == null || cacheDeviceList.getDevices().size() == 0) {
 			return;
@@ -403,13 +454,19 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 			// build url (URL_DEVICES_QUEUE_ROOT + deviceId)
 			String sUrl = URL_DEVICES_QUEUE_ROOT + device.getId() + "?filter=_FILTER_DIF_";
 
-			// open connection and load stream
-			URL url = new URL(sUrl);
-			URLConnection cn = url.openConnection();
-			cn.setDoOutput(true);
+			QueueVO queueVO;
 
-			// load device list details
-			QueueVO queueVO = (QueueVO) unmarshal(new InputStreamReader(cn.getInputStream()), QueueVO.class);
+			try {
+				// open connection and load stream
+				URL url = new URL(sUrl);
+				URLConnection cn = url.openConnection();
+				cn.setDoOutput(true);
+
+				// load device list details
+				queueVO = (QueueVO) unmarshal(new InputStreamReader(cn.getInputStream()), QueueVO.class);
+			} catch (Exception ex) {
+				queueVO = new QueueVO();
+			}
 
 			// build Queue object
 			Queue queue = new Queue.Builder(queueVO).build();

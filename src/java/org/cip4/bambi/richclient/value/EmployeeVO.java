@@ -66,93 +66,64 @@
  *  
  * 
  */
-package org.cip4.bambi.richclient.data;
-
-import org.cip4.bambi.richclient.model.Device;
-import org.cip4.bambi.richclient.model.DeviceList;
+package org.cip4.bambi.richclient.value;
 
 /**
- * Business interface device data access.
+ * Employee value Object PoJo, includes all device attributes.
  * @author smeissner
- * @date 30.09.2009
+ * @date 02.11.2009
  */
-public interface DevicesContext {
+public class EmployeeVO {
+	private String productId;
+	private String roles;
+	private String descriptiveName;
 
 	/**
-	 * Returns an overview of all devices in cache without queue and subscriptions.
-	 * @return list of device objects
+	 * Getter for productId attribute.
+	 * @return the productId
 	 */
-	public DeviceList getDeviceList();
+	public String getProductId() {
+		return productId;
+	}
 
 	/**
-	 * Modify device details.
-	 * @param device Modified device details
+	 * Setter for productId attribute.
+	 * @param productId the productId to set
 	 */
-	public void modifyDevice(Device device);
+	public void setProductId(String productId) {
+		this.productId = productId;
+	}
 
 	/**
-	 * Restarts a devices.
-	 * @param deviceId Device to restart.
+	 * Getter for roles attribute.
+	 * @return the roles
 	 */
-	public void restartDevice(String deviceId);
+	public String getRoles() {
+		return roles;
+	}
 
 	/**
-	 * Returns a single device object including all queue and subscription entities.
-	 * @param deviceId Device to load
-	 * @param sessionId Clients session Id
-	 * @return Device object including all references
+	 * Setter for roles attribute.
+	 * @param roles the roles to set
 	 */
-	public Device getDevice(String deviceId, String sessionUuid);
+	public void setRoles(String roles) {
+		this.roles = roles;
+	}
 
 	/**
-	 * Returns a single device object including just the changes since last update.
-	 * @param deviceId Device to load
-	 * @param sessionId Clients session id
-	 * @return Device object including all changed references
+	 * Getter for descriptiveName attribute.
+	 * @return the descriptiveName
 	 */
-	public Device getDeviceDiff(String deviceId, String sessionId);
+	public String getDescriptiveName() {
+		return descriptiveName;
+	}
 
 	/**
-	 * Opens devices queue.
-	 * @param deviceId Devices id to open
+	 * Setter for descriptiveName attribute.
+	 * @param descriptiveName the descriptiveName to set
 	 */
-	public void queueOpen(String deviceId);
+	public void setDescriptiveName(String descriptiveName) {
+		this.descriptiveName = descriptiveName;
+	}
 
-	/**
-	 * Closes devices queue.
-	 * @param deviceId Devices id to close
-	 */
-	public void queueClose(String deviceId);
-
-	/**
-	 * Holds devices queue.
-	 * @param deviceId Devices id to hold
-	 */
-	public void queueHold(String deviceId);
-
-	/**
-	 * Resumes devices queue.
-	 * @param deviceId Devices id to resume
-	 */
-	public void queueResume(String deviceId);
-
-	/**
-	 * Flushes devices queue.
-	 * @param deviceId Devices id to flush
-	 */
-	public void queueFlush(String deviceId);
-
-	/**
-	 * Login an employee for a device
-	 * @param deviceId Device to login
-	 * @param personalId Employee to login
-	 */
-	public void employeeLogin(String deviceId, String personalId);
-
-	/**
-	 * Logout an employee for a device.
-	 * @param deviceId Device to logout
-	 * @param personalId Employee to logout
-	 */
-	public void employeeLogout(String deviceId, String personalId);
 }

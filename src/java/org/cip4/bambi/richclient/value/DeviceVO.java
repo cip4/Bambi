@@ -96,6 +96,8 @@ public class DeviceVO {
 	private String typeExpression;
 	private String watchUrl;
 	private List<MsgSubscriptionVO> msgSubscriptions;
+	private List<EmployeeVO> employees;
+	private List<EmployeeVO> knownEmployees;
 
 	/**
 	 * Default constructor.
@@ -413,6 +415,38 @@ public class DeviceVO {
 	 */
 	public List<MsgSubscriptionVO> getMsgSubscriptions() {
 		return msgSubscriptions;
+	}
+
+	/**
+	 * Getter for employees attribute.
+	 * @return the employees
+	 */
+	public List<EmployeeVO> getEmployees() {
+		return employees;
+	}
+
+	/**
+	 * Setter for employees attribute.
+	 * @param employees the employees to set
+	 */
+	public void setEmployees(List<EmployeeVO> employees) {
+		this.employees = employees;
+	}
+
+	/**
+	 * Getter for knownEmployees attribute.
+	 * @return the knownEmployees
+	 */
+	public List<EmployeeVO> getKnownEmployees() {
+		return knownEmployees;
+	}
+
+	/**
+	 * Setter for knownEmployees attribute.
+	 * @param knownEmployees the knownEmployees to set
+	 */
+	public void setKnownEmployees(List<EmployeeVO> knownEmployees) {
+		this.knownEmployees = knownEmployees;
 	}
 
 	/**

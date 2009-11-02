@@ -82,6 +82,7 @@ import org.cip4.bambi.richclient.model.Device;
 import org.cip4.bambi.richclient.model.DeviceList;
 import org.cip4.bambi.richclient.model.QueueEntry;
 import org.cip4.bambi.richclient.value.DeviceVO;
+import org.richfaces.event.DropEvent;
 
 /**
  * Backing bean for devices functionality. This bean is Application scoped and just exists once. Thats important for performance!
@@ -94,6 +95,10 @@ public class DevicesBean {
 	 * expiration time in milliseconds.
 	 */
 	private final static long EXPIRATION_TIME = 2000;
+
+	private final static String LOGIN = "login";
+
+	private final static String LOGOUT = "logout";
 
 	/**
 	 * contains session uuid for current instance
@@ -228,6 +233,9 @@ public class DevicesBean {
 		// set device2Modify null
 		device2Modify = null;
 
+		// reset device list
+		deviceList = null;
+
 		// no action
 		return null;
 	}
@@ -302,12 +310,39 @@ public class DevicesBean {
 	}
 
 	/**
+	 * ActionListener for process drop.
+	 * 
+	 * @see org.richfaces.event.DropListener#processDrop(org.richfaces.event.DropEvent)
+	 */
+	public void processEmployeeDrop(DropEvent event) {
+
+		// get personalId
+		String personalId = (String) event.getDragValue();
+
+		// login employee
+		if (event.getDropValue().equals(LOGIN)) {
+			devicesContext.employeeLogin(selectedDeviceId, personalId);
+		}
+
+		// logout employee
+		if (event.getDropValue().equals(LOGOUT)) {
+			devicesContext.employeeLogout(selectedDeviceId, personalId);
+		}
+
+		// reset device list
+		deviceList = null;
+	}
+
+	/**
 	 * Method to resume queue.
 	 * @return null (no action)
 	 */
 	public String queueResume() {
 		// hold queue
 		devicesContext.queueResume(selectedDeviceId);
+
+		// reset device list
+		deviceList = null;
 
 		// no navigation action
 		return null;
@@ -321,6 +356,9 @@ public class DevicesBean {
 		// hold queue
 		devicesContext.queueHold(selectedDeviceId);
 
+		// reset device list
+		deviceList = null;
+
 		// no navigation action
 		return null;
 	}
@@ -332,6 +370,9 @@ public class DevicesBean {
 	public String queueOpen() {
 		// close queue
 		devicesContext.queueOpen(selectedDeviceId);
+
+		// reset device list
+		deviceList = null;
 
 		// no navigation action
 		return null;
@@ -345,6 +386,9 @@ public class DevicesBean {
 		// close queue
 		devicesContext.queueClose(selectedDeviceId);
 
+		// reset device list
+		deviceList = null;
+
 		// no navigation action
 		return null;
 	}
@@ -357,6 +401,9 @@ public class DevicesBean {
 		// flush queue
 		devicesContext.queueFlush(selectedDeviceId);
 
+		// reset device list
+		deviceList = null;
+
 		// no navigation action
 		return null;
 	}
@@ -368,6 +415,9 @@ public class DevicesBean {
 	public String queueRefresh() {
 		// reset queue entries
 		resetQueueEntries();
+
+		// reset device list
+		deviceList = null;
 
 		// no navigation action
 		return null;
@@ -417,4 +467,5 @@ public class DevicesBean {
 	public String getPrinter() {
 		return "<object width=\"480\" height=\"385\"><param name=\"movie\" value=\"http://www.youtube.com/v/JCcqyu9hb1k&hl=en&fs=1&rel=0&color1=0x006699&color2=0x54abd6\"></param><param name=\"allowFullScreen\" value=\"true\"></param><param name=\"allowscriptaccess\" value=\"always\"></param><embed src=\"http://www.youtube.com/v/JCcqyu9hb1k&hl=en&fs=1&rel=0&color1=0x006699&color2=0x54abd6\" type=\"application/x-shockwave-flash\" allowscriptaccess=\"always\" allowfullscreen=\"true\" width=\"480\" height=\"385\"></embed></object>";
 	}
+
 }
