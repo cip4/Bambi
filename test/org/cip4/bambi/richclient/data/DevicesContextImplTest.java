@@ -115,6 +115,15 @@ public class DevicesContextImplTest extends TestCase {
 	}
 
 	/**
+	 * Test method for {@link org.cip4.bambi.richclient.data.DevicesContextImpl#loadRootPath()}.
+	 */
+	public void testLoadRootPath() {
+		String path = DevicesContextImpl.loadRootPath();
+
+		assertEquals("Path is wrong", "[bambi.base.url]", path);
+	}
+
+	/**
 	 * Test method for {@link org.cip4.bambi.richclient.data.DevicesContextImpl#deviceOverview()}.
 	 */
 	public void testDeviceOverview() {

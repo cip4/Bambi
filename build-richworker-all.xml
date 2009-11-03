@@ -62,20 +62,51 @@
 	<target name="jar" depends="compile" description="Bundles source code into a JAR file.">
 		<echo>Building JAR file...</echo>
 		
+		<!-- PREPRESS -->
 		<delete dir="${tmp.dir}" />
-		
 		<native2ascii encoding="UTF-8" reverse="false" src="${resources.dir}/org/cip4/bambi/richclient" 
 					includes="*.properties" dest="${tmp.dir}/org/cip4/bambi/richclient" />
-		
 		<copy todir="${tmp.dir}">
 			<fileset dir="${resources.dir}">
 				<exclude name="**/*.properties" />
 			</fileset>
 		</copy>
 		<replace file="${tmp.dir}/org/cip4/bambi/richclient/config.xml">
-			<replacefilter token="[bambi.base.url]" value="http://..." />
+			<replacefilter token="[bambi.base.url]" value="http://localhost:8080/richworker-prepress" />
 		</replace>
-		<jar jarfile="${dist.dir}/${base.filename}.jar" basedir="${bin.dir}">
+		<jar jarfile="${dist.dir}/${base.filename}-prepress.jar" basedir="${bin.dir}">
+			<fileset dir="${tmp.dir}" />
+		</jar>
+		
+		<!-- CONVENTIONAL PRINTING -->
+		<delete dir="${tmp.dir}" />
+		<native2ascii encoding="UTF-8" reverse="false" src="${resources.dir}/org/cip4/bambi/richclient" 
+					includes="*.properties" dest="${tmp.dir}/org/cip4/bambi/richclient" />
+		<copy todir="${tmp.dir}">
+			<fileset dir="${resources.dir}">
+				<exclude name="**/*.properties" />
+			</fileset>
+		</copy>
+		<replace file="${tmp.dir}/org/cip4/bambi/richclient/config.xml">
+			<replacefilter token="[bambi.base.url]" value="http://localhost:8080/richworker-print" />
+		</replace>
+		<jar jarfile="${dist.dir}/${base.filename}-print.jar" basedir="${bin.dir}">
+			<fileset dir="${tmp.dir}" />
+		</jar>
+		
+		<!-- FINISHING -->
+		<delete dir="${tmp.dir}" />
+		<native2ascii encoding="UTF-8" reverse="false" src="${resources.dir}/org/cip4/bambi/richclient" 
+					includes="*.properties" dest="${tmp.dir}/org/cip4/bambi/richclient" />
+		<copy todir="${tmp.dir}">
+			<fileset dir="${resources.dir}">
+				<exclude name="**/*.properties" />
+			</fileset>
+		</copy>
+		<replace file="${tmp.dir}/org/cip4/bambi/richclient/config.xml">
+			<replacefilter token="[bambi.base.url]" value="http://localhost:8080/richworker-finishing" />
+		</replace>
+		<jar jarfile="${dist.dir}/${base.filename}-finishing.jar" basedir="${bin.dir}">
 			<fileset dir="${tmp.dir}" />
 		</jar>
 	</target>
@@ -90,13 +121,14 @@
 		<delete dir="${dist.dir}" />
 	</target>
 	<target name="war" depends="jar" description="Builds web application.">
-		<echo>Building Bambi...</echo>
+		<!-- PREPRESS -->
+		<echo>Building Bambi Prepress...</echo>
 		<buildnumber />
 		<echo>Build number: ${build.number}</echo>
 		<!-- Builds exploded WAR file -->
-		<property name="war.dir" value="${dist.dir}/${base.filename}-war" />
-		<mkdir dir="${war.dir}" />
-		<copy todir="${war.dir}">
+		<property name="prepress.war.dir" value="${dist.dir}/${base.filename}-prepress-war" />
+		<mkdir dir="${prepress.war.dir}" />
+		<copy todir="${prepress.war.dir}">
 			<fileset dir="${web.src.dir}">
 				<include name="**/*" />
 			</fileset>
@@ -104,12 +136,12 @@
 				<include name="**/*" />
 			</fileset>
 		</copy>
-		<copy todir="${war.dir}/WEB-INF">
+		<copy todir="${prepress.war.dir}/WEB-INF">
 			<fileset dir="${web.src.dir}/WEB-INF">
 				<include name="**/*" />
 			</fileset>
 		</copy>
-		<copy todir="${war.dir}/WEB-INF/lib" flatten="true">
+		<copy todir="${prepress.war.dir}/WEB-INF/lib" flatten="true">
 			<fileset dir="${lib.dir}">
 				<include name="**/*.jar" />
 				<exclude name="servlet*.jar" />
@@ -118,23 +150,110 @@
 				<exclude name="jsp-api.jar" />
 			</fileset>
 			<fileset dir="${dist.dir}">
-				<include name="${base.filename}.jar" />
+				<include name="${base.filename}-prepress.jar" />
 			</fileset>
 		</copy>
 		
 		<!-- Update build number and timestamp in overview.jsp -->
-		<replace file="${war.dir}/deviceList.xsl">
+		<replace file="${prepress.war.dir}/deviceList.xsl">
 			<replacefilter token="@build.number@" value="${build.number}" />
 			<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
 		</replace>		
-		<replace file="${war.dir}/config/devices.xml">
-			<replacefilter token="@bambi.instance@" value="bambi" />
+		<replace file="${prepress.war.dir}/config/devices.xml">
+			<replacefilter token="@bambi.instance@" value="bambi-prepress" />
 		</replace>
-
 		<!-- Builds compressed WAR file -->
-		<jar basedir="${war.dir}" destfile="${dist.dir}/${SimWorker.name}.war" filesonly="false"/>
+		<jar basedir="${prepress.war.dir}" destfile="${dist.dir}/${SimWorker.name}-prepress.war" filesonly="false"/>
+		
+		<!-- CONVENTIONAL PRINTING -->
+		<echo>Building Bambi Conventional Printing...</echo>
+		<buildnumber />
+		<echo>Build number: ${build.number}</echo>
+		<!-- Builds exploded WAR file -->
+		<property name="print.war.dir" value="${dist.dir}/${base.filename}-print-war" />
+		<mkdir dir="${print.war.dir}" />
+		<copy todir="${print.war.dir}">
+			<fileset dir="${web.src.dir}">
+				<include name="**/*" />
+			</fileset>
+			<fileset dir="${webcore.src.dir}">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+		<copy todir="${print.war.dir}/WEB-INF">
+			<fileset dir="${web.src.dir}/WEB-INF">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+		<copy todir="${print.war.dir}/WEB-INF/lib" flatten="true">
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar" />
+				<exclude name="servlet*.jar" />
+				<exclude name="junit*.jar" />
+				<exclude name="el-api.jar" />
+				<exclude name="jsp-api.jar" />
+			</fileset>
+			<fileset dir="${dist.dir}">
+				<include name="${base.filename}-print.jar" />
+			</fileset>
+		</copy>
+		
+		<!-- Update build number and timestamp in overview.jsp -->
+		<replace file="${print.war.dir}/deviceList.xsl">
+			<replacefilter token="@build.number@" value="${build.number}" />
+			<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
+		</replace>	
+		<replace file="${print.war.dir}/config/devices.xml">
+			<replacefilter token="@bambi.instance@" value="bambi-print" />
+		</replace>	
+		<!-- Builds compressed WAR file -->
+		<jar basedir="${print.war.dir}" destfile="${dist.dir}/${SimWorker.name}-print.war" filesonly="false"/>
+		
+		<!-- FINISHING -->
+		<echo>Building Bambi Finishing...</echo>
+		<buildnumber />
+		<echo>Build number: ${build.number}</echo>
+		<!-- Builds exploded WAR file -->
+		<property name="finishing.war.dir" value="${dist.dir}/${base.filename}-finishing-war" />
+		<mkdir dir="${finishing.war.dir}" />
+		<copy todir="${finishing.war.dir}">
+			<fileset dir="${web.src.dir}">
+				<include name="**/*" />
+			</fileset>
+			<fileset dir="${webcore.src.dir}">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+		<copy todir="${finishing.war.dir}/WEB-INF">
+			<fileset dir="${web.src.dir}/WEB-INF">
+				<include name="**/*" />
+			</fileset>
+		</copy>
+		<copy todir="${finishing.war.dir}/WEB-INF/lib" flatten="true">
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar" />
+				<exclude name="servlet*.jar" />
+				<exclude name="junit*.jar" />
+				<exclude name="el-api.jar" />
+				<exclude name="jsp-api.jar" />
+			</fileset>
+			<fileset dir="${dist.dir}">
+				<include name="${base.filename}-finishing.jar" />
+			</fileset>
+		</copy>
+		
+		<!-- Update build number and timestamp in overview.jsp -->
+		<replace file="${finishing.war.dir}/deviceList.xsl">
+			<replacefilter token="@build.number@" value="${build.number}" />
+			<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
+		</replace>		
+		<replace file="${finishing.war.dir}/config/devices.xml">
+			<replacefilter token="@bambi.instance@" value="bambi-finishing" />
+		</replace>
+		<!-- Builds compressed WAR file -->
+		<jar basedir="${finishing.war.dir}" destfile="${dist.dir}/${SimWorker.name}-finishing.war" filesonly="false"/>
 	</target>
-		<target name="-tomcat-init" depends="-init">
+	<target name="-tomcat-init" depends="-init">
 		<echo>Initializing optional targets for deploying directly into Tomcat...</echo>
 		<!-- Tomcat tasks -->
 		<!-- Configure the context path for this application -->
@@ -161,13 +280,19 @@
 	</target>
 	<target name="install" description="Install web application" depends="-tomcat-init,war">
 		<!-- tomcat's server need to be running for this task to complete succesfully -->
-		<install url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${SimWorker.name}.war" />
+		<install url="${tomcat.url}" username="${username}" password="${password}" path="${path}-prepress" war="file:${basedir}/${dist.dir}/${SimWorker.name}-prepress.war" />
+		<install url="${tomcat.url}" username="${username}" password="${password}" path="${path}-print" war="file:${basedir}/${dist.dir}/${SimWorker.name}-print.war" />
+		<install url="${tomcat.url}" username="${username}" password="${password}" path="${path}-finishing" war="file:${basedir}/${dist.dir}/${SimWorker.name}-finishing.war" />
 	</target>
 	<target name="redeploy" depends="-tomcat-init,war" description="Undeploys and redeploys the web application">
 		<!-- tomcat's server need to be running for this task to complete succesfully -->
 		<echo> Undeploys and Deploys the reference web application... </echo>
-		<undeploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}" />
-		<deploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${SimWorker.name}.war" />
+		<undeploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}-prepress" />
+		<undeploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}-print" />
+		<undeploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}-finishing" />
+		<deploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}-prepress" war="file:${basedir}/${dist.dir}/${SimWorker.name}-prepress.war" />
+		<deploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}-print" war="file:${basedir}/${dist.dir}/${SimWorker.name}-print.war" />
+		<deploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}-finishing" war="file:${basedir}/${dist.dir}/${SimWorker.name}-finishing.war" />
 	</target>
 	<target name="test" description="Runs JUnit tests." depends="compile">
 			<property name="test.bin.dir" value="${bin.dir}/test" />

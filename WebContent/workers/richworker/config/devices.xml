@@ -26,19 +26,19 @@
 		SlaveMimePackaging="false"
 	-->
 
-<application BaseDir="/var/tmp/bambi/sim/" JDFDir="JDFDir"
+<application BaseDir="/var/tmp/@bambi.instance@/sim/" BaseUrl="@bambi.url@" JDFDir="JDFDir"
 	SenderID="SimDevice" Port="8080" CallBackName="org.cip4.bambi.extensions.ExtensionCallback">
 	<Device DeviceID="SimWorkerRoot" DeviceType="Bambi Sim Device Root" />
 	
 	<Device DeviceID="sim001" DeviceType="Bambi Simulation HotFolder Device 001"
-		TrackResource="Component:Output" InputHF="/var/tmp/bambi/sim001/Input"
-		OutputHF="/var/tmp/bambi/sim001/Output" ErrorHF="/var/tmp/bambi/sim001/Error" />
+		TrackResource="Component:Output" InputHF="/var/tmp/@bambi.instance@/sim001/Input"
+		OutputHF="/var/tmp/@bambi.instance@/sim001/Output" ErrorHF="/var/tmp/@bambi.instance@/sim001/Error" />
 	<Device DeviceID="sim002" DeviceType="Bambi Simulation HotFolder Device 002"
-		TrackResource="Component:Output" InputHF="/var/tmp/bambi/sim002/Input"
-		OutputHF="/var/tmp/bambi/sim002/Output" ErrorHF="/var/tmp/bambi/sim002/Error" />
+		TrackResource="Component:Output" InputHF="/var/tmp/@bambi.instance@/sim002/Input"
+		OutputHF="/var/tmp/@bambi.instance@/sim002/Output" ErrorHF="/var/tmp/@bambi.instance@/sim002/Error" />
 	<Device DeviceID="sim003" DeviceType="Bambi Pull Simulation Device 003"
-		PushPull="Push" TrackResource="Component:Output" InputHF="/var/tmp/bambi/sim003/Input"
-		OutputHF="/var/tmp/bambi/sim003/Output" ErrorHF="/var/tmp/bambi/sim003/Error" />
+		PushPull="Push" TrackResource="Component:Output" InputHF="/var/tmp/@bambi.instance@/sim003/Input"
+		OutputHF="/var/tmp/@bambi.instance@/sim003/Output" ErrorHF="/var/tmp/@bambi.instance@/sim003/Error" />
 
 
 </application>

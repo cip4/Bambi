@@ -69,6 +69,7 @@
 package org.cip4.bambi.richclient.data;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
@@ -76,6 +77,9 @@ import java.net.URLConnection;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.cip4.bambi.richclient.model.Device;
 import org.cip4.bambi.richclient.model.DeviceList;
@@ -91,6 +95,7 @@ import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.Unmarshaller;
 import org.exolab.castor.xml.ValidationException;
 import org.exolab.castor.xml.XMLContext;
+import org.w3c.dom.Document;
 
 /**
  * Singlton class manages data caching and session based periodical updating form bambi.
@@ -101,15 +106,19 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 
 	private static final String PATH_MAPPING_FILE = "/org/cip4/bambi/richclient/mapping.xml";
 
-	private static final String URL_DEVICES_OVERVIEW = "http://localhost:8080/richworker/overview";
+	private static final String PATH_CONFIG_FILE = "/org/cip4/bambi/richclient/config.xml";
 
-	private static final String URL_DEVICES_QUEUE_ROOT = "http://localhost:8080/richworker/showQueue/";
+	private static final String URL_ROOT = loadRootPath();
 
-	private static final String URL_DEVICES_DETAILS_ROOT = "http://localhost:8080/richworker/showDevice/";
+	private static final String URL_DEVICES_OVERVIEW = URL_ROOT + "/overview";
 
-	private static final String URL_DEVICES_SUBSCRIPTIONS = "http://localhost:8080/richworker/showSubscriptions/";
+	private static final String URL_DEVICES_QUEUE_ROOT = URL_ROOT + "/showQueue/";
 
-	public static final String URL_DEVICES_INOUT = "http://localhost:8080/richworker/login/";
+	private static final String URL_DEVICES_DETAILS_ROOT = URL_ROOT + "/showDevice/";
+
+	private static final String URL_DEVICES_SUBSCRIPTIONS = URL_ROOT + "/showSubscriptions/";
+
+	public static final String URL_DEVICES_INOUT = URL_ROOT + "/login/";
 
 	private final Hashtable<String, Long> hashSession = new Hashtable<String, Long>();
 
@@ -154,6 +163,33 @@ class DevicesContextImpl implements DevicesContext, Runnable {
 
 			threadCacheUpdater.start();
 		}
+	}
+
+	/**
+	 * Returns the bambi root path
+	 * @return bambi root path
+	 */
+	static String loadRootPath() {
+		// load config file as stream
+		InputStream stream = DevicesContextImpl.class.getResourceAsStream(PATH_CONFIG_FILE);
+
+		// parse xml file
+		Document document = null;
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+
+		try {
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			document = builder.parse(stream);
+		} catch (Exception e) {
+			// throw error
+			new AssertionError(e);
+		}
+
+		// get root path
+		String rootPath = document.getElementsByTagName("BaseUrl").item(0).getTextContent();
+
+		// return root path
+		return rootPath;
 	}
 
 	/**
