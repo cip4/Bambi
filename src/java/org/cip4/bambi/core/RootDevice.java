@@ -77,6 +77,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
+import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
@@ -86,6 +87,7 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFDeviceFilter;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -135,7 +137,8 @@ public class RootDevice extends AbstractDevice
 		_jmfHandler.addHandler(this.new KnownDevicesHandler());
 		_jmfHandler.addHandler(this.new StatusHandler());
 		// this guy is the catchall
-		_jmfHandler.addHandler(this.new RootDispatchHandler("*", new EnumFamily[] { EnumFamily.Query, EnumFamily.Command, EnumFamily.Signal }));
+		_jmfHandler.addHandler(this.new RootDispatchHandler("*", new EnumFamily[] { EnumFamily.Query,
+				EnumFamily.Command, EnumFamily.Signal }));
 		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.AbortQueueEntry, new EnumFamily[] { EnumFamily.Command }));
 		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.HoldQueueEntry, new EnumFamily[] { EnumFamily.Command }));
 		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.RemoveQueueEntry, new EnumFamily[] { EnumFamily.Command }));
@@ -149,22 +152,23 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc, java.lang.String)
-	 */
+	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.node.JDFNode, java.lang.String)
+	 * @param jdf
+	 * @param queueEntryID
+	 * @return
+	*/
 	@Override
-	public int canAccept(final JDFDoc doc, final String queueEntryID)
+	public VString canAccept(final JDFNode jdf, final String queueEntryID)
 	{
+		VString vs = new VString();
 		final Iterator<String> it = _devices.keySet().iterator();
 		while (it.hasNext())
 		{
 			final AbstractDevice ad = _devices.get(it.next());
-			if (ad.canAccept(doc, queueEntryID) == 0)
-			{
-				return 0;
-			}
-
+			VString canAccept = ad.canAccept(jdf, queueEntryID);
+			vs.appendUnique(canAccept);
 		}
-		return 101;
+		return vs.size() == 0 ? null : vs;
 	}
 
 	/**
@@ -211,7 +215,24 @@ public class RootDevice extends AbstractDevice
 		dev.setRootDevice(this);
 		_devices.put(devID, dev);
 		log.info("created device " + devID);
+		updateQERetrieval(prop);
 		return dev;
+	}
+
+	/**
+	 * @param prop
+	 */
+	private void updateQERetrieval(final IDeviceProperties prop)
+	{
+		QERetrieval myqeRet = _devProperties.getQERetrieval();
+		if (!QERetrieval.BOTH.equals(myqeRet))
+		{
+			QERetrieval devqeRet = prop.getQERetrieval();
+			if (!devqeRet.equals(myqeRet))
+			{
+				_devProperties.setQERetrieval(QERetrieval.BOTH);
+			}
+		}
 	}
 
 	/**

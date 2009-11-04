@@ -91,6 +91,7 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -120,16 +121,16 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	{
 		final private String slaveQEID;
 		final private String myQEID;
-		final private JDFDoc doc;
+		final private JDFNode jdf;
 
 		/**
 		 * @param _doc
 		 * @param slaveID
 		 * @param localqeID
 		 */
-		public QueueResubmitter(final JDFDoc _doc, final String slaveID, final String localqeID)
+		public QueueResubmitter(final JDFNode _jdf, final String slaveID, final String localqeID)
 		{
-			this.doc = _doc;
+			this.jdf = _jdf;
 			slaveQEID = slaveID;
 			myQEID = localqeID;
 		}
@@ -153,16 +154,16 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			final boolean expandMime = proxyProperties.getSlaveMIMEExpansion();
 			final boolean isMime = proxyProperties.isSlaveMimePackaging();
 
-			final JDFNode node = doc.getJDFRoot(); // the retained internal node
-			KElement modNode = node; // the external node
 			final JMFBuilder b = getBuilderForSlave();
 			final JDFJMF jmf = b.buildResubmitQueueEntry(slaveQEID, null);
 			final JDFResubmissionParams rsp = jmf.getCommand(0).getResubmissionParams(0);
+			// required in case we convert e.g. to JDF2.0
+			KElement modNode = jdf;
 			if (slaveCallBack != null)
 			{
 				if (isMime)
 				{
-					final JDFDoc d = slaveCallBack.updateJDFForExtern(new JDFDoc(node.getOwnerDocument()));
+					final JDFDoc d = slaveCallBack.updateJDFForExtern(new JDFDoc(jdf.getOwnerDocument()));
 					modNode = d.getRoot();
 				}
 				slaveCallBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
@@ -526,22 +527,23 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	}
 
 	/**
-	 * @param doc
+	 * @param jdf
 	 * @param queueEntryID
 	 * @return
 	 */
-	public int canAccept(final JDFDoc doc, final String queueEntryID)
+	public VString canAccept(final JDFNode jdf, final String queueEntryID)
 	{
 		if (queueEntryID == null)
 		{
-			return 0;
+			return null;
 		}
 		final String slaveID = getSlaveQEID(queueEntryID);
 		if (slaveID == null)
 		{
-			return 0;
+			return null;
 		}
-		return new QueueResubmitter(doc, slaveID, queueEntryID).resubmit();
+		int iRet = new QueueResubmitter(jdf, slaveID, queueEntryID).resubmit();
+		return iRet == 0 ? new VString(getParent().getDeviceID(), null) : null;
 
 	}
 

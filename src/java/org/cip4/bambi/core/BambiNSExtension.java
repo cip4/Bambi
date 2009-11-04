@@ -99,6 +99,10 @@ public class BambiNSExtension
 	private static String slaveOutputHF = "SlaveOutputHF";
 	private static String slaveErrorHF = "SlaveErrorHF";
 	private static String slaveSubmissionTime = "SlaveSubmissionTime";
+	/**
+	 * 
+	 */
+	public static final String GOOD_DEVICES = "goodDevices";
 
 	protected BambiNSExtension()
 	{/* never construct - static class */
@@ -126,6 +130,22 @@ public class BambiNSExtension
 			throw new JDFException("setMyNSAttribute: setting on null element");
 		}
 		e.setAttribute(MY_NS_PREFIX + attName, attVal, MY_NS);
+	}
+
+	/**
+	 * 
+	 * @param e the element to work on
+	 * @param attName the local attribute name to set
+	 * @param attVal the attribute value to add to attName
+	 * @return the updated value
+	 */
+	public static String appendMyNSAttribute(final KElement e, final String attName, final String attVal)
+	{
+		if (e == null)
+		{
+			throw new JDFException("setMyNSAttribute: setting on null element");
+		}
+		return e.appendAttribute(MY_NS_PREFIX + attName, attVal, MY_NS, " ", true);
 	}
 
 	/**

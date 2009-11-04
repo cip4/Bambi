@@ -241,7 +241,23 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				return false;
 			}
+			String badDevices = BambiNSExtension.getMyNSAttribute(qe, BambiNSExtension.GOOD_DEVICES);
+			if (!StringUtil.hasToken(badDevices, deviceID, " ", 0))
+			{
+				return false;
+			}
 			return true;
+		}
+
+		/**
+		 * @see java.lang.Object#clone()
+		 * @return
+		*/
+		@Override
+		protected CanExecuteCallBack clone()
+		{
+			CanExecuteCallBack cb = new CanExecuteCallBack(deviceID, proxy);
+			return cb;
 		}
 	}
 
@@ -396,10 +412,10 @@ public class QueueProcessor extends BambiLogFactory
 					{
 						doc = callback.prepareJDFForBambi(doc);
 					}
-					final int canAccept = _parentDevice.canAccept(doc, qeID);
-					if (canAccept != 0)
+					final VString canAccept = _parentDevice.canAccept(doc.getJDFRoot(), qeID);
+					if (canAccept == null)
 					{
-						JMFHandler.errorResponse(resp, "unable to queue request", canAccept, EnumClass.Error);
+						JMFHandler.errorResponse(resp, "unable to queue request", 101, EnumClass.Error);
 						return true;
 					}
 					else
@@ -973,6 +989,7 @@ public class QueueProcessor extends BambiLogFactory
 		 * @param sortBy
 		 * @param root
 		 * @param filter the regexp to filter by (.)* is added before and after the filter
+		 * @return 
 		 */
 		private JDFQueue sortOutput(final String sortBy, JDFQueue root, final String filter)
 		{
@@ -1097,6 +1114,7 @@ public class QueueProcessor extends BambiLogFactory
 		}
 
 		/**
+		 * @param q 
 		 * 
 		 */
 		private void addOptions(final JDFQueue q)
@@ -1195,6 +1213,9 @@ public class QueueProcessor extends BambiLogFactory
 	/**
 	 */
 	static final String QE_STATUS = "qeStatus";
+	/**
+	 * 
+	 */
 	public static final String QE_ID = "qeID";
 	static final String isJDF = "isJDF";
 	static final String SHOW_QUEUE = "showQueue";
@@ -1208,6 +1229,7 @@ public class QueueProcessor extends BambiLogFactory
 	protected long lastPersist = 0;
 	protected final HashMap<String, QueueDelta> deltaMap;
 	protected JDFQueueEntry nextPush = null;
+	CanExecuteCallBack _cbCanExecute = null;
 
 	/**
 	 * @param theParentDevice
@@ -1283,7 +1305,8 @@ public class QueueProcessor extends BambiLogFactory
 		_theQueue.setMaxRunningEntries(1);
 		_theQueue.setDescriptiveName("Queue for " + _parentDevice.getDeviceType());
 		_theQueue.setCleanupCallback(new QueueEntryCleanup()); // zapps any attached files when removing qe
-		_theQueue.setExecuteCallback(new CanExecuteCallBack(deviceID, BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL)));
+		_cbCanExecute = new CanExecuteCallBack(deviceID, BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL));
+		_theQueue.setExecuteCallback(_cbCanExecute);
 		BambiNSExtension.setMyNSAttribute(_theQueue, "EnsureNS", "Dummy"); // ensure that some bambi ns exists
 	}
 
@@ -1406,22 +1429,28 @@ public class QueueProcessor extends BambiLogFactory
 	/**
 	 * get the next queue entry only waiting entries that have not been forwarded to a lower level device are taken into account
 	 * @param deviceID
+	 * @param canPush 
 	 * @return
 	 */
-	public IQueueEntry getNextEntry(final String deviceID)
+	public IQueueEntry getNextEntry(final String deviceID, QERetrieval canPush)
 	{
-		final QERetrieval canPush = _parentDevice.getProperties().getQERetrieval();
+		CanExecuteCallBack cb = _cbCanExecute;
+		if (deviceID != null)
+		{
+			cb = cb.clone();
+			cb.deviceID = deviceID;
+		}
 		synchronized (_theQueue)
 		{
-			final JDFQueueEntry theEntry;
-			if (nextPush != null) // we have an explicit selection
+			JDFQueueEntry theEntry;
+			if (nextPush != null && (cb == null || cb.canExecute(nextPush))) // we have an explicit selection
 			{
 				theEntry = nextPush;
 				nextPush = null;
 			}
 			else if (canPush == QERetrieval.PUSH || canPush == QERetrieval.BOTH)
 			{
-				theEntry = _theQueue.getNextExecutableQueueEntry();
+				theEntry = _theQueue.getNextExecutableQueueEntry(cb);
 			}
 			else
 			{
@@ -1429,10 +1458,6 @@ public class QueueProcessor extends BambiLogFactory
 			}
 			if (theEntry != null)
 			{
-				if (deviceID != null)
-				{
-					theEntry.setDeviceID(deviceID);
-				}
 				final String proxyFlag = BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL);
 				if (proxyFlag != null)
 				{
@@ -1459,6 +1484,9 @@ public class QueueProcessor extends BambiLogFactory
 		{
 			log.error("QueueProcessor in thread '" + Thread.currentThread().getName()
 					+ "' is unable to load the JDFDoc from '" + docURL + "'");
+			final String proxyFlag = BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL);
+			qe.setAttribute(proxyFlag, null);
+			updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
 			return null;
 		}
 
@@ -1486,7 +1514,8 @@ public class QueueProcessor extends BambiLogFactory
 	}
 
 	/**
-	 * stub that allows moving data from the jdfdoc to the queueentry
+	 * stub that allows moving data to and from the jdfdoc to the queueentry
+	 * 
 	 * @param qe
 	 * @param doc
 	 * @return the updated queueEntryID
@@ -1524,12 +1553,12 @@ public class QueueProcessor extends BambiLogFactory
 			log.error("error submitting new queueentry");
 			return null;
 		}
-		final int canAccept = _parentDevice.canAccept(theJDF, null);
-		if (canAccept != 0)
+		final VString canAccept = _parentDevice.canAccept(theJDF.getJDFRoot(), null);
+		if (canAccept == null)
 		{
 			if (newResponse != null)
 			{
-				JMFHandler.errorResponse(newResponse, "unable to queue request", canAccept, EnumClass.Error);
+				JMFHandler.errorResponse(newResponse, "unable to queue request: Error code = 101", 101, EnumClass.Error);
 			}
 			return null;
 		}
@@ -1567,7 +1596,7 @@ public class QueueProcessor extends BambiLogFactory
 				return null;
 			}
 			final String qeID = newQE.getQueueEntryID();
-
+			BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
 			fixEntry(newQE, theJDF);
 			if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
 			{
@@ -1588,7 +1617,7 @@ public class QueueProcessor extends BambiLogFactory
 	 * @param returnJMF
 	 * @return true if successful
 	 */
-	public boolean storeDoc(JDFQueueEntry newQE, final JDFDoc theJDF, final String returnURL, final String returnJMF)
+	public boolean storeDoc(final JDFQueueEntry newQE, final JDFDoc theJDF, final String returnURL, final String returnJMF)
 	{
 		if (newQE == null || theJDF == null)
 		{
@@ -1598,25 +1627,26 @@ public class QueueProcessor extends BambiLogFactory
 		final String newQEID = newQE.getQueueEntryID();
 		final JDFNode root = _parentDevice.getNodeFromDoc(theJDF);
 		newQE.setFromJDF(root); // set jobid, jobpartid, partmaps
-		newQE = _theQueue.getQueueEntry(newQEID); // the "actual" entry in the queue
-		if (newQE == null)
+		JDFQueueEntry newQEReal = _theQueue.getQueueEntry(newQEID); // the "actual" entry in the queue
+		if (newQEReal == null)
 		{
 			log.error("error fetching queueentry: QueueEntryID=" + newQEID);
 			return false;
 		}
-		newQE.setFromJDF(root); // repeat for the actual entry
+		newQEReal.mergeElement(newQE, false);
+		newQEReal.setFromJDF(root); // repeat for the actual entry
 
 		final String theDocFile = getJDFStorage(newQEID);
 		final boolean ok = theJDF.write2File(theDocFile, 0, true);
-		BambiNSExtension.setDocURL(newQE, theDocFile);
-		BambiNSExtension.setDocModified(newQE, System.currentTimeMillis());
+		BambiNSExtension.setDocURL(newQEReal, theDocFile);
+		BambiNSExtension.setDocModified(newQEReal, System.currentTimeMillis());
 		if (!KElement.isWildCard(returnJMF))
 		{
-			BambiNSExtension.setReturnJMF(newQE, returnJMF);
+			BambiNSExtension.setReturnJMF(newQEReal, returnJMF);
 		}
 		else if (!KElement.isWildCard(returnURL))
 		{
-			BambiNSExtension.setReturnURL(newQE, returnURL);
+			BambiNSExtension.setReturnURL(newQEReal, returnURL);
 		}
 
 		return ok;
@@ -2072,10 +2102,13 @@ public class QueueProcessor extends BambiLogFactory
 			return;
 		}
 		final VElement v = queue.getQueueEntryVector();
-		final int queueSize = v == null ? 0 : v.size();
-		for (int i = 0; i < queueSize; i++)
+		if (v != null)
 		{
-			BambiNSExtension.removeBambiExtensions(v.elementAt(i));
+			final int queueSize = v.size();
+			for (int i = 0; i < queueSize; i++)
+			{
+				BambiNSExtension.removeBambiExtensions(v.elementAt(i));
+			}
 		}
 	}
 

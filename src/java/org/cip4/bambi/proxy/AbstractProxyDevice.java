@@ -90,6 +90,7 @@ import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -447,15 +448,16 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		_theQueueProcessor.getQueue().resumeQueue(); // proxy queues should start up by default
 	}
 
+	/**
+	 * @return
+	 */
 	public IConverterCallback getSlaveCallback()
 	{
 		return _slaveCallback;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
+	/**
+	 * @return
 	 */
 	public String getSlaveDeviceID()
 	{
@@ -463,11 +465,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		return getProxyProperties().getSlaveDeviceID();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/**
 	 * @see org.cip4.bambi.core.AbstractDevice#shutdown()
-	 */
+	*/
 	@Override
 	public void shutdown()
 	{
@@ -586,6 +586,11 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		return null;
 	}
 
+	/**
+	 * @see org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core.JDFDoc)
+	 * @param doc
+	 * @return
+	*/
 	@Override
 	public JDFNode getNodeFromDoc(final JDFDoc doc)
 	{
@@ -638,6 +643,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
+	 * @param newHF 
 	 * 
 	 */
 	private void updateSlaveErrorHF(String newHF)
@@ -766,16 +772,16 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc, java.lang.String)
 	 */
 	@Override
-	public int canAccept(final JDFDoc doc, final String queueEntryID)
+	public VString canAccept(final JDFNode doc, final String queueEntryID)
 	{
 		if (queueEntryID == null)
 		{
-			return 0;
+			return new VString(getDeviceID(), null);
 		}
 		final AbstractProxyProcessor proc = (AbstractProxyProcessor) getProcessor(queueEntryID, 0);
 		if (proc == null)
 		{
-			return 0; // no processor is working on queueEntryID - assume ok
+			return new VString(getDeviceID(), null); // no processor is working on queueEntryID - assume ok
 		}
 		return proc.canAccept(doc, queueEntryID);
 	}

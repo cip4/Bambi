@@ -1017,11 +1017,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * returns 0 if the device can process the jdf ticket
-	 * @param doc
+	 * @param jdf
 	 * @param queueEntryID may be null in case of a new submission
-	 * @return 0 if successful, else the error code
+	 * @return list of valid deviceIDS if any, else null if none
 	 */
-	public abstract int canAccept(JDFDoc doc, String queueEntryID);
+	public abstract VString canAccept(JDFNode jdf, String queueEntryID);
 
 	/**
 	 * @param doc
@@ -1525,33 +1525,37 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 * @return the next executable queueentry, null if none were found
 	 */
 	protected IQueueEntry getQEFromParent()
 	{
-		synchronized (_theQueueProcessor.getQueue())
-		{
-			IQueueEntry currentQE = _theQueueProcessor.getNextEntry(null);
-			final QERetrieval canPush = getProperties().getQERetrieval();
+		final QERetrieval canPush = getProperties().getQERetrieval();
 
-			if (currentQE == null && !(canPush == QERetrieval.PULL))
+		while (true)
+		{
+			synchronized (_theQueueProcessor.getQueue())
 			{
+				IQueueEntry currentQE = _theQueueProcessor.getNextEntry(null, canPush);
 				if (_rootDevice != null)
 				{
-					currentQE = _rootDevice._theQueueProcessor.getNextEntry(getDeviceID());
+					currentQE = _rootDevice._theQueueProcessor.getNextEntry(getDeviceID(), canPush);
 					importQEFromRoot(currentQE);
 				}
 				if (currentQE == null)
 				{
 					sendRequestQueueEntry();
 				}
+				if (currentQE != null)
+				{
+					currentQE.getQueueEntry().setDeviceID(getDeviceID());
+				}
+				return currentQE;
 			}
-			return currentQE;
 		}
 	}
 
 	/**
-	 * @param rootDevice
+	 * @param currentQE
 	 */
 	private void importQEFromRoot(final IQueueEntry currentQE)
 	{

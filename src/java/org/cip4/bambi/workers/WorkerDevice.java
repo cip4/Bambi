@@ -87,14 +87,18 @@ import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.core.JDFResourceLink.EnumUsage;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
@@ -117,10 +121,13 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	protected EmployeeList employees;
 
 	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc, java.lang.String)
-	 */
+	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.node.JDFNode, java.lang.String)
+	 * @param jdf
+	 * @param queueEntryID
+	 * @return
+	*/
 	@Override
-	public int canAccept(final JDFDoc doc, final String queueEntryID)
+	public VString canAccept(final JDFNode jdf, final String queueEntryID)
 	{
 		if (queueEntryID != null)
 		{
@@ -128,7 +135,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 			if (qe == null)
 			{
 				log.error("no qe: " + queueEntryID);
-				return 105;
+				return null;
 			}
 			if (EnumQueueEntryStatus.Running.equals(qe.getQueueEntryStatus()))
 
@@ -137,11 +144,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 			}
 		}
 
-		if (doc != null && _typeExpression == null)
-		{
-			return 0;
-		}
-		return getAcceptableNodes(doc) == null ? 101 : 0;
+		return getAcceptableNodes(jdf) == null ? null : new VString(getDeviceID(), null);
 	}
 
 	/**
@@ -150,28 +153,23 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	@Override
 	public JDFNode getNodeFromDoc(final JDFDoc doc)
 	{
-		final VElement v = getAcceptableNodes(doc);
+		final VElement v = getAcceptableNodes(doc == null ? null : doc.getJDFRoot());
 		return (JDFNode) (v == null ? null : v.get(0));
 	}
 
 	/**
-	 * @param doc
+	 * @param jdf
 	 * @return
 	 */
-	public VElement getAcceptableNodes(final JDFDoc doc)
+	public VElement getAcceptableNodes(final JDFNode jdf)
 	{
 		// TODO plug in devcaps
-		if (doc == null)
+		if (jdf == null)
 		{
 			return null;
 		}
 
-		final JDFNode n = doc.getJDFRoot();
-		if (n == null)
-		{
-			return null;
-		}
-		final VElement v = n.getvJDFNode(null, null, false);
+		final VElement v = jdf.getvJDFNode(null, null, false);
 		for (int i = v.size() - 1; i >= 0; i--)
 		{
 			final JDFNode n2 = (JDFNode) v.elementAt(i);
@@ -184,16 +182,32 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	}
 
 	/**
-	 * @param n2
+	 * @param n2 the JDF node to test against
+	 * @return true if this device can process n2
 	 */
 	private boolean canAccept(final JDFNode n2)
 	{
+		JDFDevice dev = (JDFDevice) n2.getResource(ElementName.DEVICE, EnumUsage.Input, 0);
+		if (dev != null)
+		{
+			String devID = StringUtil.getNonEmpty(dev.getDeviceID());
+			if (devID != null && !devID.equals(getDeviceID()))
+			{
+				return false;
+			}
+		}
 		final String types = n2.getTypesString();
-		return StringUtil.matches(types, _typeExpression);
+		boolean b = StringUtil.matches(types, _typeExpression);
+		if (!b)
+			return b;
+
+		// also check for executable nodes
+		EnumNodeStatus ns = n2.getPartStatus(null, -1);
+		return EnumNodeStatus.Waiting.equals(ns) || EnumNodeStatus.Ready.equals(ns);
 	}
 
 	/**
-	 * @author prosirai
+	 * @author Rainer Prosi
 	 */
 	protected class XMLWorkerDevice extends XMLDevice
 	{
