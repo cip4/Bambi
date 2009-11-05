@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.NotImplementedException;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 
 /*
@@ -436,6 +437,30 @@ public class BambiServletResponse extends BambiLogFactory implements HttpServlet
 			}
 		}
 
+	}
+
+	/**
+	 * @param r the XMLResponse to serialize
+	 */
+	public void write(XMLResponse r)
+	{
+		if (r == null)
+			return; // don't write empty stuff
+		try
+		{
+			XMLDoc d = r.getXMLDoc();
+			if (d != null)
+			{
+				setContentType(r.getContentType());
+				d.write2Stream(getBufferedOutputStream(), 0, true);
+			}
+			else
+				log.error("writing null document to stream");
+		}
+		catch (final IOException e)
+		{
+			log.error("cannot write to stream: ", e);
+		}
 	}
 
 }

@@ -34,6 +34,7 @@ public class ExtensionCallback extends ConverterCallback
 		if (doc != null)
 		{
 			final XJDFToJDFConverter toJDFConverter = new XJDFToJDFConverter(null);
+			toJDFConverter.createProduct = false;
 			if (toJDFConverter.canConvert(doc.getRoot()))
 			{
 				doc = toJDFConverter.convert(doc.getRoot());

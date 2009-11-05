@@ -1558,7 +1558,7 @@ public class QueueProcessor extends BambiLogFactory
 		{
 			if (newResponse != null)
 			{
-				JMFHandler.errorResponse(newResponse, "unable to queue request: Error code = 101", 101, EnumClass.Error);
+				JMFHandler.errorResponse(newResponse, "unable to queue request: No matching nodes found. Check Types and DeviceID - Error code = 101", 101, EnumClass.Error);
 			}
 			return null;
 		}

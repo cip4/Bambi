@@ -1536,7 +1536,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			synchronized (_theQueueProcessor.getQueue())
 			{
 				IQueueEntry currentQE = _theQueueProcessor.getNextEntry(null, canPush);
-				if (_rootDevice != null)
+				if (currentQE == null && _rootDevice != null)
 				{
 					currentQE = _rootDevice._theQueueProcessor.getNextEntry(getDeviceID(), canPush);
 					importQEFromRoot(currentQE);

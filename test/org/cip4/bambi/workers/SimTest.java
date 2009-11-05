@@ -113,9 +113,9 @@ public class SimTest extends BambiTestCase
 		bUpdateJobID = true;
 		// acknowledgeURL = "http://localhost:8080/httpdump/acknowledgeURL";
 
-		// simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/SimWorkerRoot";
 		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim001";
-		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/SimWorkerRoot";
+		//simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/SimWorkerRoot";
+		//simWorkerUrl = "http://10.51.201.204:8080/SimWorker/jmf/SimWorkerRoot";
 		//simWorkerUrl = "http://localhost:8080/richworker/jmf/sim001";
 		// simWorkerUrl = "http://146.140.222.217:8080/BambiProxy/jmf/kbaProxy";
 		// simWorkerUrl = "http://127.0.0.1:8080/speedmaster/jmf/XL105";

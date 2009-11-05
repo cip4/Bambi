@@ -52,7 +52,7 @@ public class QueueHFListener extends BambiLogFactory implements QueueHotFolderLi
 
 		final JDFQueueSubmissionParams qsp = command.getQueueSubmissionParams(0);
 
-		final JDFDoc doc = qsp.getURLDoc();
+		JDFDoc doc = qsp.getURLDoc();
 		if (doc == null)
 		{
 			log.warn("could not process JDF File");
@@ -61,7 +61,7 @@ public class QueueHFListener extends BambiLogFactory implements QueueHotFolderLi
 		{
 			if (_callBack != null)
 			{
-				_callBack.prepareJDFForBambi(doc);
+				doc = _callBack.prepareJDFForBambi(doc);
 			}
 
 			final JDFQueueEntry qe = queueProc.addEntry(command, null, doc);

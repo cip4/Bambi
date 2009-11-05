@@ -68,42 +68,57 @@
  *  
  * 
  */
-package org.cip4.bambi.proxy;
+package org.cip4.bambi.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.BambiServlet;
+import org.cip4.jdflib.core.KElement;
 
 /**
- * @author prosirai
- * 
+  * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
-public class ProxyServlet extends BambiServlet
+public class XMLRequest extends BambiLogFactory
 {
-
 	/**
-	 * 
+	 * @param theXML
 	 */
-	public ProxyServlet()
+	public XMLRequest(KElement theXML)
 	{
 		super();
-		log = LogFactory.getLog(ProxyServlet.class.getName());
-		log.info("Constructing logger");
+		this.theXML = theXML;
+		this.requestURI = null;
+	}
+
+	private final KElement theXML;
+	private String requestURI;
+
+	/**
+	 * @return
+	 */
+	public KElement getXML()
+	{
+		return theXML;
+	}
+
+	/**
+	 * @return the requestURI
+	 */
+	public String getRequestURI()
+	{
+		return requestURI;
+	}
+
+	/**
+	 * @param requestURI the requestURI to set
+	 */
+	public void setRequestURI(String requestURI)
+	{
+		this.requestURI = requestURI;
 	}
 
 	/**
 	 * @return
 	 */
-	@Override
-	protected String getPropsName()
+	public String getDeviceID()
 	{
-		return "org.cip4.bambi.proxy.ProxyProperties";
+		return BambiServletRequest.getDeviceIDFromURL(getRequestURI());
 	}
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8544678701930337760L;
-	private Log log = null;
-
 }

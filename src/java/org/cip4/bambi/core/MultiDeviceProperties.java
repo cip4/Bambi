@@ -73,11 +73,7 @@ package org.cip4.bambi.core;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.UnknownHostException;
-
-import javax.servlet.ServletContext;
 
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -102,8 +98,8 @@ public class MultiDeviceProperties extends BambiLogFactory
 	 * @author boegerni
 	 */
 	protected KElement root;
-	URL contextURL;
-	final ServletContext context;
+	protected File baseDir;
+	protected String context;
 
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -135,21 +131,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 */
 		public String getDeviceURL()
 		{
-			try
-			{
-				final InetAddress localHost = InetAddress.getLocalHost();
-				contextURL = new URL("http://" + localHost.getHostAddress() + ":" + getPort() + "/" + StringUtil.token(context.getResource("/").toExternalForm(), -1, "/"));
-			}
-			catch (final UnknownHostException x1)
-			{
-				//
-			}
-			catch (final MalformedURLException x2)
-			{
-				// 
-			}
-
-			return contextURL.toExternalForm() + "/jmf/" + getDeviceID();
+			return getContextURL() + "/jmf/" + getDeviceID();
 		}
 
 		/**
@@ -194,7 +176,6 @@ public class MultiDeviceProperties extends BambiLogFactory
 		public AbstractDevice getDeviceInstance()
 		{
 			final String _deviceName = getDeviceClassName();
-
 			if (_deviceName != null)
 			{
 				try
@@ -208,6 +189,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 					log.fatal("Cannot instantiate Device class: " + _deviceName, x);
 				}
 			}
+			log.fatal("Cannot instantiate null Device class - set correct device class name ");
 			return null;
 		}
 
@@ -494,7 +476,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 */
 		public String getContextURL()
 		{
-			return contextURL == null ? null : contextURL.toExternalForm();
+			return MultiDeviceProperties.this.getContextURL();
 		}
 
 		/**
@@ -559,17 +541,20 @@ public class MultiDeviceProperties extends BambiLogFactory
 
 	/**
 	 * create device properties for the devices defined in the config file
+	 * @param baseDir 
+	 * @param baseURL 
 	 * @param _context the location of the web application in the server
 	 * @param configFile the config file
 	 */
-	public MultiDeviceProperties(final ServletContext _context, final File configFile)
+	public MultiDeviceProperties(File baseDir, String baseURL, final File configFile)
 	{
-		context = _context;
 		// to evaluate current name and send it back rather than 127.0.0.1
-		final File baseDir = new File(context.getRealPath(""));
 		final JDFParser p = new JDFParser();
 		final XMLDoc doc = p.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
 		root = doc == null ? null : doc.getRoot();
+		this.context = baseURL;
+		this.baseDir = baseDir;
+
 		if (root == null || doc == null)
 		{
 			log.fatal("failed to parse " + configFile + ", rootDev is null");
@@ -593,20 +578,6 @@ public class MultiDeviceProperties extends BambiLogFactory
 				serialize();
 			}
 		}
-		try
-		{
-			final InetAddress localHost = InetAddress.getLocalHost();
-			contextURL = new URL("http://" + localHost.getHostName() + ":" + getPort() + "/" + StringUtil.token(context.getResource("/").toExternalForm(), -1, "/"));
-		}
-		catch (final UnknownHostException x1)
-		{
-			//
-		}
-		catch (final MalformedURLException x2)
-		{
-			// 
-		}
-
 	}
 
 	/**
@@ -643,7 +614,26 @@ public class MultiDeviceProperties extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		return "[ MultiDeviceProperties: " + contextURL + "\n" + root + "]";
+		return "[ MultiDeviceProperties: " + getContextURL() + "\n" + root + "]";
+	}
+
+	/**
+	 * @return 
+	 * @see org.cip4.bambi.core.IDeviceProperties#getContextURL()
+	 */
+	public String getContextURL()
+	{
+		String contextURL = null;
+		try
+		{
+			final InetAddress localHost = InetAddress.getLocalHost();
+			contextURL = "http://" + localHost.getHostAddress() + ":" + getPort() + "/" + context;
+		}
+		catch (final UnknownHostException x1)
+		{
+			//
+		}
+		return contextURL;
 	}
 
 	/**
@@ -759,7 +749,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 	 * @param element the xml element to parse
 	 * @return a IDeviceProperties parsed from the element
 	 */
-	public IDeviceProperties createDevice(final KElement element)
+	public IDeviceProperties createDeviceProps(final KElement element)
 	{
 		return this.new DeviceProperties(element);
 	}

@@ -135,12 +135,8 @@ public class BambiServletRequest extends BambiLogFactory implements HttpServletR
 	 */
 	public String getDeviceID()
 	{
-		String deviceID = getParameter("id");
-		if (deviceID == null)
-		{
-			deviceID = getPathInfo();
-			deviceID = getDeviceIDFromURL(deviceID);
-		}
+		String deviceID = getPathInfo();
+		deviceID = getDeviceIDFromURL(deviceID);
 		return deviceID;
 	}
 

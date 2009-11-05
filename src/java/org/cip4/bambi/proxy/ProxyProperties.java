@@ -72,8 +72,6 @@ package org.cip4.bambi.proxy;
 
 import java.io.File;
 
-import javax.servlet.ServletContext;
-
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties;
@@ -90,6 +88,16 @@ public class ProxyProperties extends MultiDeviceProperties
 	 * properties for a single device
 	 * @author boegerni
 	 */
+
+	/**
+	 * @param baseDir
+	 * @param baseURL
+	 * @param configFile
+	 */
+	public ProxyProperties(File baseDir, String baseURL, File configFile)
+	{
+		super(baseDir, baseURL, configFile);
+	}
 
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -291,22 +299,11 @@ public class ProxyProperties extends MultiDeviceProperties
 	}
 
 	/**
-	 * create device properties for the devices defined in the config file
-	 * @param _context the servlet context
-	 * @param configFile the config file
-	 */
-	public ProxyProperties(final ServletContext _context, final File configFile)
-	{
-		super(_context, configFile);
-
-	}
-
-	/**
 	 * @param element
 	 * @return
 	 */
 	@Override
-	public IDeviceProperties createDevice(final KElement element)
+	public IDeviceProperties createDeviceProps(final KElement element)
 	{
 		return this.new ProxyDeviceProperties(element);
 	}

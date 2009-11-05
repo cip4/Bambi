@@ -68,42 +68,65 @@
  *  
  * 
  */
-package org.cip4.bambi.proxy;
+package org.cip4.bambi.core;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.BambiServlet;
+import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.XMLDoc;
 
 /**
- * @author prosirai
- * 
+  * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
-public class ProxyServlet extends BambiServlet
+public class XMLResponse extends BambiLogFactory
 {
-
 	/**
-	 * 
+	 * @param theXML
 	 */
-	public ProxyServlet()
+	public XMLResponse(KElement theXML)
 	{
 		super();
-		log = LogFactory.getLog(ProxyServlet.class.getName());
-		log.info("Constructing logger");
+		this.theXML = theXML;
+	}
+
+	private KElement theXML;
+	private String contentType;
+
+	/**
+	 * @return
+	 */
+	public KElement getXML()
+	{
+		return theXML;
 	}
 
 	/**
 	 * @return
 	 */
-	@Override
-	protected String getPropsName()
+	public XMLDoc getXMLDoc()
 	{
-		return "org.cip4.bambi.proxy.ProxyProperties";
+		return theXML == null ? null : theXML.getOwnerDocument_KElement();
 	}
 
 	/**
-	 * 
+	 *  @param e the xml to set
 	 */
-	private static final long serialVersionUID = -8544678701930337760L;
-	private Log log = null;
+	public void setXML(KElement e)
+	{
+		theXML = e;
+	}
 
+	/**
+	 * @return the contentType
+	 */
+	public String getContentType()
+	{
+		return contentType;
+	}
+
+	/**
+	 * @param contentType the contentType to set
+	 */
+	public void setContentType(String contentType)
+	{
+		this.contentType = contentType;
+	}
 }
