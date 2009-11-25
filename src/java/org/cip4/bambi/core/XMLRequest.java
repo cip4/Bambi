@@ -73,7 +73,9 @@ package org.cip4.bambi.core;
 import org.cip4.jdflib.core.KElement;
 
 /**
-  * @author Rainer Prosi, Heidelberger Druckmaschinen *
+ * class to package an XML document together with the context information of the request
+ * 
+ * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class XMLRequest extends BambiLogFactory
 {

@@ -138,7 +138,9 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	}
 
 	protected enumGTType gt = enumGTType.MISCP;
+
 	protected final static String cwd = System.getProperty("user.dir");
+
 	protected final static String sm_dirTestData = cwd + File.separator + "test" + File.separator + "data"
 			+ File.separator;
 	protected final static String sm_dirTestTemp = cwd + File.separator + "test" + File.separator + "temp"

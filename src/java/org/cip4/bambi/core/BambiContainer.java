@@ -108,7 +108,7 @@ public class BambiContainer extends BambiLogFactory
 	private AbstractDevice rootDev = null;
 
 	/**
-	 * @return
+	 * @return the root dispatcher device 
 	 */
 	RootDevice getRootDevice()
 	{
@@ -116,6 +116,7 @@ public class BambiContainer extends BambiLogFactory
 	}
 
 	/**
+	 * get an {@link AbstractDevice} for a given deviceID
 	 * @param deviceID
 	 * @return
 	 */
@@ -132,11 +133,12 @@ public class BambiContainer extends BambiLogFactory
 	}
 
 	/**
-	 * loads properties
+	 * loads properties and instantiate the devices
 	 * @param baseDir 
 	 * @param context the servlet context information
 	 * @param config the name of the Java config xml file
 	 * @param dump the file where to dump debug requests
+	 * @param propName 
 	 * @return 
 	 */
 	boolean loadProperties(final File baseDir, final String context, final File config, final String dump, String propName)
@@ -275,7 +277,6 @@ public class BambiContainer extends BambiLogFactory
 
 	/**
 	 * @param requestURI
-	 * @param response
 	 * @param messageType
 	 * @param returnCode
 	 * @param notification
@@ -314,8 +315,8 @@ public class BambiContainer extends BambiLogFactory
 	/**
 	 * process a multipart request - including job submission
 	 * @param request
-	 * @param response
 	 * @param bp the mime body parts
+	 * @return the generated response
 	 */
 	protected XMLResponse processMultipleDocuments(final XMLRequest request, final BodyPart[] bp)
 	{
@@ -350,8 +351,6 @@ public class BambiContainer extends BambiLogFactory
 	 * process the main, i.e. doc #0 JMF document
 	 * 
 	 * @param request the http request to service
-	 * @param response the http response to fill
-	 * @param jmfDoc the extracted first jmf bodypart or raw jmf
 	 * @return
 	 */
 	protected XMLResponse processJMFDoc(final XMLRequest request)
