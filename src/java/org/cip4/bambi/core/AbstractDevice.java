@@ -619,7 +619,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected void addWatchSubscriptions()
 	{
 		final String watchURL = _devProperties.getWatchURL();
-		if (watchURL == null)
+		if (KElement.isWildCard(watchURL))
 		{
 			return;
 		}
