@@ -71,12 +71,12 @@
 
 package org.cip4.bambi;
 
-import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JMFBuilder;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG

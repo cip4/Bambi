@@ -193,17 +193,31 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 			String devID = StringUtil.getNonEmpty(dev.getDeviceID());
 			if (devID != null && !devID.equals(getDeviceID()))
 			{
+				log.debug("Device " + getDeviceID() + " Node found with non-matching device: " + devID);
 				return false;
 			}
 		}
 		final String types = n2.getTypesString();
 		boolean b = StringUtil.matches(types, _typeExpression);
 		if (!b)
+		{
+			log.debug("Device " + getDeviceID() + " Node found with non-matching type: " + types);
 			return b;
+		}
 
 		// also check for executable nodes
 		EnumNodeStatus ns = n2.getPartStatus(null, -1);
-		return EnumNodeStatus.Waiting.equals(ns) || EnumNodeStatus.Ready.equals(ns);
+		boolean isExecutable = EnumNodeStatus.Waiting.equals(ns) || EnumNodeStatus.Ready.equals(ns);
+		if (!isExecutable)
+		{
+			log.debug("node found with non-executable status: " + ns);
+		}
+		else
+		{
+			log.debug("nexecutable node found: JobPartID=" + n2.getJobPartID(false));
+
+		}
+		return isExecutable;
 	}
 
 	/**

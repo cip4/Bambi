@@ -75,7 +75,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 
 import org.cip4.bambi.BambiTestCase;
-import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
@@ -90,6 +89,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.util.ThreadUtil;
@@ -134,6 +134,22 @@ public class SimTest extends BambiTestCase
 		_theGT.devID = "sim001";
 		_theGT.assign(null);
 		submitMimetoURL(simWorkerUrl);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	public void testSubmitQueueEntry_HF() throws Exception
+	{
+		// get number of QueueEntries before submitting
+		//		final JDFQueue q = getQueueStatus(simWorkerUrl);
+		//		assertNotNull(q);
+		// build SubmitQueueEntry
+		_theGT.devID = null;
+		_theGT.devID = "sim001";
+		_theGT.assign(null);
+		final JDFDoc doc = _theGT.getNode().getOwnerDocument_JDFElement();
+		doc.write2File(sm_dirTestDataTemp + "hf.jdf", 2, false);
 
 	}
 
@@ -190,8 +206,11 @@ public class SimTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_X() throws Exception
 	{
-		for (int i = 0; i < 1000; i++)
+		for (int i = 0; i < 10; i++)
 		{
+			_theGT.devID = null;
+			//			_theGT.devID = "sim001";
+			_theGT.assign(null);
 			if (i != 0)
 			{
 				ThreadUtil.sleep(1000);

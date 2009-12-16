@@ -78,7 +78,6 @@ import java.net.MalformedURLException;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
-import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VElement;
@@ -97,6 +96,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.UrlUtil;
 
@@ -141,10 +141,8 @@ public class BambiTestCase extends BaseGoldenTicketTest
 
 	protected final static String cwd = System.getProperty("user.dir");
 
-	protected final static String sm_dirTestData = cwd + File.separator + "test" + File.separator + "data"
-			+ File.separator;
-	protected final static String sm_dirTestTemp = cwd + File.separator + "test" + File.separator + "temp"
-			+ File.separator;
+	protected final static String sm_dirTestData = cwd + File.separator + "test" + File.separator + "data" + File.separator;
+	protected final static String sm_dirTestTemp = cwd + File.separator + "test" + File.separator + "temp" + File.separator;
 	protected final static String sm_UrlTestData = "File:test/data/";
 
 	protected String simWorkerUrl = "http://localhost:8080/SimWorker/jmf/sim002";

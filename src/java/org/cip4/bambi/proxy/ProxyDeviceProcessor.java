@@ -79,7 +79,6 @@ import org.apache.commons.lang.NotImplementedException;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
-import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
@@ -110,6 +109,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
+import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
@@ -509,8 +509,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		{
 			statusListener.setPercentComplete(percentCompleted);
 		}
-		log.debug("Node Status :" + jobPhase.getStatus() + " " + jobPhase.getStatusDetails() + " " + deltaAmount + " "
-				+ deltaWaste + " completed: " + percentCompleted);
+		log.debug("Node Status :" + jobPhase.getStatus() + " " + jobPhase.getStatusDetails() + " " + deltaAmount + " " + deltaWaste + " completed: " + percentCompleted);
 	}
 
 	/**
@@ -739,8 +738,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		if (doc == null)
 		{
-			final String errorMsg = "failed to parse the JDFDoc from the incoming "
-					+ "ReturnQueueEntry with QueueEntryID=" + currentQE.getQueueEntryID();
+			final String errorMsg = "failed to parse the JDFDoc from the incoming " + "ReturnQueueEntry with QueueEntryID=" + currentQE.getQueueEntryID();
 			JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
 		}
 		else
@@ -853,8 +851,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			newJMF.setSenderID(senderID);
 		}
 
-		log.info("creating subscription for doc:" + root.getJobID(true) + " - " + root.getJobPartID(false) + " to "
-				+ p.getDeviceURLForSlave());
+		log.info("creating subscription for doc:" + root.getJobID(true) + " - " + root.getJobPartID(false) + " to " + p.getDeviceURLForSlave());
 	}
 
 	/**

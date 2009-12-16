@@ -123,4 +123,14 @@ public class XMLRequest extends BambiLogFactory
 	{
 		return BambiServletRequest.getDeviceIDFromURL(getRequestURI());
 	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 * @return
+	*/
+	@Override
+	public String toString()
+	{
+		return "XMLRequest URL=" + requestURI + "\n" + theXML;
+	}
 }

@@ -84,7 +84,6 @@ import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.IMessageOptimizer;
 import org.cip4.bambi.core.messaging.IResponseHandler;
-import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.StatusSignalComparator;
@@ -117,6 +116,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFSubmissionMethods;
+import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
@@ -157,8 +157,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		/**
 		 * XML representation of this simDevice fore use as html display using an XSLT
 		 * @param addProcs TODO
-		 * @param contextPath
-		 * @param dev
+		 * @param request 
 		 */
 		protected XMLDevice(final boolean addProcs, final BambiServletRequest request)
 		{
@@ -196,8 +195,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final EnumQueueStatus queueStatus = jdfQueue == null ? null : jdfQueue.getQueueStatus();
 			final int running = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Running);
 			final int waiting = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Waiting);
-			final int completed = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Completed)
-					+ jdfQueue.numEntries(EnumQueueEntryStatus.Aborted);
+			final int completed = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Completed) + jdfQueue.numEntries(EnumQueueEntryStatus.Aborted);
 
 			deviceRoot.setAttribute("QueueStatus", queueStatus == null ? "Unknown" : queueStatus.getName());
 			deviceRoot.setAttribute("QueueWaiting", waiting, null);
@@ -556,6 +554,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected RootDevice _rootDevice = null;
 	protected StatusListener _theStatusListener = null;
 	protected long numRequests = 0;
+	protected boolean acceptAll = false;
 
 	/**
 	 * creates a new device instance
@@ -1016,7 +1015,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected abstract AbstractDeviceProcessor buildDeviceProcessor();
 
 	/**
-	 * returns 0 if the device can process the jdf ticket
+	 * returns null if the device cannot process the jdf ticket
 	 * @param jdf
 	 * @param queueEntryID may be null in case of a new submission
 	 * @return list of valid deviceIDS if any, else null if none
@@ -1056,8 +1055,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return false;
 		}
 
-		if (BambiServlet.isMyContext(request, SHOW_DEVICE) || BambiServlet.isMyContext(request, "jmf")
-				|| BambiServlet.isMyContext(request, "slavejmf"))
+		if (BambiServlet.isMyContext(request, SHOW_DEVICE) || BambiServlet.isMyContext(request, "jmf") || BambiServlet.isMyContext(request, "slavejmf"))
 		{
 			if (request.getBooleanParam("restart") && getRootDevice() != null)
 			{
@@ -1129,7 +1127,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * update watchurl from the UI
+	 * update newWatchURL from the UI
+	 * @param newWatchURL 
 	 */
 	private void updateWatchURL(String newWatchURL)
 	{
@@ -1152,6 +1151,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
+	 * @param newHF 
 	 * 
 	 */
 	private void updateInputHF(String newHF)
@@ -1170,6 +1170,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
+	 * @param newHF 
 	 * 
 	 */
 	private void updateOutputHF(String newHF)
@@ -1186,6 +1187,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
+	 * @param newHF 
 	 * 
 	 */
 	private void updateErrorHF(String newHF)
@@ -1202,6 +1204,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
+	 * @param newDeviceType 
 	 * 
 	 */
 	private void updateDeviceType(final String newDeviceType)

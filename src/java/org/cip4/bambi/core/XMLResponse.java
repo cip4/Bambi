@@ -129,4 +129,15 @@ public class XMLResponse extends BambiLogFactory
 	{
 		this.contentType = contentType;
 	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 * @return
+	*/
+	@Override
+	public String toString()
+	{
+		return "XMLResponse ContentType=" + contentType + "\n" + theXML;
+	}
+
 }

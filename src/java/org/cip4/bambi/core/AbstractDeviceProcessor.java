@@ -93,6 +93,7 @@ import org.cip4.jdflib.resource.process.JDFUsageCounter;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * abstract parent class for device processors <br>
@@ -283,6 +284,8 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 */
 	final public void run()
 	{
+		long nWait = 0;
+		long tWait = System.currentTimeMillis();
 		while (!_doShutdown)
 		{
 			try
@@ -291,11 +294,10 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 				{
 					try
 					{
-						if (log != null)
-						{
-							log.debug("waiting");
-						}
+						if ((nWait % 12) == 0)
+							log.debug("waiting since: " + new JDFDate(tWait).getFormattedDateTime("hh:mm") + " (" + ((System.currentTimeMillis() - tWait) / 1000) + " seconds)");
 						idleProcess();
+						nWait++;
 						synchronized (_myListener)
 						{
 							_myListener.wait(10000); // 10000 is just in case
@@ -306,10 +308,16 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 						log.warn("interrupted while idle");
 					}
 				}
+				else
+				{
+					tWait = System.currentTimeMillis();
+					nWait = 0;
+				}
 			}
 			catch (final Exception x)
 			{
 				log.error("unhandled exception in processor", x);
+				ThreadUtil.sleep(2000);
 			}
 		}
 		if (_queueProcessor != null)

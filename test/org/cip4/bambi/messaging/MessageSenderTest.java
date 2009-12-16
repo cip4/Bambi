@@ -73,9 +73,9 @@ package org.cip4.bambi.messaging;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestHelper;
-import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JMFBuilder;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen

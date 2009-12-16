@@ -19,5 +19,6 @@
 	<classpathentry kind="lib" path="src/lib/log4j-1.2.8.jar"/>
 	<classpathentry kind="lib" path="src/lib/commons-logging.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Apache Software Foundation/Tomcat 6.0/lib/servlet-api.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Apache Software Foundation/Tomcat 6.0/lib/el-api.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

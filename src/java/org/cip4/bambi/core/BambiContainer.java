@@ -226,7 +226,7 @@ public class BambiContainer extends BambiLogFactory
 	 * @param dump the file where to dump debug requests
 	 * @return true if successful, otherwise false
 	 */
-	protected boolean createDevices(final MultiDeviceProperties props, final String dump)
+	public boolean createDevices(final MultiDeviceProperties props, final String dump)
 	{
 		boolean created = false;
 		MessageSender.setBaseLocation(props.getJMFDir());
@@ -249,10 +249,8 @@ public class BambiContainer extends BambiLogFactory
 			if (d != null && dump != null)
 			{
 				final String senderID = d.getDeviceID();
-				final DumpDir dumpSendIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inMessage."
-						+ senderID)));
-				final DumpDir dumpSendOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outMessage."
-						+ senderID)));
+				final DumpDir dumpSendIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inMessage." + senderID)));
+				final DumpDir dumpSendOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outMessage." + senderID)));
 				MessageSender.addDumps(senderID, dumpSendIn, dumpSendOut);
 			}
 		}
@@ -282,7 +280,7 @@ public class BambiContainer extends BambiLogFactory
 	 * @param notification
 	 * @return 
 	 */
-	protected XMLResponse processError(final String requestURI, final EnumType messageType, final int returnCode, final String notification)
+	public XMLResponse processError(final String requestURI, final EnumType messageType, final int returnCode, final String notification)
 	{
 		log.warn("processError- rc: " + returnCode + " " + notification == null ? "" : notification);
 		final JDFJMF error = JDFJMF.createJMF(EnumFamily.Response, messageType);
@@ -318,7 +316,7 @@ public class BambiContainer extends BambiLogFactory
 	 * @param bp the mime body parts
 	 * @return the generated response
 	 */
-	protected XMLResponse processMultipleDocuments(final XMLRequest request, final BodyPart[] bp)
+	public XMLResponse processMultipleDocuments(final XMLRequest request, final BodyPart[] bp)
 	{
 		log.info("processMultipleDocuments- parts: " + (bp == null ? 0 : bp.length));
 		if (bp == null || bp.length < 2)
@@ -353,7 +351,7 @@ public class BambiContainer extends BambiLogFactory
 	 * @param request the http request to service
 	 * @return
 	 */
-	protected XMLResponse processJMFDoc(final XMLRequest request)
+	public XMLResponse processJMFDoc(final XMLRequest request)
 	{
 		JDFJMF jmf = (JDFJMF) request.getXML();
 		JDFDoc jmfDoc = new JDFDoc(request.getXML().getOwnerDocument());

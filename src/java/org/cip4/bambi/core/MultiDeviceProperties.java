@@ -440,6 +440,15 @@ public class MultiDeviceProperties extends BambiLogFactory
 		}
 
 		/**
+		 * @return true if all jdfs should be accepted (ignore canAccept)
+		*
+		 */
+		public boolean getAcceptAll()
+		{
+			return StringUtil.parseBoolean(getDeviceAttribute("AcceptAll", null, "false"), false);
+		}
+
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEEncoding()
 		 */
 		public String getControllerMIMEEncoding()

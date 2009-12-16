@@ -77,7 +77,6 @@ import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
-import org.cip4.bambi.core.messaging.JMFBuilder;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
@@ -102,6 +101,7 @@ import org.cip4.jdflib.jmf.JDFResourceQuParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
+import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
@@ -316,8 +316,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			// submit a specific QueueEntry
 			final IQueueEntry iqe = _theQueueProcessor.getWaitingQueueEntry(nid);
 			final JDFQueueEntry qe = iqe == null ? null : iqe.getQueueEntry();
-			if (qe != null && EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus())
-					&& KElement.isWildCard(qe.getDeviceID()))
+			if (qe != null && EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && KElement.isWildCard(qe.getDeviceID()))
 			{
 				qe.setDeviceID(m.getSenderID());
 				submitQueueEntry(iqe, queueURL);
@@ -329,8 +328,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			else
 			{
 				final String qeStatus = qe.getQueueEntryStatus().getName();
-				JMFHandler.errorResponse(resp, "requested QueueEntry is " + qeStatus + " or on Device: "
-						+ qe.getDeviceID(), 106, EnumClass.Error);
+				JMFHandler.errorResponse(resp, "requested QueueEntry is " + qeStatus + " or on Device: " + qe.getDeviceID(), 106, EnumClass.Error);
 			}
 			return true;
 		}
