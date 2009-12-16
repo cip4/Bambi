@@ -461,7 +461,7 @@ public class BambiServletRequest extends BambiLogFactory implements HttpServletR
 	 */
 	public String getParameter(final String arg0)
 	{
-		return parent.getParameter(arg0);
+		return StringUtil.getNonEmpty(parent.getParameter(arg0));
 	}
 
 	/**
