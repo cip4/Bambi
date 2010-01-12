@@ -85,7 +85,7 @@ import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilder;
-import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 

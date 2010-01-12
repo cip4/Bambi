@@ -113,7 +113,7 @@ import org.cip4.jdflib.jmf.JDFSubscriptionInfo;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.pool.JDFAncestorPool;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FastFiFo;

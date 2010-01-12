@@ -87,7 +87,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StatusCounter;

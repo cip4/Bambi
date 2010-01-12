@@ -112,7 +112,7 @@ import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.resource.JDFEvent;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;

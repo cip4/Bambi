@@ -92,7 +92,7 @@ import org.cip4.jdflib.jmf.JDFStopPersChParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
 
 /**

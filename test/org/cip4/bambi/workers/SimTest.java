@@ -206,7 +206,7 @@ public class SimTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_X() throws Exception
 	{
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 1; i++)
 		{
 			_theGT.devID = null;
 			//			_theGT.devID = "sim001";

@@ -132,7 +132,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQueue.CleanupCallback;
 import org.cip4.jdflib.jmf.JDFQueue.ExecuteCallback;
 import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.node.JDFNode.NodeIdentifier;
+import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
