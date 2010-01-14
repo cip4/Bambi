@@ -113,7 +113,7 @@ public class BambiContainer extends BambiLogFactory
 	/**
 	 * @return the root dispatcher device 
 	 */
-	RootDevice getRootDevice()
+	private RootDevice getRootDevice()
 	{
 		return (rootDev instanceof RootDevice) ? (RootDevice) rootDev : null;
 	}
@@ -144,7 +144,7 @@ public class BambiContainer extends BambiLogFactory
 	 * @param propName 
 	 * @return 
 	 */
-	boolean loadProperties(final File baseDir, final String context, final File config, final String dump, String propName)
+	public boolean loadProperties(final File baseDir, final String context, final File config, final String dump, String propName)
 	{
 		final MultiDeviceProperties props;
 		try
