@@ -15,6 +15,7 @@
 		<property name="core.src.dir" value="${src.dir}/java/org/cip4/bambi/core" /> 
 		<property name="proxy.src.dir" value="${src.dir}/java/org/cip4/bambi/proxy" /> 
 		<property name="extension.src.dir" value="${src.dir}/java/org/cip4/bambi/extensions" /> 
+		<property name="workerscore.src.dir" value="${src.dir}/java/org/cip4/bambi/workers" />
 		<property name="lib.dir" value="${src.dir}/lib" />
 		<property name="bin.dir" value="./bin/core" />
 		<property name="dist.dir" value="./dist/core" />
@@ -41,6 +42,7 @@
 			<src path="${core.src.dir}" />
 			<src path="${proxy.src.dir}" />
 			<src path="${extension.src.dir}" />
+			<src path="${workerscore.src.dir}" />
 			<classpath refid="project.class.path" />
 			<include name="**/*.java" />
 		</javac>
