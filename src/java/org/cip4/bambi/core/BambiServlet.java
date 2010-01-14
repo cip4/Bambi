@@ -74,7 +74,6 @@ package org.cip4.bambi.core;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.util.Iterator;
 import java.util.List;
@@ -88,11 +87,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.enums.ValuedEnum;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -297,47 +292,6 @@ public class BambiServlet extends HttpServlet
 	}
 
 	/**
-	 * Parses a multipart request.
-	 * @param request 
-	 * @param response 
-	 * @throws IOException 
-	 */
-	protected void processMultipartRequest(final BambiServletRequest request, final BambiServletResponse response) throws IOException
-	{
-		final InputStream inStream = request.getBufferedInputStream();
-		final BodyPart bp[] = MimeUtil.extractMultipartMime(inStream);
-		log.info("Body Parts: " + ((bp == null) ? 0 : bp.length));
-		if (bp == null || bp.length == 0)
-		{
-			processError(request, response, null, 9, "No body parts in mime package");
-			return;
-		}
-		try
-		{// messaging exceptions
-			if (bp.length > 1)
-			{
-				XMLRequest req = new XMLRequest(null);
-				req.setRequestURI(request.getRequestURI());
-				XMLResponse resp = theContainer.processMultipleDocuments(req, bp);
-				response.write(resp);
-
-			}
-			else
-			{
-				final String s = bp[0].getContentType();
-				if (UrlUtil.VND_JMF.equalsIgnoreCase(s))
-				{
-					processJMFRequest(request, response, bp[0].getInputStream());
-				}
-			}
-		}
-		catch (final MessagingException x)
-		{
-			processError(request, response, null, 9, "Messaging exception\n" + x.getLocalizedMessage());
-		}
-	}
-
-	/**
 	 * Handles the HTTP <code>POST</code> method.
 	 * @param request servlet request
 	 * @param response servlet response
@@ -359,38 +313,11 @@ public class BambiServlet extends HttpServlet
 		}
 
 		final String contentType = bufRequest.getContentType();
-		if (UrlUtil.VND_JMF.equals(contentType))
-		{
-			processJMFRequest(bufRequest, bufResponse, null);
-		}
-		else if (UrlUtil.TEXT_XML.equals(contentType))
-		{
-			processXMLRequest(bufRequest, bufResponse);
-		}
-		else
-		{
-			final boolean isMultipart = ServletFileUpload.isMultipartContent(request);
-			if (isMultipart)
-			{
-				log.info("Processing multipart request... (ContentType: " + contentType + ")");
-				processMultipartRequest(bufRequest, bufResponse);
-			}
-			else
-			{
-				String ctWarn = "Unknown HTTP ContentType: " + contentType;
-				log.error(ctWarn);
-				response.setContentType("text/plain");
-
-				final OutputStream os = bufResponse.getBufferedOutputStream();
-				final InputStream is = bufRequest.getBufferedInputStream();
-				ctWarn += "\nFor JMF , please use: " + UrlUtil.VND_JMF;
-				ctWarn += "\nFor JDF , please use: " + UrlUtil.VND_JDF;
-				ctWarn += "\nFor MIME, please use: " + MimeUtil.MULTIPART_RELATED;
-				ctWarn += "\n\n Input Message:\n\n";
-				os.write(ctWarn.getBytes());
-				IOUtils.copy(is, os);
-			}
-		}
+		StreamRequest sr = new StreamRequest(bufRequest.getBuffer());
+		sr.setContentType(contentType);
+		sr.setRequestURI(request.getRequestURI());
+		XMLResponse xr = theContainer.processStream(sr);
+		bufResponse.write(xr);
 		if (bambiDumpOut != null && (dumpEmpty || bufResponse.getBufferedCount() > 0))
 		{
 			final InputStream buf = bufResponse.getBufferedInputStream();
@@ -415,38 +342,6 @@ public class BambiServlet extends HttpServlet
 		header += "\nMethod: Post\nContext Type: " + request.getContentType();
 		header += "\nRemote host: " + request.getRemoteHost();
 		return header;
-	}
-
-	/**
-	 * @param bufRequest
-	 * @param bufResponse
-	 */
-	private void processXMLRequest(final BambiServletRequest bufRequest, final BambiServletResponse bufResponse)
-	{
-		// TODO some smarts whether JDF or JMF
-		log.info("Processing text/xml");
-		processJMFRequest(bufRequest, bufResponse, null);
-	}
-
-	/**
-	 * @param request
-	 * @param response
-	 */
-	private void processJMFRequest(final BambiServletRequest request, final BambiServletResponse response, InputStream inStream)
-	{
-		log.debug("processJMFRequest");
-		final JDFParser p = new JDFParser();
-		if (inStream == null)
-		{
-			inStream = request.getBufferedInputStream();
-		}
-		final JDFDoc jmfDoc = p.parseStream(inStream);
-		KElement jmf = jmfDoc == null ? null : jmfDoc.getRoot();
-		XMLRequest req = new XMLRequest(jmf);
-		req.setRequestURI(request.getRequestURI());
-		XMLResponse resp = theContainer.processJMFDoc(req);
-		response.write(resp);
-
 	}
 
 	/**

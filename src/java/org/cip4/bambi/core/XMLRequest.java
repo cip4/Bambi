@@ -70,6 +70,10 @@
  */
 package org.cip4.bambi.core;
 
+import java.io.InputStream;
+
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 
 /**
@@ -77,20 +81,31 @@ import org.cip4.jdflib.core.KElement;
  * 
  * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
-public class XMLRequest extends BambiLogFactory
+public class XMLRequest extends ContainerRequest
 {
 	/**
 	 * @param theXML
 	 */
 	public XMLRequest(KElement theXML)
 	{
-		super();
+		super(null, null);
 		this.theXML = theXML;
-		this.requestURI = null;
+	}
+
+	/**
+	 * @param request
+	 */
+	public XMLRequest(StreamRequest request)
+	{
+		super(request.getRequestURI(), request.getContentType());
+		InputStream inStream = request.getStream();
+
+		final JDFParser p = new JDFParser();
+		final JDFDoc xmlDoc = p.parseStream(inStream);
+		theXML = xmlDoc == null ? null : xmlDoc.getRoot();
 	}
 
 	private final KElement theXML;
-	private String requestURI;
 
 	/**
 	 * @return
@@ -101,36 +116,12 @@ public class XMLRequest extends BambiLogFactory
 	}
 
 	/**
-	 * @return the requestURI
-	 */
-	public String getRequestURI()
-	{
-		return requestURI;
-	}
-
-	/**
-	 * @param requestURI the requestURI to set
-	 */
-	public void setRequestURI(String requestURI)
-	{
-		this.requestURI = requestURI;
-	}
-
-	/**
-	 * @return
-	 */
-	public String getDeviceID()
-	{
-		return BambiServletRequest.getDeviceIDFromURL(getRequestURI());
-	}
-
-	/**
 	 * @see java.lang.Object#toString()
 	 * @return
 	*/
 	@Override
 	public String toString()
 	{
-		return "XMLRequest URL=" + requestURI + "\n" + theXML;
+		return super.toString() + "\n" + theXML;
 	}
 }

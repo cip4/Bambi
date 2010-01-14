@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -68,82 +68,55 @@
  *  
  * 
  */
-
 package org.cip4.bambi.core;
 
-import java.io.File;
+import java.io.InputStream;
 
-import org.cip4.bambi.BambiTestCase;
-import org.cip4.jdflib.core.JDFElement;
-import org.cip4.jdflib.core.JDFElement.EnumVersion;
-import org.cip4.jdflib.core.KElement.EnumValidationLevel;
-import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.util.ByteArrayIOStream;
 
 /**
- * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+ * class to package an input stream together with the context information of the request
  * 
- * 16.11.2009
+ * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
-public class BambiContainerTest extends BambiTestCase
+public class StreamRequest extends ContainerRequest
 {
-	private BambiContainer bc = null;
-
 	/**
-	 * 
+	 * @param theStream
 	 */
-	public void testConstruct()
+	public StreamRequest(InputStream theStream)
 	{
-		assertNotNull(bc.getRootDevice());
-		assertNotNull(bc.getDeviceFromID("sim001"));
+		super(null, null);
+		this.theStream = new ByteArrayIOStream(theStream);
 	}
 
 	/**
-	 * 
+	 * @param theStream
 	 */
-	public void testHandleJMF()
+	public StreamRequest(ByteArrayIOStream theStream)
 	{
-		JDFJMF jmf = new JMFBuilder().buildKnownMessagesQuery();
-		XMLResponse resp = bc.processJMFDoc(new XMLRequest(jmf));
-		assertNotNull(resp);
-		assertTrue(((JDFElement) resp.getXML()).isValid(EnumValidationLevel.Complete));
-
+		super(null, null);
+		this.theStream = theStream;
 	}
 
-	/**
-	 * @throws Exception 
-	 * 
-	 */
-	@Override
-	public void setUp() throws Exception
-	{
-		super.setUp();
-		JDFElement.setDefaultJDFVersion(EnumVersion.Version_1_4);
-		bc = new BambiContainer();
-		bc.loadProperties(new File(sm_dirTestData + "ContainerTest"), "test", new File("/config/devices.xml"), sm_dirTestDataTemp + "BambiDump", getPropsName());
-	}
-
-	/**
-	 * 
-	 */
-	public void testHandleJMFSubscription()
-	{
-		JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://www.example.com", 15, 0, null);
-		XMLResponse resp = bc.processJMFDoc(new XMLRequest(jmf));
-		assertNotNull(resp);
-		JDFJMF jmfResp = (JDFJMF) resp.getXML();
-		resp.getXMLDoc().write2File(sm_dirTestDataTemp + "respSubs.jmf", 2, false);
-		assertTrue(jmfResp.isValid(EnumValidationLevel.Complete));
-		assertTrue(jmf.getResponse(0).getSubscribed());
-
-	}
+	final ByteArrayIOStream theStream;
 
 	/**
 	 * @return
 	 */
-	private String getPropsName()
+	public InputStream getStream()
 	{
-		return "org.cip4.bambi.core.MultiDeviceProperties";
+		return theStream.getInputStream();
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 * @return
+	*/
+	@Override
+	public String toString()
+	{
+		return super.toString() + "\nsize: " + theStream.size();
 	}
 
 }

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -68,82 +68,87 @@
  *  
  * 
  */
-
 package org.cip4.bambi.core;
 
-import java.io.File;
-
-import org.cip4.bambi.BambiTestCase;
-import org.cip4.jdflib.core.JDFElement;
-import org.cip4.jdflib.core.JDFElement.EnumVersion;
-import org.cip4.jdflib.core.KElement.EnumValidationLevel;
-import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JMFBuilder;
-
 /**
- * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+ * class to package an XML document together with the context information of the request
  * 
- * 16.11.2009
+ * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
-public class BambiContainerTest extends BambiTestCase
+public class ContainerRequest extends BambiLogFactory
 {
-	private BambiContainer bc = null;
+	/**
+	 * @param requestURI
+	 * @param contentType 
+	 */
+	public ContainerRequest(String requestURI, String contentType)
+	{
+		super();
+		this.requestURI = requestURI;
+		this.contentType = contentType;
+	}
+
+	private String requestURI;
+	private String contentType;
 
 	/**
-	 * 
+	 * @return the requestURI
 	 */
-	public void testConstruct()
+	public String getRequestURI()
 	{
-		assertNotNull(bc.getRootDevice());
-		assertNotNull(bc.getDeviceFromID("sim001"));
+		return requestURI;
 	}
 
 	/**
-	 * 
+	 * @param requestURI the requestURI to set
 	 */
-	public void testHandleJMF()
+	public void setRequestURI(String requestURI)
 	{
-		JDFJMF jmf = new JMFBuilder().buildKnownMessagesQuery();
-		XMLResponse resp = bc.processJMFDoc(new XMLRequest(jmf));
-		assertNotNull(resp);
-		assertTrue(((JDFElement) resp.getXML()).isValid(EnumValidationLevel.Complete));
-
-	}
-
-	/**
-	 * @throws Exception 
-	 * 
-	 */
-	@Override
-	public void setUp() throws Exception
-	{
-		super.setUp();
-		JDFElement.setDefaultJDFVersion(EnumVersion.Version_1_4);
-		bc = new BambiContainer();
-		bc.loadProperties(new File(sm_dirTestData + "ContainerTest"), "test", new File("/config/devices.xml"), sm_dirTestDataTemp + "BambiDump", getPropsName());
-	}
-
-	/**
-	 * 
-	 */
-	public void testHandleJMFSubscription()
-	{
-		JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://www.example.com", 15, 0, null);
-		XMLResponse resp = bc.processJMFDoc(new XMLRequest(jmf));
-		assertNotNull(resp);
-		JDFJMF jmfResp = (JDFJMF) resp.getXML();
-		resp.getXMLDoc().write2File(sm_dirTestDataTemp + "respSubs.jmf", 2, false);
-		assertTrue(jmfResp.isValid(EnumValidationLevel.Complete));
-		assertTrue(jmf.getResponse(0).getSubscribed());
-
+		this.requestURI = requestURI;
 	}
 
 	/**
 	 * @return
 	 */
-	private String getPropsName()
+	public String getDeviceID()
 	{
-		return "org.cip4.bambi.core.MultiDeviceProperties";
+		return BambiServletRequest.getDeviceIDFromURL(getRequestURI());
 	}
 
+	/**
+	 * @see java.lang.Object#toString()
+	 * @return
+	*/
+	@Override
+	public String toString()
+	{
+		return "ContainerRequest URL=" + requestURI + "\n" + "Content Type=" + contentType;
+	}
+
+	/**
+	 * @return the contentType
+	 */
+	public String getContentType()
+	{
+		return contentType;
+	}
+
+	/**
+	 * @param contentType the contentType to set
+	 */
+	public void setContentType(String contentType)
+	{
+		this.contentType = contentType;
+	}
+
+	/**
+	 * sets all values except the main contents
+	 * @param request the container to clone
+	 */
+	public void setContainer(ContainerRequest request)
+	{
+		setRequestURI(request.getRequestURI());
+		setContentType(request.getContentType());
+
+	}
 }

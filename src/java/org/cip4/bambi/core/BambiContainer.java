@@ -71,11 +71,14 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.util.Iterator;
 import java.util.Vector;
 
 import javax.mail.BodyPart;
+import javax.mail.MessagingException;
 
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
@@ -311,13 +314,108 @@ public class BambiContainer extends BambiLogFactory
 	}
 
 	/**
+	 * @param request 
+	 * @return 
+	 * @throws IOException 
+	 */
+	public XMLResponse processStream(final StreamRequest request) throws IOException
+	{
+
+		final String contentType = request.getContentType();
+		if (UrlUtil.VND_JMF.equals(contentType))
+		{
+			XMLRequest req = new XMLRequest(request);
+			return processJMFDoc(req);
+		}
+		else if (UrlUtil.TEXT_XML.equals(contentType))
+		{
+			XMLRequest req = new XMLRequest(request);
+			return processXMLDoc(req);
+		}
+		else
+		{
+			final boolean isMultipart = MimeUtil.isMimeMultiPart(contentType);
+			if (isMultipart)
+			{
+				log.info("Processing multipart request... (ContentType: " + contentType + ")");
+				return processMultiPart(request);
+			}
+			else
+			{
+				String ctWarn = "Unknown HTTP ContentType: " + contentType;
+				log.error(ctWarn);
+				ctWarn += "\nFor JMF , please use: " + UrlUtil.VND_JMF;
+				ctWarn += "\nFor JDF , please use: " + UrlUtil.VND_JDF;
+				ctWarn += "\nFor MIME, please use: " + MimeUtil.MULTIPART_RELATED;
+				ctWarn += "\n\n Input Message:\n\n";
+				return processError(request.getRequestURI(), null, 9, ctWarn);
+			}
+		}
+	}
+
+	/**
+	 * @param request
+	 * @return
+	 */
+	private XMLResponse processXMLDoc(XMLRequest request)
+	{
+		log.info("Processing text/xml");
+		return processJMFDoc(request);
+	}
+
+	/**
+	 * Parses a multipart request.
+	 * @param request 
+	 * @return 
+	 * @throws IOException 
+	 */
+	public XMLResponse processMultiPart(final StreamRequest request) throws IOException
+	{
+		final InputStream inStream = request.getStream();
+		final BodyPart bp[] = MimeUtil.extractMultipartMime(inStream);
+		log.info("Body Parts: " + ((bp == null) ? 0 : bp.length));
+		XMLResponse r = null;
+		if (bp == null || bp.length == 0)
+		{
+			r = processError(request.getRequestURI(), null, 9, "No body parts in mime package");
+		}
+		else
+		{
+			try
+			{// messaging exceptions
+				if (bp.length > 1)
+				{
+					MimeRequest req = new MimeRequest(bp);
+					req.setRequestURI(request.getRequestURI());
+					r = processMultipleDocuments(req);
+				}
+				else
+				{
+					final String s = bp[0].getContentType();
+					if (UrlUtil.VND_JMF.equalsIgnoreCase(s))
+					{
+						StreamRequest sr = new StreamRequest(bp[0].getInputStream());
+						sr.setContainer(request);
+						r = processStream(sr);
+					}
+				}
+			}
+			catch (final MessagingException x)
+			{
+				r = processError(request.getRequestURI(), null, 9, "Messaging exception\n" + x.getLocalizedMessage());
+			}
+		}
+		return r;
+	}
+
+	/**
 	 * process a multipart request - including job submission
 	 * @param request
-	 * @param bp the mime body parts
 	 * @return the generated response
 	 */
-	public XMLResponse processMultipleDocuments(final XMLRequest request, final BodyPart[] bp)
+	public XMLResponse processMultipleDocuments(final MimeRequest request)
 	{
+		BodyPart[] bp = request.getBodyParts();
 		log.info("processMultipleDocuments- parts: " + (bp == null ? 0 : bp.length));
 		if (bp == null || bp.length < 2)
 		{

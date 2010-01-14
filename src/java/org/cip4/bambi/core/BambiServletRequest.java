@@ -1,35 +1,9 @@
-/**
- * 
- */
-package org.cip4.bambi.core;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.security.Principal;
-import java.util.Enumeration;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
-import org.apache.commons.io.IOUtils;
-import org.cip4.jdflib.core.VString;
-import org.cip4.jdflib.util.ByteArrayIOStream;
-import org.cip4.jdflib.util.StringUtil;
-import org.cip4.jdflib.util.UrlUtil;
-
 /*
  *
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-201 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -94,6 +68,30 @@ import org.cip4.jdflib.util.UrlUtil;
  *  
  * 
  */
+
+package org.cip4.bambi.core;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.security.Principal;
+import java.util.Enumeration;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.io.IOUtils;
+import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil;
+
 /**
  * buffered servlet request class
  * @author prosirai
@@ -398,6 +396,26 @@ public class BambiServletRequest extends BambiLogFactory implements HttpServletR
 		{
 			return null;
 		}
+	}
+
+	/**
+	 * get the buffer
+	 * @return the buffered stream, null if the inputstream throws an exception
+	 */
+	public ByteArrayIOStream getBuffer()
+	{
+		if (buffer == null)
+		{
+			try
+			{
+				buffer = new ByteArrayIOStream(parent.getInputStream());
+			}
+			catch (final Exception e)
+			{
+				return null;
+			}
+		}
+		return buffer;
 	}
 
 	/**
