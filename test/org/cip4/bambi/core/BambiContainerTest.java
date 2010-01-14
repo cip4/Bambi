@@ -94,7 +94,7 @@ public class BambiContainerTest extends BambiTestCase
 	 */
 	public void testConstruct()
 	{
-		assertNotNull(bc.getRootDevice());
+		assertNotNull(bc.getRootDev());
 		assertNotNull(bc.getDeviceFromID("sim001"));
 	}
 

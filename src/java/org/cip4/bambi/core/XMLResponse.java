@@ -70,8 +70,12 @@
  */
 package org.cip4.bambi.core;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.util.ByteArrayIOStream;
 
 /**
   * @author Rainer Prosi, Heidelberger Druckmaschinen *
@@ -138,6 +142,26 @@ public class XMLResponse extends BambiLogFactory
 	public String toString()
 	{
 		return "XMLResponse ContentType=" + contentType + "\n" + theXML;
+	}
+
+	/**
+	 * @return
+	 */
+	public InputStream getInputStream()
+	{
+		XMLDoc d = getXMLDoc();
+		if (d == null)
+			return null;
+		ByteArrayIOStream bis = new ByteArrayIOStream();
+		try
+		{
+			d.write2Stream(bis, 0, true);
+		}
+		catch (IOException x)
+		{
+			return null;
+		}
+		return bis.getInputStream();
 	}
 
 }
