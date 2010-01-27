@@ -314,6 +314,16 @@ public class BambiContainer extends BambiLogFactory
 	}
 
 	/**
+	 * 
+	 */
+	public void reset()
+	{
+		rootDev.reset();
+		final JMFFactory factory = JMFFactory.getJMFFactory();
+		factory.shutDown(null, false);
+	}
+
+	/**
 	 * @param request 
 	 * @return 
 	 * @throws IOException 
@@ -348,7 +358,7 @@ public class BambiContainer extends BambiLogFactory
 				ctWarn += "\nFor JDF , please use: " + UrlUtil.VND_JDF;
 				ctWarn += "\nFor MIME, please use: " + MimeUtil.MULTIPART_RELATED;
 				ctWarn += "\n\n Input Message:\n\n";
-				return processError(request.getRequestURI(), null, 9, ctWarn);
+				return processError(request.getRequestURI(), EnumType.Notification, 9, ctWarn);
 			}
 		}
 	}
@@ -377,7 +387,7 @@ public class BambiContainer extends BambiLogFactory
 		XMLResponse r = null;
 		if (bp == null || bp.length == 0)
 		{
-			r = processError(request.getRequestURI(), null, 9, "No body parts in mime package");
+			r = processError(request.getRequestURI(), EnumType.Notification, 9, "No body parts in mime package");
 		}
 		else
 		{
@@ -456,7 +466,7 @@ public class BambiContainer extends BambiLogFactory
 		final XMLResponse response;
 		if (jmf == null)
 		{
-			response = processError(request.getRequestURI(), null, 3, "Error Parsing JMF");
+			response = processError(request.getRequestURI(), EnumType.Notification, 3, "Error Parsing JMF");
 		}
 		else
 		{
@@ -514,6 +524,16 @@ public class BambiContainer extends BambiLogFactory
 			}
 		}
 		return response;
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 * @return
+	*/
+	@Override
+	public String toString()
+	{
+		return "BambiContainer: \n" + rootDev;
 	}
 
 }

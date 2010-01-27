@@ -264,6 +264,7 @@
           <xsl:apply-templates/>
         </table>
         <hr/>
+        
         <form>
           <xsl:attribute name="action"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
           <input type="submit" value="refresh queue"/>

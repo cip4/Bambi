@@ -41,11 +41,6 @@
 	<target name="compile" depends="-init" description="Compiles source code.">
 		<echo>Compiling...</echo>
 		<javac destdir="${bin.dir}" debug="${build.debug}">
-			<src path="${workerscore.src.dir}" />
-			<classpath refid="project.class.path" />
-			<include name="*.java" />
-		</javac>
-		<javac destdir="${bin.dir}" debug="${build.debug}">
 			<src path="${sim.src.dir}" />
 			<classpath refid="project.class.path" />
 			<include name="**/*.java" />

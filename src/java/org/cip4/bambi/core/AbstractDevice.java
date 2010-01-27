@@ -340,7 +340,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				return false;
 			}
 			final JDFSignal response2 = docJMFResource.getJMFRoot().getSignal(0);
-			response.mergeElement(response2, false);
+			response.copyInto(response2, false);
 			response.removeAttribute(AttributeName.REFID);
 			final JDFResourceQuParams inRQP = inputMessage.getResourceQuParams();
 			if (inRQP != null)
@@ -670,7 +670,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		hfStorage.mkdirs(); // just in case
 		if (hfStorage.isDirectory())
 		{
-			_submitHotFolder = new QueueHotFolder(hfURL, hfStorage, "jdf", new QueueHFListener(_theQueueProcessor, _devProperties.getCallBackClass()), null);
+			_submitHotFolder = new QueueHotFolder(hfURL, hfStorage, "jdf,xjdf,xml", new QueueHFListener(_theQueueProcessor, _devProperties.getCallBackClass()), null);
 		}
 		else
 		{
@@ -997,6 +997,24 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 		_theQueueProcessor = null;
 
+	}
+
+	/**
+	 * reset the signal dispatcher, hot folder and device processor
+	 * 
+	 * this is a hard reset that removes any and all data!
+	 */
+	public void reset()
+	{
+		if (_theSignalDispatcher != null)
+		{
+			_theSignalDispatcher.reset();
+		}
+
+		if (_theQueueProcessor != null)
+		{
+			_theQueueProcessor.reset();
+		}
 	}
 
 	/**

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -170,6 +170,14 @@ public class MultiDeviceProperties extends BambiLogFactory
 		}
 
 		/**
+		 * @param callbackName
+		 */
+		public void setCallBackClassName(String callbackName)
+		{
+			devRoot.setAttribute("CallBackName", callbackName);
+		}
+
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceInstance()
 		 * @return the device instance
 		 */
@@ -207,6 +215,15 @@ public class MultiDeviceProperties extends BambiLogFactory
 		public String getDeviceID()
 		{
 			return getDeviceAttribute("DeviceID", null, null);
+		}
+
+		/**
+		 * @param deviceID the deviceID to set
+		 * 
+		 */
+		public void setDeviceID(String deviceID)
+		{
+			devRoot.setAttribute("DeviceID", deviceID);
 		}
 
 		/**
@@ -382,7 +399,6 @@ public class MultiDeviceProperties extends BambiLogFactory
 				val = root.getAttribute(key, ns, def);
 			}
 			return val;
-
 		}
 
 		/**
@@ -552,7 +568,20 @@ public class MultiDeviceProperties extends BambiLogFactory
 	 * create device properties for the devices defined in the config file
 	 * @param baseDir 
 	 * @param baseURL 
-	 * @param _context the location of the web application in the server
+	 */
+	public MultiDeviceProperties(File baseDir, String baseURL)
+	{
+		this.context = baseURL;
+		this.baseDir = baseDir;
+		root = new XMLDoc("application", null).getRoot();
+		root.setAttribute("AppDir", baseDir.getAbsolutePath());
+		root.setAttribute("BaseDir", baseDir.getAbsolutePath());
+	}
+
+	/**
+	 * create device properties for the devices defined in the config file
+	 * @param baseDir 
+	 * @param baseURL 
 	 * @param configFile the config file
 	 */
 	public MultiDeviceProperties(File baseDir, String baseURL, final File configFile)
@@ -609,7 +638,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 	}
 
 	/**
-	 * @return
+	 * @return the number of device elements
 	 */
 	public int count()
 	{
@@ -726,6 +755,14 @@ public class MultiDeviceProperties extends BambiLogFactory
 	}
 
 	/**
+	 * @param senderID the sender ID...
+	 */
+	public void setSenderID(String senderID)
+	{
+		root.setAttribute(AttributeName.SENDERID, senderID);
+	}
+
+	/**
 	 * @return the sender ID...
 	 */
 	public EnumVersion getJDFVersion()
@@ -755,11 +792,13 @@ public class MultiDeviceProperties extends BambiLogFactory
 	}
 
 	/**
-	 * @param element the xml element to parse
+	 * @param element the xml element to parse, if null an empty element is created
 	 * @return a IDeviceProperties parsed from the element
 	 */
-	public IDeviceProperties createDeviceProps(final KElement element)
+	public DeviceProperties createDeviceProps(KElement element)
 	{
+		if (element == null)
+			element = root.appendElement(ElementName.DEVICE);
 		return this.new DeviceProperties(element);
 	}
 

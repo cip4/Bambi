@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -137,8 +137,7 @@ public class RootDevice extends AbstractDevice
 		_jmfHandler.addHandler(this.new KnownDevicesHandler());
 		_jmfHandler.addHandler(this.new StatusHandler());
 		// this guy is the catchall
-		_jmfHandler.addHandler(this.new RootDispatchHandler("*", new EnumFamily[] { EnumFamily.Query,
-				EnumFamily.Command, EnumFamily.Signal }));
+		_jmfHandler.addHandler(this.new RootDispatchHandler("*", new EnumFamily[] { EnumFamily.Query, EnumFamily.Command, EnumFamily.Signal }));
 		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.AbortQueueEntry, new EnumFamily[] { EnumFamily.Command }));
 		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.HoldQueueEntry, new EnumFamily[] { EnumFamily.Command }));
 		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.RemoveQueueEntry, new EnumFamily[] { EnumFamily.Command }));
@@ -500,6 +499,31 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
+	 * resets this and all child devices
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDevice#reset()
+	 */
+	@Override
+	public void reset()
+	{
+		if (_devices != null)
+		{
+			final Set<String> keys = _devices.keySet();
+			final Iterator<String> it = keys.iterator();
+			while (it.hasNext())
+			{
+				final String devID = it.next();
+				final AbstractDevice dev = _devices.get(devID);
+				if (dev != null)
+				{
+					dev.reset();
+				}
+			}
+		}
+		super.reset();
+	}
+
+	/**
 	 * get a device
 	 * @param deviceID ID of the device to get
 	 * @return the {@link AbstractDevice} for a given device ID
@@ -507,6 +531,8 @@ public class RootDevice extends AbstractDevice
 	@Override
 	public AbstractDevice getDevice(final String deviceID)
 	{
+		if (ContainerUtil.equals(deviceID, getDeviceID()))
+			return this;
 		if (_devices == null)
 		{
 			log.warn("list of devices is null");

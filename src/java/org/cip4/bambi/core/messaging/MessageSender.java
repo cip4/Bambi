@@ -359,7 +359,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			}
 			final KElement jmf1 = element.getElement(ElementName.JMF);
 			// must clone the root
-			jmf = (JDFJMF) (jmf1 == null ? null : new JDFDoc(ElementName.JMF).getRoot().mergeElement(jmf1, false));
+			jmf = (JDFJMF) (jmf1 == null ? null : new JDFDoc(ElementName.JMF).getRoot().copyInto(jmf1, false));
 			if (jmf == null)
 			{
 				final String mimeURL = element.getAttribute("MimeUrl", null, null);
@@ -958,7 +958,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		}
 		else
 		{
-			log.warn("Error sending message details; return code=" + sr);
+			String isMime = mp == null ? "JMF" : "MIME";
+			log.warn("Sender: " + mesDetails.senderID + " Error sending " + isMime + " message to: " + mesDetails.url + " return code=" + sr);
 		}
 		return sr;
 	}
@@ -1032,9 +1033,10 @@ public class MessageSender extends BambiLogFactory implements Runnable
 
 			if (con != null && con.getResponseCode() == 200)
 			{
-				final ByteArrayIOStream bis = new ByteArrayIOStream(con.getInputStream());
-				con.getInputStream().close(); // copy and close so that the connection stream can be reused by keep-alive
-
+				InputStream inputStream = con.getInputStream();
+				ByteArrayIOStream bis = null;
+				bis = new ByteArrayIOStream(inputStream);
+				inputStream.close(); // copy and close so that the connection stream can be reused by keep-alive
 				if (inDump != null)
 				{
 					inDump.newFileFromStream(header, bis.getInputStream());
@@ -1059,7 +1061,9 @@ public class MessageSender extends BambiLogFactory implements Runnable
 					{
 						inDump.newFile(header);
 					}
-					con.getInputStream().close();
+					InputStream inputStream = con.getInputStream();
+					if (inputStream != null)
+						inputStream.close();
 				}
 				if (mh.respHandler != null)
 				{
@@ -1216,8 +1220,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	@Override
 	public String toString()
 	{
-		return "MessageSender - URL: " + callURL.url + " size: " + _messages.size() + " total: " + sent + " last queued at " + BambiServlet.formatLong(lastQueued) + " last sent at "
-				+ BambiServlet.formatLong(lastSent) + "\n" + _messages;
+		return "MessageSender - URL: " + callURL.url + " size: " + _messages.size() + " total: " + sent + " last queued at " + BambiServlet.formatLong(lastQueued)
+				+ " last sent at " + BambiServlet.formatLong(lastSent) + "\n" + _messages;
 	}
 
 	/**

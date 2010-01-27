@@ -116,7 +116,7 @@ public class StreamRequest extends ContainerRequest
 	@Override
 	public String toString()
 	{
-		return super.toString() + "\nsize: " + theStream.size();
+		return super.toString() + "\nsize: " + theStream.size() + "\n" + theStream;
 	}
 
 }

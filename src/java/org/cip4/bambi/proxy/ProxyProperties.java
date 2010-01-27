@@ -73,7 +73,6 @@ package org.cip4.bambi.proxy;
 import java.io.File;
 
 import org.cip4.bambi.core.IConverterCallback;
-import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.StringUtil;
@@ -303,7 +302,7 @@ public class ProxyProperties extends MultiDeviceProperties
 	 * @return
 	 */
 	@Override
-	public IDeviceProperties createDeviceProps(final KElement element)
+	public ProxyDeviceProperties createDeviceProps(final KElement element)
 	{
 		return this.new ProxyDeviceProperties(element);
 	}

@@ -179,7 +179,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 		/**
 		 * @param processor
-		 * @param pt
 		 */
 		private void fillPhaseTime(final KElement processor)
 		{
@@ -445,9 +444,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	/**
 	 * @param node
 	 * @param qe
-	 * @param queueEntryID
-	 * @param vResLinks
-	 * @param vSiz
 	 */
 	protected void setupStatusListener(final JDFNode node, final JDFQueueEntry qe)
 	{

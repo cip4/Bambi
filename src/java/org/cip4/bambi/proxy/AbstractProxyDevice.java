@@ -417,7 +417,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @param proxyProperties
 	 * @param fDeviceJDFOutput
 	 */
 	private void reloadSlaveOutputHF(final File fDeviceJDFOutput)
@@ -433,8 +432,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		slaveJDFOutput = new QueueHotFolder(fDeviceJDFOutput, hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Completed), rqCommand);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
 	 * 
 	 * @see org.cip4.bambi.core.AbstractDevice#init()
 	 */

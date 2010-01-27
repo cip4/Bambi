@@ -452,7 +452,7 @@ public class BambiServletResponse extends BambiLogFactory implements HttpServlet
 			if (d != null)
 			{
 				setContentType(r.getContentType());
-				d.write2Stream(getBufferedOutputStream(), 0, true);
+				IOUtils.copy(r.getInputStream(), getBufferedOutputStream());
 			}
 			else
 				log.error("writing null document to stream");

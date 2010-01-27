@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -72,19 +72,21 @@
 package org.cip4.bambi.core.queues;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 
 import javax.mail.MessagingException;
-import javax.mail.Multipart;
 
-import org.cip4.bambi.BambiTestCase;
+import org.cip4.bambi.core.BambiContainerTest;
+import org.cip4.bambi.core.StreamRequest;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.mime.MimeWriter;
 
 /**
  * test for the various queue processor functions
@@ -92,9 +94,14 @@ import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
  * 
  * 03.12.2008
  */
-public class QueueProcessorTest extends BambiTestCase
+public class QueueProcessorTest extends BambiContainerTest
 {
 
+	/**
+	 * 
+	 * @see org.cip4.bambi.BambiTestCase#setUp()
+	 * @throws Exception
+	 */
 	@Override
 	public void setUp() throws Exception
 	{
@@ -117,15 +124,18 @@ public class QueueProcessorTest extends BambiTestCase
 		returnQEParams.setQueueEntryID(queueEntryID);
 		final JDFDoc docJDF = JDFDoc.parseFile("C:\\data\\jdf\\foo.jdf");
 		returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
-		final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
+		MimeWriter mw = new MimeWriter();
+		mw.buildMimePackage(docJMF, docJDF, false);
 		final MIMEDetails mimeDetails = new MIMEDetails();
 		mimeDetails.httpDetails.chunkSize = 0;
-		mimeDetails.transferEncoding = MimeUtil.BINARY;
+		mimeDetails.transferEncoding = UrlUtil.BINARY;
 		mimeDetails.modifyBoundarySemicolon = false;
-		final HttpURLConnection uc = MimeUtil.writeToURL(mp, "http://192.168.14.167:58080/jdfreturn", mimeDetails);
-		System.out.println(uc);
-		uc.getResponseCode();
-		System.out.println(uc.getResponseCode());
+		mw.setMIMEDetails(mimeDetails);
+		StreamRequest req = new StreamRequest(mw.getInputStream());
+		req.setContentType(MimeUtil.MULTIPART_RELATED);
+		XMLResponse resp = bambiContainer.processStream(req);
+
+		assertNotNull(resp.getXML());
 
 	}
 

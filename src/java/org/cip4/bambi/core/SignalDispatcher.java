@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -306,6 +306,8 @@ public final class SignalDispatcher extends BambiLogFactory
 
 		/**
 		 * @param request
+		 * @param bListSenders 
+		 * @param pos 
 		 */
 		private void listDispatchers(final BambiServletRequest request, final boolean bListSenders, final int pos)
 		{
@@ -510,7 +512,8 @@ public final class SignalDispatcher extends BambiLogFactory
 		@Override
 		public int hashCode()
 		{
-			return super.hashCode() + channelID == null ? 0 : channelID.hashCode() + queueEntryID == null ? 0 : queueEntryID.hashCode() + ((nodeIdentifier == null) ? 0 : nodeIdentifier.hashCode());
+			return super.hashCode() + channelID == null ? 0 : channelID.hashCode() + queueEntryID == null ? 0 : queueEntryID.hashCode()
+					+ ((nodeIdentifier == null) ? 0 : nodeIdentifier.hashCode());
 		}
 
 		/**
@@ -932,8 +935,8 @@ public final class SignalDispatcher extends BambiLogFactory
 		@Override
 		public String toString()
 		{
-			return "[MsgSubscription: slaveChannelID=" + channelID + " Type=" + getMessageType() + " QueueEntry=" + queueEntry + " lastAmount=" + lastAmount + "\nrepeatAmount=" + repeatAmount
-					+ " repeatTime=" + repeatTime + " lastTime=" + lastTime + "\nURL=" + url + " device ID=" + jmfDeviceID + " Sent=" + sentMessages + "]";
+			return "[MsgSubscription: slaveChannelID=" + channelID + " Type=" + getMessageType() + " QueueEntry=" + queueEntry + " lastAmount=" + lastAmount + "\nrepeatAmount="
+					+ repeatAmount + " repeatTime=" + repeatTime + " lastTime=" + lastTime + "\nURL=" + url + " device ID=" + jmfDeviceID + " Sent=" + sentMessages + "]";
 		}
 
 		/**
@@ -959,6 +962,7 @@ public final class SignalDispatcher extends BambiLogFactory
 		 * 
 		 * @param sub
 		 * @param details
+		 * @param pos 
 		 */
 		protected void setXML(final KElement sub, final String details, int pos)
 		{
@@ -1810,6 +1814,25 @@ public final class SignalDispatcher extends BambiLogFactory
 	public void flush()
 	{
 		ThreadUtil.notifyAll(mutex);
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 * @return
+	*/
+	@Override
+	public String toString()
+	{
+		return "SubscriptionMap " + device.getDeviceID() + " : " + subscriptionMap;
+	}
+
+	/**
+	 * remove all subscriptions
+	 */
+	public void reset()
+	{
+		flush();
+		removeSubScriptions(null, null, null);
 	}
 
 }

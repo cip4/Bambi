@@ -78,8 +78,6 @@ import java.net.MalformedURLException;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.mail.BodyPart;
-import javax.mail.MessagingException;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -94,9 +92,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFDate;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
-import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * Entrance point for Bambi servlets
@@ -219,11 +215,10 @@ public class BambiServlet extends HttpServlet
 		theContainer = new BambiContainer();
 	}
 
-	// protected IConverterCallback _callBack = null;
 	private BambiLog log = null;
 	protected boolean dumpGet = false;
 	protected boolean dumpEmpty = false;
-	private final BambiContainer theContainer;
+	final BambiContainer theContainer;
 	protected DumpDir bambiDumpIn = null;
 	protected DumpDir bambiDumpOut = null;
 	/**

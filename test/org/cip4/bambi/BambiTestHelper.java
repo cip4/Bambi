@@ -146,22 +146,7 @@ public class BambiTestHelper extends JDFTestCaseBase
 	 */
 	public HttpURLConnection submitMimetoURL(final JDFDoc d, final String url) throws MalformedURLException
 	{
-		final JDFDoc docJMF = new JDFDoc("JMF");
-		final JDFJMF jmf = docJMF.getJMFRoot();
-		final JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
-		com.setAcknowledgeURL(acknowledgeURL);
-		final JDFQueueSubmissionParams queueSubmissionParams = com.appendQueueSubmissionParams();
-		queueSubmissionParams.setURL("dummy");
-		queueSubmissionParams.setPriority(42);
-		updateJobIDs(d);
-		if (returnJMF != null)
-		{
-			queueSubmissionParams.setReturnJMF(new URL(returnJMF));
-		}
-		if (returnURL != null)
-		{
-			queueSubmissionParams.setReturnURL(new URL(returnURL));
-		}
+		final JDFDoc docJMF = createSubmitJMF(d);
 
 		final Multipart mp = MimeUtil.buildMimePackage(docJMF, d, false);
 
@@ -182,6 +167,32 @@ public class BambiTestHelper extends JDFTestCaseBase
 			fail(e.getMessage()); // fail on exception
 		}
 		return response;
+	}
+
+	/**
+	 * @param d
+	 * @return
+	 * @throws MalformedURLException
+	 */
+	public JDFDoc createSubmitJMF(final JDFDoc d) throws MalformedURLException
+	{
+		final JDFDoc docJMF = new JDFDoc("JMF");
+		final JDFJMF jmf = docJMF.getJMFRoot();
+		final JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
+		com.setAcknowledgeURL(acknowledgeURL);
+		final JDFQueueSubmissionParams queueSubmissionParams = com.appendQueueSubmissionParams();
+		queueSubmissionParams.setURL("dummy");
+		queueSubmissionParams.setPriority(42);
+		updateJobIDs(d);
+		if (returnJMF != null)
+		{
+			queueSubmissionParams.setReturnJMF(new URL(returnJMF));
+		}
+		if (returnURL != null)
+		{
+			queueSubmissionParams.setReturnURL(new URL(returnURL));
+		}
+		return docJMF;
 	}
 
 	/**

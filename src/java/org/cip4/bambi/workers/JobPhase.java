@@ -114,7 +114,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 				for (int i = 0; i < v.size(); i++)
 				{
 					final JDFEmployee emp = (JDFEmployee) new JDFDoc(ElementName.EMPLOYEE).getRoot();
-					emp.mergeElement(v.get(i), false);
+					emp.copyInto(v.get(i), false);
 					theEmployee.add(emp);
 				}
 			}
@@ -283,8 +283,8 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 	@Override
 	public String toString()
 	{
-		String s = "[JobPhase: Duration=" + timeToGo + ", DeviceStatus=" + deviceStatus.getName() + ", DeviceStatusDetails=" + deviceStatusDetails + ", NodeStatus=" + nodeStatus.getName()
-				+ ", NodeStatusDetails=" + nodeStatusDetails;
+		String s = "[JobPhase: Duration=" + timeToGo + ", DeviceStatus=" + deviceStatus.getName() + ", DeviceStatusDetails=" + deviceStatusDetails + ", NodeStatus="
+				+ nodeStatus.getName() + ", NodeStatusDetails=" + nodeStatusDetails;
 		for (int i = 0; i < amounts.size(); i++)
 		{
 			s += "\n" + amounts.elementAt(i);

@@ -907,14 +907,14 @@ public class QueueProcessor extends BambiLogFactory
 				JDFQueue root = (JDFQueue) doc.getRoot();
 				synchronized (_theQueue)
 				{
-					root.mergeElement(_theQueue, false);
+					root.copyInto(_theQueue, false);
 				}
 
 				root = sortOutput(sortBy, root, filter);
 				root.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
 				final QERetrieval qer = _parentDevice.getProperties().getQERetrieval();
 				root.setAttribute("Pull", qer == QERetrieval.PULL || qer == QERetrieval.BOTH, null);
-				if (_theQueue.numChildElements(ElementName.QUEUEENTRY, null) < 1000)
+				if (_theQueue.numChildElements(ElementName.QUEUEENTRY, null) < 500)
 				{
 					root.setAttribute("Refresh", true, null);
 				}
@@ -1044,7 +1044,23 @@ public class QueueProcessor extends BambiLogFactory
 					}
 				}
 			}
+			VElement v = root.getChildElementVector(ElementName.QUEUEENTRY, null);
+			for (int i = 0; i < v.size(); i++)
+			{
+				if (filterLength(i))
+					v.get(i).deleteNode();
+			}
 			return root;
+		}
+
+		/**
+		 * TODO add support for next
+		 * @param i
+		 * @return
+		 */
+		private boolean filterLength(int i)
+		{
+			return false;
 		}
 
 		/**
@@ -1594,7 +1610,7 @@ public class QueueProcessor extends BambiLogFactory
 			final JDFResponse r2 = qsp.addEntry(_theQueue, null);
 			if (newResponse != null)
 			{
-				newResponse.mergeElement(r2, false);
+				newResponse.copyInto(r2, false);
 			}
 			else
 			{
@@ -1651,7 +1667,7 @@ public class QueueProcessor extends BambiLogFactory
 			log.error("error fetching queueentry: QueueEntryID=" + newQEID);
 			return false;
 		}
-		newQEReal.mergeElement(newQE, false);
+		newQEReal.copyInto(newQE, false);
 		newQEReal.setFromJDF(root); // repeat for the actual entry
 
 		final String theDocFile = getJDFStorage(newQEID);
@@ -2211,5 +2227,17 @@ public class QueueProcessor extends BambiLogFactory
 	public void shutdown()
 	{
 		// nop
+	}
+
+	/**
+	 * clean up the entire damn thing - non-reversible...
+	 */
+	public void reset()
+	{
+		_theQueue.flushQueue(null);
+		_theQueue.setQueueStatus(EnumQueueStatus.Waiting);
+		removeOrphanJDFs();
+		_queueFile.clearAll();
+		persist(0);
 	}
 }
