@@ -202,6 +202,14 @@ public class MultiDeviceProperties extends BambiLogFactory
 		}
 
 		/**
+		 * @param deviceClass
+		 */
+		public void setDeviceClassName(final String deviceClass)
+		{
+			devRoot.setAttribute("DeviceClass", deviceClass);
+		}
+
+		/**
 		 * @return
 		 */
 		public String getDeviceClassName()
