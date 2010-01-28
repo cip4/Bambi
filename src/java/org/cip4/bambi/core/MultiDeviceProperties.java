@@ -720,7 +720,9 @@ public class MultiDeviceProperties extends BambiLogFactory
 	public File getJDFDir()
 	{
 		final File fBase = getBaseDir();
-		final File f = getRootFile("JDFDir");
+		File f = getRootFile("JDFDir");
+		if (f == null)
+			f = new File("JDFDir");
 		return FileUtil.getFileInDirectory(fBase, f);
 	}
 
