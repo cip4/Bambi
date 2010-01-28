@@ -172,8 +172,8 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 		return;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * 
 	 * 
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#stopProcessing(org.cip4.jdflib.core.JDFElement.EnumNodeStatus)
 	 */
@@ -210,6 +210,10 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 		return pdb != null;
 	}
 
+	/**
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#getCurrentQE()
+	 * @return
+	*/
 	@Override
 	public IQueueEntry getCurrentQE()
 	{
