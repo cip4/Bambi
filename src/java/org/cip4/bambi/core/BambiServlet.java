@@ -187,9 +187,12 @@ public class BambiServlet extends HttpServlet
 	 */
 	protected class OverviewHandler implements IGetHandler
 	{
-		/*
-		 * (non-Javadoc)
-		 * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+		/**
+		 * 
+		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
+		 * @param request
+		 * @param response
+		 * @return
 		 */
 		public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
 		{
@@ -311,6 +314,7 @@ public class BambiServlet extends HttpServlet
 		StreamRequest sr = new StreamRequest(bufRequest.getBuffer());
 		sr.setContentType(contentType);
 		sr.setRequestURI(request.getRequestURI());
+		sr.setPost(true);
 		XMLResponse xr = theContainer.processStream(sr);
 		bufResponse.write(xr);
 		if (bambiDumpOut != null && (dumpEmpty || bufResponse.getBufferedCount() > 0))

@@ -280,11 +280,13 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		final SubmitQueueEntryResponseHandler sqh = new SubmitQueueEntryResponseHandler(c.getID());
 		if (isMime)
 		{
+			log.info("submitting MIME JMF, ID=" + c.getID());
 			final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, expandMime);
 			_parent.getJMFFactory().send2URL(mp, strUrl, sqh, slaveCallBack, urlDet, _parent.getDeviceID());
 		}
 		else
 		{
+			log.info("submitting RAW JMF, ID=" + c.getID());
 			JMFFactory.getJMFFactory().send2URL(docJMF.getJMFRoot(), strUrl, sqh, slaveCallBack, _parent.getDeviceID());
 		}
 		sqh.waitHandled(10000, 30000, false);

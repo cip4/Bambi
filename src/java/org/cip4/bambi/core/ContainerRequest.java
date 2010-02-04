@@ -70,6 +70,8 @@
  */
 package org.cip4.bambi.core;
 
+import org.cip4.jdflib.util.UrlUtil;
+
 /**
  * class to package an XML document together with the context information of the request
  * 
@@ -86,10 +88,14 @@ public class ContainerRequest extends BambiLogFactory
 		super();
 		this.requestURI = requestURI;
 		this.contentType = contentType;
+		setPost(true);
+		context = null;
 	}
 
 	private String requestURI;
+	private String context;
 	private String contentType;
+	private boolean bPost;
 
 	/**
 	 * @return the requestURI
@@ -150,5 +156,45 @@ public class ContainerRequest extends BambiLogFactory
 		setRequestURI(request.getRequestURI());
 		setContentType(request.getContentType());
 
+	}
+
+	/**
+	 * @return the method
+	 */
+	public String getMethod()
+	{
+		return bPost ? UrlUtil.POST : UrlUtil.GET;
+	}
+
+	/**
+	 * @param bPost if true, POST, else GET
+	 */
+	public void setPost(boolean bPost)
+	{
+		this.bPost = bPost;
+	}
+
+	/**
+	 * @param method the method string
+	 */
+	public void setMethod(String method)
+	{
+		this.bPost = UrlUtil.POST.equalsIgnoreCase(method.trim());
+	}
+
+	/**
+	 * @return the context
+	 */
+	public String getContext()
+	{
+		return context;
+	}
+
+	/**
+	 * @param context the context to set
+	 */
+	public void setContext(String context)
+	{
+		this.context = context;
 	}
 }
