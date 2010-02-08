@@ -1616,7 +1616,7 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				newResponse = r2;
 			}
-			if (newResponse == null || newResponse.getReturnCode() != 0)
+			if (r2 == null || r2.getReturnCode() != 0)
 			{
 				log.warn("invalid response while adding queue entry");
 				return null;
@@ -1629,6 +1629,7 @@ public class QueueProcessor extends BambiLogFactory
 				log.warn("error submitting queueentry: " + newResponse.getReturnCode());
 				return null;
 			}
+
 			final String qeID = newQE.getQueueEntryID();
 			BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
 			fixEntry(newQE, theJDF);
@@ -1640,6 +1641,7 @@ public class QueueProcessor extends BambiLogFactory
 			}
 			persist(0);
 			notifyListeners(qeID);
+			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID);
 			return _theQueue.getQueueEntry(qeID);
 		}
 	}

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -84,6 +84,7 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.messaging.JMFBufferHandler;
 import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
+import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -204,7 +205,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				if (q != null)
 				{
 					final Map<String, JDFQueueEntry> slaveMap = q.getQueueEntryIDMap();
-					final JDFQueue myQueue = _theQueueProcessor.getQueue();
+					final QueueProcessor queueProcessor = getQueueProcessor();
+					final JDFQueue myQueue = queueProcessor.getQueue();
 					synchronized (myQueue)
 					{
 						final VElement vQ = myQueue.getQueueEntryVector();
@@ -220,7 +222,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 									final EnumQueueEntryStatus status = slaveQE.getQueueEntryStatus();
 									if (!ContainerUtil.equals(status, qe.getQueueEntryStatus()))
 									{
-										_theQueueProcessor.updateEntry(qe, status, null, null);
+										queueProcessor.updateEntry(qe, status, null, null);
 										if (EnumQueueEntryStatus.Completed.equals(status))
 										{
 											stopProcessing(qe.getQueueEntryID(), EnumNodeStatus.Completed);
@@ -238,7 +240,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 								else
 								{
 									log.info("Slave queueentry " + slaveQEID + " was removed");
-									_theQueueProcessor.updateEntry(qe, EnumQueueEntryStatus.Removed, null, null);
+									queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Removed, null, null);
 								}
 							}
 						}
@@ -254,7 +256,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		private final EnumQueueEntryStatus hfStatus;
 
 		/**
-		 * @param aborted
+		 * @param status
 		 */
 		public ReturnHFListner(final EnumQueueEntryStatus status)
 		{
@@ -263,14 +265,14 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 		public void submitted(final JDFJMF submissionJMF)
 		{
-			log.info("ReturnHFListner:submitted");
+			getLog().info("ReturnHFListner:submitted");
 			final JDFCommand command = submissionJMF.getCommand(0);
 			final JDFReturnQueueEntryParams rqp = command.getReturnQueueEntryParams(0);
 
 			final JDFDoc doc = rqp == null ? null : rqp.getURLDoc();
 			if (doc == null)
 			{
-				log.warn("could not process JDF File");
+				getLog().warn("could not process JDF File");
 				return;
 			}
 			if (_jmfHandler != null)
@@ -278,7 +280,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				final KElement n = doc.getRoot();
 				if (n == null)
 				{
-					log.warn("could not process JDF File");
+					getLog().warn("could not process JDF File");
 					return;
 				}
 
@@ -300,12 +302,12 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 						}
 						if (!byebye)
 						{
-							log.error("could not delete JDF File: " + urlToFile);
+							getLog().error("could not delete JDF File: " + urlToFile);
 						}
 					}
 					else
 					{
-						log.error("could not process JDF File");
+						getLog().error("could not process JDF File");
 					}
 				}
 				catch (final Exception e)
@@ -320,7 +322,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		 */
 		private void handleError(final JDFJMF submissionJMF)
 		{
-			log.error("error handling hf return");
+			getLog().error("error handling hf return");
 		}
 	}
 
@@ -483,6 +485,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * sends messages to the slave to stop processing
 	 * @param newStatus
 	 * @param slaveQE
+	 * @return 
 	 */
 	protected EnumNodeStatus stopSlaveProcess(final String slaveQE, final EnumNodeStatus newStatus)
 	{
@@ -513,9 +516,10 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected JMFBuilder getBuilderForSlave()
 	{
 		final JMFBuilder builder = new JMFBuilder();
-		if (getProxyProperties().getDeviceURLForSlave() != null)
+		final String deviceURLForSlave = getProxyProperties().getDeviceURLForSlave();
+		if (deviceURLForSlave != null)
 		{
-			builder.setAcknowledgeURL(getProxyProperties().getDeviceURLForSlave());
+			builder.setAcknowledgeURL(deviceURLForSlave);
 		}
 		return builder;
 	}
@@ -657,6 +661,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
+	 * @param newHF 
 	 * 
 	 */
 	private void updateSlaveOutputHF(String newHF)
@@ -673,6 +678,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
+	 * @param newHF 
 	 * 
 	 */
 	private void updateSlaveInputHF(String newHF)
@@ -689,6 +695,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
+	 * @param newSlaveURL 
 	 * 
 	 */
 	private void updateSlaveURL(final String newSlaveURL)
@@ -708,6 +715,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
+	 * @param push 
 	 * 
 	 */
 	private void updateMaxPush(final String push)
@@ -728,6 +736,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
+	 * @param newSlave 
 	 * 
 	 */
 	private void updateSlaveDeviceID(final String newSlave)
@@ -766,7 +775,11 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.core.JDFDoc, java.lang.String)
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.node.JDFNode, java.lang.String)
+	 * @param doc
+	 * @param queueEntryID
+	 * @return
 	 */
 	@Override
 	public VString canAccept(final JDFNode doc, final String queueEntryID)

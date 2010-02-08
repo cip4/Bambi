@@ -124,7 +124,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		final private JDFNode jdf;
 
 		/**
-		 * @param _doc
+		 * @param _jdf
 		 * @param slaveID
 		 * @param localqeID
 		 */
@@ -140,9 +140,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		 */
 		public int resubmit()
 		{
-			final AbstractProxyDevice device = (AbstractProxyDevice) _parent;
+			final AbstractProxyDevice device = getParent();
 
-			final IProxyProperties proxyProperties = getParent().getProxyProperties();
+			final IProxyProperties proxyProperties = device.getProxyProperties();
 			final String slaveURL = proxyProperties.getSlaveURL();
 			if (slaveURL == null)
 			{
@@ -265,7 +265,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 */
 	protected JMFBuilder getBuilderForSlave()
 	{
-		final JMFBuilder builder = ((AbstractProxyDevice) _parent).getBuilderForSlave();
+		final JMFBuilder builder = getParent().getBuilderForSlave();
 		return builder;
 	}
 
