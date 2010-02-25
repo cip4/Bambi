@@ -72,13 +72,17 @@
 package org.cip4.bambi.proxy;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
+import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.BambiServletRequest;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
@@ -87,6 +91,7 @@ import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
@@ -99,6 +104,7 @@ import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
+import org.cip4.jdflib.jmf.JDFSubscriptionInfo;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -107,6 +113,7 @@ import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.QueueHotFolder;
 import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -116,17 +123,33 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 {
 
 	/**
-	 * the url flag for incoming messages
+	 * the url flag for incoming messages (end point of the path)
 	 */
 	public static final String SLAVEJMF = "slavejmf";
+
+	/**
+	 * watched hot folder for hf based communication with a device (completed)
+	 */
 	protected QueueHotFolder slaveJDFOutput = null;
+	/**
+	 * watched hot folder for hf based communication with a device (aborted)
+	 */
 	protected QueueHotFolder slaveJDFError = null;
+
+	/**
+	 * the list of pending subscriptions that have been sent  to the slave device
+	 */
+	protected SubscriptionMap mySubscriptions;
 
 	/**
 	 * @author Rainer Prosi, Heidelberger Druckmaschinen enumeration how to set up synchronization of status with the slave
 	 */
 	public enum EnumSlaveStatus
 	{
+		/**
+		 * update status via single global JMF
+		 */
+		JMFGLOBAL,
 		/**
 		 * update status via JMF
 		 */
@@ -138,9 +161,141 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		NODEINFO
 	}
 
+	/**
+	 * method of communicating status between this proxy and the slave device
+	 */
 	protected EnumSlaveStatus slaveStatus = null;
+	/**
+	 * the callback between this device (internal) and the slave device (external)
+	 */
 	protected IConverterCallback _slaveCallback;
 
+	/**
+	 * 
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen 
+	 */
+	protected class StopPersistantHandler extends MessageResponseHandler
+	{
+		/**
+		 * @param jmf
+		 */
+		public StopPersistantHandler(JDFJMF jmf)
+		{
+			super(jmf);
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler#finalizeHandling()
+		*/
+		@Override
+		protected void finalizeHandling()
+		{
+			super.finalizeHandling();
+			if (finalMessage == null || finalMessage.getReturnCode() != 0)
+			{
+				log.warn("aborted StopPersistantHandler");
+				return;
+			}
+			log.warn("clearing my subscription list");
+			mySubscriptions.clear();
+		}
+
+	}
+
+	/**
+	 * 
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen 
+	 */
+	protected class KnownSubscriptionsHandler extends MessageResponseHandler
+	{
+		// if true, renew any missing subscriptions
+		private final JDFJMF[] sendjmfs;
+
+		/**
+		 * @param jmf the jmf containing the query to handle as first query
+		 * @param jmfs 
+		 */
+		public KnownSubscriptionsHandler(JDFJMF jmf, JDFJMF[] jmfs)
+		{
+			super(jmf);
+			sendjmfs = jmfs;
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler#finalizeHandling()
+		*/
+		@Override
+		protected void finalizeHandling()
+		{
+			super.finalizeHandling();
+			getLog().info("Finalized handling of KnownSubscriptions");
+		}
+
+		/**
+		 * @return vector of all jmfs that still need to be sent
+		 * 
+		 */
+		public VElement completeHandling()
+		{
+			if (sendjmfs == null)
+				return null;
+			JDFMessage m = getFinalMessage();
+			VElement vjmf = new VElement();
+			VElement v = m == null ? null : m.getChildElementVector(ElementName.SUBSCRIPTIONINFO, null);
+			if (v != null)
+			{
+				for (int i = 0; i < v.size(); i++)
+				{
+					JDFSubscriptionInfo si = (JDFSubscriptionInfo) v.get(i);
+					processSubscription(si);
+				}
+			}
+			vjmf.addAll(sendjmfs);
+			return vjmf;
+		}
+
+		/**
+		 * process an individual existing subscription and update the cache appropriately
+		 * @param si
+		 */
+		private void processSubscription(JDFSubscriptionInfo si)
+		{
+			EnumType siType = si.getEnumType();
+			for (int ii = 0; ii < sendjmfs.length; ii++)
+			{
+				JDFJMF jdfjmf = sendjmfs[ii];
+				if (jdfjmf == null)
+					continue;
+				EnumType typ = jdfjmf.getQuery(0).getEnumType();
+				if (ContainerUtil.equals(typ, siType))
+				{
+					// may be null at startup - ignore counting
+					ProxySubscription oldSub = mySubscriptions == null ? null : mySubscriptions.get(typ);
+					String channelID = si.getChannelID();
+					if (oldSub == null)
+					{
+						getLog().info("adding existing subscription to list; zype=" + typ.getName() + " channelID=" + channelID);
+						sendjmfs[ii].getMessageElement(null, null, 0).setID(channelID);
+						if (mySubscriptions != null) // may be null at startup or shutdown - ignore we'll only be off by a few messages
+						{
+							mySubscriptions.put(typ, new ProxySubscription(sendjmfs[ii]));
+						}
+					}
+					else
+					{
+						oldSub.setChannelID(channelID);
+					}
+					sendjmfs[ii] = null;
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen 
+	 */
 	protected class QueueEntryAbortHandler extends MessageResponseHandler
 	{
 		private final EnumNodeStatus newStatus;
@@ -184,14 +339,102 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		}
 	}
 
-	protected class QueueSynchronizeHandler extends MessageResponseHandler
+	/**
+	 * class to manage subscriptions to the slave device
+	  * @author Rainer Prosi, Heidelberger Druckmaschinen *
+	 */
+	protected class ProxySubscription
 	{
+		long lastReceived;
+		long created;
+		int numReceived;
+		String channelID;
+		String url;
+		JDFJMF subscribedJMF;
+		String type;
+
+		/**
+		 * 
+		 * @param jmf
+		 * @throws IllegalArgumentException
+		 */
+		public ProxySubscription(JDFJMF jmf) throws IllegalArgumentException
+		{
+			subscribedJMF = (JDFJMF) jmf.clone();
+			type = subscribedJMF.getMessageElement(null, null, 0).getType();
+			channelID = StringUtil.getNonEmpty(jmf.getQuery(0).getID());
+			if (channelID == null)
+			{
+				getLog().error("Subscription with no channelID");
+				throw new IllegalArgumentException("Subscription with no channelID");
+			}
+			lastReceived = 0;
+			numReceived = StringUtil.parseInt(BambiNSExtension.getMyNSAttribute(jmf, "numReceived"), 0);
+			created = StringUtil.parseLong(BambiNSExtension.getMyNSAttribute(jmf, AttributeName.CREATIONDATE), System.currentTimeMillis());
+			url = BambiNSExtension.getMyNSAttribute(jmf, AttributeName.URL);
+		}
+
+		/**
+		 * @param channelID
+		 */
+		public void setChannelID(String channelID)
+		{
+			if (this.channelID.equals(channelID))
+				return; //nop
+
+			getLog().info("updatin proxy subscription channelID to: " + channelID);
+			this.channelID = channelID;
+			subscribedJMF.getMessageElement(null, null, 0).setID(channelID);
+		}
+
+		/**
+		 * @see java.lang.Object#toString()
+		 * @return
+		*/
+		@Override
+		public String toString()
+		{
+			return "ProxySubscription: " + subscribedJMF;
+		}
+
 		/**
 		 * 
 		 */
-		public QueueSynchronizeHandler()
+		public void incrementHandled()
 		{
-			super(null);
+			lastReceived = System.currentTimeMillis();
+			numReceived++;
+		}
+
+		/**
+		 * @param subs
+		 */
+		public void copyToXML(KElement subs)
+		{
+			subs = subs.appendElement("ProxySubscription");
+			subs.copyElement(subscribedJMF, null);
+			subs.setAttribute(AttributeName.CHANNELID, channelID);
+			subs.setAttribute(AttributeName.URL, url);
+			subs.setAttribute(AttributeName.TYPE, subscribedJMF.getMessageElement(null, null, 0).getType());
+			subs.setAttribute(AttributeName.CREATIONDATE, BambiServlet.formatLong(created));
+			subs.setAttribute("LastReceived", BambiServlet.formatLong(lastReceived));
+			subs.setAttribute("NumReceived", StringUtil.formatInteger(numReceived));
+		}
+	}
+
+	/**
+	 * 
+	  * @author Rainer Prosi, Heidelberger Druckmaschinen *
+	 */
+	protected class QueueSynchronizeHandler extends MessageResponseHandler
+	{
+		/**
+		 * @param jmf the jmf containing the query to handle as first query
+		 * 
+		 */
+		public QueueSynchronizeHandler(JDFJMF jmf)
+		{
+			super(jmf);
 		}
 
 		@Override
@@ -270,12 +513,12 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			final JDFReturnQueueEntryParams rqp = command.getReturnQueueEntryParams(0);
 
 			final JDFDoc doc = rqp == null ? null : rqp.getURLDoc();
-			if (doc == null)
+			if (doc == null || rqp == null)
 			{
 				getLog().warn("could not process JDF File");
 				return;
 			}
-			if (_jmfHandler != null)
+			if (getJMFHandler() != null)
 			{
 				final KElement n = doc.getRoot();
 				if (n == null)
@@ -287,7 +530,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				// assume the rootDev was the executed baby...
 				rqp.setAttribute(hfStatus.getName(), n.getAttribute(AttributeName.ID));
 				// let the standard returnqe handler do the work
-				final JDFDoc responseJMF = _jmfHandler.processJMF(submissionJMF.getOwnerDocument_JDFElement());
+				final JDFDoc responseJMF = getJMFHandler().processJMF(submissionJMF.getOwnerDocument_JDFElement());
 				try
 				{
 					final JDFJMF jmf = responseJMF.getJMFRoot();
@@ -323,6 +566,69 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		private void handleError(final JDFJMF submissionJMF)
 		{
 			getLog().error("error handling hf return");
+		}
+	}
+
+	/**
+	  * @author Rainer Prosi, Heidelberger Druckmaschinen *
+	 */
+	public class SubscriptionMap extends HashMap<EnumType, ProxySubscription>
+	{
+
+		/**
+		 * 
+		 */
+		protected SubscriptionMap()
+		{
+			super();
+		}
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		/**
+		 * @param refID
+		 */
+		public void incrementHandled(String refID)
+		{
+			ProxySubscription ps = getSubscription(refID);
+			if (ps != null)
+				ps.incrementHandled();
+
+		}
+
+		/**
+		 * @param refID the refID or type of the message
+		 * @return
+		 */
+		private ProxySubscription getSubscription(String refID)
+		{
+			if (refID == null)
+				return null;
+
+			Collection<ProxySubscription> v = values();
+			Iterator<ProxySubscription> it = v.iterator();
+			while (it.hasNext())
+			{
+				ProxySubscription ps = it.next();
+				if (refID.equals(ps.channelID) || refID.equals(ps.type))
+					return ps;
+			}
+			return null;
+		}
+
+		/**
+		 * @param deviceRoot
+		 */
+		protected void copyToXML(KElement deviceRoot)
+		{
+			Collection<ProxySubscription> v = values();
+			Iterator<ProxySubscription> it = v.iterator();
+			KElement subs = deviceRoot.appendElement("ProxySubscriptions");
+			while (it.hasNext())
+				it.next().copyToXML(subs);
 		}
 	}
 
@@ -444,7 +750,152 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		final IProxyProperties dp = getProxyProperties();
 		_slaveCallback = dp.getSlaveCallBackClass();
 		super.init();
+		// ensure existence of vector prior to filling
+		mySubscriptions = new SubscriptionMap();
+		addSlaveSubscriptions(8888, null, false);
 		_theQueueProcessor.getQueue().resumeQueue(); // proxy queues should start up by default
+	}
+
+	/**
+	 * @param waitMillis
+	 * @param slaveQEID 
+	 * @param reset if true remove all existing subscriptions
+	 */
+	public void addSlaveSubscriptions(int waitMillis, String slaveQEID, boolean reset)
+	{
+		if (!EnumSlaveStatus.JMFGLOBAL.equals(slaveStatus) && !!EnumSlaveStatus.JMF.equals(slaveStatus))
+			return;
+		SlaveSubscriber slaveSubscriber = getSlaveSubscriber(waitMillis, slaveQEID);
+		slaveSubscriber.setReset(reset);
+		slaveSubscriber.start();
+	}
+
+	/**
+	 * slave subscriber factory 
+	 * 
+	 * @param waitMillis
+	 * @param slaveQEID
+	 * @return
+	 */
+	protected SlaveSubscriber getSlaveSubscriber(final int waitMillis, final String slaveQEID)
+	{
+		SlaveSubscriber slaveSubscriber = new SlaveSubscriber(waitMillis, slaveQEID);
+		return slaveSubscriber;
+	}
+
+	/**
+	 * class to asynchronously subscribe to messages at the slaves
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen *
+	 */
+	protected class SlaveSubscriber extends Thread
+	{
+		/**
+		 * @param b
+		 */
+		public void setReset(final boolean b)
+		{
+			reset = b;
+
+		}
+
+		/**
+		 * @param waitBefore the time to wait prior to subscribing
+		 * @param slaveQEID
+		 */
+		public SlaveSubscriber(final int waitBefore, final String slaveQEID)
+		{
+			super("SlaveSubscriber_" + getDeviceID());
+			this.waitBefore = waitBefore;
+			this.slaveQEID = slaveQEID;
+			reset = false;
+		}
+
+		private final int waitBefore;
+		private final String slaveQEID;
+		private boolean reset;
+
+		/**
+		 * add global subscriptions at startup
+		 */
+		@Override
+		public void run()
+		{
+			ThreadUtil.sleep(waitBefore); // wait for other devices to start prior to subscribing
+			final IProxyProperties properties = getProxyProperties();
+			final String slaveURL = properties.getSlaveURL();
+			getLog().info("Updating global subscriptions to :" + slaveURL);
+			final String deviceURL = getDeviceURLForSlave();
+			if (deviceURL == null)
+			{
+				getLog().error("Device feedback url is not specified in subscription, proxy device " + getDeviceID() + " is not subscribing at slave device: " + getSlaveDeviceID());
+				return;
+			}
+			final JMFBuilder builder = new JMFBuilder();
+			if (reset)
+			{
+				final JDFJMF stopPersistant = builder.buildStopPersistentChannel(null, null, getDeviceURLForSlave());
+				final MessageResponseHandler waitHandler = new StopPersistantHandler(stopPersistant);
+				sendJMFToSlave(stopPersistant, waitHandler);
+				waitHandler.waitHandled(10000, 30000, true);
+			}
+			final JDFJMF knownSubscriptions = builder.buildKnownSubscriptionsQuery(deviceURL, slaveQEID);
+			final JDFJMF[] createSubscriptions = createSubscriptions(deviceURL, builder);
+			final KnownSubscriptionsHandler handler = new KnownSubscriptionsHandler(knownSubscriptions, createSubscriptions);
+			sendJMFToSlave(knownSubscriptions, handler);
+			handler.waitHandled(20000, 30000, true);
+
+			// reduce currently known subscriptions
+			final VElement vJMFS = handler.completeHandling();
+			if (vJMFS != null)
+			{
+				for (int i = 0; i < vJMFS.size(); i++)
+				{
+					createNewSubscription((JDFJMF) vJMFS.get(i));
+				}
+			}
+		}
+
+		/**
+		 * @param deviceURL
+		 * @param builder
+		 * @return
+		 */
+		protected JDFJMF[] createSubscriptions(final String deviceURL, final JMFBuilder builder)
+		{
+			final JDFJMF[] createSubscriptions = builder.createSubscriptions(deviceURL, slaveQEID, 10, 0);
+			return createSubscriptions;
+		}
+
+		/**
+		 * @param jmf the subscribable jmf
+		 */
+		private void createNewSubscription(final JDFJMF jmf)
+		{
+			if (jmf == null)
+			{
+				return;
+			}
+			final ProxySubscription ps = new ProxySubscription(jmf);
+			final EnumType t = jmf.getQuery(0).getEnumType();
+			final ProxySubscription psOld = mySubscriptions.get(t);
+			if (psOld != null)
+			{
+				getLog().warn("updating dropped subscription; type: " + t.getName());
+			}
+			final MessageResponseHandler rh = new MessageResponseHandler(jmf);
+			sendJMFToSlave(jmf, rh);
+			rh.waitHandled(10000, 30000, false);
+			final int rc = rh.getJMFReturnCode();
+			if (rc == 0)
+			{
+				mySubscriptions.remove(t);
+				mySubscriptions.put(t, ps);
+			}
+			else
+			{
+				getLog().warn("error updating subscription; type: " + t.getName() + " rc=" + rc);
+			}
+		}
 	}
 
 	/**
@@ -502,11 +953,26 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		if (jmf != null)
 		{
 			final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(newStatus, jmf.getCommand(0).getID());
-			getJMFFactory().send2URL(jmf, getProxyProperties().getSlaveURL(), ah, _slaveCallback, getDeviceID());
+			sendJMFToSlave(jmf, ah);
 			ah.waitHandled(5000, 10000, false);
 			return ah.getFinalStatus();
 		}
 		return null;
+	}
+
+	/**
+	 * send a message to the slave device
+	 * @param jmf the jmf to send
+	 * @param mh the message response handler, may be null
+	 * @return true if successfully queues @see sendJMF
+	 */
+	protected boolean sendJMFToSlave(final JDFJMF jmf, final MessageResponseHandler mh)
+	{
+		if (jmf == null)
+			return false;
+		String slaveURL = getProxyProperties().getSlaveURL();
+		log.info("Sending jmf to: " + slaveURL);
+		return sendJMF(jmf, slaveURL, mh);
 	}
 
 	/**
@@ -578,7 +1044,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected void addHandlers()
 	{
 		super.addHandlers();
-		addHandler(new JMFBufferHandler("*", new EnumFamily[] { EnumFamily.Signal }, _theSignalDispatcher, _theQueueProcessor));
+		addHandler(new JMFBufferHandler(AbstractProxyDevice.this, null, new EnumFamily[] { EnumFamily.Signal }, this));
 	}
 
 	@Override
@@ -794,6 +1260,37 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			return new VString(getDeviceID(), null); // no processor is working on queueEntryID - assume ok
 		}
 		return proc.canAccept(doc, queueEntryID);
+	}
+
+	/**
+	 * reset the device, including removing and renewing all known subscriptions
+	 * @see org.cip4.bambi.core.AbstractDevice#reset()
+	*/
+	@Override
+	public void reset()
+	{
+		super.reset();
+		addSlaveSubscriptions(1000, null, true);
+	}
+
+	/**
+	 * @return the mySubscriptions
+	 */
+	public SubscriptionMap getMySubscriptions()
+	{
+		return mySubscriptions;
+	}
+
+	/**
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDevice#addMoreToXMLSubscriptions(org.cip4.jdflib.core.KElement)
+	 * @param rootDevice
+	 */
+	@Override
+	public void addMoreToXMLSubscriptions(KElement rootDevice)
+	{
+		super.addMoreToXMLSubscriptions(rootDevice);
+		mySubscriptions.copyToXML(rootDevice);
 	}
 
 }

@@ -14,7 +14,7 @@
       </head>
       <body>
         <img src="../logo.gif" height="70" alt="logo"/>
-        <table>
+        <table cellspacing="5" border="2" bgcolor="#dddddd">
           <tr>
             <td>
               <a>
@@ -49,6 +49,15 @@
           Show JDF XML Source
         </a>
         </td>
+        <!-- todo handle cleanup
+           <td>
+              <a title="remove all outstanding spawns">
+                <xsl:attribute name="href"><xsl:value-of select="$context"/>/showJDF/<xsl:value-of select="@DeviceID"/>?repair=true&amp;qeID=<xsl:value-of
+            select="@QueueEntryID"/></xsl:attribute>
+         Repair JDF
+        </a>
+        </td>
+        -->
         </tr>
         </table>
         <h1>

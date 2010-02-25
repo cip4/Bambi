@@ -161,7 +161,7 @@ public class BambiServletResponse extends BambiLogFactory implements HttpServlet
 	}
 
 	/**
-	 * @see javax.servlet.http.HttpServletResponse#encodeRedirectUrl(java.lang.String)
+	 * 
 	 */
 	@SuppressWarnings("deprecation")
 	public String encodeRedirectUrl(final String arg0)
@@ -178,7 +178,7 @@ public class BambiServletResponse extends BambiLogFactory implements HttpServlet
 	}
 
 	/**
-	 * @see javax.servlet.http.HttpServletResponse#encodeUrl(java.lang.String)
+	 * 
 	 */
 	@SuppressWarnings("deprecation")
 	public String encodeUrl(final String arg0)

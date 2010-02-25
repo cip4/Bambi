@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -76,10 +76,11 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.bambi.core.StatusListener;
-import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
+import org.cip4.bambi.proxy.AbstractProxyDevice;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -110,7 +111,7 @@ import org.cip4.jdflib.util.VectorMap;
  * Class that buffers messages for subscriptions and integrates the results over time
  * @author rainer prosi
  */
-public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
+public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 {
 	/**
 	 * class that identifies messages. if equal, messages are integrated, else they are retained independently
@@ -279,20 +280,35 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 	protected VString ignoreSenderIDs = null;
 
 	protected VectorMap<MessageIdentifier, JDFSignal> messageMap = new VectorMap<MessageIdentifier, JDFSignal>();
-	protected SignalDispatcher _theDispatcher;
-	protected QueueProcessor _theQueueProc; // required for mapping to queueentries
 
 	/**
+	 * @return the _theDispatcher
+	 */
+	protected SignalDispatcher getDispatcher()
+	{
+		return _theDevice.getSignalDispatcher();
+	}
+
+	protected AbstractDevice _theDevice; // required for mapping to queueentries
+
+	/**
+	 * @param dev 
 	 * @param _type
 	 * @param _families
-	 * @param dispatcher
-	 * @param qProc the queueprocessor that this buffer handles - used to dispatch qe specific subscriptions
+	 * @param device the device that this buffer handles - used to dispatch qe specific subscriptions
 	 */
-	public JMFBufferHandler(final String _type, final EnumFamily[] _families, final SignalDispatcher dispatcher, final QueueProcessor qProc)
+	public JMFBufferHandler(AbstractDevice dev, final EnumType _type, final EnumFamily[] _families, final AbstractDevice device)
 	{
-		super(_type, _families);
-		_theDispatcher = dispatcher;
-		_theQueueProc = qProc;
+		super(dev, _type, _families);
+		_theDevice = device;
+	}
+
+	/**
+	 * @return
+	 */
+	protected QueueProcessor getQueueProcessor()
+	{
+		return _theDevice.getQueueProcessor();
 	}
 
 	/**
@@ -317,6 +333,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 		final EnumFamily family = inputMessage.getFamily();
 		if (EnumFamily.Signal.equals(family))
 		{
+			super.handleMessage(inputMessage, response);
 			if (ignore(inputMessage))
 			{
 				return true;
@@ -325,10 +342,27 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 		}
 		else if (EnumFamily.Query.equals(family))
 		{
-			getSignals(inputMessage, response);
-			return true;
+			return handleQuery(inputMessage, response);
 		}
 		return false;
+	}
+
+	/**
+	 * @param inputMessage
+	 * @param response
+	 * @return true if handled
+	 */
+	protected boolean handleQuery(final JDFMessage inputMessage, final JDFResponse response)
+	{
+		getSignals(inputMessage, response);
+		if (!response.getSubscribed())
+		{
+			response.deleteNode();// always zapp the dummy response except
+			// in a subscription
+		}
+
+		inputMessage.deleteNode(); // also zapp the query
+		return true;
 	}
 
 	/**
@@ -354,6 +388,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 	/**
 	 * check for the substring senderID in ignoreSenderIDs
 	 * @param senderID
+	 * @return 
 	 */
 	protected boolean ignoreContains(final String senderID)
 	{
@@ -447,14 +482,6 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 			{
 				jmf = null;
 			}
-
-			if (!response.getSubscribed())
-			{
-				response.deleteNode();// always zapp the dummy response except
-				// in a subscription
-			}
-
-			inputMessage.deleteNode(); // also zapp the query
 			return jmf;
 		}
 	}
@@ -511,7 +538,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 	protected boolean handleSignal(final JDFSignal inSignal, final JDFResponse response)
 	{
 		final String qeID = getQueueEntryIDForSignal(inSignal);
-		final Set<String> requests = _theDispatcher.getChannels(inSignal.getEnumType(), inSignal.getSenderID(), qeID);
+		final Set<String> requests = getDispatcher().getChannels(inSignal.getEnumType(), inSignal.getSenderID(), qeID);
 		final MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
 
 		if (mi != null)
@@ -521,7 +548,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 				for (int i = 0; i < mi.length; i++)
 				{
 					messageMap.putOne(mi[i], inSignal);
-					_theDispatcher.triggerChannel(mi[i].misChannelID, qeID, null, -1, i + 1 == mi.length, true);
+					getDispatcher().triggerChannel(mi[i].misChannelID, qeID, null, -1, i + 1 == mi.length, true);
 				}
 				return true;
 			}
@@ -634,13 +661,41 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 		}
 
 		/**
-		 * @param dispatcher the message dispatcher that sends out signals
-		 * @param qProc
+		 * @param dev
 		 */
-		public StatusBufferHandler(final SignalDispatcher dispatcher, final QueueProcessor qProc)
+		public StatusBufferHandler(final AbstractProxyDevice dev)
 		{
-			super("Status", new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dispatcher, qProc);
+			super(dev, EnumType.Status, new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dev);
 			lastSent = new HashMap<MessageIdentifier, JDFSignal>();
+		}
+
+		/**
+		 * @param inputMessage
+		 * @param response
+		 * @return true if handled
+		 */
+		@Override
+		protected boolean handleQuery(final JDFMessage inputMessage, final JDFResponse response)
+		{
+			boolean isSubscription = response.getSubscribed();
+			boolean deleteResponse = isSubscription;
+			if (isSubscription)
+				getSignals(inputMessage, response);
+			JDFStatusQuParams sqp = inputMessage.getStatusQuParams();
+			if (sqp != null && sqp.getQueueInfo())
+			{
+				deleteResponse = false;
+				_theDevice.addQueueToStatusResponse(inputMessage, response);
+			}
+
+			if (deleteResponse)
+			{
+				response.deleteNode();// zapp the dummy response except in a subscription
+			}
+
+			if (isSubscription)
+				inputMessage.deleteNode(); // also zapp the query
+			return true;
 		}
 
 		@Override
@@ -655,7 +710,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 			{
 				final JDFSignal inSignal = (JDFSignal) vSigs.get(i);
 				final String qeID = getQueueEntryIDForSignal(inSignal);
-				final Set<String> requests = _theDispatcher.getChannels(theSignal.getEnumType(), inSignal.getSenderID(), qeID);
+				final Set<String> requests = getDispatcher().getChannels(theSignal.getEnumType(), inSignal.getSenderID(), qeID);
 				final MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
 				if (mi != null)
 				{
@@ -667,7 +722,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 							lastSignal = lastSent.get(mi[ii]);
 						}
 						handleSingleSignal(inSignal, mi[ii]);
-						_theDispatcher.triggerChannel(mi[ii].misChannelID, qeID, null, -1, false, new StatusSignalComparator().isSameStatusSignal(inSignal, lastSignal));
+						getDispatcher().triggerChannel(mi[ii].misChannelID, qeID, null, -1, false, new StatusSignalComparator().isSameStatusSignal(inSignal, lastSignal));
 						synchronized (lastSent)
 						{
 							lastSent.put(mi[ii], inSignal);
@@ -874,7 +929,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 					}
 				}
 			}
-			final JDFQueueEntry qe = _theQueueProc.getQueueEntry(qeid, ni);
+			final JDFQueueEntry qe = getQueueProcessor().getQueueEntry(qeid, ni);
 			return qe == null ? null : qe.getQueueEntryID();
 		}
 	}
@@ -890,12 +945,11 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 	{
 
 		/**
-		 * @param dispatcher the dispatcher
-		 * @param qProc
+		 * @param dev
 		 */
-		public NotificationBufferHandler(final SignalDispatcher dispatcher, final QueueProcessor qProc)
+		public NotificationBufferHandler(final AbstractDevice dev)
 		{
-			super("Notification", new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dispatcher, qProc);
+			super(dev, EnumType.Notification, new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dev);
 		}
 
 		/**
@@ -910,7 +964,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 			{
 				ni = not.getIdentifier();
 			}
-			final JDFQueueEntry qe = _theQueueProc.getQueueEntry(null, ni);
+			final JDFQueueEntry qe = _theDevice.getQueueProcessor().getQueueEntry(null, ni);
 			return qe == null ? null : qe.getQueueEntryID();
 		}
 
@@ -925,12 +979,11 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 	{
 
 		/**
-		 * @param dispatcher the dispatcher
-		 * @param qProc
+		 * @param dev
 		 */
-		public ResourceBufferHandler(final SignalDispatcher dispatcher, final QueueProcessor qProc)
+		public ResourceBufferHandler(final AbstractDevice dev)
 		{
-			super("Resource", new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dispatcher, qProc);
+			super(dev, EnumType.Resource, new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dev);
 		}
 
 		/**
@@ -971,7 +1024,7 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 				qeid = StringUtil.getNonEmpty(rqp.getQueueEntryID());
 				ni = rqp.getIdentifier();
 			}
-			final JDFQueueEntry qe = _theQueueProc.getQueueEntry(qeid, ni);
+			final JDFQueueEntry qe = _theDevice.getQueueProcessor().getQueueEntry(qeid, ni);
 			return qe == null ? null : qe.getQueueEntryID();
 		}
 	}
@@ -985,13 +1038,12 @@ public class JMFBufferHandler extends AbstractHandler implements IMessageHandler
 		StatusListener theStatusListener;
 
 		/**
-		 * @param dispatcher
 		 * @param listener
-		 * @param qProc
+		 * @param dev
 		 */
-		public NotificationHandler(final SignalDispatcher dispatcher, final StatusListener listener, final QueueProcessor qProc)
+		public NotificationHandler(final AbstractDevice dev, StatusListener listener)
 		{
-			super(dispatcher, qProc);
+			super(dev);
 			theStatusListener = listener;
 		}
 

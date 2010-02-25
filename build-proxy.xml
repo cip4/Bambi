@@ -67,10 +67,12 @@
 		<property name="war.dir" value="${dist.dir}/${base.filename}-war" />
 		<mkdir dir="${war.dir}" />
 		<copy todir="${war.dir}">
-			<fileset dir="${web.src.dir}">
+			<fileset dir="${webcore.src.dir}">
 				<include name="**/*" />
 			</fileset>
-			<fileset dir="${webcore.src.dir}">
+		</copy>
+		<copy overwrite="true" todir="${war.dir}">
+			<fileset dir="${web.src.dir}">
 				<include name="**/*" />
 			</fileset>
 		</copy>

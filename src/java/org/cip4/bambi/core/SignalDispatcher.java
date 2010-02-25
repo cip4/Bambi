@@ -168,10 +168,12 @@ public final class SignalDispatcher extends BambiLogFactory
 			root = getRoot();
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
-		 * @see org.cip4.bambi.core.IGetHandler#handleGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
+		 * @param request
+		 * @param response
+		 * @return
 		 */
 		public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
 		{
@@ -217,6 +219,7 @@ public final class SignalDispatcher extends BambiLogFactory
 				else
 				{
 					listChannels(request, details);
+					device.addMoreToXMLSubscriptions(root);
 					listDispatchers(request, false, -1);
 					setXSLTURL("/" + BambiServlet.getBaseServletName(request) + "/subscriptionList.xsl");
 				}
@@ -557,7 +560,18 @@ public final class SignalDispatcher extends BambiLogFactory
 	// ///////////////////////////////////////////////////////////
 	protected class Dispatcher implements Runnable
 	{
-		long timeSpent = 0;
+		long timeSpent;
+		int sentMessages;
+
+		/**
+		 * 
+		 */
+		public Dispatcher()
+		{
+			super();
+			timeSpent = 0;
+			sentMessages = 0;
+		}
 
 		/**
 		 * this is the time clocked dispatcher thread
@@ -584,16 +598,14 @@ public final class SignalDispatcher extends BambiLogFactory
 		void flush()
 		{
 			final long t0 = System.currentTimeMillis();
-			int n = 0;
 			while (true)
 			{
-				n++;
-				int size;
 				final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
-				size = triggerVector.size();
+				final int size = triggerVector.size();
 				// spam them out
 				for (int i = 0; i < size; i++)
 				{
+					sentMessages++;
 					final MsgSubscription sub = triggerVector.elementAt(i);
 					log.debug("Trigger Signalling :" + i + " slaveChannelID=" + sub.channelID);
 					queueMessageInSender(sub);
@@ -604,6 +616,7 @@ public final class SignalDispatcher extends BambiLogFactory
 				// spam them out
 				for (int i = 0; i < size2; i++)
 				{
+					sentMessages++;
 					final MsgSubscription sub = subVector.elementAt(i);
 					log.debug("Time Signalling: " + i + ", slaveChannelID=" + sub.channelID);
 					queueMessageInSender(sub);
@@ -1384,7 +1397,7 @@ public final class SignalDispatcher extends BambiLogFactory
 	}
 
 	/**
-	 * add a subscription returns the slaveChannelID of the new subscription, null if snafu
+	 * add a subscription - returns the slaveChannelID of the new subscription, null if snafu
 	 * @param subMess the subscription message - one of query or registration
 	 * @param queueEntryID the associated QueueEntryID, may be null.
 	 * @return the slaveChannelID of the subscription, if successful, else null

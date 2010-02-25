@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -70,13 +70,13 @@
  */
 package org.cip4.bambi.proxy;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.BambiLog;
+import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.BambiServlet;
 
 /**
- * @author prosirai
  * 
+  * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class ProxyServlet extends BambiServlet
 {
@@ -87,8 +87,8 @@ public class ProxyServlet extends BambiServlet
 	public ProxyServlet()
 	{
 		super();
-		log = LogFactory.getLog(ProxyServlet.class.getName());
-		log.info("Constructing logger");
+		log = new BambiLogFactory(this.getClass()).getLog();
+		log.info("Constructing Proxy Servlet");
 	}
 
 	/**
@@ -104,6 +104,6 @@ public class ProxyServlet extends BambiServlet
 	 * 
 	 */
 	private static final long serialVersionUID = -8544678701930337760L;
-	private Log log = null;
+	private final BambiLog log;
 
 }

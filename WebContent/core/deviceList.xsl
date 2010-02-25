@@ -38,8 +38,9 @@
             <th align="left"> Controller Queue</th>
             <th align="left"> Queue Status</th>
             <th align="left"> # Running</th>
-            <th align="left"> # Waiting</th>
+            <th align="left"> # Waiting/Suspended </th>
             <th align="left"> # Completed</th>
+            <th align="left"> # All</th>
           </tr>
           <xsl:apply-templates select="XMLDevice[@Root='true']"/>
         </table>
@@ -54,8 +55,9 @@
             <th align="left"> Device Queue</th>
             <th align="left"> Queue Status</th>
             <th align="left"> # Running</th>
-            <th align="left"> # Waiting</th>
+            <th align="left"> # Waiting/Suspended</th>
             <th align="left"> # Completed</th>
+           <th align="left"> # All</th>
           </tr>
           <xsl:apply-templates select="XMLDevice[@Root='false']"/>
         </table>
@@ -113,6 +115,9 @@
       <td align="left">
         <xsl:value-of select="@QueueCompleted"/>
       </td>
+     <td align="left">
+        <xsl:value-of select="@QueueAll"/>
+      </td>
     </tr>
   </xsl:template>
 
@@ -154,6 +159,9 @@
       </td>
       <td align="left">
         <xsl:value-of select="@QueueCompleted"/>
+      </td>
+     <td align="left">
+        <xsl:value-of select="@QueueAll"/>
       </td>
     </tr>
   </xsl:template>

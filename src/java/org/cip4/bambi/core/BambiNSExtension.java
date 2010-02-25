@@ -423,10 +423,12 @@ public class BambiNSExtension
 	}
 
 	/**
+	 * @deprecated - use QueueProcessor.getQueueEntry
 	 * @param q
 	 * @param slaveID
 	 * @return the QueueEntry with the matching slave qeid
 	 */
+	@Deprecated
 	public static JDFQueueEntry getSlaveQueueEntry(final JDFQueue q, final String slaveID)
 	{
 		if (KElement.isWildCard(slaveID))

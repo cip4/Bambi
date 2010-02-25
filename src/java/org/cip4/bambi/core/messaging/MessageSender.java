@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -147,13 +147,22 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	private final MyMutex mutexPause = new MyMutex();
 	private int trySend = 0;
 	private int sent = 0;
-	private int removedHeartbeat = 0;
+	protected int removedHeartbeat = 0;
 	private int idle = 0;
 	private long created = 0;
 	private long lastQueued = 0;
 	private long lastSent = 0;
 	private boolean pause = false;
 	private static File baseLocation = null;
+
+	/**
+	 * @return the baseLocation where all message related files are stored
+	 */
+	public static File getBaseLocation()
+	{
+		return baseLocation;
+	}
+
 	private SenderQueueOptimizer optimizer = null;
 
 	protected class SenderQueueOptimizer extends BambiLogFactory
@@ -250,9 +259,9 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			final VElement v = jmf.getMessageVector(null, null);
 			if (v.size() == 0)
 			{
-				log.info("removed redundant jmf: " + jmf.getID());
-				_messages.remove(i);
 				removedHeartbeat++;
+				log.info("removed redundant jmf # " + removedHeartbeat + " ID: " + jmf.getID());
+				_messages.remove(i);
 			}
 		}
 	}
@@ -306,7 +315,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		 * @param _mime
 		 * @param _respHandler the response handler to handle the response after the message is queued
 		 * @param _callback the callback to apply to the message prior to sending it
-		 * @param hdet the http details
+		 * @param mdet the http and mime details
 		 * @param _senderID the senderID of the sender
 		 * @param _url the complete, fully expanded url to send to
 		 */
@@ -437,6 +446,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 
 		/**
 		 * @param _jmf
+		 * @return 
 		 */
 		private KElement displayJMF(final JDFJMF _jmf)
 		{
@@ -497,6 +507,14 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		}
 
 		/**
+		 * @param jmf
+		 */
+		public MessageResponseHandler(JDFJMF jmf)
+		{
+			this(jmf.getMessageElement(null, null, 0).getID());
+		}
+
+		/**
 		 * @see org.cip4.bambi.core.messaging.IResponseHandler#handleMessage()
 		 * @return true if handled, even if not finalized
 		 */
@@ -542,7 +560,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		}
 
 		/**
-		 * @param r
+		 *  
+		 * @return 
 		 */
 		private boolean checkAcknowledge()
 		{
@@ -704,6 +723,15 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		{
 			return resp;
 		}
+
+		/**
+		 * return the jmf message's response code -1 if no response was received
+		 * @return 
+		 */
+		public int getJMFReturnCode()
+		{
+			return finalMessage == null ? -1 : finalMessage.getReturnCode();
+		}
 	}
 
 	/**
@@ -781,13 +809,14 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	}
 
 	/**
-	 * 
+	 * write all pending messages to disk
 	 */
 	private void write2Base()
 	{
 		final File f = getPersistLocation();
 		if (f == null)
 		{
+			log.error("no persistant message file location - possible loss of pending messages");
 			return;
 		}
 		synchronized (_messages)
@@ -795,8 +824,13 @@ public class MessageSender extends BambiLogFactory implements Runnable
 
 			if (_messages.size() == 0)
 			{
+				log.info("no pending messages to write, ciao");
 				f.delete(); // it's empty we can zapp it
 				return;
+			}
+			else
+			{
+				log.info("writing " + _messages.size() + " pending messages to: " + f.getAbsolutePath());
 			}
 			final KElement root = appendToXML(null, true, -1);
 			root.getOwnerDocument_KElement().write2File(f, 2, false);
@@ -823,7 +857,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	}
 
 	/**
-	 * read all queued messages
+	 * read all queued messages from storage, normally called at startup
 	 */
 	private void readFromBase()
 	{
@@ -835,7 +869,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		}
 		if (!f.exists()) // nothing queued ,ciao
 		{
-			log.warn("no persistant message file exists, bailing out! " + f);
+			log.info("no persistant message file exists to read, bailing out! " + f);
 			return;
 		}
 
@@ -872,14 +906,11 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		String loc = callURL.getBaseURL();
 		if (loc == null)
 		{
-			log.error("cannot persist jmf to null");
+			log.error("cannot persist jmf to null location");
 			return null;
 		}
 		loc = StringUtil.replaceCharSet(loc, ":\\", "/", 0);
-		while (loc.indexOf("//") >= 0)
-		{
-			loc = StringUtil.replaceString(loc, "//", "/");
-		}
+		loc = StringUtil.replaceString(loc, "//", "/");
 		loc += ".xml";
 		final File f = FileUtil.getFileInDirectory(baseLocation, new File(loc));
 		final File locParent = f.getParentFile();
@@ -896,7 +927,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	}
 
 	/**
-	 * send the first enqueued message and return true if all went well also update any returned responses for Bambi internally
+	 * send the first enqueued message and return true if all went well
+	 * also update any returned responses for Bambi internally
 	 * 
 	 * @return boolean true if the message is assumed sent false if an error was detected and the Message must remain in the queue
 	 */
@@ -943,34 +975,29 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				log.warn("removed aborted message to: " + mesDetails.url);
 				return SendReturn.removed;
 			}
-			if (jmf == null && mp == null)
-			{
-				log.error("Sending neither mime nor jmf - bailing out?");
-				_messages.remove(0);
-				return SendReturn.removed; // nothing to send; remove it
-			}
-
 		}
-		final SendReturn sr = sendHTTP(mesDetails, jmf, mp);
-		if (SendReturn.sent == sr)
+		final SendReturn sendReturn = sendHTTP(mesDetails, jmf, mp);
+		if (SendReturn.sent == sendReturn)
 		{
 			sentMessages.push(mesDetails);
 		}
 		else
 		{
 			String isMime = mp == null ? "JMF" : "MIME";
-			log.warn("Sender: " + mesDetails.senderID + " Error sending " + isMime + " message to: " + mesDetails.url + " return code=" + sr);
+			log.warn("Sender: " + mesDetails.senderID + " Error sending " + isMime + " message to: " + mesDetails.url + " return code=" + sendReturn);
 		}
-		return sr;
+		return sendReturn;
 	}
 
 	/**
+	 * send a message via http
+	 * 
 	 * @param mh the messagedetails
 	 * @param jmf the jmf to send
 	 * @param mp the mime to send
 	 * @return the success as a sendreturn enum
 	 */
-	private SendReturn sendHTTP(final MessageDetails mh, final JDFJMF jmf, final Multipart mp)
+	private SendReturn sendHTTP(final MessageDetails mh, JDFJMF jmf, final Multipart mp)
 	{
 		SendReturn b = SendReturn.sent;
 		final URL url = mh == null ? null : UrlUtil.stringToURL(mh.url);
@@ -983,15 +1010,19 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		try
 		{
 			trySend++;
-			HttpURLConnection con;
+			HttpURLConnection connection = null;
 			String header = "URL: " + url;
 			final DumpDir outDump = getOutDump(mh.senderID);
 			final DumpDir inDump = getInDump(mh.senderID);
+			if (jmf != null && mp != null)
+			{
+				log.warn("Both mime package and JMF specified - sending both");
+			}
 			if (jmf != null)
 			{
 				final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
 				final HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
-				con = jmfDoc.write2HTTPURL(url, hd);
+				connection = jmfDoc.write2HTTPURL(url, hd);
 				if (outDump != null)
 				{
 					final File dump = outDump.newFile(header);
@@ -1003,10 +1034,10 @@ public class MessageSender extends BambiLogFactory implements Runnable
 					}
 				}
 			}
-			else
-			// mime
+			if (mp != null)
+			// mime package
 			{
-				con = MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
+				connection = MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
 				if (outDump != null)
 				{
 					final File dump = outDump.newFile(header);
@@ -1019,21 +1050,21 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				}
 			}
 
-			if (con != null)
+			if (connection != null)
 			{
 				if (mh.respHandler != null)
 				{
-					mh.respHandler.setConnection(con);
+					mh.respHandler.setConnection(connection);
 				}
-				con.setReadTimeout(30000); // 30 seconds should suffice
-				header += "\nResponse code:" + con.getResponseCode();
-				header += "\nContent type:" + con.getContentType();
-				header += "\nContent length:" + con.getContentLength();
+				connection.setReadTimeout(30000); // 30 seconds should suffice
+				header += "\nResponse code:" + connection.getResponseCode();
+				header += "\nContent type:" + connection.getContentType();
+				header += "\nContent length:" + connection.getContentLength();
 			}
 
-			if (con != null && con.getResponseCode() == 200)
+			if (connection != null && connection.getResponseCode() == 200)
 			{
-				InputStream inputStream = con.getInputStream();
+				InputStream inputStream = connection.getInputStream();
 				ByteArrayIOStream bis = null;
 				bis = new ByteArrayIOStream(inputStream);
 				inputStream.close(); // copy and close so that the connection stream can be reused by keep-alive
@@ -1043,7 +1074,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				}
 				if (mh.respHandler != null)
 				{
-					mh.respHandler.setConnection(con);
+					mh.respHandler.setConnection(connection);
 					mh.respHandler.setBufferedStream(bis);
 					b = mh.respHandler.handleMessage() ? SendReturn.sent : SendReturn.error;
 				}
@@ -1053,30 +1084,31 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				b = SendReturn.error;
 				if (idle == 0)
 				{
-					log.warn("could not send message to " + mh.url + " rc= " + ((con == null) ? -1 : con.getResponseCode()));
+					log.warn("could not send message to " + mh.url + " rc= " + ((connection == null) ? -1 : connection.getResponseCode()));
 				}
-				if (con != null)
+				if (connection != null)
 				{
 					if (inDump != null)
 					{
 						inDump.newFile(header);
 					}
-					InputStream inputStream = con.getInputStream();
+					InputStream inputStream = connection.getInputStream();
 					if (inputStream != null)
 						inputStream.close();
 				}
 				if (mh.respHandler != null)
 				{
-					mh.respHandler.setConnection(con);
+					mh.respHandler.setConnection(connection);
 					mh.respHandler.handleMessage(); // make sure we tell anyone who is waiting that the wait is over...
 				}
 			}
 		}
 		catch (final Exception e)
 		{
-			if (log != null) // shutdown
+			log.error("Exception in sendfirstmessage", e);
+			if (mh.respHandler != null)
 			{
-				log.error("Exception in sendfirstmessage", e);
+				mh.respHandler.handleMessage(); // make sure we tell anyone who is waiting that the wait is over...
 			}
 			b = SendReturn.error;
 		}

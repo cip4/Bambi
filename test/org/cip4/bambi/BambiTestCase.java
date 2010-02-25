@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -119,9 +119,13 @@ public class BambiTestCase extends BaseGoldenTicketTest
 			_theGT.nCols = new int[] { 4, 4 };
 		}
 		else if (enumGTType.MISPRE.equals(gt))
+		{
 			_theGT = new MISPreGoldenTicket(2, EnumVersion.Version_1_3, 1, 2, null);
+		}
 		else if (enumGTType.IDP.equals(gt))
+		{
 			_theGT = new IDPGoldenTicket(1);
+		}
 		else if (enumGTType.MISFIN_STITCH.equals(gt))
 		{
 			_theGT = new MISFinGoldenTicket(1, null, 1, 2, null);
@@ -129,6 +133,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 			_theGT.addSheet("Sheet2");
 			((MISFinGoldenTicket) _theGT).setCategory(MISFinGoldenTicket.MISFIN_STITCHFIN);
 		}
+		_theGT.devID = deviceID;
 		_theGT.assign(null);
 	}
 
@@ -145,8 +150,8 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected final static String sm_dirTestTemp = cwd + File.separator + "test" + File.separator + "temp" + File.separator;
 	protected final static String sm_UrlTestData = "File:test/data/";
 
+	protected String deviceID;
 	protected String simWorkerUrl = "http://localhost:8080/SimWorker/jmf/sim002";
-	//	protected String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy";
 	protected String proxySlaveUrl = "http://kie-prosirai-lg:8080/BambiProxy/slavejmf/pushproxy";
 	// protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
 	protected String manualWorkerUrl = null;
@@ -571,6 +576,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	public BambiTestCase()
 	{
 		JDFJMF.setTheSenderID("BambiTest");
+		deviceID = null;
 		// simWorkerUrl = "http://localhost:8080/misconnector/jmf/MISConnector";
 	}
 

@@ -278,7 +278,8 @@ public class MultiDeviceProperties extends BambiLogFactory
 		}
 
 		/**
-		 * @param attribute the attribute to set the fial as
+		 * @param attribute the attribute to set the file as
+		 * @param file 
 		 */
 		protected void setFile(final String attribute, final File file)
 		{

@@ -67,7 +67,7 @@
 		<!-- Builds exploded WAR file -->
 		<property name="war.dir" value="${dist.dir}/${base.filename}-war" />
 		<mkdir dir="${war.dir}" />
-  	<copy todir="${war.dir}">
+     	<copy todir="${war.dir}">
 			<fileset dir="${webcore.src.dir}">
 				<include name="**/*" />
 			</fileset>

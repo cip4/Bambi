@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -141,17 +141,21 @@ public abstract class ShowHandler implements IGetHandler
 	 * @param request
 	 * @param response
 	 * @param f
+	 * @return 
 	 */
 	protected abstract boolean processFile(final BambiServletRequest request, final BambiServletResponse response, final File f);
 
 	/**
 	 * @param request
+	 * @return 
 	 */
 	protected abstract boolean isMyRequest(final BambiServletRequest request);
 
 	/**
 	 * prepare the root jdf for display with xslt
 	 * @param doc
+	 * @param request 
+	 * @return 
 	 */
 	protected JDFDoc prepareRoot(JDFDoc doc, final BambiServletRequest request)
 	{

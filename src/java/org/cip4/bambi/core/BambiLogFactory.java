@@ -15,8 +15,8 @@ import org.apache.commons.logging.LogFactory;
 public class BambiLogFactory
 {
 	final protected BambiLog log;
-	static int countPlus = 0;
-	static int countMinus = 0;
+	static long countPlus = 0;
+	static long countMinus = 0;
 
 	/**
 	 * 
@@ -47,7 +47,7 @@ public class BambiLogFactory
 	/**
 	 * @return total # of created log objects
 	 */
-	public int getCreated()
+	public long getCreated()
 	{
 		return countPlus;
 	}
@@ -55,7 +55,7 @@ public class BambiLogFactory
 	/**
 	 * @return total # of deleted (garbage collected) log objects
 	 */
-	public int getDeleted()
+	public long getDeleted()
 	{
 		return countMinus;
 	}
@@ -75,7 +75,8 @@ public class BambiLogFactory
 	protected void finalize() throws Throwable
 	{
 		countMinus++;
-		log.debug("destroying: " + this.getClass().getName());
+		if (countMinus % 1000 == 0)
+			log.debug("destroying: " + this.getClass().getName() + " + " + countPlus + " - " + countMinus + " = " + (countPlus - countMinus));
 		super.finalize();
 	}
 }

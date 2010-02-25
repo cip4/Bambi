@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -175,6 +175,21 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			deviceRoot.setAttribute("DeviceURL", getDeviceURL());
 			final IDeviceProperties properties = getProperties();
 			deviceRoot.setAttribute("WatchURL", properties.getWatchURL());
+			deviceRoot.setAttribute(AttributeName.DEVICESTATUS, getDeviceStatus().getName());
+			addHotFolders(deviceRoot);
+			addQueueInfo(deviceRoot);
+			if (addProcs)
+			{
+				addProcessors();
+			}
+		}
+
+		/**
+		 * @param deviceRoot
+		 */
+		private void addHotFolders(final KElement deviceRoot)
+		{
+			final IDeviceProperties properties = getProperties();
 			final File inputHF = properties.getInputHF();
 			if (inputHF != null)
 			{
@@ -190,22 +205,25 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			{
 				deviceRoot.setAttribute("ErrorHF", errorHF.getPath());
 			}
-			deviceRoot.setAttribute(AttributeName.DEVICESTATUS, getDeviceStatus().getName());
+		}
+
+		/**
+		 * @param deviceRoot
+		 */
+		private void addQueueInfo(final KElement deviceRoot)
+		{
 			final JDFQueue jdfQueue = _theQueueProcessor.getQueue();
 			final EnumQueueStatus queueStatus = jdfQueue == null ? null : jdfQueue.getQueueStatus();
 			final int running = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Running);
-			final int waiting = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Waiting);
+			final int waiting = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Waiting) + jdfQueue.numEntries(EnumQueueEntryStatus.Suspended);
 			final int completed = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Completed) + jdfQueue.numEntries(EnumQueueEntryStatus.Aborted);
+			final int all = jdfQueue == null ? 0 : jdfQueue.numEntries(null);
 
 			deviceRoot.setAttribute("QueueStatus", queueStatus == null ? "Unknown" : queueStatus.getName());
 			deviceRoot.setAttribute("QueueWaiting", waiting, null);
 			deviceRoot.setAttribute("QueueRunning", running, null);
 			deviceRoot.setAttribute("QueueCompleted", completed, null);
-			if (addProcs)
-			{
-				addProcessors();
-			}
-
+			deviceRoot.setAttribute("QueueAll", all, null);
 		}
 
 		/**
@@ -310,7 +328,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * handler for the StopPersistentChannel command
+	 * handler for the Resource Query/Signal
 	 */
 	public class ResourceHandler extends AbstractHandler
 	{
@@ -548,6 +566,24 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected Vector<AbstractDeviceProcessor> _deviceProcessors = null;
 	protected SignalDispatcher _theSignalDispatcher = null;
 	protected JMFHandler _jmfHandler = null;
+
+	/**
+	 * @return the _jmfHandler
+	 */
+	public JMFHandler getJMFHandler()
+	{
+		return _jmfHandler;
+	}
+
+	/**
+	 * hook to add additional information to the SignalDispatcher subscription XML
+	 * @param rootList the xml root element
+	 */
+	public void addMoreToXMLSubscriptions(KElement rootList)
+	{
+		//nop 
+	}
+
 	protected IDeviceProperties _devProperties = null;
 	protected QueueHotFolder _submitHotFolder = null;
 	protected IConverterCallback _callback = null;
@@ -684,7 +720,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		addHandler(this.new ResourceHandler());
 		addHandler(this.new StatusHandler());
 		addHandler(this.new SubmissionMethodsHandler());
-		addHandler(new NotificationHandler(_theSignalDispatcher, _theStatusListener, getQueueProcessor()));
+		addHandler(new NotificationHandler(this, _theStatusListener));
 		addHandler(AcknowledgeMap.getMap());
 	}
 
@@ -1088,6 +1124,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			}
 			else
 			{
+				if (request.getBooleanParam("reset"))
+				{
+					reset();
+				}
 				updateDevice(request);
 				return showDevice(request, response, request.getBooleanParam("refresh"));
 			}
@@ -1448,7 +1488,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * @param inputMessage
 	 * @param response
 	 */
-	protected void addQueueToStatusResponse(final JDFMessage inputMessage, final JDFResponse response)
+	public void addQueueToStatusResponse(final JDFMessage inputMessage, final JDFResponse response)
 	{
 		final JDFStatusQuParams statusQuParams = inputMessage.getStatusQuParams();
 		final boolean bQueue = statusQuParams == null ? false : statusQuParams.getQueueInfo();

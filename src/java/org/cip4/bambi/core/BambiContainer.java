@@ -462,7 +462,7 @@ public class BambiContainer extends BambiLogFactory
 	public XMLResponse processJMFDoc(final XMLRequest request)
 	{
 		JDFJMF jmf = (JDFJMF) request.getXML();
-		JDFDoc jmfDoc = new JDFDoc(request.getXML().getOwnerDocument());
+		JDFDoc jmfDoc = jmf == null ? null : jmf.getOwnerDocument_JDFElement();
 		final XMLResponse response;
 		if (jmf == null)
 		{
@@ -500,26 +500,19 @@ public class BambiContainer extends BambiLogFactory
 			}
 			else
 			{
-				if (jmf != null)
+				VElement v = jmf.getMessageVector(null, null);
+				final int nMess = v == null ? 0 : v.size();
+				v = jmf.getMessageVector(EnumFamily.Signal, null);
+				int nSigs = v.size();
+				v = jmf.getMessageVector(EnumFamily.Acknowledge, null);
+				nSigs += v.size();
+				if (nMess > nSigs || nMess == 0)
 				{
-					VElement v = jmf.getMessageVector(null, null);
-					final int nMess = v == null ? 0 : v.size();
-					v = jmf.getMessageVector(EnumFamily.Signal, null);
-					int nSigs = v.size();
-					v = jmf.getMessageVector(EnumFamily.Acknowledge, null);
-					nSigs += v.size();
-					if (nMess > nSigs || nMess == 0)
-					{
-						response = processError(request.getRequestURI(), null, 1, "General Error Handling JMF");
-					}
-					else
-					{
-						response = null;
-					}
+					response = processError(request.getRequestURI(), null, 1, "General Error Handling JMF");
 				}
 				else
 				{
-					response = processError(request.getRequestURI(), null, 3, "Error Parsing JMF");
+					response = null;
 				}
 			}
 		}

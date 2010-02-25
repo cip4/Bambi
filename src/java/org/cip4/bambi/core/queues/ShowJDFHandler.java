@@ -93,6 +93,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.JDFSpawn;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -136,10 +137,11 @@ public class ShowJDFHandler extends ShowHandler
 	{
 		final boolean callback = request.getBooleanParam("Callback");
 		final boolean raw = request.getBooleanParam("raw");
+		final boolean repair = request.getBooleanParam("repair");
 		try
 		{
 			InputStream is = new FileInputStream(f);
-			if (!raw || callback && (_parentDevice instanceof AbstractProxyDevice))
+			if (repair || !raw || callback && (_parentDevice instanceof AbstractProxyDevice))
 			{
 				final JDFParser p = new JDFParser();
 				JDFDoc doc = p.parseStream(is);
@@ -152,6 +154,19 @@ public class ShowJDFHandler extends ShowHandler
 					if (call != null)
 					{
 						call.updateJDFForExtern(doc);
+					}
+				}
+				if (repair)
+				{
+					JDFNode n = doc.getJDFRoot();
+					if (n != null)
+					{
+						while (true)
+						{
+							JDFNode unspawned = new JDFSpawn(n).unSpawn(null);
+							if (unspawned == null)
+								break;
+						}
 					}
 				}
 				if (doc != null)
@@ -182,7 +197,11 @@ public class ShowJDFHandler extends ShowHandler
 
 	/**
 	 * copy all move all partitioned common nodeinfo status values into the root
-	 * @see org.cip4.bambi.core.queues.ShowHandler#prepareRoot(org.cip4.jdflib.core.JDFDoc, org.cip4.bambi.core.BambiServletRequest, java.lang.String)
+	 * 
+	 * @see org.cip4.bambi.core.queues.ShowHandler#prepareRoot(org.cip4.jdflib.core.JDFDoc, org.cip4.bambi.core.BambiServletRequest)
+	 * @param doc
+	 * @param request
+	 * @return
 	 */
 	@Override
 	protected JDFDoc prepareRoot(JDFDoc doc, final BambiServletRequest request)

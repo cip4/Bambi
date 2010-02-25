@@ -203,6 +203,114 @@ public class QueueProcessor extends BambiLogFactory
 	}
 
 	/**
+	 * class to quickly retrieve queueentries
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen *
+	 */
+	protected class QueueMap
+	{
+		private final HashMap<String, JDFQueueEntry> qeIDMap;
+		private final HashMap<NodeIdentifier, JDFQueueEntry> niMap;
+		private final HashSet<NodeIdentifier> niNull;
+
+		/**
+		 * 
+		 */
+		public QueueMap()
+		{
+			qeIDMap = new HashMap<String, JDFQueueEntry>();
+			niMap = new HashMap<NodeIdentifier, JDFQueueEntry>();
+			niNull = new HashSet<NodeIdentifier>();
+			fill(_theQueue);
+		}
+
+		/**
+		 * @param queue
+		 */
+		protected void fill(final JDFQueue queue)
+		{
+			if (queue == null)
+			{
+				return;
+			}
+			synchronized (queue)
+			{
+
+				final VElement v = queue.getQueueEntryVector();
+				for (int i = 0; i < v.size(); i++)
+				{
+					final JDFQueueEntry qe = (JDFQueueEntry) v.get(i);
+					addEntry(qe, false);
+				}
+			}
+		}
+
+		/**
+		 * @param qe
+		 * @param clearNull
+		 */
+		protected void addEntry(final JDFQueueEntry qe, final boolean clearNull)
+		{
+			final NodeIdentifier ni = qe.getIdentifier();
+			niMap.put(ni, qe);
+			final String slaveqeID = BambiNSExtension.getSlaveQueueEntryID(qe);
+			if (slaveqeID != null)
+			{
+				qeIDMap.put(slaveqeID, qe);
+			}
+			if (clearNull)
+			{
+				niNull.clear();
+			}
+		}
+
+		protected JDFQueueEntry getQEFromNI(final NodeIdentifier ni)
+		{
+			if (ni == null)
+			{
+				return null;
+			}
+			JDFQueueEntry qe = niMap.get(ni);
+			if (qe == null)
+			{
+				if (niNull.contains(ni))
+				{
+					return null;
+				}
+				qe = _theQueue.getQueueEntry(ni, 0);
+				if (qe != null)
+				{
+					niMap.put(ni, qe);
+				}
+				else
+				{
+					niNull.add(ni);
+				}
+			}
+			return qe;
+		}
+
+		protected JDFQueueEntry getQEFromSlaveQEID(final String slaveqeID)
+		{
+			if (slaveqeID == null)
+			{
+				return null;
+			}
+			final JDFQueueEntry qe = qeIDMap.get(slaveqeID);
+			return qe;
+		}
+
+		/**
+		 * 
+		 */
+		public void reset()
+		{
+			qeIDMap.clear();
+			niMap.clear();
+			niNull.clear();
+		}
+	}
+
+	/**
 	 * 
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
 	 * 
@@ -242,7 +350,7 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				return false;
 			}
-			String badDevices = BambiNSExtension.getMyNSAttribute(qe, BambiNSExtension.GOOD_DEVICES);
+			final String badDevices = BambiNSExtension.getMyNSAttribute(qe, BambiNSExtension.GOOD_DEVICES);
 			if (!StringUtil.hasToken(badDevices, deviceID, " ", 0))
 			{
 				return false;
@@ -253,11 +361,11 @@ public class QueueProcessor extends BambiLogFactory
 		/**
 		 * @see java.lang.Object#clone()
 		 * @return
-		*/
+		 */
 		@Override
 		protected CanExecuteCallBack clone()
 		{
-			CanExecuteCallBack cb = new CanExecuteCallBack(deviceID, proxy);
+			final CanExecuteCallBack cb = new CanExecuteCallBack(deviceID, proxy);
 			return cb;
 		}
 	}
@@ -986,7 +1094,7 @@ public class QueueProcessor extends BambiLogFactory
 		 * @param sortBy
 		 * @param root
 		 * @param filter the regexp to filter by (.)* is added before and after the filter
-		 * @return 
+		 * @return
 		 */
 		private JDFQueue sortOutput(final String sortBy, JDFQueue root, final String filter)
 		{
@@ -1015,13 +1123,13 @@ public class QueueProcessor extends BambiLogFactory
 		 * filter the queue by string
 		 * @param root
 		 * @param filter
-		 * @return 
+		 * @return
 		 */
 		private JDFQueue filterList(final JDFQueue root, String filter)
 		{
 			if (FILTER_DIF.equals(filter))
 			{
-				JDFQueue lastQueue = getLastQueue(filter);
+				final JDFQueue lastQueue = getLastQueue(filter);
 				if (lastQueue != null)
 				{
 					final JDFQueueFilter f = (JDFQueueFilter) new JDFDoc(ElementName.QUEUEFILTER).getRoot();
@@ -1044,11 +1152,14 @@ public class QueueProcessor extends BambiLogFactory
 					}
 				}
 			}
-			VElement v = root.getChildElementVector(ElementName.QUEUEENTRY, null);
-			for (int i = 0; i < v.size(); i++)
+			final VElement v = root.getChildElementVector(ElementName.QUEUEENTRY, null);
+			final int size = v.size();
+			for (int i = 0; i < size; i++)
 			{
 				if (filterLength(i))
+				{
 					v.get(i).deleteNode();
+				}
 			}
 			return root;
 		}
@@ -1058,9 +1169,9 @@ public class QueueProcessor extends BambiLogFactory
 		 * @param i
 		 * @return
 		 */
-		private boolean filterLength(int i)
+		private boolean filterLength(final int i)
 		{
-			return false;
+			return i > 1000; // performance...
 		}
 
 		/**
@@ -1119,14 +1230,14 @@ public class QueueProcessor extends BambiLogFactory
 			}
 
 			updateEntry(qe, status, null, null);
-			if (qe != null && (EnumQueueEntryStatus.Aborted.equals(qe.getQueueEntryStatus()) || EnumQueueEntryStatus.Completed.equals(qe.getQueueEntryStatus())))
+			if ((EnumQueueEntryStatus.Aborted.equals(qe.getQueueEntryStatus()) || EnumQueueEntryStatus.Completed.equals(qe.getQueueEntryStatus())))
 			{
 				returnQueueEntry(qe, null, null);
 			}
 		}
 
 		/**
-		 * @param q 
+		 * @param q
 		 * 
 		 */
 		private void addOptions(final JDFQueue q)
@@ -1218,7 +1329,7 @@ public class QueueProcessor extends BambiLogFactory
 	private static final long serialVersionUID = -876551736245089033L;
 	String nextinvert = null;
 	String lastSortBy = null;
-	//protected KElement lastQueue = null;
+	// protected KElement lastQueue = null;
 
 	/**
 	 */
@@ -1239,7 +1350,17 @@ public class QueueProcessor extends BambiLogFactory
 	protected long lastPersist = 0;
 	protected final HashMap<String, QueueDelta> deltaMap;
 	protected JDFQueueEntry nextPush = null;
-	CanExecuteCallBack _cbCanExecute = null;
+	private CanExecuteCallBack _cbCanExecute = null;
+	private final QueueMap queueMap;
+	private boolean searchByJobPartID = true;
+
+	/**
+	 * @param searchByJobPartID the searchByJobPartID to set
+	 */
+	public void setSearchByJobPartID(final boolean searchByJobPartID)
+	{
+		this.searchByJobPartID = searchByJobPartID;
+	}
 
 	/**
 	 * @param theParentDevice
@@ -1252,6 +1373,7 @@ public class QueueProcessor extends BambiLogFactory
 		_listeners = new Vector<Object>();
 		deltaMap = new HashMap<String, QueueDelta>();
 		init();
+		queueMap = new QueueMap();
 	}
 
 	/**
@@ -1390,27 +1512,29 @@ public class QueueProcessor extends BambiLogFactory
 	 */
 	public JDFQueueEntry getQueueEntry(final String slaveQueueEntryID, NodeIdentifier nodeID)
 	{
-
-		JDFQueueEntry qe = BambiNSExtension.getSlaveQueueEntry(_theQueue, slaveQueueEntryID);
-		if (qe == null && nodeID != null)
-		{
-			qe = _theQueue.getQueueEntry(nodeID, 0);
-		}
-		if (nodeID == null)
+		JDFQueueEntry qe = queueMap.getQEFromSlaveQEID(slaveQueueEntryID);
+		if (nodeID == null || qe == null)
 		{
 			return qe;
 		}
-
-		if (qe == null && nodeID.getPartMapVector() != null)
+		if (searchByJobPartID)
 		{
-			nodeID = new NodeIdentifier(nodeID); // copy because we zapp internally
-			nodeID.setTo(nodeID.getJobID(), nodeID.getJobPartID(), null);
-			qe = _theQueue.getQueueEntry(nodeID, 0);
+			if (qe == null)
+			{
+				qe = queueMap.getQEFromNI(nodeID);
+			}
+
+			if (qe == null && nodeID.getPartMapVector() != null)
+			{
+				nodeID = new NodeIdentifier(nodeID); // copy because we zapp internally
+				nodeID.setTo(nodeID.getJobID(), nodeID.getJobPartID(), null);
+				qe = queueMap.getQEFromNI(nodeID);
+			}
 		}
 		if (qe == null && nodeID.getJobPartID() != null)
 		{
 			nodeID.setTo(nodeID.getJobID(), null, null);
-			qe = _theQueue.getQueueEntry(nodeID, 0);
+			qe = queueMap.getQEFromNI(nodeID);
 		}
 		return qe;
 	}
@@ -1444,10 +1568,10 @@ public class QueueProcessor extends BambiLogFactory
 	/**
 	 * get the next queue entry only waiting entries that have not been forwarded to a lower level device are taken into account
 	 * @param deviceID
-	 * @param canPush 
+	 * @param canPush
 	 * @return
 	 */
-	public IQueueEntry getNextEntry(final String deviceID, QERetrieval canPush)
+	public IQueueEntry getNextEntry(final String deviceID, final QERetrieval canPush)
 	{
 		CanExecuteCallBack cb = _cbCanExecute;
 		if (deviceID != null)
@@ -1519,7 +1643,7 @@ public class QueueProcessor extends BambiLogFactory
 	}
 
 	/**
-	 * @param o 
+	 * @param o
 	 */
 	public void removeListener(final Object o)
 	{
@@ -1533,15 +1657,17 @@ public class QueueProcessor extends BambiLogFactory
 	 * @param queueEntryID may be null in case of a new submission
 	 * @return list of valid deviceIDS if any, else null if none
 	 */
-	public VString canAccept(JDFNode jdf, String queueEntryID)
+	public VString canAccept(final JDFNode jdf, final String queueEntryID)
 	{
 		boolean acceptAll = false;
-		IDeviceProperties properties = _parentDevice.getProperties();
+		final IDeviceProperties properties = _parentDevice.getProperties();
 		if (properties instanceof DeviceProperties)
 		{
 			acceptAll = ((DeviceProperties) properties).getAcceptAll();
-			if (acceptAll) // in this case we do no further checks - for dubugging only
+			if (acceptAll)
+			{
 				return new VString(_parentDevice.getDeviceID(), null);
+			}
 		}
 		return _parentDevice.canAccept(jdf, queueEntryID);
 	}
@@ -1657,13 +1783,13 @@ public class QueueProcessor extends BambiLogFactory
 	{
 		if (newQE == null || theJDF == null)
 		{
-			log.error("error storing queueentry");
+			log.info("error storing queueentry");
 			return false;
 		}
 		final String newQEID = newQE.getQueueEntryID();
 		final JDFNode root = _parentDevice.getNodeFromDoc(theJDF);
 		newQE.setFromJDF(root); // set jobid, jobpartid, partmaps
-		JDFQueueEntry newQEReal = _theQueue.getQueueEntry(newQEID); // the "actual" entry in the queue
+		final JDFQueueEntry newQEReal = _theQueue.getQueueEntry(newQEID); // the "actual" entry in the queue
 		if (newQEReal == null)
 		{
 			log.error("error fetching queueentry: QueueEntryID=" + newQEID);
@@ -1671,6 +1797,7 @@ public class QueueProcessor extends BambiLogFactory
 		}
 		newQEReal.copyInto(newQE, false);
 		newQEReal.setFromJDF(root); // repeat for the actual entry
+		queueMap.addEntry(newQEReal, true);
 
 		final String theDocFile = getJDFStorage(newQEID);
 		final boolean ok = theJDF.write2File(theDocFile, 0, true);
@@ -1791,11 +1918,7 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				final EnumQueueEntryStatus oldStatus = qe.getQueueEntryStatus();
 				final String queueEntryID = qe.getQueueEntryID();
-				if (ContainerUtil.equals(oldStatus, status))
-				{
-					// nop
-				}
-				else if (status.equals(EnumQueueEntryStatus.Removed))
+				if (status.equals(EnumQueueEntryStatus.Removed))
 				{
 					qe.setQueueEntryStatus(status);
 					final String docURL = BambiNSExtension.getDocURL(qe);
@@ -1814,21 +1937,25 @@ public class QueueProcessor extends BambiLogFactory
 						_theQueue.setAutomated(true);
 						qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
 					}
+					else if (!ContainerUtil.equals(oldStatus, status))
+					{
+						qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
+					}
 				}
 				else if (status.equals(EnumQueueEntryStatus.Waiting))
 				{
-					qe.removeAttribute(AttributeName.DEVICEID);
 					qe.removeAttribute(AttributeName.STARTTIME);
 					qe.removeAttribute(AttributeName.ENDTIME);
-					BambiNSExtension.setDeviceURL(qe, null);
+					// qe.removeAttribute(AttributeName.DEVICEID);
+					// BambiNSExtension.setDeviceURL(qe, null);
 					qe.setQueueEntryStatus(status);
 				}
-				else
+				else if (!ContainerUtil.equals(oldStatus, status))
 				{
 					qe.setQueueEntryStatus(status);
 				}
 
-				if (!status.equals(oldStatus))
+				if (!ContainerUtil.equals(oldStatus, status))
 				{
 					persist(0);
 					notifyListeners(qe.getQueueEntryID());
@@ -2036,8 +2163,8 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				log.info("JDF Document for " + queueEntryID + " is being been sent to " + returnURL);
 				final JDFDoc d = docJDF.write2URL(returnURL);
-				//TODO error handling
-				bOK = true;
+				// TODO error handling
+				bOK = d != null;
 			}
 			catch (final Exception e)
 			{
@@ -2240,6 +2367,20 @@ public class QueueProcessor extends BambiLogFactory
 		_theQueue.setQueueStatus(EnumQueueStatus.Waiting);
 		removeOrphanJDFs();
 		_queueFile.clearAll();
+		queueMap.reset();
 		persist(0);
+	}
+
+	/**
+	 * @param qe
+	 * @param slaveQEID
+	 */
+	public void updateCache(final JDFQueueEntry qe, final String slaveQEID)
+	{
+		if (slaveQEID != null)
+		{
+			BambiNSExtension.setSlaveQueueEntryID(qe, slaveQEID);
+			queueMap.addEntry(qe, false);
+		}
 	}
 }

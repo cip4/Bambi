@@ -94,6 +94,7 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public class ProxyTest extends BambiTestCase
 {
+	protected String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy";
 
 	/**
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
@@ -103,7 +104,7 @@ public class ProxyTest extends BambiTestCase
 	{
 		bUpdateJobID = true;
 		//		workerURL = "http://146.140.222.217:8080/BambiProxy/jmf/pushproxy";
-		//		super.setUp();
+		super.setUp();
 	}
 
 	/**
@@ -211,7 +212,7 @@ public class ProxyTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_MIME() throws Exception
 	{
-		submitMimetoURL(simWorkerUrl);
+		submitMimetoURL(proxyUrl);
 	}
 
 	/**
@@ -274,7 +275,7 @@ public class ProxyTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_MIME_Many() throws Exception
 	{
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 222; i++)
 		{
 			testSubmitQueueEntry_MIME();
 			System.out.println("Submitting: " + i);

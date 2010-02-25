@@ -308,7 +308,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		 */
 		public AbstractHandler(final EnumType _type, final EnumFamily[] _families)
 		{
-			type = _type.getName();
+			type = _type == null ? "*" : _type.getName();
 			families = _families;
 		}
 

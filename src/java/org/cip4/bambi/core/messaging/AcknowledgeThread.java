@@ -130,6 +130,7 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 	 * handles acknowledges - also waits max 1 second for synchronous handling, if possible
 	 * @param response
 	 * @param inputMessage
+	 * @return 
 	 * 
 	 */
 	private boolean handleWithAcknowledge(final JDFMessage inputMessage, final JDFResponse response)

@@ -90,7 +90,6 @@ import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
@@ -138,7 +137,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	{
 		if (stopTime == 0)
 		{
-			return !_doShutdown;
+			return !_doShutdown && super.isActive();
 		}
 		// TODO clean up orphans
 		return false;
@@ -157,10 +156,11 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		 */
 		protected boolean handleSignal(final JDFMessage m, final JDFResponse resp)
 		{
-			if (m == null || currentQE == null)
+			if (m == null || getCurrentQE() == null || !(m instanceof JDFSignal))
 			{
 				return false;
 			}
+
 			final JDFStatusQuParams sqp = m.getStatusQuParams();
 			final String qeid = sqp == null ? null : sqp.getQueueEntryID();
 			NodeIdentifier ni = sqp == null ? null : sqp.getIdentifier();
@@ -175,7 +175,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 				}
 				ni = sqp.getIdentifier();
 			}
-			final VElement vMatch = currentQE.getJDF().getJDFRoot().getMatchingNodes(ni);
+			final VElement vMatch = getCurrentQE().getJDF().getJDFRoot().getMatchingNodes(ni);
 			if (vMatch == null)
 			{
 				return false;
@@ -231,7 +231,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		}
 
 		/**
-		 * @param sqp
+		 * @param m
 		 * @return
 		 */
 		private NodeIdentifier getNIFromMessage(final JDFMessage m)
@@ -313,7 +313,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		private boolean handleStatusUpdate(final JDFJobPhase jobPhase)
 		{
 			final NodeIdentifier ni = jobPhase.getIdentifier();
-			final JDFNode n = currentQE.getJDF().getJDFRoot();
+			final JDFNode n = getCurrentQE().getJDF().getJDFRoot();
 			final VElement v = n.getMatchingNodes(ni);
 
 			if (v == null)
@@ -335,9 +335,10 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		 * @param resp
 		 * @return true if handled
 		 */
+
 		protected boolean handleSignal(final JDFMessage m, final JDFResponse resp)
 		{
-			if (m == null || currentQE == null || !(m instanceof JDFSignal))
+			if (m == null || getCurrentQE() == null || !(m instanceof JDFSignal))
 			{
 				return false;
 			}
@@ -345,7 +346,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			final JDFSignal s = (JDFSignal) m;
 			final JDFNotification n = s.getNotification();
 			final NodeIdentifier ni = n.getIdentifier();
-			final VElement vMatch = currentQE.getJDF().getJDFRoot().getMatchingNodes(ni);
+			final VElement vMatch = getCurrentQE().getJDF().getJDFRoot().getMatchingNodes(ni);
 			if (vMatch == null)
 			{
 				return false;
@@ -362,6 +363,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 		/**
 		 * @param n
+		 * @param resp 
 		 * @return true if handled
 		 */
 		private boolean handleEvent(final JDFNotification n, final JDFResponse resp)
@@ -373,7 +375,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			}
 			else
 			{
-				_statusListener.setEvent(e.getEventID(), e.getEventValue(), n.getCommentText());
+				getStatusListener().setEvent(e.getEventID(), e.getEventValue(), n.getCommentText());
 			}
 			return true;
 		}
@@ -390,7 +392,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		 */
 		public NotificationQueryHandler()
 		{
-			super(getParent().getSignalDispatcher(), _statusListener, getParent().getQueueProcessor());
+			super(getParent(), getStatusListener());
 			families = new EnumFamily[] { EnumFamily.Query };
 		}
 	}
@@ -406,7 +408,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		 */
 		protected boolean handleSignal(final JDFMessage m, final JDFResponse resp)
 		{
-			if (m == null || currentQE == null)
+			if (m == null || getCurrentQE() == null || !(m instanceof JDFSignal))
 			{
 				return false;
 			}
@@ -423,7 +425,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 				}
 				ni = rqp.getIdentifier();
 			}
-			final VElement vMatch = currentQE.getJDF().getJDFRoot().getMatchingNodes(ni);
+			final VElement vMatch = getCurrentQE().getJDF().getJDFRoot().getMatchingNodes(ni);
 			if (vMatch == null)
 			{
 				return false;
@@ -444,7 +446,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 		/**
 		 * @param info
-		 * @param match
+		 * @return 
 		 */
 		private boolean handleResourceInfo(final JDFResourceInfo info)
 		{
@@ -455,7 +457,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			double amount = info.getAmountPoolSumDouble(AttributeName.ACTUALAMOUNT, map2);
 			if (amount > 0)
 			{
-				_statusListener.updateTotal(id, amount, true);
+				getStatusListener().updateTotal(id, amount, true);
 			}
 
 			map2 = new VJDFAttributeMap(map);
@@ -463,7 +465,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			amount = info.getAmountPoolSumDouble(AttributeName.ACTUALAMOUNT, map2);
 			if (amount > 0)
 			{
-				_statusListener.updateTotal(id, amount, false);
+				getStatusListener().updateTotal(id, amount, false);
 			}
 
 			return true;
@@ -472,7 +474,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * return true if this processor is responsible for processing a given queuentry as specified by qe
-	 * @param qe the queuentry
+	 * @param _qe the queuentry
 	 * @return true if we are processing qe
 	 */
 	public boolean matchesQueueEntry(final JDFQueueEntry _qe)
@@ -496,7 +498,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	 * apply the phase as described by jobPhase and burn it into our listener
 	 * @param jobPhase
 	 */
-	private void applyPhase(final JDFJobPhase jobPhase)
+	protected void applyPhase(final JDFJobPhase jobPhase)
 	{
 		final StatusListener statusListener = getStatusListener();
 		final JDFDeviceInfo devInfo = (JDFDeviceInfo) jobPhase.getParentNode();
@@ -600,7 +602,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			final boolean bWritten = modNode.getOwnerDocument_KElement().write2File(fileInHF, 0, true);
 			if (bWritten)
 			{
-				submitted("qe" + JDFElement.uniqueID(0), EnumQueueEntryStatus.Running, UrlUtil.fileToUrl(fileInHF, true), null);
+				submitted("qe" + KElement.uniqueID(0), EnumQueueEntryStatus.Running, UrlUtil.fileToUrl(fileInHF, true), null);
 			}
 			else
 			{
@@ -625,9 +627,11 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	}
 
 	/**
-	 * @param qe
-	 * @param node
-	 * @param qeR
+	 * 
+	 * @see org.cip4.bambi.proxy.AbstractProxyProcessor#submitted(java.lang.String, org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus, java.lang.String, java.lang.String)
+	 * @param devQEID
+	 * @param newStatus
+	 * @param slaveURL
 	 * @param slaveDeviceID
 	 */
 	@Override
@@ -643,40 +647,12 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		{
 			_statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.InProgress, "Submitted", false);
 		}
-		createSubscriptionsForQE(slaveURL, devQEID);
-	}
-
-	/**
-	 * @param slaveURL 
-	 * @param devQEID 
-	 * 
-	 */
-	private void createSubscriptionsForQE(final String slaveURL, final String devQEID)
-	{
-		if (!UrlUtil.isHttp(slaveURL))
-		{
-			return;
-		}
-		if (!EnumSlaveStatus.JMF.equals(getParent().getSlaveStatus()))
-		{
-			return;
-		}
-
-		final AbstractProxyDevice parentDevice = getParent();
-		final String deviceURL = parentDevice.getDeviceURLForSlave();
-
-		// TODO check knownsubscriptions and globalize if possible
-		final JDFJMF jmfs[] = new JMFBuilder().createSubscriptions(deviceURL, devQEID, 10., 0);
-		for (int i = 0; i < jmfs.length; i++)
-		{
-			parentDevice.sendJMF(jmfs[i], slaveURL, null);
-		} // TODO handle response
 	}
 
 	/**
 	 * @return
 	 */
-	private JDFQueueEntry getQueueEntry()
+	protected JDFQueueEntry getQueueEntry()
 	{
 		return currentQE == null ? null : currentQE.getQueueEntry();
 	}
@@ -716,10 +692,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	{
 		final String slaveQE = getSlaveQEID();
 		final EnumNodeStatus status = getParent().stopSlaveProcess(slaveQE, newStatus);
-		if (status != null)
-		{
-			stopTime = System.currentTimeMillis();
-		}
+		stopTime = System.currentTimeMillis();
 		return status;
 	}
 

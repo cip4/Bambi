@@ -101,7 +101,7 @@
                 <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
                 <input type="hidden" name="shutdown" value="true"/>
                 <input type="hidden" name="setup" value="true"/>
-                <input type="submit" value="shutdown"/>
+                <input type="submit" value="shutdown" title="attention this removes the device - adding a new device is not yet implemented!"/>
               </form>
             </td>
             <td>
@@ -112,11 +112,19 @@
                 <input type="hidden" name="restart" value="true"/>
               </form>
             </td>
+           <td>
+              <form style="margin-left: 20px">
+                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+                <input type="submit" value="reset" title="attention this is a hard reset!"/>
+                <input type="hidden" name="setup" value="true"/>
+                <input type="hidden" name="reset" value="true"/>
+              </form>
+            </td>
             <xsl:if test="$modify!='true'">
               <td>
                 <form style="margin-left: 20px">
                   <xsl:attribute name="action"><xsl:value-of select="$context"/>/showDevice/<xsl:value-of select="@DeviceID"/></xsl:attribute>
-                  <input type="submit" value="modify"/>
+                  <input type="submit" value="modify" title="update device details"/>
                   <input type="hidden" name="modify" value="true"/>
                   <input type="hidden" name="setup" value="true"/>
                   <input type="hidden" name="refresh" value="false"/>
@@ -127,7 +135,7 @@
               <td>
                 <form style="margin-left: 20px">
                   <xsl:attribute name="action"><xsl:value-of select="$context"/>/login/<xsl:value-of select="@DeviceID"/></xsl:attribute>
-                  <input type="submit" value="login"/>
+                  <input type="submit" value="login" title="open operator login screen"/>
                 </form>
               </td>
             </xsl:if>

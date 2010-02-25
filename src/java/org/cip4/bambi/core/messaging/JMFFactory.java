@@ -297,7 +297,7 @@ public class JMFFactory extends BambiLogFactory
 	 */
 	public HttpURLConnection send2URLSynch(final JDFJMF jmf, final String url, final IConverterCallback callback, final String senderID, final int milliSeconds)
 	{
-		final MessageResponseHandler handler = new MessageResponseHandler(null);
+		final MessageResponseHandler handler = new MessageResponseHandler((String) null);
 		send2URL(jmf, url, handler, callback, senderID);
 		handler.waitHandled(milliSeconds, 10000, true);
 		return handler.getConnection();
@@ -314,7 +314,7 @@ public class JMFFactory extends BambiLogFactory
 	 */
 	public JDFResponse send2URLSynchResp(final JDFJMF jmf, final String url, final IConverterCallback callback, final String senderID, final int milliSeconds)
 	{
-		final MessageResponseHandler handler = new MessageResponseHandler(null);
+		final MessageResponseHandler handler = new MessageResponseHandler((String) null);
 		send2URL(jmf, url, handler, callback, senderID);
 		handler.waitHandled(milliSeconds, 10000, true);
 		final HttpURLConnection uc = handler.getConnection();
@@ -343,7 +343,7 @@ public class JMFFactory extends BambiLogFactory
 	 */
 	public HttpURLConnection send2URLSynch(final Multipart mp, final String url, final IConverterCallback callback, final MIMEDetails md, final String senderID, final int milliSeconds)
 	{
-		final MessageResponseHandler handler = new MessageResponseHandler(null);
+		final MessageResponseHandler handler = new MessageResponseHandler((String) null);
 		send2URL(mp, url, handler, callback, md, senderID);
 		handler.waitHandled(milliSeconds, 10000, true);
 		return handler.getConnection();

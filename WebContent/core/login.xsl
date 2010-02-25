@@ -113,7 +113,7 @@
             </select>
           </td>
           <td>
-            <input type="submit" value="login"/>
+            <input type="submit" value="login" title="login operator"/>
             <input type="hidden" name="inout" value="login"/>
           </td>
         </tr>
@@ -142,7 +142,7 @@
             <xsl:attribute name="value"><xsl:value-of select="@ProductID"/></xsl:attribute>
           </input>
           <input type="hidden" name="inout" value="logout"/>
-          <input type="submit">
+          <input type="submit" title="log off operator">
             <xsl:attribute name="value">log off <xsl:value-of select="@ProductID"/></xsl:attribute>
           </input>
         </form>

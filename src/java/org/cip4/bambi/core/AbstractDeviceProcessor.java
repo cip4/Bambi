@@ -316,7 +316,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			catch (final Exception x)
 			{
 				log.error("unhandled exception in processor", x);
-				ThreadUtil.sleep(2000);
+				ThreadUtil.sleep(5000);
 			}
 		}
 		if (_queueProcessor != null)
@@ -561,7 +561,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 	/**
 	 * stops the currently processed task, called e.g. from the queueprocessor upon AbortQueueEntry
-	 * @param newStatus
+	 * @param newStatus if null retain status
 	 * @return the new status, null in case of snafu
 	 */
 	public abstract EnumNodeStatus stopProcessing(EnumNodeStatus newStatus);

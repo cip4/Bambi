@@ -91,6 +91,7 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 {
 	private static final long serialVersionUID = -384333582645081254L;
 	private final IProxyProperties proxyProperties;
+	private final OrphanCleaner cleaner;
 
 	/**
 	 * @param parent the owner device
@@ -100,7 +101,7 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 		super();
 		_parent = parent;
 		proxyProperties = parent.getProxyProperties();
-
+		cleaner = new OrphanCleaner();
 	}
 
 	/**
@@ -126,37 +127,80 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 		// nop
 	}
 
-	/**
-	 * 
-	 */
-	private void cleanOrphans()
+	private class OrphanCleaner
 	{
+		private AbstractDeviceProcessor waitProc;
+		private long lastClean;
+
 		/**
-		 * clean up orphaned or duplicate processors
+		 * 
 		 */
-		HashSet<String> setQE = new HashSet<String>();
-		for (int i = 0; true; i++)
+		public OrphanCleaner()
 		{
-			AbstractDeviceProcessor proc = _parent.getProcessor(null, i);
-			if (proc == null)
-				break;
-			if (!proc.isActive())
+			super();
+			waitProc = null;
+			lastClean = 0;
+		}
+
+		/**
+		 * 
+		 */
+		protected void cleanOrphans()
+		{
+			long t = System.currentTimeMillis();
+			if (t - lastClean < 30000)
+				return;
+			lastClean = t;
+			/**
+			 * clean up orphaned or duplicate processors
+			 */
+			HashSet<String> setQE = new HashSet<String>();
+			for (int i = 0; true; i++)
 			{
-				proc.shutdown();
-			}
-			else
-			{
-				IQueueEntry iqe = proc.getCurrentQE();
-				if (iqe != null)
+				AbstractDeviceProcessor proc = getParent().getProcessor(null, i);
+				if (proc == null)
+					break;
+				if (!proc.isActive())
 				{
-					String qe = iqe.getQueueEntryID();
-					if (setQE.contains(qe)) // remove duplicates
+					proc.shutdown();
+				}
+				else
+				{
+					IQueueEntry iqe = proc.getCurrentQE();
+					if (iqe != null)
 					{
-						proc.shutdown();
-					}
-					else
-					{
-						setQE.add(qe);
+						String qe = iqe.getQueueEntryID();
+						if (setQE.contains(qe)) // remove duplicates
+						{
+							getLog().warn("removing duplicate processor ");
+							proc.shutdown();
+						}
+						else
+						{
+							setQE.add(qe);
+						}
+						JDFQueueEntry qentry = iqe.getQueueEntry();
+						if (qentry == null)
+						{
+							proc.shutdown();
+						}
+						else
+						{
+							EnumQueueEntryStatus qes = qentry.getQueueEntryStatus();
+							if (EnumQueueEntryStatus.Aborted.equals(qes) || EnumQueueEntryStatus.Completed.equals(qes))
+							{
+								if (waitProc == null || waitProc != proc)
+								{
+									waitProc = proc;
+									break; // no flip-flop wanted - always zapp first
+								}
+								else if (waitProc == proc && (proc instanceof ProxyDeviceProcessor))
+								{
+									((ProxyDeviceProcessor) proc).finalizeProcessDoc(null);
+									waitProc = null;
+								}
+							}
+						}
 					}
 				}
 			}
@@ -186,7 +230,7 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 	@Override
 	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{
-		cleanOrphans();
+		cleaner.cleanOrphans();
 		return _parent.activeProcessors() < 1 + proxyProperties.getMaxPush();
 	}
 
@@ -197,7 +241,7 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 		if (_parent.activeProcessors() >= 1 + proxyProperties.getMaxPush())
 		{
 			BambiNSExtension.setDeviceURL(qe, null);
-			cleanOrphans();
+			cleaner.cleanOrphans();
 			return false; // no more push
 		}
 		qe.setDeviceID(proxyProperties.getSlaveDeviceID());

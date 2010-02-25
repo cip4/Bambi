@@ -87,6 +87,7 @@
         </xsl:if>
 
         <hr/>
+        <xsl:apply-templates select="ProxySubscriptions"/>
         <xsl:call-template name="links"/>
       </body>
     </html>
@@ -359,4 +360,6 @@
     </table>
     <hr/>
   </xsl:template>
+  <xsl:include href="SubscriptionExtension.xsl"/>
+
 </xsl:stylesheet>

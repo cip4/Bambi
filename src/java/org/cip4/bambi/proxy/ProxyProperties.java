@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -107,6 +107,7 @@ public class ProxyProperties extends MultiDeviceProperties
 	{
 		/**
 		 * constructor
+		 * @param elem 
 		 */
 		protected ProxyDeviceProperties(final KElement elem)
 		{
@@ -129,7 +130,7 @@ public class ProxyProperties extends MultiDeviceProperties
 				}
 				catch (final Exception x)
 				{
-					log.error("Cannot instantiate callback class: " + _callBackName);
+					getLog().error("Cannot instantiate callback class: " + _callBackName);
 				}
 			}
 			return null;
@@ -143,7 +144,7 @@ public class ProxyProperties extends MultiDeviceProperties
 			String name = devRoot.getAttribute("SlaveCallBackName", null, null);
 			if (name == null)
 			{
-				name = root.getAttribute("SlaveCallBackName", null, null);
+				name = getRoot().getAttribute("SlaveCallBackName", null, null);
 			}
 			return name;
 		}

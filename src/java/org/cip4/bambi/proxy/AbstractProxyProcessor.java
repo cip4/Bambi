@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -79,7 +79,6 @@ import javax.mail.Multipart;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
-import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntry;
@@ -202,13 +201,13 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 					}
 					else
 					{
-						log.error("resubmit- no response at: " + slaveURL);
+						getLog().error("resubmit- no response at: " + slaveURL);
 						return 1;
 					}
 				}
 				catch (final IOException x)
 				{
-					log.error("resubmit - IOEXception at: ", x);
+					getLog().error("resubmit - IOEXception at: ", x);
 					modNode = null;
 				}
 			}
@@ -287,7 +286,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		else
 		{
 			log.info("submitting RAW JMF, ID=" + c.getID());
-			JMFFactory.getJMFFactory().send2URL(docJMF.getJMFRoot(), strUrl, sqh, slaveCallBack, _parent.getDeviceID());
+			getParent().sendJMFToSlave(docJMF.getJMFRoot(), sqh);
 		}
 		sqh.waitHandled(10000, 30000, false);
 		final JDFMessage handlerResponse = handleQueueAcknowledge(sqh);
@@ -346,8 +345,8 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 */
 	protected void submitted(final String slaveQEID, final EnumQueueEntryStatus newStatus, final String slaveURL, final String slaveDeviceID)
 	{
+		getParent().addSlaveSubscriptions(0, slaveQEID, false);
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
-		BambiNSExtension.setSlaveQueueEntryID(qe, slaveQEID);
 		BambiNSExtension.setSlaveSubmissionTime(qe, new JDFDate());
 		BambiNSExtension.setDeviceURL(qe, slaveURL);
 		if (StringUtil.getNonEmpty(slaveDeviceID) != null)
@@ -355,6 +354,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			qe.setDeviceID(slaveDeviceID);
 		}
 		_queueProcessor.updateEntry(qe, newStatus, null, null);
+		_queueProcessor.updateCache(qe, slaveQEID);
 	}
 
 	/**
@@ -422,7 +422,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			String jdfURL = proxyParent.getDeviceURL();
 			jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/" + AbstractProxyDevice.SLAVEJMF + "/");
 			modNode.getOwnerDocument_KElement().write2File((String) null, 0, true);
-			jdfURL += "?Callback=true&qeID=" + qe.getQueueEntryID();
+			jdfURL += "?Callback=true&qeID=" + currentQE.getQueueEntryID();
 			qsp.setURL(jdfURL);
 		}
 		if (modNode != null)
@@ -515,15 +515,14 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		{
 			final JDFNode n = (JDFNode) v.get(i);
 			final JDFNodeInfo ni = n.getNodeInfo();
-			if (ni == null)
+			final VElement vJMF = ni == null ? null : ni.getChildrenByTagName(ElementName.JMF, null, null, false, false, -1, false);
+			if (vJMF != null)
 			{
-				continue;
-			}
-			final VElement vJMF = ni.getChildElementVector(ElementName.JMF, null);
-			final int sJMF = (vJMF == null) ? 0 : vJMF.size();
-			for (int j = 0; j < sJMF; j++)
-			{
-				vJMF.get(j).deleteNode();
+				final int sJMF = vJMF.size();
+				for (int j = 0; j < sJMF; j++)
+				{
+					vJMF.get(j).deleteNode();
+				}
 			}
 		}
 	}
@@ -546,7 +545,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 		int iRet = new QueueResubmitter(jdf, slaveID, queueEntryID).resubmit();
 		return iRet == 0 ? new VString(getParent().getDeviceID(), null) : null;
-
 	}
 
 	/**
