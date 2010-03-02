@@ -83,7 +83,13 @@
             <th align="center"># of Entries</th>
           </tr>
           <tr>
-            <td align="left">All</td>
+            <td align="left" title="total size of queue">All</td>
+            <td align="center">
+              <xsl:value-of select="@TotalQueueSize"/>
+            </td>
+          </tr>
+         <tr>
+            <td align="left" title="number of displayed entries">Shown</td>
             <td align="center">
               <xsl:value-of select="count(jdf:QueueEntry)"/>
             </td>
@@ -146,7 +152,10 @@
             <td/>
             <td align="center" colspan="2">Outgoing Entries</td>
             <td/>
-            <td align="center" colspan="2">refresh Queue</td>
+    		 		
+            <td align="center" colspan="10">
+             refresh Queue
+            </td>
             <td align="center" colspan="2">
               Filter Queue
             </td>
@@ -185,12 +194,75 @@
               </form>
             </td>
             <td width="10"/>
+        <xsl:if test="@pos&gt;0">
+             <td align="center">
+              <form>
+                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+                <input type="hidden" name="pos" value="0"/>
+                <input type="submit" value="&lt;&lt; first" title="show first frame"/>
+               <input type="hidden" name="filter">
+                  <xsl:attribute name="value"><xsl:value-of select="@filter"/></xsl:attribute>
+                </input>
+              </form>
+            </td>
+            <td width="5"/>
             <td align="center">
               <form>
                 <xsl:attribute name="action"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+                <input type="hidden" name="pos" >
+                 <xsl:attribute name="value"><xsl:value-of select="number(@pos)-1"/></xsl:attribute>
+                </input>
+                <input type="submit" value="&lt; previous" title="show previous frame"/>
+                <input type="hidden" name="filter">
+                  <xsl:attribute name="value"><xsl:value-of select="@filter"/></xsl:attribute>
+                </input>
+             </form>
+            </td>
+            <td width="5"/>
+        </xsl:if>
+      <xsl:if test="not(@pos&gt;0)">
+            <td/><td/> <td/><td/>
+        </xsl:if>
+ 
+             <td align="center">
+              <form>
+                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
                 <input type="submit" value="refresh queue"/>
+                <input type="hidden" name="pos" >
+                 <xsl:attribute name="value"><xsl:value-of select="number(@pos)"/></xsl:attribute>
+                </input>
+               <input type="hidden" name="filter">
+                  <xsl:attribute name="value"><xsl:value-of select="@filter"/></xsl:attribute>
+                </input>
+             </form>
+            </td>
+             
+        <xsl:if test="@hasNext">
+            <td width="5"/>
+           <td align="center">
+              <form>
+                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+                <input type="hidden" name="pos" >
+                 <xsl:attribute name="value"><xsl:value-of select="number(@pos)+1"/></xsl:attribute>
+                </input>
+                <input type="submit" value="next &gt;" title="show next frame"/>
               </form>
             </td>
+             <td align="center">
+              <form>
+                <xsl:attribute name="action"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
+                <input type="hidden" name="pos" value="-1"/>
+                <input type="submit" value="last &gt;&gt;" title="show last frame"/>
+                <input type="hidden" name="filter">
+                  <xsl:attribute name="value"><xsl:value-of select="@filter"/></xsl:attribute>
+                </input>
+              </form>
+            </td>
+            <td width="5"/>
+         </xsl:if>
+       <xsl:if test="not(@hasNext)">
+            <td/><td/><td/><td/>
+        </xsl:if>
             <td width="10"/>
 
             <td align="center">
@@ -268,7 +340,10 @@
         <form>
           <xsl:attribute name="action"><xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID"/></xsl:attribute>
           <input type="submit" value="refresh queue"/>
-        </form>
+               <input type="hidden" name="pos" >
+                 <xsl:attribute name="value"><xsl:value-of select="number(@pos)-1"/></xsl:attribute>
+                </input>
+         </form>
       </body>
     </html>
   </xsl:template>
@@ -309,7 +384,7 @@
         <xsl:attribute name="bgcolor">#dddddd</xsl:attribute>
       </xsl:if>
   <td align="left">
-    <xsl:value-of select="position()"/>
+    <xsl:value-of select="position()+500*number(../@pos)"/>
     <!--  submission button for pulling jobs -->
     <xsl:if test="../@Pull='true'">
       <xsl:if test="@Status='Waiting'">

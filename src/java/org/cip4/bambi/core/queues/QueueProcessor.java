@@ -75,11 +75,13 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.mail.Multipart;
 
 import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.BambiLog;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.BambiServlet;
@@ -137,11 +139,13 @@ import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.MyLong;
 import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 
 /**
@@ -884,6 +888,140 @@ public class QueueProcessor extends BambiLogFactory
 		}
 	}
 
+	// //////////////////////////////////////////////////////////////////////////////////////
+
+	static class DelayedPersist extends Thread
+	{
+		HashMap<QueueProcessor, MyLong> persistQueue;
+		private boolean stop;
+		private static DelayedPersist theDelayed = null;
+		private final MyMutex waitMutex;
+		private final BambiLog log;
+
+		private DelayedPersist()
+		{
+			super("DelayedPersist");
+			persistQueue = new HashMap<QueueProcessor, MyLong>();
+			stop = false;
+			waitMutex = new MyMutex();
+			log = new BambiLogFactory(this.getClass()).getLog();
+			start();
+		}
+
+		protected static DelayedPersist getDelayedPersist()
+		{
+			if (theDelayed == null)
+				theDelayed = new DelayedPersist();
+			return theDelayed;
+		}
+
+		static protected void shutDown()
+		{
+			if (theDelayed == null)
+				return;
+			theDelayed.stop = true;
+			ThreadUtil.notify(theDelayed.waitMutex);
+			theDelayed = null;
+		}
+
+		/**
+		 * 
+		 * @param qp
+		 * @param deltaTime
+		 */
+		public void queue(QueueProcessor qp, long deltaTime)
+		{
+			synchronized (persistQueue)
+			{
+				MyLong l = persistQueue.get(qp);
+				long t = System.currentTimeMillis();
+				if (l == null)
+				{
+					persistQueue.put(qp, new MyLong(t + deltaTime));
+				}
+				else if (t + deltaTime < l.i)
+				{
+					l.i = t + deltaTime;
+				}
+			}
+			if (deltaTime <= 0)
+				ThreadUtil.notify(waitMutex);
+		}
+
+		/**
+		 * @see java.lang.Thread#run()
+		*/
+		@Override
+		public void run()
+		{
+			log.info("starting queue persist loop");
+			while (true)
+			{
+				try
+				{
+					persistQueues();
+				}
+				catch (Exception e)
+				{
+					log.error("whazzup? ", e);
+				}
+				if (stop)
+				{
+					log.info("end of queue persist loop");
+					break;
+				}
+
+				ThreadUtil.wait(waitMutex, 10000);
+			}
+		}
+
+		/**
+		 * 
+		 */
+		private void persistQueues()
+		{
+			long t = System.currentTimeMillis();
+			Vector<QueueProcessor> theList = new Vector<QueueProcessor>();
+
+			synchronized (persistQueue)
+			{
+				Vector<QueueProcessor> v = ContainerUtil.getKeyVector(persistQueue);
+				if (v == null)
+					return;
+				Iterator<QueueProcessor> it = v.iterator();
+
+				while (it.hasNext())
+				{
+					QueueProcessor qp = it.next();
+					MyLong l = persistQueue.get(qp);
+					if (l.i < t)
+					{
+						theList.add(qp);
+						persistQueue.remove(qp);
+					}
+				}
+			}
+
+			// now the unsynchronized stuff
+			Iterator<QueueProcessor> it = theList.iterator();
+			while (it.hasNext())
+			{
+				QueueProcessor qp = it.next();
+				qp.persist();
+			}
+		}
+
+		/**
+		 * @see java.lang.Thread#toString()
+		 * @return
+		*/
+		@Override
+		public String toString()
+		{
+			return "DelayedPersist Thread " + stop + " queue: " + persistQueue;
+		}
+	}
+
 	protected class ResumeQueueEntryHandler extends AbstractHandler
 	{
 
@@ -980,6 +1118,17 @@ public class QueueProcessor extends BambiLogFactory
 
 	protected class QueueGetHandler implements IGetHandler
 	{
+		private int nPos;
+
+		/**
+		 * 
+		 */
+		public QueueGetHandler()
+		{
+			super();
+			nPos = 0;
+		}
+
 		private static final String FILTER_DIF = "_FILTER_DIF_";
 
 		/**
@@ -993,6 +1142,7 @@ public class QueueProcessor extends BambiLogFactory
 			boolean modified = false;
 			String sortBy = StringUtil.getNonEmpty(request.getParameter("SortBy"));
 			final String filter = StringUtil.getNonEmpty(request.getParameter("filter"));
+			nPos = request.getIntegerParam("pos");
 			if (BambiServlet.isMyContext(request, "showQueue"))
 			{
 				modified = applyModification(request, modified);
@@ -1026,6 +1176,7 @@ public class QueueProcessor extends BambiLogFactory
 				{
 					root.setAttribute("Refresh", true, null);
 				}
+				root.setAttribute("pos", nPos, null);
 				doc.setXSLTURL(_parentDevice.getXSLT(request));
 				addOptions(root);
 
@@ -1041,7 +1192,7 @@ public class QueueProcessor extends BambiLogFactory
 			}
 			if (modified)
 			{
-				persist(0);
+				persist(300000);
 			}
 			return true;
 		}
@@ -1154,6 +1305,13 @@ public class QueueProcessor extends BambiLogFactory
 			}
 			final VElement v = root.getChildElementVector(ElementName.QUEUEENTRY, null);
 			final int size = v.size();
+			root.setAttribute("TotalQueueSize", size, null);
+			if (nPos < 0)
+			{
+				nPos = nPos + 1 + size / 500;
+			}
+			if ((nPos + 1) * 500 < size)
+				root.setAttribute("hasNext", true, null);
 			for (int i = 0; i < size; i++)
 			{
 				if (filterLength(i))
@@ -1171,7 +1329,7 @@ public class QueueProcessor extends BambiLogFactory
 		 */
 		private boolean filterLength(final int i)
 		{
-			return i > 1000; // performance...
+			return i < nPos * 500 || i > (nPos + 1) * 500; // performance...
 		}
 
 		/**
@@ -1262,10 +1420,12 @@ public class QueueProcessor extends BambiLogFactory
 			super(EnumType.SuspendQueueEntry, new EnumFamily[] { EnumFamily.Command });
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @param m
+		 * @param resp
+		 * @return
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -1347,7 +1507,7 @@ public class QueueProcessor extends BambiLogFactory
 	protected JDFQueue _theQueue;
 	private final Vector<Object> _listeners;
 	protected AbstractDevice _parentDevice = null;
-	protected long lastPersist = 0;
+	protected long lastSort = 0;
 	protected final HashMap<String, QueueDelta> deltaMap;
 	protected JDFQueueEntry nextPush = null;
 	private CanExecuteCallBack _cbCanExecute = null;
@@ -1513,7 +1673,7 @@ public class QueueProcessor extends BambiLogFactory
 	public JDFQueueEntry getQueueEntry(final String slaveQueueEntryID, NodeIdentifier nodeID)
 	{
 		JDFQueueEntry qe = queueMap.getQEFromSlaveQEID(slaveQueueEntryID);
-		if (nodeID == null || qe == null)
+		if (nodeID == null || (slaveQueueEntryID != null && qe == null))
 		{
 			return qe;
 		}
@@ -1733,7 +1893,7 @@ public class QueueProcessor extends BambiLogFactory
 				return null;
 			}
 
-			final JDFResponse r2 = qsp.addEntry(_theQueue, null);
+			final JDFResponse r2 = qsp.addEntry(_theQueue, null, submitQueueEntry.getQueueFilter(0));
 			if (newResponse != null)
 			{
 				newResponse.copyInto(r2, false);
@@ -1765,7 +1925,7 @@ public class QueueProcessor extends BambiLogFactory
 				log.error("error storing queueentry: " + newResponse.getReturnCode());
 				return null;
 			}
-			persist(0);
+			persist(30000);
 			notifyListeners(qeID);
 			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID);
 			return _theQueue.getQueueEntry(qeID);
@@ -1873,22 +2033,33 @@ public class QueueProcessor extends BambiLogFactory
 	}
 
 	/**
-	 * make the memory queue persistent
-	 * @param milliseconds length of time since last persist, if 0 force persist
+	 * asynchronous make the memory queue persistent
+	 * 
+	 * @param milliseconds length of time wait until persist, if 0 force persist
 	 * 
 	 */
 	public void persist(final long milliseconds)
 	{
-		final long t = System.currentTimeMillis();
-		if (t >= milliseconds + lastPersist)
+		DelayedPersist.getDelayedPersist().queue(this, milliseconds);
+	}
+
+	/**
+	 * make the memory queue persistent
+	 * 
+	 */
+	protected void persist()
+	{
+		synchronized (_theQueue)
 		{
-			synchronized (_theQueue)
+			log.info("persisting queue to " + _queueFile.getPath());
+			long t = System.currentTimeMillis();
+			if (t - lastSort > 900000) // every 15 minutes is fine
 			{
-				_queueFile.getNewFile();
-				log.info("persisting queue to " + _queueFile.getPath());
-				_theQueue.getOwnerDocument_KElement().write2File(_queueFile, 0, true);
+				_theQueue.sortChildren();
+				lastSort = t;
 			}
-			lastPersist = t;
+			_queueFile.getNewFile();
+			_theQueue.getOwnerDocument_KElement().write2File(_queueFile, 0, true);
 		}
 	}
 
@@ -1957,17 +2128,9 @@ public class QueueProcessor extends BambiLogFactory
 
 				if (!ContainerUtil.equals(oldStatus, status))
 				{
-					persist(0);
+					persist(300000);
 					notifyListeners(qe.getQueueEntryID());
 				}
-				else
-				{
-					persist(60000); // write queue just in case every 10 seconds
-				}
-			}
-			else if (mess != null && !EnumFamily.Query.equals(mess.getFamily()))
-			{
-				persist(60000); // write queue just in case every 10 seconds
 			}
 			if (resp == null)
 			{
@@ -1983,9 +2146,12 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				// nop
 			}
-			final JDFQueue q = _theQueue.copyToResponse(resp, qf, getLastQueue(resp, qf));
-			removeBambiNSExtensions(q);
-			return q;
+			synchronized (_theQueue)
+			{
+				final JDFQueue q = _theQueue.copyToResponse(resp, qf, getLastQueue(resp, qf));
+				removeBambiNSExtensions(q);
+				return q;
+			}
 		}
 	}
 
@@ -2355,7 +2521,7 @@ public class QueueProcessor extends BambiLogFactory
 	 */
 	public void shutdown()
 	{
-		// nop
+		DelayedPersist.shutDown();
 	}
 
 	/**

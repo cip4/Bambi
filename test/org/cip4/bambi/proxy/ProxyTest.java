@@ -86,6 +86,7 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.NodeIdentifier;
+import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
@@ -103,8 +104,11 @@ public class ProxyTest extends BambiTestCase
 	public void setUp() throws Exception
 	{
 		bUpdateJobID = true;
+
 		//		workerURL = "http://146.140.222.217:8080/BambiProxy/jmf/pushproxy";
 		super.setUp();
+		_theGT.good = 100;
+		_theGT.waste = 50;
 	}
 
 	/**
@@ -212,7 +216,11 @@ public class ProxyTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_MIME() throws Exception
 	{
-		submitMimetoURL(proxyUrl);
+		HttpURLConnection uc = submitMimetoURL(proxyUrl);
+		InputStream is = uc.getInputStream();
+		JDFDoc d = new JDFParser().parseStream(is);
+		assertNotNull(d);
+		is.close();
 	}
 
 	/**
@@ -275,10 +283,11 @@ public class ProxyTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_MIME_Many() throws Exception
 	{
-		for (int i = 0; i < 222; i++)
+		_theGT.assign(null);
+		for (int i = 0; i < 222222; i++)
 		{
 			testSubmitQueueEntry_MIME();
-			System.out.println("Submitting: " + i);
+			System.out.println("Submitting: " + i + " " + new JDFDate().getTimeISO());
 			ThreadUtil.sleep(1000);
 		}
 	}
@@ -292,7 +301,7 @@ public class ProxyTest extends BambiTestCase
 		{
 			testSubmitQueueEntry_MIME();
 			System.out.println("Submitting: " + i);
-			ThreadUtil.sleep(1000);
+			ThreadUtil.sleep(5000);
 		}
 		final JMFFactory factory = JMFFactory.getJMFFactory();
 

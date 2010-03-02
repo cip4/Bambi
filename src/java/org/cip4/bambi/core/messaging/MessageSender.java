@@ -101,6 +101,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FastFiFo;
@@ -149,7 +150,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	private int sent = 0;
 	protected int removedHeartbeat = 0;
 	private int idle = 0;
-	private long created = 0;
+	private final CPUTimer timer;
+	private long created;
 	private long lastQueued = 0;
 	private long lastSent = 0;
 	private boolean pause = false;
@@ -745,7 +747,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		_messages = new Vector<MessageDetails>();
 		sentMessages = new FastFiFo<MessageDetails>(42);
 		callURL = cu;
-		created = System.currentTimeMillis();
+		timer = new CPUTimer(false);
 		optimizer = new SenderQueueOptimizer();
 		setJMFFactory(null);
 	}
@@ -769,6 +771,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			try
 			{
 				sentFirstMessage = sendFirstMessage();
+				timer.stop();
 				if (sentFirstMessage == SendReturn.sent)
 				{
 					synchronized (_messages)
@@ -789,6 +792,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			{
 				sentFirstMessage = SendReturn.error;
 				log.error("Error sending message: ", x);
+				timer.stop();
 			}
 			if (sentFirstMessage != SendReturn.sent && sentFirstMessage != SendReturn.removed)
 			{
@@ -800,7 +804,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				}
 				else
 				{ // stepwise increment - try every second 10 times, then every 15 seconds
-					final int wait = (SendReturn.error == sentFirstMessage && idle > 10) ? 15000 : 1000;
+					final int wait = (SendReturn.error == sentFirstMessage && idle > 10 && !doShutDownGracefully && !doShutDown) ? 15000 : 1000;
 					ThreadUtil.wait(mutexDispatch, wait);
 				}
 			}
@@ -946,7 +950,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			{
 				return SendReturn.empty;
 			}
-
+			timer.start();
 			mesDetails = _messages.get(0);
 			if (mesDetails == null)
 			{
@@ -1285,7 +1289,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			ms.setAttribute("iLastQueued", StringUtil.formatLong(lastQueued), null);
 			ms.setAttribute("iLastSent", StringUtil.formatLong(lastSent), null);
 			ms.setAttribute("i" + AttributeName.CREATIONDATE, StringUtil.formatLong(created), null);
-
+			ms.copyElement(timer.toXML(), null);
 			if (writePendingMessages)
 			{
 				for (int i = 0; i < _messages.size(); i++)

@@ -88,7 +88,6 @@ import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -176,21 +175,18 @@ public class BambiTestHelper extends JDFTestCaseBase
 	 */
 	public JDFDoc createSubmitJMF(final JDFDoc d) throws MalformedURLException
 	{
-		final JDFDoc docJMF = new JDFDoc("JMF");
-		final JDFJMF jmf = docJMF.getJMFRoot();
-		final JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
-		com.setAcknowledgeURL(acknowledgeURL);
-		final JDFQueueSubmissionParams queueSubmissionParams = com.appendQueueSubmissionParams();
+		JMFBuilder builder = new JMFBuilder();
+		builder.setAcknowledgeURL(acknowledgeURL);
+		final JDFJMF jmf = builder.buildSubmitQueueEntry(returnURL);
+		final JDFDoc docJMF = jmf.getOwnerDocument_JDFElement();
+		final JDFCommand com = jmf.getCommand(0);
+		final JDFQueueSubmissionParams queueSubmissionParams = com.getCreateQueueSubmissionParams(0);
 		queueSubmissionParams.setURL("dummy");
 		queueSubmissionParams.setPriority(42);
 		updateJobIDs(d);
 		if (returnJMF != null)
 		{
 			queueSubmissionParams.setReturnJMF(new URL(returnJMF));
-		}
-		if (returnURL != null)
-		{
-			queueSubmissionParams.setReturnURL(new URL(returnURL));
 		}
 		return docJMF;
 	}

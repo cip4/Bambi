@@ -376,16 +376,13 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 */
 	protected IQueueEntry submitToQueue(final URL qurl, final File deviceOutputHF, final MIMEDetails ud, final boolean expandMime, final boolean isMime)
 	{
-		final JDFJMF jmf = getBuilderForSlave().createJMF(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
+		final AbstractProxyDevice proxyParent = getParent();
+		final String deviceURLForSlave = proxyParent.getDeviceURLForSlave();
+		final JDFJMF jmf = getBuilderForSlave().buildSubmitQueueEntry(deviceURLForSlave);
 
 		final JDFCommand com = (JDFCommand) jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command, null, 0);
-		final JDFQueueSubmissionParams qsp = com.appendQueueSubmissionParams();
+		final JDFQueueSubmissionParams qsp = com.getCreateQueueSubmissionParams(0);
 
-		final AbstractProxyDevice proxyParent = getParent();
-		jmf.setICSVersions(proxyParent.getICSVersions());
-
-		final String deviceURLForSlave = proxyParent.getDeviceURLForSlave();
-		qsp.setReturnJMF(deviceURLForSlave);
 		if (deviceOutputHF != null)
 		{
 			qsp.setReturnURL(deviceOutputHF.getPath());

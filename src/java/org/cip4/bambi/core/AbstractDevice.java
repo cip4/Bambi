@@ -1648,4 +1648,22 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 	}
 
+	/**
+	 * flush the file from the processor and then display it
+	 * @param qeID
+	 * @return
+	 */
+	public String getUpdatedFile(String qeID)
+	{
+		AbstractDeviceProcessor proc = getProcessor(qeID, 0);
+		if (proc != null)
+		{
+			StatusListener sl = proc.getStatusListener();
+			if (sl != null)
+				sl.saveJDF(5000); // we don't need the very newest but it shouldn't be older than a few seconds
+		}
+		final String fil = getJDFStorage(qeID);
+		return fil;
+	}
+
 }

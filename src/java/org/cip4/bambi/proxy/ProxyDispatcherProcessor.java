@@ -82,6 +82,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * 
@@ -230,8 +231,17 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 	@Override
 	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{
-		cleaner.cleanOrphans();
-		return _parent.activeProcessors() < 1 + proxyProperties.getMaxPush();
+		int maxPush = proxyProperties.getMaxPush();
+		// if we can't push, there is no need to constantly check the queue
+		for (int i = 0; i < 100; i++) // check every 5 minutes
+		{
+			if (_parent.activeProcessors() < 1 + maxPush)
+				break;
+			ThreadUtil.sleep(3000);
+			if (i % 10 == 0)
+				cleaner.cleanOrphans();
+		}
+		return _parent.activeProcessors() < 1 + maxPush;
 	}
 
 	@Override

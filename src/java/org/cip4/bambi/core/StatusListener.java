@@ -161,7 +161,7 @@ public class StatusListener extends BambiLogFactory
 		}
 		else
 		{
-			saveJDF(12345);
+			saveJDF(123456);
 		}
 	}
 
@@ -202,7 +202,7 @@ public class StatusListener extends BambiLogFactory
 		{
 			dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int) (good + waste), null);
 		}
-		saveJDF(12345);
+		saveJDF(123456);
 	}
 
 	/**
@@ -218,7 +218,7 @@ public class StatusListener extends BambiLogFactory
 			return;
 		}
 		theCounter.setPercentComplete(percent);
-		saveJDF(12345);
+		saveJDF(123456);
 	}
 
 	/**
@@ -234,7 +234,7 @@ public class StatusListener extends BambiLogFactory
 			return;
 		}
 		theCounter.updatePercentComplete(percent);
-		saveJDF(12345);
+		saveJDF(123456);
 	}
 
 	/**
@@ -256,7 +256,7 @@ public class StatusListener extends BambiLogFactory
 		{
 			dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int) amount, null);
 		}
-		saveJDF(12345);
+		saveJDF(123456);
 	}
 
 	/**
@@ -323,7 +323,7 @@ public class StatusListener extends BambiLogFactory
 	 * 
 	 * @param timeSinceLast milliseconds time to leave between saves
 	 */
-	private void saveJDF(final int timeSinceLast)
+	public void saveJDF(final int timeSinceLast)
 	{
 		if (currentNode == null)
 		{

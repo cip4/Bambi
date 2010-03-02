@@ -494,7 +494,8 @@ public class BambiServlet extends HttpServlet
 		{
 			port = arg0.getServerPort();
 		}
-		theContainer.getRootDev().incNumRequests();
+		AbstractDevice rootDev = theContainer.getRootDev();
+		rootDev.incNumRequests();
 		super.service(arg0, arg1);
 	}
 }

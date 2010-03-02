@@ -38,7 +38,10 @@
 	<Device DeviceID="sim003" DeviceType="Bambi Pull Simulation Device 003"
 		PushPull="Push" TrackResource="Component:Output" InputHF="/var/tmp/bambi/hf/sim003/Input"
 		OutputHF="/var/tmp/bambi/hf/sim003/Output" ErrorHF="/var/tmp/bambi/hf/sim003/Error" />
-
+<Device DeviceID="platesetter"
+		DeviceType="Bambi Simulation Platesetter"
+		TypeExpression="(.)*ImageSetting(.)*"
+		TrackResource="ExposedMedia:Output"/>
 
 	<!--
 		<Device DeviceID="manual001" DeviceType="Bambi Manual Device"

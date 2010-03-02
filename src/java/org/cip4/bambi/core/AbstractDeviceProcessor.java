@@ -90,6 +90,7 @@ import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
 import org.cip4.jdflib.resource.process.JDFUsageCounter;
+import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
@@ -114,6 +115,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	protected IQueueEntry currentQE;
 	protected String _trackResource = null;
 	protected AbstractDevice _parent = null;
+	private final CPUTimer timer;
 
 	protected class XMLDeviceProcessor
 	{
@@ -174,6 +176,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			{
 				log.error("null status - bailing out");
 			}
+			processor.copyElement(timer.toXML(), null);
 			return processor;
 		}
 
@@ -276,6 +279,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	public AbstractDeviceProcessor()
 	{
 		super();
+		timer = new CPUTimer(false);
 	}
 
 	/**
@@ -387,22 +391,22 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			return false;
 		}
 		final String queueEntryID = qe.getQueueEntryID();
-		if (queueEntryID != null)
-		{
-			log.debug("processing: " + queueEntryID);
-		}
+		log.debug("processing: " + queueEntryID);
+		timer.start();
 
 		final JDFNode node = currentQE.getJDF();
 		if (node == null)
 		{
 			log.error("no JDF Node for: " + queueEntryID);
 			finalizeProcessDoc(EnumQueueEntryStatus.Aborted);
+			timer.stop();
 			return false;
 		}
 		boolean bOK = initializeProcessDoc(node, qe);
 
 		if (!bOK)
 		{
+			timer.stop();
 			return bOK;
 		}
 
@@ -424,7 +428,9 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		}
 
 		// Always finalize even if exceptions are caught
-		return finalizeProcessDoc(qes) && bOK;
+		boolean b = finalizeProcessDoc(qes) && bOK;
+		timer.stop();
+		return b;
 	}
 
 	/**

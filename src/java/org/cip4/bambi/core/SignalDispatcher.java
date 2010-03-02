@@ -115,6 +115,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.pool.JDFAncestorPool;
+import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.FileUtil;
@@ -560,8 +561,8 @@ public final class SignalDispatcher extends BambiLogFactory
 	// ///////////////////////////////////////////////////////////
 	protected class Dispatcher implements Runnable
 	{
-		long timeSpent;
 		int sentMessages;
+		private final CPUTimer timer;
 
 		/**
 		 * 
@@ -569,8 +570,8 @@ public final class SignalDispatcher extends BambiLogFactory
 		public Dispatcher()
 		{
 			super();
-			timeSpent = 0;
 			sentMessages = 0;
+			timer = new CPUTimer(false);
 		}
 
 		/**
@@ -587,6 +588,7 @@ public final class SignalDispatcher extends BambiLogFactory
 				catch (final Exception x)
 				{
 					log.error("unhandled Exception in flush", x);
+					timer.stop();
 				}
 				ThreadUtil.wait(mutex, 1000);
 			}
@@ -597,7 +599,7 @@ public final class SignalDispatcher extends BambiLogFactory
 		 */
 		void flush()
 		{
-			final long t0 = System.currentTimeMillis();
+			timer.start();
 			while (true)
 			{
 				final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
@@ -626,7 +628,7 @@ public final class SignalDispatcher extends BambiLogFactory
 					break; // flushed all
 				}
 			}
-			timeSpent += System.currentTimeMillis() - t0;
+			timer.stop();
 		}
 
 		/**

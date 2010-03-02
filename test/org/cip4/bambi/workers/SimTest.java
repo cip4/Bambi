@@ -225,23 +225,13 @@ public class SimTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_MIME_Many() throws Exception
 	{
-		final JDFQueue q = getQueueStatus(simWorkerUrl);
-		assertNotNull(q);
-		final int oldSize = q.getEntryCount();
-
-		// check that the QE is on the proxy
-		final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
-		for (int i = 1; i < 22; i++)
+		for (int i = 1; i < 2000; i++)
 		{
 			System.out.println("submitting " + i);
-			// build SubmitQueueEntry
-			_theGT.devID = "sim003";
+			_theGT.devID = "sim001";
 			_theGT.assign(null);
 			submitMimetoURL(simWorkerUrl);
 			ThreadUtil.sleep(50);
-			// final JDFQueue q2 = getQueueStatus(simWorkerUrl);
-			// final int newCount = q2.getEntryCount();
-			// assertEquals(oldSize + i, newCount);
 		}
 	}
 

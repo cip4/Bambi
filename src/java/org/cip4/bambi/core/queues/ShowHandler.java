@@ -109,7 +109,7 @@ public abstract class ShowHandler implements IGetHandler
 			return false;
 		}
 		final String qeID = request.getParameter(QueueProcessor.QE_ID);
-		final String fil = _parentDevice.getJDFStorage(qeID);
+		final String fil = _parentDevice.getUpdatedFile(qeID);
 		if (fil == null)
 		{
 			return errorShow(request, response, qeID);
