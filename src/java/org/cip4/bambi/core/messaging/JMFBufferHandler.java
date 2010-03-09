@@ -678,9 +678,11 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		protected boolean handleQuery(final JDFMessage inputMessage, final JDFResponse response)
 		{
 			boolean isSubscription = response.getSubscribed();
-			boolean deleteResponse = isSubscription;
+			boolean deleteResponse = !isSubscription;
 			if (isSubscription)
+			{
 				getSignals(inputMessage, response);
+			}
 			JDFStatusQuParams sqp = inputMessage.getStatusQuParams();
 			if (sqp != null && sqp.getQueueInfo())
 			{
@@ -694,7 +696,9 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			}
 
 			if (isSubscription)
+			{
 				inputMessage.deleteNode(); // also zapp the query
+			}
 			return true;
 		}
 

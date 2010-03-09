@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -1925,7 +1925,7 @@ public class QueueProcessor extends BambiLogFactory
 				log.error("error storing queueentry: " + newResponse.getReturnCode());
 				return null;
 			}
-			persist(30000);
+			persist(300000);
 			notifyListeners(qeID);
 			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID);
 			return _theQueue.getQueueEntry(qeID);

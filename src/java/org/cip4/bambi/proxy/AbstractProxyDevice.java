@@ -122,6 +122,8 @@ import org.cip4.jdflib.util.UrlUtil;
 public abstract class AbstractProxyDevice extends AbstractDevice
 {
 
+	protected static int slaveThreadCount = 0;
+	protected HashMap<String, SlaveSubscriber> waitingSubscribers;
 	/**
 	 * the url flag for incoming messages (end point of the path)
 	 */
@@ -161,10 +163,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		NODEINFO
 	}
 
-	/**
-	 * method of communicating status between this proxy and the slave device
-	 */
-	protected EnumSlaveStatus slaveStatus = null;
 	/**
 	 * the callback between this device (internal) and the slave device (external)
 	 */
@@ -681,12 +679,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	public AbstractProxyDevice(final IDeviceProperties properties)
 	{
 		super(properties);
-		final IProxyProperties proxyProperties = getProxyProperties();
-		_slaveCallback = proxyProperties.getSlaveCallBackClass();
-
-		prepareSlaveHotfolders(proxyProperties);
-		_jmfHandler.setFilterOnDeviceID(false);
-		_theSignalDispatcher.setIgnoreURL(getDeviceURLForSlave());
 	}
 
 	/**
@@ -747,13 +739,19 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	@Override
 	protected void init()
 	{
-		final IProxyProperties dp = getProxyProperties();
-		_slaveCallback = dp.getSlaveCallBackClass();
+		final IProxyProperties proxyProperties = getProxyProperties();
+		_slaveCallback = proxyProperties.getSlaveCallBackClass();
+		waitingSubscribers = new HashMap<String, SlaveSubscriber>();
+		prepareSlaveHotfolders(proxyProperties);
+
 		super.init();
+
+		_jmfHandler.setFilterOnDeviceID(false);
+		_theSignalDispatcher.setIgnoreURL(getDeviceURLForSlave());
 		// ensure existence of vector prior to filling
 		mySubscriptions = new SubscriptionMap();
-		addSlaveSubscriptions(8888, null, false);
 		_theQueueProcessor.getQueue().resumeQueue(); // proxy queues should start up by default
+		addSlaveSubscriptions(8888, null, false);
 	}
 
 	/**
@@ -763,11 +761,18 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 */
 	public void addSlaveSubscriptions(int waitMillis, String slaveQEID, boolean reset)
 	{
-		if (!EnumSlaveStatus.JMFGLOBAL.equals(slaveStatus) && !!EnumSlaveStatus.JMF.equals(slaveStatus))
+		final EnumSlaveStatus slaveStatus = getSlaveStatus();
+		if (!EnumSlaveStatus.JMFGLOBAL.equals(slaveStatus) && !EnumSlaveStatus.JMF.equals(slaveStatus))
 			return;
+		if (EnumSlaveStatus.JMFGLOBAL.equals(slaveStatus))
+			slaveQEID = null;
+
 		SlaveSubscriber slaveSubscriber = getSlaveSubscriber(waitMillis, slaveQEID);
-		slaveSubscriber.setReset(reset);
-		slaveSubscriber.start();
+		if (slaveSubscriber != null)
+		{
+			slaveSubscriber.setReset(reset);
+			slaveSubscriber.start();
+		}
 	}
 
 	/**
@@ -777,10 +782,37 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @param slaveQEID
 	 * @return
 	 */
-	protected SlaveSubscriber getSlaveSubscriber(final int waitMillis, final String slaveQEID)
+	protected final SlaveSubscriber getSlaveSubscriber(final int waitMillis, String slaveQEID)
 	{
-		SlaveSubscriber slaveSubscriber = new SlaveSubscriber(waitMillis, slaveQEID);
-		return slaveSubscriber;
+
+		String key = getKey(slaveQEID);
+		synchronized (waitingSubscribers)
+		{
+			SlaveSubscriber slaveSubscriber = waitingSubscribers.get(key);
+			if (slaveSubscriber != null)
+				return null;
+			slaveSubscriber = createSlaveSubscriber(waitMillis, slaveQEID);
+			return slaveSubscriber;
+		}
+	}
+
+	/**
+	 * @param waitMillis
+	 * @param slaveQEID
+	 * @return
+	 */
+	protected SlaveSubscriber createSlaveSubscriber(final int waitMillis, final String slaveQEID)
+	{
+		return new SlaveSubscriber(waitMillis, slaveQEID);
+	}
+
+	/**
+	 * @param slaveQEID
+	 * @return 
+	 */
+	protected String getKey(String slaveQEID)
+	{
+		return slaveQEID == null ? "##__null__##" : slaveQEID;
 	}
 
 	/**
@@ -795,19 +827,19 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		public void setReset(final boolean b)
 		{
 			reset = b;
-
 		}
 
 		/**
 		 * @param waitBefore the time to wait prior to subscribing
 		 * @param slaveQEID
 		 */
-		public SlaveSubscriber(final int waitBefore, final String slaveQEID)
+		protected SlaveSubscriber(final int waitBefore, final String slaveQEID)
 		{
-			super("SlaveSubscriber_" + getDeviceID());
+			super("SlaveSubscriber_" + getDeviceID() + "_" + slaveThreadCount++);
 			this.waitBefore = waitBefore;
 			this.slaveQEID = slaveQEID;
 			reset = false;
+			waitingSubscribers.put(getKey(slaveQEID), this);
 		}
 
 		private final int waitBefore;
@@ -820,9 +852,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		@Override
 		public void run()
 		{
-			ThreadUtil.sleep(waitBefore); // wait for other devices to start prior to subscribing
-			final IProxyProperties properties = getProxyProperties();
-			final String slaveURL = properties.getSlaveURL();
+			final String slaveURL = getProxyProperties().getSlaveURL();
 			getLog().info("Updating global subscriptions to :" + slaveURL);
 			final String deviceURL = getDeviceURLForSlave();
 			if (deviceURL == null)
@@ -830,28 +860,70 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				getLog().error("Device feedback url is not specified in subscription, proxy device " + getDeviceID() + " is not subscribing at slave device: " + getSlaveDeviceID());
 				return;
 			}
+
+			ThreadUtil.sleep(waitBefore); // wait for other devices to start prior to subscribing
+			final KnownSubscriptionsHandler handler = prepare(deviceURL);
+
+			// reduce currently known subscriptions
+			final VElement vJMFS = handler.completeHandling();
+			sendSubscriptions(vJMFS);
+
+			cleanup();
+		}
+
+		/**
+		 * @param deviceURL
+		 * @return
+		 */
+		private KnownSubscriptionsHandler prepare(final String deviceURL)
+		{
 			final JMFBuilder builder = new JMFBuilder();
-			if (reset)
-			{
-				final JDFJMF stopPersistant = builder.buildStopPersistentChannel(null, null, getDeviceURLForSlave());
-				final MessageResponseHandler waitHandler = new StopPersistantHandler(stopPersistant);
-				sendJMFToSlave(stopPersistant, waitHandler);
-				waitHandler.waitHandled(10000, 30000, true);
-			}
+			resetSubscriptions(builder);
 			final JDFJMF knownSubscriptions = builder.buildKnownSubscriptionsQuery(deviceURL, slaveQEID);
 			final JDFJMF[] createSubscriptions = createSubscriptions(deviceURL, builder);
 			final KnownSubscriptionsHandler handler = new KnownSubscriptionsHandler(knownSubscriptions, createSubscriptions);
 			sendJMFToSlave(knownSubscriptions, handler);
 			handler.waitHandled(20000, 30000, true);
+			return handler;
+		}
 
-			// reduce currently known subscriptions
-			final VElement vJMFS = handler.completeHandling();
+		/**
+		 * @param vJMFS
+		 */
+		private void sendSubscriptions(final VElement vJMFS)
+		{
 			if (vJMFS != null)
 			{
 				for (int i = 0; i < vJMFS.size(); i++)
 				{
 					createNewSubscription((JDFJMF) vJMFS.get(i));
 				}
+			}
+		}
+
+		/**
+		 * 
+		 */
+		private void cleanup()
+		{
+			ThreadUtil.sleep(30000);
+			synchronized (waitingSubscribers)
+			{
+				waitingSubscribers.remove(getKey(slaveQEID));
+			}
+		}
+
+		/**
+		 * @param builder
+		 */
+		private void resetSubscriptions(final JMFBuilder builder)
+		{
+			if (reset)
+			{
+				final JDFJMF stopPersistant = builder.buildStopPersistentChannel(null, null, getDeviceURLForSlave());
+				final MessageResponseHandler waitHandler = new StopPersistantHandler(stopPersistant);
+				sendJMFToSlave(stopPersistant, waitHandler);
+				waitHandler.waitHandled(10000, 30000, true);
 			}
 		}
 

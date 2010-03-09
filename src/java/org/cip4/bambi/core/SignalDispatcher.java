@@ -842,6 +842,7 @@ public final class SignalDispatcher extends BambiLogFactory
 			// make a copy so that modifications do not have an effect
 			q = (JDFQuery) jmf.copyElement(q, null);
 			q.removeChild(ElementName.SUBSCRIPTION, null, 0);
+
 			jmf.setDeviceID(jmfDeviceID);
 			// this is the handling of the actual message
 			q.setAttribute(JMFHandler.subscribed, "true");
