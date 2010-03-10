@@ -679,7 +679,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		{
 			boolean isSubscription = response.getSubscribed();
 			boolean deleteResponse = !isSubscription;
-			if (isSubscription)
+			if (!isSubscription)
 			{
 				getSignals(inputMessage, response);
 			}

@@ -442,8 +442,8 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 						if (rc != 0)
 						{
 							log.warn("Device returned rc=" + rc);
-							notification = (JDFNotification) r.getElement(ElementName.NOTIFICATION);
 						}
+						notification = (JDFNotification) r.getElement(ElementName.NOTIFICATION);
 						final JDFQueueEntry qeR = r.getQueueEntry(0);
 						if (qeR != null)
 						{
