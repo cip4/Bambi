@@ -102,6 +102,15 @@ public class SimTest extends BambiTestCase
 {
 
 	/**
+	 * 
+	 */
+	public SimTest()
+	{
+		super();
+		gt = enumGTType.IDP;
+	}
+
+	/**
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
 	 * @throws Exception
 	 */
@@ -134,6 +143,18 @@ public class SimTest extends BambiTestCase
 		_theGT.devID = "sim001";
 		_theGT.assign(null);
 		submitMimetoURL(simWorkerUrl);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	public void testSubmitQueueEntry_Expand() throws Exception
+	{
+		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim003";
+		_theGT.devID = "sim003";
+		_theGT.m_pdfFile = sm_dirTestData + "url1.pdf";
+		_theGT.assign(null);
+		submitMimetoURL(_theGT.getNode().getOwnerDocument_JDFElement(), simWorkerUrl, true);
 	}
 
 	/**

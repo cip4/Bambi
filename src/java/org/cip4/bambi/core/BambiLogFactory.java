@@ -71,6 +71,7 @@
 package org.cip4.bambi.core;
 
 import org.apache.commons.logging.LogFactory;
+import org.cip4.jdflib.util.CPUTimer;
 
 /**
  * class that automatically generates a logger for its sub-classes
@@ -125,6 +126,30 @@ public class BambiLogFactory
 	public long getDeleted()
 	{
 		return countMinus;
+	}
+
+	/**
+	 * @return the name for a given timer
+	 */
+	protected String getTimerName()
+	{
+		return this.getClass().getName();
+	}
+
+	/**
+	 * @return
+	 */
+	protected CPUTimer getGlobalTimer()
+	{
+		return CPUTimer.getFactory().getGlobalTimer(getTimerName());
+	}
+
+	/**
+	 * @return
+	 */
+	protected CPUTimer getLocalTimer()
+	{
+		return CPUTimer.getFactory().getCreateCurrentTimer(getTimerName());
 	}
 
 	/**

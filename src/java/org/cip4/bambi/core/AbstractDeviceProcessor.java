@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -110,12 +110,10 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	protected QueueProcessor _queueProcessor;
 	protected StatusListener _statusListener;
 	protected Object _myListener; // the mutex for waiting and reawakening
-	// protected IDeviceProperties _devProperties = null;
 	protected boolean _doShutdown = false;
 	protected IQueueEntry currentQE;
 	protected String _trackResource = null;
 	protected AbstractDevice _parent = null;
-	private final CPUTimer timer;
 
 	protected class XMLDeviceProcessor
 	{
@@ -176,6 +174,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			{
 				log.error("null status - bailing out");
 			}
+			final CPUTimer timer = getGlobalTimer();
 			processor.copyElement(timer.toXML(), null);
 			return processor;
 		}
@@ -279,7 +278,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	public AbstractDeviceProcessor()
 	{
 		super();
-		timer = new CPUTimer(false);
 	}
 
 	/**
@@ -392,6 +390,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		}
 		final String queueEntryID = qe.getQueueEntryID();
 		log.debug("processing: " + queueEntryID);
+		CPUTimer timer = getLocalTimer();
 		timer.start();
 
 		final JDFNode node = currentQE.getJDF();
@@ -649,5 +648,4 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	{
 		return _parent;
 	}
-
 }

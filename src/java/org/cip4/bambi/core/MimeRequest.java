@@ -86,7 +86,8 @@ public class MimeRequest extends ContainerRequest
 	 */
 	public MimeRequest(BodyPart[] bp)
 	{
-		super(null, MimeUtil.MULTIPART_RELATED);
+		super();
+		setContentType(MimeUtil.MULTIPART_RELATED);
 		this.bp = bp;
 	}
 

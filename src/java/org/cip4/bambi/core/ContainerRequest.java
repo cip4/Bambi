@@ -80,14 +80,12 @@ import org.cip4.jdflib.util.UrlUtil;
 public class ContainerRequest extends BambiLogFactory
 {
 	/**
-	 * @param requestURI
-	 * @param contentType 
 	 */
-	public ContainerRequest(String requestURI, String contentType)
+	public ContainerRequest()
 	{
 		super();
-		this.requestURI = requestURI;
-		this.contentType = contentType;
+		requestURI = null;
+		contentType = null;
 		setPost(true);
 		context = null;
 	}
@@ -118,7 +116,9 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public String getDeviceID()
 	{
-		return BambiServletRequest.getDeviceIDFromURL(getRequestURI());
+		String deviceID = UrlUtil.getLocalURL(context, getRequestURI());
+
+		return BambiServletRequest.getDeviceIDFromURL(deviceID);
 	}
 
 	/**
@@ -155,7 +155,8 @@ public class ContainerRequest extends BambiLogFactory
 	{
 		setRequestURI(request.getRequestURI());
 		setContentType(request.getContentType());
-
+		setContext(request.getContext());
+		setMethod(request.getMethod());
 	}
 
 	/**

@@ -71,6 +71,7 @@
 package org.cip4.bambi.core.messaging;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1056,14 +1057,23 @@ public class MessageSender extends BambiLogFactory implements Runnable
 
 			if (connection != null)
 			{
-				if (mh.respHandler != null)
+				try
 				{
-					mh.respHandler.setConnection(connection);
+					if (mh.respHandler != null)
+					{
+						mh.respHandler.setConnection(connection);
+					}
+					connection.setReadTimeout(30000); // 30 seconds should suffice
+					header += "\nResponse code:" + connection.getResponseCode();
+					header += "\nContent type:" + connection.getContentType();
+					header += "\nContent length:" + connection.getContentLength();
 				}
-				connection.setReadTimeout(30000); // 30 seconds should suffice
-				header += "\nResponse code:" + connection.getResponseCode();
-				header += "\nContent type:" + connection.getContentType();
-				header += "\nContent length:" + connection.getContentLength();
+				catch (FileNotFoundException fx)
+				{
+					// this happens when a server is at the url but the war is not loaded
+					getLog().warn("Error reading response", fx);
+					connection = null;
+				}
 			}
 
 			if (connection != null && connection.getResponseCode() == 200)
@@ -1109,7 +1119,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		}
 		catch (final Exception e)
 		{
-			log.error("Exception in sendfirstmessage", e);
+			log.error("Exception in sendHTTP", e);
 			if (mh.respHandler != null)
 			{
 				mh.respHandler.handleMessage(); // make sure we tell anyone who is waiting that the wait is over...

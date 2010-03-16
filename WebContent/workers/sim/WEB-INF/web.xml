@@ -13,7 +13,7 @@
 		<servlet-class>org.cip4.bambi.core.BambiServlet</servlet-class>
 	<init-param>
 			<param-name>bambiDump</param-name>
-			<param-value>/var/tmp/bambi/dump/sim</param-value>
+			<param-value>/var/bambi/dump/sim</param-value>
 		</init-param>
 		<load-on-startup>10</load-on-startup>
 	</servlet>
@@ -33,6 +33,10 @@
 	    <servlet-name>SimWorkerServlet</servlet-name>
 	    <url-pattern>/login/*</url-pattern>
   </servlet-mapping>
+   <servlet-mapping>
+		<servlet-name>SimWorkerServlet</servlet-name>
+		<url-pattern>/data/*</url-pattern>
+	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>SimWorkerServlet</servlet-name>
 		<url-pattern>/showQueue/*</url-pattern>

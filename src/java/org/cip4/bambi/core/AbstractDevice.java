@@ -885,7 +885,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 		final String command = request.getCommand();
 		final String contextPath = request.getContextPath();
-		String s = null;
+		String s = "/showDevice.xsl";
 		if ("showQueue".equalsIgnoreCase(command) || "modifyQE".equalsIgnoreCase(command))
 		{
 			s = "/queue2html.xsl";
@@ -906,7 +906,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				s = "/xjdf.xsl";
 			}
 		}
-		if (s != null && contextPath != null)
+		if (contextPath != null)
 		{
 			s = getXSLTBaseFromContext(contextPath) + s;
 		}
@@ -1136,6 +1136,12 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			return _theSignalDispatcher == null ? false : _theSignalDispatcher.handleGet(request, response);
 		}
+
+		if (BambiServlet.isMyContext(request, "data"))
+		{
+			return new DataRequestHandler(this).handleGet(request, response);
+		}
+
 		if (_theQueueProcessor != null)
 		{
 			final boolean bH = _theQueueProcessor.handleGet(request, response);
@@ -1367,8 +1373,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * return the name of the file storage for a given queueentryid
-	 * @param newQEID
+	 * return the name of the JDF file storage for a given queueentryid
+	 * 
+	 * @param newQEID the QueueEntryID of the entry to search
 	 * @return {@link String} the file name of the storage
 	 */
 	public String getJDFStorage(final String newQEID)
@@ -1378,6 +1385,21 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return null;
 		}
 		return getJDFDir() + File.separator + newQEID + ".jdf";
+	}
+
+	/**
+	 * return the name of the storage directory for a given queueentryid
+	 * 
+	 * @param newQEID the QueueEntryID of the entry to search, if null. get the parent directory
+	 * @return {@link File} the file of the storage
+	 */
+	public File getJobDirectory(final String newQEID)
+	{
+		if (newQEID == null)
+		{
+			return getJDFDir();
+		}
+		return FileUtil.getFileInDirectory(getJDFDir(), new File(newQEID));
 	}
 
 	/**
@@ -1445,7 +1467,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * get the root controller
 	 * @return the root controller
 	 */
-	protected RootDevice getRootDevice()
+	public RootDevice getRootDevice()
 	{
 		return _rootDevice;
 	}
@@ -1664,6 +1686,16 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 		final String fil = getJDFStorage(qeID);
 		return fil;
+	}
+
+	/**
+	 * get the data url, if no data forwarding is defined, return null
+	 * @param queueEntryID
+	 * @return
+	 */
+	public String getDataURL(String queueEntryID)
+	{
+		return null;
 	}
 
 }

@@ -113,6 +113,7 @@ public class BambiTestHelper extends JDFTestCaseBase
 	public String returnJMF = "http://localhost:8080/httpdump/returnJMF";
 	public String returnURL = null;// "http://localhost:8080/httpdump/returnURL";
 	public String acknowledgeURL = null;// "http://localhost:8080/httpdump/acknowledgeURL";
+	public boolean extendReference = false;
 
 	/**
 	 * bambi test case
@@ -147,7 +148,7 @@ public class BambiTestHelper extends JDFTestCaseBase
 	{
 		final JDFDoc docJMF = createSubmitJMF(d);
 
-		final Multipart mp = MimeUtil.buildMimePackage(docJMF, d, false);
+		final Multipart mp = MimeUtil.buildMimePackage(docJMF, d, extendReference);
 
 		HttpURLConnection response = null;
 		try

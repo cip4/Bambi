@@ -133,7 +133,9 @@ public class BambiServletRequest extends BambiLogFactory implements HttpServletR
 	 */
 	public String getDeviceID()
 	{
-		String deviceID = getPathInfo();
+		String deviceID = UrlUtil.getLocalURL(getContextPath(), getRequestURI());
+
+		//		String deviceID = getRequestURI();
 		deviceID = getDeviceIDFromURL(deviceID);
 		return deviceID;
 	}
@@ -189,7 +191,7 @@ public class BambiServletRequest extends BambiLogFactory implements HttpServletR
 	 */
 	public static String getDeviceIDFromURL(String url)
 	{
-		url = StringUtil.token(url, -1, "/");
+		url = StringUtil.token(url, 1, "/");
 		return url;
 	}
 

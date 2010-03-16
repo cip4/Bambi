@@ -86,7 +86,7 @@ public class StreamRequest extends ContainerRequest
 	 */
 	public StreamRequest(InputStream theStream)
 	{
-		super(null, null);
+		super();
 		this.theStream = new ByteArrayIOStream(theStream);
 	}
 
@@ -95,7 +95,7 @@ public class StreamRequest extends ContainerRequest
 	 */
 	public StreamRequest(ByteArrayIOStream theStream)
 	{
-		super(null, null);
+		super();
 		this.theStream = theStream;
 	}
 

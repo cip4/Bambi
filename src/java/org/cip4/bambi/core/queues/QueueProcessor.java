@@ -114,6 +114,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.elementwalker.URLExtractor;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFFlushQueueInfo;
 import org.cip4.jdflib.jmf.JDFFlushQueueParams;
@@ -207,8 +208,9 @@ public class QueueProcessor extends BambiLogFactory
 	}
 
 	/**
-	 * class to quickly retrieve queueentries
-	 * @author Rainer Prosi, Heidelberger Druckmaschinen *
+	 * class to quickly retrieve queueentries based on slave qeids - required by proxies
+	 * 
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen  
 	 */
 	protected class QueueMap
 	{
@@ -293,6 +295,11 @@ public class QueueProcessor extends BambiLogFactory
 			return qe;
 		}
 
+		/**
+		 * 
+		 * @param slaveqeID
+		 * @return
+		 */
 		protected JDFQueueEntry getQEFromSlaveQEID(final String slaveqeID)
 		{
 			if (slaveqeID == null)
@@ -382,20 +389,34 @@ public class QueueProcessor extends BambiLogFactory
 	protected class QueueEntryCleanup extends CleanupCallback
 	{
 
-		/*
-		 * (non-Javadoc)
+		/**
+		 * 
 		 * 
 		 * @see org.cip4.jdflib.jmf.JDFQueue.CleanupCallback#cleanEntry(org.cip4.jdflib.jmf.JDFQueueEntry)
 		 */
 		@Override
 		public void cleanEntry(final JDFQueueEntry qe)
 		{
-			final String theDocFile = getJDFStorage(qe.getQueueEntryID());
+			// the jdf
+			final String theDocFile = _parentDevice.getJDFStorage(qe.getQueueEntryID());
 			if (theDocFile != null)
 			{
 				final File f = new File(theDocFile);
 				f.delete();
 			}
+			// now the other stuff
+			final File theJobDir = _parentDevice.getJobDirectory(qe.getQueueEntryID());
+			if (theJobDir != null)
+			{
+				FileUtil.deleteAll(theJobDir);
+			}
+			// now the other stuff
+			final File theRootJobDir = _parentDevice.getRootDevice().getJobDirectory(qe.getQueueEntryID());
+			if (theRootJobDir != null)
+			{
+				FileUtil.deleteAll(theJobDir);
+			}
+
 			_parentDevice.stopProcessing(qe.getQueueEntryID(), null);
 		}
 
@@ -507,41 +528,65 @@ public class QueueProcessor extends BambiLogFactory
 				if (qe == null)
 				{
 					JMFHandler.errorResponse(resp, "unknown QueueEntryID: " + qeID, 105, EnumClass.Error);
-					return true;
 				}
 				else
 				{
 					JDFDoc doc = qsp.getURLDoc();
 					if (doc == null)
 					{
-						updateEntry(null, null, m, resp);
-						String errorMsg = "failed to get JDFDoc from '" + qsp.getURL() + "' on SubmitQueueEntry";
-						errorMsg += "\r\nin thread: " + Thread.currentThread().getName();
-						JMFHandler.errorResponse(resp, errorMsg, 9, EnumClass.Error);
-						return true;
-					}
-					final IConverterCallback callback = _parentDevice.getCallback(null);
-					if (callback != null)
-					{
-						doc = callback.prepareJDFForBambi(doc);
-					}
-					final VString canAccept = canAccept(doc.getJDFRoot(), qeID);
-					if (canAccept == null)
-					{
-						JMFHandler.errorResponse(resp, "unable to queue request", 101, EnumClass.Error);
-						return true;
+						handleInvalidURL(m, resp, qsp);
 					}
 					else
 					{
-						updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp);
-						storeDoc(qe, doc, null, null);
-						return true;
+						handleValidURL(m, resp, qe, doc);
 					}
 				}
 			}
-			JMFHandler.errorResponse(resp, "ResubmissionParams are missing or invalid", 9, EnumClass.Error);
-			log.error("ResubmissionParams are missing or invalid");
+			else
+			{
+				JMFHandler.errorResponse(resp, "ResubmissionParams are missing or invalid", 9, EnumClass.Error);
+				log.error("ResubmissionParams are missing or invalid");
+			}
 			return true;
+		}
+
+		/**
+		 * @param m
+		 * @param resp
+		 * @param qe
+		 * @param doc
+		 */
+		private void handleValidURL(final JDFMessage m, final JDFResponse resp, final JDFQueueEntry qe, JDFDoc doc)
+		{
+			final IConverterCallback callback = _parentDevice.getCallback(null);
+			if (callback != null)
+			{
+				doc = callback.prepareJDFForBambi(doc);
+			}
+			final String qeID = qe.getQueueEntryID();
+			final VString canAccept = canAccept(doc.getJDFRoot(), qeID);
+			if (canAccept == null)
+			{
+				JMFHandler.errorResponse(resp, "unable to queue request", 101, EnumClass.Error);
+			}
+			else
+			{
+				updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp);
+				storeDoc(qe, doc, null, null);
+			}
+		}
+
+		/**
+		 * @param m
+		 * @param resp
+		 * @param qsp
+		 */
+		private void handleInvalidURL(final JDFMessage m, final JDFResponse resp, final JDFResubmissionParams qsp)
+		{
+			updateEntry(null, null, m, resp);
+			String errorMsg = "failed to read JDFDoc from '" + qsp.getURL() + "' on SubmitQueueEntry";
+			errorMsg += "\r\nin thread: " + Thread.currentThread().getName();
+			JMFHandler.errorResponse(resp, errorMsg, 9, EnumClass.Error);
 		}
 	}
 
@@ -1616,7 +1661,6 @@ public class QueueProcessor extends BambiLogFactory
 			if (qev != null)
 			{
 				final int qSize = qev.size();
-
 				for (int i = 0; i < qSize; i++)
 				{
 					final JDFQueueEntry qe = (JDFQueueEntry) qev.get(i);
@@ -1632,7 +1676,6 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				_theQueue.holdQueue();
 			}
-
 			setQueueProperties(deviceID);
 		}
 		else
@@ -1655,10 +1698,20 @@ public class QueueProcessor extends BambiLogFactory
 		JDFDoc d = JDFDoc.parseFile(_queueFile.getAbsolutePath());
 		if (d == null)
 		{
-			d = JDFDoc.parseFile(_queueFile.getAbsolutePath() + ".bak");
-			if (d != null)
+			for (int i = 1; true; i++)
 			{
-				log.warn("problems reading queue file - using backup");
+				File f = _queueFile.getOldFile(i);
+				if (f == null)
+				{
+					log.warn("Could not read queue file - starting from scratch");
+					break;
+				}
+				d = JDFDoc.parseFile(f.getAbsolutePath());
+				if (d != null)
+				{
+					log.warn("problems reading queue file - using backup# " + i);
+					break;
+				}
 			}
 		}
 		return d;
@@ -1833,7 +1886,7 @@ public class QueueProcessor extends BambiLogFactory
 	}
 
 	/**
-	 * stub that allows moving data to and from the jdfdoc to the queueentry
+	 * stub that allows moving data to and from the jdfdoc to the queueentry 
 	 * 
 	 * @param qe
 	 * @param doc
@@ -1883,6 +1936,7 @@ public class QueueProcessor extends BambiLogFactory
 			return null;
 		}
 
+		JDFQueueEntry newQE;
 		synchronized (_theQueue)
 		{
 
@@ -1908,7 +1962,7 @@ public class QueueProcessor extends BambiLogFactory
 				return null;
 			}
 
-			final JDFQueueEntry newQE = newResponse.getQueueEntry(0);
+			newQE = newResponse.getQueueEntry(0);
 
 			if (newResponse.getReturnCode() != 0 || newQE == null)
 			{
@@ -1919,6 +1973,7 @@ public class QueueProcessor extends BambiLogFactory
 			final String qeID = newQE.getQueueEntryID();
 			BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
 			fixEntry(newQE, theJDF);
+			extractFiles(newQE, theJDF);
 			if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
 			{
 				newResponse.setReturnCode(120);
@@ -1928,8 +1983,27 @@ public class QueueProcessor extends BambiLogFactory
 			persist(300000);
 			notifyListeners(qeID);
 			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID);
-			return _theQueue.getQueueEntry(qeID);
+			newQE = _theQueue.getQueueEntry(qeID);
 		}
+		return newQE;
+	}
+
+	/**
+	 * stub that copies url links to local storage if required
+	 * 
+	 * @param newQE
+	 * @param doc
+	 */
+	public void extractFiles(JDFQueueEntry newQE, JDFDoc doc)
+	{
+		if (doc == null || newQE == null)
+			return;
+		final File jobDirectory = _parentDevice.getJobDirectory(newQE.getQueueEntryID());
+		if (jobDirectory == null)
+			return;
+		log.info("extracting attached files to: " + jobDirectory);
+		URLExtractor ex = new URLExtractor(jobDirectory, _parentDevice.getDataURL(newQE.getQueueEntryID()));
+		ex.walkTree(doc.getRoot(), null);
 	}
 
 	/**
@@ -1959,7 +2033,7 @@ public class QueueProcessor extends BambiLogFactory
 		newQEReal.setFromJDF(root); // repeat for the actual entry
 		queueMap.addEntry(newQEReal, true);
 
-		final String theDocFile = getJDFStorage(newQEID);
+		final String theDocFile = _parentDevice.getJDFStorage(newQEID);
 		final boolean ok = theJDF.write2File(theDocFile, 0, true);
 		BambiNSExtension.setDocURL(newQEReal, theDocFile);
 		BambiNSExtension.setDocModified(newQEReal, System.currentTimeMillis());
@@ -1973,16 +2047,6 @@ public class QueueProcessor extends BambiLogFactory
 		}
 
 		return ok;
-	}
-
-	/**
-	 * return the name of the file storage for a given queueentryid
-	 * @param newQEID
-	 * @return {@link String} the file name of the storage
-	 */
-	public String getJDFStorage(final String newQEID)
-	{
-		return _parentDevice.getJDFStorage(newQEID);
 	}
 
 	/**
@@ -2223,7 +2287,7 @@ public class QueueProcessor extends BambiLogFactory
 		returnQEParams.setQueueEntryID(queueEntryID);
 		if (docJDF == null)
 		{
-			final String docFile = getJDFStorage(qe.getQueueEntryID());
+			final String docFile = _parentDevice.getJDFStorage(qe.getQueueEntryID());
 			docJDF = JDFDoc.parseFile(docFile);
 		}
 		if (docJDF == null)
@@ -2538,8 +2602,10 @@ public class QueueProcessor extends BambiLogFactory
 	}
 
 	/**
-	 * @param qe
-	 * @param slaveQEID
+	 * updates the cache of slave queuentryids for quickly finding a queueEntry based on slave qeid jmfs
+	 * 
+	 * @param qe the local queueEntry
+	 * @param slaveQEID the slave qeid
 	 */
 	public void updateCache(final JDFQueueEntry qe, final String slaveQEID)
 	{

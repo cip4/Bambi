@@ -314,6 +314,7 @@ public class BambiServlet extends HttpServlet
 		StreamRequest sr = new StreamRequest(bufRequest.getBuffer());
 		sr.setContentType(contentType);
 		sr.setRequestURI(request.getRequestURI());
+		sr.setContext(request.getContextPath());
 		sr.setPost(true);
 		XMLResponse xr = theContainer.processStream(sr);
 		bufResponse.write(xr);

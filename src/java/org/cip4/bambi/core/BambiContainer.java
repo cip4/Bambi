@@ -397,6 +397,7 @@ public class BambiContainer extends BambiLogFactory
 				{
 					MimeRequest req = new MimeRequest(bp);
 					req.setRequestURI(request.getRequestURI());
+					req.setContext(request.getContext());
 					r = processMultipleDocuments(req);
 				}
 				else
@@ -449,6 +450,7 @@ public class BambiContainer extends BambiLogFactory
 		}
 		XMLRequest r2 = new XMLRequest(docJDF[0].getJMFRoot());
 		r2.setRequestURI(request.getRequestURI());
+		r2.setContext(request.getContext());
 		// callbacks must be handled individually
 		return processJMFDoc(r2);
 	}

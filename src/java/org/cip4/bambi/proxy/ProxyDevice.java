@@ -107,6 +107,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.util.StatusCounter;
+import org.cip4.jdflib.util.StringUtil;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -301,10 +302,12 @@ public class ProxyDevice extends AbstractProxyDevice
 			super(EnumType.RequestQueueEntry, new EnumFamily[] { EnumFamily.Command });
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @param m
+		 * @param resp
+		 * @return
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -358,10 +361,12 @@ public class ProxyDevice extends AbstractProxyDevice
 			super(EnumType.ReturnQueueEntry, new EnumFamily[] { EnumFamily.Command });
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @param m
+		 * @param resp
+		 * @return
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -377,11 +382,16 @@ public class ProxyDevice extends AbstractProxyDevice
 				JMFHandler.errorResponse(resp, "ReturnQueueEntryParams missing in ReturnQueueEntry message", 7, EnumClass.Error);
 				return true;
 			}
+			String slaveQueueEntryID = StringUtil.getNonEmpty(retQEParams.getQueueEntryID());
+
+			JDFQueueEntry qeBambi = getQueueProcessor().getQueueEntry(slaveQueueEntryID, null);
+			JDFDoc doc = retQEParams.getURLDoc();
+			getQueueProcessor().extractFiles(qeBambi, doc);
 
 			final ProxyDeviceProcessor proc = getProcessorForReturnQE(retQEParams, resp);
 			if (proc != null)
 			{
-				proc.returnFromSlave(m, resp);
+				proc.returnFromSlave(m, resp, doc);
 			}
 			return true;
 		}

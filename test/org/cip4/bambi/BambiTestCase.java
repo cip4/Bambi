@@ -124,7 +124,10 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		}
 		else if (enumGTType.IDP.equals(gt))
 		{
-			_theGT = new IDPGoldenTicket(1);
+			IDPGoldenTicket idpGoldenTicket = new IDPGoldenTicket(1);
+			idpGoldenTicket.m_pdfFile = sm_dirTestData + "url1.pdf";
+
+			_theGT = idpGoldenTicket;
 		}
 		else if (enumGTType.MISFIN_STITCH.equals(gt))
 		{
@@ -651,7 +654,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected HttpURLConnection submitMimetoURL(final String url) throws MalformedURLException
 	{
 		final JDFDoc doc = _theGT.getNode().getOwnerDocument_JDFElement();
-		return submitMimetoURL(doc, url);
+		return submitMimetoURL(doc, url, false);
 	}
 
 	/**
@@ -685,10 +688,11 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	/**
 	 * @param d 
 	 * @param url the url to send to
+	 * @param extendReference 
 	 * @return 
 	 * @throws MalformedURLException
 	 */
-	protected HttpURLConnection submitMimetoURL(final JDFDoc d, final String url) throws MalformedURLException
+	protected HttpURLConnection submitMimetoURL(final JDFDoc d, final String url, boolean extendReference) throws MalformedURLException
 	{
 		ensureCurrentGT();
 		final BambiTestHelper helper = new BambiTestHelper();
@@ -697,6 +701,8 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		helper.transferEncoding = transferEncoding;
 		helper.acknowledgeURL = acknowledgeURL;
 		helper.bUpdateJobID = bUpdateJobID;
+		helper.extendReference = extendReference;
+
 		return helper.submitMimetoURL(d, url);
 	}
 

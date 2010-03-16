@@ -72,7 +72,6 @@
 package org.cip4.bambi.proxy;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -537,15 +536,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	 */
 	public boolean submit(final String slaveURL)
 	{
-		URL qURL;
-		try
-		{
-			qURL = slaveURL == null ? null : new URL(slaveURL);
-		}
-		catch (final MalformedURLException x)
-		{
-			qURL = null;
-		}
+		URL qURL = UrlUtil.stringToURL(slaveURL);
+
 		EnumQueueEntryStatus qes = null;
 		final File hf = getParent().getProxyProperties().getSlaveInputHF();
 		if (qURL != null)
@@ -701,13 +693,13 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	 * @param resp
 	 * @return true if all went well
 	 */
-	protected boolean returnFromSlave(final JDFMessage m, final JDFResponse resp)
+	protected boolean returnFromSlave(final JDFMessage m, final JDFResponse resp, JDFDoc theDoc)
 	{
 		final JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
 
 		// get the returned JDFDoc from the incoming ReturnQE command and pack
 		// it in the outgoing
-		final JDFDoc doc = retQEParams.getURLDoc();
+		final JDFDoc doc = theDoc == null ? retQEParams.getURLDoc() : theDoc;
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		if (doc == null)
 		{
@@ -717,7 +709,9 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		else
 		{
 			// brutally overwrite the current node with this
-			_statusListener.replaceNode(doc.getJDFRoot());
+			JDFNode root = doc.getJDFRoot();
+			currentQE.setJDF(root);
+			_statusListener.replaceNode(root);
 		}
 
 		BambiNSExtension.setDeviceURL(qe, null);

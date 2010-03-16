@@ -6,9 +6,9 @@
 		e.g. a RIP AmountResources: Other resources that have amounts and may
 		be set ProxyURL: URL of a device that reacts to requestQueueEntry
 		DeviceURL: URL of this TypeExpression: regExp for retrieving the
-		correct node based on Types InputHF: hot folder thatr accepts jdf
+		correct node based on Types InputHF: hot folder that accepts jdf
 		tickets OutputHF: folder where successfully completed jobs are placed
-		ErrorHF: folder where unsuccessfuly completed jobs are placed
+		ErrorHF: folder where unsuccessfully completed jobs are placed
 	-->
 	<!--
 		Each Device specifies one logical device with Queue, Processor(s) etc.
@@ -26,18 +26,18 @@
 		SlaveMimePackaging="false"
 	-->
 
-<application BaseDir="/var/tmp/bambi/sim/" JDFDir="JDFDir"
+<application BaseDir="/var/bambi/sim/" JDFDir="JDFDir"
 	SenderID="SimDevice" Port="8080" CallBackName="org.cip4.bambi.extensions.ExtensionCallback">
 	<Device DeviceID="SimWorkerRoot" DeviceType="Bambi Sim Device Root" />
 	<Device DeviceID="sim001" DeviceType="Bambi Simulation HotFolder Device 001"
-		TrackResource="Component:Output" InputHF="/var/tmp/bambi/hf/sim001/Input"
-		OutputHF="/var/tmp/bambi/hf/sim001/Output" ErrorHF="/var/tmp/bambi/hf/sim001/Error" AcceptAll="true"/>
+		TrackResource="Component:Output" InputHF="/var/bambi/hf/sim001/Input"
+		OutputHF="/var/bambi/hf/sim001/Output" ErrorHF="/var/bambi/hf/sim001/Error" AcceptAll="true"/>
 	<Device DeviceID="sim002" DeviceType="Bambi Simulation HotFolder Device 002"
-		TrackResource="Component:Output" InputHF="/var/tmp/bambi/hf/sim002/Input"
-		OutputHF="/var/tmp/bambi/hf/sim002/Output" ErrorHF="/var/tmp/bambi/hf/sim002/Error" />
-	<Device DeviceID="sim003" DeviceType="Bambi Pull Simulation Device 003"
-		PushPull="Push" TrackResource="Component:Output" InputHF="/var/tmp/bambi/hf/sim003/Input"
-		OutputHF="/var/tmp/bambi/hf/sim003/Output" ErrorHF="/var/tmp/bambi/hf/sim003/Error" />
+		TrackResource="Component:Output" InputHF="/var/bambi/hf/sim002/Input"
+		OutputHF="/var/bambi/hf/sim002/Output" ErrorHF="/var/bambi/hf/sim002/Error" />
+	<Device DeviceID="sim003" DeviceType="Bambi Push Simulation Device 003"
+		PushPull="Push" TrackResource="Component:Output" InputHF="/var/bambi/hf/sim003/Input"
+		OutputHF="/var/bambi/hf/sim003/Output" ErrorHF="/var/bambi/hf/sim003/Error" MIMEExpansion="true"/>
 <Device DeviceID="platesetter"
 		DeviceType="Bambi Simulation Platesetter"
 		TypeExpression="(.)*ImageSetting(.)*"

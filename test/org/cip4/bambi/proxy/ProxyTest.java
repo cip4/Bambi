@@ -95,6 +95,15 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public class ProxyTest extends BambiTestCase
 {
+	/**
+	 * 
+	 */
+	public ProxyTest()
+	{
+		super();
+		gt = enumGTType.IDP;
+	}
+
 	protected String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy";
 
 	/**
@@ -237,6 +246,19 @@ public class ProxyTest extends BambiTestCase
 		final JDFDoc doc = new JDFParser().parseStream(is);
 		assertNotNull(doc);
 
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	public void testSubmitQueueEntry_Expand() throws Exception
+	{
+		proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy";
+		_theGT.devID = "sim003";
+		_theGT.m_pdfFile = sm_dirTestData + "url1.pdf";
+		_theGT.m_pdfFile = "c:/data/pdf/pdfVT/new.pdf";
+		_theGT.assign(null);
+		submitMimetoURL(_theGT.getNode().getOwnerDocument_JDFElement(), proxyUrl, true);
 	}
 
 	/**

@@ -75,6 +75,9 @@ import java.io.InputStream;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * class to package an XML document together with the context information of the request
@@ -88,8 +91,28 @@ public class XMLRequest extends ContainerRequest
 	 */
 	public XMLRequest(KElement theXML)
 	{
-		super(null, null);
+		super();
 		this.theXML = theXML;
+		setContentType(theXML);
+	}
+
+	/**
+	 * @param xml
+	 */
+	public void setContentType(KElement xml)
+	{
+		if (xml instanceof JDFJMF)
+		{
+			setContentType(UrlUtil.VND_JMF);
+		}
+		else if (xml instanceof JDFNode)
+		{
+			setContentType(UrlUtil.VND_JDF);
+		}
+		else
+		{
+			setContentType(UrlUtil.TEXT_XML);
+		}
 	}
 
 	/**
@@ -97,9 +120,9 @@ public class XMLRequest extends ContainerRequest
 	 */
 	public XMLRequest(StreamRequest request)
 	{
-		super(request.getRequestURI(), request.getContentType());
+		super();
 		InputStream inStream = request.getStream();
-
+		setContainer(request);
 		final JDFParser p = new JDFParser();
 		final JDFDoc xmlDoc = p.parseStream(inStream);
 		theXML = xmlDoc == null ? null : xmlDoc.getRoot();

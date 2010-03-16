@@ -14,7 +14,7 @@
 		<servlet-class>org.cip4.bambi.proxy.ProxyServlet</servlet-class>
 			<init-param>
 					<param-name>bambiDump</param-name>
-					<param-value>/var/tmp/bambi/dump/proxy</param-value>
+					<param-value>/var/bambi/dump/proxy</param-value>
 				</init-param>
 		<load-on-startup>10</load-on-startup>
 	</servlet>
@@ -29,6 +29,10 @@
     <servlet-mapping>
 		<servlet-name>Proxy</servlet-name>
 		<url-pattern>/slavejmf/*</url-pattern>
+	</servlet-mapping>
+   <servlet-mapping>
+		<servlet-name>Proxy</servlet-name>
+		<url-pattern>/data/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>Proxy</servlet-name>

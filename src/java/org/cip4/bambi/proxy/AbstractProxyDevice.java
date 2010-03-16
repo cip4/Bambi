@@ -670,6 +670,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				final String id = proxyProperties.getSlaveDeviceID();
 				deviceRoot.setAttribute("SlaveDeviceID", id == null ? null : id);
 			}
+			deviceRoot.setAttribute("DataURL", getDataURL(null));
 		}
 	}
 
@@ -1365,4 +1366,15 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		mySubscriptions.copyToXML(rootDevice);
 	}
 
+	/**
+	 * @param queueEntryID
+	 * @return
+	 */
+	@Override
+	public String getDataURL(String queueEntryID)
+	{
+		String deviceURL = getDeviceURL();
+		deviceURL = StringUtil.replaceString(deviceURL, "jmf", "data");
+		return deviceURL + ((queueEntryID == null) ? "" : "/" + queueEntryID);
+	}
 }
