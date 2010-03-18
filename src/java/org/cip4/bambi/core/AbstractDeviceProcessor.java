@@ -558,7 +558,10 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		_queueProcessor.updateEntry(qe, qes, null, null);
 		_queueProcessor.returnQueueEntry(qe, null, null);
 
-		currentQE.getQueueEntry().removeAttribute(AttributeName.DEVICEID);
+		if (currentQE != null)
+		{
+			currentQE.getQueueEntry().removeAttribute(AttributeName.DEVICEID);
+		}
 		currentQE = null;
 		log.info("finalized processing JDF: ");
 		return true;

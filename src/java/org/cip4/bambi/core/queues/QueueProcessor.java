@@ -90,6 +90,7 @@ import org.cip4.bambi.core.BambiServletResponse;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
+import org.cip4.bambi.core.RootDevice;
 import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.IDeviceProperties.QEReturn;
@@ -411,7 +412,8 @@ public class QueueProcessor extends BambiLogFactory
 				FileUtil.deleteAll(theJobDir);
 			}
 			// now the other stuff
-			final File theRootJobDir = _parentDevice.getRootDevice().getJobDirectory(qe.getQueueEntryID());
+			RootDevice rootDevice = _parentDevice.getRootDevice();
+			final File theRootJobDir = rootDevice == null ? null : rootDevice.getJobDirectory(qe.getQueueEntryID());
 			if (theRootJobDir != null)
 			{
 				FileUtil.deleteAll(theJobDir);
@@ -2058,7 +2060,6 @@ public class QueueProcessor extends BambiLogFactory
 		final HashSet<File> hs;
 		synchronized (_theQueue)
 		{
-
 			crap = FileUtil.listFilesWithExtension(_parentDevice.getJDFDir(), "jdf");
 			hs = new HashSet<File>();
 			final VElement v = _theQueue.getQueueEntryVector();
@@ -2078,6 +2079,8 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				if (!hs.contains(kill))
 				{
+					File dataDir = new File(StringUtil.newExtension(kill.getAbsolutePath(), null));
+					FileUtil.deleteAll(dataDir);
 					kill.delete();
 					log.warn("removing orphan JDF:" + kill.getName());
 				}

@@ -363,7 +363,8 @@ public final class SignalDispatcher extends BambiLogFactory
 		 */
 		protected void setXMLRoot(final BambiServletRequest request)
 		{
-			root.setAttribute(AttributeName.DEVICEID, device.getDeviceID());
+			if (device != null) // may be null in test scenarios
+				root.setAttribute(AttributeName.DEVICEID, device.getDeviceID());
 			root.setAttribute(AttributeName.CONTEXT, "/" + BambiServlet.getBaseServletName(request));
 		}
 
@@ -1032,7 +1033,8 @@ public final class SignalDispatcher extends BambiLogFactory
 			sub.setAttribute(AttributeName.CHANNELID, channelID);
 			sub.setAttribute(AttributeName.DEVICEID, jmfDeviceID);
 			sub.setAttribute(AttributeName.QUEUEENTRYID, queueEntry);
-			sub.setAttribute(AttributeName.SENDERID, device.getDeviceID());
+			if (device != null)
+				sub.setAttribute(AttributeName.SENDERID, device.getDeviceID());
 			if (theMessage != null)
 			{
 				sub.setAttribute(AttributeName.MESSAGETYPE, theMessage.getType());
@@ -1308,17 +1310,20 @@ public final class SignalDispatcher extends BambiLogFactory
 
 			final Set<String> ss = getChannels(null, senderID, qeID);
 			final Vector<MsgSubscription> v = ContainerUtil.toValueVector(subscriptionMap);
-			for (int i = 0; i < v.size(); i++)
+			if (v != null)
 			{
-				final MsgSubscription sub = v.get(i);
-				if (!ss.contains(sub.channelID))
+				for (int i = 0; i < v.size(); i++)
 				{
-					continue;
+					final MsgSubscription sub = v.get(i);
+					if (!ss.contains(sub.channelID))
+					{
+						continue;
+					}
+					final JDFSubscriptionInfo subscriptionInfo = response.appendSubscriptionInfo();
+					sub.setSubscriptionInfo(subscriptionInfo);
+					final JDFSubscription subscription = subscriptionInfo.appendSubscription();
+					sub.setSubscription(subscription);
 				}
-				final JDFSubscriptionInfo subscriptionInfo = response.appendSubscriptionInfo();
-				sub.setSubscriptionInfo(subscriptionInfo);
-				final JDFSubscription subscription = subscriptionInfo.appendSubscription();
-				sub.setSubscription(subscription);
 			}
 			return true;
 		}
@@ -1839,7 +1844,7 @@ public final class SignalDispatcher extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		return "SubscriptionMap " + device.getDeviceID() + " : " + subscriptionMap;
+		return "SubscriptionMap " + ((device == null) ? " null device " : device.getDeviceID()) + " : " + subscriptionMap;
 	}
 
 	/**

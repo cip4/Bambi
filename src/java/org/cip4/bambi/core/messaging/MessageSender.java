@@ -1071,7 +1071,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				catch (FileNotFoundException fx)
 				{
 					// this happens when a server is at the url but the war is not loaded
-					getLog().warn("Error reading response", fx);
+					getLog().warn("Error reading response: " + fx.getMessage());
 					connection = null;
 				}
 			}
@@ -1119,7 +1119,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		}
 		catch (final Exception e)
 		{
-			log.error("Exception in sendHTTP", e);
+			log.error("Exception in sendHTTP: " + e.getMessage());
 			if (mh.respHandler != null)
 			{
 				mh.respHandler.handleMessage(); // make sure we tell anyone who is waiting that the wait is over...

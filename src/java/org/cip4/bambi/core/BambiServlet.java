@@ -88,7 +88,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.enums.ValuedEnum;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFDate;
@@ -277,19 +276,6 @@ public class BambiServlet extends HttpServlet
 	}
 
 	/**
-	 * @param request
-	 * @param response
-	 * @param messageType
-	 * @param returnCode
-	 * @param notification
-	 */
-	protected void processError(final BambiServletRequest request, final BambiServletResponse response, final EnumType messageType, final int returnCode, final String notification)
-	{
-		XMLResponse res = theContainer.processError(request.getRequestURI(), messageType, returnCode, notification);
-		response.write(res);
-	}
-
-	/**
 	 * Handles the HTTP <code>POST</code> method.
 	 * @param request servlet request
 	 * @param response servlet response
@@ -352,15 +338,6 @@ public class BambiServlet extends HttpServlet
 	{
 		theContainer.shutDown();
 		super.destroy();
-	}
-
-	/**
-	 * @param url
-	 * @return the dviceID
-	 */
-	public static String getDeviceIDFromURL(final String url)
-	{
-		return BambiServletRequest.getDeviceIDFromURL(url);
 	}
 
 	/**

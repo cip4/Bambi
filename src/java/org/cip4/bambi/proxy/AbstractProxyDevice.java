@@ -1091,11 +1091,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	@Override
 	public IConverterCallback getCallback(final String url)
 	{
-		if (StringUtil.hasToken(url, SLAVEJMF, "/", 0))
-		{
-			return _slaveCallback;
-		}
-		if (ContainerUtil.equals(getProxyProperties().getDeviceURLForSlave(), url))
+		IProxyProperties proxyProperties = getProxyProperties();
+		if (StringUtil.hasToken(url, SLAVEJMF, "/", 0) || ContainerUtil.equals(proxyProperties.getDeviceURLForSlave(), url)
+				|| ContainerUtil.equals(proxyProperties.getSlaveURL(), url))
 		{
 			return _slaveCallback;
 		}

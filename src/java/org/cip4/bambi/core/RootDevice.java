@@ -569,7 +569,7 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
-	 * get the IConverterCallback for a given url
+	 * get the IConverterCallback for a given local url - excluding the context
 	 * @see org.cip4.bambi.core.AbstractDevice#getCallback(java.lang.String)
 	 * @param url
 	 * @return IConverterCallback the callback, null if none found

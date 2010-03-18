@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -75,7 +75,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 
 import org.cip4.bambi.BambiTestCase;
-import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
@@ -87,6 +86,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.util.JDFDate;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
@@ -101,16 +101,26 @@ public class ProxyTest extends BambiTestCase
 	public ProxyTest()
 	{
 		super();
-		gt = enumGTType.IDP;
+		proxySlaveUrl = StringUtil.replaceString(proxyUrl, "/jmf/", "/slavejmf/");
 	}
 
 	protected String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy";
+	protected String proxySlaveUrl;
+
+	/**
+	 * @return
+	 */
+	@Override
+	protected enumGTType getGTType()
+	{
+		return enumGTType.IDP;
+	}
 
 	/**
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
 	 */
 	@Override
-	public void setUp() throws Exception
+	protected void setUp() throws Exception
 	{
 		bUpdateJobID = true;
 
@@ -325,8 +335,6 @@ public class ProxyTest extends BambiTestCase
 			System.out.println("Submitting: " + i);
 			ThreadUtil.sleep(5000);
 		}
-		final JMFFactory factory = JMFFactory.getJMFFactory();
-
 		JDFQueue q = getQueueStatus(simWorkerUrl);
 		final int count = q.getEntryCount();
 		for (int i = 0; i < count; i++)
@@ -347,6 +355,5 @@ public class ProxyTest extends BambiTestCase
 				break;
 			}
 		}
-
 	}
 }

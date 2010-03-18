@@ -100,116 +100,122 @@ import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
-public class DeviceServletTest extends BambiTestCase {
-	
+public class DeviceServletTest extends BambiTestCase
+{
+
 	@Override
-	public void setUp() throws Exception {
+	public void setUp() throws Exception
+	{
 		super.setUp();
 		abortRemoveAll(simWorkerUrl);
 	}
-	
-	private JDFResponse singleMIMESubmit(String jobID) throws MalformedURLException, IOException, MessagingException
-    {
-        JDFDoc d1=new JDFDoc("JMF");
-        d1.setOriginalFileName("JMF.jmf");
-        JDFJMF jmf=d1.getJMFRoot();
-        JDFCommand com=(JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
-      
-        com.appendQueueSubmissionParams().setURL("TheJDF");
-        
-        JDFDoc doc=new JDFDoc("JDF");
-        doc.setOriginalFileName("JDF.jdf");  
-        JDFNode n=doc.getJDFRoot();
-        n.setJobID(jobID);
-        n.setType(EnumType.ColorSpaceConversion);
-        JDFColorSpaceConversionParams cscp=(JDFColorSpaceConversionParams) n.addResource(ElementName.COLORSPACECONVERSIONPARAMS, null, EnumUsage.Input, null, null, null, null);
-        JDFFileSpec fs0=cscp.appendFinalTargetDevice();
-        fs0.setURL(StringUtil.uncToUrl(sm_dirTestData+File.separator+"test.icc",true));
-        JDFRunList rl=(JDFRunList)n.addResource(ElementName.RUNLIST, null, EnumUsage.Input, null, null, null, null);
-        rl.addPDF(StringUtil.uncToUrl(sm_dirTestData+File.separator+"url3.pdf",false), 0, -1);
 
-        Multipart m=MimeUtil.buildMimePackage(d1, doc, true);
-        
-        JDFDoc[] d2=MimeUtil.getJMFSubmission(m);
-        assertNotNull(d2);
-        assertEquals(d2[0].getJMFRoot().getCommand(0).getQueueSubmissionParams(0).getURL(), "cid:JDF.jdf");
-        assertEquals(d2[1].getJDFRoot().getEnumType(),EnumType.ColorSpaceConversion);
-        
-        // now serialize to file and reread - should still work
-        HttpURLConnection uc=MimeUtil.writeToURL(m, simWorkerUrl);
-        MimeUtil.writeToFile(m, sm_dirTestTemp+"testMime.mjm", null);
-        assertEquals(uc.getResponseCode(), 200);
-        UrlUtil.UrlPart[] parts=UrlUtil.getURLParts(uc);
-        assertEquals(parts.length, 1);
-        InputStream is=parts[0].inStream;
-        JDFDoc docResp=new JDFParser().parseStream(is);
-        assertNotNull(docResp);
-        JDFJMF jmf2=docResp.getJMFRoot();
-        assertNotNull(jmf2);
-        JDFResponse r=(JDFResponse) jmf2.getMessageElement(EnumFamily.Response,JDFMessage.EnumType.SubmitQueueEntry,0);
-        assertNotNull(r);
-        assertEquals( 0,r.getReturnCode() );
-        JDFQueueEntry qe=r.getQueueEntry(0);
-        String devQEntryID=qe.getQueueEntryID();
-        assertNotSame(devQEntryID,"");
-        return r;
-    }
-    
-	
-	private boolean removeDir(File path)
+	private JDFResponse singleMIMESubmit(String jobID) throws MalformedURLException, IOException, MessagingException
 	{
-		if( path.exists() ) {
-		      File[] files = path.listFiles();
-		      for(int i=0; i<files.length; i++) {
-		         if(files[i].isDirectory()) {
-		           removeDir( files[i] );
-		         } else {
-		           files[i].delete();
-		         }
-		      }
-		    }
-		    return( path.delete() );
+		JDFDoc d1 = new JDFDoc("JMF");
+		d1.setOriginalFileName("JMF.jmf");
+		JDFJMF jmf = d1.getJMFRoot();
+		JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
+
+		com.appendQueueSubmissionParams().setURL("TheJDF");
+
+		JDFDoc doc = new JDFDoc("JDF");
+		doc.setOriginalFileName("JDF.jdf");
+		JDFNode n = doc.getJDFRoot();
+		n.setJobID(jobID);
+		n.setType(EnumType.ColorSpaceConversion);
+		JDFColorSpaceConversionParams cscp = (JDFColorSpaceConversionParams) n.addResource(ElementName.COLORSPACECONVERSIONPARAMS, null, EnumUsage.Input, null, null, null, null);
+		JDFFileSpec fs0 = cscp.appendFinalTargetDevice();
+		fs0.setURL(StringUtil.uncToUrl(sm_dirTestData + File.separator + "test.icc", true));
+		JDFRunList rl = (JDFRunList) n.addResource(ElementName.RUNLIST, null, EnumUsage.Input, null, null, null, null);
+		rl.addPDF(StringUtil.uncToUrl(sm_dirTestData + File.separator + "url3.pdf", false), 0, -1);
+
+		Multipart m = MimeUtil.buildMimePackage(d1, doc, true);
+
+		JDFDoc[] d2 = MimeUtil.getJMFSubmission(m);
+		assertNotNull(d2);
+		assertEquals(d2[0].getJMFRoot().getCommand(0).getQueueSubmissionParams(0).getURL(), "cid:JDF.jdf");
+		assertEquals(d2[1].getJDFRoot().getEnumType(), EnumType.ColorSpaceConversion);
+
+		// now serialize to file and reread - should still work
+		HttpURLConnection uc = MimeUtil.writeToURL(m, simWorkerUrl);
+		MimeUtil.writeToFile(m, sm_dirTestDataTemp + "testMime.mjm", null);
+		assertEquals(uc.getResponseCode(), 200);
+		UrlUtil.UrlPart[] parts = UrlUtil.getURLParts(uc);
+		assertEquals(parts.length, 1);
+		InputStream is = parts[0].inStream;
+		JDFDoc docResp = new JDFParser().parseStream(is);
+		assertNotNull(docResp);
+		JDFJMF jmf2 = docResp.getJMFRoot();
+		assertNotNull(jmf2);
+		JDFResponse r = (JDFResponse) jmf2.getMessageElement(EnumFamily.Response, JDFMessage.EnumType.SubmitQueueEntry, 0);
+		assertNotNull(r);
+		assertEquals(0, r.getReturnCode());
+		JDFQueueEntry qe = r.getQueueEntry(0);
+		String devQEntryID = qe.getQueueEntryID();
+		assertNotSame(devQEntryID, "");
+		return r;
 	}
 
-	
-    public void testMimeSubmit() throws Exception
-    {
-        JDFResponse resp=singleMIMESubmit("SingleMIME");
-        assertNotNull( resp );
-        assertEquals( 0,resp.getReturnCode() );
-        String qeid=resp.getQueue(0).getQueueEntry(0).getQueueEntryID();
-        assertNotNull( qeid );
-        assertFalse( qeid.equals("") );
-    }
+	private boolean removeDir(File path)
+	{
+		if (path.exists())
+		{
+			File[] files = path.listFiles();
+			for (int i = 0; i < files.length; i++)
+			{
+				if (files[i].isDirectory())
+				{
+					removeDir(files[i]);
+				}
+				else
+				{
+					files[i].delete();
+				}
+			}
+		}
+		return (path.delete());
+	}
 
-    public void testMultiSubmit() throws Exception
-    {
-    	VString qeids=new VString();
-    	
-    	long t=System.currentTimeMillis();
-    	for(int i=0;i<55;i++) {
-    		long t1=System.currentTimeMillis();
-    		System.out.println("Pre submit, "+i);
-    		JDFResponse resp=singleMIMESubmit("Job"+i);
-    		long t2=System.currentTimeMillis();
-    		System.out.println("Post submit, "+i+" single: "+(t2-t1)+" total: "+(t2-t));
-    		
-    		assertNotNull( resp );
-            assertEquals( 0,resp.getReturnCode() );
-            String qeid=resp.getQueueEntry(0).getQueueEntryID();
-            assertNotNull( qeid );
-            assertFalse( qeid.equals("") );
-            qeids.add( qeid );   		
-    	}
-    }
-    
-//    public void testCreateDevicesFromFile() {
-//    	AbstractWorkerServlet s = new SimWorkerServlet();
-//    	assertEquals( 0,s.getDeviceQuantity() );
-//    	s.createDevicesFromFile(simConfigDir+"devices.xml");
-//    	assertEquals( 2,s.getDeviceQuantity() );
-//    	
-//    	removeDir( new File("nulljmb") );
-//    }
-    
+	public void testMimeSubmit() throws Exception
+	{
+		JDFResponse resp = singleMIMESubmit("SingleMIME");
+		assertNotNull(resp);
+		assertEquals(0, resp.getReturnCode());
+		String qeid = resp.getQueue(0).getQueueEntry(0).getQueueEntryID();
+		assertNotNull(qeid);
+		assertFalse(qeid.equals(""));
+	}
+
+	public void testMultiSubmit() throws Exception
+	{
+		VString qeids = new VString();
+
+		long t = System.currentTimeMillis();
+		for (int i = 0; i < 55; i++)
+		{
+			long t1 = System.currentTimeMillis();
+			System.out.println("Pre submit, " + i);
+			JDFResponse resp = singleMIMESubmit("Job" + i);
+			long t2 = System.currentTimeMillis();
+			System.out.println("Post submit, " + i + " single: " + (t2 - t1) + " total: " + (t2 - t));
+
+			assertNotNull(resp);
+			assertEquals(0, resp.getReturnCode());
+			String qeid = resp.getQueueEntry(0).getQueueEntryID();
+			assertNotNull(qeid);
+			assertFalse(qeid.equals(""));
+			qeids.add(qeid);
+		}
+	}
+
+	//    public void testCreateDevicesFromFile() {
+	//    	AbstractWorkerServlet s = new SimWorkerServlet();
+	//    	assertEquals( 0,s.getDeviceQuantity() );
+	//    	s.createDevicesFromFile(simConfigDir+"devices.xml");
+	//    	assertEquals( 2,s.getDeviceQuantity() );
+	//    	
+	//    	removeDir( new File("nulljmb") );
+	//    }
+
 }

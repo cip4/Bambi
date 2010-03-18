@@ -539,7 +539,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		URL qURL = UrlUtil.stringToURL(slaveURL);
 
 		EnumQueueEntryStatus qes = null;
-		final File hf = getParent().getProxyProperties().getSlaveInputHF();
 		if (qURL != null)
 		{
 			final IProxyProperties proxyProperties = getParent().getProxyProperties();
@@ -553,9 +552,9 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			final IQueueEntry iqe = submitToQueue(qURL, deviceOutputHF, ud, expandMime, isMime);
 			qes = iqe == null ? null : iqe.getQueueEntry().getQueueEntryStatus();
 		}
-		// try again in case of no url or failure
-		if ((qes == null || EnumQueueEntryStatus.Aborted.equals(qes)) && hf != null)
+		if (qes == null || EnumQueueEntryStatus.Aborted.equals(qes))
 		{
+			final File hf = getParent().getProxyProperties().getSlaveInputHF();
 			qes = submitToHF(hf);
 		}
 		if (qes == null || EnumQueueEntryStatus.Aborted.equals(qes))
@@ -573,6 +572,9 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	 */
 	private EnumQueueEntryStatus submitToHF(final File fHF)
 	{
+		if (fHF == null)
+			return null;
+		log.info("submitting to hot folder: " + fHF.getAbsolutePath());
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		final JDFNode node = getCloneJDFForSlave();
 		KElement modNode = node;
@@ -594,7 +596,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			final boolean bWritten = modNode.getOwnerDocument_KElement().write2File(fileInHF, 0, true);
 			if (bWritten)
 			{
-				submitted("qe" + KElement.uniqueID(0), EnumQueueEntryStatus.Running, UrlUtil.fileToUrl(fileInHF, true), null);
+				submitted("qe_hf" + KElement.uniqueID(0), EnumQueueEntryStatus.Running, UrlUtil.fileToUrl(fileInHF, true), null);
 			}
 			else
 			{
@@ -691,15 +693,14 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	/**
 	 * @param m
 	 * @param resp
+	 * @param doc 
 	 * @return true if all went well
 	 */
-	protected boolean returnFromSlave(final JDFMessage m, final JDFResponse resp, JDFDoc theDoc)
+	protected boolean returnFromSlave(final JDFMessage m, final JDFResponse resp, JDFDoc doc)
 	{
 		final JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
 
-		// get the returned JDFDoc from the incoming ReturnQE command and pack
-		// it in the outgoing
-		final JDFDoc doc = theDoc == null ? retQEParams.getURLDoc() : theDoc;
+		// get the returned JDFDoc from the incoming ReturnQE command and pack it in the outgoing
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		if (doc == null)
 		{
@@ -710,8 +711,15 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		{
 			// brutally overwrite the current node with this
 			JDFNode root = doc.getJDFRoot();
-			currentQE.setJDF(root);
-			_statusListener.replaceNode(root);
+			if (root == null)
+			{
+				log.error("no JDF node found to overwrite the StatusListener, retaining old version");
+			}
+			else
+			{
+				currentQE.setJDF(root);
+				_statusListener.replaceNode(root);
+			}
 		}
 
 		BambiNSExtension.setDeviceURL(qe, null);

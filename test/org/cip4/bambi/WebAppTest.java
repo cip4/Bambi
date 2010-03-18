@@ -95,7 +95,6 @@ public class WebAppTest extends BambiTestCase
 		final JDFJMF jmfStatus = new JMFBuilder().buildStatus();
 		final VString urls = new VString();
 		urls.add(simWorkerUrl);
-		urls.add(manualWorkerUrl);
 
 		for (int i = 0; i < urls.size(); i++)
 		{

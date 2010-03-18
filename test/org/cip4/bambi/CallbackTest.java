@@ -85,9 +85,12 @@ import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.util.StatusCounter;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
+/**
+  * @author Rainer Prosi, Heidelberger Druckmaschinen *
+ */
 public class CallbackTest extends BambiTestCase
 {
 
@@ -110,17 +113,13 @@ public class CallbackTest extends BambiTestCase
 			// TODO Auto-generated method stub
 
 			final String callback = "org.cip4.bambi.MyTestCallback";
-			if (callback != null)
+			try
 			{
-				try
-				{
-					// Class c=Class.forName("MyTestCallback");
-					final Class c = Class.forName(callback);
-					return (IConverterCallback) c.newInstance();
-				}
-				catch (final Exception x)
-				{
-				}
+				final Class c = Class.forName(callback);
+				return (IConverterCallback) c.newInstance();
+			}
+			catch (final Exception x)
+			{
 			}
 			return null;
 
@@ -145,29 +144,30 @@ public class CallbackTest extends BambiTestCase
 		 */
 		public String getHotFolderURL()
 		{
-			// TODO Auto-generated method stub
-			return sm_dirTestTemp + "HFURL";
+			return sm_dirTestDataTemp + "HFURL";
 		}
 
 	}
 
+	/**
+	 * 
+	 */
 	public void testAddCallback()
 	{
-		final MyProp myProp = new MyProp();
 		final JMFHandler h = new JMFHandler(null);
 		final SignalDispatcher d = new SignalDispatcher(h, null);
 		System.out.println(new MyTestCallback().getClass().getCanonicalName());
 		d.addHandlers(h);
-		final File f = new File(sm_dirTestData + "subscriptions.jmf");
+
+		final File f = new File(sm_dirTestDataTemp + "subscriptions.jmf");
 		f.delete();
 		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
 		final JDFQuery q = jmf.getQuery(0);
 		final JDFSubscription s = q.appendSubscription();
 		s.setRepeatTime(1.0);
-		UrlUtil.urlToFile(getTestURL()).mkdirs();
-		s.setURL(getTestURL() + "subscriptions.jmf");
+		s.setURL(UrlUtil.fileToUrl(f, false));
 		d.addSubscription(q, null);
-		StatusCounter.sleep(2000);
+		ThreadUtil.sleep(2000);
 		assertTrue(f.exists());
 		final JDFDoc doc = new JDFParser().parseFile(f.getPath());
 		final JDFJMF jmf2 = doc.getJMFRoot();
@@ -176,6 +176,10 @@ public class CallbackTest extends BambiTestCase
 		assertTrue(f.delete());
 	}
 
+	/**
+	 * 
+	 * @throws Exception
+	 */
 	public void testHFCallback() throws Exception
 	{
 		final MyProp myProp = new MyProp();

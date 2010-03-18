@@ -382,18 +382,52 @@ public class ProxyDevice extends AbstractProxyDevice
 				JMFHandler.errorResponse(resp, "ReturnQueueEntryParams missing in ReturnQueueEntry message", 7, EnumClass.Error);
 				return true;
 			}
-			String slaveQueueEntryID = StringUtil.getNonEmpty(retQEParams.getQueueEntryID());
+			final String slaveQueueEntryID = StringUtil.getNonEmpty(retQEParams.getQueueEntryID());
 
-			JDFQueueEntry qeBambi = getQueueProcessor().getQueueEntry(slaveQueueEntryID, null);
-			JDFDoc doc = retQEParams.getURLDoc();
-			getQueueProcessor().extractFiles(qeBambi, doc);
+			JDFDoc theDoc = retQEParams.getURLDoc();
+			if (_slaveCallback != null)
+			{
+				theDoc = _slaveCallback.prepareJDFForBambi(theDoc);
+			}
+			if (theDoc == null)
+			{
+				JMFHandler.errorResponse(resp, "No returned JDF in ReturnQueueEntry message", 7, EnumClass.Error);
+				return true;
+			}
 
-			final ProxyDeviceProcessor proc = getProcessorForReturnQE(retQEParams, resp);
+			final ProxyDeviceProcessor proc = getProcessorForReturnQE(retQEParams, resp, theDoc);
 			if (proc != null)
 			{
-				proc.returnFromSlave(m, resp, doc);
+				final JDFQueueEntry qeBambi = proc.getQueueEntry();
+				getQueueProcessor().extractFiles(qeBambi, theDoc);
+				proc.returnFromSlave(m, resp, theDoc);
 			}
 			return true;
+		}
+
+		/**
+		 * @param rqp 
+		 * @param resp 
+		 * @return the ProxyDeviceProcessor that handles messages from slaveQEID
+		 */
+		protected ProxyDeviceProcessor getProcessorForReturnQE(final JDFReturnQueueEntryParams rqp, final JDFResponse resp, JDFDoc theDoc)
+		{
+			final String slaveQEID = rqp == null ? null : rqp.getQueueEntryID();
+			ProxyDeviceProcessor proc = getProcessorForSlaveQEID(slaveQEID);
+
+			NodeIdentifier nid = null;
+			if (proc == null && rqp != null)
+			{
+				final JDFNode node = theDoc.getJDFRoot();
+				nid = node == null ? null : node.getIdentifier();
+				proc = getProcessorForNID(nid);
+			}
+			if (proc == null)
+			{
+				final String errorMsg = "QueueEntry with ID=" + slaveQEID + "," + nid == null ? " - " : nid + " is not being processed";
+				JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
+			}
+			return proc;
 		}
 	}
 
@@ -805,36 +839,6 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
-	 * @param rqp 
-	 * @param resp 
-	 * @return the ProxyDeviceProcessor that handles messages from slaveQEID
-	 */
-	protected ProxyDeviceProcessor getProcessorForReturnQE(final JDFReturnQueueEntryParams rqp, final JDFResponse resp)
-	{
-		final String slaveQEID = rqp == null ? null : rqp.getQueueEntryID();
-		ProxyDeviceProcessor proc = getProcessorForSlaveQEID(slaveQEID);
-
-		NodeIdentifier nid = null;
-		if (proc == null && rqp != null)
-		{
-			JDFDoc d = rqp.getURLDoc();
-			if (_slaveCallback != null)
-			{
-				d = _slaveCallback.prepareJDFForBambi(d);
-			}
-			final JDFNode node = d == null ? null : d.getJDFRoot();
-			nid = node == null ? null : node.getIdentifier();
-			proc = getProcessorForNID(nid);
-		}
-		if (proc == null)
-		{
-			final String errorMsg = "QueueEntry with ID=" + slaveQEID + "," + nid == null ? " - " : nid + " is not being processed";
-			JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
-		}
-		return proc;
-	}
-
-	/**
 	 * @param slaveQEID 
 	 * @param nid 
 	 * @return the ProxyDeviceProcessor that handles messages from slaveQEID
@@ -859,7 +863,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	 * @param nid
 	 * @return
 	 */
-	private ProxyDeviceProcessor getProcessorForNID(final NodeIdentifier nid)
+	protected ProxyDeviceProcessor getProcessorForNID(final NodeIdentifier nid)
 	{
 		if (nid == null)
 		{
@@ -874,7 +878,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	 * @param slaveQEID
 	 * @return
 	 */
-	private ProxyDeviceProcessor getProcessorForSlaveQEID(final String slaveQEID)
+	protected ProxyDeviceProcessor getProcessorForSlaveQEID(final String slaveQEID)
 	{
 		final String inQEID = getIncomingQEID(slaveQEID);
 		ProxyDeviceProcessor proc = inQEID == null ? null : (ProxyDeviceProcessor) getProcessor(inQEID, 0);

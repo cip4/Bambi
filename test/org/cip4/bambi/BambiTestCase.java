@@ -92,6 +92,7 @@ import org.cip4.jdflib.goldenticket.IDPGoldenTicket;
 import org.cip4.jdflib.goldenticket.MISCPGoldenTicket;
 import org.cip4.jdflib.goldenticket.MISFinGoldenTicket;
 import org.cip4.jdflib.goldenticket.MISPreGoldenTicket;
+import org.cip4.jdflib.goldenticket.PackagingGoldenTicket;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -112,52 +113,123 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	{
 		super.setUp();
 		BaseGoldenTicket.setMisURL("http://kie-prosirai-lg:8080/httpdump/BambiTest");
+		gt = getGTType();
 		if (enumGTType.MISCP.equals(gt))
 		{
-			_theGT = new MISCPGoldenTicket(1, null, 1, 2, true, null);
-			_theGT.addSheet("Sheet1");
-			_theGT.nCols = new int[] { 4, 4 };
+			createMISCPGT();
 		}
 		else if (enumGTType.MISPRE.equals(gt))
 		{
-			_theGT = new MISPreGoldenTicket(2, EnumVersion.Version_1_3, 1, 2, null);
+			createMISPreGT();
 		}
 		else if (enumGTType.IDP.equals(gt))
 		{
-			IDPGoldenTicket idpGoldenTicket = new IDPGoldenTicket(1);
-			idpGoldenTicket.m_pdfFile = sm_dirTestData + "url1.pdf";
-
-			_theGT = idpGoldenTicket;
+			createIDPGT();
 		}
 		else if (enumGTType.MISFIN_STITCH.equals(gt))
 		{
-			_theGT = new MISFinGoldenTicket(1, null, 1, 2, null);
-			_theGT.addSheet("Sheet1");
-			_theGT.addSheet("Sheet2");
-			((MISFinGoldenTicket) _theGT).setCategory(MISFinGoldenTicket.MISFIN_STITCHFIN);
+			createFinStitchGT();
+		}
+		else if (enumGTType.PACKAGING_LAYOUT.equals(gt))
+		{
+			createPackLayoutGT();
+		}
+		else if (enumGTType.PACKAGING_SHAPEDEF.equals(gt))
+		{
+			createPackShapeDefGT();
 		}
 		_theGT.devID = deviceID;
 		_theGT.assign(null);
+		postAssign();
+	}
+
+	/**
+	 * 
+	 */
+	protected void postAssign()
+	{
+		// nop - hook for post assign cleanup
+
+	}
+
+	/**
+	 * 
+	 */
+	protected void createPackShapeDefGT()
+	{
+		_theGT = new PackagingGoldenTicket(1, null, 1, 2, null);
+		_theGT.addSheet("Sheet1");
+	}
+
+	/**
+	 * 
+	 */
+	protected void createPackLayoutGT()
+	{
+		_theGT = new PackagingGoldenTicket(1, null, 1, 2, null);
+		_theGT.addSheet("Sheet1");
+	}
+
+	/**
+	 * 
+	 */
+	protected void createFinStitchGT()
+	{
+		_theGT = new MISFinGoldenTicket(1, null, 1, 2, null);
+		_theGT.addSheet("Sheet1");
+		_theGT.addSheet("Sheet2");
+		((MISFinGoldenTicket) _theGT).setCategory(MISFinGoldenTicket.MISFIN_STITCHFIN);
+	}
+
+	/**
+	 * 
+	 */
+	protected void createIDPGT()
+	{
+		IDPGoldenTicket idpGoldenTicket = new IDPGoldenTicket(1);
+		idpGoldenTicket.m_pdfFile = sm_dirTestData + "url1.pdf";
+
+		_theGT = idpGoldenTicket;
+	}
+
+	/**
+	 * 
+	 */
+	protected void createMISPreGT()
+	{
+		_theGT = new MISPreGoldenTicket(2, EnumVersion.Version_1_3, 1, 2, null);
+	}
+
+	/**
+	 * 
+	 */
+	protected void createMISCPGT()
+	{
+		_theGT = new MISCPGoldenTicket(1, null, 1, 2, true, null);
+		_theGT.addSheet("Sheet1");
+		_theGT.nCols = new int[] { 4, 4 };
+	}
+
+	/**
+	 * @return
+	 */
+	protected enumGTType getGTType()
+	{
+		return enumGTType.MISCP;
 	}
 
 	protected enum enumGTType
 	{
-		MISCP, MISPRE, IDP, MISFIN_STITCH, MISFIN_FOLD
+		MISCP, MISPRE, IDP, MISFIN_STITCH, MISFIN_FOLD, PACKAGING_LAYOUT, PACKAGING_SHAPEDEF,
 	}
 
 	protected enumGTType gt = enumGTType.MISCP;
 
-	protected final static String cwd = System.getProperty("user.dir");
-
-	protected final static String sm_dirTestData = cwd + File.separator + "test" + File.separator + "data" + File.separator;
-	protected final static String sm_dirTestTemp = cwd + File.separator + "test" + File.separator + "temp" + File.separator;
 	protected final static String sm_UrlTestData = "File:test/data/";
 
 	protected String deviceID;
 	protected String simWorkerUrl = "http://localhost:8080/SimWorker/jmf/sim002";
-	protected String proxySlaveUrl = "http://kie-prosirai-lg:8080/BambiProxy/slavejmf/pushproxy";
 	// protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
-	protected String manualWorkerUrl = null;
 	protected String returnJMF = "http://localhost:8080/httpdump/returnJMF";
 	protected String subscriptionURL = "http://localhost:8080/httpdump/testSubscriptions";
 	protected String returnURL = null;// "http://localhost:8080/httpdump/returnURL";
@@ -581,16 +653,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		JDFJMF.setTheSenderID("BambiTest");
 		deviceID = null;
 		// simWorkerUrl = "http://localhost:8080/misconnector/jmf/MISConnector";
-	}
-
-	/**
-	 * @return the url of the test
-	 */
-	protected String getTestURL()
-	{
-		String url = null;
-		url = UrlUtil.fileToUrl(new File(cwd), false);
-		return url + "/test/data/";
 	}
 
 	/**

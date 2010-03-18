@@ -76,6 +76,8 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
+import org.cip4.jdflib.extensions.XJDF20;
+import org.cip4.jdflib.extensions.xjdfwalker.XJDFToJDFConverter;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.node.JDFNode;
@@ -137,8 +139,13 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 * @see org.cip4.bambi.core.IConverterCallback#prepareJDFForBambi(org.cip4.jdflib.core.JDFDoc) ensure a JobPartID in the root
 	 * @param doc the incoming JDF Document
 	 */
-	public JDFDoc prepareJDFForBambi(final JDFDoc doc)
+	public JDFDoc prepareJDFForBambi(JDFDoc doc)
 	{
+		if (doc == null)
+			return doc;
+
+		doc = importXJDF(doc);
+
 		final JDFNode n = doc.getJDFRoot();
 		if (n == null)
 		{
@@ -156,6 +163,37 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		}
 		fixSubscriptions(n);
 		return doc;
+	}
+
+	/**
+	 * @param doc
+	 * @return
+	 */
+	protected JDFDoc importXJDF(JDFDoc doc)
+	{
+		final KElement root = doc.getRoot();
+		if (XJDF20.rootName.equals(root.getLocalName()))
+		{
+			log.info("importing xjdf to Bambi");
+			final XJDFToJDFConverter xc = new XJDFToJDFConverter(null);
+			doc = xc.convert(root);
+		}
+		return doc;
+	}
+
+	/**
+	 * @param doc
+	 * @return
+	 */
+	protected JDFDoc exportXJDF(JDFDoc doc)
+	{
+		JDFNode root = doc.getJDFRoot();
+		if (root == null)
+			return doc;
+		log.info("exporting xjdf");
+		final XJDF20 xjdf = new XJDF20();
+		final KElement newRoot = xjdf.makeNewJDF(root, null);
+		return new JDFDoc(newRoot.getOwnerDocument());
 	}
 
 	/**
@@ -220,7 +258,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 * @param doc the JDF doc
 	 */
 
-	public JDFDoc updateJDFForExtern(final JDFDoc doc)
+	public JDFDoc updateJDFForExtern(JDFDoc doc)
 	{
 		if (doc == null)
 		{
@@ -229,7 +267,13 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		final JDFNode n = doc.getJDFRoot();
 		if (fixToExtern != null)
 		{
-			n.fixVersion(fixToExtern);
+			boolean bXJDF = fixToExtern.equals(EnumVersion.Version_2_0);
+			EnumVersion fixVersion = bXJDF ? EnumVersion.Version_1_4 : fixToExtern;
+			n.fixVersion(fixVersion);
+			if (bXJDF)
+			{
+				doc = exportXJDF(doc);
+			}
 		}
 		return doc;
 	}

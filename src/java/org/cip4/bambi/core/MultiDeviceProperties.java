@@ -639,10 +639,16 @@ public class MultiDeviceProperties extends BambiLogFactory
 	/**
 	 * @return
 	 */
-	int getPort()
+	public int getPort()
 	{
 		// TODO extract from servlet
-		return root.getIntAttribute("Port", null, BambiServlet.port);
+		int p = root.getIntAttribute("Port", null, BambiServlet.port);
+		if (p == 0)
+		{
+			p = 8080; // better guess - default tomcat Port
+			log.warn("guessing default port - using " + p);
+		}
+		return p;
 
 	}
 

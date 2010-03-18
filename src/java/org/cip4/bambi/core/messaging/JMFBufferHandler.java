@@ -563,9 +563,6 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 */
 	public static class StatusBufferHandler extends JMFBufferHandler
 	{
-		private long lastIdle = 0;
-		private boolean addIdle = false;
-
 		/**
 		 * @return
 		 */
@@ -796,7 +793,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		{
 			Vector<JDFSignal> sis = messageMap.get(mi);
 			// only add ever so often...
-			if (addIdle && (sis == null || sis.size() == 0))
+			if (sis == null || sis.size() == 0)
 			{
 				synchronized (lastSent)
 				{
@@ -882,23 +879,6 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				sigs.remove(0);
 			}
 			return sigs;
-		}
-
-		/**
-		 * same as super, only that we set addIdle once per complete call <br/>
-		 * only update idle stuff every 60 seconds
-		 * @see org.cip4.bambi.core.messaging.JMFBufferHandler#getSignals(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
-		 */
-		@Override
-		protected JDFJMF getSignals(final JDFMessage inputMessage, final JDFResponse response)
-		{
-			final long currentTimeMillis = System.currentTimeMillis();
-			addIdle = currentTimeMillis - lastIdle > 60000;
-			if (addIdle)
-			{
-				lastIdle = currentTimeMillis;
-			}
-			return super.getSignals(inputMessage, response);
 		}
 
 		/**
