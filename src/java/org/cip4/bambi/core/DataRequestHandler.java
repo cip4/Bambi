@@ -75,10 +75,11 @@ import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * class to forward general requests for data from a non-tomcat enabled directory
-  * @author Rainer Prosi, Heidelberger Druckmaschinen *
+ * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 {
@@ -88,7 +89,7 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 	 * @param dev thr parent device
 	 * 
 	 */
-	public DataRequestHandler(AbstractDevice dev)
+	public DataRequestHandler(final AbstractDevice dev)
 	{
 		super();
 		this.dev = dev;
@@ -99,35 +100,49 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 	 * @param request
 	 * @param response
 	 * @return
-	*/
-	public boolean handleGet(BambiServletRequest request, BambiServletResponse response)
+	 */
+	public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
 	{
-		File jobDir = dev.getJobDirectory(null);
+		final File jobDir = dev.getJobDirectory(null);
 		if (jobDir == null)
+		{
 			return false;
-		String path = request.getRequestURI();
-		int posData = path.indexOf("/data/");
+		}
+		final String path = request.getRequestURI();
+		final int posData = path.indexOf("/data/");
 		if (posData < 0)
+		{
 			return false;
+		}
 		log.info("serving file data for: " + path);
 		String last = path.substring(posData + 6);
-		int posToken = last == null ? -1 : last.indexOf("/");
+		final int posToken = last == null ? -1 : last.indexOf("/");
 		if (posToken > 0 && last != null)
+		{
 			last = last.substring(posToken);
+		}
 		File file = FileUtil.getFileInDirectory(jobDir, new File(last));
+		if (!file.canRead())
+		{
+			file = FileUtil.getFileInDirectory(jobDir, UrlUtil.urlToFile(last));
+		}
 		if (file.canRead())
 		{
 			try
 			{
-				OutputStream bufferedOutputStream = response.getBufferedOutputStream();
+				final OutputStream bufferedOutputStream = response.getBufferedOutputStream();
 				IOUtils.copy(FileUtil.getBufferedInputStream(file), bufferedOutputStream);
 				bufferedOutputStream.flush();
 				bufferedOutputStream.close();
 			}
-			catch (IOException x)
+			catch (final IOException x)
 			{
 				log.error("error serving file data for: " + path);
 			}
+		}
+		else
+		{
+			log.warn("cannot find file data for: " + path);
 		}
 		return true;
 	}
