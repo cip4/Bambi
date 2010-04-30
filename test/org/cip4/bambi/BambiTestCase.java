@@ -138,9 +138,17 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		{
 			createPackShapeDefGT();
 		}
-		_theGT.devID = deviceID;
+		_theGT.devID = getDeviceID();
 		_theGT.assign(null);
 		postAssign();
+	}
+
+	/**
+	 * @return
+	 */
+	protected String getDeviceID()
+	{
+		return null;
 	}
 
 	/**
@@ -188,7 +196,8 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	{
 		IDPGoldenTicket idpGoldenTicket = new IDPGoldenTicket(1);
 		idpGoldenTicket.m_pdfFile = sm_dirTestData + "url1.pdf";
-
+		idpGoldenTicket.good = 100;
+		idpGoldenTicket.waste = 0;
 		_theGT = idpGoldenTicket;
 	}
 
@@ -215,7 +224,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 */
 	protected enumGTType getGTType()
 	{
-		return enumGTType.MISCP;
+		return (gt == null) ? enumGTType.MISCP : gt;
 	}
 
 	protected enum enumGTType
@@ -223,11 +232,10 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		MISCP, MISPRE, IDP, MISFIN_STITCH, MISFIN_FOLD, PACKAGING_LAYOUT, PACKAGING_SHAPEDEF,
 	}
 
-	protected enumGTType gt = enumGTType.MISCP;
+	protected enumGTType gt = null;
 
 	protected final static String sm_UrlTestData = "File:test/data/";
 
-	protected String deviceID;
 	protected String simWorkerUrl = "http://localhost:8080/SimWorker/jmf/sim002";
 	// protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
 	protected String returnJMF = "http://localhost:8080/httpdump/returnJMF";
@@ -651,7 +659,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	public BambiTestCase()
 	{
 		JDFJMF.setTheSenderID("BambiTest");
-		deviceID = null;
 		// simWorkerUrl = "http://localhost:8080/misconnector/jmf/MISConnector";
 	}
 

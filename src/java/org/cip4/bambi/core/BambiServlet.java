@@ -473,7 +473,8 @@ public class BambiServlet extends HttpServlet
 			port = arg0.getServerPort();
 		}
 		AbstractDevice rootDev = theContainer.getRootDev();
-		rootDev.incNumRequests();
+		rootDev.startWork();
 		super.service(arg0, arg1);
+		rootDev.endWork();
 	}
 }

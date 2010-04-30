@@ -100,6 +100,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.CPUTimer;
@@ -539,6 +540,19 @@ public class MessageSender extends BambiLogFactory implements Runnable
 						if (jmf != null)
 						{
 							resp = jmf.getResponse(refID);
+							if (resp == null)
+							{
+								VElement messageVector = jmf.getMessageVector(EnumFamily.Response, null);
+								if (messageVector != null && messageVector.size() == 1)
+								{
+									resp = (JDFResponse) messageVector.get(0);
+									if (StringUtil.getNonEmpty(resp.getrefID()) == null)
+									{
+										log.warn("Response with missing refID - guess that only one is it: " + refID);
+										resp.setrefID(refID);
+									}
+								}
+							}
 							if (resp != null)
 							{
 								if (checkAcknowledge())
@@ -1025,6 +1039,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			}
 			if (jmf != null)
 			{
+				log.debug(" sending jmf to: " + url.toExternalForm());
 				final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
 				final HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
 				connection = jmfDoc.write2HTTPURL(url, hd);
@@ -1042,6 +1057,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			if (mp != null)
 			// mime package
 			{
+				log.debug(" sending mime to: " + url.toExternalForm());
 				connection = MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
 				if (outDump != null)
 				{

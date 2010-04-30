@@ -104,6 +104,7 @@ import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
+import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFSubscriptionInfo;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -258,6 +259,20 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		 */
 		private void processSubscription(JDFSubscriptionInfo si)
 		{
+			String channelID = StringUtil.getNonEmpty(si.getChannelID());
+			if (channelID == null)
+			{
+				log.warn("SubscriptionInfo without channelID, ignore");
+				return;
+			}
+			JDFSubscription subscription = si.getSubscription();
+			String url = subscription == null ? null : subscription.getURL();
+			String deviceURLForSlave = getProxyProperties().getDeviceURLForSlave();
+			if (!ContainerUtil.equals(url, deviceURLForSlave))
+			{
+				log.warn("SubscriptionInfo for wrong url:" + deviceURLForSlave + ", ignore");
+				return;
+			}
 			EnumType siType = si.getEnumType();
 			for (int ii = 0; ii < sendjmfs.length; ii++)
 			{
@@ -269,10 +284,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				{
 					// may be null at startup - ignore counting
 					ProxySubscription oldSub = mySubscriptions == null ? null : mySubscriptions.get(typ);
-					String channelID = si.getChannelID();
 					if (oldSub == null)
 					{
-						getLog().info("adding existing subscription to list; zype=" + typ.getName() + " channelID=" + channelID);
+						getLog().info("adding existing subscription to list; type=" + typ.getName() + " channelID=" + channelID);
 						sendjmfs[ii].getMessageElement(null, null, 0).setID(channelID);
 						if (mySubscriptions != null) // may be null at startup or shutdown - ignore we'll only be off by a few messages
 						{
@@ -314,7 +328,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			super.handleMessage();
 			if (resp != null)
 			{
-				System.out.print(resp);
+				//TODO System.out.print(resp);
 			}
 			// TODO actually handle the queue updates in here, rather than downstream
 			return true;
@@ -669,6 +683,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				deviceRoot.setAttribute("SlaveErrorHF", hf == null ? null : hf.getPath());
 				final String id = proxyProperties.getSlaveDeviceID();
 				deviceRoot.setAttribute("SlaveDeviceID", id == null ? null : id);
+				deviceRoot.setAttribute("SlaveMIMETransferExpansion", proxyProperties.getSlaveMIMEExpansion(), null);
+				deviceRoot.setAttribute("SlaveMIMETransferEncoding", proxyProperties.getSlaveMIMEEncoding());
+				deviceRoot.setAttribute("SlaveMIMESemicolon", proxyProperties.getSlaveMIMESemicolon(), null);
 			}
 			deviceRoot.setAttribute("DataURL", getDataURL(null));
 		}
@@ -1177,6 +1194,11 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			updateSlaveErrorHF(hf);
 		}
+		if (s.contains("SlaveMIMETransferExpansion"))
+		{
+			boolean expand = request.getBooleanParam("SlaveMIMETransferExpansion");
+			updateSlaveMIMEExpansion(expand);
+		}
 
 	}
 
@@ -1227,6 +1249,21 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		if (!ContainerUtil.equals(oldHF, newHFF))
 		{
 			properties.setSlaveInputHF(newHFF);
+			properties.serialize();
+		}
+	}
+
+	/**
+	 * @param bExtendMime 
+	 * 
+	 */
+	private void updateSlaveMIMEExpansion(boolean bExtendMime)
+	{
+		final IProxyProperties properties = getProxyProperties();
+		final boolean extend = properties.getSlaveMIMEExpansion();
+		if (extend != bExtendMime)
+		{
+			properties.setSlaveMIMEExpansion(bExtendMime);
 			properties.serialize();
 		}
 	}
@@ -1341,6 +1378,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	public void reset()
 	{
 		super.reset();
+		waitingSubscribers.clear();
 		addSlaveSubscriptions(1000, null, true);
 	}
 
@@ -1371,6 +1409,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	@Override
 	public String getDataURL(String queueEntryID)
 	{
+		IProxyProperties proxyProperties = getProxyProperties();
+		if (proxyProperties.getSlaveMIMEExpansion() && proxyProperties.isSlaveMimePackaging())
+			return null;
 		String deviceURL = getDeviceURL();
 		deviceURL = StringUtil.replaceString(deviceURL, "jmf", "data");
 		return deviceURL + ((queueEntryID == null) ? "" : "/" + queueEntryID);

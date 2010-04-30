@@ -131,6 +131,15 @@ public class SimTest extends BambiTestCase
 	}
 
 	/**
+	 * @return
+	 */
+	@Override
+	protected String getDeviceID()
+	{
+		return "sim001";
+	}
+
+	/**
 	 * @throws Exception
 	 */
 	public void testSubmitQueueEntry_MIME() throws Exception
@@ -139,8 +148,7 @@ public class SimTest extends BambiTestCase
 		//		final JDFQueue q = getQueueStatus(simWorkerUrl);
 		//		assertNotNull(q);
 		// build SubmitQueueEntry
-		_theGT.devID = null;
-		_theGT.devID = "sim001";
+		_theGT.devID = getDeviceID();
 		_theGT.assign(null);
 		submitMimetoURL(simWorkerUrl);
 	}
@@ -246,10 +254,10 @@ public class SimTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_MIME_Many() throws Exception
 	{
-		for (int i = 1; i < 2000; i++)
+		for (int i = 1; i < 200; i++)
 		{
 			System.out.println("submitting " + i);
-			_theGT.devID = "sim001";
+			_theGT.devID = getDeviceID();
 			_theGT.assign(null);
 			submitMimetoURL(simWorkerUrl);
 			ThreadUtil.sleep(50);

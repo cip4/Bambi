@@ -71,10 +71,13 @@
 
 package org.cip4.bambi.proxy;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 
 import org.cip4.bambi.BambiTestCase;
+import org.cip4.bambi.BambiTestHelper;
+import org.cip4.jdflib.auto.JDFAutoDeviceFilter.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
@@ -85,10 +88,14 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.NodeIdentifier;
+import org.cip4.jdflib.util.CPUTimer;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFDate;
+import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.UrlUtil.UrlPart;
 
 /**
   * @author Rainer Prosi, Heidelberger Druckmaschinen *
@@ -104,7 +111,9 @@ public class ProxyTest extends BambiTestCase
 		proxySlaveUrl = StringUtil.replaceString(proxyUrl, "/jmf/", "/slavejmf/");
 	}
 
-	protected String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy";
+	// protected String proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/canonproxy";
+	//protected String proxyUrl = "http://192.168.255.70:8000/JDFParser";
+	protected String proxyUrl = "http://localhost:8080/BambiProxy/jmf/pullproxy";
 	protected String proxySlaveUrl;
 
 	/**
@@ -114,6 +123,7 @@ public class ProxyTest extends BambiTestCase
 	protected enumGTType getGTType()
 	{
 		return enumGTType.IDP;
+		//return enumGTType.MISFIN_STITCH;
 	}
 
 	/**
@@ -128,88 +138,6 @@ public class ProxyTest extends BambiTestCase
 		super.setUp();
 		_theGT.good = 100;
 		_theGT.waste = 50;
-	}
-
-	/**
-	 * @throws Exception
-	 */
-	public void testSubmitQueueEntry_KBA() throws Exception
-	{
-		simWorkerUrl = "http://146.140.222.217:8080/BambiProxy/jmf/kbaProxy";
-		gt = enumGTType.MISCP;
-		super.setUp();
-		_theGT.devID = "RA105-4";
-		_theGT.assign(null);
-		submitMimetoURL(simWorkerUrl);
-	}
-
-	/**
-	 * @throws Exception
-	 */
-	public void testSubmitQueueEntry_Komori() throws Exception
-	{
-		simWorkerUrl = "http://146.140.222.217:8080/BambiProxy/jmf/komoriProxy";
-		gt = enumGTType.MISCP;
-		super.setUp();
-		_theGT.devID = "LSX40-100";
-		_theGT.assign(null);
-		submitMimetoURL(simWorkerUrl);
-	}
-
-	/**
-	 * @throws Exception
-	 */
-	public void testSubmitQueueEntry_MuMa() throws Exception
-	{
-		simWorkerUrl = "http://146.140.222.217:8080/BambiProxy/jmf/mumaProxy";
-		gt = enumGTType.MISFIN_STITCH;
-		super.setUp();
-		_theGT.devID = "VirtualStitcher";
-		_theGT.assign(null);
-		submitMimetoURL(simWorkerUrl);
-	}
-
-	/**
-	 * @throws Exception
-	 */
-	public void testSubmitQueueEntry_Goss() throws Exception
-	{
-		simWorkerUrl = "http://146.140.222.217:8080/BambiProxy/jmf/gossProxy";
-		gt = enumGTType.MISCP;
-
-		super.setUp();
-		_theGT.devID = "C-CY0469-PRENANT";
-		_theGT.setParent(true);
-		_theGT.assign(null);
-		submitMimetoURL(simWorkerUrl);
-	}
-
-	/**
-	 * @throws Exception
-	 */
-	public void testSubmitQueueEntry_EFI() throws Exception
-	{
-		simWorkerUrl = "http://146.140.222.217:8080/BambiProxy/jmf/newefiProxy";
-		gt = enumGTType.IDP;
-		super.setUp();
-		_theGT.devID = "FierySys9JDF";
-		_theGT.m_pdfFile = UrlUtil.normalize("O:\\Bambi\\test\\data\\page.pdf");
-		_theGT.assign(null);
-		submitMimetoURL(simWorkerUrl);
-	}
-
-	/**
-	 * @throws Exception
-	 */
-	public void testSubmitQueueEntry_EFIFJC() throws Exception
-	{
-		simWorkerUrl = "http://146.140.222.217:8080/BambiProxy/jmf/efiProxy";
-		gt = enumGTType.IDP;
-		super.setUp();
-		_theGT.devID = "efi";
-		_theGT.m_pdfFile = UrlUtil.normalize("O:\\Bambi\\test\\data\\page.pdf");
-		_theGT.assign(null);
-		submitMimetoURL(simWorkerUrl);
 	}
 
 	/**
@@ -263,12 +191,35 @@ public class ProxyTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_Expand() throws Exception
 	{
-		proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy";
+		proxyUrl = "http://kie-prosirai-lg:8080/BambiProxy/jmf/efiproxy";
 		_theGT.devID = "sim003";
-		_theGT.m_pdfFile = sm_dirTestData + "url1.pdf";
-		_theGT.m_pdfFile = "c:/data/pdf/pdfVT/new.pdf";
+		_theGT.m_pdfFile = sm_dirTestData + "spéciäl% charß €.pdf";
 		_theGT.assign(null);
 		submitMimetoURL(_theGT.getNode().getOwnerDocument_JDFElement(), proxyUrl, true);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	public void testKnownDevices() throws Exception
+	{
+		BambiTestHelper h = new BambiTestHelper();
+		JMFBuilder b = h.getBuilder();
+		JDFJMF jmf = b.buildKnownDevicesQuery(EnumDeviceDetails.Brief);
+		JDFDoc d = h.submitJMFtoURL(jmf, proxyUrl);
+		assertNotNull(d);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	public void testKnownMessages() throws Exception
+	{
+		BambiTestHelper h = new BambiTestHelper();
+		JMFBuilder b = h.getBuilder();
+		JDFJMF jmf = b.buildKnownMessagesQuery();
+		JDFDoc d = h.submitJMFtoURL(jmf, proxyUrl);
+		assertNotNull(d);
 	}
 
 	/**
@@ -316,7 +267,7 @@ public class ProxyTest extends BambiTestCase
 	public void testSubmitQueueEntry_MIME_Many() throws Exception
 	{
 		_theGT.assign(null);
-		for (int i = 0; i < 222222; i++)
+		for (int i = 0; i < 22222; i++)
 		{
 			testSubmitQueueEntry_MIME();
 			System.out.println("Submitting: " + i + " " + new JDFDate().getTimeISO());
@@ -327,16 +278,33 @@ public class ProxyTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
+	public void testSubmitStream() throws Exception
+	{
+		proxyUrl = "http://192.168.255.65:8080/BambiProxy/jmf/efiproxy";
+		File f = new File("C:/var/bambi/dump/proxy/outMessage.efiproxy/m00000006.tmp");
+		InputStream is = FileUtil.getBufferedInputStream(f);
+		UrlPart p = UrlUtil.writeToURL(proxyUrl, is, UrlUtil.POST, MimeUtil.MULTIPART_RELATED, null);
+		assertNotNull(p);
+		JDFDoc d = new JDFParser().parseStream(p.inStream);
+		assertNotNull(d);
+	}
+
+	/**
+	 * @throws Exception
+	 */
 	public void testRequestQE() throws Exception
 	{
-		for (int i = 0; i < 0; i++)
+		proxyUrl = StringUtil.replaceString(proxyUrl, "push", "pull");
+		proxySlaveUrl = StringUtil.replaceString(proxySlaveUrl, "push", "pull");
+		for (int i = 0; i < 1; i++)
 		{
 			testSubmitQueueEntry_MIME();
 			System.out.println("Submitting: " + i);
-			ThreadUtil.sleep(5000);
+			ThreadUtil.sleep(500);
 		}
-		JDFQueue q = getQueueStatus(simWorkerUrl);
+		JDFQueue q = getQueueStatus(proxyUrl);
 		final int count = q.getEntryCount();
+		NodeIdentifier ni = null;
 		for (int i = 0; i < count; i++)
 		{
 			final JDFQueueEntry qe = q.getQueueEntry(i);
@@ -344,16 +312,22 @@ public class ProxyTest extends BambiTestCase
 			{
 				final String jobID = qe.getJobID();
 				final String jobPartID = qe.getJobPartID();
-				final NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
+				ni = new NodeIdentifier(jobID, jobPartID, null);
 				final JDFJMF pull = new JMFBuilder().buildRequestQueueEntry(simWorkerUrl, ni);
 				// pull.getCommand(0).setSenderID("sim001"); // needed for the senderID
+				CPUTimer ct = new CPUTimer(true);
 				final JDFDoc dresp2 = submitJMFtoURL(pull, proxySlaveUrl);
+				System.out.println(ni + "" + i + ct.toString());
 				assertNotNull(dresp2);
-				ThreadUtil.sleep(2000);
-				q = getQueueStatus(simWorkerUrl);
-				assertNotNull(q.getQueueEntry(ni, 0));
-				break;
+				if (dresp2.getJMFRoot().getResponse(0).getReturnCode() == 0)
+				{
+					System.out.print("break");
+					break;
+				}
 			}
 		}
+		ThreadUtil.sleep(2000);
+		q = getQueueStatus(simWorkerUrl);
+		assertNotNull(q.getQueueEntry(ni, 0));
 	}
 }

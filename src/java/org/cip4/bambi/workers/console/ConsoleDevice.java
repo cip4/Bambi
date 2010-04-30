@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -153,6 +153,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 
 		/**
 		 * @param deviceDir
+		 * @param bLocalDevice 
 		 * @return
 		 */
 		private Vector<PhaseAction> loadFile(final File deviceDir, final boolean bLocalDevice)
@@ -294,8 +295,8 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 	@Override
 	public XMLDevice getXMLDevice(final boolean bProc, final BambiServletRequest request)
 	{
-		final XMLDevice simDevice = this.new XMLConsoleDevice(bProc, request);
-		return simDevice;
+		final XMLDevice device = this.new XMLConsoleDevice(bProc, request);
+		return device;
 	}
 
 	/**
@@ -320,17 +321,19 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 
 	/**
 	 * 
-	 * @see org.cip4.bambi.core.AbstractDevice#getXSLT(java.lang.String, org.cip4.bambi.core.BambiServletRequest)
+	 * @see org.cip4.bambi.workers.WorkerDevice#getXSLT(org.cip4.bambi.core.BambiServletRequest)
+	 * @param request
+	 * @return
 	 */
 	@Override
 	public String getXSLT(final BambiServletRequest request)
 	{
-		final String contextPath = request.getContextPath();
-		final String command = request.getCommand();
-		if (("showDevice".equalsIgnoreCase(command) || "processNextPhase".equalsIgnoreCase(command)) && !request.getBooleanParam("setup"))
-		{
-			return getXSLTBaseFromContext(contextPath) + "/showConsole.xsl";
-		}
+		//		final String contextPath = request.getContextPath();
+		//		final String command = request.getCommand();
+		//		if (("showDevice".equalsIgnoreCase(command) || "processNextPhase".equalsIgnoreCase(command)) && !request.getBooleanParam("setup"))
+		//		{
+		//			return getXSLTBaseFromContext(contextPath) + "/showConsole.xsl";
+		//		}
 		return super.getXSLT(request);
 	}
 

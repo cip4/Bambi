@@ -80,6 +80,7 @@ import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.bambi.workers.JobPhase;
 import org.cip4.bambi.workers.UIModifiableDeviceProcessor;
 import org.cip4.bambi.workers.console.ConsoleDevice.PhaseAction;
+import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
@@ -154,8 +155,17 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 	{
 		super();
 		completeMutex = new MyMutex();
+		resetPhase();
+	}
+
+	/**
+	 * 
+	 */
+	private void resetPhase()
+	{
 		currentAction = 0;
 		currentPhase = null;
+		endStatus = null;
 	}
 
 	/**
@@ -203,8 +213,8 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 	public void doNextPhase(final JobPhase nextPhase, final BambiServletRequest request)
 	{
 		final JobPhase lastPhase = getCurrentJobPhase();
-		applyAmounts(lastPhase, request);
 		setNextPhase(nextPhase, request);
+		applyAmounts(lastPhase, request);
 	}
 
 	/**
@@ -241,6 +251,7 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{
 		final boolean b = super.finalizeProcessDoc(qes);
+		resetPhase();
 		return b;
 	}
 
@@ -255,11 +266,14 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
 	{
 		final boolean bOK = super.initializeProcessDoc(node, qe);
-		endStatus = bOK ? EnumNodeStatus.Aborted : node.getStatus();
+		endStatus = bOK ? node.getStatus() : EnumNodeStatus.Aborted;
 		bStopJob = !bOK;
 		if (bOK)
 		{
 			currentAction = 0;
+			currentPhase = new JobPhase();
+			currentPhase.setDeviceStatus(EnumDeviceStatus.Idle);
+			currentPhase.setNodeStatus(EnumNodeStatus.Waiting);
 		}
 		return bOK;
 	}

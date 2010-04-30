@@ -123,7 +123,7 @@ public class BambiContainer extends BambiLogFactory
 	 * @param deviceID
 	 * @return
 	 */
-	AbstractDevice getDeviceFromID(final String deviceID)
+	protected AbstractDevice getDeviceFromID(final String deviceID)
 	{
 		final RootDevice root = getRootDevice();
 		final AbstractDevice dev = root == null ? rootDev : root.getDevice(deviceID);
@@ -330,17 +330,18 @@ public class BambiContainer extends BambiLogFactory
 	 */
 	public XMLResponse processStream(final StreamRequest request) throws IOException
 	{
-
+		final XMLResponse r;
+		startTimer(request);
 		final String contentType = request.getContentType();
 		if (UrlUtil.VND_JMF.equals(contentType))
 		{
 			XMLRequest req = new XMLRequest(request);
-			return processJMFDoc(req);
+			r = processJMFDoc(req);
 		}
 		else if (UrlUtil.TEXT_XML.equals(contentType))
 		{
 			XMLRequest req = new XMLRequest(request);
-			return processXMLDoc(req);
+			r = processXMLDoc(req);
 		}
 		else
 		{
@@ -348,7 +349,7 @@ public class BambiContainer extends BambiLogFactory
 			if (isMultipart)
 			{
 				log.info("Processing multipart request... (ContentType: " + contentType + ")");
-				return processMultiPart(request);
+				r = processMultiPart(request);
 			}
 			else
 			{
@@ -358,9 +359,29 @@ public class BambiContainer extends BambiLogFactory
 				ctWarn += "\nFor JDF , please use: " + UrlUtil.VND_JDF;
 				ctWarn += "\nFor MIME, please use: " + MimeUtil.MULTIPART_RELATED;
 				ctWarn += "\n\n Input Message:\n\n";
-				return processError(request.getRequestURI(), EnumType.Notification, 9, ctWarn);
+				r = processError(request.getRequestURI(), EnumType.Notification, 9, ctWarn);
 			}
 		}
+		stopTimer(request);
+		return r;
+	}
+
+	/**
+	 * @param request
+	 */
+	private void startTimer(ContainerRequest request)
+	{
+		AbstractDevice dev = getDeviceFromID(request.getDeviceID());
+		dev.getDeviceTimer(false).start();
+	}
+
+	/**
+	 * @param request
+	 */
+	private void stopTimer(ContainerRequest request)
+	{
+		AbstractDevice dev = getDeviceFromID(request.getDeviceID());
+		dev.getDeviceTimer(false).stop();
 	}
 
 	/**
@@ -381,6 +402,7 @@ public class BambiContainer extends BambiLogFactory
 	 */
 	public XMLResponse processMultiPart(final StreamRequest request) throws IOException
 	{
+		startTimer(request);
 		final InputStream inStream = request.getStream();
 		final BodyPart bp[] = MimeUtil.extractMultipartMime(inStream);
 		log.info("Body Parts: " + ((bp == null) ? 0 : bp.length));
@@ -415,6 +437,7 @@ public class BambiContainer extends BambiLogFactory
 				r = processError(request.getRequestURI(), null, 9, "Messaging exception\n" + x.getLocalizedMessage());
 			}
 		}
+		stopTimer(request);
 		return r;
 	}
 
@@ -425,32 +448,43 @@ public class BambiContainer extends BambiLogFactory
 	 */
 	public XMLResponse processMultipleDocuments(final MimeRequest request)
 	{
+		startTimer(request);
+		final XMLResponse r;
 		BodyPart[] bp = request.getBodyParts();
 		log.info("processMultipleDocuments- parts: " + (bp == null ? 0 : bp.length));
 		if (bp == null || bp.length < 2)
 		{
-			return processError(request.getRequestURI(), EnumType.Notification, 2, "processMultipleDocuments- not enough parts, bailing out");
+			r = processError(request.getRequestURI(), EnumType.Notification, 2, "processMultipleDocuments- not enough parts, bailing out");
 		}
-		final JDFDoc docJDF[] = MimeUtil.getJMFSubmission(bp[0].getParent());
-		if (docJDF == null || docJDF.length == 0)
+		else
 		{
-			return processError(request.getRequestURI(), EnumType.Notification, 2, "proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
-		}
-		else if (docJDF.length == 1)
-		{
-			final JDFMessage messageElement = docJDF[0].getJMFRoot().getMessageElement(null, null, 0);
-			EnumType typ = messageElement == null ? EnumType.Notification : messageElement.getEnumType();
-			if (typ == null)
+			final JDFDoc docJDF[] = MimeUtil.getJMFSubmission(bp[0].getParent());
+			if (docJDF == null || docJDF.length == 0)
 			{
-				typ = EnumType.Notification;
+				r = processError(request.getRequestURI(), EnumType.Notification, 2, "proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
 			}
-			return processError(request.getRequestURI(), typ, 2, "proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
+			else if (docJDF.length == 1)
+			{
+				final JDFMessage messageElement = docJDF[0].getJMFRoot().getMessageElement(null, null, 0);
+				EnumType typ = messageElement == null ? EnumType.Notification : messageElement.getEnumType();
+				if (typ == null)
+				{
+					typ = EnumType.Notification;
+				}
+				r = processError(request.getRequestURI(), typ, 2, "proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
 
+			}
+			else
+			{
+				XMLRequest r2 = new XMLRequest(docJDF[0].getJMFRoot());
+				r2.setContainer(request);
+				// callbacks must be handled individually
+				r = processJMFDoc(r2);
+			}
 		}
-		XMLRequest r2 = new XMLRequest(docJDF[0].getJMFRoot());
-		r2.setContainer(request);
-		// callbacks must be handled individually
-		return processJMFDoc(r2);
+		stopTimer(request);
+
+		return r;
 	}
 
 	/**
@@ -461,6 +495,7 @@ public class BambiContainer extends BambiLogFactory
 	 */
 	public XMLResponse processJMFDoc(final XMLRequest request)
 	{
+		startTimer(request);
 		JDFJMF jmf = (JDFJMF) request.getXML();
 		JDFDoc jmfDoc = jmf == null ? null : jmf.getOwnerDocument_JDFElement();
 		final XMLResponse response;
@@ -516,6 +551,7 @@ public class BambiContainer extends BambiLogFactory
 				}
 			}
 		}
+		stopTimer(request);
 		return response;
 	}
 

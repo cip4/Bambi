@@ -275,7 +275,24 @@ public class ProxyProperties extends MultiDeviceProperties
 		 */
 		public boolean getSlaveMIMEExpansion()
 		{
-			return StringUtil.parseBoolean(getDeviceAttribute("SlaveMIMETransferExpansion"), getControllerMIMEExpansion());
+			return isSlaveMimePackaging() && StringUtil.parseBoolean(getDeviceAttribute("SlaveMIMETransferExpansion"), getControllerMIMEExpansion());
+		}
+
+		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveMIMEExpansion(boolean)
+		 * @param extendMime
+		*/
+		public void setSlaveMIMEExpansion(boolean extendMime)
+		{
+			devRoot.setAttribute("SlaveMIMETransferExpansion", extendMime, null);
+		}
+
+		/**
+		 * @return true if a semicolon is allowed after the mime type
+		 */
+		public boolean getSlaveMIMESemicolon()
+		{
+			return isSlaveMimePackaging() && StringUtil.parseBoolean(getDeviceAttribute("SlaveMIMESemicolon"), true);
 		}
 
 		/**
@@ -295,7 +312,6 @@ public class ProxyProperties extends MultiDeviceProperties
 		{
 			devRoot.setAttribute("SlaveDeviceID", newSlaveID, null);
 		}
-
 	}
 
 	/**

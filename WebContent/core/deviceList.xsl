@@ -62,20 +62,54 @@
           <xsl:apply-templates select="XMLDevice[@Root='false']"/>
         </table>
         <hr/>
-        <p>
+        <xsl:call-template name="cputimer"/>   
+        
+        <hr/>
+        <font size="-1" color="#b0c4de">
+        <table>
+        <tr>
+        <td>
           requests handled:
+          </td>
+          <td>
           <xsl:value-of select="@NumRequests"/>
-        </p>
-       <p>
-          Free Memory:
+          </td>
+          </tr>
+          <tr>
+          <td>
+           Free Memory:
+           </td>
+           <td>
           <xsl:value-of select="@MemFree"/>
-        </p>
-       <p>
-          Total Allocated Memory:
+          </td>
+          </tr>
+          <tr>
+          <td>
+            Total Allocated Memory:
+          </td>
+          <td>
           <xsl:value-of select="@MemTotal"/>
-        </p>
-        <p>Build @build.number@, @build.timestamp@</p>
-      </body>
+          </td>
+          </tr>
+          <tr>
+          <td>
+ Bambi Internal Build: 
+           </td>
+           <td>
+ @build.number@ at @build.timestamp@
+ </td>
+          </tr>
+          <tr>
+         <td>
+JDFLib Build:            
+</td>
+           <td>
+@build.minorversion@, JDF Schema Version: @build.majorversion@
+</td>
+          </tr>
+          </table>
+         </font>
+       </body>
     </html>
   </xsl:template>
 
@@ -165,4 +199,6 @@
       </td>
     </tr>
   </xsl:template>
+  <xsl:include href="CPUTimer.xsl"/>
+  
 </xsl:stylesheet>

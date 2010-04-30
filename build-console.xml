@@ -14,6 +14,7 @@
 	
 		<property file="version.properties"/>
 		<property name="src.dir" value="./src" />
+		<property name="workerscore.src.dir" value="${src.dir}/java/org/cip4/bambi/workers" />
 		<property name="console.src.dir" value="${workerscore.src.dir}/console" />
 		<property name="web.src.dir" value="./WebContent/workers/console" />
 		<property name="webcore.src.dir" value="./WebContent/core" />
@@ -100,11 +101,19 @@
 				<include name="${base.filename}.jar" />
 			</fileset>
 		</copy>
-		<!-- Update build number and timestamp in overview.jsp -->
+		<!-- Update build number and timestamp in xsl stylesheets -->
 		<replace file="${war.dir}/deviceList.xsl">
-			<replacefilter token="@build.number@" value="${build.number}" />
-			<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
-		</replace>		
+				<replacefilter token="@build.number@" value="${build.number}" />
+				<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
+				<replacefilter token="@build.majorversion@" value="${major.version}" />
+				<replacefilter token="@build.minorversion@" value="${minor.version}" />
+			</replace>		
+			<replace file="${war.dir}/showDevice.xsl">
+				<replacefilter token="@build.number@" value="${build.number}" />
+				<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
+				<replacefilter token="@build.majorversion@" value="${major.version}" />
+				<replacefilter token="@build.minorversion@" value="${minor.version}" />
+			</replace>		
 		<!-- Builds compressed WAR file -->
 		<jar basedir="${war.dir}" destfile="${dist.dir}/${worker.name}.war" filesonly="false"/>
 	</target>

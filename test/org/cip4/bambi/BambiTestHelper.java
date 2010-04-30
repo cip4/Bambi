@@ -231,7 +231,7 @@ public class BambiTestHelper extends JDFTestCaseBase
 	/**
 	 * @return
 	 */
-	private JMFBuilder getBuilder()
+	public JMFBuilder getBuilder()
 	{
 		final JMFBuilder builder = new JMFBuilder();
 		builder.setAcknowledgeURL(acknowledgeURL);

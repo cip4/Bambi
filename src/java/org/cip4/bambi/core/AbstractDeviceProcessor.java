@@ -95,6 +95,7 @@ import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 
 /**
  * abstract parent class for device processors <br>
@@ -109,7 +110,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 */
 	protected QueueProcessor _queueProcessor;
 	protected StatusListener _statusListener;
-	protected Object _myListener; // the mutex for waiting and reawakening
+	protected MyMutex _myListener; // the mutex for waiting and reawakening
 	protected boolean _doShutdown = false;
 	protected IQueueEntry currentQE;
 	protected String _trackResource = null;
@@ -287,27 +288,20 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	{
 		long nWait = 0;
 		long tWait = System.currentTimeMillis();
+		ThreadUtil.sleep(5555); // wait a few seconds before we start processing
 		while (!_doShutdown)
 		{
 			try
 			{
 				if (!processQueueEntry())
 				{
-					try
+					if ((nWait % 42) == 0)
 					{
-						if ((nWait % 12) == 0)
-							log.debug("waiting since: " + new JDFDate(tWait).getFormattedDateTime("hh:mm") + " (" + ((System.currentTimeMillis() - tWait) / 1000) + " seconds)");
-						idleProcess();
-						nWait++;
-						synchronized (_myListener)
-						{
-							_myListener.wait(10000); // 10000 is just in case
-						}
+						log.debug("waiting since: " + new JDFDate(tWait).getFormattedDateTime("hh:mm") + " (" + ((System.currentTimeMillis() - tWait) / 1000) + " seconds)");
 					}
-					catch (final InterruptedException x)
-					{
-						log.warn("interrupted while idle");
-					}
+					idleProcess();
+					nWait++;
+					ThreadUtil.wait(_myListener, 10000); // 10000 is just in case
 				}
 				else
 				{
@@ -356,7 +350,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	public void init(final QueueProcessor queueProcessor, final StatusListener statusListener, final IDeviceProperties devProperties)
 	{
 		log.info(this.getClass().getName() + " construct");
-		_myListener = new Object();
+		_myListener = new MyMutex();
 		_queueProcessor = queueProcessor;
 		if (_queueProcessor != null)
 		{

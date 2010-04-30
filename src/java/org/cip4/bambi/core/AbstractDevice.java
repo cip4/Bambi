@@ -92,12 +92,14 @@ import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
+import org.cip4.jdflib.auto.JDFAutoGeneralID.EnumDataType;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.auto.JDFAutoSubmissionMethods.EnumPackaging;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFCustomerInfo;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -115,7 +117,6 @@ import org.cip4.jdflib.jmf.JDFResourceQuParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
-import org.cip4.jdflib.jmf.JDFSubmissionMethods;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -124,12 +125,16 @@ import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.resource.process.JDFEmployee;
+import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.QueueHotFolder;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.CPUTimer.CPUTimerFactory;
+import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 
 /**
  * basis for JDF devices. <br>
@@ -170,6 +175,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final boolean bModify = request.getBooleanParam("modify");
 			deviceRoot.setAttribute("modify", bModify, null);
 			deviceRoot.setAttribute("NumRequests", numRequests, null);
+			deviceRoot.copyElement(getDeviceTimer(true).toXML(), null);
 			deviceRoot.setAttribute(AttributeName.DEVICEID, getDeviceID());
 			deviceRoot.setAttribute(AttributeName.DEVICETYPE, getDeviceType());
 			deviceRoot.setAttribute("DeviceURL", getDeviceURL());
@@ -283,47 +289,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			}
 
 			return false;
-		}
-	}
-
-	/**
-	 * handler for the KnownDevices query
-	 */
-	protected class SubmissionMethodsHandler extends AbstractHandler
-	{
-
-		public SubmissionMethodsHandler()
-		{
-			super(EnumType.SubmissionMethods, new EnumFamily[] { EnumFamily.Query });
-		}
-
-		/**
-		 * 
-		 */
-		@Override
-		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
-		{
-			// "I am the known device"
-			if (m == null || resp == null)
-			{
-				return false;
-			}
-			log.debug("Handling " + m.getType());
-			final EnumType typ = m.getEnumType();
-			if (EnumType.SubmissionMethods.equals(typ))
-			{
-				final JDFSubmissionMethods sm = resp.appendSubmissionMethods();
-				final Vector<EnumPackaging> v = new Vector<EnumPackaging>();
-				v.add(EnumPackaging.MIME);
-				sm.setPackaging(v);
-				sm.setURLSchemes(new VString("http,file", ","));
-				if (_submitHotFolder != null)
-				{
-					sm.setHotFolder(UrlUtil.fileToUrl(_submitHotFolder.getHfDirectory(), false));
-				}
-			}
-
-			return true;
 		}
 	}
 
@@ -478,6 +443,14 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 
 		/**
+		 * 
+		 */
+		public StatusOptimizer()
+		{
+			super();
+		}
+
+		/**
 		 * @see org.cip4.bambi.core.messaging.IMessageOptimizer#optimize(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		public optimizeResult optimize(final JDFMessage newMessage, final JDFMessage oldMessage)
@@ -591,6 +564,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected StatusListener _theStatusListener = null;
 	protected long numRequests = 0;
 	protected boolean acceptAll = false;
+	private final MyMutex mutex;
 
 	/**
 	 * creates a new device instance
@@ -600,6 +574,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 		super();
 		_devProperties = prop;
+		mutex = new MyMutex();
 		init();
 	}
 
@@ -615,7 +590,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		_jmfHandler.setFilterOnDeviceID(true);
 
 		_theQueueProcessor = buildQueueProcessor();
-		_theQueueProcessor.addHandlers(_jmfHandler);
+		if (_theQueueProcessor != null)
+		{
+			_theQueueProcessor.addHandlers(_jmfHandler);
+			_theQueueProcessor.addListener(mutex);
+		}
 
 		final String deviceID = _devProperties.getDeviceID();
 		_deviceProcessors = new Vector<AbstractDeviceProcessor>();
@@ -714,14 +693,24 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 	}
 
+	/**
+	 * 
+	 */
 	protected void addHandlers()
 	{
 		addHandler(this.new KnownDevicesHandler());
-		addHandler(this.new ResourceHandler());
-		addHandler(this.new StatusHandler());
-		addHandler(this.new SubmissionMethodsHandler());
 		addHandler(new NotificationHandler(this, _theStatusListener));
 		addHandler(AcknowledgeMap.getMap());
+		addJobHandlers();
+	}
+
+	/**
+	 * add any job related handlers - will be overwritten by non-job handling devices
+	 */
+	protected void addJobHandlers()
+	{
+		addHandler(this.new ResourceHandler());
+		addHandler(this.new StatusHandler());
 	}
 
 	/**
@@ -952,16 +941,17 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status)
 	{
+		if (status == null && StringUtil.getNonEmpty(queueEntryID) != null)
+		{
+			getSignalDispatcher().removeSubScriptions(queueEntryID, null, null);
+		}
+
 		final AbstractDeviceProcessor deviceProcessor = getProcessor(queueEntryID, 0);
 		if (deviceProcessor == null)
 		{
 			return null;
 		}
 		deviceProcessor.stopProcessing(status);
-		if (status == null && StringUtil.getNonEmpty(queueEntryID) != null)
-		{
-			getSignalDispatcher().removeSubScriptions(queueEntryID, null, null);
-		}
 		final IQueueEntry currentQE = deviceProcessor.getCurrentQE();
 		return currentQE == null ? null : currentQE.getQueueEntry();
 	}
@@ -1075,6 +1065,43 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * @return list of valid deviceIDS if any, else null if none
 	 */
 	public abstract VString canAccept(JDFNode jdf, String queueEntryID);
+
+	/**
+	 * stub that allows moving data to and from the jdfdoc to the queueentry 
+	 * 
+	 * @param qe
+	 * @param doc
+	 * @return the updated queueEntryID
+	 */
+	public String fixEntry(final JDFQueueEntry qe, final JDFDoc doc)
+	{
+		final JDFNode root = getNodeFromDoc(doc);
+		if (qe == null || root == null)
+		{
+			return null;
+		}
+		qe.setFromJDF(root); // set jobid, jobpartid, partmaps
+		final int prio = qe.getPriority();
+		if (prio > 0)
+		{
+			final JDFNodeInfo ni = root.getCreateNodeInfo();
+			if (!ni.hasAttribute(AttributeName.JOBPRIORITY))
+			{
+				ni.setJobPriority(prio);
+			}
+		}
+		JDFCustomerInfo ci = root.getCustomerInfo();
+		if (ci != null)
+		{
+			String cid = StringUtil.getNonEmpty(ci.getCustomerID());
+			if (cid != null)
+			{
+				qe.setGeneralID(AttributeName.CUSTOMERID, cid).setDataType(EnumDataType.string);
+			}
+		}
+		final String qeID = qe.getQueueEntryID();
+		return qeID;
+	}
 
 	/**
 	 * @param doc
@@ -1295,6 +1322,35 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		numRequests++;
 	}
 
+	/**
+	 * method called when processing begins
+	 */
+	void startWork()
+	{
+		incNumRequests();
+		getDeviceTimer(false).start();
+	}
+
+	/**
+	 * @param bGlobal 
+	 * @return
+	 */
+	public CPUTimer getDeviceTimer(boolean bGlobal)
+	{
+		CPUTimerFactory factory = CPUTimer.getFactory();
+		final String id = "AbstractDevice_" + getDeviceID();
+		CPUTimer ct = bGlobal ? factory.getGlobalTimer(id) : factory.getCreateCurrentTimer(id);
+		return ct;
+	}
+
+	/**
+	 * method called when processing ends
+	 */
+	void endWork()
+	{
+		getDeviceTimer(false).stop();
+	}
+
 	protected boolean isMyRequest(final BambiServletRequest request)
 	{
 		return request.isMyRequest(getDeviceID());
@@ -1326,6 +1382,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return;
 		}
 		final String queueURL = getDeviceURL();
+		log.info("Sending RequestQueueEntry for" + queueURL + " to: " + proxyURL);
 		final JDFJMF jmf = new JMFBuilder().buildRequestQueueEntry(queueURL, null);
 		sendJMF(jmf, proxyURL, null);
 	}
@@ -1612,29 +1669,44 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected IQueueEntry getQEFromParent()
 	{
-		final QERetrieval canPush = getProperties().getQERetrieval();
-
-		while (true)
+		IQueueEntry currentQE = getQEFromQueue();
+		if (currentQE == null)
 		{
-			synchronized (_theQueueProcessor.getQueue())
+			sendRequestQueueEntry();
+			ThreadUtil.wait(mutex, 2222); // wait a short while for an immediate response
+			currentQE = getQEFromQueue();
+			if (currentQE != null)
 			{
-				IQueueEntry currentQE = _theQueueProcessor.getNextEntry(null, canPush);
-				if (currentQE == null && _rootDevice != null)
-				{
-					currentQE = _rootDevice._theQueueProcessor.getNextEntry(getDeviceID(), canPush);
-					importQEFromRoot(currentQE);
-				}
-				if (currentQE == null)
-				{
-					sendRequestQueueEntry();
-				}
-				if (currentQE != null)
-				{
-					currentQE.getQueueEntry().setDeviceID(getDeviceID());
-				}
-				return currentQE;
+				log.info("processing requested qe: " + currentQE.getQueueEntryID());
 			}
 		}
+		return currentQE;
+	}
+
+	/**
+	 * @return
+	 */
+	private IQueueEntry getQEFromQueue()
+	{
+		IQueueEntry currentQE;
+		if (_theQueueProcessor == null)
+			return null;
+
+		synchronized (_theQueueProcessor.getQueue())
+		{
+			final QERetrieval canPush = getProperties().getQERetrieval();
+			currentQE = _theQueueProcessor.getNextEntry(null, canPush);
+			if (currentQE == null && _rootDevice != null)
+			{
+				currentQE = _rootDevice._theQueueProcessor.getNextEntry(getDeviceID(), canPush);
+				importQEFromRoot(currentQE);
+			}
+			if (currentQE != null)
+			{
+				currentQE.getQueueEntry().setDeviceID(getDeviceID());
+			}
+		}
+		return currentQE;
 	}
 
 	/**
@@ -1696,6 +1768,14 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public String getDataURL(String queueEntryID)
 	{
 		return null;
+	}
+
+	/**
+	 * @return the _submitHotFolder
+	 */
+	public QueueHotFolder getQueueSubmitHotFolder()
+	{
+		return _submitHotFolder;
 	}
 
 }

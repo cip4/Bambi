@@ -6,12 +6,121 @@
      SlaveDeviceID=the device id of the slave
   -->
  
-<application Port="8080" BaseDir="/var/bambi/bambiproxy/" JDFDir="JDFDir" DeviceClass="org.cip4.bambi.proxy.ProxyDevice">
+<application Port="8080" 
+BaseDir="/var/bambi/bambiproxy/" 
+SenderID="ProxyDevice" 
+JDFDir="JDFDir" 
+DeviceClass="org.cip4.bambi.proxy.ProxyDevice">
+  
   <Device DeviceID="proxyRoot" DeviceType="Bambi Proxy Root" DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/devices/proxy001"/>
-  <Device DeviceID="pullproxy" DeviceType="Bambi Pull Proxy" SlaveStatus="JMFGLOBAL"
-    SlaveDeviceID="sim001" DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/jmf/pullproxy" SlaveURL="http://kie-prosirai-lg:8080/SimWorker/devices/sim001"
-    MaxPush="0" InputHF="/var/bambi/hf/pullproxy/Input" OutputHF="/var/bambi/hf/pullproxy/Output" ErrorHF="/var/bambi/hf/pullhproxy/Error"/>
-  <Device DeviceID="pushproxy" DeviceType="Bambi Push Proxy for SimWorker/Sim003" SlaveStatus="JMFGLOBAL"
-    SlaveDeviceID="sim003" DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy" SlaveURL="http://kie-prosirai-lg:8080/SimWorker/devices/sim003"
-    MaxPush="10" InputHF="/var/bambi/hf/pushproxy/Input" OutputHF="/var/bambi/hf/pushproxy/Output" ErrorHF="/var/bambi/hf/pushproxy/Error"/>
+  <Device 
+  DeviceID="pullproxy" 
+  DeviceType="Bambi Pull Proxy for SimWorker/Sim001" 
+  SlaveStatus="JMFGLOBAL"
+    SlaveDeviceID="sim001" 
+    DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/jmf/pullproxy" 
+    SlaveURL="http://kie-prosirai-lg:8080/SimWorker/devices/sim001"
+    MaxPush="0" 
+    InputHF="/var/bambi/hf/pullproxy/Input" 
+    OutputHF="/var/bambi/hf/pullproxy/Output" 
+    ErrorHF="/var/bambi/hf/pullhproxy/Error"/>
+  
+  <Device DeviceID="pushproxy" 
+  DeviceType="Bambi Push Proxy for SimWorker/Sim003" 
+  SlaveStatus="JMFGLOBAL"
+    SlaveDeviceID="sim003" 
+    DeviceURL="http://kie-prosirai-lg:8080/BambiProxy/jmf/pushproxy" 
+    SlaveURL="http://kie-prosirai-lg:8080/SimWorker/devices/sim003"
+    MaxPush="10" 
+    InputHF="/var/bambi/hf/pushproxy/Input" 
+    OutputHF="/var/bambi/hf/pushproxy/Output" 
+    ErrorHF="/var/bambi/hf/pushproxy/Error"/>
+
+<!--
+  <Device DeviceID="mumaproxy" 
+    DeviceType="Bambi Push Proxy for Müller Martini" 
+    SlaveStatus="JMFGLOBAL"
+    SlaveDeviceID="VirtualStitcher" 
+    DeviceURL="http://192.168.255.125:8080/BambiProxy/jmf/mumaproxy" 
+    SlaveURL="http://192.168.255.57:56017/mime"
+    MaxPush="10" 
+/>
+ <Device DeviceID="canonproxy" 
+    DeviceType="Bambi Push Proxy for Canon" 
+    SlaveStatus="JMFGLOBAL"
+    SlaveDeviceID="AAA12345" 
+    DeviceURL="http://192.168.255.125:8080/BambiProxy/jmf/canonproxy" 
+    SlaveURL="http://192.168.255.70:8000/JDFParser"
+    SlaveMIMETransferExpansion="true"
+    SlaveMIMETransferEncoding="BASE64"
+    MaxPush="10" 
+/>
+
+<Device DeviceID="ricohproxy" 
+    DeviceType="Bambi Push Proxy for Ricoh" 
+    SlaveStatus="JMFGLOBAL"
+    SlaveDeviceID="Ricoh_005056c00001" 
+    DeviceURL="http://192.168.255.125:8080/BambiProxy/jmf/ricohproxy" 
+    SlaveURL="http://192.168.255.94:50001/"
+    SlaveMIMETransferExpansion="true"
+    SlaveMIMETransferEncoding="BASE64"
+    MaxPush="10" 
+ />
+
+<Device DeviceID="efiproxy" 
+    DeviceType="Bambi Push Proxy for EFI" 
+    SlaveStatus="JMFGLOBAL"
+    SlaveDeviceID="Fiery9R2B65" 
+    DeviceURL="http://192.168.255.125:8080/BambiProxy/jmf/efiproxy" 
+    SlaveURL="http://192.168.255.123:8010/"
+    SlaveMIMETransferExpansion="true"
+    SlaveMIMETransferEncoding="BASE64"
+    SlaveMIMESemicolon="true"
+    SlaveMimePackaging="false"
+    MaxPush="10" 
+ />
+ 
+<Device DeviceID="efifjcproxy" 
+    DeviceType="Bambi Push Proxy for EFI" 
+    SlaveStatus="JMFGLOBAL"
+    SlaveDeviceID="fjc-Fiery9r2b65" 
+    DeviceURL="http://192.168.255.125:8080/BambiProxy/jmf/efifjcproxy" 
+    SlaveURL="http://192.168.255.109:8010/FJC/fjc-Fiery9r2b65/"
+    SlaveMIMETransferExpansion="true"
+    SlaveMIMETransferEncoding="BASE64"
+    SlaveMIMESemicolon="true"
+    MaxPush="10" 
+ />
+
+
+<Device DeviceID="hpproxy" 
+    DeviceType="Bambi Push Proxy for HP" 
+    SlaveStatus="JMFGLOBAL"
+    SlaveDeviceID="HP-1B533AF2BB3D" 
+    DeviceURL="http://192.168.255.125:8080/BambiProxy/jmf/hpproxy" 
+    SlaveURL="http://192.168.255.106:8080/dpp/jmf/dfe"
+    SlaveMIMETransferExpansion="true"
+    SlaveMIMETransferEncoding="binary"
+    MaxPush="10" 
+  />
+ 
+ <Device DeviceID="gossproxy" 
+    DeviceType="Bambi Push Proxy for Goss" 
+    SlaveStatus="JMFGLOBAL"
+    SlaveDeviceID="devID" 
+    DeviceURL="http://192.168.255.125:8080/BambiProxy/jmf/gossproxy" 
+    SlaveURL="http://192.168.255.116:8888/jmf"
+    SlaveMimePackaging="false"
+    MaxPush="10" 
+  />
+<Device DeviceID="komoriproxy" 
+    DeviceType="Bambi Push Proxy for Komori" 
+    SlaveStatus="JMFGLOBAL"
+    SlaveDeviceID="LSX40-100" 
+    DeviceURL="http://192.168.255.125:8080/BambiProxy/jmf/komoriproxy" 
+    SlaveURL="http://192.168.255.122:50000/"
+    SlaveMimePackaging="true"
+    MaxPush="10" 
+  />
+    -->
  </application>

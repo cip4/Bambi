@@ -430,6 +430,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	/**
 	 * handle login/logout of employees
 	 * @param request
+	 * @param response 
 	 * @return
 	 */
 	private boolean handleLogin(final BambiServletRequest request, final BambiServletResponse response)

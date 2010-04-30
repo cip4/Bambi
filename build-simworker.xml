@@ -67,7 +67,7 @@
 		<!-- Builds exploded WAR file -->
 		<property name="war.dir" value="${dist.dir}/${base.filename}-war" />
 		<mkdir dir="${war.dir}" />
-	<copy todir="${war.dir}">
+	    <copy todir="${war.dir}">
 			<fileset dir="${webcore.src.dir}">
 				<include name="**/*" />
 			</fileset>
@@ -99,10 +99,18 @@
 				<include name="${base.filename}.jar" />
 			</fileset>
 		</copy>
-		<!-- Update build number and timestamp in overview.jsp -->
+		<!-- Update build number and timestamp in xsl stylesheets -->
 		<replace file="${war.dir}/deviceList.xsl">
 			<replacefilter token="@build.number@" value="${build.number}" />
 			<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
+			<replacefilter token="@build.majorversion@" value="${major.version}" />
+			<replacefilter token="@build.minorversion@" value="${minor.version}" />
+		</replace>		
+		<replace file="${war.dir}/showDevice.xsl">
+			<replacefilter token="@build.number@" value="${build.number}" />
+			<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
+			<replacefilter token="@build.majorversion@" value="${major.version}" />
+			<replacefilter token="@build.minorversion@" value="${minor.version}" />
 		</replace>		
 		<!-- Builds compressed WAR file -->
 		<jar basedir="${war.dir}" destfile="${dist.dir}/${SimWorker.name}.war" filesonly="false"/>

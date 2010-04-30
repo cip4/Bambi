@@ -417,7 +417,8 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		// setup http get for JDF
 		{
 			String jdfURL = proxyParent.getDeviceURL();
-			jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/" + AbstractProxyDevice.SLAVEJMF + "/");
+			//			jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/" + AbstractProxyDevice.SLAVEJMF + "/");
+			jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/");
 			modNode.getOwnerDocument_KElement().write2File((String) null, 0, true);
 			jdfURL += "?Callback=true&qeID=" + currentQE.getQueueEntryID();
 			qsp.setURL(jdfURL);

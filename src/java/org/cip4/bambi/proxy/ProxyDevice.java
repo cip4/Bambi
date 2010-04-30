@@ -296,10 +296,41 @@ public class ProxyDevice extends AbstractProxyDevice
 	 */
 	protected class RequestQueueEntryHandler extends AbstractHandler
 	{
+		protected int numSubmitThread;
+		protected SubmitThread submitThread;
+
+		private class SubmitThread extends Thread
+		{
+			/**
+			 * @param iqe
+			 * @param queueURL
+			 */
+			public SubmitThread(IQueueEntry iqe, String queueURL)
+			{
+				super("RequestQE_" + getDeviceID() + "_" + numSubmitThread++);
+				this.iqe = iqe;
+				this.queueURL = queueURL;
+			}
+
+			IQueueEntry iqe;
+			String queueURL;
+
+			/**
+			 * @see java.lang.Thread#run()
+			*/
+			@Override
+			public void run()
+			{
+				getLog().info("submitting for RequestQE");
+				submitQueueEntry(iqe, queueURL);
+				submitThread = null; // now we are done...
+			}
+		}
 
 		public RequestQueueEntryHandler()
 		{
 			super(EnumType.RequestQueueEntry, new EnumFamily[] { EnumFamily.Command });
+			numSubmitThread = 0;
 		}
 
 		/**
@@ -330,6 +361,11 @@ public class ProxyDevice extends AbstractProxyDevice
 				JMFHandler.errorResponse(resp, "QueueURL is missing", 7, EnumClass.Error);
 				return true;
 			}
+			if (submitThread != null)
+			{
+				JMFHandler.errorResponse(resp, "Currently handling requestQueueEntry, try again later", 10, EnumClass.Warning);
+				return true;
+			}
 
 			final NodeIdentifier nid = new NodeIdentifier(qep.getJobID(), qep.getJobPartID(), qep.getPartMapVector());
 			// submit a specific QueueEntry
@@ -338,7 +374,8 @@ public class ProxyDevice extends AbstractProxyDevice
 			if (qe != null && EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && KElement.isWildCard(qe.getDeviceID()))
 			{
 				qe.setDeviceID(m.getSenderID());
-				submitQueueEntry(iqe, queueURL);
+				submitThread = new SubmitThread(iqe, queueURL);
+				submitThread.start();
 			}
 			else if (qe == null)
 			{
@@ -391,8 +428,9 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 			if (theDoc == null)
 			{
-				JMFHandler.errorResponse(resp, "No returned JDF in ReturnQueueEntry message", 7, EnumClass.Error);
-				return true;
+				log.error("No returned JDF in ReturnQueueEntry message: for slave queueentry: " + slaveQueueEntryID);
+				//				JMFHandler.errorResponse(resp, "No returned JDF in ReturnQueueEntry message", 7, EnumClass.Error);
+				//				return true;
 			}
 
 			final ProxyDeviceProcessor proc = getProcessorForReturnQE(retQEParams, resp, theDoc);
@@ -408,6 +446,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		/**
 		 * @param rqp 
 		 * @param resp 
+		 * @param theDoc 
 		 * @return the ProxyDeviceProcessor that handles messages from slaveQEID
 		 */
 		protected ProxyDeviceProcessor getProcessorForReturnQE(final JDFReturnQueueEntryParams rqp, final JDFResponse resp, JDFDoc theDoc)
@@ -424,7 +463,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 			if (proc == null)
 			{
-				final String errorMsg = "QueueEntry with ID=" + slaveQEID + "," + nid == null ? " - " : nid + " is not being processed";
+				final String errorMsg = "QueueEntry with slave QueueEntryID = " + slaveQEID + ", job identifier: " + nid == null ? " - " : nid + " is not being processed";
 				JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
 			}
 			return proc;
@@ -1032,18 +1071,17 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		if (status == null)
 		{
-
 			final JDFJMF jmf = new JMFBuilder().buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
 			if (jmf != null)
 			{
 				final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(status, jmf.getCommand(0).getID());
 				sendJMFToSlave(jmf, ah);
-				ah.waitHandled(5555, 30000, false);
-				final EnumNodeStatus newStatus = ah.getFinalStatus();
-				if (newStatus == null)
-				{
-					return null;
-				}
+				//				ah.waitHandled(5555, 30000, false);
+				//				final EnumNodeStatus newStatus = ah.getFinalStatus();
+				//				if (newStatus == null)
+				//				{
+				//					//					return null;
+				//				}
 			}
 		}
 		final JDFQueueEntry qe = super.stopProcessing(queueEntryID, status);

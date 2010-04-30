@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -68,15 +68,12 @@
  */
 package org.cip4.bambi.workers;
 
-import org.cip4.bambi.BambiTestCase;
-import org.cip4.jdflib.jmf.JDFQueue;
-
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  * 
  * October 1, 2009
  */
-public class ConsoleTest extends BambiTestCase
+public class ConsoleTest extends SimTest
 {
 
 	/**
@@ -91,20 +88,23 @@ public class ConsoleTest extends BambiTestCase
 		acknowledgeURL = "http://localhost:8080/httpdump/acknowledgeURL";
 
 		simWorkerUrl = "http://kie-prosirai-lg:8080/console/jmf/console001";
-		// simWorkerUrl = "http://127.0.0.1:8080/speedmaster/jmf/XL105";
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	protected String getDeviceID()
+	{
+		return "console001";
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	public void testSubmitQueueEntry_MIME() throws Exception
+	public void testSubmitQueueEntry() throws Exception
 	{
-		// get number of QueueEntries before submitting
-		final JDFQueue q = getQueueStatus(simWorkerUrl);
-		assertNotNull(q);
-		// build SubmitQueueEntry
-		submitMimetoURL(simWorkerUrl);
-
+		super.testSubmitQueueEntry_MIME();
 	}
 
 }

@@ -548,6 +548,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			ud.transferEncoding = proxyProperties.getSlaveMIMEEncoding();
 			final boolean expandMime = proxyProperties.getSlaveMIMEExpansion();
 			final boolean isMime = proxyProperties.isSlaveMimePackaging();
+			ud.modifyBoundarySemicolon = !proxyProperties.getSlaveMIMESemicolon();
 
 			final IQueueEntry iqe = submitToQueue(qURL, deviceOutputHF, ud, expandMime, isMime);
 			qes = iqe == null ? null : iqe.getQueueEntry().getQueueEntryStatus();

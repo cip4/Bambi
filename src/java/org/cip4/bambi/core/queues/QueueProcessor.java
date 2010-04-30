@@ -104,12 +104,12 @@ import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueFilter.EnumUpdateGranularity;
+import org.cip4.jdflib.auto.JDFAutoSubmissionMethods.EnumPackaging;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFComment;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFException;
-import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -131,6 +131,7 @@ import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFResubmissionParams;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
+import org.cip4.jdflib.jmf.JDFSubmissionMethods;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQueue.CleanupCallback;
@@ -149,6 +150,7 @@ import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
+import org.cip4.jdflib.util.UrlUtil.URLProtocol;
 
 /**
  * 
@@ -574,6 +576,8 @@ public class QueueProcessor extends BambiLogFactory
 			else
 			{
 				updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp);
+				_parentDevice.fixEntry(qe, doc);
+				extractFiles(qe, doc);
 				storeDoc(qe, doc, null, null);
 			}
 		}
@@ -1532,6 +1536,47 @@ public class QueueProcessor extends BambiLogFactory
 		}
 	}
 
+	/**
+	 * handler for the KnownDevices query
+	 */
+	protected class SubmissionMethodsHandler extends AbstractHandler
+	{
+
+		public SubmissionMethodsHandler()
+		{
+			super(EnumType.SubmissionMethods, new EnumFamily[] { EnumFamily.Query });
+		}
+
+		/**
+		 * 
+		 */
+		@Override
+		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
+		{
+			// "I am the known device"
+			if (m == null || resp == null)
+			{
+				return false;
+			}
+			log.debug("Handling " + m.getType());
+			final EnumType typ = m.getEnumType();
+			if (EnumType.SubmissionMethods.equals(typ))
+			{
+				final JDFSubmissionMethods sm = resp.appendSubmissionMethods();
+				final Vector<EnumPackaging> v = new Vector<EnumPackaging>();
+				v.add(EnumPackaging.MIME);
+				sm.setPackaging(v);
+				sm.setURLSchemes(new VString("http,file", ","));
+				if (_parentDevice.getQueueSubmitHotFolder() != null)
+				{
+					sm.setHotFolder(UrlUtil.fileToUrl(_parentDevice.getQueueSubmitHotFolder().getHfDirectory(), false));
+				}
+			}
+
+			return true;
+		}
+	}
+
 	private RollingBackupFile _queueFile = null;
 	private static final long serialVersionUID = -876551736245089033L;
 	String nextinvert = null;
@@ -1589,19 +1634,20 @@ public class QueueProcessor extends BambiLogFactory
 	public void addHandlers(final IJMFHandler jmfHandler)
 	{
 		jmfHandler.addHandler(new AcknowledgeThread(this.new SubmitQueueEntryHandler(), _parentDevice));
-		jmfHandler.addHandler(this.new QueueStatusHandler());
+		jmfHandler.addHandler(new QueueStatusHandler());
 		jmfHandler.addHandler(new AcknowledgeThread(this.new RemoveQueueEntryHandler(), _parentDevice));
 		jmfHandler.addHandler(new AcknowledgeThread(this.new HoldQueueEntryHandler(), _parentDevice));
 		jmfHandler.addHandler(new AcknowledgeThread(this.new AbortQueueEntryHandler(), _parentDevice));
-		jmfHandler.addHandler(this.new ResumeQueueEntryHandler());
-		jmfHandler.addHandler(this.new SuspendQueueEntryHandler());
+		jmfHandler.addHandler(new ResumeQueueEntryHandler());
+		jmfHandler.addHandler(new SuspendQueueEntryHandler());
 		jmfHandler.addHandler(new AcknowledgeThread(this.new FlushQueueHandler(), _parentDevice));
-		jmfHandler.addHandler(this.new OpenQueueHandler());
-		jmfHandler.addHandler(this.new CloseQueueHandler());
-		jmfHandler.addHandler(this.new HoldQueueHandler());
-		jmfHandler.addHandler(this.new ResumeQueueHandler());
-		jmfHandler.addHandler(this.new NewJDFQueryHandler());
-		jmfHandler.addHandler(this.new ResubmitQueueEntryHandler());
+		jmfHandler.addHandler(new OpenQueueHandler());
+		jmfHandler.addHandler(new CloseQueueHandler());
+		jmfHandler.addHandler(new HoldQueueHandler());
+		jmfHandler.addHandler(new ResumeQueueHandler());
+		jmfHandler.addHandler(new NewJDFQueryHandler());
+		jmfHandler.addHandler(new ResubmitQueueEntryHandler());
+		jmfHandler.addHandler(new SubmissionMethodsHandler());
 	}
 
 	protected void init()
@@ -1851,9 +1897,9 @@ public class QueueProcessor extends BambiLogFactory
 	 * add a listner object that is notified of queue changes
 	 * @param listner
 	 */
-	public void addListener(final Object listner)
+	public void addListener(final MyMutex listner)
 	{
-		log.info("adding new listener");
+		log.info("adding new queue listener");
 		_listeners.add(listner);
 	}
 
@@ -1885,33 +1931,6 @@ public class QueueProcessor extends BambiLogFactory
 			}
 		}
 		return _parentDevice.canAccept(jdf, queueEntryID);
-	}
-
-	/**
-	 * stub that allows moving data to and from the jdfdoc to the queueentry 
-	 * 
-	 * @param qe
-	 * @param doc
-	 * @return the updated queueEntryID
-	 */
-	protected String fixEntry(final JDFQueueEntry qe, final JDFDoc doc)
-	{
-		final JDFNode n = doc == null ? null : doc.getJDFRoot();
-		if (qe == null || n == null)
-		{
-			return null;
-		}
-		final int prio = qe.getPriority();
-		if (prio > 0)
-		{
-			final JDFNodeInfo ni = n.getCreateNodeInfo();
-			if (!ni.hasAttribute(AttributeName.JOBPRIORITY))
-			{
-				ni.setJobPriority(prio);
-			}
-		}
-		final String qeID = qe.getQueueEntryID();
-		return qeID;
 	}
 
 	/**
@@ -1974,7 +1993,7 @@ public class QueueProcessor extends BambiLogFactory
 
 			final String qeID = newQE.getQueueEntryID();
 			BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
-			fixEntry(newQE, theJDF);
+			_parentDevice.fixEntry(newQE, theJDF);
 			extractFiles(newQE, theJDF);
 			if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
 			{
@@ -1987,6 +2006,8 @@ public class QueueProcessor extends BambiLogFactory
 			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID);
 			newQE = _theQueue.getQueueEntry(qeID);
 		}
+		// wait a very short moment to allow any potential processing of the newly create entry to commence, prior to returning the entry
+		ThreadUtil.sleep(42);
 		return newQE;
 	}
 
@@ -2004,8 +2025,15 @@ public class QueueProcessor extends BambiLogFactory
 		if (jobDirectory == null)
 			return;
 		log.info("extracting attached files to: " + jobDirectory);
-		URLExtractor ex = new URLExtractor(jobDirectory, _parentDevice.getDataURL(newQE.getQueueEntryID()));
-		ex.walkTree(doc.getRoot(), null);
+		String dataURL = _parentDevice.getDataURL(newQE.getQueueEntryID());
+		if (dataURL != null)
+		{
+			URLExtractor ex = new URLExtractor(jobDirectory, dataURL);
+			// don't do http 
+			ex.addProtocol(URLProtocol.cid);
+			ex.addProtocol(URLProtocol.file);
+			ex.walkTree(doc.getRoot(), null);
+		}
 	}
 
 	/**
@@ -2023,8 +2051,6 @@ public class QueueProcessor extends BambiLogFactory
 			return false;
 		}
 		final String newQEID = newQE.getQueueEntryID();
-		final JDFNode root = _parentDevice.getNodeFromDoc(theJDF);
-		newQE.setFromJDF(root); // set jobid, jobpartid, partmaps
 		final JDFQueueEntry newQEReal = _theQueue.getQueueEntry(newQEID); // the "actual" entry in the queue
 		if (newQEReal == null)
 		{
@@ -2032,7 +2058,6 @@ public class QueueProcessor extends BambiLogFactory
 			return false;
 		}
 		newQEReal.copyInto(newQE, false);
-		newQEReal.setFromJDF(root); // repeat for the actual entry
 		queueMap.addEntry(newQEReal, true);
 
 		final String theDocFile = _parentDevice.getJDFStorage(newQEID);
