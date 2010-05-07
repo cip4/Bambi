@@ -84,8 +84,8 @@ import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
 import org.cip4.bambi.core.BambiLogFactory;
-import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.messaging.IMessageOptimizer.optimizeResult;
 import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
 import org.cip4.jdflib.core.AttributeName;
@@ -1282,8 +1282,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	@Override
 	public String toString()
 	{
-		return "MessageSender - URL: " + callURL.url + " size: " + _messages.size() + " total: " + sent + " last queued at " + BambiServlet.formatLong(lastQueued)
-				+ " last sent at " + BambiServlet.formatLong(lastSent) + "\n" + _messages;
+		return "MessageSender - URL: " + callURL.url + " size: " + _messages.size() + " total: " + sent + " last queued at " + XMLResponse.formatLong(lastQueued)
+				+ " last sent at " + XMLResponse.formatLong(lastSent) + "\n" + _messages;
 	}
 
 	/**
@@ -1305,9 +1305,9 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			ms.setAttribute("NumSent", sent, null);
 			ms.setAttribute("NumTry", trySend, null);
 			ms.setAttribute("NumRemove", removedHeartbeat, null);
-			ms.setAttribute("LastQueued", BambiServlet.formatLong(lastQueued), null);
-			ms.setAttribute("LastSent", BambiServlet.formatLong(lastSent), null);
-			ms.setAttribute(AttributeName.CREATIONDATE, BambiServlet.formatLong(created), null);
+			ms.setAttribute("LastQueued", XMLResponse.formatLong(lastQueued), null);
+			ms.setAttribute("LastSent", XMLResponse.formatLong(lastSent), null);
+			ms.setAttribute(AttributeName.CREATIONDATE, XMLResponse.formatLong(created), null);
 
 			ms.setAttribute("pause", pause, null);
 			ms.setAttribute("idle", idle, null);

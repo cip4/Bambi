@@ -71,18 +71,15 @@
 package org.cip4.bambi.core.queues;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.cip4.bambi.core.AbstractDevice;
-import org.cip4.bambi.core.BambiServlet;
-import org.cip4.bambi.core.BambiServletRequest;
-import org.cip4.bambi.core.BambiServletResponse;
+import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.proxy.AbstractProxyDevice;
 import org.cip4.bambi.proxy.IProxyProperties;
 import org.cip4.jdflib.core.AttributeName;
@@ -93,6 +90,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFSpawn;
 import org.cip4.jdflib.util.UrlUtil;
 
@@ -115,9 +113,9 @@ public class ShowJDFHandler extends ShowHandler
 	 * @param request
 	 */
 	@Override
-	protected boolean isMyRequest(final BambiServletRequest request)
+	protected boolean isMyRequest(final ContainerRequest request)
 	{
-		boolean b = BambiServlet.isMyContext(request, "showJDF");
+		boolean b = request.isMyContext("showJDF");
 		if (b)
 		{
 			final String jobPartID = request.getParameter(AttributeName.JOBPARTID);
@@ -129,18 +127,18 @@ public class ShowJDFHandler extends ShowHandler
 
 	/**
 	 * @param request
-	 * @param response
 	 * @param f
 	 */
 	@Override
-	protected boolean processFile(final BambiServletRequest request, final BambiServletResponse response, final File f)
+	protected XMLResponse processFile(final ContainerRequest request, final File f)
 	{
 		final boolean callback = request.getBooleanParam("Callback");
 		final boolean raw = request.getBooleanParam("raw");
 		final boolean repair = request.getBooleanParam("repair");
+		XMLResponse r = new XMLResponse(null);
 		try
 		{
-			InputStream is = new FileInputStream(f);
+			InputStream is = FileUtil.getBufferedInputStream(f);
 			if (repair || !raw || callback && (_parentDevice instanceof AbstractProxyDevice))
 			{
 				final JDFParser p = new JDFParser();
@@ -171,28 +169,27 @@ public class ShowJDFHandler extends ShowHandler
 				}
 				if (doc != null)
 				{
-					final OutputStream os = response.getBufferedOutputStream();
-					doc.write2Stream(os, 0, true);
+					r.setXML(doc.getRoot());
 					is = null;
 				}
 			}
-			if (is != null)
+			else if (is != null)
 			{
-				IOUtils.copy(is, response.getBufferedOutputStream());
+				IOUtils.copy(is, r.getOutputStream());
 			}
 
 			final boolean bJDF = request.getBooleanParam(QueueProcessor.isJDF);
-			response.setContentType(bJDF ? UrlUtil.VND_JDF : UrlUtil.TEXT_XML);
+			r.setContentType(bJDF ? UrlUtil.VND_JDF : UrlUtil.TEXT_XML);
 		}
 		catch (final FileNotFoundException x)
 		{
-			return false;
+			return null;
 		}
 		catch (final IOException x)
 		{
-			return false;
+			return null;
 		}
-		return true;
+		return r;
 	}
 
 	/**
@@ -204,7 +201,7 @@ public class ShowJDFHandler extends ShowHandler
 	 * @return
 	 */
 	@Override
-	protected JDFDoc prepareRoot(JDFDoc doc, final BambiServletRequest request)
+	protected JDFDoc prepareRoot(JDFDoc doc, final ContainerRequest request)
 	{
 		doc = super.prepareRoot(doc, request);
 		if (doc == null)

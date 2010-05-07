@@ -79,6 +79,7 @@ import java.security.Principal;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletInputStream;
@@ -87,7 +88,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.IOUtils;
-import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -97,7 +98,7 @@ import org.cip4.jdflib.util.UrlUtil;
  * @author prosirai
  */
 @SuppressWarnings("unchecked")
-public class BambiServletRequest extends BambiLogFactory implements HttpServletRequest
+class BambiServletRequest extends BambiLogFactory implements HttpServletRequest
 {
 	private final HttpServletRequest parent;
 	private ByteArrayIOStream buffer;
@@ -191,8 +192,8 @@ public class BambiServletRequest extends BambiLogFactory implements HttpServletR
 	 */
 	public static String getDeviceIDFromURL(String url)
 	{
-		url = StringUtil.token(url, 1, "/");
-		return url;
+		String devID = StringUtil.token(url, 2, "/");
+		return devID;
 	}
 
 	/**
@@ -298,26 +299,6 @@ public class BambiServletRequest extends BambiLogFactory implements HttpServletR
 	{
 		final String s = parent.getContextPath();
 		return "/" + StringUtil.token(s, 0, "/");
-	}
-
-	/**
-	 * @return the tokenized request
-	 * 
-	 */
-	public VString getContextList()
-	{
-		final String s = parent.getRequestURL().toString();
-		final VString v = StringUtil.tokenize(s, "/", false);
-		return v;
-	}
-
-	/**
-	 * @return the 4th in line
-	 * 
-	 */
-	public String getCommand()
-	{
-		return getContextList().get(3); // http://host/servlet/command
 	}
 
 	/**
@@ -487,9 +468,27 @@ public class BambiServletRequest extends BambiLogFactory implements HttpServletR
 	/**
 	 * @see javax.servlet.ServletRequest#getParameterMap()
 	 */
-	public Map getParameterMap()
+	public Map<String, String> getParameterMap()
 	{
-		return parent.getParameterMap();
+		Map<String, String[]> pm = parent.getParameterMap();
+		Map<String, String> retMap = new JDFAttributeMap();
+		Set<String> keyset = pm.keySet();
+		for (String key : keyset)
+		{
+			String[] strings = pm.get(key);
+			if (strings != null && strings.length > 0)
+			{
+				String s = strings[0];
+				for (int i = 1; i < strings.length; i++)
+				{
+					s += "," + strings[i];
+				}
+				s = StringUtil.getNonEmpty(s);
+				if (s != null)
+					retMap.put(key, s);
+			}
+		}
+		return retMap.size() == 0 ? null : retMap;
 	}
 
 	/**

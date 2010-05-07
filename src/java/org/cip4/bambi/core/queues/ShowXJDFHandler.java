@@ -75,19 +75,16 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 import org.cip4.bambi.core.AbstractDevice;
-import org.cip4.bambi.core.BambiServlet;
-import org.cip4.bambi.core.BambiServletRequest;
-import org.cip4.bambi.core.BambiServletResponse;
+import org.cip4.bambi.core.ContainerRequest;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -108,9 +105,9 @@ public class ShowXJDFHandler extends ShowHandler
 	 * @param request
 	 */
 	@Override
-	protected boolean isMyRequest(final BambiServletRequest request)
+	protected boolean isMyRequest(final ContainerRequest request)
 	{
-		boolean b = BambiServlet.isMyContext(request, "showJDF");
+		boolean b = request.isMyContext("showJDF");
 		if (b)
 		{
 			final String jobPartID = request.getParameter(AttributeName.JOBPARTID);
@@ -121,11 +118,10 @@ public class ShowXJDFHandler extends ShowHandler
 
 	/**
 	 * @param request
-	 * @param response
 	 * @param f
 	 */
 	@Override
-	protected boolean processFile(final BambiServletRequest request, final BambiServletResponse response, final File f)
+	protected XMLResponse processFile(final ContainerRequest request, final File f)
 	{
 		final String jobPartID = request.getParameter(AttributeName.JOBPARTID);
 		try
@@ -141,22 +137,20 @@ public class ShowXJDFHandler extends ShowHandler
 			xjdf20.bHTMLColor = true;
 			final KElement xRoot = xjdf20.makeNewJDF(nPart, null);
 			doc = new JDFDoc(xRoot.getOwnerDocument());
-
 			doc = prepareRoot(doc, request);
 
-			response.setContentType(UrlUtil.TEXT_XML);
-			final OutputStream os = response.getBufferedOutputStream();
-			doc.write2Stream(os, 0, true);
+			XMLResponse r = new XMLResponse(doc.getRoot());
+			return r;
 
 		}
 		catch (final FileNotFoundException x)
 		{
-			return false;
+			// nop
 		}
 		catch (final IOException x)
 		{
-			return false;
+			// nop
 		}
-		return true;
+		return null;
 	}
 }

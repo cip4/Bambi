@@ -71,17 +71,17 @@
 
 package org.cip4.bambi.workers.sim;
 
-import java.util.Enumeration;
 import java.util.Set;
 
 import org.cip4.bambi.core.AbstractDeviceProcessor;
-import org.cip4.bambi.core.BambiServletRequest;
-import org.cip4.bambi.core.BambiServletResponse;
+import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.workers.JobPhase;
 import org.cip4.bambi.workers.UIModifiableDevice;
 import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 
@@ -111,7 +111,7 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 		 * @param bProc
 		 * @param request
 		 */
-		public XMLSimDevice(final boolean bProc, final BambiServletRequest request)
+		public XMLSimDevice(final boolean bProc, final ContainerRequest request)
 		{
 			super(bProc, request);
 			final JobPhase currentJobPhase = getCurrentJobPhase();
@@ -128,20 +128,19 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	 * @return
 	 */
 	@Override
-	public XMLDevice getXMLDevice(final boolean bProc, final BambiServletRequest request)
+	public XMLDevice getXMLDevice(final boolean bProc, final ContainerRequest request)
 	{
 		final XMLDevice simDevice = this.new XMLSimDevice(bProc, request);
 		return simDevice;
 	}
 
 	@Override
-	protected boolean processNextPhase(final BambiServletRequest request, final BambiServletResponse response)
+	protected XMLResponse processNextPhase(final ContainerRequest request)
 	{
 		final JobPhase nextPhase = buildJobPhaseFromRequest(request);
 		((SimDeviceProcessor) _deviceProcessors.get(0)).doNextPhase(nextPhase);
 		ThreadUtil.sleep(1000); // allow device to switch phases before displaying page
-		showDevice(request, response, false);
-		return true;
+		return showDevice(request, false);
 	}
 
 	/**
@@ -176,12 +175,14 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	 * @param request
 	 */
 	@Override
-	protected void updateDevice(final BambiServletRequest request)
+	protected void updateDevice(final ContainerRequest request)
 	{
 		super.updateDevice(request);
 
-		final Enumeration<String> en = request.getParameterNames();
-		final Set<String> s = ContainerUtil.toHashSet(en);
+		final JDFAttributeMap map = request.getParameterMap();
+		final Set<String> s = map == null ? null : map.keySet();
+		if (s == null)
+			return;
 
 		final String exp = request.getParameter(AttributeName.TYPEEXPRESSION);
 		if (exp != null && s.contains(AttributeName.TYPEEXPRESSION))

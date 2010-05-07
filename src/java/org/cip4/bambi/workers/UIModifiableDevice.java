@@ -68,7 +68,7 @@
  */
 package org.cip4.bambi.workers;
 
-import org.cip4.bambi.core.BambiServletRequest;
+import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.AttributeName;
@@ -108,7 +108,7 @@ public abstract class UIModifiableDevice extends WorkerDevice
 	 * @param request request to get the job phase info from
 	 * @return the new JobPhase
 	 */
-	protected JobPhase buildJobPhaseFromRequest(final BambiServletRequest request)
+	protected JobPhase buildJobPhaseFromRequest(final ContainerRequest request)
 	{
 		final JobPhase current = getCurrentJobPhase();
 
@@ -126,7 +126,8 @@ public abstract class UIModifiableDevice extends WorkerDevice
 		if (status != null)
 		{
 			newPhase.setNodeStatus(EnumNodeStatus.getEnum(status));
-			if (EnumNodeStatus.Aborted.equals(newPhase.getNodeStatus()) || EnumNodeStatus.Completed.equals(newPhase.getNodeStatus()) || EnumNodeStatus.Suspended.equals(newPhase.getNodeStatus()))
+			if (EnumNodeStatus.Aborted.equals(newPhase.getNodeStatus()) || EnumNodeStatus.Completed.equals(newPhase.getNodeStatus())
+					|| EnumNodeStatus.Suspended.equals(newPhase.getNodeStatus()))
 			{
 				newPhase.setTimeToGo(0);
 			}

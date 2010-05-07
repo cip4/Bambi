@@ -73,7 +73,6 @@ package org.cip4.bambi.proxy;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -82,10 +81,10 @@ import java.util.Set;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
-import org.cip4.bambi.core.BambiServlet;
-import org.cip4.bambi.core.BambiServletRequest;
+import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.messaging.JMFBufferHandler;
 import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
@@ -97,6 +96,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -428,8 +428,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			subs.setAttribute(AttributeName.CHANNELID, channelID);
 			subs.setAttribute(AttributeName.URL, url);
 			subs.setAttribute(AttributeName.TYPE, subscribedJMF.getMessageElement(null, null, 0).getType());
-			subs.setAttribute(AttributeName.CREATIONDATE, BambiServlet.formatLong(created));
-			subs.setAttribute("LastReceived", BambiServlet.formatLong(lastReceived));
+			subs.setAttribute(AttributeName.CREATIONDATE, XMLResponse.formatLong(created));
+			subs.setAttribute("LastReceived", XMLResponse.formatLong(lastReceived));
 			subs.setAttribute("NumReceived", StringUtil.formatInteger(numReceived));
 		}
 	}
@@ -655,7 +655,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		 * @param addProcs - always ignored
 		 * @param request BambiServletRequest http context in which this is called
 		 */
-		public XMLProxyDevice(final boolean addProcs, final BambiServletRequest request)
+		public XMLProxyDevice(final boolean addProcs, final ContainerRequest request)
 		{
 			// proxies never show processors
 			super(false, request);
@@ -1156,12 +1156,14 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @param request
 	 */
 	@Override
-	protected void updateDevice(final BambiServletRequest request)
+	protected void updateDevice(final ContainerRequest request)
 	{
 		super.updateDevice(request);
 
-		final Enumeration<String> en = request.getParameterNames();
-		final Set<String> s = ContainerUtil.toHashSet(en);
+		final JDFAttributeMap map = request.getParameterMap();
+		final Set<String> s = map == null ? null : map.keySet();
+		if (s == null)
+			return;
 
 		String slave = request.getParameter("SlaveURL");
 		if (slave != null && s.contains("SlaveURL"))
@@ -1330,10 +1332,14 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#getXMLDevice(boolean, org.cip4.bambi.core.BambiServletRequest)
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDevice#getXMLDevice(boolean, org.cip4.bambi.core.ContainerRequest)
+	 * @param addProcs
+	 * @param request
+	 * @return
 	 */
 	@Override
-	public XMLDevice getXMLDevice(final boolean addProcs, final BambiServletRequest request)
+	public XMLDevice getXMLDevice(final boolean addProcs, final ContainerRequest request)
 	{
 		return new XMLProxyDevice(addProcs, request);
 	}

@@ -73,10 +73,10 @@ package org.cip4.bambi.core.queues;
 import java.io.File;
 
 import org.cip4.bambi.core.AbstractDevice;
-import org.cip4.bambi.core.BambiServletRequest;
-import org.cip4.bambi.core.BambiServletResponse;
+import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IGetHandler;
-import org.cip4.bambi.core.BambiServlet.UnknownErrorHandler;
+import org.cip4.bambi.core.XMLResponse;
+import org.cip4.bambi.core.BambiContainer.UnknownErrorHandler;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
@@ -102,54 +102,52 @@ public abstract class ShowHandler implements IGetHandler
 	/**
 	 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
 	 */
-	public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
+	public XMLResponse handleGet(final ContainerRequest request)
 	{
 		if (!isMyRequest(request))
 		{
-			return false;
+			return null;
 		}
 		final String qeID = request.getParameter(QueueProcessor.QE_ID);
 		final String fil = _parentDevice.getUpdatedFile(qeID);
 		if (fil == null)
 		{
-			return errorShow(request, response, qeID);
+			return errorShow(request, qeID);
 		}
 		final File f = new File(fil);
 		if (!f.canRead())
 		{
-			return errorShow(request, response, qeID);
+			return errorShow(request, qeID);
 		}
 
-		return processFile(request, response, f);
+		return processFile(request, f);
 	}
 
 	/**
 	 * @param request
-	 * @param response
 	 * @param qeid
 	 * @return
 	 */
-	private boolean errorShow(final BambiServletRequest request, final BambiServletResponse response, final String qeid)
+	private XMLResponse errorShow(final ContainerRequest request, final String qeid)
 	{
-		final UnknownErrorHandler eh = new UnknownErrorHandler(this);
+		final UnknownErrorHandler eh = new UnknownErrorHandler();
 		eh.setDetails("Unknown QueueEntry: " + qeid);
 		eh.setMessage("Cannot Show JDF");
-		return eh.handleGet(request, response);
+		return eh.handleGet(request);
 	}
 
 	/**
 	 * @param request
-	 * @param response
 	 * @param f
 	 * @return 
 	 */
-	protected abstract boolean processFile(final BambiServletRequest request, final BambiServletResponse response, final File f);
+	protected abstract XMLResponse processFile(final ContainerRequest request, final File f);
 
 	/**
 	 * @param request
 	 * @return 
 	 */
-	protected abstract boolean isMyRequest(final BambiServletRequest request);
+	protected abstract boolean isMyRequest(final ContainerRequest request);
 
 	/**
 	 * prepare the root jdf for display with xslt
@@ -157,7 +155,7 @@ public abstract class ShowHandler implements IGetHandler
 	 * @param request 
 	 * @return 
 	 */
-	protected JDFDoc prepareRoot(JDFDoc doc, final BambiServletRequest request)
+	protected JDFDoc prepareRoot(JDFDoc doc, final ContainerRequest request)
 	{
 		final KElement root = (doc == null) ? null : doc.getRoot();
 		final boolean raw = request.getBooleanParam("raw");
@@ -172,13 +170,12 @@ public abstract class ShowHandler implements IGetHandler
 		}
 
 		root.setAttribute(AttributeName.DEVICEID, _parentDevice.getDeviceID());
-		final String contextPath = request.getContextPath();
 		if (doc == null)
 		{
 			return null;
 		}
 		doc.setXSLTURL(_parentDevice.getXSLT(request));
-		root.setAttribute(AttributeName.CONTEXT, contextPath);
+		root.setAttribute(AttributeName.CONTEXT, "/" + request.getContextRoot());
 		final String qeID = request.getParameter(QueueProcessor.QE_ID);
 		root.setAttribute(AttributeName.QUEUEENTRYID, qeID);
 		return doc;

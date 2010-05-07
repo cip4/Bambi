@@ -71,7 +71,6 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -176,27 +175,27 @@ public final class SignalDispatcher extends BambiLogFactory
 		 * @param response
 		 * @return
 		 */
-		public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
+		public XMLResponse handleGet(final ContainerRequest request)
 		{
 			final boolean bStopChannel = request.getBooleanParam("StopChannel");
 			if (bStopChannel)
 			{
-				stopChannel(request, response);
+				stopChannel(request);
 			}
 			final boolean bStopSender = request.getBooleanParam("StopSender");
 			if (bStopSender)
 			{
-				stopSender(request, response);
+				stopSender(request);
 			}
 			final String pause = request.getParameter("pause");
 			if (StringUtil.isBoolean(pause))
 			{
-				pauseResumeSender(request, response);
+				pauseResumeSender(request);
 			}
 			final boolean bFlushSender = request.getBooleanParam("FlushSender");
 			if (bFlushSender)
 			{
-				flushSender(request, response);
+				flushSender(request);
 			}
 			final String details = request.getParameter("DetailID");
 
@@ -210,11 +209,11 @@ public final class SignalDispatcher extends BambiLogFactory
 					listDispatchers(request, true, pos);
 					if (pos > 0)
 					{
-						setXSLTURL("/" + BambiServlet.getBaseServletName(request) + "/subscriptionDetails.xsl");
+						setXSLTURL("/" + request.getContextRoot() + "/subscriptionDetails.xsl");
 					}
 					else
 					{
-						setXSLTURL("/" + BambiServlet.getBaseServletName(request) + "/subscriptionList.xsl");
+						setXSLTURL("/" + request.getContextRoot() + "/subscriptionList.xsl");
 					}
 				}
 				else
@@ -222,33 +221,23 @@ public final class SignalDispatcher extends BambiLogFactory
 					listChannels(request, details);
 					device.addMoreToXMLSubscriptions(root);
 					listDispatchers(request, false, -1);
-					setXSLTURL("/" + BambiServlet.getBaseServletName(request) + "/subscriptionList.xsl");
+					setXSLTURL("/" + request.getContextRoot() + "/subscriptionList.xsl");
 				}
 			}
 			else
 			{
 				showDetails(request, details, pos);
-				setXSLTURL("/" + BambiServlet.getBaseServletName(request) + "/subscriptionDetails.xsl");
+				setXSLTURL("/" + request.getContextRoot() + "/subscriptionDetails.xsl");
 			}
-
-			try
-			{
-				write2Stream(response.getBufferedOutputStream(), 2, true);
-			}
-			catch (final IOException x)
-			{
-				return false;
-			}
-			response.setContentType(UrlUtil.TEXT_XML);
-			return true;
+			XMLResponse r = new XMLResponse(getRoot());
+			return r;
 
 		}
 
 		/**
 		 * @param request
-		 * @param response
 		 */
-		private void pauseResumeSender(final BambiServletRequest request, final BambiServletResponse response)
+		private void pauseResumeSender(final ContainerRequest request)
 		{
 			final String url = request.getParameter(AttributeName.URL);
 			final Vector<MessageSender> v = device.getJMFFactory().getMessageSenders(url);
@@ -272,9 +261,8 @@ public final class SignalDispatcher extends BambiLogFactory
 
 		/**
 		 * @param request
-		 * @param response
 		 */
-		private void stopSender(final BambiServletRequest request, final BambiServletResponse response)
+		private void stopSender(final ContainerRequest request)
 		{
 			final String url = request.getParameter(AttributeName.URL);
 			final JMFFactory factory = device.getJMFFactory();
@@ -292,9 +280,8 @@ public final class SignalDispatcher extends BambiLogFactory
 
 		/**
 		 * @param request
-		 * @param response
 		 */
-		private void flushSender(final BambiServletRequest request, final BambiServletResponse response)
+		private void flushSender(final ContainerRequest request)
 		{
 			final String url = request.getParameter(AttributeName.URL);
 			final Vector<MessageSender> v = device.getJMFFactory().getMessageSenders(url);
@@ -313,7 +300,7 @@ public final class SignalDispatcher extends BambiLogFactory
 		 * @param bListSenders 
 		 * @param pos 
 		 */
-		private void listDispatchers(final BambiServletRequest request, final boolean bListSenders, final int pos)
+		private void listDispatchers(final ContainerRequest request, final boolean bListSenders, final int pos)
 		{
 			final String url = request.getParameter(AttributeName.URL);
 			final URL myURL = UrlUtil.stringToURL(url);
@@ -346,7 +333,7 @@ public final class SignalDispatcher extends BambiLogFactory
 		 * @param request
 		 * @param details
 		 */
-		public void listChannels(final BambiServletRequest request, final String details)
+		public void listChannels(final ContainerRequest request, final String details)
 		{
 			final Vector<MsgSubscription> v = ContainerUtil.toValueVector(subscriptionMap, true);
 			if (v != null)
@@ -361,11 +348,11 @@ public final class SignalDispatcher extends BambiLogFactory
 		/**
 		 * @param request
 		 */
-		protected void setXMLRoot(final BambiServletRequest request)
+		protected void setXMLRoot(final ContainerRequest request)
 		{
 			if (device != null) // may be null in test scenarios
 				root.setAttribute(AttributeName.DEVICEID, device.getDeviceID());
-			root.setAttribute(AttributeName.CONTEXT, "/" + BambiServlet.getBaseServletName(request));
+			root.setAttribute(AttributeName.CONTEXT, "/" + ((request == null) ? "" : request.getContextRoot()));
 		}
 
 		/**
@@ -373,7 +360,7 @@ public final class SignalDispatcher extends BambiLogFactory
 		 * @param details
 		 * @param pos
 		 */
-		private void showDetails(final BambiServletRequest request, final String details, final int pos)
+		private void showDetails(final ContainerRequest request, final String details, final int pos)
 		{
 			final MsgSubscription sub = subscriptionMap.get(details);
 			setXMLRoot(request);
@@ -385,9 +372,8 @@ public final class SignalDispatcher extends BambiLogFactory
 
 		/**
 		 * @param request
-		 * @param response
 		 */
-		private void stopChannel(final BambiServletRequest request, final BambiServletResponse response)
+		private void stopChannel(final ContainerRequest request)
 		{
 			final String channelID = request.getParameter(AttributeName.CHANNELID);
 			if (channelID == null)
@@ -987,7 +973,7 @@ public final class SignalDispatcher extends BambiLogFactory
 			setSubscription(sub);
 			sub.setAttribute(AttributeName.TYPE, theMessage.getType());
 			sub.setAttribute("Sent", sentMessages, null);
-			sub.setAttribute("LastTime", sentMessages == 0 ? " - " : BambiServlet.formatLong(lastTime * 1000));
+			sub.setAttribute("LastTime", sentMessages == 0 ? " - " : XMLResponse.formatLong((lastTime * 1000)));
 			if (pos <= 0)
 			{
 				pos = 1;
@@ -1789,12 +1775,11 @@ public final class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * @param request
-	 * @param response
 	 * @return
 	 */
-	public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
+	public XMLResponse handleGet(final ContainerRequest request)
 	{
-		return this.new XMLSubscriptions().handleGet(request, response);
+		return this.new XMLSubscriptions().handleGet(request);
 	}
 
 	/**

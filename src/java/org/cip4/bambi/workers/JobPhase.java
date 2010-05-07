@@ -72,7 +72,7 @@ import java.io.Serializable;
 import java.util.Vector;
 
 import org.cip4.bambi.core.BambiLogFactory;
-import org.cip4.bambi.core.BambiServlet;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -589,8 +589,8 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 					addAmount(v.stringAt(i), phase);
 				}
 			}
-			BambiServlet.addOptionList(deviceStatus, EnumDeviceStatus.getEnumList(), phase, "DeviceStatus");
-			BambiServlet.addOptionList(nodeStatus, EnumNodeStatus.getEnumList(), phase, "NodeStatus");
+			XMLResponse.addOptionList(deviceStatus, EnumDeviceStatus.getEnumList(), phase, "DeviceStatus");
+			XMLResponse.addOptionList(nodeStatus, EnumNodeStatus.getEnumList(), phase, "NodeStatus");
 		}
 		else
 		{

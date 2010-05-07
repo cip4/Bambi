@@ -75,22 +75,23 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.util.Iterator;
-import java.util.List;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.enums.ValuedEnum;
-import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.XMLDoc;
+import org.apache.commons.io.IOUtils;
+import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
-import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
 
 /**
@@ -105,107 +106,6 @@ public class BambiServlet extends HttpServlet
 	 * 
 	 */
 	private static final long serialVersionUID = 1926504814491033980L;
-
-	/**
-	 * handler for final handler for any non-handled url
-	 * @author prosirai
-	 * 
-	 */
-	public static class UnknownErrorHandler implements IGetHandler
-	{
-		private String details = null;
-		private String message = "No handler for URL";
-		private Object parent = null;
-
-		/**
-		 * @param _parent
-		 */
-		public UnknownErrorHandler(final Object _parent)
-		{
-			super();
-			parent = _parent;
-		}
-
-		/**
-		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
-		 */
-		public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
-		{
-			showErrorPage(message, details, request, response);
-			return true;
-		}
-
-		/**
-		 * @param d the error details string
-		 */
-		public void setDetails(final String d)
-		{
-			details = d;
-		}
-
-		/**
-		 * @param m the error details string
-		 */
-		public void setMessage(final String m)
-		{
-			message = m;
-		}
-
-		/**
-		 * display an error on error.jsp
-		 * @param errorMsg short message describing the error
-		 * @param errorDetails detailed error info
-		 * @param request required to forward the page
-		 * @param response required to forward the page
-		 */
-		protected void showErrorPage(final String errorMsg, final String errorDetails, final BambiServletRequest request, final BambiServletResponse response)
-		{
-			final XMLDoc d = new XMLDoc("BambiError", null);
-			final KElement err = d.getRoot();
-			err.setAttribute("errorOrigin", parent.getClass().getName());
-			err.setAttribute("errorMsg", errorMsg);
-			err.setAttribute("errorDetails", errorDetails);
-			err.setAttribute("Context", request.getContextRoot());
-			err.setAttribute("URL", request.getCompleteRequestURL());
-			d.setXSLTURL(request.getContextRoot() + "/error.xsl");
-			try
-			{
-				d.write2Stream(response.getBufferedOutputStream(), 2, false);
-			}
-			catch (final IOException x)
-			{
-				// nop
-			}
-		}
-	}
-
-	/**
-	 * handler for the overview page
-	 * @author prosirai
-	 * 
-	 */
-	protected class OverviewHandler implements IGetHandler
-	{
-		/**
-		 * 
-		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
-		 * @param request
-		 * @param response
-		 * @return
-		 */
-		public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
-		{
-			final String context = getContext(request);
-			if (KElement.isWildCard(context) || context.equalsIgnoreCase("overview"))
-			{
-				return theContainer.getRootDev().showDevice(request, response, false);
-			}
-			else
-			{
-				return false;
-			}
-		}
-	}
 
 	/**
 	 * 
@@ -284,49 +184,75 @@ public class BambiServlet extends HttpServlet
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws IOException
 	{
-		log.debug("Processing post request for: " + request.getPathInfo());
+		doGetPost(request, response, true);
+	}
 
-		final boolean bBuf = bambiDumpIn != null;
-		final BambiServletRequest bufRequest = new BambiServletRequest(request, bBuf);
-		final BambiServletResponse bufResponse = new BambiServletResponse(response, bBuf, bufRequest);
-		final String header = getDumpHeader(bufRequest);
+	/**
+	 * @param request
+	 * @param response
+	 * @param bPost
+	 * @throws IOException
+	 */
+	private void doGetPost(final HttpServletRequest request, final HttpServletResponse response, boolean bPost) throws IOException
+	{
+		final boolean bBuf = (dumpGet || bPost) && bambiDumpIn != null;
+		AbstractDevice rootDev = theContainer.getRootDev();
+		rootDev.startWork();
+		String getPost = bPost ? "post" : "get";
+		log.debug("Processing " + getPost + " request for: " + request.getPathInfo());
+
+		StreamRequest sr = createStreamRequest(request);
+		sr.setPost(bPost);
+
+		final String header = getDumpHeader(sr);
 		if (bBuf)
 		{
 			final String h2 = header + "\nContext Length: " + request.getContentLength();
-			bambiDumpIn.newFileFromStream(h2, bufRequest.getBufferedInputStream());
+			bambiDumpIn.newFileFromStream(h2, sr.getInputStream());
 		}
 
-		final String contentType = bufRequest.getContentType();
-		StreamRequest sr = new StreamRequest(bufRequest.getBuffer());
-		sr.setContentType(contentType);
-		sr.setRequestURI(request.getRequestURI());
-		sr.setContext(request.getContextPath());
-		sr.setPost(true);
 		XMLResponse xr = theContainer.processStream(sr);
-		bufResponse.write(xr);
-		if (bambiDumpOut != null && (dumpEmpty || bufResponse.getBufferedCount() > 0))
+		writeResponse(xr, response);
+		if (bambiDumpOut != null && (dumpEmpty || (xr != null && xr.hasContent())))
 		{
-			final InputStream buf = bufResponse.getBufferedInputStream();
+			final InputStream buf = xr.getInputStream();
 
 			final File in = bambiDumpOut.newFileFromStream(header, buf);
 			if (in != null)
 			{
-				in.renameTo(new File(StringUtil.newExtension(in.getPath(), ".post.resp.txt")));
+				in.renameTo(new File(StringUtil.newExtension(in.getPath(), "." + getPost + ".resp.txt")));
 			}
 		}
-		bufResponse.flush();
-		bufRequest.flush(); // avoid mem leaks
+		request.getInputStream().close(); // avoid mem leaks
+		rootDev.endWork();
 	}
 
 	/**
 	 * @param request
 	 * @return
+	 * @throws IOException
 	 */
-	private String getDumpHeader(final BambiServletRequest request)
+	private StreamRequest createStreamRequest(final HttpServletRequest request) throws IOException
 	{
-		String header = "Context Path: " + request.getCompleteRequestURL();
-		header += "\nMethod: Post\nContext Type: " + request.getContentType();
-		header += "\nRemote host: " + request.getRemoteHost();
+		StreamRequest sr = new StreamRequest(request.getInputStream());
+		final String contentType = request.getContentType();
+		sr.setContentType(contentType);
+		sr.setRequestURI(request.getRequestURL().toString());
+		sr.setHeaderMap(getHeaderMap(request));
+		sr.setParameterMap(new JDFAttributeMap(getParameterMap(request)));
+		sr.setRemoteHost(request.getRemoteHost());
+		return sr;
+	}
+
+	/**
+	 * @param sr
+	 * @return
+	 */
+	private String getDumpHeader(final ContainerRequest sr)
+	{
+		String header = "Context Path: " + sr.getRequestURI();
+		header += "\nMethod: Post\nContext Type: " + sr.getContentType();
+		header += "\nRemote host: " + sr.getRemoteHost();
 		return header;
 	}
 
@@ -341,127 +267,40 @@ public class BambiServlet extends HttpServlet
 	}
 
 	/**
-	 * add a set of options to an xml file
-	 * @param e the default enum
-	 * @param l the list of all enums
-	 * @param parent the parent element to add the list to
-	 * @param name the name of the option list form
+	 * @param r the XMLResponse to serialize
+	 * @param sr 
 	 */
-	public static void addOptionList(final ValuedEnum e, final List<? extends ValuedEnum> l, final KElement parent, final String name)
+	public void writeResponse(XMLResponse r, HttpServletResponse sr)
 	{
-		if (e == null || parent == null)
+		if (r == null)
+			return; // don't write empty stuff
+		try
 		{
-			return;
-		}
-		final KElement list = parent.appendElement(BambiNSExtension.MY_NS_PREFIX + "OptionList", BambiNSExtension.MY_NS);
-		list.setAttribute("name", name);
-		list.setAttribute("default", e.getName());
-		final Iterator<? extends ValuedEnum> it = l.iterator();
-		while (it.hasNext())
-		{
-			final ValuedEnum ve = it.next();
-			final KElement option = list.appendElement(BambiNSExtension.MY_NS_PREFIX + "Option", BambiNSExtension.MY_NS);
-			option.setAttribute("name", ve.getName());
-			option.setAttribute("selected", ve.equals(e) ? "selected" : null, null);
-		}
-	}
+			sr.setContentType(r.getContentType());
+			ServletOutputStream outputStream = sr.getOutputStream();
+			IOUtils.copy(r.getInputStream(), outputStream);
+			outputStream.flush();
+			outputStream.close();
 
-	@Override
-	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
-	{
-		final boolean bBuf = dumpGet && bambiDumpIn != null;
-		final BambiServletRequest bufRequest = new BambiServletRequest(request, bBuf);
-		final BambiServletResponse bufResponse = new BambiServletResponse(response, bBuf, bufRequest);
-		final String header = getDumpHeader(bufRequest);
-		if (bBuf)
-		{
-			final String h2 = header + "\nContext Length: " + request.getContentLength();
-			bambiDumpIn.newFileFromStream(h2, bufRequest.getBufferedInputStream());
 		}
-		boolean bHandled = new OverviewHandler().handleGet(bufRequest, bufResponse);
-		if (!bHandled)
+		catch (final IOException e)
 		{
-			bHandled = theContainer.getRootDev().getGetDispatchHandler().handleGet(bufRequest, bufResponse);
+			log.error("cannot write to stream: ", e);
 		}
 
-		if (!bHandled)
-		{
-			final UnknownErrorHandler unknownErrorHandler = new UnknownErrorHandler(this);
-			unknownErrorHandler.handleGet(bufRequest, bufResponse);
-		}
-
-		if (dumpGet && bambiDumpOut != null)
-		{
-			final InputStream buf = bufResponse.getBufferedInputStream();
-			bambiDumpOut.newFileFromStream(header, buf);
-		}
-		bufResponse.flush();
-		bufRequest.flush(); // avoid mem leaks
-
-	}
-
-	/**
-	 * get the static context string
-	 * @param request
-	 * @return
-	 */
-	public static String getContext(final BambiServletRequest request)
-	{
-		return request == null ? null : request.getContext();
-	}
-
-	/**
-	 * get the static context string
-	 * @param request
-	 * @return
-	 */
-	public static String getBaseServletName(final HttpServletRequest request)
-	{
-		return request == null ? null : StringUtil.token(request.getRequestURI(), 0, "/");
-	}
-
-	/**
-	 * format currentTimeMillis() to mmm dd -HHH:mm:ss
-	 * @param milliSeconds
-	 * @return A String that formats a millseconds (currentTimeMillis()) to a date
-	 */
-	public static String formatLong(final long milliSeconds)
-	{
-
-		return milliSeconds <= 0 ? " - " : new JDFDate(milliSeconds).getFormattedDateTime("MMM dd - HH:mm:ss");
 	}
 
 	/**
 	 * 
+	 * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 * @param request
-	 * @param context
-	 * @return
+	 * @param response
+	 * @throws IOException
 	 */
-	public static boolean isMyContext(final BambiServletRequest request, final String context)
+	@Override
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException
 	{
-		if (context == null)
-		{
-			return true;
-		}
-
-		final String reqContext = getContext(request);
-		return context.equals(StringUtil.token(reqContext, 0, "/"));
-
-	}
-
-	/**
-	 * @param request
-	 * @param deviceID
-	 * @return
-	 */
-	public static boolean isMyRequest(final BambiServletRequest request, final String deviceID)
-	{
-		if (deviceID == null)
-		{
-			return true;
-		}
-		final String reqDeviceID = request.getDeviceID();
-		return reqDeviceID == null || deviceID.equals(reqDeviceID);
+		doGetPost(request, response, false);
 	}
 
 	@Override
@@ -472,9 +311,59 @@ public class BambiServlet extends HttpServlet
 		{
 			port = arg0.getServerPort();
 		}
-		AbstractDevice rootDev = theContainer.getRootDev();
-		rootDev.startWork();
 		super.service(arg0, arg1);
-		rootDev.endWork();
+	}
+
+	/**
+	 * returns the headers as an attributemap
+	 * @return map of headers, null if no headers exist
+	 */
+	private JDFAttributeMap getHeaderMap(HttpServletRequest request)
+	{
+		Enumeration<String> headers = request.getHeaderNames();
+		if (!headers.hasMoreElements())
+		{
+			return null;
+		}
+		JDFAttributeMap map = new JDFAttributeMap();
+		while (headers.hasMoreElements())
+		{
+			String header = headers.nextElement();
+			Enumeration<String> e = request.getHeaders(header);
+			VString v = new VString(e);
+			if (v.size() > 0)
+			{
+				map.put(header, StringUtil.setvString(v, ",", null, null));
+			}
+		}
+		if (map.size() == 0)
+			map = null;
+		return map;
+	}
+
+	/**
+	 *  
+	 */
+	private Map<String, String> getParameterMap(HttpServletRequest request)
+	{
+		Map<String, String[]> pm = request.getParameterMap();
+		Map<String, String> retMap = new JDFAttributeMap();
+		Set<String> keyset = pm.keySet();
+		for (String key : keyset)
+		{
+			String[] strings = pm.get(key);
+			if (strings != null && strings.length > 0)
+			{
+				String s = strings[0];
+				for (int i = 1; i < strings.length; i++)
+				{
+					s += "," + strings[i];
+				}
+				s = StringUtil.getNonEmpty(s);
+				if (s != null)
+					retMap.put(key, s);
+			}
+		}
+		return retMap.size() == 0 ? null : retMap;
 	}
 }

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -87,6 +87,7 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -109,6 +110,99 @@ import org.cip4.jdflib.util.UrlUtil;
 public class BambiContainer extends BambiLogFactory
 {
 	private AbstractDevice rootDev = null;
+
+	/**
+	 * handler for final handler for any non-handled url
+	 * @author prosirai
+	 * 
+	 */
+	public static class UnknownErrorHandler implements IGetHandler
+	{
+		private String details = null;
+		private String message = "No handler for URL";
+
+		/**
+		 *  
+		 */
+		public UnknownErrorHandler()
+		{
+			super();
+		}
+
+		/**
+		 * 
+		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.ContainerRequest)
+		 * @param request
+		 * @return
+		 */
+		public XMLResponse handleGet(final ContainerRequest request)
+		{
+			return showErrorPage(message, details, request);
+		}
+
+		/**
+		 * @param d the error details string
+		 */
+		public void setDetails(final String d)
+		{
+			details = d;
+		}
+
+		/**
+		 * @param m the error details string
+		 */
+		public void setMessage(final String m)
+		{
+			message = m;
+		}
+
+		/**
+		 * display an error on error.jsp
+		 * @param errorMsg short message describing the error
+		 * @param errorDetails detailed error info
+		 * @param request required to forward the page
+		 * @return 
+		 */
+		protected XMLResponse showErrorPage(final String errorMsg, final String errorDetails, final ContainerRequest request)
+		{
+			final XMLDoc d = new XMLDoc("BambiError", null);
+			final KElement err = d.getRoot();
+			err.setAttribute("errorMsg", errorMsg);
+			err.setAttribute("errorDetails", errorDetails);
+			err.setAttribute("Context", request.getContext());
+			err.setAttribute("URL", request.getRequestURI());
+			d.setXSLTURL(request.getContextRoot() + "/error.xsl");
+			return new XMLResponse(err);
+		}
+	}
+
+	/**
+	 * handler for the overview page
+	 * @author prosirai
+	 * 
+	 */
+	protected class OverviewHandler implements IGetHandler
+	{
+		/**
+		 * 
+		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.ContainerRequest)
+		 * @param request
+		 * @return
+		 */
+		public XMLResponse handleGet(final ContainerRequest request)
+		{
+			final String context = request.getContext();
+			if (KElement.isWildCard(context) || context.equalsIgnoreCase("overview"))
+			{
+				return getRootDev().showDevice(request, false);
+			}
+			else
+			{
+				return null;
+			}
+		}
+
+	}
 
 	/**
 	 * @return the root dispatcher device 
@@ -332,37 +426,67 @@ public class BambiContainer extends BambiLogFactory
 	{
 		final XMLResponse r;
 		startTimer(request);
-		final String contentType = request.getContentType();
-		if (UrlUtil.VND_JMF.equals(contentType))
+
+		if (request.isPost())
 		{
-			XMLRequest req = new XMLRequest(request);
-			r = processJMFDoc(req);
-		}
-		else if (UrlUtil.TEXT_XML.equals(contentType))
-		{
-			XMLRequest req = new XMLRequest(request);
-			r = processXMLDoc(req);
-		}
-		else
-		{
-			final boolean isMultipart = MimeUtil.isMimeMultiPart(contentType);
-			if (isMultipart)
+			final String contentType = request.getContentType();
+			if (UrlUtil.VND_JMF.equals(contentType))
 			{
-				log.info("Processing multipart request... (ContentType: " + contentType + ")");
-				r = processMultiPart(request);
+				XMLRequest req = new XMLRequest(request);
+				r = processJMFDoc(req);
+			}
+			else if (UrlUtil.TEXT_XML.equals(contentType))
+			{
+				XMLRequest req = new XMLRequest(request);
+				r = processXMLDoc(req);
 			}
 			else
 			{
-				String ctWarn = "Unknown HTTP ContentType: " + contentType;
-				log.error(ctWarn);
-				ctWarn += "\nFor JMF , please use: " + UrlUtil.VND_JMF;
-				ctWarn += "\nFor JDF , please use: " + UrlUtil.VND_JDF;
-				ctWarn += "\nFor MIME, please use: " + MimeUtil.MULTIPART_RELATED;
-				ctWarn += "\n\n Input Message:\n\n";
-				r = processError(request.getRequestURI(), EnumType.Notification, 9, ctWarn);
+				final boolean isMultipart = MimeUtil.isMimeMultiPart(contentType);
+				if (isMultipart)
+				{
+					log.info("Processing multipart request... (ContentType: " + contentType + ")");
+					r = processMultiPart(request);
+				}
+				else
+				{
+					String ctWarn = "Unknown HTTP ContentType: " + contentType;
+					log.error(ctWarn);
+					ctWarn += "\nFor JMF , please use: " + UrlUtil.VND_JMF;
+					ctWarn += "\nFor JDF , please use: " + UrlUtil.VND_JDF;
+					ctWarn += "\nFor MIME, please use: " + MimeUtil.MULTIPART_RELATED;
+					ctWarn += "\n\n Input Message:\n\n";
+					r = processError(request.getRequestURI(), EnumType.Notification, 9, ctWarn);
+				}
 			}
 		}
+		else
+		// get
+		{
+			r = handleGet(request);
+		}
 		stopTimer(request);
+		return r;
+	}
+
+	/**
+	 * 
+	 * @param request
+	 * @return
+	 */
+	private XMLResponse handleGet(final StreamRequest request)
+	{
+		XMLResponse r = new OverviewHandler().handleGet(request);
+		if (r == null)
+		{
+			r = getRootDev().getGetDispatchHandler().handleGet(request);
+		}
+
+		if (r == null)
+		{
+			final UnknownErrorHandler unknownErrorHandler = new UnknownErrorHandler();
+			r = unknownErrorHandler.handleGet(request);
+		}
 		return r;
 	}
 
@@ -372,6 +496,8 @@ public class BambiContainer extends BambiLogFactory
 	private void startTimer(ContainerRequest request)
 	{
 		AbstractDevice dev = getDeviceFromID(request.getDeviceID());
+		if (dev == null)
+			dev = getRootDev();
 		dev.getDeviceTimer(false).start();
 	}
 
@@ -381,6 +507,8 @@ public class BambiContainer extends BambiLogFactory
 	private void stopTimer(ContainerRequest request)
 	{
 		AbstractDevice dev = getDeviceFromID(request.getDeviceID());
+		if (dev == null)
+			dev = getRootDev();
 		dev.getDeviceTimer(false).stop();
 	}
 
@@ -403,7 +531,7 @@ public class BambiContainer extends BambiLogFactory
 	public XMLResponse processMultiPart(final StreamRequest request) throws IOException
 	{
 		startTimer(request);
-		final InputStream inStream = request.getStream();
+		final InputStream inStream = request.getInputStream();
 		final BodyPart bp[] = MimeUtil.extractMultipartMime(inStream);
 		log.info("Body Parts: " + ((bp == null) ? 0 : bp.length));
 		XMLResponse r = null;

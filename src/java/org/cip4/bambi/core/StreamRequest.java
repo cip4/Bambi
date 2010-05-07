@@ -104,7 +104,7 @@ public class StreamRequest extends ContainerRequest
 	/**
 	 * @return
 	 */
-	public InputStream getStream()
+	public InputStream getInputStream()
 	{
 		return theStream.getInputStream();
 	}

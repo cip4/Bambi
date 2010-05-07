@@ -70,6 +70,9 @@
  */
 package org.cip4.bambi.core;
 
+import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -86,14 +89,61 @@ public class ContainerRequest extends BambiLogFactory
 		super();
 		requestURI = null;
 		contentType = null;
+		headerMap = null;
+		parameterMap = null;
+		remoteHost = null;
 		setPost(true);
-		context = null;
 	}
 
 	private String requestURI;
-	private String context;
 	private String contentType;
+	private String remoteHost;
+
+	/**
+	 * @param remoteHost the remoteHost to set
+	 */
+	public void setRemoteHost(String remoteHost)
+	{
+		this.remoteHost = remoteHost;
+	}
+
 	private boolean bPost;
+	private JDFAttributeMap headerMap;
+	private JDFAttributeMap parameterMap;
+
+	/**
+	 * get the map of request headers
+	 * @return the headerMap
+	 */
+	public JDFAttributeMap getHeaderMap()
+	{
+		return headerMap;
+	}
+
+	/**
+	 * get the map of request uri parameters
+	 * @return the headerMap
+	 */
+	public JDFAttributeMap getParameterMap()
+	{
+		return parameterMap;
+	}
+
+	/**
+	 * @param headerMap the headerMap to set
+	 */
+	public void setHeaderMap(JDFAttributeMap headerMap)
+	{
+		this.headerMap = headerMap;
+	}
+
+	/**
+	 * @param parameterMap the parameterMap to set
+	 */
+	public void setParameterMap(JDFAttributeMap parameterMap)
+	{
+		this.parameterMap = parameterMap;
+	}
 
 	/**
 	 * @return the requestURI
@@ -121,12 +171,26 @@ public class ContainerRequest extends BambiLogFactory
 	}
 
 	/**
+	 * @return the tokenized request
+	 * 
+	 */
+	public VString getContextList()
+	{
+		final String s = getRequestURI();
+		final VString v = StringUtil.tokenize(s, "/", false);
+		return v;
+	}
+
+	/**
 	 * @return
 	 */
 	public String getLocalURL()
 	{
-		String localURL = UrlUtil.getLocalURL(context, getRequestURI());
-		return localURL;
+		VString v = getContextList();
+		VString v2 = new VString();
+		for (int i = 2; i < v.size(); i++)
+			v2.add(v.get(i));
+		return StringUtil.setvString(v2, "/", null, null);
 	}
 
 	/**
@@ -136,7 +200,7 @@ public class ContainerRequest extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		return "ContainerRequest URL=" + requestURI + "\n" + "Content Type=" + contentType;
+		return "ContainerRequest URL=" + requestURI + "\n Content Type=" + contentType + "\n Method=" + getMethod() + "\n Parameters: " + parameterMap;
 	}
 
 	/**
@@ -163,8 +227,16 @@ public class ContainerRequest extends BambiLogFactory
 	{
 		setRequestURI(request.getRequestURI());
 		setContentType(request.getContentType());
-		setContext(request.getContext());
 		setMethod(request.getMethod());
+		setRemoteHost(request.getRemoteHost());
+
+		JDFAttributeMap map = request.getHeaderMap();
+		if (map != null)
+			setHeaderMap(map.clone());
+
+		map = request.getParameterMap();
+		if (map != null)
+			setParameterMap(map.clone());
 	}
 
 	/**
@@ -184,6 +256,46 @@ public class ContainerRequest extends BambiLogFactory
 	}
 
 	/**
+	 * @return true if this is a POST message
+	 */
+	public boolean isPost()
+	{
+		return bPost;
+	}
+
+	/**
+	 * check whether this request is for deviceID
+	 * @param deviceID the deviceID to check
+	 * @return true if mine
+	 */
+	public boolean isMyRequest(final String deviceID)
+	{
+		if (deviceID == null)
+		{
+			return true;
+		}
+		final String reqDeviceID = getDeviceID();
+		return reqDeviceID == null || deviceID.equals(reqDeviceID);
+	}
+
+	/**
+	 * 
+	 * @param checkContext
+	 * @return
+	 */
+	public boolean isMyContext(final String checkContext)
+	{
+		if (checkContext == null)
+		{
+			return true;
+		}
+
+		final String myContext = getContext();
+		return checkContext.equals(myContext);
+
+	}
+
+	/**
 	 * @param method the method string
 	 */
 	public void setMethod(String method)
@@ -196,14 +308,77 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public String getContext()
 	{
-		return context;
+		return StringUtil.token(requestURI, 3, "/");
 	}
 
 	/**
-	 * @param context the context to set
+	 * @return the war file name portion of the request context
 	 */
-	public void setContext(String context)
+	public String getContextRoot()
 	{
-		this.context = context;
+		return StringUtil.token(requestURI, 2, "/");
+	}
+
+	/**
+	 * get a request header value
+	 * 
+	 * @param header the header key
+	 * @return String - the header value, null if header is not set
+	 */
+	public String getHeader(String header)
+	{
+		return headerMap == null ? null : headerMap.get(header);
+	}
+
+	/**
+	 * get a request header value
+	 * 
+	 * @param header the header key
+	 * @return String - the header value, null if header is not set
+	 */
+	public String getParameter(String header)
+	{
+		return parameterMap == null ? null : parameterMap.get(header);
+	}
+
+	/**
+	 * extract a boolean attribute from a given request
+	 * @param param
+	 * @return true if the parameter is"true", else false
+	 */
+	public boolean getBooleanParam(final String param)
+	{
+		final String val = getParameter(param);
+		return StringUtil.parseBoolean(val, false);
+	}
+
+	/**
+	 * extract an integer attribute from a given request
+	 * @param param
+	 * @return the integer parameter
+	 */
+	public int getIntegerParam(final String param)
+	{
+		final String val = getParameter(param);
+		return StringUtil.parseInt(val, 0);
+	}
+
+	/**
+	 * extract a double attribute from a given request
+	 * @param param
+	 * @return the double parameter
+	 */
+	public double getDoubleParam(final String param)
+	{
+		final String val = getParameter(param);
+		return StringUtil.parseDouble(val, 0.0);
+	}
+
+	/**
+	 * @return
+	 */
+	public String getRemoteHost()
+	{
+		return remoteHost;
 	}
 }

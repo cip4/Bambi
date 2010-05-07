@@ -72,10 +72,16 @@ package org.cip4.bambi.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Iterator;
+import java.util.List;
 
+import org.apache.commons.lang.enums.ValuedEnum;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.JDFDate;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
   * @author Rainer Prosi, Heidelberger Druckmaschinen *
@@ -83,15 +89,21 @@ import org.cip4.jdflib.util.ByteArrayIOStream;
 public class XMLResponse extends BambiLogFactory
 {
 	/**
-	 * @param theXML
+	 * @param theXML the xml to write - may be null
 	 */
 	public XMLResponse(KElement theXML)
 	{
 		super();
 		this.theXML = theXML;
+		theBuffer = null;
+		if (theXML != null)
+		{
+			setContentType(UrlUtil.TEXT_XML);
+		}
 	}
 
 	private KElement theXML;
+	private ByteArrayIOStream theBuffer;
 	private String contentType;
 
 	/**
@@ -100,6 +112,20 @@ public class XMLResponse extends BambiLogFactory
 	public KElement getXML()
 	{
 		return theXML;
+	}
+
+	/** 
+	 * returns the OutputStream for this if theXML==null
+	 * 
+	 * @return an OutputStream to write to, if xml==null, else null
+	 */
+	public OutputStream getOutputStream()
+	{
+		if (theXML != null)
+			return null;
+		if (theBuffer == null)
+			theBuffer = new ByteArrayIOStream();
+		return theBuffer;
 	}
 
 	/**
@@ -111,11 +137,14 @@ public class XMLResponse extends BambiLogFactory
 	}
 
 	/**
+	 * sets this xml to e, also removes any output stream that may be associated to this
+	 * 
 	 *  @param e the xml to set
 	 */
 	public void setXML(KElement e)
 	{
 		theXML = e;
+		theBuffer = null;
 	}
 
 	/**
@@ -150,18 +179,73 @@ public class XMLResponse extends BambiLogFactory
 	public InputStream getInputStream()
 	{
 		XMLDoc d = getXMLDoc();
-		if (d == null)
-			return null;
-		ByteArrayIOStream bis = new ByteArrayIOStream();
+		if (d != null)
+		{
+			theBuffer = new ByteArrayIOStream();
+			try
+			{
+				d.write2Stream(theBuffer, 0, true);
+			}
+			catch (IOException x)
+			{
+				theBuffer = null;
+			}
+			theXML = null;
+		}
+		return theBuffer == null ? null : theBuffer.getInputStream();
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean hasContent()
+	{
+		InputStream is = getInputStream();
 		try
 		{
-			d.write2Stream(bis, 0, true);
+			return is != null && is.read() >= 0;
 		}
 		catch (IOException x)
 		{
-			return null;
+			return false;
 		}
-		return bis.getInputStream();
+	}
+
+	/**
+	 * format currentTimeMillis() to mmm dd -HHH:mm:ss
+	 * @param milliSeconds
+	 * @return A String that formats a milliseconds (currentTimeMillis()) to a date
+	 */
+	public static String formatLong(final long milliSeconds)
+	{
+
+		return milliSeconds <= 0 ? " - " : new JDFDate(milliSeconds).getFormattedDateTime("MMM dd - HH:mm:ss");
+	}
+
+	/**
+	 * add a set of options to an xml file
+	 * @param e the default enum
+	 * @param l the list of all enums
+	 * @param parent the parent element to add the list to
+	 * @param name the name of the option list form
+	 */
+	public static void addOptionList(final ValuedEnum e, final List<? extends ValuedEnum> l, final KElement parent, final String name)
+	{
+		if (e == null || parent == null)
+		{
+			return;
+		}
+		final KElement list = parent.appendElement(BambiNSExtension.MY_NS_PREFIX + "OptionList", BambiNSExtension.MY_NS);
+		list.setAttribute("name", name);
+		list.setAttribute("default", e.getName());
+		final Iterator<? extends ValuedEnum> it = l.iterator();
+		while (it.hasNext())
+		{
+			final ValuedEnum ve = it.next();
+			final KElement option = list.appendElement(BambiNSExtension.MY_NS_PREFIX + "Option", BambiNSExtension.MY_NS);
+			option.setAttribute("name", ve.getName());
+			option.setAttribute("selected", ve.equals(e) ? "selected" : null, null);
+		}
 	}
 
 }

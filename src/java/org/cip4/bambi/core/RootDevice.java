@@ -71,7 +71,6 @@
 
 package org.cip4.bambi.core;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -100,7 +99,6 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * the dispatcher / rootDev controller device
@@ -394,24 +392,22 @@ public class RootDevice extends AbstractDevice
 	public class RootGetDispatchHandler extends BambiLogFactory implements IGetHandler
 	{
 		/**
-		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
 		 * @param request
-		 * @param response
 		 * @return true if handled
 		 */
-		public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
+		public XMLResponse handleGet(final ContainerRequest request)
 		{
 			final AbstractDevice[] devs = getDeviceArray();
-			boolean b = false;
+			XMLResponse r = null;
 			for (int i = 0; i < devs.length; i++)
 			{
-				b = devs[i].handleGet(request, response);
-				if (b)
+				r = devs[i].handleGet(request);
+				if (r != null)
 				{
-					return b;
+					return r;
 				}
 			}
-			return RootDevice.this.handleGet(request, response);
+			return RootDevice.this.handleGet(request);
 		}
 	}
 
@@ -614,20 +610,14 @@ public class RootDevice extends AbstractDevice
 	}
 
 	@Override
-	protected boolean isMyRequest(final BambiServletRequest request)
-	{
-		return request.isMyRequest(null);
-	}
-
-	@Override
-	protected boolean showDevice(final BambiServletRequest request, final BambiServletResponse response, final boolean refresh)
+	protected XMLResponse showDevice(final ContainerRequest request, final boolean refresh)
 	{
 		final AbstractDevice[] devices = getDeviceArray();
 		final XMLDoc deviceList = new XMLDoc("DeviceList", null);
 
 		final KElement listRoot = deviceList.getRoot();
 		listRoot.setAttribute("NumRequests", numRequests, null);
-		listRoot.setAttribute(AttributeName.CONTEXT, "/" + BambiServlet.getBaseServletName(request));
+		listRoot.setAttribute(AttributeName.CONTEXT, "/" + request.getContextRoot());
 		listRoot.setAttribute("MemFree", Runtime.getRuntime().freeMemory(), null);
 		listRoot.setAttribute("MemTotal", Runtime.getRuntime().totalMemory(), null);
 		final XMLDevice dRoot = getXMLDevice(false, request);
@@ -651,17 +641,8 @@ public class RootDevice extends AbstractDevice
 		}
 
 		deviceList.setXSLTURL(getXSLT(request));
-		response.setContentType(UrlUtil.APPLICATION_XML);
-
-		try
-		{
-			deviceList.write2Stream(response.getBufferedOutputStream(), 0, true);
-		}
-		catch (final IOException x)
-		{
-			return false;
-		}
-		return true;
+		XMLResponse r = new XMLResponse(listRoot);
+		return r;
 
 	}
 
@@ -669,10 +650,10 @@ public class RootDevice extends AbstractDevice
 	 * @return
 	 */
 	@Override
-	public String getXSLT(final BambiServletRequest request)
+	public String getXSLT(final ContainerRequest request)
 	{
-		final String contextPath = request.getContextPath();
-		final String command = request.getCommand();
+		final String contextPath = request.getContextRoot();
+		final String command = request.getContext();
 		String s = null;
 		if ("overview".equalsIgnoreCase(command) || "showDevice".equalsIgnoreCase(command))
 		{

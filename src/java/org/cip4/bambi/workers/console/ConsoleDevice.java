@@ -76,10 +76,10 @@ import java.util.Vector;
 import java.util.zip.DataFormatException;
 
 import org.cip4.bambi.core.AbstractDeviceProcessor;
-import org.cip4.bambi.core.BambiServletRequest;
-import org.cip4.bambi.core.BambiServletResponse;
+import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.workers.JobPhase;
 import org.cip4.bambi.workers.UIModifiableDevice;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
@@ -276,7 +276,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 		 * @param bProc
 		 * @param request
 		 */
-		public XMLConsoleDevice(final boolean bProc, final BambiServletRequest request)
+		public XMLConsoleDevice(final boolean bProc, final ContainerRequest request)
 		{
 			super(bProc, request);
 			final boolean bSetup = request.getBooleanParam("setup");
@@ -293,7 +293,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 	 * @return
 	 */
 	@Override
-	public XMLDevice getXMLDevice(final boolean bProc, final BambiServletRequest request)
+	public XMLDevice getXMLDevice(final boolean bProc, final ContainerRequest request)
 	{
 		final XMLDevice device = this.new XMLConsoleDevice(bProc, request);
 		return device;
@@ -326,7 +326,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 	 * @return
 	 */
 	@Override
-	public String getXSLT(final BambiServletRequest request)
+	public String getXSLT(final ContainerRequest request)
 	{
 		//		final String contextPath = request.getContextPath();
 		//		final String command = request.getCommand();
@@ -352,13 +352,12 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 	}
 
 	@Override
-	protected boolean processNextPhase(final BambiServletRequest request, final BambiServletResponse response)
+	protected XMLResponse processNextPhase(final ContainerRequest request)
 	{
 		final JobPhase nextPhase = buildJobPhaseFromRequest(request);
 		((ConsoleDeviceProcessor) _deviceProcessors.get(0)).doNextPhase(nextPhase, request);
 		ThreadUtil.sleep(223);
-		showDevice(request, response, false);
-		return true;
+		return showDevice(request, false);
 	}
 
 	/**

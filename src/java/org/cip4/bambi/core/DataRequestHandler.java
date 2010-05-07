@@ -96,23 +96,20 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
-	 * @param request
-	 * @param response
-	 * @return
+	 * 
 	 */
-	public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
+	public XMLResponse handleGet(final ContainerRequest request)
 	{
 		final File jobDir = dev.getJobDirectory(null);
 		if (jobDir == null)
 		{
-			return false;
+			return null;
 		}
 		final String path = request.getRequestURI();
 		final int posData = path.indexOf("/data/");
 		if (posData < 0)
 		{
-			return false;
+			return null;
 		}
 		log.info("serving file data for: " + path);
 		String last = path.substring(posData + 6);
@@ -126,14 +123,15 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 		{
 			file = FileUtil.getFileInDirectory(jobDir, UrlUtil.urlToFile(last));
 		}
+
+		XMLResponse r = new XMLResponse(null);
+
 		if (file.canRead())
 		{
 			try
 			{
-				final OutputStream bufferedOutputStream = response.getBufferedOutputStream();
-				IOUtils.copy(FileUtil.getBufferedInputStream(file), bufferedOutputStream);
-				bufferedOutputStream.flush();
-				bufferedOutputStream.close();
+				final OutputStream outputStream = r.getOutputStream();
+				IOUtils.copy(FileUtil.getBufferedInputStream(file), outputStream);
 			}
 			catch (final IOException x)
 			{
@@ -144,6 +142,6 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 		{
 			log.warn("cannot find file data for: " + path);
 		}
-		return true;
+		return r;
 	}
 }

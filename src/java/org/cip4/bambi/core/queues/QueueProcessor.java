@@ -84,14 +84,13 @@ import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiLog;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
-import org.cip4.bambi.core.BambiServlet;
-import org.cip4.bambi.core.BambiServletRequest;
-import org.cip4.bambi.core.BambiServletResponse;
+import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.core.RootDevice;
 import org.cip4.bambi.core.SignalDispatcher;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.IDeviceProperties.QEReturn;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
@@ -1184,21 +1183,20 @@ public class QueueProcessor extends BambiLogFactory
 
 		/**
 		 * @param request
-		 * @param response
 		 * @return
 		 * 
 		 */
-		public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
+		public XMLResponse handleGet(final ContainerRequest request)
 		{
 			boolean modified = false;
 			String sortBy = StringUtil.getNonEmpty(request.getParameter("SortBy"));
 			final String filter = StringUtil.getNonEmpty(request.getParameter("filter"));
 			nPos = request.getIntegerParam("pos");
-			if (BambiServlet.isMyContext(request, "showQueue"))
+			if (request.isMyContext("showQueue"))
 			{
 				modified = applyModification(request, modified);
 			}
-			else if (BambiServlet.isMyContext(request, "modifyQE"))
+			else if (request.isMyContext("modifyQE"))
 			{
 				updateQE(request);
 				modified = true;
@@ -1208,19 +1206,21 @@ public class QueueProcessor extends BambiLogFactory
 			}
 			else
 			{
-				return false;
+				return null;
 			}
 			final XMLDoc doc = new JDFDoc(ElementName.QUEUE);
+			JDFQueue root = (JDFQueue) doc.getRoot();
+			XMLResponse response = new XMLResponse(root);
+
 			if (request.getBooleanParam("quiet") == false)
 			{
-				JDFQueue root = (JDFQueue) doc.getRoot();
 				synchronized (_theQueue)
 				{
 					root.copyInto(_theQueue, false);
 				}
 
 				root = sortOutput(sortBy, root, filter);
-				root.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
+				root.setAttribute(AttributeName.CONTEXT, "/" + request.getContextRoot());
 				final QERetrieval qer = _parentDevice.getProperties().getQERetrieval();
 				root.setAttribute("Pull", qer == QERetrieval.PULL || qer == QERetrieval.BOTH, null);
 				if (_theQueue.numChildElements(ElementName.QUEUEENTRY, null) < 500)
@@ -1230,22 +1230,12 @@ public class QueueProcessor extends BambiLogFactory
 				root.setAttribute("pos", nPos, null);
 				doc.setXSLTURL(_parentDevice.getXSLT(request));
 				addOptions(root);
-
-				try
-				{
-					doc.write2Stream(response.getBufferedOutputStream(), 2, true);
-				}
-				catch (final IOException x)
-				{
-					return false;
-				}
-				response.setContentType(UrlUtil.TEXT_XML);
 			}
 			if (modified)
 			{
 				persist(300000);
 			}
-			return true;
+			return response;
 		}
 
 		/**
@@ -1253,7 +1243,7 @@ public class QueueProcessor extends BambiLogFactory
 		 * @param modified
 		 * @return
 		 */
-		private boolean applyModification(final BambiServletRequest request, boolean modified)
+		private boolean applyModification(final ContainerRequest request, boolean modified)
 		{
 			final EnumQueueStatus qStatus = _theQueue.getQueueStatus();
 			EnumQueueStatus qStatusNew = null;
@@ -1386,7 +1376,7 @@ public class QueueProcessor extends BambiLogFactory
 		/**
 		 * @param request
 		 */
-		private void updateQE(final BambiServletRequest request)
+		private void updateQE(final ContainerRequest request)
 		{
 			final String qeID = request.getParameter(QE_ID);
 			if (qeID == null)
@@ -1456,7 +1446,7 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				final JDFQueueEntry qe = (JDFQueueEntry) v.get(i);
 				// TODO select iterator based on current value
-				BambiServlet.addOptionList(qe.getQueueEntryStatus(), qe.getNextStatusVector(), qe, QE_STATUS);
+				XMLResponse.addOptionList(qe.getQueueEntryStatus(), qe.getNextStatusVector(), qe, QE_STATUS);
 			}
 		}
 	}
@@ -2538,18 +2528,18 @@ public class QueueProcessor extends BambiLogFactory
 	 * @param response
 	 * @return
 	 */
-	public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
+	public XMLResponse handleGet(final ContainerRequest request)
 	{
-		boolean b = this.new QueueGetHandler().handleGet(request, response);
-		if (!b)
+		XMLResponse r = this.new QueueGetHandler().handleGet(request);
+		if (r == null)
 		{
-			b = new ShowJDFHandler(_parentDevice).handleGet(request, response);
+			r = new ShowJDFHandler(_parentDevice).handleGet(request);
 		}
-		if (!b)
+		if (r == null)
 		{
-			b = new ShowXJDFHandler(_parentDevice).handleGet(request, response);
+			r = new ShowXJDFHandler(_parentDevice).handleGet(request);
 		}
-		return b;
+		return r;
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////////////////

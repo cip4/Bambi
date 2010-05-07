@@ -121,7 +121,7 @@ public class XMLRequest extends ContainerRequest
 	public XMLRequest(StreamRequest request)
 	{
 		super();
-		InputStream inStream = request.getStream();
+		InputStream inStream = request.getInputStream();
 		setContainer(request);
 		final JDFParser p = new JDFParser();
 		final JDFDoc xmlDoc = p.parseStream(inStream);

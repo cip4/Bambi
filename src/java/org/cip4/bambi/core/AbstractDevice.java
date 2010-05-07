@@ -72,8 +72,6 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Enumeration;
 import java.util.Set;
 import java.util.Vector;
 
@@ -106,6 +104,7 @@ import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFDeviceFilter;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -154,6 +153,114 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
+	 * 
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen *
+	 */
+	private class QueueEntryRequester
+	{
+		private final long lastRQE;
+
+		protected QueueEntryRequester()
+		{
+			lastRQE = 0;
+		}
+
+		/**
+		 * @param currentQE
+		 */
+		private void importQEFromRoot(final IQueueEntry currentQE)
+		{
+			if (currentQE != null)
+			{
+				// grab the qe and pass it on to the devices queue...
+				final JDFQueue queue = _theQueueProcessor.getQueue();
+				JDFQueueEntry queueEntry = currentQE.getQueueEntry();
+				final String queueEntryID = queueEntry.getQueueEntryID();
+				log.info("extracting queue entry from root queue: qeid=" + queueEntryID);
+				queueEntry = (JDFQueueEntry) queue.moveElement(queueEntry, null);
+
+				// sort the root queue as it doesn't know that it lost a kid
+				_rootDevice._theQueueProcessor.getQueue().sortChildren();
+				currentQE.setQueueEntry(queueEntry);
+
+				// clean up file references to the stored docuuments
+				final String oldFil = BambiNSExtension.getDocURL(queueEntry);
+				final String newFil = getJDFStorage(queueEntryID);
+				if (!ContainerUtil.equals(oldFil, newFil))
+				{
+					final boolean bMoved = FileUtil.moveFile(UrlUtil.urlToFile(oldFil), UrlUtil.urlToFile(newFil));
+					if (bMoved)
+					{
+						BambiNSExtension.setDocURL(queueEntry, newFil);
+						currentQE.getJDF().getOwnerDocument_KElement().setOriginalFileName(newFil);
+					}
+				}
+			}
+		}
+
+		/**
+		 * sends a request for a new qe to the proxy
+		 */
+		protected void sendRequestQueueEntry()
+		{
+			final String proxyURL = _devProperties.getProxyControllerURL();
+			if (KElement.isWildCard(proxyURL))
+			{
+				return;
+			}
+			final String queueURL = getDeviceURL();
+			log.info("Sending RequestQueueEntry for" + queueURL + " to: " + proxyURL);
+			final JDFJMF jmf = new JMFBuilder().buildRequestQueueEntry(queueURL, null);
+			sendJMF(jmf, proxyURL, null);
+			ThreadUtil.wait(mutex, 2222); // wait a short while for an immediate response
+		}
+
+		/**
+		 * @return the next executable queueentry, null if none were found
+		 */
+		protected IQueueEntry getQEFromParent()
+		{
+			IQueueEntry currentQE = getQEFromQueue();
+			if (currentQE == null)
+			{
+				sendRequestQueueEntry();
+				currentQE = getQEFromQueue();
+				if (currentQE != null)
+				{
+					log.info("processing requested qe: " + currentQE.getQueueEntryID());
+				}
+			}
+			return currentQE;
+		}
+
+		/**
+		 * @return
+		 */
+		private IQueueEntry getQEFromQueue()
+		{
+			IQueueEntry currentQE;
+			if (_theQueueProcessor == null)
+				return null;
+
+			synchronized (_theQueueProcessor.getQueue())
+			{
+				final QERetrieval canPush = getProperties().getQERetrieval();
+				currentQE = _theQueueProcessor.getNextEntry(null, canPush);
+				if (currentQE == null && _rootDevice != null)
+				{
+					currentQE = _rootDevice._theQueueProcessor.getNextEntry(getDeviceID(), canPush);
+					importQEFromRoot(currentQE);
+				}
+				if (currentQE != null)
+				{
+					currentQE.getQueueEntry().setDeviceID(getDeviceID());
+				}
+			}
+			return currentQE;
+		}
+	}
+
+	/**
 	 * @author prosirai
 	 */
 	protected class XMLDevice extends XMLDoc
@@ -164,14 +271,14 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		 * @param addProcs TODO
 		 * @param request 
 		 */
-		protected XMLDevice(final boolean addProcs, final BambiServletRequest request)
+		protected XMLDevice(final boolean addProcs, final ContainerRequest request)
 		{
 			super("XMLDevice", null);
 			prepare();
 			final KElement deviceRoot = getRoot();
 			setXSLTURL(getXSLT(request));
 
-			deviceRoot.setAttribute(AttributeName.CONTEXT, request.getContextPath());
+			deviceRoot.setAttribute(AttributeName.CONTEXT, "/" + request.getContextRoot());
 			final boolean bModify = request.getBooleanParam("modify");
 			deviceRoot.setAttribute("modify", bModify, null);
 			deviceRoot.setAttribute("NumRequests", numRequests, null);
@@ -539,6 +646,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected Vector<AbstractDeviceProcessor> _deviceProcessors = null;
 	protected SignalDispatcher _theSignalDispatcher = null;
 	protected JMFHandler _jmfHandler = null;
+	protected QueueEntryRequester qeRequester = null;
 
 	/**
 	 * @return the _jmfHandler
@@ -564,7 +672,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected StatusListener _theStatusListener = null;
 	protected long numRequests = 0;
 	protected boolean acceptAll = false;
-	private final MyMutex mutex;
+	protected final MyMutex mutex;
 
 	/**
 	 * creates a new device instance
@@ -581,6 +689,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected void init()
 	{
 		_jmfHandler = new JMFHandler(this);
+
+		qeRequester = new QueueEntryRequester();
 
 		_callback = _devProperties.getCallBackClass();
 		_theSignalDispatcher = new SignalDispatcher(_jmfHandler, this);
@@ -861,7 +971,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * @param request
 	 * @return the XMLDEvice
 	 */
-	public XMLDevice getXMLDevice(final boolean addProcs, final BambiServletRequest request)
+	public XMLDevice getXMLDevice(final boolean addProcs, final ContainerRequest request)
 	{
 		return new XMLDevice(addProcs, request);
 	}
@@ -870,10 +980,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * @param request request
 	 * @return the matching xslt
 	 */
-	public String getXSLT(final BambiServletRequest request)
+	public String getXSLT(final ContainerRequest request)
 	{
-		final String command = request.getCommand();
-		final String contextPath = request.getContextPath();
+		final String command = request.getContext();
+		final String contextPath = request.getContextRoot();
 		String s = "/showDevice.xsl";
 		if ("showQueue".equalsIgnoreCase(command) || "modifyQE".equalsIgnoreCase(command))
 		{
@@ -906,7 +1016,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * @param contextPath
 	 * @return
 	 */
-	protected String getXSLTBaseFromContext(final String contextPath)
+	protected final String getXSLTBaseFromContext(final String contextPath)
 	{
 		final String s2 = "/" + StringUtil.token(contextPath, 0, "/");
 		return s2;
@@ -1129,25 +1239,25 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * @param response
 	 * @return true if handled
 	 */
-	public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
+	public XMLResponse handleGet(final ContainerRequest request)
 	{
 		if (!isMyRequest(request))
 		{
-			return false;
+			return null;
 		}
 
-		if (BambiServlet.isMyContext(request, SHOW_DEVICE) || BambiServlet.isMyContext(request, "jmf") || BambiServlet.isMyContext(request, "slavejmf"))
+		if (request.isMyContext(SHOW_DEVICE) || request.isMyContext("jmf") || request.isMyContext("slavejmf"))
 		{
 			if (request.getBooleanParam("restart") && getRootDevice() != null)
 			{
 				final AbstractDevice newDev = getRootDevice().createDevice(_devProperties);
-				return newDev.showDevice(request, response, request.getBooleanParam("refresh"));
+				return newDev.showDevice(request, request.getBooleanParam("refresh"));
 			}
 			else if (request.getBooleanParam("shutdown") && getRootDevice() != null)
 			{
 				shutdown();
 				getRootDevice().removeDevice(getDeviceID());
-				return getRootDevice().handleGet(request, response);
+				return getRootDevice().handleGet(request);
 			}
 			else
 			{
@@ -1156,38 +1266,40 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 					reset();
 				}
 				updateDevice(request);
-				return showDevice(request, response, request.getBooleanParam("refresh"));
+				return showDevice(request, request.getBooleanParam("refresh"));
 			}
 		}
-		if (BambiServlet.isMyContext(request, SHOW_SUBSCRIPTIONS))
+		if (request.isMyContext(SHOW_SUBSCRIPTIONS))
 		{
-			return _theSignalDispatcher == null ? false : _theSignalDispatcher.handleGet(request, response);
+			return _theSignalDispatcher == null ? null : _theSignalDispatcher.handleGet(request);
 		}
 
-		if (BambiServlet.isMyContext(request, "data"))
+		if (request.isMyContext("data"))
 		{
-			return new DataRequestHandler(this).handleGet(request, response);
+			return new DataRequestHandler(this).handleGet(request);
 		}
 
 		if (_theQueueProcessor != null)
 		{
-			final boolean bH = _theQueueProcessor.handleGet(request, response);
-			if (bH)
+			final XMLResponse r = _theQueueProcessor.handleGet(request);
+			if (r != null)
 			{
-				return true;
+				return r;
 			}
 		}
-		return false;
+		return null;
 	}
 
 	/**
 	 * @param request
 	 */
-	protected void updateDevice(final BambiServletRequest request)
+	protected void updateDevice(final ContainerRequest request)
 	{
 
-		final Enumeration<String> en = request.getParameterNames();
-		final Set<String> s = ContainerUtil.toHashSet(en);
+		final JDFAttributeMap map = request.getParameterMap();
+		final Set<String> s = map == null ? null : map.keySet();
+		if (s == null)
+			return;
 
 		final String watchURL = request.getParameter("WatchURL");
 		if (watchURL != null && s.contains("WatchURL"))
@@ -1351,7 +1463,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		getDeviceTimer(false).stop();
 	}
 
-	protected boolean isMyRequest(final BambiServletRequest request)
+	protected boolean isMyRequest(final ContainerRequest request)
 	{
 		return request.isMyRequest(getDeviceID());
 	}
@@ -1369,22 +1481,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 		getJMFFactory().send2URL(jmf, url, responseHandler, getCallback(url), getDeviceID());
 		return true;
-	}
-
-	/**
-	 * sends a request for a new qe to the proxy
-	 */
-	public void sendRequestQueueEntry()
-	{
-		final String proxyURL = _devProperties.getProxyControllerURL();
-		if (KElement.isWildCard(proxyURL))
-		{
-			return;
-		}
-		final String queueURL = getDeviceURL();
-		log.info("Sending RequestQueueEntry for" + queueURL + " to: " + proxyURL);
-		final JDFJMF jmf = new JMFBuilder().buildRequestQueueEntry(queueURL, null);
-		sendJMF(jmf, proxyURL, null);
 	}
 
 	/**
@@ -1499,7 +1595,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		return siz;
 	}
 
-	protected boolean showDevice(final BambiServletRequest request, final BambiServletResponse response, final boolean refresh)
+	protected XMLResponse showDevice(final ContainerRequest request, final boolean refresh)
 	{
 
 		final XMLDevice simDevice = getXMLDevice(true, request);
@@ -1508,16 +1604,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			simDevice.getRoot().setAttribute("refresh", true, null);
 		}
 
-		try
-		{
-			simDevice.write2Stream(response.getBufferedOutputStream(), 0, true);
-		}
-		catch (final IOException x)
-		{
-			return false;
-		}
-		response.setContentType(UrlUtil.TEXT_XML);
-		return true;
+		XMLResponse r = new XMLResponse(simDevice.getRoot());
+		return r;
 	}
 
 	/**
@@ -1656,7 +1744,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * must I go? used e.g. for licesing
+	 * must I go? used e.g. for licensing
 	 * @return
 	 */
 	public boolean mustDie()
@@ -1669,77 +1757,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected IQueueEntry getQEFromParent()
 	{
-		IQueueEntry currentQE = getQEFromQueue();
-		if (currentQE == null)
-		{
-			sendRequestQueueEntry();
-			ThreadUtil.wait(mutex, 2222); // wait a short while for an immediate response
-			currentQE = getQEFromQueue();
-			if (currentQE != null)
-			{
-				log.info("processing requested qe: " + currentQE.getQueueEntryID());
-			}
-		}
-		return currentQE;
-	}
-
-	/**
-	 * @return
-	 */
-	private IQueueEntry getQEFromQueue()
-	{
-		IQueueEntry currentQE;
-		if (_theQueueProcessor == null)
-			return null;
-
-		synchronized (_theQueueProcessor.getQueue())
-		{
-			final QERetrieval canPush = getProperties().getQERetrieval();
-			currentQE = _theQueueProcessor.getNextEntry(null, canPush);
-			if (currentQE == null && _rootDevice != null)
-			{
-				currentQE = _rootDevice._theQueueProcessor.getNextEntry(getDeviceID(), canPush);
-				importQEFromRoot(currentQE);
-			}
-			if (currentQE != null)
-			{
-				currentQE.getQueueEntry().setDeviceID(getDeviceID());
-			}
-		}
-		return currentQE;
-	}
-
-	/**
-	 * @param currentQE
-	 */
-	private void importQEFromRoot(final IQueueEntry currentQE)
-	{
-		if (currentQE != null)
-		{
-			// grab the qe and pass it on to the devices queue...
-			final JDFQueue queue = _theQueueProcessor.getQueue();
-			JDFQueueEntry queueEntry = currentQE.getQueueEntry();
-			final String queueEntryID = queueEntry.getQueueEntryID();
-			log.info("extracting queue entry from root queue: qeid=" + queueEntryID);
-			queueEntry = (JDFQueueEntry) queue.moveElement(queueEntry, null);
-
-			// sort the root queue as it doesn't know that it lost a kid
-			_rootDevice._theQueueProcessor.getQueue().sortChildren();
-			currentQE.setQueueEntry(queueEntry);
-
-			// clean up file references to the stored docuuments
-			final String oldFil = BambiNSExtension.getDocURL(queueEntry);
-			final String newFil = getJDFStorage(queueEntryID);
-			if (!ContainerUtil.equals(oldFil, newFil))
-			{
-				final boolean bMoved = FileUtil.moveFile(UrlUtil.urlToFile(oldFil), UrlUtil.urlToFile(newFil));
-				if (bMoved)
-				{
-					BambiNSExtension.setDocURL(queueEntry, newFil);
-					currentQE.getJDF().getOwnerDocument_KElement().setOriginalFileName(newFil);
-				}
-			}
-		}
+		return qeRequester.getQEFromParent();
 	}
 
 	/**

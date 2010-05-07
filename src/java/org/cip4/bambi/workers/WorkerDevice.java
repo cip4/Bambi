@@ -72,17 +72,15 @@
 package org.cip4.bambi.workers;
 
 import java.io.File;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
 import org.cip4.bambi.core.AbstractDevice;
-import org.cip4.bambi.core.BambiServlet;
-import org.cip4.bambi.core.BambiServletRequest;
-import org.cip4.bambi.core.BambiServletResponse;
+import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -96,6 +94,7 @@ import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFResourceLink.EnumUsage;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFDevice;
@@ -230,7 +229,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 		 * @param bProc
 		 * @param request
 		 */
-		public XMLWorkerDevice(final boolean bProc, final BambiServletRequest request)
+		public XMLWorkerDevice(final boolean bProc, final ContainerRequest request)
 		{
 			super(bProc, request);
 			final KElement deviceRoot = getRoot();
@@ -411,29 +410,28 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	 * @return true if handled
 	 */
 	@Override
-	public boolean handleGet(final BambiServletRequest request, final BambiServletResponse response)
+	public XMLResponse handleGet(final ContainerRequest request)
 	{
 		if (isMyRequest(request))
 		{
-			if (BambiServlet.isMyContext(request, "processNextPhase"))
+			if (request.isMyContext("processNextPhase"))
 			{
-				return processNextPhase(request, response);
+				return processNextPhase(request);
 			}
-			else if (BambiServlet.isMyContext(request, "login"))
+			else if (request.isMyContext("login"))
 			{
-				return handleLogin(request, response);
+				return handleLogin(request);
 			}
 		}
-		return super.handleGet(request, response);
+		return super.handleGet(request);
 	}
 
 	/**
 	 * handle login/logout of employees
 	 * @param request
-	 * @param response 
 	 * @return
 	 */
-	private boolean handleLogin(final BambiServletRequest request, final BambiServletResponse response)
+	private XMLResponse handleLogin(final ContainerRequest request)
 	{
 		String personalID = StringUtil.getNonEmpty(request.getParameter(AttributeName.PERSONALID));
 		if (personalID != null)
@@ -450,16 +448,14 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 			}
 		}
 
-		showDevice(request, response, false);
-		return true;
+		return showDevice(request, false);
 	}
 
 	/**
 	 * @param request
-	 * @param response
 	 * @return
 	 */
-	protected abstract boolean processNextPhase(BambiServletRequest request, BambiServletResponse response);
+	protected abstract XMLResponse processNextPhase(ContainerRequest request);
 
 	/**
 	 * check whether this resource should track amounts
@@ -522,12 +518,12 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	 * @param request
 	 */
 	@Override
-	protected void updateDevice(final BambiServletRequest request)
+	protected void updateDevice(final ContainerRequest request)
 	{
 		super.updateDevice(request);
 
-		final Enumeration<String> en = request.getParameterNames();
-		final Set<String> s = ContainerUtil.toHashSet(en);
+		final JDFAttributeMap map = request.getParameterMap();
+		final Set<String> s = map == null ? null : map.keySet();
 
 		final String exp = request.getParameter(AttributeName.TYPEEXPRESSION);
 		if (exp != null && s.contains(AttributeName.TYPEEXPRESSION))
@@ -540,10 +536,10 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	 * @see org.cip4.bambi.core.AbstractDevice#getXSLT(java.lang.String, org.cip4.bambi.core.BambiServletRequest)
 	 */
 	@Override
-	public String getXSLT(final BambiServletRequest request)
+	public String getXSLT(final ContainerRequest request)
 	{
-		final String command = request.getCommand();
-		final String contextPath = request.getContextPath();
+		final String command = request.getContext();
+		final String contextPath = request.getContextRoot();
 		if ("login".equals(command))
 		{
 			return getXSLTBaseFromContext(contextPath) + "/login.xsl";

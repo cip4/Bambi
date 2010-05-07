@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.NotImplementedException;
-import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 
 /*
@@ -93,7 +92,7 @@ import org.cip4.jdflib.util.ByteArrayIOStream;
  * @author prosirai
  * 
  */
-public class BambiServletResponse extends BambiLogFactory implements HttpServletResponse
+class BambiServletResponse extends BambiLogFactory implements HttpServletResponse
 {
 	private final HttpServletResponse parent;
 	private ByteArrayIOStream buffer;
@@ -106,7 +105,7 @@ public class BambiServletResponse extends BambiLogFactory implements HttpServlet
 	 * @param bBuffer if true, buffer this
 	 * @param request the matching request - used mainly for debugging context
 	 */
-	public BambiServletResponse(final HttpServletResponse _parent, final boolean bBuffer, final BambiServletRequest request)
+	private BambiServletResponse(final HttpServletResponse _parent, final boolean bBuffer, final BambiServletRequest request)
 	{
 		parent = _parent;
 		theRequest = request;
@@ -437,30 +436,6 @@ public class BambiServletResponse extends BambiLogFactory implements HttpServlet
 			}
 		}
 
-	}
-
-	/**
-	 * @param r the XMLResponse to serialize
-	 */
-	public void write(XMLResponse r)
-	{
-		if (r == null)
-			return; // don't write empty stuff
-		try
-		{
-			XMLDoc d = r.getXMLDoc();
-			if (d != null)
-			{
-				setContentType(r.getContentType());
-				IOUtils.copy(r.getInputStream(), getBufferedOutputStream());
-			}
-			else
-				log.error("writing null document to stream");
-		}
-		catch (final IOException e)
-		{
-			log.error("cannot write to stream: ", e);
-		}
 	}
 
 }

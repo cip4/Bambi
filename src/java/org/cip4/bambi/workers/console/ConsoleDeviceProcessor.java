@@ -73,7 +73,7 @@ package org.cip4.bambi.workers.console;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.cip4.bambi.core.BambiServletRequest;
+import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.queues.QueueProcessor;
@@ -210,7 +210,7 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 	 * Phase timeToGo is ignored in this class, it is advancing to the next phase solely by doNextPhase().
 	 * @param request
 	 */
-	public void doNextPhase(final JobPhase nextPhase, final BambiServletRequest request)
+	public void doNextPhase(final JobPhase nextPhase, final ContainerRequest request)
 	{
 		final JobPhase lastPhase = getCurrentJobPhase();
 		setNextPhase(nextPhase, request);
@@ -221,7 +221,7 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 	 * @param phase
 	 * @param request
 	 */
-	private void setNextPhase(final JobPhase phase, final BambiServletRequest request)
+	private void setNextPhase(final JobPhase phase, final ContainerRequest request)
 	{
 		final int nextAction = request == null ? currentAction : request.getIntegerParam("pos");
 		_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(), request != null);
@@ -241,7 +241,7 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 	 * @param lastPhase
 	 * @param request
 	 */
-	private void applyAmounts(final JobPhase lastPhase, final BambiServletRequest request)
+	private void applyAmounts(final JobPhase lastPhase, final ContainerRequest request)
 	{
 		// TODO Auto-generated method stub
 
