@@ -86,6 +86,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement.EnumValidationLevel;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.MimeUtil;
@@ -100,6 +101,7 @@ import org.cip4.jdflib.util.mime.MimeWriter;
 public class BambiContainerTest extends BambiTestCase
 {
 	protected BambiContainer bambiContainer = null;
+	private String device1 = null;
 
 	/**
 	 * 
@@ -169,7 +171,8 @@ public class BambiContainerTest extends BambiTestCase
 		bambiContainer = new BambiContainer();
 		MultiDeviceProperties props = new MultiDeviceProperties(new File(sm_dirTestData + "ContainerTest"), "test");
 		DeviceProperties devProp = props.createDeviceProps(null);
-		devProp.setDeviceID("testDevice1");
+		device1 = "testDevice1";
+		devProp.setDeviceID(device1);
 		devProp.setCallBackClassName("org.cip4.bambi.extensions.ExtensionCallback");
 
 		devProp = props.createDeviceProps(null);
@@ -201,6 +204,57 @@ public class BambiContainerTest extends BambiTestCase
 		resp.getXMLDoc().write2File(sm_dirTestDataTemp + "respSubs.jmf", 2, false);
 		assertTrue(jmfResp.isValid(EnumValidationLevel.Complete));
 		assertTrue(jmfResp.getResponse(0).getSubscribed());
+	}
+
+	/**
+	 * @throws IOException 
+	 * 
+	 */
+	public void testHandleGet() throws IOException
+	{
+		StreamRequest sr = new StreamRequest(new ByteArrayIOStream());
+		sr.setPost(false);
+		sr.setRequestURI("http://dummy:8080/war/showQueue/" + device1);
+		XMLResponse resp = bambiContainer.processStream(sr);
+		assertNotNull(resp);
+		KElement htmlResp = resp.getXML();
+		assertNotNull(htmlResp);
+		assertTrue(htmlResp instanceof JDFQueue);
+	}
+
+	/**
+	 * @throws IOException 
+	 * 
+	 */
+	public void testSubmit() throws IOException
+	{
+
+		final JDFDoc docJDF = _theGT.getNode().getOwnerDocument_JDFElement();
+
+		BambiTestHelper helper = new BambiTestHelper();
+		JDFDoc jmfDoc = helper.createSubmitJMF(docJDF);
+		MimeWriter mimeWriter = new MimeWriter();
+		mimeWriter.buildMimePackage(jmfDoc, docJDF, false);
+		MimeRequest mr = new MimeRequest(mimeWriter.getBodyParts());
+		mr.setRequestURI("http://dummy:8080/war/jmf/" + device1);
+		XMLResponse resp = bambiContainer.processMultipleDocuments(mr);
+		assertNotNull(resp);
+		KElement htmlResp = resp.getXML();
+		assertNotNull(htmlResp);
+		assertTrue(htmlResp instanceof JDFJMF);
+	}
+
+	/**
+	 * @throws IOException 
+	 * 
+	 */
+	public void testSubmitMany() throws IOException
+	{
+		for (int i = 0; i < 1000; i++)
+		{
+			testSubmit();
+			System.out.println(i);
+		}
 
 	}
 

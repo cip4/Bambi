@@ -69,8 +69,9 @@
  */
 package org.cip4.bambi.core;
 
+import java.util.Vector;
+
 import org.cip4.jdflib.core.AttributeName;
-import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
@@ -80,6 +81,7 @@ import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.extensions.xjdfwalker.XJDFToJDFConverter;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.StringUtil;
 
@@ -212,7 +214,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			log.error("root with no JobID");
 			return;
 		}
-		final VElement vSubs = n.getChildrenByTagName(ElementName.SUBSCRIPTION, null, null, false, true, 0);
+		final Vector<JDFSubscription> vSubs = n.getChildrenByClass(JDFSubscription.class, true, 0);
 		if (vSubs != null)
 		{
 			for (int i = 0; i < vSubs.size(); i++)

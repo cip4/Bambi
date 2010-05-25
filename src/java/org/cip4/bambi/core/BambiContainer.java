@@ -427,7 +427,7 @@ public class BambiContainer extends BambiLogFactory
 		final XMLResponse r;
 		startTimer(request);
 
-		if (request.isPost())
+		if (request.isPost()) // post request
 		{
 			final String contentType = request.getContentType();
 			if (UrlUtil.VND_JMF.equals(contentType))
@@ -461,7 +461,7 @@ public class BambiContainer extends BambiLogFactory
 			}
 		}
 		else
-		// get
+		// get request
 		{
 			r = handleGet(request);
 		}

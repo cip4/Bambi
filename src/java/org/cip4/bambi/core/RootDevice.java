@@ -575,7 +575,7 @@ public class RootDevice extends AbstractDevice
 	{
 		final String devID = BambiServletRequest.getDeviceIDFromURL(url);
 		final AbstractDevice dev = devID == null ? null : getDevice(devID);
-		return (dev != null) ? dev.getCallback(url) : _callback;
+		return (dev != null && !(dev instanceof RootDevice)) ? dev.getCallback(url) : _callback;
 	}
 
 	/**

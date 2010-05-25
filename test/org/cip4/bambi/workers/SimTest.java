@@ -123,6 +123,7 @@ public class SimTest extends BambiTestCase
 		// acknowledgeURL = "http://localhost:8080/httpdump/acknowledgeURL";
 
 		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim001";
+		simWorkerUrl = "http://kie-prosirai-lg:8080/richworker/jmf/Root1";
 		//simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/SimWorkerRoot";
 		//simWorkerUrl = "http://10.51.201.204:8080/SimWorker/jmf/SimWorkerRoot";
 		//simWorkerUrl = "http://localhost:8080/richworker/jmf/sim001";
@@ -136,7 +137,8 @@ public class SimTest extends BambiTestCase
 	@Override
 	protected String getDeviceID()
 	{
-		return "sim001";
+		return null; // "06-SpeedmasterXL105-1";
+		//	return "sim001";
 	}
 
 	/**

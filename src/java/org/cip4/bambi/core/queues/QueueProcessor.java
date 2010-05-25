@@ -427,7 +427,6 @@ public class QueueProcessor extends BambiLogFactory
 
 	protected class SubmitQueueEntryHandler extends AbstractHandler
 	{
-
 		public SubmitQueueEntryHandler()
 		{
 			super(EnumType.SubmitQueueEntry, new EnumFamily[] { EnumFamily.Command });
@@ -483,7 +482,6 @@ public class QueueProcessor extends BambiLogFactory
 
 					return true; // error was filled by handler
 				}
-				System.gc();
 				if (qe == null)
 				{
 					return true;
@@ -1059,6 +1057,7 @@ public class QueueProcessor extends BambiLogFactory
 				QueueProcessor qp = it.next();
 				qp.persist();
 			}
+			System.gc();
 		}
 
 		/**
@@ -1675,7 +1674,7 @@ public class QueueProcessor extends BambiLogFactory
 		_theQueue.setAutomated(true);
 		_theQueue.setDeviceID(deviceID);
 		_theQueue.setMaxCompletedEntries(100);
-		_theQueue.setMaxWaitingEntries(100000);
+		_theQueue.setMaxWaitingEntries(-1);
 		_theQueue.setMaxRunningEntries(1);
 		_theQueue.setDescriptiveName("Queue for " + _parentDevice.getDeviceType());
 		_theQueue.setCleanupCallback(new QueueEntryCleanup()); // zapps any attached files when removing qe
