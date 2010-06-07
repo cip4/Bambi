@@ -78,12 +78,17 @@ import java.net.URL;
 
 import javax.mail.Multipart;
 
+import org.cip4.bambi.core.BambiContainer;
+import org.cip4.bambi.core.MimeRequest;
+import org.cip4.bambi.core.XMLRequest;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.JDFTestCaseBase;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.jmf.JDFCommand;
@@ -99,6 +104,8 @@ import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
+import org.cip4.jdflib.util.mime.MimeReader;
+import org.cip4.jdflib.util.mime.MimeWriter;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen abstract test case for all bambi tests note that this has some site specific details that must be modified
@@ -107,13 +114,38 @@ public class BambiTestHelper extends JDFTestCaseBase
 {
 
 	// these are generally overwritten!
+	/**
+	 * 
+	 */
 	public boolean bUpdateJobID = false;
+	/**
+	 * 
+	 */
 	public int chunkSize = -1;
+	/**
+	 * 
+	 */
 	public String transferEncoding = UrlUtil.BASE64;
+	/**
+	 * 
+	 */
 	public String returnJMF = "http://localhost:8080/httpdump/returnJMF";
+	/**
+	 * 
+	 */
 	public String returnURL = null;// "http://localhost:8080/httpdump/returnURL";
+	/**
+	 * 
+	 */
 	public String acknowledgeURL = null;// "http://localhost:8080/httpdump/acknowledgeURL";
+	/**
+	 * 
+	 */
 	public boolean extendReference = false;
+	/**
+	 * 
+	 */
+	public BambiContainer container = null;
 
 	/**
 	 * bambi test case
@@ -167,6 +199,41 @@ public class BambiTestHelper extends JDFTestCaseBase
 			fail(e.getMessage()); // fail on exception
 		}
 		return response;
+	}
+
+	/**
+	 * @param d the doc to send as root node
+	 * @param url the url to send to
+	 * @return
+	 * @throws MalformedURLException
+	 */
+	public XMLResponse submitMimetoContainer(final JDFDoc d, final String url) throws MalformedURLException
+	{
+		final JDFDoc docJMF = createSubmitJMF(d);
+
+		MimeWriter mimeWriter = new MimeWriter();
+		mimeWriter.buildMimePackage(docJMF, d, extendReference);
+
+		MimeRequest mr = new MimeRequest(new MimeReader(mimeWriter));
+		mr.setPost(true);
+		mr.setRequestURI(url);
+		XMLResponse r = container.processMultipleDocuments(mr);
+		return r;
+	}
+
+	/**
+	 * @param d the doc to send as root node
+	 * @param url the url to send to
+	 * @return
+	 * @throws MalformedURLException
+	 */
+	public XMLResponse submitXMLtoContainer(final XMLDoc d, final String url) throws MalformedURLException
+	{
+		XMLRequest xmlRequest = new XMLRequest(d);
+		xmlRequest.setPost(true);
+		xmlRequest.setRequestURI(url);
+		XMLResponse r = container.processXMLDoc(xmlRequest);
+		return r;
 	}
 
 	/**
@@ -263,7 +330,7 @@ public class BambiTestHelper extends JDFTestCaseBase
 	public JDFQueue getQueueStatus(final String qURL)
 	{
 		final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
-		final JDFDoc dresp = submitJMFtoURL(jmf, qURL);
+		final JDFDoc dresp = submitXMLtoURL(jmf, qURL);
 		final JDFResponse resp = dresp.getJMFRoot().getResponse(0);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
@@ -273,17 +340,27 @@ public class BambiTestHelper extends JDFTestCaseBase
 	}
 
 	/**
-	 * @param jmf the jmf to send
+	 * @param xml the jmf to send
 	 * @param url the url to send to
 	 * @return
 	 */
-	public JDFDoc submitJMFtoURL(final JDFJMF jmf, final String url)
+	public JDFDoc submitJMFtoURL(final KElement xml, final String url)
+	{
+		return submitXMLtoURL(xml, url);
+	}
+
+	/**
+	 * @param xml the jmf to send
+	 * @param url the url to send to
+	 * @return
+	 */
+	public JDFDoc submitXMLtoURL(final KElement xml, final String url)
 	{
 		try
 		{
 			final HTTPDetails md = new HTTPDetails();
 			md.chunkSize = chunkSize;
-			final HttpURLConnection urlCon = jmf.getOwnerDocument_JDFElement().write2HTTPURL(new URL(url), md);
+			final HttpURLConnection urlCon = new JDFDoc(xml.getOwnerDocument()).write2HTTPURL(new URL(url), md);
 			assertEquals(url, 200, urlCon.getResponseCode());
 			final JDFParser parser = new JDFParser();
 			final InputStream inStream = urlCon.getInputStream();

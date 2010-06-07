@@ -548,7 +548,8 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				for (int i = 0; i < mi.length; i++)
 				{
 					messageMap.putOne(mi[i], inSignal);
-					getDispatcher().triggerChannel(mi[i].misChannelID, qeID, null, -1, i + 1 == mi.length, true);
+					boolean last = i + 1 == mi.length;
+					getDispatcher().triggerChannel(mi[i].misChannelID, qeID, null, -1, last, true);
 				}
 				return true;
 			}

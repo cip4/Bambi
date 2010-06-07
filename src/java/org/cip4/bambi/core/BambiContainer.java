@@ -90,7 +90,6 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -99,6 +98,7 @@ import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.mime.MimeReader;
 
 /**
  * class that handles all bambi JDF/JMF requests - regardless of the servlet context
@@ -355,7 +355,7 @@ public class BambiContainer extends BambiLogFactory
 	}
 
 	/**
-	 * @return the rootDev
+	 * @return the rootDevice, which may be a generic device in case we have only one device
 	 */
 	public AbstractDevice getRootDev()
 	{
@@ -418,6 +418,9 @@ public class BambiContainer extends BambiLogFactory
 	}
 
 	/**
+	 * process an incoming stream 
+	 * dispatch to the appropriate processors based on the content type
+	 * 
 	 * @param request 
 	 * @return 
 	 * @throws IOException 
@@ -435,7 +438,7 @@ public class BambiContainer extends BambiLogFactory
 				XMLRequest req = new XMLRequest(request);
 				r = processJMFDoc(req);
 			}
-			else if (UrlUtil.TEXT_XML.equals(contentType))
+			else if (UrlUtil.isXMLType(contentType))
 			{
 				XMLRequest req = new XMLRequest(request);
 				r = processXMLDoc(req);
@@ -516,10 +519,23 @@ public class BambiContainer extends BambiLogFactory
 	 * @param request
 	 * @return
 	 */
-	private XMLResponse processXMLDoc(XMLRequest request)
+	public XMLResponse processXMLDoc(XMLRequest request)
 	{
-		log.info("Processing text/xml");
-		return processJMFDoc(request);
+		log.info("Processing xml document");
+		XMLRequest newRequest = getRootDev().convertToJMF(request);
+		if (newRequest != null)
+		{
+			KElement e = newRequest.getXML();
+			// jmf with incorrect mime type or something that the device could translate to jmf
+			if (e instanceof JDFJMF)
+			{
+				return processJMFDoc(newRequest);
+			}
+		}
+
+		KElement e = request.getXML();
+		String notification = "cannot process xml of type root = " + ((e == null) ? "null" : e.getLocalName()) + "; Content-Type: " + request.getContentType();
+		return processError(request.getRequestURI(), EnumType.Notification, 3, notification);
 	}
 
 	/**
@@ -532,7 +548,8 @@ public class BambiContainer extends BambiLogFactory
 	{
 		startTimer(request);
 		final InputStream inStream = request.getInputStream();
-		final BodyPart bp[] = MimeUtil.extractMultipartMime(inStream);
+		final MimeReader mr = new MimeReader(inStream);
+		final BodyPart bp[] = mr.getBodyParts();
 		log.info("Body Parts: " + ((bp == null) ? 0 : bp.length));
 		XMLResponse r = null;
 		if (bp == null || bp.length == 0)
@@ -545,19 +562,16 @@ public class BambiContainer extends BambiLogFactory
 			{// messaging exceptions
 				if (bp.length > 1)
 				{
-					MimeRequest req = new MimeRequest(bp);
+					MimeRequest req = new MimeRequest(mr);
 					req.setContainer(request);
 					r = processMultipleDocuments(req);
 				}
 				else
+				// unpack the only body part and throw it at the processor again
 				{
-					final String s = bp[0].getContentType();
-					if (UrlUtil.VND_JMF.equalsIgnoreCase(s))
-					{
-						StreamRequest sr = new StreamRequest(bp[0].getInputStream());
-						sr.setContainer(request);
-						r = processStream(sr);
-					}
+					StreamRequest sr = new StreamRequest(bp[0].getInputStream());
+					sr.setContainer(request);
+					r = processStream(sr);
 				}
 			}
 			catch (final MessagingException x)
@@ -578,9 +592,10 @@ public class BambiContainer extends BambiLogFactory
 	{
 		startTimer(request);
 		final XMLResponse r;
-		BodyPart[] bp = request.getBodyParts();
+		MimeReader reader = request.getReader();
+		BodyPart[] bp = reader == null ? null : reader.getBodyParts();
 		log.info("processMultipleDocuments- parts: " + (bp == null ? 0 : bp.length));
-		if (bp == null || bp.length < 2)
+		if (bp == null || bp.length == 0)
 		{
 			r = processError(request.getRequestURI(), EnumType.Notification, 2, "processMultipleDocuments- not enough parts, bailing out");
 		}
@@ -589,25 +604,13 @@ public class BambiContainer extends BambiLogFactory
 			final JDFDoc docJDF[] = MimeUtil.getJMFSubmission(bp[0].getParent());
 			if (docJDF == null || docJDF.length == 0)
 			{
-				r = processError(request.getRequestURI(), EnumType.Notification, 2, "proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
-			}
-			else if (docJDF.length == 1)
-			{
-				final JDFMessage messageElement = docJDF[0].getJMFRoot().getMessageElement(null, null, 0);
-				EnumType typ = messageElement == null ? EnumType.Notification : messageElement.getEnumType();
-				if (typ == null)
-				{
-					typ = EnumType.Notification;
-				}
-				r = processError(request.getRequestURI(), typ, 2, "proccessMultipleDocuments- incorrect jmf/jdf parts, bailing out!");
-
+				r = processError(request.getRequestURI(), EnumType.Notification, 2, "proccessMultipleDocuments- no body parts, bailing out!");
 			}
 			else
 			{
 				XMLRequest r2 = new XMLRequest(docJDF[0].getJMFRoot());
 				r2.setContainer(request);
-				// callbacks must be handled individually
-				r = processJMFDoc(r2);
+				r = processXMLDoc(r2);
 			}
 		}
 		stopTimer(request);

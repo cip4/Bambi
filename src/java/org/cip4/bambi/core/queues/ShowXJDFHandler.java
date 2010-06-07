@@ -135,6 +135,8 @@ public class ShowXJDFHandler extends ShowHandler
 			final XJDF20 xjdf20 = new XJDF20();
 			xjdf20.bUpdateVersion = false;
 			xjdf20.bHTMLColor = true;
+			xjdf20.bMergeLayout = false;
+			xjdf20.bIntentPartition = false;
 			final KElement xRoot = xjdf20.makeNewJDF(nPart, null);
 			doc = new JDFDoc(xRoot.getOwnerDocument());
 			doc = prepareRoot(doc, request);

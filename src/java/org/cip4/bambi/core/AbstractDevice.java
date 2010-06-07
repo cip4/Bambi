@@ -105,6 +105,7 @@ import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
+import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.jmf.JDFDeviceFilter;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -134,6 +135,9 @@ import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.CPUTimer.CPUTimerFactory;
 import org.cip4.jdflib.util.ThreadUtil.MyMutex;
+import org.cip4.jdflib.util.mime.BodyPartHelper;
+import org.cip4.jdflib.util.mime.MimeReader;
+import org.cip4.jdflib.util.mime.MimeWriter;
 
 /**
  * basis for JDF devices. <br>
@@ -815,7 +819,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * add any job related handlers - will be overwritten by non-job handling devices
+	 * add any job related handlers - may be overwritten by non-job handling devices
 	 */
 	protected void addJobHandlers()
 	{
@@ -1796,4 +1800,48 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		return _submitHotFolder;
 	}
 
+	/**
+	 * convert any XML to the appropriate JMF
+	 * the default implementation only checks whether it already is jmf
+	 * 
+	 * @param request
+	 * @return
+	 */
+	public XMLRequest convertToJMF(XMLRequest request)
+	{
+		KElement e = request.getXML();
+		if (e == null)
+			return null;
+		if (e instanceof JDFJMF)
+		{
+			return request;
+		}
+		else if (e instanceof JDFNode || XJDF20.rootName.equals(e.getLocalName()))
+		{
+			final XMLRequest r2 = createSubmitFromJDF(e);
+			if (r2 != null)
+			{
+				r2.setContainer(request);
+				return r2;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * create a submitqueuentry from raw JDF
+	 * @param e
+	 * @return
+	 */
+	protected XMLRequest createSubmitFromJDF(KElement e)
+	{
+		JDFJMF sqe = new JMFBuilder().buildSubmitQueueEntry(null);
+		sqe.getCommand(0).getQueueSubmissionParams(0).setURL("dummy");
+		MimeWriter mimeWriter = new MimeWriter();
+		mimeWriter.buildMimePackage(sqe.getOwnerDocument_JDFElement(), e.getOwnerDocument_KElement(), false);
+		MimeReader mimeReader = new MimeReader(mimeWriter);
+		BodyPartHelper jmfHelper = mimeReader.getBodyPartHelper(0);
+		JDFDoc docJDF = jmfHelper.getJDFDoc();
+		return docJDF != null ? new XMLRequest(docJDF) : null;
+	}
 }

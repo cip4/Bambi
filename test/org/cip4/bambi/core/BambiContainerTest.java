@@ -83,6 +83,7 @@ import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement.EnumValidationLevel;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -91,6 +92,7 @@ import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.mime.MimeWriter;
 
 /**
@@ -123,6 +125,43 @@ public class BambiContainerTest extends BambiTestCase
 		XMLResponse resp = bambiContainer.processJMFDoc(new XMLRequest(jmf));
 		assertNotNull(resp);
 		assertTrue(((JDFElement) resp.getXML()).isValid(EnumValidationLevel.Complete));
+	}
+
+	/**
+	 * 
+	 */
+	public void testHandleJunkXML()
+	{
+		KElement junk = new XMLDoc("junk", null).getRoot();
+
+		XMLRequest request = new XMLRequest(junk);
+		request.setContentType("application/junk+xml");
+		XMLResponse resp = bambiContainer.processXMLDoc(request);
+		assertNotNull(resp);
+	}
+
+	/**
+	 * 
+	 */
+	public void testSubmitRawJDF()
+	{
+		JDFDoc junk = new JDFDoc("JDF");
+
+		XMLRequest request = new XMLRequest(junk);
+		XMLResponse resp = bambiContainer.processXMLDoc(request);
+		assertNotNull(resp);
+	}
+
+	/**
+	 * 
+	 */
+	public void testSubmitRawXJDF()
+	{
+		XMLDoc junk = new XMLDoc("XJDF", null);
+
+		XMLRequest request = new XMLRequest(junk);
+		XMLResponse resp = bambiContainer.processXMLDoc(request);
+		assertNotNull(resp);
 	}
 
 	/**
@@ -232,10 +271,28 @@ public class BambiContainerTest extends BambiTestCase
 		final JDFDoc docJDF = _theGT.getNode().getOwnerDocument_JDFElement();
 
 		BambiTestHelper helper = new BambiTestHelper();
+		helper.container = bambiContainer;
+		XMLResponse resp = helper.submitMimetoContainer(docJDF, "http://dummy:8080/war/jmf/" + device1);
+		assertNotNull(resp);
+		KElement htmlResp = resp.getXML();
+		assertNotNull(htmlResp);
+		assertTrue(htmlResp instanceof JDFJMF);
+	}
+
+	/**
+	 * @throws IOException 
+	 * 
+	 */
+	public void testSubmitCrap() throws IOException
+	{
+
+		final JDFDoc docJDF = _theGT.getNode().getOwnerDocument_JDFElement();
+
+		BambiTestHelper helper = new BambiTestHelper();
 		JDFDoc jmfDoc = helper.createSubmitJMF(docJDF);
 		MimeWriter mimeWriter = new MimeWriter();
-		mimeWriter.buildMimePackage(jmfDoc, docJDF, false);
-		MimeRequest mr = new MimeRequest(mimeWriter.getBodyParts());
+		mimeWriter.buildMimePackage(jmfDoc, null, false);
+		MimeRequest mr = new MimeRequest(new MimeReader(mimeWriter));
 		mr.setRequestURI("http://dummy:8080/war/jmf/" + device1);
 		XMLResponse resp = bambiContainer.processMultipleDocuments(mr);
 		assertNotNull(resp);

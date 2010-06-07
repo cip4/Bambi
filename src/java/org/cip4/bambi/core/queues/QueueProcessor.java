@@ -452,7 +452,7 @@ public class QueueProcessor extends BambiLogFactory
 				{
 					updateEntry(null, null, m, resp);
 					String errorMsg = "failed to get JDFDoc from '" + qsp.getURL() + "' on SubmitQueueEntry";
-					errorMsg += "\r\nin thread: " + Thread.currentThread().getName();
+					errorMsg += "\nin thread: " + Thread.currentThread().getName();
 					JMFHandler.errorResponse(resp, errorMsg, 9, EnumClass.Error);
 					return true;
 				}

@@ -74,6 +74,7 @@ import java.io.File;
 
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.MultiDeviceProperties;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.StringUtil;
 
@@ -87,6 +88,15 @@ public class ProxyProperties extends MultiDeviceProperties
 	 * properties for a single device
 	 * @author boegerni
 	 */
+
+	/**
+	 * @param baseDir
+	 * @param baseURL
+	 */
+	public ProxyProperties(File baseDir, String baseURL)
+	{
+		super(baseDir, baseURL);
+	}
 
 	/**
 	 * @param baseDir
@@ -319,8 +329,10 @@ public class ProxyProperties extends MultiDeviceProperties
 	 * @return
 	 */
 	@Override
-	public ProxyDeviceProperties createDeviceProps(final KElement element)
+	public ProxyDeviceProperties createDeviceProps(KElement element)
 	{
+		if (element == null)
+			element = root.appendElement(ElementName.DEVICE);
 		return this.new ProxyDeviceProperties(element);
 	}
 

@@ -70,9 +70,10 @@
  */
 package org.cip4.bambi.core;
 
-import javax.mail.BodyPart;
+import javax.mail.Multipart;
 
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.mime.MimeReader;
 
 /**
  * class to package a mime document together with the context information of the request
@@ -81,24 +82,33 @@ import org.cip4.jdflib.util.MimeUtil;
  */
 public class MimeRequest extends ContainerRequest
 {
+
 	/**
-	 * @param bp
+	 * @param mp
 	 */
-	public MimeRequest(BodyPart[] bp)
+	public MimeRequest(Multipart mp)
+	{
+		this(new MimeReader(mp));
+	}
+
+	/**
+	 * @param mr
+	 */
+	public MimeRequest(MimeReader mr)
 	{
 		super();
 		setContentType(MimeUtil.MULTIPART_RELATED);
-		this.bp = bp;
+		this.mr = mr;
 	}
 
-	private final BodyPart[] bp;
+	private final MimeReader mr;
 
 	/**
 	 * @return
 	 */
-	public BodyPart[] getBodyParts()
+	public MimeReader getReader()
 	{
-		return bp;
+		return mr;
 	}
 
 	/**
@@ -108,6 +118,6 @@ public class MimeRequest extends ContainerRequest
 	@Override
 	public String toString()
 	{
-		return super.toString() + "\n" + bp.length;
+		return super.toString() + "\n" + mr.getCount();
 	}
 }

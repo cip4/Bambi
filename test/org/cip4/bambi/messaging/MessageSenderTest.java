@@ -101,7 +101,7 @@ public class MessageSenderTest extends BambiTestCase
 	public void testBadURL() throws Exception
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription(snafu, 1, 0, null);
-		final JDFDoc resp = new BambiTestHelper().submitJMFtoURL(jmf, simWorkerUrl);
+		final JDFDoc resp = new BambiTestHelper().submitXMLtoURL(jmf, simWorkerUrl);
 		assertNotNull(resp);
 	}
 

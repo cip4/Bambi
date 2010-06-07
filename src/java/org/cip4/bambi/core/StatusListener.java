@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -403,7 +403,8 @@ public class StatusListener extends BambiLogFactory
 			return false;
 		}
 		final JDFQuery q = (JDFQuery) inputMessage;
-		if (EnumType.Status.equals(q.getEnumType()))
+		EnumType type = q.getEnumType();
+		if (EnumType.Status.equals(type))
 		{
 			final JDFStatusQuParams sqp = q.getStatusQuParams();
 			if (sqp == null)
@@ -412,7 +413,7 @@ public class StatusListener extends BambiLogFactory
 			}
 			return matchesIDs(sqp.getJobID(), sqp.getJobPartID(), sqp.getQueueEntryID());
 		}
-		else if (EnumType.Resource.equals(q.getEnumType()))
+		else if (EnumType.Resource.equals(type))
 		{
 			final JDFResourceQuParams rqp = q.getResourceQuParams();
 			if (rqp == null)

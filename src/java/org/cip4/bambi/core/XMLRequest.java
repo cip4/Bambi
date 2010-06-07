@@ -75,6 +75,7 @@ import java.io.InputStream;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.UrlUtil;
@@ -93,6 +94,16 @@ public class XMLRequest extends ContainerRequest
 	{
 		super();
 		this.theXML = theXML;
+		setContentType(theXML);
+	}
+
+	/**
+	 * @param theDoc
+	 */
+	public XMLRequest(XMLDoc theDoc)
+	{
+		super();
+		this.theXML = theDoc == null ? null : theDoc.getRoot();
 		setContentType(theXML);
 	}
 

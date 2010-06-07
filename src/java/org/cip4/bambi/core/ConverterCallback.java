@@ -77,6 +77,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
+import org.cip4.jdflib.elementwalker.FixVersion;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.extensions.xjdfwalker.XJDFToJDFConverter;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -179,6 +180,8 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			log.info("importing xjdf to Bambi");
 			final XJDFToJDFConverter xc = new XJDFToJDFConverter(null);
 			doc = xc.convert(root);
+			FixVersion fv = new FixVersion((EnumVersion) null);
+			fv.walkTree(doc.getRoot(), null);
 		}
 		return doc;
 	}

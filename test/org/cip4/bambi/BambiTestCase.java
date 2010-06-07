@@ -747,10 +747,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected void submitXtoURL(final String url) throws MalformedURLException
 	{
 		final JDFNode n = _theGT.getNode();
-		final BambiTestHelper helper = new BambiTestHelper();
-		helper.returnJMF = returnJMF;
-		helper.chunkSize = chunkSize;
-		helper.transferEncoding = transferEncoding;
+		final BambiTestHelper helper = getHelper();
 		helper.submitXtoURL(n, url);
 	}
 
@@ -764,15 +761,24 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected HttpURLConnection submitMimetoURL(final JDFDoc d, final String url, boolean extendReference) throws MalformedURLException
 	{
 		ensureCurrentGT();
+		final BambiTestHelper helper = getHelper();
+		helper.extendReference = extendReference;
+
+		return helper.submitMimetoURL(d, url);
+	}
+
+	/**
+	 * @return
+	 */
+	protected BambiTestHelper getHelper()
+	{
 		final BambiTestHelper helper = new BambiTestHelper();
 		helper.returnJMF = returnJMF;
 		helper.chunkSize = chunkSize;
 		helper.transferEncoding = transferEncoding;
 		helper.acknowledgeURL = acknowledgeURL;
 		helper.bUpdateJobID = bUpdateJobID;
-		helper.extendReference = extendReference;
-
-		return helper.submitMimetoURL(d, url);
+		return helper;
 	}
 
 	/**
@@ -785,17 +791,13 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected HttpURLConnection resubmitMimetoURL(final String qeid, final JDFDoc d, final String url) throws MalformedURLException
 	{
 		ensureCurrentGT();
-		final BambiTestHelper helper = new BambiTestHelper();
-		helper.returnJMF = returnJMF;
-		helper.chunkSize = chunkSize;
-		helper.transferEncoding = transferEncoding;
-		helper.acknowledgeURL = acknowledgeURL;
+		final BambiTestHelper helper = getHelper();
 		return helper.resubmitMimetoURL(qeid, d, url);
 	}
 
 	protected JDFQueue getQueueStatus(final String qURL)
 	{
-		return new BambiTestHelper().getQueueStatus(qURL);
+		return getHelper().getQueueStatus(qURL);
 	}
 
 	/**
@@ -805,7 +807,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 */
 	protected JDFDoc submitJMFtoURL(final JDFJMF jmf, final String url)
 	{
-		return new BambiTestHelper().submitJMFtoURL(jmf, url);
+		return getHelper().submitXMLtoURL(jmf, url);
 	}
 
 	/**
