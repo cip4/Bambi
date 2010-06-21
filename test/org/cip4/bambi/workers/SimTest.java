@@ -122,13 +122,10 @@ public class SimTest extends BambiTestCase
 		bUpdateJobID = true;
 		// acknowledgeURL = "http://localhost:8080/httpdump/acknowledgeURL";
 
-		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim001";
-		simWorkerUrl = "http://kie-prosirai-lg:8080/richworker/jmf/Root1";
-		//simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/SimWorkerRoot";
-		//simWorkerUrl = "http://10.51.201.204:8080/SimWorker/jmf/SimWorkerRoot";
-		//simWorkerUrl = "http://localhost:8080/richworker/jmf/sim001";
-		// simWorkerUrl = "http://146.140.222.217:8080/BambiProxy/jmf/kbaProxy";
-		// simWorkerUrl = "http://127.0.0.1:8080/speedmaster/jmf/XL105";
+		workerURLBase = "http://kie-prosirai-lg:8080/SimWorker/jmf/";
+		deviceID = "sim001";
+		workerURLBase = "http://kie-prosirai-lg:8080/richworker/jmf/";
+		deviceID = "Root1";
 	}
 
 	/**
@@ -152,19 +149,7 @@ public class SimTest extends BambiTestCase
 		// build SubmitQueueEntry
 		_theGT.devID = getDeviceID();
 		_theGT.assign(null);
-		submitMimetoURL(simWorkerUrl);
-	}
-
-	/**
-	 * @throws Exception
-	 */
-	public void testSubmitQueueEntry_Expand() throws Exception
-	{
-		simWorkerUrl = "http://kie-prosirai-lg:8080/SimWorker/jmf/sim003";
-		_theGT.devID = "sim003";
-		_theGT.m_pdfFile = sm_dirTestData + "url1.pdf";
-		_theGT.assign(null);
-		submitMimetoURL(_theGT.getNode().getOwnerDocument_JDFElement(), simWorkerUrl, true);
+		submitMimetoURL(getWorkerURL());
 	}
 
 	/**
@@ -190,10 +175,10 @@ public class SimTest extends BambiTestCase
 	public void testResubmitQueueEntry_MIME() throws Exception
 	{
 		// get number of QueueEntries before submitting
-		final JDFQueue q = getQueueStatus(simWorkerUrl);
+		final JDFQueue q = getQueueStatus(getWorkerURL());
 		assertNotNull(q);
 		// build SubmitQueueEntry
-		final HttpURLConnection uc = resubmitMimetoURL("qe_090713_090719387_976641", simWorkerUrl);
+		final HttpURLConnection uc = resubmitMimetoURL("qe_090713_090719387_976641", getWorkerURL());
 		final InputStream is = uc.getInputStream();
 		final JDFDoc doc = new JDFParser().parseStream(is);
 		assertNotNull(doc);
@@ -208,12 +193,12 @@ public class SimTest extends BambiTestCase
 		// get number of QueueEntries before submitting
 		final JDFJMF jmfStat = new JMFBuilder().buildStatusSubscription("http://localhost:8080/httpdump/BambiTest", 0, 0, null);
 		jmfStat.getQuery(0).getStatusQuParams().setJobID("j1");
-		final JDFResponse resp = send2URL(jmfStat, simWorkerUrl);
+		final JDFResponse resp = send2URL(jmfStat, getWorkerURL());
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		_theGT.getNode().setJobID("j1");
 		((MISGoldenTicket) _theGT).setNodeInfoSubscription(false);
-		submitMimetoURL(simWorkerUrl);
+		submitMimetoURL(getWorkerURL());
 
 	}
 
@@ -247,7 +232,7 @@ public class SimTest extends BambiTestCase
 				ThreadUtil.sleep(1000);
 			}
 			System.out.println("Submit " + i);
-			submitXtoURL(simWorkerUrl);
+			submitXtoURL(getWorkerURL());
 		}
 	}
 
@@ -261,7 +246,7 @@ public class SimTest extends BambiTestCase
 			System.out.println("submitting " + i);
 			_theGT.devID = getDeviceID();
 			_theGT.assign(null);
-			submitMimetoURL(simWorkerUrl);
+			submitMimetoURL(getWorkerURL());
 			ThreadUtil.sleep(50);
 		}
 	}
@@ -272,7 +257,7 @@ public class SimTest extends BambiTestCase
 	public void testAbortQueueEntry() throws Exception
 	{
 		// build SubmitQueueEntry
-		submitMimetoURL(simWorkerUrl);
+		submitMimetoURL(getWorkerURL());
 
 		int loops = 0;
 		boolean hasRunningQE = false;
@@ -283,7 +268,7 @@ public class SimTest extends BambiTestCase
 			Thread.sleep(1000);
 			final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
 
-			final JDFResponse resp = factory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+			final JDFResponse resp = factory.send2URLSynchResp(jmf, getWorkerURL(), null, null, 2000);
 			assertNotNull(resp);
 			assertEquals(0, resp.getReturnCode());
 			final JDFQueue q = resp.getQueue(0);
@@ -304,7 +289,7 @@ public class SimTest extends BambiTestCase
 			}
 		}
 		assertTrue(hasRunningQE);
-		abortRemoveAll(simWorkerUrl);
+		abortRemoveAll(getWorkerURL());
 
 	}
 
@@ -323,7 +308,7 @@ public class SimTest extends BambiTestCase
 		final JDFResourceLink rl = node.getLink(r, null);
 		rl.setAmount(4, null);
 		// build SubmitQueueEntry
-		submitMimetoURL(simWorkerUrl);
+		submitMimetoURL(getWorkerURL());
 	}
 
 }

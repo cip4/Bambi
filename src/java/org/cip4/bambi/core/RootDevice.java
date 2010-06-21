@@ -99,6 +99,8 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.MemorySpy;
+import org.cip4.jdflib.util.MemorySpy.MemScope;
 
 /**
  * the dispatcher / rootDev controller device
@@ -618,8 +620,11 @@ public class RootDevice extends AbstractDevice
 		final KElement listRoot = deviceList.getRoot();
 		listRoot.setAttribute("NumRequests", numRequests, null);
 		listRoot.setAttribute(AttributeName.CONTEXT, "/" + request.getContextRoot());
-		listRoot.setAttribute("MemFree", Runtime.getRuntime().freeMemory(), null);
-		listRoot.setAttribute("MemTotal", Runtime.getRuntime().totalMemory(), null);
+		listRoot.setAttribute("MemFree", Runtime.getRuntime().freeMemory() / 1000 / 1000., null);
+		listRoot.setAttribute("MemTotal", Runtime.getRuntime().totalMemory() / 1000 / 1000., null);
+		MemorySpy memorySpy = new MemorySpy();
+		listRoot.setAttribute("MemPerm", memorySpy.getPermGen(MemScope.current) / 1000 / 1000., null);
+		listRoot.setAttribute("MemCurrent", memorySpy.getHeapUsed(MemScope.current) / 1000 / 1000., null);
 		final XMLDevice dRoot = getXMLDevice(false, request);
 
 		final KElement rootElem = dRoot.getRoot();

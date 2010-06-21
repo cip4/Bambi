@@ -102,7 +102,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 	{
 		final JMFFactory factory = JMFFactory.getJMFFactory();
 		final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
-		final JDFResponse resp = factory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		final JDFResponse resp = factory.send2URLSynchResp(jmf, getWorkerURL(), null, null, 2000);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 
@@ -145,7 +145,6 @@ public class QueueEntryStatusTest extends BambiTestCase
 	public void setUp() throws Exception
 	{
 		super.setUp();
-		abortRemoveAll(simWorkerUrl);
 
 		JDFQueueEntry runningQE = null;
 
@@ -163,7 +162,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 
 		try
 		{
-			final HttpURLConnection response = MimeUtil.writeToURL(mp, simWorkerUrl);
+			final HttpURLConnection response = MimeUtil.writeToURL(mp, getWorkerURL());
 			assertEquals(200, response.getResponseCode());
 		}
 		catch (final Exception e)
@@ -207,7 +206,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 
 		final JMFFactory factory = JMFFactory.getJMFFactory();
 		JDFJMF jmf = new JMFBuilder().buildSuspendQueueEntry(qeID);
-		JDFResponse resp = factory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = factory.send2URLSynchResp(jmf, getWorkerURL(), null, null, 2000);
 		assertEquals(0, resp.getReturnCode());
 		// give the device some time to suspend the QE
 		boolean hasSuspended = false;
@@ -231,7 +230,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 		assertTrue(hasSuspended);
 
 		jmf = new JMFBuilder().buildResumeQueueEntry(qeID);
-		resp = factory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		resp = factory.send2URLSynchResp(jmf, getWorkerURL(), null, null, 2000);
 		assertEquals(0, resp.getReturnCode());
 		boolean hasSucceeded = false;
 		EnumQueueEntryStatus status = null;
@@ -282,7 +281,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 
 		JDFJMF jmf = new JMFBuilder().buildAbortQueueEntry(qeID);
 		final JMFFactory factory = JMFFactory.getJMFFactory();
-		JDFResponse resp = factory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = factory.send2URLSynchResp(jmf, getWorkerURL(), null, null, 2000);
 		assertEquals(0, resp.getReturnCode());
 		// give the device some time to abort the QE
 		try
@@ -296,7 +295,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 		assertEquals(EnumQueueEntryStatus.Aborted.getName(), getQueueEntryStatus(qeID).getName());
 
 		jmf = new JMFBuilder().buildRemoveQueueEntry(qeID);
-		resp = factory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		resp = factory.send2URLSynchResp(jmf, getWorkerURL(), null, null, 2000);
 		assertEquals(0, resp.getReturnCode());
 		// give the device some time to remove the QE
 		try
@@ -322,7 +321,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 
 		final JMFFactory factory = JMFFactory.getJMFFactory();
 		JDFJMF jmf = new JMFBuilder().buildSuspendQueueEntry(qeID);
-		JDFResponse resp = factory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		JDFResponse resp = factory.send2URLSynchResp(jmf, getWorkerURL(), null, null, 2000);
 		assertEquals(0, resp.getReturnCode());
 		// give the device some time to suspend the QE
 		try
@@ -336,7 +335,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 		assertEquals(EnumQueueEntryStatus.Suspended.getName(), getQueueEntryStatus(qeID).getName());
 
 		jmf = new JMFBuilder().buildAbortQueueEntry(qeID);
-		resp = factory.send2URLSynchResp(jmf, simWorkerUrl, null, null, 2000);
+		resp = factory.send2URLSynchResp(jmf, getWorkerURL(), null, null, 2000);
 		assertEquals(0, resp.getReturnCode());
 
 		// give the device some time to remove the QE

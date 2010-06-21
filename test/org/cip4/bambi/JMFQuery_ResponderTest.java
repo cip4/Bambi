@@ -84,16 +84,6 @@ public class JMFQuery_ResponderTest extends BambiTestCase
 {
 
 	/**
-	 * @see org.cip4.bambi.BambiTestCase#setUp()
-	 */
-	@Override
-	public void setUp() throws Exception
-	{
-		super.setUp();
-		abortRemoveAll(simWorkerUrl);
-	}
-
-	/**
 	 * 
 	 */
 	public void testStatus()
@@ -101,7 +91,7 @@ public class JMFQuery_ResponderTest extends BambiTestCase
 		final JDFDoc doc = new JDFDoc("JMF");
 		final JDFJMF jmf = doc.getJMFRoot();
 		jmf.appendMessageElement(JDFMessage.EnumFamily.Query, JDFMessage.EnumType.Status);
-		final JDFDoc resp = doc.write2URL(simWorkerUrl);
+		final JDFDoc resp = doc.write2URL(getWorkerURL());
 
 		assertTrue(!resp.isNull());
 		assertEquals(0, resp.getJMFRoot().getResponse(0).getReturnCode());
@@ -115,7 +105,7 @@ public class JMFQuery_ResponderTest extends BambiTestCase
 		final JDFDoc doc = new JDFDoc("JMF");
 		final JDFJMF jmf = doc.getJMFRoot();
 		jmf.appendMessageElement(JDFMessage.EnumFamily.Query, JDFMessage.EnumType.KnownDevices);
-		final JDFDoc resp = doc.write2URL(simWorkerUrl);
+		final JDFDoc resp = doc.write2URL(getWorkerURL());
 
 		assertTrue(!resp.isNull());
 		assertEquals(0, resp.getJMFRoot().getResponse(0).getReturnCode());

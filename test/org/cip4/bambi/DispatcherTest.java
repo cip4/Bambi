@@ -93,8 +93,8 @@ public class DispatcherTest extends BambiTestCase
 {
 
 	/**
-     * 
-     */
+	 * 
+	 */
 	public void testAddSubscription()
 	{
 		final JMFHandler h = new JMFHandler(null);
@@ -112,13 +112,13 @@ public class DispatcherTest extends BambiTestCase
 	}
 
 	/**
-     * 
-     */
+	 * 
+	 */
 	public void testKnownSubscriptions()
 	{
 		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownSubscriptions);
 		final JDFQuery q = jmf.getQuery(0);
-		final JDFDoc dResp = submitJMFtoURL(jmf, simWorkerUrl);
+		final JDFDoc dResp = submitJMFtoURL(jmf, getWorkerURL());
 		final JDFResponse response = dResp.getJMFRoot().getResponse(0);
 		final JDFSubscriptionInfo subInfo = response.getSubscriptionInfo(0);
 		assertNotNull(subInfo);

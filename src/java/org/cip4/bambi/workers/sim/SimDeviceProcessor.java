@@ -507,8 +507,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		protected void loadJob()
 		{
 			final AbstractDevice parent = getParent();
-			File deviceDir = parent.getProperties().getBaseDir();
-			deviceDir = FileUtil.getFileInDirectory(deviceDir, new File("config"));
+			File deviceDir = parent.getCachedConfigDir();
 			final String deviceFile = "job_" + parent.getDeviceID() + ".xml";
 			_jobPhases = loadJobFromFile(deviceDir, deviceFile);
 			final File configDir = parent.getProperties().getConfigDir();

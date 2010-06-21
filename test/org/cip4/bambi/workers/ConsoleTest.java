@@ -87,7 +87,8 @@ public class ConsoleTest extends SimTest
 		super.setUp();
 		acknowledgeURL = "http://localhost:8080/httpdump/acknowledgeURL";
 
-		simWorkerUrl = "http://kie-prosirai-lg:8080/console/jmf/console001";
+		workerURLBase = "http://kie-prosirai-lg:8080/console/jmf/";
+		deviceID = "console001";
 	}
 
 	/**

@@ -346,8 +346,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 
 		protected EmployeeList load()
 		{
-			File deviceDir = getProperties().getBaseDir();
-			deviceDir = FileUtil.getFileInDirectory(deviceDir, new File("config"));
+			File deviceDir = getCachedConfigDir();
 			Vector<JDFEmployee> v = loadFile(deviceDir);
 			if (v == null)
 			{
@@ -546,4 +545,5 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 		}
 		return super.getXSLT(request);
 	}
+
 }

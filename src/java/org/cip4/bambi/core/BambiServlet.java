@@ -93,6 +93,7 @@ import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * Entrance point for Bambi servlets
@@ -220,7 +221,7 @@ public class BambiServlet extends HttpServlet
 			final File in = bambiDumpOut.newFileFromStream(header, buf);
 			if (in != null)
 			{
-				in.renameTo(new File(StringUtil.newExtension(in.getPath(), "." + getPost + ".resp.txt")));
+				in.renameTo(new File(UrlUtil.newExtension(in.getPath(), ("." + getPost + ".resp.txt"))));
 			}
 		}
 		request.getInputStream().close(); // avoid mem leaks

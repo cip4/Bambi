@@ -1545,6 +1545,16 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
+	 * @return the cached configuration directory
+	 */
+	public File getCachedConfigDir()
+	{
+		File deviceDir = getProperties().getBaseDir();
+		deviceDir = FileUtil.getFileInDirectory(deviceDir, new File("config"));
+		return deviceDir;
+	}
+
+	/**
 	 * return the name of the storage directory for a given queueentryid
 	 * 
 	 * @param newQEID the QueueEntryID of the entry to search, if null. get the parent directory

@@ -102,7 +102,7 @@ public class IPhoneTest extends BambiTestCase
 		sqp.setQueueInfo(true);
 		sqp.setJobDetails(EnumJobDetails.Full);
 		sqp.setDeviceDetails(EnumDeviceDetails.Full);
-		JDFResponse resp = sendToURL(jmf, simWorkerUrl);
+		JDFResponse resp = sendToURL(jmf, getWorkerURL());
 		resp.getOwnerDocument_JDFElement().write2File(sm_dirTestDataTemp + "iphone.jmf", 2, false);
 		assertNotNull(resp);
 	}
@@ -115,7 +115,7 @@ public class IPhoneTest extends BambiTestCase
 	protected void setUp() throws Exception
 	{
 		super.setUp();
-		simWorkerUrl = "http://kie-wf19prdy:6351/icsportal/jmf/ICSPortal";
-		//		simWorkerUrl = "http://localhost:8080/misconnector/jmf/MISConnector";
+		workerURLBase = "http://kie-wf19prdy:6351/icsportal/jmf/";
+		deviceID = "ICSPortal";
 	}
 }

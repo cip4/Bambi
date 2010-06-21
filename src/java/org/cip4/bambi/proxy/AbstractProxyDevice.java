@@ -133,11 +133,11 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	/**
 	 * watched hot folder for hf based communication with a device (completed)
 	 */
-	protected QueueHotFolder slaveJDFOutput = null;
+	protected QueueHotFolder slaveJDFOutput;
 	/**
 	 * watched hot folder for hf based communication with a device (aborted)
 	 */
-	protected QueueHotFolder slaveJDFError = null;
+	protected QueueHotFolder slaveJDFError;
 
 	/**
 	 * the list of pending subscriptions that have been sent  to the slave device

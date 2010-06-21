@@ -129,8 +129,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 
 		protected Vector<PhaseAction> load()
 		{
-			File deviceDir = getProperties().getBaseDir();
-			deviceDir = FileUtil.getFileInDirectory(deviceDir, new File("config"));
+			File deviceDir = getCachedConfigDir();
 			Vector<PhaseAction> v = loadFile(deviceDir, true);
 			if (v == null)
 			{

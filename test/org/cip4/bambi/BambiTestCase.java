@@ -76,8 +76,11 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 
 import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.BambiContainer;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
+import org.cip4.bambi.core.MultiDeviceProperties;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VElement;
@@ -235,8 +238,8 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected enumGTType gt = null;
 
 	protected final static String sm_UrlTestData = "File:test/data/";
+	protected final String sm_dirContainer = sm_dirTestDataTemp + "ContainerTest/";
 
-	protected String simWorkerUrl = "http://localhost:8080/SimWorker/jmf/sim002";
 	// protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
 	protected String returnJMF = "http://localhost:8080/httpdump/returnJMF";
 	protected String subscriptionURL = "http://localhost:8080/httpdump/testSubscriptions";
@@ -248,8 +251,11 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected String transferEncoding = UrlUtil.BASE64;
 
 	protected BaseGoldenTicket _theGT = null;
+	protected BambiContainer bambiContainer = null;
+	protected String deviceID = "device";
+	protected String workerURLBase = "http://localhost:8080/SimWorker/jmf/";
 
-	static class BambiTestProp implements IDeviceProperties
+	class BambiTestProp implements IDeviceProperties
 	{
 
 		/*
@@ -292,8 +298,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public String getDeviceID()
 		{
-			// TODO Auto-generated method stub
-			return null;
+			return deviceID;
 		}
 
 		/*
@@ -659,7 +664,15 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	public BambiTestCase()
 	{
 		JDFJMF.setTheSenderID("BambiTest");
-		// simWorkerUrl = "http://localhost:8080/misconnector/jmf/MISConnector";
+	}
+
+	/**
+	 * @return 
+	 * 
+	 */
+	protected String getWorkerURL()
+	{
+		return workerURLBase + deviceID;
 	}
 
 	/**
@@ -837,6 +850,51 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		final JDFResponse resp = respRoot.getResponse(0);
 		assertTrue(resp.getJMFRoot().isValid(EnumValidationLevel.Complete));
 		return resp;
+	}
+
+	/**
+	 * @param devProp
+	 */
+	protected void moreSetup(DeviceProperties devProp)
+	{
+		// dummy stub
+
+	}
+
+	/**
+	 * 
+	 */
+	protected void startContainer()
+	{
+		bambiContainer = new BambiContainer();
+		MultiDeviceProperties props = createPropertiesForContainer();
+		DeviceProperties devProp = props.createDeviceProps(null);
+		devProp.setDeviceID(deviceID);
+		devProp.setCallBackClassName("org.cip4.bambi.extensions.ExtensionCallback");
+		moreSetup(devProp);
+		bambiContainer.createDevices(props, sm_dirTestDataTemp + "BambiDump");
+		bambiContainer.reset();
+	}
+
+	/**
+	 * @return
+	 */
+	protected MultiDeviceProperties createPropertiesForContainer()
+	{
+		MultiDeviceProperties props = new MultiDeviceProperties(new File(sm_dirContainer), "test");
+		return props;
+	}
+
+	/**
+	 * @see org.cip4.jdflib.goldenticket.BaseGoldenTicketTest#tearDown()
+	 * @throws Exception
+	*/
+	@Override
+	protected void tearDown() throws Exception
+	{
+		super.tearDown();
+		if (bambiContainer != null)
+			bambiContainer.shutDown();
 	}
 
 }

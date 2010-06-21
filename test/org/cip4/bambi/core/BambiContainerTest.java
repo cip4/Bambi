@@ -71,7 +71,6 @@
 
 package org.cip4.bambi.core;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
@@ -79,7 +78,6 @@ import javax.mail.MessagingException;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestHelper;
-import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.KElement;
@@ -90,6 +88,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeReader;
@@ -102,8 +101,6 @@ import org.cip4.jdflib.util.mime.MimeWriter;
  */
 public class BambiContainerTest extends BambiTestCase
 {
-	protected BambiContainer bambiContainer = null;
-	private String device1 = null;
 
 	/**
 	 * 
@@ -111,9 +108,9 @@ public class BambiContainerTest extends BambiTestCase
 	public void testConstruct()
 	{
 		assertNotNull(bambiContainer.getRootDev());
-		AbstractDevice deviceFromID = bambiContainer.getDeviceFromID("testDevice1");
+		AbstractDevice deviceFromID = bambiContainer.getDeviceFromID("device");
 		assertNotNull(deviceFromID);
-		assertEquals(deviceFromID.getDeviceID(), "testDevice1");
+		assertEquals(deviceFromID.getDeviceID(), "device");
 	}
 
 	/**
@@ -207,28 +204,7 @@ public class BambiContainerTest extends BambiTestCase
 	{
 		super.setUp();
 		JDFElement.setDefaultJDFVersion(EnumVersion.Version_1_4);
-		bambiContainer = new BambiContainer();
-		MultiDeviceProperties props = new MultiDeviceProperties(new File(sm_dirTestData + "ContainerTest"), "test");
-		DeviceProperties devProp = props.createDeviceProps(null);
-		device1 = "testDevice1";
-		devProp.setDeviceID(device1);
-		devProp.setCallBackClassName("org.cip4.bambi.extensions.ExtensionCallback");
-
-		devProp = props.createDeviceProps(null);
-		devProp.setDeviceID("testDevice2");
-		devProp.setCallBackClassName("org.cip4.bambi.extensions.ExtensionCallback");
-		moreSetup(devProp);
-		bambiContainer.createDevices(props, sm_dirTestDataTemp + "BambiDump");
-		bambiContainer.reset();
-	}
-
-	/**
-	 * @param devProp
-	 */
-	protected void moreSetup(DeviceProperties devProp)
-	{
-		// dummy stub
-
+		startContainer();
 	}
 
 	/**
@@ -253,7 +229,7 @@ public class BambiContainerTest extends BambiTestCase
 	{
 		StreamRequest sr = new StreamRequest(new ByteArrayIOStream());
 		sr.setPost(false);
-		sr.setRequestURI("http://dummy:8080/war/showQueue/" + device1);
+		sr.setRequestURI("http://dummy:8080/war/showQueue/" + deviceID);
 		XMLResponse resp = bambiContainer.processStream(sr);
 		assertNotNull(resp);
 		KElement htmlResp = resp.getXML();
@@ -272,7 +248,7 @@ public class BambiContainerTest extends BambiTestCase
 
 		BambiTestHelper helper = new BambiTestHelper();
 		helper.container = bambiContainer;
-		XMLResponse resp = helper.submitMimetoContainer(docJDF, "http://dummy:8080/war/jmf/" + device1);
+		XMLResponse resp = helper.submitMimetoContainer(docJDF, "http://dummy:8080/war/jmf/" + deviceID);
 		assertNotNull(resp);
 		KElement htmlResp = resp.getXML();
 		assertNotNull(htmlResp);
@@ -293,7 +269,7 @@ public class BambiContainerTest extends BambiTestCase
 		MimeWriter mimeWriter = new MimeWriter();
 		mimeWriter.buildMimePackage(jmfDoc, null, false);
 		MimeRequest mr = new MimeRequest(new MimeReader(mimeWriter));
-		mr.setRequestURI("http://dummy:8080/war/jmf/" + device1);
+		mr.setRequestURI("http://dummy:8080/war/jmf/" + deviceID);
 		XMLResponse resp = bambiContainer.processMultipleDocuments(mr);
 		assertNotNull(resp);
 		KElement htmlResp = resp.getXML();
@@ -307,10 +283,13 @@ public class BambiContainerTest extends BambiTestCase
 	 */
 	public void testSubmitMany() throws IOException
 	{
+		CPUTimer ct = new CPUTimer(false);
 		for (int i = 0; i < 1000; i++)
 		{
+			ct.start();
 			testSubmit();
-			System.out.println(i);
+			System.out.println(ct);
+			ct.stop();
 		}
 
 	}

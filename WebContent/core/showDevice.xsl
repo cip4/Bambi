@@ -263,7 +263,6 @@ JDFLib Build:
     </form>
   </xsl:template>
   <xsl:include href="optionlist.xsl"/>
-  <xsl:include href="CPUTimer.xsl"/>
   <xsl:include href="DeviceDetails.xsl"/>
 
   <!-- resource amount setup -->

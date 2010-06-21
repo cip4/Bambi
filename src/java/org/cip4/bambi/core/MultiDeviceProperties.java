@@ -698,11 +698,11 @@ public class MultiDeviceProperties extends BambiLogFactory
 	}
 
 	/**
-	 * @return the configuration directory
+	 * @return the original configuration directory
 	 */
 	public File getConfigDir()
 	{
-		final File f = getRootFile("AppDir");
+		final File f = getAppDir();
 		return FileUtil.getFileInDirectory(f, new File("config"));
 	}
 

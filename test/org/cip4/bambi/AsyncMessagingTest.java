@@ -100,13 +100,13 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 
 	public void testSendQueueStatus() throws InterruptedException
 	{
-		final MessageSender messageSender = new MessageSender(new CallURL(simWorkerUrl));
+		final MessageSender messageSender = new MessageSender(new CallURL(getWorkerURL()));
 		final Thread t = new Thread(messageSender, "Sender_Test");
 		for (int i = 0; i < 10; i++)
 		{
 			final JDFJMF stat = new JMFBuilder().buildStatus();
 			final String msgID = stat.getMessageElement(null, null, 0).getID();
-			messageSender.queueMessage(stat, this, simWorkerUrl, null);
+			messageSender.queueMessage(stat, this, getWorkerURL(), null);
 			messageIDs.add(msgID);
 			t.start();
 		}

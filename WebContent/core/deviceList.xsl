@@ -83,6 +83,23 @@
           <xsl:value-of select="@MemFree"/>
           </td>
           </tr>
+                <tr>
+          <td>
+           Currently used Memory:
+           </td>
+           <td>
+          <xsl:value-of select="@MemCurrent"/>
+          </td>
+          </tr>
+                <tr>
+          <td>
+           Currently used PermGen Memory:
+           </td>
+           <td>
+          <xsl:value-of select="@MemPerm"/>
+          </td>
+          </tr>
+          
           <tr>
           <td>
             Total Allocated Memory:

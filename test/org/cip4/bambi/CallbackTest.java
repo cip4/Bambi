@@ -99,52 +99,49 @@ public class CallbackTest extends BambiTestCase
 	 * @author prosirai
 	 * 
 	 */
-	protected static class MyProp extends BambiTestProp
+	protected class MyProp extends BambiTestProp
 	{
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClassName()
+		 * @see org.cip4.bambi.BambiTestCase.BambiTestProp#getCallBackClass()
+		 * @return
 		 */
 		@Override
 		public IConverterCallback getCallBackClass()
 		{
-			// TODO Auto-generated method stub
-
 			final String callback = "org.cip4.bambi.MyTestCallback";
 			try
 			{
-				final Class c = Class.forName(callback);
+				final Class<?> c = Class.forName(callback);
 				return (IConverterCallback) c.newInstance();
 			}
 			catch (final Exception x)
 			{
+				// nop
 			}
 			return null;
 
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
+		 * @see org.cip4.bambi.BambiTestCase.BambiTestProp#getDeviceID()
+		 * @return
 		 */
 		@Override
 		public String getDeviceID()
 		{
-			// TODO Auto-generated method stub
 			return "d1";
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
-		 * @see org.cip4.bambi.core.IDeviceProperties#getHotFolderURL()
+		 * @return
 		 */
 		public String getHotFolderURL()
 		{
-			return sm_dirTestDataTemp + "HFURL";
+			return sm_dirContainer + "HFURL";
 		}
 
 	}
@@ -159,7 +156,7 @@ public class CallbackTest extends BambiTestCase
 		System.out.println(new MyTestCallback().getClass().getCanonicalName());
 		d.addHandlers(h);
 
-		final File f = new File(sm_dirTestDataTemp + "subscriptions.jmf");
+		final File f = new File(sm_dirContainer + deviceID + "/subscriptions.xml");
 		f.delete();
 		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
 		final JDFQuery q = jmf.getQuery(0);
@@ -167,7 +164,7 @@ public class CallbackTest extends BambiTestCase
 		s.setRepeatTime(1.0);
 		s.setURL(UrlUtil.fileToUrl(f, false));
 		d.addSubscription(q, null);
-		ThreadUtil.sleep(2000);
+		ThreadUtil.sleep(1000);
 		assertTrue(f.exists());
 		final JDFDoc doc = new JDFParser().parseFile(f.getPath());
 		final JDFJMF jmf2 = doc.getJMFRoot();

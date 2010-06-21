@@ -107,7 +107,6 @@ public class DeviceServletTest extends BambiTestCase
 	public void setUp() throws Exception
 	{
 		super.setUp();
-		abortRemoveAll(simWorkerUrl);
 	}
 
 	private JDFResponse singleMIMESubmit(String jobID) throws MalformedURLException, IOException, MessagingException
@@ -138,7 +137,7 @@ public class DeviceServletTest extends BambiTestCase
 		assertEquals(d2[1].getJDFRoot().getEnumType(), EnumType.ColorSpaceConversion);
 
 		// now serialize to file and reread - should still work
-		HttpURLConnection uc = MimeUtil.writeToURL(m, simWorkerUrl);
+		HttpURLConnection uc = MimeUtil.writeToURL(m, getWorkerURL());
 		MimeUtil.writeToFile(m, sm_dirTestDataTemp + "testMime.mjm", null);
 		assertEquals(uc.getResponseCode(), 200);
 		UrlUtil.UrlPart[] parts = UrlUtil.getURLParts(uc);

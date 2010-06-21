@@ -1781,7 +1781,7 @@ public class QueueProcessor extends BambiLogFactory
 				qe = queueMap.getQEFromNI(nodeID);
 			}
 		}
-		if (qe == null && nodeID.getJobPartID() != null)
+		if (qe == null && (!searchByJobPartID || nodeID.getJobPartID() != null))
 		{
 			nodeID.setTo(nodeID.getJobID(), null, null);
 			qe = queueMap.getQEFromNI(nodeID);
@@ -2093,7 +2093,7 @@ public class QueueProcessor extends BambiLogFactory
 			{
 				if (!hs.contains(kill))
 				{
-					File dataDir = new File(StringUtil.newExtension(kill.getAbsolutePath(), null));
+					File dataDir = new File(UrlUtil.newExtension(kill.getAbsolutePath(), null));
 					FileUtil.deleteAll(dataDir);
 					kill.delete();
 					log.warn("removing orphan JDF:" + kill.getName());
@@ -2132,7 +2132,7 @@ public class QueueProcessor extends BambiLogFactory
 	{
 		synchronized (_theQueue)
 		{
-			log.info("persisting queue to " + _queueFile.getPath());
+			log.info("persisting queue to " + _queueFile.getPath() + " size: " + _theQueue.numEntries(null));
 			long t = System.currentTimeMillis();
 			if (t - lastSort > 900000) // every 15 minutes is fine
 			{
