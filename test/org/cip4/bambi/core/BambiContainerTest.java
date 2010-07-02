@@ -111,6 +111,7 @@ public class BambiContainerTest extends BambiTestCase
 		AbstractDevice deviceFromID = bambiContainer.getDeviceFromID("device");
 		assertNotNull(deviceFromID);
 		assertEquals(deviceFromID.getDeviceID(), "device");
+		assertNotNull("proxy incorrectly set? ", UrlUtil.writeToURL("http://www.example.com", null, UrlUtil.GET, UrlUtil.TEXT_PLAIN, null));
 	}
 
 	/**

@@ -870,6 +870,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		MultiDeviceProperties props = createPropertiesForContainer();
 		DeviceProperties devProp = props.createDeviceProps(null);
 		devProp.setDeviceID(deviceID);
+		props.getRoot().setAttribute("WebProxy", "proxy:8080");
 		devProp.setCallBackClassName("org.cip4.bambi.extensions.ExtensionCallback");
 		moreSetup(devProp);
 		bambiContainer.createDevices(props, sm_dirTestDataTemp + "BambiDump");

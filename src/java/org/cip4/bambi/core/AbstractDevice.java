@@ -1240,7 +1240,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	/**
 	 * handles http get requests - typically web pages...
 	 * @param request
-	 * @param response
 	 * @return true if handled
 	 */
 	public XMLResponse handleGet(final ContainerRequest request)
