@@ -75,13 +75,11 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Vector;
 
 import javax.mail.Multipart;
 
 import org.cip4.bambi.core.AbstractDevice;
-import org.cip4.bambi.core.BambiLog;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.ContainerRequest;
@@ -141,7 +139,6 @@ import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
-import org.cip4.jdflib.util.MyLong;
 import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
@@ -150,6 +147,8 @@ import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 import org.cip4.jdflib.util.UrlUtil.URLProtocol;
+import org.cip4.jdflib.util.thread.DelayedPersist;
+import org.cip4.jdflib.util.thread.IPersistable;
 
 /**
  * 
@@ -157,7 +156,7 @@ import org.cip4.jdflib.util.UrlUtil.URLProtocol;
  * 
  * 
  */
-public class QueueProcessor extends BambiLogFactory
+public class QueueProcessor extends BambiLogFactory implements IPersistable
 {
 
 	/**
@@ -933,141 +932,6 @@ public class QueueProcessor extends BambiLogFactory
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			return abortQueueEntry(m, resp);
-		}
-	}
-
-	// //////////////////////////////////////////////////////////////////////////////////////
-
-	static class DelayedPersist extends Thread
-	{
-		HashMap<QueueProcessor, MyLong> persistQueue;
-		private boolean stop;
-		private static DelayedPersist theDelayed = null;
-		private final MyMutex waitMutex;
-		private final BambiLog log;
-
-		private DelayedPersist()
-		{
-			super("DelayedPersist");
-			persistQueue = new HashMap<QueueProcessor, MyLong>();
-			stop = false;
-			waitMutex = new MyMutex();
-			log = new BambiLogFactory(this.getClass()).getLog();
-			start();
-		}
-
-		protected static DelayedPersist getDelayedPersist()
-		{
-			if (theDelayed == null)
-				theDelayed = new DelayedPersist();
-			return theDelayed;
-		}
-
-		static protected void shutDown()
-		{
-			if (theDelayed == null)
-				return;
-			theDelayed.stop = true;
-			ThreadUtil.notify(theDelayed.waitMutex);
-			theDelayed = null;
-		}
-
-		/**
-		 * 
-		 * @param qp
-		 * @param deltaTime
-		 */
-		public void queue(QueueProcessor qp, long deltaTime)
-		{
-			synchronized (persistQueue)
-			{
-				MyLong l = persistQueue.get(qp);
-				long t = System.currentTimeMillis();
-				if (l == null)
-				{
-					persistQueue.put(qp, new MyLong(t + deltaTime));
-				}
-				else if (t + deltaTime < l.i)
-				{
-					l.i = t + deltaTime;
-				}
-			}
-			if (deltaTime <= 0)
-				ThreadUtil.notify(waitMutex);
-		}
-
-		/**
-		 * @see java.lang.Thread#run()
-		*/
-		@Override
-		public void run()
-		{
-			log.info("starting queue persist loop");
-			while (true)
-			{
-				try
-				{
-					persistQueues();
-				}
-				catch (Exception e)
-				{
-					log.error("whazzup? ", e);
-				}
-				if (stop)
-				{
-					log.info("end of queue persist loop");
-					break;
-				}
-
-				ThreadUtil.wait(waitMutex, 10000);
-			}
-		}
-
-		/**
-		 * 
-		 */
-		private void persistQueues()
-		{
-			long t = System.currentTimeMillis();
-			Vector<QueueProcessor> theList = new Vector<QueueProcessor>();
-
-			synchronized (persistQueue)
-			{
-				Vector<QueueProcessor> v = ContainerUtil.getKeyVector(persistQueue);
-				if (v == null)
-					return;
-				Iterator<QueueProcessor> it = v.iterator();
-
-				while (it.hasNext())
-				{
-					QueueProcessor qp = it.next();
-					MyLong l = persistQueue.get(qp);
-					if (l.i < t)
-					{
-						theList.add(qp);
-						persistQueue.remove(qp);
-					}
-				}
-			}
-
-			// now the unsynchronized stuff
-			Iterator<QueueProcessor> it = theList.iterator();
-			while (it.hasNext())
-			{
-				QueueProcessor qp = it.next();
-				qp.persist();
-			}
-			System.gc();
-		}
-
-		/**
-		 * @see java.lang.Thread#toString()
-		 * @return
-		*/
-		@Override
-		public String toString()
-		{
-			return "DelayedPersist Thread " + stop + " queue: " + persistQueue;
 		}
 	}
 
@@ -2126,9 +1990,9 @@ public class QueueProcessor extends BambiLogFactory
 
 	/**
 	 * make the memory queue persistent
-	 * 
+	 * @return true if ok
 	 */
-	protected void persist()
+	public boolean persist()
 	{
 		synchronized (_theQueue)
 		{
@@ -2140,7 +2004,7 @@ public class QueueProcessor extends BambiLogFactory
 				lastSort = t;
 			}
 			_queueFile.getNewFile();
-			_theQueue.getOwnerDocument_KElement().write2File(_queueFile, 0, true);
+			return _theQueue.getOwnerDocument_KElement().write2File(_queueFile, 0, true);
 		}
 	}
 
