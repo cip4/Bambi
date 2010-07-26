@@ -79,6 +79,7 @@ import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * class to forward general requests for data from a non-tomcat enabled directory
+ * 
  * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class DataRequestHandler extends BambiLogFactory implements IGetHandler
@@ -86,7 +87,7 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 	private final AbstractDevice dev;
 
 	/**
-	 * @param dev thr parent device
+	 * @param dev the parent device
 	 * 
 	 */
 	public DataRequestHandler(final AbstractDevice dev)
@@ -96,7 +97,8 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 	}
 
 	/**
-	 * 
+	 * @return 
+	 * @param request the get request to handle
 	 */
 	public XMLResponse handleGet(final ContainerRequest request)
 	{

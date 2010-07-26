@@ -420,7 +420,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			//			jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/" + AbstractProxyDevice.SLAVEJMF + "/");
 			jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/");
 			modNode.getOwnerDocument_KElement().write2File((String) null, 0, true);
-			jdfURL += "?Callback=true&qeID=" + currentQE.getQueueEntryID();
+			jdfURL += "?Callback=true&raw=true&qeID=" + currentQE.getQueueEntryID();
 			qsp.setURL(jdfURL);
 		}
 		if (modNode != null)

@@ -156,6 +156,15 @@ public class XMLResponse extends BambiLogFactory
 	}
 
 	/**
+	 * @return the content Length
+	 */
+	public int getContentLength()
+	{
+		getInputStream(); // ensure that we have a valid stream length
+		return theBuffer == null ? 0 : theBuffer.size();
+	}
+
+	/**
 	 * @param contentType the contentType to set
 	 */
 	public void setContentType(String contentType)

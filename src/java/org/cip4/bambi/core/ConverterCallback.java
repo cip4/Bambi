@@ -179,6 +179,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		{
 			log.info("importing xjdf to Bambi");
 			final XJDFToJDFConverter xc = new XJDFToJDFConverter(null);
+			xc.convertUnits = true;
 			doc = xc.convert(root);
 			FixVersion fv = new FixVersion((EnumVersion) null);
 			fv.walkTree(doc.getRoot(), null);

@@ -162,11 +162,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	private class QueueEntryRequester
 	{
-		private final long lastRQE;
 
 		protected QueueEntryRequester()
 		{
-			lastRQE = 0;
+			//nop
 		}
 
 		/**

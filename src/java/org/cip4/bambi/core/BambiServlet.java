@@ -279,7 +279,12 @@ public class BambiServlet extends HttpServlet
 		{
 			sr.setContentType(r.getContentType());
 			ServletOutputStream outputStream = sr.getOutputStream();
-			IOUtils.copy(r.getInputStream(), outputStream);
+			InputStream inputStream = r.getInputStream(); // note that getInputStream optionally serializes the XMLResponse xml document
+			sr.setContentLength(r.getContentLength());
+			if (inputStream != null)
+			{
+				IOUtils.copy(inputStream, outputStream);
+			}
 			outputStream.flush();
 			outputStream.close();
 
