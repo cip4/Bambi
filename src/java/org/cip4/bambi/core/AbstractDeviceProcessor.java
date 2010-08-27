@@ -279,6 +279,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	public AbstractDeviceProcessor()
 	{
 		super();
+		log.info("creating new processor");
 	}
 
 	/**
@@ -289,6 +290,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		long nWait = 0;
 		long tWait = System.currentTimeMillis();
 		ThreadUtil.sleep(5555); // wait a few seconds before we start processing
+		log.info("starting new processor thread loop");
 		while (!_doShutdown)
 		{
 			try
@@ -319,6 +321,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		{
 			_queueProcessor.removeListener(_myListener);
 		}
+		log.info("end processor thread loop");
 	}
 
 	/**
@@ -375,15 +378,17 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		currentQE = _parent.getQEFromParent();
 		if (currentQE == null)
 		{
+			log.debug("nothing to process");
 			return false;
 		}
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		if (qe == null)
 		{
+			log.warn("no queueEntryID for currentQE, skipping");
 			return false;
 		}
 		final String queueEntryID = qe.getQueueEntryID();
-		log.debug("processing: " + queueEntryID);
+		log.info("processing: " + queueEntryID);
 		CPUTimer timer = getLocalTimer();
 		timer.start();
 

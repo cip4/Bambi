@@ -165,7 +165,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 		protected QueueEntryRequester()
 		{
-			//nop
+			super();
 		}
 
 		/**
@@ -243,7 +243,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			IQueueEntry currentQE;
 			if (_theQueueProcessor == null)
+			{
+				log.warn("no queueprocessor for device");
 				return null;
+			}
 
 			synchronized (_theQueueProcessor.getQueue())
 			{

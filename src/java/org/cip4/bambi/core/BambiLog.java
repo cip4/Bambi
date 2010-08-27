@@ -84,10 +84,29 @@ public class BambiLog
 
 	final private Log log;
 
+	private String whoCalledMe()
+	{
+		StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+		if (stackTraceElements.length >= 4)
+		{
+			// 0=getStackTrace
+			// 1=this
+			// 2=the BambiLog log call
+			// 3=the original caller
+			StackTraceElement caller = stackTraceElements[3];
+			String classname = caller.getClassName();
+			String methodName = caller.getMethodName();
+			int lineNumber = caller.getLineNumber();
+			return classname + "." + methodName + ":" + lineNumber + " - ";
+		}
+		else
+			return "";
+	}
+
 	/**
-	 * @param _log
-	 * 
-	 */
+	* @param _log
+	* 
+	*/
 	public BambiLog(final Log _log)
 	{
 		super();
@@ -101,7 +120,7 @@ public class BambiLog
 	 */
 	public void debug(final Object arg0, final Throwable arg1)
 	{
-		log.debug(arg0, arg1);
+		log.debug(whoCalledMe() + arg0, arg1);
 	}
 
 	/**
@@ -110,7 +129,7 @@ public class BambiLog
 	 */
 	public void debug(final Object arg0)
 	{
-		log.debug(arg0);
+		log.debug(whoCalledMe() + arg0);
 	}
 
 	/**
@@ -120,7 +139,7 @@ public class BambiLog
 	 */
 	public void error(final Object arg0, final Throwable arg1)
 	{
-		log.error(arg0, arg1);
+		log.error(whoCalledMe() + arg0, arg1);
 	}
 
 	/**
@@ -129,7 +148,7 @@ public class BambiLog
 	 */
 	public void error(final Object arg0)
 	{
-		log.error(arg0);
+		log.error(whoCalledMe() + arg0);
 	}
 
 	/**
@@ -139,7 +158,7 @@ public class BambiLog
 	 */
 	public void fatal(final Object arg0, final Throwable arg1)
 	{
-		log.fatal(arg0, arg1);
+		log.fatal(whoCalledMe() + arg0, arg1);
 	}
 
 	/**
@@ -148,7 +167,7 @@ public class BambiLog
 	 */
 	public void fatal(final Object arg0)
 	{
-		log.fatal(arg0);
+		log.fatal(whoCalledMe() + arg0);
 	}
 
 	/**
@@ -158,7 +177,7 @@ public class BambiLog
 	 */
 	public void info(final Object arg0, final Throwable arg1)
 	{
-		log.info(arg0, arg1);
+		log.info(whoCalledMe() + arg0, arg1);
 	}
 
 	/**
@@ -167,7 +186,7 @@ public class BambiLog
 	 */
 	public void info(final Object arg0)
 	{
-		log.info(arg0);
+		log.info(whoCalledMe() + arg0);
 	}
 
 	/**
@@ -231,7 +250,7 @@ public class BambiLog
 	 */
 	public void trace(final Object arg0, final Throwable arg1)
 	{
-		log.trace(arg0, arg1);
+		log.trace(whoCalledMe() + arg0, arg1);
 	}
 
 	/**
@@ -240,7 +259,7 @@ public class BambiLog
 	 */
 	public void trace(final Object arg0)
 	{
-		log.trace(arg0);
+		log.trace(whoCalledMe() + arg0);
 	}
 
 	/**
@@ -250,7 +269,7 @@ public class BambiLog
 	 */
 	public void warn(final Object arg0, final Throwable arg1)
 	{
-		log.warn(arg0, arg1);
+		log.warn(whoCalledMe() + arg0, arg1);
 	}
 
 	/**
@@ -259,6 +278,6 @@ public class BambiLog
 	 */
 	public void warn(final Object arg0)
 	{
-		log.warn(arg0);
+		log.warn(whoCalledMe() + arg0);
 	}
 }

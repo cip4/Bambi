@@ -1473,6 +1473,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	public QueueProcessor(final AbstractDevice theParentDevice)
 	{
 		super();
+		log.info("Creating queueProcessor");
 		nextPush = null;
 		_parentDevice = theParentDevice;
 		_listeners = new Vector<Object>();
@@ -1698,6 +1699,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			JDFQueueEntry theEntry;
 			if (nextPush != null && (cb == null || cb.canExecute(nextPush))) // we have an explicit selection
 			{
+				log.info("retrieving push qe: " + nextPush.getQueueEntryID());
 				theEntry = nextPush;
 				nextPush = null;
 			}
@@ -1707,6 +1709,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			else
 			{
+				log.debug("no pull entry waiting");
 				theEntry = null;
 			}
 			if (theEntry != null)
@@ -1716,6 +1719,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				{
 					theEntry.setAttribute(proxyFlag, "true");
 				}
+				log.debug("new qe: " + theEntry.getQueueEntryID());
 			}
 			return getIQueueEntry(theEntry);
 		}
@@ -1803,10 +1807,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		if (canAccept == null)
 		{
-			if (newResponse != null)
-			{
-				JMFHandler.errorResponse(newResponse, "unable to queue request: No matching nodes found. Check Types and DeviceID - Error code = 101", 101, EnumClass.Error);
-			}
+			JMFHandler.errorResponse(newResponse, "unable to queue request: No matching nodes found. Check Types and DeviceID - Error code = 101", 101, EnumClass.Error);
 			return null;
 		}
 
@@ -1873,10 +1874,19 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	public void extractFiles(JDFQueueEntry newQE, JDFDoc doc)
 	{
 		if (doc == null || newQE == null)
+		{
+			if (doc == null)
+				log.warn("doc=null " + newQE == null ? "null" : newQE.getQueueEntryID());
+			if (newQE == null)
+				log.warn("newQE=null");
 			return;
+		}
 		final File jobDirectory = _parentDevice.getJobDirectory(newQE.getQueueEntryID());
 		if (jobDirectory == null)
+		{
+			log.warn("no Job Directory for: " + newQE.getQueueEntryID());
 			return;
+		}
 		log.info("extracting attached files to: " + jobDirectory);
 		String dataURL = _parentDevice.getDataURL(newQE.getQueueEntryID());
 		if (dataURL != null)
@@ -1915,6 +1925,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		final String theDocFile = _parentDevice.getJDFStorage(newQEID);
 		final boolean ok = theJDF.write2File(theDocFile, 0, true);
+		if (!ok)
+		{
+			log.error("error writing to: " + theDocFile);
+		}
 		BambiNSExtension.setDocURL(newQEReal, theDocFile);
 		BambiNSExtension.setDocModified(newQEReal, System.currentTimeMillis());
 		if (!KElement.isWildCard(returnJMF))

@@ -558,7 +558,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 			}
 			catch (final IllegalArgumentException x)
 			{
-				return QERetrieval.PULL;
+				return QERetrieval.PUSH;
 			}
 		}
 
@@ -567,7 +567,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 */
 		public void setQERetrieval(final QERetrieval qer)
 		{
-			final String s = qer == null ? "PULL" : qer.name();
+			final String s = qer == null ? "PUSH" : qer.name();
 			devRoot.setAttribute("PushPull", s);
 		}
 

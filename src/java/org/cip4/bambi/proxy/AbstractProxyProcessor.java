@@ -270,6 +270,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 	protected JDFMessage writeToQueue(final JDFDoc docJMF, final XMLDoc docJDF, final String strUrl, final MIMEDetails urlDet, final boolean expandMime, final boolean isMime) throws IOException
 	{
+		log.debug("submitting to queue, url=" + strUrl);
 		if (strUrl == null)
 		{
 			log.error("writeToQueue: attempting to write to null url");
@@ -345,6 +346,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 */
 	protected void submitted(final String slaveQEID, final EnumQueueEntryStatus newStatus, final String slaveURL, final String slaveDeviceID)
 	{
+		log.info("Submitted to slave qe: " + slaveDeviceID);
 		getParent().addSlaveSubscriptions(0, slaveQEID, false);
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		BambiNSExtension.setSlaveSubmissionTime(qe, new JDFDate());
@@ -376,6 +378,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 */
 	protected IQueueEntry submitToQueue(final URL qurl, final File deviceOutputHF, final MIMEDetails ud, final boolean expandMime, final boolean isMime)
 	{
+		log.info("Submitting " + (isMime ? "mime" : "jdf") + " qe " + currentQE.getQueueEntryID() + " " + (qurl == null ? "null url" : qurl.toExternalForm()));
 		final AbstractProxyDevice proxyParent = getParent();
 		final String deviceURLForSlave = proxyParent.getDeviceURLForSlave();
 		final JDFJMF jmf = getBuilderForSlave().buildSubmitQueueEntry(deviceURLForSlave);
@@ -398,14 +401,17 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 
 		final JDFNode node = getCloneJDFForSlave(); // the retained internal node
+		log.debug("get clone: " + (node == null ? "null" : node.getJobID(false)));
 		KElement modNode = node; // the external node
 		if (slaveCallBack != null)
 		{
 			if (isMime)
 			{
+				log.debug("calling slave callback for mime submission");
 				final JDFDoc d = slaveCallBack.updateJDFForExtern(new JDFDoc(node.getOwnerDocument()));
 				modNode = d.getRoot();
 			}
+			log.debug("calling slave callback for jmf submission");
 			slaveCallBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
 		}
 
@@ -428,7 +434,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			try
 			{
 				final String urlString = qurl == null ? null : qurl.toExternalForm();
-
 				final JDFMessage r = writeToQueue(jmf.getOwnerDocument_JDFElement(), modNode.getOwnerDocument_KElement(), urlString, ud, expandMime, isMime);
 				if (r != null)
 				{
@@ -484,6 +489,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		final JDFNode nod = currentQE.getJDF();
 		if (nod == null)
 		{
+			log.error("no jdf to clone: qe=" + currentQE.getQueueEntryID());
 			return null;
 		}
 		final JDFDoc docClone = nod.getOwnerDocument_JDFElement().clone();
@@ -492,6 +498,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		if (nodClone == null)
 		{
 			nodClone = rootClone;
+			log.warn("no matching part - using root: qe=" + currentQE.getQueueEntryID());
 		}
 		updateNISubscriptions(nodClone);
 		return nodClone;
