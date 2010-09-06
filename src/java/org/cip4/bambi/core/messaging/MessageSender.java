@@ -117,6 +117,7 @@ import org.cip4.jdflib.util.VectorMap;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
+import org.cip4.jdflib.util.UrlUtil.UrlPart;
 
 /**
  * allow a JMF message to be sent in its own thread
@@ -981,12 +982,6 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				log.error("Sending to bad url - bailing out! " + mesDetails.url);
 				return SendReturn.error; // snafu anyhow but not sent but no retry useful
 			}
-			if (jmf == null && mp == null)
-			{
-				log.error("Sending neither mime nor jmf - bailing out?");
-				_messages.remove(0);
-				return SendReturn.removed; // need no resend - will remove
-			}
 
 			if (mesDetails.respHandler != null && mesDetails.respHandler.isAborted())
 			{
@@ -995,14 +990,21 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				return SendReturn.removed;
 			}
 		}
-		final SendReturn sendReturn = sendHTTP(mesDetails, jmf, mp);
+		final SendReturn sendReturn = sendHTTP(mesDetails);
 		if (SendReturn.sent == sendReturn)
 		{
 			sentMessages.push(mesDetails);
 		}
 		else
 		{
-			String isMime = mp == null ? "JMF" : "MIME";
+			String isMime = "";
+			if (jmf != null)
+				isMime = "JMF";
+			if (mp != null)
+				isMime += "MIME";
+			if ("".equals(isMime))
+				isMime = "Empty";
+
 			log.warn("Sender: " + mesDetails.senderID + " Error sending " + isMime + " message to: " + mesDetails.url + " return code=" + sendReturn);
 		}
 		return sendReturn;
@@ -1012,15 +1014,15 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	 * send a message via http
 	 * 
 	 * @param mh the messagedetails
-	 * @param jmf the jmf to send
-	 * @param mp the mime to send
 	 * @return the success as a sendreturn enum
 	 */
-	private SendReturn sendHTTP(final MessageDetails mh, JDFJMF jmf, final Multipart mp)
+	private SendReturn sendHTTP(final MessageDetails mh)
 	{
+		JDFJMF jmf = mh.jmf;
+		Multipart mp = mh.mime;
 		SendReturn b = SendReturn.sent;
-		final URL url = mh == null ? null : UrlUtil.stringToURL(mh.url);
-		if (url == null || mh == null || (!UrlUtil.isHttp(mh.url) && !UrlUtil.isHttps(mh.url)))
+		final URL url = UrlUtil.stringToURL(mh.url);
+		if (url == null || (!UrlUtil.isHttp(mh.url) && !UrlUtil.isHttps(mh.url)))
 		{
 			log.error("Invalid url: " + url);
 			_messages.remove(0);
@@ -1037,38 +1039,19 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			{
 				log.warn("Both mime package and JMF specified - sending both");
 			}
+
 			if (jmf != null)
 			{
-				log.debug(" sending jmf to: " + url.toExternalForm());
-				final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
-				final HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
-				connection = jmfDoc.write2HTTPURL(url, hd);
-				if (outDump != null)
-				{
-					final File dump = outDump.newFile(header);
-					if (dump != null)
-					{
-						final FileOutputStream fos = new FileOutputStream(dump, true);
-						jmfDoc.write2Stream(fos, 0, true);
-						fos.close();
-					}
-				}
+				connection = sendJMF(mh, jmf, url, outDump);
 			}
 			if (mp != null)
 			// mime package
 			{
-				log.debug(" sending mime to: " + url.toExternalForm());
-				connection = MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
-				if (outDump != null)
-				{
-					final File dump = outDump.newFile(header);
-					if (dump != null)
-					{
-						final FileOutputStream fos = new FileOutputStream(dump, true);
-						MimeUtil.writeToStream(mp, fos, mh.mimeDet);
-						fos.close();
-					}
-				}
+				connection = sendMime(mh, mp, url, outDump);
+			}
+			if (jmf == null && mp == null)
+			{
+				connection = sendEmpty(mh, url, outDump);
 			}
 
 			if (connection != null)
@@ -1143,6 +1126,84 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			b = SendReturn.error;
 		}
 		return b;
+	}
+
+	/**
+	 * @param mh
+	 * @param url
+	 * @param outDump
+	 * @return
+	 */
+	private HttpURLConnection sendEmpty(MessageDetails mh, URL url, DumpDir outDump)
+	{
+		String header = "URL: " + url;
+
+		log.debug(" sending empty content to: " + url.toExternalForm());
+		final HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
+		UrlPart p = UrlUtil.writeToURL(url.toExternalForm(), null, UrlUtil.POST, UrlUtil.TEXT_UNKNOWN, hd);
+		HttpURLConnection connection = p.getConnection();
+		if (outDump != null)
+		{
+			outDump.newFile(header);
+		}
+		return connection;
+	}
+
+	/**
+	 * @param mh
+	 * @param mp
+	 * @param url
+	 * @param outDump
+	 * @return
+	 * @throws IOException
+	 * @throws MessagingException
+	 * @throws FileNotFoundException
+	 */
+	private HttpURLConnection sendMime(final MessageDetails mh, Multipart mp, final URL url, final DumpDir outDump) throws IOException, MessagingException, FileNotFoundException
+	{
+		String header = "URL: " + url;
+		log.debug(" sending mime to: " + url.toExternalForm());
+		HttpURLConnection connection = MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
+		if (outDump != null)
+		{
+			final File dump = outDump.newFile(header);
+			if (dump != null)
+			{
+				final FileOutputStream fos = new FileOutputStream(dump, true);
+				MimeUtil.writeToStream(mp, fos, mh.mimeDet);
+				fos.close();
+			}
+		}
+		return connection;
+	}
+
+	/**
+	 * @param mh
+	 * @param jmf
+	 * @param url
+	 * @param outDump
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	private HttpURLConnection sendJMF(final MessageDetails mh, JDFJMF jmf, final URL url, final DumpDir outDump) throws FileNotFoundException, IOException
+	{
+		String header = "URL: " + url;
+		log.debug(" sending jmf to: " + url.toExternalForm());
+		final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
+		final HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
+		HttpURLConnection connection = jmfDoc.write2HTTPURL(url, hd);
+		if (outDump != null)
+		{
+			final File dump = outDump.newFile(header);
+			if (dump != null)
+			{
+				final FileOutputStream fos = new FileOutputStream(dump, true);
+				jmfDoc.write2Stream(fos, 0, true);
+				fos.close();
+			}
+		}
+		return connection;
 	}
 
 	/**
@@ -1231,6 +1292,26 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		}
 
 		final MessageDetails messageDetails = new MessageDetails(jmf, handler, _callBack, null, url);
+		queueMessageDetails(messageDetails);
+		return true;
+	}
+
+	/**
+	 * queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required
+	 * 
+	 * @param handler
+	 * @param url
+	 * @param _callBack
+	 * @return true, if the message is successfully queued. false, if this MessageSender is unable to accept further messages (i. e. it is shutting down).
+	 */
+	public boolean queuePost(final IResponseHandler handler, final String url, final IConverterCallback _callBack)
+	{
+		if (doShutDown || doShutDownGracefully)
+		{
+			return false;
+		}
+
+		final MessageDetails messageDetails = new MessageDetails(null, handler, _callBack, null, url);
 		queueMessageDetails(messageDetails);
 		return true;
 	}

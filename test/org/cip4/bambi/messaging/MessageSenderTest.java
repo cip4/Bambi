@@ -73,9 +73,12 @@ package org.cip4.bambi.messaging;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestHelper;
+import org.cip4.bambi.core.messaging.MessageSender;
+import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
@@ -85,6 +88,7 @@ public class MessageSenderTest extends BambiTestCase
 {
 
 	String snafu = "http://www.foobar.snafu/next";
+	MessageSender s;
 
 	/**
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
@@ -93,6 +97,7 @@ public class MessageSenderTest extends BambiTestCase
 	public void setUp() throws Exception
 	{
 		super.setUp();
+		s = new MessageSender(new CallURL("http://localhost:8080/httpdump/messagesendertest"));
 	}
 
 	/**
@@ -105,4 +110,10 @@ public class MessageSenderTest extends BambiTestCase
 		assertNotNull(resp);
 	}
 
+	public void testSendToDump()
+	{
+		s.queuePost(null, "http://localhost:8080/httpdump/messagesendertest", null);
+		s.run();
+		ThreadUtil.sleep(20000);
+	}
 }

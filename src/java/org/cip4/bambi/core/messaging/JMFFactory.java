@@ -245,17 +245,36 @@ public class JMFFactory extends BambiLogFactory
 
 		if (mp == null || url == null)
 		{
-			if (log != null)
-			{
-				// this method is prone for crashing on shutdown, thus checking for
-				// log!=null is important
-				log.error("failed to send JDFMessage, message and/or URL is null");
-			}
+			log.error("failed to send JDFMessage, message and/or URL is null");
 			return;
 		}
 
 		final MessageSender ms = getCreateMessageSender(url);
 		ms.queueMimeMessage(mp, handler, callback, md, deviceID, url);
+	}
+
+	/**
+	 * POSTS a empty url message to a given URL
+	 * 
+	 * @param url the URL to send the JMF to
+	 * @param handler
+	 * @param callback
+	 */
+	public void send2URL(final String url, final IResponseHandler handler, final IConverterCallback callback)
+	{
+		if (shutdown)
+		{
+			return;
+		}
+
+		if (url == null)
+		{
+			log.error("failed to send empt post, URL is null");
+			return;
+		}
+
+		final MessageSender ms = getCreateMessageSender(url);
+		ms.queuePost(handler, url, callback);
 	}
 
 	/**
