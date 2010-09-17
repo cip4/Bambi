@@ -77,11 +77,11 @@ import org.cip4.bambi.BambiTestCase;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG

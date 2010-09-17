@@ -81,10 +81,10 @@ import org.cip4.bambi.workers.sim.SimDevice;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFQuery;
-import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFQuery;
+import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 

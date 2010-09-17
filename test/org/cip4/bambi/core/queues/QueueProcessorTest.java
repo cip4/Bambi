@@ -84,8 +84,8 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.util.MimeUtil;
-import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeWriter;
 
 /**

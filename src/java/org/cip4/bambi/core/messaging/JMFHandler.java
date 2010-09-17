@@ -72,8 +72,8 @@ package org.cip4.bambi.core.messaging;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Vector;
 import java.util.Map.Entry;
+import java.util.Vector;
 
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiLogFactory;
@@ -83,18 +83,18 @@ import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
-import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFAcknowledge;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFMessageService;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.EnumUtil;
 

@@ -75,15 +75,15 @@ import java.net.HttpURLConnection;
 
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.IResponseHandler;
-import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
+import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 
 public class AsyncMessagingTest extends BambiTestCase implements IResponseHandler

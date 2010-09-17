@@ -78,8 +78,8 @@ import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFAcknowledge;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.StringUtil;
 
 /**

@@ -74,14 +74,14 @@ package org.cip4.bambi;
 import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.KElement.EnumValidationLevel;
+import org.cip4.jdflib.core.JDFElement.EnumValidationLevel;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFSubscriptionInfo;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.ThreadUtil;
 
 /**

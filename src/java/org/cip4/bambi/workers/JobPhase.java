@@ -77,11 +77,11 @@ import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
-import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.StringUtil;
 

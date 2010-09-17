@@ -73,9 +73,9 @@ import java.util.Vector;
 
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
-import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.elementwalker.FixVersion;
 import org.cip4.jdflib.extensions.XJDF20;

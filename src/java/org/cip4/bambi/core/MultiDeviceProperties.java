@@ -77,12 +77,12 @@ import java.net.UnknownHostException;
 
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
-import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -264,7 +264,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		@Override
 		public String toString()
 		{
-			return "[ DeviceProperties: " + devRoot == null ? "null" : devRoot.toString() + "]";
+			return "[ DeviceProperties: " + (devRoot == null ? "null" : devRoot.toString()) + "]";
 		}
 
 		/**

@@ -75,16 +75,16 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
-import java.util.Map.Entry;
 
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
-import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
+import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -100,6 +100,8 @@ import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.ifaces.IJMFSubscribable;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFResourceQuParams;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -109,8 +111,6 @@ import org.cip4.jdflib.jmf.JDFStopPersChParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFSubscriptionFilter;
 import org.cip4.jdflib.jmf.JDFSubscriptionInfo;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.pool.JDFAncestorPool;
@@ -121,8 +121,8 @@ import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
-import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.ThreadUtil.MyMutex;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * this class handles subscriptions <br>

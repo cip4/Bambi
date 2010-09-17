@@ -8,10 +8,10 @@ import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.proxy.AbstractProxyDevice;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.util.StringUtil;
 
 /**

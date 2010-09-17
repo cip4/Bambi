@@ -73,8 +73,8 @@ package org.cip4.bambi.messaging;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestHelper;
-import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
+import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;

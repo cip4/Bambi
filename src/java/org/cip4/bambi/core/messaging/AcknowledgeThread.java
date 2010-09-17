@@ -9,8 +9,8 @@ import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.jmf.JDFAcknowledge;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 

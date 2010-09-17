@@ -94,19 +94,19 @@ import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFResubmissionParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
-import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.StringUtil;
 
 /**
  * also used for resubmitqueueentry

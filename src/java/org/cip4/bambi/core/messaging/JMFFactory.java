@@ -86,13 +86,13 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.StringUtil;
-import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil.MyMutex;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * factory for creating JMF messages

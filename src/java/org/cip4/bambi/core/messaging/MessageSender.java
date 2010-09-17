@@ -98,10 +98,10 @@ import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.ContainerUtil;
@@ -110,14 +110,14 @@ import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
-import org.cip4.jdflib.util.UrlUtil;
-import org.cip4.jdflib.util.VectorMap;
-import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.ThreadUtil.MyMutex;
+import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 import org.cip4.jdflib.util.UrlUtil.UrlPart;
+import org.cip4.jdflib.util.VectorMap;
 
 /**
  * allow a JMF message to be sent in its own thread
