@@ -14,16 +14,4 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>bin</name>
-			<type>2</type>
-			<location>/Applications/eclipse/Eclipse.app/Contents/MacOS/O::/Bambi/bin</location>
-		</link>
-		<link>
-			<name>java</name>
-			<type>2</type>
-			<location>/Applications/eclipse/Eclipse.app/Contents/MacOS/O::/Bambi/src/java</location>
-		</link>
-	</linkedResources>
 </projectDescription>
