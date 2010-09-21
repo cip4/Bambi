@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="**/.svn/*" including="org/cip4/bambi/**/*.java" kind="src" path="src/java"/>
-	<classpathentry excluding="**/.svn/*" including="org/cip4/bambi/**/*.java" kind="src" path="test"/>
-	<classpathentry kind="src" path="test/data"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3.8.1"/>
+	<classpathentry excluding="**/.svn/*" kind="src" path="test"/>
+	<classpathentry excluding="**/.svn/*" kind="src" path="src/java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/JDFLibJ"/>
-	<classpathentry kind="lib" path="src/lib/activation-1.0.2.jar"/>
-	<classpathentry kind="lib" path="src/lib/commons-fileupload-1.2.jar"/>
 	<classpathentry kind="lib" path="src/lib/commons-io-1.2.jar"/>
 	<classpathentry kind="lib" path="src/lib/commons-lang-2.3.jar"/>
-	<classpathentry kind="lib" path="src/lib/JDFLibJ-2.1.4a.jar"/>
 	<classpathentry kind="lib" path="src/lib/xercesImpl.jar"/>
 	<classpathentry kind="lib" path="src/lib/xml-apis.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="src/lib/mailapi.jar"/>
-	<classpathentry kind="lib" path="src/lib/log4j-1.2.8.jar"/>
 	<classpathentry kind="lib" path="src/lib/commons-logging.jar"/>
-	<classpathentry kind="var" path="TOMCAT_HOME/lib/el-api.jar"/>
 	<classpathentry kind="var" path="TOMCAT_HOME/lib/servlet-api.jar"/>
+	<classpathentry kind="lib" path="/SVN_Root/Work/JDFEditor/lib/JDFLibJ-2.1.4a.jar"/>
+	<classpathentry kind="lib" path="/SVN_Root/Work/JDFLibJ/lib/junit.jar"/>
+	<classpathentry kind="lib" path="/SVN_Root/Work/Bambi/src/lib/log4j-1.2.8.jar"/>
+	<classpathentry kind="lib" path="/SVN_Root/Work/Bambi/src/lib/commons-fileupload-1.2.jar"/>
+	<classpathentry kind="lib" path="/SVN_Root/Work/Bambi/src/lib/activation-1.0.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

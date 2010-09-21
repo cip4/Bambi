@@ -71,6 +71,8 @@
 
 package org.cip4.bambi;
 
+import junit.framework.TestCase;
+
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
@@ -83,7 +85,7 @@ import org.cip4.jdflib.jmf.JMFBuilder;
  * 
  * 16.02.2009
  */
-public class WebAppTest extends BambiTestCase
+public class WebAppTest extends TestCase
 {
 
 	/**
@@ -94,7 +96,7 @@ public class WebAppTest extends BambiTestCase
 		final JMFFactory factory = JMFFactory.getJMFFactory();
 		final JDFJMF jmfStatus = new JMFBuilder().buildStatus();
 		final VString urls = new VString();
-		urls.add(getWorkerURL());
+		//		urls.add(getWorkerURL());
 
 		for (int i = 0; i < urls.size(); i++)
 		{

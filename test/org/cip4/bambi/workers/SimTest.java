@@ -122,9 +122,9 @@ public class SimTest extends BambiTestCase
 		bUpdateJobID = true;
 		// acknowledgeURL = "http://localhost:8080/httpdump/acknowledgeURL";
 
-		workerURLBase = "http://kie-prosirai-lg:8080/SimWorker/jmf/";
+		workerURLBase = "http://localhost:8080/SimWorker/jmf/";
 		deviceID = "sim001";
-		workerURLBase = "http://kie-prosirai-lg:8080/richworker/jmf/";
+		workerURLBase = "http://localhost:8080/richworker/jmf/";
 		deviceID = "Root1";
 	}
 

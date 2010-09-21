@@ -102,6 +102,12 @@ import org.cip4.jdflib.util.mime.MimeWriter;
 public class BambiContainerTest extends BambiTestCase
 {
 
+	public BambiContainerTest()
+	{
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
 	/**
 	 * 
 	 */

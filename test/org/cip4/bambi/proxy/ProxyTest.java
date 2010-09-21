@@ -165,6 +165,16 @@ public class ProxyTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
+	public void testSubmitQueueEntry_MIME() throws Exception
+	{
+		_theGT.devID = getDeviceID();
+		_theGT.assign(null);
+		submitMimetoURL(getWorkerURL());
+	}
+
+	/**
+	 * @throws Exception
+	 */
 	public void testAbortQueueEntry() throws Exception
 	{
 		submitMimetoURL(getWorkerURL());
