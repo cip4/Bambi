@@ -145,7 +145,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected SubscriptionMap mySubscriptions;
 
 	/**
-	 * @author Rainer Prosi, Heidelberger Druckmaschinen enumeration how to set up synchronization of status with the slave
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen 
+	 * 
+	 * enumeration how to set up synchronization of status with the slave
 	 */
 	public enum EnumSlaveStatus
 	{

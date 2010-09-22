@@ -178,13 +178,24 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		if (XJDF20.rootName.equals(root.getLocalName()))
 		{
 			log.info("importing xjdf to Bambi");
-			final XJDFToJDFConverter xc = new XJDFToJDFConverter(null);
+			final XJDFToJDFConverter xc = getXJDFImporter();
 			xc.convertUnits = true;
 			doc = xc.convert(root);
 			FixVersion fv = new FixVersion((EnumVersion) null);
 			fv.walkTree(doc.getRoot(), null);
 		}
 		return doc;
+	}
+
+	/**
+	 * 
+	 * get the importer for JDFD - may be overwritten to set parameters
+	 * @return
+	 */
+	protected XJDFToJDFConverter getXJDFImporter()
+	{
+		final XJDFToJDFConverter xc = new XJDFToJDFConverter(null);
+		return xc;
 	}
 
 	/**
@@ -197,9 +208,20 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		if (root == null)
 			return doc;
 		log.info("exporting xjdf");
-		final XJDF20 xjdf = new XJDF20();
+		final XJDF20 xjdf = getXJDFExporter();
 		final KElement newRoot = xjdf.makeNewJDF(root, null);
 		return new JDFDoc(newRoot.getOwnerDocument());
+	}
+
+	/**
+	 * 
+	 * get the exporter for JDFD - may be overwritten to set parameters
+	 * @return
+	 */
+	protected XJDF20 getXJDFExporter()
+	{
+		final XJDF20 xjdf = new XJDF20();
+		return xjdf;
 	}
 
 	/**

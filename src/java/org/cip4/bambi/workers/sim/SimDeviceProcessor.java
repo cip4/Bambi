@@ -277,7 +277,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		{
 			final long t0 = System.currentTimeMillis();
 			final VString names = phase.getAmountResourceNames();
-			boolean reachedEnd = false;
+			boolean reachedEnd = EnumNodeStatus.isCompleted(phase.getNodeStatus());
 			for (int i = 0; i < names.size(); i++)
 			{
 				final PhaseAmount pa = phase.getPhaseAmount(names.get(i));
@@ -311,9 +311,12 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			}
 			if (_doShutdown)
 			{
-				phase.setTimeToGo(0);
 				reachedEnd = true;
 				log.info("external shutdown: " + phase.toString());
+			}
+			if (reachedEnd)
+			{
+				phase.setTimeToGo(0);
 			}
 			_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(), reachedEnd);
 			if (phase.getTimeToGo() > 0 && !_doShutdown)

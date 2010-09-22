@@ -131,6 +131,7 @@ public class ProxyTest extends BambiTestCase
 	{
 		bUpdateJobID = true;
 		workerURLBase = "http://localhost:8080/BambiProxy/jmf/";
+		//deviceID = "root";
 
 		//		workerURL = "http://146.140.222.217:8080/BambiProxy/jmf/pushproxy";
 		super.setUp();
@@ -170,6 +171,21 @@ public class ProxyTest extends BambiTestCase
 		_theGT.devID = getDeviceID();
 		_theGT.assign(null);
 		submitMimetoURL(getWorkerURL());
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	public void testSubmitQueueEntry_MIME_Many() throws Exception
+	{
+		for (int i = 1; i < 200; i++)
+		{
+			System.out.println("submitting " + i);
+			_theGT.devID = getDeviceID();
+			_theGT.assign(null);
+			submitMimetoURL(getWorkerURL());
+			ThreadUtil.sleep(50);
+		}
 	}
 
 	/**

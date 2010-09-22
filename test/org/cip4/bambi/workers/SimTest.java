@@ -124,8 +124,7 @@ public class SimTest extends BambiTestCase
 
 		workerURLBase = "http://localhost:8080/SimWorker/jmf/";
 		deviceID = "sim001";
-		workerURLBase = "http://localhost:8080/richworker/jmf/";
-		deviceID = "Root1";
+		//		deviceID = "root";
 	}
 
 	/**
@@ -241,7 +240,7 @@ public class SimTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_MIME_Many() throws Exception
 	{
-		for (int i = 1; i < 200; i++)
+		for (int i = 1; i < 2000; i++)
 		{
 			System.out.println("submitting " + i);
 			_theGT.devID = getDeviceID();

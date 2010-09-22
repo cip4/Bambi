@@ -227,8 +227,8 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			super(refID);
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
+		 *  
 		 * 
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
