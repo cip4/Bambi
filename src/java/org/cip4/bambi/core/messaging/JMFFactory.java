@@ -200,6 +200,7 @@ public class JMFFactory extends BambiLogFactory
 	private final boolean shutdown = false;
 	private final HashMap<EnumType, IMessageOptimizer> optimizers;
 	private final String devID;
+	private final long startTime;
 
 	/**
 	 * @param deviceID
@@ -209,6 +210,7 @@ public class JMFFactory extends BambiLogFactory
 		super();
 		optimizers = new HashMap<EnumType, IMessageOptimizer>();
 		devID = deviceID;
+		startTime = System.currentTimeMillis();
 	}
 
 	/**
@@ -481,6 +483,7 @@ public class JMFFactory extends BambiLogFactory
 			{
 				cleanIdleSenders();
 				ms = new MessageSender(cu);
+				ms.setStartTime(startTime);
 				ms.setJMFFactory(this);
 				senders.put(cu, ms);
 				new Thread(ms, "MessageSender_" + devID + "_" + nThreads++ + "_" + cu.getBaseURL()).start();

@@ -330,7 +330,7 @@ public class BambiTestHelper extends JDFTestCaseBase
 	public JDFQueue getQueueStatus(final String qURL)
 	{
 		final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
-		final JDFDoc dresp = submitXMLtoURL(jmf, qURL);
+		final JDFDoc dresp = submitJMFtoURL(jmf, qURL);
 		final JDFResponse resp = dresp.getJMFRoot().getResponse(0);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
@@ -346,7 +346,7 @@ public class BambiTestHelper extends JDFTestCaseBase
 	 */
 	public JDFDoc submitJMFtoURL(final KElement xml, final String url)
 	{
-		return submitXMLtoURL(xml, url);
+		return new JDFDoc(submitXMLtoURL(xml, url));
 	}
 
 	/**
@@ -354,8 +354,15 @@ public class BambiTestHelper extends JDFTestCaseBase
 	 * @param url the url to send to
 	 * @return
 	 */
-	public JDFDoc submitXMLtoURL(final KElement xml, final String url)
+	public XMLDoc submitXMLtoURL(final KElement xml, final String url)
 	{
+		if (container != null)
+		{
+			XMLRequest request = new XMLRequest(xml);
+			request.setRequestURI(url);
+			XMLResponse res = container.processXMLDoc(request);
+			return res.getXMLDoc();
+		}
 		try
 		{
 			final HTTPDetails md = new HTTPDetails();
@@ -366,7 +373,7 @@ public class BambiTestHelper extends JDFTestCaseBase
 			final InputStream inStream = urlCon.getInputStream();
 
 			parser.parseStream(inStream);
-			final JDFDoc docResponse = parser.getDocument() == null ? null : new JDFDoc(parser.getDocument());
+			final XMLDoc docResponse = parser.getDocument() == null ? null : new XMLDoc(parser.getDocument());
 			return docResponse;
 		}
 		catch (final Exception e)

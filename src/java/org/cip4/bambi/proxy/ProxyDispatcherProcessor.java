@@ -82,6 +82,7 @@ import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.util.ThreadUtil;
 
 /**
@@ -256,7 +257,7 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 		}
 		qe.setDeviceID(proxyProperties.getSlaveDeviceID());
 		final IQueueEntry iqe = new QueueEntry(node, qe);
-		final ProxyDeviceProcessor pdb = ((ProxyDevice) _parent).submitQueueEntry(iqe, proxyProperties.getSlaveURL());
+		final ProxyDeviceProcessor pdb = ((ProxyDevice) _parent).submitQueueEntry(iqe, proxyProperties.getSlaveURL(), EnumActivation.Active);
 		if (pdb == null)
 		{
 			BambiNSExtension.setDeviceURL(qe, null); // see above clean up any multiple markers

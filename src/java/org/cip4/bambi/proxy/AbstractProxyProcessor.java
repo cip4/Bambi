@@ -102,6 +102,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFResubmissionParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
@@ -244,6 +245,28 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	protected int rc;
 	protected JDFNotification notification;
 	protected IConverterCallback slaveCallBack;
+	protected EnumActivation activation;
+
+	/**
+	 * get the currently set activationTODO Please insert comment!
+	 * @return
+	 */
+	public EnumActivation getActivation()
+	{
+		return activation;
+	}
+
+	/**
+	 * 
+	 * set the activation for submission,
+	 * @param activation, the activation to set - if null assume Active
+	 */
+	public void setActivation(EnumActivation activation)
+	{
+		if (activation == null)
+			activation = EnumActivation.Active;
+		this.activation = activation;
+	}
 
 	/**
 	 * @param parent the parent device
@@ -255,7 +278,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		slaveCallBack = parent.getSlaveCallback();
 		rc = 0;
 		notification = null;
-
+		activation = EnumActivation.Active;
 	}
 
 	/**
@@ -346,6 +369,11 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 */
 	protected void submitted(final String slaveQEID, final EnumQueueEntryStatus newStatus, final String slaveURL, final String slaveDeviceID)
 	{
+		if (EnumActivation.Informative.equals(activation))
+		{
+			log.info("Informative submission completed for:" + slaveQEID);
+			return;
+		}
 		log.info("Submitted to slave qe: " + slaveDeviceID);
 		getParent().addSlaveSubscriptions(0, slaveQEID, false);
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
@@ -423,10 +451,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		// setup http get for JDF
 		{
 			String jdfURL = proxyParent.getDeviceURL();
-			//			jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/" + AbstractProxyDevice.SLAVEJMF + "/");
 			jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/");
 			modNode.getOwnerDocument_KElement().write2File((String) null, 0, true);
-			jdfURL += "?Callback=true&raw=true&qeID=" + currentQE.getQueueEntryID();
+			jdfURL += "?Callback=true&raw=true&activation=" + activation.getName() + "&qeID=" + currentQE.getQueueEntryID();
 			qsp.setURL(jdfURL);
 		}
 		if (modNode != null)
@@ -482,7 +509,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	}
 
 	/**
-	 * @return {@link JDFNode} the updated clone with updated subscriptions
+	 * @return {@link JDFNode} the updated clone with updated subscriptions and Activation
 	 */
 	protected JDFNode getCloneJDFForSlave()
 	{
@@ -501,6 +528,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			log.warn("no matching part - using root: qe=" + currentQE.getQueueEntryID());
 		}
 		updateNISubscriptions(nodClone);
+		if (activation != null)
+			nodClone.setActivation(activation);
+
 		return nodClone;
 	}
 

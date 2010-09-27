@@ -89,6 +89,7 @@ import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFSpawn;
@@ -136,6 +137,7 @@ public class ShowJDFHandler extends ShowHandler
 		final boolean raw = request.getBooleanParam("raw");
 		final boolean repair = request.getBooleanParam("repair");
 		XMLResponse r = new XMLResponse(null);
+
 		try
 		{
 			InputStream is = FileUtil.getBufferedInputStream(f);
@@ -208,6 +210,7 @@ public class ShowJDFHandler extends ShowHandler
 		{
 			return null;
 		}
+
 		final JDFNode n = doc.getJDFRoot();
 		final VElement v = n.getvJDFNode(null, null, false);
 		for (int i = 0; i < v.size(); i++)
@@ -222,7 +225,22 @@ public class ShowJDFHandler extends ShowHandler
 			}
 		}
 		updateStatusFromChildren(v);
+		updateActivation(request, n);
 		return doc;
+	}
+
+	/**
+	 * 
+	 * update the activation based on the request parameter
+	 * this is needed in case we serve the JDF of a requestqueueentry via http
+	 * @param request
+	 * @param n
+	 */
+	private void updateActivation(final ContainerRequest request, final JDFNode n)
+	{
+		final EnumActivation activation = EnumActivation.getEnum(request.getParameter("activation"));
+		if (activation != null)
+			n.setActivation(activation);
 	}
 
 	/**

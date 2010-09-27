@@ -105,6 +105,7 @@ import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
@@ -298,6 +299,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		protected int numSubmitThread;
 		protected SubmitThread submitThread;
+		protected EnumActivation activation;
 
 		private class SubmitThread extends Thread
 		{
@@ -322,7 +324,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			public void run()
 			{
 				getLog().info("submitting for RequestQE");
-				submitQueueEntry(iqe, queueURL);
+				submitQueueEntry(iqe, queueURL, activation);
 				submitThread = null; // now we are done...
 			}
 		}
@@ -349,13 +351,13 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 			// TODO retain rqe in case we cannot submit now
 			// check for valid RequestQueueEntryParams
-			final JDFRequestQueueEntryParams qep = m.getRequestQueueEntryParams(0);
-			if (qep == null)
+			final JDFRequestQueueEntryParams requestQEParams = m.getRequestQueueEntryParams(0);
+			if (requestQEParams == null)
 			{
 				JMFHandler.errorResponse(resp, "QueueEntryParams missing in RequestQueueEntry message", 7, EnumClass.Error);
 				return true;
 			}
-			final String queueURL = qep.getQueueURL();
+			final String queueURL = requestQEParams.getQueueURL();
 			if (queueURL == null || queueURL.length() < 1)
 			{
 				JMFHandler.errorResponse(resp, "QueueURL is missing", 7, EnumClass.Error);
@@ -367,11 +369,17 @@ public class ProxyDevice extends AbstractProxyDevice
 				return true;
 			}
 
-			final NodeIdentifier nid = new NodeIdentifier(qep.getJobID(), qep.getJobPartID(), qep.getPartMapVector());
+			final NodeIdentifier nid = requestQEParams.getIdentifier();
+			activation = EnumActivation.getEnum(requestQEParams.getAttribute(AttributeName.ACTIVATION));
 			// submit a specific QueueEntry
-			final IQueueEntry iqe = getQueueProcessor().getWaitingQueueEntry(nid);
+			IQueueEntry iqe = _theQueueProcessor.getWaitingQueueEntry(nid);
+			if (iqe == null && EnumActivation.Active.equals(activation))
+			{
+				JDFQueueEntry qe = _theQueueProcessor.getQueueEntry(null, nid);
+				iqe = _theQueueProcessor.getIQueueEntry(qe);
+			}
 			final JDFQueueEntry qe = iqe == null ? null : iqe.getQueueEntry();
-			if (qe != null && EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && KElement.isWildCard(qe.getDeviceID()))
+			if (qe != null)
 			{
 				qe.setDeviceID(m.getSenderID());
 				submitThread = new SubmitThread(iqe, queueURL);
@@ -380,11 +388,6 @@ public class ProxyDevice extends AbstractProxyDevice
 			else if (qe == null)
 			{
 				JMFHandler.errorResponse(resp, "No QueueEntry is available for request", 108, EnumClass.Error);
-			}
-			else
-			{
-				final String qeStatus = qe.getQueueEntryStatus().getName();
-				JMFHandler.errorResponse(resp, "requested QueueEntry is " + qeStatus + " or on Device: " + qe.getDeviceID(), 106, EnumClass.Error);
 			}
 			return true;
 		}
@@ -801,9 +804,10 @@ public class ProxyDevice extends AbstractProxyDevice
 	 * @param queueURL
 	 * @return true if the processor is added
 	 */
-	public ProxyDeviceProcessor submitQueueEntry(final IQueueEntry iqe, final String queueURL)
+	public ProxyDeviceProcessor submitQueueEntry(final IQueueEntry iqe, final String queueURL, final EnumActivation activation)
 	{
 		ProxyDeviceProcessor pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, iqe);
+		pdp.setActivation(activation);
 		final boolean submit = pdp.submit(queueURL);
 		if (submit && pdp.isActive())
 		{

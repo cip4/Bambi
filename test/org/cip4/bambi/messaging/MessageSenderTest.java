@@ -75,7 +75,7 @@ import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestHelper;
 import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
 import org.cip4.bambi.core.messaging.MessageSender;
-import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.ThreadUtil;
@@ -106,7 +106,7 @@ public class MessageSenderTest extends BambiTestCase
 	public void testBadURL() throws Exception
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription(snafu, 1, 0, null);
-		final JDFDoc resp = new BambiTestHelper().submitXMLtoURL(jmf, getWorkerURL());
+		final XMLDoc resp = new BambiTestHelper().submitXMLtoURL(jmf, getWorkerURL());
 		assertNotNull(resp);
 	}
 

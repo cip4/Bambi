@@ -253,13 +253,15 @@ public class BambiContainerTest extends BambiTestCase
 
 		final JDFDoc docJDF = _theGT.getNode().getOwnerDocument_JDFElement();
 
-		BambiTestHelper helper = new BambiTestHelper();
-		helper.container = bambiContainer;
-		XMLResponse resp = helper.submitMimetoContainer(docJDF, "http://dummy:8080/war/jmf/" + deviceID);
+		BambiTestHelper helper = getHelper();
+		XMLResponse resp = helper.submitMimetoContainer(docJDF, getWorkerURL() + deviceID);
 		assertNotNull(resp);
 		KElement htmlResp = resp.getXML();
 		assertNotNull(htmlResp);
 		assertTrue(htmlResp instanceof JDFJMF);
+		JDFQueue queue = helper.getQueueStatus(getWorkerURL());
+		assertTrue(queue.numEntries(null) > 0);
+
 	}
 
 	/**

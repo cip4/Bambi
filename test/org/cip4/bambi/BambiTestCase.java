@@ -676,6 +676,15 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	}
 
 	/**
+	 * @return 
+	 * 
+	 */
+	protected String getDumpURL()
+	{
+		return "http://localhost:8080/httpdump/BambiDevice/" + deviceID;
+	}
+
+	/**
 	 * cleaning up, brute-force-sytle: send a AbortQueueEntry and a RemoveQueueEntry message to every QueueEntry in the Queue
 	 * @param url the URL of the device to send the command to
 	 */
@@ -791,6 +800,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		helper.transferEncoding = transferEncoding;
 		helper.acknowledgeURL = acknowledgeURL;
 		helper.bUpdateJobID = bUpdateJobID;
+		helper.container = bambiContainer;
 		return helper;
 	}
 
@@ -820,7 +830,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 */
 	protected JDFDoc submitJMFtoURL(final JDFJMF jmf, final String url)
 	{
-		return getHelper().submitXMLtoURL(jmf, url);
+		return getHelper().submitJMFtoURL(jmf, url);
 	}
 
 	/**

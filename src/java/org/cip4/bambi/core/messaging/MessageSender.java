@@ -169,6 +169,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	}
 
 	private SenderQueueOptimizer optimizer = null;
+	private long startTime;
 
 	protected class SenderQueueOptimizer extends BambiLogFactory
 	{
@@ -753,12 +754,11 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	}
 
 	/**
-	 * constructor
+	 * constructor -use the static {@link JMFFactory.getMessageSender()}
 	 * 
 	 * @param cu the URL to send the message to
 	 */
-
-	public MessageSender(final CallURL cu)
+	MessageSender(final CallURL cu)
 	{
 		_messages = new Vector<MessageDetails>();
 		sentMessages = new FastFiFo<MessageDetails>(42);
@@ -775,8 +775,19 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	public void run()
 	{
 		readFromBase();
-		// wait a while before sending messages so that all processors are alive before we start throwing messages
-		ThreadUtil.sleep(10000);
+		waitStartup();
+
+		senderLoop();
+
+		write2Base();
+	}
+
+	/**
+	 * 
+	 * this is the main loop!
+	 */
+	protected void senderLoop()
+	{
 		while (!doShutDown)
 		{
 			if (pause)
@@ -825,7 +836,18 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				}
 			}
 		}
-		write2Base();
+	}
+
+	/**
+	 * 
+	 * make sure we don't spam during startup
+	 */
+	protected void waitStartup()
+	{
+		// wait a while before sending messages so that all processors are alive before we start throwing messages
+		long t = System.currentTimeMillis() - startTime;
+		if (t < 10000)
+			ThreadUtil.sleep((int) (10000 - t));
 	}
 
 	/**
@@ -1469,6 +1491,16 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	public JMFFactory getJMFFactory()
 	{
 		return myFactory;
+	}
+
+	/**
+	 * set the startTime to the startTime of the device
+	 * 
+	 * @param startTime
+	 */
+	public void setStartTime(long startTime)
+	{
+		this.startTime = startTime;
 	}
 
 }
