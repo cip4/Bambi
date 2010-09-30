@@ -91,11 +91,11 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.JDFNodeInfo;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.core.XMLParser;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.ifaces.IJMFSubscribable;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -405,8 +405,7 @@ public final class SignalDispatcher extends BambiLogFactory
 		public void load()
 		{
 			loading = true;
-			final JDFParser parser = new JDFParser();
-			parser.bKElementOnly = true;
+			final XMLParser parser = new XMLParser();
 			final XMLDoc d = parser.parseFile(backup);
 			final KElement root = d == null ? null : d.getRoot();
 			try

@@ -360,21 +360,6 @@ public class MultiDeviceProperties extends BambiLogFactory
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.IDeviceProperties#getJDFDir()
-		 */
-		public File getJDFDir()
-		{
-			final File f = MultiDeviceProperties.this.getJDFDir();
-			final String deviceID = getDeviceID();
-			if (deviceID == null)
-			{
-				log.fatal("missing deviceID in Config - bailung out " + toString());
-				return null;
-			}
-			return FileUtil.getFileInDirectory(f, new File(deviceID));
-		}
-
-		/**
 		 * get the tracked resource - defaults to "Output"
 		 * @see org.cip4.bambi.core.IDeviceProperties#getTrackResource()
 		 */
@@ -615,10 +600,10 @@ public class MultiDeviceProperties extends BambiLogFactory
 			if (d2 != null) // using config default
 			{
 				root = d2.getRoot();
-				log.info("using updated device config");
+				log.info("using updated device config from: " + fileInDirectory.getAbsolutePath());
 			}
 			else
-			// using updated devices
+			// using webapp devices
 			{
 				deviceDir.mkdirs();
 				doc.setOriginalFileName(fileInDirectory.getAbsolutePath());
@@ -722,18 +707,6 @@ public class MultiDeviceProperties extends BambiLogFactory
 	}
 
 	/**
-	 * @return the jdf directory
-	 */
-	public File getJDFDir()
-	{
-		final File fBase = getBaseDir();
-		File f = getRootFile("JDFDir");
-		if (f == null)
-			f = new File("JDFDir");
-		return FileUtil.getFileInDirectory(fBase, f);
-	}
-
-	/**
 	 * the jmf persistance directory <br/>
 	 * defaults to a sibling of JDFDir called JMFDir
 	 * 
@@ -741,16 +714,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 	 */
 	public File getJMFDir()
 	{
-		File f = getRootFile("JMFDir");
-		if (f == null)
-		{
-			f = getJDFDir();
-			if (f != null)
-			{
-				f = FileUtil.getFileInDirectory(f.getParentFile(), new File("JMFDir"));
-			}
-		}
-		return f;
+		return FileUtil.getFileInDirectory(getBaseDir(), new File("JMFDir"));
 	}
 
 	/**

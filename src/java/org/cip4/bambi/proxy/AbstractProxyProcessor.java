@@ -79,7 +79,7 @@ import javax.mail.Multipart;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
-import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
+import org.cip4.bambi.core.messaging.MessageResponseHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;

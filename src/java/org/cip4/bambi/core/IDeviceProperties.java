@@ -199,12 +199,6 @@ public interface IDeviceProperties
 	public File getBaseDir();
 
 	/**
-	 * get the directory containing the JDF documents
-	 * @return the directory containing the JDF documents
-	 */
-	public File getJDFDir();
-
-	/**
 	 * returns the name of the IDevice that specifies the converter name
 	 * @return {@link IConverterCallback} the callback to use, null if none is specified
 	 */

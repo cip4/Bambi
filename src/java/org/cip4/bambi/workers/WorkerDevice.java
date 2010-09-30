@@ -120,6 +120,18 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	protected EmployeeList employees;
 
 	/**
+	 * copy anything required by this device to the cache directory
+	 */
+	@Override
+	protected void copyToCache()
+	{
+		super.copyToCache();
+		final File configDir = getProperties().getConfigDir();
+		File configFile = FileUtil.getFileInDirectory(configDir, new File(EmployeeLoader.employeeXML));
+		FileUtil.ensureFileInDir(configFile, getCachedConfigDir());
+	}
+
+	/**
 	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.node.JDFNode, java.lang.String)
 	 * @param jdf
 	 * @param queueEntryID
@@ -333,30 +345,20 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	protected class EmployeeLoader
 	{
 		private final File employeeFile;
-		private File employeePath;
+		final static String employeeXML = "employees.xml";
 
 		/**
 		 * 
 		 */
 		public EmployeeLoader()
 		{
-			employeeFile = new File("employees.xml");
-			employeePath = null;
+			employeeFile = new File(employeeXML);
 		}
 
 		protected EmployeeList load()
 		{
-			File deviceDir = getCachedConfigDir();
-			Vector<JDFEmployee> v = loadFile(deviceDir);
+			Vector<JDFEmployee> v = loadFile();
 			if (v == null)
-			{
-				v = loadFile(getProperties().getConfigDir());
-			}
-			if (v != null)
-			{
-				FileUtil.copyFileToDir(employeePath, deviceDir);
-			}
-			else
 			{
 				v = new Vector<JDFEmployee>();
 			}
@@ -364,11 +366,12 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 		}
 
 		/**
-		 * @param deviceDir
+		 *  load the employee file
 		 * @return
 		 */
-		private Vector<JDFEmployee> loadFile(final File deviceDir)
+		private Vector<JDFEmployee> loadFile()
 		{
+			File deviceDir = getCachedConfigDir();
 			final File employeePathLocal = FileUtil.getFileInDirectory(deviceDir, employeeFile);
 			final XMLDoc d = JDFDoc.parseFile(employeePathLocal.getAbsolutePath());
 			final KElement root = d == null ? null : d.getRoot();
@@ -381,7 +384,6 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 			{
 				return null;
 			}
-			employeePath = employeePathLocal;
 			final Vector<JDFEmployee> vPA = new Vector<JDFEmployee>(v.size());
 			for (int i = 0; i < v.size(); i++)
 			{

@@ -73,7 +73,7 @@ package org.cip4.bambi.messaging;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestHelper;
-import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
+import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -97,7 +97,7 @@ public class MessageSenderTest extends BambiTestCase
 	public void setUp() throws Exception
 	{
 		super.setUp();
-		s = new MessageSender(new CallURL("http://localhost:8080/httpdump/messagesendertest"));
+		s = JMFFactory.getJMFFactory().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
 	}
 
 	/**
@@ -113,7 +113,7 @@ public class MessageSenderTest extends BambiTestCase
 	public void testSendToDump()
 	{
 		s.queuePost(null, "http://localhost:8080/httpdump/messagesendertest", null);
-		s.run();
-		ThreadUtil.sleep(20000);
+		new Thread(s).start();
+		ThreadUtil.sleep(12345);
 	}
 }

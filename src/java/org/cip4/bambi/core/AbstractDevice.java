@@ -80,13 +80,12 @@ import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.AcknowledgeMap;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
-import org.cip4.bambi.core.messaging.IMessageOptimizer;
 import org.cip4.bambi.core.messaging.IResponseHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
-import org.cip4.bambi.core.messaging.StatusSignalComparator;
+import org.cip4.bambi.core.messaging.StatusOptimizer;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
@@ -123,7 +122,6 @@ import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.resource.JDFDeviceList;
-import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.CPUTimer.CPUTimerFactory;
@@ -465,138 +463,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * generic dispatcher handler for dispatching to the respective low level processors
-	 */
-	protected abstract class DispatchHandler extends JMFHandler.AbstractHandler
-	{
-
-		public DispatchHandler(final String _type, final EnumFamily[] _families)
-		{
-			super(_type, _families);
-		}
-
-		public DispatchHandler(final EnumType _type, final EnumFamily[] _families)
-		{
-			super(_type, _families);
-		}
-
-		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response, final IJMFHandler[] devs, final boolean checkReturnCode)
-		{
-
-			if (devs == null)
-			{
-				return false;
-			}
-			boolean b = false;
-			JDFNotification notif = (JDFNotification) response.removeChild(ElementName.NOTIFICATION, null, 0);
-
-			final JDFJMF jmfin = inputMessage.getJMFRoot();
-
-			boolean bSignal = false;
-			for (int i = 0; i < devs.length; i++)
-			{
-				final IMessageHandler mh = devs[i].getHandler(inputMessage.getType(), inputMessage.getFamily());
-				if (mh != null)
-				{
-					response.setReturnCode(0);
-					boolean b1 = mh.handleMessage(inputMessage, response);
-					if (b1 && checkReturnCode)
-					{
-						final int rc = response.getReturnCode();
-						b1 = rc == 0;
-					}
-					b = b1 || b;
-					if (response.hasChildElement(ElementName.NOTIFICATION, null))
-					{
-						notif = (JDFNotification) response.removeChild(ElementName.NOTIFICATION, null, 0);
-					}
-					JDFJMF jmfinAfter = inputMessage.getJMFRoot();
-
-					// undo cleanup of pure signals; else npe in 2nd loop...
-					if (jmfinAfter == null)
-					{
-						bSignal = true;
-						jmfin.moveElement(inputMessage, null);
-					}
-					jmfinAfter = response.getJMFRoot();
-					if (jmfinAfter == null)
-					{
-						bSignal = true;
-						jmfin.moveElement(response, null);
-					}
-				}
-			}
-			// cleanup pure signals
-			if (bSignal)
-			{
-				inputMessage.deleteNode();
-				response.deleteNode();
-			}
-			if (b)
-			{
-				response.setReturnCode(0);
-			}
-			else if (notif != null)
-			{
-				response.moveElement(notif, null);
-			}
-
-			return b;
-		}
-	}
-
-	/**
-	 * class that optimizes multiple status signals in case of network blocks
-	 * 
-	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 * 
-	 * Aug 9, 2009
-	 */
-	public class StatusOptimizer implements IMessageOptimizer
-	{
-
-		/**
-		 * 
-		 */
-		public StatusOptimizer()
-		{
-			super();
-		}
-
-		/**
-		 * @see org.cip4.bambi.core.messaging.IMessageOptimizer#optimize(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
-		 */
-		public optimizeResult optimize(final JDFMessage newMessage, final JDFMessage oldMessage)
-		{
-			if (newMessage == null || oldMessage == null)
-			{
-				return optimizeResult.noCheck;
-			}
-			if (!EnumType.Status.equals(oldMessage.getEnumType()))
-			{
-				return optimizeResult.noCheck;
-			}
-			if (!ContainerUtil.equals(newMessage.getSenderID(), oldMessage.getSenderID()))
-			{
-				return optimizeResult.noCheck;
-			}
-			if (!ContainerUtil.equals(newMessage.getFamily(), oldMessage.getFamily()))
-			{
-				return optimizeResult.noCheck;
-			}
-			final StatusSignalComparator ssc = new StatusSignalComparator();
-			if (ssc.isSameStatusSignal((JDFSignal) newMessage, (JDFSignal) oldMessage))
-			{
-				log.info("removing redundant status signal: " + oldMessage.getID());
-				ssc.mergeStatusSignal((JDFSignal) newMessage, (JDFSignal) oldMessage);
-				return optimizeResult.remove;
-			}
-			return optimizeResult.cont;
-		}
-
-	}
-
-	/**
 	 * handler for the Status Query
 	 */
 	public class StatusHandler extends AbstractHandler
@@ -689,7 +555,16 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		super();
 		_devProperties = prop;
 		mutex = new MyMutex();
+		copyToCache();
 		init();
+	}
+
+	/**
+	 * copy anything required by this device to the cache directory
+	 */
+	protected void copyToCache()
+	{
+		// nop but will be overwritten
 	}
 
 	protected void init()
@@ -1527,7 +1402,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public File getJDFDir()
 	{
-		return _devProperties.getJDFDir();
+		return FileUtil.getFileInDirectory(getDeviceDir(), new File("JDF"));
 	}
 
 	/**
@@ -1550,9 +1425,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public File getCachedConfigDir()
 	{
-		File deviceDir = getProperties().getBaseDir();
-		deviceDir = FileUtil.getFileInDirectory(deviceDir, new File("config"));
-		return deviceDir;
+		File baseDir = getProperties().getBaseDir();
+		File configDir = FileUtil.getFileInDirectory(baseDir, new File("config"));
+		return configDir;
 	}
 
 	/**

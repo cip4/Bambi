@@ -74,8 +74,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
-import java.util.Iterator;
-import java.util.Vector;
 
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -299,25 +297,6 @@ public class BambiContainer extends BambiLogFactory
 	}
 
 	/**
-	 * create the specified directories, if the do not exist
-	 * @param dirs the directories to create
-	 */
-	private void createDirs(final Vector<File> dirs)
-	{
-		for (int i = 0; i < dirs.size(); i++)
-		{
-			final File f = dirs.get(i);
-			if (f != null && !f.exists())
-			{
-				if (!f.mkdirs())
-				{
-					log.error("failed to create directory " + f);
-				}
-			}
-		}
-	}
-
-	/**
 	 * create devices based on the list of devices given in a file
 	 * @param props
 	 * @param dump the file where to dump debug requests
@@ -327,18 +306,12 @@ public class BambiContainer extends BambiLogFactory
 	{
 		boolean created = false;
 		MessageSender.setBaseLocation(props.getJMFDir());
-		final Vector<File> dirs = new Vector<File>();
-		dirs.add(props.getBaseDir());
-		dirs.add(props.getJDFDir());
-		createDirs(dirs);
 		final EnumVersion version = props.getJDFVersion();
 		JDFElement.setDefaultJDFVersion(version);
 		final VElement v = props.getDevices();
-		final Iterator<KElement> iter = v.iterator();
 		final boolean needController = v.size() > 1;
-		while (iter.hasNext())
+		for (KElement next : v)
 		{
-			final KElement next = iter.next();
 			log.info("Creating Device " + next.getAttribute("DeviceID"));
 			final IDeviceProperties prop = props.createDeviceProps(next);
 			final AbstractDevice d = createDevice(prop, needController);

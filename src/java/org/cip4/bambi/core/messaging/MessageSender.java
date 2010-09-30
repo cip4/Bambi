@@ -79,7 +79,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
 
-import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
@@ -89,18 +88,14 @@ import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.messaging.IMessageOptimizer.optimizeResult;
 import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
 import org.cip4.jdflib.core.AttributeName;
-import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
-import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
-import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.CPUTimer;
@@ -108,7 +103,6 @@ import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.FileUtil;
-import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.StringUtil;
@@ -273,487 +267,6 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	}
 
 	/**
-	 * MessageDetails describes one jmf or mime package that is queued for a given url
-	 * 
-	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 * 
-	 * before May 26, 2009
-	 */
-	protected class MessageDetails extends BambiLogFactory
-	{
-		protected JDFJMF jmf = null;
-		protected Multipart mime = null;
-		protected IResponseHandler respHandler;
-		protected MIMEDetails mimeDet;
-		protected String senderID = null;
-		protected String url = null;
-		protected IConverterCallback callback;
-		protected long createTime;
-
-		/**
-		 * constructor for a single jmf message
-		 * @param _jmf the jmf to send
-		 * @param _respHandler the response handler to handle the response after the message is queued
-		 * @param _callback the callback to apply to the message prior to sending it
-		 * @param hdet the http details
-		 * @param detailedURL the complete, fully expanded url to send to
-		 */
-		protected MessageDetails(final JDFJMF _jmf, final IResponseHandler _respHandler, final IConverterCallback _callback, final HTTPDetails hdet, final String detailedURL)
-		{
-			jmf = _jmf;
-			senderID = jmf == null ? null : jmf.getSenderID();
-			url = detailedURL;
-			createTime = System.currentTimeMillis();
-			setRespHandler(_respHandler, _callback);
-			if (hdet == null)
-			{
-				mimeDet = null;
-			}
-			else
-			{
-				mimeDet = new MIMEDetails();
-				mimeDet.httpDetails = hdet;
-			}
-		}
-
-		/**
-		 * 
-		 * @param _mime
-		 * @param _respHandler the response handler to handle the response after the message is queued
-		 * @param _callback the callback to apply to the message prior to sending it
-		 * @param mdet the http and mime details
-		 * @param _senderID the senderID of the sender
-		 * @param _url the complete, fully expanded url to send to
-		 */
-		protected MessageDetails(final Multipart _mime, final IResponseHandler _respHandler, final IConverterCallback _callback, final MIMEDetails mdet, final String _senderID, final String _url)
-		{
-			mime = _mime;
-			mimeDet = mdet;
-			senderID = _senderID;
-			url = _url;
-			setRespHandler(_respHandler, _callback);
-
-		}
-
-		/**
-		 * @param _respHandler
-		 * @param _callback
-		 */
-		private void setRespHandler(final IResponseHandler _respHandler, final IConverterCallback _callback)
-		{
-			respHandler = _respHandler;
-			callback = _callback;
-			if (respHandler != null && _callback != null)
-			{
-				respHandler.setCallBack(_callback);
-			}
-		}
-
-		/**
-		 * constructor when deserializing from a file <br/>
-		 * note that the handlers are NOT reconstructed at startup - some synchronization may be lost
-		 * 
-		 * @param element the serialized representation
-		 */
-		public MessageDetails(final KElement element)
-		{
-			url = element.getAttribute(AttributeName.URL, null, null);
-			senderID = element.getAttribute(AttributeName.SENDERID, null, null);
-			final String cbClass = element.getAttribute("CallbackClass", null, null);
-			if (cbClass != null)
-			{
-				try
-				{
-					final Class<?> c = Class.forName(cbClass);
-					callback = (IConverterCallback) c.newInstance();
-				}
-				catch (final Exception x)
-				{
-					log.warn("Illegal callback class - limp along with null: " + cbClass);// nop
-				}
-			}
-			final KElement jmf1 = element.getElement(ElementName.JMF);
-			// must clone the root
-			jmf = (JDFJMF) (jmf1 == null ? null : new JDFDoc(ElementName.JMF).getRoot().copyInto(jmf1, false));
-			if (jmf == null)
-			{
-				final String mimeURL = element.getAttribute("MimeUrl", null, null);
-				if (mimeURL != null)
-				{
-					mime = MimeUtil.getMultiPart(mimeURL);
-				}
-				if (mime != null)
-				{
-					final File mimFile = UrlUtil.urlToFile(mimeURL);
-					final boolean bZapp = mimFile.delete();
-					if (!bZapp)
-					{
-						mimFile.deleteOnExit();
-					}
-
-				}
-				final String encoding = element.getAttribute("TransferEncoding", null, null);
-				if (encoding != null)
-				{
-					mimeDet = new MIMEDetails();
-					mimeDet.transferEncoding = encoding;
-				}
-			}
-		}
-
-		/**
-		 * @param messageList
-		 * @param i
-		 */
-		void appendToXML(final KElement messageList, final int i)
-		{
-			final KElement message = messageList.appendElement("Message");
-			message.setAttribute(AttributeName.URL, url);
-			message.setAttribute(AttributeName.SENDERID, senderID);
-			if (i >= 0)
-			{
-				if (callback != null)
-				{
-					message.setAttribute("CallbackClass", callback.getClass().getCanonicalName());
-				}
-				if (jmf != null)
-				{
-					final KElement makeNewJMF = displayJMF(jmf);
-					message.copyElement(makeNewJMF, null);
-				}
-				else
-				// mime
-				{
-					if (mimeDet != null)
-					{
-						message.setAttribute("TransferEncoding", mimeDet.transferEncoding);
-					}
-					BodyPart bp = null;
-					try
-					{
-						bp = mime == null ? null : mime.getBodyPart(0);
-					}
-					catch (final MessagingException e)
-					{
-						// nop
-					}
-					final JDFDoc jmfBP = MimeUtil.getJDFDoc(bp);
-					final JDFJMF _jmf = jmfBP == null ? null : jmfBP.getJMFRoot();
-					final KElement makeNewJMF = displayJMF(_jmf);
-					message.copyElement(makeNewJMF, null);
-				}
-			}
-			else
-			{
-				final JDFDate d = new JDFDate(createTime);
-				message.setAttribute(AttributeName.TIMESTAMP, d.getDateTimeISO());
-			}
-		}
-
-		/**
-		 * @param _jmf
-		 * @return 
-		 */
-		private KElement displayJMF(final JDFJMF _jmf)
-		{
-			final XJDF20 xjdf20 = new XJDF20();
-			xjdf20.bUpdateVersion = false;
-			final KElement makeNewJMF = xjdf20.makeNewJMF(_jmf);
-			return makeNewJMF;
-		}
-	}
-
-	/**
-	 * trivial response handler that simply grabs the response and passes it back through getResponse() / isHandled()
-	 * 
-	 * @author Rainer Prosi
-	 * 
-	 */
-	public static class MessageResponseHandler extends BambiLogFactory implements IResponseHandler
-	{
-		protected JDFResponse resp;
-		protected JDFMessage finalMessage;
-		private HttpURLConnection connect;
-		protected ByteArrayIOStream bufferedInput;
-		private MyMutex mutex = new MyMutex();
-		private int abort = 0; // 0 no abort handling, 1= abort on timeout, 2= has been aborted
-		protected String refID;
-		private IConverterCallback callBack = null;
-		private final long startTime;
-
-		/**
-		 * @return the callBack
-		 */
-		public IConverterCallback getCallBack()
-		{
-			return callBack;
-		}
-
-		/**
-		 * @param _callBack the callBack to set
-		 */
-		public void setCallBack(final IConverterCallback _callBack)
-		{
-			this.callBack = _callBack;
-		}
-
-		/**
-		 * @param _refID the ID of the sent message
-		 * 
-		 */
-		public MessageResponseHandler(final String _refID)
-		{
-			super();
-			refID = _refID;
-			resp = null;
-			finalMessage = null;
-			connect = null;
-			bufferedInput = null;
-			startTime = System.currentTimeMillis();
-		}
-
-		/**
-		 * @param jmf
-		 */
-		public MessageResponseHandler(JDFJMF jmf)
-		{
-			this(jmf.getMessageElement(null, null, 0).getID());
-		}
-
-		/**
-		 * @see org.cip4.bambi.core.messaging.IResponseHandler#handleMessage()
-		 * @return true if handled, even if not finalized
-		 */
-		public boolean handleMessage()
-		{
-			if (finalMessage == null)
-			{
-				if (bufferedInput != null)
-				{
-					JDFDoc d = MimeUtil.getJDFDoc(bufferedInput.getInputStream(), 0);
-					if (callBack != null && d != null)
-					{
-						log.info("preparing jmf response");
-						d = callBack.prepareJMFForBambi(d);
-					}
-					if (d != null)
-					{
-						final JDFJMF jmf = d.getJMFRoot();
-						if (jmf != null)
-						{
-							resp = jmf.getResponse(refID);
-							if (resp == null)
-							{
-								VElement messageVector = jmf.getMessageVector(EnumFamily.Response, null);
-								if (messageVector != null && messageVector.size() == 1)
-								{
-									resp = (JDFResponse) messageVector.get(0);
-									if (StringUtil.getNonEmpty(resp.getrefID()) == null)
-									{
-										log.warn("Response with missing refID - guess that only one is it: " + refID);
-										resp.setrefID(refID);
-									}
-								}
-							}
-							if (resp != null)
-							{
-								if (checkAcknowledge())
-								{
-									return true;
-								}
-							}
-							else
-							{
-								finalMessage = jmf.getAcknowledge(refID);
-							}
-						}
-					}
-				}
-				else if (resp != null && checkAcknowledge())
-				{
-					return true;
-				}
-			}
-			finalizeHandling();
-			return true;
-		}
-
-		/**
-		 *  
-		 * @return 
-		 */
-		private boolean checkAcknowledge()
-		{
-			final JDFResponse r = resp;
-			final boolean isAcknowledgeResponse = r.getAcknowledged();
-			if (isAcknowledgeResponse) // must wait for an acknowledge
-			{
-				String refIDMes = StringUtil.getNonEmpty(r.getrefID());
-				if (refIDMes == null)
-				{
-					refIDMes = refID;
-				}
-				final AcknowledgeMap aMap = AcknowledgeMap.getMap();
-				aMap.addHandler(refIDMes, this);
-				return true;
-			}
-			else
-			// the response is "the" final response
-			{
-				finalMessage = resp;
-			}
-			return false;
-		}
-
-		/**
-		 * 
-		 */
-		protected void finalizeHandling()
-		{
-			if (mutex == null)
-			{
-				return;
-			}
-			abort = 0;
-			ThreadUtil.notifyAll(mutex);
-			mutex = null;
-			if (resp != null)
-			{
-				String rID = resp.getAttribute(AttributeName.REFID, null, null);
-				if (refID == null)
-				{
-					rID = refID;
-				}
-				if (rID != null)
-				{
-					final AcknowledgeMap aMap = AcknowledgeMap.getMap();
-					aMap.removeHandler(rID);
-				}
-			}
-		}
-
-		/**
-		 * @return the Acknowledge or Response that was handled
-		 */
-		public JDFMessage getFinalMessage()
-		{
-			return finalMessage;
-		}
-
-		/**
-		 * @param message the Acknowledge or Response that was handled
-		 */
-		public void setMessage(final JDFMessage message)
-		{
-			finalMessage = message;
-		}
-
-		/**
-		 * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
-		 */
-		public HttpURLConnection getConnection()
-		{
-			return connect;
-		}
-
-		/**
-		 * @see org.cip4.bambi.core.messaging.IResponseHandler#setConnection(java.net.HttpURLConnection)
-		 */
-		public void setConnection(final HttpURLConnection uc)
-		{
-			connect = uc;
-		}
-
-		/**
-		 * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(org.cip4.jdflib.util.ByteArrayIOStream)
-		 */
-		public void setBufferedStream(final ByteArrayIOStream bis)
-		{
-			bufferedInput = bis;
-		}
-
-		/**
-		 * @return the buffered input stream, may also be null in case of snafu
-		 */
-		public InputStream getBufferedStream()
-		{
-			if (bufferedInput != null)
-			{
-				return bufferedInput.getInputStream();
-			}
-			if (connect == null)
-			{
-				return null;
-			}
-			try
-			{
-				final InputStream inputStream = connect.getInputStream();
-				bufferedInput = new ByteArrayIOStream(inputStream);
-				inputStream.close();
-			}
-			catch (final IOException x)
-			{
-				// nop
-			}
-			return bufferedInput.getInputStream();
-		}
-
-		/**
-		 * @param wait1 milliseconds to wait for a connection
-		 * @param wait2 milliseconds to wait for the response after the connection has been established
-		 * 
-		 * @param bAbort if true, abort handling after timeout
-		 */
-		public void waitHandled(final int wait1, final int wait2, final boolean bAbort)
-		{
-			if (mutex == null)
-			{
-				return;
-			}
-			abort = bAbort ? 1 : 0;
-			ThreadUtil.wait(mutex, wait1);
-			if (mutex != null && connect != null && wait2 >= 0) // we have established a connection but have not yet read anything
-			{
-				ThreadUtil.wait(mutex, wait2);
-			}
-			if (abort == 1)
-			{
-				abort++;
-			}
-		}
-
-		/**
-		 * @see org.cip4.bambi.core.messaging.IResponseHandler#isAborted()
-		 */
-		public boolean isAborted()
-		{
-			final long t = System.currentTimeMillis();
-			if (t - startTime > 1000 * 24 * 60 * 60)
-			{
-				return true;
-			}
-			return mutex == null ? false : abort == 2;
-		}
-
-		/**
-		 * @see org.cip4.bambi.core.messaging.IResponseHandler#getResponse()
-		 */
-		public JDFResponse getResponse()
-		{
-			return resp;
-		}
-
-		/**
-		 * return the jmf message's response code -1 if no response was received
-		 * @return 
-		 */
-		public int getJMFReturnCode()
-		{
-			return finalMessage == null ? -1 : finalMessage.getReturnCode();
-		}
-	}
-
-	/**
 	 * constructor -use the static {@link JMFFactory.getMessageSender()}
 	 * 
 	 * @param cu the URL to send the message to
@@ -803,7 +316,6 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				{
 					synchronized (_messages)
 					{
-						_messages.remove(0);
 						sent++;
 						lastSent = System.currentTimeMillis();
 						idle = 0;
@@ -951,9 +463,11 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			log.error("cannot persist jmf to null location");
 			return null;
 		}
+		loc = UrlUtil.removeProtocol(loc);
 		loc = StringUtil.replaceCharSet(loc, ":\\", "/", 0);
 		loc = StringUtil.replaceString(loc, "//", "/");
 		loc += ".xml";
+
 		final File f = FileUtil.getFileInDirectory(baseLocation, new File(loc));
 		final File locParent = f.getParentFile();
 		if (locParent != null)
@@ -1002,6 +516,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			if (KElement.isWildCard(mesDetails.url))
 			{
 				log.error("Sending to bad url - bailing out! " + mesDetails.url);
+				_messages.remove(0);
 				return SendReturn.error; // snafu anyhow but not sent but no retry useful
 			}
 
@@ -1016,6 +531,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		if (SendReturn.sent == sendReturn)
 		{
 			sentMessages.push(mesDetails);
+			_messages.remove(0);
 		}
 		else
 		{
@@ -1027,7 +543,17 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			if ("".equals(isMime))
 				isMime = "Empty";
 
-			log.warn("Sender: " + mesDetails.senderID + " Error sending " + isMime + " message to: " + mesDetails.url + " return code=" + sendReturn);
+			String warn = "Sender: " + mesDetails.senderID + " Error sending " + isMime + " message to: " + mesDetails.url + " return code=" + sendReturn;
+			if (mesDetails.isFireForget())
+			{
+				warn += " - removing fire&forget message";
+				_messages.remove(0);
+			}
+			else
+			{
+				warn += " - retaining message for resend";
+			}
+			log.warn(warn);
 		}
 		return sendReturn;
 	}
@@ -1046,8 +572,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		final URL url = UrlUtil.stringToURL(mh.url);
 		if (url == null || (!UrlUtil.isHttp(mh.url) && !UrlUtil.isHttps(mh.url)))
 		{
-			log.error("Invalid url: " + url);
-			_messages.remove(0);
+			log.error("Invalid url: " + url + " removing message");
 			return SendReturn.removed;
 		}
 		try
@@ -1163,7 +688,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		log.debug(" sending empty content to: " + url.toExternalForm());
 		final HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
 		UrlPart p = UrlUtil.writeToURL(url.toExternalForm(), null, UrlUtil.POST, UrlUtil.TEXT_UNKNOWN, hd);
-		HttpURLConnection connection = p.getConnection();
+		HttpURLConnection connection = p == null ? null : p.getConnection();
 		if (outDump != null)
 		{
 			outDump.newFile(header);

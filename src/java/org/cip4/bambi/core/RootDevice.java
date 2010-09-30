@@ -77,6 +77,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
+import org.cip4.bambi.core.messaging.DispatchHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;

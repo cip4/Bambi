@@ -81,7 +81,6 @@ import javax.mail.Multipart;
 
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.IConverterCallback;
-import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VString;
@@ -457,7 +456,7 @@ public class JMFFactory extends BambiLogFactory
 	/**
 	 * get an existing MessageSender for a given url or callback
 	 * 
-	 * @param url the URL to send a message to
+	 * @param url the URL to send a message to, if null use the fire&forget sender
 	 * 
 	 * @return the MessageSender that will queue and dispatch the message
 	 * 

@@ -53,7 +53,7 @@
 	</target>
 	<target name="major_jar" depends="jar" description="Builds a JAR archive containing the JDFLib-J binaries.">
 		<echo>Copying JAR file: ${dist.dir}/${major.filename}.jar</echo>
-		<copy file="${dist.dir}/${base.filename}.jar" tofile="${dist.dir}/${major.filename}.jar"/>
+		<copy overwrite="true" file="${dist.dir}/${base.filename}.jar" tofile="${dist.dir}/${major.filename}.jar"/>
 	</target>
 
 	<target name="clean" depends="-init" description="Cleans the build.">
@@ -63,7 +63,7 @@
 	</target>
 	<target name="dist" depends="major_jar" description="Build a jar file and copy it to Bambi's src/lib folder">
 		<echo>Build BambiCore and copy it to ${lib.dir}</echo>
-		<copy file="${dist.dir}/${major.filename}.jar"  todir="${lib.dir}"/>
+		<copy overwrite="true" file="${dist.dir}/${major.filename}.jar"  todir="${lib.dir}"/>
 	</target>
 	<target name="test" description="Runs JUnit tests." depends="compile">
 			<property name="test.bin.dir" value="${bin.dir}/test" />

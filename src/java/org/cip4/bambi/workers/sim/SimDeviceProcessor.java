@@ -447,8 +447,6 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			super();
 		}
 
-		protected File srcFile = null;
-
 		/**
 		 * load Bambi job definition from file. <br>
 		 * The list of job phases is emptied when an error occurs during parsing fileName
@@ -471,7 +469,6 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 				getLog().error("Job File " + fileName + " not found, using default");
 				return null;
 			}
-			srcFile = f;
 			final List<JobPhase> phaseList = new Vector<JobPhase>();
 			final KElement simJob = doc.getRoot();
 			final VElement v = simJob.getXPathElementVector("JobPhase", -1);
@@ -505,32 +502,18 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		}
 
 		/**
-		 * load a job and ensure that a local copy of the sim file is created
+		 * load a job from the cached directory
 		 */
 		protected void loadJob()
 		{
 			final AbstractDevice parent = getParent();
-			File deviceDir = parent.getCachedConfigDir();
+			File cacheDir = parent.getCachedConfigDir();
 			final String deviceFile = "job_" + parent.getDeviceID() + ".xml";
-			_jobPhases = loadJobFromFile(deviceDir, deviceFile);
-			final File configDir = parent.getProperties().getConfigDir();
+
+			_jobPhases = loadJobFromFile(cacheDir, deviceFile);
 			if (_jobPhases == null)
 			{
-				_jobPhases = loadJobFromFile(configDir, deviceFile);
-			}
-			if (_jobPhases == null)
-			{
-				_jobPhases = loadJobFromFile(deviceDir, "job.xml");
-			}
-			if (_jobPhases == null)
-			{
-				_jobPhases = loadJobFromFile(configDir, "job.xml");
-			}
-			if (srcFile != null)
-			{
-				final File destFile = FileUtil.getFileInDirectory(deviceDir, new File(deviceFile));
-				FileUtil.copyFile(srcFile, destFile);
-				getLog().info("copying sim file to local directory: " + destFile);
+				_jobPhases = loadJobFromFile(cacheDir, "job.xml");
 			}
 		}
 

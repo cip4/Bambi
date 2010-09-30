@@ -105,9 +105,9 @@ public class PropertiesTest extends BambiTestCase
 
 	/**
 		 */
-	public void testGetJDFDir()
+	public void testGetJMFDir()
 	{
-		File f = props.getJDFDir();
+		File f = props.getJMFDir();
 		assertNotNull(f);
 	}
 

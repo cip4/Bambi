@@ -74,9 +74,11 @@ package org.cip4.bambi.proxy;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
@@ -86,8 +88,9 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.messaging.JMFBufferHandler;
-import org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler;
+import org.cip4.bambi.core.messaging.MessageResponseHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
+import org.cip4.bambi.proxy.MessageChecker.KnownMessageDetails;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -102,6 +105,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFMessageService;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -170,6 +174,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * the callback between this device (internal) and the slave device (external)
 	 */
 	protected IConverterCallback _slaveCallback;
+	protected MessageChecker knownSlaveMessages;
 
 	/**
 	 * 
@@ -186,7 +191,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler#finalizeHandling()
+		 * @see org.cip4.bambi.core.messaging.MessageResponseHandler#finalizeHandling()
 		*/
 		@Override
 		protected void finalizeHandling()
@@ -207,23 +212,83 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * 
 	 * @author Rainer Prosi, Heidelberger Druckmaschinen 
 	 */
-	protected class KnownSubscriptionsHandler extends MessageResponseHandler
+	protected class KnownMessagesResponseHandler extends MessageResponseHandler
 	{
-		// if true, renew any missing subscriptions
-		private final JDFJMF[] sendjmfs;
 
 		/**
 		 * @param jmf the jmf containing the query to handle as first query
 		 * @param jmfs 
 		 */
-		public KnownSubscriptionsHandler(JDFJMF jmf, JDFJMF[] jmfs)
+		public KnownMessagesResponseHandler(JDFJMF jmf)
 		{
 			super(jmf);
-			sendjmfs = jmfs;
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.MessageSender.MessageResponseHandler#finalizeHandling()
+		 * @see org.cip4.bambi.core.messaging.MessageResponseHandler#finalizeHandling()
+		*/
+		@Override
+		protected void finalizeHandling()
+		{
+			super.finalizeHandling();
+			getLog().info("Finalized handling of KnownMessages");
+		}
+
+		/**
+		 * @return vector of all jmfs that still need to be sent
+		 * 
+		 */
+		public Set<KnownMessageDetails> completeHandling()
+		{
+			JDFMessage m = getFinalMessage();
+			Set<KnownMessageDetails> theSet = new HashSet<KnownMessageDetails>();
+			VElement v = m == null ? null : m.getChildElementVector(ElementName.MESSAGESERVICE, null);
+			if (v != null)
+			{
+				for (int i = 0; i < v.size(); i++)
+				{
+					JDFMessageService ms = (JDFMessageService) v.get(i);
+					KnownMessageDetails processedMessageService = processMessageService(ms);
+					if (processedMessageService != null)
+						theSet.add(processedMessageService);
+				}
+			}
+			return theSet;
+		}
+
+		/**
+		 * process an individual existing messageservice and update the cache appropriately
+		 * @param ms
+		 * @return 
+		 */
+		private KnownMessageDetails processMessageService(JDFMessageService ms)
+		{
+			KnownMessageDetails knownMessageDetails = new KnownMessageDetails(ms);
+			return knownMessageDetails.getType() == null ? null : knownMessageDetails;
+		}
+	}
+
+	/**
+	 * 
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen 
+	 */
+	protected class KnownSubscriptionsHandler extends MessageResponseHandler
+	{
+		// list of any missing subscriptions
+		private final Vector<JDFJMF> sendjmfs;
+
+		/**
+		 * @param jmf the jmf containing the query to handle as first query
+		 * @param createSubscriptions 
+		 */
+		public KnownSubscriptionsHandler(JDFJMF jmf, Vector<JDFJMF> createSubscriptions)
+		{
+			super(jmf);
+			sendjmfs = createSubscriptions;
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.MessageResponseHandler#finalizeHandling()
 		*/
 		@Override
 		protected void finalizeHandling()
@@ -236,12 +301,12 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		 * @return vector of all jmfs that still need to be sent
 		 * 
 		 */
-		public VElement completeHandling()
+		public Vector<JDFJMF> completeHandling()
 		{
 			if (sendjmfs == null)
 				return null;
 			JDFMessage m = getFinalMessage();
-			VElement vjmf = new VElement();
+			Vector<JDFJMF> vjmf = new Vector<JDFJMF>();
 			VElement v = m == null ? null : m.getChildElementVector(ElementName.SUBSCRIPTIONINFO, null);
 			if (v != null)
 			{
@@ -276,11 +341,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				return;
 			}
 			EnumType siType = si.getEnumType();
-			for (int ii = 0; ii < sendjmfs.length; ii++)
+			for (JDFJMF jdfjmf : sendjmfs)
 			{
-				JDFJMF jdfjmf = sendjmfs[ii];
-				if (jdfjmf == null)
-					continue;
 				EnumType typ = jdfjmf.getQuery(0).getEnumType();
 				if (ContainerUtil.equals(typ, siType))
 				{
@@ -289,17 +351,17 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 					if (oldSub == null)
 					{
 						getLog().info("adding existing subscription to list; type=" + typ.getName() + " channelID=" + channelID);
-						sendjmfs[ii].getMessageElement(null, null, 0).setID(channelID);
+						jdfjmf.getMessageElement(null, null, 0).setID(channelID);
 						if (mySubscriptions != null) // may be null at startup or shutdown - ignore we'll only be off by a few messages
 						{
-							mySubscriptions.put(typ, new ProxySubscription(sendjmfs[ii]));
+							mySubscriptions.put(typ, new ProxySubscription(jdfjmf));
 						}
 					}
 					else
 					{
 						oldSub.setChannelID(channelID);
 					}
-					sendjmfs[ii] = null;
+					sendjmfs.remove(jdfjmf);
 					break;
 				}
 			}
@@ -759,6 +821,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	@Override
 	protected void init()
 	{
+		knownSlaveMessages = new MessageChecker();
 		final IProxyProperties proxyProperties = getProxyProperties();
 		_slaveCallback = proxyProperties.getSlaveCallBackClass();
 		waitingSubscribers = new HashMap<String, SlaveSubscriber>();
@@ -882,41 +945,70 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			}
 
 			ThreadUtil.sleep(waitBefore); // wait for other devices to start prior to subscribing
-			final KnownSubscriptionsHandler handler = prepare(deviceURL);
+			if (knownSlaveMessages == null)
+				updateKnownMessages();
+			final Vector<JDFJMF> vJMFS = prepare(deviceURL);
 
 			// reduce currently known subscriptions
-			final VElement vJMFS = handler.completeHandling();
 			sendSubscriptions(vJMFS);
 
 			cleanup();
 		}
 
 		/**
+		 * TODO Please insert comment!
+		 */
+		private void updateKnownMessages()
+		{
+			final JMFBuilder builder = getBuilderForSlave();
+			final JDFJMF knownMessages = builder.buildKnownMessagesQuery();
+			KnownMessagesResponseHandler handler = new KnownMessagesResponseHandler(knownMessages);
+			sendJMFToSlave(knownMessages, handler);
+			handler.waitHandled(20000, 30000, true);
+			knownSlaveMessages.setMessages(handler.completeHandling());
+		}
+
+		/**
 		 * @param deviceURL
 		 * @return
 		 */
-		private KnownSubscriptionsHandler prepare(final String deviceURL)
+		private Vector<JDFJMF> prepare(final String deviceURL)
 		{
-			final JMFBuilder builder = new JMFBuilder();
-			resetSubscriptions(builder);
+			resetSubscriptions();
+			final JMFBuilder builder = getBuilderForSlave();
 			final JDFJMF knownSubscriptions = builder.buildKnownSubscriptionsQuery(deviceURL, slaveQEID);
-			final JDFJMF[] createSubscriptions = createSubscriptions(deviceURL, builder);
-			final KnownSubscriptionsHandler handler = new KnownSubscriptionsHandler(knownSubscriptions, createSubscriptions);
-			sendJMFToSlave(knownSubscriptions, handler);
-			handler.waitHandled(20000, 30000, true);
-			return handler;
+			final Vector<JDFJMF> createSubscriptions = createSubscriptions(deviceURL);
+			if (createSubscriptions != null)
+			{
+				// remove duplicates
+				if (knownSlaveMessages.knows(EnumType.KnownSubscriptions))
+				{
+					final KnownSubscriptionsHandler handler = new KnownSubscriptionsHandler(knownSubscriptions, createSubscriptions);
+					sendJMFToSlave(knownSubscriptions, handler);
+					handler.waitHandled(20000, 30000, true);
+					return handler.completeHandling();
+				}
+				else
+				{
+					return createSubscriptions;
+				}
+			}
+			else
+			{
+				return null;
+			}
 		}
 
 		/**
 		 * @param vJMFS
 		 */
-		private void sendSubscriptions(final VElement vJMFS)
+		private void sendSubscriptions(final Vector<JDFJMF> vJMFS)
 		{
 			if (vJMFS != null)
 			{
-				for (int i = 0; i < vJMFS.size(); i++)
+				for (JDFJMF jmf : vJMFS)
 				{
-					createNewSubscription((JDFJMF) vJMFS.get(i));
+					createNewSubscription(jmf);
 				}
 			}
 		}
@@ -934,28 +1026,41 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		}
 
 		/**
-		 * @param builder
+		 * 
 		 */
-		private void resetSubscriptions(final JMFBuilder builder)
+		private void resetSubscriptions()
 		{
-			if (reset)
+			if (knownSlaveMessages.knows(EnumType.StopPersistentChannel))
 			{
-				final JDFJMF stopPersistant = builder.buildStopPersistentChannel(null, null, getDeviceURLForSlave());
-				final MessageResponseHandler waitHandler = new StopPersistantHandler(stopPersistant);
-				sendJMFToSlave(stopPersistant, waitHandler);
-				waitHandler.waitHandled(10000, 30000, true);
+				if (reset)
+				{
+					final JMFBuilder builder = getBuilderForSlave();
+					final JDFJMF stopPersistant = builder.buildStopPersistentChannel(null, null, getDeviceURLForSlave());
+					final MessageResponseHandler waitHandler = new StopPersistantHandler(stopPersistant);
+					sendJMFToSlave(stopPersistant, waitHandler);
+					waitHandler.waitHandled(10000, 30000, true);
+				}
 			}
 		}
 
 		/**
 		 * @param deviceURL
-		 * @param builder
+		 * 
 		 * @return
 		 */
-		protected JDFJMF[] createSubscriptions(final String deviceURL, final JMFBuilder builder)
+		protected Vector<JDFJMF> createSubscriptions(final String deviceURL)
 		{
+			final JMFBuilder builder = getBuilderForSlave();
 			final JDFJMF[] createSubscriptions = builder.createSubscriptions(deviceURL, slaveQEID, 10, 0);
-			return createSubscriptions;
+			Vector<JDFJMF> vRet = new Vector<JDFJMF>();
+			for (JDFJMF jmf : createSubscriptions)
+			{
+				JDFMessage m = jmf.getMessageElement(null, null, 0);
+				if (knownSlaveMessages.knows(m.getType()))
+					vRet.add(jmf);
+			}
+
+			return vRet.size() > 0 ? vRet : null;
 		}
 
 		/**
@@ -1083,7 +1188,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @return
+	 * @return the preferred method for querying slave status
 	 */
 	public EnumSlaveStatus getSlaveStatus()
 	{
