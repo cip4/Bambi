@@ -89,7 +89,7 @@ class MessageChecker
 
 	/**
 	 * 
-	 * @param messages
+	 *  
 	 */
 	public MessageChecker()
 	{
@@ -98,7 +98,7 @@ class MessageChecker
 
 	/**
 	 * Setter for theMessages attribute.
-	 * @param theMessages the theMessages to set
+	 * @param messages the {@link KnownMessageDetails} to set
 	 */
 	public void setMessages(Collection<KnownMessageDetails> messages)
 	{
@@ -130,7 +130,7 @@ class MessageChecker
 		/**
 		 * 
 		 * get the message type attribute
-		 * @return
+		 * @return the message type attribute
 		 */
 		public String getType()
 		{

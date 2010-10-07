@@ -11,10 +11,10 @@
 	<classpathentry kind="lib" path="src/lib/mailapi.jar"/>
 	<classpathentry kind="lib" path="src/lib/commons-logging.jar"/>
 	<classpathentry kind="var" path="TOMCAT_HOME/lib/servlet-api.jar"/>
-	<classpathentry kind="lib" path="/SVN_Root/Work/JDFEditor/lib/JDFLibJ-2.1.4a.jar"/>
-	<classpathentry kind="lib" path="/SVN_Root/Work/JDFLibJ/lib/junit.jar"/>
-	<classpathentry kind="lib" path="/SVN_Root/Work/Bambi/src/lib/log4j-1.2.8.jar"/>
-	<classpathentry kind="lib" path="/SVN_Root/Work/Bambi/src/lib/commons-fileupload-1.2.jar"/>
-	<classpathentry kind="lib" path="/SVN_Root/Work/Bambi/src/lib/activation-1.0.2.jar"/>
+	<classpathentry kind="lib" path="src/lib/JDFLibJ-2.1.4a.jar"/>
+	<classpathentry kind="lib" path="src/lib/junit.jar"/>
+	<classpathentry kind="lib" path="src/lib/log4j-1.2.8.jar"/>
+	<classpathentry kind="lib" path="src/lib/commons-fileupload-1.2.jar"/>
+	<classpathentry kind="lib" path="src/lib/activation-1.0.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
