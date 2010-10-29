@@ -87,7 +87,14 @@ import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 
+/**
+ * 
+ *  
+ * @author rainer prosi
+ * @date Oct 29, 2010
+ */
 public class ProxyContainerTest extends BambiContainerTest
 {
 
@@ -114,6 +121,42 @@ public class ProxyContainerTest extends BambiContainerTest
 		qe = queue.getNextExecutableQueueEntry();
 		assertNotNull(qe);
 		assertNotNull(dresp2);
+
+	}
+
+	/**
+	 * 
+	 * test rqe to a proxy device
+	 * @throws IOException 
+	 */
+	public void testRequestQueueEntryInformative() throws IOException
+	{
+		testSubmit();
+		JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
+		assertEquals(queue.numEntries(null), 1);
+		JDFQueueEntry qe = queue.getNextExecutableQueueEntry();
+
+		final String jobID = qe.getJobID();
+		final String jobPartID = qe.getJobPartID();
+		NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
+		final JDFJMF pull = new JMFBuilder().buildRequestQueueEntry(getDumpURL(), ni);
+		pull.getCommand(0).getRequestQueueEntryParams(0).setAttribute(AttributeName.ACTIVATION, EnumActivation.Informative.getName());
+		CPUTimer ct = new CPUTimer(true);
+		final JDFDoc dresp2 = submitJMFtoURL(pull, getProxyURLForSlave());
+		System.out.println(ni + ct.toString());
+		qe = queue.getNextExecutableQueueEntry();
+		assertNotNull(qe);
+		assertNotNull(dresp2);
+		JDFDoc dresp3 = null;
+		for (int i = 0; i < 22; i++)
+		{
+			dresp3 = submitJMFtoURL(pull, getProxyURLForSlave());
+			if (dresp3.getJMFRoot().getResponse(0).getReturnCode() != 0)
+				ThreadUtil.sleep(1000);
+			else
+				break;
+		}
+		assertNotNull(dresp3);
 
 	}
 

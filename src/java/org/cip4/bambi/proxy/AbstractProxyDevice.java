@@ -1052,15 +1052,24 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			final JMFBuilder builder = getBuilderForSlave();
 			final JDFJMF[] createSubscriptions = builder.createSubscriptions(deviceURL, slaveQEID, 10, 0);
-			Vector<JDFJMF> vRet = new Vector<JDFJMF>();
-			for (JDFJMF jmf : createSubscriptions)
-			{
-				JDFMessage m = jmf.getMessageElement(null, null, 0);
-				if (knownSlaveMessages.knows(m.getType()))
-					vRet.add(jmf);
-			}
+			Vector<JDFJMF> vRet = ContainerUtil.toVector(createSubscriptions);
+			vRet = removeUnknown(vRet);
 
 			return vRet.size() > 0 ? vRet : null;
+		}
+
+		protected Vector<JDFJMF> removeUnknown(Vector<JDFJMF> vRet)
+		{
+			if (vRet == null)
+				return vRet;
+			for (int i = vRet.size() - 1; i >= 0; i--)
+			{
+				JDFJMF jmf = vRet.elementAt(i);
+				JDFMessage m = jmf.getMessageElement(null, null, 0);
+				if (!knownSlaveMessages.knows(m.getType()))
+					vRet.remove(jmf);
+			}
+			return vRet;
 		}
 
 		/**

@@ -373,7 +373,8 @@ public class ProxyDevice extends AbstractProxyDevice
 			activation = EnumActivation.getEnum(requestQEParams.getAttribute(AttributeName.ACTIVATION));
 			// submit a specific QueueEntry
 			IQueueEntry iqe = _theQueueProcessor.getWaitingQueueEntry(nid);
-			if (iqe == null && EnumActivation.Active.equals(activation))
+
+			if (iqe == null && EnumActivation.Informative.equals(activation))
 			{
 				JDFQueueEntry qe = _theQueueProcessor.getQueueEntry(null, nid);
 				iqe = _theQueueProcessor.getIQueueEntry(qe);
@@ -381,7 +382,8 @@ public class ProxyDevice extends AbstractProxyDevice
 			final JDFQueueEntry qe = iqe == null ? null : iqe.getQueueEntry();
 			if (qe != null)
 			{
-				qe.setDeviceID(m.getSenderID());
+				if (!EnumActivation.Informative.equals(activation))
+					qe.setDeviceID(m.getSenderID());
 				submitThread = new SubmitThread(iqe, queueURL);
 				submitThread.start();
 			}

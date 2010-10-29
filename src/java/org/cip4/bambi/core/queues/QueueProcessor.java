@@ -1628,9 +1628,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * get a qe by nodeidentifier - all Entries are evaluated
-	 * @param slaveQueueEntryID
+	 * @param slaveQueueEntryID the qeid in the context of the slave device
 	 * @param nodeID the JDFNode.NodeIdentifier
-	 * @return
+	 * @return the queue entry
 	 */
 	public JDFQueueEntry getQueueEntry(final String slaveQueueEntryID, NodeIdentifier nodeID)
 	{
