@@ -75,6 +75,7 @@ import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 
+import org.apache.log4j.BasicConfigurator;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiContainer;
 import org.cip4.bambi.core.IConverterCallback;
@@ -115,7 +116,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected void setUp() throws Exception
 	{
 		super.setUp();
-		BaseGoldenTicket.setMisURL("http://kie-prosirai-lg:8080/httpdump/BambiTest");
+		BaseGoldenTicket.setMisURL("http://localhost:8080/httpdump/BambiTest");
 		gt = getGTType();
 		if (enumGTType.MISCP.equals(gt))
 		{
@@ -151,7 +152,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 */
 	protected String getDeviceID()
 	{
-		return null;
+		return deviceID;
 	}
 
 	/**
@@ -240,7 +241,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected final static String sm_UrlTestData = "File:test/data/";
 	protected final String sm_dirContainer = sm_dirTestDataTemp + "ContainerTest/";
 
-	// protected static String simWorkerUrl = "http://kie-prosirai-lg:8080/potato/jmf/GreatPotato";
+	// protected static String simWorkerUrl = "http://localhost:8080/potato/jmf/GreatPotato";
 	protected String returnJMF = "http://localhost:8080/httpdump/returnJMF";
 	protected String subscriptionURL = "http://localhost:8080/httpdump/testSubscriptions";
 	protected String returnURL = null;// "http://localhost:8080/httpdump/returnURL";
@@ -663,6 +664,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 */
 	public BambiTestCase()
 	{
+		BasicConfigurator.configure();
 		JDFJMF.setTheSenderID("BambiTest");
 	}
 
@@ -885,6 +887,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		moreSetup(devProp);
 		bambiContainer.createDevices(props, sm_dirTestDataTemp + "BambiDump");
 		bambiContainer.reset();
+
 	}
 
 	/**

@@ -57,6 +57,8 @@
             <th align="left" title="Number of successfully sent messages"> JMF Sent</th>
             <th align="left" title="Number of message send attempts, including unsuccessfull "> JMF Queued</th>
             <th align="left" title="Number of heartbeat messages removed "> JMF Removed</th>
+            <th align="left" title="Number of fire &amp; forget messages not sent "> Fire &amp; Forget Removed</th>
+            <th align="left" title="Number of error messages not sent "> JMF Errors Removed</th>
             <th align="left" title="Time of last message sending"> Last time Sent</th>
             <th align="left" title="Time the last message was queued for sending"> Last time Queued</th>
             <th align="left" title="Time the message sender started up"> Active since</th>
@@ -78,6 +80,7 @@
             <tr>
               <th align="left"> JMF ID</th>
               <th align="left"> Sent Time</th>
+              <th align="left"> Processing Status</th>
               <th align="left"> Full URL</th>
             </tr>
             <xsl:apply-templates select="MessageSender/Message"/>
@@ -225,6 +228,12 @@
       <td align="left">
         <xsl:value-of select="@NumRemove"/>
       </td>
+     <td align="left">
+        <xsl:value-of select="@NumRemoveFireForget"/>
+      </td>
+     <td align="left">
+        <xsl:value-of select="@NumRemoveError"/>
+      </td>
       <td align="left">
         <xsl:value-of select="@LastSent"/>
       </td>
@@ -297,6 +306,21 @@
   <!--  end of template RemovedChannel  -->
   <xsl:template match="Message">
     <tr>
+        <xsl:choose>
+        <!-- something is waiting -->
+         <xsl:when test="@Return='sent'">
+          <xsl:attribute name="bgcolor">#aaffaa</xsl:attribute>
+        </xsl:when>
+         <xsl:when test="@Return='error'">
+          <xsl:attribute name="bgcolor">#ffaaaa</xsl:attribute>
+        </xsl:when>
+         <xsl:when test="@Return='removed'">
+          <xsl:attribute name="bgcolor">#ffaaaa</xsl:attribute>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:attribute name="bgcolor">#aaaaaa</xsl:attribute>
+        </xsl:otherwise>
+      </xsl:choose>
       <td>
         <xsl:value-of select="position()"/>
         <form>
@@ -322,6 +346,9 @@
         </xsl:choose>
       </td>
       <td>
+        <xsl:value-of select="@Return"/>
+      </td>
+     <td>
         <xsl:value-of select="@URL"/>
       </td>
     </tr>

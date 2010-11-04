@@ -84,6 +84,7 @@ import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.auto.JDFAutoRequestQueueEntryParams.EnumSubmitPolicy;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -299,23 +300,26 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		protected int numSubmitThread;
 		protected SubmitThread submitThread;
-		protected EnumActivation activation;
 
 		private class SubmitThread extends Thread
 		{
+			private final EnumActivation activation;
+
 			/**
-			 * @param iqe
-			 * @param queueURL
+			 * @param iqe the iqe to submit
+			 * @param queueURL the url to submit to
+			 * @param activation 
 			 */
-			public SubmitThread(IQueueEntry iqe, String queueURL)
+			public SubmitThread(IQueueEntry iqe, String queueURL, EnumActivation activation)
 			{
 				super("RequestQE_" + getDeviceID() + "_" + numSubmitThread++);
 				this.iqe = iqe;
 				this.queueURL = queueURL;
+				this.activation = activation;
 			}
 
-			IQueueEntry iqe;
-			String queueURL;
+			private final IQueueEntry iqe;
+			private final String queueURL;
 
 			/**
 			 * @see java.lang.Thread#run()
@@ -370,12 +374,13 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 
 			final NodeIdentifier nid = requestQEParams.getIdentifier();
-			activation = EnumActivation.getEnum(requestQEParams.getAttribute(AttributeName.ACTIVATION));
+			EnumActivation activation = EnumActivation.getEnum(requestQEParams.getAttribute(AttributeName.ACTIVATION));
 			// submit a specific QueueEntry
 			IQueueEntry iqe = _theQueueProcessor.getWaitingQueueEntry(nid);
-
-			if (iqe == null && EnumActivation.Informative.equals(activation))
+			EnumSubmitPolicy subPolicy = requestQEParams.getSubmitPolicy();
+			if (iqe == null && (EnumActivation.Informative.equals(activation) || EnumSubmitPolicy.Force.equals(subPolicy)))
 			{
+				log.info("submitting non-standard busy qe");
 				JDFQueueEntry qe = _theQueueProcessor.getQueueEntry(null, nid);
 				iqe = _theQueueProcessor.getIQueueEntry(qe);
 			}
@@ -384,7 +389,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			{
 				if (!EnumActivation.Informative.equals(activation))
 					qe.setDeviceID(m.getSenderID());
-				submitThread = new SubmitThread(iqe, queueURL);
+				submitThread = new SubmitThread(iqe, queueURL, activation);
 				submitThread.start();
 			}
 			else if (qe == null)

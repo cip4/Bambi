@@ -77,6 +77,7 @@ import org.cip4.bambi.core.BambiContainerTest;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.proxy.ProxyProperties.ProxyDeviceProperties;
+import org.cip4.jdflib.auto.JDFAutoRequestQueueEntryParams.EnumSubmitPolicy;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -127,7 +128,7 @@ public class ProxyContainerTest extends BambiContainerTest
 	/**
 	 * 
 	 * test rqe to a proxy device
-	 * @throws IOException 
+	 * @throws IOException ex
 	 */
 	public void testRequestQueueEntryInformative() throws IOException
 	{
@@ -141,6 +142,42 @@ public class ProxyContainerTest extends BambiContainerTest
 		NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
 		final JDFJMF pull = new JMFBuilder().buildRequestQueueEntry(getDumpURL(), ni);
 		pull.getCommand(0).getRequestQueueEntryParams(0).setAttribute(AttributeName.ACTIVATION, EnumActivation.Informative.getName());
+		CPUTimer ct = new CPUTimer(true);
+		final JDFDoc dresp2 = submitJMFtoURL(pull, getProxyURLForSlave());
+		System.out.println(ni + ct.toString());
+		qe = queue.getNextExecutableQueueEntry();
+		assertNotNull(qe);
+		assertNotNull(dresp2);
+		JDFDoc dresp3 = null;
+		for (int i = 0; i < 22; i++)
+		{
+			dresp3 = submitJMFtoURL(pull, getProxyURLForSlave());
+			if (dresp3.getJMFRoot().getResponse(0).getReturnCode() != 0)
+				ThreadUtil.sleep(1000);
+			else
+				break;
+		}
+		assertNotNull(dresp3);
+
+	}
+
+	/**
+	* 
+	* test rqe to a proxy device
+	* @throws IOException ex
+	*/
+	public void testRequestQueueEntryForce() throws IOException
+	{
+		testSubmit();
+		JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
+		assertEquals(queue.numEntries(null), 1);
+		JDFQueueEntry qe = queue.getNextExecutableQueueEntry();
+
+		final String jobID = qe.getJobID();
+		final String jobPartID = qe.getJobPartID();
+		NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
+		final JDFJMF pull = new JMFBuilder().buildRequestQueueEntry(getDumpURL(), ni);
+		pull.getCommand(0).getRequestQueueEntryParams(0).setAttribute(AttributeName.SUBMITPOLICY, EnumSubmitPolicy.Force.getName());
 		CPUTimer ct = new CPUTimer(true);
 		final JDFDoc dresp2 = submitJMFtoURL(pull, getProxyURLForSlave());
 		System.out.println(ni + ct.toString());

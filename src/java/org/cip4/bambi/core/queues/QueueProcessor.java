@@ -1772,7 +1772,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	public void removeListener(final Object o)
 	{
-		log.info("removing listener for " + _parentDevice != null ? _parentDevice.getDeviceID() : " unknown ");
+		log.info("removing listener for " + (_parentDevice != null ? _parentDevice.getDeviceID() : " unknown "));
 		_listeners.remove(o);
 	}
 
@@ -1875,20 +1875,20 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	/**
 	 * stub that copies url links to local storage if required
 	 * 
-	 * @param newQE
-	 * @param doc
+	 * @param newQE the queueEntry that files are extracted from
+	 * @param doc the JDF document to modify
 	 */
 	public void extractFiles(JDFQueueEntry newQE, JDFDoc doc)
 	{
 		if (doc == null || newQE == null)
 		{
 			if (doc == null)
-				log.warn("doc=null " + newQE == null ? "null" : newQE.getQueueEntryID());
+				log.warn("cannot extract files for doc=null ; newQE" + newQE == null ? "null" : newQE.getQueueEntryID());
 			if (newQE == null)
-				log.warn("newQE=null");
+				log.warn("cannot extract files for newQE=null");
 			return;
 		}
-		final File jobDirectory = _parentDevice.getJobDirectory(newQE.getQueueEntryID());
+		final File jobDirectory = _parentDevice.getExtractDirectory(newQE.getQueueEntryID());
 		if (jobDirectory == null)
 		{
 			log.warn("no Job Directory for: " + newQE.getQueueEntryID());

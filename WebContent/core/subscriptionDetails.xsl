@@ -147,7 +147,7 @@
 
   </xsl:template>
   <xsl:template match="MessageSender/Message">
-    <h2>Last Queued Message Details</h2>
+    <h2>Last Queued Message Details - Status = <xsl:value-of select="@Return"/></h2>  
     <xsl:apply-templates select="jdf:JMF"/>
   </xsl:template>
 

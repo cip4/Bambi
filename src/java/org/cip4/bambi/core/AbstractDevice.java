@@ -1716,8 +1716,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * create a submitqueuentry from raw JDF
-	 * @param e
-	 * @return
+	 * @param e the jdf or xjdf root element
+	 * @return the xmlrequest to submit
 	 */
 	protected XMLRequest createSubmitFromJDF(KElement e)
 	{
@@ -1729,5 +1729,16 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		BodyPartHelper jmfHelper = mimeReader.getBodyPartHelper(0);
 		JDFDoc docJDF = jmfHelper.getJDFDoc();
 		return docJDF != null ? new XMLRequest(docJDF) : null;
+	}
+
+	/**
+	 * get the directory for extracted files
+	 * defaults to the device's job directory see {@link AbstractDevice#getJobDirectory(String)}
+	 * @param queueEntryID the queueEntry to get a job directory for
+	 * @return the directory to dump to
+	 */
+	public File getExtractDirectory(String queueEntryID)
+	{
+		return getJobDirectory(queueEntryID);
 	}
 }

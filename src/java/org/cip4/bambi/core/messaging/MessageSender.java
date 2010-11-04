@@ -123,7 +123,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	private final CallURL callURL;
 	protected JMFFactory myFactory;
 
-	private enum SendReturn
+	enum SendReturn
 	{
 		sent, empty, error, removed
 	}
@@ -143,9 +143,11 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	private static VectorMap<String, DumpDir> vDumps = new VectorMap<String, DumpDir>();
 	private final MyMutex mutexDispatch = new MyMutex();
 	private final MyMutex mutexPause = new MyMutex();
-	private int trySend = 0;
-	private int sent = 0;
-	protected int removedHeartbeat = 0;
+	private int trySend;
+	private int sent;
+	protected int removedHeartbeat;
+	protected int removedFireForget;
+	protected int removedError;
 	private int idle = 0;
 	private final CPUTimer timer;
 	private long created;
@@ -273,6 +275,13 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	 */
 	MessageSender(final CallURL cu)
 	{
+		super();
+
+		trySend = 0;
+		sent = 0;
+		removedHeartbeat = 0;
+		removedFireForget = 0;
+
 		_messages = new Vector<MessageDetails>();
 		sentMessages = new FastFiFo<MessageDetails>(42);
 		callURL = cu;
@@ -439,6 +448,10 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				final KElement root = d.getRoot();
 				pause = root.getBoolAttribute("pause", null, false);
 				sent = root.getIntAttribute("NumSent", null, 0);
+				trySend = root.getIntAttribute("NumTry", null, 0);
+				removedFireForget = root.getIntAttribute("NumRemoveFireForget", null, 0);
+				removedHeartbeat = root.getIntAttribute("NumRemove", null, 0);
+				removedError = root.getIntAttribute("NumRemoveError", null, 0);
 				lastQueued = root.getLongAttribute("iLastQueued", null, 0);
 				lastSent = root.getLongAttribute("iLastSent", null, 0);
 				created = root.getLongAttribute("i" + AttributeName.CREATIONDATE, null, 0);
@@ -507,6 +520,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			if (mesDetails == null)
 			{
 				_messages.remove(0);
+				removedError++;
 				log.warn("removed null queued message in message queue");
 				return SendReturn.removed; // should never happen
 			}
@@ -517,20 +531,26 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			{
 				log.error("Sending to bad url - bailing out! " + mesDetails.url);
 				_messages.remove(0);
+				removedError++;
+				mesDetails.setReturn(SendReturn.error);
+				sentMessages.push(mesDetails);
 				return SendReturn.error; // snafu anyhow but not sent but no retry useful
 			}
 
 			if (mesDetails.respHandler != null && mesDetails.respHandler.isAborted())
 			{
 				_messages.remove(0);
+				removedError++;
 				log.warn("removed aborted message to: " + mesDetails.url);
+				mesDetails.setReturn(SendReturn.removed);
+				sentMessages.push(mesDetails);
 				return SendReturn.removed;
 			}
 		}
 		final SendReturn sendReturn = sendHTTP(mesDetails);
+		mesDetails.setReturn(sendReturn);
 		if (SendReturn.sent == sendReturn)
 		{
-			sentMessages.push(mesDetails);
 			_messages.remove(0);
 		}
 		else
@@ -548,6 +568,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			{
 				warn += " - removing fire&forget message";
 				_messages.remove(0);
+				removedFireForget++;
 			}
 			else
 			{
@@ -555,6 +576,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			}
 			log.warn(warn);
 		}
+		sentMessages.push(mesDetails);
 		return sendReturn;
 	}
 
@@ -933,6 +955,9 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			ms.setAttribute("NumSent", sent, null);
 			ms.setAttribute("NumTry", trySend, null);
 			ms.setAttribute("NumRemove", removedHeartbeat, null);
+			ms.setAttribute("NumRemoveFireForget", removedFireForget, null);
+			ms.setAttribute("NumRemoveError", removedError, null);
+
 			ms.setAttribute("LastQueued", XMLResponse.formatLong(lastQueued), null);
 			ms.setAttribute("LastSent", XMLResponse.formatLong(lastSent), null);
 			ms.setAttribute(AttributeName.CREATIONDATE, XMLResponse.formatLong(created), null);

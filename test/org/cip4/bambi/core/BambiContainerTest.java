@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -72,6 +72,7 @@
 package org.cip4.bambi.core;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 
 import javax.mail.MessagingException;
@@ -229,12 +230,12 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * @throws IOException 
+	 * @throws IOException if bad things happen
 	 * 
 	 */
 	public void testHandleGet() throws IOException
 	{
-		StreamRequest sr = new StreamRequest(new ByteArrayIOStream());
+		StreamRequest sr = new StreamRequest((InputStream) null);
 		sr.setPost(false);
 		sr.setRequestURI("http://dummy:8080/war/showQueue/" + deviceID);
 		XMLResponse resp = bambiContainer.processStream(sr);
@@ -245,7 +246,7 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * @throws IOException 
+	 * @throws IOException if bad things happen
 	 * 
 	 */
 	public void testSubmit() throws IOException

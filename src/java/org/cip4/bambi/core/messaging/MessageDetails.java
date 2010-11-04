@@ -9,6 +9,7 @@ import javax.mail.Multipart;
 
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.bambi.core.messaging.MessageSender.SendReturn;
 import org.cip4.jdflib.auto.JDFAutoSignal.EnumChannelMode;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -42,6 +43,7 @@ class MessageDetails extends BambiLogFactory
 	protected IConverterCallback callback;
 	final protected long createTime;
 	protected boolean fireForget;
+	private MessageSender.SendReturn sendReturn;
 	private static boolean allSignalsReliable = false;
 
 	/**
@@ -58,6 +60,7 @@ class MessageDetails extends BambiLogFactory
 		senderID = jmf == null ? null : jmf.getSenderID();
 		url = detailedURL;
 		createTime = System.currentTimeMillis();
+		sendReturn = null;
 		setRespHandler(_respHandler, _callback);
 		if (hdet == null)
 		{
@@ -197,6 +200,7 @@ class MessageDetails extends BambiLogFactory
 		message.setAttribute(AttributeName.URL, url);
 		message.setAttribute(AttributeName.SENDERID, senderID);
 		message.setAttribute("FireForget", fireForget, null);
+		message.setAttribute("Return", sendReturn == null ? "unsent" : sendReturn.name(), null);
 
 		final JDFDate d = new JDFDate(createTime);
 		message.setAttribute(AttributeName.TIMESTAMP, d.getDateTimeISO());
@@ -285,5 +289,24 @@ class MessageDetails extends BambiLogFactory
 	public void setFireForget(boolean fireForget)
 	{
 		this.fireForget = fireForget;
+	}
+
+	/**
+	 *  
+	 * @param sendReturn
+	 */
+	public void setReturn(SendReturn sendReturn)
+	{
+		this.sendReturn = sendReturn;
+
+	}
+
+	/**
+	 *  
+	 * @return
+	 */
+	public MessageSender.SendReturn getReturn()
+	{
+		return sendReturn;
 	}
 }

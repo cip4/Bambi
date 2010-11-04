@@ -97,13 +97,13 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 	}
 
 	/**
-	 * @return 
+	 * @return the data requested
 	 * @param request the get request to handle
 	 */
 	public XMLResponse handleGet(final ContainerRequest request)
 	{
-		final File jobDir = dev.getJobDirectory(null);
-		if (jobDir == null)
+		final File dataDir = dev.getExtractDirectory(null);
+		if (dataDir == null)
 		{
 			return null;
 		}
@@ -120,30 +120,30 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 		{
 			last = last.substring(posToken);
 		}
-		File file = FileUtil.getFileInDirectory(jobDir, new File(last));
+		File file = FileUtil.getFileInDirectory(dataDir, new File(last));
 		if (!file.canRead())
 		{
-			file = FileUtil.getFileInDirectory(jobDir, UrlUtil.urlToFile(last));
+			file = FileUtil.getFileInDirectory(dataDir, UrlUtil.urlToFile(last));
 		}
 
-		XMLResponse r = new XMLResponse(null);
+		XMLResponse response = new XMLResponse(null);
 
 		if (file.canRead())
 		{
 			try
 			{
-				final OutputStream outputStream = r.getOutputStream();
+				final OutputStream outputStream = response.getOutputStream();
 				IOUtils.copy(FileUtil.getBufferedInputStream(file), outputStream);
 			}
 			catch (final IOException x)
 			{
-				log.error("error serving file data for: " + path);
+				log.error("error serving file data for: " + path + " at: " + file);
 			}
 		}
 		else
 		{
-			log.warn("cannot find file data for: " + path);
+			log.warn("cannot find file data for: " + path + " at: " + file);
 		}
-		return r;
+		return response;
 	}
 }
