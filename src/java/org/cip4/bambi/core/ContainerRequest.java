@@ -216,7 +216,7 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public void setContentType(String contentType)
 	{
-		this.contentType = contentType;
+		this.contentType = StringUtil.token(contentType, 0, ";").trim();
 	}
 
 	/**
