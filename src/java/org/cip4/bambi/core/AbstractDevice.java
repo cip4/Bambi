@@ -1309,7 +1309,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	/**
 	 * increments the request counter
 	 */
-	void incNumRequests()
+	private void incNumRequests()
 	{
 		numRequests++;
 	}
@@ -1317,7 +1317,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	/**
 	 * method called when processing begins
 	 */
-	void startWork()
+	public void startWork()
 	{
 		incNumRequests();
 		getDeviceTimer(false).start();
@@ -1338,7 +1338,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	/**
 	 * method called when processing ends
 	 */
-	void endWork()
+	public void endWork()
 	{
 		getDeviceTimer(false).stop();
 	}

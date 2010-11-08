@@ -79,6 +79,8 @@ import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
+import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VElement;
@@ -128,14 +130,14 @@ public class JMFFactoryTest extends BambiTestCase
 	 */
 	public void testStatus()
 	{
-		JDFJMF jmf = new JMFBuilder().buildStatus();
+		JDFJMF jmf = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
 		JDFResponse resp = sendToURL(jmf, getWorkerURL());
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		final JDFDeviceInfo di = resp.getDeviceInfo(0);
 		assertTrue(di != null);
 
-		jmf = new JMFBuilder().buildStatus();
+		jmf = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
 		resp = sendToURL(jmf, getWorkerURL());
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());

@@ -97,7 +97,7 @@ public class IPhoneTest extends BambiTestCase
 	 */
 	public void testStatus() throws IOException
 	{
-		JDFJMF jmf = new JMFBuilder().buildStatus();
+		JDFJMF jmf = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
 		JDFStatusQuParams sqp = jmf.getMessageElement(EnumFamily.Query, EnumType.Status, 0).getCreateStatusQuParams(0);
 		sqp.setQueueInfo(true);
 		sqp.setJobDetails(EnumJobDetails.Full);

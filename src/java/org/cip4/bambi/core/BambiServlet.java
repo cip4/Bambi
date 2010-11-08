@@ -115,13 +115,19 @@ public class BambiServlet extends HttpServlet
 	{
 		super();
 		log = new BambiLogFactory(this.getClass()).getLog();
-		theContainer = new BambiContainer();
+		theContainer = getBambiContainer();
+	}
+
+	protected BambiContainer getBambiContainer()
+	{
+		BambiContainer container = new BambiContainer();
+		return container;
 	}
 
 	private BambiLog log = null;
 	protected boolean dumpGet = false;
 	protected boolean dumpEmpty = false;
-	final BambiContainer theContainer;
+	private final BambiContainer theContainer;
 	protected DumpDir bambiDumpIn = null;
 	protected DumpDir bambiDumpOut = null;
 	/**

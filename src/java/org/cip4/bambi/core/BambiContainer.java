@@ -108,6 +108,21 @@ import org.cip4.jdflib.util.mime.MimeReader;
 public class BambiContainer extends BambiLogFactory
 {
 	private AbstractDevice rootDev = null;
+	private static BambiContainer theInstance = null;
+
+	/**
+	 * 
+	 * TODO Please insert comment!
+	 * @return the singleton bambi container instance
+	 */
+	public synchronized static BambiContainer getInstance()
+	{
+		if (theInstance == null)
+			theInstance = new BambiContainer();
+
+		return theInstance;
+
+	}
 
 	/**
 	 * handler for final handler for any non-handled url
@@ -239,6 +254,9 @@ public class BambiContainer extends BambiLogFactory
 	public boolean loadProperties(final File baseDir, final String context, final File config, final String dump, String propName)
 	{
 		final MultiDeviceProperties props;
+		if (propName == null)
+			propName = "org.cip4.bambi.core.MultiDeviceProperties";
+
 		try
 		{
 			final Class<?> c = Class.forName(propName);
@@ -262,6 +280,11 @@ public class BambiContainer extends BambiLogFactory
 	AbstractDevice createDevice(final IDeviceProperties prop, final boolean needController)
 	{
 		AbstractDevice d = null;
+		if (prop == null)
+		{
+			log.fatal("no properties specified for create device");
+			return null;
+		}
 		if (rootDev == null)
 		{
 			if (needController)
@@ -310,10 +333,10 @@ public class BambiContainer extends BambiLogFactory
 		JDFElement.setDefaultJDFVersion(version);
 		final VElement v = props.getDevices();
 		final boolean needController = v.size() > 1;
-		for (KElement next : v)
+		for (KElement nextDevice : v)
 		{
-			log.info("Creating Device " + next.getAttribute("DeviceID"));
-			final IDeviceProperties prop = props.createDeviceProps(next);
+			log.info("Creating Device " + nextDevice.getAttribute("DeviceID"));
+			final IDeviceProperties prop = props.createDeviceProps(nextDevice);
 			final AbstractDevice d = createDevice(prop, needController);
 			created = created || d != null;
 			if (d != null && dump != null)

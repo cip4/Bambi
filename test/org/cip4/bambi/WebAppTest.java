@@ -74,6 +74,8 @@ package org.cip4.bambi;
 import junit.framework.TestCase;
 
 import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
+import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -94,7 +96,7 @@ public class WebAppTest extends TestCase
 	public void testDeviceStatus()
 	{
 		final JMFFactory factory = JMFFactory.getJMFFactory();
-		final JDFJMF jmfStatus = new JMFBuilder().buildStatus();
+		final JDFJMF jmfStatus = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
 		final VString urls = new VString();
 		//		urls.add(getWorkerURL());
 

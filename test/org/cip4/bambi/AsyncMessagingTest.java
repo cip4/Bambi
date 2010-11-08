@@ -77,6 +77,8 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.IResponseHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
+import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
+import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -103,7 +105,7 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 		final MessageSender messageSender = JMFFactory.getJMFFactory().getCreateMessageSender(getWorkerURL());
 		for (int i = 0; i < 10; i++)
 		{
-			final JDFJMF stat = new JMFBuilder().buildStatus();
+			final JDFJMF stat = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
 			final String msgID = stat.getMessageElement(null, null, 0).getID();
 			messageSender.queueMessage(stat, this, getWorkerURL(), null);
 			messageIDs.add(msgID);
