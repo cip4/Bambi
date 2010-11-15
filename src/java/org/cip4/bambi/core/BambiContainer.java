@@ -428,7 +428,7 @@ public class BambiContainer extends BambiLogFactory
 
 		if (request.isPost()) // post request
 		{
-			final String contentType = request.getContentType();
+			final String contentType = request.getContentType(true);
 			if (UrlUtil.VND_JMF.equals(contentType))
 			{
 				XMLRequest req = new XMLRequest(request);
@@ -530,7 +530,7 @@ public class BambiContainer extends BambiLogFactory
 		}
 
 		KElement e = request.getXML();
-		String notification = "cannot process xml of type root = " + ((e == null) ? "null" : e.getLocalName()) + "; Content-Type: " + request.getContentType();
+		String notification = "cannot process xml of type root = " + ((e == null) ? "null" : e.getLocalName()) + "; Content-Type: " + request.getContentType(false);
 		return processError(request.getRequestURI(), EnumType.Notification, 3, notification);
 	}
 

@@ -204,10 +204,16 @@ public class ContainerRequest extends BambiLogFactory
 	}
 
 	/**
+	 * @param bStrip if true, only get first token until ;
 	 * @return the contentType
 	 */
-	public String getContentType()
+	public String getContentType(boolean bStrip)
 	{
+		if (bStrip)
+		{
+			String ct = StringUtil.token(contentType, 0, ";");
+			return ct == null ? ct : ct.trim();
+		}
 		return contentType;
 	}
 
@@ -216,7 +222,7 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public void setContentType(String contentType)
 	{
-		this.contentType = StringUtil.token(contentType, 0, ";").trim();
+		this.contentType = contentType;
 	}
 
 	/**
@@ -226,7 +232,7 @@ public class ContainerRequest extends BambiLogFactory
 	public void setContainer(ContainerRequest request)
 	{
 		setRequestURI(request.getRequestURI());
-		setContentType(request.getContentType());
+		setContentType(request.getContentType(false));
 		setMethod(request.getMethod());
 		setRemoteHost(request.getRemoteHost());
 

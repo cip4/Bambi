@@ -88,6 +88,6 @@ public class XMLRequestTest extends BambiTestCase
 		JDFJMF jmf = new JMFBuilder().buildHoldQueueEntry("42");
 		XMLRequest req = new XMLRequest(jmf);
 		assertEquals(jmf, req.getXML());
-		assertEquals(UrlUtil.VND_JMF, req.getContentType());
+		assertEquals(UrlUtil.VND_JMF, req.getContentType(true));
 	}
 }

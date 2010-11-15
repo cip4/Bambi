@@ -304,11 +304,12 @@ public class ProxyDevice extends AbstractProxyDevice
 		private class SubmitThread extends Thread
 		{
 			private final EnumActivation activation;
+			private final long start;
 
 			/**
 			 * @param iqe the iqe to submit
 			 * @param queueURL the url to submit to
-			 * @param activation 
+			 * @param activation the queuentry activation
 			 */
 			public SubmitThread(IQueueEntry iqe, String queueURL, EnumActivation activation)
 			{
@@ -316,6 +317,7 @@ public class ProxyDevice extends AbstractProxyDevice
 				this.iqe = iqe;
 				this.queueURL = queueURL;
 				this.activation = activation;
+				this.start = System.currentTimeMillis();
 			}
 
 			private final IQueueEntry iqe;
@@ -328,8 +330,36 @@ public class ProxyDevice extends AbstractProxyDevice
 			public void run()
 			{
 				getLog().info("submitting for RequestQE");
-				submitQueueEntry(iqe, queueURL, activation);
+				try
+				{
+					submitQueueEntry(iqe, queueURL, activation);
+				}
+				catch (Exception x)
+				{
+					log.error("Error submitting to proxy for qe= " + iqe == null ? "null" : iqe.getQueueEntryID(), x);
+				}
 				submitThread = null; // now we are done...
+			}
+
+			/**
+			 * 
+			 * @see java.lang.Thread#toString()
+			 */
+			@Override
+			public String toString()
+			{
+				return "SubmitThread: " + iqe;
+			}
+
+			/**
+			 * 
+			 * isAlive and no timeout
+			 * @return true if we should be alive
+			 */
+			public boolean isRunning()
+			{
+				return isAlive() && System.currentTimeMillis() - start < 1000 * 60 * 2;
+
 			}
 		}
 
@@ -367,10 +397,14 @@ public class ProxyDevice extends AbstractProxyDevice
 				JMFHandler.errorResponse(resp, "QueueURL is missing", 7, EnumClass.Error);
 				return true;
 			}
-			if (submitThread != null)
+			if (submitThread != null && submitThread.isRunning())
 			{
 				JMFHandler.errorResponse(resp, "Currently handling requestQueueEntry, try again later", 10, EnumClass.Warning);
 				return true;
+			}
+			else
+			{
+				submitThread = null;
 			}
 
 			final NodeIdentifier nid = requestQEParams.getIdentifier();

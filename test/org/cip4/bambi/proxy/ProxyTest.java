@@ -131,7 +131,7 @@ public class ProxyTest extends BambiTestCase
 	{
 		bUpdateJobID = true;
 		workerURLBase = "http://localhost:8080/BambiProxy/jmf/";
-		//deviceID = "root";
+		deviceID = null;
 
 		//		workerURL = "http://146.140.222.217:8080/BambiProxy/jmf/pushproxy";
 		super.setUp();

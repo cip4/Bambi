@@ -15,22 +15,22 @@ DeviceClass="org.cip4.bambi.proxy.ProxyDevice">
   <Device DeviceID="proxyRoot" DeviceType="Bambi Proxy Root" DeviceURL="http://localhost:8080/BambiProxy/devices/proxy001"/>
   <Device 
   DeviceID="pullproxy" 
-  DeviceType="Bambi Pull Proxy for SimWorker/Sim001" 
+  DeviceType="Bambi Pull Proxy for SimWorker/sim001" 
   SlaveStatus="JMFGLOBAL"
     SlaveDeviceID="sim001" 
     DeviceURL="http://localhost:8080/BambiProxy/jmf/pullproxy" 
-    SlaveURL="http://localhost:8080/SimWorker/devices/sim001"
+    SlaveURL="http://localhost:8080/SimWorker/jmf/sim001"
     MaxPush="0" 
     InputHF="/var/bambi/hf/pullproxy/Input" 
     OutputHF="/var/bambi/hf/pullproxy/Output" 
     ErrorHF="/var/bambi/hf/pullhproxy/Error"/>
   
   <Device DeviceID="pushproxy" 
-  DeviceType="Bambi Push Proxy for SimWorker/Sim003" 
+  DeviceType="Bambi Push Proxy for SimWorker/sim003" 
   SlaveStatus="JMFGLOBAL"
     SlaveDeviceID="sim003" 
     DeviceURL="http://localhost:8080/BambiProxy/jmf/pushproxy" 
-    SlaveURL="http://localhost:8080/SimWorker/devices/sim003"
+    SlaveURL="http://localhost:8080/SimWorker/jmf/sim003"
     MaxPush="10" 
     InputHF="/var/bambi/hf/pushproxy/Input" 
     OutputHF="/var/bambi/hf/pushproxy/Output" 
