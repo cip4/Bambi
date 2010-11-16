@@ -553,7 +553,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			final IQueueEntry iqe = submitToQueue(qURL, deviceOutputHF, ud, expandMime, isMime);
 			qes = iqe == null ? null : iqe.getQueueEntry().getQueueEntryStatus();
 		}
-		if (qes == null || EnumQueueEntryStatus.Aborted.equals(qes))
+		else if (qes == null || EnumQueueEntryStatus.Aborted.equals(qes))
 		{
 			final File hf = getParent().getProxyProperties().getSlaveInputHF();
 			qes = submitToHF(hf);
@@ -561,7 +561,11 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		if (qes == null || EnumQueueEntryStatus.Aborted.equals(qes))
 		{
 			// TODO handle errors
-			log.error("submitting queueentry unsuccessful: " + currentQE.getQueueEntryID());
+			if (isLive())
+				log.error("submitting queueentry unsuccessful: " + currentQE.getQueueEntryID());
+			else
+				log.info("informative submitting queueentry completed: " + currentQE.getQueueEntryID());
+
 			shutdown();
 		}
 		return qes != null;
@@ -633,14 +637,17 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	protected void submitted(final String devQEID, final EnumQueueEntryStatus newStatus, final String slaveURL, final String slaveDeviceID)
 	{
 		super.submitted(devQEID, newStatus, slaveURL, slaveDeviceID);
-		setupStatusListener(currentQE.getJDF(), currentQE.getQueueEntry());
-		if (EnumQueueEntryStatus.Waiting.equals(newStatus))
+		if (isLive())
 		{
-			_statusListener.signalStatus(EnumDeviceStatus.Idle, "Submitted", EnumNodeStatus.Waiting, "Submitted", false);
-		}
-		else
-		{
-			_statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.InProgress, "Submitted", false);
+			setupStatusListener(currentQE.getJDF(), currentQE.getQueueEntry());
+			if (EnumQueueEntryStatus.Waiting.equals(newStatus))
+			{
+				_statusListener.signalStatus(EnumDeviceStatus.Idle, "Submitted", EnumNodeStatus.Waiting, "Submitted", false);
+			}
+			else
+			{
+				_statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.InProgress, "Submitted", false);
+			}
 		}
 	}
 

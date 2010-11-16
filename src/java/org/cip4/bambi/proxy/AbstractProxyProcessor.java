@@ -248,8 +248,8 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	protected EnumActivation activation;
 
 	/**
-	 * get the currently set activationTODO Please insert comment!
-	 * @return
+	 * get the currently set activation
+	 * @return the currently set activation
 	 */
 	public EnumActivation getActivation()
 	{
@@ -257,9 +257,18 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	}
 
 	/**
+	 * get the currently set activation
+	 * @return true if this is a "live" submission rather than informative
+	 */
+	public boolean isLive()
+	{
+		return !EnumActivation.Informative.equals(activation);
+	}
+
+	/**
 	 * 
 	 * set the activation for submission,
-	 * @param activation, the activation to set - if null assume Active
+	 * @param activation the activation to set - if null assume Active
 	 */
 	public void setActivation(EnumActivation activation)
 	{
@@ -362,14 +371,14 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	}
 
 	/**
-	 * @param slaveQEID
-	 * @param newStatus
-	 * @param slaveURL
+	 * @param slaveQEID the queentryID at the slave
+	 * @param newStatus the retured status from the slave
+	 * @param slaveURL the URL that was submitted to
 	 * @param slaveDeviceID the deviceID as returned from the slave
 	 */
 	protected void submitted(final String slaveQEID, final EnumQueueEntryStatus newStatus, final String slaveURL, final String slaveDeviceID)
 	{
-		if (EnumActivation.Informative.equals(activation))
+		if (!isLive())
 		{
 			log.info("Informative submission completed for:" + slaveQEID);
 			return;
@@ -420,13 +429,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 		// fix for returning
 
-		final JDFQueueEntry qe = currentQE.getQueueEntry();
-		if (qe != null)
-		{
-			qsp.copyAttribute(AttributeName.PRIORITY, qe);
-			qsp.copyAttribute(AttributeName.GANGNAME, qe);
-			qsp.copyAttribute(AttributeName.DESCRIPTIVENAME, qe);
-		}
+		final JDFQueueEntry qe = prepareQSP(qsp);
 
 		final JDFNode node = getCloneJDFForSlave(); // the retained internal node
 		log.debug("get clone: " + (node == null ? "null" : node.getJobID(false)));
@@ -443,6 +446,48 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			slaveCallBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
 		}
 
+		setJDFURL(isMime, qsp, modNode);
+
+		if (modNode != null)
+		{
+			try
+			{
+				final String urlString = qurl == null ? null : qurl.toExternalForm();
+				final JDFMessage r = writeToQueue(jmf.getOwnerDocument_JDFElement(), modNode.getOwnerDocument_KElement(), urlString, ud, expandMime, isMime);
+				if (isLive()) // only evaluate response for live submission - who cares what is happening informative
+				{
+					processSubmitResponse(qe, urlString, r);
+				}
+			}
+			catch (final IOException x)
+			{
+				modNode = null;
+			}
+		}
+		if (modNode == null)
+		{
+			log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
+			_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+		}
+		return isLive() ? new QueueEntry(node, qe) : null;
+	}
+
+	protected JDFQueueEntry prepareQSP(final JDFQueueSubmissionParams qsp)
+	{
+		final JDFQueueEntry qe = currentQE.getQueueEntry();
+		if (qe != null)
+		{
+			qsp.copyAttribute(AttributeName.PRIORITY, qe);
+			qsp.copyAttribute(AttributeName.GANGNAME, qe);
+			qsp.copyAttribute(AttributeName.DESCRIPTIVENAME, qe);
+		}
+		return qe;
+	}
+
+	private void setJDFURL(final boolean isMime, final JDFQueueSubmissionParams qsp, KElement modNode)
+	{
+		final AbstractProxyDevice proxyParent = getParent();
+
 		if (isMime)
 		{
 			qsp.setURL("dummy"); // replaced by mimeutil
@@ -456,56 +501,42 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			jdfURL += "?Callback=true&raw=true&activation=" + activation.getName() + "&qeID=" + currentQE.getQueueEntryID();
 			qsp.setURL(jdfURL);
 		}
-		if (modNode != null)
+	}
+
+	private void processSubmitResponse(final JDFQueueEntry qe, final String urlString, final JDFMessage r)
+	{
+		if (r != null)
 		{
-			try
+			if (!EnumType.SubmitQueueEntry.equals(r.getEnumType())) // total snafu???
 			{
-				final String urlString = qurl == null ? null : qurl.toExternalForm();
-				final JDFMessage r = writeToQueue(jmf.getOwnerDocument_JDFElement(), modNode.getOwnerDocument_KElement(), urlString, ud, expandMime, isMime);
-				if (r != null)
+				log.error("Device returned rc=" + r.getReturnCode());
+				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+			}
+			else
+			{
+				rc = r.getReturnCode();
+				if (rc != 0)
 				{
-					if (!EnumType.SubmitQueueEntry.equals(r.getEnumType())) // total snafu???
-					{
-						log.error("Device returned rc=" + r.getReturnCode());
-						_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
-					}
-					else
-					{
-						rc = r.getReturnCode();
-						if (rc != 0)
-						{
-							log.warn("Device returned rc=" + rc);
-						}
-						notification = (JDFNotification) r.getElement(ElementName.NOTIFICATION);
-						final JDFQueueEntry qeR = r.getQueueEntry(0);
-						if (qeR != null)
-						{
-							submitted(qeR.getQueueEntryID(), qeR.getQueueEntryStatus(), urlString, r.getSenderID());
-						}
-						else
-						{
-							log.error("No QueueEntry in the submitqueuentry response");
-							_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
-						}
-					}
+					log.warn("Device returned rc=" + rc);
 				}
-				if (r == null)
+				notification = (JDFNotification) r.getElement(ElementName.NOTIFICATION);
+				final JDFQueueEntry qeR = r.getQueueEntry(0);
+				if (qeR != null)
 				{
-					log.error("submitToQueue - no response at: " + BambiNSExtension.getDocURL(qe));
+					submitted(qeR.getQueueEntryID(), qeR.getQueueEntryStatus(), urlString, r.getSenderID());
+				}
+				else
+				{
+					log.error("No QueueEntry in the submitqueuentry response");
 					_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
 				}
 			}
-			catch (final IOException x)
-			{
-				modNode = null;
-			}
 		}
-		if (modNode == null)
+		else
 		{
-			log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
+			log.error("submitToQueue - no response at: " + BambiNSExtension.getDocURL(qe));
 			_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
 		}
-		return new QueueEntry(node, qe);
 	}
 
 	/**
