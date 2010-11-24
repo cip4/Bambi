@@ -1741,4 +1741,13 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 		return getJobDirectory(queueEntryID);
 	}
+
+	/**
+	 * TODO Please insert comment!
+	 * @return the dataextractor required for this
+	 */
+	public DataExtractor getDataExtractor()
+	{
+		return new DataExtractor(this);
+	}
 }

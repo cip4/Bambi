@@ -112,7 +112,6 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
-import org.cip4.jdflib.elementwalker.URLExtractor;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFFlushQueueInfo;
 import org.cip4.jdflib.jmf.JDFFlushQueueParams;
@@ -146,7 +145,6 @@ import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
-import org.cip4.jdflib.util.UrlUtil.URLProtocol;
 import org.cip4.jdflib.util.thread.DelayedPersist;
 import org.cip4.jdflib.util.thread.IPersistable;
 
@@ -571,7 +569,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp);
 				_parentDevice.fixEntry(qe, doc);
-				extractFiles(qe, doc);
+				_parentDevice.getDataExtractor().extractFiles(qe, doc);
 				storeDoc(qe, doc, null, null);
 			}
 		}
@@ -1855,7 +1853,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			final String qeID = newQE.getQueueEntryID();
 			BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
 			_parentDevice.fixEntry(newQE, theJDF);
-			extractFiles(newQE, theJDF);
+			_parentDevice.getDataExtractor().extractFiles(newQE, theJDF);
 			if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
 			{
 				newResponse.setReturnCode(120);
@@ -1870,40 +1868,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		// wait a very short moment to allow any potential processing of the newly create entry to commence, prior to returning the entry
 		ThreadUtil.sleep(42);
 		return newQE;
-	}
-
-	/**
-	 * stub that copies url links to local storage if required
-	 * 
-	 * @param newQE the queueEntry that files are extracted from
-	 * @param doc the JDF document to modify
-	 */
-	public void extractFiles(JDFQueueEntry newQE, JDFDoc doc)
-	{
-		if (doc == null || newQE == null)
-		{
-			if (doc == null)
-				log.warn("cannot extract files for doc=null ; newQE" + newQE == null ? "null" : newQE.getQueueEntryID());
-			if (newQE == null)
-				log.warn("cannot extract files for newQE=null");
-			return;
-		}
-		final File jobDirectory = _parentDevice.getExtractDirectory(newQE.getQueueEntryID());
-		if (jobDirectory == null)
-		{
-			log.warn("no Job Directory for: " + newQE.getQueueEntryID());
-			return;
-		}
-		log.info("extracting attached files to: " + jobDirectory);
-		String dataURL = _parentDevice.getDataURL(newQE.getQueueEntryID());
-		if (dataURL != null)
-		{
-			URLExtractor ex = new URLExtractor(jobDirectory, dataURL);
-			// don't do http 
-			ex.addProtocol(URLProtocol.cid);
-			ex.addProtocol(URLProtocol.file);
-			ex.walkTree(doc.getRoot(), null);
-		}
 	}
 
 	/**
@@ -1976,7 +1940,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			for (final File kill : crap)
 			{
-				if (!hs.contains(kill))
+				// some systems list complete paths, others list only names - ensure name only
+				if (!hs.contains(new File(kill.getName())))
 				{
 					File dataDir = new File(UrlUtil.newExtension(kill.getAbsolutePath(), null));
 					FileUtil.deleteAll(dataDir);

@@ -124,9 +124,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		final private JDFNode jdf;
 
 		/**
-		 * @param _jdf
-		 * @param slaveID
-		 * @param localqeID
+		 * @param _jdf the jdf node to resubmit
+		 * @param slaveID the queueentryid in the context of the slave
+		 * @param localqeID the queueentryid in the context of bambi
 		 */
 		public QueueResubmitter(final JDFNode _jdf, final String slaveID, final String localqeID)
 		{
@@ -136,7 +136,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 
 		/**
-		 * @return
+		 * @return int the return / error code, 0 if success
 		 */
 		public int resubmit()
 		{
@@ -220,7 +220,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	{
 
 		/**
-		 * @param refID
+		 * @param refID the command id that is responded to
 		 * 
 		 */
 		public SubmitQueueEntryResponseHandler(final String refID)
@@ -229,9 +229,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 
 		/**
-		 *  
 		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * 
+		 * @see org.cip4.bambi.core.messaging.MessageResponseHandler#handleMessage()
 		 */
 		@Override
 		public boolean handleMessage()
@@ -292,7 +292,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 	/**
 	 * get the JMF Builder for messages to the slave device
-	 * @return
+	 * @return the JMF Builder for messages to the slave device
 	 */
 	protected JMFBuilder getBuilderForSlave()
 	{
@@ -423,13 +423,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		final JDFCommand com = (JDFCommand) jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command, null, 0);
 		final JDFQueueSubmissionParams qsp = com.getCreateQueueSubmissionParams(0);
 
-		if (deviceOutputHF != null)
-		{
-			qsp.setReturnURL(deviceOutputHF.getPath());
-		}
 		// fix for returning
 
-		final JDFQueueEntry qe = prepareQSP(qsp);
+		prepareQSP(qsp, deviceOutputHF);
 
 		final JDFNode node = getCloneJDFForSlave(); // the retained internal node
 		log.debug("get clone: " + (node == null ? "null" : node.getJobID(false)));
@@ -447,6 +443,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 
 		setJDFURL(isMime, qsp, modNode);
+		final JDFQueueEntry qe = currentQE.getQueueEntry();
 
 		if (modNode != null)
 		{
@@ -472,8 +469,19 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		return isLive() ? new QueueEntry(node, qe) : null;
 	}
 
-	protected JDFQueueEntry prepareQSP(final JDFQueueSubmissionParams qsp)
+	/**
+	 * 
+	 * copy details from queueentry to queuesubmissionparams
+	 * @param qsp the queuesubmissionparams to fill
+	 * @param deviceOutputHF the device output hot folder, if any
+	 * @return
+	 */
+	protected void prepareQSP(final JDFQueueSubmissionParams qsp, File deviceOutputHF)
 	{
+		if (deviceOutputHF != null)
+		{
+			qsp.setReturnURL(deviceOutputHF.getPath());
+		}
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		if (qe != null)
 		{
@@ -481,7 +489,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			qsp.copyAttribute(AttributeName.GANGNAME, qe);
 			qsp.copyAttribute(AttributeName.DESCRIPTIVENAME, qe);
 		}
-		return qe;
 	}
 
 	private void setJDFURL(final boolean isMime, final JDFQueueSubmissionParams qsp, KElement modNode)

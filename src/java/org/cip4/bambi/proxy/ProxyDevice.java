@@ -75,6 +75,7 @@ import java.util.Vector;
 
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
+import org.cip4.bambi.core.DataExtractor;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.messaging.JMFHandler;
@@ -110,6 +111,7 @@ import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil.URLProtocol;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -126,7 +128,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 		/**
 		 * 
-		 * @param m
+		 * @param m the message to process
 		 * @return
 		 */
 		protected JDFDoc getStatusResponse(final JDFMessage m)
@@ -445,9 +447,9 @@ public class ProxyDevice extends AbstractProxyDevice
 		/**
 		 * 
 		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
-		 * @param m
-		 * @param resp
-		 * @return
+		 * @param m the message to handle
+		 * @param resp the response to fill
+		 * @return true if handled
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -481,16 +483,29 @@ public class ProxyDevice extends AbstractProxyDevice
 			if (proc != null)
 			{
 				final JDFQueueEntry qeBambi = proc.getQueueEntry();
-				getQueueProcessor().extractFiles(qeBambi, theDoc);
+				getDataExtractor().extractFiles(qeBambi, theDoc);
 				proc.returnFromSlave(m, resp, theDoc);
 			}
 			return true;
 		}
 
 		/**
-		 * @param rqp 
-		 * @param resp 
-		 * @param theDoc 
+		 * this one also does http, in case the slave provides files with http
+		 * we want to have these files under control
+		 *  
+		 * @return the data extractor
+		 */
+		private DataExtractor getDataExtractor()
+		{
+			DataExtractor ex = ProxyDevice.this.getDataExtractor();
+			ex.addProtocol(URLProtocol.http);
+			return ex;
+		}
+
+		/**
+		 * @param rqp returnqueueentryparams
+		 * @param resp the response to fill
+		 * @param theDoc the jdf doc that is returned
 		 * @return the ProxyDeviceProcessor that handles messages from slaveQEID
 		 */
 		protected ProxyDeviceProcessor getProcessorForReturnQE(final JDFReturnQueueEntryParams rqp, final JDFResponse resp, JDFDoc theDoc)
@@ -499,7 +514,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			ProxyDeviceProcessor proc = getProcessorForSlaveQEID(slaveQEID);
 
 			NodeIdentifier nid = null;
-			if (proc == null && rqp != null)
+			if (proc == null && rqp != null && theDoc != null)
 			{
 				final JDFNode node = theDoc.getJDFRoot();
 				nid = node == null ? null : node.getIdentifier();
