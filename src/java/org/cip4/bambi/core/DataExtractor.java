@@ -146,7 +146,9 @@ public class DataExtractor extends BambiLogFactory
 
 	protected URLExtractor getExtractor(final File jobDirectory, String dataURL)
 	{
-		URLExtractor ex = new URLExtractor(jobDirectory, dataURL);
+		File hfDirectory = parentDevice._submitHotFolder == null ? null : parentDevice._submitHotFolder.getHfDirectory();
+		String absolutePath = hfDirectory == null ? null : hfDirectory.getAbsolutePath();
+		URLExtractor ex = new URLExtractor(jobDirectory, absolutePath, dataURL);
 		for (URLProtocol protocol : protocols)
 			ex.addProtocol(protocol);
 		return ex;
