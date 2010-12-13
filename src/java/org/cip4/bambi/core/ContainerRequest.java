@@ -167,7 +167,7 @@ public class ContainerRequest extends BambiLogFactory
 	public String getDeviceID()
 	{
 		String localURL = getLocalURL();
-		return BambiServletRequest.getDeviceIDFromURL(localURL);
+		return BambiContainer.getDeviceIDFromURL(localURL);
 	}
 
 	/**
@@ -314,15 +314,18 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public String getContext()
 	{
-		return StringUtil.token(requestURI, 3, "/");
+		return StringUtil.token(requestURI, 2 + 1, "/");
 	}
 
 	/**
-	 * @return the war file name portion of the request context
+	 * 
+	 * 
+	 * @return the war file name portion of the request context, i.e the location where index.html etc are located
+	 * 
 	 */
 	public String getContextRoot()
 	{
-		return StringUtil.token(requestURI, 2, "/");
+		return "/" + StringUtil.token(requestURI, 2, "/");
 	}
 
 	/**

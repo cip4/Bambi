@@ -371,6 +371,8 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	}
 
 	/**
+	 * finalize setup after successful submission to a slave
+	 * 
 	 * @param slaveQEID the queentryID at the slave
 	 * @param newStatus the retured status from the slave
 	 * @param slaveURL the URL that was submitted to

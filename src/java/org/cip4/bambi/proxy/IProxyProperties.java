@@ -166,6 +166,11 @@ public interface IProxyProperties extends IDeviceProperties
 	public int getMaxPush();
 
 	/**
+	 * @return the maximum number of actively running entries at the slave
+	 */
+	public int getMaxSlaveRunning();
+
+	/**
 	 * @param push
 	 */
 	public void setMaxPush(int push);

@@ -82,6 +82,7 @@ import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.messaging.SignalHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
+import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -92,6 +93,7 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFJobPhase;
@@ -1112,6 +1114,37 @@ public class ProxyDevice extends AbstractProxyDevice
 		pdp.submitted(BambiNSExtension.getSlaveQueueEntryID(qe), qe.getQueueEntryStatus(), BambiNSExtension.getDeviceURL(qe), qe.getDeviceID());
 		addProcessor(pdp);
 		return pdp;
+	}
+
+	/**
+	 * clean up any queueEntries that may still pretend to be running if only one is allowed
+	 * 
+	 * @param slaveDeviceID the slave device id to clean up for
+	 */
+	void cleanupMultipleRunning(String ignoreQEID, String slaveDeviceID)
+	{
+		int maxRun = getProxyProperties().getMaxSlaveRunning();
+		if (maxRun <= 1)
+		{
+			JDFAttributeMap attMap = new JDFAttributeMap(AttributeName.DEVICEID, slaveDeviceID);
+			VElement queues = _theQueueProcessor.getQueue().getQueueEntryVector(attMap, null);
+			if (queues != null && queues.size() > 1)
+			{
+				for (KElement e : queues)
+				{
+					JDFQueueEntry qe = (JDFQueueEntry) e;
+					String queueEntryID = qe.getQueueEntryID();
+					if (ignoreQEID.equals(queueEntryID))
+						continue;
+					ProxyDeviceProcessor pdp = (ProxyDeviceProcessor) getProcessor(queueEntryID, 0);
+					if (pdp == null)
+						pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, new QueueEntry(null, qe));
+
+					pdp.finalizeProcessDoc(EnumQueueEntryStatus.Waiting);
+				}
+			}
+		}
+
 	}
 
 	/**

@@ -637,7 +637,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	protected void submitted(final String devQEID, final EnumQueueEntryStatus newStatus, final String slaveURL, final String slaveDeviceID)
 	{
 		super.submitted(devQEID, newStatus, slaveURL, slaveDeviceID);
-		if (isLive())
+		if (isLive() && StringUtil.getNonEmpty(slaveDeviceID) != null)
 		{
 			setupStatusListener(currentQE.getJDF(), currentQE.getQueueEntry());
 			if (EnumQueueEntryStatus.Waiting.equals(newStatus))
@@ -648,6 +648,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			{
 				_statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.InProgress, "Submitted", false);
 			}
+			// this cast is safe - see constructor which guarantees that the parent is a ProxyParent
+			((ProxyDevice) getParent()).cleanupMultipleRunning(currentQE.getQueueEntryID(), slaveDeviceID);
 		}
 	}
 
@@ -710,7 +712,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 		// get the returned JDFDoc from the incoming ReturnQE command and pack it in the outgoing
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
-		if (doc == null)
+		JDFNode root = doc == null ? null : doc.getJDFRoot();
+		if (root == null)
 		{
 			final String errorMsg = "failed to parse the JDFDoc from the incoming " + "ReturnQueueEntry with QueueEntryID=" + currentQE.getQueueEntryID();
 			JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
@@ -718,29 +721,28 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		else
 		{
 			// brutally overwrite the current node with this
-			JDFNode root = doc.getJDFRoot();
-			if (root == null)
-			{
-				log.error("no JDF node found to overwrite the StatusListener, retaining old version");
-			}
-			else
-			{
-				currentQE.setJDF(root);
-				_statusListener.replaceNode(root);
-			}
+			currentQE.setJDF(root);
+			_statusListener.replaceNode(root);
 		}
 
-		BambiNSExtension.setDeviceURL(qe, null);
-
 		final VString aborted = retQEParams.getAborted();
+		final VString completed = retQEParams.getCompleted();
+		EnumQueueEntryStatus finalStatus;
 		if (aborted != null && aborted.size() != 0)
 		{
-			finalizeProcessDoc(EnumQueueEntryStatus.Aborted);
+			finalStatus = EnumQueueEntryStatus.Aborted;
+		}
+		else if (completed != null && completed.size() != 0)
+		{
+			finalStatus = EnumQueueEntryStatus.Completed;
 		}
 		else
 		{
-			finalizeProcessDoc(EnumQueueEntryStatus.Completed);
+			finalStatus = root == null ? EnumQueueEntryStatus.Aborted : EnumNodeStatus.getQueueEntryStatus(root.getPartStatus(null, -1));
+			if (finalStatus == null)
+				finalStatus = EnumQueueEntryStatus.Aborted;
 		}
+		finalizeProcessDoc(finalStatus);
 
 		return true;
 	}
@@ -748,6 +750,10 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	@Override
 	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{
+		JDFQueueEntry qe = currentQE.getQueueEntry();
+		BambiNSExtension.setDeviceURL(qe, null);
+		// remove slave qeid from map
+		_queueProcessor.updateCache(qe, null);
 		final boolean b = super.finalizeProcessDoc(qes);
 		shutdown(); // remove ourselves out of the processors list
 		return b;

@@ -75,6 +75,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
@@ -146,17 +147,22 @@ public class BambiServlet extends HttpServlet
 		final ServletContext context = config.getServletContext();
 		final String dump = initializeDumps(config);
 		log.info("Initializing servlet for " + context.getServletContextName());
-		final File baseDir = new File(context.getRealPath(""));
+		String realPath = context.getRealPath("/");
+		if (realPath == null)
+			realPath = ".";
+		final File baseDir = new File(realPath);
+		String absP = baseDir.getAbsolutePath();
 		String baseURL = null;
 		try
 		{
-			baseURL = StringUtil.token(context.getResource("/").toExternalForm(), -1, "/");
+			URL resource = context.getResource("/");
+			baseURL = resource == null ? "SimWorker" : StringUtil.token(resource.toExternalForm(), -1, "/");
 		}
 		catch (MalformedURLException x)
 		{
 			log.fatal("illegal context loading servlet: ", x);
 		}
-		theContainer.loadProperties(baseDir, baseURL, new File("/config/devices.xml"), dump, getPropsName());
+		theContainer.loadProperties(baseDir, baseURL, new File("config/devices.xml"), dump, getPropsName());
 	}
 
 	/**
@@ -211,17 +217,27 @@ public class BambiServlet extends HttpServlet
 		StreamRequest sr = createStreamRequest(request);
 		sr.setPost(bPost);
 
-		final String header = getDumpHeader(sr);
-		if (bBuf)
-		{
-			final String h2 = header + "\nContext Length: " + request.getContentLength();
-			bambiDumpIn.newFileFromStream(h2, sr.getInputStream());
-		}
+		dumpIncoming(request, bBuf, sr);
 
 		XMLResponse xr = theContainer.processStream(sr);
 		writeResponse(xr, response);
+		dumpOutGoing(getPost, sr, xr);
+		request.getInputStream().close(); // avoid mem leaks
+		rootDev.endWork();
+	}
+
+	/**
+	 * dump the outgoing stuff
+	 *  
+	 * @param getPost
+	 * @param sr
+	 * @param xr
+	 */
+	protected void dumpOutGoing(String getPost, StreamRequest sr, XMLResponse xr)
+	{
 		if (bambiDumpOut != null && (dumpEmpty || (xr != null && xr.hasContent())))
 		{
+			final String header = getDumpHeader(sr);
 			final InputStream buf = xr.getInputStream();
 
 			final File in = bambiDumpOut.newFileFromStream(header, buf);
@@ -230,8 +246,24 @@ public class BambiServlet extends HttpServlet
 				in.renameTo(new File(UrlUtil.newExtension(in.getPath(), ("." + getPost + ".resp.txt"))));
 			}
 		}
-		request.getInputStream().close(); // avoid mem leaks
-		rootDev.endWork();
+	}
+
+	/**
+	 * 
+	 * dump the incoming stuff
+	 *  
+	 * @param request
+	 * @param bBuf
+	 * @param sr
+	 */
+	protected void dumpIncoming(final HttpServletRequest request, final boolean bBuf, StreamRequest sr)
+	{
+		if (bBuf)
+		{
+			final String header = getDumpHeader(sr);
+			final String h2 = header + "\nContext Length: " + request.getContentLength();
+			bambiDumpIn.newFileFromStream(h2, sr.getInputStream());
+		}
 	}
 
 	/**
@@ -275,12 +307,14 @@ public class BambiServlet extends HttpServlet
 
 	/**
 	 * @param r the XMLResponse to serialize
-	 * @param sr 
+	 * @param sr the servlet response to serialize into
 	 */
-	public void writeResponse(XMLResponse r, HttpServletResponse sr)
+	private void writeResponse(XMLResponse r, HttpServletResponse sr)
 	{
 		if (r == null)
+		{
 			return; // don't write empty stuff
+		}
 		try
 		{
 			sr.setContentType(r.getContentType());
@@ -293,13 +327,11 @@ public class BambiServlet extends HttpServlet
 			}
 			outputStream.flush();
 			outputStream.close();
-
 		}
 		catch (final IOException e)
 		{
 			log.error("cannot write to stream: ", e);
 		}
-
 	}
 
 	/**

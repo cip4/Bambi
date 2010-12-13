@@ -576,7 +576,7 @@ public class RootDevice extends AbstractDevice
 	@Override
 	public IConverterCallback getCallback(final String url)
 	{
-		final String devID = BambiServletRequest.getDeviceIDFromURL(url);
+		final String devID = BambiContainer.getDeviceIDFromURL(url);
 		final AbstractDevice dev = devID == null ? null : getDevice(devID);
 		return (dev != null && !(dev instanceof RootDevice)) ? dev.getCallback(url) : _callback;
 	}
@@ -620,7 +620,7 @@ public class RootDevice extends AbstractDevice
 
 		final KElement listRoot = deviceList.getRoot();
 		listRoot.setAttribute("NumRequests", numRequests, null);
-		listRoot.setAttribute(AttributeName.CONTEXT, "/" + request.getContextRoot());
+		listRoot.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
 		listRoot.setAttribute("MemFree", Runtime.getRuntime().freeMemory() / 1000 / 1000., null);
 		listRoot.setAttribute("MemTotal", Runtime.getRuntime().totalMemory() / 1000 / 1000., null);
 		MemorySpy memorySpy = new MemorySpy();
@@ -658,7 +658,6 @@ public class RootDevice extends AbstractDevice
 	@Override
 	public String getXSLT(final ContainerRequest request)
 	{
-		final String contextPath = request.getContextRoot();
 		final String command = request.getContext();
 		String s = null;
 		if ("overview".equalsIgnoreCase(command) || "showDevice".equalsIgnoreCase(command))
@@ -669,6 +668,7 @@ public class RootDevice extends AbstractDevice
 		{
 			return super.getXSLT(request);
 		}
+		final String contextPath = request.getContextRoot();
 		if (contextPath != null)
 		{
 			s = getXSLTBaseFromContext(contextPath) + s;

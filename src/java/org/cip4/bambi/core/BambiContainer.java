@@ -94,6 +94,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeReader;
@@ -690,6 +691,16 @@ public class BambiContainer extends BambiLogFactory
 	public String toString()
 	{
 		return "BambiContainer: \n" + rootDev;
+	}
+
+	/**
+	 * @param url
+	 * @return the deviceID
+	 */
+	public static String getDeviceIDFromURL(String url)
+	{
+		String devID = StringUtil.token(url, 2, "/");
+		return devID;
 	}
 
 }

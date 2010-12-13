@@ -108,9 +108,9 @@ import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.ThreadUtil.MyMutex;
+import org.cip4.jdflib.util.UrlPart;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
-import org.cip4.jdflib.util.UrlUtil.UrlPart;
 import org.cip4.jdflib.util.VectorMap;
 
 /**

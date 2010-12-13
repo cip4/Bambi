@@ -535,11 +535,13 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 */
 	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{
+		boolean bReturn = false;
 		if (currentQE != null)
 		{
 			if (EnumQueueEntryStatus.Completed.equals(qes))
 			{
 				complete();
+				bReturn = true;
 			}
 			else if (EnumQueueEntryStatus.Suspended.equals(qes))
 			{
@@ -548,6 +550,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			else if (EnumQueueEntryStatus.Aborted.equals(qes))
 			{
 				abort();
+				bReturn = true;
 			}
 		}
 		_statusListener.flush("Resource");
@@ -555,15 +558,18 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		_statusListener.setNode(null, null, null, null);
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		_queueProcessor.updateEntry(qe, qes, null, null);
-		_queueProcessor.returnQueueEntry(qe, null, null);
-
-		if (currentQE != null)
+		if (bReturn)
 		{
-			currentQE.getQueueEntry().removeAttribute(AttributeName.DEVICEID);
+			_queueProcessor.returnQueueEntry(qe, null, null);
+
+			if (currentQE != null)
+			{
+				currentQE.getQueueEntry().removeAttribute(AttributeName.DEVICEID);
+			}
+			currentQE = null;
+			log.info("finalized processing JDF: ");
 		}
-		currentQE = null;
-		log.info("finalized processing JDF: ");
-		return true;
+		return bReturn;
 	}
 
 	/**

@@ -104,7 +104,9 @@ class BambiServletResponse extends BambiLogFactory implements HttpServletRespons
 	 * @param _parent the original response
 	 * @param bBuffer if true, buffer this
 	 * @param request the matching request - used mainly for debugging context
+	* @deprecated replaced by {@link XMLRequest}
 	 */
+	@Deprecated
 	private BambiServletResponse(final HttpServletResponse _parent, final boolean bBuffer, final BambiServletRequest request)
 	{
 		parent = _parent;

@@ -93,6 +93,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 {
 	private EnumVersion fixToExtern = null;
 	private EnumVersion fixToBambi = null;
+	private final Vector<IConverterCallback> postConversionList;
 
 	/**
 	 * get the version to modify the version for outgoing jdf and jmf
@@ -101,6 +102,19 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	public EnumVersion getFixToExtern()
 	{
 		return fixToExtern;
+	}
+
+	/**
+	 * 
+	 * add an additional converter to this it will be called after the internal conversion
+	 * @param cb the IConverterCallback to call
+	 */
+	public void addConverter(IConverterCallback cb)
+	{
+		if (cb != null)
+		{
+			postConversionList.add(cb);
+		}
 	}
 
 	/**
@@ -136,6 +150,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	public ConverterCallback()
 	{
 		super();
+		postConversionList = new Vector<IConverterCallback>();
 	}
 
 	/**
@@ -165,6 +180,10 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			n.fixVersion(fixToBambi);
 		}
 		fixSubscriptions(n);
+		for (IConverterCallback cb : postConversionList)
+		{
+			doc = cb.prepareJDFForBambi(doc);
+		}
 		return doc;
 	}
 
@@ -190,7 +209,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	/**
 	 * 
 	 * get the importer for JDFD - may be overwritten to set parameters
-	 * @return
+	 * @return the xjdf to jdf converter
 	 */
 	protected XJDFToJDFConverter getXJDFImporter()
 	{
@@ -267,7 +286,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 * @see org.cip4.bambi.core.IConverterCallback#prepareJMFForBambi(org.cip4.jdflib.core.JDFDoc)
 	 * @param doc the JMF Doc
 	 */
-	public JDFDoc prepareJMFForBambi(final JDFDoc doc)
+	public JDFDoc prepareJMFForBambi(JDFDoc doc)
 	{
 		if (doc == null)
 		{
@@ -277,6 +296,10 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		if (fixToBambi != null)
 		{
 			jmf.fixVersion(fixToBambi);
+		}
+		for (IConverterCallback cb : postConversionList)
+		{
+			doc = cb.prepareJMFForBambi(doc);
 		}
 		return doc;
 	}
@@ -303,6 +326,10 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 				doc = exportXJDF(doc);
 			}
 		}
+		for (IConverterCallback cb : postConversionList)
+		{
+			doc = cb.updateJDFForExtern(doc);
+		}
 		return doc;
 	}
 
@@ -310,7 +337,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 * @see org.cip4.bambi.core.IConverterCallback#updateJMFForExtern(org.cip4.jdflib.core.JDFDoc)
 	 * @param doc the JMF doc
 	 */
-	public JDFDoc updateJMFForExtern(final JDFDoc doc)
+	public JDFDoc updateJMFForExtern(JDFDoc doc)
 	{
 		if (doc == null)
 		{
@@ -320,6 +347,10 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		if (fixToExtern != null)
 		{
 			jmf.fixVersion(fixToExtern);
+		}
+		for (IConverterCallback cb : postConversionList)
+		{
+			doc = cb.updateJMFForExtern(doc);
 		}
 		return doc;
 	}

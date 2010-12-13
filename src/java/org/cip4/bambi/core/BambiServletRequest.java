@@ -96,8 +96,10 @@ import org.cip4.jdflib.util.UrlUtil;
 /**
  * buffered servlet request class
  * @author prosirai
+ * @deprecated replaced by {@link ContainerRequest}
  */
 @SuppressWarnings("unchecked")
+@Deprecated
 class BambiServletRequest extends BambiLogFactory implements HttpServletRequest
 {
 	private final HttpServletRequest parent;

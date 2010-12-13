@@ -256,6 +256,14 @@ public class ProxyProperties extends MultiDeviceProperties
 		}
 
 		/**
+		 * @see org.cip4.bambi.proxy.IProxyProperties#getMaxSlaveRunning()
+		 */
+		public int getMaxSlaveRunning()
+		{
+			return StringUtil.parseInt(getDeviceAttribute("MaxSlaveRunning"), 999);
+		}
+
+		/**
 		 * @param push the max number of jobs to push to the slave device
 		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveURL(java.lang.String)
 		 */
@@ -322,6 +330,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		{
 			devRoot.setAttribute("SlaveDeviceID", newSlaveID, null);
 		}
+
 	}
 
 	/**

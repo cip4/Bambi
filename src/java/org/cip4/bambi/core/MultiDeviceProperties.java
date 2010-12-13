@@ -589,7 +589,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 
 		if (root == null || doc == null)
 		{
-			log.fatal("failed to parse " + configFile + ", rootDev is null");
+			log.fatal("failed to parse " + configFile + " at " + FileUtil.getFileInDirectory(baseDir, configFile).getAbsolutePath() + ", rootDev is null");
 		}
 		else
 		{

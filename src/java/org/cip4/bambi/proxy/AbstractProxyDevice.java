@@ -825,6 +825,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		final IProxyProperties proxyProperties = getProxyProperties();
 		_slaveCallback = proxyProperties.getSlaveCallBackClass();
 		waitingSubscribers = new HashMap<String, SlaveSubscriber>();
+		mySubscriptions = new SubscriptionMap();
 		prepareSlaveHotfolders(proxyProperties);
 
 		super.init();
@@ -832,7 +833,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		_jmfHandler.setFilterOnDeviceID(false);
 		_theSignalDispatcher.setIgnoreURL(getDeviceURLForSlave());
 		// ensure existence of vector prior to filling
-		mySubscriptions = new SubscriptionMap();
 		_theQueueProcessor.getQueue().resumeQueue(); // proxy queues should start up by default
 		addSlaveSubscriptions(8888, null, false);
 	}
@@ -1538,4 +1538,5 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		deviceURL = StringUtil.replaceString(deviceURL, "jmf", "data");
 		return deviceURL + ((queueEntryID == null) ? "" : "/" + queueEntryID);
 	}
+
 }

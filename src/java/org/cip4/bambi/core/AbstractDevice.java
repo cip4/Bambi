@@ -282,7 +282,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final KElement deviceRoot = getRoot();
 			setXSLTURL(getXSLT(request));
 
-			deviceRoot.setAttribute(AttributeName.CONTEXT, "/" + request.getContextRoot());
+			deviceRoot.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
 			final boolean bModify = request.getBooleanParam("modify");
 			deviceRoot.setAttribute("modify", bModify, null);
 			deviceRoot.setAttribute("NumRequests", numRequests, null);
@@ -864,7 +864,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public String getXSLT(final ContainerRequest request)
 	{
 		final String command = request.getContext();
-		final String contextPath = request.getContextRoot();
 		String s = "/showDevice.xsl";
 		if ("showQueue".equalsIgnoreCase(command) || "modifyQE".equalsIgnoreCase(command))
 		{
@@ -886,6 +885,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				s = "/xjdf.xsl";
 			}
 		}
+		final String contextPath = request.getContextRoot();
 		if (contextPath != null)
 		{
 			s = getXSLTBaseFromContext(contextPath) + s;
@@ -899,8 +899,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected final String getXSLTBaseFromContext(final String contextPath)
 	{
-		final String s2 = "/" + StringUtil.token(contextPath, 0, "/");
-		return s2;
+		return "/" + StringUtil.token(contextPath, 0, "/");
 	}
 
 	/**

@@ -296,8 +296,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		/**
 		 * 
-		 * @param slaveqeID
-		 * @return
+		 * @param slaveqeID the qeID in the slave system
+		 * @return the local queueentry
 		 */
 		protected JDFQueueEntry getQEFromSlaveQEID(final String slaveqeID)
 		{
@@ -318,13 +318,26 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			niMap.clear();
 			niNull.clear();
 		}
+
+		/**
+		 * remove a slave qe from the map
+		 * @param qe
+		 */
+		protected void removeEntry(JDFQueueEntry qe)
+		{
+			final String slaveqeID = BambiNSExtension.getSlaveQueueEntryID(qe);
+			if (slaveqeID != null)
+			{
+				qeIDMap.remove(slaveqeID);
+			}
+		}
 	}
 
 	/**
 	 * 
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
 	 * 
-	 * Jul 6, 2009
+	 * July 6, 2009
 	 */
 	protected class CanExecuteCallBack extends ExecuteCallback
 	{
@@ -368,7 +381,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		/**
 		 * @see java.lang.Object#clone()
-		 * @return
+		 * @return my clone...
 		 */
 		@Override
 		protected CanExecuteCallBack clone()
@@ -1042,7 +1055,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		/**
 		 * @param request
-		 * @return
+		 * @return the xmlresponse to the get request
 		 * 
 		 */
 		public XMLResponse handleGet(final ContainerRequest request)
@@ -1072,7 +1085,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			if (request.getBooleanParam("quiet") == false)
 			{
 				root = sortOutput(sortBy, filter);
-				root.setAttribute(AttributeName.CONTEXT, "/" + request.getContextRoot());
+				root.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
 				final QERetrieval qer = _parentDevice.getProperties().getQERetrieval();
 				root.setAttribute("Pull", qer == QERetrieval.PULL || qer == QERetrieval.BOTH, null);
 				if (_theQueue.numChildElements(ElementName.QUEUEENTRY, null) < 500)
@@ -1334,7 +1347,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 * @param m
 		 * @param resp
-		 * @return
+		 * @return true if handled
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -1660,10 +1673,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 * get a qe by nodeidentifier only waiting entries that have not been forwarded to a lower level device are taken into account
+	 * get a qe by nodeidentifier only waiting or suspended entries that have not been forwarded to a lower level device are taken into account
 	 * 
 	 * @param nodeID the JDFNode.NodeIdentifier
-	 * @return
+	 * @return the waiting entry, null if none is waiting
 	 */
 	public IQueueEntry getWaitingQueueEntry(final NodeIdentifier nodeID)
 	{
@@ -1675,7 +1688,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			for (int i = 0; i < siz; i++)
 			{
 				final JDFQueueEntry qe = (JDFQueueEntry) vQE.get(i);
-				if (EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && KElement.isWildCard(BambiNSExtension.getDeviceURL(qe)))
+				boolean waiting = EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) || EnumQueueEntryStatus.Suspended.equals(qe.getQueueEntryStatus());
+				if (waiting && KElement.isWildCard(BambiNSExtension.getDeviceURL(qe)))
 				{
 					return getIQueueEntry(qe);
 					// try next
@@ -1689,7 +1703,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * get the next queue entry only waiting entries that have not been forwarded to a lower level device are taken into account
 	 * @param deviceID
 	 * @param canPush
-	 * @return
+	 * @return the next queue entry
 	 */
 	public IQueueEntry getNextEntry(final String deviceID, final QERetrieval canPush)
 	{
@@ -2048,11 +2062,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				{
 					qe.removeAttribute(AttributeName.STARTTIME);
 					qe.removeAttribute(AttributeName.ENDTIME);
-					// qe.removeAttribute(AttributeName.DEVICEID);
-					// BambiNSExtension.setDeviceURL(qe, null);
+					qe.removeAttribute(AttributeName.DEVICEID);
+					BambiNSExtension.setDeviceURL(qe, null);
 					qe.setQueueEntryStatus(status);
 				}
-				else if (status.equals(EnumQueueEntryStatus.Aborted) || status.equals(EnumQueueEntryStatus.Completed))
+				else if (status.equals(EnumQueueEntryStatus.Aborted) || status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Suspended))
 				{
 					qe.removeAttribute(AttributeName.DEVICEID);
 					BambiNSExtension.setDeviceURL(qe, null);
@@ -2116,7 +2130,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * @param refID
-	 * @return
+	 * @return the last queue that was shown
 	 */
 	JDFQueue getLastQueue(final String refID)
 	{
@@ -2380,8 +2394,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * @param request
-	 * @param response
-	 * @return
+	 * @return the xml response
 	 */
 	public XMLResponse handleGet(final ContainerRequest request)
 	{
@@ -2402,7 +2415,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	/**
 	 * @param m
 	 * @param resp
-	 * @return
+	 * @return true if successfully aborted
 	 */
 	protected boolean abortQueueEntry(final JDFMessage m, final JDFResponse resp)
 	{
@@ -2482,11 +2495,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	public void updateCache(final JDFQueueEntry qe, final String slaveQEID)
 	{
-		if (slaveQEID != null)
-		{
-			BambiNSExtension.setSlaveQueueEntryID(qe, slaveQEID);
+		if (slaveQEID == null)
+			queueMap.removeEntry(qe);
+		else
 			queueMap.addEntry(qe, false);
-		}
+		BambiNSExtension.setSlaveQueueEntryID(qe, slaveQEID);
 	}
 
 	/**
