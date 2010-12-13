@@ -2,7 +2,7 @@ BODY  {
 	margin-top: 0px;
 	background-color : white;
 	font-family : Geneva, Arial, Helvetica, sans-serif;
-	background-image: url(/gif/v3_bg_white.jpg);
+	background-image: url(/css/v3_bg_white.jpg);
 	background-repeat: no-repeat;
 	/* Hier werden die Hintergrundfarbe  und die Schriftart des gesamten Dokumentes definiert */ 
 }
@@ -316,7 +316,7 @@ black
  background-color:inherit;
 }
 
-.CM_top-high { /* Hauptmenueüberschrift */
+.CM_top-high { /* Hauptmenueï¿½berschrift */
  border: 0px solid #eeeeee;
   vertical-align: middle; 
  color: #000000;

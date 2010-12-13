@@ -138,6 +138,10 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		{
 			createPackLayoutGT();
 		}
+		else if (enumGTType.PACKAGING_CAD.equals(gt))
+		{
+			createPackCADGT();
+		}
 		else if (enumGTType.PACKAGING_SHAPEDEF.equals(gt))
 		{
 			createPackShapeDefGT();
@@ -177,6 +181,15 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 * 
 	 */
 	protected void createPackLayoutGT()
+	{
+		_theGT = new PackagingGoldenTicket(1, null, 1, 2, null);
+		_theGT.addSheet("Sheet1");
+	}
+
+	/**
+	 * 
+	 */
+	protected void createPackCADGT()
 	{
 		_theGT = new PackagingGoldenTicket(1, null, 1, 2, null);
 		_theGT.addSheet("Sheet1");
@@ -233,7 +246,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 
 	protected enum enumGTType
 	{
-		MISCP, MISPRE, IDP, MISFIN_STITCH, MISFIN_FOLD, PACKAGING_LAYOUT, PACKAGING_SHAPEDEF,
+		MISCP, MISPRE, IDP, MISFIN_STITCH, MISFIN_FOLD, PACKAGING_LAYOUT, PACKAGING_SHAPEDEF, PACKAGING_CAD
 	}
 
 	protected enumGTType gt = null;

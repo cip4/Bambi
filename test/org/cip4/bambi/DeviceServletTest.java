@@ -98,6 +98,7 @@ import org.cip4.jdflib.resource.process.JDFRunList;
 import org.cip4.jdflib.resource.process.prepress.JDFColorSpaceConversionParams;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlPart;
 import org.cip4.jdflib.util.UrlUtil;
 
 public class DeviceServletTest extends BambiTestCase
@@ -140,9 +141,9 @@ public class DeviceServletTest extends BambiTestCase
 		HttpURLConnection uc = MimeUtil.writeToURL(m, getWorkerURL());
 		MimeUtil.writeToFile(m, sm_dirTestDataTemp + "testMime.mjm", null);
 		assertEquals(uc.getResponseCode(), 200);
-		UrlUtil.UrlPart[] parts = UrlUtil.getURLParts(uc);
+		UrlPart[] parts = UrlUtil.getURLParts(uc);
 		assertEquals(parts.length, 1);
-		InputStream is = parts[0].inStream;
+		InputStream is = parts[0].getResponseStream();
 		JDFDoc docResp = new JDFParser().parseStream(is);
 		assertNotNull(docResp);
 		JDFJMF jmf2 = docResp.getJMFRoot();
