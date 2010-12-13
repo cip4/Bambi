@@ -83,14 +83,14 @@ import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement;
-import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
@@ -333,19 +333,28 @@ public class BambiContainer extends BambiLogFactory
 		final EnumVersion version = props.getJDFVersion();
 		JDFElement.setDefaultJDFVersion(version);
 		final VElement v = props.getDevices();
-		final boolean needController = v.size() > 1;
-		for (KElement nextDevice : v)
+		if (v == null || v.size() == 0)
 		{
-			log.info("Creating Device " + nextDevice.getAttribute("DeviceID"));
-			final IDeviceProperties prop = props.createDeviceProps(nextDevice);
-			final AbstractDevice d = createDevice(prop, needController);
-			created = created || d != null;
-			if (d != null && dump != null)
+			log.fatal("no devices found " + props);
+			System.out.println("no devices found " + props);
+		}
+		else
+		{
+			final boolean needController = v.size() > 1;
+			for (KElement nextDevice : v)
 			{
-				final String senderID = d.getDeviceID();
-				final DumpDir dumpSendIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inMessage." + senderID)));
-				final DumpDir dumpSendOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outMessage." + senderID)));
-				MessageSender.addDumps(senderID, dumpSendIn, dumpSendOut);
+				System.out.println("Creating Device " + nextDevice.getAttribute("DeviceID"));
+				log.info("Creating Device " + nextDevice.getAttribute("DeviceID"));
+				final IDeviceProperties prop = props.createDeviceProps(nextDevice);
+				final AbstractDevice d = createDevice(prop, needController);
+				created = created || d != null;
+				if (d != null && dump != null)
+				{
+					final String senderID = d.getDeviceID();
+					final DumpDir dumpSendIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inMessage." + senderID)));
+					final DumpDir dumpSendOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outMessage." + senderID)));
+					MessageSender.addDumps(senderID, dumpSendIn, dumpSendOut);
+				}
 			}
 		}
 		return created;

@@ -90,7 +90,6 @@
 		<copy overwrite="true" todir="${war.dir}/lib" flatten="true">
 				<fileset dir="${lib.dir}">
 					<include name="**/*.jar" />
-					<exclude name="servlet*.jar" />
 					<exclude name="junit*.jar" />
 					<exclude name="jsf*.jar" />
 					<exclude name="richf*.jar" />
@@ -98,10 +97,9 @@
 					<exclude name="standard*.jar" />
 					<exclude name="castor*.jar" />
 					<exclude name="el-api.jar" />
-					<exclude name="jsp-api.jar" />
 				</fileset>
 				<fileset dir="${dist.dir}">
-					<include name="${base.filename}.jar" />
+					<include name="${major.filename}.jar" />
 				</fileset>
 			</copy>
 		<copy overwrite="true" todir="${war.dir}/bin" flatten="true">
@@ -183,12 +181,11 @@
 		</zip>
 	</target>
 	<target name="windist-compile" depends="exe" description="This target is only need if the EXE file needs to be recompiled.">
-		<property name="win.dist.bin.dir" value="${dist.dir}/${base.filename}-win" />
 		<echo>Loading JSmooth Ant tasks. Make sure you have jsmoothgen-ant.jar (http://jsmooth.sourceforge.net) installed in ANT_HOME/lib</echo>
 		<taskdef name="jsmoothgen" classname="net.charabia.jsmoothgen.ant.JSmoothGen" />
-		<copy file="${src.dir}/bin/windows/Bambi.jsmooth" todir="${win.dist.bin.dir}" />
-		<jsmoothgen project="${win.dist.bin.dir}/JDFEditor.jsmooth" skeletonroot="${src.dir}/bin/windows/skeletons" />
-		<delete file="${win.dist.bin.dir}/Bambi.jsmooth" />
+		<copy file="${src.dir}/bin/windows/Bambi.jsmooth" todir="${war.dir}" />
+		<jsmoothgen project="${war.dir}/Bambi.jsmooth" skeletonroot="${src.dir}/bin/windows/skeletons" />
+		<delete file="${war.dir}/Bambi.jsmooth" />
 	</target>
 	<!-- For special app bundle on the Mac -->
 	<target name="appledist" depends="exe" description="Assembles stand alone Macintosh Bundle. Must build on a Mac (>= 10.2).">

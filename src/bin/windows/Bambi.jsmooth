@@ -6,34 +6,34 @@
 <JVMSearchPath>jdkpath</JVMSearchPath>
 <JVMSearchPath>exepath</JVMSearchPath>
 <JVMSearchPath>jview</JVMSearchPath>
-			<classpath>lib/activation-1.0.2.jar</classpath>
-			<classpath>lib/commons-lang-2.3.jar</classpath>
-			<classpath>lib/commons-io-1.2.jar</classpath>
-			<classpath>lib/JDFLibJ-2.1.4a.jar</classpath>
-			<classpath>lib/log4j-1.2.8.jar</classpath>
-			<classpath>lib/mailapi.jar</classpath>
-			<classpath>lib/xercesImpl.jar</classpath>
-			<classpath>lib/xml-apis.jar</classpath>
-			<classpath>lib/jetty-continuation-7.2.0.v20101020.jar</classpath>
-			<classpath>lib/jetty-http-7.2.0.v20101020.jar</classpath>
-			<classpath>lib/jetty-io-7.2.0.v20101020.jar</classpath>
-			<classpath>lib/jetty-security-7.2.0.v20101020.jar</classpath>
-			<classpath>lib/jetty-server-7.2.0.v20101020.jar</classpath>
-			<classpath>lib/jetty-servlet-7.2.0.v20101020.jar</classpath>
-			<classpath>lib/jetty-servlets-7.2.0.v20101020.jar</classpath>
-			<classpath>lib/jetty-util-7.2.0.v20101020.jar</classpath>
-			<classpath>lib/BambiCore.jar</classpath>
-			<classpath>lib/commons-fileupload-1.2.jar</classpath>
-			<classpath>lib/commons-logging.jar</classpath>
-			<classpath>lib/servlet-api.jar</classpath>
-			<classpath>lib/jsp-api.jar</classpath>
-			<classpath>lib/SimWorker.jar</classpath>
-			<classpath>classes</classpath>
+<classPath>lib\activation-1.0.2.jar</classPath>
+<classPath>lib\commons-lang-2.3.jar</classPath>
+<classPath>lib\commons-io-1.2.jar</classPath>
+<classPath>lib\JDFLibJ-2.1.4a.jar</classPath>
+<classPath>lib\log4j-1.2.8.jar</classPath>
+<classPath>lib\mailapi.jar</classPath>
+<classPath>lib\xercesImpl.jar</classPath>
+<classPath>lib\xml-apis.jar</classPath>
+<classPath>lib\jetty-continuation-7.2.0.v20101020.jar</classPath>
+<classPath>lib\jetty-http-7.2.0.v20101020.jar</classPath>
+<classPath>lib\jetty-io-7.2.0.v20101020.jar</classPath>
+<classPath>lib\jetty-security-7.2.0.v20101020.jar</classPath>
+<classPath>lib\jetty-server-7.2.0.v20101020.jar</classPath>
+<classPath>lib\jetty-servlet-7.2.0.v20101020.jar</classPath>
+<classPath>lib\jetty-servlets-7.2.0.v20101020.jar</classPath>
+<classPath>lib\jetty-util-7.2.0.v20101020.jar</classPath>
+<classPath>lib\BambiCore.jar</classPath>
+<classPath>lib\commons-fileupload-1.2.jar</classPath>
+<classPath>lib\commons-logging.jar</classPath>
+<classPath>lib\servlet-api.jar</classPath>
+<classPath>lib\jsp-api.jar</classPath>
+<classPath>lib\SimWorker.jar</classPath>
+<classPath>classes</classPath>
 <embeddedJar>false</embeddedJar>
-<executableName>JDF Editor.exe</executableName>
-<iconLocation>..\..\src\bin\windows\icons\JDFEditor.png</iconLocation>
+<executableName>Bambi.exe</executableName>
+<iconLocation>..\..\..\src\bin\windows\icons\Bambi.png</iconLocation>
 <initialMemoryHeap>-1</initialMemoryHeap>
-<mainClassName>org.cip4.jdfeditor.Editor</mainClassName>
+<mainClassName>org.cip4.bambi.server.BambiServer</mainClassName>
 <maximumMemoryHeap>-1</maximumMemoryHeap>
 <maximumVersion></maximumVersion>
 <minimumVersion>1.5</minimumVersion>

@@ -71,6 +71,7 @@ package org.cip4.bambi.server;
 import java.io.File;
 import java.net.MalformedURLException;
 
+import org.apache.log4j.BasicConfigurator;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.BambiServlet;
 import org.eclipse.jetty.server.Server;
@@ -93,6 +94,7 @@ public class BambiServer extends BambiLogFactory
 	public BambiServer()
 	{
 		super();
+		BasicConfigurator.configure();
 	}
 
 	/**
