@@ -15,6 +15,9 @@
 		<property name="src.dir" value="./src" />
 		<property name="workerscore.src.dir" value="${src.dir}/java/org/cip4/bambi/workers" />
 		<property name="sim.src.dir" value="${workerscore.src.dir}/sim" />
+
+		<property name="server.src.dir" value="${src.dir}/java/org/cip4/bambi/server" />
+
 		<property name="web.src.dir" value="./WebContent/workers/sim" />
 		<property name="webcore.src.dir" value="./WebContent/core" />
 		<property name="web.config.dir" value="${web.src.dir}/config" />
@@ -25,6 +28,7 @@
 		<property name="build.debug" value="true" />
 		<property name="base.filename" value="${SimWorker.name}-${DSTAMP}" />
 		<property name="major.filename" value="${SimWorker.name}" />		
+
 
 		<property name="verbose" value="true" />
 		<!-- Sets class path -->
@@ -42,13 +46,20 @@
 		<echo>Compiling...</echo>
 		<javac destdir="${bin.dir}" debug="${build.debug}">
 			<src path="${sim.src.dir}" />
+			<src path="${server.src.dir}" />
 			<classpath refid="project.class.path" />
 			<include name="**/*.java" />
 		</javac>
 	</target>
 	<target name="jar" depends="compile" description="Bundles source code into a JAR file.">
 		<echo>Building JAR file...</echo>
-		<jar jarfile="${dist.dir}/${base.filename}.jar" basedir="${bin.dir}" />
+		<jar jarfile="${dist.dir}/${base.filename}.jar" basedir="${bin.dir}">
+			<manifest>
+					<attribute name="Main-Class" value="org.cip4.bambi.server.BambiServer" />
+					<attribute name="Bundle-Name" value="Bambi ${major.version}.${minor.version}.${build.number}" />
+					<attribute name="Bundle-Vendor" value="CIP4" />
+				</manifest>
+</jar>
 	</target>
 	<target name="major_jar" depends="jar" description="Builds a JAR archive containing the SimWorker binaries.">
 		<echo>Copying JAR file: ${dist.dir}/${major.filename}.jar</echo>
@@ -85,7 +96,6 @@
 		<copy overwrite="true" todir="${war.dir}/WEB-INF/lib" flatten="true">
 			<fileset dir="${lib.dir}">
 				<include name="**/*.jar" />
-				<exclude name="servlet*.jar" />
 				<exclude name="junit*.jar" />
 				<exclude name="jsf*.jar" />
 				<exclude name="jetty*.jar" />
@@ -95,6 +105,7 @@
 				<exclude name="castor*.jar" />
 				<exclude name="el-api.jar" />
 				<exclude name="jsp-api.jar" />
+				<exclude name="servlet*.jar" />
 			</fileset>
 			<fileset dir="${dist.dir}">
 				<include name="${base.filename}.jar" />
@@ -116,6 +127,87 @@
 		<!-- Builds compressed WAR file -->
 		<jar basedir="${war.dir}" destfile="${dist.dir}/${SimWorker.name}.war" filesonly="false"/>
 	</target>
+	
+	<target name="exe" depends="war" description="Builds exe folder">
+		<!-- Builds exploded WAR file -->
+		<property name="exe.dir" value="${dist.dir}/${major.filename}-exe" />
+		<delete dir="${exe.dir}" />
+
+		<copy todir="${exe.dir}" >
+		<fileset dir="${war.dir}">
+			<include name="**/*" />
+		</fileset>
+		</copy>
+		
+		<move tofile="${exe.dir}/lib" file="${war.dir}/WEB-INF/lib"/>
+		<move tofile="${exe.dir}/lib/${major.filename}.jar" file="${exe.dir}/lib/${base.filename}.jar"/>
+		<delete dir="${exe.dir}/WEB-INF" />
+		
+		<copy overwrite="true" todir="${exe.dir}/lib" flatten="true">
+			<fileset dir="${lib.dir}">
+				<include name="jetty*.jar" />
+				<include name="jsp-api.jar" />
+				<include name="servlet*.jar" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!-- For special app bundle on the Mac -->
+	<target name="appledist" depends="exe" description="Assembles stand alone Macintosh Bundle. Must build on a Mac (>= 10.2).">
+		<echo>Building Mac OS X application bundle...</echo>
+		<echo>Loading JarBundler Ant tasks. Make sure you have installed http://informagen.com/JarBundler/ in ANT_HOME/lib</echo>
+		<echo>if you get  an error such as:
+			java.lang.NoClassDefFoundError: org/apache/xml/serialize/OutputFormat
+			you should add 'xercesimpl.jar' and 'xml-apis.jar' in ANT_HOME/lib.
+			If running from eclipse - also add it to the list of ant jars in window/preferences//ant/runtime//ClassPath/Ant home entries
+		</echo>	
+		<taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler" />
+		<property name="mac.dist.bin.dir" value="${dist.dir}/${base.filename}-mac" />
+		<mkdir dir="${mac.dist.bin.dir}" />
+		<jarbundler dir="${dist.dir}" 
+			name="Bambi" 
+			mainclass="org.cip4.bambi.server.BambiServer" 
+			bundleid="org.cip4.bambi.server.BambiServer" 
+			jvmversion="1.5+" 
+			shortname="Bambi" 
+			infostring="Bambi Standalone simulator" signature="Bamb" 
+			version="${major.version}.${minor.version}.${build.number}" 
+			icon="${src.dir}/bin/macosx/icons/Bambi.icns" 
+			vmoptions="-Xmx512m" 
+			workingdirectory="$JAVAROOT/.."
+			stubfile="${src.dir}/bin/macosx/JavaApplicationStub">
+			<jarfileset dir="${exe.dir}/lib">
+				<include name="*.jar" />
+			</jarfileset>
+			<resourcefileset dir="${exe.dir}">
+				<include name="*.*" />
+				<include name="css/*" />
+				<include name="config/*" />
+			</resourcefileset>
+	
+			<javaproperty name="apple.laf.useScreenMenuBar" value="true" />
+		</jarbundler>
+		<zip destfile="${dist.dir}/${base.filename}-mac.zip">
+			<zipfileset dir="${dist.dir}/Bambi.app" prefix="Bambi.app/" />
+			<zipfileset dir="${dist.dir}/Bambi.app" includes="Contents/MacOS/JavaApplicationStub" filemode="755" prefix="Bambi.app" />
+		</zip>
+	</target>
+
+	<target name="dmgappledist" depends="appledist" description="Creates Disk Image for Apple Dist. Must build on a Mac (>= 10.2)." if="isMacOs">
+		<echo>
+		this ONLY works from a mac - in case you get errors on windows: duh
+		</echo>	
+		<delete file="${dist.dir}/JDF Editor.dmg"/>
+		<echo>Package appledist</echo>
+		<exec executable="hdiutil" spawn="false">
+			<arg value="create" />
+			<arg value="-srcfolder" />
+			<arg value="${dist.dir}/Bambi.app" />
+			<arg value="-volname" />
+			<arg value="Bambi" />
+			<arg value="${dist.dir}/Bambi.dmg" />
+		</exec>
+	</target>	
 		<target name="-tomcat-init" depends="-init">
 		<echo>Initializing optional targets for deploying directly into Tomcat...</echo>
 		<!-- Tomcat tasks -->
@@ -194,4 +286,18 @@
 			</delete>
 			<echo>Tests reports can be found in: ${test.reports.dir}</echo>
 		</target>
+ 		<target name="windist" depends="exe">
+		<copy file="${src.dir}/bin/windows/Bambi.exe" todir="${exe.dir}" />
+		<zip destfile="${base.filename}.zip">
+			<zipfileset dir="${exe.dir}" prefix="${dist.dir}" />
+		</zip>
+	</target>
+	<target name="windist-compile" depends="windist" description="This target is only need if the EXE file needs to be recompiled.">
+		<echo>Loading JSmooth Ant tasks. Make sure you have jsmoothgen-ant.jar (http://jsmooth.sourceforge.net) installed in ANT_HOME/lib</echo>
+		<taskdef name="jsmoothgen" classname="net.charabia.jsmoothgen.ant.JSmoothGen" />
+		<copy file="${src.dir}/bin/windows/Bambi.jsmooth" todir="${exe.dir}" />
+		<jsmoothgen project="${exe.dir}/Bambi.jsmooth" skeletonroot="${src.dir}/bin/windows/skeletons" />
+		<delete file="${exe.dir}/Bambi.jsmooth" />
+	</target>
+
 </project>
