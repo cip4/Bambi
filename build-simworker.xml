@@ -236,7 +236,7 @@
 
 	<!-- windows exe -->
 	<target name="windist" depends="exe">
-		<copy file="${src.dir}/bin/windows/Bambi.exe" todir="${exe.dir}" />
+		<copy file="${src.dir}/exe/windows/Bambi.exe" todir="${exe.dir}" />
 		<zip destfile="${base.filename}.zip">
 			<zipfileset dir="${exe.dir}" prefix="${dist.dir}" />
 		</zip>
@@ -244,8 +244,8 @@
 	<target name="windist-compile" depends="windist" description="This target is only need if the EXE file needs to be recompiled.">
 		<echo>Loading JSmooth Ant tasks. Make sure you have jsmoothgen-ant.jar (http://jsmooth.sourceforge.net) installed in ANT_HOME/lib</echo>
 		<taskdef name="jsmoothgen" classname="net.charabia.jsmoothgen.ant.JSmoothGen" />
-		<copy file="${src.dir}/bin/windows/Bambi.jsmooth" todir="${exe.dir}" />
-		<jsmoothgen project="${exe.dir}/Bambi.jsmooth" skeletonroot="${src.dir}/bin/windows/skeletons" />
+		<copy file="${src.dir}/exe/windows/Bambi.jsmooth" todir="${exe.dir}" />
+		<jsmoothgen project="${exe.dir}/Bambi.jsmooth" skeletonroot="${src.dir}/exe/windows/skeletons" />
 		<delete file="${exe.dir}/Bambi.jsmooth" />
 	</target>
 
@@ -259,8 +259,6 @@
 			If running from eclipse - also add it to the list of ant jars in window/preferences//ant/runtime//ClassPath/Ant home entries
 		</echo>
 		<taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler" />
-		<property name="mac.dist.bin.dir" value="${dist.dir}/${base.filename}-mac" />
-		<mkdir dir="${mac.dist.bin.dir}" />
 		<jarbundler dir="${dist.dir}" 
 			name="Bambi" 
 			mainclass="org.cip4.bambi.server.BambiServer" 
@@ -269,10 +267,10 @@
 			shortname="Bambi" 
 			infostring="Bambi Standalone simulator" signature="Bamb" 
 			version="${major.version}.${minor.version}.${build.number}" 
-			icon="${src.dir}/bin/macosx/icons/Bambi.icns" 
+			icon="${src.dir}/exe/macosx/icons/Bambi.icns" 
 			vmoptions="-Xmx512m" 
 			workingdirectory="$JAVAROOT/.."
-			stubfile="${src.dir}/bin/macosx/JavaApplicationStub">
+			stubfile="${src.dir}/exe/macosx/JavaApplicationStub">
 			<jarfileset dir="${exe.dir}/lib">
 				<include name="*.jar" />
 			</jarfileset>
