@@ -68,7 +68,6 @@ package org.cip4.bambi.server;
  *  
  * 
  */
-import java.io.File;
 import java.net.MalformedURLException;
 
 import org.apache.log4j.BasicConfigurator;
@@ -105,8 +104,6 @@ public class BambiServer extends BambiLogFactory
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		File f = new File(".");
-		//throw new IllegalArgumentException(f.getAbsolutePath());
 		new BambiServer().runServer(getPort());
 	}
 
