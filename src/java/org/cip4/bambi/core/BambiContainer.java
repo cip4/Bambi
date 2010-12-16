@@ -73,7 +73,6 @@ package org.cip4.bambi.core;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -83,14 +82,14 @@ import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
-import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
@@ -244,31 +243,23 @@ public class BambiContainer extends BambiLogFactory
 	}
 
 	/**
-	 * loads properties and instantiate the devices
+	 * loads properties and instantiates the devices
 	 * @param baseDir 
 	 * @param context the servlet context information
 	 * @param config the name of the Java config xml file
 	 * @param dump the file where to dump debug requests
-	 * @param propName 
+	 * @param propName - deprecated use the attribute "PropertiesName" in the properties file
 	 * @return 
 	 */
 	public boolean loadProperties(final File baseDir, final String context, final File config, final String dump, String propName)
 	{
-		final MultiDeviceProperties props;
 		if (propName == null)
 			propName = "org.cip4.bambi.core.MultiDeviceProperties";
 
-		try
-		{
-			final Class<?> c = Class.forName(propName);
-			final Constructor<?> con = c.getConstructor(new Class[] { File.class, String.class, File.class });
-			props = (MultiDeviceProperties) con.newInstance(new Object[] { baseDir, context, config });
-		}
-		catch (final Exception x)
-		{
-			log.fatal("Cannot instantiate Device properties: " + propName, x);
-			return false;
-		}
+		MultiDeviceProperties props = new MultiDeviceProperties(baseDir, context, config);
+		if (propName != null)
+			props.getRoot().setAttribute("c", propName);
+		props = props.getSubClass();
 		return createDevices(props, dump);
 	}
 

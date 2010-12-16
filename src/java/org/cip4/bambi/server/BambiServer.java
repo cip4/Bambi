@@ -68,11 +68,15 @@ package org.cip4.bambi.server;
  *  
  * 
  */
+import java.io.File;
 import java.net.MalformedURLException;
 
 import org.apache.log4j.BasicConfigurator;
+import org.cip4.bambi.core.BambiException;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.BambiServlet;
+import org.cip4.bambi.core.MultiDeviceProperties;
+import org.cip4.jdflib.core.KElement;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
@@ -85,15 +89,37 @@ import org.eclipse.jetty.util.resource.Resource;
  * @author rainer prosi
  * @date Dec 9, 2010
  */
-public class BambiServer extends BambiLogFactory
+public final class BambiServer extends BambiLogFactory
 {
+
+	private final int port;
+	private String context;
+
 	/**
-	 * 
+	 * @throws BambiException if config file is not readable
 	 */
-	public BambiServer()
+	public BambiServer() throws BambiException
 	{
 		super();
 		BasicConfigurator.configure();
+		MultiDeviceProperties mp = new MultiDeviceProperties(new File("."), null, new File("config/devices.xml"));
+		KElement root = mp.getRoot();
+		if (root == null)
+		{
+			String logString = "cannot find config file at :" + new File("config/devices.xml").getAbsolutePath();
+			log.fatal(logString);
+			throw new BambiException(logString);
+		}
+		port = root.getIntAttribute("Port", null, 8080);
+		context = root.getAttribute("Context", null, null);
+		if (context == null)
+		{
+			String logString = "no context specified for servlet, bailing out";
+			log.fatal(logString);
+			throw new BambiException(logString);
+		}
+		if (!context.startsWith("/"))
+			context = "/" + context;
 	}
 
 	/**
@@ -104,22 +130,16 @@ public class BambiServer extends BambiLogFactory
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		new BambiServer().runServer(getPort());
-	}
-
-	protected static int getPort()
-	{
-		return 8080;
+		new BambiServer().runServer();
 	}
 
 	/**
 	 * 
 	 * the doing routine to run a jetty server
-	 * @param port the port to run on
 	 * @throws Exception
 	 * @throws InterruptedException
 	 */
-	public final void runServer(int port) throws Exception, InterruptedException
+	public final void runServer() throws Exception, InterruptedException
 	{
 		Server server = new Server(port);
 
@@ -164,38 +184,19 @@ public class BambiServer extends BambiLogFactory
 
 	protected ResourceHandler createResourceHandler()
 	{
-		ResourceHandler resourceHandler = new MyResourceHandler(getContext());
+		ResourceHandler resourceHandler = new MyResourceHandler(context);
 		resourceHandler.setResourceBase(".");
 		return resourceHandler;
 	}
 
-	/**
-	 * 
-	 * get the base context that this server should run in
-	 * @return
-	 */
-	protected String getContext()
-	{
-		return "/bambi";
-	}
-
 	protected ServletContextHandler createServletHandler()
 	{
-		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		context.setContextPath(getContext());
-		context.setWelcomeFiles(new String[] { "index.jsp" });
-		BambiServlet myServlet = getMyServlet();
-		context.addServlet(new ServletHolder(myServlet), "/*");
-		return context;
+		ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		contextHandler.setContextPath(context);
+		contextHandler.setWelcomeFiles(new String[] { "index.jsp" });
+		BambiServlet myServlet = new BambiServlet();
+		contextHandler.addServlet(new ServletHolder(myServlet), "/*");
+		return contextHandler;
 	}
 
-	/**
-	 * 
-	 * overwrite this with your favorite servlet if needed
-	 * @return the servlet to run in jetty
-	 */
-	protected BambiServlet getMyServlet()
-	{
-		return new BambiServlet();
-	}
 }

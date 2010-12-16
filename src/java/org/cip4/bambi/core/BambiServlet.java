@@ -100,9 +100,9 @@ import org.cip4.jdflib.util.UrlUtil;
  * Entrance point for Bambi servlets
  * note that most processing has been moved to the servlet independent class @see BambiContainer
  * @author boegerni
- * 
+ * 101216 RP - made final - only the respective devices should be subclassed
  */
-public class BambiServlet extends HttpServlet
+public final class BambiServlet extends HttpServlet
 {
 	/**
 	 * 
@@ -151,7 +151,6 @@ public class BambiServlet extends HttpServlet
 		if (realPath == null)
 			realPath = ".";
 		final File baseDir = new File(realPath);
-		String absP = baseDir.getAbsolutePath();
 		String baseURL = null;
 		try
 		{
@@ -167,10 +166,12 @@ public class BambiServlet extends HttpServlet
 
 	/**
 	 * @return
+	 * @deprecated - setPropertiesName in the config file
 	 */
+	@Deprecated
 	protected String getPropsName()
 	{
-		return "org.cip4.bambi.core.MultiDeviceProperties";
+		return null;
 	}
 
 	private String initializeDumps(final ServletConfig config)

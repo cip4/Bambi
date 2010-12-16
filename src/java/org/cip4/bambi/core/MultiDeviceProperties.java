@@ -559,6 +559,32 @@ public class MultiDeviceProperties extends BambiLogFactory
 	}
 
 	/**
+	 * gets a subclass of this based on the value of application/@PropertiesName
+	 * 
+	 * @return the subclass instance, null if @PropertiesName is not set
+	 */
+	MultiDeviceProperties getSubClass()
+	{
+		String propName = root.getAttribute("PropertiesName", null, null);
+		if (propName == null)
+			return this;
+		try
+		{
+			final Class<?> c = Class.forName(propName);
+			final Constructor<?> con = c.getConstructor(new Class[] { File.class, String.class });
+			MultiDeviceProperties subClass = (MultiDeviceProperties) con.newInstance(new Object[] { baseDir, context });
+			subClass.root = root;
+			return subClass;
+		}
+		catch (final Exception x)
+		{
+			log.error("Cannot instantiate Device properties: " + propName, x);
+			return this;
+		}
+
+	}
+
+	/**
 	 * create device properties for the devices defined in the config file
 	 * @param baseDir 
 	 * @param baseURL 
