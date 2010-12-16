@@ -8,31 +8,33 @@
 		<!-- Sets properties -->
 		<tstamp/>
 
-		<property name="ant.build.javac.target" value="1.5" />
-
+<!-- start modify area -->
 		<property name="exe.name" value="SimWorker" />
 		<property name="exe.dir" value="simworker" />
+		<property name="web.src.dir" value="./WebContent/workers/sim" />
 
 		<property name="src.dir" value="./src" />
 		<property name="bambilib.dir" value="${src.dir}/lib" />
 		
 		<property name="dist.dir" value="./dist/${exe.dir}" />
-		<property name="exe.dist.dir" value="${dist.dir}/${exe.name}-exe" />		
-		<property name="base.filename" value="${exe.name}-${DSTAMP}" />
-		<property file="version.properties"/>
 		<property name="workerscore.src.dir" value="${src.dir}/java/org/cip4/bambi/workers" />
-		<property name="sim.src.dir" value="${workerscore.src.dir}/sim" />
+		<property name="exe.src.dir" value="${workerscore.src.dir}/sim" />
 		<property name="server.src.dir" value="${src.dir}/java/org/cip4/bambi/server" />
-		<property name="build.debug" value="true" />
-
-		<property name="web.src.dir" value="./WebContent/workers/sim" />
 		<property name="webcore.src.dir" value="./WebContent/core" />
+<!-- end modify area -->
+		
+		<property name="exe.dist.dir" value="${dist.dir}/${exe.name}-exe" />		
+		<property name="build.debug" value="true" />
+		<property file="version.properties"/>
+		<property name="base.filename" value="${exe.name}-${DSTAMP}" />
+
 		<property name="web.config.dir" value="${web.src.dir}/config" />
 		<property name="test.src.dir" value="./test" />
 		<property name="lib.dir" value="${src.dir}/lib" />
 		<property name="bin.dir" value="./bin/${exe.dir}" />
-
 		<property name="verbose" value="true" />
+		<property name="ant.build.javac.target" value="1.5" />
+		
 		<!-- Sets class path -->
 		<path id="project.class.path">
 			<pathelement path="${java.class.path}" />
@@ -48,7 +50,7 @@
 	<target name="compile" depends="-init" description="Compiles source code.">
 		<echo>Compiling...</echo>
 		<javac destdir="${bin.dir}" debug="${build.debug}">
-			<src path="${sim.src.dir}" />
+			<src path="${exe.src.dir}" />
 			<src path="${server.src.dir}" />
 			<classpath refid="project.class.path" />
 			<include name="**/*.java" />
