@@ -120,6 +120,7 @@ public final class BambiServer extends BambiLogFactory
 		}
 		if (!context.startsWith("/"))
 			context = "/" + context;
+		log.info("starting BambiServer at context: " + context + " port: " + port);
 	}
 
 	/**
