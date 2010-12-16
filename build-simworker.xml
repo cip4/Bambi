@@ -67,7 +67,7 @@
 	</target>
 	<target name="major_jar" depends="jar" description="Builds a JAR archive containing the SimWorker binaries.">
 		<echo>Copying JAR file: ${dist.dir}/${exe.name}.jar</echo>
-		<copy file="${dist.dir}/${base.filename}.jar" tofile="${dist.dir}/${exe.name}.jar"/>
+		<copy file="${dist.dir}/${base.filename}.jar" tofile="${dist.dir}/${exe.name}.jar" overwrite="true"/>
 	</target>
 
 	<target name="clean" depends="-init" description="Cleans the build.">
@@ -76,7 +76,7 @@
 		<delete dir="${dist.dir}" />
 	</target>
 
-	<target name="war" depends="jar" description="Builds web application.">
+	<target name="war" depends="major_jar" description="Builds web application.">
 		<echo>Building Bambi...</echo>
 		<buildnumber />
 		<echo>Build number: ${build.number}</echo>
@@ -113,7 +113,7 @@
 				<exclude name="servlet*.jar" />
 			</fileset>
 			<fileset dir="${dist.dir}">
-				<include name="${base.filename}.jar" />
+				<include name="${exe.name}.jar" />
 			</fileset>
 		</copy>
 		<!-- Update build number and timestamp in xsl stylesheets -->
@@ -219,14 +219,15 @@
 		<!-- Builds exploded WAR file -->
 		<delete dir="${exe.dist.dir}" />
 
-		<copy todir="${exe.dist.dir}" >
+		<copy todir="${exe.dist.dir}" overwrite="true">
 			<fileset dir="${war.dir}">
-				<include name="**/*" />
-			</fileset>
-		</copy>
+					<include name="**/*" />
+				</fileset>
+			</copy>
 
 		<move tofile="${exe.dist.dir}/lib" file="${war.dir}/WEB-INF/lib"/>
-		<move tofile="${exe.dist.dir}/lib/${exe.name}.jar" file="${exe.dist.dir}/lib/${base.filename}.jar"/>
+		<!-- this way we can reuse the jsmooth files etc. -->
+		<move tofile="${exe.dist.dir}/lib/Bambi.jar" file="${exe.dist.dir}/lib/${exe.name}.jar"/>
 		<delete dir="${exe.dist.dir}/WEB-INF" />
 
 		<copy overwrite="true" todir="${exe.dist.dir}/lib" flatten="true">
@@ -236,25 +237,31 @@
 				<include name="servlet*.jar" />
 			</fileset>
 		</copy>
+		<copy file="${src.dir}/exe/Bambi.bat" toFile="${exe.dist.dir}/${exe.name}.bat" />
+		<copy file="${src.dir}/exe/Bambi.sh" toFile="${exe.dist.dir}/${exe.name}.sh" />
 	</target>
 
 	<!-- windows exe -->
 	<target name="windist" depends="exe">
-		<copy file="${src.dir}/exe/windows/Bambi.exe" toFile="${exe.dist.dir}/${exe.name}.exe" />
+		<copy overwrite="true" file="${src.dir}/exe/windows/Bambi.exe" toFile="${exe.dist.dir}/${exe.name}.exe" />
 		<zip destfile="${base.filename}.zip">
 			<zipfileset dir="${exe.dist.dir}" prefix="${dist.dir}" />
 		</zip>
 	</target>
-	<target name="windist-compile" depends="windist" description="This target is only need if the EXE file needs to be recompiled.">
+	<target name="windist-compile" depends="-init" description="This target is only need if the EXE file needs to be recompiled.">
 		<echo>Loading JSmooth Ant tasks. Make sure you have jsmoothgen-ant.jar (http://jsmooth.sourceforge.net) installed in ANT_HOME/lib</echo>
 		<taskdef name="jsmoothgen" classname="net.charabia.jsmoothgen.ant.JSmoothGen" />
+		<jsmoothgen project="${src.dir}/exe/windows/Bambi.jsmooth" skeletonroot="${src.dir}/exe/windows/skeletons" />
+		<!--
 		<copy file="${src.dir}/exe/windows/Bambi.jsmooth" todir="${exe.dist.dir}" />
 		<jsmoothgen project="${exe.dist.dir}/Bambi.jsmooth" skeletonroot="${src.dir}/exe/windows/skeletons" />
-		<copy file="${exe.dist.dir}/Bambi.exe" tofile="${exe.dist.dir}/Bambi"/>
+		<delete file="${exe.dist.dir}/Bambi.jsmooth" />
+
+		<copy overwrite="true" file="${exe.dist.dir}/Bambi.exe" tofile="${src.dir}/exe/windows/Bambi.exe"/>
+		
 		<delete file="${exe.dist.dir}/${exe.name}.exe" />
 		<move tofile="${exe.dist.dir}/${exe.name}.exe" file="${exe.dist.dir}/Bambi.exe"/>
-		
-		<delete file="${exe.dist.dir}/Bambi.jsmooth" />
+		-->
 	</target>
 
 	<!-- For special app bundle on the Mac -->
