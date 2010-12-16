@@ -27,11 +27,11 @@
 <classPath>lib\commons-logging.jar</classPath>
 <classPath>lib\servlet-api.jar</classPath>
 <classPath>lib\jsp-api.jar</classPath>
-<classPath>lib\SimWorker.jar</classPath>
+<classPath>lib\Bambi.jar</classPath>
 <classPath>classes</classPath>
 <embeddedJar>false</embeddedJar>
 <executableName>Bambi.exe</executableName>
-<iconLocation>..\..\..\src\exe\windows\icons\Bambi.png</iconLocation>
+<iconLocation>icons\Bambi.png</iconLocation>
 <initialMemoryHeap>-1</initialMemoryHeap>
 <mainClassName>org.cip4.bambi.server.BambiServer</mainClassName>
 <maximumMemoryHeap>-1</maximumMemoryHeap>
