@@ -12,13 +12,14 @@
 
 		<property name="exe.name" value="SimWorker" />
 		<property name="exe.dir" value="simworker" />
+
+		<property name="src.dir" value="./src" />
 		<property name="bambilib.dir" value="${src.dir}/lib" />
 		
 		<property name="dist.dir" value="./dist/${exe.dir}" />
 		<property name="exe.dist.dir" value="${dist.dir}/${exe.name}-exe" />		
 		<property name="base.filename" value="${exe.name}-${DSTAMP}" />
 		<property file="version.properties"/>
-		<property name="src.dir" value="./src" />
 		<property name="workerscore.src.dir" value="${src.dir}/java/org/cip4/bambi/workers" />
 		<property name="sim.src.dir" value="${workerscore.src.dir}/sim" />
 		<property name="server.src.dir" value="${src.dir}/java/org/cip4/bambi/server" />
@@ -239,7 +240,7 @@
 
 	<!-- windows exe -->
 	<target name="windist" depends="exe">
-		<copy file="${src.dir}/exe/windows/Bambi.exe" toFile="${exe.dist.dir}/${base.filename}.exe" />
+		<copy file="${src.dir}/exe/windows/Bambi.exe" toFile="${exe.dist.dir}/${exe.name}.exe" />
 		<zip destfile="${base.filename}.zip">
 			<zipfileset dir="${exe.dist.dir}" prefix="${dist.dir}" />
 		</zip>
@@ -249,6 +250,10 @@
 		<taskdef name="jsmoothgen" classname="net.charabia.jsmoothgen.ant.JSmoothGen" />
 		<copy file="${src.dir}/exe/windows/Bambi.jsmooth" todir="${exe.dist.dir}" />
 		<jsmoothgen project="${exe.dist.dir}/Bambi.jsmooth" skeletonroot="${src.dir}/exe/windows/skeletons" />
+		<copy file="${exe.dist.dir}/Bambi.exe" tofile="${exe.dist.dir}/Bambi"/>
+		<delete file="${exe.dist.dir}/${exe.name}.exe" />
+		<move tofile="${exe.dist.dir}/${exe.name}.exe" file="${exe.dist.dir}/Bambi.exe"/>
+		
 		<delete file="${exe.dist.dir}/Bambi.jsmooth" />
 	</target>
 
