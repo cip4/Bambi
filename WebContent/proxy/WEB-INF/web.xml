@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app id="BambiProxy" version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
+<web-app id="BambiProxy" version="2.4"
+	xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
 	http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
 	<description>Bambi Proxy</description>
 	<display-name>Bambi Proxy</display-name>
-	<distributable/>
+	<distributable />
 	<!-- enable debugging -->
 	<context-param>
 		<param-name>debug</param-name>
@@ -11,26 +13,26 @@
 	</context-param>
 	<servlet>
 		<servlet-name>Proxy</servlet-name>
-		<servlet-class>org.cip4.bambi.proxy.ProxyServlet</servlet-class>
-			<init-param>
-					<param-name>bambiDump</param-name>
-					<param-value>/var/bambi/dump/proxy</param-value>
-				</init-param>
+		<servlet-class>org.cip4.bambi.core.BambiServlet</servlet-class>
+		<init-param>
+			<param-name>bambiDump</param-name>
+			<param-value>/var/bambi/dump/proxy</param-value>
+		</init-param>
 		<load-on-startup>10</load-on-startup>
 	</servlet>
-		<servlet-mapping>
+	<servlet-mapping>
 		<servlet-name>Proxy</servlet-name>
 		<url-pattern>/overview/*</url-pattern>
 	</servlet-mapping>
-		<servlet-mapping>
+	<servlet-mapping>
 		<servlet-name>Proxy</servlet-name>
 		<url-pattern>/jmf/*</url-pattern>
 	</servlet-mapping>
-    <servlet-mapping>
+	<servlet-mapping>
 		<servlet-name>Proxy</servlet-name>
 		<url-pattern>/slavejmf/*</url-pattern>
 	</servlet-mapping>
-   <servlet-mapping>
+	<servlet-mapping>
 		<servlet-name>Proxy</servlet-name>
 		<url-pattern>/data/*</url-pattern>
 	</servlet-mapping>
@@ -38,10 +40,10 @@
 		<servlet-name>Proxy</servlet-name>
 		<url-pattern>/showDevice/*</url-pattern>
 	</servlet-mapping>
-		<servlet-mapping>
-			<servlet-name>Proxy</servlet-name>
-			<url-pattern>/showSubscriptions/*</url-pattern>
-		</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Proxy</servlet-name>
+		<url-pattern>/showSubscriptions/*</url-pattern>
+	</servlet-mapping>
 
 	<servlet-mapping>
 		<!-- entrance point for manipulating QueueEntries -->
@@ -68,11 +70,11 @@
 		<welcome-file>/index.jsp</welcome-file>
 	</welcome-file-list>
 	<error-page>
-    	<exception-type>java.lang.Throwable</exception-type>
-    	<location>/exception.jsp</location>
-  	</error-page>
-  	<error-page>
-    	<error-code>500</error-code>
-    	<location>/exception.jsp</location>
-  	</error-page>
+		<exception-type>java.lang.Throwable</exception-type>
+		<location>/exception.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>500</error-code>
+		<location>/exception.jsp</location>
+	</error-page>
 </web-app>

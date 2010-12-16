@@ -33,11 +33,16 @@
 BaseDir="/var/bambi/console/" 
 SenderID="ConsoleDevice" 
 Port="8080" 
+Context="console"
 CallBackName="org.cip4.bambi.extensions.ExtensionCallback" 
 WatchURL="http://localhost:8080/httpdump/WatchURL/console">
   <Device DeviceID="ConsoleRoot" DeviceType="Bambi Console Device Root"/>
-  <Device DeviceID="console001" DeviceType="Bambi Console HotFolder Device 001" DeviceClass="org.cip4.bambi.workers.console.ConsoleDevice" TrackResource="Component:Output"
-    InputHF="C:/BambiHF/console001/Input" OutputHF="C:/BambiHF/console001/Output" ErrorHF="C:/BambiHF/console001/Error"/>
+  <Device DeviceID="console001" DeviceType="Bambi Console HotFolder Device 001" 
+  DeviceClass="org.cip4.bambi.workers.console.ConsoleDevice" 
+  TrackResource="Component:Output"
+    InputHF="C:/BambiHF/console001/Input" 
+    OutputHF="C:/BambiHF/console001/Output" 
+    ErrorHF="C:/BambiHF/console001/Error"/>
  
  
 </application>
