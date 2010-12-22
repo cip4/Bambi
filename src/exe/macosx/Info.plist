@@ -26,7 +26,7 @@
 		<array>
 			<string>../lib/activation-1.0.2.jar</string>
 			<string>../lib/commons-lang-2.3.jar</string>
-			<string>../lib/commons-io-1.2.jar</string>
+			<string>../lib/commons-io-2.0.jar</string>
 			<string>../lib/JDFLibJ-2.1.4a.jar</string>
 			<string>../lib/log4j-1.2.8.jar</string>
 			<string>../lib/mailapi.jar</string>
@@ -45,7 +45,7 @@
 			<string>../lib/commons-logging.jar</string>
 			<string>../lib/servlet-api.jar</string>
 			<string>../lib/jsp-api.jar</string>
-			<string>../lib/SimWorker.jar</string>
+			<string>../lib/Bambi.jar</string>
 			<string>../classes</string>
 		</array>
 		<key>Properties</key>

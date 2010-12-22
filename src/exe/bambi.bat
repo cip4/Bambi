@@ -21,7 +21,7 @@ goto end
 @SET CLASSPATH=%CLASSPATH%%LIB_DIR%/activation-1.0.2.jar;
 @SET CLASSPATH=%CLASSPATH%%LIB_DIR%/commons-lang-2.3.jar;
 @SET CLASSPATH=%CLASSPATH%%LIB_DIR%/commons-logging-1.0.4.jar;
-@SET CLASSPATH=%CLASSPATH%%LIB_DIR%/commons-io-1.2.jar;
+@SET CLASSPATH=%CLASSPATH%%LIB_DIR%/commons-io-2.0.jar;
 @SET CLASSPATH=%CLASSPATH%%LIB_DIR%/log4j-1.2.8.jar;
 @SET CLASSPATH=%CLASSPATH%%LIB_DIR%/mailapi.jar;
 @SET CLASSPATH=%CLASSPATH%%LIB_DIR%/xercesImpl.jar;
