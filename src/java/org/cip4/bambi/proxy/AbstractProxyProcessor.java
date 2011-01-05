@@ -73,6 +73,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Map;
 
 import javax.mail.Multipart;
 
@@ -82,7 +83,9 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.MessageResponseHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntry;
+import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.auto.JDFAutoQueueFilter.EnumQueueEntryDetails;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -91,12 +94,14 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.jmf.JDFQueueFilter;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFResubmissionParams;
@@ -108,6 +113,7 @@ import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * also used for resubmitqueueentry
@@ -117,105 +123,6 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 {
-	protected class QueueResubmitter
-	{
-		final private String slaveQEID;
-		final private String myQEID;
-		final private JDFNode jdf;
-
-		/**
-		 * @param _jdf the jdf node to resubmit
-		 * @param slaveID the queueentryid in the context of the slave
-		 * @param localqeID the queueentryid in the context of bambi
-		 */
-		public QueueResubmitter(final JDFNode _jdf, final String slaveID, final String localqeID)
-		{
-			this.jdf = _jdf;
-			slaveQEID = slaveID;
-			myQEID = localqeID;
-		}
-
-		/**
-		 * @return int the return / error code, 0 if success
-		 */
-		public int resubmit()
-		{
-			final AbstractProxyDevice device = getParent();
-
-			final IProxyProperties proxyProperties = device.getProxyProperties();
-			final String slaveURL = proxyProperties.getSlaveURL();
-			if (slaveURL == null)
-			{
-				return 106; // already running if only hot folder; ciao
-			}
-			final MIMEDetails ud = new MIMEDetails();
-			ud.httpDetails.chunkSize = proxyProperties.getSlaveHTTPChunk();
-			ud.transferEncoding = proxyProperties.getSlaveMIMEEncoding();
-			final boolean expandMime = proxyProperties.getSlaveMIMEExpansion();
-			final boolean isMime = proxyProperties.isSlaveMimePackaging();
-
-			final JMFBuilder b = getBuilderForSlave();
-			final JDFJMF jmf = b.buildResubmitQueueEntry(slaveQEID, null);
-			final JDFResubmissionParams rsp = jmf.getCommand(0).getResubmissionParams(0);
-			// required in case we convert e.g. to JDF2.0
-			KElement modNode = jdf;
-			if (slaveCallBack != null)
-			{
-				if (isMime)
-				{
-					final JDFDoc d = slaveCallBack.updateJDFForExtern(new JDFDoc(jdf.getOwnerDocument()));
-					modNode = d.getRoot();
-				}
-				slaveCallBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
-			}
-
-			if (isMime)
-			{
-				rsp.setURL("dummy"); // replaced by mimeutil
-			}
-			else
-			// setup http get for JDF
-			{
-				String jdfURL = device.getDeviceURL();
-				jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/" + AbstractProxyDevice.SLAVEJMF + "/");
-				modNode.getOwnerDocument_KElement().write2File((String) null, 0, true);
-				jdfURL += "?Callback=true&qeID=" + myQEID;
-				rsp.setURL(jdfURL);
-			}
-			if (modNode != null)
-			{
-				try
-				{
-
-					final JDFMessage r = writeToQueue(jmf.getOwnerDocument_JDFElement(), modNode.getOwnerDocument_KElement(), slaveURL, ud, expandMime, isMime);
-					if (r != null)
-					{
-						if (!EnumType.ResubmitQueueEntry.equals(r.getEnumType())) // total snafu???
-						{
-							return 1;
-						}
-						else
-						{
-							rc = r.getReturnCode();
-							return rc;
-						}
-					}
-					else
-					{
-						getLog().error("resubmit- no response at: " + slaveURL);
-						return 1;
-					}
-				}
-				catch (final IOException x)
-				{
-					getLog().error("resubmit - IOEXception at: ", x);
-					modNode = null;
-				}
-			}
-			return 1;
-		}
-	}
-
 	protected class SubmitQueueEntryResponseHandler extends MessageResponseHandler
 	{
 
@@ -300,53 +207,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		return builder;
 	}
 
-	protected JDFMessage writeToQueue(final JDFDoc docJMF, final XMLDoc docJDF, final String strUrl, final MIMEDetails urlDet, final boolean expandMime, final boolean isMime) throws IOException
-	{
-		log.debug("submitting to queue, url=" + strUrl);
-		if (strUrl == null)
-		{
-			log.error("writeToQueue: attempting to write to null url");
-			return null;
-		}
-		final JDFCommand c = docJMF.getJMFRoot().getCommand(0);
-		final SubmitQueueEntryResponseHandler sqh = new SubmitQueueEntryResponseHandler(c.getID());
-		if (isMime)
-		{
-			log.info("submitting MIME JMF, ID=" + c.getID());
-			final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, expandMime);
-			_parent.getJMFFactory().send2URL(mp, strUrl, sqh, slaveCallBack, urlDet, _parent.getDeviceID());
-		}
-		else
-		{
-			log.info("submitting RAW JMF, ID=" + c.getID());
-			getParent().sendJMFToSlave(docJMF.getJMFRoot(), sqh);
-		}
-		sqh.waitHandled(10000, 30000, false);
-		final JDFMessage handlerResponse = handleQueueAcknowledge(sqh);
-		if (handlerResponse == null)
-		{
-			log.warn("submission timeout sending to " + strUrl);
-			final JDFJMF respJMF = c.createResponse();
-			final JDFResponse r = respJMF.getResponse(0);
-			final HttpURLConnection connection = sqh.getConnection();
-			if (connection == null)
-			{
-				r.setErrorText("Invalid http connection", null);
-			}
-			else
-			{
-				final int responseCode = connection.getResponseCode();
-				final String errorText = "Invalid http response - RC=" + responseCode;
-				log.warn(errorText);
-				r.setErrorText(errorText, null);
-			}
-			r.setReturnCode(3); // TODO correct rcs
-			return r;
-		}
-
-		return handlerResponse;
-	}
-
 	/**
 	 * @param sqh
 	 * @return
@@ -407,89 +267,360 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		return (AbstractProxyDevice) _parent;
 	}
 
-	/**
-	 * @param qurl
-	 * @param deviceOutputHF
-	 * @param ud
-	 * @param expandMime
-	 * @param isMime
-	 * @return the updated queueEntry, null if the submit failed
-	 */
-	protected IQueueEntry submitToQueue(final URL qurl, final File deviceOutputHF, final MIMEDetails ud, final boolean expandMime, final boolean isMime)
+	protected class QueueSubmitter
 	{
-		log.info("Submitting " + (isMime ? "mime" : "jdf") + " qe " + currentQE.getQueueEntryID() + " " + (qurl == null ? "null url" : qurl.toExternalForm()));
-		final AbstractProxyDevice proxyParent = getParent();
-		final String deviceURLForSlave = proxyParent.getDeviceURLForSlave();
-		final JDFJMF jmf = getBuilderForSlave().buildSubmitQueueEntry(deviceURLForSlave);
-
-		final JDFCommand com = (JDFCommand) jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command, null, 0);
-		final JDFQueueSubmissionParams qsp = com.getCreateQueueSubmissionParams(0);
-
-		// fix for returning
-
-		prepareQSP(qsp, deviceOutputHF);
-
-		final JDFNode node = getCloneJDFForSlave(); // the retained internal node
-		log.debug("get clone: " + (node == null ? "null" : node.getJobID(false)));
-		KElement modNode = node; // the external node
-		if (slaveCallBack != null)
+		protected class QueueResubmitter
 		{
-			if (isMime)
+			final private String slaveQEID;
+			final private String myQEID;
+			final private JDFNode jdf;
+
+			/**
+			 * @param _jdf the jdf node to resubmit
+			 * @param slaveID the queueentryid in the context of the slave
+			 * @param localqeID the queueentryid in the context of bambi
+			 */
+			public QueueResubmitter(final JDFNode _jdf, final String slaveID, final String localqeID)
 			{
-				log.debug("calling slave callback for mime submission");
-				final JDFDoc d = slaveCallBack.updateJDFForExtern(new JDFDoc(node.getOwnerDocument()));
-				modNode = d.getRoot();
+				this.jdf = _jdf;
+				slaveQEID = slaveID;
+				myQEID = localqeID;
 			}
-			log.debug("calling slave callback for jmf submission");
-			slaveCallBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+
+			/**
+			 * @return int the return / error code, 0 if success
+			 */
+			public int resubmit()
+			{
+				final AbstractProxyDevice device = getParent();
+
+				final IProxyProperties proxyProperties = device.getProxyProperties();
+				final String slaveURL = proxyProperties.getSlaveURL();
+				if (slaveURL == null)
+				{
+					return 106; // already running if only hot folder; ciao
+				}
+
+				final JMFBuilder b = getBuilderForSlave();
+				final JDFJMF jmf = b.buildResubmitQueueEntry(slaveQEID, null);
+				final JDFResubmissionParams rsp = jmf.getCommand(0).getResubmissionParams(0);
+				// required in case we convert e.g. to JDF2.0
+				KElement modNode = jdf;
+				if (slaveCallBack != null)
+				{
+					if (isMime)
+					{
+						final JDFDoc d = slaveCallBack.updateJDFForExtern(new JDFDoc(jdf.getOwnerDocument()));
+						modNode = d.getRoot();
+					}
+					slaveCallBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+				}
+
+				if (isMime)
+				{
+					rsp.setURL("dummy"); // replaced by mimeutil
+				}
+				else
+				// setup http get for JDF
+				{
+					String jdfURL = device.getDeviceURL();
+					jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/" + AbstractProxyDevice.SLAVEJMF + "/");
+					modNode.getOwnerDocument_KElement().write2File((String) null, 0, true);
+					jdfURL += "?Callback=true&qeID=" + myQEID;
+					rsp.setURL(jdfURL);
+				}
+				if (modNode != null)
+				{
+					try
+					{
+
+						final JDFMessage r = writeToQueue(jmf.getOwnerDocument_JDFElement(), modNode.getOwnerDocument_KElement());
+						if (r != null)
+						{
+							if (!EnumType.ResubmitQueueEntry.equals(r.getEnumType())) // total snafu???
+							{
+								return 1;
+							}
+							else
+							{
+								rc = r.getReturnCode();
+								return rc;
+							}
+						}
+						else
+						{
+							getLog().error("resubmit- no response at: " + slaveURL);
+							return 1;
+						}
+					}
+					catch (final IOException x)
+					{
+						getLog().error("resubmit - IOEXception at: ", x);
+						modNode = null;
+					}
+				}
+				return 1;
+			}
 		}
 
-		setJDFURL(isMime, qsp, modNode);
-		final JDFQueueEntry qe = currentQE.getQueueEntry();
-
-		if (modNode != null)
+		public void setQurl(URL qurl)
 		{
-			try
+			this.qurl = qurl;
+		}
+
+		public void setMime(boolean isMime)
+		{
+			this.isMime = isMime;
+		}
+
+		public void setExpandMime(boolean expandMime)
+		{
+			this.expandMime = expandMime;
+		}
+
+		public void setUd(MIMEDetails ud)
+		{
+			this.ud = ud;
+		}
+
+		public void setDeviceOutputHF(File deviceOutputHF)
+		{
+			this.deviceOutputHF = deviceOutputHF;
+		}
+
+		private URL qurl;
+		private boolean isMime;
+		private boolean expandMime;
+		private MIMEDetails ud;
+		private File deviceOutputHF;
+
+		/**
+		 * @param url
+		*/
+		public QueueSubmitter(String url)
+		{
+			this.qurl = UrlUtil.stringToURL(url);
+			final IProxyProperties proxyProperties = getParent().getProxyProperties();
+			this.deviceOutputHF = proxyProperties.getSlaveOutputHF();
+			this.ud = new MIMEDetails();
+			ud.httpDetails.chunkSize = proxyProperties.getSlaveHTTPChunk();
+			ud.transferEncoding = proxyProperties.getSlaveMIMEEncoding();
+			this.expandMime = proxyProperties.getSlaveMIMEExpansion();
+			this.isMime = proxyProperties.isSlaveMimePackaging();
+			ud.modifyBoundarySemicolon = !proxyProperties.getSlaveMIMESemicolon();
+		}
+
+		/**
+		 * @param qurl
+		 * @param deviceOutputHF
+		 * @param ud
+		 * @param expandMime
+		 * @param isMime
+		 * @return the updated queueEntry, null if the submit failed
+		 */
+		public IQueueEntry submitToQueue()
+		{
+			log.info("Submitting " + (isMime ? "mime" : "jdf") + " qe " + currentQE.getQueueEntryID() + " " + (qurl == null ? "null url" : qurl.toExternalForm()));
+			final AbstractProxyDevice proxyParent = getParent();
+			final String deviceURLForSlave = proxyParent.getDeviceURLForSlave();
+			final JDFJMF jmf = getBuilderForSlave().buildSubmitQueueEntry(deviceURLForSlave);
+
+			final JDFCommand com = (JDFCommand) jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command, null, 0);
+			final JDFQueueSubmissionParams qsp = com.getCreateQueueSubmissionParams(0);
+
+			prepareQueueFilterforSubmit(com);
+			// fix for returning
+
+			prepareQSP(qsp, deviceOutputHF);
+
+			final JDFNode node = getCloneJDFForSlave(); // the retained internal node
+			log.debug("get clone: " + (node == null ? "null" : node.getJobID(false)));
+			KElement modNode = node; // the external node
+			if (slaveCallBack != null)
 			{
-				final String urlString = qurl == null ? null : qurl.toExternalForm();
-				final JDFMessage r = writeToQueue(jmf.getOwnerDocument_JDFElement(), modNode.getOwnerDocument_KElement(), urlString, ud, expandMime, isMime);
-				if (isLive()) // only evaluate response for live submission - who cares what is happening informative
+				if (isMime)
 				{
-					processSubmitResponse(qe, urlString, r);
+					log.debug("calling slave callback for mime submission");
+					final JDFDoc d = slaveCallBack.updateJDFForExtern(new JDFDoc(node.getOwnerDocument()));
+					modNode = d.getRoot();
+				}
+				log.debug("calling slave callback for jmf submission");
+				slaveCallBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+			}
+
+			setJDFURL(isMime, qsp, modNode);
+			final JDFQueueEntry qe = currentQE.getQueueEntry();
+
+			if (modNode != null)
+			{
+				try
+				{
+					final String urlString = qurl == null ? null : qurl.toExternalForm();
+					final JDFMessage r = writeToQueue(jmf.getOwnerDocument_JDFElement(), modNode.getOwnerDocument_KElement());
+					if (isLive()) // only evaluate response for live submission - who cares what is happening informative
+					{
+						processSubmitResponse(qe, urlString, r);
+					}
+				}
+				catch (final IOException x)
+				{
+					modNode = null;
 				}
 			}
-			catch (final IOException x)
+			if (modNode == null)
 			{
-				modNode = null;
+				log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
+				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+			}
+			return isLive() ? new QueueEntry(node, qe) : null;
+		}
+
+		/**
+		 * @param com
+		 */
+		private void prepareQueueFilterforSubmit(final JDFCommand com)
+		{
+			JDFQueueFilter qf = com.getCreateQueueFilter(0);
+			qf.setMaxEntries(999);
+			qf.setQueueEntryDetails(EnumQueueEntryDetails.Brief);
+		}
+
+		/**
+		 * 
+		 * copy details from queueentry to queuesubmissionparams
+		 * @param qsp the queuesubmissionparams to fill
+		 * @param deviceOutputHF the device output hot folder, if any
+		 * @return
+		 */
+		protected void prepareQSP(final JDFQueueSubmissionParams qsp, File deviceOutputHF)
+		{
+			if (deviceOutputHF != null)
+			{
+				qsp.setReturnURL(deviceOutputHF.getPath());
+			}
+			final JDFQueueEntry qe = currentQE.getQueueEntry();
+			if (qe != null)
+			{
+				qsp.copyAttribute(AttributeName.PRIORITY, qe);
+				qsp.copyAttribute(AttributeName.GANGNAME, qe);
+				qsp.copyAttribute(AttributeName.DESCRIPTIVENAME, qe);
 			}
 		}
-		if (modNode == null)
-		{
-			log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
-			_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
-		}
-		return isLive() ? new QueueEntry(node, qe) : null;
-	}
 
-	/**
-	 * 
-	 * copy details from queueentry to queuesubmissionparams
-	 * @param qsp the queuesubmissionparams to fill
-	 * @param deviceOutputHF the device output hot folder, if any
-	 * @return
-	 */
-	protected void prepareQSP(final JDFQueueSubmissionParams qsp, File deviceOutputHF)
-	{
-		if (deviceOutputHF != null)
+		protected JDFMessage writeToQueue(final JDFDoc docJMF, final XMLDoc docJDF) throws IOException
 		{
-			qsp.setReturnURL(deviceOutputHF.getPath());
+			log.debug("submitting to queue, url=" + qurl);
+			if (qurl == null)
+			{
+				log.error("writeToQueue: attempting to write to null url");
+				return null;
+			}
+			final JDFCommand c = docJMF.getJMFRoot().getCommand(0);
+			final SubmitQueueEntryResponseHandler sqh = new SubmitQueueEntryResponseHandler(c.getID());
+			if (isMime)
+			{
+				log.info("submitting MIME JMF, ID=" + c.getID());
+				final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, expandMime);
+				_parent.getJMFFactory().send2URL(mp, qurl.toExternalForm(), sqh, slaveCallBack, ud, _parent.getDeviceID());
+			}
+			else
+			{
+				log.info("submitting RAW JMF, ID=" + c.getID());
+				getParent().sendJMFToSlave(docJMF.getJMFRoot(), sqh);
+			}
+			sqh.waitHandled(10000, 30000, false);
+			final JDFMessage handlerResponse = handleQueueAcknowledge(sqh);
+			if (handlerResponse == null)
+			{
+				log.warn("submission timeout sending to " + qurl);
+				final JDFJMF respJMF = c.createResponse();
+				final JDFResponse r = respJMF.getResponse(0);
+				final HttpURLConnection connection = sqh.getConnection();
+				if (connection == null)
+				{
+					r.setErrorText("Invalid http connection", null);
+				}
+				else
+				{
+					final int responseCode = connection.getResponseCode();
+					final String errorText = "Invalid http response - RC=" + responseCode;
+					log.warn(errorText);
+					r.setErrorText(errorText, null);
+				}
+				r.setReturnCode(3); // TODO correct rcs
+				return r;
+			}
+
+			return handlerResponse;
 		}
-		final JDFQueueEntry qe = currentQE.getQueueEntry();
-		if (qe != null)
+
+		private void processSubmitResponse(final JDFQueueEntry qe, final String urlString, final JDFMessage r)
 		{
-			qsp.copyAttribute(AttributeName.PRIORITY, qe);
-			qsp.copyAttribute(AttributeName.GANGNAME, qe);
-			qsp.copyAttribute(AttributeName.DESCRIPTIVENAME, qe);
+			if (r != null)
+			{
+				if (!EnumType.SubmitQueueEntry.equals(r.getEnumType())) // total snafu???
+				{
+					log.error("Device returned rc=" + r.getReturnCode());
+					_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+				}
+				else
+				{
+					rc = r.getReturnCode();
+					if (rc != 0)
+					{
+						log.warn("Device returned rc=" + rc);
+					}
+					notification = (JDFNotification) r.getElement(ElementName.NOTIFICATION);
+					final JDFQueueEntry qeR = r.getQueueEntry(0);
+					if (qeR != null)
+					{
+						submitted(qeR.getQueueEntryID(), qeR.getQueueEntryStatus(), urlString, r.getSenderID());
+					}
+					else
+					{
+						log.error("No QueueEntry in the submitqueuentry response");
+						_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+					}
+				}
+				evaluateResponseQueue(r);
+			}
+			else
+			{
+				log.error("submitToQueue - no response at: " + BambiNSExtension.getDocURL(qe));
+				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+			}
+		}
+
+		/**
+		 * @param r
+		 */
+		private void evaluateResponseQueue(JDFMessage r)
+		{
+			JDFQueue q = r == null ? null : r.getQueue(0);
+			Map<String, JDFQueueEntry> hm = q == null ? null : q.getQueueEntryIDMap();
+			// this may be a bug...
+			if (hm == null || hm.size() == 0)
+				return;
+			JDFAttributeMap map = new JDFAttributeMap(AttributeName.DEVICEID, r.getSenderID());
+			QueueProcessor queueProcessor = _parent.getQueueProcessor();
+			VElement myQueueEntries = queueProcessor.getQueue().getQueueEntryVector(map, null);
+			if (myQueueEntries == null || myQueueEntries.size() == 0)
+				return;
+
+			// find any running entries and revert them to waiting if they are not provided in the queue
+			for (KElement myElm : myQueueEntries)
+			{
+				JDFQueueEntry myQE = (JDFQueueEntry) myElm;
+
+				String slaveQEID = BambiNSExtension.getSlaveQueueEntryID(myQE);
+				JDFQueueEntry deviceEntry = hm.get(slaveQEID);
+				if (deviceEntry == null)
+				{
+					log.warn("reverting missing queue entry: " + myQE.getQueueEntryID());
+					queueProcessor.updateEntry(myQE, EnumQueueEntryStatus.Waiting, null, null);
+				}
+			}
+
 		}
 	}
 
@@ -509,42 +640,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			modNode.getOwnerDocument_KElement().write2File((String) null, 0, true);
 			jdfURL += "?Callback=true&raw=true&activation=" + activation.getName() + "&qeID=" + currentQE.getQueueEntryID();
 			qsp.setURL(jdfURL);
-		}
-	}
-
-	private void processSubmitResponse(final JDFQueueEntry qe, final String urlString, final JDFMessage r)
-	{
-		if (r != null)
-		{
-			if (!EnumType.SubmitQueueEntry.equals(r.getEnumType())) // total snafu???
-			{
-				log.error("Device returned rc=" + r.getReturnCode());
-				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
-			}
-			else
-			{
-				rc = r.getReturnCode();
-				if (rc != 0)
-				{
-					log.warn("Device returned rc=" + rc);
-				}
-				notification = (JDFNotification) r.getElement(ElementName.NOTIFICATION);
-				final JDFQueueEntry qeR = r.getQueueEntry(0);
-				if (qeR != null)
-				{
-					submitted(qeR.getQueueEntryID(), qeR.getQueueEntryStatus(), urlString, r.getSenderID());
-				}
-				else
-				{
-					log.error("No QueueEntry in the submitqueuentry response");
-					_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
-				}
-			}
-		}
-		else
-		{
-			log.error("submitToQueue - no response at: " + BambiNSExtension.getDocURL(qe));
-			_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
 		}
 	}
 
@@ -618,7 +713,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		{
 			return null;
 		}
-		int iRet = new QueueResubmitter(jdf, slaveID, queueEntryID).resubmit();
+		int iRet = new QueueSubmitter(getParent().getProxyProperties().getSlaveURL()).new QueueResubmitter(jdf, slaveID, queueEntryID).resubmit();
 		return iRet == 0 ? new VString(getParent().getDeviceID(), null) : null;
 	}
 

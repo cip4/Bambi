@@ -74,8 +74,6 @@ package org.cip4.bambi.core;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
@@ -146,22 +144,16 @@ public final class BambiServlet extends HttpServlet
 		super.init(config);
 		final ServletContext context = config.getServletContext();
 		final String dump = initializeDumps(config);
-		log.info("Initializing servlet for " + context.getServletContextName());
+		String baseURL = context.getServletContextName();
+		log.info("Initializing servlet for " + baseURL);
+
+		if (baseURL.startsWith("/"))
+			baseURL = baseURL.substring(1);
 		String realPath = context.getRealPath("/");
 		if (realPath == null)
 			realPath = ".";
 		final File baseDir = new File(realPath);
-		String baseURL = null;
-		try
-		{
-			URL resource = context.getResource("/");
-			baseURL = resource == null ? "SimWorker" : StringUtil.token(resource.toExternalForm(), -1, "/");
-		}
-		catch (MalformedURLException x)
-		{
-			log.fatal("illegal context loading servlet: ", x);
-		}
-		theContainer.loadProperties(baseDir, baseURL, new File("config/devices.xml"), dump, getPropsName());
+		theContainer.loadProperties(baseDir, baseURL, new File("config/devices.xml"), dump);
 	}
 
 	/**

@@ -105,7 +105,7 @@ import org.cip4.jdflib.util.mime.MimeReader;
  * note that the get handling routines still assume a servlet context - only the actual JDF / JMF post does not
   * @author Rainer Prosi, Heidelberger Druckmaschinen 
  */
-public class BambiContainer extends BambiLogFactory
+public final class BambiContainer extends BambiLogFactory
 {
 	private AbstractDevice rootDev = null;
 	private static BambiContainer theInstance = null;
@@ -214,7 +214,6 @@ public class BambiContainer extends BambiLogFactory
 				return null;
 			}
 		}
-
 	}
 
 	/**
@@ -248,17 +247,12 @@ public class BambiContainer extends BambiLogFactory
 	 * @param context the servlet context information
 	 * @param config the name of the Java config xml file
 	 * @param dump the file where to dump debug requests
-	 * @param propName - deprecated use the attribute "PropertiesName" in the properties file
 	 * @return 
 	 */
-	public boolean loadProperties(final File baseDir, final String context, final File config, final String dump, String propName)
+	public boolean loadProperties(final File baseDir, final String context, final File config, final String dump)
 	{
-		if (propName == null)
-			propName = "org.cip4.bambi.core.MultiDeviceProperties";
 
 		MultiDeviceProperties props = new MultiDeviceProperties(baseDir, context, config);
-		if (propName != null)
-			props.getRoot().setAttribute("c", propName);
 		props = props.getSubClass();
 		return createDevices(props, dump);
 	}
@@ -334,7 +328,6 @@ public class BambiContainer extends BambiLogFactory
 			final boolean needController = v.size() > 1;
 			for (KElement nextDevice : v)
 			{
-				System.out.println("Creating Device " + nextDevice.getAttribute("DeviceID"));
 				log.info("Creating Device " + nextDevice.getAttribute("DeviceID"));
 				final IDeviceProperties prop = props.createDeviceProps(nextDevice);
 				final AbstractDevice d = createDevice(prop, needController);

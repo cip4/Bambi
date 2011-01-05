@@ -72,7 +72,6 @@
 package org.cip4.bambi.proxy;
 
 import java.io.File;
-import java.net.URL;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.cip4.bambi.core.BambiNSExtension;
@@ -115,7 +114,6 @@ import org.cip4.jdflib.resource.JDFEvent;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
-import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -536,21 +534,11 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	 */
 	public boolean submit(final String slaveURL)
 	{
-		URL qURL = UrlUtil.stringToURL(slaveURL);
 
 		EnumQueueEntryStatus qes = null;
-		if (qURL != null)
+		if (slaveURL != null)
 		{
-			final IProxyProperties proxyProperties = getParent().getProxyProperties();
-			final File deviceOutputHF = proxyProperties.getSlaveOutputHF();
-			final MIMEDetails ud = new MIMEDetails();
-			ud.httpDetails.chunkSize = proxyProperties.getSlaveHTTPChunk();
-			ud.transferEncoding = proxyProperties.getSlaveMIMEEncoding();
-			final boolean expandMime = proxyProperties.getSlaveMIMEExpansion();
-			final boolean isMime = proxyProperties.isSlaveMimePackaging();
-			ud.modifyBoundarySemicolon = !proxyProperties.getSlaveMIMESemicolon();
-
-			final IQueueEntry iqe = submitToQueue(qURL, deviceOutputHF, ud, expandMime, isMime);
+			final IQueueEntry iqe = new QueueSubmitter(slaveURL).submitToQueue();
 			qes = iqe == null ? null : iqe.getQueueEntry().getQueueEntryStatus();
 		}
 		else if (qes == null || EnumQueueEntryStatus.Aborted.equals(qes))

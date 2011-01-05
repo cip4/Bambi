@@ -1140,11 +1140,11 @@ public class ProxyDevice extends AbstractProxyDevice
 					if (pdp == null)
 						pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, new QueueEntry(null, qe));
 
+					log.warn("cleaning up multiple running entries: " + queueEntryID);
 					pdp.finalizeProcessDoc(EnumQueueEntryStatus.Waiting);
 				}
 			}
 		}
-
 	}
 
 	/**
