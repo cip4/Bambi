@@ -45,7 +45,17 @@
 		<mkdir dir="${dist.dir}" />
 	</target>
 
-	<target name="compile" depends="-init" description="Compiles source code.">
+	<target name="prepare" depends="-init">
+	<copy overwrite="true" todir="${lib.dir}" flatten="true">
+		<fileset dir="../JDFLibJ/dist">
+			<include name="JDFLibJ-2.1.4a.jar" />
+		</fileset>
+		<fileset dir="../jdfutility/dist">
+			<include name="JDFUtility-2.1.4a.jar" />
+		</fileset>
+	</copy>
+	</target>
+	<target name="compile" depends="prepare" description="Compiles source code.">
 		<echo>Compiling...</echo>
 		<javac destdir="${bin.dir}" debug="${build.debug}">
 			<src path="${exe.src.dir}" />
@@ -111,6 +121,7 @@
 				<exclude name="el-api.jar" />
 				<exclude name="jsp-api.jar" />
 				<exclude name="servlet*.jar" />
+				<exclude name="jetty*.jar" />
 			</fileset>
 			<fileset dir="${dist.dir}">
 				<include name="${exe.name}.jar" />

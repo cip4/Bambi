@@ -8,6 +8,8 @@
  
 <application 
 Port="8080" 
+JettyPort="44483"
+
 Context="/BambiProxy"
 BaseDir="/bambidata/bambiproxy/" 
 SenderID="ProxyDevice" 
@@ -17,7 +19,6 @@ DeviceClass="org.cip4.bambi.proxy.ProxyDevice">
   
   <Device DeviceID="proxyRoot" 
   DeviceType="Bambi Proxy Root" 
-  DeviceURL="http://localhost:8080/BambiProxy/devices/proxy001"/>
   <Device 
   DeviceID="pullproxy" 
   DeviceType="Bambi Pull Proxy for SimWorker/sim001" 

@@ -660,7 +660,7 @@ public class RootDevice extends AbstractDevice
 	{
 		final String command = request.getContext();
 		String s = null;
-		if ("overview".equalsIgnoreCase(command) || "showDevice".equalsIgnoreCase(command))
+		if ("overview".equalsIgnoreCase(command) || "showDevice".equalsIgnoreCase(command) || command == null)
 		{
 			s = "/deviceList.xsl";
 		}

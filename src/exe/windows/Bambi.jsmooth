@@ -28,13 +28,14 @@
 <classPath>lib\servlet-api.jar</classPath>
 <classPath>lib\jsp-api.jar</classPath>
 <classPath>lib\Bambi.jar</classPath>
+<classPath>lib\JDFUtility-2.1.4a.jar</classPath>
 <classPath>classes</classPath>
 <embeddedJar>false</embeddedJar>
 <executableName>Bambi.exe</executableName>
-<iconLocation>icons\Bambi.png</iconLocation>
+<iconLocation>icons\Bambi.ico</iconLocation>
 <initialMemoryHeap>-1</initialMemoryHeap>
 <mainClassName>org.cip4.bambi.server.BambiServer</mainClassName>
-<maximumMemoryHeap>-1</maximumMemoryHeap>
+<maximumMemoryHeap>444444</maximumMemoryHeap>
 <maximumVersion></maximumVersion>
 <minimumVersion>1.5</minimumVersion>
 <skeletonName>Windowed Wrapper</skeletonName>

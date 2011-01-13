@@ -33,6 +33,7 @@
 BaseDir="/var/bambi/console/" 
 SenderID="ConsoleDevice" 
 Port="8080" 
+JettyPort="44482"
 Context="console"
 CallBackName="org.cip4.bambi.extensions.ExtensionCallback" 
 WatchURL="http://localhost:8080/httpdump/WatchURL/console">

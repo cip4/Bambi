@@ -69,31 +69,23 @@ package org.cip4.bambi.server;
  * 
  */
 import java.io.File;
-import java.net.MalformedURLException;
 
 import org.apache.log4j.BasicConfigurator;
 import org.cip4.bambi.core.BambiException;
-import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.jdflib.core.KElement;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.cip4.jdfutility.server.JettyServer;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.resource.Resource;
 
 /**
  * standalone app for bambi using an embedded jetty server
  * @author rainer prosi
  * @date Dec 9, 2010
  */
-public final class BambiServer extends BambiLogFactory
+public final class BambiServer extends JettyServer
 {
-
-	private final int port;
-	private String context;
 
 	/**
 	 * @throws BambiException if config file is not readable
@@ -110,86 +102,40 @@ public final class BambiServer extends BambiLogFactory
 			log.fatal(logString);
 			throw new BambiException(logString);
 		}
-		port = root.getIntAttribute("Port", null, 8080);
-		context = root.getAttribute("Context", null, null);
-		if (context == null)
+		int iport = getJettyPort(root);
+		setPort(iport);
+		setContext(root.getAttribute("Context", null, null));
+		if (context == null || "".equals(context))
 		{
 			String logString = "no context specified for servlet, bailing out";
 			log.fatal(logString);
 			throw new BambiException(logString);
 		}
-		if (!context.startsWith("/"))
-			context = "/" + context;
 		log.info("starting BambiServer at context: " + context + " port: " + port);
+	}
+
+	private int getJettyPort(KElement root)
+	{
+		int iport = root.getIntAttribute("JettyPort", null, -1);
+		if (iport == -1)
+			iport = root.getIntAttribute("Port", null, -1);
+		return iport;
 	}
 
 	/**
 	 * 
-	 * TODO Please insert comment!
+	 *  
 	 * @param args
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		new BambiServer().runServer();
+		BambiServer bambiServer = new BambiServer();
+		BambiFrame frame = new BambiFrame(bambiServer);
+		System.exit(frame.waitCompleted());
 	}
 
-	/**
-	 * 
-	 * the doing routine to run a jetty server
-	 * @throws Exception
-	 * @throws InterruptedException
-	 */
-	public final void runServer() throws Exception, InterruptedException
-	{
-		Server server = new Server(port);
-
-		HandlerList handlers = new HandlerList();
-		server.setHandler(handlers);
-
-		ResourceHandler resourceHandler = createResourceHandler();
-		handlers.addHandler(resourceHandler);
-
-		ServletContextHandler context = createServletHandler();
-		handlers.addHandler(context);
-
-		server.start();
-		server.join();
-	}
-
-	/**
-	 * 
-	 * simple resource (file) handler that tweeks the url to match the context, thus allowing servlets to emulate a war file without actually requiring the war file
-	 * 
-	 * @author rainer prosi
-	 * @date Dec 10, 2010
-	 */
-	private class MyResourceHandler extends ResourceHandler
-	{
-		protected MyResourceHandler(String strip)
-		{
-			super();
-			this.strip = strip;
-		}
-
-		private final String strip;
-
-		@Override
-		public Resource getResource(String arg0) throws MalformedURLException
-		{
-			if (arg0.startsWith(strip))
-				arg0 = arg0.substring(strip.length());
-			return super.getResource(arg0);
-		}
-	}
-
-	protected ResourceHandler createResourceHandler()
-	{
-		ResourceHandler resourceHandler = new MyResourceHandler(context);
-		resourceHandler.setResourceBase(".");
-		return resourceHandler;
-	}
-
+	@Override
 	protected ServletContextHandler createServletHandler()
 	{
 		ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -198,6 +144,15 @@ public final class BambiServer extends BambiLogFactory
 		BambiServlet myServlet = new BambiServlet();
 		contextHandler.addServlet(new ServletHolder(myServlet), "/*");
 		return contextHandler;
+	}
+
+	/**
+	 * @see org.cip4.jdfutility.server.JettyServer#getHome()
+	 */
+	@Override
+	protected String getHome()
+	{
+		return context + "/overview";
 	}
 
 }

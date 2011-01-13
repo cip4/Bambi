@@ -24,5 +24,6 @@
 	<classpathentry kind="lib" path="src/lib/jetty-servlet-7.2.0.v20101020.jar"/>
 	<classpathentry kind="lib" path="src/lib/jetty-servlets-7.2.0.v20101020.jar"/>
 	<classpathentry kind="lib" path="src/lib/jetty-security-7.2.0.v20101020.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/JDFUtility"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
