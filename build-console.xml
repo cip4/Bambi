@@ -1,5 +1,3 @@
-<?xml version="1.0"?>
-<!-- <!DOCTYPE project SYSTEM "file:/Developer/Applications/apache-ant-1.6.2/dtd/ant.dtd"> -->
 <project name="console" default="war" basedir=".">
 	<description>Bambi's console worker</description>
 	<!-- Initializes -->
@@ -8,26 +6,33 @@
 		<!-- Sets properties -->
 		<tstamp/>
 
-		<property name="ant.build.javac.target" value="1.5" />
-
-   		<property name="worker.name" value="console" />
-	
-		<property file="version.properties"/>
-		<property name="src.dir" value="./src" />
-		<property name="workerscore.src.dir" value="${src.dir}/java/org/cip4/bambi/workers" />
-		<property name="console.src.dir" value="${workerscore.src.dir}/console" />
+<!-- start modify area -->
+			<property name="exe.name" value="console" />
+			<property name="exe.dir" value="console" />
 		<property name="web.src.dir" value="./WebContent/workers/console" />
+
+		<property name="src.dir" value="./src" />
+		<property name="bambilib.dir" value="${src.dir}/lib" />
+		
+		<property name="dist.dir" value="./dist/${exe.dir}" />
+		<property name="workerscore.src.dir" value="${src.dir}/java/org/cip4/bambi/workers" />
+		<property name="exe.src.dir" value="${src.dir}/java/org/cip4/bambi/workers/console" />
+		<property name="server.src.dir" value="${src.dir}/java/org/cip4/bambi/server" />
 		<property name="webcore.src.dir" value="./WebContent/core" />
+<!-- end modify area -->
+		
+		<property name="exe.dist.dir" value="${dist.dir}/${exe.name}-exe" />		
+		<property name="build.debug" value="true" />
+		<property file="version.properties"/>
+		<property name="base.filename" value="${exe.name}-${DSTAMP}" />
+
 		<property name="web.config.dir" value="${web.src.dir}/config" />
 		<property name="test.src.dir" value="./test" />
 		<property name="lib.dir" value="${src.dir}/lib" />
-		<property name="bin.dir" value="./bin/${worker.name}" />
-		<property name="dist.dir" value="./dist/${worker.name}" />
-		<property name="build.debug" value="true" />
-		<property name="base.filename" value="${worker.name}-${DSTAMP}" />
-		<property name="major.filename" value="${worker.name}" />		
-
+		<property name="bin.dir" value="./bin/${exe.dir}" />
 		<property name="verbose" value="true" />
+		<property name="ant.build.javac.target" value="1.5" />
+		
 		<!-- Sets class path -->
 		<path id="project.class.path">
 			<pathelement path="${java.class.path}" />
@@ -39,6 +44,7 @@
 		<mkdir dir="${bin.dir}" />
 		<mkdir dir="${dist.dir}" />
 	</target>
+
 	<target name="prepare" depends="-init">
 	<copy overwrite="true" todir="${lib.dir}" flatten="true">
 		<fileset dir="../JDFLibJ/dist">
@@ -58,13 +64,20 @@
 			<include name="**/*.java" />
 		</javac>
 	</target>
+
 	<target name="jar" depends="compile" description="Bundles source code into a JAR file.">
 		<echo>Building JAR file...</echo>
-		<jar jarfile="${dist.dir}/${base.filename}.jar" basedir="${bin.dir}" />
+		<jar jarfile="${dist.dir}/${base.filename}.jar" basedir="${bin.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="org.cip4.bambi.server.BambiServer" />
+				<attribute name="Bundle-Name" value="Bambi ${major.version}.${minor.version}.${build.number}" />
+				<attribute name="Bundle-Vendor" value="CIP4" />
+			</manifest>
+		</jar>
 	</target>
-	<target name="major_jar" depends="jar" description="Builds a JAR archive containing the Worker binaries.">
-		<echo>Copying JAR file: ${dist.dir}/${major.filename}.jar</echo>
-		<copy file="${dist.dir}/${base.filename}.jar" tofile="${dist.dir}/${major.filename}.jar"/>
+	<target name="major_jar" depends="jar" description="Builds a JAR archive containing the SimWorker binaries.">
+		<echo>Copying JAR file: ${dist.dir}/${exe.name}.jar</echo>
+		<copy file="${dist.dir}/${base.filename}.jar" tofile="${dist.dir}/${exe.name}.jar" overwrite="true"/>
 	</target>
 
 	<target name="clean" depends="-init" description="Cleans the build.">
@@ -72,14 +85,15 @@
 		<delete dir="${bin.dir}" />
 		<delete dir="${dist.dir}" />
 	</target>
-	<target name="war" depends="jar" description="Builds web application.">
+
+	<target name="war" depends="major_jar" description="Builds web application.">
 		<echo>Building Bambi...</echo>
 		<buildnumber />
 		<echo>Build number: ${build.number}</echo>
 		<!-- Builds exploded WAR file -->
 		<property name="war.dir" value="${dist.dir}/${base.filename}-war" />
 		<mkdir dir="${war.dir}" />
-     	<copy overwrite="true" todir="${war.dir}">
+		<copy todir="${war.dir}" overwrite="true">
 			<fileset dir="${webcore.src.dir}">
 				<include name="**/*" />
 			</fileset>
@@ -97,43 +111,45 @@
 		<copy overwrite="true" todir="${war.dir}/WEB-INF/lib" flatten="true">
 			<fileset dir="${lib.dir}">
 				<include name="**/*.jar" />
-				<exclude name="servlet*.jar" />
 				<exclude name="junit*.jar" />
 				<exclude name="jsf*.jar" />
+				<exclude name="jetty*.jar" />
 				<exclude name="richf*.jar" />
 				<exclude name="jstl*.jar" />
 				<exclude name="standard*.jar" />
-				<exclude name="el-api.jar" />
 				<exclude name="castor*.jar" />
 				<exclude name="el-api.jar" />
 				<exclude name="jsp-api.jar" />
+				<exclude name="servlet*.jar" />
 				<exclude name="jetty*.jar" />
 			</fileset>
 			<fileset dir="${dist.dir}">
-				<include name="${base.filename}.jar" />
+				<include name="${exe.name}.jar" />
 			</fileset>
 		</copy>
 		<!-- Update build number and timestamp in xsl stylesheets -->
 		<replace file="${war.dir}/deviceList.xsl">
-				<replacefilter token="@build.number@" value="${build.number}" />
-				<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
-				<replacefilter token="@build.majorversion@" value="${major.version}" />
-				<replacefilter token="@build.minorversion@" value="${minor.version}" />
-			</replace>		
-			<replace file="${war.dir}/showDevice.xsl">
-				<replacefilter token="@build.number@" value="${build.number}" />
-				<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
-				<replacefilter token="@build.majorversion@" value="${major.version}" />
-				<replacefilter token="@build.minorversion@" value="${minor.version}" />
-			</replace>		
+			<replacefilter token="@build.number@" value="${build.number}" />
+			<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
+			<replacefilter token="@build.majorversion@" value="${major.version}" />
+			<replacefilter token="@build.minorversion@" value="${minor.version}" />
+		</replace>
+		<replace file="${war.dir}/showDevice.xsl">
+			<replacefilter token="@build.number@" value="${build.number}" />
+			<replacefilter token="@build.timestamp@" value="${DSTAMP}" />
+			<replacefilter token="@build.majorversion@" value="${major.version}" />
+			<replacefilter token="@build.minorversion@" value="${minor.version}" />
+		</replace>
 		<!-- Builds compressed WAR file -->
-		<jar basedir="${war.dir}" destfile="${dist.dir}/${worker.name}.war" filesonly="false"/>
+		<jar basedir="${war.dir}" destfile="${dist.dir}/${exe.name}.war" filesonly="false"/>
 	</target>
-		<target name="-tomcat-init" depends="-init">
+
+<!-- tomcat stuff -->
+	<target name="-tomcat-init" depends="-init">
 		<echo>Initializing optional targets for deploying directly into Tomcat...</echo>
 		<!-- Tomcat tasks -->
 		<!-- Configure the context path for this application -->
-		<property name="path" value="/${worker.name}" />
+		<property name="path" value="/${exe.name}" />
 		<!-- Configure properties to access the Manager application -->
 		<property name="tomcat.url" value="http://localhost:8080/manager" />
 		<property name="username" value="tomcat" />
@@ -156,55 +172,154 @@
 	</target>
 	<target name="install" description="Install web application" depends="-tomcat-init,war">
 		<!-- tomcat's server need to be running for this task to complete succesfully -->
-		<install url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${worker.name}.war" />
+		<install url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${exe.name}.war" />
 	</target>
 	<target name="redeploy" depends="-tomcat-init,war" description="Undeploys and redeploys the web application">
 		<!-- tomcat's server need to be running for this task to complete succesfully -->
 		<echo> Undeploys and Deploys the reference web application... </echo>
 		<undeploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}" />
-		<deploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${worker.name}.war" />
+		<deploy url="${tomcat.url}" username="${username}" password="${password}" path="${path}" war="file:${basedir}/${dist.dir}/${exe.name}.war" />
 	</target>
 	<target name="test" description="Runs JUnit tests." depends="compile">
-			<property name="test.bin.dir" value="${bin.dir}/test" />
-			<mkdir dir="${test.bin.dir}" />
-			<property name="test.reports.dir" value="${bin.dir}/test-reports" />
-			<mkdir dir="${test.reports.dir}" />
-			<!-- Compile test cases -->
-			<echo>Compiling unit tests...</echo>
-			<javac destdir="${test.bin.dir}" debug="${build.debug}" target="1.5" source="1.5">
-				<src path="${test.src.dir}" />
-				<classpath refid="project.class.path" />
-				<classpath path="${bin.dir}" />
-				<include name="**/*" />
-			</javac>
-			<!-- Run test cases -->
-			<echo>Running unit tests...</echo>
-			<property name="test.working.dir" value="${test.src.dir}" />
-			<junit timeout="60000" dir="${test.working.dir}" fork="true" tempdir="${test.bin.dir}" failureproperty="test.failure" errorproperty="test.error">
-				<formatter type="plain" />
-				<formatter type="xml" />
-				<classpath>
-					<pathelement path="${java.class.path}" />
-					<fileset dir="${lib.dir}">
-						<include name="**/*.jar" />
-					</fileset>
-					<pathelement path="${bin.dir}" />
-					<pathelement path="${test.bin.dir}" />
-					<pathelement path="${test.src.dir}" />
-				</classpath>
-				<batchtest fork="yes" todir="${test.reports.dir}">
-					<fileset dir="${test.bin.dir}">
-						<include name="**/*Test.class" />
-					</fileset>
-				</batchtest>
-			</junit>
-			<!-- Delete temp files -->
-			<delete>
-				<fileset dir="${test.working.dir}">
-					<include name="temp*" />
-					<include name="temp/*" />
+		<property name="test.bin.dir" value="${bin.dir}/test" />
+		<mkdir dir="${test.bin.dir}" />
+		<property name="test.reports.dir" value="${bin.dir}/test-reports" />
+		<mkdir dir="${test.reports.dir}" />
+		<!-- Compile test cases -->
+		<echo>Compiling unit tests...</echo>
+		<javac destdir="${test.bin.dir}" debug="${build.debug}" target="1.5" source="1.5">
+			<src path="${test.src.dir}" />
+			<classpath refid="project.class.path" />
+			<classpath path="${bin.dir}" />
+			<include name="**/*" />
+		</javac>
+		<!-- Run test cases -->
+		<echo>Running unit tests...</echo>
+		<property name="test.working.dir" value="${test.src.dir}" />
+		<junit timeout="60000" dir="${test.working.dir}" fork="true" tempdir="${test.bin.dir}" failureproperty="test.failure" errorproperty="test.error">
+			<formatter type="plain" />
+			<formatter type="xml" />
+			<classpath>
+				<pathelement path="${java.class.path}" />
+				<fileset dir="${lib.dir}">
+					<include name="**/*.jar" />
 				</fileset>
-			</delete>
-			<echo>Tests reports can be found in: ${test.reports.dir}</echo>
-		</target>
+				<pathelement path="${bin.dir}" />
+				<pathelement path="${test.bin.dir}" />
+				<pathelement path="${test.src.dir}" />
+			</classpath>
+			<batchtest fork="yes" todir="${test.reports.dir}">
+				<fileset dir="${test.bin.dir}">
+					<include name="**/*Test.class" />
+				</fileset>
+			</batchtest>
+		</junit>
+		<!-- Delete temp files -->
+		<delete>
+			<fileset dir="${test.working.dir}">
+				<include name="temp*" />
+				<include name="temp/*" />
+			</fileset>
+		</delete>
+		<echo>Tests reports can be found in: ${test.reports.dir}</echo>
+	</target>
+	
+	<!-- ******************* needed for stand alone exe ********************** -->
+	
+	<target name="exe" depends="war" description="Builds exe folder">
+		<!-- Builds exploded WAR file -->
+		<delete dir="${exe.dist.dir}" />
+
+		<copy todir="${exe.dist.dir}" overwrite="true">
+			<fileset dir="${war.dir}">
+					<include name="**/*" />
+				</fileset>
+			</copy>
+
+		<move tofile="${exe.dist.dir}/lib" file="${war.dir}/WEB-INF/lib"/>
+		<!-- this way we can reuse the jsmooth files etc. -->
+		<move tofile="${exe.dist.dir}/lib/Bambi.jar" file="${exe.dist.dir}/lib/${exe.name}.jar"/>
+		<delete dir="${exe.dist.dir}/WEB-INF" />
+
+		<copy overwrite="true" todir="${exe.dist.dir}/lib" flatten="true">
+			<fileset dir="${bambilib.dir}">
+				<include name="jetty*.jar" />
+				<include name="jsp-api.jar" />
+				<include name="servlet*.jar" />
+			</fileset>
+		</copy>
+		<copy file="${src.dir}/exe/Bambi.bat" toFile="${exe.dist.dir}/${exe.name}.bat" />
+		<copy file="${src.dir}/exe/Bambi.sh" toFile="${exe.dist.dir}/${exe.name}.sh" />
+	</target>
+
+	<!-- windows exe -->
+	<target name="windist" depends="exe">
+		<copy overwrite="true" file="${src.dir}/exe/windows/Bambi.exe" toFile="${exe.dist.dir}/${exe.name}.exe" />
+		<zip destfile="${base.filename}.zip">
+			<zipfileset dir="${exe.dist.dir}" prefix="${dist.dir}" />
+		</zip>
+	</target>
+	<target name="windist-compile" depends="-init" description="This target is only need if the EXE file needs to be recompiled.">
+		<echo>Loading JSmooth Ant tasks. Make sure you have jsmoothgen-ant.jar (http://jsmooth.sourceforge.net) installed in ANT_HOME/lib</echo>
+		<taskdef name="jsmoothgen" classname="net.charabia.jsmoothgen.ant.JSmoothGen" />
+		<jsmoothgen project="${src.dir}/exe/windows/Bambi.jsmooth" skeletonroot="${src.dir}/exe/windows/skeletons" />
+	</target>
+
+	<!-- For special app bundle on the Mac -->
+	<target name="appledist" depends="exe" description="Assembles stand alone Macintosh Bundle. Must build on a Mac (>= 10.2).">
+		<echo>Building Mac OS X application bundle...</echo>
+		<echo>Loading JarBundler Ant tasks. Make sure you have installed http://informagen.com/JarBundler/ in ANT_HOME/lib</echo>
+		<echo>if you get  an error such as:
+			java.lang.NoClassDefFoundError: org/apache/xml/serialize/OutputFormat
+			you should add 'xercesimpl.jar' and 'xml-apis.jar' in ANT_HOME/lib.
+			If running from eclipse - also add it to the list of ant jars in window/preferences//ant/runtime//ClassPath/Ant home entries
+		</echo>
+		<taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler" />
+		<jarbundler dir="${dist.dir}" 
+			name="${exe.name}" 
+			mainclass="org.cip4.bambi.server.BambiServer" 
+			bundleid="org.cip4.bambi.server.${exe.name}" 
+			jvmversion="1.5+" 
+			shortname="${exe.name}" 
+			infostring="Bambi Standalone proxy" 
+			signature="${exe.name}" 
+			version="${major.version}.${minor.version}.${build.number}" 
+			icon="${src.dir}/exe/macosx/icons/Bambi.icns" 
+			vmoptions="-Xmx512m" 
+			workingdirectory="$JAVAROOT/.."
+			stubfile="${src.dir}/exe/macosx/JavaApplicationStub">
+			<jarfileset dir="${exe.dist.dir}/lib">
+				<include name="*.jar" />
+			</jarfileset>
+			<resourcefileset dir="${exe.dist.dir}">
+				<include name="*.*" />
+				<include name="css/*" />
+				<include name="config/*" />
+			</resourcefileset>
+
+			<javaproperty name="apple.laf.useScreenMenuBar" value="true" />
+		</jarbundler>
+		<zip destfile="${dist.dir}/${base.filename}-mac.zip">
+			<zipfileset dir="${dist.dir}/${exe.name}.app" prefix="${exe.name}.app/" />
+			<zipfileset dir="${dist.dir}/${exe.name}.app" includes="Contents/MacOS/JavaApplicationStub" filemode="755" prefix="${exe.name}.app" />
+		</zip>
+	</target>
+
+	<target name="dmgappledist" 
+		depends="appledist" 
+		description="Creates Disk Image for Apple Dist. Must build on a Mac (>= 10.2).">
+		<echo>
+		this ONLY works from a mac - in case you get errors on windows: duh
+		</echo>
+		<delete file="${dist.dir}/${exe.name}.dmg"/>
+		<echo>Package appledist</echo>
+		<exec executable="hdiutil" spawn="false">
+			<arg value="create" />
+			<arg value="-srcfolder" />
+			<arg value="${dist.dir}/${exe.name}.app" />
+			<arg value="-volname" />
+			<arg value="${exe.name}" />
+			<arg value="${dist.dir}/${exe.name}.dmg" />
+		</exec>
+	</target>
 </project>

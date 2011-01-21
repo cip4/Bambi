@@ -281,7 +281,7 @@
 			bundleid="org.cip4.bambi.server.${exe.name}" 
 			jvmversion="1.5+" 
 			shortname="${exe.name}" 
-			infostring="Bambi Standalone simulator" 
+			infostring="Bambi Standalone proxy" 
 			signature="${exe.name}" 
 			version="${major.version}.${minor.version}.${build.number}" 
 			icon="${src.dir}/exe/macosx/icons/Bambi.icns" 

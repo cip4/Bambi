@@ -267,7 +267,7 @@
 	<target name="windist-compile" depends="-init" description="This target is only need if the EXE file needs to be recompiled.">
 		<echo>Loading JSmooth Ant tasks. Make sure you have jsmoothgen-ant.jar (http://jsmooth.sourceforge.net) installed in ANT_HOME/lib</echo>
 		<taskdef name="jsmoothgen" classname="net.charabia.jsmoothgen.ant.JSmoothGen" />
-		<jsmoothgen project="${src.dir}/exe/windows/Bambi.jsmooth" skeletonroot="${src.dir}/exe/windows/skeletons" />
+		<jsmoothgen project="${src.dir}/exe/windows/Bambi.jsmooth" skeletonroot="${src.dir}/exe/windows/skeletons"/>
 	</target>
 
 	<!-- For special app bundle on the Mac -->

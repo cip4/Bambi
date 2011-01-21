@@ -32,7 +32,7 @@
 <classPath>classes</classPath>
 <embeddedJar>false</embeddedJar>
 <executableName>Bambi.exe</executableName>
-<iconLocation>icons\Bambi.ico</iconLocation>
+<iconLocation>icons/Bambi.png</iconLocation>
 <initialMemoryHeap>-1</initialMemoryHeap>
 <mainClassName>org.cip4.bambi.server.BambiServer</mainClassName>
 <maximumMemoryHeap>444444</maximumMemoryHeap>
