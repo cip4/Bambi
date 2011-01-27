@@ -49,7 +49,14 @@
 	</target>
 	<target name="jar" depends="compile" description="Bundles source code into a JAR file.">
 		<echo>Building JAR file...</echo>
-		<jar jarfile="${dist.dir}/${base.filename}.jar" basedir="${bin.dir}" />
+		<jar jarfile="${dist.dir}/${base.filename}.jar" basedir="${bin.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="org.cip4.bambi.server.BambiServer" />
+				<attribute name="Bundle-Name" value="Bambi Core" />
+				<attribute name="Bundle-Vendor" value="CIP4" />
+			</manifest>
+
+			</jar>
 	</target>
 	<target name="major_jar" depends="jar" description="Builds a JAR archive containing the JDFLib-J binaries.">
 		<echo>Copying JAR file: ${dist.dir}/${major.filename}.jar</echo>

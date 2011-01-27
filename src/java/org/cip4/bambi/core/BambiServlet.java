@@ -144,7 +144,7 @@ public final class BambiServlet extends HttpServlet
 		super.init(config);
 		final ServletContext context = config.getServletContext();
 		final String dump = initializeDumps(config);
-		String baseURL = context.getServletContextName();
+		String baseURL = context.getContextPath();
 		log.info("Initializing servlet for " + baseURL);
 
 		if (baseURL.startsWith("/"))
