@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -628,12 +628,17 @@ public class MultiDeviceProperties extends BambiLogFactory
 				root = d2.getRoot();
 				log.info("using updated device config from: " + fileInDirectory.getAbsolutePath());
 			}
-			else
+			else if (deviceDir != null)
 			// using webapp devices
 			{
+				log.info("using war device config file");
 				deviceDir.mkdirs();
 				doc.setOriginalFileName(fileInDirectory.getAbsolutePath());
 				serialize();
+			}
+			else
+			{
+				log.info("cannot parse base file - this may be due to a subclassing of the properties");
 			}
 		}
 	}

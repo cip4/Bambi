@@ -251,7 +251,6 @@ public final class BambiContainer extends BambiLogFactory
 	 */
 	public boolean loadProperties(final File baseDir, final String context, final File config, final String dump)
 	{
-
 		MultiDeviceProperties props = new MultiDeviceProperties(baseDir, context, config);
 		props = props.getSubClass();
 		return createDevices(props, dump);
