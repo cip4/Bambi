@@ -12,8 +12,6 @@
 <classPath>lib\JDFLibJ-2.1.4a.jar</classPath>
 <classPath>lib\log4j-1.2.8.jar</classPath>
 <classPath>lib\mailapi.jar</classPath>
-<classPath>lib\xercesImpl.jar</classPath>
-<classPath>lib\xml-apis.jar</classPath>
 <classPath>lib\jetty-continuation-7.2.0.v20101020.jar</classPath>
 <classPath>lib\jetty-http-7.2.0.v20101020.jar</classPath>
 <classPath>lib\jetty-io-7.2.0.v20101020.jar</classPath>
@@ -29,13 +27,15 @@
 <classPath>lib\jsp-api.jar</classPath>
 <classPath>lib\Bambi.jar</classPath>
 <classPath>lib\JDFUtility-2.1.4a.jar</classPath>
+<classPath>lib\xercesImpl.jar</classPath>
+<classPath>lib\xml-apis.jar</classPath>
 <classPath>classes</classPath>
 <embeddedJar>false</embeddedJar>
 <executableName>Bambi.exe</executableName>
 <iconLocation>icons/Bambi.png</iconLocation>
 <initialMemoryHeap>-1</initialMemoryHeap>
 <mainClassName>org.cip4.bambi.server.BambiServer</mainClassName>
-<maximumMemoryHeap>444444</maximumMemoryHeap>
+<maximumMemoryHeap>-1</maximumMemoryHeap>
 <maximumVersion></maximumVersion>
 <minimumVersion>1.5</minimumVersion>
 <skeletonName>Windowed Wrapper</skeletonName>
