@@ -115,11 +115,11 @@ import org.cip4.jdflib.jmf.JDFSubscriptionInfo;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.QueueHotFolder;
-import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.hotfolder.QueueHotFolder;
+import org.cip4.jdflib.util.hotfolder.QueueHotFolderListener;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen

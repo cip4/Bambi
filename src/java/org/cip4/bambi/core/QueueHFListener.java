@@ -11,8 +11,8 @@ import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
-import org.cip4.jdflib.util.QueueHotFolderListener;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.hotfolder.QueueHotFolderListener;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
@@ -37,7 +37,7 @@ public class QueueHFListener extends BambiLogFactory implements QueueHotFolderLi
 	}
 
 	/**
-	 * @see org.cip4.jdflib.util.QueueHotFolderListener#submitted(org.cip4.jdflib.jmf.JDFJMF)
+	 * @see org.cip4.jdflib.util.hotfolder.QueueHotFolderListener#submitted(org.cip4.jdflib.jmf.JDFJMF)
 	 * @param submissionJMF
 	 */
 	public void submitted(final JDFJMF submissionJMF)
