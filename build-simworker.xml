@@ -8,22 +8,24 @@
 		<!-- Sets properties -->
 		<tstamp/>
 
-<!-- start modify area -->
+		<!-- start modify area -->
 		<property name="exe.name" value="SimWorker" />
 		<property name="exe.dir" value="simworker" />
 		<property name="web.src.dir" value="./WebContent/workers/sim" />
 
 		<property name="src.dir" value="./src" />
 		<property name="bambilib.dir" value="${src.dir}/lib" />
-		
+
 		<property name="dist.dir" value="./dist/${exe.dir}" />
 		<property name="workerscore.src.dir" value="${src.dir}/java/org/cip4/bambi/workers" />
 		<property name="exe.src.dir" value="${workerscore.src.dir}/sim" />
 		<property name="server.src.dir" value="${src.dir}/java/org/cip4/bambi/server" />
 		<property name="webcore.src.dir" value="./WebContent/core" />
-<!-- end modify area -->
-		
-		<property name="exe.dist.dir" value="${dist.dir}/${exe.name}-exe" />		
+		<property name="info" value="Bambi Standalone simulator" />
+
+		<!-- end modify area -->
+
+		<property name="exe.dist.dir" value="${dist.dir}/${exe.name}-exe" />
 		<property name="build.debug" value="true" />
 		<property file="version.properties"/>
 		<property name="base.filename" value="${exe.name}-${DSTAMP}" />
@@ -34,6 +36,7 @@
 		<property name="bin.dir" value="./bin/${exe.dir}" />
 		<property name="verbose" value="true" />
 		<property name="ant.build.javac.target" value="1.5" />
+		<property name="main.class" value="org.cip4.bambi.server.BambiServer" />
 		
 		<!-- Sets class path -->
 		<path id="project.class.path">
@@ -42,20 +45,24 @@
 				<include name="**/*.jar" />
 			</fileset>
 		</path>
-		<!-- Creates directories -->
-		<mkdir dir="${bin.dir}" />
-		<mkdir dir="${dist.dir}" />
+		<taskdef name="launch4j" classname="net.sf.launch4j.ant.Launch4jTask"  />
+		<taskdef name="makerunscript" classname="com.citizenhawk.makerunscript.MakeRunScript" />
+		<taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler" />
 	</target>
 
 	<target name="prepare" depends="-init">
-	<copy overwrite="true" todir="${lib.dir}" flatten="true">
-		<fileset dir="../JDFLibJ/dist">
-			<include name="JDFLibJ-2.1.4a.jar" />
-		</fileset>
-		<fileset dir="../jdfutility/dist">
-			<include name="JDFUtility-2.1.4a.jar" />
-		</fileset>
-	</copy>
+		<!-- Creates directories -->
+		<mkdir dir="${bin.dir}" />
+		<mkdir dir="${dist.dir}" />
+
+		<copy overwrite="true" todir="${lib.dir}" flatten="true">
+			<fileset dir="../JDFLibJ/dist">
+				<include name="JDFLibJ-2.1.4a.jar" />
+			</fileset>
+			<fileset dir="../jdfutility/dist">
+				<include name="JDFUtility-2.1.4a.jar" />
+			</fileset>
+		</copy>
 	</target>
 	<target name="compile" depends="prepare" description="Compiles source code.">
 		<echo>Compiling...</echo>
@@ -123,7 +130,6 @@
 				<exclude name="el-api.jar" />
 				<exclude name="jsp-api.jar" />
 				<exclude name="servlet*.jar" />
-				<exclude name="jetty*.jar" />
 			</fileset>
 			<fileset dir="${dist.dir}">
 				<include name="${exe.name}.jar" />
@@ -145,10 +151,10 @@
 		<!-- Builds compressed WAR file -->
 		<jar basedir="${war.dir}" destfile="${dist.dir}/${exe.name}.war" filesonly="false"/>
 	</target>
-	
-	
 
-<!-- tomcat stuff -->
+
+
+	<!-- tomcat stuff -->
 	<target name="-tomcat-init" depends="-init">
 		<echo>Initializing optional targets for deploying directly into Tomcat...</echo>
 		<!-- Tomcat tasks -->
@@ -227,18 +233,18 @@
 		</delete>
 		<echo>Tests reports can be found in: ${test.reports.dir}</echo>
 	</target>
-	
+
 	<!-- ******************* needed for stand alone exe ********************** -->
-	
+
 	<target name="exe" depends="war" description="Builds exe folder">
 		<!-- Builds exploded WAR file -->
 		<delete dir="${exe.dist.dir}" />
 
 		<copy todir="${exe.dist.dir}" overwrite="true">
 			<fileset dir="${war.dir}">
-					<include name="**/*" />
-				</fileset>
-			</copy>
+				<include name="**/*" />
+			</fileset>
+		</copy>
 
 		<move tofile="${exe.dist.dir}/lib" file="${war.dir}/WEB-INF/lib"/>
 		<!-- this way we can reuse the jsmooth files etc. -->
@@ -252,26 +258,57 @@
 				<include name="servlet*.jar" />
 			</fileset>
 		</copy>
-		<copy file="${src.dir}/exe/Bambi.bat" toFile="${exe.dist.dir}/${exe.name}.bat" />
-		<copy file="${src.dir}/exe/Bambi.sh" toFile="${exe.dist.dir}/${exe.name}.sh" />
+		<makerunscript basedir="${exe.dist.dir}">
+			<scriptfile file="${exe.dist.dir}/${exe.name}.bat" os="windows" />
+			<scriptfile file="${exe.dist.dir}/${exe.name}.sh" os="*nix" />
+			<java maxmemory="500m" classname="${main.class}">
+				<classpath>
+					<fileset dir="${exe.dist.dir}/lib">
+						<include name="*.jar" />
+					</fileset>
+				</classpath>
+			</java>
+		</makerunscript>
+		<!-- create mac command -->
+		<echo file="${exe.dist.dir}/${exe.name}.command">#!/bin/sh
+			cd "`dirname "$0"`"
+        </echo>
+		<concat append="yes" destfile="${exe.dist.dir}/${exe.name}.command">
+			<fileset file="${exe.dist.dir}/${exe.name}.sh" />
+		</concat>
+		<chmod perm="777" file="${exe.dist.dir}/${exe.name}.command" />
+		<zip destfile="${exe.dist.dir}.zip">
+			<zipfileset dir="${exe.dist.dir}" />
+			<zipfileset dir="${exe.dist.dir}" includes="${exe.name}.*" filemode="755" />
+	    </zip>
+
 	</target>
 
 	<!-- windows exe -->
 	<target name="windist" depends="exe">
-		<copy overwrite="true" file="${src.dir}/exe/windows/Bambi.exe" toFile="${exe.dist.dir}/${exe.name}.exe" />
-		<zip destfile="${base.filename}.zip">
+		<launch4j>
+			<config headerType="gui" outfile="${exe.dist.dir}/${exe.name}.exe"
+				dontWrapJar="false"
+				jar="${dist.dir}/${exe.name}.jar"
+				icon="${src.dir}/exe/windows/icons/Bambi.ico">
+
+				<!-- runtime classpath, from current directory -->
+				<classPath mainClass="${main.class}">
+					<cp>lib/*.jar</cp>
+				</classPath>
+				<jre minVersion="1.5.0">
+				</jre>
+
+			</config>
+		</launch4j>
+		<zip destfile="${exe.dist.dir}-win.zip">
 			<zipfileset dir="${exe.dist.dir}" prefix="${dist.dir}" />
 		</zip>
 	</target>
 
-	<target name="windist-compile" depends="-init" description="This target is only need if the EXE file needs to be recompiled.">
-		<echo>Loading JSmooth Ant tasks. Make sure you have jsmoothgen-ant.jar (http://jsmooth.sourceforge.net) installed in ANT_HOME/lib</echo>
-		<taskdef name="jsmoothgen" classname="net.charabia.jsmoothgen.ant.JSmoothGen" />
-		<jsmoothgen project="${src.dir}/exe/windows/Bambi.jsmooth" skeletonroot="${src.dir}/exe/windows/skeletons"/>
-	</target>
 
 	<!-- For special app bundle on the Mac -->
-	<target name="appledist" depends="exe" description="Assembles stand alone Macintosh Bundle. Must build on a Mac (>= 10.2).">
+	<target name="appledist" depends="windist" description="Assembles stand alone Macintosh Bundle. Must build on a Mac (>= 10.2).">
 		<echo>Building Mac OS X application bundle...</echo>
 		<echo>Loading JarBundler Ant tasks. Make sure you have installed http://informagen.com/JarBundler/ in ANT_HOME/lib</echo>
 		<echo>if you get  an error such as:
@@ -279,14 +316,13 @@
 			you should add 'xercesimpl.jar' and 'xml-apis.jar' in ANT_HOME/lib.
 			If running from eclipse - also add it to the list of ant jars in window/preferences//ant/runtime//ClassPath/Ant home entries
 		</echo>
-		<taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler" />
 		<jarbundler dir="${dist.dir}" 
 			name="${exe.name}" 
-			mainclass="org.cip4.bambi.server.BambiServer" 
+			mainclass="${main.class}" 
 			bundleid="org.cip4.bambi.server.${exe.name}" 
 			jvmversion="1.5+" 
 			shortname="${exe.name}" 
-			infostring="Bambi Standalone simulator" 
+			infostring="${info}" 
 			signature="${exe.name}" 
 			version="${major.version}.${minor.version}.${build.number}" 
 			icon="${src.dir}/exe/macosx/icons/Bambi.icns" 
@@ -298,6 +334,7 @@
 			</jarfileset>
 			<resourcefileset dir="${exe.dist.dir}">
 				<include name="*.*" />
+				<exclude name="${exe.name}.*" />
 				<include name="css/*" />
 				<include name="config/*" />
 			</resourcefileset>

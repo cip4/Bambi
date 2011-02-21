@@ -94,11 +94,16 @@ public final class BambiServer extends JettyServer
 	{
 		super();
 		BasicConfigurator.configure();
-		MultiDeviceProperties mp = new MultiDeviceProperties(new File("."), null, new File("config/devices.xml"));
+		File configFile = new File("config/devices.xml");
+		MultiDeviceProperties mp = new MultiDeviceProperties(new File("."), null, configFile);
 		KElement root = mp.getRoot();
 		if (root == null)
 		{
-			String logString = "cannot find config file at :" + new File("config/devices.xml").getAbsolutePath();
+			String logString;
+			if (configFile.exists())
+				logString = "corrupt config file at :" + configFile.getAbsolutePath();
+			else
+				logString = "cannot find config file at :" + configFile.getAbsolutePath();
 			log.fatal(logString);
 			throw new BambiException(logString);
 		}

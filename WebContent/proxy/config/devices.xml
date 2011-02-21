@@ -18,7 +18,7 @@ PropertiesName="org.cip4.bambi.proxy.ProxyProperties"
 DeviceClass="org.cip4.bambi.proxy.ProxyDevice">
   
   <Device DeviceID="proxyRoot" 
-  DeviceType="Bambi Proxy Root" 
+  DeviceType="Bambi Proxy Root" />
   <Device 
   DeviceID="pullproxy" 
   DeviceType="Bambi Pull Proxy for SimWorker/sim001" 
