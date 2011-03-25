@@ -86,6 +86,7 @@ import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdfutility.server.JettyServer;
 
 /**
  * container for the properties of several Bambi devices
@@ -653,11 +654,13 @@ public class MultiDeviceProperties extends BambiLogFactory
 	}
 
 	/**
-	 * @return
+	 * @return the setup port, in case we have a jetty server, return the port from there
 	 */
 	public int getPort()
 	{
-		// TODO extract from servlet
+		if (JettyServer.getPort() > 0)
+			return JettyServer.getPort();
+
 		int p = root.getIntAttribute("Port", null, BambiServlet.port);
 		if (p == 0)
 		{

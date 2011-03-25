@@ -1,5 +1,3 @@
-package org.cip4.bambi.server;
-
 /**
  * The CIP4 Software License, Version 1.0
  *
@@ -68,105 +66,32 @@ package org.cip4.bambi.server;
  *  
  * 
  */
-import java.io.File;
+package org.cip4.bambi.server;
 
-import org.apache.log4j.BasicConfigurator;
-import org.cip4.bambi.core.BambiException;
-import org.cip4.bambi.core.BambiServlet;
-import org.cip4.bambi.core.MultiDeviceProperties;
-import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.MyArgs;
 import org.cip4.jdfutility.server.JettyServer;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.cip4.jdfutility.server.ui.JettyConsole;
 
 /**
- * standalone app for bambi using an embedded jetty server
- * @author rainer prosi
- * @date Dec 9, 2010
+ * TODO Please insert comment!
+ * @author rainerprosi
+ * @date Jan 11, 2011
  */
-public final class BambiServer extends JettyServer
+public class BambiConsole extends JettyConsole
 {
 
 	/**
-	 * @throws BambiException if config file is not readable
+	 * @param server
+	 * @param args 
 	 */
-	public BambiServer() throws BambiException
+	public BambiConsole(JettyServer server, MyArgs args)
 	{
-		super();
-		BasicConfigurator.configure();
-		File configFile = new File("config/devices.xml");
-		MultiDeviceProperties mp = new MultiDeviceProperties(new File("."), null, configFile);
-		KElement root = mp.getRoot();
-		if (root == null)
-		{
-			String logString;
-			if (configFile.exists())
-				logString = "corrupt config file at :" + configFile.getAbsolutePath();
-			else
-				logString = "cannot find config file at :" + configFile.getAbsolutePath();
-			log.fatal(logString);
-			throw new BambiException(logString);
-		}
-		int iport = getJettyPort(root);
-		setPort(iport);
-		setContext(root.getAttribute("Context", null, null));
-		if (context == null || "".equals(context))
-		{
-			String logString = "no context specified for servlet, bailing out";
-			log.fatal(logString);
-			throw new BambiException(logString);
-		}
-		log.info("starting BambiServer at context: " + context + " port: " + getPort());
-	}
-
-	private int getJettyPort(KElement root)
-	{
-		int iport = root.getIntAttribute("JettyPort", null, -1);
-		if (iport == -1)
-			iport = root.getIntAttribute("Port", null, -1);
-		return iport;
+		super(server, args);
 	}
 
 	/**
 	 * 
-	 *  
-	 * @param args
-	 * @throws Exception
 	 */
-	public static void main(String[] args) throws Exception
-	{
-		BambiServer bambiServer = new BambiServer();
-		MyArgs myArgs = new MyArgs(args, "c", "p", "");
-		if (myArgs.boolParameter('c', false))
-		{
-			BambiConsole console = new BambiConsole(bambiServer, myArgs);
-		}
-		else
-		{
-			BambiFrame frame = new BambiFrame(bambiServer);
-			System.exit(frame.waitCompleted());
-		}
-	}
-
-	@Override
-	protected ServletContextHandler createServletHandler()
-	{
-		ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		contextHandler.setContextPath(context);
-		contextHandler.setWelcomeFiles(new String[] { "index.jsp" });
-		BambiServlet myServlet = new BambiServlet();
-		contextHandler.addServlet(new ServletHolder(myServlet), "/*");
-		return contextHandler;
-	}
-
-	/**
-	 * @see org.cip4.jdfutility.server.JettyServer#getHome()
-	 */
-	@Override
-	protected String getHome()
-	{
-		return context + "/overview";
-	}
+	private static final long serialVersionUID = 1L;
 
 }

@@ -144,7 +144,7 @@ public final class BambiServlet extends HttpServlet
 		super.init(config);
 		final ServletContext context = config.getServletContext();
 		final String dump = initializeDumps(config);
-		String baseURL = context.getContextPath();
+		String baseURL = getContextPath(context);
 		log.info("Initializing servlet for " + baseURL);
 
 		if (baseURL.startsWith("/"))
@@ -154,6 +154,22 @@ public final class BambiServlet extends HttpServlet
 			realPath = ".";
 		final File baseDir = new File(realPath);
 		theContainer.loadProperties(baseDir, baseURL, new File("config/devices.xml"), dump);
+	}
+
+	/**
+	 * 
+	 * getContextPath is new in servlet api 2.5
+	 * @param context the servlet context to check for
+	 * @return
+	 */
+	private String getContextPath(final ServletContext context)
+	{
+		String baseURL;
+		if (context.getMajorVersion() <= 2 && context.getMinorVersion() < 5)
+			baseURL = context.getServletContextName();
+		else
+			baseURL = context.getContextPath();
+		return baseURL;
 	}
 
 	/**

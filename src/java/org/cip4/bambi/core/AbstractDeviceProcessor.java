@@ -378,7 +378,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		currentQE = _parent.getQEFromParent();
 		if (currentQE == null)
 		{
-			log.debug("nothing to process");
+			//			log.debug("nothing to process");
 			return false;
 		}
 		final JDFQueueEntry qe = currentQE.getQueueEntry();

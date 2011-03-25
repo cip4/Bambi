@@ -1,6 +1,6 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-	version="1.0" xmlns:xjdf="http://www.CIP4.org/JDFSchema_1_1"
+	version="1.0" xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0"
 	xmlns:bambi="www.cip4.org/Bambi">
 	<xsl:strip-space elements="*" />
 	<!--  device processor -->

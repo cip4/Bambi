@@ -1946,7 +1946,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				final String docURL = BambiNSExtension.getDocURL(qe);
 				if (docURL != null)
 				{
-					hs.add(new File(StringUtil.token(docURL, -1, "/")));
+					hs.add(new File(StringUtil.token(docURL, -1, File.separator)));
 				}
 			}
 		}
