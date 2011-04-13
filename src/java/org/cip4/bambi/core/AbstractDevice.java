@@ -664,6 +664,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 		if (_submitHotFolder != null)
 		{
+			String oldHF = _submitHotFolder.getHfDirectory().getAbsolutePath();
+			log.info("Stopping input hot folder: " + oldHF);
 			_submitHotFolder.stop();
 			_submitHotFolder = null;
 		}
@@ -671,6 +673,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			return;
 		}
+
 		log.info("enabling input hot folder: " + hfURL);
 		final File hfStorage = new File(getDeviceDir() + File.separator + "HFTmpStorage");
 		hfStorage.mkdirs(); // just in case

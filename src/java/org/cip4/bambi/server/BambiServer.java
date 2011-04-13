@@ -138,7 +138,7 @@ public final class BambiServer extends JettyServer
 	{
 		BambiServer bambiServer = new BambiServer();
 		MyArgs myArgs = new MyArgs(args, "c", "p", "");
-		if (myArgs.boolParameter('c', false))
+		if (myArgs.boolParameter('c'))
 		{
 			BambiConsole console = new BambiConsole(bambiServer, myArgs);
 		}
