@@ -710,6 +710,9 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		{
 			// brutally overwrite the current node with this
 			currentQE.setJDF(root);
+			final String docFile = getParent().getJDFStorage(currentQE.getQueueEntryID());
+			if (docFile != null)
+				root.getOwnerDocument_JDFElement().write2File(docFile, 2, true);
 			_statusListener.replaceNode(root);
 		}
 

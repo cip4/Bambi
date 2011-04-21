@@ -132,6 +132,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFResubmissionParams;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFSubmissionMethods;
+import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.resource.JDFNotification;
@@ -582,7 +583,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp);
 				_parentDevice.fixEntry(qe, doc);
-				_parentDevice.getDataExtractor().extractFiles(qe, doc);
+				_parentDevice.getDataExtractor(true).extractFiles(qe, doc);
 				storeDoc(qe, doc, null, null);
 			}
 		}
@@ -1309,11 +1310,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				qe = qe2;
 			}
 
-			updateEntry(qe, status, null, null);
 			if ((EnumQueueEntryStatus.Aborted.equals(qe.getQueueEntryStatus()) || EnumQueueEntryStatus.Completed.equals(qe.getQueueEntryStatus())))
 			{
-				returnQueueEntry(qe, null, null);
+				returnQueueEntry(qe, null, null, status);
 			}
+			updateEntry(qe, status, null, null);
 		}
 
 		/**
@@ -1867,7 +1868,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			final String qeID = newQE.getQueueEntryID();
 			BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
 			_parentDevice.fixEntry(newQE, theJDF);
-			_parentDevice.getDataExtractor().extractFiles(newQE, theJDF);
+			_parentDevice.getDataExtractor(true).extractFiles(newQE, theJDF);
 			if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
 			{
 				newResponse.setReturnCode(120);
@@ -2161,78 +2162,169 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * @param finishedNodes
 	 * @param docJDF
 	 */
-	public void returnQueueEntry(final JDFQueueEntry qe, VString finishedNodes, JDFDoc docJDF)
+	public void returnQueueEntry(final JDFQueueEntry qe, VString finishedNodes, JDFDoc docJDF, EnumQueueEntryStatus newStatus)
 	{
-		final JDFDoc docJMF = new JDFDoc("JMF");
-		final JDFJMF jmf = docJMF.getJMFRoot();
-		jmf.setICSVersions(_parentDevice.getICSVersions());
-		jmf.setSenderID(_parentDevice.getDeviceID());
-		final JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.ReturnQueueEntry);
-		final JDFReturnQueueEntryParams returnQEParams = com.appendReturnQueueEntryParams();
+		new QueueEntryReturn(qe, newStatus).returnQueueEntry(finishedNodes, docJDF);
+	}
 
-		final String queueEntryID = qe.getQueueEntryID();
-		returnQEParams.setQueueEntryID(queueEntryID);
-		if (docJDF == null)
+	private class QueueEntryReturn
+	{
+		final JDFQueueEntry qe;
+		final IDeviceProperties properties;
+		final String queueEntryID;
+
+		/**
+		 * @param newStatus 
+		 * 
+		 */
+		QueueEntryReturn(final JDFQueueEntry qe, EnumQueueEntryStatus newStatus)
 		{
-			final String docFile = _parentDevice.getJDFStorage(qe.getQueueEntryID());
-			docJDF = JDFDoc.parseFile(docFile);
+			super();
+			this.qe = (JDFQueueEntry) qe.clone();
+			if (newStatus != null)
+				this.qe.setQueueEntryStatus(newStatus);
+			properties = _parentDevice.getProperties();
+			queueEntryID = qe.getQueueEntryID();
 		}
-		if (docJDF == null)
+
+		/**
+		 * 
+		 * @param finishedNodes
+		 * @param docJDF
+		 */
+		void returnQueueEntry(VString finishedNodes, JDFDoc docJDF)
 		{
-			log.error("cannot load the JDFDoc to return");
-			return;
-		}
-		if (finishedNodes == null || finishedNodes.size() == 0)
-		{
-			final JDFNode n = docJDF.getJDFRoot();
-			if (n == null)
+			final JDFJMF jmf = new JMFBuilder().buildReturnQueueEntry(queueEntryID);
+			final JDFDoc docJMF = jmf.getOwnerDocument_JDFElement();
+			jmf.setICSVersions(_parentDevice.getICSVersions());
+			jmf.setSenderID(_parentDevice.getDeviceID());
+			final JDFCommand com = jmf.getCommand(0);
+			final JDFReturnQueueEntryParams returnQEParams = com.getReturnQueueEntryParams(0);
+
+			if (docJDF == null)
 			{
-				finishedNodes = new VString("rootDev", null);
+				final String docFile = _parentDevice.getJDFStorage(queueEntryID);
+				docJDF = JDFDoc.parseFile(docFile);
+			}
+			if (docJDF == null)
+			{
+				log.error("cannot load the JDFDoc to return");
+				return;
+			}
+			finishedNodes = updateFinishedNodes(finishedNodes, docJDF);
+
+			boolean bAborted = false;
+			if (EnumNodeStatus.Completed.equals(qe.getStatus()))
+			{
+				returnQEParams.setCompleted(finishedNodes);
+			}
+			else if (EnumNodeStatus.Aborted.equals(qe.getStatus()))
+			{
+				returnQEParams.setAborted(finishedNodes);
+				bAborted = true;
+				setNodesAborted(docJDF, finishedNodes);
+			}
+
+			callBacks(docJDF, docJMF);
+			boolean bOK = false;
+			_parentDevice.flush();
+
+			final String returnJMF = BambiNSExtension.getReturnJMF(qe);
+			if (returnJMF != null)
+			{
+				bOK = returnJMF(docJDF, jmf);
+			}
+
+			final String returnURL = BambiNSExtension.getReturnURL(qe);
+			if (!bOK && returnURL != null)
+			{
+				bOK = returnJDFUrl(docJDF);
+			}
+			if (!bOK)
+			{
+				returnHF(docJDF, bAborted);
+			}
+			removeSubscriptions();
+		}
+
+		private void callBacks(JDFDoc docJDF, final JDFDoc docJMF)
+		{
+			// fix for returning
+			final IConverterCallback callBack = _parentDevice.getCallback(null);
+			if (callBack != null)
+			{
+				callBack.updateJDFForExtern(docJDF);
+				callBack.updateJMFForExtern(docJMF);
+			}
+		}
+
+		private void removeSubscriptions()
+		{
+			// remove any subscriptions in case they are still around
+			if (queueEntryID != null)
+			{
+				final SignalDispatcher signalDispatcher = _parentDevice.getSignalDispatcher();
+				if (signalDispatcher != null) // may be null at shutdown
+				{
+					signalDispatcher.removeSubScriptions(queueEntryID, null, null);
+				}
+			}
+		}
+
+		private boolean returnHF(JDFDoc docJDF, boolean bAborted)
+		{
+			boolean bOK = false;
+			final File deviceOutputHF = properties.getOutputHF();
+			final File deviceErrorHF = properties.getErrorHF();
+			if (!bAborted && deviceOutputHF != null)
+			{
+				deviceOutputHF.mkdirs();
+				bOK = docJDF.write2File(FileUtil.getFileInDirectory(deviceOutputHF, new File(new File(docJDF.getOriginalFileName()).getName())), 0, true);
+				log.info("JDF for " + queueEntryID + " has " + (bOK ? "" : "not ") + "been written to good output: " + deviceOutputHF);
+			}
+			else if (bAborted && deviceErrorHF != null)
+			{
+				deviceErrorHF.mkdirs();
+				bOK = docJDF.write2File(FileUtil.getFileInDirectory(deviceErrorHF, new File(docJDF.getOriginalFileName())), 0, true);
+				log.info("JDF for " + queueEntryID + " has " + (bOK ? "" : "not ") + "been written to error output: " + deviceErrorHF);
 			}
 			else
 			{
-				finishedNodes = new VString(n.getID(), null);
+				log.warn("No return URL, No HF, No Nothing  specified, bailing out");
 			}
+			return bOK;
 		}
 
-		boolean bAborted = false;
-		if (EnumNodeStatus.Completed.equals(qe.getStatus()))
+		private boolean returnJDFUrl(JDFDoc docJDF)
 		{
-			returnQEParams.setCompleted(finishedNodes);
-		}
-		else if (EnumNodeStatus.Aborted.equals(qe.getStatus()))
-		{
-			returnQEParams.setAborted(finishedNodes);
-			bAborted = true;
-			setNodesAborted(qe, docJDF, finishedNodes);
+			boolean bOK = false;
+			final String returnURL = BambiNSExtension.getReturnURL(qe);
+
+			try
+			{
+				log.info("JDF Document for " + queueEntryID + " is being been sent to " + returnURL);
+				final JDFDoc d = docJDF.write2URL(returnURL);
+				// TODO error handling
+				bOK = d != null;
+			}
+			catch (final Exception e)
+			{
+				log.error("failed to send ReturnQueueEntry: " + e);
+			}
+			return bOK;
 		}
 
-		// fix for returning
-		final IConverterCallback callBack = _parentDevice.getCallback(null);
-		if (callBack != null)
+		private boolean returnJMF(JDFDoc docJDF, final JDFJMF jmf)
 		{
-			callBack.updateJDFForExtern(docJDF);
-			callBack.updateJMFForExtern(docJMF);
-		}
-		// do not store the updated final returned version
-		// storeDoc(qe, docJDF, null, null);
-		final String returnURL = BambiNSExtension.getReturnURL(qe);
-		final String returnJMF = BambiNSExtension.getReturnJMF(qe);
-		final IDeviceProperties properties = _parentDevice.getProperties();
-		final File deviceOutputHF = properties.getOutputHF();
-		final File deviceErrorHF = properties.getErrorHF();
-
-		boolean bOK = false;
-		_parentDevice.flush();
-
-		if (returnJMF != null)
-		{
+			final String returnJMF = BambiNSExtension.getReturnJMF(qe);
 			log.info("ReturnQueueEntry for " + queueEntryID + " is being been sent to " + returnJMF);
 			final QEReturn qr = properties.getReturnMIME();
 			HttpURLConnection response = null;
+			final JDFReturnQueueEntryParams returnQEParams = jmf.getCommand(0).getReturnQueueEntryParams(0);
 			if (QEReturn.MIME.equals(qr))
 			{
 				returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
+				final JDFDoc docJMF = jmf.getOwnerDocument_JDFElement();
 				final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, _parentDevice.getProperties().getControllerMIMEExpansion());
 				final MIMEDetails mimeDetails = new MIMEDetails();
 				final String devID = _parentDevice.getDeviceID();
@@ -2250,15 +2342,19 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 				response = JMFFactory.getJMFFactory().send2URLSynch(jmf, returnJMF, _parentDevice.getCallback(null), _parentDevice.getDeviceID(), 10000);
 			}
-			int responseCode;
+			boolean bOK = false;
+
 			if (response != null)
 			{
+				int responseCode;
+
 				try
 				{
 					responseCode = response.getResponseCode();
 				}
 				catch (final IOException x)
 				{
+					log.error("cannot read returnqe response: " + x);
 					responseCode = 0;
 				}
 				if (responseCode == 200)
@@ -2272,72 +2368,46 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					bOK = false;
 				}
 			}
+			return bOK;
 		}
 
-		if (!bOK && returnURL != null)
+		public VString updateFinishedNodes(VString finishedNodes, JDFDoc docJDF)
 		{
-			try
+			if (finishedNodes == null || finishedNodes.size() == 0)
 			{
-				log.info("JDF Document for " + queueEntryID + " is being been sent to " + returnURL);
-				final JDFDoc d = docJDF.write2URL(returnURL);
-				// TODO error handling
-				bOK = d != null;
+				final JDFNode n = docJDF.getJDFRoot();
+				if (n == null)
+				{
+					finishedNodes = new VString("rootDev", null);
+				}
+				else
+				{
+					finishedNodes = new VString(n.getID(), null);
+				}
 			}
-			catch (final Exception e)
-			{
-				log.error("failed to send ReturnQueueEntry: " + e);
-			}
+			return finishedNodes;
 		}
-		if (!bOK)
-		{
-			if (!bAborted && deviceOutputHF != null)
-			{
-				deviceOutputHF.mkdirs();
-				bOK = docJDF.write2File(FileUtil.getFileInDirectory(deviceOutputHF, new File(new File(docJDF.getOriginalFileName()).getName())), 0, true);
-				log.info("JDF for " + queueEntryID + " has " + (bOK ? "" : "not ") + "been written to good output: " + deviceOutputHF);
-			}
-			else if (bAborted && deviceErrorHF != null)
-			{
-				deviceErrorHF.mkdirs();
-				bOK = docJDF.write2File(FileUtil.getFileInDirectory(deviceErrorHF, new File(docJDF.getOriginalFileName())), 0, true);
-				log.info("JDF for " + queueEntryID + " has " + (bOK ? "" : "not ") + "been written to error output: " + deviceErrorHF);
-			}
-			else
-			{
-				log.warn("No return URL, No HF, No Nothing  specified, bailing out");
-			}
-		}
-		// remove any subscriptions in case they are still around
-		if (queueEntryID != null)
-		{
-			final SignalDispatcher signalDispatcher = _parentDevice.getSignalDispatcher();
-			if (signalDispatcher != null) // may be null at shutdown
-			{
-				signalDispatcher.removeSubScriptions(queueEntryID, null, null);
-			}
-		}
-	}
 
-	/**
-	 * @param qe
-	 * @param docJDF
-	 * @param finishedNodes
-	 */
-	private void setNodesAborted(final JDFQueueEntry qe, final JDFDoc docJDF, final VString finishedNodes)
-	{
-		if (docJDF == null)
+		/**
+		 * @param docJDF
+		 * @param finishedNodes
+		 */
+		private void setNodesAborted(final JDFDoc docJDF, final VString finishedNodes)
 		{
-			return;
+			if (docJDF == null)
+			{
+				return;
+			}
+			final JDFNode root = docJDF.getJDFRoot();
+			if (root == null)
+			{
+				return;
+			}
+			final JDFNotification not = root.getCreateAuditPool().addNotification(EnumClass.Warning, null, qe.getPartMapVector());
+			final JDFComment notificationComment = not.appendComment();
+			notificationComment.setLanguage("en");
+			notificationComment.setText("Node aborted in queue entry: " + qe.getQueueEntryID());
 		}
-		final JDFNode root = docJDF.getJDFRoot();
-		if (root == null)
-		{
-			return;
-		}
-		final JDFNotification not = root.getCreateAuditPool().addNotification(EnumClass.Warning, null, qe.getPartMapVector());
-		final JDFComment notificationComment = not.appendComment();
-		notificationComment.setLanguage("en");
-		notificationComment.setText("Node aborted in queue entry: " + qe.getQueueEntryID());
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////////////////
@@ -2457,11 +2527,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			newStatus = EnumQueueEntryStatus.Aborted;
 		}
-		updateEntry(qe, newStatus, m, resp);
 		if (EnumQueueEntryStatus.Aborted.equals(newStatus))
 		{
-			returnQueueEntry(qe, null, null);
+			returnQueueEntry(qe, null, null, newStatus);
 		}
+		updateEntry(qe, newStatus, m, resp);
 		log.info("aborted QueueEntry with ID=" + qeid);
 		return true;
 	}

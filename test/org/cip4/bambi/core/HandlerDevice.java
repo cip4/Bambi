@@ -71,6 +71,7 @@ package org.cip4.bambi.core;
 import java.io.File;
 
 import org.cip4.bambi.workers.sim.SimDevice;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 
 /**
  * 
@@ -91,10 +92,11 @@ public class HandlerDevice extends SimDevice
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#getExtractDirectory(java.lang.String)
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDevice#getExtractDirectory(org.cip4.jdflib.jmf.JDFQueueEntry, boolean)
 	 */
 	@Override
-	public File getExtractDirectory(String queueEntryID)
+	public File getExtractDirectory(JDFQueueEntry queueEntry, boolean bSubmit)
 	{
 
 		return new File("/tmp/blub");

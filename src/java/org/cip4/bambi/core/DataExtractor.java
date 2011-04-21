@@ -73,6 +73,7 @@ import java.util.Vector;
 
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.elementwalker.URLExtractor;
+import org.cip4.jdflib.ifaces.IElementConverter;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.util.UrlUtil.URLProtocol;
 
@@ -84,11 +85,13 @@ import org.cip4.jdflib.util.UrlUtil.URLProtocol;
  */
 public class DataExtractor extends BambiLogFactory
 {
+
 	/**
 	 * create a data extractor for a given device
 	 * @param parentDevice the device to get directories from
+	 * @param bSubmit 
 	 */
-	public DataExtractor(AbstractDevice parentDevice)
+	public DataExtractor(AbstractDevice parentDevice, boolean bSubmit)
 	{
 		super();
 		this.parentDevice = parentDevice;
@@ -96,6 +99,7 @@ public class DataExtractor extends BambiLogFactory
 		// don't do http 
 		protocols.add(URLProtocol.cid);
 		protocols.add(URLProtocol.file);
+		this.bSubmit = bSubmit;
 	}
 
 	/**
@@ -109,7 +113,8 @@ public class DataExtractor extends BambiLogFactory
 	}
 
 	protected final AbstractDevice parentDevice;
-	private final Vector<URLProtocol> protocols;
+	protected final Vector<URLProtocol> protocols;
+	protected final boolean bSubmit;
 
 	/**
 	 * stub that copies url links to local storage if required
@@ -128,7 +133,7 @@ public class DataExtractor extends BambiLogFactory
 			return;
 		}
 
-		final File jobDirectory = parentDevice.getExtractDirectory(newQE.getQueueEntryID());
+		final File jobDirectory = parentDevice.getExtractDirectory(newQE, bSubmit);
 		if (jobDirectory == null)
 		{
 			log.warn("no Job Directory for: " + newQE.getQueueEntryID());
@@ -136,15 +141,21 @@ public class DataExtractor extends BambiLogFactory
 		}
 
 		log.info("extracting attached files to: " + jobDirectory);
-		String dataURL = parentDevice.getDataURL(newQE.getQueueEntryID());
+		String dataURL = getDataURL(newQE);
 		if (dataURL != null)
 		{
-			URLExtractor ex = getExtractor(jobDirectory, dataURL);
-			ex.walkTree(doc.getRoot(), null);
+			IElementConverter ex = getExtractor(jobDirectory, dataURL);
+			ex.convert(doc.getRoot());
 		}
 	}
 
-	protected URLExtractor getExtractor(final File jobDirectory, String dataURL)
+	protected String getDataURL(JDFQueueEntry newQE)
+	{
+		String dataURL = parentDevice.getDataURL(newQE, bSubmit);
+		return dataURL;
+	}
+
+	protected IElementConverter getExtractor(final File jobDirectory, String dataURL)
 	{
 		File hfDirectory = parentDevice._submitHotFolder == null ? null : parentDevice._submitHotFolder.getHfDirectory();
 		String absolutePath = hfDirectory == null ? null : hfDirectory.getAbsolutePath();

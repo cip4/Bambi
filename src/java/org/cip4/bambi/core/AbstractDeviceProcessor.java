@@ -557,10 +557,9 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		_statusListener.flush("Status");
 		_statusListener.setNode(null, null, null, null);
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
-		_queueProcessor.updateEntry(qe, qes, null, null);
 		if (bReturn)
 		{
-			_queueProcessor.returnQueueEntry(qe, null, null);
+			_queueProcessor.returnQueueEntry(qe, null, null, qes);
 
 			if (currentQE != null)
 			{
@@ -569,6 +568,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			currentQE = null;
 			log.info("finalized processing JDF: ");
 		}
+		_queueProcessor.updateEntry(qe, qes, null, null);
 		return bReturn;
 	}
 

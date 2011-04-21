@@ -75,6 +75,7 @@ import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
@@ -84,16 +85,19 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 {
-	private final AbstractDevice dev;
+	protected final AbstractDevice dev;
+	protected final String dataToken;
 
 	/**
 	 * @param dev the parent device
+	 * @param dataToken the token in the path to check for data
 	 * 
 	 */
-	public DataRequestHandler(final AbstractDevice dev)
+	public DataRequestHandler(final AbstractDevice dev, String dataToken)
 	{
 		super();
 		this.dev = dev;
+		this.dataToken = "/" + StringUtil.token(dataToken, 0, "/") + "/";
 	}
 
 	/**
@@ -102,24 +106,21 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 	 */
 	public XMLResponse handleGet(final ContainerRequest request)
 	{
-		final File dataDir = dev.getExtractDirectory(null);
+		final String path = request.getRequestURI();
+		final File dataDir = getDataDir(request);
 		if (dataDir == null)
 		{
+			log.warn("cannot find data directory for: " + path);
 			return null;
 		}
-		final String path = request.getRequestURI();
-		final int posData = path.indexOf("/data/");
-		if (posData < 0)
+		String last = getRelativePath(path);
+		if (last == null)
 		{
+			log.warn("cannot retrieve data for: " + path);
 			return null;
 		}
+
 		log.info("serving file data for: " + path);
-		String last = path.substring(posData + 6);
-		final int posToken = last == null ? -1 : last.indexOf("/");
-		if (posToken > 0 && last != null)
-		{
-			last = last.substring(posToken);
-		}
 		File file = FileUtil.getFileInDirectory(dataDir, new File(last));
 		if (!file.canRead())
 		{
@@ -132,6 +133,7 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 		{
 			try
 			{
+				log.info("serving file at path= " + path + " from " + file.getAbsolutePath());
 				final OutputStream outputStream = response.getOutputStream();
 				IOUtils.copy(FileUtil.getBufferedInputStream(file), outputStream);
 			}
@@ -145,5 +147,33 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 			log.warn("cannot find file data for: " + path + " at: " + file);
 		}
 		return response;
+	}
+
+	protected String getRelativePath(final String path)
+	{
+		final int posData = path.indexOf(dataToken);
+		String last = path.substring(posData + dataToken.length() + 2);
+		final int posToken = last == null ? -1 : last.indexOf("/");
+		if (posToken > 0 && last != null)
+		{
+			last = last.substring(posToken);
+		}
+		if (posData < 0)
+		{
+			last = null;
+		}
+		return last;
+	}
+
+	/**
+	 * 
+	 * get the data directory based on the request
+	 * @param request
+	 * @return
+	 */
+	public File getDataDir(ContainerRequest request)
+	{
+		final File dataDir = dev.getExtractDirectory(null, true);
+		return dataDir;
 	}
 }

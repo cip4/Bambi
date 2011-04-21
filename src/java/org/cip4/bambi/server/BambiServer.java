@@ -156,7 +156,9 @@ public final class BambiServer extends JettyServer
 		contextHandler.setContextPath(context);
 		contextHandler.setWelcomeFiles(new String[] { "index.jsp" });
 		BambiServlet myServlet = new BambiServlet();
-		contextHandler.addServlet(new ServletHolder(myServlet), "/*");
+		ServletHolder servletHolder = new ServletHolder(myServlet);
+		servletHolder.setInitParameter("bambiDump", "/bambidump" + context);
+		contextHandler.addServlet(servletHolder, "/*");
 		return contextHandler;
 	}
 

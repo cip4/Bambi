@@ -751,7 +751,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				deviceRoot.setAttribute("SlaveMIMETransferEncoding", proxyProperties.getSlaveMIMEEncoding());
 				deviceRoot.setAttribute("SlaveMIMESemicolon", proxyProperties.getSlaveMIMESemicolon(), null);
 			}
-			deviceRoot.setAttribute("DataURL", getDataURL(null));
+			deviceRoot.setAttribute("DataURL", getDataURL(null, true));
 		}
 	}
 
@@ -1525,18 +1525,18 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @param queueEntryID
-	 * @return
+	 * 	@Override
+	 * @see org.cip4.bambi.core.AbstractDevice#getDataURL(java.lang.String, boolean)
 	 */
 	@Override
-	public String getDataURL(String queueEntryID)
+	public String getDataURL(JDFQueueEntry queueEntry, boolean bSubmit)
 	{
 		IProxyProperties proxyProperties = getProxyProperties();
 		if (proxyProperties.getSlaveMIMEExpansion() && proxyProperties.isSlaveMimePackaging())
 			return null;
 		String deviceURL = getDeviceURL();
 		deviceURL = StringUtil.replaceString(deviceURL, "jmf", "data");
-		return deviceURL + ((queueEntryID == null) ? "" : "/" + queueEntryID);
+		return deviceURL + ((queueEntry == null) ? "" : "/" + queueEntry.getQueueEntryID());
 	}
 
 }

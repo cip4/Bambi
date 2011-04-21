@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -499,7 +499,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		 */
 		private DataExtractor getDataExtractor()
 		{
-			DataExtractor ex = ProxyDevice.this.getDataExtractor();
+			DataExtractor ex = ProxyDevice.this.getDataExtractor(false);
 			ex.addProtocol(URLProtocol.http);
 			return ex;
 		}
@@ -1050,8 +1050,9 @@ public class ProxyDevice extends AbstractProxyDevice
 				continue;
 			}
 			final ProxyDeviceProcessor proc = (ProxyDeviceProcessor) aProc;
-			final String qeID = proc.getCurrentQE().getQueueEntryID();
-			if (bambiQEID.equals(qeID))
+			IQueueEntry currentQE = proc.getCurrentQE();
+			final String qeID = currentQE == null ? null : currentQE.getQueueEntryID();
+			if (qeID != null && bambiQEID.equals(qeID))
 			{
 				return proc.getSlaveQEID();
 			}

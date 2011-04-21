@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -572,6 +572,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		_jmfHandler = new JMFHandler(this);
 
 		qeRequester = new QueueEntryRequester();
+		_deviceProcessors = new Vector<AbstractDeviceProcessor>();
 
 		_callback = _devProperties.getCallBackClass();
 		_theSignalDispatcher = new SignalDispatcher(_jmfHandler, this);
@@ -588,7 +589,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 
 		final String deviceID = _devProperties.getDeviceID();
-		_deviceProcessors = new Vector<AbstractDeviceProcessor>();
 		final AbstractDeviceProcessor newDevProc = buildDeviceProcessor();
 		if (newDevProc != null)
 		{
@@ -957,10 +957,13 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public AbstractDeviceProcessor getProcessor(final String queueEntryID, int n)
 	{
-		int nn = 0;
-		for (int i = 0; i < _deviceProcessors.size(); i++)
+		if (_deviceProcessors == null)
 		{
-			final AbstractDeviceProcessor theDeviceProcessor = _deviceProcessors.get(i);
+			return null;
+		}
+		int nn = 0;
+		for (AbstractDeviceProcessor theDeviceProcessor : _deviceProcessors)
+		{
 			final IQueueEntry iqe = theDeviceProcessor.getCurrentQE();
 			if (iqe == null) // we have an idle proc
 			{
@@ -1158,7 +1161,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 		if (request.isMyContext("data"))
 		{
-			return new DataRequestHandler(this).handleGet(request);
+			return new DataRequestHandler(this, "data").handleGet(request);
 		}
 
 		if (_theQueueProcessor != null)
@@ -1672,10 +1675,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * get the data url, if no data forwarding is defined, return null
-	 * @param queueEntryID
+	 * @param queueEntry
+	 * @param bSubmit if true, called incoming, else returning
 	 * @return
 	 */
-	public String getDataURL(String queueEntryID)
+	public String getDataURL(JDFQueueEntry queueEntry, boolean bSubmit)
 	{
 		return null;
 	}
@@ -1736,20 +1740,21 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	/**
 	 * get the directory for extracted files
 	 * defaults to the device's job directory see {@link AbstractDevice#getJobDirectory(String)}
-	 * @param queueEntryID the queueEntry to get a job directory for
+	 * @param qe the queueEntry to get a job directory for
+	 * @param bSubmit if true, called incomuing, else outgoing
 	 * @return the directory to dump to
 	 */
-	public File getExtractDirectory(String queueEntryID)
+	public File getExtractDirectory(JDFQueueEntry qe, boolean bSubmit)
 	{
-		return getJobDirectory(queueEntryID);
+		return getJobDirectory(qe == null ? null : qe.getQueueEntryID());
 	}
 
 	/**
-	 * TODO Please insert comment!
 	 * @return the dataextractor required for this
+	 * @param bSubmit if true we are in the submission process, if false in the return process
 	 */
-	public DataExtractor getDataExtractor()
+	public DataExtractor getDataExtractor(boolean bSubmit)
 	{
-		return new DataExtractor(this);
+		return new DataExtractor(this, bSubmit);
 	}
 }
