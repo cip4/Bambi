@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -81,6 +81,7 @@ import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * Map of channelID / Acknowledges for a device <br/>
@@ -126,6 +127,7 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 		{
 			cleanup();
 		}
+		log.info("adding acknowledge handler for: " + refID);
 		theMap.put(refID, handler);
 	}
 
@@ -148,9 +150,10 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 				}
 			}
 			// 2 loops in so we don't invalidate the iterator...
-			for (int i = 0; i < v.size(); i++)
+			for (String key : v)
 			{
-				removeHandler(v.get(i));
+				log.info("removing aborted acknowledge handler: " + key);
+				removeHandler(key);
 			}
 		}
 		lastCleanup = System.currentTimeMillis();
@@ -196,21 +199,31 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 			JMFHandler.errorResponse(response, "Handling Acknowledge with no refID, bailing out", 9, EnumClass.Error);
 			return true;
 		}
-		final IResponseHandler handler = theMap.get(channelID);
+		IResponseHandler handler = null;
+		for (int i = 01; i < 3; i++)
+		{
+			handler = theMap.get(channelID);
+			if (handler == null)
+			{
+				log.warn("Race condition in acknowledge? lets wait: " + i);
+				ThreadUtil.sleep(100 * i * i);
+			}
+			else
+			{
+				break;
+			}
+		}
 		if (handler == null)
 		{
-			JMFHandler.errorResponse(response, "Handling Acknowledge with unknown refID " + channelID + ", bailing out", 6, EnumClass.Error);
+			JMFHandler.errorResponse(response, "Cannot handle Acknowledge with unknown refID " + channelID + ", bailing out", 6, EnumClass.Error);
 			return true;
 		}
 		handler.setMessage(a);
 		final boolean b = handler.handleMessage();
 		if (b || handler.isAborted())
 		{
-			synchronized (theMap)
-			{
-				theMap.remove(channelID);
-				log.info("handled Acknowledge refID=" + channelID);
-			}
+			removeHandler(channelID);
+			log.info("handled Acknowledge refID=" + channelID);
 		}
 		return b;
 	}

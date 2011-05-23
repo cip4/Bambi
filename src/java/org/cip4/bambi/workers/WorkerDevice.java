@@ -120,18 +120,6 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	protected EmployeeList employees;
 
 	/**
-	 * copy anything required by this device to the cache directory
-	 */
-	@Override
-	protected void copyToCache()
-	{
-		super.copyToCache();
-		final File configDir = getProperties().getConfigDir();
-		File configFile = FileUtil.getFileInDirectory(configDir, new File(EmployeeLoader.employeeXML));
-		FileUtil.ensureFileInDir(configFile, getCachedConfigDir());
-	}
-
-	/**
 	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.node.JDFNode, java.lang.String)
 	 * @param jdf
 	 * @param queueEntryID

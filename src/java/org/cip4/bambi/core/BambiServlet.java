@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -98,7 +98,7 @@ import org.cip4.jdflib.util.UrlUtil;
  * Entrance point for Bambi servlets
  * note that most processing has been moved to the servlet independent class @see BambiContainer
  * @author boegerni
- * 101216 RP - made final - only the respective devices should be subclassed
+ *  
  */
 public final class BambiServlet extends HttpServlet
 {
@@ -113,8 +113,17 @@ public final class BambiServlet extends HttpServlet
 	public BambiServlet()
 	{
 		super();
-		log = new BambiLogFactory(this.getClass()).getLog();
+		initLogging();
 		theContainer = getBambiContainer();
+	}
+
+	/**
+	 * 
+	 *this should be overwritten for nice logging features
+	 */
+	protected void initLogging()
+	{
+		log = new BambiLogFactory(getClass()).getLog();
 	}
 
 	protected BambiContainer getBambiContainer()
@@ -123,7 +132,7 @@ public final class BambiServlet extends HttpServlet
 		return container;
 	}
 
-	private BambiLog log = null;
+	protected BambiLog log = null;
 	protected boolean dumpGet = false;
 	protected boolean dumpEmpty = false;
 	private final BambiContainer theContainer;
@@ -142,13 +151,11 @@ public final class BambiServlet extends HttpServlet
 	public void init(final ServletConfig config) throws ServletException
 	{
 		super.init(config);
-		final ServletContext context = config.getServletContext();
 		final String dump = initializeDumps(config);
-		String baseURL = getContextPath(context);
+		String baseURL = getContextPath();
 		log.info("Initializing servlet for " + baseURL);
 
-		if (baseURL.startsWith("/"))
-			baseURL = baseURL.substring(1);
+		final ServletContext context = config.getServletContext();
 		String realPath = context.getRealPath("/");
 		if (realPath == null)
 			realPath = ".";
@@ -159,16 +166,25 @@ public final class BambiServlet extends HttpServlet
 	/**
 	 * 
 	 * getContextPath is new in servlet api 2.5
-	 * @param context the servlet context to check for
-	 * @return
+	 * 
+	 * @return the context
 	 */
-	private String getContextPath(final ServletContext context)
+	protected String getContextPath()
 	{
+		final ServletContext context = getServletConfig().getServletContext();
 		String baseURL;
 		if (context.getMajorVersion() <= 2 && context.getMinorVersion() < 5)
+		{
 			baseURL = context.getServletContextName();
+		}
 		else
+		{
 			baseURL = context.getContextPath();
+		}
+		if (baseURL.startsWith("/"))
+		{
+			baseURL = baseURL.substring(1);
+		}
 		return baseURL;
 	}
 
@@ -185,14 +201,20 @@ public final class BambiServlet extends HttpServlet
 	private String initializeDumps(final ServletConfig config)
 	{
 		final String dump = StringUtil.getNonEmpty(config.getInitParameter("bambiDump"));
-		if (dump != null)
+		if (dump == null)
 		{
+			log.info("initializing http dump directory: " + dump);
+		}
+		else
+		{
+			log.info("initializing http dump directory: " + dump);
 			bambiDumpIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("in")));
 			bambiDumpOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("out")));
 			final String iniDumpGet = config.getInitParameter("bambiDumpGet");
 			dumpGet = iniDumpGet == null ? false : "true".compareToIgnoreCase(iniDumpGet) == 0;
 			final String iniDumpEmpty = config.getInitParameter("bambiDumpEmpty");
 			dumpEmpty = iniDumpEmpty == null ? false : "true".compareToIgnoreCase(iniDumpEmpty) == 0;
+			log.info("initializing http dump directory: " + dump + " get=" + dumpGet + " empty=" + dumpEmpty);
 		}
 		return dump;
 	}
@@ -217,7 +239,6 @@ public final class BambiServlet extends HttpServlet
 	 */
 	private void doGetPost(final HttpServletRequest request, final HttpServletResponse response, boolean bPost) throws IOException
 	{
-		final boolean bBuf = (dumpGet || bPost) && bambiDumpIn != null;
 		AbstractDevice rootDev = theContainer.getRootDev();
 		rootDev.startWork();
 		String getPost = bPost ? "post" : "get";
@@ -226,10 +247,18 @@ public final class BambiServlet extends HttpServlet
 		StreamRequest sr = createStreamRequest(request);
 		sr.setPost(bPost);
 
+		XMLResponse xr = null;
+		try
+		{
+			xr = theContainer.processStream(sr);
+			writeResponse(xr, response);
+		}
+		catch (Exception x)
+		{
+			log.error("Snafu processing get / post");
+		}
+		final boolean bBuf = (dumpGet || bPost) && bambiDumpIn != null;
 		dumpIncoming(request, bBuf, sr);
-
-		XMLResponse xr = theContainer.processStream(sr);
-		writeResponse(xr, response);
 		dumpOutGoing(getPost, sr, xr);
 		request.getInputStream().close(); // avoid mem leaks
 		rootDev.endWork();
@@ -249,7 +278,7 @@ public final class BambiServlet extends HttpServlet
 			final String header = getDumpHeader(sr);
 			final InputStream buf = xr.getInputStream();
 
-			final File in = bambiDumpOut.newFileFromStream(header, buf);
+			final File in = bambiDumpOut.newFileFromStream(header, buf, sr.getName());
 			if (in != null)
 			{
 				in.renameTo(new File(UrlUtil.newExtension(in.getPath(), ("." + getPost + ".resp.txt"))));
@@ -271,7 +300,7 @@ public final class BambiServlet extends HttpServlet
 		{
 			final String header = getDumpHeader(sr);
 			final String h2 = header + "\nContext Length: " + request.getContentLength();
-			bambiDumpIn.newFileFromStream(h2, sr.getInputStream());
+			bambiDumpIn.newFileFromStream(h2, sr.getInputStream(), sr.getName());
 		}
 	}
 
@@ -373,6 +402,7 @@ public final class BambiServlet extends HttpServlet
 	 */
 	private JDFAttributeMap getHeaderMap(HttpServletRequest request)
 	{
+		@SuppressWarnings("unchecked")
 		Enumeration<String> headers = request.getHeaderNames();
 		if (!headers.hasMoreElements())
 		{
@@ -382,6 +412,7 @@ public final class BambiServlet extends HttpServlet
 		while (headers.hasMoreElements())
 		{
 			String header = headers.nextElement();
+			@SuppressWarnings("unchecked")
 			Enumeration<String> e = request.getHeaders(header);
 			VString v = new VString(e);
 			if (v.size() > 0)
@@ -399,6 +430,7 @@ public final class BambiServlet extends HttpServlet
 	 */
 	private Map<String, String> getParameterMap(HttpServletRequest request)
 	{
+		@SuppressWarnings("unchecked")
 		Map<String, String[]> pm = request.getParameterMap();
 		Map<String, String> retMap = new JDFAttributeMap();
 		Set<String> keyset = pm.keySet();

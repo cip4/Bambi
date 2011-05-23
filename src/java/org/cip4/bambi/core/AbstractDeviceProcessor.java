@@ -420,7 +420,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		}
 		catch (final Exception x)
 		{
-			log.error("error processing JDF: " + x);
+			log.error("error processing JDF: ", x);
 			qes = EnumQueueEntryStatus.Aborted;
 			bOK = false;
 		}

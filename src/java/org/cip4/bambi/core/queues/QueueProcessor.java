@@ -1823,8 +1823,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			log.error("error submitting new queueentry");
 			return null;
 		}
-		final VString canAccept = canAccept(theJDF.getJDFRoot(), null);
 
+		final VString canAccept = canAccept(theJDF.getJDFRoot(), null);
 		if (canAccept == null)
 		{
 			JMFHandler.errorResponse(newResponse, "unable to queue request: No matching nodes found. Check Types and DeviceID - Error code = 101", 101, EnumClass.Error);
@@ -1880,7 +1880,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID);
 			newQE = _theQueue.getQueueEntry(qeID);
 		}
-		// wait a very short moment to allow any potential processing of the newly create entry to commence, prior to returning the entry
+		// wait a very short moment to allow any potential processing of the newly created entry to commence, prior to returning the entry
 		ThreadUtil.sleep(42);
 		return newQE;
 	}
@@ -2064,10 +2064,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					qe.removeAttribute(AttributeName.STARTTIME);
 					qe.removeAttribute(AttributeName.ENDTIME);
 					qe.removeAttribute(AttributeName.DEVICEID);
-					BambiNSExtension.setDeviceURL(qe, null);
 					qe.setQueueEntryStatus(status);
 				}
-				else if (status.equals(EnumQueueEntryStatus.Aborted) || status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Suspended))
+				else if (status.equals(EnumQueueEntryStatus.Suspended))
+				{
+					qe.setQueueEntryStatus(status);
+				}
+				else if (status.equals(EnumQueueEntryStatus.Aborted) || status.equals(EnumQueueEntryStatus.Completed))
 				{
 					qe.removeAttribute(AttributeName.DEVICEID);
 					BambiNSExtension.setDeviceURL(qe, null);

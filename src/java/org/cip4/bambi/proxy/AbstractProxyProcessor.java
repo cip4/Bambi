@@ -73,6 +73,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.mail.Multipart;
@@ -153,6 +154,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	protected JDFNotification notification;
 	protected IConverterCallback slaveCallBack;
 	protected EnumActivation activation;
+	protected int submitWait;
 
 	/**
 	 * get the currently set activation
@@ -195,6 +197,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		rc = 0;
 		notification = null;
 		activation = EnumActivation.Active;
+		submitWait = 10000;
 	}
 
 	/**
@@ -411,11 +414,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 
 		/**
-		 * @param qurl
-		 * @param deviceOutputHF
-		 * @param ud
-		 * @param expandMime
-		 * @param isMime
 		 * @return the updated queueEntry, null if the submit failed
 		 */
 		public IQueueEntry submitToQueue()
@@ -453,9 +451,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 			if (modNode != null)
 			{
+				final String urlString = qurl == null ? null : qurl.toExternalForm();
 				try
 				{
-					final String urlString = qurl == null ? null : qurl.toExternalForm();
 					final JDFMessage r = writeToQueue(jmf.getOwnerDocument_JDFElement(), modNode.getOwnerDocument_KElement());
 					if (isLive()) // only evaluate response for live submission - who cares what is happening informative
 					{
@@ -464,6 +462,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				}
 				catch (final IOException x)
 				{
+					log.error("snafu submitting to queue at " + urlString, x);
 					modNode = null;
 				}
 			}
@@ -472,6 +471,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
 				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
 			}
+			log.info("Submission completed");
 			return isLive() ? new QueueEntry(node, qe) : null;
 		}
 
@@ -528,7 +528,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				log.info("submitting RAW JMF, ID=" + c.getID());
 				getParent().sendJMFToSlave(docJMF.getJMFRoot(), sqh);
 			}
-			sqh.waitHandled(10000, 30000, false);
+			sqh.waitHandled(submitWait, 6 * submitWait, false);
 			final JDFMessage handlerResponse = handleQueueAcknowledge(sqh);
 			if (handlerResponse == null)
 			{
@@ -598,9 +598,23 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		{
 			JDFQueue q = r == null ? null : r.getQueue(0);
 			Map<String, JDFQueueEntry> hm = q == null ? null : q.getQueueEntryIDMap();
+
+			JDFQueueEntry qe = r.getQueueEntry(0);
+			String newQEID = qe == null ? null : StringUtil.getNonEmpty(qe.getQueueEntryID());
+			if (newQEID != null)
+			{
+				if (hm == null)
+				{
+					hm = new HashMap<String, JDFQueueEntry>();
+				}
+				hm.put(newQEID, qe);
+			}
 			// this may be a bug...
 			if (hm == null || hm.size() == 0)
+			{
+				log.warn("no queueentry in submitqueueentry response");
 				return;
+			}
 			JDFAttributeMap map = new JDFAttributeMap(AttributeName.DEVICEID, r.getSenderID());
 			QueueProcessor queueProcessor = _parent.getQueueProcessor();
 			VElement myQueueEntries = queueProcessor.getQueue().getQueueEntryVector(map, null);
@@ -706,11 +720,13 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	{
 		if (queueEntryID == null)
 		{
+			log.warn("null queueentryID");
 			return null;
 		}
 		final String slaveID = getSlaveQEID(queueEntryID);
 		if (slaveID == null)
 		{
+			log.warn("no matching queueentryID");
 			return null;
 		}
 		int iRet = new QueueSubmitter(getParent().getProxyProperties().getSlaveURL()).new QueueResubmitter(jdf, slaveID, queueEntryID).resubmit();

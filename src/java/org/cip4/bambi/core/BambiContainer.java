@@ -600,6 +600,7 @@ public final class BambiContainer extends BambiLogFactory
 				XMLRequest r2 = new XMLRequest(docJDF[0].getJMFRoot());
 				r2.setContainer(request);
 				r = processXMLDoc(r2);
+				request.setName(r2.getName());
 			}
 		}
 		stopTimer(request);

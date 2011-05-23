@@ -564,7 +564,38 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected void copyToCache()
 	{
-		// nop but will be overwritten
+		final Vector<File> dirs = getCacheDirs();
+		File baseDir = getProperties().getBaseDir();
+		for (File configDir : dirs)
+		{
+			File cacheDir = FileUtil.getFileInDirectory(baseDir, new File(configDir.getName()));
+			File[] configFiles = configDir.listFiles();
+			if (configFiles == null)
+			{
+				log.warn("something is wrong - no directory exists: " + configDir.getAbsolutePath());
+			}
+			else
+			{
+				for (File f : configFiles)
+				{
+					File configFile = FileUtil.getFileInDirectory(configDir, new File(f.getName()));
+					FileUtil.ensureFileInDir(configFile, cacheDir);
+				}
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * vector of directories that need to be copied to cache
+	 * @return
+	 */
+	protected Vector<File> getCacheDirs()
+	{
+		Vector<File> v = new Vector<File>();
+		final File configDir = getProperties().getConfigDir();
+		v.add(configDir);
+		return v;
 	}
 
 	protected void init()

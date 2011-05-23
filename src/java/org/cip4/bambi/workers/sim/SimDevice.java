@@ -71,7 +71,6 @@
 
 package org.cip4.bambi.workers.sim;
 
-import java.io.File;
 import java.util.Set;
 
 import org.cip4.bambi.core.AbstractDeviceProcessor;
@@ -84,7 +83,6 @@ import org.cip4.bambi.workers.UIModifiableDevice;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 
 /**
@@ -157,25 +155,6 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	protected AbstractDeviceProcessor buildDeviceProcessor()
 	{
 		return new SimDeviceProcessor();
-	}
-
-	/**
-	 * copy anything required by this device to the cache directory
-	 */
-	@Override
-	protected void copyToCache()
-	{
-		super.copyToCache();
-		final File configDir = getProperties().getConfigDir();
-		File[] jobs = FileUtil.listFilesWithExpression(configDir, "job*.xml");
-		if (jobs != null)
-		{
-			File cachedConfigDir = getCachedConfigDir();
-			for (File job : jobs)
-			{
-				FileUtil.ensureFileInDir(job, cachedConfigDir);
-			}
-		}
 	}
 
 	/**

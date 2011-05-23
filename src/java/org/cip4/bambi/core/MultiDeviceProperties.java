@@ -78,11 +78,11 @@ import java.net.UnknownHostException;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.core.XMLParser;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -608,7 +608,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 	public MultiDeviceProperties(File baseDir, String baseURL, final File configFile)
 	{
 		// to evaluate current name and send it back rather than 127.0.0.1
-		final JDFParser p = new JDFParser();
+		final XMLParser p = new XMLParser();
 		final XMLDoc doc = p.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
 		root = doc == null ? null : doc.getRoot();
 		this.context = baseURL;
@@ -668,7 +668,6 @@ public class MultiDeviceProperties extends BambiLogFactory
 			log.warn("guessing default port - using " + p);
 		}
 		return p;
-
 	}
 
 	/**

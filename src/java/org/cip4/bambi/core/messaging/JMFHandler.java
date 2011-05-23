@@ -543,6 +543,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	{
 		if (inputMessage == null)
 		{
+			log.error("handling null message");
 			return false;
 		}
 		try
@@ -562,7 +563,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 			if (handler != null)
 			{
-				log.info("handling message; type=" + (inputMessage == null ? "null" : inputMessage.getType()));
+				log.info("handling message; family= " + inputMessage.getLocalName() + " type=" + inputMessage.getType() + " id= " + inputMessage.getID());
 				handled = handler.handleMessage(inputMessage, response);
 			}
 			if (!inputMessage.hasAttribute(subscribed) && !handled)

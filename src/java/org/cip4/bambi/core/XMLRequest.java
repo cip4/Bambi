@@ -77,6 +77,7 @@ import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.UrlUtil;
 
@@ -95,6 +96,7 @@ public class XMLRequest extends ContainerRequest
 		super();
 		this.theXML = theXML;
 		setContentType(theXML);
+		updateName();
 	}
 
 	/**
@@ -105,6 +107,7 @@ public class XMLRequest extends ContainerRequest
 		super();
 		this.theXML = theDoc == null ? null : theDoc.getRoot();
 		setContentType(theXML);
+		updateName();
 	}
 
 	/**
@@ -137,6 +140,24 @@ public class XMLRequest extends ContainerRequest
 		final JDFParser p = new JDFParser();
 		final JDFDoc xmlDoc = p.parseStream(inStream);
 		theXML = xmlDoc == null ? null : xmlDoc.getRoot();
+		updateName();
+		if (request.getName() == null)
+			request.setName(getName());
+	}
+
+	private void updateName()
+	{
+		if (theXML instanceof JDFJMF)
+		{
+			JDFJMF jmf = (JDFJMF) theXML;
+			JDFMessage m = jmf == null ? null : jmf.getMessageElement(null, null, 0);
+			if (m != null)
+				setName(m.getType());
+			else
+				setName("JMF");
+		}
+		else if (theXML != null)
+			setName(theXML.getLocalName());
 	}
 
 	private final KElement theXML;

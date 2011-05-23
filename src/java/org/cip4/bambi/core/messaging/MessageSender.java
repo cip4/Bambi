@@ -602,13 +602,12 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			trySend++;
 			HttpURLConnection connection = null;
 			String header = "URL: " + url;
-			final DumpDir outDump = getOutDump(mh.senderID);
-			final DumpDir inDump = getInDump(mh.senderID);
 			if (jmf != null && mp != null)
 			{
 				log.warn("Both mime package and JMF specified - sending both");
 			}
 
+			final DumpDir outDump = getOutDump(mh.senderID);
 			if (jmf != null)
 			{
 				connection = sendJMF(mh, jmf, url, outDump);
@@ -644,6 +643,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				}
 			}
 
+			final DumpDir inDump = getInDump(mh.senderID);
 			if (connection != null && connection.getResponseCode() == 200)
 			{
 				InputStream inputStream = connection.getInputStream();
@@ -652,7 +652,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				inputStream.close(); // copy and close so that the connection stream can be reused by keep-alive
 				if (inDump != null)
 				{
-					inDump.newFileFromStream(header, bis.getInputStream());
+					inDump.newFileFromStream(header, bis.getInputStream(), mh.getName());
 				}
 				if (mh.respHandler != null)
 				{
@@ -672,7 +672,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				{
 					if (inDump != null)
 					{
-						inDump.newFile(header);
+						inDump.newFile(header, mh.getName());
 					}
 					InputStream inputStream = connection.getInputStream();
 					if (inputStream != null)
@@ -713,7 +713,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		HttpURLConnection connection = p == null ? null : p.getConnection();
 		if (outDump != null)
 		{
-			outDump.newFile(header);
+			outDump.newFile(header, mh.getName());
 		}
 		return connection;
 	}
@@ -735,7 +735,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		HttpURLConnection connection = MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
 		if (outDump != null)
 		{
-			final File dump = outDump.newFile(header);
+			final File dump = outDump.newFile(header, mh.getName());
 			if (dump != null)
 			{
 				final FileOutputStream fos = new FileOutputStream(dump, true);
@@ -764,7 +764,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		HttpURLConnection connection = jmfDoc.write2HTTPURL(url, hd);
 		if (outDump != null)
 		{
-			final File dump = outDump.newFile(header);
+			final File dump = outDump.newFile(header, mh.getName());
 			if (dump != null)
 			{
 				final FileOutputStream fos = new FileOutputStream(dump, true);

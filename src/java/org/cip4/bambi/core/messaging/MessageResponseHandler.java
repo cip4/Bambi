@@ -145,6 +145,7 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 		if (isAcknowledgeResponse) // must wait for an acknowledge
 		{
 			String refIDMes = StringUtil.getNonEmpty(r.getrefID());
+			log.info("added Acknowledge for: " + refIDMes);
 			if (refIDMes == null)
 			{
 				refIDMes = refID;

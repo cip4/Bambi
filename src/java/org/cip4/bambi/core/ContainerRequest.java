@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -92,12 +92,34 @@ public class ContainerRequest extends BambiLogFactory
 		headerMap = null;
 		parameterMap = null;
 		remoteHost = null;
+		name = null;
 		setPost(true);
+	}
+
+	/**
+	 * get a descriptive name for this
+	 *  
+	 * @return
+	 */
+	public String getName()
+	{
+		return name;
+	}
+
+	/**
+	 * 
+	 * set a descriptive name for this
+	 * @param name
+	 */
+	public void setName(String name)
+	{
+		this.name = name;
 	}
 
 	private String requestURI;
 	private String contentType;
 	private String remoteHost;
+	protected String name;
 
 	/**
 	 * @param remoteHost the remoteHost to set
@@ -200,7 +222,7 @@ public class ContainerRequest extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		return "ContainerRequest URL=" + requestURI + "\n Content Type=" + contentType + "\n Method=" + getMethod() + "\n Parameters: " + parameterMap;
+		return "ContainerRequest Name=" + name + " URL=" + requestURI + "\n Content Type=" + contentType + "\n Method=" + getMethod() + "\n Parameters: " + parameterMap;
 	}
 
 	/**
@@ -243,6 +265,8 @@ public class ContainerRequest extends BambiLogFactory
 		map = request.getParameterMap();
 		if (map != null)
 			setParameterMap(map.clone());
+		if (request.getName() != null)
+			setName(request.getName());
 	}
 
 	/**

@@ -582,7 +582,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			hfStatus = status;
 		}
 
-		public void submitted(final JDFJMF submissionJMF)
+		public boolean submitted(final JDFJMF submissionJMF)
 		{
 			getLog().info("ReturnHFListner:submitted");
 			final JDFCommand command = submissionJMF.getCommand(0);
@@ -592,7 +592,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			if (doc == null || rqp == null)
 			{
 				getLog().warn("could not process JDF File");
-				return;
+				return false;
 			}
 			if (getJMFHandler() != null)
 			{
@@ -600,7 +600,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				if (n == null)
 				{
 					getLog().warn("could not process JDF File");
-					return;
+					return false;
 				}
 
 				// assume the rootDev was the executed baby...
@@ -632,8 +632,10 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				catch (final Exception e)
 				{
 					handleError(submissionJMF);
+					return false;
 				}
 			}
+			return true;
 		}
 
 		/**
