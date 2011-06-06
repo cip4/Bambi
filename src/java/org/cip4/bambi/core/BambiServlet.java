@@ -87,6 +87,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.DumpDir;
@@ -123,7 +125,7 @@ public final class BambiServlet extends HttpServlet
 	 */
 	protected void initLogging()
 	{
-		log = new BambiLogFactory(getClass()).getLog();
+		log = LogFactory.getLog(getClass());
 	}
 
 	protected BambiContainer getBambiContainer()
@@ -132,7 +134,7 @@ public final class BambiServlet extends HttpServlet
 		return container;
 	}
 
-	protected BambiLog log = null;
+	protected Log log = null;
 	protected boolean dumpGet = false;
 	protected boolean dumpEmpty = false;
 	private final BambiContainer theContainer;

@@ -70,6 +70,7 @@
  */
 package org.cip4.bambi.core;
 
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.util.CPUTimer;
 
@@ -77,12 +78,12 @@ import org.cip4.jdflib.util.CPUTimer;
  * class that automatically generates a logger for its sub-classes
  * 
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- * 
+ *  
  * July 30, 2009
  */
 public class BambiLogFactory
 {
-	final protected BambiLog log;
+	final protected Log log;
 	static long countPlus = 0;
 	static long countMinus = 0;
 
@@ -93,7 +94,7 @@ public class BambiLogFactory
 	{
 		super();
 		countPlus++;
-		log = new BambiLog(LogFactory.getLog(this.getClass()));
+		log = LogFactory.getLog(this.getClass());
 	}
 
 	/**
@@ -104,12 +105,7 @@ public class BambiLogFactory
 	{
 		super();
 		countPlus++;
-		log = new BambiLog(LogFactory.getLog(clazz));
-	}
-
-	protected static BambiLog getLog(final Class<?> clazz)
-	{
-		return new BambiLogFactory(clazz).log;
+		log = LogFactory.getLog(clazz);
 	}
 
 	/**
@@ -155,7 +151,7 @@ public class BambiLogFactory
 	/**
 	 * @return
 	 */
-	public BambiLog getLog()
+	public Log getLog()
 	{
 		return log;
 	}

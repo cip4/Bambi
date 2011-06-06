@@ -75,6 +75,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Vector;
 
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.SignalDispatcher;
@@ -507,11 +508,11 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		}
 		if (EnumClass.Error.equals(errorClass))
 		{
-			getLog(JMFHandler.class).error("JMF error: rc=" + rc + " " + text);
+			LogFactory.getLog(JMFHandler.class).error("JMF error: rc=" + rc + " " + text);
 		}
 		else
 		{
-			getLog(JMFHandler.class).warn("JMF error: rc=" + rc + " " + text);
+			LogFactory.getLog(JMFHandler.class).warn("JMF error: rc=" + rc + " " + text);
 		}
 	}
 
@@ -563,7 +564,8 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 			if (handler != null)
 			{
-				log.info("handling message; family= " + inputMessage.getLocalName() + " type=" + inputMessage.getType() + " id= " + inputMessage.getID());
+				log.info("handling message; family= " + inputMessage.getLocalName() + " type=" + inputMessage.getType() + " Sender= " + inputMessage.getSenderID() + " id= "
+						+ inputMessage.getID());
 				handled = handler.handleMessage(inputMessage, response);
 			}
 			if (!inputMessage.hasAttribute(subscribed) && !handled)

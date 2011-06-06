@@ -76,9 +76,10 @@ import org.apache.commons.logging.Log;
  * class that creates a Log4J compliant logger for any object
  * 
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- * 
+ * @deprecated
  * July 30, 2009
  */
+@Deprecated
 public class BambiLog
 {
 
