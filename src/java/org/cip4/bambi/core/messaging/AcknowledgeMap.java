@@ -71,7 +71,9 @@
 package org.cip4.bambi.core.messaging;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
@@ -95,6 +97,7 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 {
 	private static AcknowledgeMap ackMap = null;
 	private long lastCleanup;
+	private final Set<String> doneHandled;
 
 	/**
 	 * @return the ackMap
@@ -115,6 +118,7 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 		super();
 		theMap = new HashMap<String, IResponseHandler>();
 		lastCleanup = 0;
+		doneHandled = new HashSet<String>();
 	}
 
 	/**
@@ -155,6 +159,11 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 				log.info("removing aborted acknowledge handler: " + key);
 				removeHandler(key);
 			}
+		}
+		if (doneHandled.size() > 1000)
+		{
+			doneHandled.clear();
+			log.info("clearing old done handled list");
 		}
 		lastCleanup = System.currentTimeMillis();
 	}
@@ -199,20 +208,12 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 			JMFHandler.errorResponse(response, "Handling Acknowledge with no refID, bailing out", 9, EnumClass.Error);
 			return true;
 		}
-		IResponseHandler handler = null;
-		for (int i = 01; i < 3; i++)
+		if (doneHandled.contains(channelID))
 		{
-			handler = theMap.get(channelID);
-			if (handler == null)
-			{
-				log.warn("Race condition in acknowledge? lets wait: " + i);
-				ThreadUtil.sleep(100 * i * i);
-			}
-			else
-			{
-				break;
-			}
+			log.warn("Multiply handled Acknowledge - ignored refID= " + channelID + " Message ID= " + a.getID());
+			return true;
 		}
+		IResponseHandler handler = waitForHandler(channelID);
 		if (handler == null)
 		{
 			JMFHandler.errorResponse(response, "Cannot handle Acknowledge with unknown refID " + channelID + ", bailing out", 6, EnumClass.Error);
@@ -223,9 +224,29 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 		if (b || handler.isAborted())
 		{
 			removeHandler(channelID);
-			log.info("handled Acknowledge refID=" + channelID);
+			doneHandled.add(channelID);
+			log.info("handled Acknowledge refID=" + channelID + " Messade ID= " + a.getID());
 		}
 		return b;
+	}
+
+	private IResponseHandler waitForHandler(final String channelID)
+	{
+		IResponseHandler handler = null;
+		for (int i = 1; i <= 3; i++)
+		{
+			handler = theMap.get(channelID);
+			if (handler == null)
+			{
+				log.warn("Race condition in acknowledge? lets wait: " + (i * i * 100) + " milliseconds");
+				ThreadUtil.sleep(100 * i * i);
+			}
+			else
+			{
+				break;
+			}
+		}
+		return handler;
 	}
 
 	/**

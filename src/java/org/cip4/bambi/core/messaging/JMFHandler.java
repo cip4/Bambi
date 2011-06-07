@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -81,6 +81,7 @@ import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.jdflib.auto.JDFAutoMessageService.EnumJMFRole;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
+import org.cip4.jdflib.auto.JDFAutoSignal.EnumChannelMode;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -88,7 +89,6 @@ import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
-import org.cip4.jdflib.jmf.JDFAcknowledge;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -456,11 +456,9 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			}
 			handleMessage(m, mResp);
 
-			if (((m instanceof JDFSignal) || (m instanceof JDFAcknowledge)) && mResp != null)
+			if ((m instanceof JDFSignal) && mResp != null && mResp.getReturnCode() == 0)
 			{
-				// TODO secure channel
-				final int retCode = mResp.getReturnCode();
-				if (retCode == 0)
+				if (!EnumChannelMode.Reliable.equals(((JDFSignal) m).getChannelMode()))
 				{
 					mResp.deleteNode();
 				}
