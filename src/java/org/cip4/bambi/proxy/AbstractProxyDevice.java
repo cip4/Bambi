@@ -1392,7 +1392,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @param newSlaveURL 
 	 * 
 	 */
-	private void updateSlaveURL(final String newSlaveURL)
+	protected void updateSlaveURL(final String newSlaveURL)
 	{
 		if (newSlaveURL == null)
 		{

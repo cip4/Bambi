@@ -330,7 +330,8 @@ public final class BambiServlet extends HttpServlet
 	private String getDumpHeader(final ContainerRequest sr)
 	{
 		String header = "Context Path: " + sr.getRequestURI();
-		header += "\nMethod: Post\nContext Type: " + sr.getContentType(false);
+		header += "\nMethod: " + sr.getMethod();
+		header += "\nContext Type: " + sr.getContentType(false);
 		header += "\nRemote host: " + sr.getRemoteHost();
 		return header;
 	}
