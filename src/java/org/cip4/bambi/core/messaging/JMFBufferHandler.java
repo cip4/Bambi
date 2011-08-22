@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -381,8 +381,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		}
 
 		final String senderID = inputMessage.getSenderID();
-		ignoreContains(senderID);
-		return false;
+		return ignoreContains(senderID);
 	}
 
 	/**
@@ -543,6 +542,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 
 		if (mi != null)
 		{
+			log.info("broadcasting buffered Signal " + inSignal.getType() + " to " + mi.length + " receivers");
 			synchronized (messageMap)
 			{
 				for (int i = 0; i < mi.length; i++)
@@ -551,10 +551,13 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 					boolean last = i + 1 == mi.length;
 					getDispatcher().triggerChannel(mi[i].misChannelID, qeID, null, -1, last, true);
 				}
-				return true;
 			}
 		}
-		return false;
+		else
+		{
+			log.info("No consumer for buffered Signal " + inSignal.getType());
+		}
+		return true;
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////

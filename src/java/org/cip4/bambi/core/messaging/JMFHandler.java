@@ -178,6 +178,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	protected SignalDispatcher _signalDispatcher;
 	protected boolean bFilterOnDeviceID = false;
 	protected AbstractDevice _parentDevice = null;
+	private long messageCount;
 
 	/**
 	 * 
@@ -388,7 +389,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		addHandler(this.new KnownMessagesHandler());
 		_signalDispatcher = null;
 		_parentDevice = dev;
-
+		messageCount = 0;
 	}
 
 	/**
@@ -440,6 +441,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		final JDFJMF jmfResp = jmf.createResponse();
 		VElement vMess = jmf.getMessageVector(null, null);
 		final int messSize = vMess.size();
+		log.debug("handling jmf from " + jmf.getSenderID() + " id=" + jmf.getID() + " with " + messSize + " messages; total=" + messageCount);
 		for (int i = 0; i < messSize; i++)
 		{
 			final JDFMessage m = (JDFMessage) vMess.elementAt(i);
@@ -545,6 +547,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			log.error("handling null message");
 			return false;
 		}
+		messageCount++;
 		try
 		{
 			final EnumFamily family = inputMessage.getFamily();
@@ -562,8 +565,18 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 			if (handler != null)
 			{
-				log.info("handling message; family= " + inputMessage.getLocalName() + " type=" + inputMessage.getType() + " Sender= " + inputMessage.getSenderID() + " id= "
-						+ inputMessage.getID());
+				StringBuffer b = new StringBuffer();
+				b.append("handling message #");
+				b.append(messageCount);
+				b.append("; family= ");
+				b.append(inputMessage.getLocalName());
+				b.append(" type=");
+				b.append(inputMessage.getType());
+				b.append(" Sender= ");
+				b.append(inputMessage.getSenderID());
+				b.append(" id= ");
+				b.append(inputMessage.getID());
+				log.debug(b.toString());
 				handled = handler.handleMessage(inputMessage, response);
 			}
 			if (!inputMessage.hasAttribute(subscribed) && !handled)

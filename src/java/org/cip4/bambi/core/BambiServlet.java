@@ -153,15 +153,15 @@ public final class BambiServlet extends HttpServlet
 	public void init(final ServletConfig config) throws ServletException
 	{
 		super.init(config);
-		final String dump = initializeDumps(config);
 		String baseURL = getContextPath();
-		log.info("Initializing servlet for " + baseURL);
 
 		final ServletContext context = config.getServletContext();
 		String realPath = context.getRealPath("/");
 		if (realPath == null)
 			realPath = ".";
 		final File baseDir = new File(realPath);
+		log.info("Initializing Bambi servlet for " + baseURL);
+		final String dump = initializeDumps(config, baseDir);
 		theContainer.loadProperties(baseDir, baseURL, new File("config/devices.xml"), dump);
 	}
 
@@ -190,28 +190,25 @@ public final class BambiServlet extends HttpServlet
 		return baseURL;
 	}
 
-	/**
-	 * @return
-	 * @deprecated - setPropertiesName in the config file
-	 */
-	@Deprecated
-	protected String getPropsName()
+	private String initializeDumps(final ServletConfig config, File baseDir)
 	{
-		return null;
-	}
-
-	private String initializeDumps(final ServletConfig config)
-	{
-		final String dump = StringUtil.getNonEmpty(config.getInitParameter("bambiDump"));
+		String dump = StringUtil.getNonEmpty(config.getInitParameter("bambiDump"));
 		if (dump == null)
 		{
-			log.info("initializing http dump directory: " + dump);
+			log.info("not initializing http dump directory: ");
 		}
 		else
 		{
+			final File dumpFile;
+			if (UrlUtil.isRelativeURL(dump))
+				dumpFile = FileUtil.getFileInDirectory(baseDir, new File(dump));
+			else
+				dumpFile = new File(dump);
+			dump = dumpFile.getAbsolutePath();
+
 			log.info("initializing http dump directory: " + dump);
-			bambiDumpIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("in")));
-			bambiDumpOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("out")));
+			bambiDumpIn = new DumpDir(FileUtil.getFileInDirectory(dumpFile, new File("in")));
+			bambiDumpOut = new DumpDir(FileUtil.getFileInDirectory(dumpFile, new File("out")));
 			final String iniDumpGet = config.getInitParameter("bambiDumpGet");
 			dumpGet = iniDumpGet == null ? false : "true".compareToIgnoreCase(iniDumpGet) == 0;
 			final String iniDumpEmpty = config.getInitParameter("bambiDumpEmpty");
@@ -257,7 +254,7 @@ public final class BambiServlet extends HttpServlet
 		}
 		catch (Exception x)
 		{
-			log.error("Snafu processing get / post");
+			log.error("Snafu processing " + getPost + " request for: " + request.getPathInfo(), x);
 		}
 		final boolean bBuf = (dumpGet || bPost) && bambiDumpIn != null;
 		dumpIncoming(request, bBuf, sr);
@@ -342,6 +339,7 @@ public final class BambiServlet extends HttpServlet
 	@Override
 	public void destroy()
 	{
+		log.info("shutting down servlet: ");
 		theContainer.shutDown();
 		super.destroy();
 	}

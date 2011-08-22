@@ -1023,6 +1023,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public void shutdown()
 	{
+		log.info("shutting down device: " + getDeviceID());
 		if (_theSignalDispatcher != null)
 		{
 			_theSignalDispatcher.shutdown();

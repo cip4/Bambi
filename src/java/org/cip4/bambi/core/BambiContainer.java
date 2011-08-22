@@ -388,6 +388,7 @@ public final class BambiContainer extends BambiLogFactory
 	 */
 	public void shutDown()
 	{
+		log.info("shutting down container: ");
 		rootDev.shutdown();
 		final JMFFactory factory = JMFFactory.getJMFFactory();
 		factory.shutDown(null, true);

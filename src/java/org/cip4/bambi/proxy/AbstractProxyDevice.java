@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -458,7 +458,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			if (this.channelID.equals(channelID))
 				return; //nop
 
-			getLog().info("updatin proxy subscription channelID to: " + channelID);
+			getLog().info("updating proxy subscription channelID to: " + channelID);
 			this.channelID = channelID;
 			subscribedJMF.getMessageElement(null, null, 0).setID(channelID);
 		}
@@ -947,7 +947,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			}
 
 			ThreadUtil.sleep(waitBefore); // wait for other devices to start prior to subscribing
-			if (knownSlaveMessages == null)
+			if (!knownSlaveMessages.isInitialized())
 				updateKnownMessages();
 			final Vector<JDFJMF> vJMFS = prepare(deviceURL);
 
@@ -958,7 +958,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		}
 
 		/**
-		 * TODO Please insert comment!
+		 * update the knownmessages list 
 		 */
 		private void updateKnownMessages()
 		{
@@ -1103,6 +1103,16 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			{
 				getLog().warn("error updating subscription; type: " + t.getName() + " rc=" + rc);
 			}
+		}
+
+		/**
+		 * 
+		 * @see java.lang.Thread#toString()
+		 */
+		@Override
+		public String toString()
+		{
+			return "SlaveSubscriber: qeid=" + slaveQEID + " " + knownSlaveMessages;
 		}
 	}
 

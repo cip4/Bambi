@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -114,8 +114,28 @@ class MessageChecker
 		}
 	}
 
+	/**
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		return "MessageChecker: " + theMessages;
+	}
+
 	public static class KnownMessageDetails
 	{
+
+		/**
+		 * 
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString()
+		{
+			return "MessageDetails: Type=" + type;
+		}
 
 		private final String type;
 
@@ -147,6 +167,16 @@ class MessageChecker
 	public boolean knows(EnumType type)
 	{
 		return type == null ? false : knows(type.getName());
+	}
+
+	/**
+	 * 
+	 * return true if we are initialized
+	 * @return
+	 */
+	public boolean isInitialized()
+	{
+		return theMessages != null;
 	}
 
 	/**

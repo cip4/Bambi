@@ -2038,6 +2038,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				if (status.equals(EnumQueueEntryStatus.Removed))
 				{
 					qe.setQueueEntryStatus(status);
+					queueMap.removeEntry(qe);
 					final String docURL = BambiNSExtension.getDocURL(qe);
 					if (docURL != null)
 					{
@@ -2544,6 +2545,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	public void shutdown()
 	{
+		log.info("shutting down queue");
 		DelayedPersist.shutDown();
 	}
 

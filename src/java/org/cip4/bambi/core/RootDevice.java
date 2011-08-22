@@ -475,6 +475,7 @@ public class RootDevice extends AbstractDevice
 	@Override
 	public void shutdown()
 	{
+		log.info("shutting down root device: " + getDeviceID());
 		if (_devices != null)
 		{
 			final Set<String> keys = _devices.keySet();
