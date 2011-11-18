@@ -10,16 +10,14 @@
 	<JobPhase Duration="10"
 		DeviceStatus="Setup" DeviceStatusDetails="Waste" 
 		NodeStatus="Setup" NodeStatusDetails="node setup">
-		<Amount Resource="Component:Output" Speed="4000" Waste="true"/>
-		<Amount Resource="Media:Input" Speed="4000" Waste="true" />
-		<Amount Resource="UsageCounter:Input" Speed="8000"  />
+		<Amount Resource="Component:Output"  Waste="true"/>
+		<Amount Resource="Media:Input" Speed="4000" Waste="true" Master="true"  />
 		</JobPhase>
 	<JobPhase Duration="99999" 
 		DeviceStatus="Running" DeviceStatusDetails="Good" 
 		NodeStatus="InProgress" NodeStatusDetails="producing node">
-		<Amount Resource="Component:Output" Speed="16000" />
-		<Amount Resource="Media:Input" Speed="16000"  />
-		<Amount Resource="UsageCounter:Input" Speed="32000"  />
+		<Amount Resource="Component:Output"   />
+		<Amount Resource="Media:Input" Speed="16000" Master="true" />
 		</JobPhase>
 	<JobPhase Duration="10" 
 		DeviceStatus="Cleanup" DeviceStatusDetails="WashUp" 
@@ -28,6 +26,4 @@
 		<Amount Resource="Media:Input" />
 		<Amount Resource="UsageCounter:Input" />
 	</JobPhase>
-  <JobPhase Duration="9999999" DeviceStatus="Idle" Error="2">
-  </JobPhase>
 </BambiJob>

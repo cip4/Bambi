@@ -148,7 +148,7 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public JDFAttributeMap getParameterMap()
 	{
-		return parameterMap;
+		return parameterMap == null ? null : parameterMap.clone();
 	}
 
 	/**
@@ -164,7 +164,7 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public void setParameterMap(JDFAttributeMap parameterMap)
 	{
-		this.parameterMap = parameterMap;
+		this.parameterMap = parameterMap == null ? null : parameterMap.clone();
 	}
 
 	/**
@@ -263,8 +263,7 @@ public class ContainerRequest extends BambiLogFactory
 			setHeaderMap(map.clone());
 
 		map = request.getParameterMap();
-		if (map != null)
-			setParameterMap(map.clone());
+		setParameterMap(map);
 		if (request.getName() != null)
 			setName(request.getName());
 	}

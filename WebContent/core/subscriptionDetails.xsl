@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
+<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_2_0" xmlns:bambi="www.cip4.org/Bambi"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 >
   <xsl:strip-space elements="*"/>
   <xsl:output method="html" cdata-section-elements="jdf:JMF jdf:Query"/>
+  
   <xsl:template match="/SubscriptionList">
     <xsl:variable name="context" select="@Context"/>
     <html>
@@ -186,4 +187,5 @@
   </xsl:template>
   <!--  end of template RemovedChannel  -->
   <xsl:include href="SubscriptionExtension.xsl"/>
+  
 </xsl:stylesheet>

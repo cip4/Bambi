@@ -119,6 +119,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.resource.JDFDeviceList;
@@ -211,7 +212,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			}
 			final String queueURL = getDeviceURL();
 			log.info("Sending RequestQueueEntry for" + queueURL + " to: " + proxyURL);
-			final JDFJMF jmf = new JMFBuilder().buildRequestQueueEntry(queueURL, null);
+			JMFBuilder jmfBuilder = JMFBuilderFactory.getJMFBuilder(getDeviceID());
+			final JDFJMF jmf = jmfBuilder.buildRequestQueueEntry(queueURL, null);
 			sendJMF(jmf, proxyURL, null);
 			ThreadUtil.wait(mutex, 2222); // wait a short while for an immediate response
 		}
@@ -423,15 +425,16 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		@Override
 		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 		{
+			//TODO reasonable filter on list versus individual
 			if (_theStatusListener == null)
 			{
-				return false;
+				return getResourceList(inputMessage, response);
 			}
 			final StatusCounter sc = _theStatusListener.getStatusCounter();
 			final JDFDoc docJMFResource = sc == null ? null : sc.getDocJMFResource();
 			if (docJMFResource == null)
 			{
-				return false;
+				return getResourceList(inputMessage, response);
 			}
 			final JDFSignal response2 = docJMFResource.getJMFRoot().getSignal(0);
 			response.copyInto(response2, false);
@@ -448,6 +451,17 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			{
 				inputMessage.moveElement(response.getElement(ElementName.RESOURCEQUPARAMS, null, 0), null);
 			}
+			return true;
+		}
+
+		/**
+		 * fill a resourcelist - overwrite this with your favorite real lists
+		 * @param inMessage 
+		 * @param response
+		 * @return
+		 */
+		public boolean getResourceList(JDFMessage inMessage, JDFResponse response)
+		{
 			return true;
 		}
 
@@ -543,7 +557,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected RootDevice _rootDevice = null;
 	protected StatusListener _theStatusListener = null;
 	protected long numRequests = 0;
-	protected boolean acceptAll = false;
+	protected boolean acceptAll;
 	protected final MyMutex mutex;
 
 	/**
@@ -553,10 +567,20 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public AbstractDevice(final IDeviceProperties prop)
 	{
 		super();
+		acceptAll = false;
+		preSetup();
 		_devProperties = prop;
 		mutex = new MyMutex();
 		copyToCache();
 		init();
+	}
+
+	/**
+	 * preparation setup, e.g. for logging
+	 */
+	protected void preSetup()
+	{
+		// empty shell
 	}
 
 	/**
@@ -620,6 +644,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 
 		final String deviceID = _devProperties.getDeviceID();
+		JMFBuilderFactory.setSenderID(deviceID, deviceID);
+
 		final AbstractDeviceProcessor newDevProc = buildDeviceProcessor();
 		if (newDevProc != null)
 		{
@@ -661,7 +687,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return;
 		}
 
-		final JDFJMF[] jmfs = new JMFBuilder().createSubscriptions(watchURL, null, 30., 0);
+		JMFBuilder jmfBuilder = JMFBuilderFactory.getJMFBuilder(getDeviceID());
+		final JDFJMF[] jmfs = jmfBuilder.createSubscriptions(watchURL, null, 30., 0);
 		if (jmfs == null)
 		{
 			return;
@@ -696,7 +723,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		if (_submitHotFolder != null)
 		{
 			String oldHF = _submitHotFolder.getHfDirectory().getAbsolutePath();
-			log.info("Stopping input hot folder: " + oldHF);
+			log.info("Stopping input hot folder: " + oldHF + " for Device: " + getDeviceID());
 			_submitHotFolder.stop();
 			_submitHotFolder = null;
 		}
@@ -705,7 +732,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return;
 		}
 
-		log.info("enabling input hot folder: " + hfURL);
+		log.info("enabling input hot folder: " + hfURL + " for Device: " + getDeviceID());
 		final File hfStorage = new File(getDeviceDir() + File.separator + "HFTmpStorage");
 		hfStorage.mkdirs(); // just in case
 		if (hfStorage.isDirectory())
@@ -1276,16 +1303,17 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	private void updateInputHF(String newHF)
 	{
+		log.info("request update hf to: " + newHF);
 		newHF = StringUtil.getNonEmpty(newHF);
 		final IDeviceProperties properties = getProperties();
 		final File oldHF = properties.getInputHF();
 		final File newHFF = newHF == null ? null : new File(newHF);
 		if (!ContainerUtil.equals(oldHF, newHFF))
 		{
-			final File hf = newHF == null ? null : new File(newHF);
-			properties.setInputHF(hf);
+			log.info(" update hf from " + oldHF + " to: " + newHFF);
+			properties.setInputHF(newHFF);
 			properties.serialize();
-			createHotFolder(hf);
+			createHotFolder(newHFF);
 		}
 	}
 

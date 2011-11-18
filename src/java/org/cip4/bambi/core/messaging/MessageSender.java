@@ -965,6 +965,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			ms.setAttribute("pause", pause, null);
 			ms.setAttribute("idle", idle, null);
 			ms.setAttribute("Active", !doShutDown, null);
+			boolean problems = lastQueued - lastSent > 60000;
+			ms.setAttribute("Problems", problems, null);
 			ms.setAttribute("iLastQueued", StringUtil.formatLong(lastQueued), null);
 			ms.setAttribute("iLastSent", StringUtil.formatLong(lastSent), null);
 			ms.setAttribute("i" + AttributeName.CREATIONDATE, StringUtil.formatLong(created), null);

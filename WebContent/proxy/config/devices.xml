@@ -7,8 +7,7 @@
   -->
  
 <application 
-Port="8080" 
-JettyPort="44483"
+Port="44484" 
 
 Context="/BambiProxy"
 BaseDir="/bambidata/bambiproxy/" 
@@ -19,6 +18,7 @@ DeviceClass="org.cip4.bambi.proxy.ProxyDevice">
   
   <Device DeviceID="proxyRoot" 
   DeviceType="Bambi Proxy Root" />
+  <!-- 
   <Device 
   DeviceID="pullproxy" 
   DeviceType="Bambi Pull Proxy for SimWorker/sim001" 
@@ -26,9 +26,9 @@ DeviceClass="org.cip4.bambi.proxy.ProxyDevice">
     SlaveDeviceID="sim001" 
     SlaveURL="http://localhost:8080/SimWorker/jmf/sim001"
     MaxPush="0" 
-    InputHF="/var/bambi/hf/pullproxy/Input" 
-    OutputHF="/var/bambi/hf/pullproxy/Output" 
-    ErrorHF="/var/bambi/hf/pullhproxy/Error"/>
+    InputHF="/BambiHF/pullproxy/Input" 
+    OutputHF="/BambiHF/pullproxy/Output" 
+    ErrorHF="/BambiHF/pullhproxy/Error"/>
   
   <Device DeviceID="pushproxy" 
   DeviceType="Bambi Push Proxy for SimWorker/sim003" 
@@ -36,10 +36,26 @@ DeviceClass="org.cip4.bambi.proxy.ProxyDevice">
     SlaveDeviceID="sim003" 
     SlaveURL="http://localhost:8080/SimWorker/jmf/sim003"
     MaxPush="10" 
-    InputHF="/var/bambi/hf/pushproxy/Input" 
-    OutputHF="/var/bambi/hf/pushproxy/Output" 
-    ErrorHF="/var/bambi/hf/pushproxy/Error"/>
-
+    InputHF="/BambiHF/pushproxy/Input" 
+    OutputHF="/BambiHF/pushproxy/Output" 
+    ErrorHF="/BambiHF/pushproxy/Error"/>
+ -->
+   
+  <Device DeviceID="EFI" DeviceType="Digital Connector for Fiery" SlaveStatus="JMFGLOBAL"
+    TypeExpression="(.)*DigitalPrinting(.)*"
+     SlaveURL="http://192.168.1.71:8010" 
+     MaxPush="10"
+    InputHF="/BambiHF/efi/Input" 
+    OutputHF="/BambiHF/efi/Output" 
+    ErrorHF="/BambiHF/efi/Error"/>
+  <Device DeviceID="HP" DeviceType="Digital Connector for HP" SlaveStatus="JMFGLOBAL"
+    TypeExpression="(.)*DigitalPrinting(.)*"
+     SlaveURL="http://192.168.1.131:8080/dpp/jmf/dfe" 
+     MaxPush="10"
+    InputHF="/BambiHF/hp/Input" 
+    OutputHF="/BambiHF/hp/Output" 
+    ErrorHF="/BambiHF/hp/Error"
+    FixMIMEBoundarySemicolon="false"/>
 <!--
   <Device DeviceID="mumaproxy" 
     DeviceType="Bambi Push Proxy for Müller Martini" 

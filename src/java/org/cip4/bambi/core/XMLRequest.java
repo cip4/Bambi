@@ -139,6 +139,8 @@ public class XMLRequest extends ContainerRequest
 		setContainer(request);
 		final JDFParser p = new JDFParser();
 		final JDFDoc xmlDoc = p.parseStream(inStream);
+		if (xmlDoc == null)
+			log.error("cannot parse stream: ");
 		theXML = xmlDoc == null ? null : xmlDoc.getRoot();
 		updateName();
 		if (request.getName() == null)

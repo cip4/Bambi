@@ -113,6 +113,7 @@ import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFSubscriptionInfo;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StringUtil;
@@ -217,7 +218,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 		/**
 		 * @param jmf the jmf containing the query to handle as first query
-		 * @param jmfs 
+		 *  
 		 */
 		public KnownMessagesResponseHandler(JDFJMF jmf)
 		{
@@ -1199,7 +1200,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 */
 	protected JMFBuilder getBuilderForSlave()
 	{
-		final JMFBuilder builder = new JMFBuilder();
+		JMFBuilder builder = JMFBuilderFactory.getJMFBuilder(getDeviceID());
+		builder = builder.clone(); // we only want to set ackURL for certain messages
 		final String deviceURLForSlave = getProxyProperties().getDeviceURLForSlave();
 		if (deviceURLForSlave != null)
 		{
@@ -1538,7 +1540,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 * 	@Override
-	 * @see org.cip4.bambi.core.AbstractDevice#getDataURL(java.lang.String, boolean)
+	 * @see org.cip4.bambi.core.AbstractDevice#getDataURL(JDFQueueEntry, boolean)
 	 */
 	@Override
 	public String getDataURL(JDFQueueEntry queueEntry, boolean bSubmit)

@@ -279,7 +279,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public File getAppDir()
 		{
-			// TODO Auto-generated method stub
 			return null;
 		}
 
@@ -290,7 +289,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public File getBaseDir()
 		{
-			// TODO Auto-generated method stub
 			return null;
 		}
 
@@ -301,7 +299,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public IConverterCallback getCallBackClass()
 		{
-			// TODO Auto-generated method stub
 			return null;
 		}
 
@@ -668,6 +665,14 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		{
 			// TODO Auto-generated method stub
 
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getAcceptAll()
+		 */
+		public boolean getAcceptAll()
+		{
+			return false;
 		}
 
 	}

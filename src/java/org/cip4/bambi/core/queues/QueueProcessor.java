@@ -133,6 +133,7 @@ import org.cip4.jdflib.jmf.JDFResubmissionParams;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFSubmissionMethods;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.resource.JDFNotification;
@@ -510,6 +511,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 	}
 
+	/**
+	 * handler for the resubmitqueueentry message
+	 * @author rainer prosi
+	 * @date Nov 13, 2011
+	 */
 	protected class ResubmitQueueEntryHandler extends AbstractHandler
 	{
 
@@ -1616,7 +1622,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	private JDFDoc readQueueFile()
 	{
-		JDFDoc d = JDFDoc.parseFile(_queueFile.getAbsolutePath());
+		boolean exist = _queueFile.exists();
+		JDFDoc d = exist ? JDFDoc.parseFile(_queueFile.getAbsolutePath()) : null;
 		if (d == null)
 		{
 			for (int i = 1; true; i++)
@@ -2165,6 +2172,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * @param qe
 	 * @param finishedNodes
 	 * @param docJDF
+	 * @param newStatus 
 	 */
 	public void returnQueueEntry(final JDFQueueEntry qe, VString finishedNodes, JDFDoc docJDF, EnumQueueEntryStatus newStatus)
 	{
@@ -2198,10 +2206,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 */
 		void returnQueueEntry(VString finishedNodes, JDFDoc docJDF)
 		{
-			final JDFJMF jmf = new JMFBuilder().buildReturnQueueEntry(queueEntryID);
+			log.info("returning queue entry");
+			JMFBuilder jmfBuilder = JMFBuilderFactory.getJMFBuilder(_parentDevice.getDeviceID());
+
+			final JDFJMF jmf = jmfBuilder.buildReturnQueueEntry(queueEntryID);
 			final JDFDoc docJMF = jmf.getOwnerDocument_JDFElement();
 			jmf.setICSVersions(_parentDevice.getICSVersions());
-			jmf.setSenderID(_parentDevice.getDeviceID());
 			final JDFCommand com = jmf.getCommand(0);
 			final JDFReturnQueueEntryParams returnQEParams = com.getReturnQueueEntryParams(0);
 

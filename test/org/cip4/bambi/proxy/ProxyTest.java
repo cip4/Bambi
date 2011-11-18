@@ -77,6 +77,7 @@ import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestHelper;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.server.BambiServer;
 import org.cip4.jdflib.auto.JDFAutoDeviceFilter.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
@@ -96,6 +97,17 @@ import org.cip4.jdflib.util.ThreadUtil;
  */
 public class ProxyTest extends BambiTestCase
 {
+	/**
+	 * 
+	 * TODO Please insert comment!
+	 * @param args
+	 * @throws Exception
+	 */
+	public static void main(String[] args) throws Exception
+	{
+		new BambiServer().runServer();
+	}
+
 	/**
 	 * 
 	 */

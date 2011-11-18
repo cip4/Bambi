@@ -186,6 +186,12 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	 */
 	private boolean canAccept(final JDFNode n2)
 	{
+		if (_devProperties.getAcceptAll())
+		{
+			log.info("Accepting all nodes by default");
+			return true;
+		}
+
 		JDFDevice dev = (JDFDevice) n2.getResource(ElementName.DEVICE, EnumUsage.Input, 0);
 		if (dev != null)
 		{

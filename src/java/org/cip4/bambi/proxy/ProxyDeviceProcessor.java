@@ -108,6 +108,7 @@ import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.resource.JDFEvent;
@@ -309,8 +310,13 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		 */
 		private boolean handleStatusUpdate(final JDFJobPhase jobPhase)
 		{
-			final NodeIdentifier ni = jobPhase.getIdentifier();
+			String phaseQEID = StringUtil.getNonEmpty(jobPhase.getQueueEntryID());
+			if (phaseQEID != null && !phaseQEID.equals(BambiNSExtension.getSlaveQueueEntryID(currentQE.getQueueEntry())))
+			{
+				return false;
+			}
 			final JDFNode n = getCurrentQE().getJDF().getJDFRoot();
+			final NodeIdentifier ni = jobPhase.getIdentifier();
 			final VElement v = n.getMatchingNodes(ni);
 
 			if (v == null)
@@ -812,6 +818,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	{
 		if (root == null)
 		{
+			log.warn("Cannot copy subscriptions to null node");
 			return;
 		}
 
@@ -822,15 +829,14 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		}
 
 		final AbstractProxyDevice p = getParent();
-		final JDFJMF jmfs[] = new JMFBuilder().createSubscriptions(p.getDeviceURLForSlave(), null, 10., 0);
+		final String senderID = p.getDeviceID();
+		JMFBuilder jmfBuilder = JMFBuilderFactory.getJMFBuilder(senderID);
+		final JDFJMF jmfs[] = jmfBuilder.createSubscriptions(p.getDeviceURLForSlave(), null, 10., 0);
 		final JDFNodeInfo ni = root.getCreateNodeInfo();
-		final String senderID = getParent().getDeviceID();
-		for (int i = 0; i < jmfs.length; i++)
+		for (JDFJMF jmf : jmfs)
 		{
-			final JDFJMF newJMF = (JDFJMF) ni.copyElement(jmfs[i], null);
-			newJMF.setSenderID(senderID);
+			ni.copyElement(jmf, null);
 		}
-
 		log.info("creating subscription for doc:" + root.getJobID(true) + " - " + root.getJobPartID(false) + " to " + p.getDeviceURLForSlave());
 	}
 

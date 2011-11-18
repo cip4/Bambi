@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -278,9 +278,9 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			final long t0 = System.currentTimeMillis();
 			final VString names = phase.getAmountResourceNames();
 			boolean reachedEnd = EnumNodeStatus.isCompleted(phase.getNodeStatus());
-			for (int i = 0; i < names.size(); i++)
+			for (String name : names)
 			{
-				final PhaseAmount pa = phase.getPhaseAmount(names.get(i));
+				final PhaseAmount pa = phase.getPhaseAmount(name);
 				if (pa != null)
 				{
 					final double phaseGood = phase.getOutput_Good(pa.getResource(), (int) deltaT);
@@ -398,7 +398,9 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	@Override
 	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
 	{
-		new JobLoader().loadJob();
+		JobLoader jobLoader = new JobLoader();
+		jobLoader.setNode(node);
+		jobLoader.loadJob();
 		// we want at least one setup dummy
 		if (_jobPhases == null)
 		{
@@ -442,9 +444,21 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 */
 	private class JobLoader
 	{
+		private JDFNode node;
+
 		protected JobLoader()
 		{
 			super();
+			node = null;
+		}
+
+		/**
+		 * set the node for amount calculations 
+		 * @param node
+		 */
+		public void setNode(JDFNode node)
+		{
+			this.node = node;
 		}
 
 		/**
@@ -472,10 +486,10 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			final List<JobPhase> phaseList = new Vector<JobPhase>();
 			final KElement simJob = doc.getRoot();
 			final VElement v = simJob.getXPathElementVector("JobPhase", -1);
-			for (int i = 0; i < v.size(); i++)
+			for (KElement phaseElement : v)
 			{
-				final KElement phaseElement = v.elementAt(i);
 				final JobPhase phase = new JobPhase(phaseElement);
+				updateAmountsFromNode(phase, node);
 				phaseList.add(phase);
 			}
 
@@ -495,7 +509,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 					getLog().info("defined an idle phase");
 				}
 			}
-			getLog().debug("created new job from " + fileName + " with " + phaseList.size() + " job phases.");
+			getLog().info("created new job from " + fileName + " with " + phaseList.size() + " job phases.");
 			randomizeJobPhases(phaseList, simJob.getRealAttribute("RandomFactor", null, 0.0));
 
 			return phaseList;
@@ -513,6 +527,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			_jobPhases = loadJobFromFile(cacheDir, deviceFile);
 			if (_jobPhases == null)
 			{
+				log.info("loading default job.xml");
 				_jobPhases = loadJobFromFile(cacheDir, "job.xml");
 			}
 		}
@@ -566,6 +581,29 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			doNextPhase(p);
 		}
 		return newStatus;
+	}
+
+	/**
+	 * update amounts of all resources with no speed
+	 * @param phase the jobphase to update the amounts for
+	 * @param node the node to extract update data from. this implementation assumes a one to one match of input to output
+	 */
+	public void updateAmountsFromNode(JobPhase phase, JDFNode node)
+	{
+		if (node != null)
+		{
+			VString resNames = phase.getAmountResourceNames();
+			String master = phase.getMasterAmountResourceName();
+			if (master != null)
+			{
+				for (String res : resNames)
+				{
+					if (res.equals(master))
+						continue;
+					phase.scaleAmount(res, master, 1.);
+				}
+			}
+		}
 	}
 
 	/**

@@ -235,7 +235,7 @@ public final class BambiContainer extends BambiLogFactory
 		final AbstractDevice dev = root == null ? rootDev : root.getDevice(deviceID);
 		if (dev == null)
 		{
-			log.info("invalid request: device with id=" + deviceID == null ? "null" : deviceID + " not found");
+			log.info("invalid request: device with id=" + (deviceID == null ? "null" : deviceID + " not found"));
 			return null;
 		}
 		return dev;

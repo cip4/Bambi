@@ -71,9 +71,6 @@
 package org.cip4.bambi.core.queues;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 
 import org.cip4.bambi.core.AbstractDevice;
@@ -85,6 +82,7 @@ import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.FileUtil;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -124,35 +122,50 @@ public class ShowXJDFHandler extends ShowHandler
 	protected XMLResponse processFile(final ContainerRequest request, final File f)
 	{
 		final String jobPartID = request.getParameter(AttributeName.JOBPARTID);
-		try
+		final InputStream is = FileUtil.getBufferedInputStream(f);
+		if (is == null)
 		{
-			final InputStream is = new FileInputStream(f);
-			final JDFParser p = new JDFParser();
-			JDFDoc doc = p.parseStream(is);
-
-			final JDFNode n = doc.getJDFRoot();
-			final JDFNode nPart = n.getJobPart(jobPartID, null);
-			final XJDF20 xjdf20 = new XJDF20();
-			xjdf20.bUpdateVersion = false;
-			xjdf20.bHTMLColor = true;
-			xjdf20.bMergeLayout = false;
-			xjdf20.bIntentPartition = false;
-			final KElement xRoot = xjdf20.makeNewJDF(nPart, null);
-			doc = new JDFDoc(xRoot.getOwnerDocument());
-			doc = prepareRoot(doc, request);
-
-			XMLResponse r = new XMLResponse(doc.getRoot());
-			return r;
-
+			log.warn("cannot process file: " + f);
+			return null;
 		}
-		catch (final FileNotFoundException x)
+		final JDFParser p = new JDFParser();
+		JDFDoc doc = p.parseStream(is);
+		if (doc == null)
 		{
-			// nop
+			log.warn("cannot parse file: " + f);
+			return null;
 		}
-		catch (final IOException x)
+		final JDFNode n = doc.getJDFRoot();
+		final JDFNode nPart = n.getJobPart(jobPartID, null);
+		if (nPart == null)
 		{
-			// nop
+			log.warn("no node with jobPartID: " + jobPartID);
+			return null;
 		}
-		return null;
+		final XJDF20 xjdf20 = getViewXJDFConverter();
+		final KElement xRoot = xjdf20.makeNewJDF(nPart, null);
+		if (xRoot == null)
+		{
+			log.warn("could not convert node with jobPartID: " + jobPartID);
+			return null;
+		}
+		doc = new JDFDoc(xRoot.getOwnerDocument());
+		doc = prepareRoot(doc, request);
+		XMLResponse r = new XMLResponse(doc.getRoot());
+		return r;
+	}
+
+	/**
+	 * 
+	 * get the converter to display single nodes
+	 * @return
+	 */
+	protected XJDF20 getViewXJDFConverter()
+	{
+		final XJDF20 xjdf20 = new XJDF20();
+		xjdf20.retainAll();
+		xjdf20.bHTMLColor = true;
+
+		return xjdf20;
 	}
 }

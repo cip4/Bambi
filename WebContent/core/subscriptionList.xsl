@@ -77,6 +77,10 @@ xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0"
         </ul>
 
         <xsl:if test="MessageSender/Message">
+        <hr/>
+				<xsl:call-template name="cputimer" />
+		<hr/>
+        
           <h2>Queued Messages</h2>
           <table cellspacing="2" border="1">
             <tr>
@@ -186,7 +190,14 @@ xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0"
           <xsl:attribute name="bgcolor">#ffccaa</xsl:attribute>
         </xsl:when>
         <xsl:when test="@Active='true'">
+         <xsl:choose>
+              <xsl:when test="@Problems='true'">
+          <xsl:attribute name="bgcolor">#ffaaaa</xsl:attribute>
+              </xsl:when>
+              <xsl:otherwise>
           <xsl:attribute name="bgcolor">#aaffaa</xsl:attribute>
+              </xsl:otherwise>
+            </xsl:choose>
         </xsl:when>
         <xsl:otherwise>
           <xsl:attribute name="bgcolor">#aaaaff</xsl:attribute>
@@ -390,5 +401,6 @@ xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0"
     <hr/>
   </xsl:template>
   <xsl:include href="SubscriptionExtension.xsl"/>
+	<xsl:include href="CPUTimer.xsl" />
 
 </xsl:stylesheet>

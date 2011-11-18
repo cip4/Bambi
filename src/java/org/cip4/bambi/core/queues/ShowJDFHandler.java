@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -71,7 +71,6 @@
 package org.cip4.bambi.core.queues;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -123,7 +122,6 @@ public class ShowJDFHandler extends ShowHandler
 			b = jobPartID == null;
 		}
 		return b;
-
 	}
 
 	/**
@@ -138,59 +136,55 @@ public class ShowJDFHandler extends ShowHandler
 		final boolean repair = request.getBooleanParam("repair");
 		XMLResponse r = new XMLResponse(null);
 
-		try
+		InputStream is = FileUtil.getBufferedInputStream(f);
+		if (repair || !raw || callback && (_parentDevice instanceof AbstractProxyDevice))
 		{
-			InputStream is = FileUtil.getBufferedInputStream(f);
-			if (repair || !raw || callback && (_parentDevice instanceof AbstractProxyDevice))
-			{
-				final JDFParser p = new JDFParser();
-				JDFDoc doc = p.parseStream(is);
-				doc = prepareRoot(doc, request);
+			final JDFParser p = new JDFParser();
+			JDFDoc doc = p.parseStream(is);
+			doc = prepareRoot(doc, request);
 
-				if (callback)
+			if (callback)
+			{
+				final IProxyProperties pp = ((AbstractProxyDevice) _parentDevice).getProxyProperties();
+				final IConverterCallback call = pp.getSlaveCallBackClass();
+				if (call != null)
 				{
-					final IProxyProperties pp = ((AbstractProxyDevice) _parentDevice).getProxyProperties();
-					final IConverterCallback call = pp.getSlaveCallBackClass();
-					if (call != null)
-					{
-						call.updateJDFForExtern(doc);
-					}
-				}
-				if (repair)
-				{
-					JDFNode n = doc.getJDFRoot();
-					if (n != null)
-					{
-						while (true)
-						{
-							JDFNode unspawned = new JDFSpawn(n).unSpawn(null);
-							if (unspawned == null)
-								break;
-						}
-					}
-				}
-				if (doc != null)
-				{
-					r.setXML(doc.getRoot());
-					is = null;
+					call.updateJDFForExtern(doc);
 				}
 			}
-			else if (is != null)
+			if (repair)
+			{
+				JDFNode n = doc.getJDFRoot();
+				if (n != null)
+				{
+					while (true)
+					{
+						JDFNode unspawned = new JDFSpawn(n).unSpawn(null);
+						if (unspawned == null)
+							break;
+					}
+				}
+			}
+			if (doc != null)
+			{
+				r.setXML(doc.getRoot());
+				is = null;
+			}
+		}
+		else if (is != null)
+		{
+			try
 			{
 				IOUtils.copy(is, r.getOutputStream());
 			}
+			catch (IOException e)
+			{
+				log.error("Cannot copy to response:", e);
+			}
+		}
 
-			final boolean bJDF = request.getBooleanParam(QueueProcessor.isJDF);
-			r.setContentType(bJDF ? UrlUtil.VND_JDF : UrlUtil.TEXT_XML);
-		}
-		catch (final FileNotFoundException x)
-		{
-			return null;
-		}
-		catch (final IOException x)
-		{
-			return null;
-		}
+		final boolean bJDF = request.getBooleanParam(QueueProcessor.isJDF);
+		r.setContentType(bJDF ? UrlUtil.VND_JDF : UrlUtil.TEXT_XML);
 		return r;
 	}
 

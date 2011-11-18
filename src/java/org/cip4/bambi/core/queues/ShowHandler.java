@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -72,6 +72,8 @@ package org.cip4.bambi.core.queues;
 
 import java.io.File;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiContainer.UnknownErrorHandler;
 import org.cip4.bambi.core.ContainerRequest;
@@ -88,6 +90,8 @@ import org.cip4.jdflib.core.KElement;
  */
 public abstract class ShowHandler implements IGetHandler
 {
+	protected Log log;
+
 	/**
 	 * @param device
 	 */
@@ -95,11 +99,14 @@ public abstract class ShowHandler implements IGetHandler
 	{
 		super();
 		_parentDevice = device;
+		log = LogFactory.getLog(getClass());
 	}
 
 	protected final AbstractDevice _parentDevice;
 
 	/**
+	 * @param request 
+	 * @return 
 	 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
 	 */
 	public XMLResponse handleGet(final ContainerRequest request)
@@ -133,6 +140,7 @@ public abstract class ShowHandler implements IGetHandler
 		final UnknownErrorHandler eh = new UnknownErrorHandler();
 		eh.setDetails("Unknown QueueEntry: " + qeid);
 		eh.setMessage("Cannot Show JDF");
+		log.warn("Cannot Show JDF - Unknown QueueEntry: " + qeid);
 		return eh.handleGet(request);
 	}
 

@@ -34,26 +34,26 @@
 	<Device DeviceID="sim001" 
 	DeviceType="Bambi Simulation HotFolder Device 001"
 		TrackResource="Component:Output" 
-		InputHF="/var/bambi/hf/sim001/Input"
-		OutputHF="/var/bambi/hf/sim001/Output" 
-		ErrorHF="/var/bambi/hf/sim001/Error" 
+		InputHF="/BambiHF/sim001/Input"
+		OutputHF="/BambiHF/sim001/Output" 
+		ErrorHF="/BambiHF/sim001/Error" 
 		ProxyURL="http://localhost:8080/BambiProxy/slavejmf/pullproxy"
 		AcceptAll="true"/>
 	
 	<Device DeviceID="sim002" 
 	DeviceType="Bambi Simulation HotFolder Device 002"
 		TrackResource="Component:Output" 
-		InputHF="/var/bambi/hf/sim002/Input"
-		OutputHF="/var/bambi/hf/sim002/Output" 
-		ErrorHF="/var/bambi/hf/sim002/Error" />
+		InputHF="/BambiHF/sim002/Input"
+		OutputHF="/BambiHF/sim002/Output" 
+		ErrorHF="/BambiHF/sim002/Error" />
 	
 	<Device DeviceID="sim003" 
 	DeviceType="Bambi Push Simulation Device 003"
 		PushPull="Push" 
 		TrackResource="Component:Output" 
-		InputHF="/var/bambi/hf/sim003/Input"
-		OutputHF="/var/bambi/hf/sim003/Output" 
-		ErrorHF="/var/bambi/hf/sim003/Error" 
+		InputHF="/BambiHF/sim003/Input"
+		OutputHF="/BambiHF/sim003/Output" 
+		ErrorHF="/BambiHF/sim003/Error" 
 		MIMEExpansion="true"/>
 		
 

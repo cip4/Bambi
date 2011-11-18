@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -145,8 +145,10 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 		 */
 		protected double speed = 0;
 
-		private String resource = "Output";
-		protected String resourceName = "Output";
+		private String resource;
+		protected String resourceName;
+
+		boolean masterAmount;
 
 		/**
 		 * @param resName the name or named process usage of the resource
@@ -158,6 +160,20 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 			resource = resourceName = resName;
 			bGood = condition;
 			speed = _speed;
+			masterAmount = false;
+		}
+
+		/**
+		 * @param jp
+		 */
+		void addAmount(final KElement jp)
+		{
+			final KElement amount = jp.appendElement("ResourceAmount");
+			amount.setAttribute("ResourceName", resourceName);
+			amount.setAttribute("Waste", bGood, null);
+			amount.setAttribute("Speed", speed, null);
+			if (masterAmount)
+				amount.setAttribute("Master", true, null);
 		}
 
 		/**
@@ -185,6 +201,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 			final PhaseAmount pa = new PhaseAmount(null, speed, bGood);
 			pa.resource = resource;
 			pa.resourceName = resourceName;
+			pa.masterAmount = masterAmount;
 			return pa;
 		}
 
@@ -202,9 +219,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 		public void setResource(final String _resource)
 		{
 			resource = _resource;
-
 		}
-
 	}
 
 	// end of inner class PhaseAmount
@@ -251,7 +266,9 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 			}
 			final boolean bGood = !am.getBoolAttribute("Waste", null, false);
 			// timeToGo is seconds, speed is / hour
-			setAmount(am.getAttribute("Resource"), speed, bGood);
+			PhaseAmount pa = setAmount(am.getAttribute("Resource"), speed, bGood);
+			final boolean master = !am.getBoolAttribute("Master", null, false);
+			pa.masterAmount = master;
 		}
 	}
 
@@ -420,11 +437,11 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 	 */
 	public PhaseAmount getPhaseAmount(final String res)
 	{
-		for (int i = 0; i < amounts.size(); i++)
+		for (PhaseAmount amount : amounts)
 		{
-			if (amounts.elementAt(i).matchesRes(res))
+			if (amount.matchesRes(res))
 			{
-				return amounts.elementAt(i);
+				return amount;
 			}
 		}
 		return null;
@@ -436,11 +453,31 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 	public VString getAmountResourceNames()
 	{
 		final VString v = new VString();
-		for (int i = 0; i < amounts.size(); i++)
+		for (PhaseAmount amount : amounts)
 		{
-			v.add(amounts.elementAt(i).resourceName);
+			v.add(amount.resourceName);
 		}
 		return v;
+	}
+
+	/**
+	 * get the single master amount - i.e. the amount used for calculating all derived amounts
+	 * @return
+	 */
+	public String getMasterAmountResourceName()
+	{
+		for (PhaseAmount amount : amounts)
+		{
+			if (amount.masterAmount == true)
+				return amount.resourceName;
+		}
+		// if no specific master - grab first non zero
+		for (PhaseAmount amount : amounts)
+		{
+			if (amount.speed > 0)
+				return amount.resourceName;
+		}
+		return null;
 	}
 
 	/**
@@ -549,22 +586,6 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 	}
 
 	/**
-	 * @param string
-	 */
-	private void addAmount(final String resString, final KElement jp)
-	{
-		if (jp == null)
-		{
-			return;
-		}
-		final KElement amount = jp.appendElement("ResourceAmount");
-		amount.setAttribute("ResourceName", resString);
-		amount.setAttribute("ResourceIndex", jp.numChildElements("ResourceAmount", null) - 1, null);
-		amount.setAttribute("Waste", getOutput_Condition(resString), null);
-		amount.setAttribute("Speed", getOutput_Speed(resString), null);
-	}
-
-	/**
 	 * write myself to an element
 	 * @param root
 	 */
@@ -583,10 +604,10 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 			final VString v = getAmountResourceNames();
 			if (v != null)
 			{
-				final int vSiz = v.size();
-				for (int i = 0; i < vSiz; i++)
+				for (String resname : v)
 				{
-					addAmount(v.stringAt(i), phase);
+					PhaseAmount pa = getPhaseAmount(resname);
+					pa.addAmount(phase);
 				}
 			}
 			XMLResponse.addOptionList(deviceStatus, EnumDeviceStatus.getEnumList(), phase, "DeviceStatus");
@@ -598,4 +619,23 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 		}
 	}
 
+	/**
+	 * scale the amount by factor
+	 * @param res the resname to scale
+	 * @param master the master resource that contains the base value toi scale
+	 * @param factor
+	 */
+	public void scaleAmount(String res, String master, double factor)
+	{
+		PhaseAmount pa = getPhaseAmount(res);
+		PhaseAmount masterAmount = getPhaseAmount(master);
+		if (pa == null || masterAmount == null)
+		{
+			log.error("bad phases for scaling, base=" + res + " master=" + master + " missing=" + ((pa == null) ? res : master));
+		}
+		else if (pa.speed <= 0)
+		{
+			pa.speed = masterAmount.speed * factor;
+		}
+	}
 }

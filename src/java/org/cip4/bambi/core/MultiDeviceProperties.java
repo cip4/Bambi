@@ -456,7 +456,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 */
 		public boolean getAcceptAll()
 		{
-			return StringUtil.parseBoolean(getDeviceAttribute("AcceptAll", null, "false"), false);
+			return StringUtil.parseBoolean(getDeviceAttribute("AcceptAll"), false);
 		}
 
 		/**
@@ -504,7 +504,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 */
 		public String getWatchURL()
 		{
-			return getDeviceAttribute("WatchURL", null, null);
+			return getDeviceAttribute("WatchURL");
 		}
 
 		/**

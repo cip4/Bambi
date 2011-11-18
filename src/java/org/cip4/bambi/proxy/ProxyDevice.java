@@ -108,6 +108,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.node.NodeIdentifier;
@@ -719,8 +720,8 @@ public class ProxyDevice extends AbstractProxyDevice
 			super(ProxyDevice.this, EnumType.Status, new EnumFamily[] { EnumFamily.Signal });
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
+		 * 
 		 * 
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
@@ -745,13 +746,18 @@ public class ProxyDevice extends AbstractProxyDevice
 			if (!b)
 			{
 				final JDFStatusQuParams sqp = m.getStatusQuParams();
-				final String qeid = (sqp != null) ? sqp.getQueueEntryID() : null;
+				String qeid = (sqp != null) ? sqp.getQueueEntryID() : null;
 				NodeIdentifier ni = sqp == null ? null : sqp.getIdentifier();
 				if (ni == null)
 				{
 					JDFDeviceInfo di = m.getDeviceInfo(0);
 					JDFJobPhase jp = di == null ? null : di.getJobPhase(0);
-					ni = jp == null ? null : jp.getIdentifier();
+					if (jp != null)
+					{
+						ni = jp.getIdentifier();
+						if (qeid == null)
+							qeid = jp.getQueueEntryID();
+					}
 				}
 				if (KElement.isWildCard(qeid) && new NodeIdentifier().equals(ni))
 				{
@@ -860,6 +866,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	/**
 	 * @param iqe
 	 * @param queueURL
+	 * @param activation 
 	 * @return true if the processor is added
 	 */
 	public ProxyDeviceProcessor submitQueueEntry(final IQueueEntry iqe, final String queueURL, final EnumActivation activation)
@@ -1165,7 +1172,8 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		if (status == null)
 		{
-			final JDFJMF jmf = new JMFBuilder().buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
+			JMFBuilder jmfBuilder = JMFBuilderFactory.getJMFBuilder(getDeviceID());
+			final JDFJMF jmf = jmfBuilder.buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
 			if (jmf != null)
 			{
 				final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(status, jmf.getCommand(0).getID());

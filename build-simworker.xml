@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- <!DOCTYPE project SYSTEM "file:/Developer/Applications/apache-ant-1.6.2/dtd/ant.dtd"> -->
 <project name="SimWorker" default="war" basedir=".">
-	<description>Bambi's sim worker</description>
+	<description>${description}</description>
 	<!-- Initializes -->
 	<target name="-init" description="Initializes the build. This task is automatically run before building.">
 		<echo>Initializing. Using build settings from ./build.properties...</echo>
@@ -9,6 +9,7 @@
 		<tstamp/>
 
 		<!-- start modify area -->
+		<property name="description" value="Bambi's sim worker" />
 		<property name="exe.name" value="SimWorker" />
 		<property name="exe.dir" value="simworker" />
 		<property name="web.src.dir" value="./WebContent/workers/sim" />
@@ -304,6 +305,23 @@
 		<zip destfile="${exe.dist.dir}-win.zip">
 			<zipfileset dir="${exe.dist.dir}" prefix="${dist.dir}" />
 		</zip>
+	</target>
+	<!-- windows service -->
+	<target name="winservice" depends="exe">
+		<copy file="../jdfutility/src/exe/windows/prunsrv.exe" tofile="${exe.dist.dir}/${exe.name}svc.exe" overwrite="true"/>
+		<copy file="../jdfutility/src/exe/windows/service-install.bat" tofile="${exe.dist.dir}/service-install.bat" overwrite="false"/>
+		<copy file="../jdfutility/src/exe/windows/service-uninstall.bat" tofile="${exe.dist.dir}/service-uninstall.bat" overwrite="true"/>
+		<echo>don't forget to update the CP variable in ${exe.dist.dir}/service-install.bat!</echo>
+		<replace dir="${exe.dist.dir}" includes="service-*install.bat">
+			<replacefilter token="__class__" value="org.cip4.bambi.server.BambiService" />
+			<replacefilter token="__startpath__" value="${basedir}/${exe.dist.dir}"/>
+			<replacefilter token="__launcher__" value="${basedir}/${exe.dist.dir}/${exe.name}svc.exe"/>
+			<replacefilter token="__description__" value="${description}"/>
+			<replacefilter token="/SVN_Root" value="S:"/>
+			<replacefilter token="/" value="\"/>
+			<replacefilter token="__serviceid__" value="//IS//${exe.name}"/>
+			<replacefilter token="__unserviceid__" value="//DS//${exe.name}"/>
+		</replace>
 	</target>
 
 

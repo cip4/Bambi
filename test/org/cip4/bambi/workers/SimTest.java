@@ -122,8 +122,8 @@ public class SimTest extends BambiTestCase
 		bUpdateJobID = true;
 		// acknowledgeURL = "http://localhost:8080/httpdump/acknowledgeURL";
 
-		workerURLBase = "http://localhost:8080/SimWorker/jmf/";
-		deviceID = "sim001";
+		workerURLBase = "http://10.51.202.138:44482/SimWorker/jmf/sim002";
+		deviceID = "sim002";
 		//		deviceID = "root";
 	}
 
@@ -142,10 +142,6 @@ public class SimTest extends BambiTestCase
 	 */
 	public void testSubmitQueueEntry_MIME() throws Exception
 	{
-		// get number of QueueEntries before submitting
-		//		final JDFQueue q = getQueueStatus(simWorkerUrl);
-		//		assertNotNull(q);
-		// build SubmitQueueEntry
 		_theGT.devID = getDeviceID();
 		_theGT.assign(null);
 		submitMimetoURL(getWorkerURL());
