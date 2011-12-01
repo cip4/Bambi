@@ -1407,8 +1407,8 @@ public final class SignalDispatcher extends BambiLogFactory
 			return null;
 		}
 
-		log.info("adding subscription ");
 		final MsgSubscription sub = new MsgSubscription(subMess, queueEntryID);
+		log.info("adding subscription " + sub);
 		final String url = sub.getURL();
 		if (!UrlUtil.isURL(url))
 		{

@@ -72,10 +72,8 @@
 package org.cip4.bambi.proxy;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -86,13 +84,11 @@ import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
-import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.messaging.JMFBufferHandler;
 import org.cip4.bambi.core.messaging.MessageResponseHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.bambi.proxy.MessageChecker.KnownMessageDetails;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
@@ -100,7 +96,6 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
-import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -108,8 +103,6 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFMessageService;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
-import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFSubscriptionInfo;
 import org.cip4.jdflib.jmf.JMFBuilder;
@@ -117,10 +110,7 @@ import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StringUtil;
-import org.cip4.jdflib.util.ThreadUtil;
-import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.hotfolder.QueueHotFolder;
-import org.cip4.jdflib.util.hotfolder.QueueHotFolderListener;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
@@ -355,7 +345,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 						jdfjmf.getMessageElement(null, null, 0).setID(channelID);
 						if (mySubscriptions != null) // may be null at startup or shutdown - ignore we'll only be off by a few messages
 						{
-							mySubscriptions.put(typ, new ProxySubscription(jdfjmf));
+							mySubscriptions.put(typ, new ProxySubscription(AbstractProxyDevice.this, jdfjmf));
 						}
 					}
 					else
@@ -413,89 +403,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				}
 			}
 			return null;
-		}
-	}
-
-	/**
-	 * class to manage subscriptions to the slave device
-	  * @author Rainer Prosi, Heidelberger Druckmaschinen *
-	 */
-	protected class ProxySubscription
-	{
-		long lastReceived;
-		long created;
-		int numReceived;
-		String channelID;
-		String url;
-		JDFJMF subscribedJMF;
-		String type;
-
-		/**
-		 * 
-		 * @param jmf
-		 * @throws IllegalArgumentException
-		 */
-		public ProxySubscription(JDFJMF jmf) throws IllegalArgumentException
-		{
-			subscribedJMF = (JDFJMF) jmf.clone();
-			type = subscribedJMF.getMessageElement(null, null, 0).getType();
-			channelID = StringUtil.getNonEmpty(jmf.getQuery(0).getID());
-			if (channelID == null)
-			{
-				getLog().error("Subscription with no channelID");
-				throw new IllegalArgumentException("Subscription with no channelID");
-			}
-			lastReceived = 0;
-			numReceived = StringUtil.parseInt(BambiNSExtension.getMyNSAttribute(jmf, "numReceived"), 0);
-			created = StringUtil.parseLong(BambiNSExtension.getMyNSAttribute(jmf, AttributeName.CREATIONDATE), System.currentTimeMillis());
-			url = BambiNSExtension.getMyNSAttribute(jmf, AttributeName.URL);
-		}
-
-		/**
-		 * @param channelID
-		 */
-		public void setChannelID(String channelID)
-		{
-			if (this.channelID.equals(channelID))
-				return; //nop
-
-			getLog().info("updating proxy subscription channelID to: " + channelID);
-			this.channelID = channelID;
-			subscribedJMF.getMessageElement(null, null, 0).setID(channelID);
-		}
-
-		/**
-		 * @see java.lang.Object#toString()
-		 * @return
-		*/
-		@Override
-		public String toString()
-		{
-			return "ProxySubscription: " + subscribedJMF;
-		}
-
-		/**
-		 * 
-		 */
-		public void incrementHandled()
-		{
-			lastReceived = System.currentTimeMillis();
-			numReceived++;
-		}
-
-		/**
-		 * @param subs
-		 */
-		public void copyToXML(KElement subs)
-		{
-			subs = subs.appendElement("ProxySubscription");
-			subs.copyElement(subscribedJMF, null);
-			subs.setAttribute(AttributeName.CHANNELID, channelID);
-			subs.setAttribute(AttributeName.URL, url);
-			subs.setAttribute(AttributeName.TYPE, subscribedJMF.getMessageElement(null, null, 0).getType());
-			subs.setAttribute(AttributeName.CREATIONDATE, XMLResponse.formatLong(created));
-			subs.setAttribute("LastReceived", XMLResponse.formatLong(lastReceived));
-			subs.setAttribute("NumReceived", StringUtil.formatInteger(numReceived));
 		}
 	}
 
@@ -568,146 +475,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				}
 			}
 			return true; // we always assume ok
-		}
-	}
-
-	protected class ReturnHFListner implements QueueHotFolderListener
-	{
-		private final EnumQueueEntryStatus hfStatus;
-
-		/**
-		 * @param status
-		 */
-		public ReturnHFListner(final EnumQueueEntryStatus status)
-		{
-			hfStatus = status;
-		}
-
-		public boolean submitted(final JDFJMF submissionJMF)
-		{
-			getLog().info("ReturnHFListner:submitted");
-			final JDFCommand command = submissionJMF.getCommand(0);
-			final JDFReturnQueueEntryParams rqp = command.getReturnQueueEntryParams(0);
-
-			final JDFDoc doc = rqp == null ? null : rqp.getURLDoc();
-			if (doc == null || rqp == null)
-			{
-				getLog().warn("could not process JDF File");
-				return false;
-			}
-			if (getJMFHandler() != null)
-			{
-				final KElement n = doc.getRoot();
-				if (n == null)
-				{
-					getLog().warn("could not process JDF File");
-					return false;
-				}
-
-				// assume the rootDev was the executed baby...
-				rqp.setAttribute(hfStatus.getName(), n.getAttribute(AttributeName.ID));
-				// let the standard returnqe handler do the work
-				final JDFDoc responseJMF = getJMFHandler().processJMF(submissionJMF.getOwnerDocument_JDFElement());
-				try
-				{
-					final JDFJMF jmf = responseJMF.getJMFRoot();
-					final JDFResponse r = jmf.getResponse(0);
-					if (r != null && r.getReturnCode() == 0)
-					{
-						final File urlToFile = UrlUtil.urlToFile(rqp.getURL());
-						boolean byebye = false;
-						if (urlToFile != null)
-						{
-							byebye = urlToFile.delete();
-						}
-						if (!byebye)
-						{
-							getLog().error("could not delete JDF File: " + urlToFile);
-						}
-					}
-					else
-					{
-						getLog().error("could not process JDF File");
-					}
-				}
-				catch (final Exception e)
-				{
-					handleError(submissionJMF);
-					return false;
-				}
-			}
-			return true;
-		}
-
-		/**
-		 * @param submissionJMF
-		 */
-		private void handleError(final JDFJMF submissionJMF)
-		{
-			getLog().error("error handling hf return");
-		}
-	}
-
-	/**
-	  * @author Rainer Prosi, Heidelberger Druckmaschinen *
-	 */
-	public class SubscriptionMap extends HashMap<EnumType, ProxySubscription>
-	{
-
-		/**
-		 * 
-		 */
-		protected SubscriptionMap()
-		{
-			super();
-		}
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-
-		/**
-		 * @param refID
-		 */
-		public void incrementHandled(String refID)
-		{
-			ProxySubscription ps = getSubscription(refID);
-			if (ps != null)
-				ps.incrementHandled();
-
-		}
-
-		/**
-		 * @param refID the refID or type of the message
-		 * @return
-		 */
-		private ProxySubscription getSubscription(String refID)
-		{
-			if (refID == null)
-				return null;
-
-			Collection<ProxySubscription> v = values();
-			Iterator<ProxySubscription> it = v.iterator();
-			while (it.hasNext())
-			{
-				ProxySubscription ps = it.next();
-				if (refID.equals(ps.channelID) || refID.equals(ps.type))
-					return ps;
-			}
-			return null;
-		}
-
-		/**
-		 * @param deviceRoot
-		 */
-		protected void copyToXML(KElement deviceRoot)
-		{
-			Collection<ProxySubscription> v = values();
-			Iterator<ProxySubscription> it = v.iterator();
-			KElement subs = deviceRoot.appendElement("ProxySubscriptions");
-			while (it.hasNext())
-				it.next().copyToXML(subs);
 		}
 	}
 
@@ -798,7 +565,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		final File hfStorage = new File(_devProperties.getBaseDir() + File.separator + "HFDevTmpStorage" + File.separator + _devProperties.getDeviceID());
 		log.info("Device error output HF:" + fDeviceErrorOutput.getPath() + " device ID= " + getSlaveDeviceID());
 		final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
-		slaveJDFError = new QueueHotFolder(fDeviceErrorOutput, hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Aborted), rqCommand);
+		slaveJDFError = new QueueHotFolder(fDeviceErrorOutput, hfStorage, null, new ReturnHFListner(this, EnumQueueEntryStatus.Aborted), rqCommand);
 	}
 
 	/**
@@ -814,7 +581,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		final File hfStorage = new File(getDeviceDir() + File.separator + "HFDevTmpStorage");
 		log.info("Device output HF:" + fDeviceJDFOutput.getPath() + " device ID= " + getSlaveDeviceID());
 		final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
-		slaveJDFOutput = new QueueHotFolder(fDeviceJDFOutput, hfStorage, null, new ReturnHFListner(EnumQueueEntryStatus.Completed), rqCommand);
+		slaveJDFOutput = new QueueHotFolder(fDeviceJDFOutput, hfStorage, null, new ReturnHFListner(this, EnumQueueEntryStatus.Completed), rqCommand);
 	}
 
 	/**
@@ -889,7 +656,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 */
 	protected SlaveSubscriber createSlaveSubscriber(final int waitMillis, final String slaveQEID)
 	{
-		return new SlaveSubscriber(waitMillis, slaveQEID);
+		return new SlaveSubscriber(this, waitMillis, slaveQEID);
 	}
 
 	/**
@@ -899,222 +666,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected String getKey(String slaveQEID)
 	{
 		return slaveQEID == null ? "##__null__##" : slaveQEID;
-	}
-
-	/**
-	 * class to asynchronously subscribe to messages at the slaves
-	 * @author Rainer Prosi, Heidelberger Druckmaschinen *
-	 */
-	protected class SlaveSubscriber extends Thread
-	{
-		/**
-		 * @param b
-		 */
-		public void setReset(final boolean b)
-		{
-			reset = b;
-		}
-
-		/**
-		 * @param waitBefore the time to wait prior to subscribing
-		 * @param slaveQEID
-		 */
-		protected SlaveSubscriber(final int waitBefore, final String slaveQEID)
-		{
-			super("SlaveSubscriber_" + getDeviceID() + "_" + slaveThreadCount++);
-			this.waitBefore = waitBefore;
-			this.slaveQEID = slaveQEID;
-			reset = false;
-			waitingSubscribers.put(getKey(slaveQEID), this);
-		}
-
-		private final int waitBefore;
-		private final String slaveQEID;
-		private boolean reset;
-
-		/**
-		 * add global subscriptions at startup
-		 */
-		@Override
-		public void run()
-		{
-			final String slaveURL = getProxyProperties().getSlaveURL();
-			getLog().info("Updating global subscriptions to :" + slaveURL);
-			final String deviceURL = getDeviceURLForSlave();
-			if (deviceURL == null)
-			{
-				getLog().error("Device feedback url is not specified in subscription, proxy device " + getDeviceID() + " is not subscribing at slave device: " + getSlaveDeviceID());
-				return;
-			}
-
-			ThreadUtil.sleep(waitBefore); // wait for other devices to start prior to subscribing
-			if (!knownSlaveMessages.isInitialized())
-				updateKnownMessages();
-			final Vector<JDFJMF> vJMFS = prepare(deviceURL);
-
-			// reduce currently known subscriptions
-			sendSubscriptions(vJMFS);
-
-			cleanup();
-		}
-
-		/**
-		 * update the knownmessages list 
-		 */
-		private void updateKnownMessages()
-		{
-			final JMFBuilder builder = getBuilderForSlave();
-			final JDFJMF knownMessages = builder.buildKnownMessagesQuery();
-			KnownMessagesResponseHandler handler = new KnownMessagesResponseHandler(knownMessages);
-			sendJMFToSlave(knownMessages, handler);
-			handler.waitHandled(20000, 30000, true);
-			knownSlaveMessages.setMessages(handler.completeHandling());
-		}
-
-		/**
-		 * @param deviceURL
-		 * @return
-		 */
-		private Vector<JDFJMF> prepare(final String deviceURL)
-		{
-			resetSubscriptions();
-			final JMFBuilder builder = getBuilderForSlave();
-			final JDFJMF knownSubscriptions = builder.buildKnownSubscriptionsQuery(deviceURL, slaveQEID);
-			final Vector<JDFJMF> createSubscriptions = createSubscriptions(deviceURL);
-			if (createSubscriptions != null)
-			{
-				// remove duplicates
-				if (knownSlaveMessages.knows(EnumType.KnownSubscriptions))
-				{
-					final KnownSubscriptionsHandler handler = new KnownSubscriptionsHandler(knownSubscriptions, createSubscriptions);
-					sendJMFToSlave(knownSubscriptions, handler);
-					handler.waitHandled(20000, 30000, true);
-					return handler.completeHandling();
-				}
-				else
-				{
-					return createSubscriptions;
-				}
-			}
-			else
-			{
-				return null;
-			}
-		}
-
-		/**
-		 * @param vJMFS
-		 */
-		private void sendSubscriptions(final Vector<JDFJMF> vJMFS)
-		{
-			if (vJMFS != null)
-			{
-				for (JDFJMF jmf : vJMFS)
-				{
-					createNewSubscription(jmf);
-				}
-			}
-		}
-
-		/**
-		 * 
-		 */
-		private void cleanup()
-		{
-			ThreadUtil.sleep(30000);
-			synchronized (waitingSubscribers)
-			{
-				waitingSubscribers.remove(getKey(slaveQEID));
-			}
-		}
-
-		/**
-		 * 
-		 */
-		private void resetSubscriptions()
-		{
-			if (knownSlaveMessages.knows(EnumType.StopPersistentChannel))
-			{
-				if (reset)
-				{
-					final JMFBuilder builder = getBuilderForSlave();
-					final JDFJMF stopPersistant = builder.buildStopPersistentChannel(null, null, getDeviceURLForSlave());
-					final MessageResponseHandler waitHandler = new StopPersistantHandler(stopPersistant);
-					sendJMFToSlave(stopPersistant, waitHandler);
-					waitHandler.waitHandled(10000, 30000, true);
-				}
-			}
-		}
-
-		/**
-		 * @param deviceURL
-		 * 
-		 * @return
-		 */
-		protected Vector<JDFJMF> createSubscriptions(final String deviceURL)
-		{
-			final JMFBuilder builder = getBuilderForSlave();
-			final JDFJMF[] createSubscriptions = builder.createSubscriptions(deviceURL, slaveQEID, 10, 0);
-			Vector<JDFJMF> vRet = ContainerUtil.toVector(createSubscriptions);
-			vRet = removeUnknown(vRet);
-
-			return vRet.size() > 0 ? vRet : null;
-		}
-
-		protected Vector<JDFJMF> removeUnknown(Vector<JDFJMF> vRet)
-		{
-			if (vRet == null)
-				return vRet;
-			for (int i = vRet.size() - 1; i >= 0; i--)
-			{
-				JDFJMF jmf = vRet.elementAt(i);
-				JDFMessage m = jmf.getMessageElement(null, null, 0);
-				if (!knownSlaveMessages.knows(m.getType()))
-					vRet.remove(jmf);
-			}
-			return vRet;
-		}
-
-		/**
-		 * @param jmf the subscribable jmf
-		 */
-		private void createNewSubscription(final JDFJMF jmf)
-		{
-			if (jmf == null)
-			{
-				return;
-			}
-			final ProxySubscription ps = new ProxySubscription(jmf);
-			final EnumType t = jmf.getQuery(0).getEnumType();
-			final ProxySubscription psOld = mySubscriptions.get(t);
-			if (psOld != null)
-			{
-				getLog().warn("updating dropped subscription; type: " + t.getName());
-			}
-			final MessageResponseHandler rh = new MessageResponseHandler(jmf);
-			sendJMFToSlave(jmf, rh);
-			rh.waitHandled(10000, 30000, false);
-			final int rc = rh.getJMFReturnCode();
-			if (rc == 0)
-			{
-				mySubscriptions.remove(t);
-				mySubscriptions.put(t, ps);
-			}
-			else
-			{
-				getLog().warn("error updating subscription; type: " + t.getName() + " rc=" + rc);
-			}
-		}
-
-		/**
-		 * 
-		 * @see java.lang.Thread#toString()
-		 */
-		@Override
-		public String toString()
-		{
-			return "SlaveSubscriber: qeid=" + slaveQEID + " " + knownSlaveMessages;
-		}
 	}
 
 	/**
@@ -1198,7 +749,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * get the JMF Builder for messages to the slave device; also allow for asynch submission handling
 	 * @return
 	 */
-	protected JMFBuilder getBuilderForSlave()
+	public JMFBuilder getBuilderForSlave()
 	{
 		JMFBuilder builder = JMFBuilderFactory.getJMFBuilder(getDeviceID());
 		builder = builder.clone(); // we only want to set ackURL for certain messages
