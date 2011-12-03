@@ -192,7 +192,8 @@ public final class BambiServlet extends HttpServlet
 
 	private String initializeDumps(final ServletConfig config, File baseDir)
 	{
-		String dump = StringUtil.getNonEmpty(config.getInitParameter("bambiDump"));
+		String dump = config.getInitParameter("bambiDump");
+		dump = parseEnv(dump);
 		if (dump == null)
 		{
 			log.info("not initializing http dump directory: ");
@@ -200,7 +201,7 @@ public final class BambiServlet extends HttpServlet
 		else
 		{
 			final File dumpFile;
-			if (UrlUtil.isRelativeURL(dump))
+			if (UrlUtil.isRelativeURL(dump) && dump.indexOf(":\\") < 0)
 				dumpFile = FileUtil.getFileInDirectory(baseDir, new File(dump));
 			else
 				dumpFile = new File(dump);
@@ -216,6 +217,35 @@ public final class BambiServlet extends HttpServlet
 			log.info("initializing http dump directory: " + dump + " get=" + dumpGet + " empty=" + dumpEmpty);
 		}
 		return dump;
+	}
+
+	/**
+	 * parse a string for environment variables
+	 * @param dump
+	 * @return
+	 */
+	String parseEnv(String dump)
+	{
+		dump = StringUtil.getNonEmpty(dump);
+		if (dump == null || !dump.startsWith("%"))
+			return dump;
+		int posS = dump.indexOf("/");
+		int posB = dump.indexOf("\\");
+		if (posS < 0)
+			posS = 999999;
+		if (posB < 0)
+			posB = 999999;
+		if (posS > posB)
+			posS = posB;
+		if (posS == 999999)
+			return dump;
+		String env = dump.substring(1, posS);
+		String newBase = System.getProperty(env);
+		if (newBase == null)
+			newBase = System.getenv(env);
+		if (newBase == null)
+			return dump.substring(1);
+		return newBase + dump.substring(posS);
 	}
 
 	/**

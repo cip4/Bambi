@@ -555,7 +555,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		}
 		else
 		{
-			log.info("No consumer for buffered Signal " + inSignal.getType());
+			log.info("No consumer for buffered Signal " + inSignal.getType() + " ID=" + inSignal.getID());
 		}
 		return true;
 	}
@@ -580,6 +580,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		}
 
 		private final HashMap<MessageIdentifier, JDFSignal> lastSent;
+		private int idleMod = 0;
 
 		/**
 		 * return true if the signal corresponds to the input query
@@ -668,6 +669,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		{
 			super(dev, EnumType.Status, new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dev);
 			lastSent = new HashMap<MessageIdentifier, JDFSignal>();
+			idleMod = 0;
 		}
 
 		/**
@@ -790,6 +792,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 
 		/**
 		 * @param mi
+		 * @param wantIdle
 		 * @return
 		 */
 		@Override
@@ -830,6 +833,8 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 					}
 				}
 			}
+			if (sis != null && sis.size() == 0)
+				sis = null;
 			return sis;
 		}
 
@@ -920,6 +925,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			final JDFQueueEntry qe = getQueueProcessor().getQueueEntry(qeid, ni);
 			return qe == null ? null : qe.getQueueEntryID();
 		}
+
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////

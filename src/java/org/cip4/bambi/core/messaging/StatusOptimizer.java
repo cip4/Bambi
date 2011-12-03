@@ -116,7 +116,7 @@ public class StatusOptimizer extends BambiLogFactory implements IMessageOptimize
 		final StatusSignalComparator ssc = new StatusSignalComparator();
 		if (ssc.isSameStatusSignal((JDFSignal) newMessage, (JDFSignal) oldMessage))
 		{
-			log.info("removing redundant status signal: " + oldMessage.getID());
+			log.debug("removing redundant status signal: " + oldMessage.getID());
 			ssc.mergeStatusSignal((JDFSignal) newMessage, (JDFSignal) oldMessage);
 			return optimizeResult.remove;
 		}

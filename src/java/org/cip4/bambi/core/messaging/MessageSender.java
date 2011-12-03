@@ -257,7 +257,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		{
 			final JDFJMF jmf = old.getJMFRoot();
 			jmf.removeChild(old);
-			log.info("removed redundant message: " + old.getID());
+			log.debug("removed redundant message: " + old.getID());
 			final VElement v = jmf.getMessageVector(null, null);
 			if (v.size() == 0)
 			{

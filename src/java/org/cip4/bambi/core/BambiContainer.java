@@ -653,7 +653,6 @@ public final class BambiContainer extends BambiLogFactory
 				{
 					_callBack.updateJMFForExtern(responseJMF);
 				}
-
 			}
 			else
 			{
