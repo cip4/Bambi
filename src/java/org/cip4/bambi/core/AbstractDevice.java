@@ -274,7 +274,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 		/**
 		 * XML representation of this simDevice fore use as html display using an XSLT
-		 * @param addProcs TODO
+		 * @param addProcs if true, add processor elements
 		 * @param request 
 		 */
 		protected XMLDevice(final boolean addProcs, final ContainerRequest request)
@@ -1677,7 +1677,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	@Override
 	protected void finalize() throws Throwable
 	{
-		shutdown();
 		super.finalize();
 	}
 

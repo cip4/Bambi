@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -513,16 +513,28 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		_statusListener.setNode(queueEntryID, node, vPartMap, trackResourceID);
 	}
 
+	/**
+	 * 
+	 * suspend the currently executed job!
+	 */
 	protected void suspend()
 	{
 		_statusListener.signalStatus(EnumDeviceStatus.Idle, "Idle", EnumNodeStatus.Suspended, "job suspended", false);
 	}
 
+	/**
+	 * 
+	 * abort the currently executed job!
+	 */
 	protected void abort()
 	{
 		_statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCanceledByUser", EnumNodeStatus.Aborted, "job canceled by user", true);
 	}
 
+	/**
+	 * 
+	 * complete the currently executed job!
+	 */
 	protected void complete()
 	{
 		_statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCompleted", EnumNodeStatus.Completed, "job completed successfully", true);

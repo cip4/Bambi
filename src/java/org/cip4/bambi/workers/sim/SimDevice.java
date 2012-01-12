@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -73,7 +73,6 @@ package org.cip4.bambi.workers.sim;
 
 import java.util.Set;
 
-import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
@@ -107,13 +106,13 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	protected class XMLSimDevice extends XMLWorkerDevice
 	{
 		/**
-		 * XML representation of this simDevice fore use as html display using an XSLT
-		 * @param bProc
+		 * XML representation of this simDevice for use as html display using an XSLT
+		 * @param addProcs if true, add processor elements
 		 * @param request
 		 */
-		public XMLSimDevice(final boolean bProc, final ContainerRequest request)
+		public XMLSimDevice(final boolean addProcs, final ContainerRequest request)
 		{
-			super(bProc, request);
+			super(addProcs, request);
 			final JobPhase currentJobPhase = getCurrentJobPhase();
 			if (currentJobPhase != null)
 			{
@@ -130,16 +129,20 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	@Override
 	public XMLDevice getXMLDevice(final boolean bProc, final ContainerRequest request)
 	{
-		final XMLDevice simDevice = this.new XMLSimDevice(bProc, request);
+		final XMLDevice simDevice = new XMLSimDevice(bProc, request);
 		return simDevice;
 	}
 
+	/**
+	 * 
+	 * @see org.cip4.bambi.workers.WorkerDevice#processNextPhase(org.cip4.bambi.core.ContainerRequest)
+	 */
 	@Override
 	protected XMLResponse processNextPhase(final ContainerRequest request)
 	{
 		final JobPhase nextPhase = buildJobPhaseFromRequest(request);
 		((SimDeviceProcessor) _deviceProcessors.get(0)).doNextPhase(nextPhase);
-		ThreadUtil.sleep(1000); // allow device to switch phases before displaying page
+		ThreadUtil.sleep(500); // allow device to switch phases before displaying page
 		return showDevice(request, false);
 	}
 
@@ -152,7 +155,7 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	}
 
 	@Override
-	protected AbstractDeviceProcessor buildDeviceProcessor()
+	protected SimDeviceProcessor buildDeviceProcessor()
 	{
 		return new SimDeviceProcessor();
 	}

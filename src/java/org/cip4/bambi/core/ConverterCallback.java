@@ -198,10 +198,23 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		{
 			log.info("importing xjdf to Bambi");
 			final XJDFToJDFConverter xc = getXJDFImporter();
-			xc.convertUnits = true;
-			doc = xc.convert(root);
-			FixVersion fv = new FixVersion((EnumVersion) null);
-			fv.walkTree(doc.getRoot(), null);
+			if (xc != null)
+			{
+				doc = xc.convert(root);
+				if (doc != null)
+				{
+					FixVersion fv = new FixVersion((EnumVersion) null);
+					fv.walkTree(doc.getRoot(), null);
+				}
+				else
+				{
+					log.error("null converted document returned, bailing out");
+				}
+			}
+			else
+			{
+				log.error("null converter returned, bailing out");
+			}
 		}
 		return doc;
 	}
@@ -214,6 +227,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	protected XJDFToJDFConverter getXJDFImporter()
 	{
 		final XJDFToJDFConverter xc = new XJDFToJDFConverter(null);
+		xc.convertUnits = true;
 		return xc;
 	}
 

@@ -103,7 +103,9 @@ class MessageChecker
 	public void setMessages(Collection<KnownMessageDetails> messages)
 	{
 		if (messages == null)
+		{
 			theMessages = null;
+		}
 		else
 		{
 			theMessages = new HashMap<String, MessageChecker.KnownMessageDetails>();
@@ -126,7 +128,6 @@ class MessageChecker
 
 	public static class KnownMessageDetails
 	{
-
 		/**
 		 * 
 		 * @see java.lang.Object#toString()

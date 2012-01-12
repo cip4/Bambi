@@ -133,14 +133,16 @@ public class SlaveSubscriber extends Thread
 		final String deviceURL = abstractProxyDevice.getDeviceURLForSlave();
 		if (deviceURL == null)
 		{
-			abstractProxyDevice.getLog().error("Device feedback url is not specified in subscription, proxy device " + abstractProxyDevice.getDeviceID()
-					+ " is not subscribing at slave device: " + abstractProxyDevice.getSlaveDeviceID());
+			log.error("Device feedback url is not specified in subscription, proxy device " + abstractProxyDevice.getDeviceID() + " is not subscribing at slave device: "
+					+ abstractProxyDevice.getSlaveDeviceID());
 			return;
 		}
 
 		ThreadUtil.sleep(waitBefore); // wait for other devices to start prior to subscribing
 		if (!abstractProxyDevice.knownSlaveMessages.isInitialized())
+		{
 			updateKnownMessages();
+		}
 		final Vector<JDFJMF> vJMFS = prepare(deviceURL);
 
 		// reduce currently known subscriptions
@@ -222,7 +224,7 @@ public class SlaveSubscriber extends Thread
 	/**
 	 * 
 	 */
-	private void resetSubscriptions()
+	public void resetSubscriptions()
 	{
 		if (abstractProxyDevice.knownSlaveMessages.knows(EnumType.StopPersistentChannel))
 		{
@@ -234,6 +236,10 @@ public class SlaveSubscriber extends Thread
 				abstractProxyDevice.sendJMFToSlave(stopPersistant, waitHandler);
 				waitHandler.waitHandled(10000, 30000, true);
 			}
+		}
+		else
+		{
+			log.warn("slave does not handle StopPersistantChannel");
 		}
 	}
 
@@ -267,7 +273,7 @@ public class SlaveSubscriber extends Thread
 	}
 
 	/**
-	 * @param jmf the subscribable jmf
+	 * @param jmf the subscribeable jmf
 	 */
 	private void createNewSubscription(final JDFJMF jmf)
 	{
@@ -275,12 +281,12 @@ public class SlaveSubscriber extends Thread
 		{
 			return;
 		}
-		final ProxySubscription ps = new ProxySubscription(abstractProxyDevice, jmf);
+		final ProxySubscription ps = new ProxySubscription(jmf);
 		final EnumType t = jmf.getQuery(0).getEnumType();
 		final ProxySubscription psOld = abstractProxyDevice.mySubscriptions.get(t);
 		if (psOld != null)
 		{
-			abstractProxyDevice.getLog().warn("updating dropped subscription; type: " + t.getName());
+			log.warn("updating dropped subscription; type: " + t.getName());
 		}
 		final MessageResponseHandler rh = new MessageResponseHandler(jmf);
 		abstractProxyDevice.sendJMFToSlave(jmf, rh);

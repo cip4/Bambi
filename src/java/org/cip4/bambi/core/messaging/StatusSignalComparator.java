@@ -71,6 +71,7 @@
 package org.cip4.bambi.core.messaging;
 
 import org.cip4.bambi.core.BambiLogFactory;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFSignal;
 
@@ -101,12 +102,14 @@ public class StatusSignalComparator extends BambiLogFactory
 		{
 			return inSignal == null;
 		}
-		boolean bAllSame = true;
+		// if we have a notification, this may contain one time information
+		boolean bAllSame = inSignal.getNotification() == null;
 		for (int i = 0; bAllSame; i++)
 		{
 			final JDFDeviceInfo di = inSignal.getDeviceInfo(i);
 			if (di == null)
 			{
+				bAllSame = last.numChildElements(ElementName.DEVICEINFO, null) == i;
 				break;
 			}
 			boolean bSameDI = false;
@@ -121,6 +124,7 @@ public class StatusSignalComparator extends BambiLogFactory
 			}
 			bAllSame = bAllSame && bSameDI;
 		}
+
 		return bAllSame;
 	}
 

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -319,7 +319,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public String getDeviceType()
 		{
-			// TODO Auto-generated method stub
 			return null;
 		}
 
@@ -330,7 +329,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public String getDeviceURL()
 		{
-			// TODO Auto-generated method stub
 			return null;
 		}
 
@@ -341,7 +339,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public File getErrorHF()
 		{
-			// TODO Auto-generated method stub
 			return null;
 		}
 
@@ -352,7 +349,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public File getInputHF()
 		{
-			// TODO Auto-generated method stub
 			return null;
 		}
 
@@ -363,7 +359,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public File getJDFDir()
 		{
-			// TODO Auto-generated method stub
 			return null;
 		}
 
@@ -374,7 +369,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public int getMaxPush()
 		{
-			// TODO Auto-generated method stub
 			return 0;
 		}
 
@@ -385,7 +379,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public File getOutputHF()
 		{
-			// TODO Auto-generated method stub
 			return null;
 		}
 
@@ -396,7 +389,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public String getProxyControllerURL()
 		{
-			// TODO Auto-generated method stub
 			return null;
 		}
 
@@ -407,7 +399,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public String getSlaveDeviceID()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -418,7 +410,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public File getSlaveErrorHF()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -429,7 +421,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public File getSlaveInputHF()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -440,7 +432,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public File getSlaveOutputHF()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -451,7 +443,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public String getSlaveURL()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -462,7 +454,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public String getTrackResource()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -473,7 +465,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public String getTypeExpression()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -484,7 +476,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public VString getAmountResources()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -495,7 +487,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public int getControllerHTTPChunk()
 		{
-			// TODO Auto-generated method stub
+
 			return 0;
 		}
 
@@ -506,7 +498,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public String getControllerMIMEEncoding()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -517,7 +509,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public QEReturn getReturnMIME()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -528,7 +520,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public String getContextURL()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -539,7 +531,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public String getDeviceAttribute(final String key)
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -550,7 +542,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public AbstractDevice getDeviceInstance()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -561,7 +553,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public String getWatchURL()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -572,7 +564,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public boolean getControllerMIMEExpansion()
 		{
-			// TODO Auto-generated method stub
+
 			return false;
 		}
 
@@ -582,7 +574,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public File getConfigDir()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -591,7 +583,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public boolean serialize()
 		{
-			// TODO Auto-generated method stub
+
 			return false;
 		}
 
@@ -600,7 +592,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public void setDeviceType(final String deviceType)
 		{
-			// TODO Auto-generated method stub
 
 		}
 
@@ -609,7 +600,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public void setWatchURL(final String WatchURL)
 		{
-			// TODO Auto-generated method stub
 
 		}
 
@@ -618,7 +608,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public void setErrorHF(final File hf)
 		{
-			// TODO Auto-generated method stub
 
 		}
 
@@ -627,7 +616,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public void setInputHF(final File hf)
 		{
-			// TODO Auto-generated method stub
 
 		}
 
@@ -636,7 +624,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public void setOutputHF(final File hf)
 		{
-			// TODO Auto-generated method stub
 
 		}
 
@@ -645,7 +632,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public void setTypeExpression(final String exp)
 		{
-			// TODO Auto-generated method stub
 
 		}
 
@@ -654,7 +640,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public QERetrieval getQERetrieval()
 		{
-			// TODO Auto-generated method stub
+
 			return null;
 		}
 
@@ -663,7 +649,6 @@ public class BambiTestCase extends BaseGoldenTicketTest
 		 */
 		public void setQERetrieval(final QERetrieval qer)
 		{
-			// TODO Auto-generated method stub
 
 		}
 
@@ -692,7 +677,12 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 */
 	protected String getWorkerURL()
 	{
-		return workerURLBase + deviceID;
+		return UrlUtil.getURLWithDirectory(getWorkerURLBase(), getDeviceID());
+	}
+
+	protected String getWorkerURLBase()
+	{
+		return workerURLBase;
 	}
 
 	/**
@@ -753,7 +743,8 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 */
 	public void testNothing()
 	{
-		assertTrue(1 == 1);
+		int i = 1;
+		assertTrue(1 == i);
 	}
 
 	/**
@@ -795,14 +786,16 @@ public class BambiTestCase extends BaseGoldenTicketTest
 
 	/**
 	 * @param d 
-	 * @param url the url to send to
+	 * @param url the url to send to, if null simply grab the default worker url
 	 * @param extendReference 
 	 * @return 
 	 * @throws MalformedURLException
 	 */
-	protected HttpURLConnection submitMimetoURL(final JDFDoc d, final String url, boolean extendReference) throws MalformedURLException
+	protected HttpURLConnection submitMimetoURL(final JDFDoc d, String url, boolean extendReference) throws MalformedURLException
 	{
 		ensureCurrentGT();
+		if (url == null)
+			url = getWorkerURL();
 		final BambiTestHelper helper = getHelper();
 		helper.extendReference = extendReference;
 

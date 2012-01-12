@@ -287,6 +287,7 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 		final long t = System.currentTimeMillis();
 		if (t - startTime > 1000 * 24 * 60 * 60)
 		{
+			log.error("aborted handler after " + ((t - startTime) * 0.001) + " seconds");
 			return true;
 		}
 		return mutex == null ? false : abort == 2;

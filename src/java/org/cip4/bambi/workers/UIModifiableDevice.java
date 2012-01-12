@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -111,7 +111,6 @@ public abstract class UIModifiableDevice extends WorkerDevice
 	protected JobPhase buildJobPhaseFromRequest(final ContainerRequest request)
 	{
 		final JobPhase current = getCurrentJobPhase();
-
 		final JobPhase newPhase = (current == null ? new JobPhase() : current.clone());
 		newPhase.setTimeToGo(Integer.MAX_VALUE); // until modified...
 
@@ -131,7 +130,6 @@ public abstract class UIModifiableDevice extends WorkerDevice
 			{
 				newPhase.setTimeToGo(0);
 			}
-
 		}
 		newPhase.setNodeStatusDetails(request.getParameter("NodeStatusDetails"));
 
@@ -143,7 +141,6 @@ public abstract class UIModifiableDevice extends WorkerDevice
 				break;
 			}
 			newPhase.setAmount(parameter, request.getDoubleParam("Speed" + i), !request.getBooleanParam("Waste" + i));
-
 		}
 		if (!KElement.isWildCard(request.getParameter(AttributeName.DURATION)))
 		{

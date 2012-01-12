@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -219,7 +219,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 		}
 		else
 		{
-			log.debug("nexecutable node found: JobPartID=" + n2.getJobPartID(false));
+			log.debug("executable node found: JobPartID=" + n2.getJobPartID(false));
 
 		}
 		return isExecutable;
@@ -232,12 +232,12 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	{
 		/**
 		 * XML representation of this simDevice fore use as html display using an XSLT
-		 * @param bProc
+		 * @param addProcs if true, add processor elements
 		 * @param request
 		 */
-		public XMLWorkerDevice(final boolean bProc, final ContainerRequest request)
+		public XMLWorkerDevice(final boolean addProcs, final ContainerRequest request)
 		{
-			super(bProc, request);
+			super(addProcs, request);
 			final KElement deviceRoot = getRoot();
 			deviceRoot.setAttribute(AttributeName.TYPEEXPRESSION, getProperties().getTypeExpression());
 			deviceRoot.setAttribute("login", true, null);
@@ -367,15 +367,22 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 		{
 			File deviceDir = getCachedConfigDir();
 			final File employeePathLocal = FileUtil.getFileInDirectory(deviceDir, employeeFile);
+			if (!employeePathLocal.canRead())
+			{
+				log.info("No file: " + employeePathLocal + " specified, skip employee loading.");
+				return null;
+			}
 			final XMLDoc d = JDFDoc.parseFile(employeePathLocal.getAbsolutePath());
 			final KElement root = d == null ? null : d.getRoot();
 			if (root == null)
 			{
+				log.warn("Cannot parse file: " + employeePathLocal + ", skip employee loading.");
 				return null;
 			}
 			final VElement v = root.getChildElementVector("Employee", null);
-			if (v == null)
+			if (v == null || v.size() == 0)
 			{
+				log.info("No employees found in file: " + employeePathLocal + ", skip employee loading.");
 				return null;
 			}
 			final Vector<JDFEmployee> vPA = new Vector<JDFEmployee>(v.size());
@@ -385,9 +392,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 				vPA.add(pa);
 			}
 			return vPA;
-
 		}
-
 	}
 
 	/**

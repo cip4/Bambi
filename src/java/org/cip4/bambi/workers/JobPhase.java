@@ -223,6 +223,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 	}
 
 	// end of inner class PhaseAmount
+
 	protected Vector<PhaseAmount> amounts = new Vector<PhaseAmount>();
 
 	/**
@@ -256,19 +257,17 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 			setErrorChance(StringUtil.parseDouble(phaseElement.getXPathAttribute("../@Error", "0"), 0) * 0.001);
 		}
 		final VElement vA = phaseElement.getChildElementVector("Amount", null);
-		for (int j = 0; j < vA.size(); j++)
+		for (KElement amount : vA)
 		{
-			final KElement am = vA.elementAt(j);
-			double speed = am.getRealAttribute("Speed", null, 0);
+			double speed = amount.getRealAttribute("Speed", null, 0);
 			if (speed < 0)
 			{
 				speed = 0;
 			}
-			final boolean bGood = !am.getBoolAttribute("Waste", null, false);
+			final boolean bGood = !amount.getBoolAttribute("Waste", null, false);
 			// timeToGo is seconds, speed is / hour
-			PhaseAmount pa = setAmount(am.getAttribute("Resource"), speed, bGood);
-			final boolean master = !am.getBoolAttribute("Master", null, false);
-			pa.masterAmount = master;
+			PhaseAmount pa = setAmount(amount.getAttribute("Resource"), speed, bGood);
+			pa.masterAmount = amount.getBoolAttribute("Master", null, false);
 		}
 	}
 
@@ -551,9 +550,8 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 		{
 			return;
 		}
-		for (int i = 0; i < amounts.size(); i++)
+		for (PhaseAmount pa : amounts)
 		{
-			final PhaseAmount pa = amounts.get(i);
 			if (rl.matchesString(pa.getResource()))
 			{
 				pa.setResource(rl.getrRef());
@@ -620,10 +618,11 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 	}
 
 	/**
-	 * scale the amount by factor
+	 * scale the amount(Speed) by factor
+	 * 
 	 * @param res the resname to scale
-	 * @param master the master resource that contains the base value toi scale
-	 * @param factor
+	 * @param master the master resource that contains the base value to scale
+	 * @param factor the factor to scale the speed by
 	 */
 	public void scaleAmount(String res, String master, double factor)
 	{
@@ -633,7 +632,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 		{
 			log.error("bad phases for scaling, base=" + res + " master=" + master + " missing=" + ((pa == null) ? res : master));
 		}
-		else if (pa.speed <= 0)
+		else
 		{
 			pa.speed = masterAmount.speed * factor;
 		}

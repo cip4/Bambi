@@ -70,12 +70,10 @@
  */
 package org.cip4.bambi.workers.sim;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.queues.QueueProcessor;
@@ -86,10 +84,8 @@ import org.cip4.bambi.workers.WorkerDevice;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
-import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFException;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.JDFResourceLink.EnumUsage;
 import org.cip4.jdflib.core.KElement;
@@ -101,7 +97,6 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.resource.process.JDFEmployee;
-import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 
@@ -173,6 +168,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	{
 		final List<JobPhase> phases = null;
 		final String queueEntryID = qe.getQueueEntryID();
+		log.error("resumeQueueEntry not yet implemented");
 		return null;
 		// TODO persist correctly
 	}
@@ -186,6 +182,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		{
 			return;
 		}
+		log.error("persistRemainingPhases not yet implemented");
 		return;
 		// TODO persist correctly
 	}
@@ -398,9 +395,9 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	@Override
 	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
 	{
-		JobLoader jobLoader = new JobLoader();
+		JobLoader jobLoader = new JobLoader(this);
 		jobLoader.setNode(node);
-		jobLoader.loadJob();
+		_jobPhases = jobLoader.loadJob();
 		// we want at least one setup dummy
 		if (_jobPhases == null)
 		{
@@ -416,7 +413,6 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		qe.setDeviceID(_parent.getDeviceID());
 		final String queueEntryID = qe.getQueueEntryID();
 		log.info("Processing queueentry " + queueEntryID);
-		final int jobPhaseSize = _jobPhases == null ? 0 : _jobPhases.size();
 
 		final VElement vResLinks = node.getResourceLinks(null);
 		if (vResLinks != null)
@@ -425,134 +421,13 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			for (int i = 0; i < vSiz; i++)
 			{
 				final JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
-				for (int j = 0; j < jobPhaseSize; j++)
+				for (JobPhase jp : _jobPhases)
 				{
-					final JobPhase jp = _jobPhases.get(j);
 					jp.updateAmountLinks(rl);
 				}
 			}
 		}
 		return bOK;
-	}
-
-	/**
-	 * class to load .job files for simulation
-	 * 
-	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 * 
-	 * Sep 29, 2009
-	 */
-	private class JobLoader
-	{
-		private JDFNode node;
-
-		protected JobLoader()
-		{
-			super();
-			node = null;
-		}
-
-		/**
-		 * set the node for amount calculations 
-		 * @param node
-		 */
-		public void setNode(JDFNode node)
-		{
-			this.node = node;
-		}
-
-		/**
-		 * load Bambi job definition from file. <br>
-		 * The list of job phases is emptied when an error occurs during parsing fileName
-		 * @param configdir the configuration directory
-		 * @param fileName the file to load
-		 * @return true, if successful
-		 */
-		private List<JobPhase> loadJobFromFile(final File configdir, final String fileName)
-		{
-			final File f = FileUtil.getFileInDirectory(configdir, new File(fileName));
-			if (!f.canRead())
-			{
-				getLog().info("No preset file :" + fileName);
-				return null;
-			}
-			final JDFParser p = new JDFParser();
-			final JDFDoc doc = p.parseFile(f);
-			if (doc == null)
-			{
-				getLog().error("Job File " + fileName + " not found, using default");
-				return null;
-			}
-			final List<JobPhase> phaseList = new Vector<JobPhase>();
-			final KElement simJob = doc.getRoot();
-			final VElement v = simJob.getXPathElementVector("JobPhase", -1);
-			for (KElement phaseElement : v)
-			{
-				final JobPhase phase = new JobPhase(phaseElement);
-				updateAmountsFromNode(phase, node);
-				phaseList.add(phase);
-			}
-
-			if (phaseList.size() == 0)
-			{
-				getLog().warn("no job phases were added from " + fileName);
-				return null;
-			}
-			else
-			{
-				idlePhase = null;
-				final JobPhase tmpPhase = phaseList.get(phaseList.size() - 1);
-				if (EnumDeviceStatus.Idle.equals(tmpPhase.getDeviceStatus()))
-				{
-					idlePhase = tmpPhase;
-					phaseList.remove(idlePhase);
-					getLog().info("defined an idle phase");
-				}
-			}
-			getLog().info("created new job from " + fileName + " with " + phaseList.size() + " job phases.");
-			randomizeJobPhases(phaseList, simJob.getRealAttribute("RandomFactor", null, 0.0));
-
-			return phaseList;
-		}
-
-		/**
-		 * load a job from the cached directory
-		 */
-		protected void loadJob()
-		{
-			final AbstractDevice parent = getParent();
-			File cacheDir = parent.getCachedConfigDir();
-			final String deviceFile = "job_" + parent.getDeviceID() + ".xml";
-
-			_jobPhases = loadJobFromFile(cacheDir, deviceFile);
-			if (_jobPhases == null)
-			{
-				log.info("loading default job.xml");
-				_jobPhases = loadJobFromFile(cacheDir, "job.xml");
-			}
-		}
-
-		/**
-		 * randomize phase durations and add random error phases
-		 * @param phases
-		 * @param randomTime the given time of each job phase is to vary by ... percent
-		 */
-		private void randomizeJobPhases(final List<JobPhase> phases, final double randomTime)
-		{
-			if (randomTime > 0.0 && phases != null)
-			{
-				for (int i = 0; i < phases.size(); i++)
-				{
-					double varyBy = Math.random() * randomTime / 100.0;
-					if (Math.random() < 0.5)
-					{
-						varyBy *= -1.0;
-					}
-					final JobPhase phase = phases.get(i);
-					phase.setTimeToGo(phase.getTimeToGo() + (long) (phase.getTimeToGo() * varyBy));
-				}
-			}
-		}
 	}
 
 	/**
@@ -584,26 +459,17 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	}
 
 	/**
-	 * update amounts of all resources with no speed
-	 * @param phase the jobphase to update the amounts for
-	 * @param node the node to extract update data from. this implementation assumes a one to one match of input to output
+	 * get the amount factor for this node, e.g. by evaluating a layout or runlist 
+	 * defaults to 1 but may be overwritten for specific processors 
+	 * 
+	 * @param res the resource to calculate the amount for
+	 * @param master the master resource that defines the amount=1
+	 * @param node the jdf node with details to evaluate
+	 * @return
 	 */
-	public void updateAmountsFromNode(JobPhase phase, JDFNode node)
+	protected double getAmountFactor(String res, String master, JDFNode node)
 	{
-		if (node != null)
-		{
-			VString resNames = phase.getAmountResourceNames();
-			String master = phase.getMasterAmountResourceName();
-			if (master != null)
-			{
-				for (String res : resNames)
-				{
-					if (res.equals(master))
-						continue;
-					phase.scaleAmount(res, master, 1.);
-				}
-			}
-		}
+		return 1.0;
 	}
 
 	/**
@@ -643,10 +509,9 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			final VElement v = node.getResourceLinks(null);
 			if (v != null)
 			{
-				final int s = v.size();
-				for (int i = 0; i < s; i++)
+				for (KElement e : v)
 				{
-					final JDFResourceLink rl = (JDFResourceLink) v.get(i);
+					final JDFResourceLink rl = (JDFResourceLink) e;
 					final JDFResource linkRoot = rl.getLinkRoot();
 					if (linkRoot != null && ((WorkerDevice) _parent).isAmountResource(rl))
 					{

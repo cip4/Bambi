@@ -432,31 +432,27 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		{
 			final MessageIdentifier messageIdentifier = new MessageIdentifier(inputMessage, inputMessage.getJMFRoot().getDeviceID());
 			final Set<MessageIdentifier> keySet = getMessageIdentifierSet();
-			final Iterator<MessageIdentifier> it = keySet.iterator();
 			JDFJMF jmf = response.getJMFRoot();
-			final Vector<MessageIdentifier> v = new Vector<MessageIdentifier>();
+			final Vector<MessageIdentifier> messageIdentifiers = new Vector<MessageIdentifier>();
 
-			while (it.hasNext())
+			for (MessageIdentifier mi : keySet)
 			{
-				final MessageIdentifier mi = it.next();
 				if (mi == null)
 				{
-					log.error("null mi");
+					log.error("null mi in keyset");
 					continue;
 				}
 				if (mi.matches(messageIdentifier))
 				{
-					v.add(mi);
+					messageIdentifiers.add(mi);
 					final Vector<JDFSignal> sis = getSignalsFromMap(mi);
 					if (sis != null)
 					{
-						final int size = sis.size();
-						for (int i = 0; i < size; i++)
+						for (JDFSignal signal : sis)
 						{
 							// copy the potentially inherited senderID
-							final JDFSignal signal = sis.get(i);
-							// make sure we only update copies
 							final JDFSignal sNew = (JDFSignal) jmf.copyElement(signal, null);
+							// make sure we only update copies
 							if (isMySignal(inputMessage, sNew))
 							{
 								sNew.setSenderID(signal.getSenderID());
@@ -470,14 +466,11 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 					}
 				}
 			}
-			if (v.size() > 0)
+			for (MessageIdentifier mi : messageIdentifiers)
 			{
-				for (int i = 0; i < v.size(); i++)
-				{
-					messageMap.remove(v.get(i));
-				}
+				messageMap.remove(mi);
 			}
-			else
+			if (messageIdentifiers.size() == 0)
 			{
 				jmf = null;
 			}

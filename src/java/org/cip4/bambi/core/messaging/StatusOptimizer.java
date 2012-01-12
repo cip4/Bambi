@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -113,7 +113,7 @@ public class StatusOptimizer extends BambiLogFactory implements IMessageOptimize
 		{
 			return optimizeResult.noCheck;
 		}
-		final StatusSignalComparator ssc = new StatusSignalComparator();
+		final StatusSignalComparator ssc = getComparator();
 		if (ssc.isSameStatusSignal((JDFSignal) newMessage, (JDFSignal) oldMessage))
 		{
 			log.debug("removing redundant status signal: " + oldMessage.getID());
@@ -121,6 +121,12 @@ public class StatusOptimizer extends BambiLogFactory implements IMessageOptimize
 			return optimizeResult.remove;
 		}
 		return optimizeResult.cont;
+	}
+
+	protected StatusSignalComparator getComparator()
+	{
+		final StatusSignalComparator ssc = new StatusSignalComparator();
+		return ssc;
 	}
 
 }

@@ -345,7 +345,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 						jdfjmf.getMessageElement(null, null, 0).setID(channelID);
 						if (mySubscriptions != null) // may be null at startup or shutdown - ignore we'll only be off by a few messages
 						{
-							mySubscriptions.put(typ, new ProxySubscription(AbstractProxyDevice.this, jdfjmf));
+							mySubscriptions.put(typ, new ProxySubscription(jdfjmf));
 						}
 					}
 					else
@@ -637,7 +637,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 */
 	protected final SlaveSubscriber getSlaveSubscriber(final int waitMillis, String slaveQEID)
 	{
-
 		String key = getKey(slaveQEID);
 		synchronized (waitingSubscribers)
 		{
@@ -691,6 +690,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	@Override
 	public void shutdown()
 	{
+		mySubscriptions.shutdown(this);
 		super.shutdown();
 		if (slaveJDFError != null)
 		{
