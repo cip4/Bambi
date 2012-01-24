@@ -100,7 +100,7 @@ public final class BambiServer extends JettyServer
 		KElement root = mp.getRoot();
 		if (root == null)
 		{
-			String logString;
+			final String logString;
 			if (configFile.exists())
 				logString = "corrupt config file at :" + configFile.getAbsolutePath();
 			else

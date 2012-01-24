@@ -212,6 +212,11 @@ public class RootDevice extends AbstractDevice
 			_devices.remove(devID);
 		}
 		final AbstractDevice dev = prop.getDeviceInstance();
+		if (dev == null)
+		{
+			log.warn("could not create device devID=" + devID);
+			return null;
+		}
 		dev.setRootDevice(this);
 		_devices.put(devID, dev);
 		log.info("created device " + devID);
