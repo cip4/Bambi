@@ -113,6 +113,7 @@ public final class BambiContainer extends BambiLogFactory
 	public BambiContainer()
 	{
 		super();
+		log.info("Creating Banbi Container");
 	}
 
 	private AbstractDevice rootDev = null;
