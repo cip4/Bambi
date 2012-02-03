@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -426,10 +426,32 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 		{
 			//TODO reasonable filter on list versus individual
-			if (_theStatusListener == null)
+			if (isGlobal(inputMessage))
 			{
 				return getResourceList(inputMessage, response);
 			}
+			else
+			{
+				return getJobResources(inputMessage, response);
+			}
+		}
+
+		/**
+		 * 
+		 * check whether we have a global or job context
+		 * @param inputMessage
+		 * @return
+		 */
+		protected boolean isGlobal(JDFMessage inputMessage)
+		{
+			// TODO use JDF 1.5 ResourceQuParams/@Context when available
+			boolean b = _theStatusListener == null;
+			b = b || !inputMessage.getBoolAttribute(JMFHandler.subscribed, null, false);
+			return b;
+		}
+
+		protected boolean getJobResources(final JDFMessage inputMessage, final JDFResponse response)
+		{
 			final StatusCounter sc = _theStatusListener.getStatusCounter();
 			final JDFDoc docJMFResource = sc == null ? null : sc.getDocJMFResource();
 			if (docJMFResource == null)
