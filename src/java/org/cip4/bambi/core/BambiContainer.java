@@ -113,7 +113,7 @@ public final class BambiContainer extends BambiLogFactory
 	public BambiContainer()
 	{
 		super();
-		log.info("Creating Banbi Container");
+		log.info("Creating Bambi Container");
 	}
 
 	private AbstractDevice rootDev = null;
@@ -304,12 +304,15 @@ public final class BambiContainer extends BambiLogFactory
 			d = rd.createDevice(prop);
 
 		}
-		if (d.mustDie())
+		if (d != null && d.mustDie())
 		{
 			d.shutdown();
 			d = null;
 		}
-
+		if (d == null)
+		{
+			log.fatal("could not create device, ID=" + prop.getDeviceID());
+		}
 		return d;
 	}
 
@@ -346,6 +349,12 @@ public final class BambiContainer extends BambiLogFactory
 					final DumpDir dumpSendIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inMessage." + senderID)));
 					final DumpDir dumpSendOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outMessage." + senderID)));
 					MessageSender.addDumps(senderID, dumpSendIn, dumpSendOut);
+					log.info("Created Device JMF dumps for senderID" + senderID);
+				}
+				else if (d != null)
+				{
+					final String senderID = d.getDeviceID();
+					log.info("Skipping Device JMF dumps for senderID" + senderID);
 				}
 			}
 		}

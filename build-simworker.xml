@@ -9,6 +9,7 @@
 		<tstamp/>
 
 		<!-- start modify area -->
+		<property name="displayname" value="CIP4 Bambi Simulator" />
 		<property name="description" value="Bambi's sim worker" />
 		<property name="exe.name" value="SimWorker" />
 		<property name="exe.dir" value="simworker" />
@@ -297,9 +298,7 @@
 				<classPath mainClass="${main.class}">
 					<cp>lib/*.jar</cp>
 				</classPath>
-				<jre minVersion="1.5.0">
-				</jre>
-
+				<jre minVersion="1.5.0" path="./jre"/>
 			</config>
 		</launch4j>
 		<zip destfile="${exe.dist.dir}-win.zip">
@@ -316,6 +315,7 @@
 			<replacefilter token="__class__" value="org.cip4.bambi.server.BambiService" />
 			<replacefilter token="__startpath__" value="${basedir}/${exe.dist.dir}"/>
 			<replacefilter token="__launcher__" value="${basedir}/${exe.dist.dir}/${exe.name}svc.exe"/>
+			<replacefilter token="__displayname__" value="${displayname}"/>
 			<replacefilter token="__description__" value="${description}"/>
 			<replacefilter token="/SVN_Root" value="S:"/>
 			<replacefilter token="/" value="\"/>

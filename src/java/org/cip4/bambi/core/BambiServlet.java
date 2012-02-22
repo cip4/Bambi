@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -310,7 +310,7 @@ public final class BambiServlet extends HttpServlet
 			final File in = bambiDumpOut.newFileFromStream(header, buf, sr.getName());
 			if (in != null)
 			{
-				in.renameTo(new File(UrlUtil.newExtension(in.getPath(), ("." + getPost + ".resp.txt"))));
+				in.renameTo(new File(UrlUtil.newExtension(in.getPath(), ("." + getPost + ".resp.tmp"))));
 			}
 		}
 	}

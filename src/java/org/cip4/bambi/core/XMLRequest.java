@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -97,6 +97,8 @@ public class XMLRequest extends ContainerRequest
 		this.theXML = theXML;
 		setContentType(theXML);
 		updateName();
+		if (theXML == null)
+			log.error("constructor for null xml element ");
 	}
 
 	/**
@@ -104,10 +106,9 @@ public class XMLRequest extends ContainerRequest
 	 */
 	public XMLRequest(XMLDoc theDoc)
 	{
-		super();
-		this.theXML = theDoc == null ? null : theDoc.getRoot();
-		setContentType(theXML);
-		updateName();
+		this(theDoc == null ? null : theDoc.getRoot());
+		if (theDoc == null)
+			log.error("constructor for null xml document ");
 	}
 
 	/**
@@ -147,6 +148,10 @@ public class XMLRequest extends ContainerRequest
 			request.setName(getName());
 	}
 
+	/**
+	 * 
+	 * update name based on data type of the xml 
+	 */
 	private void updateName()
 	{
 		if (theXML instanceof JDFJMF)
