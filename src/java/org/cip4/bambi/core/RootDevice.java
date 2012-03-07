@@ -161,10 +161,10 @@ public class RootDevice extends AbstractDevice
 	public VString canAccept(final JDFNode jdf, final String queueEntryID)
 	{
 		VString vs = new VString();
-		final Iterator<String> it = _devices.keySet().iterator();
-		while (it.hasNext())
+		Set<String> deviceIDs = _devices.keySet();
+		for (String id : deviceIDs)
 		{
-			final AbstractDevice ad = _devices.get(it.next());
+			final AbstractDevice ad = _devices.get(id);
 			VString canAccept = ad.canAccept(jdf, queueEntryID);
 			vs.appendUnique(canAccept);
 		}

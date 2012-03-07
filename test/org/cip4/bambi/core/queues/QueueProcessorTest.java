@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -96,18 +96,6 @@ import org.cip4.jdflib.util.mime.MimeWriter;
  */
 public class QueueProcessorTest extends BambiContainerTest
 {
-
-	/**
-	 * 
-	 * @see org.cip4.bambi.BambiTestCase#setUp()
-	 * @throws Exception
-	 */
-	@Override
-	public void setUp() throws Exception
-	{
-		super.setUp();
-	}
-
 	/**
 	 * @throws IOException
 	 * @throws MessagingException
@@ -136,7 +124,5 @@ public class QueueProcessorTest extends BambiContainerTest
 		XMLResponse resp = bambiContainer.processStream(req);
 
 		assertNotNull(resp.getXML());
-
 	}
-
 }
