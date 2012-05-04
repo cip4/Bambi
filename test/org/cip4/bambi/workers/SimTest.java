@@ -124,6 +124,8 @@ public class SimTest extends BambiTestCase
 
 		workerURLBase = "http://10.51.202.138:44482/SimWorker/jmf/sim002";
 		deviceID = "sim002";
+		workerURLBase = "http://localhost:44482/SimWorker/jmf/simIDP";
+		deviceID = "simIDP";
 		//		deviceID = "root";
 	}
 
@@ -133,8 +135,9 @@ public class SimTest extends BambiTestCase
 	@Override
 	protected String getDeviceID()
 	{
-		return null; // "06-SpeedmasterXL105-1";
+		// return null; // "06-SpeedmasterXL105-1";
 		//	return "sim001";
+		return "simIDP";
 	}
 
 	/**

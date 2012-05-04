@@ -1167,7 +1167,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				ni.setJobPriority(prio);
 			}
 		}
-		JDFCustomerInfo ci = root.getCustomerInfo();
+		JDFCustomerInfo ci = root.getInheritedCustomerInfo(null);
 		if (ci != null)
 		{
 			String cid = StringUtil.getNonEmpty(ci.getCustomerID());

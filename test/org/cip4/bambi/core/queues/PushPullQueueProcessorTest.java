@@ -1,5 +1,7 @@
-/**
+/*
+ *
  * The CIP4 Software License, Version 1.0
+ *
  *
  * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
@@ -66,109 +68,61 @@
  *  
  * 
  */
-package org.cip4.bambi.server;
 
-import java.io.File;
+package org.cip4.bambi.core.queues;
 
-import org.apache.log4j.BasicConfigurator;
-import org.cip4.bambi.core.BambiException;
-import org.cip4.bambi.core.BambiServlet;
-import org.cip4.bambi.core.MultiDeviceProperties;
-import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.util.MyArgs;
-import org.cip4.jdfutility.server.JettyServer;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import java.io.IOException;
+
+import javax.mail.MessagingException;
+
+import org.cip4.bambi.core.BambiContainerTest;
+import org.cip4.bambi.core.StreamRequest;
+import org.cip4.bambi.core.XMLResponse;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.jmf.JDFCommand;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
+import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.mime.MimeWriter;
 
 /**
- * standalone app for bambi using an embedded jetty server
- * @author rainer prosi
- * @date Dec 9, 2010
+ * test for the various queue processor functions
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
+ * 
+ * 03.12.2008
  */
-public final class BambiServer extends JettyServer
+public class PushPullQueueProcessorTest extends BambiContainerTest
 {
-
 	/**
-	 * @throws BambiException if config file is not readable
+	 * @throws IOException
+	 * @throws MessagingException
 	 */
-	public BambiServer() throws BambiException
+	public void testSubmitQEPushPull() throws IOException, MessagingException
 	{
-		super();
-		BasicConfigurator.configure();
-		File configFile = new File("config/devices.xml");
-		MultiDeviceProperties mp = new MultiDeviceProperties(new File("."), null, configFile);
-		KElement root = mp.getRoot();
-		if (root == null)
-		{
-			final String logString;
-			if (configFile.exists())
-				logString = "corrupt config file at :" + configFile.getAbsolutePath();
-			else
-				logString = "cannot find config file at :" + configFile.getAbsolutePath();
-			log.fatal(logString);
-			throw new BambiException(logString);
-		}
-		int iport = getJettyPort(root);
-		setPort(iport);
-		setContext(root.getAttribute("Context", null, null));
-		if (context == null || "".equals(context))
-		{
-			String logString = "no context specified for servlet, bailing out";
-			log.fatal(logString);
-			throw new BambiException(logString);
-		}
-		log.info("starting BambiServer at context: " + context + " port: " + getPort());
-	}
+		final JDFDoc docJMF = new JDFDoc("JMF");
+		final JDFJMF jmf = docJMF.getJMFRoot();
+		jmf.setSenderID("DeviceID");
+		final JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.ReturnQueueEntry);
+		final JDFReturnQueueEntryParams returnQEParams = com.appendReturnQueueEntryParams();
 
-	private int getJettyPort(KElement root)
-	{
-		int iport = root.getIntAttribute("JettyPort", null, -1);
-		if (iport == -1)
-			iport = root.getIntAttribute("Port", null, -1);
-		return iport;
-	}
+		final String queueEntryID = "qe1";
+		returnQEParams.setQueueEntryID(queueEntryID);
+		final JDFDoc docJDF = JDFDoc.parseFile("C:\\data\\jdf\\foo.jdf");
+		returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
+		MimeWriter mw = new MimeWriter();
+		mw.buildMimePackage(docJMF, docJDF, false);
+		final MIMEDetails mimeDetails = new MIMEDetails();
+		mimeDetails.httpDetails.chunkSize = 0;
+		mimeDetails.transferEncoding = UrlUtil.BINARY;
+		mimeDetails.modifyBoundarySemicolon = false;
+		mw.setMIMEDetails(mimeDetails);
+		StreamRequest req = new StreamRequest(mw.getInputStream());
+		req.setContentType(MimeUtil.MULTIPART_RELATED);
+		XMLResponse resp = bambiContainer.processStream(req);
 
-	/**
-	 * 
-	 *  
-	 * @param args
-	 * @throws Exception
-	 */
-	public static void main(String[] args) throws Exception
-	{
-		BambiServer bambiServer = new BambiServer();
-		MyArgs myArgs = new MyArgs(args, "c", "p", "");
-		if (myArgs.boolParameter('c'))
-		{
-			BambiConsole console = new BambiConsole(bambiServer, myArgs);
-		}
-		else
-		{
-			BambiFrame frame = new BambiFrame(bambiServer);
-			System.exit(frame.waitCompleted());
-		}
+		assertNotNull(resp.getXML());
 	}
-
-	@Override
-	protected ServletContextHandler createServletHandler()
-	{
-		ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		contextHandler.setContextPath(context);
-		contextHandler.setWelcomeFiles(new String[] { "index.jsp" });
-		BambiServlet myServlet = new BambiServlet();
-		ServletHolder servletHolder = new ServletHolder(myServlet);
-		servletHolder.setInitParameter("bambiDump", "bambidump" + context);
-		contextHandler.addServlet(servletHolder, "/*");
-		return contextHandler;
-	}
-
-	/**
-	 * @see org.cip4.jdfutility.server.JettyServer#getHome()
-	 */
-	@Override
-	protected String getHome()
-	{
-		return context + "/overview";
-	}
-
 }

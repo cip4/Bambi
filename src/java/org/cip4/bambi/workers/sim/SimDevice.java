@@ -71,7 +71,9 @@
 
 package org.cip4.bambi.workers.sim;
 
+import java.io.File;
 import java.util.Set;
+import java.util.Vector;
 
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IDeviceProperties;
@@ -80,8 +82,16 @@ import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.workers.JobPhase;
 import org.cip4.bambi.workers.UIModifiableDevice;
 import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFResourceInfo;
+import org.cip4.jdflib.jmf.JDFResourceQuParams;
+import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 
 /**
@@ -99,6 +109,105 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	 */
 
 	private static final long serialVersionUID = -8412710163767830461L;
+
+	/**
+	 * 
+	 * resource query catalog
+	 * @author rainer prosi
+	 * @date Mar 18, 2012
+	 */
+	public class ResourceQueryHandler extends ResourceHandler
+	{
+		final protected Vector<JDFResourceInfo> vResInfo;
+
+		/**
+		 * 
+		 * @param respCopy
+		 */
+		public ResourceQueryHandler(JDFJMF respCopy)
+		{
+			super();
+			JDFResponse resp = respCopy == null ? null : respCopy.getResponse(0);
+			if (resp == null)
+			{
+				log.error("No resource List available");
+				vResInfo = new Vector<JDFResourceInfo>();
+			}
+			else
+			{
+				Vector<JDFResourceInfo> vTmp = resp.getChildrenByClass(JDFResourceInfo.class, false, 0);
+				if (vTmp == null)
+				{
+					log.error("No resourceInfo elements available");
+					vResInfo = new Vector<JDFResourceInfo>();
+				}
+				else
+				{
+					vResInfo = vTmp;
+					log.info("parsed resource info with " + vResInfo.size() + " elements");
+				}
+			}
+		}
+
+		/**
+		 * 
+		 * @see org.cip4.bambi.core.AbstractDevice.ResourceHandler#getResourceList(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 */
+		@Override
+		public boolean getResourceList(JDFMessage inMessage, JDFResponse response)
+		{
+			JDFResourceQuParams rqp = inMessage.getResourceQuParams();
+			if (rqp == null)
+			{
+				log.warn("no resourceQuParams in message; assume general query ID=" + inMessage.getID());
+			}
+			for (JDFResourceInfo ri : vResInfo)
+			{
+				if (ri.matches(rqp))
+				{
+					response.copyElement(ri, null);
+				}
+			}
+			return true;
+		}
+	}
+
+	/**
+	 * @Override
+	 * @see org.cip4.bambi.core.AbstractDevice#addHandlers()
+	 */
+	@Override
+	protected void addHandlers()
+	{
+		super.addHandlers();
+		addResourceQueryHandler();
+	}
+
+	/**
+	 * 
+	 */
+	protected void addResourceQueryHandler()
+	{
+		final File cacheDir = getCachedConfigDir();
+		File deviceFile = FileUtil.getFileInDirectory(cacheDir, new File("resinfo_" + getDeviceID() + ".xml"));
+		if (!deviceFile.canRead())
+		{
+			deviceFile = FileUtil.getFileInDirectory(cacheDir, new File("resinfo.xml"));
+			log.info("defaulting to generic file " + deviceFile.getAbsolutePath());
+		}
+		JDFDoc doc = new JDFParser().parseFile(deviceFile);
+		JDFJMF jmf = doc == null ? null : doc.getJMFRoot();
+		if (jmf == null)
+		{
+			log.warn("no resource info file at: " + deviceFile.getAbsolutePath());
+		}
+		else
+		{
+			log.info("parsing resource info file at: " + deviceFile.getAbsolutePath());
+			ResourceQueryHandler resourceQueryHandler = new ResourceQueryHandler(jmf);
+			_jmfHandler.addHandler(resourceQueryHandler);
+		}
+	}
 
 	/**
 	 * @author prosirai

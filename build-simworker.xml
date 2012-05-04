@@ -241,7 +241,6 @@
 	<target name="exe" depends="war" description="Builds exe folder">
 		<!-- Builds exploded WAR file -->
 		<delete dir="${exe.dist.dir}" />
-
 		<copy todir="${exe.dist.dir}" overwrite="true">
 			<fileset dir="${war.dir}">
 				<include name="**/*" />
@@ -306,7 +305,7 @@
 		</zip>
 	</target>
 	<!-- windows service -->
-	<target name="winservice" depends="exe">
+	<target name="winservice" depends="windist">
 		<copy file="../jdfutility/src/exe/windows/prunsrv.exe" tofile="${exe.dist.dir}/${exe.name}svc.exe" overwrite="true"/>
 		<copy file="../jdfutility/src/exe/windows/service-install.bat" tofile="${exe.dist.dir}/service-install.bat" overwrite="false"/>
 		<copy file="../jdfutility/src/exe/windows/service-uninstall.bat" tofile="${exe.dist.dir}/service-uninstall.bat" overwrite="true"/>
@@ -326,7 +325,7 @@
 
 
 	<!-- For special app bundle on the Mac -->
-	<target name="appledist" depends="windist" description="Assembles stand alone Macintosh Bundle. Must build on a Mac (>= 10.2).">
+	<target name="appledist" depends="winservice" description="Assembles stand alone Macintosh Bundle. Must build on a Mac (>= 10.2).">
 		<echo>Building Mac OS X application bundle...</echo>
 		<echo>Loading JarBundler Ant tasks. Make sure you have installed http://informagen.com/JarBundler/ in ANT_HOME/lib</echo>
 		<echo>if you get  an error such as:

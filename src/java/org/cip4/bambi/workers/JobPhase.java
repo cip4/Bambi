@@ -632,7 +632,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 		{
 			log.error("bad phases for scaling, base=" + res + " master=" + master + " missing=" + ((pa == null) ? res : master));
 		}
-		else
+		else if (pa.speed <= 0)
 		{
 			pa.speed = masterAmount.speed * factor;
 		}

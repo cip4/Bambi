@@ -22,7 +22,7 @@
 		ProxyURL="http://localhost:8080/BambiProxy/slavejmf/pullproxy"
 	-->
 
-<application BaseDir="/var/bambi/sim/" JDFDir="JDFDir"
+<application BaseDir="/bambidata/sim/" JDFDir="JDFDir"
 	SenderID="SimDevice" 
 	Port="8080" 
     JettyPort="44482"
@@ -55,6 +55,18 @@
 		OutputHF="/BambiHF/sim003/Output" 
 		ErrorHF="/BambiHF/sim003/Error" 
 		MIMEExpansion="true"/>
+
+	<Device DeviceID="simIDP" 
+	DeviceType="Bambi Push Simulation IDP Device"
+		PushPull="Push" 
+		TrackResource="Component:Output" 
+		InputHF="/BambiHF/simIDP/Input"
+		OutputHF="/BambiHF/simIDP/Output" 
+		ErrorHF="/BambiHF/simIDP/Error" 
+		AmountResources="Media:Input,UsageCounter" 
+        TypeExpression="(.)*DigitalPrinting(.)*"
+		MIMEExpansion="true"
+		/>
 		
 
 	<!--

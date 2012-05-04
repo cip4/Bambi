@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<JMF SenderID="RICOH-ProC901" TimeStamp="2011-10-06T11:01:53+02:00"
+  Version="1.4" xmlns="http://www.CIP4.org/JDFSchema_1_1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="JMFRootMessage">
+  <Response ID="m111006110153_016576" ReturnCode="0" Subscribed="false"
+    Type="Resource" refID="m_111006_105515846_000014" xsi:type="ResponseResource">
+    <ResourceInfo>
+      <Media BackCoatings="Matte" Class="Consumable"
+        DescriptiveName="Color Copy 100 Mondi A4" Dimension="595 842"
+        FrontCoatings="Matte" HoleType="None"
+        ID="med1"
+        MediaColorName="White" MediaSetCount="0" MediaType="Paper"
+        MediaTypeDetails="Plain" Opacity="Opaque" PrePrinted="false"
+        RecycledPercentage="0" Status="Available" Thickness="100"
+        Weight="250"/>
+    </ResourceInfo>
+    <ResourceInfo>
+      <Media BackCoatings="None" Class="Consumable"
+        DescriptiveName="Color Copy 100 Mondi A3" Dimension="842 1191"
+        FrontCoatings="None" HoleType="None"
+        ID="med2"
+        MediaColorName="White" MediaSetCount="0" MediaType="Paper"
+        MediaTypeDetails="Plain" Opacity="Opaque" PrePrinted="false"
+        RecycledPercentage="0" Status="Available" Weight="100"/>
+    </ResourceInfo>
+    <ResourceInfo>
+      <Media BackCoatings="Matte" Class="Consumable"
+        DescriptiveName="Color Copy 200 Mondi A4" Dimension="595 842"
+        FrontCoatings="Matte" HoleType="None"
+        ID="med3"
+        MediaColorName="White" MediaSetCount="0" MediaType="Paper"
+        MediaTypeDetails="Plain" Opacity="Opaque" PrePrinted="false"
+        RecycledPercentage="0" Status="Available" Thickness="100"
+        Weight="250" />
+    </ResourceInfo>
+  </Response>
+</JMF>

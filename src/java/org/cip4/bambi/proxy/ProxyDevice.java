@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -334,7 +334,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			@Override
 			public void run()
 			{
-				getLog().info("submitting for RequestQE");
+				log.info("submitting for RequestQE");
 				try
 				{
 					submitQueueEntry(iqe, queueURL, activation);
@@ -433,7 +433,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 			else if (qe == null)
 			{
-				JMFHandler.errorResponse(resp, "No QueueEntry is available for request", 108, EnumClass.Error);
+				JMFHandler.errorResponse(resp, "No QueueEntry is available for request: " + nid, 108, EnumClass.Error);
 			}
 			return true;
 		}
@@ -522,6 +522,8 @@ public class ProxyDevice extends AbstractProxyDevice
 				final JDFNode node = theDoc.getJDFRoot();
 				nid = node == null ? null : node.getIdentifier();
 				proc = getProcessorForNID(nid);
+				if (proc != null)
+					log.info("cannot find processor for qe: " + slaveQEID + " fallback to node: " + nid);
 			}
 			if (proc == null)
 			{

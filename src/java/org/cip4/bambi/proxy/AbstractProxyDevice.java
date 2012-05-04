@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -637,6 +637,10 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 */
 	protected final SlaveSubscriber getSlaveSubscriber(final int waitMillis, String slaveQEID)
 	{
+		final String slaveURL = getProxyProperties().getSlaveURL();
+		if (slaveURL == null)
+			return null;
+
 		String key = getKey(slaveQEID);
 		synchronized (waitingSubscribers)
 		{
@@ -739,10 +743,21 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected boolean sendJMFToSlave(final JDFJMF jmf, final MessageResponseHandler mh)
 	{
 		if (jmf == null)
+		{
+			log.warn("Skip sending null jmf to slave.");
 			return false;
-		String slaveURL = getProxyProperties().getSlaveURL();
-		log.info("Sending jmf to: " + slaveURL);
-		return sendJMF(jmf, slaveURL, mh);
+		}
+		String slaveURL = StringUtil.getNonEmpty(getProxyProperties().getSlaveURL());
+		if (slaveURL == null)
+		{
+			log.info("Skip sending jmf to slave at: " + slaveURL);
+			return false;
+		}
+		else
+		{
+			log.info("Sending jmf to: " + slaveURL);
+			return sendJMF(jmf, slaveURL, mh);
+		}
 	}
 
 	/**
@@ -771,7 +786,15 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			return null;
 		}
-		return EnumSlaveStatus.valueOf(s.toUpperCase());
+		try
+		{
+			return EnumSlaveStatus.valueOf(s.toUpperCase());
+		}
+		catch (IllegalArgumentException x)
+		{
+			log.error("Illegal slave status value: " + s);
+			return null;
+		}
 	}
 
 	/**
@@ -790,10 +813,12 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	public IConverterCallback getCallback(final String url)
 	{
 		IProxyProperties proxyProperties = getProxyProperties();
-		if (StringUtil.hasToken(url, SLAVEJMF, "/", 0) || ContainerUtil.equals(proxyProperties.getDeviceURLForSlave(), url)
-				|| ContainerUtil.equals(proxyProperties.getSlaveURL(), url))
+		if (url != null)
 		{
-			return _slaveCallback;
+			if (StringUtil.hasToken(url, SLAVEJMF, "/", 0) || url.equals(proxyProperties.getDeviceURLForSlave()) || url.equals(proxyProperties.getSlaveURL()))
+			{
+				return _slaveCallback;
+			}
 		}
 		return _callback;
 	}
