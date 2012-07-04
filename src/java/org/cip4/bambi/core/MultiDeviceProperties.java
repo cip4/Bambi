@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -124,6 +124,14 @@ public class MultiDeviceProperties extends BambiLogFactory
 		public KElement getDevRoot()
 		{
 			return devRoot;
+		}
+
+		/**
+		 * @return
+		 */
+		public KElement getRoot()
+		{
+			return root;
 		}
 
 		/**
@@ -657,6 +665,9 @@ public class MultiDeviceProperties extends BambiLogFactory
 	 */
 	public int getPort()
 	{
+		if (BambiServlet.port > 0)
+			root.removeAttribute("Port");
+
 		int p = root.getIntAttribute("Port", null, BambiServlet.port);
 		if (p == 0)
 		{
@@ -664,6 +675,14 @@ public class MultiDeviceProperties extends BambiLogFactory
 			log.warn("guessing default port - using " + p);
 		}
 		return p;
+	}
+
+	/**
+	 * @return true if we currently want to dump
+	 */
+	public boolean wantDump()
+	{
+		return root.getBoolAttribute("Dump", null, true);
 	}
 
 	/**
@@ -694,7 +713,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		try
 		{
 			final InetAddress localHost = InetAddress.getLocalHost();
-			contextURL = "http://" + localHost.getHostAddress() + ":" + getPort() + "/" + context;
+			contextURL = "http://" + localHost.getHostName() + ":" + getPort() + "/" + context;
 		}
 		catch (final UnknownHostException x1)
 		{

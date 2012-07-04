@@ -85,6 +85,7 @@ import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
+import org.cip4.bambi.core.messaging.ShutdownJMFHandler;
 import org.cip4.bambi.core.messaging.StatusOptimizer;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
@@ -295,6 +296,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final IDeviceProperties properties = getProperties();
 			deviceRoot.setAttribute("WatchURL", properties.getWatchURL());
 			deviceRoot.setAttribute(AttributeName.DEVICESTATUS, getDeviceStatus().getName());
+			if (_rootDevice == null && BambiContainer.getInstance() != null)
+			{
+				deviceRoot.setAttribute("Dump", BambiContainer.getInstance().bWantDump, null);
+			}
 			addHotFolders(deviceRoot);
 			addQueueInfo(deviceRoot);
 			if (addProcs)
@@ -331,6 +336,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		 */
 		private void addQueueInfo(final KElement deviceRoot)
 		{
+			if (_theQueueProcessor == null)
+			{
+				log.error("device with null queueprocessor - bailing ot: ID=" + getDeviceID());
+			}
 			final JDFQueue jdfQueue = _theQueueProcessor.getQueue();
 			final EnumQueueStatus queueStatus = jdfQueue == null ? null : jdfQueue.getQueueStatus();
 			final int running = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Running);
@@ -410,7 +419,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public class ResourceHandler extends AbstractHandler
 	{
-
 		/**
 		 * 
 		 */
@@ -688,9 +696,25 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		addHandlers();
 		addWatchSubscriptions();
 
-		getJMFFactory().addOptimizer(EnumType.Status, new StatusOptimizer());
+		StatusOptimizer statusOptimizer = getStatusOptimizer();
+		if (statusOptimizer != null)
+		{
+			log.info("adding statusoptimizer: " + statusOptimizer);
+			getJMFFactory().addOptimizer(EnumType.Status, statusOptimizer);
+		}
 		// defer message sending until everything is set up
 		_theSignalDispatcher.startup();
+	}
+
+	/**
+	 * 
+	 * get the approriate statusoptimizer<br/>
+	 * may be overwritten for additional optimizers
+	 * @return
+	 */
+	protected StatusOptimizer getStatusOptimizer()
+	{
+		return new StatusOptimizer();
 	}
 
 	/**
@@ -706,6 +730,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		final String watchURL = _devProperties.getWatchURL();
 		if (KElement.isWildCard(watchURL))
 		{
+			log.info("no watch subscriptions are specified");
 			return;
 		}
 
@@ -775,7 +800,19 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		addHandler(this.new KnownDevicesHandler());
 		addHandler(new NotificationHandler(this, _theStatusListener));
 		addHandler(AcknowledgeMap.getMap());
+		addHandler(getShutdownHandler());
 		addJobHandlers();
+	}
+
+	/**
+	 * create a default shutdown handler
+	 * @return
+	 */
+	public IMessageHandler getShutdownHandler()
+	{
+		ShutdownJMFHandler shutdownJMFHandler = new ShutdownJMFHandler(this);
+		shutdownJMFHandler.setKillContainer(true);
+		return shutdownJMFHandler;
 	}
 
 	/**
@@ -899,12 +936,13 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * add a MessageHandler to this devices JMFHandler
+	 * add a MessageHandler to this devices JMFHandler, if null - don't
 	 * @param handler the MessageHandler to add
 	 */
 	public void addHandler(final IMessageHandler handler)
 	{
-		_jmfHandler.addHandler(handler);
+		if (handler != null)
+			_jmfHandler.addHandler(handler);
 	}
 
 	/**
@@ -1287,11 +1325,40 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final String hf = request.getParameter("ErrorHF");
 			updateErrorHF(hf);
 		}
+		if (s.contains("UpdateDump") && (_rootDevice == null))
+		{
+			final boolean dumpSwitch = request.getBooleanParam("Dump");
+			updateDump(dumpSwitch);
+		}
 
 		final String deviceType = request.getParameter("DeviceType");
 		if (deviceType != null && s.contains("DeviceType"))
 		{
 			updateDeviceType(deviceType);
+		}
+	}
+
+	/**
+	 *  
+	 * @param dumpSwitch
+	 */
+	protected void updateDump(boolean dumpSwitch)
+	{
+		BambiContainer container = BambiContainer.getInstance();
+		if (container != null)
+		{
+			log.info("Switching http dump " + (dumpSwitch ? "on" : "off"));
+			container.setWantDump(dumpSwitch);
+			if (_devProperties instanceof DeviceProperties)
+			{
+				KElement root = ((DeviceProperties) _devProperties).getRoot();
+				boolean old = root.getBoolAttribute("Dump", null, true);
+				if (dumpSwitch != old)
+				{
+					root.setAttribute("Dump", dumpSwitch, null);
+					_devProperties.serialize();
+				}
+			}
 		}
 	}
 

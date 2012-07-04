@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -82,6 +82,7 @@ import java.util.Vector;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
+import org.cip4.bambi.core.BambiContainer;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.XMLResponse;
@@ -103,6 +104,7 @@ import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.StringUtil;
@@ -257,7 +259,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		{
 			final JDFJMF jmf = old.getJMFRoot();
 			jmf.removeChild(old);
-			log.debug("removed redundant message: " + old.getID());
+			log.info("removed redundant " + old.getType() + " " + old.getLocalName() + " Message ID= " + old.getID());
 			final VElement v = jmf.getMessageVector(null, null);
 			if (v.size() == 0)
 			{
@@ -269,7 +271,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	}
 
 	/**
-	 * constructor -use the static {@link JMFFactory.getMessageSender()}
+	 * constructor -use the static {@link JMFFactory#getCreateMessageSender(String)}
 	 * 
 	 * @param cu the URL to send the message to
 	 */
@@ -298,8 +300,9 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	{
 		readFromBase();
 		waitStartup();
-
+		log.info("starting messagesender loop " + this);
 		senderLoop();
+		log.info("stopped messagesender loop " + this);
 
 		write2Base();
 	}
@@ -367,8 +370,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	{
 		// wait a while before sending messages so that all processors are alive before we start throwing messages
 		long t = System.currentTimeMillis() - startTime;
-		if (t < 10000)
-			ThreadUtil.sleep((int) (10000 - t));
+		if (t < 12345)
+			ThreadUtil.sleep((int) (12345 - t));
 	}
 
 	/**
@@ -456,10 +459,11 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				lastSent = root.getLongAttribute("iLastSent", null, 0);
 				created = root.getLongAttribute("i" + AttributeName.CREATIONDATE, null, 0);
 				final VElement v = root.getChildElementVector("Message", null);
-				for (int i = 0; i < v.size(); i++)
+				for (KElement e : v)
 				{
-					_messages.add(new MessageDetails(v.get(i)));
+					_messages.add(new MessageDetails(e));
 				}
+				log.info(" read " + v.size() + " messages from " + f.getAbsolutePath());
 			}
 			_messages.addAll(vTmp);
 		}
@@ -572,7 +576,14 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			}
 			else
 			{
-				warn += " - retaining message for resend";
+				if (_messages.size() > 4242 && System.currentTimeMillis() - mesDetails.getCreated() > 1000 * 3600 * 24 * 7)
+				{
+					warn += " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.getCreated());
+				}
+				else
+				{
+					warn += " - retaining message for resend; messages pending: " + _messages.size();
+				}
 			}
 			log.warn(warn);
 		}
@@ -731,7 +742,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	private HttpURLConnection sendMime(final MessageDetails mh, Multipart mp, final URL url, final DumpDir outDump) throws IOException, MessagingException, FileNotFoundException
 	{
 		String header = "URL: " + url;
-		log.debug(" sending mime to: " + url.toExternalForm());
+		log.info("sending mime to: " + url.toExternalForm());
 		HttpURLConnection connection = MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
 		if (outDump != null)
 		{
@@ -758,7 +769,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	private HttpURLConnection sendJMF(final MessageDetails mh, JDFJMF jmf, final URL url, final DumpDir outDump) throws FileNotFoundException, IOException
 	{
 		String header = "URL: " + url;
-		log.debug(" sending jmf to: " + url.toExternalForm());
+		log.info("sending jmf ID=" + jmf.getID() + " to: " + url.toExternalForm());
 		final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
 		final HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
 		HttpURLConnection connection = jmfDoc.write2HTTPURL(url, hd);
@@ -816,13 +827,31 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		return ContainerUtil.equals(testURL, callURL.getBaseURL());
 	}
 
+	/**
+	 * 
+	 * get the in dump for this message
+	 * @param senderID
+	 * @return
+	 */
 	private DumpDir getInDump(final String senderID)
 	{
+		BambiContainer c = BambiContainer.getInstance();
+		if (c == null || !c.wantDump())
+			return null;
 		return vDumps.getOne(senderID, 0);
 	}
 
+	/**
+	 * 
+	 * get the out dump for this message
+	 * @param senderID
+	 * @return
+	 */
 	private DumpDir getOutDump(final String senderID)
 	{
+		BambiContainer c = BambiContainer.getInstance();
+		if (c == null || !c.wantDump())
+			return null;
 		return vDumps.getOne(senderID, 1);
 	}
 
@@ -852,6 +881,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	{
 		if (doShutDown || doShutDownGracefully)
 		{
+			log.warn("cannot queue message during shutdown!");
 			return false;
 		}
 
@@ -859,6 +889,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		{
 			_callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
 		}
+		log.info("Queueing jmf message, ID=" + jmf.getID() + " to: " + url);
 
 		final MessageDetails messageDetails = new MessageDetails(jmf, handler, _callBack, null, url);
 		queueMessageDetails(messageDetails);
@@ -877,6 +908,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	{
 		if (doShutDown || doShutDownGracefully)
 		{
+			log.warn("cannot queue message during shutdown!");
 			return false;
 		}
 
@@ -917,9 +949,10 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	{
 		if (doShutDown || doShutDownGracefully)
 		{
+			log.warn("cannot queue message during shutdown!");
 			return false;
 		}
-
+		log.info("Queueing mime message to: " + url);
 		final MessageDetails messageDetails = new MessageDetails(multpart, handler, callback, md, senderID, url);
 		queueMessageDetails(messageDetails);
 		return true;
@@ -971,6 +1004,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			ms.setAttribute("iLastSent", StringUtil.formatLong(lastSent), null);
 			ms.setAttribute("i" + AttributeName.CREATIONDATE, StringUtil.formatLong(created), null);
 			ms.copyElement(timer.toXML(), null);
+
 			if (writePendingMessages)
 			{
 				for (int i = 0; i < _messages.size(); i++)
@@ -1054,5 +1088,4 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	{
 		this.startTime = startTime;
 	}
-
 }

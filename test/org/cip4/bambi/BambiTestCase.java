@@ -889,7 +889,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	 */
 	protected void startContainer()
 	{
-		bambiContainer = new BambiContainer();
+		bambiContainer = BambiContainer.getCreateInstance();
 		MultiDeviceProperties props = createPropertiesForContainer();
 		props.getRoot().setAttribute("WebProxy", "proxy:8080");
 

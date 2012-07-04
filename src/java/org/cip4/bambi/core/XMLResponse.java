@@ -193,7 +193,7 @@ public class XMLResponse extends BambiLogFactory
 			theBuffer = new ByteArrayIOStream();
 			try
 			{
-				d.write2Stream(theBuffer, 0, true);
+				d.write2Stream(theBuffer, 2, false);
 			}
 			catch (IOException x)
 			{

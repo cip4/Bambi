@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -827,7 +827,6 @@ public final class SignalDispatcher extends BambiLogFactory
 			JDFResponse r = jmf.getResponse(0);
 			// make a copy so that modifications do not have an effect
 			q = (JDFQuery) jmf.copyElement(q, null);
-			q.removeChild(ElementName.SUBSCRIPTION, null, 0);
 
 			jmf.setDeviceID(jmfDeviceID);
 			// this is the handling of the actual message
@@ -850,7 +849,8 @@ public final class SignalDispatcher extends BambiLogFactory
 			}
 			for (int i = 0; i < nSignals; i++)
 			{
-				jmfOut.copyElement(jmf.getSignal(i), null);
+				JDFSignal s = jmf.getSignal(i);
+				jmfOut.copyElement(s, null);
 			}
 			jmfOut = filterSenderID(jmfOut);
 			finalizeSentMessages(jmfOut);
@@ -865,6 +865,19 @@ public final class SignalDispatcher extends BambiLogFactory
 			}
 			// this is a clone - need to update "the" subscription
 			jmfOut.collectICSVersions();
+			updateChannelMode(jmfOut);
+		}
+
+		protected void updateChannelMode(final JDFJMF jmfOut)
+		{
+			JDFSubscription subscription = ((JDFQuery) theMessage).getSubscription();
+			String channelMode = subscription.getAttribute(AttributeName.CHANNELMODE, null, null);
+			if (channelMode != null)
+			{
+				Vector<JDFSignal> signals = jmfOut.getChildrenByClass(JDFSignal.class, false, 0);
+				for (JDFSignal s : signals)
+					s.setAttribute(AttributeName.CHANNELMODE, channelMode);
+			}
 		}
 
 		/**

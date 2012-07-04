@@ -101,6 +101,7 @@ import org.cip4.jdflib.util.mime.MimeReader;
 /**
  * class that handles all bambi JDF/JMF requests - regardless of the servlet context
  * previously part of {@link BambiServlet}
+ * it is implemented as a Sindleton so that you always have static access
  * 
  * note that the get handling routines still assume a servlet context - only the actual JDF / JMF post does not
   * @author Rainer Prosi, Heidelberger Druckmaschinen 
@@ -108,16 +109,53 @@ import org.cip4.jdflib.util.mime.MimeReader;
 public final class BambiContainer extends BambiLogFactory
 {
 	/**
-	 * 
+	 * use getCreateInstance from outside
 	 */
-	public BambiContainer()
+	protected BambiContainer()
 	{
 		super();
+		rootDev = null;
 		log.info("Creating Bambi Container");
 	}
 
-	private AbstractDevice rootDev = null;
+	private AbstractDevice rootDev;
 	private static BambiContainer theInstance = null;
+
+	protected boolean bWantDump = true;
+
+	/**
+	 * Getter for wantDump attribute.
+	 * @return the wantDump
+	 */
+	public boolean wantDump()
+	{
+		return bWantDump;
+	}
+
+	/**
+	 * Setter for wantDump attribute.
+	 * @param wantDump the wantDump to set
+	 */
+	public void setWantDump(boolean wantDump)
+	{
+		bWantDump = wantDump;
+	}
+
+	/**
+	 * 
+	 *  
+	 * @return the singleton bambi container instance
+	 */
+	public synchronized static BambiContainer getCreateInstance()
+	{
+		if (theInstance == null)
+		{
+			theInstance = new BambiContainer();
+			theInstance.log.info("created new Singleton bambi container");
+		}
+
+		return theInstance;
+	}
 
 	/**
 	 * 
@@ -126,11 +164,7 @@ public final class BambiContainer extends BambiLogFactory
 	 */
 	public synchronized static BambiContainer getInstance()
 	{
-		if (theInstance == null)
-			theInstance = new BambiContainer();
-
 		return theInstance;
-
 	}
 
 	/**
@@ -216,6 +250,10 @@ public final class BambiContainer extends BambiLogFactory
 			final String context = request.getContext();
 			if (KElement.isWildCard(context) || context.equalsIgnoreCase("overview"))
 			{
+				if (request.getBooleanParam("UpdateDump"))
+				{
+					getRootDev().updateDump(request.getBooleanParam("Dump"));
+				}
 				return getRootDev().showDevice(request, false);
 			}
 			else
@@ -262,6 +300,7 @@ public final class BambiContainer extends BambiLogFactory
 	{
 		MultiDeviceProperties props = new MultiDeviceProperties(baseDir, context, config);
 		props = props.getSubClass();
+		bWantDump = props.wantDump();
 		return createDevices(props, dump);
 	}
 
@@ -349,12 +388,12 @@ public final class BambiContainer extends BambiLogFactory
 					final DumpDir dumpSendIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inMessage." + senderID)));
 					final DumpDir dumpSendOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outMessage." + senderID)));
 					MessageSender.addDumps(senderID, dumpSendIn, dumpSendOut);
-					log.info("Created Device JMF dumps for senderID" + senderID);
+					log.info("Created Device JMF dumps for senderID " + senderID);
 				}
 				else if (d != null)
 				{
 					final String senderID = d.getDeviceID();
-					log.info("Skipping Device JMF dumps for senderID" + senderID);
+					log.info("Skipping Device JMF dumps for senderID " + senderID);
 				}
 			}
 		}
@@ -412,7 +451,11 @@ public final class BambiContainer extends BambiLogFactory
 		factory.shutDown(null, true);
 		ThreadUtil.sleep(5234); // leave some time for cleanup
 		factory.shutDown(null, false);
-
+		if (this == theInstance)
+		{
+			log.info("removing singleton container instance ");
+			theInstance = null;
+		}
 	}
 
 	/**

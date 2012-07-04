@@ -110,6 +110,7 @@ public final class BambiServer extends JettyServer
 		}
 		int iport = getJettyPort(root);
 		setPort(iport);
+
 		setContext(root.getAttribute("Context", null, null));
 		if (context == null || "".equals(context))
 		{
@@ -171,4 +172,13 @@ public final class BambiServer extends JettyServer
 		return context + "/overview";
 	}
 
+	/**
+	 * @see org.cip4.jdfutility.server.JettyServer#setPort(int)
+	 */
+	@Override
+	public void setPort(int port)
+	{
+		super.setPort(port);
+		BambiServlet.port = port;
+	}
 }

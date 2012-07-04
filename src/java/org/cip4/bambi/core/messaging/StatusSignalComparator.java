@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -82,7 +82,6 @@ import org.cip4.jdflib.jmf.JDFSignal;
  */
 public class StatusSignalComparator extends BambiLogFactory
 {
-
 	/**
 	 * 
 	 */
@@ -102,6 +101,7 @@ public class StatusSignalComparator extends BambiLogFactory
 		{
 			return inSignal == null;
 		}
+
 		// if we have a notification, this may contain one time information
 		boolean bAllSame = inSignal.getNotification() == null;
 		for (int i = 0; bAllSame; i++)
@@ -152,6 +152,15 @@ public class StatusSignalComparator extends BambiLogFactory
 				bSameDI = di.mergeLastPhase(diLast);
 			}
 		}
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		return getClass().getCanonicalName();
 	}
 
 }

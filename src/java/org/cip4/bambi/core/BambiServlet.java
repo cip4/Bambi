@@ -116,7 +116,7 @@ public final class BambiServlet extends HttpServlet
 	{
 		super();
 		initLogging();
-		theContainer = getBambiContainer();
+		BambiContainer.getCreateInstance();
 	}
 
 	/**
@@ -128,16 +128,9 @@ public final class BambiServlet extends HttpServlet
 		log = LogFactory.getLog(getClass());
 	}
 
-	protected BambiContainer getBambiContainer()
-	{
-		BambiContainer container = new BambiContainer();
-		return container;
-	}
-
 	protected Log log = null;
 	protected boolean dumpGet = false;
 	protected boolean dumpEmpty = false;
-	private final BambiContainer theContainer;
 	protected DumpDir bambiDumpIn = null;
 	protected DumpDir bambiDumpOut = null;
 	/**
@@ -162,7 +155,7 @@ public final class BambiServlet extends HttpServlet
 		final File baseDir = new File(realPath);
 		log.info("Initializing Bambi servlet for " + baseURL);
 		final String dump = initializeDumps(config, baseDir);
-		theContainer.loadProperties(baseDir, baseURL, new File("config/devices.xml"), dump);
+		BambiContainer.getCreateInstance().loadProperties(baseDir, baseURL, new File("config/devices.xml"), dump);
 	}
 
 	/**
@@ -268,29 +261,40 @@ public final class BambiServlet extends HttpServlet
 	 */
 	private void doGetPost(final HttpServletRequest request, final HttpServletResponse response, boolean bPost) throws IOException
 	{
-		AbstractDevice rootDev = theContainer.getRootDev();
-		rootDev.startWork();
-		String getPost = bPost ? "post" : "get";
-		log.debug("Processing " + getPost + " request for: " + request.getPathInfo());
-
-		StreamRequest sr = createStreamRequest(request);
-		sr.setPost(bPost);
-
-		XMLResponse xr = null;
-		try
+		BambiContainer theContainer = BambiContainer.getInstance();
+		if (theContainer == null)
 		{
-			xr = theContainer.processStream(sr);
-			writeResponse(xr, response);
+			log.error("No container Running");
 		}
-		catch (Exception x)
+		else
 		{
-			log.error("Snafu processing " + getPost + " request for: " + request.getPathInfo(), x);
+			AbstractDevice rootDev = theContainer.getRootDev();
+			rootDev.startWork();
+			String getPost = bPost ? "post" : "get";
+			log.debug("Processing " + getPost + " request for: " + request.getPathInfo());
+
+			StreamRequest sr = createStreamRequest(request);
+			sr.setPost(bPost);
+
+			XMLResponse xr = null;
+			try
+			{
+				xr = theContainer.processStream(sr);
+				writeResponse(xr, response);
+			}
+			catch (Exception x)
+			{
+				log.error("Snafu processing " + getPost + " request for: " + request.getPathInfo(), x);
+			}
+			final boolean bBuf = theContainer.wantDump() && (dumpGet || bPost) && bambiDumpIn != null;
+			if (bBuf)
+			{
+				dumpIncoming(request, bBuf, sr);
+				dumpOutGoing(getPost, sr, xr);
+			}
+			request.getInputStream().close(); // avoid mem leaks
+			rootDev.endWork();
 		}
-		final boolean bBuf = (dumpGet || bPost) && bambiDumpIn != null;
-		dumpIncoming(request, bBuf, sr);
-		dumpOutGoing(getPost, sr, xr);
-		request.getInputStream().close(); // avoid mem leaks
-		rootDev.endWork();
 	}
 
 	/**
@@ -370,7 +374,15 @@ public final class BambiServlet extends HttpServlet
 	public void destroy()
 	{
 		log.info("shutting down servlet: ");
-		theContainer.shutDown();
+		BambiContainer container = BambiContainer.getInstance();
+		if (container != null)
+		{
+			container.shutDown();
+		}
+		else
+		{
+			log.warn("shutting down null container - ignore");
+		}
 		super.destroy();
 	}
 

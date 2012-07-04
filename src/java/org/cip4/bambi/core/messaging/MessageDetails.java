@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -102,7 +102,7 @@ import org.cip4.jdflib.util.mime.MimeReader;
  * 
  * before May 26, 2009
  */
-class MessageDetails extends BambiLogFactory
+public class MessageDetails extends BambiLogFactory
 {
 	final protected JDFJMF jmf;
 	final protected Multipart mime;
@@ -357,11 +357,20 @@ class MessageDetails extends BambiLogFactory
 		MessageDetails.allSignalsReliable = allSignalsReliable;
 	}
 
+	/**
+	 * 
+	 *  
+	 * @return
+	 */
 	public boolean isFireForget()
 	{
 		return fireForget;
 	}
 
+	/**
+	 *
+	 * @param fireForget
+	 */
 	public void setFireForget(boolean fireForget)
 	{
 		this.fireForget = fireForget;
@@ -386,6 +395,11 @@ class MessageDetails extends BambiLogFactory
 		return sendReturn;
 	}
 
+	/**
+	 * 
+	 * get the name
+	 * @return
+	 */
 	public String getName()
 	{
 		return name;

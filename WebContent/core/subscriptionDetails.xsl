@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_2_0" xmlns:bambi="www.cip4.org/Bambi"
+<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 >
   <xsl:strip-space elements="*"/>
@@ -35,6 +35,7 @@
               <th align="left"> QueueEntry ID</th>
               <th align="left"> Signal Type</th>
               <th align="left"> Subscription URL</th>
+              <th align="left"> Channel Mode</th>
               <th align="left"> Repeat Time</th>
               <th align="left"> Repeat Step</th>
               <th align="left"> Messages Queued</th>
@@ -113,6 +114,9 @@
       <td align="left">
         <xsl:value-of select="@URL"/>
       </td>
+      <td align="left">
+        <xsl:value-of select="*/jdf:Query/jdf:Subscription/@ChannelMode"/>
+       </td>
       <td align="left">
         <xsl:value-of select="@RepeatTime"/>
       </td>

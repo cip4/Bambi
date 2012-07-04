@@ -189,7 +189,11 @@
 					<xsl:call-template name="devicedetails" />
 					<hr />
 				</xsl:if>
-
+				<xsl:if test="$modify!='true'">
+					<xsl:call-template name="devicedetails" />
+					<hr />
+				</xsl:if>
+	
 				<xsl:if test="jdf:Employee">
 					<h3>Employess currently logged into this device</h3>
 					<table>

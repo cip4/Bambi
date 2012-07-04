@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -82,16 +82,35 @@ import org.cip4.jdflib.resource.JDFNotification;
 public abstract class DispatchHandler extends JMFHandler.AbstractHandler
 {
 
+	/**
+	 * 
+	 * @param _type
+	 * @param _families
+	 */
 	public DispatchHandler(final String _type, final EnumFamily[] _families)
 	{
 		super(_type, _families);
 	}
 
+	/**
+	 * 
+	 * @param _type
+	 * @param _families
+	 */
 	public DispatchHandler(final EnumType _type, final EnumFamily[] _families)
 	{
 		super(_type, _families);
 	}
 
+	/**
+	 * 
+	 * TODO Please insert comment!
+	 * @param inputMessage
+	 * @param response
+	 * @param devs
+	 * @param checkReturnCode
+	 * @return
+	 */
 	public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response, final IJMFHandler[] devs, final boolean checkReturnCode)
 	{
 

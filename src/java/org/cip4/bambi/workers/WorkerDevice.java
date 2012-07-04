@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -260,9 +260,8 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 				boolean bAdd = true;
 				if (vEmpLoggedIn != null)
 				{
-					for (final Iterator iterator = vEmpLoggedIn.iterator(); iterator.hasNext();)
+					for (JDFEmployee employee : vEmpLoggedIn)
 					{
-						final JDFEmployee employee = (JDFEmployee) iterator.next();
 						if (knownEmp.matches(employee))
 						{
 							bAdd = false;
@@ -317,9 +316,8 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 			{
 				return null;
 			}
-			for (final Iterator<JDFEmployee> iterator = vEmp.iterator(); iterator.hasNext();)
+			for (JDFEmployee emp : vEmp)
 			{
-				final JDFEmployee emp = iterator.next();
 				if (emp.matches(personalID))
 				{
 					return emp;
@@ -406,7 +404,6 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	/**
 	 * @see org.cip4.bambi.core.AbstractDevice#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
 	 * @param request
-	 * @param response
 	 * @return true if handled
 	 */
 	@Override
