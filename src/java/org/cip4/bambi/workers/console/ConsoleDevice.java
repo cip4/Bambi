@@ -320,7 +320,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 
 	/**
 	 * 
-	 * @see org.cip4.bambi.workers.WorkerDevice#getXSLT(org.cip4.bambi.core.BambiServletRequest)
+	 *  
 	 * @param request
 	 * @return
 	 */

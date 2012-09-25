@@ -182,7 +182,9 @@ public class ProxyTest extends BambiTestCase
 	{
 		_theGT.devID = getDeviceID();
 		_theGT.assign(null);
-		submitMimetoURL(getWorkerURL());
+
+		submitMimetoURL("http://kie-prosirai-mc:44484/BambiProxy/jmf/pushproxy");
+		//		submitMimetoURL(getWorkerURL());
 	}
 
 	/**

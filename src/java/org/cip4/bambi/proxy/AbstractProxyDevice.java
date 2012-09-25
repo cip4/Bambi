@@ -90,6 +90,7 @@ import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.bambi.proxy.MessageChecker.KnownMessageDetails;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFAudit;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.KElement;
@@ -158,7 +159,11 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		/**
 		 * update status via NodeInfo/JMF
 		 */
-		NODEINFO
+		NODEINFO,
+		/**
+		 * don't update status 
+		 */
+		NONE
 	}
 
 	/**
@@ -325,7 +330,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			}
 			JDFSubscription subscription = si.getSubscription();
 			String url = subscription == null ? null : subscription.getURL();
-			String deviceURLForSlave = getProxyProperties().getDeviceURLForSlave();
+			String deviceURLForSlave = getProperties().getDeviceURLForSlave();
 			if (!ContainerUtil.equals(url, deviceURLForSlave))
 			{
 				log.warn("SubscriptionInfo for wrong url:" + deviceURLForSlave + ", ignore");
@@ -502,7 +507,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		private void updateSlaveProperties()
 		{
 			final KElement deviceRoot = getRoot();
-			final IProxyProperties proxyProperties = getProxyProperties();
+			final IProxyProperties proxyProperties = getProperties();
 			if (proxyProperties != null)
 			{
 				deviceRoot.setAttribute("SlaveURL", proxyProperties.getSlaveURL());
@@ -562,7 +567,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			slaveJDFError.stop();
 			slaveJDFError = null;
 		}
-		final File hfStorage = new File(_devProperties.getBaseDir() + File.separator + "HFDevTmpStorage" + File.separator + _devProperties.getDeviceID());
+		final File hfStorage = new File(getProperties().getBaseDir() + File.separator + "HFDevTmpStorage" + File.separator + getDeviceID());
 		log.info("Device error output HF:" + fDeviceErrorOutput.getPath() + " device ID= " + getSlaveDeviceID());
 		final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
 		slaveJDFError = new QueueHotFolder(fDeviceErrorOutput, hfStorage, null, new ReturnHFListner(this, EnumQueueEntryStatus.Aborted), rqCommand);
@@ -591,8 +596,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	@Override
 	protected void init()
 	{
-		knownSlaveMessages = new MessageChecker();
-		final IProxyProperties proxyProperties = getProxyProperties();
+		knownSlaveMessages = new MessageChecker(this);
+		final IProxyProperties proxyProperties = getProperties();
 		_slaveCallback = proxyProperties.getSlaveCallBackClass();
 		waitingSubscribers = new HashMap<String, SlaveSubscriber>();
 		mySubscriptions = new SubscriptionMap();
@@ -637,7 +642,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 */
 	protected final SlaveSubscriber getSlaveSubscriber(final int waitMillis, String slaveQEID)
 	{
-		final String slaveURL = getProxyProperties().getSlaveURL();
+		final String slaveURL = getSlaveURL();
 		if (slaveURL == null)
 			return null;
 
@@ -685,7 +690,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	public String getSlaveDeviceID()
 	{
 		// TODO - dynamically grab with knowndevices
-		return getProxyProperties().getSlaveDeviceID();
+		return getProperties().getSlaveDeviceID();
 	}
 
 	/**
@@ -747,10 +752,10 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			log.warn("Skip sending null jmf to slave.");
 			return false;
 		}
-		String slaveURL = StringUtil.getNonEmpty(getProxyProperties().getSlaveURL());
+		String slaveURL = StringUtil.getNonEmpty(getSlaveURL());
 		if (slaveURL == null)
 		{
-			log.info("Skip sending jmf to slave at: " + slaveURL);
+			log.info("Skip sending jmf to slave to null DeviceID=" + getDeviceID());
 			return false;
 		}
 		else
@@ -761,6 +766,16 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
+	 * 
+	 * get the slave URL
+	 * @return the slave URL
+	 */
+	public String getSlaveURL()
+	{
+		return getProperties().getSlaveURL();
+	}
+
+	/**
 	 * get the JMF Builder for messages to the slave device; also allow for asynch submission handling
 	 * @return
 	 */
@@ -768,7 +783,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	{
 		JMFBuilder builder = JMFBuilderFactory.getJMFBuilder(getDeviceID());
 		builder = builder.clone(); // we only want to set ackURL for certain messages
-		final String deviceURLForSlave = getProxyProperties().getDeviceURLForSlave();
+		final String deviceURLForSlave = getProperties().getDeviceURLForSlave();
 		if (deviceURLForSlave != null)
 		{
 			builder.setAcknowledgeURL(deviceURLForSlave);
@@ -802,7 +817,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 */
 	public String getDeviceURLForSlave()
 	{
-		return getProxyProperties().getDeviceURLForSlave();
+		return getProperties().getDeviceURLForSlave();
 	}
 
 	/**
@@ -812,7 +827,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	@Override
 	public IConverterCallback getCallback(final String url)
 	{
-		IProxyProperties proxyProperties = getProxyProperties();
+		IProxyProperties proxyProperties = getProperties();
 		if (url != null)
 		{
 			if (StringUtil.hasToken(url, SLAVEJMF, "/", 0) || url.equals(proxyProperties.getDeviceURLForSlave()) || url.equals(proxyProperties.getSlaveURL()))
@@ -825,10 +840,21 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 * @return the proxyProperties
+	 * @deprecated use getProperties overrides
 	 */
+	@Deprecated
 	public IProxyProperties getProxyProperties()
 	{
-		return (IProxyProperties) _devProperties;
+		return getProperties();
+	}
+
+	/**
+	 * @return the proxyProperties
+	 */
+	@Override
+	public IProxyProperties getProperties()
+	{
+		return (IProxyProperties) super.getProperties();
 	}
 
 	/**
@@ -917,7 +943,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	private void updateSlaveErrorHF(String newHF)
 	{
 		newHF = StringUtil.getNonEmpty(newHF);
-		final IProxyProperties properties = getProxyProperties();
+		final IProxyProperties properties = getProperties();
 		final File oldHF = properties.getSlaveErrorHF();
 		final File newHFF = newHF == null ? null : new File(newHF);
 		if (!ContainerUtil.equals(oldHF, newHFF))
@@ -934,7 +960,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	private void updateSlaveOutputHF(String newHF)
 	{
 		newHF = StringUtil.getNonEmpty(newHF);
-		final IProxyProperties properties = getProxyProperties();
+		final IProxyProperties properties = getProperties();
 		final File oldHF = properties.getSlaveOutputHF();
 		final File newHFF = newHF == null ? null : new File(newHF);
 		if (!ContainerUtil.equals(oldHF, newHFF))
@@ -951,7 +977,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	private void updateSlaveInputHF(String newHF)
 	{
 		newHF = StringUtil.getNonEmpty(newHF);
-		final IProxyProperties properties = getProxyProperties();
+		final IProxyProperties properties = getProperties();
 		final File oldHF = properties.getSlaveInputHF();
 		final File newHFF = newHF == null ? null : new File(newHF);
 		if (!ContainerUtil.equals(oldHF, newHFF))
@@ -967,13 +993,23 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 */
 	private void updateSlaveMIMEExpansion(boolean bExtendMime)
 	{
-		final IProxyProperties properties = getProxyProperties();
+		final IProxyProperties properties = getProperties();
 		final boolean extend = properties.getSlaveMIMEExpansion();
 		if (extend != bExtendMime)
 		{
 			properties.setSlaveMIMEExpansion(bExtendMime);
 			properties.serialize();
 		}
+	}
+
+	/**
+	 * overwrite to provide your favorite version string
+	 * @return
+	 */
+	@Override
+	public String getVersionString()
+	{
+		return "Generic Bambi Proxy Device " + JDFAudit.software();
 	}
 
 	/**
@@ -986,7 +1022,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			return;
 		}
-		final IProxyProperties properties = getProxyProperties();
+		final IProxyProperties properties = getProperties();
 		final String oldSlaveURL = properties.getSlaveURL();
 		if (ContainerUtil.equals(oldSlaveURL, newSlaveURL))
 		{
@@ -1007,7 +1043,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			return;
 		}
-		final IProxyProperties properties = getProxyProperties();
+		final IProxyProperties properties = getProperties();
 		final int oldPush = properties.getMaxPush();
 		if (oldPush == iPush)
 		{
@@ -1027,7 +1063,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			return;
 		}
-		final IProxyProperties properties = getProxyProperties();
+		final IProxyProperties properties = getProperties();
 		final String oldSlave = properties.getSlaveURL();
 		if (ContainerUtil.equals(oldSlave, newSlave))
 		{
@@ -1121,7 +1157,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	@Override
 	public String getDataURL(JDFQueueEntry queueEntry, boolean bSubmit)
 	{
-		IProxyProperties proxyProperties = getProxyProperties();
+		IProxyProperties proxyProperties = getProperties();
 		if (proxyProperties.getSlaveMIMEExpansion() && proxyProperties.isSlaveMimePackaging())
 			return null;
 		String deviceURL = getDeviceURL();

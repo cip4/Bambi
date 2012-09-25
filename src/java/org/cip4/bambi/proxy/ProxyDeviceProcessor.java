@@ -540,7 +540,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	 */
 	public boolean submit(final String slaveURL)
 	{
-
 		EnumQueueEntryStatus qes = null;
 		if (slaveURL != null)
 		{
@@ -549,7 +548,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		}
 		else if (qes == null || EnumQueueEntryStatus.Aborted.equals(qes))
 		{
-			final File hf = getParent().getProxyProperties().getSlaveInputHF();
+			final File hf = getParent().getProperties().getSlaveInputHF();
 			qes = submitToHF(hf);
 		}
 		if (qes == null || EnumQueueEntryStatus.Aborted.equals(qes))
@@ -572,7 +571,10 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	private EnumQueueEntryStatus submitToHF(final File fHF)
 	{
 		if (fHF == null)
+		{
+			log.warn("submitting to null hot folder! Won't do that...");
 			return null;
+		}
 		log.info("submitting to hot folder: " + fHF.getAbsolutePath());
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		final JDFNode node = getCloneJDFForSlave();
@@ -705,7 +707,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		final JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
 
 		// get the returned JDFDoc from the incoming ReturnQE command and pack it in the outgoing
-		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		JDFNode root = doc == null ? null : doc.getJDFRoot();
 		if (root == null)
 		{

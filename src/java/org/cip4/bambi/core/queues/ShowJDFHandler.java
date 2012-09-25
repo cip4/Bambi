@@ -145,7 +145,7 @@ public class ShowJDFHandler extends ShowHandler
 
 			if (callback)
 			{
-				final IProxyProperties pp = ((AbstractProxyDevice) _parentDevice).getProxyProperties();
+				final IProxyProperties pp = ((AbstractProxyDevice) _parentDevice).getProperties();
 				final IConverterCallback call = pp.getSlaveCallBackClass();
 				if (call != null)
 				{
@@ -191,7 +191,6 @@ public class ShowJDFHandler extends ShowHandler
 	/**
 	 * copy all move all partitioned common nodeinfo status values into the root
 	 * 
-	 * @see org.cip4.bambi.core.queues.ShowHandler#prepareRoot(org.cip4.jdflib.core.JDFDoc, org.cip4.bambi.core.BambiServletRequest)
 	 * @param doc
 	 * @param request
 	 * @return

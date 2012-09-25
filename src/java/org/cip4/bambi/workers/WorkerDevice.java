@@ -186,7 +186,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	 */
 	private boolean canAccept(final JDFNode n2)
 	{
-		if (_devProperties.getAcceptAll())
+		if (getProperties().getAcceptAll())
 		{
 			log.info("Accepting all nodes by default");
 			return true;
@@ -402,7 +402,6 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
 	 * @param request
 	 * @return true if handled
 	 */
@@ -530,7 +529,8 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#getXSLT(java.lang.String, org.cip4.bambi.core.BambiServletRequest)
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDevice#getXSLT(org.cip4.bambi.core.ContainerRequest)
 	 */
 	@Override
 	public String getXSLT(final ContainerRequest request)

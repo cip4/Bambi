@@ -70,7 +70,6 @@ package org.cip4.bambi.server;
 
 import java.io.File;
 
-import org.apache.log4j.BasicConfigurator;
 import org.cip4.bambi.core.BambiException;
 import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.MultiDeviceProperties;
@@ -94,7 +93,6 @@ public final class BambiServer extends JettyServer
 	public BambiServer() throws BambiException
 	{
 		super();
-		BasicConfigurator.configure();
 		File configFile = new File("config/devices.xml");
 		MultiDeviceProperties mp = new MultiDeviceProperties(new File("."), null, configFile);
 		KElement root = mp.getRoot();
@@ -150,6 +148,10 @@ public final class BambiServer extends JettyServer
 		}
 	}
 
+	/**
+	 * 
+	 * @see org.cip4.jdfutility.server.JettyServer#createServletHandler()
+	 */
 	@Override
 	protected ServletContextHandler createServletHandler()
 	{
@@ -158,9 +160,19 @@ public final class BambiServer extends JettyServer
 		contextHandler.setWelcomeFiles(new String[] { "index.jsp" });
 		BambiServlet myServlet = new BambiServlet();
 		ServletHolder servletHolder = new ServletHolder(myServlet);
-		servletHolder.setInitParameter("bambiDump", "bambidump" + context);
+		setInitParams(servletHolder);
 		contextHandler.addServlet(servletHolder, "/*");
 		return contextHandler;
+	}
+
+	/**
+	 * 
+	 * overwrite this to set some more params
+	 * @param servletHolder
+	 */
+	protected void setInitParams(final ServletHolder servletHolder)
+	{
+		servletHolder.setInitParameter("bambiDump", "bambidump" + context);
 	}
 
 	/**

@@ -297,7 +297,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			{
 				final AbstractProxyDevice device = getParent();
 
-				final IProxyProperties proxyProperties = device.getProxyProperties();
+				final IProxyProperties proxyProperties = device.getProperties();
 				final String slaveURL = proxyProperties.getSlaveURL();
 				if (slaveURL == null)
 				{
@@ -403,7 +403,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		public QueueSubmitter(String url)
 		{
 			this.qurl = UrlUtil.stringToURL(url);
-			final IProxyProperties proxyProperties = getParent().getProxyProperties();
+			final IProxyProperties proxyProperties = getParent().getProperties();
 			this.deviceOutputHF = proxyProperties.getSlaveOutputHF();
 			this.ud = new MIMEDetails();
 			ud.httpDetails.chunkSize = proxyProperties.getSlaveHTTPChunk();
@@ -490,7 +490,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		 * copy details from queueentry to queuesubmissionparams
 		 * @param qsp the queuesubmissionparams to fill
 		 * @param deviceOutputHF the device output hot folder, if any
-		 * @return
 		 */
 		protected void prepareQSP(final JDFQueueSubmissionParams qsp, File deviceOutputHF)
 		{
@@ -729,7 +728,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			log.warn("no matching queueentryID");
 			return null;
 		}
-		int iRet = new QueueSubmitter(getParent().getProxyProperties().getSlaveURL()).new QueueResubmitter(jdf, slaveID, queueEntryID).resubmit();
+		int iRet = new QueueSubmitter(getParent().getProperties().getSlaveURL()).new QueueResubmitter(jdf, slaveID, queueEntryID).resubmit();
 		return iRet == 0 ? new VString(getParent().getDeviceID(), null) : null;
 	}
 

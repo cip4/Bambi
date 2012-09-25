@@ -69,6 +69,7 @@
 package org.cip4.bambi.server;
 
 import org.cip4.bambi.core.BambiException;
+import org.cip4.jdflib.util.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
 import org.cip4.jdfutility.server.JettyService;
 
@@ -95,7 +96,9 @@ public class BambiService extends JettyService
 	 */
 	public static void main(String[] args)
 	{
-		theService = new BambiService();
+		LogConfigurator.configureLog(".", "bambi.log");
+		if (theService == null)
+			theService = new BambiService();
 		theService.doMain(args);
 	}
 

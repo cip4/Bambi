@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -102,12 +102,11 @@ public class DigitalProxyTest extends ProxyTest
 	}
 
 	/**
-	 * @see com.heidelberg.bambiproxy.HDMProxyTest#setUp()
+	 *
 	 */
 	@Override
 	public void setUp() throws Exception
 	{
-		// prinectURL = "http://192.168.14.108:8000/JMFServlet";
 		super.setUp();
 		workerURLBase = "http://localhost:44484/BambiProxy/jmf/";
 		deviceID = "EFI";

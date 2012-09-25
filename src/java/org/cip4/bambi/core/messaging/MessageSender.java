@@ -82,6 +82,7 @@ import java.util.Vector;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiContainer;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.IConverterCallback;
@@ -769,7 +770,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	private HttpURLConnection sendJMF(final MessageDetails mh, JDFJMF jmf, final URL url, final DumpDir outDump) throws FileNotFoundException, IOException
 	{
 		String header = "URL: " + url;
-		log.info("sending jmf ID=" + jmf.getID() + " to: " + url.toExternalForm());
+		if (log.isDebugEnabled())
+			log.debug("sending jmf ID=" + jmf.getID() + " to: " + url.toExternalForm());
 		final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
 		final HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
 		HttpURLConnection connection = jmfDoc.write2HTTPURL(url, hd);
@@ -889,7 +891,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		{
 			_callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
 		}
-		log.info("Queueing jmf message, ID=" + jmf.getID() + " to: " + url);
+		if (log.isDebugEnabled())
+			log.debug("Queueing jmf message, ID=" + jmf.getID() + " to: " + url);
 
 		final MessageDetails messageDetails = new MessageDetails(jmf, handler, _callBack, null, url);
 		queueMessageDetails(messageDetails);
@@ -1042,7 +1045,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		// this is static and can therefore only be set once for consistency
 		if (baseLocation == null)
 		{
-			MessageSender.baseLocation = _baseLocation;
+			MessageSender.baseLocation = FileUtil.getFileInDirectory(_baseLocation, new File("JMFStore"));
+			LogFactory.getLog(MessageSender.class).info("setting JMF Base dir to: " + _baseLocation);
 		}
 	}
 

@@ -166,8 +166,8 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 */
 	protected List<JobPhase> resumeQueueEntry(final JDFQueueEntry qe)
 	{
-		final List<JobPhase> phases = null;
-		final String queueEntryID = qe.getQueueEntryID();
+		//		final List<JobPhase> phases = null;
+		//		final String queueEntryID = qe.getQueueEntryID();
 		log.error("resumeQueueEntry not yet implemented");
 		return null;
 		// TODO persist correctly

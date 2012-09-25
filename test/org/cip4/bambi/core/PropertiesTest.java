@@ -103,12 +103,4 @@ public class PropertiesTest extends BambiTestCase
 
 	}
 
-	/**
-		 */
-	public void testGetJMFDir()
-	{
-		File f = props.getJMFDir();
-		assertNotNull(f);
-	}
-
 }

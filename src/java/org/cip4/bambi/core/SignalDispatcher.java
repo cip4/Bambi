@@ -170,9 +170,7 @@ public final class SignalDispatcher extends BambiLogFactory
 
 		/**
 		 * 
-		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
 		 * @param request
-		 * @param response
 		 * @return
 		 */
 		public XMLResponse handleGet(final ContainerRequest request)
@@ -1127,11 +1125,6 @@ public final class SignalDispatcher extends BambiLogFactory
 			}
 
 			return true;
-		}
-
-		protected boolean matchesChannel(final String _channelID)
-		{
-			return channelID.equals(_channelID);
 		}
 
 		protected boolean matchesQueueEntry(final String qeID)

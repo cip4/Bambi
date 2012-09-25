@@ -7,7 +7,7 @@
   -->
  
 <application 
-Port="44484" 
+JettyPort="44484" 
 
 Context="/BambiProxy"
 BaseDir="/bambidata/bambiproxy/" 
@@ -29,18 +29,18 @@ DeviceClass="org.cip4.bambi.proxy.ProxyDevice">
     InputHF="/BambiHF/pullproxy/Input" 
     OutputHF="/BambiHF/pullproxy/Output" 
     ErrorHF="/BambiHF/pullhproxy/Error"/>
+ -->
   
   <Device DeviceID="pushproxy" 
   DeviceType="Bambi Push Proxy for SimWorker/sim003" 
   SlaveStatus="JMFGLOBAL"
     SlaveDeviceID="sim003" 
-    SlaveURL="http://localhost:8080/SimWorker/jmf/sim003"
+    SlaveURL="http://localhost:44482/SimWorker/jmf/sim003"
     MaxPush="10" 
     InputHF="/BambiHF/pushproxy/Input" 
     OutputHF="/BambiHF/pushproxy/Output" 
     ErrorHF="/BambiHF/pushproxy/Error"/>
- -->
-   
+ <!-- 
   <Device DeviceID="EFI" DeviceType="Digital Connector for Fiery" SlaveStatus="JMFGLOBAL"
     TypeExpression="(.)*DigitalPrinting(.)*"
      SlaveURL="http://192.168.1.71:8010" 
@@ -56,6 +56,7 @@ DeviceClass="org.cip4.bambi.proxy.ProxyDevice">
     OutputHF="/BambiHF/hp/Output" 
     ErrorHF="/BambiHF/hp/Error"
     FixMIMEBoundarySemicolon="false"/>
+     -->  
 <!--
   <Device DeviceID="mumaproxy" 
     DeviceType="Bambi Push Proxy for Müller Martini" 

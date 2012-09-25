@@ -75,12 +75,19 @@ import java.util.HashSet;
 
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
+import org.cip4.bambi.core.messaging.MessageResponseHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.auto.JDFAutoQueueFilter.EnumQueueEntryDetails;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.jmf.JDFQueueFilter;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.util.ThreadUtil;
@@ -102,8 +109,17 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 	{
 		super();
 		_parent = parent;
-		proxyProperties = parent.getProxyProperties();
+		proxyProperties = parent.getProperties();
 		cleaner = new OrphanCleaner();
+	}
+
+	/**
+	 * @return the _parent
+	 */
+	@Override
+	public ProxyDevice getParent()
+	{
+		return (ProxyDevice) _parent;
 	}
 
 	/**
@@ -127,6 +143,59 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 	protected void idleProcess()
 	{
 		// nop
+	}
+
+	/**
+	 * 
+	 *  
+	 * @author rainer prosi
+	 * @date Jul 13, 2012
+	 */
+	public class QueueStatusResponseHandler extends MessageResponseHandler
+	{
+		/**
+		 * @param jmf
+		 */
+		public QueueStatusResponseHandler(JDFJMF jmf)
+		{
+			super(jmf);
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.messaging.MessageResponseHandler#finalizeHandling()
+		*/
+		@Override
+		protected void finalizeHandling()
+		{
+			super.finalizeHandling();
+			getLog().info("Finalized handling of QueueStatus Query");
+		}
+
+		/**
+		 * @return vector of all jmfs that still need to be sent
+		 * 
+		 */
+		public boolean isOpen()
+		{
+			JDFMessage m = getFinalMessage();
+			if (m == null)
+			{
+				log.warn("No QueueStatus response to handle at " + getParent().getSlaveURL());
+				return false;
+			}
+			JDFQueue q = m.getQueue(0);
+			if (q == null)
+			{
+				log.warn("No Queue in QueueStatus response to handle at " + getParent().getSlaveURL());
+				return false;
+			}
+			boolean canAccept = q.canAccept();
+			if (!canAccept)
+			{
+				log.warn("queue Status=" + q.getQueueStatus() + " at " + getParent().getSlaveURL());
+			}
+			return canAccept;
+		}
 	}
 
 	private class OrphanCleaner
@@ -249,7 +318,8 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
 	{
 		currentQE = null;
-		if (_parent.activeProcessors() >= 1 + proxyProperties.getMaxPush())
+		String slaveURL = proxyProperties.getSlaveURL();
+		if (_parent.activeProcessors() >= 1 + proxyProperties.getMaxPush() || !isQueueAvailable(slaveURL))
 		{
 			BambiNSExtension.setDeviceURL(qe, null);
 			cleaner.cleanOrphans();
@@ -257,12 +327,50 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 		}
 		qe.setDeviceID(proxyProperties.getSlaveDeviceID());
 		final IQueueEntry iqe = new QueueEntry(node, qe);
-		final ProxyDeviceProcessor pdb = ((ProxyDevice) _parent).submitQueueEntry(iqe, proxyProperties.getSlaveURL(), EnumActivation.Active);
+		final ProxyDeviceProcessor pdb = ((ProxyDevice) _parent).submitQueueEntry(iqe, slaveURL, EnumActivation.Active);
 		if (pdb == null)
 		{
 			BambiNSExtension.setDeviceURL(qe, null); // see above clean up any multiple markers
 		}
 		return pdb != null;
+	}
+
+	/**
+	 * ensure that the queue is alive and accepting entries prior to submitting
+	 * @param slaveURL
+	 * @return
+	 */
+	protected boolean isQueueAvailable(String slaveURL)
+	{
+		MessageChecker knownSlaveMessages = getParent().knownSlaveMessages;
+		knownSlaveMessages.updateKnownMessages();
+		boolean ret = false;
+		if (!knownSlaveMessages.knows(EnumType.KnownMessages))
+		{
+			log.warn("no access to slave url at " + getParent().getSlaveURL());
+		}
+		else if (knownSlaveMessages.knows(EnumType.QueueStatus))
+		{
+			ret = checkSlaveQueueStatus();
+		}
+		else
+		{
+			log.warn("bypassing queue status check for " + getParent().getSlaveURL());
+			ret = true;
+		}
+		return ret;
+	}
+
+	protected boolean checkSlaveQueueStatus()
+	{
+		JDFJMF queueStatusQuery = getParent().getBuilderForSlave().buildQueueStatus();
+		JDFQueueFilter qf = queueStatusQuery.getQuery(0).getCreateQueueFilter(0);
+		qf.setMaxEntries(0);
+		qf.setQueueEntryDetails(EnumQueueEntryDetails.None);
+		QueueStatusResponseHandler qrh = new QueueStatusResponseHandler(queueStatusQuery);
+		getParent().sendJMFToSlave(queueStatusQuery, qrh);
+		qrh.waitHandled(5000, 20000, true);
+		return qrh.isOpen();
 	}
 
 	/**

@@ -185,7 +185,16 @@ public final class BambiServlet extends HttpServlet
 
 	private String initializeDumps(final ServletConfig config, File baseDir)
 	{
-		String dump = config.getInitParameter("bambiDump");
+		String dump = System.getProperty("bambiDump");
+		if (dump == null)
+		{
+			dump = config.getInitParameter("bambiDump");
+			log.info("retrieving bambidump from servlet config: " + dump);
+		}
+		else
+		{
+			log.info("retrieving bambidump from java property: " + dump);
+		}
 		dump = parseEnv(dump);
 		if (dump == null)
 		{
@@ -237,7 +246,11 @@ public final class BambiServlet extends HttpServlet
 		if (newBase == null)
 			newBase = System.getenv(env);
 		if (newBase == null)
+		{
+			log.warn("could not evaluate environment variable, keeping literal : " + env);
 			return dump.substring(1);
+		}
+		log.info("evaluated environment variable " + env + " to: " + newBase);
 		return newBase + dump.substring(posS);
 	}
 
@@ -282,7 +295,7 @@ public final class BambiServlet extends HttpServlet
 				xr = theContainer.processStream(sr);
 				writeResponse(xr, response);
 			}
-			catch (Exception x)
+			catch (Throwable x)
 			{
 				log.error("Snafu processing " + getPost + " request for: " + request.getPathInfo(), x);
 			}

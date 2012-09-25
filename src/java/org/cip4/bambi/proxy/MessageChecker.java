@@ -72,8 +72,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.cip4.bambi.proxy.AbstractProxyDevice.KnownMessagesResponseHandler;
+import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFMessageService;
+import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.StringUtil;
 
 /**
@@ -86,21 +89,38 @@ import org.cip4.jdflib.util.StringUtil;
 class MessageChecker
 {
 	private Map<String, KnownMessageDetails> theMessages;
+	private final AbstractProxyDevice abstractProxyDevice;
 
 	/**
+	 * @param abstractProxyDevice 
 	 * 
 	 *  
 	 */
-	public MessageChecker()
+	public MessageChecker(AbstractProxyDevice abstractProxyDevice)
 	{
+		super();
+		this.abstractProxyDevice = abstractProxyDevice;
 		setMessages(null);
+	}
+
+	/**
+	 * update the knownmessages list 
+	 */
+	public void updateKnownMessages()
+	{
+		final JMFBuilder builder = abstractProxyDevice.getBuilderForSlave();
+		final JDFJMF knownMessages = builder.buildKnownMessagesQuery();
+		KnownMessagesResponseHandler handler = abstractProxyDevice.new KnownMessagesResponseHandler(knownMessages);
+		abstractProxyDevice.sendJMFToSlave(knownMessages, handler);
+		handler.waitHandled(20000, 30000, true);
+		setMessages(handler.completeHandling());
 	}
 
 	/**
 	 * Setter for theMessages attribute.
 	 * @param messages the {@link KnownMessageDetails} to set
 	 */
-	public void setMessages(Collection<KnownMessageDetails> messages)
+	private void setMessages(Collection<KnownMessageDetails> messages)
 	{
 		if (messages == null)
 		{

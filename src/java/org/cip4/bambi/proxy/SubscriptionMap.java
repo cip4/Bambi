@@ -111,6 +111,11 @@ public class SubscriptionMap extends HashMap<EnumType, ProxySubscription>
 			it.next().copyToXML(subs);
 	}
 
+	/**
+	 * 
+	 *  
+	 * @param wantShutDown
+	 */
 	public void setWantShutDown(boolean wantShutDown)
 	{
 		this.wantShutDown = wantShutDown;

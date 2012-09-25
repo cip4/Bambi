@@ -107,7 +107,6 @@ public abstract class ShowHandler implements IGetHandler
 	/**
 	 * @param request 
 	 * @return 
-	 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.BambiServletRequest, org.cip4.bambi.core.BambiServletResponse)
 	 */
 	public XMLResponse handleGet(final ContainerRequest request)
 	{

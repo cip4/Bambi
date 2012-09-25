@@ -724,8 +724,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 		/**
 		 * 
-		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.core.messaging.SignalHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -810,7 +809,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	public ProxyDevice(final IDeviceProperties properties)
 	{
 		super(properties);
-		final IProxyProperties proxyProperties = getProxyProperties();
+		final IProxyProperties proxyProperties = getProperties();
 		statusContainer = new ResponseMerger();
 		_jmfHandler.setFilterOnDeviceID(false);
 		final int maxPush = proxyProperties.getMaxPush();
@@ -867,15 +866,15 @@ public class ProxyDevice extends AbstractProxyDevice
 
 	/**
 	 * @param iqe
-	 * @param queueURL
+	 * @param slaveQueueURL
 	 * @param activation 
 	 * @return true if the processor is added
 	 */
-	public ProxyDeviceProcessor submitQueueEntry(final IQueueEntry iqe, final String queueURL, final EnumActivation activation)
+	public ProxyDeviceProcessor submitQueueEntry(final IQueueEntry iqe, final String slaveQueueURL, final EnumActivation activation)
 	{
 		ProxyDeviceProcessor pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, iqe);
 		pdp.setActivation(activation);
-		final boolean submit = pdp.submit(queueURL);
+		final boolean submit = pdp.submit(slaveQueueURL);
 		if (submit && pdp.isActive())
 		{
 			addProcessor(pdp);
@@ -893,7 +892,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	@Override
 	protected AbstractDeviceProcessor buildDeviceProcessor()
 	{
-		if (getProxyProperties().getMaxPush() <= 0)
+		if (getProperties().getMaxPush() <= 0)
 		{
 			return null;
 		}
@@ -918,7 +917,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		log.info("removing device proceesor");
 		_deviceProcessors.remove(processor);
-		final StatusListener statusListener = processor.getStatusListener();
+		//final StatusListener statusListener = processor.getStatusListener();
 		// zapp the subscription that we added for listening to the device
 		// TODO
 		// _parent.getSignalDispatcher().removeSubScription(slaveChannelID);
@@ -1133,7 +1132,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	 */
 	void cleanupMultipleRunning(String ignoreQEID, String slaveDeviceID)
 	{
-		int maxRun = getProxyProperties().getMaxSlaveRunning();
+		int maxRun = getProperties().getMaxSlaveRunning();
 		if (maxRun <= 1)
 		{
 			JDFAttributeMap attMap = new JDFAttributeMap(AttributeName.DEVICEID, slaveDeviceID);

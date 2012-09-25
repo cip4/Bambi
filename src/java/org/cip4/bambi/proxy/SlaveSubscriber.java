@@ -75,7 +75,6 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.MessageResponseHandler;
-import org.cip4.bambi.proxy.AbstractProxyDevice.KnownMessagesResponseHandler;
 import org.cip4.bambi.proxy.AbstractProxyDevice.KnownSubscriptionsHandler;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -128,7 +127,7 @@ public class SlaveSubscriber extends Thread
 	@Override
 	public void run()
 	{
-		final String slaveURL = abstractProxyDevice.getProxyProperties().getSlaveURL();
+		final String slaveURL = abstractProxyDevice.getProperties().getSlaveURL();
 		log.info("Updating global subscriptions to :" + slaveURL);
 		final String deviceURL = abstractProxyDevice.getDeviceURLForSlave();
 		if (deviceURL == null)
@@ -141,7 +140,7 @@ public class SlaveSubscriber extends Thread
 		ThreadUtil.sleep(waitBefore); // wait for other devices to start prior to subscribing
 		if (!abstractProxyDevice.knownSlaveMessages.isInitialized())
 		{
-			updateKnownMessages();
+			abstractProxyDevice.knownSlaveMessages.updateKnownMessages();
 		}
 		final Vector<JDFJMF> vJMFS = prepare(deviceURL);
 
@@ -149,19 +148,6 @@ public class SlaveSubscriber extends Thread
 		sendSubscriptions(vJMFS);
 
 		cleanup();
-	}
-
-	/**
-	 * update the knownmessages list 
-	 */
-	private void updateKnownMessages()
-	{
-		final JMFBuilder builder = abstractProxyDevice.getBuilderForSlave();
-		final JDFJMF knownMessages = builder.buildKnownMessagesQuery();
-		KnownMessagesResponseHandler handler = abstractProxyDevice.new KnownMessagesResponseHandler(knownMessages);
-		abstractProxyDevice.sendJMFToSlave(knownMessages, handler);
-		handler.waitHandled(20000, 30000, true);
-		abstractProxyDevice.knownSlaveMessages.setMessages(handler.completeHandling());
 	}
 
 	/**

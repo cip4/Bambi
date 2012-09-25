@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -84,6 +84,7 @@ import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFAudit;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
@@ -102,6 +103,7 @@ import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.MemorySpy;
 import org.cip4.jdflib.util.MemorySpy.MemScope;
+import org.cip4.jdflib.util.StringUtil;
 
 /**
  * the dispatcher / rootDev controller device
@@ -229,13 +231,13 @@ public class RootDevice extends AbstractDevice
 	 */
 	private void updateQERetrieval(final IDeviceProperties prop)
 	{
-		QERetrieval myqeRet = _devProperties.getQERetrieval();
+		QERetrieval myqeRet = getProperties().getQERetrieval();
 		if (!QERetrieval.BOTH.equals(myqeRet))
 		{
 			QERetrieval devqeRet = prop.getQERetrieval();
 			if (!devqeRet.equals(myqeRet))
 			{
-				_devProperties.setQERetrieval(QERetrieval.BOTH);
+				getProperties().setQERetrieval(QERetrieval.BOTH);
 			}
 		}
 	}
@@ -691,6 +693,38 @@ public class RootDevice extends AbstractDevice
 		// nop
 	}
 
+	/**
+	 * @see org.cip4.bambi.core.AbstractDevice#getVersionString()
+	 */
+	@Override
+	public String getVersionString()
+	{
+		AbstractDevice[] deviceArray = getDeviceArray();
+		VString devices = new VString();
+		if (deviceArray != null)
+		{
+			for (AbstractDevice dev : deviceArray)
+			{
+				if (!(dev instanceof RootDevice))
+				{
+					devices.add(dev.getVersionString());
+				}
+			}
+		}
+		devices.unify();
+		if (devices.size() == 0)
+		{
+			return "Generic Bambi Root Device: " + JDFAudit.software();
+		}
+		else if (devices.size() == 1)
+		{
+			return devices.get(0);
+		}
+		else
+		{
+			return StringUtil.setvString(devices, "\n", "Generic Bambi Root Device: \n", null);
+		}
+	}
 	// ////////////////////////////////////////////////////////////////////////////////
 
 }

@@ -95,6 +95,7 @@ import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFAudit;
 import org.cip4.jdflib.core.JDFCustomerInfo;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
@@ -289,6 +290,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final boolean bModify = request.getBooleanParam("modify");
 			deviceRoot.setAttribute("modify", bModify, null);
 			deviceRoot.setAttribute("NumRequests", numRequests, null);
+			deviceRoot.setAttribute("VersionString", getVersionString(), null);
 			deviceRoot.copyElement(getDeviceTimer(true).toXML(), null);
 			deviceRoot.setAttribute(AttributeName.DEVICEID, getDeviceID());
 			deviceRoot.setAttribute(AttributeName.DEVICETYPE, getDeviceType());
@@ -313,12 +315,12 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		 */
 		private void addHotFolders(final KElement deviceRoot)
 		{
-			final IDeviceProperties properties = getProperties();
-			final File inputHF = properties.getInputHF();
+			final File inputHF = getInputHFUrl();
 			if (inputHF != null)
 			{
 				deviceRoot.setAttribute("InputHF", inputHF.getPath());
 			}
+			final IDeviceProperties properties = getProperties();
 			final File outputHF = properties.getOutputHF();
 			if (outputHF != null)
 			{
@@ -573,6 +575,15 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
+	 * overwrite to provide your favorite version string
+	 * @return
+	 */
+	public String getVersionString()
+	{
+		return "Generic Bambi Device " + JDFAudit.software();
+	}
+
+	/**
 	 * hook to add additional information to the SignalDispatcher subscription XML
 	 * @param rootList the xml root element
 	 */
@@ -581,7 +592,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		//nop 
 	}
 
-	protected IDeviceProperties _devProperties = null;
+	private IDeviceProperties _devProperties = null;
 	protected QueueHotFolder _submitHotFolder = null;
 	protected IConverterCallback _callback = null;
 	protected RootDevice _rootDevice = null;
@@ -656,10 +667,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 		_jmfHandler = new JMFHandler(this);
 
-		qeRequester = new QueueEntryRequester();
+		qeRequester = getQueueEntryRequester();
 		_deviceProcessors = new Vector<AbstractDeviceProcessor>();
 
-		_callback = _devProperties.getCallBackClass();
+		_callback = getCallBackClass();
 		_theSignalDispatcher = new SignalDispatcher(_jmfHandler, this);
 		_theSignalDispatcher.addHandlers(_jmfHandler);
 
@@ -673,7 +684,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			_theQueueProcessor.addListener(mutex);
 		}
 
-		final String deviceID = _devProperties.getDeviceID();
+		final String deviceID = getDeviceID();
 		JMFBuilderFactory.setSenderID(deviceID, deviceID);
 
 		final AbstractDeviceProcessor newDevProc = buildDeviceProcessor();
@@ -690,7 +701,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 		reloadQueue();
 
-		final File hfURL = _devProperties.getInputHF();
+		final File hfURL = getInputHFUrl();
 		createHotFolder(hfURL);
 
 		addHandlers();
@@ -704,6 +715,36 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 		// defer message sending until everything is set up
 		_theSignalDispatcher.startup();
+	}
+
+	/**
+	 * 
+	 * get the input hot folder path. If null, we won't create a hot folder
+	 * @return
+	 */
+	protected File getInputHFUrl()
+	{
+		return _devProperties.getInputHF();
+	}
+
+	/**
+	 * 
+	 *  
+	 * @return
+	 */
+	protected QueueEntryRequester getQueueEntryRequester()
+	{
+		return new QueueEntryRequester();
+	}
+
+	/**
+	 * 
+	 *  
+	 * @return
+	 */
+	protected IConverterCallback getCallBackClass()
+	{
+		return _devProperties.getCallBackClass();
 	}
 
 	/**
@@ -918,7 +959,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		dev.setDeviceType(getDeviceType());
 		dev.setDescriptiveName(getDeviceType());
 		dev.setJMFURL(getDeviceURL());
-		dev.setJDFInputURL(UrlUtil.fileToUrl(_devProperties.getInputHF(), false));
+		dev.setJDFInputURL(UrlUtil.fileToUrl(getInputHFUrl(), false));
 		dev.setJDFOutputURL(UrlUtil.fileToUrl(_devProperties.getOutputHF(), false));
 		dev.setJDFErrorURL(UrlUtil.fileToUrl(_devProperties.getErrorHF(), false));
 		dev.setJDFVersions(EnumVersion.Version_1_3.getName());

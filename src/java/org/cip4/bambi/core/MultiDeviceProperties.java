@@ -759,7 +759,9 @@ public class MultiDeviceProperties extends BambiLogFactory
 	 * defaults to a sibling of JDFDir called JMFDir
 	 * 
 	 * @return the jmf persistance directory
+	 * @deprecated the message sender takes care of itself
 	 */
+	@Deprecated
 	public File getJMFDir()
 	{
 		return FileUtil.getFileInDirectory(getBaseDir(), new File("JMFDir"));

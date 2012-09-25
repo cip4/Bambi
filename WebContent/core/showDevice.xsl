@@ -193,7 +193,7 @@
 					<xsl:call-template name="devicedetails" />
 					<hr />
 				</xsl:if>
-	
+
 				<xsl:if test="jdf:Employee">
 					<h3>Employess currently logged into this device</h3>
 					<table>
@@ -218,22 +218,22 @@
 
 				<font size="-1" color="#b0c4de">
 					<table>
+						<xsl:if test="@VersionString">
+							<tr>
+								<td>Bambi Product Version:</td>
+								<td>
+									<xsl:value-of select="@VersionString" />
+								</td>
+							</tr>
+						</xsl:if>
 						<tr>
-							<td>
-								Bambi Internal Build: 
-           </td>
-							<td>
-								@build.number@ at @build.timestamp@
- </td>
+							<td>Bambi Internal Build: </td>
+							<td>@build.number@ at @build.timestamp@</td>
 						</tr>
 						<tr>
-							<td>
-								JDFLib Build:            
-</td>
-							<td>
-								@build.minorversion@, JDF Schema Version:
-								@build.majorversion@
-</td>
+							<td>JDFLib Build:</td>
+							<td>@build.minorversion@, JDF Schema Version:
+								@build.majorversion@</td>
 						</tr>
 					</table>
 				</font>

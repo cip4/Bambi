@@ -364,7 +364,7 @@ public final class BambiContainer extends BambiLogFactory
 	public boolean createDevices(final MultiDeviceProperties props, final String dump)
 	{
 		boolean created = false;
-		MessageSender.setBaseLocation(props.getJMFDir());
+		MessageSender.setBaseLocation(props.getBaseDir());
 		final EnumVersion version = props.getJDFVersion();
 		JDFElement.setDefaultJDFVersion(version);
 		final VElement v = props.getDevices();
