@@ -75,6 +75,7 @@ import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.MyArgs;
+import org.cip4.jdflib.util.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -135,6 +136,7 @@ public final class BambiServer extends JettyServer
 	 */
 	public static void main(String[] args) throws Exception
 	{
+		LogConfigurator.configureLog(".", "bambi.log");
 		BambiServer bambiServer = new BambiServer();
 		MyArgs myArgs = new MyArgs(args, "c", "p", "");
 		if (myArgs.boolParameter('c'))
