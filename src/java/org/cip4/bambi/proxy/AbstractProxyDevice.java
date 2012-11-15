@@ -643,15 +643,24 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected final SlaveSubscriber getSlaveSubscriber(final int waitMillis, String slaveQEID)
 	{
 		final String slaveURL = getSlaveURL();
-		if (slaveURL == null)
+		if (StringUtil.getNonEmpty(slaveURL) == null)
+		{
+			log.warn("cannot retrieve slave subscriber for null URL");
 			return null;
-
+		}
+		else
+		{
+			log.info("retrieve slave subscriber for URL: " + slaveURL);
+		}
 		String key = getKey(slaveQEID);
 		synchronized (waitingSubscribers)
 		{
 			SlaveSubscriber slaveSubscriber = waitingSubscribers.get(key);
 			if (slaveSubscriber != null)
+			{
+				log.info("retrieve duplicate slave subscriber for URL: " + slaveURL);
 				return null;
+			}
 			slaveSubscriber = createSlaveSubscriber(waitMillis, slaveQEID);
 			return slaveSubscriber;
 		}

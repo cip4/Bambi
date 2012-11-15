@@ -341,7 +341,6 @@ public final class BambiContainer extends BambiLogFactory
 		{
 			final RootDevice rd = getRootDevice();
 			d = rd.createDevice(prop);
-
 		}
 		if (d != null && d.mustDie())
 		{

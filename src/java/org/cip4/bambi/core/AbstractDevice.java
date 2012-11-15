@@ -133,12 +133,12 @@ import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
-import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.hotfolder.QueueHotFolder;
 import org.cip4.jdflib.util.mime.BodyPartHelper;
 import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.mime.MimeWriter;
+import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * basis for JDF devices. <br>

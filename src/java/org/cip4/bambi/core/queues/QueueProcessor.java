@@ -144,11 +144,11 @@ import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
-import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 import org.cip4.jdflib.util.thread.DelayedPersist;
 import org.cip4.jdflib.util.thread.IPersistable;
+import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * 
@@ -754,10 +754,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			status = qe.getQueueEntryStatus();
 			if (EnumQueueEntryStatus.Held.equals(status) || EnumQueueEntryStatus.Waiting.equals(status) || EnumQueueEntryStatus.Completed.equals(status)
-					|| EnumQueueEntryStatus.Aborted.equals(status))
+					|| EnumQueueEntryStatus.Aborted.equals(status) || EnumQueueEntryStatus.Suspended.equals(status))
 			{
 				final String queueEntryID = qe.getQueueEntryID();
-				final JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, null); // use null to flag a removal
+				JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, null); // use null to flag a removal
+				if (returnQE == null)
+					returnQE = qe;
 				updateEntry(returnQE, EnumQueueEntryStatus.Removed, m, resp);
 				log.info("removed QueueEntry with ID=" + qeid);
 			}
@@ -765,7 +767,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				final String statName = status.getName();
 				updateEntry(qe, status, m, resp);
-				JMFHandler.errorResponse(resp, "cannot remove QueueEntry with ID=" + qeid + ", it is " + statName, 106, EnumClass.Error);
+				JMFHandler.errorResponse(resp, "cannot remove QueueEntry with ID=" + qeid + ", current Status=" + statName, 106, EnumClass.Error);
 			}
 			return true;
 		}
@@ -814,15 +816,16 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				}
 				else if (EnumQueueEntryStatus.Running.equals(status) || EnumQueueEntryStatus.Suspended.equals(status))
 				{
-					JMFHandler.errorResponse(resp, "cannot hold QueueEntry with ID=" + qeid + ", it is " + status.getName(), 106, EnumClass.Error);
+					JMFHandler.errorResponse(resp, "cannot hold QueueEntry with ID=" + qeid + ", current Status=" + status.getName(), 106, EnumClass.Error);
 				}
 
 				else if (EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
 				{
-					JMFHandler.errorResponse(resp, "cannot hold QueueEntry with ID=" + qeid + ", it is already " + status.getName(), 114, EnumClass.Error);
+					JMFHandler.errorResponse(resp, "cannot hold QueueEntry with ID=" + qeid + ", current Status already=" + status.getName(), 114, EnumClass.Error);
 				}
 				else
 				{
+					log.error("what happened? current Status=" + (status == null ? "null" : status.getName()));
 					return false; // ???
 				}
 			}

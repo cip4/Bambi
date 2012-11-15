@@ -83,8 +83,10 @@ import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
+import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.UrlPart;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeWriter;
 
@@ -124,5 +126,27 @@ public class QueueProcessorTest extends BambiContainerTest
 		XMLResponse resp = bambiContainer.processStream(req);
 
 		assertNotNull(resp.getXML());
+	}
+
+	/**
+	 * 
+	 *  
+	 */
+	public void testRemoveQE()
+	{
+		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildRemoveQueueEntry("qe_121113_101045628_000082");
+		UrlPart p = jmf.getOwnerDocument_JDFElement().write2HttpURL(UrlUtil.stringToURL(getWorkerURL()), null);
+		p.buffer();
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.BambiContainerTest#setUp()
+	 */
+	@Override
+	public void setUp() throws Exception
+	{
+		super.setUp();
+		workerURLBase = "http://localhost:44482/SimWorker/jmf/simIDP";
+		deviceID = "simIDP";
 	}
 }

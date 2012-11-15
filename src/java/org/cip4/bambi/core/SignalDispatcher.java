@@ -121,8 +121,8 @@ import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
-import org.cip4.jdflib.util.ThreadUtil.MyMutex;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * this class handles subscriptions <br>

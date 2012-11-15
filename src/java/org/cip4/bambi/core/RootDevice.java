@@ -640,7 +640,7 @@ public class RootDevice extends AbstractDevice
 		rootElem.setAttribute("Root", true, null);
 		listRoot.copyAttribute("DeviceType", rootElem, null, null, null);
 		listRoot.copyElement(rootElem, null);
-
+		addMoreToShowDevice(listRoot, rootElem);
 		if (devices != null)
 		{
 			final int listSize = devices.length;
@@ -658,6 +658,16 @@ public class RootDevice extends AbstractDevice
 		XMLResponse r = new XMLResponse(listRoot);
 		return r;
 
+	}
+
+	/**
+	 * hook to add additional information from overwritten classes
+	 * @param listRoot
+	 * @param rootElem
+	 */
+	protected void addMoreToShowDevice(KElement listRoot, KElement rootElem)
+	{
+		//default implemenmtation=nop	
 	}
 
 	/**

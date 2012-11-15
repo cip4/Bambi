@@ -77,7 +77,7 @@ import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.ThreadUtil;
-import org.cip4.jdflib.util.ThreadUtil.MyMutex;
+import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * Handler class for Acknowledges - checks a message for an acknowledgeURL and makes any appropriate message handlers asynchronous <br/>

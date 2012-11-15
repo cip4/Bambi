@@ -17,7 +17,7 @@ import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
-import org.cip4.jdflib.util.ThreadUtil.MyMutex;
+import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * trivial response handler that simply grabs the response and passes it back through getResponse() / isHandled()
