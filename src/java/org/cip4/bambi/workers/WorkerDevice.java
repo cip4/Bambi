@@ -203,7 +203,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 			}
 		}
 		final String types = n2.getTypesString();
-		boolean b = StringUtil.matches(types, _typeExpression);
+		boolean b = StringUtil.matchesSimple(types, _typeExpression);
 		if (!b)
 		{
 			log.debug("Device " + getDeviceID() + " Node found with non-matching type: " + types);

@@ -239,7 +239,8 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 			if (handler == null)
 			{
 				log.warn("Race condition in acknowledge? lets wait: " + (i * i * 100) + " milliseconds");
-				ThreadUtil.sleep(100 * i * i);
+				if (!ThreadUtil.sleep(100 * i * i))
+					break;
 			}
 			else
 			{
