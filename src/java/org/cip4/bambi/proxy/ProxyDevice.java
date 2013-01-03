@@ -1179,26 +1179,9 @@ public class ProxyDevice extends AbstractProxyDevice
 			{
 				final QueueEntryAbortHandler ah = new QueueEntryAbortHandler(status, jmf.getCommand(0).getID());
 				sendJMFToSlave(jmf, ah);
-				//				ah.waitHandled(5555, 30000, false);
-				//				final EnumNodeStatus newStatus = ah.getFinalStatus();
-				//				if (newStatus == null)
-				//				{
-				//					//					return null;
-				//				}
 			}
 		}
 		final JDFQueueEntry qe = super.stopProcessing(queueEntryID, status);
 		return qe;
 	}
-
-	@Override
-	protected void init()
-	{
-		super.init();
-		if (_theStatusListener == null)
-		{
-			_theStatusListener = new StatusListener(_theSignalDispatcher, getDeviceID(), getICSVersions());
-		}
-	}
-
 }

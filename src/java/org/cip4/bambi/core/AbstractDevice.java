@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -72,6 +72,7 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
@@ -204,20 +205,23 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 		/**
 		 * sends a request for a new qe to the proxy
+		 * @return true if we really sent an rqe
 		 */
-		protected void sendRequestQueueEntry()
+		protected boolean sendRequestQueueEntry()
 		{
 			final String proxyURL = _devProperties.getProxyControllerURL();
 			if (KElement.isWildCard(proxyURL))
 			{
-				return;
+				return false;
 			}
 			final String queueURL = getDeviceURL();
-			log.info("Sending RequestQueueEntry for" + queueURL + " to: " + proxyURL);
+			if (log.isDebugEnabled())
+				log.debug("Sending RequestQueueEntry for " + queueURL + " to: " + proxyURL);
 			JMFBuilder jmfBuilder = JMFBuilderFactory.getJMFBuilder(getDeviceID());
 			final JDFJMF jmf = jmfBuilder.buildRequestQueueEntry(queueURL, null);
 			sendJMF(jmf, proxyURL, null);
 			ThreadUtil.wait(mutex, 2222); // wait a short while for an immediate response
+			return true;
 		}
 
 		/**
@@ -228,11 +232,13 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			IQueueEntry currentQE = getQEFromQueue();
 			if (currentQE == null)
 			{
-				sendRequestQueueEntry();
-				currentQE = getQEFromQueue();
-				if (currentQE != null)
+				if (sendRequestQueueEntry())
 				{
-					log.info("processing requested qe: " + currentQE.getQueueEntryID());
+					currentQE = getQEFromQueue();
+					if (currentQE != null)
+					{
+						log.info("processing requested qe: " + currentQE.getQueueEntryID());
+					}
 				}
 			}
 			return currentQE;
@@ -560,11 +566,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	protected static final String SHOW_DEVICE = "showDevice";
 	protected static final String SHOW_SUBSCRIPTIONS = "showSubscriptions";
-	protected QueueProcessor _theQueueProcessor = null;
-	protected Vector<AbstractDeviceProcessor> _deviceProcessors = null;
-	protected SignalDispatcher _theSignalDispatcher = null;
-	protected JMFHandler _jmfHandler = null;
-	protected QueueEntryRequester qeRequester = null;
+	protected final QueueProcessor _theQueueProcessor;
+	protected final Vector<AbstractDeviceProcessor> _deviceProcessors;
+	protected final SignalDispatcher _theSignalDispatcher;
+	protected final JMFHandler _jmfHandler;
+	private final QueueEntryRequester qeRequester;
 
 	/**
 	 * @return the _jmfHandler
@@ -592,12 +598,12 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		//nop 
 	}
 
-	private IDeviceProperties _devProperties = null;
-	protected QueueHotFolder _submitHotFolder = null;
-	protected IConverterCallback _callback = null;
+	private final IDeviceProperties _devProperties;
+	protected QueueHotFolder _submitHotFolder;
+	protected final IConverterCallback _callback;
 	protected RootDevice _rootDevice = null;
-	protected StatusListener _theStatusListener = null;
-	protected long numRequests = 0;
+	protected final StatusListener _theStatusListener;
+	protected long numRequests;
 	protected boolean acceptAll;
 	protected final MyMutex mutex;
 
@@ -608,12 +614,38 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public AbstractDevice(final IDeviceProperties prop)
 	{
 		super();
+		_devProperties = prop;
+		copyToCache();
+		numRequests = 0;
+		_submitHotFolder = null;
+		_callback = getCallBackClass();
+		_jmfHandler = new JMFHandler(this);
+		_theSignalDispatcher = linkDispatcher();
+
+		qeRequester = getQueueEntryRequester();
+		_deviceProcessors = new Vector<AbstractDeviceProcessor>();
 		acceptAll = false;
 		preSetup();
-		_devProperties = prop;
 		mutex = new MyMutex();
-		copyToCache();
+		_theQueueProcessor = buildQueueProcessor();
+		_theQueueProcessor.addHandlers(_jmfHandler);
+		_theQueueProcessor.addListener(mutex);
+		_theStatusListener = new StatusListener(_theSignalDispatcher, getDeviceID(), getICSVersions());
 		init();
+	}
+
+	/**
+	 * 
+	 * create the signal dispatcher and link it to the jmf handler
+	 * @return
+	 */
+	private SignalDispatcher linkDispatcher()
+	{
+		SignalDispatcher s = new SignalDispatcher(_jmfHandler, this);
+		s.addHandlers(_jmfHandler);
+		_jmfHandler.setDispatcher(s);
+		_jmfHandler.setFilterOnDeviceID(true);
+		return s;
 	}
 
 	/**
@@ -665,40 +697,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	protected void init()
 	{
-		_jmfHandler = new JMFHandler(this);
-
-		qeRequester = getQueueEntryRequester();
-		_deviceProcessors = new Vector<AbstractDeviceProcessor>();
-
-		_callback = getCallBackClass();
-		_theSignalDispatcher = new SignalDispatcher(_jmfHandler, this);
-		_theSignalDispatcher.addHandlers(_jmfHandler);
-
-		_jmfHandler.setDispatcher(_theSignalDispatcher);
-		_jmfHandler.setFilterOnDeviceID(true);
-
-		_theQueueProcessor = buildQueueProcessor();
-		if (_theQueueProcessor != null)
-		{
-			_theQueueProcessor.addHandlers(_jmfHandler);
-			_theQueueProcessor.addListener(mutex);
-		}
-
 		final String deviceID = getDeviceID();
 		JMFBuilderFactory.setSenderID(deviceID, deviceID);
 
-		final AbstractDeviceProcessor newDevProc = buildDeviceProcessor();
-		if (newDevProc != null)
-		{
-			newDevProc.setParent(this);
-			_theStatusListener = new StatusListener(_theSignalDispatcher, getDeviceID(), getICSVersions());
-			newDevProc.init(_theQueueProcessor, _theStatusListener, _devProperties);
-			final String deviceProcessorClass = newDevProc.getClass().getSimpleName();
-			new Thread(newDevProc, deviceProcessorClass + "_" + deviceID).start();
-			log.info("device processor thread started: " + deviceProcessorClass + "_" + deviceID);
-			_deviceProcessors.add(newDevProc);
-		}
-
+		createNewProcessor();
 		reloadQueue();
 
 		final File hfURL = getInputHFUrl();
@@ -715,6 +717,25 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 		// defer message sending until everything is set up
 		_theSignalDispatcher.startup();
+	}
+
+	/**
+	 * 
+	 *create a new independent processor
+	 */
+	protected void createNewProcessor()
+	{
+		final AbstractDeviceProcessor newDevProc = buildDeviceProcessor();
+		if (newDevProc != null)
+		{
+			newDevProc.setParent(this);
+			newDevProc.init(_theQueueProcessor, _theStatusListener, _devProperties);
+			final String deviceProcessorClass = newDevProc.getClass().getSimpleName();
+			String threadName = deviceProcessorClass + "_" + getDeviceID() + "_" + AbstractDeviceProcessor.processorCount++;
+			new Thread(newDevProc, threadName).start();
+			log.info("device processor thread started: " + threadName);
+			_deviceProcessors.add(newDevProc);
+		}
 	}
 
 	/**
@@ -1101,6 +1122,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		final AbstractDeviceProcessor deviceProcessor = getProcessor(queueEntryID, 0);
 		if (deviceProcessor == null)
 		{
+			log.warn("cannot find processor to stop for qe=" + queueEntryID);
 			return null;
 		}
 		deviceProcessor.stopProcessing(status);
@@ -1116,12 +1138,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public AbstractDeviceProcessor getProcessor(final String queueEntryID, int n)
 	{
-		if (_deviceProcessors == null)
-		{
-			return null;
-		}
+		final List<AbstractDeviceProcessor> allProcs = getAllProcessors();
 		int nn = 0;
-		for (AbstractDeviceProcessor theDeviceProcessor : _deviceProcessors)
+		for (AbstractDeviceProcessor theDeviceProcessor : allProcs)
 		{
 			final IQueueEntry iqe = theDeviceProcessor.getCurrentQE();
 			if (iqe == null) // we have an idle proc
@@ -1146,6 +1165,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		return null; // none here
 	}
 
+	private List<AbstractDeviceProcessor> getAllProcessors()
+	{
+		return _deviceProcessors;
+	}
+
 	/**
 	 * stop the signal dispatcher, hot folder and device processor, if they are not null
 	 */
@@ -1155,30 +1179,23 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		if (_theSignalDispatcher != null)
 		{
 			_theSignalDispatcher.shutdown();
-			_theSignalDispatcher = null;
 		}
-
-		if (_deviceProcessors != null)
+		Vector<AbstractDeviceProcessor> vTmp = new Vector<AbstractDeviceProcessor>();
+		vTmp.addAll(_deviceProcessors);
+		for (AbstractDeviceProcessor p : vTmp)
 		{
-			for (int i = _deviceProcessors.size() - 1; i >= 0; i--)
-			{
-				_deviceProcessors.get(i).shutdown();
-			}
-			_deviceProcessors.clear();
+			p.shutdown();
 		}
-
+		_deviceProcessors.clear();
 		if (_submitHotFolder != null)
 		{
 			_submitHotFolder.stop();
 		}
-		_submitHotFolder = null;
 
 		if (_theQueueProcessor != null)
 		{
 			_theQueueProcessor.shutdown();
 		}
-		_theQueueProcessor = null;
-
 	}
 
 	/**
@@ -1302,7 +1319,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			{
 				shutdown();
 				getRootDevice().removeDevice(getDeviceID());
-				return getRootDevice().handleGet(request);
+				return getRootDevice().showDevice(request, false);
 			}
 			else
 			{
@@ -1573,14 +1590,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public IConverterCallback getCallback(final String url)
 	{
 		return _callback;
-	}
-
-	/**
-	 * @param callback
-	 */
-	public void setCallback(final IConverterCallback callback)
-	{
-		this._callback = callback;
 	}
 
 	/**

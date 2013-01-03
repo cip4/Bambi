@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -143,7 +143,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	private static final long serialVersionUID = -384123582645081254L;
 	private final NotificationQueryHandler notificationQueryHandler;
-	protected long stopTime = 0; // this is the stop-processing time 0 means I'm alive
+	protected long stopTime; // this is the stop-processing time 0 means I'm alive
 
 	protected class StatusSignalHandler
 	{
@@ -526,7 +526,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	public ProxyDeviceProcessor(final ProxyDevice device, final QueueProcessor qProc, final IQueueEntry qeToProcess)
 	{
 		super(device);
-
+		stopTime = 0;
 		_statusListener = new StatusListener(device.getSignalDispatcher(), device.getDeviceID(), device.getICSVersions());
 		notificationQueryHandler = new NotificationQueryHandler();
 		currentQE = qeToProcess;
@@ -775,7 +775,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	public boolean handleNotificationSignal(final JDFMessage m, final JDFResponse resp)
 	{
 		return this.new NotificationSignalHandler().handleSignal(m, resp);
-
 	}
 
 	/**
@@ -850,5 +849,4 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	{
 		return notificationQueryHandler.handleMessage(m, resp);
 	}
-
 }

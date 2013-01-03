@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2007 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -94,7 +94,7 @@ import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * 
- * @author prosirai
+ * @author rainer prosi
  */
 public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 {
@@ -295,6 +295,7 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 	@Override
 	public EnumNodeStatus stopProcessing(final EnumNodeStatus newStatus)
 	{
+		log.warn("stopProcessing not implemented");
 		return null;
 	}
 

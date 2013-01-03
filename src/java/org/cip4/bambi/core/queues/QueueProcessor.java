@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -962,10 +962,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			super(EnumType.ResumeQueueEntry, new EnumFamily[] { EnumFamily.Command });
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -986,7 +985,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				final EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 				final String qeid = qe.getQueueEntryID();
 
-				if (EnumQueueEntryStatus.Suspended.equals(status) || EnumQueueEntryStatus.Held.equals(status))
+				if (EnumQueueEntryStatus.Suspended.equals(status))
+				{
+					updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp);
+					log.info("resumed QueueEntry to waiting with ID=" + qeid);
+					return true;
+				}
+				else if (EnumQueueEntryStatus.Held.equals(status))
 				{
 					updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp);
 					log.info("resumed QueueEntry with ID=" + qeid);
@@ -1336,8 +1341,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			for (int i = 0; i < v.size(); i++)
 			{
 				final JDFQueueEntry qe = (JDFQueueEntry) v.get(i);
-				// TODO select iterator based on current value
-				XMLResponse.addOptionList(qe.getQueueEntryStatus(), qe.getNextStatusVector(), qe, QE_STATUS);
+				Vector<EnumQueueEntryStatus> nextStatusVector = qe.getNextStatusVector();
+				EnumQueueEntryStatus queueEntryStatus = qe.getQueueEntryStatus();
+				if (!EnumQueueEntryStatus.Running.equals(queueEntryStatus))
+					nextStatusVector.remove(EnumQueueEntryStatus.Running);
+				XMLResponse.addOptionList(queueEntryStatus, nextStatusVector, qe, QE_STATUS);
 			}
 		}
 	}
@@ -1364,6 +1372,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			if (m == null || resp == null)
 			{
+				log.error("null message or response; bailing out ");
 				return false;
 			}
 			log.debug("Handling " + m.getType());
@@ -1377,19 +1386,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 			if (EnumQueueEntryStatus.Running.equals(status))
 			{
-				final JDFQueueEntry returnQE = _parentDevice.stopProcessing(qeid, EnumNodeStatus.Suspended);
-				final EnumQueueEntryStatus newStatus = (returnQE == null ? null : returnQE.getQueueEntryStatus());
-				if (newStatus == null)
-				{
-					// got no response
-					updateEntry(qe, EnumQueueEntryStatus.Aborted, m, resp);
-					log.error("failed to suspend QueueEntry with ID=" + qeid);
-				}
-				else
-				{
-					updateEntry(qe, newStatus, m, resp);
-					log.info("suspended QueueEntry with ID=" + qeid);
-				}
+				_parentDevice.stopProcessing(qeid, EnumNodeStatus.Suspended);
+				updateEntry(qe, EnumQueueEntryStatus.Suspended, m, resp);
+				log.info("suspended QueueEntry with ID=" + qeid);
 			}
 			else
 			{
@@ -1410,6 +1409,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				}
 				else
 				{
+					log.error("Whazzup - starnge status for suspending: " + status);
 					return false;
 				}
 			}
@@ -2076,11 +2076,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					qe.removeAttribute(AttributeName.DEVICEID);
 					qe.setQueueEntryStatus(status);
 				}
-				else if (status.equals(EnumQueueEntryStatus.Suspended))
-				{
-					qe.setQueueEntryStatus(status);
-				}
-				else if (status.equals(EnumQueueEntryStatus.Aborted) || status.equals(EnumQueueEntryStatus.Completed))
+				else if (status.equals(EnumQueueEntryStatus.Aborted) || status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Suspended))
 				{
 					qe.removeAttribute(AttributeName.DEVICEID);
 					BambiNSExtension.setDeviceURL(qe, null);
@@ -2109,14 +2105,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			catch (final JDFException e)
 			{
-				// nop
+				log.warn("problems with queuefilter - ignoring", e);
 			}
-			synchronized (_theQueue)
-			{
-				final JDFQueue q = _theQueue.copyToResponse(resp, qf, getLastQueue(resp, qf));
-				removeBambiNSExtensions(q);
-				return q;
-			}
+			final JDFQueue q = _theQueue.copyToResponse(resp, qf, getLastQueue(resp, qf));
+			removeBambiNSExtensions(q);
+			return q;
 		}
 	}
 
@@ -2432,14 +2425,14 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		final JDFQueueEntryDef def = m.getQueueEntryDef(0);
 		if (def == null)
 		{
-			log.error("Message contains no QueueEntryDef");
+			JMFHandler.errorResponse(resp, "Message contains no QueueEntryDef", 105, EnumClass.Error);
 			return null;
 		}
 
 		final String qeid = def.getQueueEntryID();
 		if (KElement.isWildCard(qeid))
 		{
-			log.error("QueueEntryID does not contain any QueueEntryID");
+			JMFHandler.errorResponse(resp, "QueueEntryDef does not contain any QueueEntryID", 105, EnumClass.Error);
 			return null;
 		}
 		log.info("processing getMessageQueueEntryID for " + qeid);

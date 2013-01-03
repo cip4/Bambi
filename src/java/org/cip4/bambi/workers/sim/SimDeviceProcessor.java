@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -70,7 +70,6 @@
  */
 package org.cip4.bambi.workers.sim;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -109,8 +108,8 @@ import org.cip4.jdflib.util.ThreadUtil;
  */
 public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 {
-	protected List<JobPhase> _jobPhases = null;
-	protected JobPhase idlePhase = null;
+	final protected Vector<JobPhase> _jobPhases;
+	protected JobPhase idlePhase;
 
 	/**
 	 * constructor
@@ -121,7 +120,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 */
 	public SimDeviceProcessor(final QueueProcessor queueProcessor, final StatusListener statusListener, final IDeviceProperties devProperties)
 	{
-		super();
+		this();
 		init(queueProcessor, statusListener, devProperties);
 	}
 
@@ -131,46 +130,8 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	public SimDeviceProcessor()
 	{
 		super();
-	}
-
-	/**
-	 * initialize the IDeviceProcessor
-	 * @param queueProcessor
-	 * @param statusListener
-	 * @param devProperties
-	 */
-	@Override
-	public void init(final QueueProcessor queueProcessor, final StatusListener statusListener, final IDeviceProperties devProperties)
-	{
-		_jobPhases = new ArrayList<JobPhase>();
-		super.init(queueProcessor, statusListener, devProperties);
-
-	}
-
-	/**
-	 * suspend this - also persist remaining tasks
-	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#suspend()
-	 */
-	@Override
-	protected void suspend()
-	{
-		persistRemainingPhases();
-		super.suspend();
-	}
-
-	/**
-	 * check whether qe has been suspended before, and get its remaining job phases if there are any.
-	 * 
-	 * @param qe the QueueEntry to look for
-	 * @return a {@link List} of {@link JobPhase}. Returns null if no remaining phases have been found.
-	 */
-	protected List<JobPhase> resumeQueueEntry(final JDFQueueEntry qe)
-	{
-		//		final List<JobPhase> phases = null;
-		//		final String queueEntryID = qe.getQueueEntryID();
-		log.error("resumeQueueEntry not yet implemented");
-		return null;
-		// TODO persist correctly
+		_jobPhases = new Vector<JobPhase>();
+		idlePhase = null;
 	}
 
 	/**
@@ -195,7 +156,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	@Override
 	public JobPhase getCurrentJobPhase()
 	{
-		if (_jobPhases != null && _jobPhases.size() > 0)
+		if (_jobPhases.size() > 0)
 		{
 			return _jobPhases.get(0);
 		}
@@ -217,8 +178,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		while (_jobPhases.size() > 0)
 		{
 			processPhase(n);
-			lastPhase = _jobPhases.remove(0); // phase(0) is always the active
-			// phase
+			lastPhase = _jobPhases.remove(0); // phase(0) is always the active phase
 		}
 		if (lastPhase == null)
 		{
@@ -230,8 +190,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		{
 			return EnumQueueEntryStatus.Aborted;
 		}
-		if (lastPhase.getTimeToGo() <= 0 && EnumQueueEntryStatus.Running.equals(qes)) // final
-		// phase was active
+		if (lastPhase.getTimeToGo() <= 0 && EnumQueueEntryStatus.Running.equals(qes)) // final phase was active
 		{
 			qes = EnumQueueEntryStatus.Completed;
 		}
@@ -274,7 +233,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		{
 			final long t0 = System.currentTimeMillis();
 			final VString names = phase.getAmountResourceNames();
-			boolean reachedEnd = EnumNodeStatus.isCompleted(phase.getNodeStatus());
+			boolean reachedEnd = EnumNodeStatus.isCompleted(phase.getNodeStatus()) || EnumNodeStatus.Suspended.equals(phase.getNodeStatus());
 			for (String name : names)
 			{
 				final PhaseAmount pa = phase.getPhaseAmount(name);
@@ -319,7 +278,8 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			if (phase.getTimeToGo() > 0 && !_doShutdown)
 			{
 				randomErrors(phase);
-				ThreadUtil.sleep(123);
+				if (!ThreadUtil.sleep(123))
+					break; // we hit a hard interrupt
 				final long t1 = System.currentTimeMillis();
 				deltaT = t1 - t0;
 				phase.setTimeToGo(phase.getTimeToGo() - deltaT);
@@ -397,12 +357,16 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	{
 		JobLoader jobLoader = new JobLoader(this);
 		jobLoader.setNode(node);
-		_jobPhases = jobLoader.loadJob();
+		List<JobPhase> jobPhases = jobLoader.loadJob();
 		// we want at least one setup dummy
-		if (_jobPhases == null)
+		if (jobPhases == null)
 		{
-			_jobPhases = new ArrayList<JobPhase>();
 			_jobPhases.add(initFirstPhase(node));
+		}
+		else
+		{
+			_jobPhases.clear();
+			_jobPhases.addAll(jobPhases);
 		}
 		final boolean bOK = super.initializeProcessDoc(node, qe);
 		if (qe == null || node == null)
@@ -563,5 +527,4 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		super.idleProcess();
 		randomErrors(idlePhase);
 	}
-
 }

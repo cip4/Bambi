@@ -384,7 +384,9 @@
         <xsl:attribute name="bgcolor">#dddddd</xsl:attribute>
       </xsl:if>
   <td align="left">
-    <xsl:value-of select="position()+500*number(../@pos)"/>
+   <xsl:variable name ="c1" select="500*number(../@pos)"/>
+   <xsl:variable name ="c2"> <xsl:number count="jdf:QueueEntry" /></xsl:variable>
+   <xsl:value-of select="$c1 + $c2"/>
     <!--  submission button for pulling jobs -->
     <xsl:if test="../@Pull='true'">
       <xsl:if test="@Status='Waiting'">

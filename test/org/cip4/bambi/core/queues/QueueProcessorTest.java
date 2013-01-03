@@ -98,6 +98,8 @@ import org.cip4.jdflib.util.mime.MimeWriter;
  */
 public class QueueProcessorTest extends BambiContainerTest
 {
+	String queueEntryId = "qe_130102_112609938_007349";
+
 	/**
 	 * @throws IOException
 	 * @throws MessagingException
@@ -134,7 +136,29 @@ public class QueueProcessorTest extends BambiContainerTest
 	 */
 	public void testRemoveQE()
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildRemoveQueueEntry("qe_121113_101045628_000082");
+		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildRemoveQueueEntry(queueEntryId);
+		UrlPart p = jmf.getOwnerDocument_JDFElement().write2HttpURL(UrlUtil.stringToURL(getWorkerURL()), null);
+		p.buffer();
+	}
+
+	/**
+	 * 
+	 *  
+	 */
+	public void testSuspendQE()
+	{
+		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSuspendQueueEntry(queueEntryId);
+		UrlPart p = jmf.getOwnerDocument_JDFElement().write2HttpURL(UrlUtil.stringToURL(getWorkerURL()), null);
+		p.buffer();
+	}
+
+	/**
+	 * 
+	 *  
+	 */
+	public void testResumeQE()
+	{
+		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildResumeQueueEntry(queueEntryId);
 		UrlPart p = jmf.getOwnerDocument_JDFElement().write2HttpURL(UrlUtil.stringToURL(getWorkerURL()), null);
 		p.buffer();
 	}
