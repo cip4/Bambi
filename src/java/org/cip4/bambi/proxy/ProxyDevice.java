@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -478,14 +478,12 @@ public class ProxyDevice extends AbstractProxyDevice
 			if (theDoc == null)
 			{
 				log.error("No returned JDF in ReturnQueueEntry message: for slave queueentry: " + slaveQueueEntryID);
-				//				JMFHandler.errorResponse(resp, "No returned JDF in ReturnQueueEntry message", 7, EnumClass.Error);
-				//				return true;
 			}
 
-			final ProxyDeviceProcessor proc = getProcessorForReturnQE(retQEParams, resp, theDoc);
+			final AbstractProxyProcessor proc = getProcessorForReturnQE(retQEParams, resp, theDoc);
 			if (proc != null)
 			{
-				final JDFQueueEntry qeBambi = proc.getQueueEntry();
+				final JDFQueueEntry qeBambi = getQueueProcessor().getQueueEntry(slaveQueueEntryID, null);
 				getDataExtractor().extractFiles(qeBambi, theDoc);
 				proc.returnFromSlave(m, resp, theDoc);
 			}
@@ -511,22 +509,25 @@ public class ProxyDevice extends AbstractProxyDevice
 		 * @param theDoc the jdf doc that is returned
 		 * @return the ProxyDeviceProcessor that handles messages from slaveQEID
 		 */
-		protected ProxyDeviceProcessor getProcessorForReturnQE(final JDFReturnQueueEntryParams rqp, final JDFResponse resp, JDFDoc theDoc)
+		protected AbstractProxyProcessor getProcessorForReturnQE(final JDFReturnQueueEntryParams rqp, final JDFResponse resp, JDFDoc theDoc)
 		{
-			final String slaveQEID = rqp == null ? null : rqp.getQueueEntryID();
-			ProxyDeviceProcessor proc = getProcessorForSlaveQEID(slaveQEID);
+			final String slaveQEID = rqp == null ? null : StringUtil.getNonEmpty(rqp.getQueueEntryID());
+			AbstractProxyProcessor proc = getProcessorForSlaveQEID(slaveQEID);
 
-			NodeIdentifier nid = null;
-			if (proc == null && rqp != null && theDoc != null)
+			if (proc == null && theDoc != null)
 			{
 				final JDFNode node = theDoc.getJDFRoot();
-				nid = node == null ? null : node.getIdentifier();
+				NodeIdentifier nid = node == null ? null : node.getIdentifier();
 				proc = getProcessorForNID(nid);
 				if (proc != null)
+				{
 					log.info("cannot find processor for qe: " + slaveQEID + " fallback to node: " + nid);
+				}
 			}
 			if (proc == null)
 			{
+				final JDFNode node = theDoc.getJDFRoot();
+				NodeIdentifier nid = node == null ? null : node.getIdentifier();
 				final String errorMsg = "QueueEntry with slave QueueEntryID = " + slaveQEID + ", job identifier: " + nid == null ? " - " : nid + " is not being processed";
 				JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
 			}
@@ -534,6 +535,12 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 	}
 
+	/**
+	 * 
+	 *  
+	 * @author rainer prosi
+	 * @date Jan 17, 2013
+	 */
 	protected class StatusQueryHandler extends StatusHandler
 	{
 		public StatusQueryHandler()
@@ -541,10 +548,9 @@ public class ProxyDevice extends AbstractProxyDevice
 			super();
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.core.AbstractDevice.StatusHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -954,25 +960,25 @@ public class ProxyDevice extends AbstractProxyDevice
 	 */
 	protected ProxyDeviceProcessor getProcessorForSignal(final String slaveQEID, final NodeIdentifier nid)
 	{
-
-		ProxyDeviceProcessor proc = getProcessorForSlaveQEID(slaveQEID);
+		AbstractProxyProcessor proc = getProcessorForSlaveQEID(slaveQEID);
 		if (proc == null)
 		{
 			proc = getProcessorForNID(nid);
 		}
-		if (proc == null)
+		if (!(proc instanceof ProxyDeviceProcessor))
 		{
 			final String errorMsg = "QueueEntry with ID=" + slaveQEID + " is not being processed";
 			JMFHandler.errorResponse(null, errorMsg, 2, EnumClass.Error);
+			proc = null;
 		}
-		return proc;
+		return (ProxyDeviceProcessor) proc;
 	}
 
 	/**
 	 * @param nid
 	 * @return
 	 */
-	protected ProxyDeviceProcessor getProcessorForNID(final NodeIdentifier nid)
+	protected AbstractProxyProcessor getProcessorForNID(final NodeIdentifier nid)
 	{
 		if (nid == null)
 		{
@@ -987,15 +993,14 @@ public class ProxyDevice extends AbstractProxyDevice
 	 * @param slaveQEID
 	 * @return
 	 */
-	protected ProxyDeviceProcessor getProcessorForSlaveQEID(final String slaveQEID)
+	protected AbstractProxyProcessor getProcessorForSlaveQEID(final String slaveQEID)
 	{
-		final String inQEID = getIncomingQEID(slaveQEID);
-		ProxyDeviceProcessor proc = inQEID == null ? null : (ProxyDeviceProcessor) getProcessor(inQEID, 0);
+		final JDFQueueEntry qe = _theQueueProcessor.getQueueEntry(slaveQEID, null);
+		AbstractProxyProcessor proc = qe == null ? null : (AbstractProxyProcessor) getProcessor(qe.getQueueEntryID(), 0);
 
 		// we don't have an active proc, but this might be a multiple retQE - try to generate from old
-		if (proc == null && inQEID != null)
+		if (proc == null)
 		{
-			final JDFQueueEntry qe = _theQueueProcessor.getQueueEntry(slaveQEID, null);
 			final IQueueEntry iqe = _theQueueProcessor.getIQueueEntry(qe);
 			proc = createExistingProcessor(iqe);
 		}
@@ -1013,29 +1018,13 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
+	 * @deprecated - looks unused
 	 * @param slaveQEID
 	 * @return the bambi qeid for a given slave qeid
 	 */
+	@Deprecated
 	protected String getIncomingQEID(final String slaveQEID)
 	{
-		if (slaveQEID == null || _deviceProcessors == null)
-		{
-			return null;
-		}
-		for (int i = 0; i < _deviceProcessors.size(); i++)
-		{
-			final AbstractDeviceProcessor aProc = _deviceProcessors.get(i);
-			if (!(aProc instanceof ProxyDeviceProcessor))
-			{
-				continue;
-			}
-			final ProxyDeviceProcessor proc = (ProxyDeviceProcessor) aProc;
-			final String procSlaveQEID = proc.getSlaveQEID();
-			if (slaveQEID.equals(procSlaveQEID))
-			{
-				return proc.getCurrentQE().getQueueEntryID();
-			}
-		}
 		final JDFQueueEntry qe = getQueueProcessor().getQueueEntry(slaveQEID, null);
 		return qe == null ? null : qe.getQueueEntryID();
 	}
@@ -1108,21 +1097,32 @@ public class ProxyDevice extends AbstractProxyDevice
 	 * @param iqe the queueentry to check for
 	 * @return 
 	 */
-	protected ProxyDeviceProcessor createExistingProcessor(final IQueueEntry iqe)
+	protected AbstractProxyProcessor createExistingProcessor(final IQueueEntry iqe)
 	{
 		final JDFQueueEntry qe = iqe == null ? null : iqe.getQueueEntry();
-		if (qe == null || iqe == null) // redundant but eclipse nags about potential npa otherwise...
+		if (qe == null) // redundant but eclipse nags about potential npa otherwise...
 		{
 			return null;
 		}
-		ProxyDeviceProcessor pdp = (ProxyDeviceProcessor) getProcessor(iqe.getQueueEntryID(), 0);
+		AbstractProxyProcessor pdp = (ProxyDeviceProcessor) getProcessor(iqe.getQueueEntryID(), 0);
 		if (pdp != null)
 			return pdp;
 
-		pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, iqe);
+		pdp = createNewDeviceProcessor(iqe);
 		pdp.submitted(BambiNSExtension.getSlaveQueueEntryID(qe), qe.getQueueEntryStatus(), BambiNSExtension.getDeviceURL(qe), qe.getDeviceID());
 		addProcessor(pdp);
 		return pdp;
+	}
+
+	/**
+	 * 
+	 *  
+	 * @param iqe
+	 * @return
+	 */
+	protected AbstractProxyProcessor createNewDeviceProcessor(final IQueueEntry iqe)
+	{
+		return new ProxyDeviceProcessor(this, _theQueueProcessor, iqe);
 	}
 
 	/**

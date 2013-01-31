@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -87,12 +87,10 @@ import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
-import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
-import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
@@ -104,7 +102,6 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResourceInfo;
 import org.cip4.jdflib.jmf.JDFResourceQuParams;
 import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
@@ -162,8 +159,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			final JDFStatusQuParams sqp = m.getStatusQuParams();
 			final String qeid = sqp == null ? null : sqp.getQueueEntryID();
 			NodeIdentifier ni = sqp == null ? null : sqp.getIdentifier();
-			// final String qeid = getQEIDFromMessage(m);
-			// NodeIdentifier ni = getNIFromMessage(m);
 			if (sqp != null)
 			{
 				final boolean matches = KElement.isWildCard(qeid) || ContainerUtil.equals(getSlaveQEID(), qeid);
@@ -694,55 +689,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		final EnumNodeStatus status = getParent().stopSlaveProcess(slaveQE, newStatus);
 		stopTime = System.currentTimeMillis();
 		return status;
-	}
-
-	/**
-	 * @param m
-	 * @param resp
-	 * @param doc 
-	 * @return true if all went well
-	 */
-	protected boolean returnFromSlave(final JDFMessage m, final JDFResponse resp, JDFDoc doc)
-	{
-		final JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
-
-		// get the returned JDFDoc from the incoming ReturnQE command and pack it in the outgoing
-		JDFNode root = doc == null ? null : doc.getJDFRoot();
-		if (root == null)
-		{
-			final String errorMsg = "failed to parse the JDFDoc from the incoming " + "ReturnQueueEntry with QueueEntryID=" + currentQE.getQueueEntryID();
-			JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
-		}
-		else
-		{
-			// brutally overwrite the current node with this
-			currentQE.setJDF(root);
-			final String docFile = getParent().getJDFStorage(currentQE.getQueueEntryID());
-			if (docFile != null)
-				root.getOwnerDocument_JDFElement().write2File(docFile, 2, true);
-			_statusListener.replaceNode(root);
-		}
-
-		final VString aborted = retQEParams.getAborted();
-		final VString completed = retQEParams.getCompleted();
-		EnumQueueEntryStatus finalStatus;
-		if (aborted != null && aborted.size() != 0)
-		{
-			finalStatus = EnumQueueEntryStatus.Aborted;
-		}
-		else if (completed != null && completed.size() != 0)
-		{
-			finalStatus = EnumQueueEntryStatus.Completed;
-		}
-		else
-		{
-			finalStatus = root == null ? EnumQueueEntryStatus.Aborted : EnumNodeStatus.getQueueEntryStatus(root.getPartStatus(null, -1));
-			if (finalStatus == null)
-				finalStatus = EnumQueueEntryStatus.Aborted;
-		}
-		finalizeProcessDoc(finalStatus);
-
-		return true;
 	}
 
 	@Override

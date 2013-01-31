@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -81,15 +81,18 @@ import javax.mail.Multipart;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.MessageResponseHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
+import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueFilter.EnumQueueEntryDetails;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
@@ -106,6 +109,7 @@ import org.cip4.jdflib.jmf.JDFQueueFilter;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFResubmissionParams;
+import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
@@ -270,6 +274,12 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		return (AbstractProxyDevice) _parent;
 	}
 
+	/**
+	 * 
+	 *  
+	 * @author rainer prosi
+	 * @date Jan 17, 2013
+	 */
 	protected class QueueSubmitter
 	{
 		protected class QueueResubmitter
@@ -708,6 +718,67 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				}
 			}
 		}
+	}
+
+	/**
+	 * @param m
+	 * @param resp
+	 * @param doc 
+	 * @return true if all went well
+	 */
+	protected boolean returnFromSlave(final JDFMessage m, final JDFResponse resp, JDFDoc doc)
+	{
+		final JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
+
+		// get the returned JDFDoc from the incoming ReturnQE command and pack it in the outgoing
+		JDFNode root = doc == null ? null : doc.getJDFRoot();
+		if (root == null)
+		{
+			final String errorMsg = "failed to parse the JDFDoc from the incoming " + "ReturnQueueEntry with QueueEntryID=" + currentQE.getQueueEntryID();
+			JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
+		}
+		else if (currentQE != null)
+		{
+			// brutally overwrite the current node with this
+			currentQE.setJDF(root);
+			final String docFile = getParent().getJDFStorage(currentQE.getQueueEntryID());
+			if (docFile != null)
+				root.getOwnerDocument_JDFElement().write2File(docFile, 2, true);
+			_statusListener.replaceNode(root);
+		}
+		else
+		{
+			final JDFQueueEntry qeBambi = getParent().getQueueProcessor().getQueueEntry(retQEParams.getQueueEntryID(), null);
+			if (qeBambi != null)
+			{
+				final String docFile = getParent().getJDFStorage(qeBambi.getQueueEntryID());
+				if (docFile != null)
+				{
+					root.getOwnerDocument_JDFElement().write2File(docFile, 2, true);
+				}
+			}
+		}
+
+		final VString aborted = retQEParams.getAborted();
+		final VString completed = retQEParams.getCompleted();
+		EnumQueueEntryStatus finalStatus;
+		if (aborted != null && aborted.size() != 0)
+		{
+			finalStatus = EnumQueueEntryStatus.Aborted;
+		}
+		else if (completed != null && completed.size() != 0)
+		{
+			finalStatus = EnumQueueEntryStatus.Completed;
+		}
+		else
+		{
+			finalStatus = root == null ? EnumQueueEntryStatus.Aborted : EnumNodeStatus.getQueueEntryStatus(root.getPartStatus(null, -1));
+			if (finalStatus == null)
+				finalStatus = EnumQueueEntryStatus.Aborted;
+		}
+		finalizeProcessDoc(finalStatus);
+
+		return true;
 	}
 
 	/**

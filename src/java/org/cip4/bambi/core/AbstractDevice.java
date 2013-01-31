@@ -1426,6 +1426,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	private void updateWatchURL(String newWatchURL)
 	{
+		if (newWatchURL == "-")
+			newWatchURL = null;
 		final IDeviceProperties properties = getProperties();
 		final String oldWatchURL = properties.getWatchURL();
 		if (!ContainerUtil.equals(oldWatchURL, newWatchURL))

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -404,6 +404,17 @@ public class MultiDeviceProperties extends BambiLogFactory
 		}
 
 		/**
+		 * @param key
+		 * @param val the value to set
+		 *  
+		 */
+		public void setDeviceAttribute(final String key, final String val)
+		{
+			root.removeAttribute(key);
+			devRoot.setAttribute(key, val);
+		}
+
+		/**
 		 * @param xpath the element relative xpath
 		 * @return the device attribute
 		 */
@@ -519,6 +530,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 */
 		public void setWatchURL(final String watchURL)
 		{
+			root.setAttribute("WatchURL", watchURL);
 			devRoot.setAttribute("WatchURL", watchURL);
 		}
 

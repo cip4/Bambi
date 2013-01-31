@@ -80,46 +80,38 @@ import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueFilter.EnumQueueEntryDetails;
+import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueFilter;
+import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
-import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * 
  * @author rainer prosi
  */
-public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
+public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 {
 	private static final long serialVersionUID = -384333582645081254L;
-	private final IProxyProperties proxyProperties;
 	private final OrphanCleaner cleaner;
 
 	/**
 	 * @param parent the owner device
 	 */
-	public ProxyDispatcherProcessor(final ProxyDevice parent)
+	public ProxyDispatcherProcessor(final AbstractProxyDevice parent)
 	{
-		super();
-		_parent = parent;
-		proxyProperties = parent.getProperties();
+		super(parent);
 		cleaner = new OrphanCleaner();
-	}
-
-	/**
-	 * @return the _parent
-	 */
-	@Override
-	public ProxyDevice getParent()
-	{
-		return (ProxyDevice) _parent;
 	}
 
 	/**
@@ -299,18 +291,18 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 		return null;
 	}
 
+	/**
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#finalizeProcessDoc(org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus)
+	 */
 	@Override
 	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{
-		int maxPush = proxyProperties.getMaxPush();
+		int maxPush = getParent().getProperties().getMaxPush();
 		// if we can't push, there is no need to constantly check the queue
-		for (int i = 0; i < 100; i++) // check every 5 minutes
+		if (_parent.activeProcessors() > 1 + maxPush)
 		{
-			if (_parent.activeProcessors() < 1 + maxPush)
-				break;
-			ThreadUtil.sleep(3000);
-			if (i % 10 == 0)
-				cleaner.cleanOrphans();
+			cleaner.cleanOrphans();
 		}
 		return _parent.activeProcessors() < 1 + maxPush;
 	}
@@ -319,14 +311,15 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
 	{
 		currentQE = null;
-		String slaveURL = proxyProperties.getSlaveURL();
-		if (_parent.activeProcessors() >= 1 + proxyProperties.getMaxPush() || !isQueueAvailable(slaveURL))
+		IProxyProperties properties = getParent().getProperties();
+		String slaveURL = properties.getSlaveURL();
+		if (_parent.activeProcessors() >= 1 + properties.getMaxPush() || !isQueueAvailable(slaveURL))
 		{
 			BambiNSExtension.setDeviceURL(qe, null);
 			cleaner.cleanOrphans();
 			return false; // no more push
 		}
-		qe.setDeviceID(proxyProperties.getSlaveDeviceID());
+		qe.setDeviceID(properties.getSlaveDeviceID());
 		final IQueueEntry iqe = new QueueEntry(node, qe);
 		final ProxyDeviceProcessor pdb = ((ProxyDevice) _parent).submitQueueEntry(iqe, slaveURL, EnumActivation.Active);
 		if (pdb == null)
@@ -396,4 +389,48 @@ public class ProxyDispatcherProcessor extends AbstractDeviceProcessor
 		return true;
 	}
 
+	/**
+	 * @see org.cip4.bambi.proxy.AbstractProxyProcessor#returnFromSlave(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse, org.cip4.jdflib.core.JDFDoc)
+	 */
+	@Override
+	protected boolean returnFromSlave(JDFMessage m, JDFResponse resp, JDFDoc doc)
+	{
+		boolean b = super.returnFromSlave(m, resp, doc);
+
+		if (b)
+		{
+			final JDFReturnQueueEntryParams retQEParams = m == null ? null : m.getReturnQueueEntryParams(0);
+			String queueEntryID = retQEParams == null ? null : retQEParams.getQueueEntryID();
+			final JDFQueueEntry qeBambi = queueEntryID == null ? null : getParent().getQueueProcessor().getQueueEntry(queueEntryID, null);
+			BambiNSExtension.setDeviceURL(qeBambi, null);
+			// remove slave qeid from map
+			_queueProcessor.updateCache(qeBambi, null);
+			if (qeBambi != null)
+			{
+				final VString aborted = retQEParams.getAborted();
+				final VString completed = retQEParams.getCompleted();
+				EnumQueueEntryStatus finalStatus;
+				if (aborted != null && aborted.size() != 0)
+				{
+					finalStatus = EnumQueueEntryStatus.Aborted;
+				}
+				else if (completed != null && completed.size() != 0)
+				{
+					finalStatus = EnumQueueEntryStatus.Completed;
+				}
+				else
+				{
+					JDFNode root = doc == null ? null : doc.getJDFRoot();
+					finalStatus = root == null ? EnumQueueEntryStatus.Aborted : EnumNodeStatus.getQueueEntryStatus(root.getPartStatus(null, -1));
+					if (finalStatus == null)
+						finalStatus = EnumQueueEntryStatus.Aborted;
+				}
+				_queueProcessor.returnQueueEntry(qeBambi, null, null, finalStatus);
+				qeBambi.removeAttribute(AttributeName.DEVICEID);
+				_queueProcessor.updateEntry(qeBambi, finalStatus, null, null);
+
+			}
+		}
+		return b;
+	}
 }
