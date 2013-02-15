@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -224,7 +224,6 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 		if (b || handler.isAborted())
 		{
 			removeHandler(channelID);
-			doneHandled.add(channelID);
 			log.info("handled Acknowledge refID=" + channelID + " Messade ID= " + a.getID());
 		}
 		return b;
@@ -238,15 +237,20 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 			handler = theMap.get(channelID);
 			if (handler == null)
 			{
-				log.warn("Race condition in acknowledge? lets wait: " + (i * i * 100) + " milliseconds");
+				if (i == 1)
+					log.warn("Race condition in acknowledge for " + channelID + " ? lets wait: " + (i * i * 100) + " milliseconds");
 				if (!ThreadUtil.sleep(100 * i * i))
 					break;
 			}
 			else
 			{
+				if (i > 1)
+					log.info("Race condition in acknowledge " + channelID + " resolved after " + (i * i * 100) + " milliseconds");
 				break;
 			}
 		}
+		if (handler == null)
+			log.warn("Gave up waiting for race condition in acknowledge " + channelID);
 		return handler;
 	}
 
@@ -258,6 +262,18 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 		synchronized (theMap)
 		{
 			theMap.remove(rid);
+		}
+		doneHandled.add(rid);
+	}
+
+	/**
+	 * @param channelID
+	 */
+	public void addDone(final String channelID)
+	{
+		synchronized (theMap)
+		{
+			doneHandled.add(channelID);
 		}
 	}
 

@@ -139,19 +139,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		{
 			super(refID);
 		}
-
-		/**
-		 * 
-		 * 
-		 * @see org.cip4.bambi.core.messaging.MessageResponseHandler#handleMessage()
-		 */
-		@Override
-		public boolean handleMessage()
-		{
-			final boolean b = super.handleMessage();
-			return b;
-		}
-
 	}
 
 	protected int rc;
@@ -513,6 +500,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				qsp.copyAttribute(AttributeName.PRIORITY, qe);
 				qsp.copyAttribute(AttributeName.GANGNAME, qe);
 				qsp.copyAttribute(AttributeName.DESCRIPTIVENAME, qe);
+				qsp.setAttribute(AttributeName.ACTIVATION, activation == null ? null : activation.getName());
 			}
 		}
 
@@ -552,7 +540,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				else
 				{
 					final int responseCode = connection.getResponseCode();
-					final String errorText = "Invalid http response - RC=" + responseCode;
+					final String errorText = "Null JMF response - HTTP RC=" + responseCode;
 					log.warn(errorText);
 					r.setErrorText(errorText, null);
 				}

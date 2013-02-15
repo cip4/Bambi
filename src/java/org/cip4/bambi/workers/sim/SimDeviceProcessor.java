@@ -110,6 +110,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 {
 	final protected Vector<JobPhase> _jobPhases;
 	protected JobPhase idlePhase;
+	boolean bActive;
 
 	/**
 	 * constructor
@@ -121,6 +122,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	public SimDeviceProcessor(final QueueProcessor queueProcessor, final StatusListener statusListener, final IDeviceProperties devProperties)
 	{
 		this();
+		bActive = true;
 		init(queueProcessor, statusListener, devProperties);
 	}
 
@@ -173,7 +175,13 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	@Override
 	public EnumQueueEntryStatus processDoc(final JDFNode n, final JDFQueueEntry qe)
 	{
-		log.debug("processing JDF: ");
+		String qeid = qe == null ? "#null#" : qe.getQueueEntryID();
+		if (!bActive)
+		{
+			log.info("removing inactive JDF: " + qeid);
+			return EnumQueueEntryStatus.Removed;
+		}
+		log.debug("processing JDF: " + qeid);
 		JobPhase lastPhase = null;
 		while (_jobPhases.size() > 0)
 		{
@@ -342,7 +350,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	{
 		final boolean b = super.finalizeProcessDoc(qes);
 		_jobPhases.clear();
-		return b;
+		return !bActive || b;
 	}
 
 	/**
@@ -355,6 +363,13 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	@Override
 	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
 	{
+		bActive = getParent().isActive(node, qe);
+		if (!bActive)
+		{
+			final boolean bOK = super.initializeProcessDoc(node, qe);
+			return bOK;
+		}
+
 		JobLoader jobLoader = new JobLoader(this);
 		jobLoader.setNode(node);
 		List<JobPhase> jobPhases = jobLoader.loadJob();

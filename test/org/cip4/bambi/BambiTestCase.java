@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -267,7 +267,7 @@ public class BambiTestCase extends BaseGoldenTicketTest
 	protected BaseGoldenTicket _theGT = null;
 	protected BambiContainer bambiContainer = null;
 	protected String deviceID = "device";
-	protected String workerURLBase = "http://localhost:8080/SimWorker/jmf/";
+	protected String workerURLBase = "http://localhost:44482/SimWorker/jmf/";
 
 	class BambiTestProp implements IDeviceProperties
 	{

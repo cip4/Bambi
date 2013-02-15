@@ -71,6 +71,7 @@
 
 package org.cip4.bambi.proxy;
 
+import java.util.HashMap;
 import java.util.Vector;
 
 import org.cip4.bambi.core.AbstractDeviceProcessor;
@@ -114,6 +115,7 @@ import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil.URLProtocol;
 
 /**
@@ -304,7 +306,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	protected class RequestQueueEntryHandler extends AbstractHandler
 	{
 		protected int numSubmitThread;
-		protected SubmitThread submitThread;
+		protected HashMap<String, SubmitThread> submitThreadMap;
 
 		private class SubmitThread extends Thread
 		{
@@ -339,11 +341,12 @@ public class ProxyDevice extends AbstractProxyDevice
 				{
 					submitQueueEntry(iqe, queueURL, activation);
 				}
-				catch (Exception x)
+				catch (Throwable x)
 				{
 					log.error("Error submitting to proxy for qe= " + iqe == null ? "null" : iqe.getQueueEntryID(), x);
 				}
-				submitThread = null; // now we are done...
+				ThreadUtil.notifyAll(this);
+				submitThreadMap.remove(iqe.getQueueEntryID());
 			}
 
 			/**
@@ -364,7 +367,6 @@ public class ProxyDevice extends AbstractProxyDevice
 			public boolean isRunning()
 			{
 				return isAlive() && System.currentTimeMillis() - start < 1000 * 60 * 2;
-
 			}
 		}
 
@@ -372,6 +374,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		{
 			super(EnumType.RequestQueueEntry, new EnumFamily[] { EnumFamily.Command });
 			numSubmitThread = 0;
+			submitThreadMap = new HashMap<String, SubmitThread>();
 		}
 
 		/**
@@ -382,13 +385,12 @@ public class ProxyDevice extends AbstractProxyDevice
 		 * @return
 		 */
 		@Override
-		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
+		public synchronized boolean handleMessage(final JDFMessage m, final JDFResponse resp)
 		{
 			if (m == null)
 			{
 				return false;
 			}
-			// TODO retain rqe in case we cannot submit now
 			// check for valid RequestQueueEntryParams
 			final JDFRequestQueueEntryParams requestQEParams = m.getRequestQueueEntryParams(0);
 			if (requestQEParams == null)
@@ -397,19 +399,10 @@ public class ProxyDevice extends AbstractProxyDevice
 				return true;
 			}
 			final String queueURL = requestQEParams.getQueueURL();
-			if (queueURL == null || queueURL.length() < 1)
+			if (StringUtil.getNonEmpty(queueURL) == null)
 			{
 				JMFHandler.errorResponse(resp, "QueueURL is missing", 7, EnumClass.Error);
 				return true;
-			}
-			if (submitThread != null && submitThread.isRunning())
-			{
-				JMFHandler.errorResponse(resp, "Currently handling requestQueueEntry, try again later", 10, EnumClass.Warning);
-				return true;
-			}
-			else
-			{
-				submitThread = null;
 			}
 
 			final NodeIdentifier nid = requestQEParams.getIdentifier();
@@ -427,15 +420,49 @@ public class ProxyDevice extends AbstractProxyDevice
 			if (qe != null)
 			{
 				if (!EnumActivation.Informative.equals(activation))
+				{
 					qe.setDeviceID(m.getSenderID());
-				submitThread = new SubmitThread(iqe, queueURL, activation);
-				submitThread.start();
+					waitSubmitThread(iqe.getQueueEntryID(), resp);
+					SubmitThread submitThread = new SubmitThread(iqe, queueURL, activation);
+					submitThreadMap.put(iqe.getQueueEntryID(), submitThread);
+					submitThread.start();
+				}
+				else
+				// informative needs no synch...
+				{
+					new SubmitThread(iqe, queueURL, activation).start();
+				}
 			}
 			else if (qe == null)
 			{
 				JMFHandler.errorResponse(resp, "No QueueEntry is available for request: " + nid, 108, EnumClass.Error);
 			}
 			return true;
+		}
+
+		/**
+		 * 
+		 * wait for any previous submissions
+		 * @param qeID 
+		 * @param resp
+		 */
+		private void waitSubmitThread(String qeID, final JDFResponse resp)
+		{
+			SubmitThread submitThread = submitThreadMap.get(qeID);
+			if (submitThread != null && submitThread.isRunning())
+			{
+				log.info("waiting for previous submit to complete");
+				ThreadUtil.wait(submitThread, 30000);
+				if (submitThread != null && submitThread.isRunning())
+				{
+					JMFHandler.errorResponse(resp, "Currently handling requestQueueEntry, try again later", 10, EnumClass.Warning);
+				}
+				else
+				{
+					log.info("finished waiting for previous submit to complete");
+					submitThreadMap.remove(qeID);
+				}
+			}
 		}
 	}
 

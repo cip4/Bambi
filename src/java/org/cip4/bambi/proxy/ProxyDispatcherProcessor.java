@@ -402,11 +402,15 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 			final JDFReturnQueueEntryParams retQEParams = m == null ? null : m.getReturnQueueEntryParams(0);
 			String queueEntryID = retQEParams == null ? null : retQEParams.getQueueEntryID();
 			final JDFQueueEntry qeBambi = queueEntryID == null ? null : getParent().getQueueProcessor().getQueueEntry(queueEntryID, null);
-			BambiNSExtension.setDeviceURL(qeBambi, null);
-			// remove slave qeid from map
-			_queueProcessor.updateCache(qeBambi, null);
-			if (qeBambi != null)
+			if (qeBambi == null)
 			{
+				log.error("Skipping return of unknown queue entry ID=" + queueEntryID);
+			}
+			else
+			{
+				BambiNSExtension.setDeviceURL(qeBambi, null);
+				// remove slave qeid from map
+				_queueProcessor.updateCache(qeBambi, null);
 				final VString aborted = retQEParams.getAborted();
 				final VString completed = retQEParams.getCompleted();
 				EnumQueueEntryStatus finalStatus;
@@ -428,7 +432,6 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 				_queueProcessor.returnQueueEntry(qeBambi, null, null, finalStatus);
 				qeBambi.removeAttribute(AttributeName.DEVICEID);
 				_queueProcessor.updateEntry(qeBambi, finalStatus, null, null);
-
 			}
 		}
 		return b;

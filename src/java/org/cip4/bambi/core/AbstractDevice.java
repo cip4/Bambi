@@ -124,6 +124,7 @@ import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.resource.process.JDFEmployee;
@@ -296,6 +297,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final boolean bModify = request.getBooleanParam("modify");
 			deviceRoot.setAttribute("modify", bModify, null);
 			deviceRoot.setAttribute("NumRequests", numRequests, null);
+			deviceRoot.setAttribute("EntriesProcessed", entriesProcessed, null);
 			deviceRoot.setAttribute("VersionString", getVersionString(), null);
 			deviceRoot.copyElement(getDeviceTimer(true).toXML(), null);
 			deviceRoot.setAttribute(AttributeName.DEVICEID, getDeviceID());
@@ -606,6 +608,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected long numRequests;
 	protected boolean acceptAll;
 	protected final MyMutex mutex;
+	private int entriesProcessed;
 
 	/**
 	 * creates a new device instance
@@ -614,6 +617,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public AbstractDevice(final IDeviceProperties prop)
 	{
 		super();
+		entriesProcessed = 0;
 		_devProperties = prop;
 		copyToCache();
 		numRequests = 0;
@@ -1908,7 +1912,17 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			return request;
 		}
-		else if (e instanceof JDFNode || XJDF20.rootName.equals(e.getLocalName()))
+		if (!(e instanceof JDFNode) && !XJDF20.rootName.equals(e.getLocalName()))
+		{
+			KElement e2 = e.getChildByTagName(ElementName.JDF, null, 0, null, false, false);
+			if (e2 == null)
+				e2 = e.getChildByTagName(XJDF20.rootName, null, 0, null, false, false);
+			if (e2 != null)
+			{
+				e = e2.cloneNewDoc();
+			}
+		}
+		if (e instanceof JDFNode || XJDF20.rootName.equals(e.getLocalName()))
 		{
 			final XMLRequest r2 = createSubmitFromJDF(e);
 			if (r2 != null)
@@ -1916,6 +1930,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				r2.setContainer(request);
 				return r2;
 			}
+		}
+		else
+		{
+
 		}
 		return null;
 	}
@@ -1956,5 +1974,26 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public DataExtractor getDataExtractor(boolean bSubmit)
 	{
 		return new DataExtractor(this, bSubmit);
+	}
+
+	/**
+	 * return true if the node/ qe combination is active
+	 * @param n
+	 * @param qe
+	 * @return
+	 */
+	public boolean isActive(JDFNode n, JDFQueueEntry qe)
+	{
+		if (n == null || qe == null)
+			return false;
+		return EnumActivation.isActive(n.getActivation(true)) && EnumActivation.isActive(EnumActivation.getEnum(qe.getAttribute(AttributeName.ACTIVATION)));
+	}
+
+	/**
+	 *  
+	 */
+	void incEntriesProcessed()
+	{
+		entriesProcessed++;
 	}
 }

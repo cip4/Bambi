@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -132,6 +132,44 @@ public class ProxyContainerTest extends BambiContainerTest
 	 */
 	public void testRequestQueueEntryInformative() throws IOException
 	{
+		deviceID = "sim001";
+		testSubmit();
+		JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
+		assertEquals(queue.numEntries(null), 1);
+		JDFQueueEntry qe = queue.getNextExecutableQueueEntry();
+
+		final String jobID = qe.getJobID();
+		final String jobPartID = qe.getJobPartID();
+		NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
+		final JDFJMF pull = new JMFBuilder().buildRequestQueueEntry(getWorkerURL(), ni);
+		pull.getCommand(0).getRequestQueueEntryParams(0).setAttribute(AttributeName.ACTIVATION, EnumActivation.Informative.getName());
+		CPUTimer ct = new CPUTimer(true);
+		final JDFDoc dresp2 = submitJMFtoURL(pull, getProxyURLForSlave());
+		System.out.println(ni + ct.toString());
+		qe = queue.getNextExecutableQueueEntry();
+		assertNotNull(qe);
+		assertNotNull(dresp2);
+		JDFDoc dresp3 = null;
+		ThreadUtil.sleep(10000);
+		for (int i = 0; i < 2222; i++)
+		{
+			dresp3 = submitJMFtoURL(pull, getProxyURLForSlave());
+			if (dresp3.getJMFRoot().getResponse(0).getReturnCode() != 0)
+				fail("" + i);
+			else
+				System.out.print(i + "\n");
+		}
+		assertNotNull(dresp3);
+
+	}
+
+	/**
+	 * 
+	 * test rqe to a proxy device
+	 * @throws IOException ex
+	 */
+	public void testRequestQueueEntryInformativeThenReal() throws IOException
+	{
 		testSubmit();
 		JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
 		assertEquals(queue.numEntries(null), 1);
@@ -148,15 +186,10 @@ public class ProxyContainerTest extends BambiContainerTest
 		qe = queue.getNextExecutableQueueEntry();
 		assertNotNull(qe);
 		assertNotNull(dresp2);
-		JDFDoc dresp3 = null;
-		for (int i = 0; i < 22; i++)
-		{
-			dresp3 = submitJMFtoURL(pull, getProxyURLForSlave());
-			if (dresp3.getJMFRoot().getResponse(0).getReturnCode() != 0)
-				ThreadUtil.sleep(1000);
-			else
-				break;
-		}
+		pull.getCommand(0).getRequestQueueEntryParams(0).setAttribute(AttributeName.ACTIVATION, EnumActivation.Active.getName());
+		JDFDoc dresp3 = submitJMFtoURL(pull, getProxyURLForSlave());
+		if (dresp3.getJMFRoot().getResponse(0).getReturnCode() != 0)
+			fail();
 		assertNotNull(dresp3);
 
 	}

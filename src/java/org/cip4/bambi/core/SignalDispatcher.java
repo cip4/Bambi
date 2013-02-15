@@ -1199,6 +1199,7 @@ public final class SignalDispatcher extends BambiLogFactory
 			final JDFStopPersChParams spcp = inputMessage.getStopPersChParams(0);
 			if (spcp == null)
 			{
+				JMFHandler.errorResponse(response, "No StopPersistentChannelParams specified", 7, EnumClass.Error);
 				return true;
 			}
 			final String channel = spcp.getChannelID();
@@ -1229,10 +1230,9 @@ public final class SignalDispatcher extends BambiLogFactory
 			}
 			else
 			{
-				final int size = vSubs.size();
-				for (int i = 0; i < size; i++)
+				for (MsgSubscription sub : vSubs)
 				{
-					addToResponse(response, vSubs.get(i));
+					addToResponse(response, sub);
 				}
 			}
 

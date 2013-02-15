@@ -116,6 +116,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	protected String _trackResource = null;
 	protected AbstractDevice _parent = null;
 	static int processorCount = 0;
+	protected int entriesProcessed;
 
 	protected class XMLDeviceProcessor
 	{
@@ -143,6 +144,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 				if (startDate != null)
 				{
 					processor.setAttribute(AttributeName.STARTTIME, XMLResponse.formatLong(startDate.getTimeInMillis()));
+					processor.setAttribute("JobsProcessed", entriesProcessed, null);
 				}
 			}
 			if (currentQE == null)
@@ -280,6 +282,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	public AbstractDeviceProcessor()
 	{
 		super();
+		entriesProcessed = 0;
 		log.info("creating new processor");
 	}
 
@@ -312,6 +315,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 					tWait = System.currentTimeMillis();
 					nWait = 0;
 				}
+				currentQE = null;
 			}
 			catch (final Throwable x)
 			{
@@ -388,6 +392,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			log.warn("no queueEntryID for currentQE, skipping");
 			return false;
 		}
+		_parent.incEntriesProcessed();
 		final String queueEntryID = qe.getQueueEntryID();
 		log.info("processing: " + queueEntryID);
 		CPUTimer timer = getLocalTimer();
@@ -419,7 +424,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 				bOK = false;
 			}
 		}
-		catch (final Exception x)
+		catch (final Throwable x)
 		{
 			log.error("error processing JDF: ", x);
 			qes = EnumQueueEntryStatus.Aborted;
@@ -578,9 +583,9 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			_queueProcessor.returnQueueEntry(qe, null, null, qes);
 		}
 		qe.removeAttribute(AttributeName.DEVICEID);
-		currentQE = null;
 		log.info("finalized processing JDF: ");
 		_queueProcessor.updateEntry(qe, qes, null, null);
+		currentQE = null;
 		return bReturn;
 	}
 

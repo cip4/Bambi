@@ -84,7 +84,7 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 	{
 		if (finalMessage == null)
 		{
-			if (bufferedInput != null)
+			if (bufferedInput != null && bufferedInput.size() > 0)
 			{
 				JDFDoc d = MimeUtil.getJDFDoc(bufferedInput.getInputStream(), 0);
 				if (callBack != null && d != null)

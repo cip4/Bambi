@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -133,28 +133,40 @@ public class DataExtractor extends BambiLogFactory
 			return;
 		}
 
-		final File jobDirectory = parentDevice.getExtractDirectory(newQE, bSubmit);
-		if (jobDirectory == null)
+		final File extractDir = parentDevice.getExtractDirectory(newQE, bSubmit);
+		if (extractDir == null)
 		{
-			log.warn("no Job Directory for: " + newQE.getQueueEntryID());
+			log.warn("no data extraction Directory for: " + newQE.getQueueEntryID());
 			return;
 		}
 
-		log.info("extracting attached files to: " + jobDirectory);
+		log.info("extracting attached files to: " + extractDir);
 		String dataURL = getDataURL(newQE);
 		if (dataURL != null)
 		{
-			IElementConverter ex = getExtractor(jobDirectory, dataURL);
+			IElementConverter ex = getExtractor(extractDir, dataURL);
 			ex.convert(doc.getRoot());
 		}
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param newQE
+	 * @return
+	 */
 	protected String getDataURL(JDFQueueEntry newQE)
 	{
-		String dataURL = parentDevice.getDataURL(newQE, bSubmit);
-		return dataURL;
+		return parentDevice.getDataURL(newQE, bSubmit);
 	}
 
+	/**
+	 * 
+	 *  
+	 * @param jobDirectory
+	 * @param dataURL
+	 * @return
+	 */
 	protected IElementConverter getExtractor(final File jobDirectory, String dataURL)
 	{
 		File hfDirectory = parentDevice._submitHotFolder == null ? null : parentDevice._submitHotFolder.getHfDirectory();

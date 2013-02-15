@@ -51,6 +51,15 @@
 							select="'Short, human readable description of the device'" />
 					</xsl:call-template>
 
+				<xsl:call-template name="modifyString">
+						<xsl:with-param name="attLabel" select="'Entries Processed '" />
+						<xsl:with-param name="attName" select="'EntriesProcessed'" />
+						<xsl:with-param name="attVal" select="@EntriesProcessed" />
+						<xsl:with-param name="modify" select="'false'" />
+						<xsl:with-param name="desc"
+							select="'Number of entries processed since startup'" />
+					</xsl:call-template>
+
 					<xsl:call-template name="modifyString">
 						<xsl:with-param name="attLabel" select="'Watch URL: '" />
 						<xsl:with-param name="attName" select="'WatchURL'" />

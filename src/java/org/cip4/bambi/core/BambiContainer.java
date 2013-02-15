@@ -73,6 +73,7 @@ package org.cip4.bambi.core;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.zip.ZipEntry;
 
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -97,6 +98,7 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeReader;
+import org.cip4.jdflib.util.zip.ZipReader;
 
 /**
  * class that handles all bambi JDF/JMF requests - regardless of the servlet context
@@ -493,6 +495,10 @@ public final class BambiContainer extends BambiLogFactory
 				XMLRequest req = new XMLRequest(request);
 				r = processXMLDoc(req);
 			}
+			else if (UrlUtil.isZIPType(contentType))
+			{
+				r = processZip(request);
+			}
 			else
 			{
 				final boolean isMultipart = MimeUtil.isMimeMultiPart(contentType);
@@ -520,6 +526,53 @@ public final class BambiContainer extends BambiLogFactory
 		}
 		stopTimer(request);
 		return r;
+	}
+
+	private XMLResponse processZip(final StreamRequest request)
+	{
+		final InputStream is = request.getInputStream();
+		ZipReader zipReader = new ZipReader(is);
+		zipReader.setCaseSensitive(false);
+		ZipEntry e = getXMLFromZip(zipReader);
+		XMLDoc d = zipReader.getXMLDoc();
+		final XMLResponse r;
+		if (d != null)
+		{
+			String name = e.getName();
+			zipReader.buffer();
+			ZipEntry e2 = zipReader.getNextEntry();
+			String rootName = e2.getName();
+			if (rootName.endsWith("/") && name.startsWith(rootName))
+				zipReader.setRootEntry(rootName);
+
+			XMLRequest req = new XMLRequest(new JDFDoc(d));
+			r = processXMLDoc(req);
+		}
+		else
+		{
+			String ctWarn = "Cannot extract zip";
+			log.error(ctWarn);
+			r = processError(request.getRequestURI(), EnumType.Notification, 9, ctWarn);
+		}
+		return r;
+	}
+
+	private ZipEntry getXMLFromZip(ZipReader zipReader)
+	{
+		ZipEntry e = zipReader.getMatchingEntry("*.ptk", 0);
+		if (e == null)
+		{
+			e = zipReader.getMatchingEntry("*.xjdf", 0);
+		}
+		if (e == null)
+		{
+			e = zipReader.getMatchingEntry("*.jdf", 0);
+		}
+		if (e == null)
+		{
+			e = zipReader.getMatchingEntry("*.xml", 0);
+		}
+		return e;
 	}
 
 	/**

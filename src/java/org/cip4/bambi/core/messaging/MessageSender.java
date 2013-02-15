@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -113,8 +113,8 @@ import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlPart;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
-import org.cip4.jdflib.util.thread.MyMutex;
 import org.cip4.jdflib.util.VectorMap;
+import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * allow a JMF message to be sent in its own thread
@@ -340,7 +340,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 					doShutDown = true;
 				}
 			}
-			catch (final Exception x)
+			catch (final Throwable x)
 			{
 				sentFirstMessage = SendReturn.error;
 				log.error("Error sending message: ", x);
@@ -659,8 +659,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			if (connection != null && connection.getResponseCode() == 200)
 			{
 				InputStream inputStream = connection.getInputStream();
-				ByteArrayIOStream bis = null;
-				bis = new ByteArrayIOStream(inputStream);
+				ByteArrayIOStream bis = new ByteArrayIOStream(inputStream);
 				inputStream.close(); // copy and close so that the connection stream can be reused by keep-alive
 				if (inDump != null)
 				{
