@@ -148,6 +148,7 @@ import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 import org.cip4.jdflib.util.thread.DelayedPersist;
 import org.cip4.jdflib.util.thread.IPersistable;
+import org.cip4.jdflib.util.thread.MutexMap;
 import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
@@ -241,11 +242,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			synchronized (queue)
 			{
-
 				final VElement v = queue.getQueueEntryVector();
-				for (int i = 0; i < v.size(); i++)
+				for (KElement e : v)
 				{
-					final JDFQueueEntry qe = (JDFQueueEntry) v.get(i);
+					final JDFQueueEntry qe = (JDFQueueEntry) e;
 					addEntry(qe, false);
 				}
 			}
@@ -270,6 +270,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 		}
 
+		/**
+		 * 
+		 *  
+		 * @param ni
+		 * @return
+		 */
 		protected JDFQueueEntry getQEFromNI(final NodeIdentifier ni)
 		{
 			if (ni == null)
@@ -414,7 +420,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			if (theDocFile != null)
 			{
 				final File f = new File(theDocFile);
-				f.delete();
+				synchronized (mutexMap.getCreate(qe.getQueueEntryID()))
+				{
+					f.delete();
+				}
 			}
 			// now the other stuff
 			final File theJobDir = _parentDevice.getJobDirectory(qe.getQueueEntryID());
@@ -435,6 +444,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	}
 
+	/**
+	 * 
+	 * 
+	 * @author rainer prosi
+	 * @date before Feb 20, 2013
+	 */
 	protected class SubmitQueueEntryHandler extends AbstractHandler
 	{
 		public SubmitQueueEntryHandler()
@@ -1486,6 +1501,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	private CanExecuteCallBack _cbCanExecute = null;
 	private final QueueMap queueMap;
 	private boolean searchByJobPartID = true;
+	protected final MutexMap<String> mutexMap;
 
 	/**
 	 * @param searchByJobPartID the searchByJobPartID to set
@@ -1508,6 +1524,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		deltaMap = new HashMap<String, QueueDelta>();
 		init();
 		queueMap = new QueueMap();
+		mutexMap = new MutexMap<String>();
 	}
 
 	/**
@@ -1765,8 +1782,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			return null;
 		}
+
 		final String docURL = BambiNSExtension.getDocURL(qe);
-		final JDFDoc theDoc = JDFDoc.parseURL(docURL, null);
+		final JDFDoc theDoc;
+		synchronized (mutexMap.getCreate(qe.getQueueEntryID()))
+		{
+			theDoc = JDFDoc.parseURL(docURL, null);
+		}
 		if (theDoc == null)
 		{
 			log.error("QueueProcessor in thread '" + Thread.currentThread().getName() + "' is unable to load the JDFDoc from '" + docURL + "'");
@@ -1919,7 +1941,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		queueMap.addEntry(newQEReal, true);
 
 		final String theDocFile = _parentDevice.getJDFStorage(newQEID);
-		final boolean ok = theJDF.write2File(theDocFile, 0, true);
+		final boolean ok;
+		synchronized (mutexMap.getCreate(newQEID))
+		{
+			ok = theJDF.write2File(theDocFile, 0, true);
+		}
 		if (!ok)
 		{
 			log.error("error writing to: " + theDocFile);

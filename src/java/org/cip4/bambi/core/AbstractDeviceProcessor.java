@@ -601,6 +601,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 */
 	public void shutdown()
 	{
+		log.info("received shutdown event");
 		_doShutdown = true;
 		ThreadUtil.notifyAll(_myListener);
 		_parent._deviceProcessors.remove(this);

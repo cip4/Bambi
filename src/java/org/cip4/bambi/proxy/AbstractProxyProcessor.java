@@ -675,8 +675,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 		updateNISubscriptions(nodClone);
 		if (activation != null)
+		{
 			nodClone.setActivation(activation);
-
+		}
 		return nodClone;
 	}
 
@@ -699,10 +700,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			final VElement vJMF = ni == null ? null : ni.getChildrenByTagName(ElementName.JMF, null, null, false, false, -1, false);
 			if (vJMF != null)
 			{
-				final int sJMF = vJMF.size();
-				for (int j = 0; j < sJMF; j++)
+				for (KElement jmf : vJMF)
 				{
-					vJMF.get(j).deleteNode();
+					jmf.deleteNode();
 				}
 			}
 		}
@@ -762,10 +762,11 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		{
 			finalStatus = root == null ? EnumQueueEntryStatus.Aborted : EnumNodeStatus.getQueueEntryStatus(root.getPartStatus(null, -1));
 			if (finalStatus == null)
+			{
 				finalStatus = EnumQueueEntryStatus.Aborted;
+			}
 		}
 		finalizeProcessDoc(finalStatus);
-
 		return true;
 	}
 

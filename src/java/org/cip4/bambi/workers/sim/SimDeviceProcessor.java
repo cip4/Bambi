@@ -84,7 +84,6 @@ import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
-import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.JDFResourceLink.EnumUsage;
 import org.cip4.jdflib.core.KElement;
@@ -287,7 +286,10 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			{
 				randomErrors(phase);
 				if (!ThreadUtil.sleep(123))
+				{
+					shutdown();
 					break; // we hit a hard interrupt
+				}
 				final long t1 = System.currentTimeMillis();
 				deltaT = t1 - t0;
 				phase.setTimeToGo(phase.getTimeToGo() - deltaT);
@@ -306,21 +308,13 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		final VElement v = n.getResourceLinks(new JDFAttributeMap(AttributeName.USAGE, EnumUsage.Output));
 		if (v != null)
 		{
-			final int siz = v.size();
-			for (int i = 0; i < siz; i++)
+			for (KElement e : v)
 			{
-				final JDFResourceLink rl = (JDFResourceLink) v.elementAt(i);
-				try
+				final JDFResourceLink rl = (JDFResourceLink) e;
+				final double d = rl.getAmountPoolSumDouble(AttributeName.AMOUNT, vMap);
+				if (d >= 0)
 				{
-					final double d = rl.getAmountPoolSumDouble(AttributeName.AMOUNT, vMap);
-					if (d >= 0)
-					{
-						return rl;
-					}
-				}
-				catch (final JDFException e)
-				{
-					// nop
+					return rl;
 				}
 			}
 		}
@@ -370,6 +364,27 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			return bOK;
 		}
 
+		loadJob(node);
+		final boolean bOK = super.initializeProcessDoc(node, qe);
+		if (qe == null || node == null)
+		{
+			log.error("proccessing null job");
+			return false;
+		}
+		qe.setDeviceID(_parent.getDeviceID());
+		final String queueEntryID = qe.getQueueEntryID();
+		log.info("Processing queueentry " + queueEntryID);
+		prepareAmounts(node);
+		return bOK;
+	}
+
+	/**
+	 * 
+	 *  
+	 * @param node
+	 */
+	protected void loadJob(final JDFNode node)
+	{
 		JobLoader jobLoader = new JobLoader(this);
 		jobLoader.setNode(node);
 		List<JobPhase> jobPhases = jobLoader.loadJob();
@@ -383,16 +398,15 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			_jobPhases.clear();
 			_jobPhases.addAll(jobPhases);
 		}
-		final boolean bOK = super.initializeProcessDoc(node, qe);
-		if (qe == null || node == null)
-		{
-			log.error("proccessing null job");
-			return false;
-		}
-		qe.setDeviceID(_parent.getDeviceID());
-		final String queueEntryID = qe.getQueueEntryID();
-		log.info("Processing queueentry " + queueEntryID);
+	}
 
+	/**
+	 * 
+	 * 
+	 * @param node
+	 */
+	protected void prepareAmounts(final JDFNode node)
+	{
 		final VElement vResLinks = node.getResourceLinks(null);
 		if (vResLinks != null)
 		{
@@ -406,7 +420,6 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 				}
 			}
 		}
-		return bOK;
 	}
 
 	/**
