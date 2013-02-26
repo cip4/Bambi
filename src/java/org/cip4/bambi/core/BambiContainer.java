@@ -325,7 +325,7 @@ public final class BambiContainer extends BambiLogFactory
 			if (needController)
 			{
 				d = prop.getDeviceInstance();
-				if (!(d instanceof RootDevice))
+				if (d != null && !(d instanceof RootDevice))
 				{
 					log.info("Updating Root Device " + prop.getDeviceID());
 					d.shutdown();
