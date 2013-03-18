@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -70,7 +70,6 @@
  */
 package org.cip4.bambi.core.messaging;
 
-import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFSignal;
@@ -80,7 +79,7 @@ import org.cip4.jdflib.jmf.JDFSignal;
  * 
  * August 9, 2009
  */
-public class StatusSignalComparator extends BambiLogFactory
+public class StatusSignalComparator
 {
 	/**
 	 * 
@@ -103,7 +102,8 @@ public class StatusSignalComparator extends BambiLogFactory
 		}
 
 		// if we have a notification, this may contain one time information
-		boolean bAllSame = inSignal.getNotification() == null;
+		boolean bAllSame = sameNotifications(inSignal, last);
+
 		for (int i = 0; bAllSame; i++)
 		{
 			final JDFDeviceInfo di = inSignal.getDeviceInfo(i);
@@ -126,6 +126,18 @@ public class StatusSignalComparator extends BambiLogFactory
 		}
 
 		return bAllSame;
+	}
+
+	/**
+	 * 
+	 * check for any events that make this signal unique
+	 * @param inSignal
+	 * @param last 
+	 * @return
+	 */
+	protected boolean sameNotifications(final JDFSignal inSignal, final JDFSignal last)
+	{
+		return inSignal.getNotification() == null && last.getNotification() == null;
 	}
 
 	/**

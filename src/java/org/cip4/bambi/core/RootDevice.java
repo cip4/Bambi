@@ -111,7 +111,6 @@ import org.cip4.jdflib.util.StringUtil;
 public class RootDevice extends AbstractDevice
 {
 	protected HashMap<String, AbstractDevice> _devices = null;
-	private JMFFactory jmfFactory;
 
 	/**
 	 * 
@@ -498,10 +497,7 @@ public class RootDevice extends AbstractDevice
 			}
 			_devices.clear();
 		}
-		if (jmfFactory != null)
-		{
-			jmfFactory.shutDown(null, true);
-		}
+		JMFFactory.getJMFFactory().shutDown(null, true);
 		super.shutdown();
 	}
 
@@ -551,19 +547,6 @@ public class RootDevice extends AbstractDevice
 			return this;
 		}
 		return _devices.get(deviceID);
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#getJMFFactory()
-	 */
-	@Override
-	public JMFFactory getJMFFactory()
-	{
-		if (jmfFactory == null)
-		{
-			jmfFactory = new JMFFactory(getDeviceID());
-		}
-		return jmfFactory;
 	}
 
 	/**

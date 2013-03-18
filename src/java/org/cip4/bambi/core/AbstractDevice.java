@@ -1722,12 +1722,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public JMFFactory getJMFFactory()
 	{
-		final RootDevice rootDevice = getRootDevice();
-		if (rootDevice == null)
-		{
-			return JMFFactory.getJMFFactory();
-		}
-		return rootDevice.getJMFFactory();
+		return JMFFactory.getJMFFactory();
 	}
 
 	/**

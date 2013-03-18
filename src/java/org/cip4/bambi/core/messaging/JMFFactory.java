@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2008 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -89,9 +89,9 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
-import org.cip4.jdflib.util.thread.MyMutex;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * factory for creating JMF messages
@@ -511,5 +511,14 @@ public class JMFFactory extends BambiLogFactory
 			senders.remove(v.get(i));
 			log.info("removing idle message sender " + v.get(i).getCallURL().getBaseURL());
 		}
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		return "JMFFactory " + devID + " threads=" + nThreads;
 	}
 }

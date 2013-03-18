@@ -268,8 +268,9 @@ public class MessageDetails extends BambiLogFactory
 	 * 
 	 * @param messageList the parent list 
 	 * @param i
+	 * @param bXJDF 
 	 */
-	void appendToXML(final KElement messageList, final int i)
+	void appendToXML(final KElement messageList, final int i, boolean bXJDF)
 	{
 		final KElement message = messageList.appendElement("Message");
 		message.setAttribute(AttributeName.NAME, name);
@@ -288,7 +289,7 @@ public class MessageDetails extends BambiLogFactory
 			}
 			if (jmf != null)
 			{
-				final KElement makeNewJMF = displayJMF(jmf);
+				final KElement makeNewJMF = bXJDF ? displayJMF(jmf) : jmf;
 				message.copyElement(makeNewJMF, null);
 			}
 			else
@@ -309,7 +310,7 @@ public class MessageDetails extends BambiLogFactory
 				}
 				final JDFDoc jmfBP = MimeUtil.getJDFDoc(bp);
 				final JDFJMF _jmf = jmfBP == null ? null : jmfBP.getJMFRoot();
-				final KElement makeNewJMF = displayJMF(_jmf);
+				final KElement makeNewJMF = bXJDF ? displayJMF(_jmf) : _jmf;
 				message.copyElement(makeNewJMF, null);
 			}
 		}
@@ -326,7 +327,7 @@ public class MessageDetails extends BambiLogFactory
 	private KElement displayJMF(final JDFJMF _jmf)
 	{
 		final XJDF20 xjdf20 = new XJDF20();
-		xjdf20.bUpdateVersion = false;
+		xjdf20.setUpdateVersion(false);
 		final KElement makeNewJMF = xjdf20.makeNewJMF(_jmf);
 		return makeNewJMF;
 	}

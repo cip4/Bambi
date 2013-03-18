@@ -309,7 +309,7 @@ public final class SignalDispatcher extends BambiLogFactory
 				{
 					for (final MessageSender ms : v)
 					{
-						ms.appendToXML(root, false, pos);
+						ms.appendToXML(root, false, pos, true);
 					}
 				}
 			}
@@ -318,7 +318,7 @@ public final class SignalDispatcher extends BambiLogFactory
 				final MessageSender ms = device.getJMFFactory().getCreateMessageSender(url);
 				if (ms != null)
 				{
-					ms.appendToXML(root, false, pos);
+					ms.appendToXML(root, false, pos, true);
 				}
 				else
 				{
@@ -1000,7 +1000,7 @@ public final class SignalDispatcher extends BambiLogFactory
 						if (pos == sentArray.length - i)
 						{
 							final XJDF20 x2 = new XJDF20();
-							x2.bUpdateVersion = false;
+							x2.setUpdateVersion(false);
 
 							final KElement newJMF = message.copyElement(x2.makeNewJMF(sentArray[i]), null);
 							newJMF.setAttribute(AttributeName.TIMESTAMP, sentArray[i].getTimeStamp().getDateTimeISO());

@@ -148,6 +148,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	private final MyMutex mutexPause = new MyMutex();
 	private int trySend;
 	private int sent;
+	protected int checked;
 	protected int removedHeartbeat;
 	protected int removedFireForget;
 	protected int removedError;
@@ -260,12 +261,12 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		{
 			final JDFJMF jmf = old.getJMFRoot();
 			jmf.removeChild(old);
-			log.info("removed redundant " + old.getType() + " " + old.getLocalName() + " Message ID= " + old.getID());
+			log.info("removed redundant " + old.getType() + " " + old.getLocalName() + " Message ID= " + old.getID() + " Sender= " + old.getSenderID());
 			final VElement v = jmf.getMessageVector(null, null);
 			if (v.size() == 0)
 			{
 				removedHeartbeat++;
-				log.info("removed redundant jmf # " + removedHeartbeat + " ID: " + jmf.getID());
+				log.info("removed redundant jmf # " + removedHeartbeat + " ID: " + jmf.getID() + " total checked: " + checked);
 				_messages.remove(i);
 			}
 		}
@@ -284,6 +285,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		sent = 0;
 		removedHeartbeat = 0;
 		removedFireForget = 0;
+		checked = 0;
 
 		_messages = new Vector<MessageDetails>();
 		sentMessages = new FastFiFo<MessageDetails>(42);
@@ -355,9 +357,17 @@ public class MessageSender extends BambiLogFactory implements Runnable
 					log.info("Shutting down thread for base url: " + callURL.getBaseURL());
 				}
 				else
-				{ // stepwise increment - try every second 10 times, then every 15 seconds
-					final int wait = (SendReturn.error == sentFirstMessage && idle > 10 && !doShutDownGracefully && !doShutDown) ? 15000 : 1000;
-					ThreadUtil.wait(mutexDispatch, wait);
+				{ // stepwise increment - try every second 10 times, then every 15 seconds, then every 5 minutes
+					int minIdle = 10;
+					int wait = (SendReturn.error == sentFirstMessage && idle > minIdle && !doShutDownGracefully && !doShutDown) ? 15000 : 1000;
+					if (wait == 15000 && idle > minIdle)
+					{
+						wait *= (idle / minIdle);
+					}
+					if (!ThreadUtil.wait(mutexDispatch, wait))
+					{
+						shutDown(true);
+					}
 				}
 			}
 		}
@@ -399,7 +409,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			{
 				log.info("writing " + _messages.size() + " pending messages to: " + f.getAbsolutePath());
 			}
-			final KElement root = appendToXML(null, true, -1);
+			final KElement root = appendToXML(null, true, -1, false);
 			root.getOwnerDocument_KElement().write2File(f, 2, false);
 			_messages.clear();
 		}
@@ -577,9 +587,9 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			}
 			else
 			{
-				if (_messages.size() > 4242 && System.currentTimeMillis() - mesDetails.getCreated() > 1000 * 3600 * 24 * 7)
+				if (_messages.size() > 4242 && System.currentTimeMillis() - mesDetails.createTime > 1000 * 3600 * 24 * 7)
 				{
-					warn += " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.getCreated());
+					warn += " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.createTime) + " messages pending: " + _messages.size();
 				}
 				else
 				{
@@ -977,9 +987,10 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	 * @param root the parent into which I append myself, if null create a new document
 	 * @param writePendingMessages if true, write out the messages
 	 * @param posQueuedMessages
+	 * @param bXJDF 
 	 * @return the appended element
 	 */
-	public KElement appendToXML(final KElement root, final boolean writePendingMessages, final int posQueuedMessages)
+	public KElement appendToXML(final KElement root, final boolean writePendingMessages, final int posQueuedMessages, boolean bXJDF)
 	{
 
 		final KElement ms = root == null ? new XMLDoc("MessageSender", null).getRoot() : root.appendElement("MessageSender");
@@ -1011,7 +1022,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			{
 				for (int i = 0; i < _messages.size(); i++)
 				{
-					_messages.get(i).appendToXML(ms, i);
+					_messages.get(i).appendToXML(ms, i, bXJDF);
 				}
 			}
 			else if (posQueuedMessages == 0)
@@ -1021,14 +1032,14 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				{
 					for (int i = old.length - 1; i >= 0; i--)
 					{
-						old[i].appendToXML(ms, -1);
+						old[i].appendToXML(ms, -1, bXJDF);
 					}
 				}
 			}
 			else if (posQueuedMessages > 0)
 			{
 				final MessageDetails old = sentMessages.peek(sentMessages.getFill() - posQueuedMessages);
-				old.appendToXML(ms, posQueuedMessages);
+				old.appendToXML(ms, posQueuedMessages, bXJDF);
 			}
 		}
 		return ms;

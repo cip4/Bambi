@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -70,6 +70,8 @@ package org.cip4.bambi.messaging;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.messaging.StatusSignalComparator;
+import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceOperationMode;
+import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -78,6 +80,8 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.resource.JDFDevice;
+import org.cip4.jdflib.util.JDFDate;
 
 /**
   * @author Rainer Prosi, Heidelberger Druckmaschinen *
@@ -107,4 +111,46 @@ public class StatusSignalComparatorTest extends BambiTestCase
 		jp2.setStatus(EnumNodeStatus.Waiting);
 		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
 	}
+
+	/**
+	 * 
+	 */
+	public void testIsSameStatusSignalIdle()
+	{
+		JMFBuilder b = new JMFBuilder();
+		JDFJMF jmf = b.createJMF(EnumFamily.Signal, EnumType.Status);
+		JDFSignal signal = jmf.getSignal(0);
+		JDFDeviceInfo di1 = signal.getCreateDeviceInfo(0);
+		di1.setDeviceID("d1");
+		JDFJMF jmf2 = (JDFJMF) jmf.clone();
+		JDFSignal signal2 = jmf2.getSignal(0);
+		JDFDeviceInfo di2 = signal2.getCreateDeviceInfo(0);
+
+		assertTrue(di1.isSamePhase(di2, false));
+		JDFDate date = new JDFDate();
+		di1.setIdleStartTime(date);
+		di2.setIdleStartTime(date);
+		assertTrue(di1.isSamePhase(di2, false));
+		di1.setDeviceStatus(EnumDeviceStatus.Idle);
+		di2.setDeviceStatus(EnumDeviceStatus.Idle);
+		assertTrue(di1.isSamePhase(di2, false));
+		di1.setDeviceOperationMode(EnumDeviceOperationMode.Productive);
+		di2.setDeviceOperationMode(EnumDeviceOperationMode.Productive);
+		assertTrue(di1.isSamePhase(di2, false));
+		JDFDevice dev = di1.appendDevice();
+		dev.setDeviceID("d1");
+		dev.setDeviceType("foo");
+		di2.copyElement(dev, null);
+		assertTrue(di1.isSamePhase(di2, false));
+		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		JDFJobPhase jp = di1.appendJobPhase();
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		JDFJobPhase jp2 = di2.appendJobPhase();
+		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		jp.setStatus(EnumNodeStatus.Waiting);
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		jp2.setStatus(EnumNodeStatus.Waiting);
+		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+	}
+
 }
