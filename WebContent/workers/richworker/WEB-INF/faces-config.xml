@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<faces-config version="1.2" xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facesconfig_1_2.xsd">
+
+
+	<managed-bean>
+		<managed-bean-name>currentUserBean</managed-bean-name>
+		<managed-bean-class>org.cip4.bambi.richclient.web.CurrentUserBean</managed-bean-class>
+		<managed-bean-scope>session</managed-bean-scope>
+		<managed-property>
+			<property-name>devicesBean</property-name>
+			<value>#{devicesBean}</value>
+		</managed-property>
+	</managed-bean>
+	<managed-bean>
+		<managed-bean-name>devicesBean</managed-bean-name>
+		<managed-bean-class>org.cip4.bambi.richclient.web.DevicesBean</managed-bean-class>
+		<managed-bean-scope>session</managed-bean-scope>
+	</managed-bean>
+	<application>
+		<view-handler>com.sun.facelets.FaceletViewHandler</view-handler>
+		<locale-config>
+			<default-locale>en</default-locale>
+			<supported-locale>by</supported-locale>
+			<supported-locale>de</supported-locale>
+			<supported-locale>en</supported-locale>
+			<supported-locale>jp</supported-locale>
+			<supported-locale>se</supported-locale>
+			<supported-locale>nl</supported-locale>
+			<supported-locale>dk</supported-locale>
+			<supported-locale>no</supported-locale>
+			<supported-locale>fr</supported-locale>
+			<supported-locale>tr</supported-locale>
+			<supported-locale>pl</supported-locale>
+		</locale-config>
+		<resource-bundle>
+			<base-name>org.cip4.bambi.richclient.application</base-name>
+			<var>app</var>
+		</resource-bundle>
+	</application>
+</faces-config>
