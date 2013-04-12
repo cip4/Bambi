@@ -1,5 +1,0 @@
-Manifest-Version: 1.0
-Class-Path: org.cip4.bambi.workers.sim
-Bundle-Name: SimWorker
-Bundle-Vendor: CIP4
-
