@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<devices>
+  <device001 DeviceID="device001" DeviceType="test device 1" DeviceClass="org.cip4.bambi.devices.sim.SimDevice" 
+	DeviceURL="foo" ControllerURL="bar" />
+  <device002 DeviceID="device002" DeviceType="test device 1" DeviceClass="org.cip4.bambi.devices.sim.SimDevice" 
+	DeviceURL="foo" ControllerURL="bar" />
+</devices>

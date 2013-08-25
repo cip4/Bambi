@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Actions>
+<PhaseAction DescriptiveName="Load Job" NodeStatus="Setup" NodeStatusDetails="LoadJob" DeviceStatus="Setup" DeviceStatusDetails="LoadJob" Next="1 2 3"/>
+<PhaseAction DescriptiveName="Abort Job" NodeStatus="Aborted" NodeStatusDetails="Aborted by Operator" DeviceStatus="Idle" DeviceStatusDetails="Waiting" />
+<PhaseAction DescriptiveName="Pause Job"  NodeStatus="Stopped" NodeStatusDetails="Paused by Operator" DeviceStatus="Stopped" DeviceStatusDetails="Job Paused by Operator" Next="1 3 4"/>
+<PhaseAction DescriptiveName="Setup" NodeStatus="Setup" NodeStatusDetails="Setup" DeviceStatus="Setup" DeviceStatusDetails="Setup" Next="1 2 4"/>
+<PhaseAction DescriptiveName="Produce Good" NodeStatus="InProgress" NodeStatusDetails="Good" DeviceStatus="Running" DeviceStatusDetails="Good" Next="1 7 5 6"/>
+<PhaseAction DescriptiveName="Cleanup" NodeStatus="Cleanup" NodeStatusDetails="Cleanup" DeviceStatus="Cleanup" DeviceStatusDetails="Cleanup" Next="1 7 4 6"/>
+<PhaseAction DescriptiveName="Finish Job" NodeStatus="Completed" NodeStatusDetails="Completed Succesfully" DeviceStatus="Idle" DeviceStatusDetails="Idle"/>
+<PhaseAction DescriptiveName="Pause Job"  NodeStatus="Stopped" NodeStatusDetails="Paused by Operator" DeviceStatus="Stopped" DeviceStatusDetails="Job Paused by Operator" Next="1 3 4 5 6"/>
+
+</Actions>

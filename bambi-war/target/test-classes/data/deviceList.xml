@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/richworker/deviceList.xsl"?>
+<DeviceList Context="context" DeviceType="deviceType"
+	MemFree="1" MemTotal="2" NumRequests="3">
+	<XMLDevice Context="context" DeviceID="deviceId"
+		DeviceStatus="status" DeviceType="type" DeviceURL="deviceUrl" ErrorHF="errorHF"
+		InputHF="inputHF" NumRequests="1" OutputHF="outputHF" QueueCompleted="2"
+		QueueRunning="3" QueueStatus="queueStatus" QueueWaiting="4" Root="true"
+		modify="true" TypeExpression="typeExpression" WatchURL="watchUrl"
+		login="true">
+		<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
+			ProductID="productId" Roles="roles">
+			<Person DescriptiveName="descriptiveName" />
+		</Employee>
+		<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
+			ProductID="E3" Roles="Operator">
+			<Person DescriptiveName="John Doe" />
+		</Employee>
+		<KnownEmployees>
+			<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
+				ProductID="E2" Roles="Operator">
+				<Person DescriptiveName="Harry II" />
+			</Employee>
+			<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
+				ProductID="E4" Roles="Operator">
+				<Person DescriptiveName="Fool Hardy" />
+			</Employee>
+			<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
+				ProductID="E5" Roles="Operator">
+				<Person DescriptiveName="Edgar" />
+			</Employee>
+		</KnownEmployees>
+	</XMLDevice>
+	<XMLDevice Context="/richworker" DeviceID="SimWorkerRoot"
+		DeviceStatus="Idle" DeviceType="Bambi Sim Device Root"
+		DeviceURL="http://127.0.1.1:8080/richworker/jmf/SimWorkerRoot"
+		NumRequests="2" QueueCompleted="0" QueueRunning="0" QueueStatus="Waiting"
+		QueueWaiting="0" Root="true" modify="false">
+		<KnownEmployees>
+			<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
+				ProductID="E1" Roles="Operator">
+				<Person DescriptiveName="Joe Cool" />
+			</Employee>
+			<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
+				ProductID="E2" Roles="Operator">
+				<Person DescriptiveName="Harry II" />
+			</Employee>
+			<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
+				ProductID="E3" Roles="Operator">
+				<Person DescriptiveName="John Doe" />
+			</Employee>
+			<Employee xmlns="http://www.CIP4.org/JDFSchema_1_1"
+				ProductID="E4" Roles="Operator">
+				<Person DescriptiveName="Fool Hardy" />
+			</Employee>
+		</KnownEmployees>
+	</XMLDevice>
+	<XMLDevice Context="/richworker" DeviceID="sim001"
+		DeviceStatus="Idle" DeviceType="Bambi Simulation HotFolder Device 001"
+		DeviceURL="http://127.0.1.1:8080/richworker/jmf/sim001" ErrorHF="/var/tmp/bambi/sim001/Error"
+		InputHF="/var/tmp/bambi/sim001/Input" NumRequests="0"
+		OutputHF="/var/tmp/bambi/sim001/Output" QueueCompleted="0"
+		QueueRunning="0" QueueStatus="Waiting" QueueWaiting="0" Root="false"
+		modify="false" />
+	<XMLDevice Context="/richworker" DeviceID="sim002"
+		DeviceStatus="Idle" DeviceType="Bambi Simulation HotFolder Device 002"
+		DeviceURL="http://127.0.1.1:8080/richworker/jmf/sim002" ErrorHF="/var/tmp/bambi/sim002/Error"
+		InputHF="/var/tmp/bambi/sim002/Input" NumRequests="0"
+		OutputHF="/var/tmp/bambi/sim002/Output" QueueCompleted="20"
+		QueueRunning="1" QueueStatus="Held" QueueWaiting="303" Root="false"
+		modify="false" />
+	<XMLDevice Context="/richworker" DeviceID="sim003"
+		DeviceStatus="Idle" DeviceType="Bambi Pull Simulation Device 003"
+		DeviceURL="http://127.0.1.1:8080/richworker/jmf/sim003" ErrorHF="/var/tmp/bambi/sim003/Error"
+		InputHF="/var/tmp/bambi/sim003/Input" NumRequests="0"
+		OutputHF="/var/tmp/bambi/sim003/Output" QueueCompleted="0"
+		QueueRunning="1" QueueStatus="Held" QueueWaiting="369" Root="false"
+		modify="false" />
+</DeviceList>

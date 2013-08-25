@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <!--
+    Each Device specifies one logical device with Queue, Processor(s) etc. TrackResource: the individual resource used
+    for calculating amounts in phase jmfs "percent" is a special token for non-countable resources, e.g. a RIP
+    AmountResources: Other resources that have amounts and may be set ProxyURL: URL of a device that reacts to
+    requestQueueEntry DeviceURL: URL of this TypeExpression: regExp for retrieving the correct node based on Types
+    InputHF: hot folder thatr accepts jdf tickets OutputHF: folder where successfully completed jobs are placed ErrorHF:
+    folder where unsuccessfuly completed jobs are placed
+  -->
+    <!--
+    Each Device specifies one logical device with Queue, Processor(s) etc. 
+    TrackResource: the individual resource used for calculating amounts in phase jmfs
+    AmountResources: Other resources that have amounts and may be set 
+    
+    ProxyURL: URL of a device that reacts to requestQueueEntry 
+    
+    DeviceURL: URL of this device
+    
+    TypeExpression: regExp for retrieving the correct node based on Types 
+    
+    InputHF: hot folder that accepts jdf tickets 
+    
+    OutputHF: folder where successfully completed jobs are placed 
+    
+    ErrorHF: folder where unsuccessfully completed jobs are placed 
+    
+    SlaveMIMETransferEncoding="base64" 
+    SlaveHTTPChunk="0"
+    SlaveMimePackaging="false"
+  -->
+  
+<application 
+BaseDir="/var/bambi/console/" 
+SenderID="ConsoleDevice" 
+Port="8080" 
+JettyPort="44482"
+Context="console"
+CallBackName="org.cip4.bambi.extensions.ExtensionCallback" 
+WatchURL="http://localhost:8080/httpdump/WatchURL/console">
+  <Device DeviceID="ConsoleRoot" DeviceType="Bambi Console Device Root"/>
+  <Device DeviceID="console001" DeviceType="Bambi Console HotFolder Device 001" 
+  DeviceClass="org.cip4.bambi.workers.console.ConsoleDevice" 
+  TrackResource="Component:Output"
+    InputHF="C:/BambiHF/console001/Input" 
+    OutputHF="C:/BambiHF/console001/Output" 
+    ErrorHF="C:/BambiHF/console001/Error"/>
+ 
+ 
+</application>
