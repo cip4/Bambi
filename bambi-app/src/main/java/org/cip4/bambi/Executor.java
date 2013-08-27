@@ -149,7 +149,7 @@ public class Executor {
 	 * Configure Bambi Application
 	 */
 	private static void configApp() {
-		String input;
+		String input = "";
 		String inputConfirm;
 		Scanner scanner = new Scanner(System.in);
 
@@ -169,7 +169,9 @@ public class Executor {
 
 			// context
 			System.out.print("        Context Path [" + paramContext + "]: ");
+
 			input = scanner.nextLine();
+
 			if (!input.equals("")) {
 				paramContext = input;
 			}
@@ -266,7 +268,7 @@ public class Executor {
 		System.out.println("    Version: " + version + "." + buildnumber + " (" + release + ")");
 		System.out.println("");
 		System.out.println("    Authors: Dr. Rainer Prosi (Heidelberger Druckmaschinen AG)");
-		System.out.println("             Stefan Meissner (Saxoprint GmbH)");
+		System.out.println("             Stefan Meissner (flyeralarm GmbH)");
 		System.out.println("             Niels Boeger");
 		System.out.println("");
 	}
@@ -278,7 +280,7 @@ public class Executor {
 
 		int latestBuildNumber = -1;
 		int currentBuildNumber;
-		
+
 		try {
 			currentBuildNumber = VERSION_CONFIG.getInt("buildnumber");
 		} catch (Exception e) {
@@ -286,7 +288,7 @@ public class Executor {
 			System.out.println("");
 			System.out.println("    --> !!! UNKNOWN VERSION NUMBER !!! <--");
 			System.out.println("");
-			
+
 			// leave update checker
 			return;
 		}

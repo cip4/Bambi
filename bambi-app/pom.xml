@@ -24,10 +24,6 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<version>2.3</version>
 				<executions>
@@ -55,96 +51,30 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>com.google.code.maven-replacer-plugin</groupId>
-				<artifactId>maven-replacer-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>replace</goal>
-						</goals>
-					</execution>
-				</executions>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3</version>
 				<configuration>
-					<file>target/classes/version.properties</file>
-					<replacements>
-						<replacement>
-							<token>PARAM_VERSION</token>
-							<value>${project.version}</value>
-						</replacement>
-						<replacement>
-							<token>PARAM_BUILD_NUMBER</token>
-							<value>${buildNumber}</value>
-						</replacement>
-						<replacement>
-							<token>PARAM_RELEASE</token>
-							<value>${maven.build.timestamp}</value>
-						</replacement>
-					</replacements>
+					<source>1.6</source>
+					<target>1.6</target>
 				</configuration>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2.1</version>
+				<version>2.4</version>
 				<executions>
 					<execution>
-						<id>assembly</id>
+						<id>attached</id>
 						<phase>package</phase>
 						<goals>
 							<goal>attached</goal>
 						</goals>
 						<configuration>
 							<descriptors>
-								<descriptor>src/main/assemble/assembly-zip.xml</descriptor>
-								<descriptor>src/main/assemble/assembly-jar.xml</descriptor>
+								<descriptor>src/main/assemble/binaries/assembly-jar.xml</descriptor>
+								<descriptor>src/main/assemble/binaries/assembly-package.xml</descriptor>
 							</descriptors>
-							<archive>
-								<manifest>
-									<mainClass>org.cip4.bambi.Executor</mainClass>
-								</manifest>
-							</archive>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.bluestemsoftware.open.maven.plugin</groupId>
-				<artifactId>launch4j-plugin</artifactId>
-				<version>1.5.0.0</version>
-				<executions>
-					<execution>
-						<id>l4j-clui</id>
-						<phase>package</phase>
-						<goals>
-							<goal>launch4j</goal>
-						</goals>
-						<configuration>
-							<headerType>console</headerType>
-							<outfile>target/${bambi.name}-app.exe</outfile>
-							<jar>target/${bambi.name}-app.jar</jar>
-							<errTitle>encc</errTitle>
-							<icon>src/main/assemble/bambi.ico</icon>
-							<classPath>
-								<mainClass>org.cip4.bambi.Executor</mainClass>
-								<addDependencies>true</addDependencies>
-								<preCp>anything</preCp>
-							</classPath>
-							<jre>
-								<minVersion>1.5.0</minVersion>
-							</jre>
-							<versionInfo>
-								<fileVersion>2.1.0.0</fileVersion>
-								<txtFileVersion>2.1-SNAPSHOT</txtFileVersion>
-								<fileDescription>Bambi 2 - JDF Device Simulator</fileDescription>
-								<copyright>CIP4</copyright>
-								<productVersion>2.1.0.0</productVersion>
-								<txtProductVersion>2.1-SNAPSHOT</txtProductVersion>
-								<productName>Bambi 2</productName>
-								<internalName>bambi-2</internalName>
-								<originalFilename>bambi-2.exe</originalFilename>
-							</versionInfo>
 						</configuration>
 					</execution>
 				</executions>
@@ -156,9 +86,7 @@
 			<groupId>org.cip4.tools.bambi.war</groupId>
 			<artifactId>bambi-war</artifactId>
 			<type>war</type>
-			<scope>provided</scope>
 		</dependency>
-		
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
@@ -180,22 +108,54 @@
 			<version>2.1.v20100127</version>
 		</dependency>
 		<dependency>
-		    <groupId>commons-configuration</groupId>
-		    <artifactId>commons-configuration</artifactId>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 		</dependency>
-
 		<dependency>
-				<groupId>javax.servlet</groupId>
-				<artifactId>servlet-api</artifactId>
-				<scope>compile</scope>
-			</dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
 	</dependencies>
+	<profiles>
+	<profile>
+			<id>macos</id>
+			<activation>
+				<os>
+					<family>mac</family>
+				</os>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>osxappbundle-maven-plugin</artifactId>
+						<version>1.0-alpha-2</version>
+						<configuration>
+							<mainClass>org.cip4.bambi.Executor</mainClass>
+							<iconFile>${basedir}/src/main/assemble/macosx/bambi.icns</iconFile>
+							<javaApplicationStub>${basedir}/src/main/assemble/macosx/JavaApplicationStub</javaApplicationStub>
+							<dictionaryFile>${basedir}/src/main/assemble/macosx/Info.plist.template</dictionaryFile>
+						</configuration>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>bundle</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
