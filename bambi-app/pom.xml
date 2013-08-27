@@ -126,7 +126,61 @@
 		</dependency>
 	</dependencies>
 	<profiles>
-	<profile>
+		<profile>
+			<id>windows</id>
+			<activation>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.akathist.maven.plugins.launch4j</groupId>
+						<artifactId>launch4j-maven-plugin</artifactId>
+						<version>1.5.2</version>
+						<executions>
+							<execution>
+								<id>l4j-gui</id>
+								<phase>package</phase>
+								<goals>
+									<goal>launch4j</goal>
+								</goals>
+								<configuration>
+									<headerType>gui</headerType>
+									<outfile>target/${project.build.finalName}.exe</outfile>
+									<jar>target/${project.build.finalName}-app.jar</jar>
+									<errTitle>encc</errTitle>
+									<icon>src/main/assemble/windows/bambi.ico</icon>
+									<classPath>
+										<mainClass>org.cip4.bambi.Executor</mainClass>
+										<addDependencies>true</addDependencies>
+										<preCp>anything</preCp>
+									</classPath>
+									<jre>
+										<minVersion>1.5.0</minVersion>
+										<initialHeapSize>96</initialHeapSize>
+										<maxHeapSize>1024</maxHeapSize>
+									</jre>
+									<versionInfo>
+										<fileVersion>1.0.0.0</fileVersion>
+										<txtFileVersion>1.0</txtFileVersion>
+										<fileDescription>CIP4 ${project.build.finalName}</fileDescription>
+										<copyright>CIP4</copyright>
+										<productVersion>1.0.0.0</productVersion>
+										<txtProductVersion>1.0</txtProductVersion>
+										<productName>${project.build.finalName}</productName>
+										<internalName>${project.build.finalName}</internalName>
+										<originalFilename>${project.build.finalName}.exe</originalFilename>
+									</versionInfo>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
 			<id>macos</id>
 			<activation>
 				<os>
