@@ -12,7 +12,7 @@
 		<version>2.2-SNAPSHOT</version>
 	</parent>
 
-	<name>bambi-app</name>
+	<name>BambiApp</name>
 	<url>http://www.cip4.org</url>
 
 	<properties>
