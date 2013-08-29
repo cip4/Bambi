@@ -102,6 +102,10 @@ import org.eclipse.jetty.webapp.WebAppContext;
 public class Executor {
 
 	private final static String UPDATE_URL = "http://apps.jdf4you.org/update.php?appId=bambi-app";
+	
+	private final static String RES_BAMBI_WAR = "/org/cip4/bambi/bambi.war";
+	
+	private final static String RES_VERSION = "/org/cip4/bambi/version.properties";
 
 	private final static Configuration VERSION_CONFIG = initVersionConfig();
 
@@ -115,10 +119,21 @@ public class Executor {
 	 */
 	private static Configuration initVersionConfig() {
 		Configuration result = null;
+		
+		InputStream is = Executor.class.getResourceAsStream(RES_VERSION);
+		
 
 		try {
-			result = new PropertiesConfiguration("version.properties");
-		} catch (ConfigurationException e) {
+			File fileVersion = File.createTempFile("bambi-app-verison", ".properties");
+			fileVersion.deleteOnExit();
+			
+			FileOutputStream fos = new FileOutputStream(fileVersion);
+			IOUtils.copy(is, fos);
+			fos.close();
+			is.close();
+			
+			result = new PropertiesConfiguration(fileVersion);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
@@ -214,7 +229,7 @@ public class Executor {
 		server.setConnectors(new Connector[] { connector });
 
 		// war path
-		InputStream is = Executor.class.getResourceAsStream("/bambi.war");
+		InputStream is = Executor.class.getResourceAsStream(RES_BAMBI_WAR);
 
 		String warPath = FileUtils.getTempDirectoryPath() + "/bambi.tmp.war";
 		File file = new File(warPath);
