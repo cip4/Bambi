@@ -70,7 +70,7 @@
 				<configuration>
 					<programs>
 						<program>
-							<mainClass>org.cip4.bambi.Executor</mainClass>
+							<mainClass>org.cip4.bambi.ExecutorForm</mainClass>
 							<name>${project.build.finalName}</name>
 						</program>
 					</programs>
@@ -177,7 +177,7 @@
 									</descriptorRefs>
 									<archive>
 										<manifest>
-											<mainClass>org.cip4.bambi.Executor</mainClass>
+											<mainClass>org.cip4.bambi.ExecutorForm</mainClass>
 										</manifest>
 									</archive>
 								</configuration>
@@ -202,7 +202,7 @@
 									<errTitle>encc</errTitle>
 									<icon>src/main/assemble/windows/bambi.ico</icon>
 									<classPath>
-										<mainClass>org.cip4.bambi.Executor</mainClass>
+										<mainClass>org.cip4.bambi.ExecutorForm</mainClass>
 										<addDependencies>true</addDependencies>
 										<preCp>anything</preCp>
 									</classPath>
