@@ -70,6 +70,7 @@ package org.cip4.bambi;
 
 import java.awt.Desktop;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -89,7 +90,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -100,7 +103,7 @@ import org.eclipse.jetty.server.bio.SocketConnector;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 /**
- * TODO Please insert comment!
+ * Business Logic of Bambi Application.
  * @author stefanmeissner
  * @date 29.08.2013
  */
@@ -110,21 +113,39 @@ public class ExecutorForm {
 
 	private final static String RES_VERSION = "/org/cip4/bambi/version.properties";
 
-	private static String paramContext = "bambi";
-
-	private static int paramPort = 8080;
-
 	private JFrame frmCipBambiapp;
 
 	private JTextArea textArea;
 
 	private Server server;
 
+	private JTextField txtPort;
+
+	private JTextField txtContext;
+
+	private Thread bambiThread;
+
+	private JButton btnStop;
+
+	private JButton btnStart;
+
+	private JButton btnOpen;
+
 	/**
 	 * Entry point application.
 	 * @param args
+	 * @throws UnsupportedLookAndFeelException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws ClassNotFoundException
 	 */
 	public static void main(String[] args) {
+
+		// set system properties
+		System.setProperty("apple.laf.useScreenMenuBar", "true");
+		System.setProperty("com.apple.mrj.application.apple.menu.about.name", "BambiApp");
+
+		// start application
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -157,10 +178,10 @@ public class ExecutorForm {
 	private void initialize() {
 		frmCipBambiapp = new JFrame();
 		frmCipBambiapp.setTitle("CIP4 BambiApp");
-		frmCipBambiapp.setBounds(100, 100, 546, 436);
+		frmCipBambiapp.setBounds(100, 100, 597, 409);
 		frmCipBambiapp.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		JButton btnStart = new JButton("Start Bambi");
+		btnStart = new JButton("Start Bambi");
 		btnStart.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
@@ -169,17 +190,20 @@ public class ExecutorForm {
 		});
 
 		JLabel lblBambiapp = new JLabel("BambiApp");
+		lblBambiapp.setFont(new Font("SansSerif", Font.BOLD | Font.ITALIC, 20));
 
 		textArea = new JTextArea();
 
-		JButton btnStop = new JButton("Stop Bambi");
+		btnStop = new JButton("Stop Bambi");
+		btnStop.setEnabled(false);
 		btnStop.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				stopBambiApp();
 			}
 		});
 
-		JButton btnOpen = new JButton("Open");
+		btnOpen = new JButton("Open URL");
+		btnOpen.setEnabled(false);
 		btnOpen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				openUrl();
@@ -188,6 +212,21 @@ public class ExecutorForm {
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setViewportView(textArea);
 
+		txtPort = new JTextField();
+		txtPort.setText("8080");
+		txtPort.setColumns(10);
+
+		JLabel lblUrl = new JLabel("http://localhost:");
+
+		txtContext = new JTextField();
+		txtContext.setText("bambi");
+		txtContext.setColumns(10);
+
+		JLabel lblContext = new JLabel("/");
+
+		JLabel lblUrlBambi = new JLabel("URL Bambi:");
+		lblUrlBambi.setFont(new Font("SansSerif", Font.BOLD, 12));
+
 		GroupLayout groupLayout = new GroupLayout(frmCipBambiapp.getContentPane());
 		groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
 				groupLayout
@@ -195,23 +234,40 @@ public class ExecutorForm {
 						.addGroup(
 								groupLayout
 										.createParallelGroup(Alignment.LEADING)
-										.addGroup(groupLayout.createSequentialGroup().addContainerGap().addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE))
 										.addGroup(
 												groupLayout
 														.createSequentialGroup()
-														.addGap(147)
+														.addGap(133)
 														.addGroup(
 																groupLayout
 																		.createParallelGroup(Alignment.LEADING)
-																		.addComponent(lblBambiapp)
+																		.addComponent(lblUrlBambi)
 																		.addGroup(
-																				groupLayout.createSequentialGroup().addComponent(btnStart).addPreferredGap(ComponentPlacement.RELATED)
-																						.addComponent(btnStop).addPreferredGap(ComponentPlacement.RELATED).addComponent(btnOpen))).addGap(65)))
-						.addContainerGap()));
+																				groupLayout.createSequentialGroup().addComponent(lblUrl).addPreferredGap(ComponentPlacement.RELATED)
+																						.addComponent(txtPort, GroupLayout.PREFERRED_SIZE, 48, GroupLayout.PREFERRED_SIZE)
+																						.addPreferredGap(ComponentPlacement.RELATED).addComponent(lblContext)
+																						.addPreferredGap(ComponentPlacement.RELATED)
+																						.addComponent(txtContext, GroupLayout.PREFERRED_SIZE, 91, GroupLayout.PREFERRED_SIZE).addGap(6)
+																						.addComponent(btnOpen))
+																		.addComponent(lblBambiapp, GroupLayout.PREFERRED_SIZE, 113, GroupLayout.PREFERRED_SIZE)
+																		.addGroup(
+																				groupLayout.createSequentialGroup().addComponent(btnStart).addPreferredGap(ComponentPlacement.UNRELATED)
+																						.addComponent(btnStop))))
+										.addGroup(groupLayout.createSequentialGroup().addContainerGap().addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 585, Short.MAX_VALUE))).addContainerGap()));
 		groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
-				groupLayout.createSequentialGroup().addGap(49).addComponent(lblBambiapp).addGap(27)
-						.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(btnStart).addComponent(btnStop).addComponent(btnOpen)).addPreferredGap(ComponentPlacement.UNRELATED)
-						.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 278, Short.MAX_VALUE).addContainerGap()));
+				groupLayout
+						.createSequentialGroup()
+						.addGap(15)
+						.addComponent(lblBambiapp)
+						.addGap(18)
+						.addComponent(lblUrlBambi)
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(
+								groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblUrl)
+										.addComponent(txtPort, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addComponent(lblContext)
+										.addComponent(txtContext, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addComponent(btnOpen))
+						.addPreferredGap(ComponentPlacement.RELATED).addGroup(groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(btnStart).addComponent(btnStop))
+						.addPreferredGap(ComponentPlacement.UNRELATED).addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE).addContainerGap()));
 		frmCipBambiapp.getContentPane().setLayout(groupLayout);
 	}
 
@@ -221,10 +277,29 @@ public class ExecutorForm {
 	 */
 	private void startBambiApp() {
 
+		final int port = Integer.parseInt(txtPort.getText());
+		final String context = txtContext.getText();
+
+		btnStart.setEnabled(false);
+		btnStop.setEnabled(true);
+		btnOpen.setEnabled(true);
+		txtContext.setEnabled(false);
+		txtPort.setEnabled(false);
+
+		bambiThread = new Thread() {
+			public void run() {
+				startServer(port, context);
+			}
+		};
+		bambiThread.start();
+
+	}
+
+	/**
+	 * Start Jetty Server.
+	 */
+	private void startServer(int port, String context) {
 		// text output console
-		System.out.println("");
-		System.out.println("----------------------------------------------------------------------------");
-		System.out.println("");
 		System.out.println("Start Bambi....");
 		System.out.println("");
 
@@ -234,11 +309,11 @@ public class ExecutorForm {
 		// Set some timeout options to make debugging easier.
 		connector.setMaxIdleTime(1000 * 60 * 60);
 		connector.setSoLingerTime(-1);
-		connector.setPort(paramPort);
+		connector.setPort(port);
 		server.setConnectors(new Connector[] { connector });
 
 		// war path
-		InputStream is = Executor.class.getResourceAsStream(RES_BAMBI_WAR);
+		InputStream is = ExecutorForm.class.getResourceAsStream(RES_BAMBI_WAR);
 
 		String warPath = FileUtils.getTempDirectoryPath() + "/bambi.tmp.war";
 		File file = new File(warPath);
@@ -257,17 +332,14 @@ public class ExecutorForm {
 		HashLoginService loginService = new HashLoginService();
 		loginService.setName("test");
 
-		WebAppContext context = new WebAppContext();
-		context.setContextPath("/" + paramContext);
-		context.setWar(warPath);
-		context.getSecurityHandler().setLoginService(loginService);
-		server.setHandler(context);
+		WebAppContext ctx = new WebAppContext();
+		ctx.setContextPath("/" + context);
+		ctx.setWar(warPath);
+		ctx.getSecurityHandler().setLoginService(loginService);
+		server.setHandler(ctx);
 
 		try {
 			server.start();
-			// System.in.read();
-			// server.stop();
-			// server.join();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(100);
@@ -278,23 +350,42 @@ public class ExecutorForm {
 	 * Stop Bambi Appication.
 	 */
 	private void stopBambiApp() {
-		try {
-			server.stop();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+
+		btnStart.setEnabled(true);
+		btnStop.setEnabled(false);
+		btnOpen.setEnabled(false);
+		txtContext.setEnabled(true);
+		txtPort.setEnabled(true);
+
+		// stop bambi
+		Thread t = new Thread() {
+			public void run() {
+				try {
+					server.stop();
+					bambiThread.interrupt();
+					System.out.println("Bambi Server has stopped.....");
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		t.start();
 	}
 
 	/**
-	 * Open bambi in browser.
+	 * Open URL in web browser, if supported.
 	 */
 	private void openUrl() {
 		if (Desktop.isDesktopSupported()) {
 			try {
-				Desktop.getDesktop().browse(new URI("http://localhost:8080/bambi"));
-			} catch (Exception e) { /* TODO: error handling */
+
+				String url = String.format("http://localhost:%s/%s", txtPort.getText(), txtContext.getText());
+
+				Desktop.getDesktop().browse(new URI(url));
+			} catch (Exception e) {
 			}
-		} else { /* TODO: error handling */
+		} else {
 		}
 	}
 }
