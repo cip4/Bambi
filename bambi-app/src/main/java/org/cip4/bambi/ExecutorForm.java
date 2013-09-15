@@ -340,6 +340,7 @@ public class ExecutorForm {
 
 		try {
 			server.start();
+			System.out.println("System started...");
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(100);
