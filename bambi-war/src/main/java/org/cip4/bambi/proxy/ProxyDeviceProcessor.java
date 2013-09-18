@@ -138,7 +138,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		return false;
 	}
 
-	private static final long serialVersionUID = -384123582645081254L;
 	private final NotificationQueryHandler notificationQueryHandler;
 	protected long stopTime; // this is the stop-processing time 0 means I'm alive
 

@@ -285,17 +285,18 @@ public class JMFFactory extends BambiLogFactory
 	 * @param handler
 	 * @param callback
 	 * @param senderID the senderID of the caller
+	 * @return true if successfully queued
 	 */
-	public void send2URL(final JDFJMF jmf, final String url, final IResponseHandler handler, final IConverterCallback callback, final String senderID)
+	public boolean send2URL(final JDFJMF jmf, final String url, final IResponseHandler handler, final IConverterCallback callback, final String senderID)
 	{
 		if (shutdown)
 		{
-			return;
+			return false;
 		}
 		if (jmf == null || url == null)
 		{
 			log.error("failed to send JDFMessage, message and/or URL is null");
-			return;
+			return false;
 		}
 
 		final MessageSender ms = getCreateMessageSender(url);
@@ -303,7 +304,7 @@ public class JMFFactory extends BambiLogFactory
 		{
 			jmf.setSenderID(senderID);
 		}
-		ms.queueMessage(jmf, handler, url, callback);
+		return ms.queueMessage(jmf, handler, url, callback);
 	}
 
 	/**

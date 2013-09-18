@@ -488,7 +488,8 @@ public class ProxyDevice extends AbstractProxyDevice
 			{
 				return false;
 			}
-			log.debug("Handling " + m.getType());
+			if (log.isDebugEnabled())
+				log.debug("Handling " + m.getType());
 			final JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
 			if (retQEParams == null)
 			{
@@ -496,7 +497,7 @@ public class ProxyDevice extends AbstractProxyDevice
 				return true;
 			}
 			final String slaveQueueEntryID = StringUtil.getNonEmpty(retQEParams.getQueueEntryID());
-
+			log.info("Handling ReturnQueueEntry: " + slaveQueueEntryID);
 			JDFDoc theDoc = retQEParams.getURLDoc();
 			if (_slaveCallback != null)
 			{

@@ -153,7 +153,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * 
- * @author rainer
+ * @author rainer prosi
  * 
  * 
  */
@@ -1239,13 +1239,14 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				root = cloneQueue();
 				root.setAttribute("filter", filter);
-				filter = "(.)*" + filter + "(.)*";
+				if (!"*".equals(StringUtil.leftStr(filter, 1)))
+					filter = "*" + filter;
+				if (!"*".equals(StringUtil.rightStr(filter, 1)))
+					filter += "*";
 				final VElement v = root.getChildElementVector(ElementName.QUEUEENTRY, null);
-				final String lowFilter = filter.toLowerCase();
-				for (int i = 0; i < v.size(); i++)
+				for (KElement e : v)
 				{
-					final KElement e = v.get(i);
-					if (!e.toDisplayXML(0).toLowerCase().matches(lowFilter))
+					if (!StringUtil.matchesIgnoreCase(e.toDisplayXML(0), filter))
 					{
 						e.deleteNode();
 					}
@@ -1474,10 +1475,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	private RollingBackupFile _queueFile = null;
-	private static final long serialVersionUID = -876551736245089033L;
 	String nextinvert = null;
 	String lastSortBy = null;
-	// protected KElement lastQueue = null;
 
 	/**
 	 */
@@ -1573,7 +1572,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		startupParent(deviceID);
-
 	}
 
 	/**
@@ -1632,7 +1630,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			_theQueue = (JDFQueue) d.getRoot();
 			_theQueue.setQueueStatus(EnumQueueStatus.Waiting);
 			setQueueProperties(deviceID);
-
 		}
 		removeOrphanJDFs();
 	}
@@ -1773,10 +1770,35 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
+	 * @param qeID
+	 * @param waitForDoc if true, return null if no doc exists
+	 * @return an IQueueEntry that corresponds to the qe, null if none is there
+	 */
+	public IQueueEntry getIQueueEntry(final String qeID, boolean waitForDoc)
+	{
+		JDFQueueEntry qe = getQueue().getQueueEntry(qeID);
+		if (qe == null || waitForDoc && BambiNSExtension.getDocURL(qe) == null)
+			return null;
+		else
+		{
+			return getIQueueEntry(qe, waitForDoc);
+		}
+	}
+
+	/**
 	 * @param qe
 	 * @return an IQueueEntry that corresponds to the qe, null if none is there
 	 */
 	public IQueueEntry getIQueueEntry(final JDFQueueEntry qe)
+	{
+		return getIQueueEntry(qe, false);
+	}
+
+	/**
+	 * @param qe
+	 * @return an IQueueEntry that corresponds to the qe, null if none is there
+	 */
+	IQueueEntry getIQueueEntry(final JDFQueueEntry qe, boolean waitForDoc)
 	{
 		if (qe == null)
 		{
@@ -1791,10 +1813,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		if (theDoc == null)
 		{
-			log.error("QueueProcessor in thread '" + Thread.currentThread().getName() + "' is unable to load the JDFDoc from '" + docURL + "'");
-			final String proxyFlag = BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL);
-			qe.setAttribute(proxyFlag, null);
-			updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+			if (!waitForDoc)
+			{
+				log.error("QueueProcessor in thread '" + Thread.currentThread().getName() + "' is unable to load the JDFDoc from '" + docURL + "'");
+				final String proxyFlag = BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL);
+				qe.setAttribute(proxyFlag, null);
+				updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+			}
 			return null;
 		}
 
@@ -1940,18 +1965,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		newQEReal.copyInto(newQE, false);
 		queueMap.addEntry(newQEReal, true);
 
-		final String theDocFile = _parentDevice.getJDFStorage(newQEID);
-		final boolean ok;
-		synchronized (mutexMap.getCreate(newQEID))
-		{
-			ok = theJDF.write2File(theDocFile, 0, true);
-		}
-		if (!ok)
-		{
-			log.error("error writing to: " + theDocFile);
-		}
-		BambiNSExtension.setDocURL(newQEReal, theDocFile);
-		BambiNSExtension.setDocModified(newQEReal, System.currentTimeMillis());
+		boolean ok = storeJDF(theJDF, newQEID);
 		if (!KElement.isWildCard(returnJMF))
 		{
 			BambiNSExtension.setReturnJMF(newQEReal, returnJMF);
@@ -1961,6 +1975,32 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			BambiNSExtension.setReturnURL(newQEReal, returnURL);
 		}
 
+		return ok;
+	}
+
+	/**
+	 * 
+	 * store the JDF again
+	 * @param theJDF
+	 * @param newQEID
+	 * @return
+	 */
+	public boolean storeJDF(final JDFDoc theJDF, final String newQEID)
+	{
+		boolean ok;
+		final JDFQueueEntry newQEReal = _theQueue.getQueueEntry(newQEID); // the "actual" entry in the queue
+		synchronized (mutexMap.getCreate(newQEID))
+		{
+			final String theDocFile = _parentDevice.getJDFStorage(newQEID);
+			ok = theJDF.write2File(theDocFile, 0, true);
+			if (!ok)
+			{
+				log.error("error writing to: " + theDocFile);
+			}
+		}
+		final String theDocFile = _parentDevice.getJDFStorage(newQEID);
+		BambiNSExtension.setDocURL(newQEReal, theDocFile);
+		BambiNSExtension.setDocModified(newQEReal, System.currentTimeMillis());
 		return ok;
 	}
 
@@ -2238,6 +2278,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 			if (docJDF == null)
 			{
+				final String docFile = BambiNSExtension.getDocURL(qe);
+				if (docFile != null)
+					docJDF = JDFDoc.parseFile(docFile);
+			}
+			if (docJDF == null)
+			{
 				final String docFile = _parentDevice.getJDFStorage(queueEntryID);
 				docJDF = JDFDoc.parseFile(docFile);
 			}
@@ -2429,19 +2475,17 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 */
 		private void setNodesAborted(final JDFDoc docJDF, final VString finishedNodes)
 		{
-			if (docJDF == null)
-			{
-				return;
-			}
-			final JDFNode root = docJDF.getJDFRoot();
+			final JDFNode root = docJDF == null ? null : docJDF.getJDFRoot();
 			if (root == null)
 			{
+				log.error("No JDF document returned to abort");
 				return;
 			}
 			final JDFNotification not = root.getCreateAuditPool().addNotification(EnumClass.Warning, null, qe.getPartMapVector());
 			final JDFComment notificationComment = not.appendComment();
 			notificationComment.setLanguage("en");
 			notificationComment.setText("Node aborted in queue entry: " + qe.getQueueEntryID());
+			log.warn("Node aborted in queue entry: " + qe.getQueueEntryID());
 		}
 	}
 
@@ -2536,7 +2580,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		final EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 		final String qeid = qe.getQueueEntryID();
-
+		JDFNode theNode = null;
 		if (EnumQueueEntryStatus.Completed.equals(status))
 		{
 			updateEntry(qe, status, m, resp);
@@ -2551,6 +2595,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		else if (EnumQueueEntryStatus.Waiting.equals(status)) // no need to check processors - it is still waiting
 		{
+			IQueueEntry iQueueEntry = getIQueueEntry(qe);
+			theNode = iQueueEntry == null ? null : iQueueEntry.getJDF();
 			updateEntry(qe, EnumQueueEntryStatus.Aborted, m, resp);
 		}
 		final String queueEntryID = qe.getQueueEntryID();
@@ -2564,7 +2610,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		if (EnumQueueEntryStatus.Aborted.equals(newStatus))
 		{
-			returnQueueEntry(qe, null, null, newStatus);
+			JDFDoc theDoc = theNode == null ? null : theNode.getOwnerDocument_JDFElement();
+			returnQueueEntry(qe, null, theDoc, newStatus);
 		}
 		updateEntry(qe, newStatus, m, resp);
 		log.info("aborted QueueEntry with ID=" + qeid);

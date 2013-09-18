@@ -394,7 +394,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		}
 		_parent.incEntriesProcessed();
 		final String queueEntryID = qe.getQueueEntryID();
-		log.info("processing: " + queueEntryID);
 		CPUTimer timer = getLocalTimer();
 		timer.start();
 
@@ -413,6 +412,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			timer.stop();
 			return bOK;
 		}
+		log.info("processing: " + queueEntryID);
 
 		EnumQueueEntryStatus qes;
 		try

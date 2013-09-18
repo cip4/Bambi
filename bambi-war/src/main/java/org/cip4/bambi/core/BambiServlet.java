@@ -484,9 +484,9 @@ public final class BambiServlet extends HttpServlet
 	/**
 	 *  
 	 */
+	@SuppressWarnings("unchecked")
 	private Map<String, String> getParameterMap(HttpServletRequest request)
 	{
-		@SuppressWarnings("unchecked")
 		Map<String, String[]> pm = request.getParameterMap();
 		Map<String, String> retMap = new JDFAttributeMap();
 		Set<String> keyset = pm.keySet();

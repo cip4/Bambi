@@ -70,7 +70,6 @@ package org.cip4.bambi.proxy;
 
 import java.net.HttpURLConnection;
 
-import org.cip4.bambi.server.BambiServer;
 import org.cip4.jdflib.core.JDFAudit;
 import org.cip4.jdflib.goldenticket.IDPGoldenTicket;
 import org.cip4.jdflib.node.JDFNode;
@@ -88,17 +87,6 @@ public class DigitalProxyTest extends ProxyTest
 	protected void startContainer()
 	{
 		//nop
-	}
-
-	/**
-	 * 
-	 * TODO Please insert comment!
-	 * @param args
-	 * @throws Exception
-	 */
-	public static void main(String[] args) throws Exception
-	{
-		new BambiServer().runServer();
 	}
 
 	/**

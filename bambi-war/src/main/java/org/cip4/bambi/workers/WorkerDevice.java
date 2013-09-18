@@ -109,14 +109,9 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 {
-	/**
-	 * 
-	 */
-
-	private static final long serialVersionUID = -8412710163767830461L;
-	protected String _trackResource = null; // the "major" resource to track
-	protected VString amountResources = null;
-	protected String _typeExpression = null; // the regexp that defines the valid types
+	protected String _trackResource; // the "major" resource to track
+	protected VString amountResources;
+	protected String _typeExpression; // the regexp that defines the valid types
 	protected EmployeeList employees;
 
 	/**

@@ -106,12 +106,6 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 {
 	/**
 	 * 
-	 */
-
-	private static final long serialVersionUID = -8412710163767830461L;
-
-	/**
-	 * 
 	 * resource query catalog
 	 * @author rainer prosi
 	 * @date Mar 18, 2012

@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -96,7 +96,6 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.XMLParser;
-import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.ifaces.IJMFSubscribable;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -318,7 +317,7 @@ public final class SignalDispatcher extends BambiLogFactory
 				final MessageSender ms = device.getJMFFactory().getCreateMessageSender(url);
 				if (ms != null)
 				{
-					ms.appendToXML(root, false, pos, true);
+					ms.appendToXML(root, false, pos, false);
 				}
 				else
 				{
@@ -517,27 +516,32 @@ public final class SignalDispatcher extends BambiLogFactory
 		 * wait for all trigger to be queued by the dispatcher
 		 * @param triggers
 		 * @param milliseconds
+		 * @return 
 		 */
-		public static void waitQueued(final Trigger[] triggers, final int milliseconds)
+		public static boolean waitQueued(final Trigger[] triggers, final int milliseconds)
 		{
 			if (triggers == null)
 			{
-				return;
+				return true;
 			}
-			for (int i = 0; i < triggers.length; i++)
+			for (Trigger trigger : triggers)
 			{
-				triggers[i].waitQueued(milliseconds);
+				if (!trigger.waitQueued(milliseconds))
+					return false;
 			}
+			return true;
 		}
 
 		/**
 		 * wait for this to be queued
 		 * @param milliseconds
+		 * @return 
 		 */
-		public void waitQueued(final int milliseconds)
+		public boolean waitQueued(final int milliseconds)
 		{
-			ThreadUtil.wait(mutex, milliseconds);
+			boolean b = ThreadUtil.wait(mutex, milliseconds);
 			mutex = null;
+			return b;
 		}
 
 	}
@@ -574,7 +578,10 @@ public final class SignalDispatcher extends BambiLogFactory
 					log.error("unhandled Exception in flush", x);
 					timer.stop();
 				}
-				ThreadUtil.wait(mutex, 1000);
+				if (!ThreadUtil.wait(mutex, 10000))
+				{
+					doShutdown = true;
+				}
 			}
 		}
 
@@ -584,33 +591,25 @@ public final class SignalDispatcher extends BambiLogFactory
 		void flush()
 		{
 			timer.start();
-			while (true)
+			final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
+			// spam them out
+			for (MsgSubscription sub : triggerVector)
 			{
-				final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
-				final int size = triggerVector.size();
-				// spam them out
-				for (int i = 0; i < size; i++)
-				{
-					sentMessages++;
-					final MsgSubscription sub = triggerVector.elementAt(i);
-					log.debug("Trigger Signalling :" + i + " slaveChannelID=" + sub.channelID);
-					queueMessageInSender(sub);
-				}
-				// select pending time subscriptions
-				final Vector<MsgSubscription> subVector = getTimeSubscriptions();
-				final int size2 = subVector.size();
-				// spam them out
-				for (int i = 0; i < size2; i++)
-				{
-					sentMessages++;
-					final MsgSubscription sub = subVector.elementAt(i);
-					log.debug("Time Signalling: " + i + ", slaveChannelID=" + sub.channelID);
-					queueMessageInSender(sub);
-				}
-				if (size == 0 && size2 == 0)
-				{
-					break; // flushed all
-				}
+				sentMessages++;
+				if (log.isDebugEnabled())
+					log.debug("Trigger Signalling : slaveChannelID=" + sub.channelID);
+				queueMessageInSender(sub);
+			}
+			// select pending time subscriptions
+			final Vector<MsgSubscription> subVector = getTimeSubscriptions();
+			// spam them out
+			for (MsgSubscription sub : subVector)
+			{
+				sentMessages++;
+				if (log.isDebugEnabled())
+					log.debug("Time Signalling: slaveChannelID=" + sub.channelID);
+
+				queueMessageInSender(sub);
 			}
 			timer.stop();
 		}
@@ -625,7 +624,11 @@ public final class SignalDispatcher extends BambiLogFactory
 			final JDFJMF signalJMF = sub.getSignal();
 			if (signalJMF != null)
 			{
-				device.sendJMF(signalJMF, url, null);
+				boolean ok = device.sendJMF(signalJMF, url, null);
+				if (!ok)
+				{
+					checkStaleSubscription(sub);
+				}
 				final MsgSubscription realSubSubscription = subscriptionMap.get(sub.channelID);
 				if (realSubSubscription != null)
 				{
@@ -651,7 +654,6 @@ public final class SignalDispatcher extends BambiLogFactory
 		 */
 		private Vector<MsgSubscription> getTriggerSubscriptions()
 		{
-			int n = 0;
 			synchronized (triggers)
 			{
 				final Vector<MsgSubscription> v = new Vector<MsgSubscription>();
@@ -659,7 +661,6 @@ public final class SignalDispatcher extends BambiLogFactory
 				final Iterator<Trigger> it = triggers.iterator(); // active triggers
 				while (it.hasNext())
 				{
-					n++;
 					final Trigger t = it.next();
 					final String channelID = t.channelID;
 					final MsgSubscription sub = subscriptionMap.get(channelID);
@@ -668,7 +669,7 @@ public final class SignalDispatcher extends BambiLogFactory
 						vSnafu.add(t);
 						continue; // snafu
 					}
-					final MsgSubscription subClone = (MsgSubscription) sub.clone();
+					final MsgSubscription subClone = sub.clone();
 					subClone.trigger = t;
 
 					if (t.amount < 0)
@@ -690,9 +691,9 @@ public final class SignalDispatcher extends BambiLogFactory
 					}
 				}
 				// remove active triggers that will be returned
-				for (int j = 0; j < vSnafu.size(); j++)
+				for (Trigger t : vSnafu)
 				{
-					final boolean b = triggers.remove(vSnafu.get(j));
+					final boolean b = triggers.remove(t);
 					if (!b)
 					{
 						log.error("Snafu removing trigger");
@@ -703,9 +704,8 @@ public final class SignalDispatcher extends BambiLogFactory
 					}
 
 				}
-				for (int j = 0; j < v.size(); j++)
+				for (MsgSubscription sub : v)
 				{
-					final MsgSubscription sub = v.elementAt(j);
 					final boolean b = triggers.remove(sub.trigger);
 					if (!b)
 					{
@@ -737,7 +737,7 @@ public final class SignalDispatcher extends BambiLogFactory
 							{
 								sub.lastTry = now;
 							}
-							sub = (MsgSubscription) sub.clone();
+							sub = sub.clone();
 							subVector.add(sub);
 						}
 					}
@@ -772,6 +772,11 @@ public final class SignalDispatcher extends BambiLogFactory
 		protected int sentMessages = 0;
 		protected String jmfDeviceID = null; // the senderID of the incoming (subscribed) jmf
 
+		/**
+		 * 
+		 * @param m
+		 * @param qeid
+		 */
 		MsgSubscription(final IJMFSubscribable m, final String qeid)
 		{
 			final JDFSubscription sub = m.getSubscription();
@@ -831,7 +836,7 @@ public final class SignalDispatcher extends BambiLogFactory
 			q.setAttribute(JMFHandler.subscribed, "true");
 			final boolean b = messageHandler.handleMessage(q, r);
 			q.removeAttribute(JMFHandler.subscribed);
-			if (!b)
+			if (!b && log.isDebugEnabled())
 			{
 				log.debug("Unhandled message: " + q.getType());
 				return null;
@@ -874,7 +879,9 @@ public final class SignalDispatcher extends BambiLogFactory
 			{
 				Vector<JDFSignal> signals = jmfOut.getChildrenByClass(JDFSignal.class, false, 0);
 				for (JDFSignal s : signals)
+				{
 					s.setAttribute(AttributeName.CHANNELMODE, channelMode);
+				}
 			}
 		}
 
@@ -915,23 +922,15 @@ public final class SignalDispatcher extends BambiLogFactory
 			return url;
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
+		 * 
 		 * 
 		 * @see java.lang.Object#clone()
 		 */
 		@Override
-		public Object clone()
+		public MsgSubscription clone()
 		{
-			MsgSubscription c;
-			try
-			{
-				c = (MsgSubscription) super.clone();
-			}
-			catch (final CloneNotSupportedException x)
-			{
-				return null;
-			}
+			MsgSubscription c = new MsgSubscription();
 			c.channelID = channelID;
 			c.lastAmount = lastAmount;
 			c.repeatAmount = repeatAmount;
@@ -999,10 +998,10 @@ public final class SignalDispatcher extends BambiLogFactory
 						final KElement message = sub.appendElement("Message");
 						if (pos == sentArray.length - i)
 						{
-							final XJDF20 x2 = new XJDF20();
-							x2.setUpdateVersion(false);
-
-							final KElement newJMF = message.copyElement(x2.makeNewJMF(sentArray[i]), null);
+							//							final XJDF20 x2 = new XJDF20();
+							//							x2.setUpdateVersion(false);
+							//							final KElement newJMF = message.copyElement(x2.makeNewJMF(sentArray[i]), null);
+							final KElement newJMF = message.copyElement(sentArray[i], null);
 							newJMF.setAttribute(AttributeName.TIMESTAMP, sentArray[i].getTimeStamp().getDateTimeISO());
 						}
 						message.setAttribute(AttributeName.TIMESTAMP, sentArray[i].getTimeStamp().getDateTimeISO());
@@ -1044,6 +1043,23 @@ public final class SignalDispatcher extends BambiLogFactory
 		}
 
 		/**
+		 * creates a MsgSubscription  
+		 * 
+		 * - must be maintained in synch with @see setXML (duh...)
+		 *  
+		 */
+		MsgSubscription()
+		{
+			channelID = null;
+			jmfDeviceID = null;
+			queueEntry = null;
+			url = null;
+			repeatTime = 0;
+			repeatAmount = 0;
+			sentMessages = 0;
+		}
+
+		/**
 		 * creates a MsgSubscription from an XML element
 		 * 
 		 * - must be maintained in synch with @see setXML (duh...)
@@ -1063,6 +1079,10 @@ public final class SignalDispatcher extends BambiLogFactory
 			{
 				final JDFJMF jmf = new JDFDoc("JMF").getJMFRoot();
 				theMessage = (JDFMessage) jmf.copyElement(subsub.getFirstChildElement(), null);
+			}
+			else
+			{
+				theMessage = null;
 			}
 		}
 
@@ -1335,8 +1355,30 @@ public final class SignalDispatcher extends BambiLogFactory
 		messageHandler = _messageHandler;
 		triggers = new Vector<Trigger>();
 		mutex = new MyMutex();
-		theDispatcher = null;
 		theDispatcher = new Dispatcher();
+	}
+
+	/**
+	 * check any prehistoric subscriptions that no longer work and zapp them
+	 * @param sub the subscription
+	 */
+	void checkStaleSubscription(MsgSubscription sub)
+	{
+		String url = sub.getURL();
+		Vector<MessageSender> vMesSend = JMFFactory.getJMFFactory().getMessageSenders(url);
+		if (vMesSend != null)
+		{
+			for (MessageSender m : vMesSend)
+			{
+				if (m.isBlocked(1000 * 24 * 60 * 60 * 7))
+				{
+					removeSubScription(sub.channelID);
+					log.error("removed stale subscription " + sub.channelID + " url=" + sub.getURL());
+					break;
+				}
+			}
+		}
+
 	}
 
 	/**
@@ -1560,7 +1602,7 @@ public final class SignalDispatcher extends BambiLogFactory
 		{
 			ret = subscriptionMap.remove(channelID);
 		}
-		log.debug("removing subscription for channelid=" + channelID);
+		log.info("removing subscription for channelid=" + channelID);
 		storage.persist();
 		return ret;
 	}

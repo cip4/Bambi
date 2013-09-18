@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -111,11 +111,6 @@ import org.cip4.jdflib.util.StringUtil;
 public class RootDevice extends AbstractDevice
 {
 	protected HashMap<String, AbstractDevice> _devices = null;
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4412710163767830461L;
 
 	/**
 	 * @param prop

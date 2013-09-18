@@ -95,6 +95,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
+import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * 
@@ -102,7 +103,6 @@ import org.cip4.jdflib.node.JDFNode.EnumActivation;
  */
 public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 {
-	private static final long serialVersionUID = -384333582645081254L;
 	private final OrphanCleaner cleaner;
 
 	/**
@@ -287,7 +287,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	@Override
 	public EnumNodeStatus stopProcessing(final EnumNodeStatus newStatus)
 	{
-		log.warn("stopProcessing not implemented");
+		log.info("stopProcessing not implemented for dispatcher processor");
 		return null;
 	}
 
@@ -401,12 +401,31 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 		{
 			final JDFReturnQueueEntryParams retQEParams = m == null ? null : m.getReturnQueueEntryParams(0);
 			String queueEntryID = retQEParams == null ? null : retQEParams.getQueueEntryID();
-			final JDFQueueEntry qeBambi = queueEntryID == null ? null : getParent().getQueueProcessor().getQueueEntry(queueEntryID, null);
-			if (qeBambi == null)
+			JDFQueueEntry qeBambi = queueEntryID == null ? null : getParent().getQueueProcessor().getQueueEntry(queueEntryID, null);
+			if (queueEntryID == null)
 			{
-				log.error("Skipping return of unknown queue entry ID=" + queueEntryID);
+				log.error("Skipping return of null queue entry ID=");
 			}
 			else
+			{
+				int nLoop = 0;
+				while (qeBambi == null)
+				{
+					if (nLoop == 0)
+					{
+						log.info("waiting for return of unknown queue entry ID=" + queueEntryID);
+					}
+					else if (nLoop == 10)
+					{
+						log.error("Skipping return of unknown queue entry ID=" + queueEntryID + " after waiting about a minute");
+						break;
+					}
+					ThreadUtil.sleep(100 + nLoop * 1000);
+					qeBambi = getParent().getQueueProcessor().getQueueEntry(queueEntryID, null);
+					nLoop++;
+				}
+			}
+			if (qeBambi != null)
 			{
 				BambiNSExtension.setDeviceURL(qeBambi, null);
 				// remove slave qeid from map
@@ -429,6 +448,18 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 					if (finalStatus == null)
 						finalStatus = EnumQueueEntryStatus.Aborted;
 				}
+				if (EnumQueueEntryStatus.Suspended.equals(finalStatus))
+				{
+					finalStatus = EnumQueueEntryStatus.Completed;
+					log.warn("Moving suspended to completed " + queueEntryID);
+				}
+				else if (!EnumQueueEntryStatus.Completed.equals(finalStatus) && !EnumQueueEntryStatus.Aborted.equals(finalStatus))
+				{
+					log.warn("Moving " + finalStatus.getName() + " to Aborted; qe=" + queueEntryID);
+					finalStatus = EnumQueueEntryStatus.Aborted;
+				}
+
+				log.info("received returned entry " + queueEntryID + " final status=" + finalStatus.getName());
 				_queueProcessor.returnQueueEntry(qeBambi, null, null, finalStatus);
 				qeBambi.removeAttribute(AttributeName.DEVICEID);
 				_queueProcessor.updateEntry(qeBambi, finalStatus, null, null);

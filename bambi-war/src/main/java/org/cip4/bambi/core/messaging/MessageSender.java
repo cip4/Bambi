@@ -148,6 +148,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	private final MyMutex mutexPause = new MyMutex();
 	private int trySend;
 	private int sent;
+	private boolean waitKaputt;
 	protected int checked;
 	protected int removedHeartbeat;
 	protected int removedFireForget;
@@ -286,6 +287,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		removedHeartbeat = 0;
 		removedFireForget = 0;
 		checked = 0;
+		waitKaputt = false;
 
 		_messages = new Vector<MessageDetails>();
 		sentMessages = new FastFiFo<MessageDetails>(42);
@@ -363,6 +365,11 @@ public class MessageSender extends BambiLogFactory implements Runnable
 					if (wait == 15000 && idle > minIdle)
 					{
 						wait *= (idle / minIdle);
+						waitKaputt = true;
+					}
+					else
+					{
+						waitKaputt = false;
 					}
 					if (!ThreadUtil.wait(mutexDispatch, wait))
 					{
@@ -430,6 +437,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	public void resume()
 	{
 		pause = false;
+		waitKaputt = false;
 		ThreadUtil.notifyAll(mutexPause);
 	}
 
@@ -470,11 +478,21 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				lastSent = root.getLongAttribute("iLastSent", null, 0);
 				created = root.getLongAttribute("i" + AttributeName.CREATIONDATE, null, 0);
 				final VElement v = root.getChildElementVector("Message", null);
+				int zapp = 0;
 				for (KElement e : v)
 				{
-					_messages.add(new MessageDetails(e));
+					MessageDetails messageDetails = new MessageDetails(e);
+					if (System.currentTimeMillis() - messageDetails.createTime < 1000 * 3600 * 24 * 7)
+					{
+						_messages.add(messageDetails);
+					}
+					else
+					{
+						zapp++;
+						log.warn("removing stale message " + messageDetails + " created on " + new JDFDate(messageDetails.createTime).getDateTimeISO());
+					}
 				}
-				log.info(" read " + v.size() + " messages from " + f.getAbsolutePath());
+				log.info(" read " + v.size() + " messages from " + f.getAbsolutePath() + "removed messages: " + zapp);
 			}
 			_messages.addAll(vTmp);
 		}
@@ -525,7 +543,6 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		// don't synchronize the whole thing - otherwise the get handler may be blocked
 		synchronized (_messages)
 		{
-
 			if (_messages.isEmpty())
 			{
 				return SendReturn.empty;
@@ -581,13 +598,14 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			String warn = "Sender: " + mesDetails.senderID + " Error sending " + isMime + " message to: " + mesDetails.url + " return code=" + sendReturn;
 			if (mesDetails.isFireForget())
 			{
-				warn += " - removing fire&forget message";
+				warn += " - removing fire&forget message #";
 				_messages.remove(0);
 				removedFireForget++;
+				warn += removedFireForget;
 			}
 			else
 			{
-				if (_messages.size() > 4242 && System.currentTimeMillis() - mesDetails.createTime > 1000 * 3600 * 24 * 7)
+				if (_messages.size() > 4242 || System.currentTimeMillis() - mesDetails.createTime > 1000 * 3600 * 24 * 7)
 				{
 					warn += " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.createTime) + " messages pending: " + _messages.size();
 				}
@@ -634,8 +652,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			{
 				connection = sendJMF(mh, jmf, url, outDump);
 			}
-			if (mp != null)
-			// mime package
+			if (mp != null) // mime package
 			{
 				connection = sendMime(mh, mp, url, outDump);
 			}
@@ -706,7 +723,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				}
 			}
 		}
-		catch (final Exception e)
+		catch (final Throwable e)
 		{
 			log.error("Exception in sendHTTP: " + e.getMessage());
 			if (mh.respHandler != null)
@@ -904,8 +921,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			log.debug("Queueing jmf message, ID=" + jmf.getID() + " to: " + url);
 
 		final MessageDetails messageDetails = new MessageDetails(jmf, handler, _callBack, null, url);
-		queueMessageDetails(messageDetails);
-		return true;
+		return queueMessageDetails(messageDetails);
 	}
 
 	/**
@@ -932,18 +948,29 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	/**
 	 * @param messageDetails
 	 */
-	private void queueMessageDetails(final MessageDetails messageDetails)
+	private boolean queueMessageDetails(final MessageDetails messageDetails)
 	{
+		lastQueued = System.currentTimeMillis();
+		if (waitKaputt && messageDetails.isFireForget())
+		{
+			String warn = " not queueing fire&forget to " + callURL.url + "; message #";
+			removedFireForget++;
+			warn += removedFireForget;
+			warn += " currently waiting: " + _messages.size();
+			log.warn(warn);
+			trySend++;
+			return false;
+		}
 		synchronized (_messages)
 		{
 			optimizer.optimize(messageDetails.jmf);
 			_messages.add(messageDetails);
-			lastQueued = System.currentTimeMillis();
 		}
 		if (!pause)
 		{
 			ThreadUtil.notifyAll(mutexDispatch);
 		}
+		return true;
 	}
 
 	/**
@@ -1101,5 +1128,16 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	public void setStartTime(long startTime)
 	{
 		this.startTime = startTime;
+	}
+
+	/**
+	 * check whether we have not sent for longer than deltaTime milliseconds
+	 * @param deltaTime
+	 * @return
+	 */
+	public boolean isBlocked(long deltaTime)
+	{
+		long last = lastSent == 0 ? startTime : lastSent;
+		return lastQueued - last > deltaTime;
 	}
 }

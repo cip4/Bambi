@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -118,12 +118,14 @@ public class StatusListener extends BambiLogFactory
 		theCounter = new StatusCounter(null, null, null);
 		theCounter.setDeviceID(deviceID);
 		theCounter.setIcsVersions(icsVersions);
+		theCounter.setIdleSkip(10);
 	}
 
 	/**
 	 * @param msgType the type of messages to flush out, null if any/all types
+	 * @return 
 	 */
-	public void flush(final String msgType)
+	public boolean flush(final String msgType)
 	{
 		final Trigger[] t = dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
 		dispatcher.flush();
@@ -131,9 +133,11 @@ public class StatusListener extends BambiLogFactory
 		{
 			final Trigger[] t2 = rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
 			rootDispatcher.flush();
-			Trigger.waitQueued(t2, 12000);
+			if (!Trigger.waitQueued(t2, 12000))
+				return false;
 		}
-		Trigger.waitQueued(t, 12000);
+		return Trigger.waitQueued(t, 12000);
+
 	}
 
 	/**

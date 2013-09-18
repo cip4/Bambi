@@ -220,9 +220,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				log.debug("Sending RequestQueueEntry for " + queueURL + " to: " + proxyURL);
 			JMFBuilder jmfBuilder = JMFBuilderFactory.getJMFBuilder(getDeviceID());
 			final JDFJMF jmf = jmfBuilder.buildRequestQueueEntry(queueURL, null);
-			sendJMF(jmf, proxyURL, null);
+			boolean ok = sendJMF(jmf, proxyURL, null);
 			ThreadUtil.wait(mutex, 2222); // wait a short while for an immediate response
-			return true;
+			return ok;
 		}
 
 		/**
@@ -548,6 +548,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			}
 
 			final JDFDoc docJMF = _theStatusListener.getStatusCounter().getDocJMFPhaseTime();
+			if (docJMF == null)
+			{
+				return false;
+			}
 			final boolean bOK = copyPhaseTimeFromCounter(response, docJMF);
 			if (bOK)
 			{
@@ -1430,8 +1434,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	private void updateWatchURL(String newWatchURL)
 	{
-		if (newWatchURL == "-")
+		if ("-".equals(newWatchURL))
+		{
 			newWatchURL = null;
+			log.info("explicitly removing watchUrl");
+		}
 		final IDeviceProperties properties = getProperties();
 		final String oldWatchURL = properties.getWatchURL();
 		if (!ContainerUtil.equals(oldWatchURL, newWatchURL))
@@ -1444,7 +1451,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				return;
 			}
 			properties.setWatchURL(newWatchURL);
-			_theSignalDispatcher.removeSubScriptions(null, oldWatchURL, null);
+			if (StringUtil.getNonEmpty(oldWatchURL) != null)
+			{
+				log.info("removing watch subscriptions to: " + oldWatchURL);
+				_theSignalDispatcher.removeSubScriptions(null, oldWatchURL, null);
+			}
 			addWatchSubscriptions();
 			properties.serialize();
 		}
@@ -1577,8 +1588,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public boolean sendJMF(final JDFJMF jmf, final String url, final IResponseHandler responseHandler)
 	{
-		getJMFFactory().send2URL(jmf, url, responseHandler, getCallback(url), getDeviceID());
-		return true;
+		return getJMFFactory().send2URL(jmf, url, responseHandler, getCallback(url), getDeviceID());
 	}
 
 	/**
@@ -1757,10 +1767,17 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		if (bQueue)
 		{
 			final JDFQueue queue = _theQueueProcessor.getQueue();
-			synchronized (queue)
+			if (queue != null)
 			{
-				final JDFQueue qq = (JDFQueue) response.copyElement(queue, null);
-				QueueProcessor.removeBambiNSExtensions(qq);
+				synchronized (queue)
+				{
+					final JDFQueue qq = (JDFQueue) response.copyElement(queue, null);
+					QueueProcessor.removeBambiNSExtensions(qq);
+				}
+			}
+			else
+			{
+				log.warn("no queue in queueprocessor - ignoring");
 			}
 		}
 	}

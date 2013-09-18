@@ -236,10 +236,10 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	{
 		if (!isLive())
 		{
-			log.info("Informative submission completed for:" + slaveQEID);
+			log.info("Informative submission to slave " + slaveDeviceID + " completed for:" + slaveQEID);
 			return;
 		}
-		log.info("Submitted to slave qe: " + slaveDeviceID);
+		log.info("Submitted to slave " + slaveDeviceID + " qe: " + slaveQEID);
 		getParent().addSlaveSubscriptions(0, slaveQEID, false);
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		BambiNSExtension.setSlaveSubmissionTime(qe, new JDFDate());
