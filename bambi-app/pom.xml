@@ -12,11 +12,11 @@
 		<version>2.2-SNAPSHOT</version>
 	</parent>
 
-	<name>BambiApp</name>
+	<name>CIP4 BambiApp</name>
 	<url>http://www.cip4.org</url>
 
 	<build>
-		<finalName>${project.name}-${project.version}</finalName>
+		<finalName>${project.name} ${project.version}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -155,9 +155,9 @@
 		<profile>
 			<id>windows</id>
 			<activation>
-				<os>
-					<family>windows</family>
-				</os>
+				<property>
+			        <name>!alwaysActive</name>
+			      </property>
 			</activation>
 			<build>
 				<plugins>
@@ -214,7 +214,7 @@
 									<versionInfo>
 										<fileVersion>1.0.0.0</fileVersion>
 										<txtFileVersion>1.0</txtFileVersion>
-										<fileDescription>CIP4 ${project.build.finalName}</fileDescription>
+										<fileDescription>${project.build.finalName}</fileDescription>
 										<copyright>CIP4</copyright>
 										<productVersion>1.0.0.0</productVersion>
 										<txtProductVersion>1.0</txtProductVersion>
@@ -239,19 +239,19 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>osxappbundle-maven-plugin</artifactId>
-						<version>1.0-alpha-2</version>
-						<configuration>
-							<mainClass>org.cip4.bambi.ExecutorForm</mainClass>
-							<iconFile>${basedir}/src/main/assemble/macosx/bambi.icns</iconFile>
-						</configuration>
+						<groupId>com.agiliumlabs.osxappbundle</groupId>
+					    <artifactId>osxappbundle-maven-plugin</artifactId>
+					    <version>1.0.0</version>
 						<executions>
 							<execution>
-								<phase>package</phase>
 								<goals>
 									<goal>bundle</goal>
 								</goals>
+								<configuration>
+									<mainClass>org.cip4.bambi.ExecutorForm</mainClass>
+									<bundleName>${project.build.finalName}</bundleName>
+									<iconFile>${basedir}/src/main/assemble/macosx/bambi.icns</iconFile>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>

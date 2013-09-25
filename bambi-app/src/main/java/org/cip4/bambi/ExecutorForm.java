@@ -68,9 +68,11 @@
  */
 package org.cip4.bambi;
 
+import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -85,6 +87,7 @@ import java.net.URI;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -130,6 +133,7 @@ public class ExecutorForm {
 	private JButton btnStart;
 
 	private JButton btnOpen;
+	private JLabel label;
 
 	/**
 	 * Entry point application.
@@ -140,10 +144,6 @@ public class ExecutorForm {
 	 * @throws ClassNotFoundException
 	 */
 	public static void main(String[] args) {
-
-		// set system properties
-		System.setProperty("apple.laf.useScreenMenuBar", "true");
-		System.setProperty("com.apple.mrj.application.apple.menu.about.name", "BambiApp");
 
 		// start application
 		EventQueue.invokeLater(new Runnable() {
@@ -177,8 +177,10 @@ public class ExecutorForm {
 	 */
 	private void initialize() {
 		frmCipBambiapp = new JFrame();
+		frmCipBambiapp.setIconImage(Toolkit.getDefaultToolkit().getImage(ExecutorForm.class.getResource("/org/cip4/bambi/bambi_128.png")));
+		frmCipBambiapp.getContentPane().setBackground(Color.WHITE);
 		frmCipBambiapp.setTitle("CIP4 BambiApp");
-		frmCipBambiapp.setBounds(100, 100, 597, 409);
+		frmCipBambiapp.setBounds(100, 100, 624, 409);
 		frmCipBambiapp.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		btnStart = new JButton("Start Bambi");
@@ -227,47 +229,77 @@ public class ExecutorForm {
 		JLabel lblUrlBambi = new JLabel("URL Bambi:");
 		lblUrlBambi.setFont(new Font("SansSerif", Font.BOLD, 12));
 
+		JLabel lblIcon = new JLabel("");
+		lblIcon.setIcon(new ImageIcon(ExecutorForm.class.getResource("/org/cip4/bambi/bambi_128.png")));
+
+		label = new JLabel("");
+		label.setIcon(new ImageIcon(ExecutorForm.class.getResource("/org/cip4/bambi/cip4.png")));
+
 		GroupLayout groupLayout = new GroupLayout(frmCipBambiapp.getContentPane());
 		groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
+				groupLayout
+						.createSequentialGroup()
+						.addContainerGap()
+						.addGroup(
+								groupLayout
+										.createParallelGroup(Alignment.LEADING)
+										.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 612, Short.MAX_VALUE)
+										.addGroup(
+												groupLayout
+														.createSequentialGroup()
+														.addComponent(lblIcon, GroupLayout.PREFERRED_SIZE, 170, GroupLayout.PREFERRED_SIZE)
+														.addPreferredGap(ComponentPlacement.UNRELATED)
+														.addGroup(
+																groupLayout
+																		.createParallelGroup(Alignment.LEADING)
+																		.addGroup(
+																				groupLayout
+																						.createSequentialGroup()
+																						.addGroup(groupLayout.createParallelGroup(Alignment.LEADING).addComponent(lblUrl).addComponent(btnStart))
+																						.addPreferredGap(ComponentPlacement.RELATED)
+																						.addGroup(
+																								groupLayout
+																										.createParallelGroup(Alignment.LEADING)
+																										.addGroup(
+																												groupLayout
+																														.createSequentialGroup()
+																														.addComponent(txtPort, GroupLayout.PREFERRED_SIZE, 48,
+																																GroupLayout.PREFERRED_SIZE)
+																														.addPreferredGap(ComponentPlacement.RELATED)
+																														.addComponent(lblContext)
+																														.addPreferredGap(ComponentPlacement.RELATED)
+																														.addComponent(txtContext, GroupLayout.PREFERRED_SIZE, 91,
+																																GroupLayout.PREFERRED_SIZE).addPreferredGap(ComponentPlacement.RELATED)
+																														.addComponent(btnOpen))
+																										.addGroup(groupLayout.createSequentialGroup().addGap(6).addComponent(btnStop))))
+																		.addComponent(lblUrlBambi)
+																		.addGroup(
+																				groupLayout.createSequentialGroup()
+																						.addComponent(lblBambiapp, GroupLayout.PREFERRED_SIZE, 113, GroupLayout.PREFERRED_SIZE).addGap(267)
+																						.addComponent(label))))).addContainerGap()));
+		groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
 				groupLayout
 						.createSequentialGroup()
 						.addGroup(
 								groupLayout
 										.createParallelGroup(Alignment.LEADING)
+										.addGroup(groupLayout.createSequentialGroup().addContainerGap().addComponent(lblIcon))
 										.addGroup(
 												groupLayout
 														.createSequentialGroup()
-														.addGap(133)
+														.addGap(8)
+														.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING).addComponent(label).addComponent(lblBambiapp))
+														.addPreferredGap(ComponentPlacement.UNRELATED)
+														.addComponent(lblUrlBambi)
+														.addPreferredGap(ComponentPlacement.RELATED)
 														.addGroup(
-																groupLayout
-																		.createParallelGroup(Alignment.LEADING)
-																		.addComponent(lblUrlBambi)
-																		.addGroup(
-																				groupLayout.createSequentialGroup().addComponent(lblUrl).addPreferredGap(ComponentPlacement.RELATED)
-																						.addComponent(txtPort, GroupLayout.PREFERRED_SIZE, 48, GroupLayout.PREFERRED_SIZE)
-																						.addPreferredGap(ComponentPlacement.RELATED).addComponent(lblContext)
-																						.addPreferredGap(ComponentPlacement.RELATED)
-																						.addComponent(txtContext, GroupLayout.PREFERRED_SIZE, 91, GroupLayout.PREFERRED_SIZE).addGap(6)
-																						.addComponent(btnOpen))
-																		.addComponent(lblBambiapp, GroupLayout.PREFERRED_SIZE, 113, GroupLayout.PREFERRED_SIZE)
-																		.addGroup(
-																				groupLayout.createSequentialGroup().addComponent(btnStart).addPreferredGap(ComponentPlacement.UNRELATED)
-																						.addComponent(btnStop))))
-										.addGroup(groupLayout.createSequentialGroup().addContainerGap().addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 585, Short.MAX_VALUE))).addContainerGap()));
-		groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
-				groupLayout
-						.createSequentialGroup()
-						.addGap(15)
-						.addComponent(lblBambiapp)
-						.addGap(18)
-						.addComponent(lblUrlBambi)
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addGroup(
-								groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblUrl)
-										.addComponent(txtPort, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addComponent(lblContext)
-										.addComponent(txtContext, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addComponent(btnOpen))
-						.addPreferredGap(ComponentPlacement.RELATED).addGroup(groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(btnStart).addComponent(btnStop))
-						.addPreferredGap(ComponentPlacement.UNRELATED).addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE).addContainerGap()));
+																groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblUrl)
+																		.addComponent(txtPort, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+																		.addComponent(lblContext)
+																		.addComponent(txtContext, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+																		.addComponent(btnOpen)).addGap(11)
+														.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(btnStart).addComponent(btnStop))))
+						.addPreferredGap(ComponentPlacement.UNRELATED).addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 231, Short.MAX_VALUE).addContainerGap()));
 		frmCipBambiapp.getContentPane().setLayout(groupLayout);
 	}
 
