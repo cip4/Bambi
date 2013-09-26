@@ -8,6 +8,12 @@
 
 	<name>bambi</name>
 	<url>http://www.cip4.org</url>
+    
+    <parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
 
 	<modules>
 		<module>bambi-app</module>
@@ -66,11 +72,6 @@
 						<source>1.6</source>
 						<target>1.6</target>
 					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-assembly-plugin</artifactId>
-					<version>2.4</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
