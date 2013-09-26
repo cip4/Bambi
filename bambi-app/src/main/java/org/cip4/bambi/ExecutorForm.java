@@ -180,7 +180,7 @@ public class ExecutorForm {
 		frmCipBambiapp.setIconImage(Toolkit.getDefaultToolkit().getImage(ExecutorForm.class.getResource("/org/cip4/bambi/bambi_128.png")));
 		frmCipBambiapp.getContentPane().setBackground(Color.WHITE);
 		frmCipBambiapp.setTitle("CIP4 BambiApp");
-		frmCipBambiapp.setBounds(100, 100, 624, 409);
+		frmCipBambiapp.setBounds(100, 100, 719, 445);
 		frmCipBambiapp.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		btnStart = new JButton("Start Bambi");
@@ -242,9 +242,10 @@ public class ExecutorForm {
 						.addContainerGap()
 						.addGroup(
 								groupLayout
-										.createParallelGroup(Alignment.LEADING)
-										.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 612, Short.MAX_VALUE)
+										.createParallelGroup(Alignment.TRAILING)
+										.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 707, Short.MAX_VALUE)
 										.addGroup(
+												Alignment.LEADING,
 												groupLayout
 														.createSequentialGroup()
 														.addComponent(lblIcon, GroupLayout.PREFERRED_SIZE, 170, GroupLayout.PREFERRED_SIZE)
@@ -260,23 +261,24 @@ public class ExecutorForm {
 																						.addGroup(
 																								groupLayout
 																										.createParallelGroup(Alignment.LEADING)
+																										.addGroup(groupLayout.createSequentialGroup().addGap(6).addComponent(btnStop))
 																										.addGroup(
 																												groupLayout
-																														.createSequentialGroup()
-																														.addComponent(txtPort, GroupLayout.PREFERRED_SIZE, 48,
-																																GroupLayout.PREFERRED_SIZE)
-																														.addPreferredGap(ComponentPlacement.RELATED)
-																														.addComponent(lblContext)
-																														.addPreferredGap(ComponentPlacement.RELATED)
-																														.addComponent(txtContext, GroupLayout.PREFERRED_SIZE, 91,
-																																GroupLayout.PREFERRED_SIZE).addPreferredGap(ComponentPlacement.RELATED)
-																														.addComponent(btnOpen))
-																										.addGroup(groupLayout.createSequentialGroup().addGap(6).addComponent(btnStop))))
-																		.addComponent(lblUrlBambi)
-																		.addGroup(
-																				groupLayout.createSequentialGroup()
-																						.addComponent(lblBambiapp, GroupLayout.PREFERRED_SIZE, 113, GroupLayout.PREFERRED_SIZE).addGap(267)
-																						.addComponent(label))))).addContainerGap()));
+																														.createParallelGroup(Alignment.TRAILING)
+																														.addComponent(label)
+																														.addGroup(
+																																groupLayout
+																																		.createSequentialGroup()
+																																		.addComponent(txtPort, GroupLayout.PREFERRED_SIZE, 48,
+																																				GroupLayout.PREFERRED_SIZE)
+																																		.addPreferredGap(ComponentPlacement.RELATED)
+																																		.addComponent(lblContext)
+																																		.addPreferredGap(ComponentPlacement.RELATED)
+																																		.addComponent(txtContext, GroupLayout.PREFERRED_SIZE, 91,
+																																				GroupLayout.PREFERRED_SIZE)
+																																		.addPreferredGap(ComponentPlacement.RELATED)
+																																		.addComponent(btnOpen))))).addComponent(lblUrlBambi)
+																		.addComponent(lblBambiapp, GroupLayout.PREFERRED_SIZE, 113, GroupLayout.PREFERRED_SIZE)).addGap(135))).addContainerGap()));
 		groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
 				groupLayout
 						.createSequentialGroup()
@@ -287,10 +289,13 @@ public class ExecutorForm {
 										.addGroup(
 												groupLayout
 														.createSequentialGroup()
-														.addGap(8)
-														.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING).addComponent(label).addComponent(lblBambiapp))
-														.addPreferredGap(ComponentPlacement.UNRELATED)
-														.addComponent(lblUrlBambi)
+														.addGap(15)
+														.addGroup(
+																groupLayout
+																		.createParallelGroup(Alignment.LEADING)
+																		.addGroup(
+																				groupLayout.createSequentialGroup().addComponent(lblBambiapp).addPreferredGap(ComponentPlacement.UNRELATED)
+																						.addComponent(lblUrlBambi)).addComponent(label))
 														.addPreferredGap(ComponentPlacement.RELATED)
 														.addGroup(
 																groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(lblUrl)
@@ -298,8 +303,8 @@ public class ExecutorForm {
 																		.addComponent(lblContext)
 																		.addComponent(txtContext, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 																		.addComponent(btnOpen)).addGap(11)
-														.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(btnStart).addComponent(btnStop))))
-						.addPreferredGap(ComponentPlacement.UNRELATED).addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 231, Short.MAX_VALUE).addContainerGap()));
+														.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE).addComponent(btnStart).addComponent(btnStop)))).addGap(15)
+						.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 223, Short.MAX_VALUE).addContainerGap()));
 		frmCipBambiapp.getContentPane().setLayout(groupLayout);
 	}
 
