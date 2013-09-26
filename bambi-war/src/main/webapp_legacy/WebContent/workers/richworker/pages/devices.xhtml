@@ -1,0 +1,470 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:a4j="http://richfaces.org/a4j"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:cip4="http://www.cip4.org/tags">
+
+<ui:composition>
+	<style>
+	<!--
+		.rich-stglpanel-header {
+			text-align: left;
+			font-size: 15px;
+		}
+		
+		.rich-stglpanel-body {
+			padding: 0px;
+		}
+		
+		.device-table {
+			border: 0px;
+		}
+		
+		.device-table>tbody>tr>td {
+			width: 25%;
+			border: 0px
+		}
+		
+		.queue-entry-table>tbody {
+			height: 400px;
+			overflow-x: hidden;
+			overflow-y: auto;
+		}
+		
+		.subscription-table>tbody {
+			overflow-x: hidden;
+			overflow-y: auto;
+		}
+		
+		.dr-table {
+			border-collapse: separate;
+		}
+		
+		.toolbarIcon{
+	        margin-bottom: -4px;
+	        margin-right: 2px;
+		}
+		
+		.modifyTextBox {
+			width: 400px;
+			border: solid #000000 1px;
+		}
+		
+		.loginUserBox {
+			width: 340px;
+			height: 375px;
+		}
+	-->
+	</style>
+	
+	<h:form>
+	<a4j:poll interval="2000" reRender="deviceTable,requests,selectedDeviceDetail,subscriptions,gridDeviceDetail,pnlKnownEmployees,pnlEmployees" />
+
+	<rich:simpleTogglePanel switchType="client"
+		label="#{app['devices.title']}" style="margin: 10px">
+		
+			<h:panelGrid columns="1" width="100%" style="padding: 0px;">
+				<rich:dataGrid id="deviceTable" value="#{devicesBean.deviceList}" var="device"
+					columns="4" elements="4" styleClass="device-table" width="100%"
+					rowKey="#{device.id}">
+					<rich:panel styleClass="#{device.id == devicesBean.selectedDeviceId ? 'selectedDevice' : '' }">
+						<f:facet name="header">
+							<h:outputText value="#{device.type}"></h:outputText>
+						</f:facet>
+			
+						<a4j:support event="onclick" ajaxSingle="true" immediate="true"
+							reRender="deviceDetail">
+							<a4j:actionparam name="changeSelection" value="#{device.id}"
+								assignTo="#{devicesBean.selectedDeviceId}" />
+						</a4j:support>
+			
+			
+						<!-- effect -->
+						<rich:effect event="onmouseup" type="BlindDown" params="duration:0.8"
+							reRenderAfterComplete="deviceTable" />
+			
+						<!-- device detail -->
+						<cip4:deviceDetail device="#{device}" />
+			
+						<!-- job statistics -->
+						<cip4:jobStatistics device="#{device}" />
+					</rich:panel>
+				</rich:dataGrid>
+				<rich:datascroller for="deviceTable" immediate="true" id="dataScroller"></rich:datascroller>
+			</h:panelGrid>
+		
+
+		<!-- Devices Count -->
+		<h:panelGroup style="margin-left: 6px;">
+			<h:outputText value="#{app['devices.count']}: " />
+			<h:outputText value="#{devicesBean.devicesCount}" />
+		</h:panelGroup>
+		<h:panelGroup style="margin-left: 6px;">
+			<h:outputText value="Requests: " />
+			<h:outputText id="requests" value="#{devicesBean.numRequests}" />
+		</h:panelGroup>
+
+	</rich:simpleTogglePanel>
+	
+	<rich:simpleTogglePanel switchType="client"
+		label="#{empty devicesBean.selectedDeviceId ? app['device.detail.noselection']: devicesBean.selectedDevice.type}" style="margin: 10px" id="deviceDetail">
+		
+		<h:panelGrid rendered="#{not empty devicesBean.selectedDeviceId}" columns="3" id="selectedDeviceDetail" style="margin-top: 10px; margin-bottom: 10px" >
+			<cip4:deviceDetail device="#{devicesBean.selectedDevice}" />
+			<rich:spacer width="10"/>
+			<cip4:jobStatistics device="#{devicesBean.selectedDevice}" />
+		</h:panelGrid>
+		
+		<!-- first panel: detail -->
+		<rich:tabPanel switchType="ajax" height="500" rendered="#{not empty devicesBean.selectedDeviceId}">
+			<rich:tab label="#{app['device.detail.details']}">
+				<!-- toolbar -->
+	        	<rich:toolBar height="26" itemSeparator="grid">
+					<rich:toolBarGroup>
+						<a4j:commandButton image="/style/common/icons/edit.png" ajaxSingle="true" onclick="#{rich:component('pnlModify')}.show();" immediate="true" title="#{app['queue.ctl.edit']}" styleClass="toolbarIcon" reRender="pnlModifyForm" />
+					</rich:toolBarGroup>
+	        	</rich:toolBar>
+				
+				<!-- detail view -->
+				<h:panelGrid columns="3" id="gridDeviceDetail">
+					<rich:spacer width="1" height="10" />
+					<rich:spacer width="1" height="10" />
+					<rich:spacer width="1" height="10" />
+				
+					<h:outputText value="#{app['device.detail.id']}" />
+					<h:outputText value="#{devicesBean.selectedDevice.id}" style="font-weight: bold; font-size: 14px;" />
+					<h:outputText value="#{app['device.detail.desc.id']}" />
+					
+					<h:outputText value="#{app['device.detail.url']}" />
+					<h:outputText value="#{devicesBean.selectedDevice.url}" style="font-weight: bold;" />
+					<h:outputText value="#{app['device.detail.desc.url']}" />
+					
+					<h:outputText value="#{app['device.detail.type']}" />
+					<h:outputText value="#{devicesBean.selectedDevice.type}" style="font-weight: bold;" />
+					<h:outputText value="#{app['device.detail.desc.type']}" />
+					
+					<h:outputText value="#{app['device.detail.watchUrl']}" />
+					<h:outputText value="#{devicesBean.selectedDevice.watchUrl}" style="font-weight: bold;" />
+					<h:outputText value="#{app['device.detail.desc.watchUrl']}" />
+					
+					<h:outputText value="#{app['device.detail.typeExpression']}" />
+					<h:outputText value="#{devicesBean.selectedDevice.typeExpression}" style="font-weight: bold;" />
+					<h:outputText value="#{app['device.detail.desc.typeExpression']}" />
+					
+					<rich:spacer width="1" height="10" />
+					<rich:spacer width="1" height="10" />
+					<rich:spacer width="1" height="10" />
+					
+					<h:outputText value="#{app['device.detail.hotfolder']}" style="font-weight: bold; font-size: 15px;" />
+					<rich:spacer width="1" height="1" />
+					<rich:spacer width="1" height="1" />
+					
+					<h:outputText value="#{app['device.detail.hotfolder.input']}" />
+					<h:outputText value="#{devicesBean.selectedDevice.hotfolder.inputFolder}" style="font-weight: bold;" />
+					<h:outputText value="#{app['device.detail.desc.hotfolder.input']}" />
+					
+					<h:outputText value="#{app['device.detail.hotfolder.output']}" />
+					<h:outputText value="#{devicesBean.selectedDevice.hotfolder.outputFolder}" style="font-weight: bold;" />
+					<h:outputText value="#{app['device.detail.desc.hotfolder.output']}" />
+					
+					<h:outputText value="#{app['device.detail.hotfolder.error']}" />
+					<h:outputText value="#{devicesBean.selectedDevice.hotfolder.errorFolder}" style="font-weight: bold;" />
+					<h:outputText value="#{app['device.detail.desc.hotfolder.error']}" />
+				</h:panelGrid>
+			</rich:tab>
+			
+			<!-- second tab: queue -->
+	        <rich:tab label="#{app['device.detail.queue']}">
+	        	<!-- toolbar -->
+	        	<rich:toolBar height="26" itemSeparator="grid">
+					<rich:toolBarGroup>
+						<a4j:commandButton image="/style/common/icons/fileopen.png" action="#{devicesBean.queueOpen}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.open']}" styleClass="toolbarIcon" reRender="deviceTable,requests,selectedDeviceDetail" />
+					    <a4j:commandButton image="/style/common/icons/fileclose.png" action="#{devicesBean.queueClose}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.close']}" styleClass="toolbarIcon" reRender="deviceTable,requests,selectedDeviceDetail" />
+					</rich:toolBarGroup>
+					<rich:toolBarGroup>
+						<a4j:commandButton image="/style/common/icons/player_pause.png" action="#{devicesBean.queueHold}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.hold']}" styleClass="toolbarIcon" reRender="deviceTable,requests,selectedDeviceDetail" />
+					    <a4j:commandButton image="/style/common/icons/player_play.png" action="#{devicesBean.queueResume}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.resume']}" styleClass="toolbarIcon" reRender="deviceTable,requests,selectedDeviceDetail"  />
+			  		</rich:toolBarGroup>
+			  		<rich:toolBarGroup>
+					    <a4j:commandButton image="/style/common/icons/delete_table.png" action="#{devicesBean.queueFlush}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.flush']}" styleClass="toolbarIcon" reRender="deviceTable,requests,selectedDeviceDetail" />
+			  		</rich:toolBarGroup>
+					<rich:toolBarGroup location="right">
+						<a4j:commandButton image="/style/common/icons/reload_page.png" action="#{devicesBean.queueRefresh}" ajaxSingle="true" immediate="true" title="#{app['queue.ctl.refresh']}" styleClass="toolbarIcon" reRender="queueEntries" />
+					</rich:toolBarGroup>
+	        	</rich:toolBar>
+	        	
+	        	<!-- diff update queue entries -->
+	        	<a4j:poll interval="200" action="#{devicesBean.updateQueue}" reRender="queueEntryStartTime, queueEntryEndTime, queueEntryStatus" ajaxSingle="true" immediate="true" />
+	        	
+	            <rich:dataTable value="#{devicesBean.selectedDeviceQueue}" var="entry" ajaxKeys="#{devicesBean.selectedDeviceQueueChanges}" styleClass="queue-entry-table" width="100%" style="margin-top: 5px" id="queueEntries" >
+		         	<rich:column sortBy="#{entry.queueEntryId}">
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['queueEntry.id']}"/>
+		                </f:facet>
+						<h:outputText value="#{entry.queueEntryId}"/>
+					</rich:column>
+					<rich:column sortBy="#{entry.priority}" >
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['queueEntry.priority']}"/>
+		                </f:facet>
+						<h:outputText value="#{entry.priority}"/>
+					</rich:column>
+					<rich:column sortBy="#{entry.submissionTime}" id="columnSubmission" >
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['queueEntry.submissionTime']}">
+		                    	<f:convertDateTime dateStyle="short"/>
+		                    </h:outputText>
+		                </f:facet>
+						<h:outputText value="#{entry.submissionTime}"/>
+					</rich:column>
+					<rich:column sortBy="#{entry.startTime}" >
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['queueEntry.startTime']}">
+		                    	<f:convertDateTime dateStyle="short"/>
+		                    </h:outputText>
+		                </f:facet>
+						<h:outputText id="queueEntryStartTime" value="#{entry.startTime}"/>
+					</rich:column>
+					<rich:column sortBy="#{entry.endTime}" >
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['queueEntry.endTime']}">
+		                    	<f:convertDateTime dateStyle="short"/>
+		                    </h:outputText>
+		                </f:facet>
+						<h:outputText id="queueEntryEndTime" value="#{entry.endTime}"/>
+					</rich:column>
+					<rich:column sortBy="#{entry.jobId}" >
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['queueEntry.jobId']}"/>
+		                </f:facet>
+						<h:outputText value="#{entry.jobId}"/>
+					</rich:column>
+					<rich:column sortBy="#{entry.jobPartId}" >
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['queueEntry.jobPartId']}"/>
+		                </f:facet>
+						<h:outputText value="#{entry.jobPartId}"/>
+					</rich:column>
+					<rich:column sortBy="#{entry.status}" >
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['queueEntry.status']}"/>
+		                </f:facet>
+						<h:outputText id="queueEntryStatus" value="#{entry.status}" />
+					</rich:column>
+		         </rich:dataTable>
+	        </rich:tab>
+	        
+	        <!-- third tab: subscriptions -->
+	        <rich:tab label="#{app['device.detail.subscriptions']}">
+	            <rich:dataTable value="#{devicesBean.selectedDevice.msgSubscriptions}" var="subscription" styleClass="subscription-table" width="100%" style="margin-top: 5px" id="subscriptions" >
+		         	<rich:column sortBy="#{subscription.channelId}" >
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['subscription.channelId']}"/>
+		                </f:facet>
+						<h:outputText value="#{subscription.channelId}"/>
+					</rich:column>
+					<rich:column sortBy="#{subscription.url}" >
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['subscription.url']}"/>
+		                </f:facet>
+						<h:outputText value="#{subscription.url}"/>
+					</rich:column>
+					<rich:column sortBy="#{subscription.type}" >
+		         		<f:facet name="header">
+		                    <h:outputText value="#{app['subscription.type']}">
+		                    	<f:convertDateTime dateStyle="short"/>
+		                    </h:outputText>
+		                </f:facet>
+						<h:outputText value="#{subscription.type}"/>
+					</rich:column>
+		         </rich:dataTable>
+	        </rich:tab>
+	        
+	        <!--  fourth tab -->
+	        <rich:tab label="#{app['device.detail.login']}">
+	        	<h:panelGrid columns="3">
+	        		<h:graphicImage value="/style/common/images/agt_family.png" />
+	        		<rich:spacer height="10px" width="10px"/>
+	        		<h:outputText value="#{app['device.detail.login.desc']}"/>
+	        		
+	        		<rich:spacer height="10px" width="10px"/>
+	        	</h:panelGrid>
+	        
+	        	<rich:dragIndicator id="indicatorEmployees" />
+				
+	        	<h:panelGrid columns="3" width="100%">
+	        		<rich:panel id="pnlKnownEmployees" styleClass="loginUserBox">
+	        			<f:facet name="header">
+		                    <h:outputText value="#{app['device.detail.knownEmployees']}" />
+		                </f:facet>
+		                <rich:dropSupport id="dropKnownEmployee" acceptedTypes="employee" dropValue="logout"
+		                    dropListener="#{devicesBean.processEmployeeDrop}" reRender="pnlKnownEmployees,pnlEmployees">
+		                </rich:dropSupport>
+		                <h:dataTable id="tblKnownEmployees" columns="1" value="#{devicesBean.selectedDevice.knownEmployees}"
+                    		var="knownEmployee" >
+                    		<h:column>
+								<a4j:outputPanel style="width:260px;border:1px solid gray;padding:2px" layout="block">
+		                            <rich:dragSupport dragIndicator="indicatorEmployees"
+		                                dragType="employee" dragValue="#{knownEmployee.productId}">
+		                                <rich:dndParam name="label" value="#{knownEmployee.descriptiveName}" />
+		                            </rich:dragSupport>
+		                            <h:panelGrid columns="2">
+			                            <h:graphicImage value="/style/common/icons/personal.png" />
+			                            <h:outputText value="#{knownEmployee.descriptiveName}" />
+		                            </h:panelGrid>
+		                        </a4j:outputPanel>                    		
+                    		</h:column>
+                    	</h:dataTable>
+	        		</rich:panel>
+	        		
+	        		<rich:spacer width="50px" height="1px"/>
+	        		
+	        		<rich:panel id="pnlEmployees" styleClass="loginUserBox">
+	        			<f:facet name="header">
+		                    <h:outputText value="#{app['device.detail.employees']}" />
+		                </f:facet>
+		                <rich:dropSupport id="dropEmployee" acceptedTypes="employee" dropValue="login"
+		                    dropListener="#{devicesBean.processEmployeeDrop}" reRender="pnlKnownEmployees,pnlEmployees">
+		                </rich:dropSupport>
+		                <h:dataTable id="tblEmployees" columns="1" value="#{devicesBean.selectedDevice.employees}"
+                    		var="employee" >
+                    		<h:column>
+								<a4j:outputPanel style="width:260px;border:1px solid gray;padding:2px" layout="block">
+		                            <rich:dragSupport dragIndicator="indicatorEmployees"
+		                                dragType="employee" dragValue="#{employee.productId}">
+		                                <rich:dndParam name="label" value="#{employee.descriptiveName}" />
+		                            </rich:dragSupport>
+		                            <h:panelGrid columns="2">
+			                            <h:graphicImage value="/style/common/icons/personal.png" />
+			                            <h:outputText value="#{employee.descriptiveName}" />
+		                            </h:panelGrid>
+		                        </a4j:outputPanel>                    		
+                    		</h:column>
+                    	</h:dataTable>
+	        		</rich:panel>
+	        	</h:panelGrid>
+	        </rich:tab>
+	    </rich:tabPanel>
+	</rich:simpleTogglePanel>
+	
+	</h:form>
+	
+	<rich:hotKey key="ctrl+b" handler="#{rich:component('pnlPrinter')}.show() ;return false;"/>
+	<rich:modalPanel id="pnlPrinter" width="500" height="450">
+        <f:facet name="header">
+            <h:panelGroup>
+                <h:outputText value="Sample Device"></h:outputText>
+            </h:panelGroup>
+        </f:facet>
+        <f:facet name="controls">
+            <h:panelGroup>
+                <h:graphicImage value="/style/common/images/close.png" id="hidePrinter"/>
+                <rich:componentControl for="pnlPrinter" attachTo="hidePrinter" operation="hide" event="onclick"/>
+            </h:panelGroup>
+        </f:facet>
+        <cip4:deviceExample />
+    </rich:modalPanel>
+    
+    <rich:modalPanel id="pnlModify" width="500" height="490">
+    	<f:facet name="header">
+            <h:panelGroup>
+                <h:outputText value="#{app['modal.modify.title']}"></h:outputText>
+            </h:panelGroup>
+        </f:facet>
+        <f:facet name="controls">
+            <h:panelGroup>
+                <h:graphicImage value="/style/common/images/close.png" id="hideModify"/>
+                <rich:componentControl for="pnlModify" attachTo="hideModify" operation="hide" event="onclick"/>
+            </h:panelGroup>
+        </f:facet>
+        	<h:form>
+		        <h:panelGrid columns="2" id="pnlModifyForm">
+					<h:outputText value="#{app['device.detail.id']}" />
+					<h:panelGroup>
+						<h:outputText value="#{app['device.detail.desc.id']}" /><br />
+						<h:outputText value="#{devicesBean.device2Modify.id}" style="font-weight: bold; font-size: 15px" />
+					</h:panelGroup>
+					
+					<rich:spacer width="1" height="5" />
+					<rich:spacer width="1" height="5" />
+					
+					<h:outputText value="#{app['device.detail.url']}" />
+					<h:panelGroup>
+						<h:outputText value="#{app['device.detail.desc.url']}" /><br />
+						<h:inputText value="#{devicesBean.device2Modify.url}" styleClass="modifyTextBox" />
+					</h:panelGroup>
+					
+					<rich:spacer width="1" height="5" />
+					<rich:spacer width="1" height="5" />
+					
+					<h:outputText value="#{app['device.detail.type']}" />
+					<h:panelGroup>
+						<h:outputText value="#{app['device.detail.desc.type']}" /><br />
+						<h:inputText value="#{devicesBean.device2Modify.type}" styleClass="modifyTextBox" />
+					</h:panelGroup>
+					
+					<rich:spacer width="1" height="5" />
+					<rich:spacer width="1" height="5" />
+					
+					<h:outputText value="#{app['device.detail.watchUrl']}" />
+					<h:panelGroup>
+						<h:outputText value="#{app['device.detail.desc.watchUrl']}" /><br />
+						<h:inputText value="#{devicesBean.device2Modify.watchUrl}" styleClass="modifyTextBox" />
+					</h:panelGroup>
+					
+					<rich:spacer width="1" height="5" />
+					<rich:spacer width="1" height="5" />
+					
+					<h:outputText value="#{app['device.detail.typeExpression']}" />
+					<h:panelGroup>
+						<h:outputText value="#{app['device.detail.desc.typeExpression']}" /><br />
+						<h:inputText value="#{devicesBean.device2Modify.typeExpression}" styleClass="modifyTextBox" />
+					</h:panelGroup>
+					
+					<rich:spacer width="1" height="5" />
+					<rich:spacer width="1" height="5" />
+					
+					<h:outputText value="#{app['device.detail.hotfolder']}" style="font-weight: bold; font-size: 15px" />
+					<rich:spacer width="1" height="1" />
+					
+					<rich:spacer width="1" height="5" />
+					<rich:spacer width="1" height="5" />
+					
+					<h:outputText value="#{app['device.detail.hotfolder.input']}" />
+					<h:panelGroup>
+						<h:outputText value="#{app['device.detail.desc.hotfolder.input']}" /><br/>
+						<h:inputText value="#{devicesBean.device2Modify.inputFolder}" styleClass="modifyTextBox" />
+					</h:panelGroup>
+					
+					<rich:spacer width="1" height="5" />
+					<rich:spacer width="1" height="5" />
+					
+					<h:outputText value="#{app['device.detail.hotfolder.output']}" />
+					<h:panelGroup>
+						<h:outputText value="#{app['device.detail.desc.hotfolder.output']}" /><br/>
+						<h:inputText value="#{devicesBean.device2Modify.outputFolder}" styleClass="modifyTextBox" />
+					</h:panelGroup>
+					
+					<rich:spacer width="1" height="5" />
+					<rich:spacer width="1" height="5" />
+					
+					<h:outputText value="#{app['device.detail.hotfolder.error']}" />
+					<h:panelGroup>
+						<h:outputText value="#{app['device.detail.desc.hotfolder.error']}" /><br/>
+						<h:inputText value="#{devicesBean.device2Modify.errorFolder}" styleClass="modifyTextBox" />
+					</h:panelGroup>
+					
+					<rich:spacer width="1" height="5" />
+					<rich:spacer width="1" height="5" />
+				</h:panelGrid>
+				
+				<a4j:commandButton value="#{app['modal.modify.save']}" action="#{devicesBean.submitModifyDevice}" reRender="deviceDetail,deviceTable" onclick="#{rich:component('pnlModify')}.hide()" />
+				<a4j:commandButton value="#{app['modal.modify.cancel']}" onclick="#{rich:component('pnlModify')}.hide(); return false;" />
+			</h:form>
+    </rich:modalPanel>
+</ui:composition>
+
+</html>

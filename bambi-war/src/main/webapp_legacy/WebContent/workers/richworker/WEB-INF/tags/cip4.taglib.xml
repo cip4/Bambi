@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE facelet-taglib PUBLIC "-//Sun Microsystems, Inc.//DTD Facelet Taglib 1.0//EN" "facelet-taglib_1_0.dtd">
+
+<facelet-taglib>
+	<namespace>http://www.cip4.org/tags</namespace>
+	<tag>
+		<tag-name>jobStatistics</tag-name>
+		<source>jobStatistics.xhtml</source>
+	</tag>
+	<tag>
+		<tag-name>status</tag-name>
+		<source>status.xhtml</source>
+	</tag>
+	<tag>
+		<tag-name>deviceDetail</tag-name>
+		<source>deviceDetail.xhtml</source>
+	</tag>
+	<tag>
+		<tag-name>deviceExample</tag-name>
+		<source>deviceExample.xhtml</source>
+	</tag>
+</facelet-taglib>

@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:a4j="http://richfaces.org/a4j"
+	xmlns:rich="http://richfaces.org/rich">
+
+<ui:composition>
+	<h:panelGrid columns="5" style="margin-right: 10px">
+		<h:outputLabel value="#{app['settings.locale']}" for="Locale" />
+		<h:selectOneMenu value="#{currentUserBean.locale}" id="Locale" valueChangeListener="#{currentUserBean.changeLocale}" onchange="submit()" immediate="true">
+			<f:selectItem itemValue="en" itemLabel="English" />
+			<f:selectItem itemValue="dk" itemLabel="Danish" />
+			<f:selectItem itemValue="de" itemLabel="German" />
+			<f:selectItem itemValue="fr" itemLabel="French" />
+			<f:selectItem itemValue="jp" itemLabel="Japanese" />
+			<f:selectItem itemValue="nl" itemLabel="Nederlands" />
+			<f:selectItem itemValue="no" itemLabel="Norwegian" />
+			<f:selectItem itemValue="pl" itemLabel="Polish" />
+			<f:selectItem itemValue="se" itemLabel="Swedish" />
+			<f:selectItem itemValue="tr" itemLabel="Turkish" />
+			<f:selectItem itemValue="by" itemLabel="Bavarian" />
+		</h:selectOneMenu>
+		
+		<rich:separator width="10" height="5" style="background-image: none;" />
+		
+		<h:outputLabel value="#{app['settings.style']}" for="Style" />
+		<h:selectOneMenu value="#{currentUserBean.style}" id="Style" valueChangeListener="#{currentUserBean.changeStyle}" onchange="submit()" immediate="true">
+			<f:selectItem itemValue="cip4" itemLabel="#{app['settings.style.cip4']}" />
+			<f:selectItem itemValue="heidelberg" itemLabel="#{app['settings.style.heidelberg']}" />
+		</h:selectOneMenu>
+	</h:panelGrid>
+</ui:composition>
+
+</html>
