@@ -23,7 +23,7 @@
 				</link>
 				<title>
 					<xsl:value-of select="$deviceType" />
-					Simulation Device :
+					:
 					<xsl:value-of select="$deviceID" />
 				</title>
 				<xsl:if test="@refresh='true'">
