@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -105,7 +105,7 @@ public class SlaveSubscriber extends Thread
 	 * @param slaveQEID
 	 * @param abstractProxyDevice the device that this subscriber works on
 	 */
-	protected SlaveSubscriber(AbstractProxyDevice abstractProxyDevice, final int waitBefore, final String slaveQEID)
+	public SlaveSubscriber(AbstractProxyDevice abstractProxyDevice, final int waitBefore, final String slaveQEID)
 	{
 		super("SlaveSubscriber_" + abstractProxyDevice.getDeviceID() + "_" + AbstractProxyDevice.slaveThreadCount++);
 		this.abstractProxyDevice = abstractProxyDevice;
@@ -154,7 +154,7 @@ public class SlaveSubscriber extends Thread
 	 * @param deviceURL
 	 * @return
 	 */
-	private Vector<JDFJMF> prepare(final String deviceURL)
+	protected Vector<JDFJMF> prepare(final String deviceURL)
 	{
 		resetSubscriptions();
 		final JMFBuilder builder = abstractProxyDevice.getBuilderForSlave();
@@ -184,7 +184,7 @@ public class SlaveSubscriber extends Thread
 	/**
 	 * @param vJMFS
 	 */
-	private void sendSubscriptions(final Vector<JDFJMF> vJMFS)
+	protected void sendSubscriptions(final Vector<JDFJMF> vJMFS)
 	{
 		if (vJMFS != null)
 		{
@@ -198,9 +198,11 @@ public class SlaveSubscriber extends Thread
 	/**
 	 * 
 	 */
-	private void cleanup()
+	protected void cleanup()
 	{
-		ThreadUtil.sleep(30000);
+		if (!ThreadUtil.sleep(30000))
+			return;
+
 		synchronized (abstractProxyDevice.waitingSubscribers)
 		{
 			abstractProxyDevice.waitingSubscribers.remove(abstractProxyDevice.getKey(slaveQEID));
@@ -210,7 +212,7 @@ public class SlaveSubscriber extends Thread
 	/**
 	 * 
 	 */
-	public void resetSubscriptions()
+	protected void resetSubscriptions()
 	{
 		if (abstractProxyDevice.knownSlaveMessages.knows(EnumType.StopPersistentChannel))
 		{
@@ -261,32 +263,38 @@ public class SlaveSubscriber extends Thread
 	/**
 	 * @param jmf the subscribeable jmf
 	 */
-	private void createNewSubscription(final JDFJMF jmf)
+	protected void createNewSubscription(final JDFJMF jmf)
 	{
 		if (jmf == null)
 		{
 			return;
 		}
-		final ProxySubscription ps = new ProxySubscription(jmf);
-		final EnumType t = jmf.getQuery(0).getEnumType();
-		final ProxySubscription psOld = abstractProxyDevice.mySubscriptions.get(t);
-		if (psOld != null)
+		final ProxySubscription proxySub = new ProxySubscription(jmf);
+		final EnumType messageType = jmf.getQuery(0).getEnumType();
+		final ProxySubscription proxySubOld = abstractProxyDevice.mySubscriptions.get(messageType);
+		if (proxySubOld != null)
 		{
-			log.warn("updating dropped subscription; type: " + t.getName());
+			log.warn("updating dropped subscription; type: " + messageType.getName());
 		}
-		final MessageResponseHandler rh = new MessageResponseHandler(jmf);
-		abstractProxyDevice.sendJMFToSlave(jmf, rh);
-		rh.waitHandled(10000, 30000, false);
-		final int rc = rh.getJMFReturnCode();
+		final int rc = sendSubscriptionToSlave(jmf);
 		if (rc == 0)
 		{
-			abstractProxyDevice.mySubscriptions.remove(t);
-			abstractProxyDevice.mySubscriptions.put(t, ps);
+			abstractProxyDevice.mySubscriptions.remove(messageType);
+			abstractProxyDevice.mySubscriptions.put(messageType, proxySub);
 		}
 		else
 		{
-			log.warn("error updating subscription; type: " + t.getName() + " rc=" + rc);
+			log.warn("error updating subscription; type: " + messageType.getName() + " rc=" + rc);
 		}
+	}
+
+	protected int sendSubscriptionToSlave(final JDFJMF jmf)
+	{
+		final MessageResponseHandler respHandler = new MessageResponseHandler(jmf);
+		abstractProxyDevice.sendJMFToSlave(jmf, respHandler);
+		respHandler.waitHandled(10000, 30000, false);
+		final int rc = respHandler.getJMFReturnCode();
+		return rc;
 	}
 
 	/**
