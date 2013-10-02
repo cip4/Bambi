@@ -11,75 +11,85 @@ xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0"
     <xsl:variable name="deviceID" select="@DeviceID"/>
     <html>
       <head>
+       <!-- Google Web Font -->
+    <link href='http://fonts.googleapis.com/css?family=Roboto+Condensed:400,700|Roboto:400,500' rel='stylesheet' type='text/css' />
+    <!-- Stylesheet -->
+    <link href="css/styles_pc.css" rel="stylesheet" type="text/css" />
         <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
         <link rel="stylesheet" type="text/css" href="../css/styles_pc.css"/>
         <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+        
+        
         <title>
           <xsl:value-of select="@DeviceID"/>
           - Subscriptions
         </title>
+        
+        
       </head>
-      <body>
-        <img src="../logo.gif" height="70" alt="logo"/>
-        <h1>
-          <xsl:value-of select="@DeviceID"/>
-          - Subscriptions
-        </h1>
-        <xsl:call-template name="links"/>
-        <xsl:if test="MsgSubscription">
+      <body class="popupcontent">
+        
+        
+        <div class="headline-wrapper">
+          <!-- Headline -->
           <h2>
-            Subscriptions:
-            <xsl:value-of select="count(MsgSubscription)"/>
+            <xsl:value-of select="@DeviceID"/>
+            - Subscriptions
           </h2>
-          <table cellspacing="2" border="1">
-            <tr>
-              <th align="left"> # </th>
-              <th align="left"> Channel ID</th>
-              <th align="left"> Device ID</th>
-              <th align="left"> QueueEntry ID</th>
-              <th align="left"> Signal Type</th>
-              <th align="left"> Subscription URL</th>
-              <th align="left"> Repeat Time</th>
-              <th align="left"> Repeat Step</th>
-              <th align="left"> Messages Queued</th>
-              <th align="left"> Last time Queued</th>
-              <th align="left"> Remove Subscription</th>
-            </tr>
-            <xsl:apply-templates select="MsgSubscription"/>
-          </table>
+          
 
-          <hr/>
-        </xsl:if>
+          
+          <!-- refresh subscription List -->
+          <a>
+            <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showSubscriptions/<xsl:value-of select="@DeviceID"/>
+            </xsl:attribute>
+            <div class="buttonsymbol">
+            	<img class="buttonsymbolimage">
+            		<xsl:attribute name="src"><xsl:value-of select="$context" />/images/refresh.svg</xsl:attribute>
+            	</img>
+            </div>
+          </a>
+          
+          
+          
+        </div>
+        
+        <div class="box noheight">
+          <!-- Subscription counter -->
+          <xsl:if test="MsgSubscription">
+            <h2>
+              Subscriptions:
+              <xsl:value-of select="count(MsgSubscription)"/>
+            </h2>
+          
+            
+          
+          </xsl:if></div>
+        <!-- SUBSCRIPTIONS -->
+        <div class="box  nowidth clear">
+            <xsl:apply-templates select="MsgSubscription"/>
+            <div class="clear"></div>
+        </div>
+
+		
+        
+        <!-- Message Sender Headline -->
+        <div class="box noheight">
         <h2>Message Sender Channels</h2>
-        <table cellspacing="2" border="1">
-          <tr>
-            <th align="left" title="Base URL of the Sender Channel"> Base URL</th>
-            <th align="left" title="Status of the Sender Channel"> Status</th>
-            <th align="left" title="Number of unsent messages pending"> JMF Pending</th>
-            <th align="left" title="Number of successfully sent messages"> JMF Sent</th>
-            <th align="left" title="Number of message send attempts, including unsuccessfull "> JMF Queued</th>
-            <th align="left" title="Number of heartbeat messages removed "> JMF Removed</th>
-            <th align="left" title="Number of fire &amp; forget messages not sent "> Fire &amp; Forget Removed</th>
-            <th align="left" title="Number of error messages not sent "> JMF Errors Removed</th>
-            <th align="left" title="Time of last message sending"> Last time Sent</th>
-            <th align="left" title="Time the last message was queued for sending"> Last time Queued</th>
-            <th align="left" title="Time the message sender started up"> Active since</th>
-            <th align="left"> Show Sent Messages</th>
-            <th align="left" title="pause or resume sending of outqiong messages"> pause / resume</th>
-            <th align="left" title="remove this sender - does NOT flush pending messages"> Remove Sender</th>
-            <th align="left" title="Flush all queued but unsent messages irrevocibly"> Flush unsent Messages</th>
-          </tr>
-          <xsl:apply-templates select="MessageSender"/>
-        </table>
-        <hr/>
+        </div>
+         
+        <!-- MESSAGE SENDER CHANNELS -->
+		<xsl:apply-templates select="MessageSender"/>
+
+        
         <ul>
           <xsl:apply-templates select="RemovedChannel"/>
         </ul>
 
         <xsl:if test="MessageSender/Message">
-        <hr/>
+        
 				<xsl:call-template name="cputimer" />
-		<hr/>
+		
         
           <h2>Queued Messages</h2>
           <table cellspacing="2" border="1">
@@ -92,85 +102,229 @@ xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0"
             <xsl:apply-templates select="MessageSender/Message"/>
           </table>
 
-          <hr/>
+          
         </xsl:if>
 
-        <hr/>
+        
         <xsl:apply-templates select="ProxySubscriptions"/>
-        <xsl:call-template name="links"/>
+
       </body>
     </html>
   </xsl:template>
 
   <!--  end of template SubscriptionList  -->
+  
+  
+  
+  
   <xsl:template match="MsgSubscription">
-    <tr>
-      <xsl:choose>
-        <xsl:when test="@LastTime=' - '">
-          <xsl:choose>
-            <xsl:when test="@Sent='0'">
-              <xsl:attribute name="bgcolor">#ffaaaa</xsl:attribute>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:attribute name="bgcolor">#ffffaa</xsl:attribute>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:attribute name="bgcolor">#aaffaa</xsl:attribute>
-        </xsl:otherwise>
-      </xsl:choose>
-      <td align="left">
-        <xsl:value-of select="position()"/>
-      </td>
-      <td align="left">
+
+       <div class="preview-wrapper" >
+        <div class="subrow">
+        <h3><xsl:value-of select="position()"/> - Channel ID</h3><em>
         <a>
           <xsl:attribute name="href"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/>?DetailID=<xsl:value-of
             select="@ChannelID"/>
                   </xsl:attribute>
           <xsl:value-of select="@ChannelID"/>
-        </a>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@DeviceID"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@QueueEntryID"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@Type"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@URL"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@RepeatTime"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@RepeatStep"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@Sent"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@LastTime"/>
-      </td>
-      <td align="center">
+        </a></em>
+        
+        <div>
+        	<xsl:choose>
+                <xsl:when test="@LastTime=' - '">
+                  
+                  <xsl:choose>
+                    <xsl:when test="@Sent='0'">
+                      <xsl:attribute name="class">status-bar red</xsl:attribute>
+                    </xsl:when>
+                    
+                    <xsl:otherwise>
+                      <xsl:attribute name="class">status-bar orange</xsl:attribute>
+                    </xsl:otherwise>
+                  
+                  </xsl:choose>
+                </xsl:when>
+                
+                <xsl:otherwise>
+                  <xsl:attribute name="class">status-bar green</xsl:attribute>
+                </xsl:otherwise>
+              </xsl:choose>
+        </div>
+        
+        </div><!--subrow-->
+      </div><!-- preview-wrapper -->
+      
+      <!-- selector -->
+      <!--<input type="radio" class="selector">
+      
+      <xsl:attribute name="name">
+      subscriptionDetails-<xsl:value-of select="@ChannelID"></xsl:value-of>
+      </xsl:attribute>
+      
+      <xsl:attribute name="id">
+      open-<xsl:value-of select="@ChannelID"></xsl:value-of>
+      </xsl:attribute>
+      
+      </input>
+      <label class="subscriptionDetails">
+      <xsl:attribute name="for">
+      open-<xsl:value-of select="@ChannelID"></xsl:value-of>
+      </xsl:attribute>
+      
+      
+      <div class="open">
+          <img class="center verticalopen">
+          <xsl:attribute name="src"><xsl:value-of select="$context" />/images/open.svg</xsl:attribute>
+          </img>
+      </div>
+      </label> end of subscriptionDetails -->
+      
+      
+      
+      <!-- end of selector -->
+     <div class="subscriptionDetails">
+     <div class="subrow"> 
+      <h3>Device ID</h3><em>
+        <xsl:value-of select="@DeviceID"/></em>
+      </div>
+      
+      
+      <div class="subrow">
+      <h3>QueueEntry ID</h3><em>
+        <xsl:value-of select="@QueueEntryID"/></em>
+      </div>
+      
+      
+      <div class="subrow">
+      <h3>Signal Type</h3><em>
+        <xsl:value-of select="@Type"/></em>
+      </div>
+      
+      
+      <div class="subrow">
+      <h3>Subscription URL</h3><em>
+        <xsl:value-of select="@URL"/></em>
+      </div>
+      
+      
+      <div class="subrow">
+      <h3>Repeat Time</h3><em>
+        <xsl:value-of select="@RepeatTime"/></em>
+     </div>
+     
+     
+      <div class="subrow"> 
+     	<h3> Repeat Step</h3><em>
+        <xsl:value-of select="@RepeatStep"/></em>
+      </div>
+      
+      
+      <div class="subrow">
+    <h3>Messages Queued</h3><em>
+        <xsl:value-of select="@Sent"/></em>
+      </div>
+      
+      
+      <div class="subrow">
+      <h3>Last time Queued</h3><em>
+        <xsl:value-of select="@LastTime"/></em>
+      </div>
+      
+      
+      <div class="subrow">
+      <h3>Remove Subscription</h3><em>
         <form>
           <xsl:attribute name="action"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/></xsl:attribute>
           <input type="hidden" name="StopChannel" value="true"/>
           <input type="hidden" name="ChannelID">
             <xsl:attribute name="value"><xsl:value-of select="@ChannelID"/></xsl:attribute>
           </input>
-          <input type="submit" value="remove"/>
-        </form>
-      </td>
-    </tr>
+          <input type="submit" value="remove" class="button"/>
+        </form></em>
+      </div>
+      </div><!-- end of subscriptionDetails -->
+      
+      
+      <!-- close -->
+      <!--<input type="radio" class="selector" checked="checked">
+          <xsl:attribute name="name">
+          subscriptionDetails-<xsl:value-of select="@ChannelID"></xsl:value-of>
+          </xsl:attribute>
+          
+          <xsl:attribute name="id">
+          close-<xsl:value-of select="@ChannelID"></xsl:value-of>
+          </xsl:attribute>
+      </input>
+      
+      <label class="subscriptionDetails">
+          <xsl:attribute name="for">
+          		close-<xsl:value-of select="@ChannelID"></xsl:value-of>
+          </xsl:attribute>
+          
+          
+          
+          <div class="close">
+              <img class="center verticalclose">
+              <xsl:attribute name="src"><xsl:value-of select="$context" />/images/close.svg</xsl:attribute>
+              </img>
+          </div>
+      </label>
+       end of close -->
+      
+      
+      <div class="clear"/>
+      
+
   </xsl:template>
+  
+  
+  
+  
   <!--  end of template MsgSubscription  -->
 
+  
+  
+  
+  
   <xsl:template match="MessageSender">
-    <tr>
+  
+  		 
+         <div class="box clear MessageSender">
+         <div class="subrow">
+
+    	<!-- Base URL -->
+        <h3>Base URL</h3>
+        
+        <xsl:value-of select="@URL"/>
+
+      
+        <!-- Status -->
+        
+        
+        <xsl:choose>
+          <xsl:when test="@Active='false'">
+            down
+          </xsl:when>
+          <xsl:when test="@pause='true'">
+            paused
+          </xsl:when>
+          <xsl:when test="@Size!='0'">
+            <xsl:choose>
+              <xsl:when test="@idle!='0'">
+                dispatch errors
+              </xsl:when>
+              <xsl:otherwise>
+                back log
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:when>
+          <xsl:otherwise>
+            active
+          </xsl:otherwise>
+        </xsl:choose>
+        
+      <!-- Status Bar -->
+      <div class="status-bar">
       <xsl:choose>
         <!-- something is waiting -->
         <xsl:when test="@Size!='0'">
@@ -203,70 +357,88 @@ xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0"
           <xsl:attribute name="bgcolor">#aaaaff</xsl:attribute>
         </xsl:otherwise>
       </xsl:choose>
-      <td align="left">
-        <xsl:value-of select="@URL"/>
-      </td>
-      <td align="left">
-        <xsl:choose>
-          <xsl:when test="@Active='false'">
-            down
-          </xsl:when>
-          <xsl:when test="@pause='true'">
-            paused
-          </xsl:when>
-          <xsl:when test="@Size!='0'">
-            <xsl:choose>
-              <xsl:when test="@idle!='0'">
-                dispatch errors
-              </xsl:when>
-              <xsl:otherwise>
-                back log
-              </xsl:otherwise>
-            </xsl:choose>
-          </xsl:when>
-          <xsl:otherwise>
-            active
-          </xsl:otherwise>
-        </xsl:choose>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@Size"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@NumSent"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@NumTry"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@NumRemove"/>
-      </td>
-     <td align="left">
-        <xsl:value-of select="@NumRemoveFireForget"/>
-      </td>
-     <td align="left">
-        <xsl:value-of select="@NumRemoveError"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@LastSent"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@LastQueued"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@CreationDate"/>
-      </td>
-      <td align="center">
+      </div><!-- statusbar -->
+     </div><!-- subrow -->
+
+      
+      <div class="subrow">
+      <h3>JMF</h3>
+      <!-- JMF Pending -->
+
+        
+        <div class="float-left">
+        <em class="small"><xsl:value-of select="@Size"/> Pending</em><br/>
+      
+      
+      <!-- JMF Sent -->
+
+        <em class="small"><xsl:value-of select="@NumSent"/> Sent</em><br/>
+      </div>
+      <div class="float-left">
+      <!-- JMF Queued -->
+
+        <em class="small"><xsl:value-of select="@NumTry"/> Queued</em><br/>
+      
+      
+      <!-- JMF Removed -->
+
+        <em class="small"><xsl:value-of select="@NumRemove"/> Removed</em><br/>
+       </div> 
+      </div>
+      
+      <!-- Fire & Forget Removed -->
+         <div class="subrow">
+        <h3>Fire and Forget Removed</h3>
+        
+        <em><xsl:value-of select="@NumRemoveFireForget"/></em>
+      </div>
+      
+      <!-- JMF Errors Removed -->
+         <div class="subrow">
+        <h3>JMF Errors Removed</h3>
+        
+        <em><xsl:value-of select="@NumRemoveError"/></em>
+      </div>
+      
+      <!-- Last time Sent -->
+         <div class="subrow">
+        <h3>Last time Sent</h3>
+        
+        <em><xsl:value-of select="@LastSent"/></em>
+      </div>
+      
+      <!-- Last time Queued -->
+         <div class="subrow">
+        <h3>Last time Queued</h3>
+        
+        <em><xsl:value-of select="@LastQueued"/></em>
+      </div>
+      
+      <!-- Active since -->
+         <div class="subrow">
+        <h3>Active since</h3>
+        
+        <em><xsl:value-of select="@CreationDate"/></em>
+      </div>
+      
+      <!-- Show Sent Messages -->
+         
+         
+         <div class="subrow">
+        <h3>Show Sent Messages</h3>
+        
         <form>
           <xsl:attribute name="action"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/></xsl:attribute>
           <input type="hidden" name="ListSenders" value="true"/>
           <input type="hidden" name="URL">
             <xsl:attribute name="value"><xsl:value-of select="@URL"/></xsl:attribute>
           </input>
-          <input type="submit" value="List Senders"/>
+          <input type="submit" value="List Senders" class="button"/>
         </form>
-      </td>
-      <td align="center">
+      </div>
+      
+      <!-- pause / resume -->
+       <div class="subrow">  
         <form>
           <xsl:attribute name="action"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/></xsl:attribute>
           <input type="hidden" name="URL">
@@ -275,38 +447,48 @@ xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0"
           <xsl:choose>
             <xsl:when test="@pause='true'">
               <input type="hidden" name="pause" value="false"/>
-              <input type="submit" value="resume"/>
+              <input type="submit" value="resume" class="button"/>
             </xsl:when>
             <xsl:otherwise>
               <input type="hidden" name="pause" value="true"/>
-              <input type="submit" value="pause"/>
+              <input type="submit" value="pause" class="button"/>
             </xsl:otherwise>
           </xsl:choose>
         </form>
-      </td>
-      <td align="center">
+      
+      
+      <!-- Remove Sender -->
+         
         <form>
           <xsl:attribute name="action"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/></xsl:attribute>
           <input type="hidden" name="StopSender" value="true"/>
           <input type="hidden" name="URL">
             <xsl:attribute name="value"><xsl:value-of select="@URL"/></xsl:attribute>
           </input>
-          <input type="submit" value="remove"/>
+          <input type="submit" value="remove" class="button"/>
         </form>
-      </td>
-      <td align="center">
-        <form>
+      
+      
+      <!-- Flush unsent Messages -->
+         
+         <form>
           <xsl:attribute name="action"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/></xsl:attribute>
           <input type="hidden" name="FlushSender" value="true"/>
           <input type="hidden" name="URL">
             <xsl:attribute name="value"><xsl:value-of select="@URL"/></xsl:attribute>
           </input>
-          <input type="submit" value="flush"/>
+          <input type="submit" value="flush" class="button"/>
         </form>
-      </td>
-    </tr>
+        </div>
+        
+     </div><!-- row -->
+
   </xsl:template>
   <!--  end of template MessageSender  -->
+  
+  
+  
+  
   <xsl:template match="RemovedChannel">
     <li>
       Subscription
@@ -366,40 +548,12 @@ xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0"
       </td>
     </tr>
   </xsl:template>
-  <xsl:template name="links">
-    <table>
-      <tr>
-        <td>
-          <a>
-            <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showSubscriptions/<xsl:value-of select="@DeviceID"/>
-            </xsl:attribute>
-            refresh list
-          </a>
-        </td>
-        <td>
-          -
-          </td>
-        <td>
-          <a>
-            <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showDevice/<xsl:value-of select="@DeviceID"/>
-            </xsl:attribute>
-            Back to Device
-          </a>
-        </td>
-        <td>
-          -
-          </td>
-        <td>
-          <a>
-            <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showQueue/<xsl:value-of select="@DeviceID"/>
-            </xsl:attribute>
-            Back to Queue
-          </a>
-        </td>
-      </tr>
-    </table>
-    <hr/>
-  </xsl:template>
+  
+
+
+
+  
+  
   <xsl:include href="SubscriptionExtension.xsl"/>
 	<xsl:include href="CPUTimer.xsl" />
 

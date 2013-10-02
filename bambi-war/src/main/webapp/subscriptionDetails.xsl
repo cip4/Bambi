@@ -28,45 +28,24 @@
         </h1>
         <xsl:if test="MsgSubscription">
           <h2>Subscriptions</h2>
-          <table cellspacing="2" border="1">
-            <tr>
-              <th align="left"> Channel ID</th>
-              <th align="left"> Device ID</th>
-              <th align="left"> QueueEntry ID</th>
-              <th align="left"> Signal Type</th>
-              <th align="left"> Subscription URL</th>
-              <th align="left"> Channel Mode</th>
-              <th align="left"> Repeat Time</th>
-              <th align="left"> Repeat Step</th>
-              <th align="left"> Messages Queued</th>
-              <th align="left"> Last time Queued</th>
-              <th align="left"> Remove Subscription</th>
-            </tr>
+
             <xsl:apply-templates select="MsgSubscription"/>
-          </table>
+          
         </xsl:if>
-        <table>
-          <tr>
-            <td>
+
               <a>
                 <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showSubscriptions/<xsl:value-of select="@DeviceID"/>
           </xsl:attribute>
                 Back to Subscription List
               </a>
-            </td>
-            <td>
-              -
-        </td>
-            <td>
+
               <a>
                 <xsl:attribute name="href"><xsl:value-of select="@Context"/>/showDevice/<xsl:value-of select="@DeviceID"/>
           </xsl:attribute>
                 Back to Device
               </a>
-            </td>
-          </tr>
-        </table>
-        <hr/>
+
+
 
         <xsl:if test="MsgSubscription/Sub">
           <xsl:apply-templates select="MsgSubscription/Sub"/>
@@ -91,46 +70,49 @@
     </html>
   </xsl:template>
 
+
+
   <!--  end of template SubscriptionList  -->
   <xsl:template match="MsgSubscription">
-    <tr>
-      <td align="left">
+    <div class="box">
+    <div class="subrow">
+        Channel ID
         <a>
           <xsl:attribute name="href"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/>?DetailID=<xsl:value-of
             select="@ChannelID"/>
                   </xsl:attribute>
           <xsl:value-of select="@ChannelID"/>
         </a>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@DeviceID"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@QueueEntryID"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@Type"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@URL"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="*/jdf:Query/jdf:Subscription/@ChannelMode"/>
-       </td>
-      <td align="left">
-        <xsl:value-of select="@RepeatTime"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@RepeatStep"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@Sent"/>
-      </td>
-      <td align="left">
-        <xsl:value-of select="@LastTime"/>
-      </td>
-      <td align="center">
-        <form>
+      </div>
+      <div class="subrow">
+        Device ID<xsl:value-of select="@DeviceID"/>
+      </div>
+      <div class="subrow">
+        QueueEntry ID<xsl:value-of select="@QueueEntryID"/>
+      </div>
+      <div class="subrow">
+        Signal Type<xsl:value-of select="@Type"/>
+      </div>
+      <div class="subrow">
+        Subscription URL<xsl:value-of select="@URL"/>
+      </div>
+      <div class="subrow">
+        Channel Mode<xsl:value-of select="*/jdf:Query/jdf:Subscription/@ChannelMode"/>
+       </div>
+      <div class="subrow">
+        Repeat Time<xsl:value-of select="@RepeatTime"/>
+      </div>
+      <div class="subrow">
+        Repeat Step<xsl:value-of select="@RepeatStep"/>
+      </div>
+      <div class="subrow">
+        Messages Queued<xsl:value-of select="@Sent"/>
+      </div>
+      <div class="subrow">
+        Last time Queued<xsl:value-of select="@LastTime"/>
+      </div>
+      <div class="subrow">
+        Remove Subscription<form>
           <xsl:attribute name="action"><xsl:value-of select="../@Context"/>/showSubscriptions/<xsl:value-of select="../@DeviceID"/></xsl:attribute>
           <input type="hidden" name="StopChannel" value="true"/>
           <input type="hidden" name="ChannelID">
@@ -138,8 +120,8 @@
           </input>
           <input type="submit" value="remove"/>
         </form>
-      </td>
-    </tr>
+      </div>
+    </div><!-- box -->
   </xsl:template>
   <!--  end of template MsgSubscription  -->
 

@@ -1,237 +1,425 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><!-- DWXMLSource="http://almserver:8080/SimWorker" -->
+
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-	<xsl:strip-space elements="*" />
-	<xsl:output method="html" />
-	<xsl:template match="/DeviceList">
-		<html>
-			<xsl:variable name="context" select="@Context" />
-			<head>
-				<!-- <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/> -->
-				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-				<link rel="stylesheet" type="text/css">
-					<xsl:attribute name="href"><xsl:value-of
+  <xsl:strip-space elements="*" />
+  <xsl:output method="html" />
+  <xsl:template match="/DeviceList">
+    <html>
+    <xsl:variable name="context" select="@Context" />
+    <head>
+    <!-- <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/> -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!-- Google Web Font -->
+    <link href='http://fonts.googleapis.com/css?family=Roboto+Condensed:400,700|Roboto:400,500' rel='stylesheet' type='text/css' />
+    <!-- Stylesheet -->
+    <link href="css/styles_pc.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css">
+    <xsl:attribute name="href"><xsl:value-of
 						select="$context" />/css/styles_pc.css</xsl:attribute>
-				</link>
-				<link rel="icon" type="image/x-icon">
-					<xsl:attribute name="href"><xsl:value-of
+    </link>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon">
+    <xsl:attribute name="href"><xsl:value-of
 						select="$context" />/favicon.ico</xsl:attribute>
-				</link>
-				<title>
-					<xsl:value-of select="@DeviceType" />
-					- Overview
-				</title>
-			</head>
-			<body>
-				<img height="70" alt="logo">
-					<xsl:attribute name="src"><xsl:value-of
-						select="$context" />/logo.gif</xsl:attribute>
-				</img>
-				<h1>
-					<xsl:value-of select="@DeviceType" />
-					- Overview
-				</h1>
-				<h3>Root Controller:</h3>
-				<table cellspacing="2" border="1">
-					<tr bgcolor="#bbbbbb">
-						<th align="left"> Controller ID</th>
-						<th align="left"> Controller Type</th>
-						<th align="left"> Controller Status</th>
-						<th align="left"> Controller URL</th>
-						<th align="left"> Dump Enabled</th>
-						<th align="left"> Controller Queue</th>
-						<th align="left"> Queue Status</th>
-						<th align="left"> # Running</th>
-						<th align="left"> # Waiting/Suspended </th>
-						<th align="left"> # Completed</th>
-						<th align="left"> # All</th>
-					</tr>
-					<xsl:apply-templates select="XMLDevice[@Root='true']" />
-				</table>
-				<br />
-				<h3>Known Devices:</h3>
-				<table cellspacing="2" border="1">
-					<tr bgcolor="#bbbbbb">
-						<th align="left"> Device ID</th>
-						<th align="left"> Device Type</th>
-						<th align="left"> Device Status</th>
-						<th align="left"> Device URL</th>
-						<th align="left"> Device Queue</th>
-						<th align="left"> Queue Status</th>
-						<th align="left"> # Running</th>
-						<th align="left"> # Waiting/Suspended</th>
-						<th align="left"> # Completed</th>
-						<th align="left"> # All</th>
-					</tr>
-					<xsl:apply-templates select="XMLDevice[@Root='false']" />
-				</table>
-				<hr />
-				<xsl:call-template name="cputimer" />
+    </link>
+    
+    <!-- Browser Title Bar -->
+    <title>Overview |<xsl:value-of select="@DeviceType" /></title>
+    
+    <script src="js/modernizr.custom.js"></script>
+    </head>
+    
+    
+    
+    <!-- //////////////////////////////////////////////////// -->
+    
+    
+    
+    <body>
+    <div id="content-wrapper"><!----> 
+      
+      <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+      <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+      <!-- +++++++++  First column of Bambi  +++++++++++ -->
+      <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+      <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+      
+      <!-- Root Device --> 
+      <!-- This is the first column of Bambi --> 
+      <!-- it shows the root controller -->
+      <div class="root-controller column-grey"> 
+        <!-- Name -->
+        <div class="headline-wrapper root-headline">
+          <h1> <xsl:value-of select="@DeviceType" /> </h1>
+          <h2>Root Controller</h2>
+          <img height="70" alt="logo" class="logo">
+          <xsl:attribute name="src"><xsl:value-of
+						select="$context" />/images/logo.svg</xsl:attribute>
+          </img> </div>
+        <div class="root-details-wrapper"> 
+          <!-- Description -->
+          <xsl:apply-templates select="XMLDevice[@Root='true']" />
+          
+          
+          <!-- To jump to it SEARCH: "root controller spec" for applied template --> 
+        </div>
+        <!-- root-details-wrapper --> 
+      </div>
+      
+      
+      
+      <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+      <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+      <!-- +++++++++  Second column of Bambi  ++++++++++ -->
+      <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+      <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+      
+      <!-- Devices --> 
+      <!-- This is where the Devices are listed in the Overview --> 
+      <!-- in the second Column of Bambi, after the root controller -->
+      <div class="devices column-grey">
+        <div class="headline-wrapper">
+          <h2>Devices</h2>
+        </div>
+        <xsl:apply-templates select="XMLDevice[@Root='false']" />
+        
+        <!-- SEARCH: "device spec" for applied template --> 
+      </div>
+      
+      <div id="footer"> </div>
+    </div>
+    
+    
+    <div id="popupwrapper">
+      <div>
+          <iframe id="popupframe" name="popup"></iframe>
+      </div>
+      <button id="popupclose" class="button">
+    	CLOSE
+      </button>
+    </div>
+    
+    
+    
 
-				<hr />
-				<font size="-1" color="#b0c4de">
-					<table>
-						<tr>
-							<td>
-								requests handled:
-          </td>
-							<td>
-								<xsl:value-of select="@NumRequests" />
-							</td>
-						</tr>
-						<tr>
-							<td>
-								Free Memory:
-           </td>
-							<td>
-								<xsl:value-of select="@MemFree" />
-							</td>
-						</tr>
-						<tr>
-							<td>
-								Currently used Memory:
-           </td>
-							<td>
-								<xsl:value-of select="@MemCurrent" />
-							</td>
-						</tr>
-						<tr>
-							<td>
-								Currently used PermGen Memory:
-           </td>
-							<td>
-								<xsl:value-of select="@MemPerm" />
-							</td>
-						</tr>
+    
+    <!-- content-wrapper -->
 
-						<tr>
-							<td>
-								Total Allocated Memory:
-          </td>
-							<td>
-								<xsl:value-of select="@MemTotal" />
-							</td>
-						</tr>
-						<xsl:if test="@VersionString">
-							<tr>
-								<td>Bambi Product Version:</td>
-								<td>
-									<xsl:value-of select="@VersionString" />
-								</td>
-							</tr>
-						</xsl:if>
-						<tr>
-							<td>Bambi Internal Build:</td>
-							<td>@build.number@ at @build.timestamp@</td>
-						</tr>
-						<tr>
-							<td>JDFLib Build:</td>
-							<td>@build.minorversion@, JDF Schema Version: @build.majorversion@</td>
-						</tr>
-					</table>
-				</font>
-			</body>
-		</html>
-	</xsl:template>
+    </body>
+    </html>
+  </xsl:template>
+  
+  
+  <!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+  
+  
+  
+    <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+    <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+    <!-- +++++++++   root controller spec  ++++++++++ -->
+    <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+    <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+  
+  <xsl:template match="XMLDevice[@Root='true']">
+    <xsl:variable name="context" select="../@Context" />
+    
+    <!-- Controller -->
+    <div class="box controller">
+    <h3>Controller ID</h3>
+    <em><xsl:value-of select="@DeviceID" /></em>
+    <!--<xsl:value-of select="@DeviceType" />-->
+    <div class="status-bar" >
+      <xsl:attribute name="class"><xsl:value-of select="@DeviceStatus" /> status-bar</xsl:attribute>
+    </div>
+    </div>
+    
+    <!-- URL -->
+    <div class="box controller-url">
+    <h3>Controller URL</h3>
+    <em><xsl:value-of select="@DeviceURL" /></em>
+    </div>
+    
+    <!-- Queue Status -->
+    <div class="box queue-status">
+    <h3>Queue Status</h3>
+    <xsl:value-of select="@QueueStatus" />
+    <div class="status-bar" >
+      <xsl:attribute name="class"><xsl:value-of select="@QueueStatus" /> status-bar</xsl:attribute>
+    </div>
+    </div>
+    
+    <!-- Queue Status Details -->
+    <div class="box running"><img class="symbol">
+      <xsl:attribute name="src"><xsl:value-of select="$context" />/images/running.svg</xsl:attribute>
+      </img>
+    <h3>Running</h3>
+    <xsl:value-of select="@QueueRunning" />
+    </div>
+    
+    <!-- QueueWaiting -->
+    <div class="box root queue-waiting"><img class="symbol">
+      <xsl:attribute name="src"><xsl:value-of select="$context" />/images/waiting.svg</xsl:attribute>
+      </img>
+    <h3>Waiting</h3>
+    <xsl:value-of select="@QueueWaiting" />
+    </div>
+    
+    <!-- QueueCompleted -->
+    <div class="box completed"><img class="symbol">
+      <xsl:attribute name="src"><xsl:value-of select="$context" />/images/modify.svg</xsl:attribute>
+      </img>
+    <h3>Completed</h3>
+    <xsl:value-of select="@QueueCompleted" />
+    </div>
+    
+    <!-- All -->
+    <div class="box all">
+    <h3>All</h3>
+    <xsl:value-of select="@QueueAll" />
+    </div>
+    
+    <!-- Dump -->
+    <div class="box">
+    <h3>Dump Enabled</h3>
+    <form>
+      <input type="checkbox" Name="Dump" value="true">
+      <xsl:if test="@Dump='true'">
+        <xsl:attribute name="checked">true</xsl:attribute>
+      </xsl:if>
+      </input>
+      <input type="hidden" name="UpdateDump" value="true" />
+      <input type="submit" value="Dump" />
+    </form>
+    </div>
+  </xsl:template>
+  
+  <!-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+  
+  <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+  <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+  <!-- ++++++++++++++  Device Spec  ++++++++++++++++ -->
+  <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+  <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+  
+  <xsl:template match="XMLDevice[@Root='false']">
+    <xsl:variable name="context" select="../@Context" />
+    <div>
+      <xsl:attribute name="class"><xsl:value-of select="@DeviceID" />device</xsl:attribute>
+                
+		  <!-- Hidden Popups triggered from within the details & queue iframes -->
+		  <!-- Login-Popup -->
+          <a class="popupwrapper" href="#">
+                <xsl:attribute name="id">popup-login-<xsl:value-of select="@DeviceID"></xsl:value-of>
+                </xsl:attribute>
+            <div>
+                <iframe class="popupframe" >
+                	<xsl:attribute name="name">popup-login-<xsl:value-of select="@DeviceID"></xsl:value-of>
+                    </xsl:attribute>
+                    <xsl:attribute name="src">
+                    	<xsl:value-of select="$context" />/login/<xsl:value-of select="@DeviceID" />
+                    </xsl:attribute>
+                </iframe>
+            </div>
+          </a>
+          <!-- Subscriptions-Popup -->
+          <a class="popupwrapper" href="#">
+             <xsl:attribute name="id">popup-subscriptions-<xsl:value-of select="@DeviceID"></xsl:value-of>
+             </xsl:attribute>
+             
+              <div>
+                  <iframe class="popupframe" >
+                      <xsl:attribute name="name">popup-subscriptions-<xsl:value-of select="@DeviceID"></xsl:value-of>
+                      </xsl:attribute>
+                      <xsl:attribute name="src">
+                          <xsl:value-of select="$context" />/showSubscriptions/<xsl:value-of select="@DeviceID" />
+                      </xsl:attribute>
+                  </iframe>
+              </div>
+            
+          </a>
 
-	<!-- root controller spec -->
-	<xsl:template match="XMLDevice[@Root='true']">
-		<xsl:variable name="context" select="../@Context" />
-		<tr>
-			<td align="left">
-				<xsl:value-of select="@DeviceID" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@DeviceType" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@DeviceStatus" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@DeviceURL" />
-			</td>
-			<td>
-				<form>
-					<input type="checkbox" Name="Dump" value="true">
-						<xsl:if test="@Dump='true'">
-							<xsl:attribute name="checked">true</xsl:attribute>
-						</xsl:if>
-					</input>
-					<input type="hidden" name="UpdateDump" value="true" />
-					<input type="submit" value="modify" />
-				</form>
-			</td>
-			<td align="left">
-				<a>
-					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
-					Queue for
-					<xsl:value-of select="@DeviceID" />
-				</a>
-			</td>
-			<td align="left">
-				<xsl:value-of select="@QueueStatus" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@QueueRunning" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@QueueWaiting" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@QueueCompleted" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@QueueAll" />
-			</td>
-		</tr>
-	</xsl:template>
+      <!-- Device ID -->
+      <input type="radio" class="selector" name="devices" >
+      <!-- Hidden via CSS - Radiobutton to select single device and display details -->
+      <xsl:attribute name="id"><xsl:value-of select="@DeviceID" /> selector</xsl:attribute>
+      </input>
+      <label class="accordeon-label">
+      <!-- Label for Radiobutton to make selection with RB hidden -->
+      <xsl:attribute name="for"><xsl:value-of select="@DeviceID" /> selector</xsl:attribute>
+      <div class="box device-id">
+      
+      
+      <!-- Device name -->
+      <h3><xsl:value-of select="@DeviceID" /></h3>
+      
+      <!-- Arrow showing you can expand the device -->
+      <div><xsl:attribute name="class"><xsl:value-of select="@DeviceID" /> arrowright</xsl:attribute>
+      <img>
+      <xsl:attribute name="src"><xsl:value-of
+						select="$context" />/images/arrowright.svg</xsl:attribute></img>
+      </div>
+      
+      <!-- Device desctiption -->
+      <em><xsl:value-of select="@DeviceType" /></em>
+      <div>
+        <xsl:attribute name="class"><xsl:value-of select="@DeviceStatus" /> status-bar</xsl:attribute>
+      </div>
+      </div>
+      </label>
+      
+      
+      <div class="detailwrapper">
+        <div>
+          
+  <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+  <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+  <!-- ++++++++  Third column of Bambi  ++++++++++++ -->
+  <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+  <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->         
+          
+          <xsl:attribute name="class"><xsl:value-of select="@DeviceID" /> device-details  column-white</xsl:attribute>
+          <div class="headline-wrapper">
+            <h2>Device:<xsl:value-of select="@DeviceID" /></h2>
+          </div>
+          
 
-	<!-- device spec -->
-	<xsl:template match="XMLDevice[@Root='false']">
-		<xsl:variable name="context" select="../@Context" />
-		<tr>
-			<td align="left">
-				<a>
-					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/showDevice/<xsl:value-of select="@DeviceID" /></xsl:attribute>
-					<xsl:value-of select="@DeviceID" />
-				</a>
-			</td>
-			<td align="left">
-				<xsl:value-of select="@DeviceType" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@DeviceStatus" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@DeviceURL" />
-			</td>
-			<td align="left">
-				<a>
-					<xsl:attribute name="href">./showQueue/<xsl:value-of
-						select="@DeviceID" /></xsl:attribute>
-					Queue for
-					<xsl:value-of select="@DeviceID" />
-				</a>
-			</td>
-			<td align="left">
-				<xsl:value-of select="@QueueStatus" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@QueueRunning" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@QueueWaiting" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@QueueCompleted" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@QueueAll" />
-			</td>
-		</tr>
-	</xsl:template>
-	<xsl:include href="CPUTimer.xsl" />
+          
+          <!-- Device with Link to more Detailed view-->
+          
+          <!-- "Button" for Expandable Details Menu with reload functions, device functions and device actions -->
+          <!-- Selection handled via Radiobuttons for skipping between devices -->
+          <input type="radio" name="device-functions">
+            <xsl:attribute name="id"><xsl:value-of select="@DeviceID"/>-functions</xsl:attribute>
+            <xsl:attribute name="class"><xsl:value-of select="@DeviceID"/> selector</xsl:attribute>
+          </input>
+          
+          
+          <!-- Open further Details of the device -->
+          <!-- Clickable Label to open the Device Details -->
+          <!-- When the hidden input is checked, the queue-wrapper gets visible -->
+          <label>
+            <xsl:attribute name="for"><xsl:value-of select="@DeviceID"/>-functions</xsl:attribute>
+            <div class="box details">
+            
+              <!-- Arrow that points out that there is more information to open -->
+              <div><xsl:attribute name="class"><xsl:value-of select="@DeviceID" /> arrowright</xsl:attribute>
+                  <img>
+                      <xsl:attribute name="src"><xsl:value-of select="$context" />/images/arrowright.svg</xsl:attribute></img>
+              </div>
+        
+              <h3>Details</h3>
+              <xsl:value-of select="@DeviceID" />
+            </div>
+          </label>
+          
+          
+          <!-- details iframe -->
+          <div class="details-frame">
+              
+            <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+            <!-- ++++++++++++++  Frame for the  ++++++++++++++ -->
+            <!-- +++++++++  Fourth column of Bambi  ++++++++++ -->
+            <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+            <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
+            <iframe>
+            <xsl:attribute name="class">double-column-frame details-frame details-<xsl:value-of select="@DeviceID" /></xsl:attribute>
+            <xsl:attribute name="name">details-<xsl:value-of select="@DeviceID" /></xsl:attribute>
+            <xsl:attribute name="src"><xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+            </iframe>
+          </div>
+          
+          <!-- DeviceURL -->
+          <div class="box URL">
+          <h3>Device URL</h3>
+          <em><xsl:value-of select="@DeviceURL" /></em>
+          </div>
+          
+          <!-- QueueStatus -->
+          <input type="radio" name="device-functions">
+          <xsl:attribute name="id"><xsl:value-of select="@DeviceID"/>-queue</xsl:attribute>
+          <xsl:attribute name="class"><xsl:value-of select="@DeviceID"/> selector</xsl:attribute>
+          </input>
+          
+          <!-- Clickable Label to open the Queue Details -->
+          <!-- When the hidden input is checked, the queue-wrapper gets visible -->
+          <label>
+          <xsl:attribute name="for"><xsl:value-of select="@DeviceID"/>-queue</xsl:attribute>
 
+          <div class="box queue-status">
+          
+          
+          <!-- Arrow, showing the item can be expanded -->
+          <div><xsl:attribute name="class"><xsl:value-of select="@DeviceID" /> arrowright</xsl:attribute>
+      			<img>
+      				<xsl:attribute name="src"><xsl:value-of select="$context" />/images/arrowright.svg</xsl:attribute></img>
+	   		</div>
+            <!-- symbol for the queue status -->
+            <img class="symbol">
+            <xsl:attribute name="src"><xsl:value-of select="$context" />/images/queue-status.svg</xsl:attribute>
+            </img>
+            <div class="openexternal">
+            <a target="_new">
+            <xsl:attribute name="href">
+            	<xsl:value-of select="$context"/>/showQueue/<xsl:value-of select="@DeviceID" />
+            </xsl:attribute>
+            <em class="smaller">Open in new Window</em></a>
+            </div>
+          
+          <!-- Headline -->
+          <h3>Queue Status</h3>
+          <!-- Status -->
+          <xsl:value-of select="@QueueStatus" />
+          </div>
+          <!--</a>-->
+          </label>
+          
+          <!-- div with iframe that shows the expanded version of the queue status -->
+          <!-- the page in the frame is loaded at the time bambi loads -->
+          <div class="queue-frame double-column-frame">
+            <iframe>
+            <xsl:attribute name="class">double-column-frame queue-frame queue-<xsl:value-of select="@DeviceID" /></xsl:attribute>
+            <xsl:attribute name="name">queue-<xsl:value-of select="@DeviceID" /></xsl:attribute>
+            <xsl:attribute name="src"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+            </iframe>
+          </div>
+          
+          <!-- QueueRunning -->
+          <div class="box running"><img class="symbol">
+            <xsl:attribute name="src"><xsl:value-of select="$context" />/images/running.svg</xsl:attribute>
+            </img>
+          <h3>Running</h3>
+          <xsl:value-of select="@QueueRunning" />
+          </div>
+          
+          <!-- QueueWaiting -->
+          <div class="box waiting"><img class="symbol">
+            <xsl:attribute name="src"><xsl:value-of select="$context" />/images/waiting.svg</xsl:attribute>
+            </img>
+          <h3>Waiting</h3>
+          <xsl:value-of select="@QueueWaiting" />
+          </div>
+          
+          <!-- QueueCompleted -->
+          <div class="box completed"><img class="symbol">
+            <xsl:attribute name="src"><xsl:value-of select="$context" />/images/modify.svg</xsl:attribute>
+            </img>
+          <h3>Completed</h3>
+          <xsl:value-of select="@QueueCompleted" />
+          </div>
+          
+          <!-- QueueAll -->
+          <div class="box all">
+          <h3>All</h3>
+          <xsl:value-of select="@QueueAll" />
+          </div>
+
+        </div>
+        <!-- .device-details -->
+      </div>
+      <!-- .detailwrapper -->
+    </div>
+    <!-- .device -->
+  </xsl:template>
+  <xsl:include href="CPUTimer.xsl" />
 </xsl:stylesheet>

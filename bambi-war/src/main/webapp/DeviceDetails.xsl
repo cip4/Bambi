@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><!-- DWXMLSource="http://almserver:8080/SimWorker" -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -15,15 +15,15 @@
 		<xsl:variable name="context" select="@Context" />
 		<xsl:variable name="modify" select="@modify" />
 
-		<div style="margin-left: 20px">
-			<form style="margin-left: 20px">
-				<table>
+		<!-- <div class="column-white modifyable">  for second, white column next to grey one -->
+        <div>
+        <form>
+
 					<xsl:attribute name="action">.</xsl:attribute>
-					<tr>
-						<td colspan="3">
-							<h3>Details of the Bambi device</h3>
-						</td>
-					</tr>
+					
+					<!-- <div class="headline-wrapper">  separator for headline if second white column is used -->
+                    <!--<div class="box"><h3>Details of the Bambi device</h3></div>-->
+					<!-- </div> -->
 
 					<xsl:call-template name="modifyString">
 						<xsl:with-param name="attLabel" select="'ID: '" />
@@ -116,11 +116,9 @@
 					</xsl:call-template>
 
 					<xsl:if test="@SlaveURL">
-						<tr>
-							<td colspan="3">
-								<h3>Details of the Slave(3rd Party) device</h3>
-							</td>
-						</tr>
+
+								<div class="box"><h3>Details of the Slave(3rd Party) device</h3></div>
+
 						<xsl:call-template name="modifyString">
 							<xsl:with-param name="attLabel" select="'Proxy URL for Slave: '" />
 							<xsl:with-param name="attName" select="'DeviceURLForSlave'" />
@@ -180,11 +178,11 @@
 						</xsl:call-template>
 					</xsl:if>
 					<xsl:if test="$modify='true'">
-						<tr>
+
 							<input type="submit" value="Modify" />
-						</tr>
+
 					</xsl:if>
-				</table>
+
 			</form>
 		</div>
 	</xsl:template>
