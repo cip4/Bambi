@@ -49,10 +49,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -206,7 +202,7 @@
 										<preCp>anything</preCp>
 									</classPath>
 									<jre>
-										<minVersion>1.5.0</minVersion>
+										<minVersion>1.6.0</minVersion>
 										<initialHeapSize>96</initialHeapSize>
 										<maxHeapSize>1024</maxHeapSize>
 									</jre>
@@ -236,8 +232,9 @@
 				</os>
 			</activation>
 			<build>
+				
 				<plugins>
-					<plugin>
+					<!-- <plugin>
 						<groupId>com.agiliumlabs.osxappbundle</groupId>
 					    <artifactId>osxappbundle-maven-plugin</artifactId>
 					    <version>1.0.0</version>
@@ -250,6 +247,53 @@
 									<mainClass>org.cip4.bambi.ExecutorForm</mainClass>
 									<bundleName>${project.build.finalName}</bundleName>
 									<iconFile>${basedir}/src/main/assemble/macosx/bambi.icns</iconFile>
+									<javaApplicationStub>${basedir}/src/main/assemble/macosx/JavaApplicationStub</javaApplicationStub>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin> -->
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.7</version>
+						<executions>
+							<execution>
+								<goals>
+					            	<goal>run</goal>
+					            </goals>
+					            <phase>package</phase>
+								<configuration>
+									<target>
+										<!-- create app folder -->
+										<mkdir dir="${project.build.directory}/dmg"/>
+										
+										<!-- icon -->
+										<copy file="${basedir}/src/main/assemble/macosx/bambi.icns" tofile="${project.build.directory}/dmg/.VolumeIcon.icns"/>
+									
+										<!-- create app file-->
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask" classpath="${basedir}/src/main/assemble/macosx/lib/appbundler-1.0.jar" />
+										<bundleapp 
+									        outputdirectory="${project.build.directory}/dmg" 
+									        name="${project.build.finalName}" 
+									        displayname="My Java Mac OS X App" 
+									        identifier="org.cip4.bambi.ExecutorForm" 
+									        icon="${basedir}/src/main/assemble/macosx/bambi.icns"
+									        shortversion="1.0"
+									        applicationCategory="public.app-category.developer-tools"
+									        mainclassname="org.cip4.bambi.ExecutorForm">
+									        <classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar" />
+									    </bundleapp>
+									    
+									    <!-- create dmg using hdiutil-->
+									    <!-- cmd: hdiutil create test.dmg -srcfolder /path/to/folder/ -->
+									    <exec executable="hdiutil">
+											<arg value="create"/>
+										    <arg value="${project.build.directory}/${project.build.finalName}.dmg"/>
+										    <arg value="-srcfolder"/>
+										    <arg value="${project.build.directory}/dmg"/>
+										    <arg value="-volname"/>
+										    <arg value="${project.build.finalName}"/>
+										</exec>
+									</target>
 								</configuration>
 							</execution>
 						</executions>
