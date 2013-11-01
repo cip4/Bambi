@@ -225,7 +225,7 @@ public class MessageDetails extends BambiLogFactory
 				final Class<?> c = Class.forName(cbClass);
 				callback = (IConverterCallback) c.newInstance();
 			}
-			catch (final Exception x)
+			catch (final Throwable x)
 			{
 				log.warn("Illegal callback class - limp along with null: " + cbClass);// nop
 			}

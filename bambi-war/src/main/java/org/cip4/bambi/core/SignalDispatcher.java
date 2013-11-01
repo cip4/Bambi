@@ -425,7 +425,7 @@ public final class SignalDispatcher extends BambiLogFactory
 					}
 				}
 			}
-			catch (final Exception x)
+			catch (final Throwable x)
 			{
 				log.error("unknown exception while loading subscriptions", x);
 			}
@@ -575,7 +575,7 @@ public final class SignalDispatcher extends BambiLogFactory
 				{
 					flush();
 				}
-				catch (final Exception x)
+				catch (final Throwable x)
 				{
 					log.error("unhandled Exception in flush", x);
 					timer.stop();

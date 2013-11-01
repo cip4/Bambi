@@ -605,7 +605,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			}
 			return handled;
 		}
-		catch (final Exception x)
+		catch (final Throwable x)
 		{
 			log.error("Unhandled Exception in handleMessage", x);
 			return false;

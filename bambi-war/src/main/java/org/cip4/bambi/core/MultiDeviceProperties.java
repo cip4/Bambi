@@ -158,7 +158,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 					final Class<?> c = Class.forName(_callBackName);
 					return (IConverterCallback) c.newInstance();
 				}
-				catch (final Exception x)
+				catch (final Throwable x)
 				{
 					log.error("Cannot instantiate callback class: " + _callBackName);
 				}
@@ -528,7 +528,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 			{
 				return QEReturn.valueOf(s);
 			}
-			catch (final Exception x)
+			catch (final Throwable x)
 			{
 				return QEReturn.MIME;
 			}
@@ -628,7 +628,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 			subClass.root = root;
 			return subClass;
 		}
-		catch (final Exception x)
+		catch (final Throwable x)
 		{
 			log.error("Cannot instantiate Device properties: " + propName, x);
 			return this;

@@ -138,7 +138,7 @@ public class ProxyProperties extends MultiDeviceProperties
 					final Class<?> c = Class.forName(_callBackName);
 					return (IConverterCallback) c.newInstance();
 				}
-				catch (final Exception x)
+				catch (final Throwable x)
 				{
 					getLog().error("Cannot instantiate callback class: " + _callBackName);
 				}

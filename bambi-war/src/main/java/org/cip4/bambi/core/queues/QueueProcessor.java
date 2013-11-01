@@ -2388,7 +2388,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				// TODO error handling
 				bOK = d != null;
 			}
-			catch (final Exception e)
+			catch (final Throwable e)
 			{
 				log.error("failed to send ReturnQueueEntry: " + e);
 			}

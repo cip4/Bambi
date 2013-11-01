@@ -146,7 +146,7 @@ class ReturnHFListner implements QueueHotFolderListener
 					this.abstractProxyDevice.getLog().error("could not process JDF File");
 				}
 			}
-			catch (final Exception e)
+			catch (final Throwable e)
 			{
 				handleError(submissionJMF);
 				return false;
