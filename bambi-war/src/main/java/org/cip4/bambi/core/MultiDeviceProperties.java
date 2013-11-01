@@ -137,6 +137,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
 		 */
+		@Override
 		public String getDeviceURL()
 		{
 			return getContextURL() + "/jmf/" + getDeviceID();
@@ -145,6 +146,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
 		 */
+		@Override
 		public IConverterCallback getCallBackClass()
 		{
 			final String _callBackName = getCallBackClassName();
@@ -189,6 +191,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceInstance()
 		 * @return the device instance
 		 */
+		@Override
 		public AbstractDevice getDeviceInstance()
 		{
 			final String _deviceName = getDeviceClassName();
@@ -200,7 +203,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 					final Constructor<?> con = c.getConstructor(new Class[] { IDeviceProperties.class });
 					return (AbstractDevice) con.newInstance(new Object[] { this });
 				}
-				catch (final Exception x)
+				catch (final Throwable x)
 				{
 					log.fatal("Cannot instantiate Device class: " + _deviceName, x);
 				}
@@ -228,6 +231,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
 		 */
+		@Override
 		public String getDeviceID()
 		{
 			return getDeviceAttribute("DeviceID", null, null);
@@ -245,6 +249,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getProxyControllerURL()
 		 */
+		@Override
 		public String getProxyControllerURL()
 		{
 			return getDeviceAttribute("ProxyURL", null, null);
@@ -253,6 +258,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceType()
 		 */
+		@Override
 		public String getDeviceType()
 		{
 			return getDeviceAttribute("DeviceType", null, null);
@@ -261,6 +267,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setDeviceType(java.lang.String)
 		 */
+		@Override
 		public void setDeviceType(final String deviceType)
 		{
 			devRoot.setAttribute("DeviceType", deviceType);
@@ -298,6 +305,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getErrorHF()
 		 */
+		@Override
 		public File getErrorHF()
 		{
 			return getFile("ErrorHF");
@@ -306,6 +314,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setErrorHF(java.io.File)
 		 */
+		@Override
 		public void setErrorHF(final File hf)
 		{
 			setFile("ErrorHF", hf);
@@ -314,6 +323,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getOutputHF()
 		 */
+		@Override
 		public File getOutputHF()
 		{
 			return getFile("OutputHF");
@@ -322,6 +332,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setOutputHF(java.io.File)
 		 */
+		@Override
 		public void setOutputHF(final File hf)
 		{
 			setFile("OutputHF", hf);
@@ -338,6 +349,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @return the input hot folder of the device
 		 */
+		@Override
 		public File getInputHF()
 		{
 			return getFile("InputHF");
@@ -346,6 +358,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setInputHF(java.io.File)
 		 */
+		@Override
 		public void setInputHF(final File hf)
 		{
 			setFile("InputHF", hf);
@@ -354,6 +367,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getBaseDir()
 		 */
+		@Override
 		public File getBaseDir()
 		{
 			return MultiDeviceProperties.this.getBaseDir();
@@ -362,6 +376,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getAppDir()
 		 */
+		@Override
 		public File getAppDir()
 		{
 			return MultiDeviceProperties.this.getAppDir();
@@ -371,6 +386,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 * get the tracked resource - defaults to "Output"
 		 * @see org.cip4.bambi.core.IDeviceProperties#getTrackResource()
 		 */
+		@Override
 		public String getTrackResource()
 		{
 			return getDeviceAttribute("TrackResource", null, "Output");
@@ -381,6 +397,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 * @param key
 		 * @return the device attribute, null if none exists
 		 */
+		@Override
 		public String getDeviceAttribute(final String key)
 		{
 			return getDeviceAttribute(key, null, null);
@@ -432,6 +449,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
 		 */
+		@Override
 		public String getTypeExpression()
 		{
 			return getDeviceAttribute(AttributeName.TYPEEXPRESSION);
@@ -440,6 +458,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setTypeExpression(java.lang.String)
 		 */
+		@Override
 		public void setTypeExpression(final String exp)
 		{
 			devRoot.setAttribute(AttributeName.TYPEEXPRESSION, exp);
@@ -448,6 +467,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getAmountResources()
 		 */
+		@Override
 		public VString getAmountResources()
 		{
 			final VString v = StringUtil.tokenize(getDeviceAttribute("AmountResources", null, null), ",", false);
@@ -463,6 +483,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getControllerHTTPChunk()
 		 */
+		@Override
 		public int getControllerHTTPChunk()
 		{
 			return StringUtil.parseInt(getDeviceAttribute("HTTPChunk"), -1);
@@ -472,6 +493,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 * @return true if all jdfs should be accepted (ignore canAccept)
 		*
 		 */
+		@Override
 		public boolean getAcceptAll()
 		{
 			return StringUtil.parseBoolean(getDeviceAttribute("AcceptAll"), false);
@@ -480,6 +502,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEEncoding()
 		 */
+		@Override
 		public String getControllerMIMEEncoding()
 		{
 			return getDeviceAttribute("MIMETransferEncoding", null, UrlUtil.BINARY);
@@ -488,6 +511,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEExpansion()
 		 */
+		@Override
 		public boolean getControllerMIMEExpansion()
 		{
 			return StringUtil.parseBoolean(getDeviceAttribute("MIMEExpansion"), false);
@@ -496,6 +520,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getReturnMIME()
 		 */
+		@Override
 		public QEReturn getReturnMIME()
 		{
 			final String s = getDeviceAttribute("MIMEReturn", null, "MIME");
@@ -512,6 +537,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getContextURL()
 		 */
+		@Override
 		public String getContextURL()
 		{
 			return MultiDeviceProperties.this.getContextURL();
@@ -520,6 +546,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getWatchURL()
 		 */
+		@Override
 		public String getWatchURL()
 		{
 			return getDeviceAttribute("WatchURL");
@@ -528,6 +555,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setWatchURL(java.lang.String)
 		 */
+		@Override
 		public void setWatchURL(final String watchURL)
 		{
 			root.setAttribute("WatchURL", watchURL);
@@ -538,6 +566,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 * @see org.cip4.bambi.core.IDeviceProperties#getConfigDir()
 		 * @return the configuration directory
 		 */
+		@Override
 		public File getConfigDir()
 		{
 			return MultiDeviceProperties.this.getConfigDir();
@@ -546,6 +575,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#serialize()
 		 */
+		@Override
 		public boolean serialize()
 		{
 			return MultiDeviceProperties.this.serialize();
@@ -554,6 +584,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getQERetrieval()
 		 */
+		@Override
 		public QERetrieval getQERetrieval()
 		{
 			final String deviceAttribute = getDeviceAttribute("PushPull", null, "PUSH");
@@ -570,6 +601,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setQERetrieval(org.cip4.bambi.core.IDeviceProperties.QERetrieval)
 		 */
+		@Override
 		public void setQERetrieval(final QERetrieval qer)
 		{
 			final String s = qer == null ? "PUSH" : qer.name();

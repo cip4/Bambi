@@ -182,6 +182,7 @@ public class JMFFactory extends BambiLogFactory
 		 * @param o the other callURL to compare to
 		 * @return -1 if this is smaller
 		 */
+		@Override
 		public int compareTo(final CallURL o)
 		{
 			return ContainerUtil.compare(url, o == null ? null : o.url);
@@ -486,7 +487,9 @@ public class JMFFactory extends BambiLogFactory
 				ms.setStartTime(startTime);
 				ms.setJMFFactory(this);
 				senders.put(cu, ms);
-				new Thread(ms, "MessageSender_" + devID + "_" + nThreads++ + "_" + cu.getBaseURL()).start();
+				Thread thread = new Thread(ms, "MessageSender_" + devID + "_" + nThreads++ + "_" + cu.getBaseURL());
+				thread.setDaemon(true);
+				thread.start();
 			}
 			return ms;
 		}

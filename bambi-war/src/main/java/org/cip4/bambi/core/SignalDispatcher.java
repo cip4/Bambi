@@ -172,6 +172,7 @@ public final class SignalDispatcher extends BambiLogFactory
 		 * @param request
 		 * @return
 		 */
+		@Override
 		public XMLResponse handleGet(final ContainerRequest request)
 		{
 			final boolean bStopChannel = request.getBooleanParam("StopChannel");
@@ -565,6 +566,7 @@ public final class SignalDispatcher extends BambiLogFactory
 		/**
 		 * this is the time clocked dispatcher thread
 		 */
+		@Override
 		public void run()
 		{
 			while (!doShutdown)
@@ -1807,7 +1809,9 @@ public final class SignalDispatcher extends BambiLogFactory
 	public void startup()
 	{
 		final String deviceID = device == null ? "testID" : device.getDeviceID();
-		new Thread(theDispatcher, "SignalDispatcher_" + deviceID).start();
+		Thread thread = new Thread(theDispatcher, "SignalDispatcher_" + deviceID);
+		thread.setDaemon(true);
+		thread.start();
 		log.info("dispatcher thread 'SignalDispatcher_" + deviceID + "' started");
 		storage.load();
 	}
@@ -1818,6 +1822,7 @@ public final class SignalDispatcher extends BambiLogFactory
 	public void shutdown()
 	{
 		doShutdown = true;
+		ThreadUtil.notifyAll(mutex);
 	}
 
 	/**
