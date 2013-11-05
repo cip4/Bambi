@@ -109,7 +109,7 @@ import org.cip4.jdflib.util.UrlUtil;
  * 
  * abstract test case for all bambi tests note that this has some site specific details that must be modified
  */
-public class BambiTestCase extends BaseGoldenTicketTest {
+public class BambiTestCase extends BambiGoldenTicketTest {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
@@ -792,7 +792,7 @@ public class BambiTestCase extends BaseGoldenTicketTest {
 	}
 
 	/**
-	 * @see org.cip4.jdflib.goldenticket.BaseGoldenTicketTest#tearDown()
+	 * @see org.cip4.jdflib.goldenticket.BambiGoldenTicketTest#tearDown()
 	 * @throws Exception
 	 */
 	@Override

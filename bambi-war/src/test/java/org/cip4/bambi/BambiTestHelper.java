@@ -109,7 +109,8 @@ import org.cip4.jdflib.util.mime.MimeWriter;
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen abstract test case for all bambi tests note that this has some site specific details that must be modified
  */
-public class BambiTestHelper extends JDFTestCaseBase {
+public class BambiTestHelper extends BambiTestCaseBase
+{
 
 	// these are generally overwritten!
 	/**
@@ -148,7 +149,8 @@ public class BambiTestHelper extends JDFTestCaseBase {
 	/**
 	 * bambi test case
 	 */
-	public BambiTestHelper() {
+	public BambiTestHelper()
+	{
 		// nop
 	}
 
@@ -159,7 +161,8 @@ public class BambiTestHelper extends JDFTestCaseBase {
 	 * @return
 	 * @throws MalformedURLException
 	 */
-	public HttpURLConnection submitXtoURL(final JDFNode n, final String url) throws MalformedURLException {
+	public HttpURLConnection submitXtoURL(final JDFNode n, final String url) throws MalformedURLException
+	{
 		final XJDF20 xc = new XJDF20();
 		final KElement e = xc.makeNewJDF(n, null);
 		final HttpURLConnection con = submitMimetoURL(new JDFDoc(e.getOwnerDocument()), url);
@@ -172,21 +175,26 @@ public class BambiTestHelper extends JDFTestCaseBase {
 	 * @return
 	 * @throws MalformedURLException
 	 */
-	public HttpURLConnection submitMimetoURL(final JDFDoc d, final String url) throws MalformedURLException {
+	public HttpURLConnection submitMimetoURL(final JDFDoc d, final String url) throws MalformedURLException
+	{
 		final JDFDoc docJMF = createSubmitJMF(d);
 
 		final Multipart mp = MimeUtil.buildMimePackage(docJMF, d, extendReference);
 
 		HttpURLConnection response = null;
-		try {
+		try
+		{
 			final MIMEDetails md = new MIMEDetails();
 			md.transferEncoding = transferEncoding;
 			md.httpDetails.chunkSize = chunkSize;
 			response = MimeUtil.writeToURL(mp, url, md);
-			if (!url.toLowerCase().startsWith("file:")) {
+			if (!url.toLowerCase().startsWith("file:"))
+			{
 				assertEquals(url, 200, response.getResponseCode());
 			}
-		} catch (final Exception e) {
+		}
+		catch (final Exception e)
+		{
 			fail(e.getMessage()); // fail on exception
 		}
 		return response;
@@ -198,7 +206,8 @@ public class BambiTestHelper extends JDFTestCaseBase {
 	 * @return
 	 * @throws MalformedURLException
 	 */
-	public XMLResponse submitMimetoContainer(final JDFDoc d, final String url) throws MalformedURLException {
+	public XMLResponse submitMimetoContainer(final JDFDoc d, final String url) throws MalformedURLException
+	{
 		final JDFDoc docJMF = createSubmitJMF(d);
 
 		MimeWriter mimeWriter = new MimeWriter();
@@ -217,7 +226,8 @@ public class BambiTestHelper extends JDFTestCaseBase {
 	 * @return
 	 * @throws MalformedURLException
 	 */
-	public XMLResponse submitXMLtoContainer(final XMLDoc d, final String url) throws MalformedURLException {
+	public XMLResponse submitXMLtoContainer(final XMLDoc d, final String url) throws MalformedURLException
+	{
 		XMLRequest xmlRequest = new XMLRequest(d);
 		xmlRequest.setPost(true);
 		xmlRequest.setRequestURI(url);
@@ -230,7 +240,8 @@ public class BambiTestHelper extends JDFTestCaseBase {
 	 * @return
 	 * @throws MalformedURLException
 	 */
-	public JDFDoc createSubmitJMF(final JDFDoc d) throws MalformedURLException {
+	public JDFDoc createSubmitJMF(final JDFDoc d) throws MalformedURLException
+	{
 		JMFBuilder builder = new JMFBuilder();
 		builder.setAcknowledgeURL(acknowledgeURL);
 		final JDFJMF jmf = builder.buildSubmitQueueEntry(returnURL);
@@ -240,7 +251,8 @@ public class BambiTestHelper extends JDFTestCaseBase {
 		queueSubmissionParams.setURL("dummy");
 		queueSubmissionParams.setPriority(42);
 		updateJobIDs(d);
-		if (returnJMF != null) {
+		if (returnJMF != null)
+		{
 			queueSubmissionParams.setReturnJMF(new URL(returnJMF));
 		}
 		return docJMF;
@@ -253,7 +265,8 @@ public class BambiTestHelper extends JDFTestCaseBase {
 	 * @return
 	 * @throws MalformedURLException
 	 */
-	public HttpURLConnection resubmitMimetoURL(final String qeID, final JDFDoc d, final String url) throws MalformedURLException {
+	public HttpURLConnection resubmitMimetoURL(final String qeID, final JDFDoc d, final String url) throws MalformedURLException
+	{
 		final JMFBuilder builder = getBuilder();
 		final JDFJMF jmf = builder.buildResubmitQueueEntry(qeID, "dummy");
 		final JDFDoc docJMF = jmf.getOwnerDocument_JDFElement();
@@ -263,15 +276,19 @@ public class BambiTestHelper extends JDFTestCaseBase {
 		final Multipart mp = MimeUtil.buildMimePackage(docJMF, d, false);
 
 		HttpURLConnection response = null;
-		try {
+		try
+		{
 			final MIMEDetails md = new MIMEDetails();
 			md.transferEncoding = transferEncoding;
 			md.httpDetails.chunkSize = chunkSize;
 			response = MimeUtil.writeToURL(mp, url, md);
-			if (!url.toLowerCase().startsWith("file:")) {
+			if (!url.toLowerCase().startsWith("file:"))
+			{
 				assertEquals(url, 200, response.getResponseCode());
 			}
-		} catch (final Exception e) {
+		}
+		catch (final Exception e)
+		{
 			fail(e.getMessage()); // fail on exception
 		}
 		return response;
@@ -280,7 +297,8 @@ public class BambiTestHelper extends JDFTestCaseBase {
 	/**
 	 * @return
 	 */
-	public JMFBuilder getBuilder() {
+	public JMFBuilder getBuilder()
+	{
 		final JMFBuilder builder = new JMFBuilder();
 		builder.setAcknowledgeURL(acknowledgeURL);
 		return builder;
@@ -289,13 +307,16 @@ public class BambiTestHelper extends JDFTestCaseBase {
 	/**
 	 * @param d
 	 */
-	private void updateJobIDs(final JDFDoc d) {
-		if (bUpdateJobID) {
+	private void updateJobIDs(final JDFDoc d)
+	{
+		if (bUpdateJobID)
+		{
 			final String newJobID = "Job" + "_" + new JDFDate().getFormattedDateTime("HHmmss") + KElement.uniqueID(0);
 			final KElement root = d.getRoot();
 			final VElement v = root.getChildrenByTagName_KElement(null, null, new JDFAttributeMap(AttributeName.JOBID, "*"), false, true, 0);
 			v.add(root);
-			for (int i = 0; i < v.size(); i++) {
+			for (int i = 0; i < v.size(); i++)
+			{
 				v.get(i).setAttribute(AttributeName.JOBID, newJobID);
 			}
 		}
@@ -305,7 +326,8 @@ public class BambiTestHelper extends JDFTestCaseBase {
 	 * @param qURL
 	 * @return
 	 */
-	public JDFQueue getQueueStatus(final String qURL) {
+	public JDFQueue getQueueStatus(final String qURL)
+	{
 		final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
 		final JDFDoc dresp = submitJMFtoURL(jmf, qURL);
 		final JDFResponse resp = dresp.getJMFRoot().getResponse(0);
@@ -321,7 +343,8 @@ public class BambiTestHelper extends JDFTestCaseBase {
 	 * @param url the url to send to
 	 * @return
 	 */
-	public JDFDoc submitJMFtoURL(final KElement xml, final String url) {
+	public JDFDoc submitJMFtoURL(final KElement xml, final String url)
+	{
 		return new JDFDoc(submitXMLtoURL(xml, url));
 	}
 
@@ -330,14 +353,17 @@ public class BambiTestHelper extends JDFTestCaseBase {
 	 * @param url the url to send to
 	 * @return
 	 */
-	public XMLDoc submitXMLtoURL(final KElement xml, final String url) {
-		if (container != null) {
+	public XMLDoc submitXMLtoURL(final KElement xml, final String url)
+	{
+		if (container != null)
+		{
 			XMLRequest request = new XMLRequest(xml);
 			request.setRequestURI(url);
 			XMLResponse res = container.processXMLDoc(request);
 			return res.getXMLDoc();
 		}
-		try {
+		try
+		{
 			final HTTPDetails md = new HTTPDetails();
 			md.chunkSize = chunkSize;
 			final HttpURLConnection urlCon = new JDFDoc(xml.getOwnerDocument()).write2HTTPURL(new URL(url), md);
@@ -348,7 +374,9 @@ public class BambiTestHelper extends JDFTestCaseBase {
 			parser.parseStream(inStream);
 			final XMLDoc docResponse = parser.getDocument() == null ? null : new XMLDoc(parser.getDocument());
 			return docResponse;
-		} catch (final Exception e) {
+		}
+		catch (final Exception e)
+		{
 			fail(e.getMessage()); // fail on exception
 		}
 		return null;
