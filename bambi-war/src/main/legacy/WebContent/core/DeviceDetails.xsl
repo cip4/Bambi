@@ -189,4 +189,7 @@
 		</div>
 	</xsl:template>
 
+	<xsl:include href="modifyString.xsl" />
+
+
 </xsl:stylesheet>

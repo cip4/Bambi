@@ -467,6 +467,12 @@ public class JMFFactory extends BambiLogFactory
 	{
 		if (url == null)
 		{
+			log.warn("attempting to retrieve MessageSender for null");
+			return null;
+		}
+		if (shutdown)
+		{
+			log.warn("attempting to retrieve MessageSender after shutdown for " + url);
 			return null;
 		}
 		final CallURL cu = new CallURL(url);
@@ -487,7 +493,9 @@ public class JMFFactory extends BambiLogFactory
 				ms.setStartTime(startTime);
 				ms.setJMFFactory(this);
 				senders.put(cu, ms);
-				Thread thread = new Thread(ms, "MessageSender_" + devID + "_" + nThreads++ + "_" + cu.getBaseURL());
+				String name = "MessageSender_" + devID + "_" + nThreads++ + "_" + cu.getBaseURL();
+				Thread thread = new Thread(ms, name);
+				log.info("creating new message sender " + name);
 				thread.setDaemon(true);
 				thread.start();
 			}
