@@ -857,7 +857,7 @@ public final class SignalDispatcher extends BambiLogFactory
 				JDFSignal s = jmf.getSignal(i);
 				jmfOut.copyElement(s, null);
 			}
-			jmfOut = filterSenderID(jmfOut);
+			jmfOut = filterSenders(jmfOut);
 			finalizeSentMessages(jmfOut);
 			return jmfOut;
 		}
@@ -891,12 +891,8 @@ public final class SignalDispatcher extends BambiLogFactory
 		 * @param jmfOut
 		 * @return
 		 */
-		private JDFJMF filterSenderID(final JDFJMF jmfOut)
+		private JDFJMF filterSenders(final JDFJMF jmfOut)
 		{
-			if (KElement.isWildCard(jmfDeviceID))
-			{
-				return jmfOut; // no filtering necessary
-			}
 			if (jmfOut == null)
 			{
 				return null;
@@ -910,15 +906,23 @@ public final class SignalDispatcher extends BambiLogFactory
 			for (int i = siz - 1; i >= 0; i--)
 			{
 				final JDFSignal s = (JDFSignal) v.get(i);
-				if (!jmfDeviceID.equals(s.getSenderID()))
+				if (!StringUtil.matchesSimple(s.getSenderID(), jmfDeviceID) || device.deleteSignal(s))
 				{
-					s.deleteNode();
+					if (s != null)
+					{
+						s.deleteNode();
+					}
 					v.remove(i);
 				}
 			}
 			return v.size() == 0 ? null : jmfOut;
 		}
 
+		/**
+		 * 
+		 *  
+		 * @return
+		 */
 		public String getURL()
 		{
 			return url;

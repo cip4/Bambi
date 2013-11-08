@@ -86,6 +86,8 @@ import org.cip4.jdflib.core.XMLParser;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.thread.DelayedPersist;
+import org.cip4.jdflib.util.thread.IPersistable;
 
 /**
  * container for the properties of several Bambi devices
@@ -106,7 +108,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 	 * 
 	 * 13.02.2009
 	 */
-	public class DeviceProperties implements IDeviceProperties
+	public class DeviceProperties implements IDeviceProperties, IPersistable
 	{
 		/**
 		 * constructor
@@ -271,6 +273,29 @@ public class MultiDeviceProperties extends BambiLogFactory
 		public void setDeviceType(final String deviceType)
 		{
 			devRoot.setAttribute("DeviceType", deviceType);
+		}
+
+		/**
+		 * 
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDescription()
+		 */
+		@Override
+		public String getDescription()
+		{
+			String deviceAttribute = getDeviceAttribute("Description", null, null);
+			if (deviceAttribute == null)
+				deviceAttribute = getDeviceType() + " " + getDeviceID();
+			return deviceAttribute;
+		}
+
+		/**
+		 * 
+		 * @see org.cip4.bambi.core.IDeviceProperties#setDescription(java.lang.String)
+		 */
+		@Override
+		public void setDescription(final String description)
+		{
+			devRoot.setAttribute("Description", description);
 		}
 
 		/**
@@ -578,7 +603,8 @@ public class MultiDeviceProperties extends BambiLogFactory
 		@Override
 		public boolean serialize()
 		{
-			return MultiDeviceProperties.this.serialize();
+			DelayedPersist.getDelayedPersist().queue(this, 1000);
+			return true;
 		}
 
 		/**
@@ -608,6 +634,15 @@ public class MultiDeviceProperties extends BambiLogFactory
 			devRoot.setAttribute("PushPull", s);
 		}
 
+		/**
+		 * @see org.cip4.jdflib.util.thread.IPersistable#persist()
+		 */
+		@Override
+		public boolean persist()
+		{
+			return MultiDeviceProperties.this.serialize();
+		}
+
 	}
 
 	/**
@@ -620,6 +655,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		String propName = root.getAttribute("PropertiesName", null, null);
 		if (propName == null)
 			return this;
+
 		try
 		{
 			final Class<?> c = Class.forName(propName);

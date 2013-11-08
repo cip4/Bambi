@@ -109,25 +109,40 @@ import org.cip4.jdflib.util.UrlUtil;
  * 
  * abstract test case for all bambi tests note that this has some site specific details that must be modified
  */
-public class BambiTestCase extends BambiGoldenTicketTest {
+public class BambiTestCase extends BambiGoldenTicketTest
+{
 	@Override
-	protected void setUp() throws Exception {
+	protected void setUp() throws Exception
+	{
 		super.setUp();
 		BaseGoldenTicket.setMisURL("http://localhost:8080/httpdump/BambiTest");
 		gt = getGTType();
-		if (enumGTType.MISCP.equals(gt)) {
+		if (enumGTType.MISCP.equals(gt))
+		{
 			createMISCPGT();
-		} else if (enumGTType.MISPRE.equals(gt)) {
+		}
+		else if (enumGTType.MISPRE.equals(gt))
+		{
 			createMISPreGT();
-		} else if (enumGTType.IDP.equals(gt)) {
+		}
+		else if (enumGTType.IDP.equals(gt))
+		{
 			createIDPGT();
-		} else if (enumGTType.MISFIN_STITCH.equals(gt)) {
+		}
+		else if (enumGTType.MISFIN_STITCH.equals(gt))
+		{
 			createFinStitchGT();
-		} else if (enumGTType.PACKAGING_LAYOUT.equals(gt)) {
+		}
+		else if (enumGTType.PACKAGING_LAYOUT.equals(gt))
+		{
 			createPackLayoutGT();
-		} else if (enumGTType.PACKAGING_CAD.equals(gt)) {
+		}
+		else if (enumGTType.PACKAGING_CAD.equals(gt))
+		{
 			createPackCADGT();
-		} else if (enumGTType.PACKAGING_SHAPEDEF.equals(gt)) {
+		}
+		else if (enumGTType.PACKAGING_SHAPEDEF.equals(gt))
+		{
 			createPackShapeDefGT();
 		}
 		_theGT.devID = getDeviceID();
@@ -138,14 +153,16 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * @return
 	 */
-	protected String getDeviceID() {
+	protected String getDeviceID()
+	{
 		return deviceID;
 	}
 
 	/**
 	 * 
 	 */
-	protected void postAssign() {
+	protected void postAssign()
+	{
 		// nop - hook for post assign cleanup
 
 	}
@@ -153,7 +170,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * 
 	 */
-	protected void createPackShapeDefGT() {
+	protected void createPackShapeDefGT()
+	{
 		_theGT = new PackagingGoldenTicket(1, null, 1, 2, null);
 		_theGT.addSheet("Sheet1");
 	}
@@ -161,7 +179,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * 
 	 */
-	protected void createPackLayoutGT() {
+	protected void createPackLayoutGT()
+	{
 		_theGT = new PackagingGoldenTicket(1, null, 1, 2, null);
 		_theGT.addSheet("Sheet1");
 	}
@@ -169,7 +188,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * 
 	 */
-	protected void createPackCADGT() {
+	protected void createPackCADGT()
+	{
 		_theGT = new PackagingGoldenTicket(1, null, 1, 2, null);
 		_theGT.addSheet("Sheet1");
 	}
@@ -177,7 +197,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * 
 	 */
-	protected void createFinStitchGT() {
+	protected void createFinStitchGT()
+	{
 		_theGT = new MISFinGoldenTicket(1, null, 1, 2, null);
 		_theGT.addSheet("Sheet1");
 		_theGT.addSheet("Sheet2");
@@ -187,7 +208,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * 
 	 */
-	protected void createIDPGT() {
+	protected void createIDPGT()
+	{
 		IDPGoldenTicket idpGoldenTicket = new IDPGoldenTicket(1);
 		idpGoldenTicket.m_pdfFile = sm_dirTestData + "url1.pdf";
 		idpGoldenTicket.good = 100;
@@ -198,14 +220,16 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * 
 	 */
-	protected void createMISPreGT() {
+	protected void createMISPreGT()
+	{
 		_theGT = new MISPreGoldenTicket(2, EnumVersion.Version_1_3, 1, 2, null);
 	}
 
 	/**
 	 * 
 	 */
-	protected void createMISCPGT() {
+	protected void createMISCPGT()
+	{
 		_theGT = new MISCPGoldenTicket(1, null, 1, 2, true, null);
 		_theGT.addSheet("Sheet1");
 		_theGT.nCols = new int[] { 4, 4 };
@@ -214,11 +238,13 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * @return
 	 */
-	protected enumGTType getGTType() {
+	protected enumGTType getGTType()
+	{
 		return (gt == null) ? enumGTType.MISCP : gt;
 	}
 
-	protected enum enumGTType {
+	protected enum enumGTType
+	{
 		MISCP, MISPRE, IDP, MISFIN_STITCH, MISFIN_FOLD, PACKAGING_LAYOUT, PACKAGING_SHAPEDEF, PACKAGING_CAD
 	}
 
@@ -242,13 +268,16 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	protected String deviceID = "device";
 	protected String workerURLBase = "http://localhost:44482/SimWorker/jmf/";
 
-	class BambiTestProp implements IDeviceProperties {
+	class BambiTestProp implements IDeviceProperties
+	{
 
 		/*
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getAppDir()
 		 */
-		public File getAppDir() {
+		@Override
+		public File getAppDir()
+		{
 			return null;
 		}
 
@@ -256,7 +285,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getBaseDir()
 		 */
-		public File getBaseDir() {
+		@Override
+		public File getBaseDir()
+		{
 			return null;
 		}
 
@@ -264,7 +295,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
 		 */
-		public IConverterCallback getCallBackClass() {
+		@Override
+		public IConverterCallback getCallBackClass()
+		{
 			return null;
 		}
 
@@ -272,7 +305,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
 		 */
-		public String getDeviceID() {
+		@Override
+		public String getDeviceID()
+		{
 			return deviceID;
 		}
 
@@ -280,7 +315,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceType()
 		 */
-		public String getDeviceType() {
+		@Override
+		public String getDeviceType()
+		{
 			return null;
 		}
 
@@ -288,7 +325,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
 		 */
-		public String getDeviceURL() {
+		@Override
+		public String getDeviceURL()
+		{
 			return null;
 		}
 
@@ -296,7 +335,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getErrorHF()
 		 */
-		public File getErrorHF() {
+		@Override
+		public File getErrorHF()
+		{
 			return null;
 		}
 
@@ -304,7 +345,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getInputHF()
 		 */
-		public File getInputHF() {
+		@Override
+		public File getInputHF()
+		{
 			return null;
 		}
 
@@ -312,7 +355,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getJDFDir()
 		 */
-		public File getJDFDir() {
+		public File getJDFDir()
+		{
 			return null;
 		}
 
@@ -320,7 +364,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getMaxPush()
 		 */
-		public int getMaxPush() {
+		public int getMaxPush()
+		{
 			return 0;
 		}
 
@@ -328,7 +373,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getOutputHF()
 		 */
-		public File getOutputHF() {
+		@Override
+		public File getOutputHF()
+		{
 			return null;
 		}
 
@@ -336,7 +383,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getProxyControllerURL()
 		 */
-		public String getProxyControllerURL() {
+		@Override
+		public String getProxyControllerURL()
+		{
 			return null;
 		}
 
@@ -344,7 +393,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
 		 */
-		public String getSlaveDeviceID() {
+		public String getSlaveDeviceID()
+		{
 
 			return null;
 		}
@@ -353,7 +403,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveErrorHF()
 		 */
-		public File getSlaveErrorHF() {
+		public File getSlaveErrorHF()
+		{
 
 			return null;
 		}
@@ -362,7 +413,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveInputHF()
 		 */
-		public File getSlaveInputHF() {
+		public File getSlaveInputHF()
+		{
 
 			return null;
 		}
@@ -371,7 +423,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveOutputHF()
 		 */
-		public File getSlaveOutputHF() {
+		public File getSlaveOutputHF()
+		{
 
 			return null;
 		}
@@ -380,7 +433,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveURL()
 		 */
-		public String getSlaveURL() {
+		public String getSlaveURL()
+		{
 
 			return null;
 		}
@@ -389,7 +443,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getTrackResource()
 		 */
-		public String getTrackResource() {
+		@Override
+		public String getTrackResource()
+		{
 
 			return null;
 		}
@@ -398,7 +454,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
 		 */
-		public String getTypeExpression() {
+		@Override
+		public String getTypeExpression()
+		{
 
 			return null;
 		}
@@ -407,7 +465,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getAmountResources()
 		 */
-		public VString getAmountResources() {
+		@Override
+		public VString getAmountResources()
+		{
 
 			return null;
 		}
@@ -416,7 +476,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
 		 */
-		public int getControllerHTTPChunk() {
+		@Override
+		public int getControllerHTTPChunk()
+		{
 
 			return 0;
 		}
@@ -425,7 +487,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
 		 */
-		public String getControllerMIMEEncoding() {
+		@Override
+		public String getControllerMIMEEncoding()
+		{
 
 			return null;
 		}
@@ -434,7 +498,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getReturnMIME()
 		 */
-		public QEReturn getReturnMIME() {
+		@Override
+		public QEReturn getReturnMIME()
+		{
 
 			return null;
 		}
@@ -443,7 +509,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getContextURL()
 		 */
-		public String getContextURL() {
+		@Override
+		public String getContextURL()
+		{
 
 			return null;
 		}
@@ -452,7 +520,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceAttribute(java.lang.String)
 		 */
-		public String getDeviceAttribute(final String key) {
+		@Override
+		public String getDeviceAttribute(final String key)
+		{
 
 			return null;
 		}
@@ -461,7 +531,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceClass()
 		 */
-		public AbstractDevice getDeviceInstance() {
+		@Override
+		public AbstractDevice getDeviceInstance()
+		{
 
 			return null;
 		}
@@ -470,7 +542,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getWatchURL()
 		 */
-		public String getWatchURL() {
+		@Override
+		public String getWatchURL()
+		{
 
 			return null;
 		}
@@ -479,7 +553,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEExpansion()
 		 */
-		public boolean getControllerMIMEExpansion() {
+		@Override
+		public boolean getControllerMIMEExpansion()
+		{
 
 			return false;
 		}
@@ -488,7 +564,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		 * @see org.cip4.bambi.core.IDeviceProperties#getConfigDir()
 		 * @return
 		 */
-		public File getConfigDir() {
+		@Override
+		public File getConfigDir()
+		{
 
 			return null;
 		}
@@ -496,7 +574,9 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#serialize()
 		 */
-		public boolean serialize() {
+		@Override
+		public boolean serialize()
+		{
 
 			return false;
 		}
@@ -504,49 +584,63 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setDeviceType(java.lang.String)
 		 */
-		public void setDeviceType(final String deviceType) {
+		@Override
+		public void setDeviceType(final String deviceType)
+		{
 
 		}
 
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setWatchURL(java.lang.String)
 		 */
-		public void setWatchURL(final String WatchURL) {
+		@Override
+		public void setWatchURL(final String WatchURL)
+		{
 
 		}
 
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setErrorHF(java.io.File)
 		 */
-		public void setErrorHF(final File hf) {
+		@Override
+		public void setErrorHF(final File hf)
+		{
 
 		}
 
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setInputHF(java.io.File)
 		 */
-		public void setInputHF(final File hf) {
+		@Override
+		public void setInputHF(final File hf)
+		{
 
 		}
 
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setOutputHF(java.io.File)
 		 */
-		public void setOutputHF(final File hf) {
+		@Override
+		public void setOutputHF(final File hf)
+		{
 
 		}
 
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setTypeExpression(java.lang.String)
 		 */
-		public void setTypeExpression(final String exp) {
+		@Override
+		public void setTypeExpression(final String exp)
+		{
 
 		}
 
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getQERetrieval()
 		 */
-		public QERetrieval getQERetrieval() {
+		@Override
+		public QERetrieval getQERetrieval()
+		{
 
 			return null;
 		}
@@ -554,15 +648,39 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#setQERetrieval(org.cip4.bambi.core.IDeviceProperties.QERetrieval)
 		 */
-		public void setQERetrieval(final QERetrieval qer) {
+		@Override
+		public void setQERetrieval(final QERetrieval qer)
+		{
 
 		}
 
 		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getAcceptAll()
 		 */
-		public boolean getAcceptAll() {
+		@Override
+		public boolean getAcceptAll()
+		{
 			return false;
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDescription()
+		 */
+		@Override
+		public String getDescription()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#setDescription(java.lang.String)
+		 */
+		@Override
+		public void setDescription(String description)
+		{
+			// TODO Auto-generated method stub
+
 		}
 
 	}
@@ -570,7 +688,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * banbi test case
 	 */
-	public BambiTestCase() {
+	public BambiTestCase()
+	{
 		BasicConfigurator.configure();
 		JDFJMF.setTheSenderID("BambiTest");
 	}
@@ -579,11 +698,13 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	 * @return
 	 * 
 	 */
-	protected String getWorkerURL() {
+	protected String getWorkerURL()
+	{
 		return UrlUtil.getURLWithDirectory(getWorkerURLBase(), getDeviceID());
 	}
 
-	protected String getWorkerURLBase() {
+	protected String getWorkerURLBase()
+	{
 		return workerURLBase;
 	}
 
@@ -591,7 +712,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	 * @return
 	 * 
 	 */
-	protected String getDumpURL() {
+	protected String getDumpURL()
+	{
 		return "http://localhost:8080/httpdump/BambiDevice/" + deviceID;
 	}
 
@@ -599,25 +721,30 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	 * cleaning up, brute-force-sytle: send a AbortQueueEntry and a RemoveQueueEntry message to every QueueEntry in the Queue
 	 * @param url the URL of the device to send the command to
 	 */
-	protected void abortRemoveAll(final String url) {
+	protected void abortRemoveAll(final String url)
+	{
 		final JMFFactory factory = JMFFactory.getJMFFactory();
 		JDFJMF jmf = new JMFBuilder().buildQueueStatus();
 		final JDFResponse resp = factory.send2URLSynchResp(jmf, url, null, "testcase", 2000);
-		if (resp == null) {
+		if (resp == null)
+		{
 			System.err.println("failed to send QueueStatus");
 			return;
 		}
 		final JDFQueue theQueue = resp.getQueue(0);
-		if (theQueue == null) {
+		if (theQueue == null)
+		{
 			return;
 		}
 		final VElement qVec = theQueue.getQueueEntryVector();
 		final int siz = qVec.size();
-		if (siz == 0) {
+		if (siz == 0)
+		{
 			return;
 		}
 
-		for (int i = siz - 1; i >= 0; i--) {
+		for (int i = siz - 1; i >= 0; i--)
+		{
 			final String qeid = ((JDFQueueEntry) qVec.get(i)).getQueueEntryID();
 			jmf = new JMFBuilder().buildAbortQueueEntry(qeid);
 			factory.send2URL(jmf, url, null, null, "testcase");
@@ -626,7 +753,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 		// wait to allow the worker to process the AbortQueueEntries,
 		// then send RemoveQueueEntry messages
 
-		for (int i = 0; i < siz; i++) {
+		for (int i = 0; i < siz; i++)
+		{
 			final String qeid = ((JDFQueueEntry) qVec.get(i)).getQueueEntryID();
 			jmf = new JMFBuilder().buildRemoveQueueEntry(qeid);
 			factory.send2URL(jmf, url, null, null, "testcase");
@@ -636,7 +764,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * dummy so that we can simply run the directory as a test
 	 */
-	public void testNothing() {
+	public void testNothing()
+	{
 		int i = 1;
 		assertTrue(1 == i);
 	}
@@ -647,7 +776,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	 * @return
 	 * @throws MalformedURLException
 	 */
-	protected HttpURLConnection submitMimetoURL(final String url) throws MalformedURLException {
+	protected HttpURLConnection submitMimetoURL(final String url) throws MalformedURLException
+	{
 		final JDFDoc doc = _theGT.getNode().getOwnerDocument_JDFElement();
 		return submitMimetoURL(doc, url, false);
 	}
@@ -659,7 +789,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	 * @return
 	 * @throws MalformedURLException
 	 */
-	protected HttpURLConnection resubmitMimetoURL(final String qeID, final String url) throws MalformedURLException {
+	protected HttpURLConnection resubmitMimetoURL(final String qeID, final String url) throws MalformedURLException
+	{
 		final JDFDoc doc = _theGT.getNode().getOwnerDocument_JDFElement();
 		return resubmitMimetoURL(qeID, doc, url);
 	}
@@ -669,7 +800,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	 * @param url the url to send to
 	 * @throws MalformedURLException
 	 */
-	protected void submitXtoURL(final String url) throws MalformedURLException {
+	protected void submitXtoURL(final String url) throws MalformedURLException
+	{
 		final JDFNode n = _theGT.getNode();
 		final BambiTestHelper helper = getHelper();
 		helper.submitXtoURL(n, url);
@@ -682,7 +814,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	 * @return
 	 * @throws MalformedURLException
 	 */
-	protected HttpURLConnection submitMimetoURL(final JDFDoc d, String url, boolean extendReference) throws MalformedURLException {
+	protected HttpURLConnection submitMimetoURL(final JDFDoc d, String url, boolean extendReference) throws MalformedURLException
+	{
 		ensureCurrentGT();
 		if (url == null)
 			url = getWorkerURL();
@@ -695,7 +828,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * @return
 	 */
-	protected BambiTestHelper getHelper() {
+	protected BambiTestHelper getHelper()
+	{
 		final BambiTestHelper helper = new BambiTestHelper();
 		helper.returnJMF = returnJMF;
 		helper.chunkSize = chunkSize;
@@ -713,13 +847,15 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	 * @return
 	 * @throws MalformedURLException
 	 */
-	protected HttpURLConnection resubmitMimetoURL(final String qeid, final JDFDoc d, final String url) throws MalformedURLException {
+	protected HttpURLConnection resubmitMimetoURL(final String qeid, final JDFDoc d, final String url) throws MalformedURLException
+	{
 		ensureCurrentGT();
 		final BambiTestHelper helper = getHelper();
 		return helper.resubmitMimetoURL(qeid, d, url);
 	}
 
-	protected JDFQueue getQueueStatus(final String qURL) {
+	protected JDFQueue getQueueStatus(final String qURL)
+	{
 		return getHelper().getQueueStatus(qURL);
 	}
 
@@ -728,15 +864,18 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	 * @param url the url to send to
 	 * @return
 	 */
-	protected JDFDoc submitJMFtoURL(final JDFJMF jmf, final String url) {
+	protected JDFDoc submitJMFtoURL(final JDFJMF jmf, final String url)
+	{
 		return getHelper().submitJMFtoURL(jmf, url);
 	}
 
 	/**
 	 * ensure that we have some dummy golden ticket
 	 */
-	private void ensureCurrentGT() {
-		if (_theGT != null) {
+	private void ensureCurrentGT()
+	{
+		if (_theGT != null)
+		{
 			return;
 		}
 		final VJDFAttributeMap vParts = new VJDFAttributeMap();
@@ -751,7 +890,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	 * @param url
 	 * @return the response
 	 */
-	protected JDFResponse sendToURL(final JDFJMF jmf, final String url) {
+	protected JDFResponse sendToURL(final JDFJMF jmf, final String url)
+	{
 		final JDFJMF respRoot = jmf.getOwnerDocument_JDFElement().write2URL(url).getJMFRoot();
 		final JDFResponse resp = respRoot.getResponse(0);
 		assertTrue(resp.getJMFRoot().isValid(EnumValidationLevel.Complete));
@@ -761,7 +901,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * @param devProp
 	 */
-	protected void moreSetup(DeviceProperties devProp) {
+	protected void moreSetup(DeviceProperties devProp)
+	{
 		// dummy stub
 
 	}
@@ -769,7 +910,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * 
 	 */
-	protected void startContainer() {
+	protected void startContainer()
+	{
 		bambiContainer = BambiContainer.getCreateInstance();
 		MultiDeviceProperties props = createPropertiesForContainer();
 		props.getRoot().setAttribute("WebProxy", "proxy:8080");
@@ -786,7 +928,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	/**
 	 * @return
 	 */
-	protected MultiDeviceProperties createPropertiesForContainer() {
+	protected MultiDeviceProperties createPropertiesForContainer()
+	{
 		MultiDeviceProperties props = new MultiDeviceProperties(new File(sm_dirContainer), "test");
 		return props;
 	}
@@ -796,7 +939,8 @@ public class BambiTestCase extends BambiGoldenTicketTest {
 	 * @throws Exception
 	 */
 	@Override
-	protected void tearDown() throws Exception {
+	protected void tearDown() throws Exception
+	{
 		super.tearDown();
 		if (bambiContainer != null)
 			bambiContainer.shutDown();

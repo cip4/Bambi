@@ -118,17 +118,6 @@ public class StatusListener extends BambiLogFactory
 		theCounter = new StatusCounter(null, null, null);
 		theCounter.setDeviceID(deviceID);
 		theCounter.setIcsVersions(icsVersions);
-		setIdleSkip(10);
-	}
-
-	/**
-	 * 
-	 * set the number of skipped idle messages 
-	 * @param skip
-	 */
-	public void setIdleSkip(int skip)
-	{
-		theCounter.setIdleSkip(skip);
 	}
 
 	/**

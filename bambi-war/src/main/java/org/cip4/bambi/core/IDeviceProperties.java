@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -175,10 +175,22 @@ public interface IDeviceProperties
 	public String getDeviceType();
 
 	/**
+	 * get the human readable description of this device
+	 * @return the description of this device
+	 */
+	public String getDescription();
+
+	/**
 	 * set the DeviceType of this device
 	 * @param deviceType the DeviceType of this device
 	 */
 	public void setDeviceType(String deviceType);
+
+	/**
+	 * set the description of this device
+	 * @param description the description of this device
+	 */
+	public void setDescription(String description);
 
 	/**
 	 * get the application context dir of the web application
@@ -220,6 +232,7 @@ public interface IDeviceProperties
 	 * get a String representation of this DeviceProperty
 	 * @return this representation of this DeviceProperty
 	 */
+	@Override
 	public String toString();
 
 	/**

@@ -2,10 +2,9 @@
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<!-- (C) 2001-2013 CIP4 -->
 	<xsl:strip-space elements="*" />
 	<xsl:output method="html" />
-
-
 
 	<xsl:template name="devicedetails">
 		<xsl:variable name="deviceID" select="@DeviceID" />
@@ -48,10 +47,18 @@
 						<xsl:with-param name="attVal" select="$deviceType" />
 						<xsl:with-param name="modify" select="$modify" />
 						<xsl:with-param name="desc"
+							select="'Short, machine readable description of the device'" />
+					</xsl:call-template>
+					<xsl:call-template name="modifyString">
+						<xsl:with-param name="attLabel" select="'Device Description '" />
+						<xsl:with-param name="attName" select="'Description'" />
+						<xsl:with-param name="attVal" select="@Description" />
+						<xsl:with-param name="modify" select="$modify" />
+						<xsl:with-param name="desc"
 							select="'Short, human readable description of the device'" />
 					</xsl:call-template>
 
-				<xsl:call-template name="modifyString">
+					<xsl:call-template name="modifyString">
 						<xsl:with-param name="attLabel" select="'Entries Processed '" />
 						<xsl:with-param name="attName" select="'EntriesProcessed'" />
 						<xsl:with-param name="attVal" select="@EntriesProcessed" />

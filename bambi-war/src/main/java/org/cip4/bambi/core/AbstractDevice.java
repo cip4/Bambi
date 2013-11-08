@@ -302,6 +302,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			deviceRoot.copyElement(getDeviceTimer(true).toXML(), null);
 			deviceRoot.setAttribute(AttributeName.DEVICEID, getDeviceID());
 			deviceRoot.setAttribute(AttributeName.DEVICETYPE, getDeviceType());
+			deviceRoot.setAttribute("Description", getDescription());
 			deviceRoot.setAttribute("DeviceURL", getDeviceURL());
 			final IDeviceProperties properties = getProperties();
 			deviceRoot.setAttribute("WatchURL", properties.getWatchURL());
@@ -613,6 +614,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected boolean acceptAll;
 	protected final MyMutex mutex;
 	private int entriesProcessed;
+	protected int skipIdle;
+	protected int idleCount;
 
 	/**
 	 * creates a new device instance
@@ -621,7 +624,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public AbstractDevice(final IDeviceProperties prop)
 	{
 		super();
-		entriesProcessed = 0;
+		entriesProcessed = idleCount = 0;
+		skipIdle = 10;
 		_devProperties = prop;
 		copyToCache();
 		numRequests = 0;
@@ -922,6 +926,18 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
+	 * get the device type of this device
+	 * @return the device type
+	 */
+	public String getDescription()
+	{
+		String description = _devProperties.getDescription();
+		if (description == null)
+			description = getDeviceType() + " " + getDeviceID() + " " + getVersionString();
+		return description;
+	}
+
+	/**
 	 * @return the device ID
 	 */
 	public String getDeviceID()
@@ -947,6 +963,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * @param doc
 	 * @return the doc representing the response
 	 */
+	@Override
 	public JDFDoc processJMF(final JDFDoc doc)
 	{
 		log.info("JMF processed by " + _devProperties.getDeviceID());
@@ -1009,6 +1026,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * add a MessageHandler to this devices JMFHandler, if null - don't
 	 * @param handler the MessageHandler to add
 	 */
+	@Override
 	public void addHandler(final IMessageHandler handler)
 	{
 		if (handler != null)
@@ -1309,6 +1327,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * @param request
 	 * @return true if handled
 	 */
+	@Override
 	public XMLResponse handleGet(final ContainerRequest request)
 	{
 		if (!isMyRequest(request))
@@ -1367,41 +1386,62 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 
 		final JDFAttributeMap map = request.getParameterMap();
-		final Set<String> s = map == null ? null : map.keySet();
-		if (s == null)
+		final Set<String> stringSet = map == null ? null : map.keySet();
+		if (stringSet == null)
 			return;
 
 		final String watchURL = request.getParameter("WatchURL");
-		if (watchURL != null && s.contains("WatchURL"))
+		if (watchURL != null && stringSet.contains("WatchURL"))
 		{
 			updateWatchURL(watchURL);
 		}
-		if (s.contains("InputHF"))
+		if (stringSet.contains("InputHF"))
 		{
 			final String hf = request.getParameter("InputHF");
 			updateInputHF(hf);
 		}
-		if (s.contains("OutputHF"))
+		if (stringSet.contains("OutputHF"))
 		{
 			final String hf = request.getParameter("OutputHF");
 			updateOutputHF(hf);
 		}
-		if (s.contains("ErrorHF"))
+		if (stringSet.contains("ErrorHF"))
 		{
 			final String hf = request.getParameter("ErrorHF");
 			updateErrorHF(hf);
 		}
-		if (s.contains("UpdateDump") && (_rootDevice == null))
+		if (stringSet.contains("UpdateDump") && (_rootDevice == null))
 		{
 			final boolean dumpSwitch = request.getBooleanParam("Dump");
 			updateDump(dumpSwitch);
 		}
 
-		final String deviceType = request.getParameter("DeviceType");
-		if (deviceType != null && s.contains("DeviceType"))
+		if (stringSet.contains("DeviceType"))
 		{
+			final String deviceType = request.getParameter("DeviceType");
 			updateDeviceType(deviceType);
 		}
+		if (stringSet.contains("Description"))
+		{
+			final String description = request.getParameter("Description");
+			updateDescription(description);
+		}
+	}
+
+	/**
+	 *  
+	 * @param description
+	 */
+	private void updateDescription(String description)
+	{
+		final String old = getDescription();
+		if (ContainerUtil.equals(old, description))
+		{
+			return;
+		}
+		IDeviceProperties properties = getProperties();
+		properties.setDescription(description);
+		properties.serialize();
 	}
 
 	/**
@@ -1751,6 +1791,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	/**
 	 * @see org.cip4.bambi.core.messaging.IJMFHandler#getHandler(java.lang.String, org.cip4.jdflib.jmf.JDFMessage.EnumFamily)
 	 */
+	@Override
 	public IMessageHandler getHandler(final String typ, final EnumFamily family)
 	{
 		return _jmfHandler == null ? null : _jmfHandler.getHandler(typ, family);
@@ -2007,5 +2048,40 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	void incEntriesProcessed()
 	{
 		entriesProcessed++;
+	}
+
+	/**
+	 * all dispatched signals are checked here and may be modified / removed by a callback
+	 * by default, we skip all idle status signals except 1 of 10
+	 * @param s
+	 * @return true if s should be deleted
+	 */
+	public boolean deleteSignal(JDFSignal s)
+	{
+		if (s == null)
+			return true;
+
+		EnumType typ = s.getEnumType();
+		if (EnumType.Status.equals(typ))
+		{
+			final Vector<JDFDeviceInfo> devInfos = s.getChildrenByClass(JDFDeviceInfo.class, false, -1);
+			if (devInfos == null || devInfos.size() == 0)
+			{
+				log.warn("removing status signal with no DeviceInfo; ID=" + s.getID());
+				return true;
+			}
+
+			for (JDFDeviceInfo di : devInfos)
+			{
+				EnumDeviceStatus stat = di.getDeviceStatus();
+				if (!EnumDeviceStatus.Idle.equals(stat) && !EnumDeviceStatus.Down.equals(stat))
+				{
+					idleCount = 0;
+					return false; // we have something that is a bit active
+				}
+			}
+			return (idleCount++ % skipIdle) != 0;
+		}
+		return false;
 	}
 }
