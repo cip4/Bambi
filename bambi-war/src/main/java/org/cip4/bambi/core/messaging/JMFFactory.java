@@ -74,7 +74,6 @@ package org.cip4.bambi.core.messaging;
 import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.Vector;
 
 import javax.mail.Multipart;
@@ -380,7 +379,7 @@ public class JMFFactory extends BambiLogFactory
 	{
 		if (cu == null) // null = all
 		{
-			final Set<CallURL> keySet = senders.keySet();
+			final Vector<CallURL> keySet = ContainerUtil.getKeyVector(senders);
 			for (CallURL s : keySet)
 			{
 				shutDown(s, graceFully);
