@@ -381,14 +381,9 @@ public class JMFFactory extends BambiLogFactory
 		if (cu == null) // null = all
 		{
 			final Set<CallURL> keySet = senders.keySet();
-			final CallURL[] as = keySet.toArray(new CallURL[keySet.size()]);
-			for (int i = 0; i < as.length; i++)
+			for (CallURL s : keySet)
 			{
-				final CallURL s = as[i];
-				if (s != null)
-				{
-					shutDown(s, graceFully);
-				}
+				shutDown(s, graceFully);
 			}
 		}
 		else
@@ -401,6 +396,7 @@ public class JMFFactory extends BambiLogFactory
 			}
 			senders.remove(cu);
 		}
+
 	}
 
 	/**

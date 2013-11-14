@@ -194,7 +194,8 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 		// reqularly update the counter to avoid retaining double phasetimes too long
 		while (!bStopJob)
 		{
-			ThreadUtil.wait(completeMutex, 10000);
+			if (!ThreadUtil.wait(completeMutex, 10000))
+				break;
 			if (currentPhase != null)
 			{
 				setNextPhase(currentPhase, null);

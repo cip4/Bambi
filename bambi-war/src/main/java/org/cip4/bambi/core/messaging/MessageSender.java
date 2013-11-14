@@ -301,6 +301,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	 * the sender loop. <br/>
 	 * Checks whether its vector of pending messages is empty. If it is not empty, the first message is sent and removed from the map.
 	 */
+	@Override
 	public void run()
 	{
 		readFromBase();
@@ -322,7 +323,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		{
 			if (pause)
 			{
-				ThreadUtil.wait(mutexPause, 0);
+				if (!ThreadUtil.wait(mutexPause, 0) || doShutDown)
+					break;
 			}
 			SendReturn sentFirstMessage;
 			try
@@ -795,7 +797,6 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	 */
 	private HttpURLConnection sendJMF(final MessageDetails mh, JDFJMF jmf, final URL url, final DumpDir outDump) throws FileNotFoundException, IOException
 	{
-		String header = "URL: " + url;
 		if (log.isDebugEnabled())
 			log.debug("sending jmf ID=" + jmf.getID() + " to: " + url.toExternalForm());
 		final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
@@ -803,6 +804,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		HttpURLConnection connection = jmfDoc.write2HTTPURL(url, hd);
 		if (outDump != null)
 		{
+			String header = "URL: " + url;
 			final File dump = outDump.newFile(header, mh.getName());
 			if (dump != null)
 			{
@@ -915,10 +917,19 @@ public class MessageSender extends BambiLogFactory implements Runnable
 
 		if (_callBack != null)
 		{
-			_callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+			try
+			{
+				_callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+			}
+			catch (Throwable x)
+			{
+				log.error("exception modifying message: ", x);
+			}
 		}
 		if (log.isDebugEnabled())
+		{
 			log.debug("Queueing jmf message, ID=" + jmf.getID() + " to: " + url);
+		}
 
 		final MessageDetails messageDetails = new MessageDetails(jmf, handler, _callBack, null, url);
 		return queueMessageDetails(messageDetails);

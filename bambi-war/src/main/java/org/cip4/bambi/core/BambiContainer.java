@@ -193,6 +193,7 @@ public final class BambiContainer extends BambiLogFactory
 		 * @param request
 		 * @return
 		 */
+		@Override
 		public XMLResponse handleGet(final ContainerRequest request)
 		{
 			return showErrorPage(message, details, request);
@@ -247,6 +248,7 @@ public final class BambiContainer extends BambiLogFactory
 		 * @param request
 		 * @return
 		 */
+		@Override
 		public XMLResponse handleGet(final ContainerRequest request)
 		{
 			final String context = request.getContext();
@@ -446,8 +448,15 @@ public final class BambiContainer extends BambiLogFactory
 	 */
 	public void shutDown()
 	{
-		log.info("shutting down container: ");
-		rootDev.shutdown();
+		try
+		{
+			log.info("shutting down container: ");
+			rootDev.shutdown();
+		}
+		catch (Throwable x)
+		{
+			log.error("exception shutting down! ", x);
+		}
 		final JMFFactory factory = JMFFactory.getJMFFactory();
 		factory.shutDown(null, true);
 		ThreadUtil.sleep(5234); // leave some time for cleanup

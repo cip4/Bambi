@@ -454,7 +454,7 @@
         <!-- calls the optionList -->
         <form>
           <xsl:attribute name="action"><xsl:value-of select="$context"/>/modifyQE/<xsl:value-of select="../@DeviceID"/></xsl:attribute>
-          <xsl:apply-templates/>
+          <xsl:apply-templates select="bambi:OptionList"/>
           <input type="hidden" name="qeID">
             <xsl:attribute name="value"><xsl:value-of select="@QueueEntryID"/></xsl:attribute>
           </input>
