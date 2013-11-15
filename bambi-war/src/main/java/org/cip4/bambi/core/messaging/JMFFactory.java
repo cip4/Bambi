@@ -380,9 +380,12 @@ public class JMFFactory extends BambiLogFactory
 		if (cu == null) // null = all
 		{
 			final Vector<CallURL> keySet = ContainerUtil.getKeyVector(senders);
-			for (CallURL s : keySet)
+			if (keySet != null)
 			{
-				shutDown(s, graceFully);
+				for (CallURL s : keySet)
+				{
+					shutDown(s, graceFully);
+				}
 			}
 		}
 		else
