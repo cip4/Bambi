@@ -114,7 +114,7 @@ public class SignalHandler extends AbstractHandler
 			return false;
 		}
 		AbstractProxyDevice abstractProxyDevice = getAbstractProxyDevice();
-		if (abstractProxyDevice != null)
+		if (abstractProxyDevice != null && abstractProxyDevice.getMySubscriptions() != null)
 		{
 			boolean incremented = abstractProxyDevice.getMySubscriptions().incrementHandled(inputMessage.getrefID());
 			if (!incremented)

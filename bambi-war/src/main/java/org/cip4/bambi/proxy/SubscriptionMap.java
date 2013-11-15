@@ -149,7 +149,7 @@ public class SubscriptionMap extends HashMap<EnumType, ProxySubscription>
 		final JDFJMF stopPersistant = builder.buildStopPersistentChannel(null, null, dev.getDeviceURLForSlave());
 		final MessageResponseHandler waitHandler = dev.new StopPersistantHandler(stopPersistant);
 		dev.sendJMFToSlave(stopPersistant, waitHandler);
-		waitHandler.waitHandled(10000, 30000, true);
+		waitHandler.waitHandled(2222, 30000, true);
 
 		log.info("sent all messages: t=" + ((System.currentTimeMillis() - t0) * 0.001));
 	}

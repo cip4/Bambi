@@ -198,10 +198,12 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				log.warn("aborted StopPersistantHandler");
 				return;
 			}
-			log.warn("clearing my subscription list");
-			mySubscriptions.clear();
+			if (mySubscriptions != null)
+			{
+				log.warn("clearing my subscription list");
+				mySubscriptions.clear();
+			}
 		}
-
 	}
 
 	/**
@@ -600,7 +602,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		final IProxyProperties proxyProperties = getProperties();
 		_slaveCallback = proxyProperties.getSlaveCallBackClass();
 		waitingSubscribers = new HashMap<String, SlaveSubscriber>();
-		mySubscriptions = new SubscriptionMap();
+		mySubscriptions = createSubscriptionMap();
 		prepareSlaveHotfolders(proxyProperties);
 
 		super.init();
@@ -610,6 +612,16 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		// ensure existence of vector prior to filling
 		_theQueueProcessor.getQueue().resumeQueue(); // proxy queues should start up by default
 		addSlaveSubscriptions(8888, null, false);
+	}
+
+	/**
+	 * 
+	 *  
+	 * @return
+	 */
+	protected SubscriptionMap createSubscriptionMap()
+	{
+		return new SubscriptionMap();
 	}
 
 	/**
@@ -708,7 +720,10 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	@Override
 	public void shutdown()
 	{
-		mySubscriptions.shutdown(this);
+		if (mySubscriptions != null)
+		{
+			mySubscriptions.shutdown(this);
+		}
 		super.shutdown();
 		if (slaveJDFError != null)
 		{
@@ -1156,7 +1171,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	public void addMoreToXMLSubscriptions(KElement rootDevice)
 	{
 		super.addMoreToXMLSubscriptions(rootDevice);
-		mySubscriptions.copyToXML(rootDevice);
+		if (mySubscriptions != null)
+			mySubscriptions.copyToXML(rootDevice);
 	}
 
 	/**
