@@ -5,17 +5,9 @@
 	<artifactId>Bambi</artifactId>
 	<version>2.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
-
 	<name>bambi</name>
 	<url>http://www.cip4.org</url>
     
-    <parent>
-		<groupId>org.sonatype.oss</groupId>
-		<artifactId>oss-parent</artifactId>
-		<version>7</version>
-	</parent>
-	
-
 	<modules>
 		<module>bambi-app</module>
 		<module>bambi-war</module>
@@ -23,6 +15,7 @@
 	<properties>
 		<app.name>Bambi 2.2-SNAPSHOT</app.name>
 		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
+		<buildDirectory>${project.basedir}/target</buildDirectory>
 	</properties>
 	<scm>
 		<connection>scm:svn:http://svn.cip4.org/svnroot/trunk/Bambi</connection>
@@ -56,6 +49,7 @@
 		</developer>
 	</developers>
 	<build>
+		<directory>${buildDirectory}</directory>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -73,6 +67,13 @@
 						<source>1.7</source>
 						<target>1.7</target>
 					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-release-plugin</artifactId>
+					<configuration>
+		                <goals>install</goals>
+		            </configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>

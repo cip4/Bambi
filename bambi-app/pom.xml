@@ -192,8 +192,8 @@
 								</goals>
 								<configuration>
 									<headerType>gui</headerType>
-									<outfile>target/${project.build.finalName}.exe</outfile>
-									<jar>target/${project.build.finalName}-jar-with-dependencies.jar</jar>
+									<outfile>${buildDirectory}/${project.build.finalName}.exe</outfile>
+									<jar>${buildDirectory}/${project.build.finalName}-jar-with-dependencies.jar</jar>
 									<errTitle>encc</errTitle>
 									<icon>src/main/assemble/windows/bambi.ico</icon>
 									<classPath>
@@ -234,24 +234,6 @@
 			<build>
 				
 				<plugins>
-					<!-- <plugin>
-						<groupId>com.agiliumlabs.osxappbundle</groupId>
-					    <artifactId>osxappbundle-maven-plugin</artifactId>
-					    <version>1.0.0</version>
-						<executions>
-							<execution>
-								<goals>
-									<goal>bundle</goal>
-								</goals>
-								<configuration>
-									<mainClass>org.cip4.bambi.ExecutorForm</mainClass>
-									<bundleName>${project.build.finalName}</bundleName>
-									<iconFile>${basedir}/src/main/assemble/macosx/bambi.icns</iconFile>
-									<javaApplicationStub>${basedir}/src/main/assemble/macosx/JavaApplicationStub</javaApplicationStub>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin> -->
 					<plugin>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<version>1.7</version>
