@@ -1,0 +1,1 @@
+File dummy.txt added to test the pre-commit hook of SVN.
