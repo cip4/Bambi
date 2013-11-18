@@ -242,7 +242,6 @@
 	<!-- ============================================================ -->
 
 	<xsl:include href="processor.xsl" />
-	<xsl:include href="modifyString.xsl" />
 	<xsl:include href="DeviceExtension.xsl" />
 	<xsl:include href="CPUTimer.xsl" />
 
