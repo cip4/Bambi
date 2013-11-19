@@ -911,7 +911,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		final boolean submit = pdp.submit(slaveQueueURL);
 		if (submit && pdp.isActive())
 		{
-			addProcessor(pdp);
+			// not needed - the dispache processor does the return stuff addProcessor(pdp);
 		}
 		else
 		{

@@ -385,7 +385,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	@Override
 	public boolean isActive()
 	{
-		// dispatchers are always active
+		// dispatchers are never active
 		return true;
 	}
 
