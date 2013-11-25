@@ -609,7 +609,9 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			{
 				if (_messages.size() > 4242 || System.currentTimeMillis() - mesDetails.createTime > 1000 * 3600 * 24 * 7)
 				{
-					warn += " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.createTime) + " messages pending: " + _messages.size();
+					warn += " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.createTime).getDateTimeISO() + " messages pending: "
+							+ _messages.size();
+					_messages.remove(0);
 				}
 				else
 				{
@@ -716,7 +718,9 @@ public class MessageSender extends BambiLogFactory implements Runnable
 					}
 					InputStream inputStream = connection.getInputStream();
 					if (inputStream != null)
+					{
 						inputStream.close();
+					}
 				}
 				if (mh.respHandler != null)
 				{
@@ -745,14 +749,14 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	 */
 	private HttpURLConnection sendEmpty(MessageDetails mh, URL url, DumpDir outDump)
 	{
-		String header = "URL: " + url;
-
-		log.debug(" sending empty content to: " + url.toExternalForm());
+		if (log.isDebugEnabled())
+			log.debug(" sending empty content to: " + url.toExternalForm());
 		final HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
 		UrlPart p = UrlUtil.writeToURL(url.toExternalForm(), null, UrlUtil.POST, UrlUtil.TEXT_UNKNOWN, hd);
 		HttpURLConnection connection = p == null ? null : p.getConnection();
 		if (outDump != null)
 		{
+			String header = "URL: " + url;
 			outDump.newFile(header, mh.getName());
 		}
 		return connection;
@@ -770,11 +774,11 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	 */
 	private HttpURLConnection sendMime(final MessageDetails mh, Multipart mp, final URL url, final DumpDir outDump) throws IOException, MessagingException, FileNotFoundException
 	{
-		String header = "URL: " + url;
 		log.info("sending mime to: " + url.toExternalForm());
 		HttpURLConnection connection = MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
 		if (outDump != null)
 		{
+			String header = "URL: " + url;
 			final File dump = outDump.newFile(header, mh.getName());
 			if (dump != null)
 			{
@@ -976,6 +980,17 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		{
 			optimizer.optimize(messageDetails.jmf);
 			_messages.add(messageDetails);
+			if (_messages.size() >= 1000)
+			{
+				if ((_messages.size() % 100) == 0)
+				{
+					log.warn("queueing message into blocked sender to " + callURL + " size=" + _messages.size());
+				}
+				else if (log.isDebugEnabled())
+				{
+					log.debug("queueing message into blocked sender to " + callURL + " size=" + _messages.size());
+				}
+			}
 		}
 		if (!pause)
 		{

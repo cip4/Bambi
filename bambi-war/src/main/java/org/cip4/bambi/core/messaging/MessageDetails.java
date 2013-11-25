@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -216,6 +216,9 @@ public class MessageDetails extends BambiLogFactory
 		{
 			t0 = System.currentTimeMillis();
 		}
+		if (t0 < 10000)
+			t0 = System.currentTimeMillis();
+
 		createTime = t0;
 		final String cbClass = element.getAttribute("CallbackClass", null, null);
 		if (cbClass != null)
@@ -278,7 +281,6 @@ public class MessageDetails extends BambiLogFactory
 		message.setAttribute(AttributeName.SENDERID, senderID);
 		message.setAttribute("FireForget", fireForget, null);
 		message.setAttribute("Return", sendReturn == null ? "unsent" : sendReturn.name(), null);
-
 		final JDFDate d = new JDFDate(createTime);
 		message.setAttribute(AttributeName.TIMESTAMP, d.getDateTimeISO());
 		if (i >= 0)

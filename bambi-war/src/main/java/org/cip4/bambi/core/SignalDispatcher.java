@@ -419,7 +419,7 @@ public final class SignalDispatcher extends BambiLogFactory
 							if (sub.channelID != null)
 							{
 								subscriptionMap.put(sub.channelID, sub);
-								log.info("reloading subscription for channelID=" + sub.channelID);
+								log.info("reloading subscription for channelID=" + sub.channelID + " to: " + sub.url);
 							}
 						}
 					}

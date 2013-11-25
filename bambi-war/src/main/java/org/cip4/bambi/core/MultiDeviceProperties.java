@@ -82,7 +82,6 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
-import org.cip4.jdflib.core.XMLParser;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -695,8 +694,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 	public MultiDeviceProperties(File baseDir, String baseURL, final File configFile)
 	{
 		// to evaluate current name and send it back rather than 127.0.0.1
-		final XMLParser p = new XMLParser();
-		final XMLDoc doc = p.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
+		final XMLDoc doc = XMLDoc.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
 		root = doc == null ? null : doc.getRoot();
 		this.context = baseURL;
 		this.baseDir = baseDir;
@@ -710,7 +708,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 			root.setAttribute("AppDir", baseDir.getAbsolutePath());
 			final File deviceDir = getBaseDir();
 			final File fileInDirectory = FileUtil.getFileInDirectory(deviceDir, configFile);
-			final XMLDoc d2 = p.parseFile(fileInDirectory);
+			final XMLDoc d2 = XMLDoc.parseFile(fileInDirectory);
 			if (d2 != null) // using config default
 			{
 				root = d2.getRoot();
@@ -719,7 +717,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 			else if (deviceDir != null)
 			// using webapp devices
 			{
-				log.info("using war device config file");
+				log.info("using executable local device config file");
 				deviceDir.mkdirs();
 				doc.setOriginalFileName(fileInDirectory.getAbsolutePath());
 				serialize();
@@ -797,7 +795,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		}
 		catch (final UnknownHostException x1)
 		{
-			//
+			log.error("network setup looks sub-optimal: ", x1);
 		}
 		return contextURL;
 	}
