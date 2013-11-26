@@ -93,7 +93,7 @@ import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
- * factory for creating JMF messages
+ * factory for sending JMF messages
  * 
  * @author boegerni
  * 
@@ -236,22 +236,23 @@ public class JMFFactory extends BambiLogFactory
 	 * @param callback
 	 * @param md
 	 * @param deviceID
+	 * @return 
 	 */
-	public void send2URL(final Multipart mp, final String url, final IResponseHandler handler, final IConverterCallback callback, final MIMEDetails md, final String deviceID)
+	public boolean send2URL(final Multipart mp, final String url, final IResponseHandler handler, final IConverterCallback callback, final MIMEDetails md, final String deviceID)
 	{
 		if (shutdown)
 		{
-			return;
+			return false;
 		}
 
 		if (mp == null || url == null)
 		{
 			log.error("failed to send JDFMessage, message and/or URL is null");
-			return;
+			return false;
 		}
 
 		final MessageSender ms = getCreateMessageSender(url);
-		ms.queueMimeMessage(mp, handler, callback, md, deviceID, url);
+		return ms.queueMimeMessage(mp, handler, callback, md, deviceID, url);
 	}
 
 	/**
@@ -260,22 +261,23 @@ public class JMFFactory extends BambiLogFactory
 	 * @param url the URL to send the JMF to
 	 * @param handler
 	 * @param callback
+	 * @return 
 	 */
-	public void send2URL(final String url, final IResponseHandler handler, final IConverterCallback callback)
+	public boolean send2URL(final String url, final IResponseHandler handler, final IConverterCallback callback)
 	{
 		if (shutdown)
 		{
-			return;
+			return false;
 		}
 
 		if (url == null)
 		{
-			log.error("failed to send empt post, URL is null");
-			return;
+			log.error("failed to send empty post, URL is null");
+			return false;
 		}
 
 		final MessageSender ms = getCreateMessageSender(url);
-		ms.queuePost(handler, url, callback);
+		return ms.queuePost(handler, url, callback);
 	}
 
 	/**

@@ -101,7 +101,6 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.CPUTimer;
-import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.FileUtil;
@@ -586,6 +585,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		if (SendReturn.sent == sendReturn)
 		{
 			_messages.remove(0);
+			sentMessages.push(mesDetails);
 		}
 		else
 		{
@@ -615,12 +615,11 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				}
 				else
 				{
-					warn += " - retaining message for resend; messages pending: " + _messages.size();
+					warn += " - retaining message for resend; messages pending: " + _messages.size() + " times delayed: " + idle;
 				}
 			}
 			log.warn(warn);
 		}
-		sentMessages.push(mesDetails);
 		return sendReturn;
 	}
 
@@ -858,7 +857,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	 */
 	public boolean matchesURL(final String testURL)
 	{
-		return ContainerUtil.equals(testURL, callURL.getBaseURL());
+		return testURL == null || new CallURL(testURL).equals(callURL);
 	}
 
 	/**
@@ -956,8 +955,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		}
 
 		final MessageDetails messageDetails = new MessageDetails(null, handler, _callBack, null, url);
-		queueMessageDetails(messageDetails);
-		return true;
+		return queueMessageDetails(messageDetails);
 	}
 
 	/**
@@ -965,7 +963,6 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	 */
 	private boolean queueMessageDetails(final MessageDetails messageDetails)
 	{
-		lastQueued = System.currentTimeMillis();
 		if (waitKaputt && messageDetails.isFireForget())
 		{
 			String warn = " not queueing fire&forget to " + callURL.url + "; message #";
@@ -976,6 +973,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			trySend++;
 			return false;
 		}
+		lastQueued = System.currentTimeMillis();
 		synchronized (_messages)
 		{
 			optimizer.optimize(messageDetails.jmf);
@@ -996,7 +994,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		{
 			ThreadUtil.notifyAll(mutexDispatch);
 		}
-		return true;
+		return !isBlocked(42000);
 	}
 
 	/**
@@ -1019,8 +1017,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		}
 		log.info("Queueing mime message to: " + url);
 		final MessageDetails messageDetails = new MessageDetails(multpart, handler, callback, md, senderID, url);
-		queueMessageDetails(messageDetails);
-		return true;
+		return queueMessageDetails(messageDetails);
 	}
 
 	/**

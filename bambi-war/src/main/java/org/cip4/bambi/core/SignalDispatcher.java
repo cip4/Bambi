@@ -597,7 +597,6 @@ public final class SignalDispatcher extends BambiLogFactory
 			// spam them out
 			for (MsgSubscription sub : triggerVector)
 			{
-				sentMessages++;
 				if (log.isDebugEnabled())
 					log.debug("Trigger Signalling : slaveChannelID=" + sub.channelID);
 				queueMessageInSender(sub);
@@ -607,7 +606,6 @@ public final class SignalDispatcher extends BambiLogFactory
 			// spam them out
 			for (MsgSubscription sub : subVector)
 			{
-				sentMessages++;
 				if (log.isDebugEnabled())
 					log.debug("Time Signalling: slaveChannelID=" + sub.channelID);
 
@@ -638,6 +636,7 @@ public final class SignalDispatcher extends BambiLogFactory
 					realSubSubscription.lastSentJMF.push(signalJMF);
 					realSubSubscription.sentMessages++;
 				}
+				sentMessages++;
 			}
 			else
 			{
@@ -1379,7 +1378,9 @@ public final class SignalDispatcher extends BambiLogFactory
 				if (m.isBlocked(1000 * 24 * 60 * 60 * 7))
 				{
 					removeSubScription(sub.channelID);
-					log.error("removed stale subscription " + sub.channelID + " url=" + sub.getURL());
+					m.flushMessages();
+					JMFFactory.getJMFFactory().shutDown(m.getCallURL(), true);
+					log.error("removed stale subscription " + sub.channelID + " " + sub.getMessageType() + " url=" + sub.getURL());
 					break;
 				}
 			}

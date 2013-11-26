@@ -72,7 +72,6 @@ package org.cip4.bambi.proxy;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -181,10 +180,11 @@ public class SubscriptionMap extends HashMap<EnumType, ProxySubscription>
 	protected void copyToXML(KElement deviceRoot)
 	{
 		Collection<ProxySubscription> v = values();
-		Iterator<ProxySubscription> it = v.iterator();
 		KElement subs = deviceRoot.appendElement("ProxySubscriptions");
-		while (it.hasNext())
-			it.next().copyToXML(subs);
+		for (ProxySubscription p : v)
+		{
+			p.copyToXML(subs);
+		}
 	}
 
 	/**
