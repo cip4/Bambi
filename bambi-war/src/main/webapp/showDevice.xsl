@@ -91,7 +91,7 @@
         
       </xsl:if>
       
-      <!-- Employees -->
+      <!-- Employees 
       <xsl:if test="jdf:Employee">
         <h3>Employess currently logged into this device</h3>
         <table>
@@ -108,7 +108,8 @@
           </tbody>
         </table>
         <hr />
-      </xsl:if>
+      </xsl:if>-->
+      
       <div class="column-white column-5">
       <div class="headline-wrapper"></div>
          <div class="reload-functions box noheight"> 
@@ -256,7 +257,7 @@
         <xsl:if test="@login='true'">
           
           <!-- Button -->
-          <div class="login">
+          <div class="show-login">
             <form>
               <xsl:attribute name="action">
               	<xsl:value-of select="$context"></xsl:value-of>/overview#popup-login-<xsl:value-of select="@DeviceID"></xsl:value-of>
@@ -264,20 +265,22 @@
               <xsl:attribute name="target">_parent</xsl:attribute>
               <input type="submit" class="button" value="Login" title="open operator login screen" />
             </form>
+                      <!-- Symbol -->
+              <div class="buttonsymbol">
+                <img class="buttonsymbolimage">
+                    <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/open.svg</xsl:attribute>
+                </img>
+              </div>
+              
           </div>
           
-          <!-- Symbol -->
-          <div class="buttonsymbol">
-            <img class="buttonsymbolimage">
-            	<xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/open.svg</xsl:attribute>
-            </img>
-          </div>
+
           
 
         </xsl:if>
         
         <!-- Show Subscribtions Button -->
-        <div class="show subscriptions">
+        <div class="show-subscriptions">
           <form>
             <xsl:attribute name="action">
             <xsl:value-of select="$context"></xsl:value-of>/overview#popup-subscriptions-<xsl:value-of select="@DeviceID"></xsl:value-of>
@@ -286,10 +289,21 @@
             <xsl:attribute name="target">_parent</xsl:attribute>
             <input type="submit" class="button" value="Show subscriptions" />
           </form>
+            <div class="buttonsymbol">
+              <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/show.svg</xsl:attribute></img>
+            </div>
+            
+                <a>
+                    <xsl:attribute name="href">
+                        <xsl:value-of select="$context"></xsl:value-of>/showSubscriptions/<xsl:value-of select="@DeviceID"></xsl:value-of>
+                    </xsl:attribute>
+                    <xsl:attribute name="target">_blank</xsl:attribute>
+                    <em class="smaller">Open Subscriptions in new Window (Fix for IE)</em>
+                </a>
+            
+            <div class="clear"></div>
         </div>
-        <div class="buttonsymbol">
-          <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/show.svg</xsl:attribute></img>
-        </div>
+
       
       </div><!-- functions --> 
       

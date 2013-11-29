@@ -5,6 +5,9 @@
   <xsl:strip-space elements="*"/>
   <xsl:output method="html" cdata-section-elements="jdf:JMF jdf:Query"/>
   
+  <!-- ######################################## -->
+  
+  <!-- Start of SubscriptionList -->
   <xsl:template match="/SubscriptionList">
     <xsl:variable name="context" select="@Context"/>
     <html>
@@ -19,7 +22,6 @@
         </title>
       </head>
       <body>
-        <img src="../logo.gif" height="70" alt="logo"/>
         <h1>
           Device
           <xsl:value-of select="@DeviceID"/>
@@ -69,10 +71,11 @@
       </body>
     </html>
   </xsl:template>
-
-
-
   <!--  end of template SubscriptionList  -->
+  
+  <!-- ######################################## -->
+  
+  <!-- Start of MsgSubscription -->
   <xsl:template match="MsgSubscription">
     <div class="box">
     <div class="subrow">
@@ -124,15 +127,26 @@
     </div><!-- box -->
   </xsl:template>
   <!--  end of template MsgSubscription  -->
-
+  
+  <!-- ######################################## -->
+  
+  <!-- Start of MessageSender -->
   <xsl:include href="xjdf.xsl"/>
-
   <!--  end of template MessageSender  -->
+  
+  <!-- ######################################## -->
+  
+  <!-- Start of Sub -->
   <xsl:template match="Sub">
     <h2>Subscription Details</h2>
     <xsl:apply-templates select="jdf:Query"/>
 
   </xsl:template>
+  <!--  end of template Sub  -->
+  
+  <!-- ######################################## -->
+  
+  <!-- Start of MessageSender Message -->
   <xsl:template match="MessageSender/Message">
     <h2>Last Queued Message Details - Status = <xsl:value-of select="@Return"/></h2>  
     <xsl:apply-templates select="jdf:JMF"/>
@@ -142,7 +156,11 @@
     <h2>Queued Message Details</h2>
     <xsl:apply-templates select="jdf:JMF"/>
   </xsl:template>
-
+  <!--  end of template MessageSender Message  -->
+  
+  <!-- ######################################## -->
+  
+  <!-- Start of RemovedChannel -->
   <xsl:template match="Message">
     <xsl:variable name="pos" select="position()"/>
     <tr valign="top">
@@ -172,6 +190,9 @@
       </tr>
   </xsl:template>
   <!--  end of template RemovedChannel  -->
+  
+  <!-- ######################################## -->
+  
   <xsl:include href="SubscriptionExtension.xsl"/>
   
 </xsl:stylesheet>

@@ -1,37 +1,40 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?><!-- DWXMLSource="http://almserver:8080/SimWorker" -->
-
-<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:stylesheet version="1.0" 
+  xmlns="http://www.w3.org/1999/xhtml" 
+  xmlns:bambi="www.cip4.org/Bambi" 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  >
   <xsl:strip-space elements="*" />
-  <xsl:output method="html" />
+  <xsl:output method="xml" />
   <xsl:template match="/DeviceList">
+    
+    
     <html>
-    <xsl:variable name="context" select="@Context" />
-    <head>
-    <!-- <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/> -->
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <!-- Google Web Font -->
-    <link href='http://fonts.googleapis.com/css?family=Roboto+Condensed:400,700|Roboto:400,500' rel='stylesheet' type='text/css' />
-    <!-- Stylesheet -->
-    <link href="css/styles_pc.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" type="text/css">
-    <xsl:attribute name="href"><xsl:value-of
-						select="$context" />/css/styles_pc.css</xsl:attribute>
-    </link>
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon">
-    <xsl:attribute name="href"><xsl:value-of
-						select="$context" />/favicon.ico</xsl:attribute>
-    </link>
-    
-    <!-- Browser Title Bar -->
-    <title>Overview |<xsl:value-of select="@DeviceType" /></title>
-    
-    <script src="js/modernizr.custom.js"></script>
-    </head>
-    
+        <xsl:variable name="context" select="@Context" />
+        <head>
+            <!-- <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/> -->
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+            <!-- Google Web Font -->
+            <link href='http://fonts.googleapis.com/css?family=Roboto+Condensed:400,700|Roboto:400,500' rel='stylesheet' type='text/css' />
+            <!-- Stylesheet -->
+            <link href="css/styles_pc.css" rel="stylesheet" type="text/css" />
+            <link rel="stylesheet" type="text/css">
+                <xsl:attribute name="href"><xsl:value-of select="$context" />/css/styles_pc.css</xsl:attribute>
+            </link>
+            <!-- Favicon -->
+            <link rel="icon" type="image/x-icon">
+                <xsl:attribute name="href"><xsl:value-of
+                                select="$context" />/favicon.ico</xsl:attribute>
+            </link>
+            
+            <!-- Browser Title Bar -->
+            <title>Overview |<xsl:value-of select="@DeviceType" /></title>
+            
+            <!--<script src="js/modernizr.custom.js"></script>-->
+        </head>
     
     
+ 
     <!-- //////////////////////////////////////////////////// -->
     
     
@@ -51,15 +54,15 @@
       <div class="root-controller column-grey"> 
         <!-- Name -->
         <div class="headline-wrapper root-headline">
-          <h1> <xsl:value-of select="@DeviceType" /> </h1>
+          <h1> <xsl:value-of select="@DeviceType"></xsl:value-of> </h1>
           <h2>Root Controller</h2>
           <img height="70" alt="logo" class="logo">
           <xsl:attribute name="src"><xsl:value-of
-						select="$context" />/images/logo.svg</xsl:attribute>
+						select="$context"></xsl:value-of>/images/logo.svg</xsl:attribute>
           </img> </div>
         <div class="root-details-wrapper"> 
           <!-- Description -->
-          <xsl:apply-templates select="XMLDevice[@Root='true']" />
+          <xsl:apply-templates select="XMLDevice[@Root='true']"></xsl:apply-templates>
           
           
           <!-- To jump to it SEARCH: "root controller spec" for applied template --> 
@@ -82,23 +85,24 @@
         <div class="headline-wrapper">
           <h2>Devices</h2>
         </div>
-        <xsl:apply-templates select="XMLDevice[@Root='false']" />
+        <xsl:apply-templates select="XMLDevice[@Root='false']"></xsl:apply-templates>
         
         <!-- SEARCH: "device spec" for applied template --> 
       </div>
       
-      <div id="footer"> </div>
+      <div id="footer"><div class="displaynone">x</div></div>
     </div>
     
     
-    <div id="popupwrapper">
+    <!--<div id="popupwrapper">
       <div>
-          <iframe id="popupframe" name="popup"></iframe>
+          <iframe id="popupframe" name="popup">Your browser doesn't support frames.</iframe>
+          <div class="displaynone">x</div>
       </div>
       <button id="popupclose" class="button">
     	CLOSE
       </button>
-    </div>
+    </div>-->
     
     
     
@@ -122,74 +126,82 @@
     <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
   
   <xsl:template match="XMLDevice[@Root='true']">
-    <xsl:variable name="context" select="../@Context" />
+    <xsl:variable name="context" select="../@Context"></xsl:variable>
     
     <!-- Controller -->
+    
     <div class="box controller">
-    <h3>Controller ID</h3>
-    <em><xsl:value-of select="@DeviceID" /></em>
-    <!--<xsl:value-of select="@DeviceType" />-->
-    <div class="status-bar" >
-      <xsl:attribute name="class"><xsl:value-of select="@DeviceStatus" /> status-bar</xsl:attribute>
+        <h3>Controller ID</h3>
+        <em>
+        	<xsl:value-of select="@DeviceID"></xsl:value-of>
+		</em>
+        <div>
+            <xsl:attribute name="class">
+                <xsl:value-of select="@DeviceStatus">
+                </xsl:value-of> status-bar
+            </xsl:attribute>
+            <div class="displaynone">x</div><!-- Fix for IE: without any content it won't close a tag in the transformation -->
+        </div>
     </div>
-    </div>
+    
     
     <!-- URL -->
     <div class="box controller-url">
-    <h3>Controller URL</h3>
-    <em><xsl:value-of select="@DeviceURL" /></em>
+        <h3>Controller URL</h3>
+        <em><xsl:value-of select="@DeviceURL"></xsl:value-of></em>
     </div>
     
     <!-- Queue Status -->
     <div class="box queue-status">
-    <h3>Queue Status</h3>
-    <xsl:value-of select="@QueueStatus" />
-    <div class="status-bar" >
-      <xsl:attribute name="class"><xsl:value-of select="@QueueStatus" /> status-bar</xsl:attribute>
-    </div>
+        <h3>Queue Status</h3>
+        <xsl:value-of select="@QueueStatus"></xsl:value-of>
+        <div class="status-bar" >
+          <xsl:attribute name="class"><xsl:value-of select="@QueueStatus"></xsl:value-of> status-bar</xsl:attribute>
+          <div class="displaynone">x</div><!-- Fix for IE: without any content it won't close a tag in the transformation -->
+        </div>
     </div>
     
     <!-- Queue Status Details -->
     <div class="box running"><img class="symbol">
-      <xsl:attribute name="src"><xsl:value-of select="$context" />/images/running.svg</xsl:attribute>
+      <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/running.svg</xsl:attribute>
       </img>
     <h3>Running</h3>
-    <xsl:value-of select="@QueueRunning" />
+    <xsl:value-of select="@QueueRunning"></xsl:value-of>
     </div>
     
     <!-- QueueWaiting -->
     <div class="box root queue-waiting"><img class="symbol">
-      <xsl:attribute name="src"><xsl:value-of select="$context" />/images/waiting.svg</xsl:attribute>
+      <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/waiting.svg</xsl:attribute>
       </img>
     <h3>Waiting</h3>
-    <xsl:value-of select="@QueueWaiting" />
+    <xsl:value-of select="@QueueWaiting"></xsl:value-of>
     </div>
     
     <!-- QueueCompleted -->
     <div class="box completed"><img class="symbol">
-      <xsl:attribute name="src"><xsl:value-of select="$context" />/images/modify.svg</xsl:attribute>
+      <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/modify.svg</xsl:attribute>
       </img>
     <h3>Completed</h3>
-    <xsl:value-of select="@QueueCompleted" />
+    <xsl:value-of select="@QueueCompleted"></xsl:value-of>
     </div>
     
     <!-- All -->
     <div class="box all">
     <h3>All</h3>
-    <xsl:value-of select="@QueueAll" />
+    <xsl:value-of select="@QueueAll"></xsl:value-of>
     </div>
     
     <!-- Dump -->
     <div class="box">
     <h3>Dump Enabled</h3>
     <form>
-      <input type="checkbox" Name="Dump" value="true">
+      <input type="checkbox" Name="Dump" value="true" class="checkbox">
       <xsl:if test="@Dump='true'">
         <xsl:attribute name="checked">true</xsl:attribute>
       </xsl:if>
       </input>
       <input type="hidden" name="UpdateDump" value="true" />
-      <input type="submit" value="Dump" />
+      <input type="submit" value="Dump" class="button"/>
     </form>
     </div>
   </xsl:template>
@@ -204,43 +216,44 @@
   
   <xsl:template match="XMLDevice[@Root='false']">
     <xsl:variable name="context" select="../@Context" />
-    <div>
+    <div class="fix">
       <xsl:attribute name="class"><xsl:value-of select="@DeviceID" />device</xsl:attribute>
-                
-		  <!-- Hidden Popups triggered from within the details & queue iframes -->
+		  
+          
+          <!-- Hidden Popups triggered from within the details & queue iframes -->
 		  <!-- Login-Popup -->
           <a class="popupwrapper" href="#">
-                <xsl:attribute name="id">popup-login-<xsl:value-of select="@DeviceID"></xsl:value-of>
-                </xsl:attribute>
-            <div>
-                <iframe class="popupframe" >
-                	<xsl:attribute name="name">popup-login-<xsl:value-of select="@DeviceID"></xsl:value-of>
-                    </xsl:attribute>
-                    <xsl:attribute name="src">
-                    	<xsl:value-of select="$context" />/login/<xsl:value-of select="@DeviceID" />
-                    </xsl:attribute>
-                </iframe>
-            </div>
+                <xsl:attribute name="id">popup-login-<xsl:value-of select="@DeviceID"></xsl:value-of></xsl:attribute>
+                
+                <div>
+                    <iframe class="popupframe" >
+                        <xsl:attribute name="name">popup-login-<xsl:value-of select="@DeviceID"></xsl:value-of></xsl:attribute>
+                        <xsl:attribute name="src">
+                            <xsl:value-of select="$context" />/login/<xsl:value-of select="@DeviceID" />
+                        </xsl:attribute>
+                        Your browser doesn't support frames.
+                    </iframe>
+                </div>
           </a>
+          
           <!-- Subscriptions-Popup -->
           <a class="popupwrapper" href="#">
-             <xsl:attribute name="id">popup-subscriptions-<xsl:value-of select="@DeviceID"></xsl:value-of>
-             </xsl:attribute>
+             <xsl:attribute name="id">popup-subscriptions-<xsl:value-of select="@DeviceID"></xsl:value-of></xsl:attribute>
              
               <div>
                   <iframe class="popupframe" >
-                      <xsl:attribute name="name">popup-subscriptions-<xsl:value-of select="@DeviceID"></xsl:value-of>
-                      </xsl:attribute>
+                      <xsl:attribute name="name">popup-subscriptions-<xsl:value-of select="@DeviceID"></xsl:value-of></xsl:attribute>
                       <xsl:attribute name="src">
                           <xsl:value-of select="$context" />/showSubscriptions/<xsl:value-of select="@DeviceID" />
                       </xsl:attribute>
+                      Your browser doesn't support frames.
                   </iframe>
               </div>
-            
           </a>
 
       <!-- Device ID -->
       <input type="radio" class="selector" name="devices" >
+      
       <!-- Hidden via CSS - Radiobutton to select single device and display details -->
       <xsl:attribute name="id"><xsl:value-of select="@DeviceID" /> selector</xsl:attribute>
       </input>
@@ -264,6 +277,7 @@
       <em><xsl:value-of select="@DeviceType" /></em>
       <div>
         <xsl:attribute name="class"><xsl:value-of select="@DeviceStatus" /> status-bar</xsl:attribute>
+        <div class="displaynone">x</div><!-- Fix for IE: without any content it won't close a tag in the transformation -->
       </div>
       </div>
       </label>
@@ -326,7 +340,9 @@
             <xsl:attribute name="class">double-column-frame details-frame details-<xsl:value-of select="@DeviceID" /></xsl:attribute>
             <xsl:attribute name="name">details-<xsl:value-of select="@DeviceID" /></xsl:attribute>
             <xsl:attribute name="src"><xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+            your browser doesn't support frames.
             </iframe>
+            <div class="displaynone">x</div>
           </div>
           
           <!-- DeviceURL -->
@@ -381,7 +397,9 @@
             <xsl:attribute name="class">double-column-frame queue-frame queue-<xsl:value-of select="@DeviceID" /></xsl:attribute>
             <xsl:attribute name="name">queue-<xsl:value-of select="@DeviceID" /></xsl:attribute>
             <xsl:attribute name="src"><xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+            Your browser doesn't support frames.
             </iframe>
+            <div class="displaynone">x</div>
           </div>
           
           <!-- QueueRunning -->
