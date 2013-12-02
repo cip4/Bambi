@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -115,7 +115,6 @@ public class PushPullQueueProcessorTest extends BambiContainerTest
 		MimeWriter mw = new MimeWriter();
 		mw.buildMimePackage(docJMF, docJDF, false);
 		final MIMEDetails mimeDetails = new MIMEDetails();
-		mimeDetails.httpDetails.chunkSize = 0;
 		mimeDetails.transferEncoding = UrlUtil.BINARY;
 		mimeDetails.modifyBoundarySemicolon = false;
 		mw.setMIMEDetails(mimeDetails);

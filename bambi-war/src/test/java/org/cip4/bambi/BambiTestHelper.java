@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -186,7 +186,7 @@ public class BambiTestHelper extends BambiTestCaseBase
 		{
 			final MIMEDetails md = new MIMEDetails();
 			md.transferEncoding = transferEncoding;
-			md.httpDetails.chunkSize = chunkSize;
+			md.httpDetails.setChunkSize(chunkSize);
 			response = MimeUtil.writeToURL(mp, url, md);
 			if (!url.toLowerCase().startsWith("file:"))
 			{
@@ -280,7 +280,7 @@ public class BambiTestHelper extends BambiTestCaseBase
 		{
 			final MIMEDetails md = new MIMEDetails();
 			md.transferEncoding = transferEncoding;
-			md.httpDetails.chunkSize = chunkSize;
+			md.httpDetails.setChunkSize(chunkSize);
 			response = MimeUtil.writeToURL(mp, url, md);
 			if (!url.toLowerCase().startsWith("file:"))
 			{
@@ -365,7 +365,6 @@ public class BambiTestHelper extends BambiTestCaseBase
 		try
 		{
 			final HTTPDetails md = new HTTPDetails();
-			md.chunkSize = chunkSize;
 			final HttpURLConnection urlCon = new JDFDoc(xml.getOwnerDocument()).write2HTTPURL(new URL(url), md);
 			assertEquals(url, 200, urlCon.getResponseCode());
 			final JDFParser parser = new JDFParser();

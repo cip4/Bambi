@@ -403,7 +403,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			final IProxyProperties proxyProperties = getParent().getProperties();
 			this.deviceOutputHF = proxyProperties.getSlaveOutputHF();
 			this.ud = new MIMEDetails();
-			ud.httpDetails.chunkSize = proxyProperties.getSlaveHTTPChunk();
+			ud.httpDetails.setChunkSize(proxyProperties.getSlaveHTTPChunk());
 			ud.transferEncoding = proxyProperties.getSlaveMIMEEncoding();
 			this.expandMime = proxyProperties.getSlaveMIMEExpansion();
 			this.isMime = proxyProperties.isSlaveMimePackaging();

@@ -119,7 +119,6 @@ public class QueueProcessorTest extends BambiContainerTest
 		MimeWriter mw = new MimeWriter();
 		mw.buildMimePackage(docJMF, docJDF, false);
 		final MIMEDetails mimeDetails = new MIMEDetails();
-		mimeDetails.httpDetails.chunkSize = 0;
 		mimeDetails.transferEncoding = UrlUtil.BINARY;
 		mimeDetails.modifyBoundarySemicolon = false;
 		mw.setMIMEDetails(mimeDetails);

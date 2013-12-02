@@ -1088,6 +1088,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 * @return the xmlresponse to the get request
 		 * 
 		 */
+		@Override
 		public XMLResponse handleGet(final ContainerRequest request)
 		{
 			boolean modified = false;
@@ -2068,6 +2069,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * make the memory queue persistent
 	 * @return true if ok
 	 */
+	@Override
 	public boolean persist()
 	{
 		synchronized (_theQueue)
@@ -2409,7 +2411,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, _parentDevice.getProperties().getControllerMIMEExpansion());
 				final MIMEDetails mimeDetails = new MIMEDetails();
 				final String devID = _parentDevice.getDeviceID();
-				mimeDetails.httpDetails.chunkSize = properties.getControllerHTTPChunk();
+				mimeDetails.httpDetails.setChunkSize(properties.getControllerHTTPChunk());
 				mimeDetails.transferEncoding = properties.getControllerMIMEEncoding();
 				mimeDetails.modifyBoundarySemicolon = StringUtil.parseBoolean(properties.getDeviceAttribute("FixMIMEBoundarySemicolon"), false);
 				response = _parentDevice.getJMFFactory().send2URLSynch(mp, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
@@ -2419,7 +2421,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				returnQEParams.setURL(properties.getContextURL() + "/jmb/JDFDir/" + queueEntryID + ".jdf"); // will be overwritten by buildMimePackage
 				final HTTPDetails hDet = new HTTPDetails();
-				hDet.chunkSize = properties.getControllerHTTPChunk();
+				hDet.setChunkSize(properties.getControllerHTTPChunk());
 
 				response = JMFFactory.getJMFFactory().send2URLSynch(jmf, returnJMF, _parentDevice.getCallback(null), _parentDevice.getDeviceID(), 10000);
 			}
