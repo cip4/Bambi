@@ -89,6 +89,7 @@ import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.messaging.ShutdownJMFHandler;
 import org.cip4.bambi.core.messaging.StatusOptimizer;
 import org.cip4.bambi.core.queues.IQueueEntry;
+import org.cip4.bambi.core.queues.QueueEntryCleanup;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoGeneralID.EnumDataType;
@@ -116,6 +117,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueue.CleanupCallback;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResourceQuParams;
 import org.cip4.jdflib.jmf.JDFResponse;
@@ -2083,5 +2085,14 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return (idleCount++ % skipIdle) != 0;
 		}
 		return false;
+	}
+
+	/**
+	 * get the cleanup callback when queue entries are deleted
+	 * @return
+	 */
+	public CleanupCallback getQECleanup()
+	{
+		return new QueueEntryCleanup(this);
 	}
 }

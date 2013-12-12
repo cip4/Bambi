@@ -89,7 +89,6 @@ import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.IDeviceProperties.QEReturn;
 import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
-import org.cip4.bambi.core.RootDevice;
 import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.messaging.AcknowledgeThread;
@@ -122,7 +121,6 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFNewJDFQuParams;
 import org.cip4.jdflib.jmf.JDFQueue;
-import org.cip4.jdflib.jmf.JDFQueue.CleanupCallback;
 import org.cip4.jdflib.jmf.JDFQueue.ExecuteCallback;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueEntryDef;
@@ -397,51 +395,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			final CanExecuteCallBack cb = new CanExecuteCallBack(deviceID, proxy);
 			return cb;
 		}
-	}
-
-	/**
-	 * cleans up the garbage that belongs to a queueentry when the qe is removed
-	 * @author prosirai
-	 * 
-	 */
-	protected class QueueEntryCleanup extends CleanupCallback
-	{
-
-		/**
-		 * 
-		 * 
-		 * @see org.cip4.jdflib.jmf.JDFQueue.CleanupCallback#cleanEntry(org.cip4.jdflib.jmf.JDFQueueEntry)
-		 */
-		@Override
-		public void cleanEntry(final JDFQueueEntry qe)
-		{
-			// the jdf
-			final String theDocFile = _parentDevice.getJDFStorage(qe.getQueueEntryID());
-			if (theDocFile != null)
-			{
-				final File f = new File(theDocFile);
-				synchronized (mutexMap.getCreate(qe.getQueueEntryID()))
-				{
-					f.delete();
-				}
-			}
-			// now the other stuff
-			final File theJobDir = _parentDevice.getJobDirectory(qe.getQueueEntryID());
-			if (theJobDir != null)
-			{
-				FileUtil.deleteAll(theJobDir);
-			}
-			// now the other stuff
-			RootDevice rootDevice = _parentDevice.getRootDevice();
-			final File theRootJobDir = rootDevice == null ? null : rootDevice.getJobDirectory(qe.getQueueEntryID());
-			if (theRootJobDir != null)
-			{
-				FileUtil.deleteAll(theJobDir);
-			}
-
-			_parentDevice.stopProcessing(qe.getQueueEntryID(), null);
-		}
-
 	}
 
 	/**
@@ -1501,7 +1454,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	private CanExecuteCallBack _cbCanExecute = null;
 	private final QueueMap queueMap;
 	private boolean searchByJobPartID = true;
-	protected final MutexMap<String> mutexMap;
+	protected final MutexMap<String> _mutexMap;
 
 	/**
 	 * @param searchByJobPartID the searchByJobPartID to set
@@ -1524,7 +1477,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		deltaMap = new HashMap<String, QueueDelta>();
 		init();
 		queueMap = new QueueMap();
-		mutexMap = new MutexMap<String>();
+		_mutexMap = new MutexMap<String>();
 	}
 
 	/**
@@ -1586,7 +1539,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		_theQueue.setMaxWaitingEntries(-1);
 		_theQueue.setMaxRunningEntries(1);
 		_theQueue.setDescriptiveName("Queue for " + _parentDevice.getDeviceType());
-		_theQueue.setCleanupCallback(new QueueEntryCleanup()); // zapps any attached files when removing qe
+		_theQueue.setCleanupCallback(_parentDevice.getQECleanup()); // zapps any attached files when removing qe
 		_cbCanExecute = new CanExecuteCallBack(deviceID, BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL));
 		_theQueue.setExecuteCallback(_cbCanExecute);
 		BambiNSExtension.setMyNSAttribute(_theQueue, "EnsureNS", "Dummy"); // ensure that some bambi ns exists
@@ -1808,7 +1761,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		final String docURL = BambiNSExtension.getDocURL(qe);
 		final JDFDoc theDoc;
-		synchronized (mutexMap.getCreate(qe.getQueueEntryID()))
+		synchronized (getMutexForQE(qe))
 		{
 			theDoc = JDFDoc.parseURL(docURL, null);
 		}
@@ -1826,6 +1779,30 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		final JDFNode n = _parentDevice.getNodeFromDoc(theDoc);
 		return new QueueEntry(n, qe);
+	}
+
+	/**
+	 * 
+	 * 
+	 * @param qe
+	 * @return
+	 */
+	protected MyMutex getMutexForQE(final JDFQueueEntry qe)
+	{
+		String queueEntryID = qe == null ? null : qe.getQueueEntryID();
+		return getMutexForQeID(queueEntryID);
+	}
+
+	/**
+	 * 
+	 *  
+	 * @param queueEntryID
+	 * @return
+	 */
+	protected MyMutex getMutexForQeID(String queueEntryID)
+	{
+		queueEntryID = queueEntryID == null ? "#null#" : queueEntryID;
+		return _mutexMap.getCreate(queueEntryID);
 	}
 
 	/**
@@ -1990,7 +1967,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	{
 		boolean ok;
 		final JDFQueueEntry newQEReal = _theQueue.getQueueEntry(newQEID); // the "actual" entry in the queue
-		synchronized (mutexMap.getCreate(newQEID))
+		synchronized (getMutexForQeID(newQEID))
 		{
 			final String theDocFile = _parentDevice.getJDFStorage(newQEID);
 			ok = theJDF.write2File(theDocFile, 0, true);
