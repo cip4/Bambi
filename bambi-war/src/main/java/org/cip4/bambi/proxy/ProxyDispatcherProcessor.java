@@ -415,9 +415,9 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 					{
 						log.info("waiting for return of unknown queue entry ID=" + queueEntryID);
 					}
-					else if (nLoop == 10)
+					else if (nLoop == 5)
 					{
-						log.error("Skipping return of unknown queue entry ID=" + queueEntryID + " after waiting about a minute");
+						log.error("Skipping return of unknown queue entry ID=" + queueEntryID + " after waiting about 1/2 a minute");
 						break;
 					}
 					ThreadUtil.sleep(100 + nLoop * 1000);
@@ -430,34 +430,8 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 				BambiNSExtension.setDeviceURL(qeBambi, null);
 				// remove slave qeid from map
 				_queueProcessor.updateCache(qeBambi, null);
-				final VString aborted = retQEParams.getAborted();
-				final VString completed = retQEParams.getCompleted();
-				EnumQueueEntryStatus finalStatus;
-				if (aborted != null && aborted.size() != 0)
-				{
-					finalStatus = EnumQueueEntryStatus.Aborted;
-				}
-				else if (completed != null && completed.size() != 0)
-				{
-					finalStatus = EnumQueueEntryStatus.Completed;
-				}
-				else
-				{
-					JDFNode root = doc == null ? null : doc.getJDFRoot();
-					finalStatus = root == null ? EnumQueueEntryStatus.Aborted : EnumNodeStatus.getQueueEntryStatus(root.getPartStatus(null, -1));
-					if (finalStatus == null)
-						finalStatus = EnumQueueEntryStatus.Aborted;
-				}
-				if (EnumQueueEntryStatus.Suspended.equals(finalStatus))
-				{
-					finalStatus = EnumQueueEntryStatus.Completed;
-					log.warn("Moving suspended to completed " + queueEntryID);
-				}
-				else if (!EnumQueueEntryStatus.Completed.equals(finalStatus) && !EnumQueueEntryStatus.Aborted.equals(finalStatus))
-				{
-					log.warn("Moving " + finalStatus.getName() + " to Aborted; qe=" + queueEntryID);
-					finalStatus = EnumQueueEntryStatus.Aborted;
-				}
+				EnumQueueEntryStatus finalStatus = calculateFinalStatus(doc, retQEParams);
+				finalStatus = fixFinalStatus(queueEntryID, finalStatus);
 
 				log.info("received returned entry " + queueEntryID + " final status=" + finalStatus.getName());
 				_queueProcessor.returnQueueEntry(qeBambi, null, null, finalStatus);
@@ -466,5 +440,62 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 			}
 		}
 		return b;
+	}
+
+	/**
+	 * 
+	 * 
+	 * @param doc
+	 * @param retQEParams
+	 * @return
+	 */
+	protected EnumQueueEntryStatus calculateFinalStatus(JDFDoc doc, final JDFReturnQueueEntryParams retQEParams)
+	{
+		final VString aborted = retQEParams.getAborted();
+		final VString completed = retQEParams.getCompleted();
+		EnumQueueEntryStatus finalStatus;
+		if (aborted != null && aborted.size() != 0)
+		{
+			finalStatus = EnumQueueEntryStatus.Aborted;
+		}
+		else if (completed != null && completed.size() != 0)
+		{
+			finalStatus = EnumQueueEntryStatus.Completed;
+		}
+		else
+		{
+			JDFNode root = doc == null ? null : doc.getJDFRoot();
+			finalStatus = root == null ? EnumQueueEntryStatus.Aborted : EnumNodeStatus.getQueueEntryStatus(root.getPartStatus(null, -1));
+			if (finalStatus == null)
+			{
+				finalStatus = EnumQueueEntryStatus.Aborted;
+			}
+		}
+		return finalStatus;
+	}
+
+	/**
+	 * 
+	 * repair calculated status
+	 * @param queueEntryID
+	 * @param finalStatus
+	 * @return
+	 */
+	protected EnumQueueEntryStatus fixFinalStatus(String queueEntryID, EnumQueueEntryStatus finalStatus)
+	{
+		if (EnumQueueEntryStatus.Suspended.equals(finalStatus))
+		{
+			if (getParent().getProperties().getMaxPush() > 0)
+			{
+				finalStatus = EnumQueueEntryStatus.Completed;
+				log.warn("Moving suspended to completed " + queueEntryID);
+			}
+		}
+		else if (!EnumQueueEntryStatus.Completed.equals(finalStatus) && !EnumQueueEntryStatus.Aborted.equals(finalStatus))
+		{
+			log.warn("Moving " + finalStatus.getName() + " to Aborted; qe=" + queueEntryID);
+			finalStatus = EnumQueueEntryStatus.Aborted;
+		}
+		return finalStatus;
 	}
 }

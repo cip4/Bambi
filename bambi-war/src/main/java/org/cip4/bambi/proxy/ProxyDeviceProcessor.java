@@ -537,7 +537,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		EnumQueueEntryStatus qes = null;
 		if (slaveURL != null)
 		{
-			final IQueueEntry iqe = new QueueSubmitter(slaveURL).submitToQueue();
+			QueueSubmitter queueSubmitter = new QueueSubmitter(slaveURL);
+			final IQueueEntry iqe = queueSubmitter.submitToQueue();
 			qes = iqe == null ? null : iqe.getQueueEntry().getQueueEntryStatus();
 		}
 		else if (qes == null || EnumQueueEntryStatus.Aborted.equals(qes))
@@ -549,10 +550,13 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		{
 			// TODO handle errors
 			if (isLive())
+			{
 				log.error("submitting queueentry unsuccessful: " + currentQE.getQueueEntryID());
+			}
 			else
+			{
 				log.info("informative submitting queueentry completed: " + currentQE.getQueueEntryID());
-
+			}
 			shutdown();
 		}
 		return qes != null;

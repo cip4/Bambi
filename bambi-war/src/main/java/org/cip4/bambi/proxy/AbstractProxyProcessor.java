@@ -269,6 +269,20 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 */
 	protected class QueueSubmitter
 	{
+		/**
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString()
+		{
+			return "QueueSubmitter [qurl=" + qurl + ", isMime=" + isMime + ", expandMime=" + expandMime + "]";
+		}
+
+		/**
+		 * 
+		 *  
+		 * @date Dec 12, 2013
+		 */
 		protected class QueueResubmitter
 		{
 			final private String slaveQEID;

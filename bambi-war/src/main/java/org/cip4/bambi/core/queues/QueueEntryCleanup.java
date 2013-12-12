@@ -127,7 +127,7 @@ public class QueueEntryCleanup extends JDFQueue.CleanupCallback
 		}
 	}
 
-	protected File cleanRelated(final JDFQueueEntry qe)
+	protected void cleanRelated(final JDFQueueEntry qe)
 	{
 		// now the other stuff
 		final File theJobDir = parentDevice.getJobDirectory(qe.getQueueEntryID());
@@ -135,7 +135,6 @@ public class QueueEntryCleanup extends JDFQueue.CleanupCallback
 		{
 			FileUtil.deleteAll(theJobDir);
 		}
-		return theJobDir;
 	}
 
 	protected void cleanJDF(final JDFQueueEntry qe)
