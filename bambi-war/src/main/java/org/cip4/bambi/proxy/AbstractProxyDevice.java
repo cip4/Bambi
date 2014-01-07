@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -84,6 +84,7 @@ import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
+import org.cip4.bambi.core.messaging.CommandProxyHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler;
 import org.cip4.bambi.core.messaging.MessageResponseHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
@@ -769,7 +770,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @param mh the message response handler, may be null
 	 * @return true if successfully queues @see sendJMF
 	 */
-	protected boolean sendJMFToSlave(final JDFJMF jmf, final MessageResponseHandler mh)
+	public boolean sendJMFToSlave(final JDFJMF jmf, final MessageResponseHandler mh)
 	{
 		if (jmf == null)
 		{
@@ -889,6 +890,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	{
 		super.addHandlers();
 		addHandler(new JMFBufferHandler(AbstractProxyDevice.this, null, new EnumFamily[] { EnumFamily.Signal }, this));
+		addHandler(new CommandProxyHandler(AbstractProxyDevice.this, "*"));
 	}
 
 	@Override

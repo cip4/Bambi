@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -73,9 +73,11 @@ package org.cip4.bambi.proxy;
 import java.io.File;
 import java.io.IOException;
 
+import org.cip4.bambi.BambiTestHelper;
 import org.cip4.bambi.core.BambiContainerTest;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.proxy.ProxyProperties.ProxyDeviceProperties;
 import org.cip4.jdflib.auto.JDFAutoRequestQueueEntryParams.EnumSubmitPolicy;
 import org.cip4.jdflib.core.AttributeName;
@@ -84,6 +86,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.util.CPUTimer;
@@ -98,6 +101,20 @@ import org.cip4.jdflib.util.ThreadUtil;
  */
 public class ProxyContainerTest extends BambiContainerTest
 {
+
+	/**
+	 * 
+	 * test of generic command proxy
+	 * @throws IOException
+	 */
+	public void testNewJDF() throws IOException
+	{
+		final BambiTestHelper helper = getHelper();
+		helper.container = bambiContainer;
+		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildNewJDFCommand();
+		final XMLResponse r = helper.submitXMLtoContainer(jmf.getOwnerDocument_KElement(), getWorkerURL());
+		assertNotNull(r);
+	}
 
 	/**
 	 * 

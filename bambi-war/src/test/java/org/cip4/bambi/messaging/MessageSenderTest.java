@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -110,6 +110,10 @@ public class MessageSenderTest extends BambiTestCase
 		assertNotNull(resp);
 	}
 
+	/**
+	 * 
+	 *  
+	 */
 	public void testSendToDump()
 	{
 		s.queuePost(null, "http://localhost:8080/httpdump/messagesendertest", null);
