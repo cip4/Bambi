@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -1899,7 +1899,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				return null;
 			}
 
-			final String qeID = newQE.getQueueEntryID();
 			BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
 			_parentDevice.fixEntry(newQE, theJDF);
 			_parentDevice.getDataExtractor(true).extractFiles(newQE, theJDF);
@@ -1910,6 +1909,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				return null;
 			}
 			persist(300000);
+			final String qeID = newQE.getQueueEntryID();
 			notifyListeners(qeID);
 			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID);
 			newQE = _theQueue.getQueueEntry(qeID);
