@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -147,6 +147,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	private final MyMutex mutexPause = new MyMutex();
 	private int trySend;
 	private int sent;
+	private long firstProblem;
 	private boolean waitKaputt;
 	protected int checked;
 	protected int removedHeartbeat;
@@ -280,7 +281,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	MessageSender(final CallURL cu)
 	{
 		super();
-
+		firstProblem = 0;
 		trySend = 0;
 		sent = 0;
 		removedHeartbeat = 0;
@@ -584,11 +585,35 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		mesDetails.setReturn(sendReturn);
 		if (SendReturn.sent == sendReturn)
 		{
+			if (firstProblem != 0)
+			{
+				long tWait = System.currentTimeMillis() - firstProblem;
+				final String duration;
+				if (tWait < 60000)
+				{
+					duration = (tWait / 1000) + " seconds";
+				}
+				else if (tWait < 60l * 60000l)
+				{
+					duration = (tWait / 60000) + " minutes";
+				}
+				else if (tWait < 3600l * 60000l)
+				{
+					duration = (tWait / 3600000l) + " hours";
+				}
+				else
+				{
+					duration = (tWait / (3600000l * 24l)) + " days";
+				}
+				log.info("successfully reactivated message sender to: " + mesDetails.url + " after " + duration + "messages pending: " + _messages.size());
+			}
+			firstProblem = 0;
 			_messages.remove(0);
 			sentMessages.push(mesDetails);
 		}
 		else
 		{
+			firstProblem = System.currentTimeMillis();
 			String isMime = "";
 			if (jmf != null)
 				isMime = "JMF";
@@ -609,13 +634,15 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			{
 				if (_messages.size() > 4242 || System.currentTimeMillis() - mesDetails.createTime > 1000 * 3600 * 24 * 7)
 				{
-					warn += " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.createTime).getDateTimeISO() + " messages pending: "
+					String warn2 = " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.createTime).getDateTimeISO() + " messages pending: "
 							+ _messages.size();
+					warn += warn2;
 					_messages.remove(0);
 				}
 				else
 				{
-					warn += " - retaining message for resend; messages pending: " + _messages.size() + " times delayed: " + idle;
+					String warn2 = " - retaining message for resend; messages pending: " + _messages.size() + " times delayed: " + idle;
+					warn += warn2;
 				}
 			}
 			log.warn(warn);
