@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -1589,6 +1589,19 @@ public final class SignalDispatcher extends BambiLogFactory
 	}
 
 	/**
+	 * 
+	 * get the subscription for a given channelID
+	 * 
+	 * @param channelID the channelID of the subscription
+	 * @return
+	 */
+	public JDFMessage getSubscriptionMessage(final String channelID)
+	{
+		MsgSubscription msgSubscription = subscriptionMap.get(channelID);
+		return msgSubscription == null ? null : msgSubscription.theMessage;
+	}
+
+	/**
 	 * remove a know subscription by channelid
 	 * @param channelID the channelID of the subscription to remove
 	 * @return the removed subscription, null if nothing was removed
@@ -1626,41 +1639,7 @@ public final class SignalDispatcher extends BambiLogFactory
 		final Vector<MsgSubscription> vSubs = new Vector<MsgSubscription>();
 		synchronized (subscriptionMap)
 		{
-			final Iterator<String> it = subscriptionMap.keySet().iterator();
-			final boolean allURL = KElement.isWildCard(url);
-			final boolean allQE = KElement.isWildCard(queueEntryID);
-			final boolean allType = KElement.isWildCard(messageType);
-			final VString v = new VString();
-			while (it.hasNext())
-			{
-				final String channelID = it.next();
-				if (!allURL || !allQE)
-				{
-					final MsgSubscription sub = subscriptionMap.get(channelID);
-					if (!allURL && !url.equals(sub.getURL()))
-					{
-						continue; // non-matching URL
-					}
-					if (!allQE && !queueEntryID.equals(sub.queueEntry))
-					{
-						continue; // non-matching qeid
-					}
-					if (!allType)
-					{
-						final JDFMessage mess = sub.theMessage;
-						if (mess != null)
-						{
-							final String typ = mess.getType();
-							if (messageType.equals(typ))
-							{
-								continue; // non-matching type
-							}
-						}
-					}
-				}
-				// illegal to remove while iterating - must store list
-				v.add(channelID);
-			}
+			final VString v = getSubscriptionKeys(queueEntryID, url, messageType);
 			for (int i = 0; i < v.size(); i++)
 			{
 				final MsgSubscription mSub = removeSubScription(v.stringAt(i));
@@ -1671,6 +1650,55 @@ public final class SignalDispatcher extends BambiLogFactory
 			}
 		}
 		return vSubs.size() == 0 ? null : vSubs;
+	}
+
+	/**
+	 * 
+	 * returns the channelIDs of all matching subscriptions
+	 * 
+	 * @param queueEntryID the queueEntryID of the subscriptions to remove
+	 * @param url url of subscriptions to zapp
+	 * @param messageType TODO
+	 * @return
+	 */
+	private VString getSubscriptionKeys(final String queueEntryID, final String url, final String messageType)
+	{
+		final Iterator<String> it = subscriptionMap.keySet().iterator();
+		final boolean allURL = KElement.isWildCard(url);
+		final boolean allQE = KElement.isWildCard(queueEntryID);
+		final boolean allType = KElement.isWildCard(messageType);
+		final VString v = new VString();
+		while (it.hasNext())
+		{
+			final String channelID = it.next();
+			if (!allURL || !allQE)
+			{
+				final MsgSubscription sub = subscriptionMap.get(channelID);
+				if (!allURL && !url.equals(sub.getURL()))
+				{
+					continue; // non-matching URL
+				}
+				if (!allQE && !queueEntryID.equals(sub.queueEntry))
+				{
+					continue; // non-matching qeid
+				}
+				if (!allType)
+				{
+					final JDFMessage mess = sub.theMessage;
+					if (mess != null)
+					{
+						final String typ = mess.getType();
+						if (messageType.equals(typ))
+						{
+							continue; // non-matching type
+						}
+					}
+				}
+			}
+			// illegal to remove while iterating - must store list
+			v.add(channelID);
+		}
+		return v;
 	}
 
 	/**
