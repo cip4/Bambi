@@ -30,6 +30,36 @@
   </xsl:template>
   <!--   ///////////////////////////////////////////////// -->
 
+  <xsl:template name="defaultshort">
+    <xsl:param name="pre"/>
+    <xsl:param name="printme" select="'y'"/>
+    <xsl:if test="$printme">
+      <h4>
+        <xsl:if test="$pre">
+          <xsl:value-of select="$pre"/>
+          /
+        </xsl:if>
+        <xsl:value-of select="name()"/>
+      </h4>
+    </xsl:if>
+    <xsl:variable name="pre2">
+      <xsl:if test="$printme">
+        <xsl:if test="$pre">
+          <xsl:value-of select="$pre"/>
+          /
+        </xsl:if>
+        <xsl:value-of select="name()"/>
+      </xsl:if>
+    </xsl:variable>
+    <xsl:call-template name="printAttributes">
+      <xsl:with-param name="prefix" select="$pre2"/>
+    </xsl:call-template>
+    <xsl:apply-templates>
+      <xsl:with-param name="pre" select="$pre2"/>
+    </xsl:apply-templates>
+  </xsl:template>
+  <!--   ///////////////////////////////////////////////// -->
+
 
   <xsl:template name="printAttributelines">
     <xsl:param name="prefix" select="''"/>

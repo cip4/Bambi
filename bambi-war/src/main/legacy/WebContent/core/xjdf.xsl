@@ -1,6 +1,6 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-	version="1.0" xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0"
+	version="1.0" xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1"
 	xmlns:bambi="www.cip4.org/Bambi">
 	<xsl:strip-space elements="*" />
 	<!-- device processor -->
@@ -106,7 +106,7 @@
 
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:Comment">
+	<xsl:template match="xjdf:Comment | jdf:Comment">
 		<table>
 			<tr>
 				<td>
@@ -127,7 +127,7 @@
 
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:GeneralID">
+	<xsl:template match="xjdf:GeneralID | xjdf:GeneralID">
 		<table Border="0" cellspacing="0">
 			<tr>
 				<td nowrap="true">
@@ -189,7 +189,7 @@
 
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:PartAmount">
+	<xsl:template match="xjdf:PartAmount|jdf:PartAmount ">
 		<h4>Amounts:</h4>
 		<xsl:call-template name="printAttributelines">
 			<xsl:with-param name="prefix" select="''" />
@@ -199,7 +199,7 @@
 
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:Position">
+	<xsl:template match="xjdf:Position|jdf:Position">
 		<h4>Fold Sheet Position (Position):</h4>
 		<xsl:call-template name="printAttributes">
 			<xsl:with-param name="prefix" select="''" />
@@ -208,7 +208,7 @@
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:StripCellParams">
+	<xsl:template match="xjdf:StripCellParams|jdf:StripCellParams">
 		<h4>Page Cell Details (StripCellParams):</h4>
 		<xsl:call-template name="printAttributelines">
 			<xsl:with-param name="prefix" select="''" />
@@ -216,14 +216,14 @@
 		<xsl:apply-templates />
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:JMF">
+	<xsl:template match="xjdf:JMF|jdf:JMF">
 		<h3>
 			JMF Message Header - Sent at:
 			<xsl:value-of select="@TimeStamp" />
 			by Sender:
 			<xsl:value-of select="@SenderID" />
 		</h3>
-		<xsl:call-template name="printAttributes">
+		<xsl:call-template name="printAttributelines">
 			<xsl:with-param name="prefix" select="''" />
 			<xsl:with-param name="x1" select="'xsi:type'" />
 			<xsl:with-param name="x2" select="'TimeStamp'" />
@@ -231,10 +231,14 @@
 		</xsl:call-template>
 		<xsl:apply-templates />
 	</xsl:template>
-	<!-- ///////////////////////////////////////////////// -->
+
 	<xsl:template name="message">
 		<hr />
 		<h4>
+			<xsl:if test="@ChannelMode">
+				<xsl:value-of select="@ChannelMode" />
+			</xsl:if>
+			<xsl:text> </xsl:text>
 			<xsl:value-of select="name()" />
 			- Type:
 			<xsl:value-of select="@Type" />
@@ -255,31 +259,32 @@
 			<xsl:with-param name="x2" select="'Type'" />
 			<xsl:with-param name="x3" select="'SenderID'" />
 			<xsl:with-param name="x4" select="'Time'" />
+			<xsl:with-param name="x5" select="'ChannelMode'" />
 		</xsl:call-template>
 		<xsl:apply-templates />
 	</xsl:template>
 
-	<xsl:template match="xjdf:Query">
+	<xsl:template match="xjdf:Query|jdf:Query">
 		<xsl:call-template name="message">
 			<xsl:with-param name="prefix" select="''" />
 		</xsl:call-template>
 	</xsl:template>
-	<xsl:template match="xjdf:Signal">
+	<xsl:template match="xjdf:Signal|jdf:Signal">
 		<xsl:call-template name="message">
 			<xsl:with-param name="prefix" select="''" />
 		</xsl:call-template>
 	</xsl:template>
-	<xsl:template match="xjdf:Command">
+	<xsl:template match="xjdf:Command|jdf:Command">
 		<xsl:call-template name="message">
 			<xsl:with-param name="prefix" select="''" />
 		</xsl:call-template>
 	</xsl:template>
-	<xsl:template match="xjdf:Response">
+	<xsl:template match="xjdf:Response|jdf:Response">
 		<xsl:call-template name="message">
 			<xsl:with-param name="prefix" select="''" />
 		</xsl:call-template>
 	</xsl:template>
-	<xsl:template match="xjdf:Registration">
+	<xsl:template match="xjdf:Registration|jdf:Registration">
 		<xsl:call-template name="message">
 			<xsl:with-param name="prefix" select="''" />
 		</xsl:call-template>
@@ -287,17 +292,20 @@
 
 
 	<!-- ///////////////////////////////////////////////// -->
-
-	<xsl:template match="xjdf:Subscription">
-		<h4>Persistent Channel Subscription:</h4>
+	<xsl:template match="xjdf:Subscription|jdf:Subscription">
+		<h3>
+			Persistent Channel Subscription Target=
+			<xsl:value-of select="@URL" />
+		</h3>
 		<xsl:call-template name="printAttributes">
 			<xsl:with-param name="prefix" select="''" />
+			<xsl:with-param name="x1" select="'URL'" />
 		</xsl:call-template>
 		<xsl:apply-templates />
 	</xsl:template>
 
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:Part">
+	<xsl:template match="xjdf:Part|jdf:Part">
 		<xsl:call-template name="printAttributes">
 			<xsl:with-param name="prefix" select="'Partition:'" />
 		</xsl:call-template>
@@ -305,7 +313,7 @@
 
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:MISDetails">
+	<xsl:template match="xjdf:MISDetails|jdf:MISDetails">
 		<xsl:call-template name="printAttributes">
 			<xsl:with-param name="prefix" select="'Cost Charging:'" />
 		</xsl:call-template>
@@ -313,7 +321,7 @@
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:FileSpec">
+	<xsl:template match="xjdf:FileSpec|jdf:FileSpec">
 		<table Border="0" cellspacing="0">
 			<tr>
 
@@ -341,7 +349,7 @@
 
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:SeparationSpec">
+	<xsl:template match="xjdf:SeparationSpec|jdf:SeparationSpec">
 		<td>
 			<xsl:value-of select="@Name" />
 			,
@@ -385,11 +393,11 @@
 	</xsl:template>
 
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:ColorantOrder">
+	<xsl:template match="xjdf:ColorantOrder|jdf:ColorantOrder">
 		<xsl:call-template name="separationList" />
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:ColorsUsed">
+	<xsl:template match="xjdf:ColorsUsed|jdf:ColorsUsed">
 		<xsl:call-template name="separationList" />
 	</xsl:template>
 
@@ -399,35 +407,29 @@
 		<xsl:apply-templates />
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:AuditPool">
+	<xsl:template match="xjdf:AuditPool|jdf:AuditPool">
 		<h2>AuditPool</h2>
 		<xsl:apply-templates />
 		<hr />
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:Created">
+	<xsl:template match="xjdf:Created|jdf:Created">
 		<xsl:call-template name="audit" />
 	</xsl:template>
-	<xsl:template match="xjdf:Modified">
+	<xsl:template match="xjdf:Modified|jdf:Modified">
 		<xsl:call-template name="audit" />
 	</xsl:template>
-	<xsl:template match="xjdf:Deleted">
+	<xsl:template match="xjdf:Deleted|jdf:Deleted">
 		<xsl:call-template name="audit" />
 	</xsl:template>
-	<xsl:template match="xjdf:PhaseTime">
+	<xsl:template match="xjdf:PhaseTime|jdf:PhaseTime">
 		<xsl:call-template name="audit" />
 	</xsl:template>
-	<xsl:template match="xjdf:ResourceAudit">
+	<xsl:template match="xjdf:ResourceAudit|jdf:ResourceAudit">
 		<xsl:call-template name="audit" />
 	</xsl:template>
-	<xsl:template match="xjdf:Notification">
-		<xsl:call-template name="audit">
-			<xsl:with-param name="header" select="@Class" />
-			<xsl:with-param name="xx1" select="'Class'" />
-		</xsl:call-template>
-	</xsl:template>
-	<xsl:template match="xjdf:ProcessRun">
+	<xsl:template match="xjdf:ProcessRun|jdf:ProcessRun">
 		<xsl:call-template name="audit" />
 	</xsl:template>
 
@@ -455,6 +457,25 @@
 		</xsl:call-template>
 		<xsl:apply-templates />
 	</xsl:template>
+	<xsl:template match="xjdf:Notification|jdf:Notification">
+		<h3>
+			Notification Type=
+			<xsl:value-of select="@Type" />
+			Class=
+			<xsl:value-of select="@Class" />
+			Job ID=
+			<xsl:value-of select="@JobID" />
+		</h3>
+		<xsl:call-template name="printAttributes">
+			<xsl:with-param name="prefix" select="''" />
+			<xsl:with-param name="x1" select="'Type'" />
+			<xsl:with-param name="x2" select="'Class'" />
+			<xsl:with-param name="x3" select="'TimeStamp'" />
+			<xsl:with-param name="x4" select="'JobID'" />
+		</xsl:call-template>
+		<xsl:apply-templates />
+	</xsl:template>
+
 	<!-- ///////////////////////////////////////////////// -->
 	<xsl:template match="xjdf:Product">
 		<h4>
@@ -475,13 +496,13 @@
 	</xsl:template>
 
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:ColorPool">
+	<xsl:template match="xjdf:ColorPool|jdf:ColorPool">
 		<h3>Colors in the Job</h3>
 		<xsl:apply-templates />
 		<hr />
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:Color">
+	<xsl:template match="xjdf:Color|jdf:Color">
 		<hr />
 		<table>
 			<tr valign="bottom">
@@ -504,13 +525,13 @@
 	</xsl:template>
 
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:MarkObject">
+	<xsl:template match="xjdf:MarkObject|jdf:MarkObject">
 		<xsl:call-template name="placedobject">
 			<xsl:with-param name="header" select="'Printer Mark'" />
 		</xsl:call-template>
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:ContentObject">
+	<xsl:template match="xjdf:ContentObject|jdf:ContentObject">
 		<xsl:call-template name="placedobject">
 			<xsl:with-param name="header" select="'Imposed Page'" />
 		</xsl:call-template>
@@ -532,7 +553,7 @@
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:Media">
+	<xsl:template match="xjdf:Media|jdf:Media">
 		<h4>
 			Media -
 			<xsl:value-of select="@MediaType" />
@@ -544,7 +565,7 @@
 	</xsl:template>
 
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:Queue">
+	<xsl:template match="xjdf:Queue|jdf:Queue">
 		<h4>
 			Queue Status:
 			<xsl:value-of select="@Status" />
@@ -556,7 +577,7 @@
 		</xsl:call-template>
 		<xsl:apply-templates />
 	</xsl:template>
-	<xsl:template match="xjdf:QueueEntry">
+	<xsl:template match="xjdf:QueueEntry|jdf:QueueEntry">
 		<h4>
 			QueueEntry
 			<xsl:value-of select="@QueueEntryID" />
@@ -570,24 +591,24 @@
 		<xsl:apply-templates />
 	</xsl:template>
 
-	<xsl:template match="xjdf:QueueFilter">
+	<xsl:template match="xjdf:QueueFilter|jdf:QueueFilter">
 		<xsl:call-template name="short">
 			<xsl:with-param name="printme" select="''" />
 		</xsl:call-template>
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:DeviceColorantOrder">
+	<xsl:template match="xjdf:DeviceColorantOrder|jdf:DeviceColorantOrder">
 		<xsl:call-template name="separationList" />
 	</xsl:template>
 
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:ColorantParams">
+	<xsl:template match="xjdf:ColorantParams|jdf:ColorantParams">
 		<xsl:call-template name="separationList" />
 	</xsl:template>
 
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:ColorantAlias">
+	<xsl:template match="xjdf:ColorantAlias|jdf:ColorantAlias">
 		<table Border="0" cellspacing="0">
 			<tr>
 				<td>
@@ -602,7 +623,7 @@
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:ComChannel">
+	<xsl:template match="xjdf:ComChannel|jdf:ComChannel">
 		<xsl:variable name="prefix">
 			<xsl:value-of select="@ChannelType" />
 			=
@@ -615,33 +636,41 @@
 		</xsl:call-template>
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:Milestone">
-		<xsl:variable name="prefix">
+	<xsl:template match="xjdf:Milestone|jdf:Milestone">
+		<h4>
 			Milestone:
 			<xsl:value-of select="@MilestoneType" />
-		</xsl:variable>
-		<xsl:call-template name="printAttributes">
-			<xsl:with-param name="prefix" select="$prefix" />
-			<xsl:with-param name="x1" select="'MilestoneType'" />
-		</xsl:call-template>
-	</xsl:template>
-	<!-- ///////////////////////////////////////////////// -->
-
-	<xsl:template match="xjdf:Device">
-		<h4>
-			Device:
-			<xsl:if test="@DeviceID">
-				<xsl:text />
-				<xsl:value-of select="@DeviceID" />
-			</xsl:if>
+			(
+			<xsl:value-of select="@DescriptiveName" />
+			)
 		</h4>
-		<xsl:call-template name="printAttributelines">
-			<xsl:with-param name="x1" select="'DeviceID'" />
+		<xsl:call-template name="printAttributes">
+			<xsl:with-param name="prefix" select="''" />
+			<xsl:with-param name="x1" select="'MilestoneType'" />
+			<xsl:with-param name="x2" select="'DescriptiveName'" />
 		</xsl:call-template>
 		<xsl:apply-templates />
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:NodeInfo">
+
+	<xsl:template match="xjdf:Device|jdf:Device">
+		<h3>
+			Device:
+			<xsl:value-of select="@DeviceID" />
+			(
+			<xsl:value-of select="@DescriptiveName" />
+			)
+		</h3>
+		<xsl:call-template name="printAttributelines">
+			<xsl:with-param name="prefix" select="''" />
+			<xsl:with-param name="x1" select="'DeviceID'" />
+			<xsl:with-param name="x2" select="'Class'" />
+			<xsl:with-param name="x3" select="'DescriptiveName'" />
+		</xsl:call-template>
+		<xsl:apply-templates />
+	</xsl:template>
+	<!-- ///////////////////////////////////////////////// -->
+	<xsl:template match="xjdf:NodeInfo|jdf:NodeInfo">
 		<h3>
 			<font>
 				<xsl:if test="@NodeStatus='Running'">
@@ -678,7 +707,7 @@
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:Address">
+	<xsl:template match="xjdf:Address|jdf:Address">
 		<h4>Address:</h4>
 		<xsl:if test="@Street">
 			<xsl:value-of select="@Street" />
@@ -716,7 +745,7 @@
 	</xsl:template>
 
 	<!-- ........................................ -->
-	<xsl:template match="xjdf:CutBlock">
+	<xsl:template match="xjdf:CutBlock|jdf:CutBlock">
 		<h4>
 			Cutblock:
 			<xsl:value-of select="@BlockName" />
@@ -730,7 +759,7 @@
 	</xsl:template>
 	<!-- ........................................ -->
 
-	<xsl:template match="xjdf:Person">
+	<xsl:template match="xjdf:Person|jdf:Person">
 		<xsl:if test="@NamePrefix">
 			<xsl:value-of select="@NamePrefix" />
 			<xsl:text />
@@ -759,37 +788,37 @@
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
 
-	<xsl:template match="xjdf:NumberSpan">
+	<xsl:template match="jdf:NumberSpan">
 		<xsl:call-template name="span" />
 	</xsl:template>
-	<xsl:template match="xjdf:OptionSpan">
+	<xsl:template match="jdf:OptionSpan">
 		<xsl:call-template name="span" />
 	</xsl:template>
-	<xsl:template match="xjdf:DurationSpan">
+	<xsl:template match="jdf:DurationSpan">
 		<xsl:call-template name="span" />
 	</xsl:template>
-	<xsl:template match="xjdf:NameSpan">
+	<xsl:template match="jdf:NameSpan">
 		<xsl:call-template name="span" />
 	</xsl:template>
-	<xsl:template match="xjdf:ShapeSpan">
+	<xsl:template match="jdf:ShapeSpan">
 		<xsl:call-template name="span" />
 	</xsl:template>
-	<xsl:template match="xjdf:XYPairSpan">
+	<xsl:template match="jdf:XYPairSpan">
 		<xsl:call-template name="span" />
 	</xsl:template>
-	<xsl:template match="xjdf:MatrixSpan">
+	<xsl:template match="jdf:MatrixSpan">
 		<xsl:call-template name="span" />
 	</xsl:template>
-	<xsl:template match="xjdf:StringSpan">
+	<xsl:template match="jdf:StringSpan">
 		<xsl:call-template name="span" />
 	</xsl:template>
-	<xsl:template match="xjdf:TimeSpan">
+	<xsl:template match="jdf:TimeSpan">
 		<xsl:call-template name="span" />
 	</xsl:template>
-	<xsl:template match="xjdf:EnumerationSpan">
+	<xsl:template match="jdf:EnumerationSpan">
 		<xsl:call-template name="span" />
 	</xsl:template>
-	<xsl:template match="xjdf:IntegerSpan">
+	<xsl:template match="jdf:IntegerSpan">
 		<xsl:call-template name="span" />
 	</xsl:template>
 
@@ -840,42 +869,57 @@
 	<!-- ///////////////////////////////////////////////// -->
 
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:ScreenSelector">
+	<xsl:template match="xjdf:ScreenSelector|jdf:ScreenSelector">
 		<xsl:call-template name="short">
 			<xsl:with-param name="printme" select="''" />
 		</xsl:call-template>
 	</xsl:template>
-	<xsl:template match="xjdf:ObservationTarget">
+	<xsl:template match="xjdf:ObservationTarget|jdf:ObservationTarget">
 		<xsl:call-template name="short">
 			<xsl:with-param name="printme" select="''" />
 		</xsl:call-template>
 	</xsl:template>
-	<xsl:template match="xjdf:ColorSpaceConversionOp">
+	<xsl:template match="xjdf:ColorSpaceConversionOp|jdf:ColorSpaceConversionOp">
 		<xsl:call-template name="short">
 			<xsl:with-param name="printme" select="''" />
 		</xsl:call-template>
 	</xsl:template>
-	<xsl:template match="xjdf:DeviceInfo">
+	<xsl:template match="jdf:DeviceInfo">
+		<h4>
+			DeviceInfo:
+			<xsl:value-of select="@DeviceID" />
+			Status=
+			<xsl:value-of select="@DeviceStatus" />
+		</h4>
+		<xsl:call-template name="printAttributes">
+			<xsl:with-param name="prefix" select="''" />
+			<xsl:with-param name="x1" select="'DeviceID'" />
+			<xsl:with-param name="x2" select="'DeviceStatus'" />
+		</xsl:call-template>
+		<xsl:apply-templates />
+	</xsl:template>
+	<xsl:template match="xjdf:ResourceInfo|jdf:ResourceInfo">
+		<h3>
+			ResourceInfo:
+			<xsl:value-of select="@ResourceName" />
+		</h3>
+		<xsl:call-template name="printAttributes">
+			<xsl:with-param name="prefix" select="''" />
+			<xsl:with-param name="x1" select="'ResourceName'" />
+		</xsl:call-template>
+		<xsl:apply-templates />
+	</xsl:template>
+	<xsl:template match="xjdf:ResourceQuParams|jdf:ResourceQuParams">
 		<xsl:call-template name="short">
 			<xsl:with-param name="printme" select="''" />
 		</xsl:call-template>
 	</xsl:template>
-	<xsl:template match="xjdf:ResourceInfo">
+	<xsl:template match="xjdf:StatusQuParams|jdf:StatusQuParams">
 		<xsl:call-template name="short">
 			<xsl:with-param name="printme" select="''" />
 		</xsl:call-template>
 	</xsl:template>
-	<xsl:template match="xjdf:ResourceQuParams">
-		<xsl:call-template name="short">
-			<xsl:with-param name="printme" select="''" />
-		</xsl:call-template>
-	</xsl:template>
-	<xsl:template match="xjdf:StatusQuParams">
-		<xsl:call-template name="short">
-			<xsl:with-param name="printme" select="''" />
-		</xsl:call-template>
-	</xsl:template>
-	<xsl:template match="xjdf:JobPhase">
+	<xsl:template match="xjdf:JobPhase|jdf:JobPhase">
 		<xsl:call-template name="status">
 			<xsl:with-param name="printme" select="''" />
 		</xsl:call-template>
@@ -887,7 +931,7 @@
 		</xsl:call-template>
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:ImageCompression">
+	<xsl:template match="xjdf:ImageCompression|jdf:ImageCompression">
 		<xsl:call-template name="short">
 			<xsl:with-param name="printme" select="''" />
 		</xsl:call-template>
@@ -899,7 +943,7 @@
 		</xsl:call-template>
 	</xsl:template>
 	<!-- ///////////////////////////////////////////////// -->
-	<xsl:template match="xjdf:AdvancedParams">
+	<xsl:template match="xjdf:AdvancedParams|jdf:AdvancedParams">
 		<xsl:call-template name="short">
 			<xsl:with-param name="printme" select="''" />
 		</xsl:call-template>
@@ -934,7 +978,7 @@
 		<h4>
 			<xsl:value-of select="name()" />
 		</h4>
-		<xsl:call-template name="default">
+		<xsl:call-template name="defaultshort">
 			<xsl:with-param name="printme" select="''" />
 		</xsl:call-template>
 	</xsl:template>
