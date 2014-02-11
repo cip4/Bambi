@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -381,6 +381,7 @@ public class JMFFactory extends BambiLogFactory
 	{
 		if (cu == null) // null = all
 		{
+			log.info("shutting down all senders " + (graceFully ? "gracefully" : "forced"));
 			final Vector<CallURL> keySet = ContainerUtil.getKeyVector(senders);
 			if (keySet != null)
 			{
@@ -396,7 +397,12 @@ public class JMFFactory extends BambiLogFactory
 			final MessageSender ms = senders.get(cu);
 			if (ms != null)
 			{
+				log.info("shutting down sender " + cu.getBaseURL() + (graceFully ? " gracefully" : " forced"));
 				ms.shutDown(graceFully);
+			}
+			else
+			{
+				log.warn("no sender to shut down: " + cu.getBaseURL() + (graceFully ? " gracefully" : " forced"));
 			}
 			senders.remove(cu);
 		}
@@ -496,7 +502,7 @@ public class JMFFactory extends BambiLogFactory
 				String name = "MessageSender_" + devID + "_" + nThreads++ + "_" + cu.getBaseURL();
 				Thread thread = new Thread(ms, name);
 				log.info("creating new message sender " + name);
-				thread.setDaemon(true);
+				thread.setDaemon(false);
 				thread.start();
 			}
 			return ms;

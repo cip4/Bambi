@@ -91,7 +91,6 @@ import org.cip4.bambi.core.messaging.IMessageOptimizer.optimizeResult;
 import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
@@ -113,6 +112,8 @@ import org.cip4.jdflib.util.UrlPart;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 import org.cip4.jdflib.util.VectorMap;
+import org.cip4.jdflib.util.thread.DelayedPersist;
+import org.cip4.jdflib.util.thread.IPersistable;
 import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
@@ -120,7 +121,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
  * 
  * @author boegerni
  */
-public class MessageSender extends BambiLogFactory implements Runnable
+public class MessageSender extends BambiLogFactory implements Runnable, IPersistable
 {
 	private final CallURL callURL;
 	protected JMFFactory myFactory;
@@ -151,6 +152,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	private boolean waitKaputt;
 	protected int checked;
 	protected int removedHeartbeat;
+	protected int removedHeartbeatJMF;
 	protected int removedFireForget;
 	protected int removedError;
 	private int idle = 0;
@@ -188,20 +190,14 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		 */
 		protected void optimize(final JDFJMF jmf)
 		{
-			if (jmf == null)
+			final VElement messages = jmf == null ? null : jmf.getMessageVector(null, null);
+			if (messages != null)
 			{
-				return;
+				for (KElement m : messages)
+				{
+					optimizeMessage((JDFMessage) m);
+				}
 			}
-			final VElement messages = jmf.getMessageVector(null, null);
-			if (messages == null)
-			{
-				return;
-			}
-			for (int i = 0; i < messages.size(); i++)
-			{
-				optimizeMessage((JDFMessage) messages.get(i));
-			}
-
 		}
 
 		/**
@@ -223,6 +219,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			{
 				return;
 			}
+			checked++;
 			for (int i = _messages.size() - 1; i >= 0; i--)
 			{
 				final JDFJMF jmf = _messages.get(i).jmf;
@@ -263,10 +260,11 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			final JDFJMF jmf = old.getJMFRoot();
 			jmf.removeChild(old);
 			log.info("removed redundant " + old.getType() + " " + old.getLocalName() + " Message ID= " + old.getID() + " Sender= " + old.getSenderID());
+			removedHeartbeat++;
 			final VElement v = jmf.getMessageVector(null, null);
-			if (v.size() == 0)
+			if (v == null || v.size() == 0)
 			{
-				removedHeartbeat++;
+				removedHeartbeatJMF++;
 				log.info("removed redundant jmf # " + removedHeartbeat + " ID: " + jmf.getID() + " total checked: " + checked);
 				_messages.remove(i);
 			}
@@ -285,6 +283,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		trySend = 0;
 		sent = 0;
 		removedHeartbeat = 0;
+		removedHeartbeatJMF = 0;
 		removedFireForget = 0;
 		checked = 0;
 		waitKaputt = false;
@@ -310,7 +309,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		senderLoop();
 		log.info("stopped messagesender loop " + this);
 
-		write2Base();
+		write2Base(true);
 	}
 
 	/**
@@ -323,10 +322,14 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		{
 			if (pause)
 			{
+				log.info("senderloop to " + callURL.getBaseURL() + " is paused");
 				if (!ThreadUtil.wait(mutexPause, 0) || doShutDown)
+				{
 					break;
+				}
+				log.info("senderloop to " + callURL.getBaseURL() + " is resumed");
 			}
-			SendReturn sentFirstMessage;
+			SendReturn sentFirstMessage = null;
 			try
 			{
 				sentFirstMessage = sendFirstMessage();
@@ -343,6 +346,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 
 				if (doShutDownGracefully && (_messages.isEmpty() || idle > 10)) // idle>10 kills - we are having problems...
 				{
+					log.error("shutting down not so gracefully after 10 gracefull attempts");
 					doShutDown = true;
 				}
 			}
@@ -352,13 +356,14 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				log.error("Error sending message: ", x);
 				timer.stop();
 			}
+
 			if (sentFirstMessage != SendReturn.sent && sentFirstMessage != SendReturn.removed)
 			{
-				if (idle++ > 3600)
+				if (idle++ > 3600 && _messages.size() == 0)
 				{
 					// no success or idle for an hour...
 					doShutDownGracefully = true;
-					log.info("Shutting down thread for base url: " + callURL.getBaseURL());
+					log.info("Shutting down idle and empty thread for base url: " + callURL.getBaseURL());
 				}
 				else
 				{ // stepwise increment - try every second 10 times, then every 15 seconds, then every 5 minutes
@@ -367,6 +372,15 @@ public class MessageSender extends BambiLogFactory implements Runnable
 					if (wait == 15000 && idle > minIdle)
 					{
 						wait *= (idle / minIdle);
+						if (wait > 424242)
+						{
+							wait = 424242;
+							if (_messages.size() > 0)
+							{
+								log.warn("Still waiting in blocked message thread for " + callURL.getBaseURL() + " unsuccessfull for "
+										+ ((System.currentTimeMillis() - lastSent) / 60000l) + " minutes");
+							}
+						}
 						waitKaputt = true;
 					}
 					else
@@ -391,13 +405,16 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		// wait a while before sending messages so that all processors are alive before we start throwing messages
 		long t = System.currentTimeMillis() - startTime;
 		if (t < 12345)
+		{
 			ThreadUtil.sleep((int) (12345 - t));
+		}
 	}
 
 	/**
 	 * write all pending messages to disk
+	 * @param clearMessages if true flush me
 	 */
-	private void write2Base()
+	private void write2Base(boolean clearMessages)
 	{
 		final File f = getPersistLocation();
 		if (f == null)
@@ -460,7 +477,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			return;
 		}
 
-		final JDFDoc d = new JDFParser().parseFile(f);
+		final JDFDoc d = JDFDoc.parseFile(f);
 		synchronized (_messages)
 		{
 			final Vector<MessageDetails> vTmp = new Vector<MessageDetails>();
@@ -475,6 +492,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				trySend = root.getIntAttribute("NumTry", null, 0);
 				removedFireForget = root.getIntAttribute("NumRemoveFireForget", null, 0);
 				removedHeartbeat = root.getIntAttribute("NumRemove", null, 0);
+				removedHeartbeatJMF = root.getIntAttribute("NumRemoveJMF", null, 0);
 				removedError = root.getIntAttribute("NumRemoveError", null, 0);
 				lastQueued = root.getLongAttribute("iLastQueued", null, 0);
 				lastSent = root.getLongAttribute("iLastSent", null, 0);
@@ -494,7 +512,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 						log.warn("removing stale message " + messageDetails + " created on " + new JDFDate(messageDetails.createTime).getDateTimeISO());
 					}
 				}
-				log.info(" read " + v.size() + " messages from " + f.getAbsolutePath() + "removed messages: " + zapp);
+				log.info(" read " + v.size() + " messages from " + f.getAbsolutePath() + " and removed messages: " + zapp);
 			}
 			_messages.addAll(vTmp);
 		}
@@ -581,8 +599,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				return SendReturn.removed;
 			}
 		}
-		final SendReturn sendReturn = sendHTTP(mesDetails);
-		mesDetails.setReturn(sendReturn);
+		
+		SendReturn sendReturn = sendHTTP(mesDetails);
 		if (SendReturn.sent == sendReturn)
 		{
 			if (firstProblem != 0)
@@ -629,6 +647,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 				_messages.remove(0);
 				removedFireForget++;
 				warn += removedFireForget;
+				sendReturn = SendReturn.removed;
 			}
 			else
 			{
@@ -638,6 +657,8 @@ public class MessageSender extends BambiLogFactory implements Runnable
 							+ _messages.size();
 					warn += warn2;
 					_messages.remove(0);
+					removedError++;
+					sendReturn = SendReturn.removed;
 				}
 				else
 				{
@@ -647,6 +668,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			}
 			log.warn(warn);
 		}
+		mesDetails.setReturn(sendReturn);
 		return sendReturn;
 	}
 
@@ -1021,6 +1043,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 		{
 			ThreadUtil.notifyAll(mutexDispatch);
 		}
+		DelayedPersist.getDelayedPersist().queue(this, 4200000); // 7 minutes 
 		return !isBlocked(42000);
 	}
 
@@ -1078,6 +1101,7 @@ public class MessageSender extends BambiLogFactory implements Runnable
 			ms.setAttribute("NumSent", sent, null);
 			ms.setAttribute("NumTry", trySend, null);
 			ms.setAttribute("NumRemove", removedHeartbeat, null);
+			ms.setAttribute("NumRemoveJMF", removedHeartbeatJMF, null);
 			ms.setAttribute("NumRemoveFireForget", removedFireForget, null);
 			ms.setAttribute("NumRemoveError", removedError, null);
 
@@ -1189,5 +1213,15 @@ public class MessageSender extends BambiLogFactory implements Runnable
 	{
 		long last = lastSent == 0 ? startTime : lastSent;
 		return lastQueued - last > deltaTime;
+	}
+
+	/**
+	 * @see org.cip4.jdflib.util.thread.IPersistable#persist()
+	 */
+	@Override
+	public boolean persist()
+	{
+		write2Base(false);
+		return true;
 	}
 }

@@ -125,7 +125,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * this class handles subscriptions <br>
- * class should remain final, because if it is ever subclassed the dispactcher thread would be started before the constructor from the subclass has a chance to
+ * class should remain final, because if it is ever subclassed the dispatcher thread would be started before the constructor from the subclass has a chance to
  * fire off.
  * @author prosirai
  */
@@ -1640,12 +1640,16 @@ public final class SignalDispatcher extends BambiLogFactory
 		synchronized (subscriptionMap)
 		{
 			final VString v = getSubscriptionKeys(queueEntryID, url, messageType);
-			for (int i = 0; i < v.size(); i++)
+			if (v != null && v.size() > 0)
 			{
-				final MsgSubscription mSub = removeSubScription(v.stringAt(i));
-				if (mSub != null)
+				log.info("removing multiple subscriptions for qe=" + queueEntryID + " URL=" + url);
+				for (int i = 0; i < v.size(); i++)
 				{
-					vSubs.add(mSub);
+					final MsgSubscription mSub = removeSubScription(v.stringAt(i));
+					if (mSub != null)
+					{
+						vSubs.add(mSub);
+					}
 				}
 			}
 		}
