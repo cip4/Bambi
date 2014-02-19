@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -482,7 +482,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
 				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
 			}
-			log.info("Submission completed: " + qe == null ? "null" : qe.getQueueEntryID());
+			log.info("Submission completed: " + ((qe == null) ? "null" : qe.getQueueEntryID()));
 			return isLive() ? new QueueEntry(node, qe) : null;
 		}
 

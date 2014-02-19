@@ -2081,8 +2081,27 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * 
 	 * @return JDFQueue the updated queue in its new status
 	 */
-	public JDFQueue updateEntry(final JDFQueueEntry qe, final EnumQueueEntryStatus status, final JDFMessage mess, final JDFResponse resp)
+	public JDFQueue updateEntry(JDFQueueEntry qe, final EnumQueueEntryStatus status, final JDFMessage mess, final JDFResponse resp)
 	{
+		if (qe == null || StringUtil.getNonEmpty(qe.getQueueEntryID()) == null)
+		{
+			log.error("cannot update qe: " + qe);
+			return _theQueue;
+		}
+		JDFQueueEntry qe2 = _theQueue.getQueueEntry(qe.getQueueEntryID());
+		if (qe2 != qe)
+		{
+			if (qe2 == null)
+			{
+				log.error("no such queueentry: " + qe.getQueueEntryID());
+				return _theQueue;
+			}
+			else
+			{
+				log.warn("not updating original QE - using original" + qe2);
+				qe = qe2;
+			}
+		}
 		synchronized (_theQueue)
 		{
 			if (qe != null && status != null)
@@ -2143,19 +2162,25 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				return null;
 			}
 
-			JDFQueueFilter qf = null;
-			try
-			{
-				qf = mess == null ? null : mess.getQueueFilter(0);
-			}
-			catch (final JDFException e)
-			{
-				log.warn("problems with queuefilter - ignoring", e);
-			}
-			final JDFQueue q = _theQueue.copyToResponse(resp, qf, getLastQueue(resp, qf));
-			removeBambiNSExtensions(q);
+			final JDFQueue q = copyToMessage(mess, resp);
 			return q;
 		}
+	}
+
+	private JDFQueue copyToMessage(final JDFMessage mess, final JDFResponse resp)
+	{
+		JDFQueueFilter qf = null;
+		try
+		{
+			qf = mess == null ? null : mess.getQueueFilter(0);
+		}
+		catch (final JDFException e)
+		{
+			log.warn("problems with queuefilter - ignoring", e);
+		}
+		final JDFQueue q = _theQueue.copyToResponse(resp, qf, getLastQueue(resp, qf));
+		removeBambiNSExtensions(q);
+		return q;
 	}
 
 	/**

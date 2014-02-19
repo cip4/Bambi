@@ -539,6 +539,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	public AbstractProxyDevice(final IDeviceProperties properties)
 	{
 		super(properties);
+		skipIdle = 1;
 	}
 
 	/**

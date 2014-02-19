@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -768,14 +768,13 @@ public class ProxyDevice extends AbstractProxyDevice
 				return false;
 			}
 			log.debug("Handling " + m.getType() + " " + m.getID());
-			final Vector<ProxyDeviceProcessor> v = getProxyProcessors();
+			final Vector<ProxyDeviceProcessor> proxyProcessors = getProxyProcessors();
 			boolean b = false;
-			if (v != null)
+			if (proxyProcessors != null)
 			{
-				final int size = v.size();
-				for (int i = 0; i < size; i++)
+				for (ProxyDeviceProcessor devProc : proxyProcessors)
 				{
-					b = v.get(i).handleStatusSignal(m, resp) || b;
+					b = devProc.handleStatusSignal(m, resp) || b;
 				}
 			}
 			if (!b)

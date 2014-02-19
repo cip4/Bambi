@@ -308,7 +308,6 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		log.info("starting messagesender loop " + this);
 		senderLoop();
 		log.info("stopped messagesender loop " + this);
-
 		write2Base(true);
 	}
 
@@ -427,7 +426,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 			if (_messages.size() == 0)
 			{
-				log.info("no pending messages to write, ciao");
+				log.info("no pending messages to write to " + callURL.url + ", ciao");
 				f.delete(); // it's empty we can zapp it
 				return;
 			}
@@ -437,9 +436,11 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			}
 			final KElement root = appendToXML(null, true, -1, false);
 			root.getOwnerDocument_KElement().write2File(f, 2, false);
-			_messages.clear();
+			if (clearMessages)
+			{
+				_messages.clear();
+			}
 		}
-
 	}
 
 	/**
@@ -599,7 +600,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				return SendReturn.removed;
 			}
 		}
-		
+
 		SendReturn sendReturn = sendHTTP(mesDetails);
 		if (SendReturn.sent == sendReturn)
 		{
@@ -879,6 +880,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		if (gracefully)
 		{
 			doShutDownGracefully = true;
+			idle = 0; // set everything to a clean state
 		}
 		else
 		{
@@ -1043,7 +1045,10 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		{
 			ThreadUtil.notifyAll(mutexDispatch);
 		}
-		DelayedPersist.getDelayedPersist().queue(this, 4200000); // 7 minutes 
+		if (_messages.size() > 42)
+		{
+			DelayedPersist.getDelayedPersist().queue(this, 420000); // 7 minutes 
+		}
 		return !isBlocked(42000);
 	}
 
@@ -1078,7 +1083,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	public String toString()
 	{
 		return "MessageSender - URL: " + callURL.url + " size: " + _messages.size() + " total: " + sent + " last queued at " + XMLResponse.formatLong(lastQueued)
-				+ " last sent at " + XMLResponse.formatLong(lastSent) + "\n" + _messages;
+				+ " last sent at " + XMLResponse.formatLong(lastSent);
 	}
 
 	/**

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -120,6 +120,16 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	protected static class MessageIdentifier implements Cloneable
 	{
 		protected String misChannelID = null;
+
+		/**
+		 * Getter for misChannelID attribute.
+		 * @return the misChannelID
+		 */
+		public String getMisChannelID()
+		{
+			return misChannelID;
+		}
+
 		protected String slaveChannelID = null;
 		protected String msgType = null;
 		protected String senderID = null;
@@ -395,10 +405,9 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		{
 			return false;
 		}
-		final int size = ignoreSenderIDs.size();
-		for (int i = 0; i < size; i++)
+		for (String ignoreSenderID : ignoreSenderIDs)
 		{
-			if (senderID.indexOf(ignoreSenderIDs.get(i)) >= 0)
+			if (senderID.indexOf(ignoreSenderID) >= 0)
 			{
 				return true;
 			}
@@ -517,7 +526,13 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 */
 	protected Vector<JDFSignal> getSignalsFromMap(final MessageIdentifier mi)
 	{
-		final Vector<JDFSignal> sis = messageMap.get(mi);
+		Vector<JDFSignal> sis = messageMap.get(mi);
+		if (sis != null)
+		{
+			Vector<JDFSignal> clone = new Vector<JDFSignal>();
+			clone.addAll(sis);
+			sis = clone;
+		}
 		return sis;
 	}
 
@@ -610,20 +625,17 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			{
 				if (!sqpIdentifier.equals(new NodeIdentifier()))
 				{
-					final VElement vjp = di.getChildElementVector(ElementName.JOBPHASE, null);
+					final Vector<JDFJobPhase> vjp = di.getChildrenByClass(JDFJobPhase.class, false, 0);
 					boolean bMatch = false;
 					if (vjp != null)
 					{
-						final int siz = vjp.size();
-						for (int j = 0; j < siz; j++)
+						for (JDFJobPhase jp : vjp)
 						{
-							final JDFJobPhase jp = (JDFJobPhase) vjp.get(j);
 							if (jp.getIdentifier().matches(sqp.getIdentifier()) || ContainerUtil.equals(sqp.getQueueEntryID(), jp.getQueueEntryID()))
 							{
 								bMatch = true;
 								break;
 							}
-
 						}
 					}
 					if (!bMatch)
@@ -713,27 +725,34 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				final JDFSignal inSignal = (JDFSignal) vSigs.get(i);
 				final String qeID = getQueueEntryIDForSignal(inSignal);
 				final Set<String> requests = getDispatcher().getChannels(theSignal.getEnumType(), inSignal.getSenderID(), qeID);
-				final MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
-				if (mi != null)
+				final MessageIdentifier[] messageIdentifiers = new MessageIdentifier(inSignal, null).cloneChannels(requests);
+				if (messageIdentifiers != null)
 				{
-					for (int ii = 0; ii < mi.length; ii++)
+					for (MessageIdentifier mi : messageIdentifiers)
 					{
-						JDFSignal lastSignal;
-						synchronized (lastSent) // we don't need any races here
-						{
-							lastSignal = lastSent.get(mi[ii]);
-						}
-						handleSingleSignal(inSignal, mi[ii]);
-						getDispatcher().triggerChannel(mi[ii].misChannelID, qeID, null, -1, false, new StatusSignalComparator().isSameStatusSignal(inSignal, lastSignal));
-						synchronized (lastSent)
-						{
-							lastSent.put(mi[ii], inSignal);
-						}
+						dispatchSingleSignal(inSignal, qeID, mi);
 					}
 				}
 			}
 
 			return true;
+		}
+
+		protected void dispatchSingleSignal(final JDFSignal inSignal, final String qeID, MessageIdentifier mi)
+		{
+			JDFSignal lastSignal;
+			synchronized (lastSent) // we don't need any races here
+			{
+				lastSignal = lastSent.get(mi);
+			}
+			handleSingleSignal(inSignal, mi);
+			StatusSignalComparator comparator = getComparator();
+			boolean sameStatusSignal = comparator != null && comparator.isSameStatusSignal(inSignal, lastSignal);
+			getDispatcher().triggerChannel(mi.misChannelID, qeID, null, -1, false, sameStatusSignal);
+			synchronized (lastSent)
+			{
+				lastSent.put(mi, inSignal);
+			}
 		}
 
 		protected void handleSingleSignal(final JDFSignal inSignal, final MessageIdentifier mi)
@@ -748,8 +767,8 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				}
 				else
 				{
-					final StatusSignalComparator comparator = new StatusSignalComparator();
-					final boolean bAllSame = comparator.isSameStatusSignal(inSignal, last);
+					final StatusSignalComparator comparator = getComparator();
+					final boolean bAllSame = comparator != null && comparator.isSameStatusSignal(inSignal, last);
 					if (bAllSame)
 					{
 						comparator.mergeStatusSignal(inSignal, last);
@@ -762,6 +781,11 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 					}
 				}
 			}
+		}
+
+		protected StatusSignalComparator getComparator()
+		{
+			return new StatusSignalComparator();
 		}
 
 		/**
@@ -829,7 +853,15 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				}
 			}
 			if (sis != null && sis.size() == 0)
+			{
 				sis = null;
+			}
+			else
+			{
+				Vector<JDFSignal> clone = new Vector<JDFSignal>();
+				clone.addAll(sis);
+				sis = clone;
+			}
 			return sis;
 		}
 
