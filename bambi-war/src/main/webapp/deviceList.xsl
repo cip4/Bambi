@@ -13,6 +13,7 @@
         <xsl:variable name="context" select="@Context" />
         <head>
             <!-- <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/> -->
+            <meta http-equiv="X-UA-Compatible" content="IE=9" />
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
             <!-- Google Web Font -->
             <link href='http://fonts.googleapis.com/css?family=Roboto+Condensed:400,700|Roboto:400,500' rel='stylesheet' type='text/css' />
@@ -222,10 +223,13 @@
           
           <!-- Hidden Popups triggered from within the details & queue iframes -->
 		  <!-- Login-Popup -->
-          <a class="popupwrapper" href="#">
+          <div class="popupwrapper" href="#">
                 <xsl:attribute name="id">popup-login-<xsl:value-of select="@DeviceID"></xsl:value-of></xsl:attribute>
-                
+
+                <!-- Content frame -->
                 <div>
+                	
+                    <!-- Content -->
                     <iframe class="popupframe" >
                         <xsl:attribute name="name">popup-login-<xsl:value-of select="@DeviceID"></xsl:value-of></xsl:attribute>
                         <xsl:attribute name="src">
@@ -233,13 +237,28 @@
                         </xsl:attribute>
                         Your browser doesn't support frames.
                     </iframe>
+                    
+                    <!-- close button -->
+                    <a class="popupclose" href="#">
+                        <img class="buttonsymbolimage popupclosebutton">
+                            <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/close.svg</xsl:attribute>
+                        </img>
+                    </a>
                 </div>
-          </a>
+                
+                                
+          </div>
           
           <!-- Subscriptions-Popup -->
-          <a class="popupwrapper" href="#">
+          <div class="popupwrapper" href="#">
              <xsl:attribute name="id">popup-subscriptions-<xsl:value-of select="@DeviceID"></xsl:value-of></xsl:attribute>
-             
+                <!-- close button 
+          		<a class="popupclose" href="#">
+                	<img class="buttonsymbolimage popupclosebutton">
+                    	<xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/close.svg</xsl:attribute>
+                    </img>
+                </a>-->
+                <!-- Content frame -->             
               <div>
                   <iframe class="popupframe" >
                       <xsl:attribute name="name">popup-subscriptions-<xsl:value-of select="@DeviceID"></xsl:value-of></xsl:attribute>
@@ -248,8 +267,15 @@
                       </xsl:attribute>
                       Your browser doesn't support frames.
                   </iframe>
+                  
+                  <!-- close button -->
+                    <a class="popupclose" href="#">
+                        <img class="buttonsymbolimage popupclosebutton">
+                            <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/close.svg</xsl:attribute>
+                        </img>
+                    </a>
               </div>
-          </a>
+          </div>
 
       <!-- Device ID -->
       <input type="radio" class="selector" name="devices" >

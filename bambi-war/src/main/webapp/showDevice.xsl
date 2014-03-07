@@ -27,7 +27,7 @@
     
     <head>
     
-    
+    <meta http-equiv="X-UA-Compatible" content="IE=9" />
     <!-- Google Web Font -->
     <link href='http://fonts.googleapis.com/css?family=Roboto+Condensed:400,700|Roboto:400,500' rel='stylesheet' type='text/css' />
     <link rel="stylesheet" type="text/css">
@@ -108,7 +108,7 @@
           </tbody>
         </table>
         <hr />
-      </xsl:if>-->
+      </xsl:if> -->
       
       <div class="column-white column-5">
       <div class="headline-wrapper"></div>
@@ -259,10 +259,25 @@
           <!-- Button -->
           <div class="show-login">
             <form>
+            <!-- Everything different to MS IE -->
+            <xsl:if test="system-property('xsl:vendor') != 'Microsoft'">
               <xsl:attribute name="action">
               	<xsl:value-of select="$context"></xsl:value-of>/overview#popup-login-<xsl:value-of select="@DeviceID"></xsl:value-of>
               </xsl:attribute>
               <xsl:attribute name="target">_parent</xsl:attribute>
+            </xsl:if>
+              
+            <!-- MS IE -->
+            <xsl:if test="system-property('xsl:vendor') = 'Microsoft'">
+                  
+              <xsl:attribute name="action">
+                  <xsl:value-of select="$context"></xsl:value-of>/login/<xsl:value-of select="@DeviceID"></xsl:value-of>
+              </xsl:attribute>
+              
+              <xsl:attribute name="target">_blank</xsl:attribute>
+              
+            </xsl:if>
+            
               <input type="submit" class="button" value="Login" title="open operator login screen" />
             </form>
                       <!-- Symbol -->
@@ -281,25 +296,40 @@
         
         <!-- Show Subscribtions Button -->
         <div class="show-subscriptions">
+          
           <form>
-            <xsl:attribute name="action">
-            <xsl:value-of select="$context"></xsl:value-of>/overview#popup-subscriptions-<xsl:value-of select="@DeviceID"></xsl:value-of>
             
-            </xsl:attribute>
-            <xsl:attribute name="target">_parent</xsl:attribute>
+            <!-- Everything different to MS IE -  show Popup -->
+            <xsl:if test="system-property('xsl:vendor') != 'Microsoft'">
+              
+              <xsl:attribute name="action">
+                  <xsl:value-of select="$context"></xsl:value-of>/overview#popup-subscriptions-<xsl:value-of select="@DeviceID"></xsl:value-of>
+              </xsl:attribute>
+              
+              <xsl:attribute name="target">_parent</xsl:attribute>
+              
+            </xsl:if>
+            
+            <!-- MS IE - open new Window -->
+            <xsl:if test="system-property('xsl:vendor') = 'Microsoft'">
+                  
+              <xsl:attribute name="action">
+                  <xsl:value-of select="$context"></xsl:value-of>/showSubscriptions/<xsl:value-of select="@DeviceID"></xsl:value-of>
+              </xsl:attribute>
+              
+              <xsl:attribute name="target">_blank</xsl:attribute>
+              
+            </xsl:if>
+            
+            
             <input type="submit" class="button" value="Show subscriptions" />
           </form>
-            <div class="buttonsymbol">
-              <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/show.svg</xsl:attribute></img>
-            </div>
-            
-                <a>
-                    <xsl:attribute name="href">
-                        <xsl:value-of select="$context"></xsl:value-of>/showSubscriptions/<xsl:value-of select="@DeviceID"></xsl:value-of>
-                    </xsl:attribute>
-                    <xsl:attribute name="target">_blank</xsl:attribute>
-                    <em class="smaller">Open Subscriptions in new Window (Fix for IE)</em>
-                </a>
+          
+          <div class="buttonsymbol">
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/show.svg</xsl:attribute></img>
+          </div>
+          
+
             
             <div class="clear"></div>
         </div>

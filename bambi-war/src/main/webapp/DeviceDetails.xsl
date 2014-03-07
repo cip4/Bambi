@@ -178,8 +178,11 @@
 						</xsl:call-template>
 					</xsl:if>
 					<xsl:if test="$modify='true'">
-
-							<input type="submit" value="Modify" />
+						
+                        <div class="box">
+                            <h3>Save</h3>
+                            <input type="submit" value="Modify" class="button"/>
+                        </div>
 
 					</xsl:if>
 

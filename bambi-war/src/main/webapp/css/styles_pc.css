@@ -16,7 +16,7 @@ body {
 	line-height: 20px;
 	color: #333333;
 	/*overflow:scroll;*/
-	height:2000px; /*from2000*/
+	/*height:2000px; from2000*/
 	min-width:100%;
 	padding:0;
 	margin:0;
@@ -406,7 +406,15 @@ input + label.queueEntryDetails {
 	}
 	
 .popupclose {
-	position:fixed;}
+	position:fixed;
+	right:65px !important;
+	top:65px !important;
+	z-index:10000;
+	}
+.popupclosebutton {
+	width:30px !important;
+	top:0px !important;
+	}
 
 .popupcontent {
 	position:relative;
