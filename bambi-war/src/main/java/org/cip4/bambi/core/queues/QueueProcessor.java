@@ -673,9 +673,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				return false;
 			}
-			updateEntry(null, null, m, resp);
-			// if the filter removed the queue, this is a nop and can be zapped
-			return (resp.getQueue(0) != null);
+			final JDFQueue q = copyToMessage(m, resp);
+			return (resp.getQueue(0) == q);
 		}
 
 		/**
