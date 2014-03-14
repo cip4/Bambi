@@ -399,6 +399,7 @@ public class RootDevice extends AbstractDevice
 		 * @param request
 		 * @return true if handled
 		 */
+		@Override
 		public XMLResponse handleGet(final ContainerRequest request)
 		{
 			final AbstractDevice[] devs = getDeviceArray();
@@ -601,6 +602,7 @@ public class RootDevice extends AbstractDevice
 	@Override
 	protected XMLResponse showDevice(final ContainerRequest request, final boolean refresh)
 	{
+		System.gc();
 		final AbstractDevice[] devices = getDeviceArray();
 		final XMLDoc deviceList = new XMLDoc("DeviceList", null);
 
