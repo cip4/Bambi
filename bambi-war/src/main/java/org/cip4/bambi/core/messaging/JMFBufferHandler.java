@@ -856,7 +856,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			{
 				sis = null;
 			}
-			else
+			if (sis != null)
 			{
 				Vector<JDFSignal> clone = new Vector<JDFSignal>();
 				clone.addAll(sis);
