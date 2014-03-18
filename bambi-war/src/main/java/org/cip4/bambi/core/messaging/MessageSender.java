@@ -77,7 +77,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Vector;
 
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -141,7 +140,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	private boolean doShutDown = false;
 	private boolean doShutDownGracefully = false;
-	protected Vector<MessageDetails> _messages = null;
+	protected MessageFiFo _messages;
 	protected FastFiFo<MessageDetails> sentMessages = null;
 	private static VectorMap<String, DumpDir> vDumps = new VectorMap<String, DumpDir>();
 	private final MyMutex mutexDispatch = new MyMutex();
@@ -222,7 +221,10 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			checked++;
 			for (int i = _messages.size() - 1; i >= 0; i--)
 			{
-				final JDFJMF jmf = _messages.get(i).jmf;
+				MessageDetails messageDetails = _messages.get(i);
+				if (messageDetails == null)
+					break;
+				final JDFJMF jmf = messageDetails.jmf;
 				if (jmf == null)
 				{
 					continue; // don't optimize mime packages
@@ -287,11 +289,11 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		removedFireForget = 0;
 		checked = 0;
 		waitKaputt = false;
-
-		_messages = new Vector<MessageDetails>();
-		sentMessages = new FastFiFo<MessageDetails>(42);
 		callURL = cu;
 		timer = new CPUTimer(false);
+
+		_messages = new MessageFiFo(getPersistLocation(true));
+		sentMessages = new FastFiFo<MessageDetails>(42);
 		optimizer = new SenderQueueOptimizer();
 		setJMFFactory(null);
 	}
@@ -415,7 +417,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	private void write2Base(boolean clearMessages)
 	{
-		final File f = getPersistLocation();
+		final File f = getPersistLocation(false);
 		if (f == null)
 		{
 			log.error("no persistant message file location - possible loss of pending messages");
@@ -424,17 +426,9 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		synchronized (_messages)
 		{
 
-			if (_messages.size() == 0)
-			{
-				log.info("no pending messages to write to " + callURL.url + ", ciao");
-				f.delete(); // it's empty we can zapp it
-				return;
-			}
-			else
-			{
-				log.info("writing " + _messages.size() + " pending messages to: " + f.getAbsolutePath());
-			}
-			final KElement root = appendToXML(null, true, -1, false);
+			log.info("writing " + _messages.size() + " pending messages to: " + f.getAbsolutePath());
+			_messages.dumpHeadTail();
+			final KElement root = appendToXML(null, -1, false);
 			root.getOwnerDocument_KElement().write2File(f, 2, false);
 			if (clearMessages)
 			{
@@ -466,7 +460,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	private void readFromBase()
 	{
-		final File f = getPersistLocation();
+		final File f = getPersistLocation(false);
 		if (f == null)
 		{
 			log.error("cannot read persistant message file, bailing out");
@@ -479,50 +473,28 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		}
 
 		final JDFDoc d = JDFDoc.parseFile(f);
-		synchronized (_messages)
+		// adding existing messages prior to vTmp - they must be sent first
+		if (d != null)
 		{
-			final Vector<MessageDetails> vTmp = new Vector<MessageDetails>();
-			vTmp.addAll(_messages);
-			_messages.clear();
-			// adding existing messages prior to vTmp - they must be sent first
-			if (d != null)
-			{
-				final KElement root = d.getRoot();
-				pause = root.getBoolAttribute("pause", null, false);
-				sent = root.getIntAttribute("NumSent", null, 0);
-				trySend = root.getIntAttribute("NumTry", null, 0);
-				removedFireForget = root.getIntAttribute("NumRemoveFireForget", null, 0);
-				removedHeartbeat = root.getIntAttribute("NumRemove", null, 0);
-				removedHeartbeatJMF = root.getIntAttribute("NumRemoveJMF", null, 0);
-				removedError = root.getIntAttribute("NumRemoveError", null, 0);
-				lastQueued = root.getLongAttribute("iLastQueued", null, 0);
-				lastSent = root.getLongAttribute("iLastSent", null, 0);
-				created = root.getLongAttribute("i" + AttributeName.CREATIONDATE, null, 0);
-				final VElement v = root.getChildElementVector("Message", null);
-				int zapp = 0;
-				for (KElement e : v)
-				{
-					MessageDetails messageDetails = new MessageDetails(e);
-					if (System.currentTimeMillis() - messageDetails.createTime < 1000 * 3600 * 24 * 7)
-					{
-						_messages.add(messageDetails);
-					}
-					else
-					{
-						zapp++;
-						log.warn("removing stale message " + messageDetails + " created on " + new JDFDate(messageDetails.createTime).getDateTimeISO());
-					}
-				}
-				log.info(" read " + v.size() + " messages from " + f.getAbsolutePath() + " and removed messages: " + zapp);
-			}
-			_messages.addAll(vTmp);
+			final KElement root = d.getRoot();
+			pause = root.getBoolAttribute("pause", null, false);
+			sent = root.getIntAttribute("NumSent", null, 0);
+			trySend = root.getIntAttribute("NumTry", null, 0);
+			removedFireForget = root.getIntAttribute("NumRemoveFireForget", null, 0);
+			removedHeartbeat = root.getIntAttribute("NumRemove", null, 0);
+			removedHeartbeatJMF = root.getIntAttribute("NumRemoveJMF", null, 0);
+			removedError = root.getIntAttribute("NumRemoveError", null, 0);
+			lastQueued = root.getLongAttribute("iLastQueued", null, 0);
+			lastSent = root.getLongAttribute("iLastSent", null, 0);
+			created = root.getLongAttribute("i" + AttributeName.CREATIONDATE, null, 0);
 		}
 	}
 
 	/**
+	 * @param bDir if true return the parent directory
 	 * @return the file where we persist
 	 */
-	protected File getPersistLocation()
+	protected File getPersistLocation(boolean bDir)
 	{
 		String loc = callURL.getBaseURL();
 		if (loc == null)
@@ -533,19 +505,11 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		loc = UrlUtil.removeProtocol(loc);
 		loc = StringUtil.replaceCharSet(loc, ":\\", "/", 0);
 		loc = StringUtil.replaceString(loc, "//", "/");
-		loc += ".xml";
 
-		final File f = FileUtil.getFileInDirectory(baseLocation, new File(loc));
-		final File locParent = f.getParentFile();
-		if (locParent != null)
-		{
-			locParent.mkdirs();
-		}
-		if (locParent == null || !locParent.isDirectory())
-		{
-			log.error("cannot create directory to persist jmf: " + f.getAbsolutePath());
-			return null;
-		}
+		File f = FileUtil.getFileInDirectory(baseLocation, new File(loc));
+		f.mkdirs();
+		if (!bDir)
+			f = FileUtil.getFileInDirectory(f, new File("Status.xml"));
 		return f;
 	}
 
@@ -1095,60 +1059,53 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 * @param bXJDF 
 	 * @return the appended element
 	 */
-	public KElement appendToXML(final KElement root, final boolean writePendingMessages, final int posQueuedMessages, boolean bXJDF)
+	public KElement appendToXML(final KElement root, final int posQueuedMessages, boolean bXJDF)
 	{
 
-		final KElement ms = root == null ? new XMLDoc("MessageSender", null).getRoot() : root.appendElement("MessageSender");
+		final KElement messagesRoot = root == null ? new XMLDoc("MessageSender", null).getRoot() : root.appendElement("MessageSender");
 		synchronized (_messages)
 		{
-			ms.setAttribute(AttributeName.URL, callURL.url);
-			ms.setAttribute(AttributeName.SIZE, _messages.size(), null);
-			ms.setAttribute("NumSent", sent, null);
-			ms.setAttribute("NumTry", trySend, null);
-			ms.setAttribute("NumRemove", removedHeartbeat, null);
-			ms.setAttribute("NumRemoveJMF", removedHeartbeatJMF, null);
-			ms.setAttribute("NumRemoveFireForget", removedFireForget, null);
-			ms.setAttribute("NumRemoveError", removedError, null);
+			messagesRoot.setAttribute(AttributeName.URL, callURL.url);
+			messagesRoot.setAttribute(AttributeName.SIZE, _messages.size(), null);
+			messagesRoot.setAttribute("NumSent", sent, null);
+			messagesRoot.setAttribute("NumTry", trySend, null);
+			messagesRoot.setAttribute("NumRemove", removedHeartbeat, null);
+			messagesRoot.setAttribute("NumRemoveJMF", removedHeartbeatJMF, null);
+			messagesRoot.setAttribute("NumRemoveFireForget", removedFireForget, null);
+			messagesRoot.setAttribute("NumRemoveError", removedError, null);
 
-			ms.setAttribute("LastQueued", XMLResponse.formatLong(lastQueued), null);
-			ms.setAttribute("LastSent", XMLResponse.formatLong(lastSent), null);
-			ms.setAttribute(AttributeName.CREATIONDATE, XMLResponse.formatLong(created), null);
+			messagesRoot.setAttribute("LastQueued", XMLResponse.formatLong(lastQueued), null);
+			messagesRoot.setAttribute("LastSent", XMLResponse.formatLong(lastSent), null);
+			messagesRoot.setAttribute(AttributeName.CREATIONDATE, XMLResponse.formatLong(created), null);
 
-			ms.setAttribute("pause", pause, null);
-			ms.setAttribute("idle", idle, null);
-			ms.setAttribute("Active", !doShutDown, null);
+			messagesRoot.setAttribute("pause", pause, null);
+			messagesRoot.setAttribute("idle", idle, null);
+			messagesRoot.setAttribute("Active", !doShutDown, null);
 			boolean problems = lastQueued - lastSent > 60000;
-			ms.setAttribute("Problems", problems, null);
-			ms.setAttribute("iLastQueued", StringUtil.formatLong(lastQueued), null);
-			ms.setAttribute("iLastSent", StringUtil.formatLong(lastSent), null);
-			ms.setAttribute("i" + AttributeName.CREATIONDATE, StringUtil.formatLong(created), null);
-			ms.copyElement(timer.toXML(), null);
+			messagesRoot.setAttribute("Problems", problems, null);
+			messagesRoot.setAttribute("iLastQueued", StringUtil.formatLong(lastQueued), null);
+			messagesRoot.setAttribute("iLastSent", StringUtil.formatLong(lastSent), null);
+			messagesRoot.setAttribute("i" + AttributeName.CREATIONDATE, StringUtil.formatLong(created), null);
+			messagesRoot.copyElement(timer.toXML(), null);
 
-			if (writePendingMessages)
-			{
-				for (int i = 0; i < _messages.size(); i++)
-				{
-					_messages.get(i).appendToXML(ms, i, bXJDF);
-				}
-			}
-			else if (posQueuedMessages == 0)
+			if (posQueuedMessages == 0)
 			{
 				final MessageDetails[] old = sentMessages.peekArray();
 				if (old != null)
 				{
 					for (int i = old.length - 1; i >= 0; i--)
 					{
-						old[i].appendToXML(ms, -1, bXJDF);
+						old[i].appendToXML(messagesRoot, -1, bXJDF);
 					}
 				}
 			}
 			else if (posQueuedMessages > 0)
 			{
 				final MessageDetails old = sentMessages.peek(sentMessages.getFill() - posQueuedMessages);
-				old.appendToXML(ms, posQueuedMessages, bXJDF);
+				old.appendToXML(messagesRoot, posQueuedMessages, bXJDF);
 			}
 		}
-		return ms;
+		return messagesRoot;
 	}
 
 	/**
@@ -1174,7 +1131,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		synchronized (_messages)
 		{
 			_messages.clear();
-			final File pers = getPersistLocation().getParentFile();
+			final File pers = getPersistLocation(true);
 			FileUtil.deleteAll(pers);
 		}
 	}

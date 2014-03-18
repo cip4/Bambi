@@ -309,7 +309,7 @@ public final class SignalDispatcher extends BambiLogFactory
 				{
 					for (final MessageSender ms : v)
 					{
-						ms.appendToXML(root, false, pos, true);
+						ms.appendToXML(root, pos, true);
 					}
 				}
 			}
@@ -318,7 +318,7 @@ public final class SignalDispatcher extends BambiLogFactory
 				final MessageSender ms = device.getJMFFactory().getCreateMessageSender(url);
 				if (ms != null)
 				{
-					ms.appendToXML(root, false, pos, false);
+					ms.appendToXML(root, pos, false);
 				}
 				else
 				{
