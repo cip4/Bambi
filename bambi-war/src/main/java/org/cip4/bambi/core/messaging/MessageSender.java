@@ -347,7 +347,10 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 				if (doShutDownGracefully && (_messages.isEmpty() || idle > 10)) // idle>10 kills - we are having problems...
 				{
-					log.error("shutting down not so gracefully after 10 gracefull attempts");
+					if (!_messages.isEmpty())
+					{
+						log.error("shutting down not so gracefully after 10 gracefull attempts");
+					}
 					doShutDown = true;
 				}
 			}
