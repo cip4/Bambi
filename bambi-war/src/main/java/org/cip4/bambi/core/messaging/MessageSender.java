@@ -616,7 +616,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			}
 			else
 			{
-				if (_messages.size() > 4242 || System.currentTimeMillis() - mesDetails.createTime > 1000 * 3600 * 24 * 7)
+				if (System.currentTimeMillis() - mesDetails.createTime > 1000 * 3600 * 24 * 42)
 				{
 					String warn2 = " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.createTime).getDateTimeISO() + " messages pending: "
 							+ _messages.size();
@@ -645,102 +645,17 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	private SendReturn sendHTTP(final MessageDetails mh)
 	{
-		JDFJMF jmf = mh.jmf;
-		Multipart mp = mh.mime;
-		SendReturn b = SendReturn.sent;
 		final URL url = UrlUtil.stringToURL(mh.url);
 		if (url == null || (!UrlUtil.isHttp(mh.url) && !UrlUtil.isHttps(mh.url)))
 		{
 			log.error("Invalid url: " + url + " removing message");
 			return SendReturn.removed;
 		}
+		SendReturn b = SendReturn.sent;
 		try
 		{
-			trySend++;
-			HttpURLConnection connection = null;
-			String header = "URL: " + url;
-			if (jmf != null && mp != null)
-			{
-				log.warn("Both mime package and JMF specified - sending both");
-			}
-
-			final DumpDir outDump = getOutDump(mh.senderID);
-			if (jmf != null)
-			{
-				connection = sendJMF(mh, jmf, url, outDump);
-			}
-			if (mp != null) // mime package
-			{
-				connection = sendMime(mh, mp, url, outDump);
-			}
-			if (jmf == null && mp == null)
-			{
-				connection = sendEmpty(mh, url, outDump);
-			}
-
-			if (connection != null)
-			{
-				try
-				{
-					if (mh.respHandler != null)
-					{
-						mh.respHandler.setConnection(connection);
-					}
-					connection.setReadTimeout(30000); // 30 seconds should suffice
-					header += "\nResponse code:" + connection.getResponseCode();
-					header += "\nContent type:" + connection.getContentType();
-					header += "\nContent length:" + connection.getContentLength();
-				}
-				catch (FileNotFoundException fx)
-				{
-					// this happens when a server is at the url but the war is not loaded
-					getLog().warn("Error reading response: " + fx.getMessage());
-					connection = null;
-				}
-			}
-
-			final DumpDir inDump = getInDump(mh.senderID);
-			if (connection != null && connection.getResponseCode() == 200)
-			{
-				InputStream inputStream = connection.getInputStream();
-				ByteArrayIOStream bis = new ByteArrayIOStream(inputStream);
-				inputStream.close(); // copy and close so that the connection stream can be reused by keep-alive
-				if (inDump != null)
-				{
-					inDump.newFileFromStream(header, bis.getInputStream(), mh.getName());
-				}
-				if (mh.respHandler != null)
-				{
-					mh.respHandler.setConnection(connection);
-					mh.respHandler.setBufferedStream(bis);
-					b = mh.respHandler.handleMessage() ? SendReturn.sent : SendReturn.error;
-				}
-			}
-			else
-			{
-				b = SendReturn.error;
-				if (idle == 0)
-				{
-					log.warn("could not send message to " + mh.url + " rc= " + ((connection == null) ? -1 : connection.getResponseCode()));
-				}
-				if (connection != null)
-				{
-					if (inDump != null)
-					{
-						inDump.newFile(header, mh.getName());
-					}
-					InputStream inputStream = connection.getInputStream();
-					if (inputStream != null)
-					{
-						inputStream.close();
-					}
-				}
-				if (mh.respHandler != null)
-				{
-					mh.respHandler.setConnection(connection);
-					mh.respHandler.handleMessage(); // make sure we tell anyone who is waiting that the wait is over...
-				}
-			}
+			HttpURLConnection connection = sendDetails(mh, url);
+			b = processResponse(mh, url, connection);
 		}
 		catch (final Throwable e)
 		{
@@ -752,6 +667,112 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			b = SendReturn.error;
 		}
 		return b;
+	}
+
+	/**
+	 * 
+	 *  
+	 * @param mh
+	 * @param url
+	 * @param connection
+	 * @return
+	 * @throws IOException
+	 */
+	private SendReturn processResponse(final MessageDetails mh, final URL url, HttpURLConnection connection) throws IOException
+	{
+		SendReturn b = SendReturn.sent;
+		String header = "URL: " + url;
+		if (connection != null)
+		{
+			try
+			{
+				if (mh.respHandler != null)
+				{
+					mh.respHandler.setConnection(connection);
+				}
+				connection.setReadTimeout(30000); // 30 seconds should suffice
+				header += "\nResponse code:" + connection.getResponseCode();
+				header += "\nContent type:" + connection.getContentType();
+				header += "\nContent length:" + connection.getContentLength();
+			}
+			catch (FileNotFoundException fx)
+			{
+				// this happens when a server is at the url but the war is not loaded
+				getLog().warn("Error reading response: " + fx.getMessage());
+				connection = null;
+			}
+		}
+
+		final DumpDir inDump = getInDump(mh.senderID);
+		if (connection != null && connection.getResponseCode() == 200)
+		{
+			InputStream inputStream = connection.getInputStream();
+			ByteArrayIOStream bis = new ByteArrayIOStream(inputStream);
+			inputStream.close(); // copy and close so that the connection stream can be reused by keep-alive
+			if (inDump != null)
+			{
+				inDump.newFileFromStream(header, bis.getInputStream(), mh.getName());
+			}
+			if (mh.respHandler != null)
+			{
+				mh.respHandler.setConnection(connection);
+				mh.respHandler.setBufferedStream(bis);
+				b = mh.respHandler.handleMessage() ? SendReturn.sent : SendReturn.error;
+			}
+		}
+		else
+		{
+			b = SendReturn.error;
+			if (idle == 0)
+			{
+				log.warn("could not send message to " + mh.url + " rc= " + ((connection == null) ? -1 : connection.getResponseCode()));
+			}
+			if (connection != null)
+			{
+				if (inDump != null)
+				{
+					inDump.newFile(header, mh.getName());
+				}
+				InputStream inputStream = connection.getInputStream();
+				if (inputStream != null)
+				{
+					inputStream.close();
+				}
+			}
+			if (mh.respHandler != null)
+			{
+				mh.respHandler.setConnection(connection);
+				mh.respHandler.handleMessage(); // make sure we tell anyone who is waiting that the wait is over...
+			}
+		}
+		return b;
+	}
+
+	private HttpURLConnection sendDetails(final MessageDetails mh, final URL url) throws FileNotFoundException, IOException, MessagingException
+	{
+		trySend++;
+		JDFJMF jmf = mh.jmf;
+		Multipart mp = mh.mime;
+		HttpURLConnection connection = null;
+		if (jmf != null && mp != null)
+		{
+			log.warn("Both mime package and JMF specified - sending both");
+		}
+
+		final DumpDir outDump = getOutDump(mh.senderID);
+		if (jmf != null)
+		{
+			connection = sendJMF(mh, jmf, url, outDump);
+		}
+		if (mp != null) // mime package
+		{
+			connection = sendMime(mh, mp, url, outDump);
+		}
+		if (jmf == null && mp == null)
+		{
+			connection = sendEmpty(mh, url, outDump);
+		}
+		return connection;
 	}
 
 	/**
@@ -1054,9 +1075,9 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 * creates a descriptive xml Object for this MessageSender
 	 * 
 	 * @param root the parent into which I append myself, if null create a new document
-	 * @param writePendingMessages if true, write out the messages
 	 * @param posQueuedMessages
 	 * @param bXJDF 
+	 * 
 	 * @return the appended element
 	 */
 	public KElement appendToXML(final KElement root, final int posQueuedMessages, boolean bXJDF)

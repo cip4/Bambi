@@ -88,12 +88,12 @@ import org.cip4.jdflib.util.StringUtil;
  * @author rainer prosi
  * @date Mar 18, 2014
  */
-public class MessageFiFo
+class MessageFiFo
 {
 	/**
 	 * @param dumpDir
 	 */
-	public MessageFiFo(File dumpDir)
+	MessageFiFo(File dumpDir)
 	{
 		super();
 		log = LogFactory.getLog(getClass());
@@ -287,7 +287,8 @@ public class MessageFiFo
 	}
 
 	/**
-	 * TODO Please insert comment!
+	 * cleans up the metadata - note the files still need to be deleted
+	 * 
 	 */
 	public void clear()
 	{
