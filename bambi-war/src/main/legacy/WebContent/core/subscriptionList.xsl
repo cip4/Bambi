@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!--  Copyright 2009-2014 CIP4 -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:bambi="www.cip4.org/Bambi" xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -246,7 +247,7 @@
 				<xsl:value-of select="@NumTry" />
 			</td>
 			<td align="left">
-				<xsl:value-of select="@NumRemove" />
+				<xsl:value-of select="@NumRemoveJMF" />
 			</td>
 			<td align="left">
 				<xsl:value-of select="@NumRemoveFireForget" />

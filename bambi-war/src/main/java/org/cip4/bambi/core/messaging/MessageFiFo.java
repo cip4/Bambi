@@ -257,9 +257,10 @@ class MessageFiFo
 				{
 					head = removeFromDump();
 				}
-				else
+				else if (head != tail)
 				{
 					head = tail;
+					dumpHeadTail();
 				}
 			}
 			return remove;
