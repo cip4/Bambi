@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -73,12 +73,15 @@
  */
 package org.cip4.bambi.core;
 
+import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.hotfolder.QueueHotFolderListener;
 
 /**
@@ -107,6 +110,7 @@ public class QueueHFListener extends BambiLogFactory implements QueueHotFolderLi
 	 * @see org.cip4.jdflib.util.hotfolder.QueueHotFolderListener#submitted(org.cip4.jdflib.jmf.JDFJMF)
 	 * @param submissionJMF
 	 */
+	@Override
 	public boolean submitted(final JDFJMF submissionJMF)
 	{
 		log.info("HFListner:submitted");
@@ -138,7 +142,50 @@ public class QueueHFListener extends BambiLogFactory implements QueueHotFolderLi
 				log.warn("_theQueue.addEntry returned null");
 				return false;
 			}
-			return true;
+			return waitForSubmission(qe);
 		}
+	}
+
+	/**
+	 * @param qe
+	 * @return
+	 */
+	private boolean waitForSubmission(final JDFQueueEntry qe)
+	{
+		int iLoop = 1;
+		while (iLoop++ < 42)
+		{
+			if (!ThreadUtil.sleep(iLoop * 100))
+			{
+				return false;
+			}
+			IQueueEntry iqeNew = queueProc.getIQueueEntry(qe);
+			JDFQueueEntry qeNew = iqeNew == null ? null : iqeNew.getQueueEntry();
+			if (qeNew != null)
+			{
+				EnumQueueEntryStatus status = qeNew.getQueueEntryStatus();
+				if (EnumQueueEntryStatus.Running.equals(status))
+				{
+					log.warn("queueentry succeeded: " + iqeNew.getQueueEntryID());
+					return true;
+				}
+				else if (EnumQueueEntryStatus.Aborted.equals(status))
+				{
+					log.warn("queueentry aborted: " + iqeNew.getQueueEntryID());
+					return false;
+				}
+			}
+		}
+		log.warn("no queueentry response in reasonable time: " + qe.getQueueEntryID());
+		return true;
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		return "QueueHFListener [queueProc=" + queueProc + "]";
 	}
 }

@@ -526,14 +526,18 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 */
 	protected Vector<JDFSignal> getSignalsFromMap(final MessageIdentifier mi)
 	{
-		Vector<JDFSignal> sis = messageMap.get(mi);
-		if (sis != null)
+		synchronized (messageMap)
 		{
-			Vector<JDFSignal> clone = new Vector<JDFSignal>();
-			clone.addAll(sis);
-			sis = clone;
+			Vector<JDFSignal> sis = messageMap.get(mi);
+			if (sis != null)
+			{
+				Vector<JDFSignal> clone = new Vector<JDFSignal>();
+				clone.addAll(sis);
+				sis = clone;
+			}
+			return sis;
 		}
-		return sis;
+
 	}
 
 	/**
@@ -551,8 +555,9 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		if (mi != null)
 		{
 			if (logCounter < 10 || logCounter % 100 == 0)
+			{
 				log.info("broadcasting buffered Signal# " + logCounter + " " + inSignal.getType() + " to " + mi.length + " receivers");
-
+			}
 			synchronized (messageMap)
 			{
 				for (int i = 0; i < mi.length; i++)
@@ -566,7 +571,9 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		else
 		{
 			if (logCounter < 10 || logCounter % 100 == 0)
+			{
 				log.info("No consumer for buffered Signal# " + logCounter + " " + inSignal.getType() + " ID=" + inSignal.getID());
+			}
 		}
 		logCounter++;
 		return true;
@@ -586,8 +593,14 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		protected Set<MessageIdentifier> getMessageIdentifierSet()
 		{
 			final Set<MessageIdentifier> keySet = new HashSet<MessageIdentifier>();
-			keySet.addAll(messageMap.keySet());
-			keySet.addAll(lastSent.keySet());
+			synchronized (messageMap)
+			{
+				keySet.addAll(messageMap.keySet());
+			}
+			synchronized (lastSent)
+			{
+				keySet.addAll(lastSent.keySet());
+			}
 			return keySet;
 		}
 

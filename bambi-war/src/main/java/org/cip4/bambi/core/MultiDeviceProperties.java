@@ -646,10 +646,11 @@ public class MultiDeviceProperties extends BambiLogFactory
 
 	/**
 	 * gets a subclass of this based on the value of application/@PropertiesName
+	 * @param config 
 	 * 
 	 * @return the subclass instance, null if @PropertiesName is not set
 	 */
-	MultiDeviceProperties getSubClass()
+	MultiDeviceProperties getSubClass(File config)
 	{
 		String propName = root.getAttribute("PropertiesName", null, null);
 		if (propName == null)
@@ -658,8 +659,8 @@ public class MultiDeviceProperties extends BambiLogFactory
 		try
 		{
 			final Class<?> c = Class.forName(propName);
-			final Constructor<?> con = c.getConstructor(new Class[] { File.class, String.class });
-			MultiDeviceProperties subClass = (MultiDeviceProperties) con.newInstance(new Object[] { baseDir, context });
+			final Constructor<?> con = c.getConstructor(new Class[] { File.class, String.class, File.class });
+			MultiDeviceProperties subClass = (MultiDeviceProperties) con.newInstance(new Object[] { baseDir, context, config });
 			subClass.root = root;
 			return subClass;
 		}

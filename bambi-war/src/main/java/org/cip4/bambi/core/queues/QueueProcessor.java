@@ -2178,6 +2178,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			log.warn("problems with queuefilter - ignoring", e);
 		}
 		final JDFQueue q = _theQueue.copyToResponse(resp, qf, getLastQueue(resp, qf));
+		if (qf != null && EnumUpdateGranularity.ChangesOnly.equals(qf.getUpdateGranularity()) && q.getQueueEntry(0) == null)
+		{
+			//we have an empty queue
+			return null;
+		}
 		removeBambiNSExtensions(q);
 		return q;
 	}
