@@ -164,7 +164,7 @@ public class ShowXJDFHandler extends ShowHandler
 	{
 		final XJDF20 xjdf20 = new XJDF20();
 		xjdf20.retainAll();
-		xjdf20.bHTMLColor = true;
+		xjdf20.setHTMLColor(true);
 
 		return xjdf20;
 	}
