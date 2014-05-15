@@ -70,8 +70,8 @@ package org.cip4.bambi.messaging;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.messaging.StatusSignalComparator;
-import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceOperationMode;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
+import org.cip4.jdflib.auto.JDFAutoMISDetails.EnumDeviceOperationMode;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -93,18 +93,18 @@ public class StatusSignalComparatorTest extends BambiTestCase
 	 */
 	public void testIsSameStatusSignal()
 	{
-		JMFBuilder b = new JMFBuilder();
-		JDFJMF jmf = b.createJMF(EnumFamily.Signal, EnumType.Status);
-		JDFSignal signal = jmf.getSignal(0);
-		JDFDeviceInfo di = signal.getCreateDeviceInfo(0);
+		final JMFBuilder b = new JMFBuilder();
+		final JDFJMF jmf = b.createJMF(EnumFamily.Signal, EnumType.Status);
+		final JDFSignal signal = jmf.getSignal(0);
+		final JDFDeviceInfo di = signal.getCreateDeviceInfo(0);
 		di.setDeviceID("d1");
-		JDFJMF jmf2 = (JDFJMF) jmf.clone();
-		JDFSignal signal2 = jmf2.getSignal(0);
-		JDFDeviceInfo di2 = signal2.getCreateDeviceInfo(0);
+		final JDFJMF jmf2 = (JDFJMF) jmf.clone();
+		final JDFSignal signal2 = jmf2.getSignal(0);
+		final JDFDeviceInfo di2 = signal2.getCreateDeviceInfo(0);
 		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
-		JDFJobPhase jp = di.appendJobPhase();
+		final JDFJobPhase jp = di.appendJobPhase();
 		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
-		JDFJobPhase jp2 = di2.appendJobPhase();
+		final JDFJobPhase jp2 = di2.appendJobPhase();
 		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
 		jp.setStatus(EnumNodeStatus.Waiting);
 		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
@@ -117,17 +117,17 @@ public class StatusSignalComparatorTest extends BambiTestCase
 	 */
 	public void testIsSameStatusSignalIdle()
 	{
-		JMFBuilder b = new JMFBuilder();
-		JDFJMF jmf = b.createJMF(EnumFamily.Signal, EnumType.Status);
-		JDFSignal signal = jmf.getSignal(0);
-		JDFDeviceInfo di1 = signal.getCreateDeviceInfo(0);
+		final JMFBuilder b = new JMFBuilder();
+		final JDFJMF jmf = b.createJMF(EnumFamily.Signal, EnumType.Status);
+		final JDFSignal signal = jmf.getSignal(0);
+		final JDFDeviceInfo di1 = signal.getCreateDeviceInfo(0);
 		di1.setDeviceID("d1");
-		JDFJMF jmf2 = (JDFJMF) jmf.clone();
-		JDFSignal signal2 = jmf2.getSignal(0);
-		JDFDeviceInfo di2 = signal2.getCreateDeviceInfo(0);
+		final JDFJMF jmf2 = (JDFJMF) jmf.clone();
+		final JDFSignal signal2 = jmf2.getSignal(0);
+		final JDFDeviceInfo di2 = signal2.getCreateDeviceInfo(0);
 
 		assertTrue(di1.isSamePhase(di2, false));
-		JDFDate date = new JDFDate();
+		final JDFDate date = new JDFDate();
 		di1.setIdleStartTime(date);
 		di2.setIdleStartTime(date);
 		assertTrue(di1.isSamePhase(di2, false));
@@ -137,15 +137,15 @@ public class StatusSignalComparatorTest extends BambiTestCase
 		di1.setDeviceOperationMode(EnumDeviceOperationMode.Productive);
 		di2.setDeviceOperationMode(EnumDeviceOperationMode.Productive);
 		assertTrue(di1.isSamePhase(di2, false));
-		JDFDevice dev = di1.appendDevice();
+		final JDFDevice dev = di1.appendDevice();
 		dev.setDeviceID("d1");
 		dev.setDeviceType("foo");
 		di2.copyElement(dev, null);
 		assertTrue(di1.isSamePhase(di2, false));
 		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
-		JDFJobPhase jp = di1.appendJobPhase();
+		final JDFJobPhase jp = di1.appendJobPhase();
 		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
-		JDFJobPhase jp2 = di2.appendJobPhase();
+		final JDFJobPhase jp2 = di2.appendJobPhase();
 		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
 		jp.setStatus(EnumNodeStatus.Waiting);
 		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
