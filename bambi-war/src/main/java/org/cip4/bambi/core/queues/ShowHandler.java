@@ -82,6 +82,7 @@ import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -185,7 +186,7 @@ public abstract class ShowHandler implements IGetHandler
 		doc.setXSLTURL(_parentDevice.getXSLT(request));
 		root.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
 		final String qeID = request.getParameter(QueueProcessor.QE_ID);
-		root.setAttribute(AttributeName.QUEUEENTRYID, qeID);
+		root.setAttribute(AttributeName.QUEUEENTRYID, UrlUtil.escape(qeID, true));
 		return doc;
 	}
 }

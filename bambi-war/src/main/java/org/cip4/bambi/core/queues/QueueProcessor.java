@@ -73,6 +73,7 @@ package org.cip4.bambi.core.queues;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Vector;
@@ -1306,15 +1307,15 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 */
 		private void addOptions(final JDFQueue q)
 		{
-			final VElement v = q.getQueueEntryVector();
-			for (int i = 0; i < v.size(); i++)
+			final Collection<JDFQueueEntry> v = q.getAllQueueEntry();
+			for (final JDFQueueEntry qe : v)
 			{
-				final JDFQueueEntry qe = (JDFQueueEntry) v.get(i);
 				Vector<EnumQueueEntryStatus> nextStatusVector = qe.getNextStatusVector();
 				EnumQueueEntryStatus queueEntryStatus = qe.getQueueEntryStatus();
 				if (!EnumQueueEntryStatus.Running.equals(queueEntryStatus))
 					nextStatusVector.remove(EnumQueueEntryStatus.Running);
 				XMLResponse.addOptionList(queueEntryStatus, nextStatusVector, qe, QE_STATUS);
+				BambiNSExtension.setMyNSAttribute(qe, "QueueEntryURL", UrlUtil.escape(qe.getQueueEntryID(), true));
 			}
 		}
 	}
