@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -70,10 +70,12 @@ package org.cip4.bambi.workers;
 
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IDeviceProperties;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.util.StringUtil;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -153,4 +155,57 @@ public abstract class UIModifiableDevice extends WorkerDevice
 
 		return newPhase;
 	}
+
+	/**
+	 * @param request
+	 * @return true if handled
+	 */
+	@Override
+	public XMLResponse handleGet(final ContainerRequest request)
+	{
+		if (isMyRequest(request))
+		{
+			if (request.isMyContext("processNextPhase"))
+			{
+				return processNextPhase(request);
+			}
+			else if (request.isMyContext("login"))
+			{
+				return handleLogin(request);
+			}
+		}
+		return super.handleGet(request);
+	}
+
+	/**
+	 * handle login/logout of employees
+	 * @param request
+	 * @return
+	 */
+	protected XMLResponse handleLogin(final ContainerRequest request)
+	{
+		String personalID = StringUtil.getNonEmpty(request.getParameter(AttributeName.PERSONALID));
+		if (personalID != null)
+		{
+			final boolean bLogout = "logout".equals(request.getParameter("inout"));
+			personalID = StringUtil.token(personalID, 0, " ");
+			if (bLogout)
+			{
+				_theStatusListener.removeEmployee(employees.getEmployee(personalID));
+			}
+			else
+			{
+				_theStatusListener.addEmployee(employees.getEmployee(personalID));
+			}
+		}
+
+		return showDevice(request, false);
+	}
+
+	/**
+	 * @param request
+	 * @return
+	 */
+	protected abstract XMLResponse processNextPhase(ContainerRequest request);
+
 }
