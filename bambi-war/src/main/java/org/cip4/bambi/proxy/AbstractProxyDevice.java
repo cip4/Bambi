@@ -126,6 +126,14 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * the url flag for incoming messages (end point of the path)
 	 */
 	public static final String SLAVEJMF = "slavejmf";
+	/**
+	 * statusdetails flag for sent to slave but not yet confirmed
+	 */
+	public static final String SUBMITTING = "Submitting";
+	/**
+	 * statusdetails flag for successfully sent to slave
+	 */
+	public static final String SUBMITTED = "Submitted";
 
 	/**
 	 * watched hot folder for hf based communication with a device (completed)
@@ -1191,6 +1199,25 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		String deviceURL = getDeviceURL();
 		deviceURL = StringUtil.replaceString(deviceURL, "jmf", "data");
 		return deviceURL + ((queueEntry == null) ? "" : "/" + queueEntry.getQueueEntryID());
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.AbstractDevice#wasSubmitted(org.cip4.jdflib.jmf.JDFQueueEntry)
+	 */
+	@Override
+	public boolean wasSubmitted(JDFQueueEntry qeNew)
+	{
+		return super.wasSubmitted(qeNew) && !SUBMITTING.equals(qeNew.getStatusDetails());
+	}
+
+	/**
+	 * prepare submission in proxies by setting status details to submitting 
+	 * @param newQE
+	 */
+	@Override
+	public void prepareSubmit(JDFQueueEntry newQE)
+	{
+		newQE.setStatusDetails(SUBMITTING);
 	}
 
 }

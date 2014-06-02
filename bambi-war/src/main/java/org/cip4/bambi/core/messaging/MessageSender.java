@@ -428,8 +428,10 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		}
 		synchronized (_messages)
 		{
-
-			log.info("writing " + _messages.size() + " pending messages to: " + f.getAbsolutePath());
+			if (_messages.size() > 0)
+			{
+				log.info("writing " + _messages.size() + " pending messages to: " + f.getAbsolutePath());
+			}
 			_messages.dumpHeadTail();
 			final KElement root = appendToXML(null, -1, false);
 			root.getOwnerDocument_KElement().write2File(f, 2, false);
@@ -1194,6 +1196,8 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	public boolean isBlocked(long deltaTime)
 	{
+		if (_messages.isEmpty())
+			return false;
 		long last = lastSent == 0 ? startTime : lastSent;
 		return lastQueued - last > deltaTime;
 	}

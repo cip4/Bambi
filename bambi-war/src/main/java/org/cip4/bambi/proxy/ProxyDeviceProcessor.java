@@ -636,11 +636,11 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			setupStatusListener(currentQE.getJDF(), currentQE.getQueueEntry());
 			if (EnumQueueEntryStatus.Waiting.equals(newStatus))
 			{
-				_statusListener.signalStatus(EnumDeviceStatus.Idle, "Submitted", EnumNodeStatus.Waiting, "Submitted", false);
+				_statusListener.signalStatus(EnumDeviceStatus.Idle, AbstractProxyDevice.SUBMITTED, EnumNodeStatus.Waiting, AbstractProxyDevice.SUBMITTED, false);
 			}
 			else
 			{
-				_statusListener.signalStatus(EnumDeviceStatus.Running, "Submitted", EnumNodeStatus.InProgress, "Submitted", false);
+				_statusListener.signalStatus(EnumDeviceStatus.Running, AbstractProxyDevice.SUBMITTED, EnumNodeStatus.InProgress, AbstractProxyDevice.SUBMITTED, false);
 			}
 			// this cast is safe - see constructor which guarantees that the parent is a ProxyParent
 			((ProxyDevice) getParent()).cleanupMultipleRunning(currentQE.getQueueEntryID(), slaveDeviceID);

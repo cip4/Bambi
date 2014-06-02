@@ -1913,10 +1913,20 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			notifyListeners(qeID);
 			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID);
 			newQE = _theQueue.getQueueEntry(qeID);
+			prepareSubmit(newQE);
 		}
 		// wait a very short moment to allow any potential processing of the newly created entry to commence, prior to returning the entry
 		ThreadUtil.sleep(42);
 		return newQE;
+	}
+
+	/**
+	 * prepare qe for submission
+	 * @param newQE
+	 */
+	protected void prepareSubmit(JDFQueueEntry newQE)
+	{
+		_parentDevice.prepareSubmit(newQE);
 	}
 
 	/**
@@ -2088,22 +2098,23 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			log.error("cannot update qe: " + qe);
 			return _theQueue;
 		}
-		JDFQueueEntry qe2 = _theQueue.getQueueEntry(qe.getQueueEntryID());
-		if (qe2 != qe)
-		{
-			if (qe2 == null)
-			{
-				log.error("no such queueentry: " + qe.getQueueEntryID());
-				return _theQueue;
-			}
-			else
-			{
-				log.warn("not updating original QE - using original" + qe2);
-				qe = qe2;
-			}
-		}
+
 		synchronized (_theQueue)
 		{
+			JDFQueueEntry qe2 = _theQueue.getQueueEntry(qe.getQueueEntryID());
+			if (qe2 != qe)
+			{
+				if (qe2 == null)
+				{
+					log.error("no such queueentry: " + qe.getQueueEntryID());
+					return _theQueue;
+				}
+				else
+				{
+					log.warn("not updating original QE - using original" + qe2);
+					qe = qe2;
+				}
+			}
 			if (qe != null && status != null)
 			{
 				final EnumQueueEntryStatus oldStatus = qe.getQueueEntryStatus();
@@ -2674,5 +2685,15 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		XMLDoc doc = _theQueue.getOwnerDocument_KElement();
 		XMLDoc clone = doc.clone();
 		return (JDFQueue) clone.getRoot();
+	}
+
+	/**
+	 * TODO Please insert comment!
+	 * @param qeNew
+	 * @return
+	 */
+	public boolean wasSubmitted(JDFQueueEntry qeNew)
+	{
+		return _parentDevice.wasSubmitted(qeNew);
 	}
 }

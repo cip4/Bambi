@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -2094,5 +2094,38 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public CleanupCallback getQECleanup()
 	{
 		return new QueueEntryCleanup(this);
+	}
+
+	/**
+	 * check post submission whether all is well
+	 * 
+	 * @param qeNew
+	 * @return
+	 */
+	public boolean wasSubmitted(JDFQueueEntry qeNew)
+	{
+		if (qeNew != null)
+		{
+			EnumQueueEntryStatus status = qeNew.getQueueEntryStatus();
+			if (EnumQueueEntryStatus.Aborted.equals(status))
+			{
+				log.warn("queueentry aborted: " + qeNew.getQueueEntryID());
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * stub 
+	 * @param newQE
+	 */
+	public void prepareSubmit(JDFQueueEntry newQE)
+	{
+		// nop		
 	}
 }

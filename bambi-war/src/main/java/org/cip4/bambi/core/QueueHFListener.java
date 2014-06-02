@@ -75,7 +75,6 @@ package org.cip4.bambi.core;
 
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
-import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -153,31 +152,28 @@ public class QueueHFListener extends BambiLogFactory implements QueueHotFolderLi
 	private boolean waitForSubmission(final JDFQueueEntry qe)
 	{
 		int iLoop = 1;
+		long t0 = System.currentTimeMillis();
 		while (iLoop++ < 42)
 		{
-			if (!ThreadUtil.sleep(iLoop * 100))
+			if (!ThreadUtil.sleep(iLoop * 42))
 			{
 				return false;
 			}
 			IQueueEntry iqeNew = queueProc.getIQueueEntry(qe);
 			JDFQueueEntry qeNew = iqeNew == null ? null : iqeNew.getQueueEntry();
-			if (qeNew != null)
+			if (queueProc.wasSubmitted(qeNew))
 			{
-				EnumQueueEntryStatus status = qeNew.getQueueEntryStatus();
-				if (EnumQueueEntryStatus.Running.equals(status))
+				if (iLoop > 10)
 				{
-					log.warn("queueentry succeeded: " + iqeNew.getQueueEntryID());
-					return true;
+					t0 = System.currentTimeMillis() - t0;
+					t0 /= 1000;
+					log.info("waited " + t0 + " seconds for response queue submission response. qeID=" + iqeNew.getQueueEntryID());
 				}
-				else if (EnumQueueEntryStatus.Aborted.equals(status))
-				{
-					log.warn("queueentry aborted: " + iqeNew.getQueueEntryID());
-					return false;
-				}
+				return true;
 			}
 		}
 		log.warn("no queueentry response in reasonable time: " + qe.getQueueEntryID());
-		return true;
+		return false;
 	}
 
 	/**

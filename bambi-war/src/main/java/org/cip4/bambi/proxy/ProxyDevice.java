@@ -907,6 +907,10 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		ProxyDeviceProcessor pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, iqe);
 		pdp.setActivation(activation);
+		if (EnumActivation.Active.equals(activation))
+		{
+			iqe.getQueueEntry().setStatusDetails(AbstractProxyDevice.SUBMITTING);
+		}
 		final boolean submit = pdp.submit(slaveQueueURL);
 		if (submit && pdp.isActive())
 		{

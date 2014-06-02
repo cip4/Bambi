@@ -244,6 +244,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		BambiNSExtension.setSlaveSubmissionTime(qe, new JDFDate());
 		BambiNSExtension.setDeviceURL(qe, slaveURL);
+		qe.setStatusDetails(AbstractProxyDevice.SUBMITTED);
 		if (StringUtil.getNonEmpty(slaveDeviceID) != null)
 		{
 			qe.setDeviceID(slaveDeviceID);
@@ -435,12 +436,12 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			final JDFJMF jmf = getBuilderForSlave().buildSubmitQueueEntry(deviceURLForSlave);
 
 			final JDFCommand com = (JDFCommand) jmf.getCreateMessageElement(JDFMessage.EnumFamily.Command, null, 0);
-			final JDFQueueSubmissionParams qsp = com.getCreateQueueSubmissionParams(0);
+			final JDFQueueSubmissionParams queueSubParams = com.getCreateQueueSubmissionParams(0);
 
 			prepareQueueFilterforSubmit(com);
 			// fix for returning
 
-			prepareQSP(qsp, deviceOutputHF);
+			prepareQSP(queueSubParams, deviceOutputHF);
 
 			final JDFNode node = getCloneJDFForSlave(); // the retained internal node
 			log.debug("get clone: " + (node == null ? "null" : node.getJobID(false)));
@@ -457,7 +458,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				slaveCallBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
 			}
 
-			setJDFURL(isMime, qsp, modNode);
+			setJDFURL(isMime, queueSubParams, modNode);
 			final JDFQueueEntry qe = currentQE.getQueueEntry();
 
 			if (modNode != null)
