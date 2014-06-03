@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -77,6 +77,8 @@ import java.util.Set;
 
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
+import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFAcknowledge;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -172,6 +174,7 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 	 * @return
 	 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#isSubScribable()
 	 */
+	@Override
 	public boolean isSubScribable()
 	{
 		return true;
@@ -182,6 +185,7 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 	/**
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#getFamilies()
 	 */
+	@Override
 	public EnumFamily[] getFamilies()
 	{
 		final EnumFamily[] f = { EnumFamily.Acknowledge };
@@ -191,6 +195,7 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 	/**
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#getMessageType()
 	 */
+	@Override
 	public String getMessageType()
 	{
 		return "*"; // any will do
@@ -199,6 +204,7 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 	/**
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 	 */
+	@Override
 	public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 	{
 		final JDFAcknowledge a = (JDFAcknowledge) inputMessage;
@@ -210,7 +216,14 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 		}
 		if (doneHandled.contains(channelID))
 		{
-			log.warn("Multiply handled Acknowledge - ignored refID= " + channelID + " Message ID= " + a.getID());
+			KElement jobElem = a.getChildWithAttribute(null, AttributeName.JOBID, null, null, 0, false);
+			String jobID = jobElem == null ? "" : " JobID=" + jobElem.getAttribute(AttributeName.JOBID);
+			if (jobElem == null)
+			{
+				jobElem = a.getChildWithAttribute(null, AttributeName.QUEUEENTRYID, null, null, 0, false);
+				jobID = jobElem == null ? "" : " QueueEntryID=" + jobElem.getAttribute(AttributeName.QUEUEENTRYID);
+			}
+			log.warn("Multiply handled Acknowledge - ignored refID= " + channelID + " Message ID= " + a.getID() + jobID);
 			return true;
 		}
 		IResponseHandler handler = waitForHandler(channelID);
@@ -280,6 +293,7 @@ public class AcknowledgeMap extends BambiLogFactory implements IMessageHandler
 	/**
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#isAcknowledge()
 	 */
+	@Override
 	public boolean isAcknowledge()
 	{
 		return false;

@@ -1193,14 +1193,23 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				root = cloneQueue();
 				root.setAttribute("filter", filter);
+				boolean invert = "!".equals(StringUtil.leftStr(filter, 1));
+				if (invert)
+				{
+					filter = StringUtil.rightStr(filter, -1);
+					if (filter == null)
+					{
+						filter = "";
+					}
+				}
 				if (!"*".equals(StringUtil.leftStr(filter, 1)))
 					filter = "*" + filter;
 				if (!"*".equals(StringUtil.rightStr(filter, 1)))
 					filter += "*";
-				final VElement v = root.getChildElementVector(ElementName.QUEUEENTRY, null);
+				final Collection<JDFQueueEntry> v = root.getAllQueueEntry();
 				for (KElement e : v)
 				{
-					if (!StringUtil.matchesIgnoreCase(e.toDisplayXML(0), filter))
+					if (StringUtil.matchesIgnoreCase(e.toDisplayXML(0), filter) == invert)
 					{
 						e.deleteNode();
 					}
@@ -1218,7 +1227,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				nPos = nPos + 1 + size / 500;
 			}
 			if ((nPos + 1) * 500 < size)
+			{
 				root.setAttribute("hasNext", true, null);
+			}
 			for (int i = 0; i < size; i++)
 			{
 				if (filterLength(i))

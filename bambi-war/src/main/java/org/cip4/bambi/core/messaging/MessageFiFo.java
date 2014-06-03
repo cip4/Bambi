@@ -80,7 +80,6 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
-import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
 
 /**
@@ -169,15 +168,7 @@ class MessageFiFo
 				for (KElement e : v)
 				{
 					MessageDetails messageDetails = new MessageDetails(e);
-					if (System.currentTimeMillis() - messageDetails.createTime < 1000 * 3600 * 24 * 7)
-					{
-						vMD.add(messageDetails);
-					}
-					else
-					{
-						zapp++;
-						log.warn("removing stale message " + messageDetails + " created on " + new JDFDate(messageDetails.createTime).getDateTimeISO());
-					}
+					vMD.add(messageDetails);
 				}
 				log.info(" read " + v.size() + " messages from " + inputFile.getAbsolutePath() + " and removed messages: " + zapp);
 			}

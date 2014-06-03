@@ -579,11 +579,11 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				final String duration;
 				if (tWait < 60000)
 				{
-					duration = (tWait / 1000) + " seconds";
+					duration = (tWait / 1000l) + " seconds";
 				}
 				else if (tWait < 60l * 60000l)
 				{
-					duration = (tWait / 60000) + " minutes";
+					duration = (tWait / 60000l) + " minutes";
 				}
 				else if (tWait < 3600l * 60000l)
 				{
@@ -621,7 +621,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			}
 			else
 			{
-				if (System.currentTimeMillis() - mesDetails.createTime > 1000 * 3600 * 24 * 42)
+				if ((System.currentTimeMillis() - mesDetails.createTime) > (1000l * 3600l * 24l * 42l) && (_messages.size() > 1000))
 				{
 					String warn2 = " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.createTime).getDateTimeISO() + " messages pending: "
 							+ _messages.size();
