@@ -947,21 +947,6 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
-	 * remove a processor from the list of active processors
-	 * @param processor
-	 */
-	public void removeProcessor(final AbstractDeviceProcessor processor)
-	{
-		log.info("removing device proceesor");
-		_deviceProcessors.remove(processor);
-		//final StatusListener statusListener = processor.getStatusListener();
-		// zapp the subscription that we added for listening to the device
-		// TODO
-		// _parent.getSignalDispatcher().removeSubScription(slaveChannelID);
-
-	}
-
-	/**
 	 * gets the device processor for a given queueEntry
 	 * @return the processor that is processing queueEntryID, null if none matches
 	 */
@@ -1036,23 +1021,6 @@ public class ProxyDevice extends AbstractProxyDevice
 			proc = createExistingProcessor(iqe);
 		}
 		return proc;
-	}
-
-	/**
-	 * add a processor to the list of active processors
-	 * @param processor
-	 */
-	public void addProcessor(final AbstractDeviceProcessor processor)
-	{
-		if (processor != null)
-		{
-			log.info("adding device proceesor");
-			_deviceProcessors.add(processor);
-		}
-		else
-		{
-			log.error("attempting to add null processor to device: " + getDeviceID());
-		}
 	}
 
 	/**

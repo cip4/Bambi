@@ -690,7 +690,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	{
 		log.info("shutting down " + toString());
 		super.shutdown();
-		((ProxyDevice) _parent).removeProcessor(this);
 	}
 
 	/**

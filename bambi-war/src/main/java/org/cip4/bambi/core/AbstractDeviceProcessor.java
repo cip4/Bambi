@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -289,6 +289,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	/**
 	 * this is the device processor loop
 	 */
+	@Override
 	final public void run()
 	{
 		long nWait = 0;
@@ -356,6 +357,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 * @param statusListener
 	 * @param devProperties
 	 */
+	@Override
 	public void init(final QueueProcessor queueProcessor, final StatusListener statusListener, final IDeviceProperties devProperties)
 	{
 		log.info(this.getClass().getName() + " construct");
@@ -377,6 +379,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 * @param qe the JDF queueentry that corresponds to this
 	 * @return EnumQueueEntryStatus the final status of the queuentry
 	 */
+	@Override
 	public abstract EnumQueueEntryStatus processDoc(JDFNode n, JDFQueueEntry qe);
 
 	final private boolean processQueueEntry()
@@ -599,12 +602,13 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	/**
 	 * @see org.cip4.bambi.core.IDeviceProcessor#shutdown()
 	 */
+	@Override
 	public void shutdown()
 	{
 		log.info("received shutdown event");
 		_doShutdown = true;
 		ThreadUtil.notifyAll(_myListener);
-		_parent._deviceProcessors.remove(this);
+		_parent.removeProcessor(this);
 	}
 
 	/**

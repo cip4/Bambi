@@ -2128,4 +2128,34 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 		// nop		
 	}
+
+	/**
+	 * remove a processor from the list of active processors
+	 * @param processor
+	 */
+	public void removeProcessor(final AbstractDeviceProcessor processor)
+	{
+		log.info("removing device proceesor");
+		synchronized (_deviceProcessors)
+		{
+			_deviceProcessors.remove(processor);
+		}
+	}
+
+	/**
+	 * add a processor to the list of active processors
+	 * @param processor
+	 */
+	public void addProcessor(final AbstractDeviceProcessor processor)
+	{
+		if (processor != null)
+		{
+			log.info("adding device proceesor");
+			_deviceProcessors.add(processor);
+		}
+		else
+		{
+			log.error("attempting to add null processor to device: " + getDeviceID());
+		}
+	}
 }
