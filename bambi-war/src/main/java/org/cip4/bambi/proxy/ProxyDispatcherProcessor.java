@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -312,7 +312,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	{
 		currentQE = null;
 		IProxyProperties properties = getParent().getProperties();
-		String slaveURL = properties.getSlaveURL();
+		String slaveURL = getParent().getSlaveURL();
 		if (_parent.activeProcessors() >= 1 + properties.getMaxPush() || !isQueueAvailable(slaveURL))
 		{
 			BambiNSExtension.setDeviceURL(qe, null);

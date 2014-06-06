@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -513,11 +513,23 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * constructor
+	 * @param device the parent device that this processor does processing for
 	 * @param qProc the devices queueprocessor
+	 * @param qeToProcess the queueentry that this processor will be working for
+	 * @deprecated use 2-parameter method
+	 */
+	@Deprecated
+	public ProxyDeviceProcessor(final ProxyDevice device, final QueueProcessor qProc, final IQueueEntry qeToProcess)
+	{
+		this(device, qeToProcess);
+	}
+
+	/**
+	 * constructor
 	 * @param device the parent device that this processor does processing for
 	 * @param qeToProcess the queueentry that this processor will be working for
 	 */
-	public ProxyDeviceProcessor(final ProxyDevice device, final QueueProcessor qProc, final IQueueEntry qeToProcess)
+	public ProxyDeviceProcessor(final ProxyDevice device, final IQueueEntry qeToProcess)
 	{
 		super(device);
 		stopTime = 0;
@@ -525,7 +537,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		notificationQueryHandler = new NotificationQueryHandler();
 		currentQE = qeToProcess;
 
-		init(qProc, _statusListener, _parent.getProperties());
+		init(device.getQueueProcessor(), _statusListener, _parent.getProperties());
 	}
 
 	/**

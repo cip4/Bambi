@@ -905,7 +905,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	 */
 	public ProxyDeviceProcessor submitQueueEntry(final IQueueEntry iqe, final String slaveQueueURL, final EnumActivation activation)
 	{
-		ProxyDeviceProcessor pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, iqe);
+		ProxyDeviceProcessor pdp = new ProxyDeviceProcessor(this, iqe);
 		pdp.setActivation(activation);
 		if (EnumActivation.Active.equals(activation))
 		{
@@ -1044,8 +1044,15 @@ public class ProxyDevice extends AbstractProxyDevice
 	 */
 	public void addProcessor(final AbstractDeviceProcessor processor)
 	{
-		log.info("adding device proceesor");
-		_deviceProcessors.add(processor);
+		if (processor != null)
+		{
+			log.info("adding device proceesor");
+			_deviceProcessors.add(processor);
+		}
+		else
+		{
+			log.error("attempting to add null processor to device: " + getDeviceID());
+		}
 	}
 
 	/**
@@ -1153,7 +1160,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	 */
 	protected AbstractProxyProcessor createNewDeviceProcessor(final IQueueEntry iqe)
 	{
-		return new ProxyDeviceProcessor(this, _theQueueProcessor, iqe);
+		return new ProxyDeviceProcessor(this, iqe);
 	}
 
 	/**
@@ -1178,7 +1185,7 @@ public class ProxyDevice extends AbstractProxyDevice
 						continue;
 					ProxyDeviceProcessor pdp = (ProxyDeviceProcessor) getProcessor(queueEntryID, 0);
 					if (pdp == null)
-						pdp = new ProxyDeviceProcessor(this, _theQueueProcessor, new QueueEntry(null, qe));
+						pdp = new ProxyDeviceProcessor(this, new QueueEntry(null, qe));
 
 					log.warn("cleaning up multiple running entries: " + queueEntryID);
 					pdp.finalizeProcessDoc(EnumQueueEntryStatus.Waiting);

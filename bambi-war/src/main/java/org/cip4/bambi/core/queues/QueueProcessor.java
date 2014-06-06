@@ -1319,14 +1319,17 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		private void addOptions(final JDFQueue q)
 		{
 			final Collection<JDFQueueEntry> v = q.getAllQueueEntry();
-			for (final JDFQueueEntry qe : v)
+			if (v != null)
 			{
-				Vector<EnumQueueEntryStatus> nextStatusVector = qe.getNextStatusVector();
-				EnumQueueEntryStatus queueEntryStatus = qe.getQueueEntryStatus();
-				if (!EnumQueueEntryStatus.Running.equals(queueEntryStatus))
-					nextStatusVector.remove(EnumQueueEntryStatus.Running);
-				XMLResponse.addOptionList(queueEntryStatus, nextStatusVector, qe, QE_STATUS);
-				BambiNSExtension.setMyNSAttribute(qe, "QueueEntryURL", UrlUtil.escape(qe.getQueueEntryID(), true));
+				for (final JDFQueueEntry qe : v)
+				{
+					Vector<EnumQueueEntryStatus> nextStatusVector = qe.getNextStatusVector();
+					EnumQueueEntryStatus queueEntryStatus = qe.getQueueEntryStatus();
+					if (!EnumQueueEntryStatus.Running.equals(queueEntryStatus))
+						nextStatusVector.remove(EnumQueueEntryStatus.Running);
+					XMLResponse.addOptionList(queueEntryStatus, nextStatusVector, qe, QE_STATUS);
+					BambiNSExtension.setMyNSAttribute(qe, "QueueEntryURL", UrlUtil.escape(qe.getQueueEntryID(), true));
+				}
 			}
 		}
 	}

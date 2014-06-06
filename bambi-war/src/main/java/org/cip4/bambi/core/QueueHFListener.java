@@ -151,14 +151,10 @@ public class QueueHFListener extends BambiLogFactory implements QueueHotFolderLi
 	 */
 	private boolean waitForSubmission(final JDFQueueEntry qe)
 	{
-		int iLoop = 1;
+		int iLoop = 0;
 		long t0 = System.currentTimeMillis();
 		while (iLoop++ < 42)
 		{
-			if (!ThreadUtil.sleep(iLoop * 42))
-			{
-				return false;
-			}
 			IQueueEntry iqeNew = queueProc.getIQueueEntry(qe);
 			JDFQueueEntry qeNew = iqeNew == null ? null : iqeNew.getQueueEntry();
 			if (queueProc.wasSubmitted(qeNew))
@@ -170,6 +166,10 @@ public class QueueHFListener extends BambiLogFactory implements QueueHotFolderLi
 					log.info("waited " + t0 + " seconds for response queue submission response. qeID=" + iqeNew.getQueueEntryID());
 				}
 				return true;
+			}
+			if (!ThreadUtil.sleep(iLoop * 42))
+			{
+				return false;
 			}
 		}
 		log.warn("no queueentry response in reasonable time: " + qe.getQueueEntryID());
