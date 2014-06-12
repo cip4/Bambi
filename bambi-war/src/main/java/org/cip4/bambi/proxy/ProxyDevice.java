@@ -1172,10 +1172,11 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#stopProcessing(java.lang.String, org.cip4.jdflib.core.JDFElement.EnumNodeStatus)
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDevice#stopProcessing(java.lang.String, org.cip4.jdflib.core.JDFElement.EnumNodeStatus, java.lang.String)
 	 */
 	@Override
-	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status)
+	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status, String statusDetails)
 	{
 		if (status == null)
 		{
@@ -1187,7 +1188,7 @@ public class ProxyDevice extends AbstractProxyDevice
 				sendJMFToSlave(jmf, ah);
 			}
 		}
-		final JDFQueueEntry qe = super.stopProcessing(queueEntryID, status);
+		final JDFQueueEntry qe = super.stopProcessing(queueEntryID, status, statusDetails);
 		return qe;
 	}
 }

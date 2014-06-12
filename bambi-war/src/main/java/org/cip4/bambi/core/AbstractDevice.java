@@ -1135,12 +1135,26 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
+	 * 
+	 *@deprecated - use the 3 parameter version
+	 * @param queueEntryID
+	 * @param status
+	 * @return
+	 */
+	@Deprecated
+	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status)
+	{
+		return stopProcessing(queueEntryID, status, null);
+	}
+
+	/**
 	 * stop the processing the given QueueEntry
 	 * @param queueEntryID the ID of the QueueEntry to stop
 	 * @param status target status of the QueueEntry (Suspended,Aborted,Held)
+	 * @param statusDetails 
 	 * @return the updated QueueEntry
 	 */
-	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status)
+	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status, String statusDetails)
 	{
 		if (status == null && StringUtil.getNonEmpty(queueEntryID) != null)
 		{
@@ -1153,7 +1167,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			log.warn("cannot find processor to stop for qe=" + queueEntryID);
 			return null;
 		}
-		deviceProcessor.stopProcessing(status);
+		deviceProcessor.stopProcessing(status, statusDetails);
 		final IQueueEntry currentQE = deviceProcessor.getCurrentQE();
 		return currentQE == null ? null : currentQE.getQueueEntry();
 	}

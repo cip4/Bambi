@@ -84,6 +84,7 @@ import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.ContainerRequest;
+import org.cip4.bambi.core.DataExtractor;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
@@ -429,7 +430,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				JDFDoc doc = qsp.getURLDoc();
 				if (doc == null)
 				{
-					updateEntry(null, null, m, resp);
+					updateEntry(null, null, m, resp, null);
 					String errorMsg = "failed to get JDFDoc from '" + qsp.getURL() + "' on SubmitQueueEntry";
 					errorMsg += "\nin thread: " + Thread.currentThread().getName();
 					JMFHandler.errorResponse(resp, errorMsg, 9, EnumClass.Error);
@@ -470,7 +471,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					resp.removeChild(ElementName.QUEUEENTRY, null, 0);
 					final JDFQueueEntry qeNew = (JDFQueueEntry) resp.copyElement(qe, null);
 					BambiNSExtension.removeBambiExtensions(qeNew);
-					updateEntry(qe, null, m, resp);
+					updateEntry(qe, null, m, resp, null);
 				}
 				return true;
 			}
@@ -556,7 +557,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			else
 			{
-				updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp);
+				updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp, null);
 				_parentDevice.fixEntry(qe, doc);
 				_parentDevice.getDataExtractor(true).extractFiles(qe, doc);
 				storeDoc(qe, doc, null, null);
@@ -570,7 +571,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 */
 		private void handleInvalidURL(final JDFMessage m, final JDFResponse resp, final JDFResubmissionParams qsp)
 		{
-			updateEntry(null, null, m, resp);
+			updateEntry(null, null, m, resp, null);
 			String errorMsg = "failed to read JDFDoc from '" + qsp.getURL() + "' on SubmitQueueEntry";
 			errorMsg += "\r\nin thread: " + Thread.currentThread().getName();
 			JMFHandler.errorResponse(resp, errorMsg, 9, EnumClass.Error);
@@ -725,16 +726,16 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					|| EnumQueueEntryStatus.Aborted.equals(status) || EnumQueueEntryStatus.Suspended.equals(status))
 			{
 				final String queueEntryID = qe.getQueueEntryID();
-				JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, null); // use null to flag a removal
+				JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, null, null); // use null to flag a removal
 				if (returnQE == null)
 					returnQE = qe;
-				updateEntry(returnQE, EnumQueueEntryStatus.Removed, m, resp);
+				updateEntry(returnQE, EnumQueueEntryStatus.Removed, m, resp, null);
 				log.info("removed QueueEntry with ID=" + qeid);
 			}
 			else
 			{
 				final String statName = status.getName();
-				updateEntry(qe, status, m, resp);
+				updateEntry(qe, status, m, resp, null);
 				JMFHandler.errorResponse(resp, "cannot remove QueueEntry with ID=" + qeid + ", current Status=" + statName, 106, EnumClass.Error);
 			}
 			return true;
@@ -772,12 +773,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 			if (EnumQueueEntryStatus.Waiting.equals(status))
 			{
-				updateEntry(qe, EnumQueueEntryStatus.Held, m, resp);
+				updateEntry(qe, EnumQueueEntryStatus.Held, m, resp, null);
 				log.info("held QueueEntry with ID=" + qeid);
 			}
 			else
 			{
-				updateEntry(qe, status, m, resp);
+				updateEntry(qe, status, m, resp, null);
 				if (EnumQueueEntryStatus.Held.equals(status))
 				{
 					JMFHandler.errorResponse(resp, "cannot suspend QueueEntry with ID=" + qeid + ", it is already held", 113, EnumClass.Error);
@@ -899,7 +900,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				{
 					_theQueue.setQueueStatus(newStatus);
 				}
-				updateEntry(null, null, m, resp);
+				updateEntry(null, null, m, resp, null);
 			}
 			return true;
 		}
@@ -955,27 +956,27 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 				if (EnumQueueEntryStatus.Suspended.equals(status))
 				{
-					updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp);
+					updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp, null);
 					log.info("resumed QueueEntry to waiting with ID=" + qeid);
 					return true;
 				}
 				else if (EnumQueueEntryStatus.Held.equals(status))
 				{
-					updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp);
+					updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp, null);
 					log.info("resumed QueueEntry with ID=" + qeid);
 					return true;
 				}
 
 				if (EnumQueueEntryStatus.Running.equals(status))
 				{
-					updateEntry(qe, status, m, resp);
+					updateEntry(qe, status, m, resp, null);
 					JMFHandler.errorResponse(resp, "cannot resume QueueEntry with ID=" + qeid + ", it is " + status.getName(), 113, EnumClass.Error);
 					return true;
 				}
 
 				if (EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
 				{
-					updateEntry(qe, status, m, resp);
+					updateEntry(qe, status, m, resp, null);
 					JMFHandler.errorResponse(resp, "cannot resume QueueEntry with ID=" + qeid + ", it is already " + status.getName(), 115, EnumClass.Error);
 					return true;
 				}
@@ -1290,15 +1291,15 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			JDFQueueEntry qe2 = null;
 			if (EnumQueueEntryStatus.Completed.equals(status))
 			{
-				qe2 = _parentDevice.stopProcessing(qeID, EnumNodeStatus.Completed);
+				qe2 = _parentDevice.stopProcessing(qeID, EnumNodeStatus.Completed, null);
 			}
 			else if (EnumQueueEntryStatus.Aborted.equals(status))
 			{
-				qe2 = _parentDevice.stopProcessing(qeID, EnumNodeStatus.Aborted);
+				qe2 = _parentDevice.stopProcessing(qeID, EnumNodeStatus.Aborted, null);
 			}
 			else if (EnumQueueEntryStatus.Suspended.equals(status))
 			{
-				qe2 = _parentDevice.stopProcessing(qeID, EnumNodeStatus.Suspended);
+				qe2 = _parentDevice.stopProcessing(qeID, EnumNodeStatus.Suspended, null);
 			}
 			if (qe2 != null)
 			{
@@ -1309,7 +1310,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				returnQueueEntry(qe, null, null, status);
 			}
-			updateEntry(qe, status, null, null);
+			updateEntry(qe, status, null, null, null);
 		}
 
 		/**
@@ -1366,17 +1367,18 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				return true;
 			}
 			final EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+			final String statusDetails = StringUtil.getNonEmpty(qe.getStatusDetails());
 			final String qeid = qe.getQueueEntryID();
 
 			if (EnumQueueEntryStatus.Running.equals(status))
 			{
-				_parentDevice.stopProcessing(qeid, EnumNodeStatus.Suspended);
-				updateEntry(qe, EnumQueueEntryStatus.Suspended, m, resp);
+				_parentDevice.stopProcessing(qeid, EnumNodeStatus.Suspended, statusDetails);
+				updateEntry(qe, EnumQueueEntryStatus.Suspended, m, resp, null);
 				log.info("suspended QueueEntry with ID=" + qeid);
 			}
 			else
 			{
-				updateEntry(qe, status, m, resp);
+				updateEntry(qe, status, m, resp, null);
 				if (EnumQueueEntryStatus.Suspended.equals(status))
 				{
 					JMFHandler.errorResponse(resp, "cannot suspend QueueEntry with ID=" + qeid + ", it is already suspended", 113, EnumClass.Error);
@@ -1786,7 +1788,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				log.error("QueueProcessor in thread '" + Thread.currentThread().getName() + "' is unable to load the JDFDoc from '" + docURL + "'");
 				final String proxyFlag = BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL);
 				qe.setAttribute(proxyFlag, null);
-				updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+				updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null, null);
 			}
 			return null;
 		}
@@ -1915,7 +1917,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 			BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
 			_parentDevice.fixEntry(newQE, theJDF);
-			_parentDevice.getDataExtractor(true).extractFiles(newQE, theJDF);
+			DataExtractor dataExtractor = _parentDevice.getDataExtractor(true);
+			if (dataExtractor != null)
+			{
+				dataExtractor.extractFiles(newQE, theJDF);
+			}
 			if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
 			{
 				newResponse.setReturnCode(120);
@@ -2104,15 +2110,33 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * @param resp the message response to be filled - may be null
 	 * 
 	 * @return JDFQueue the updated queue in its new status
+	 * @deprecated use 5 parameter version
 	 */
+	@Deprecated
 	public JDFQueue updateEntry(JDFQueueEntry qe, final EnumQueueEntryStatus status, final JDFMessage mess, final JDFResponse resp)
+	{
+		return updateEntry(qe, status, mess, resp, null);
+	}
+
+	/**
+	 * update the QueueEntry qe to be in the new status
+	 * 
+	 * @param qe the QueueEntry to update
+	 * @param status the updated QueueEntry status
+	 * @param mess the message that triggers the update - may be null
+	 * @param resp the message response to be filled - may be null
+	 * @param statusDetails 
+	 * 
+	 * @return JDFQueue the updated queue in its new status
+	 */
+	public JDFQueue updateEntry(JDFQueueEntry qe, final EnumQueueEntryStatus status, final JDFMessage mess, final JDFResponse resp, String statusDetails)
 	{
 		if (qe == null || StringUtil.getNonEmpty(qe.getQueueEntryID()) == null)
 		{
 			log.error("cannot update qe: " + qe);
 			return _theQueue;
 		}
-
+		statusDetails = StringUtil.getNonEmpty(statusDetails);
 		synchronized (_theQueue)
 		{
 			JDFQueueEntry qe2 = _theQueue.getQueueEntry(qe.getQueueEntryID());
@@ -2152,10 +2176,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 						qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
 						_theQueue.setAutomated(true);
 						qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
+						qe.setStatusDetails(statusDetails);
 					}
 					else if (!ContainerUtil.equals(oldStatus, status))
 					{
 						qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
+						qe.setStatusDetails(statusDetails);
 					}
 				}
 				else if (status.equals(EnumQueueEntryStatus.Waiting))
@@ -2164,16 +2190,19 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					qe.removeAttribute(AttributeName.ENDTIME);
 					qe.removeAttribute(AttributeName.DEVICEID);
 					qe.setQueueEntryStatus(status);
+					qe.setStatusDetails(statusDetails);
 				}
 				else if (status.equals(EnumQueueEntryStatus.Aborted) || status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Suspended))
 				{
 					qe.removeAttribute(AttributeName.DEVICEID);
 					BambiNSExtension.setDeviceURL(qe, null);
 					qe.setQueueEntryStatus(status);
+					qe.setStatusDetails(statusDetails);
 				}
 				else if (!ContainerUtil.equals(oldStatus, status))
 				{
 					qe.setQueueEntryStatus(status);
+					qe.setStatusDetails(statusDetails);
 				}
 
 				if (!ContainerUtil.equals(oldStatus, status))
@@ -2182,12 +2211,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					notifyListeners(qe.getQueueEntryID());
 				}
 			}
-			if (resp == null)
-			{
-				return null;
-			}
 
-			final JDFQueue q = copyToMessage(mess, resp);
+			final JDFQueue q = resp == null ? null : copyToMessage(mess, resp);
 			return q;
 		}
 	}
@@ -2617,13 +2642,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		JDFNode theNode = null;
 		if (EnumQueueEntryStatus.Completed.equals(status))
 		{
-			updateEntry(qe, status, m, resp);
+			updateEntry(qe, status, m, resp, null);
 			JMFHandler.errorResponse(resp, "cannot abort QueueEntry with ID=" + qeid + ", it is already completed", 114, EnumClass.Error);
 			return true;
 		}
 		else if (EnumQueueEntryStatus.Aborted.equals(status))
 		{
-			updateEntry(qe, status, m, resp);
+			updateEntry(qe, status, m, resp, null);
 			JMFHandler.errorResponse(resp, "cannot abort QueueEntry with ID=" + qeid + ", it is already aborted", 113, EnumClass.Error);
 			return true;
 		}
@@ -2631,10 +2656,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			IQueueEntry iQueueEntry = getIQueueEntry(qe);
 			theNode = iQueueEntry == null ? null : iQueueEntry.getJDF();
-			updateEntry(qe, EnumQueueEntryStatus.Aborted, m, resp);
+			updateEntry(qe, EnumQueueEntryStatus.Aborted, m, resp, null);
 		}
 		final String queueEntryID = qe.getQueueEntryID();
-		final JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, EnumNodeStatus.Aborted);
+		final JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, EnumNodeStatus.Aborted, null);
 
 		// has to be waiting, held, running or suspended: abort it!
 		EnumQueueEntryStatus newStatus = (returnQE == null ? null : returnQE.getQueueEntryStatus());
@@ -2647,7 +2672,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			JDFDoc theDoc = theNode == null ? null : theNode.getOwnerDocument_JDFElement();
 			returnQueueEntry(qe, null, theDoc, newStatus);
 		}
-		updateEntry(qe, newStatus, m, resp);
+		updateEntry(qe, newStatus, m, resp, null);
 		log.info("aborted QueueEntry with ID=" + qeid);
 		return true;
 	}

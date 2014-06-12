@@ -463,27 +463,28 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 								if (slaveQE != null)
 								{
 									final EnumQueueEntryStatus status = slaveQE.getQueueEntryStatus();
+									final String statusDetails = StringUtil.getNonEmpty(slaveQE.getStatusDetails());
 									if (!ContainerUtil.equals(status, qe.getQueueEntryStatus()))
 									{
-										queueProcessor.updateEntry(qe, status, null, null);
+										queueProcessor.updateEntry(qe, status, null, null, null);
 										if (EnumQueueEntryStatus.Completed.equals(status))
 										{
-											stopProcessing(qe.getQueueEntryID(), EnumNodeStatus.Completed);
+											stopProcessing(qe.getQueueEntryID(), EnumNodeStatus.Completed, statusDetails);
 										}
 										else if (EnumQueueEntryStatus.Aborted.equals(status))
 										{
-											stopProcessing(qe.getQueueEntryID(), EnumNodeStatus.Aborted);
+											stopProcessing(qe.getQueueEntryID(), EnumNodeStatus.Aborted, statusDetails);
 										}
 										else if (EnumQueueEntryStatus.Suspended.equals(status))
 										{
-											stopProcessing(qe.getQueueEntryID(), EnumNodeStatus.Suspended);
+											stopProcessing(qe.getQueueEntryID(), EnumNodeStatus.Suspended, statusDetails);
 										}
 									}
 								}
 								else
 								{
 									log.info("Slave queueentry " + slaveQEID + " was removed");
-									queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Removed, null, null);
+									queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Removed, null, null, null);
 								}
 							}
 						}
@@ -713,6 +714,22 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	public IConverterCallback getSlaveCallback()
 	{
 		return _slaveCallback;
+	}
+
+	/**
+	 * @return
+	 */
+	public File getSlaveInputHF()
+	{
+		return getProperties().getSlaveInputHF();
+	}
+
+	/**
+	 * @return
+	 */
+	public File getSlaveOutputHF()
+	{
+		return getProperties().getSlaveOutputHF();
 	}
 
 	/**

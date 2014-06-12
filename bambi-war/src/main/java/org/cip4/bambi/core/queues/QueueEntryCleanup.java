@@ -113,9 +113,14 @@ public class QueueEntryCleanup extends JDFQueue.CleanupCallback
 
 	protected void stopProcessing(final JDFQueueEntry qe)
 	{
-		parentDevice.stopProcessing(qe.getQueueEntryID(), null);
+		parentDevice.stopProcessing(qe.getQueueEntryID(), null, null);
 	}
 
+	/**
+	 * 
+	 *  
+	 * @param qe
+	 */
 	protected void cleanRootRelated(final JDFQueueEntry qe)
 	{
 		// now the other stuff

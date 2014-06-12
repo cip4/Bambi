@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -168,16 +168,29 @@ public class MultiDeviceProperties extends BambiLogFactory
 		}
 
 		/**
-		 * @return
+		 * @return the name of the callback class, null if no callback is requested
 		 */
 		public String getCallBackClassName()
 		{
-			String name = devRoot.getAttribute("CallBackName", null, null);
-			if (name == null)
+			return getCallBackClassName("CallBackName");
+		}
+
+		/**
+		 * @param callbackType 
+		 * @return the name of the callback class, null if no callback is requested
+		 */
+		protected String getCallBackClassName(String callbackType)
+		{
+			String name = devRoot.getAttribute(callbackType, null, null);
+			if (name == null && !"null".equalsIgnoreCase(name))
 			{
-				name = root.getAttribute("CallBackName", null, null);
+				name = root.getAttribute(callbackType, null, null);
 			}
-			return name;
+			if ("null".equalsIgnoreCase(name))
+			{
+				name = null;
+			}
+			return StringUtil.getNonEmpty(name);
 		}
 
 		/**

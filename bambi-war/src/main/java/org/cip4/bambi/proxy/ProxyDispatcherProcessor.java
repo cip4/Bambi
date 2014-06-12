@@ -436,7 +436,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 				log.info("received returned entry " + queueEntryID + " final status=" + finalStatus.getName());
 				_queueProcessor.returnQueueEntry(qeBambi, null, null, finalStatus);
 				qeBambi.removeAttribute(AttributeName.DEVICEID);
-				_queueProcessor.updateEntry(qeBambi, finalStatus, null, null);
+				_queueProcessor.updateEntry(qeBambi, finalStatus, null, null, null);
 			}
 		}
 		return b;

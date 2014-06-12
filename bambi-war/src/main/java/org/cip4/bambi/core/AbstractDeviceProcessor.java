@@ -449,7 +449,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
 	{
 		currentQE = new QueueEntry(node, qe);
-		_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Running, null, null);
+		_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Running, null, null, null);
 		setupStatusListener(node, qe);
 		return true;
 	}
@@ -587,7 +587,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		}
 		qe.removeAttribute(AttributeName.DEVICEID);
 		log.info("finalized processing JDF: ");
-		_queueProcessor.updateEntry(qe, qes, null, null);
+		_queueProcessor.updateEntry(qe, qes, null, null, null);
 		currentQE = null;
 		return bReturn;
 	}
@@ -598,6 +598,17 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 * @return the new status, null in case of snafu
 	 */
 	public abstract EnumNodeStatus stopProcessing(EnumNodeStatus newStatus);
+
+	/**
+	 * stops the currently processed task, called e.g. from the queueprocessor upon AbortQueueEntry
+	 * @param newStatus if null retain status
+	 * @param statusDetails - not used in the default implementation
+	 * @return the new status, null in case of snafu
+	 */
+	public EnumNodeStatus stopProcessing(EnumNodeStatus newStatus, String statusDetails)
+	{
+		return stopProcessing(newStatus);
+	}
 
 	/**
 	 * @see org.cip4.bambi.core.IDeviceProcessor#shutdown()

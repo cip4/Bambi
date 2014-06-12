@@ -249,7 +249,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		{
 			qe.setDeviceID(slaveDeviceID);
 		}
-		_queueProcessor.updateEntry(qe, newStatus, null, null);
+		_queueProcessor.updateEntry(qe, newStatus, null, null, null);
 		_queueProcessor.updateCache(qe, slaveQEID);
 	}
 
@@ -481,7 +481,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			if (modNode == null)
 			{
 				log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
-				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null, null);
 			}
 			log.info("Submission completed: " + ((qe == null) ? "null" : qe.getQueueEntryID()));
 			return isLive() ? new QueueEntry(node, qe) : null;
@@ -573,7 +573,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				if (!EnumType.SubmitQueueEntry.equals(r.getEnumType())) // total snafu???
 				{
 					log.error("Device returned rc=" + r.getReturnCode());
-					_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+					_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null, null);
 				}
 				else
 				{
@@ -591,7 +591,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 					else
 					{
 						log.error("No QueueEntry in the submitqueuentry response");
-						_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+						_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null, null);
 					}
 				}
 				evaluateResponseQueue(r);
@@ -599,7 +599,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			else
 			{
 				log.error("submitToQueue - no response at: " + BambiNSExtension.getDocURL(qe));
-				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null, null);
 			}
 		}
 
@@ -643,7 +643,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				if (deviceEntry == null)
 				{
 					log.warn("reverting missing queue entry: " + myQE.getQueueEntryID());
-					queueProcessor.updateEntry(myQE, EnumQueueEntryStatus.Waiting, null, null);
+					queueProcessor.updateEntry(myQE, EnumQueueEntryStatus.Waiting, null, null, null);
 				}
 			}
 

@@ -319,7 +319,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			}
 
 			applyPhase(jobPhase);
-			_queueProcessor.updateEntry(getQueueEntry(), jobPhase.getQueueEntryStatus(), null, null);
+			_queueProcessor.updateEntry(getQueueEntry(), jobPhase.getQueueEntryStatus(), null, null, jobPhase.getStatusDetails());
 			return true;
 
 		}
@@ -593,7 +593,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		{
 			// TODO abort!
 			log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
-			_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+			_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null, null);
 		}
 		else
 		{
@@ -612,7 +612,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			else
 			{
 				log.error("Could not write File: " + fLoc + " to " + fHF);
-				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null);
+				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null, null);
 			}
 		}
 		return qe.getQueueEntryStatus();
@@ -688,8 +688,11 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	@Override
 	public void shutdown()
 	{
-		log.info("shutting down " + toString());
-		super.shutdown();
+		if (!_doShutdown)
+		{
+			log.info("shutting down " + toString());
+			super.shutdown();
+		}
 	}
 
 	/**

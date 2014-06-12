@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -127,6 +127,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveCallBackClass()
 		 */
+		@Override
 		public IConverterCallback getSlaveCallBackClass()
 		{
 			final String _callBackName = getSlaveCallBackClassName();
@@ -151,17 +152,13 @@ public class ProxyProperties extends MultiDeviceProperties
 		 */
 		public String getSlaveCallBackClassName()
 		{
-			String name = devRoot.getAttribute("SlaveCallBackName", null, null);
-			if (name == null)
-			{
-				name = getRoot().getAttribute("SlaveCallBackName", null, null);
-			}
-			return name;
+			return getCallBackClassName("SlaveCallBackName");
 		}
 
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveDeviceID()
 		 */
+		@Override
 		public String getSlaveDeviceID()
 		{
 			final String s = devRoot.getAttribute("SlaveDeviceID", null, null);
@@ -176,6 +173,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveErrorHF()
 		 */
+		@Override
 		public File getSlaveErrorHF()
 		{
 			return getFile("SlaveErrorHF");
@@ -185,6 +183,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		 * get the URL of this proxy for the slave - includes last '/'
 		 * @return the url
 		 */
+		@Override
 		public String getDeviceURLForSlave()
 		{
 			final String s = getDeviceURL();
@@ -194,6 +193,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveInputHF()
 		 */
+		@Override
 		public File getSlaveInputHF()
 		{
 			return getFile("SlaveInputHF");
@@ -202,6 +202,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveOutputHF()
 		 */
+		@Override
 		public File getSlaveOutputHF()
 		{
 			return getFile("SlaveOutputHF");
@@ -210,6 +211,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveInputHF(java.io.File)
 		 */
+		@Override
 		public void setSlaveInputHF(final File hf)
 		{
 			setFile("SlaveInputHF", hf);
@@ -218,6 +220,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveOutputHF(java.io.File)
 		 */
+		@Override
 		public void setSlaveOutputHF(final File hf)
 		{
 			setFile("SlaveOutputHF", hf);
@@ -226,6 +229,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveErrorHF(java.io.File)
 		 */
+		@Override
 		public void setSlaveErrorHF(final File hf)
 		{
 			setFile("SlaveErrorHF", hf);
@@ -234,6 +238,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveURL()
 		 */
+		@Override
 		public String getSlaveURL()
 		{
 			return devRoot.getAttribute("SlaveURL", null, null);
@@ -242,6 +247,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveURL(java.lang.String)
 		 */
+		@Override
 		public void setSlaveURL(final String slaveURL)
 		{
 			devRoot.setAttribute("SlaveURL", slaveURL, null);
@@ -250,6 +256,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#getMaxPush()
 		 */
+		@Override
 		public int getMaxPush()
 		{
 			return StringUtil.parseInt(getDeviceAttribute("MaxPush"), 0);
@@ -258,6 +265,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#getMaxSlaveRunning()
 		 */
+		@Override
 		public int getMaxSlaveRunning()
 		{
 			return StringUtil.parseInt(getDeviceAttribute("MaxSlaveRunning"), 999);
@@ -267,6 +275,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		 * @param push the max number of jobs to push to the slave device
 		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveURL(java.lang.String)
 		 */
+		@Override
 		public void setMaxPush(final int push)
 		{
 			devRoot.setAttribute("MaxPush", push, null);
@@ -275,6 +284,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveHTTPChunk()
 		 */
+		@Override
 		public int getSlaveHTTPChunk()
 		{
 			return StringUtil.parseInt(getDeviceAttribute("SlaveHTTPChunk"), getControllerHTTPChunk());
@@ -283,6 +293,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveMIMEEncoding()
 		 */
+		@Override
 		public String getSlaveMIMEEncoding()
 		{
 			return getDeviceAttribute("SlaveMIMETransferEncoding", null, getControllerMIMEEncoding());
@@ -291,6 +302,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#getSlaveMIMEExpansion()
 		 */
+		@Override
 		public boolean getSlaveMIMEExpansion()
 		{
 			return isSlaveMimePackaging() && StringUtil.parseBoolean(getDeviceAttribute("SlaveMIMETransferExpansion"), getControllerMIMEExpansion());
@@ -300,6 +312,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveMIMEExpansion(boolean)
 		 * @param extendMime
 		*/
+		@Override
 		public void setSlaveMIMEExpansion(boolean extendMime)
 		{
 			devRoot.setAttribute("SlaveMIMETransferExpansion", extendMime, null);
@@ -308,6 +321,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @return true if a semicolon is allowed after the mime type
 		 */
+		@Override
 		public boolean getSlaveMIMESemicolon()
 		{
 			return isSlaveMimePackaging() && StringUtil.parseBoolean(getDeviceAttribute("SlaveMIMESemicolon"), true);
@@ -318,6 +332,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		 * @return true if slave accepts mime,
 		 * @default is true
 		 */
+		@Override
 		public boolean isSlaveMimePackaging()
 		{
 			return StringUtil.parseBoolean(getDeviceAttribute("SlaveMimePackaging"), true);
@@ -326,6 +341,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveDeviceID(java.lang.String)
 		 */
+		@Override
 		public void setSlaveDeviceID(final String newSlaveID)
 		{
 			devRoot.setAttribute("SlaveDeviceID", newSlaveID, null);
