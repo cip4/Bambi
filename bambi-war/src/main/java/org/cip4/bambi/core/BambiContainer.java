@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -353,7 +353,7 @@ public final class BambiContainer extends BambiLogFactory
 		}
 		if (d == null)
 		{
-			log.fatal("could not create device, ID=" + prop.getDeviceID());
+			log.warn("could not create device, ID=" + prop.getDeviceID());
 		}
 		return d;
 	}
