@@ -466,7 +466,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 									final String statusDetails = StringUtil.getNonEmpty(slaveQE.getStatusDetails());
 									if (!ContainerUtil.equals(status, qe.getQueueEntryStatus()))
 									{
-										queueProcessor.updateEntry(qe, status, null, null, null);
+										queueProcessor.updateEntry(qe, status, null, null, slaveQE.getStatusDetails());
 										if (EnumQueueEntryStatus.Completed.equals(status))
 										{
 											stopProcessing(qe.getQueueEntryID(), EnumNodeStatus.Completed, statusDetails);

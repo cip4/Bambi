@@ -108,7 +108,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
-import org.cip4.jdflib.extensions.XJDF20;
+import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.jmf.JDFDeviceFilter;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -1981,17 +1981,17 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			return request;
 		}
-		if (!(e instanceof JDFNode) && !XJDF20.rootName.equals(e.getLocalName()))
+		if (!(e instanceof JDFNode) && !XJDFHelper.XJDF.equals(e.getLocalName()))
 		{
 			KElement e2 = e.getChildByTagName(ElementName.JDF, null, 0, null, false, false);
 			if (e2 == null)
-				e2 = e.getChildByTagName(XJDF20.rootName, null, 0, null, false, false);
+				e2 = e.getChildByTagName(XJDFHelper.XJDF, null, 0, null, false, false);
 			if (e2 != null)
 			{
 				e = e2.cloneNewDoc();
 			}
 		}
-		if (e instanceof JDFNode || XJDF20.rootName.equals(e.getLocalName()))
+		if (e instanceof JDFNode || XJDFHelper.XJDF.equals(e.getLocalName()))
 		{
 			final XMLRequest r2 = createSubmitFromJDF(e);
 			if (r2 != null)
