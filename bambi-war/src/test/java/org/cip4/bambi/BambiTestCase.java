@@ -222,7 +222,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 */
 	protected void createMISPreGT()
 	{
-		_theGT = new MISPreGoldenTicket(2, EnumVersion.Version_1_3, 1, 2, null);
+		_theGT = new MISPreGoldenTicket(2, EnumVersion.Version_1_5, 1, 2, null);
 	}
 
 	/**
