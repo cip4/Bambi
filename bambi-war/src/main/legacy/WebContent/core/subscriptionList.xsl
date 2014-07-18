@@ -3,7 +3,6 @@
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:bambi="www.cip4.org/Bambi" xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-	<!--  (C) 2001 - 2014 CIP4  -->
 	<xsl:strip-space elements="*" />
 	<xsl:output method="html" />
 	<xsl:template match="/SubscriptionList">
@@ -228,7 +227,7 @@
 								dispatch errors
 							</xsl:when>
 							<xsl:otherwise>
-								back log
+								processing back log
 							</xsl:otherwise>
 						</xsl:choose>
 					</xsl:when>

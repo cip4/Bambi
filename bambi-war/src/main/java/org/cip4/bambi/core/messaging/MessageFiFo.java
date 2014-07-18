@@ -214,6 +214,20 @@ class MessageFiFo
 
 	/**
 	 *  
+	 * return a clone of tail so that we can optimize without blocking the head
+	 * @return
+	 */
+	public synchronized Vector<MessageDetails> getTailClone()
+	{
+		if (tail == null)
+			return null;
+		Vector<MessageDetails> v = new Vector<MessageDetails>();
+		v.addAll(tail);
+		return v;
+	}
+
+	/**
+	 *  
 	 * @return
 	 */
 	public int size()
@@ -380,5 +394,20 @@ class MessageFiFo
 	public String toString()
 	{
 		return "MessageFiFo [size=" + size() + " head=" + head.size() + ", tail=" + tail.size() + ", dumps=" + dumps.size() + ", dumpDir=" + dumpDir + "]";
+	}
+
+	/**
+	 * 
+	 * @param messageDetails
+	 * @return
+	 */
+	public boolean remove(MessageDetails messageDetails)
+	{
+		boolean zapped = false;
+		if (tail != null)
+			zapped = tail.remove(messageDetails);
+		if (!zapped && head != null && head != tail)
+			head.remove(messageDetails);
+		return zapped;
 	}
 }

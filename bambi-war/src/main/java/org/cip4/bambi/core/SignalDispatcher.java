@@ -204,7 +204,7 @@ public final class SignalDispatcher extends BambiLogFactory
 				setXMLRoot(request);
 				if (bListSenders)
 				{
-					listDispatchers(request, true, pos);
+					listMessageSenders(request, true, pos);
 					if (pos > 0)
 					{
 						setXSLTURL(request.getContextRoot() + "/subscriptionDetails.xsl");
@@ -218,7 +218,7 @@ public final class SignalDispatcher extends BambiLogFactory
 				{
 					listChannels(request, details);
 					device.addMoreToXMLSubscriptions(root);
-					listDispatchers(request, false, -1);
+					listMessageSenders(request, false, -1);
 					setXSLTURL(request.getContextRoot() + "/subscriptionList.xsl");
 				}
 			}
@@ -297,7 +297,7 @@ public final class SignalDispatcher extends BambiLogFactory
 		 * @param bListSenders 
 		 * @param pos 
 		 */
-		private void listDispatchers(final ContainerRequest request, final boolean bListSenders, final int pos)
+		private void listMessageSenders(final ContainerRequest request, final boolean bListSenders, final int pos)
 		{
 			final String url = request.getParameter(AttributeName.URL);
 			final URL myURL = UrlUtil.stringToURL(url);

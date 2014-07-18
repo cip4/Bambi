@@ -77,6 +77,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Vector;
 
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -154,13 +155,13 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	protected int removedHeartbeatJMF;
 	protected int removedFireForget;
 	protected int removedError;
-	private int idle = 0;
+	private int idle;
 	private final CPUTimer timer;
 	private long created;
-	private long lastQueued = 0;
-	private long lastSent = 0;
-	private boolean pause = false;
-	private static File baseLocation = null;
+	private long lastQueued;
+	private long lastSent;
+	private boolean pause;
+	private static File baseLocation;
 
 	/**
 	 * @return the baseLocation where all message related files are stored
@@ -219,34 +220,41 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				return;
 			}
 			checked++;
-			for (int i = _messages.size() - 1; i >= 0; i--)
+			Vector<MessageDetails> tail = _messages.getTailClone();
+			if (tail != null)
 			{
-				MessageDetails messageDetails = _messages.get(i);
-				if (messageDetails == null)
-					break;
-				final JDFJMF jmf = messageDetails.jmf;
-				if (jmf == null)
+				for (int i = tail.size() - 1; i >= 0; i--)
 				{
-					continue; // don't optimize mime packages
-				}
-				final VElement v2 = jmf.getMessageVector(null, null);
-				if (v2 == null)
-				{
-					continue;
-				}
-				for (int ii = v2.size() - 1; ii >= 0; ii--)
-				{
-					final JDFMessage mOld = (JDFMessage) v2.get(ii);
-					if (mOld instanceof JDFSignal)
+					MessageDetails messageDetails = tail.get(i);
+					if (messageDetails == null)
 					{
-						final optimizeResult res = opt.optimize(newMessage, mOld);
-						if (res == optimizeResult.remove)
+						log.warn("empty message in tail...");
+						break;
+					}
+					final JDFJMF jmf = messageDetails.jmf;
+					if (jmf == null)
+					{
+						continue; // don't optimize mime packages
+					}
+					final VElement v2 = jmf.getMessageVector(null, null);
+					if (v2 == null)
+					{
+						continue;
+					}
+					for (int ii = v2.size() - 1; ii >= 0; ii--)
+					{
+						final JDFMessage mOld = (JDFMessage) v2.get(ii);
+						if (mOld instanceof JDFSignal)
 						{
-							removeMessage(mOld, i);
-						}
-						else if (res == optimizeResult.cont)
-						{
-							return; // we found a non matching message and must stop optimizing
+							final optimizeResult res = opt.optimize(newMessage, mOld);
+							if (res == optimizeResult.remove)
+							{
+								removeMessage(mOld, messageDetails);
+							}
+							else if (res == optimizeResult.cont)
+							{
+								return; // we found a non matching message and must stop optimizing
+							}
 						}
 					}
 				}
@@ -255,20 +263,30 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 		/**
 		 * @param old
-		 * @param i
+		 * @param messageDetails
 		 */
-		private void removeMessage(final JDFMessage old, final int i)
+		private void removeMessage(final JDFMessage old, final MessageDetails messageDetails)
 		{
-			final JDFJMF jmf = old.getJMFRoot();
-			jmf.removeChild(old);
-			log.info("removed redundant " + old.getType() + " " + old.getLocalName() + " Message ID= " + old.getID() + " Sender= " + old.getSenderID());
-			removedHeartbeat++;
-			final VElement v = jmf.getMessageVector(null, null);
-			if (v == null || v.size() == 0)
+			synchronized (_messages)
 			{
-				removedHeartbeatJMF++;
-				log.info("removed redundant jmf # " + removedHeartbeat + " ID: " + jmf.getID() + " total checked: " + checked);
-				_messages.remove(i);
+				final JDFJMF jmf = old.getJMFRoot();
+				jmf.removeChild(old);
+				log.info("removed redundant " + old.getType() + " " + old.getLocalName() + " Message ID= " + old.getID() + " Sender= " + old.getSenderID());
+				removedHeartbeat++;
+				final VElement v = jmf.getMessageVector(null, null);
+				if (v == null || v.size() == 0)
+				{
+					boolean zapped = _messages.remove(messageDetails);
+					if (zapped)
+					{
+						removedHeartbeatJMF++;
+						log.info("removed redundant jmf # " + removedHeartbeat + " ID: " + jmf.getID() + " total checked: " + checked);
+					}
+					else
+					{
+						log.warn("could not remove redundant jmf # " + removedHeartbeat + " ID: " + jmf.getID() + " total checked: " + checked);
+					}
+				}
 			}
 		}
 	}
@@ -284,6 +302,9 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		firstProblem = 0;
 		trySend = 0;
 		sent = 0;
+		lastQueued = 0;
+		lastSent = 0;
+		pause = false;
 		removedHeartbeat = 0;
 		removedHeartbeatJMF = 0;
 		removedFireForget = 0;
@@ -291,7 +312,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		waitKaputt = false;
 		callURL = cu;
 		timer = new CPUTimer(false);
-
+		created = System.currentTimeMillis();
 		_messages = new MessageFiFo(getPersistLocation(true));
 		sentMessages = new FastFiFo<MessageDetails>(42);
 		optimizer = new SenderQueueOptimizer();
@@ -593,7 +614,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				{
 					duration = (tWait / (3600000l * 24l)) + " days";
 				}
-				log.info("successfully reactivated message sender to: " + mesDetails.url + " after " + duration + "messages pending: " + _messages.size());
+				log.info("successfully reactivated message sender to: " + mesDetails.url + " after " + duration + " messages pending: " + _messages.size());
 			}
 			firstProblem = 0;
 			_messages.remove(0);
@@ -621,7 +642,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			}
 			else
 			{
-				if ((System.currentTimeMillis() - mesDetails.createTime) > (1000l * 3600l * 24l * 42l) && (_messages.size() > 4242))
+				if ((System.currentTimeMillis() - mesDetails.createTime) > (1000l * 3600l * 24l * 42l) && (_messages.size() > 1000))
 				{
 					String warn2 = " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.createTime).getDateTimeISO() + " messages pending: "
 							+ _messages.size();
@@ -1015,9 +1036,12 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			return false;
 		}
 		lastQueued = System.currentTimeMillis();
-		synchronized (_messages)
+		if (_messages.size() > 333)
 		{
 			optimizer.optimize(messageDetails.jmf);
+		}
+		synchronized (_messages)
+		{
 			_messages.add(messageDetails);
 			if (_messages.size() >= 1000)
 			{
