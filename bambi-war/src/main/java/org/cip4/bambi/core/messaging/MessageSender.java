@@ -363,6 +363,10 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 						sent++;
 						lastSent = System.currentTimeMillis();
 						idle = 0;
+						if (sent < 10 || (sent % 1000) == 0)
+						{
+							log.info("successfully sent JMF # " + sent + " to " + callURL);
+						}
 					}
 				}
 

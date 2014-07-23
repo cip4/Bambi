@@ -1369,22 +1369,29 @@ public final class SignalDispatcher extends BambiLogFactory
 	void checkStaleSubscription(MsgSubscription sub)
 	{
 		String url = sub.getURL();
-		Vector<MessageSender> vMesSend = JMFFactory.getJMFFactory().getMessageSenders(url);
-		if (vMesSend != null)
+		if (StringUtil.getNonEmpty(url) == null)
 		{
-			for (MessageSender m : vMesSend)
+			log.error("deleting subscription with null url " + sub.channelID + " " + sub.getMessageType());
+			removeSubScription(sub.channelID);
+		}
+		else
+		{
+			Vector<MessageSender> vMesSend = JMFFactory.getJMFFactory().getMessageSenders(url);
+			if (vMesSend != null)
 			{
-				if (m.isBlocked(1000 * 24 * 60 * 60 * 7))
+				for (MessageSender m : vMesSend)
 				{
-					removeSubScription(sub.channelID);
-					m.flushMessages();
-					JMFFactory.getJMFFactory().shutDown(m.getCallURL(), true);
-					log.error("removed stale subscription " + sub.channelID + " " + sub.getMessageType() + " url=" + sub.getURL());
-					break;
+					if (m.isBlocked(1000l * 24l * 60l * 60l * 14l))
+					{
+						removeSubScription(sub.channelID);
+						m.flushMessages();
+						JMFFactory.getJMFFactory().shutDown(m.getCallURL(), true);
+						log.error("removed stale subscription " + sub.channelID + " " + sub.getMessageType() + " url=" + sub.getURL());
+						break;
+					}
 				}
 			}
 		}
-
 	}
 
 	/**
