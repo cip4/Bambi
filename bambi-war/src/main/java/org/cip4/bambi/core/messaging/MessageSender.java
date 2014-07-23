@@ -406,8 +406,9 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 							wait = 424242;
 							if (_messages.size() > 0)
 							{
+								long t0 = lastSent == 0 ? startTime : lastSent;
 								log.warn("Still waiting in blocked message thread for " + callURL.getBaseURL() + " unsuccessfull for "
-										+ ((System.currentTimeMillis() - lastSent) / 60000l) + " minutes");
+										+ ((System.currentTimeMillis() - t0) / 60000l) + " minutes");
 							}
 						}
 						waitKaputt = true;
