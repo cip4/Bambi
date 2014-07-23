@@ -1177,9 +1177,15 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	{
 		synchronized (_messages)
 		{
+			log.warn("Flushing " + _messages.size() + " Messages from " + toString());
 			_messages.clear();
 			final File pers = getPersistLocation(true);
-			FileUtil.deleteAll(pers);
+			log.warn("Deleting message directory Messages from " + (pers == null ? "null" : pers.getAbsolutePath()));
+			boolean ok = FileUtil.deleteAll(pers);
+			if (!ok)
+			{
+				log.error("Problems deleting message directory Messages from " + (pers == null ? "null" : pers.getAbsolutePath()));
+			}
 		}
 	}
 
