@@ -1227,6 +1227,7 @@ public final class SignalDispatcher extends BambiLogFactory
 				return true;
 			}
 			final String channel = spcp.getChannelID();
+			log.info("Handling StopPersistantChannel JMF for channel: " + channel);
 			if (!KElement.isWildCard(channel))
 			{
 				final MsgSubscription mSub = removeSubScription(channel);
@@ -1387,7 +1388,6 @@ public final class SignalDispatcher extends BambiLogFactory
 						m.flushMessages();
 						JMFFactory.getJMFFactory().shutDown(m.getCallURL(), true);
 						log.error("removed stale subscription " + sub.channelID + " " + sub.getMessageType() + " url=" + sub.getURL());
-						break;
 					}
 				}
 			}
@@ -1649,9 +1649,9 @@ public final class SignalDispatcher extends BambiLogFactory
 			if (v != null && v.size() > 0)
 			{
 				log.info("removing multiple subscriptions for qe=" + queueEntryID + " URL=" + url);
-				for (int i = 0; i < v.size(); i++)
+				for (String key : v)
 				{
-					final MsgSubscription mSub = removeSubScription(v.stringAt(i));
+					final MsgSubscription mSub = removeSubScription(key);
 					if (mSub != null)
 					{
 						vSubs.add(mSub);

@@ -591,6 +591,7 @@ public final class BambiContainer extends BambiLogFactory
 	 */
 	private XMLResponse handleGet(final StreamRequest request)
 	{
+		log.info("Handling UI Get request: " + request);
 		XMLResponse r = new OverviewHandler().handleGet(request);
 		if (r == null)
 		{
