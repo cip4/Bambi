@@ -653,13 +653,22 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * create the signal dispatcher and link it to the jmf handler
 	 * @return
 	 */
-	private SignalDispatcher linkDispatcher()
+	private final SignalDispatcher linkDispatcher()
 	{
-		SignalDispatcher s = new SignalDispatcher(_jmfHandler, this);
+		SignalDispatcher s = createSignalDispatcher();
 		s.addHandlers(_jmfHandler);
 		_jmfHandler.setDispatcher(s);
 		_jmfHandler.setFilterOnDeviceID(true);
 		return s;
+	}
+
+	/**
+	 * 
+	 * @return the signaldispatcher for this
+	 */
+	protected SignalDispatcher createSignalDispatcher()
+	{
+		return new SignalDispatcher(_jmfHandler, this);
 	}
 
 	/**

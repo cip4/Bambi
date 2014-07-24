@@ -125,22 +125,21 @@ import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * this class handles subscriptions <br>
- * class should remain final, because if it is ever subclassed the dispatcher thread would be started before the constructor from the subclass has a chance to
- * fire off.
- * @author prosirai
+ * 
+ * @author rainer prosi
  */
-public final class SignalDispatcher extends BambiLogFactory
+public class SignalDispatcher extends BambiLogFactory
 {
-	protected HashMap<String, MsgSubscription> subscriptionMap = null; // map of slaveChannelID / Subscription
+	protected final HashMap<String, MsgSubscription> subscriptionMap; // map of slaveChannelID / Subscription
 	private final SubscriptionStore storage;
-	IMessageHandler messageHandler = null;
-	protected Vector<Trigger> triggers = null;
-	protected MyMutex mutex = null;
-	protected boolean doShutdown = false;
-	protected AbstractDevice device = null;
-	private int lastCalled = 0;
-	protected Dispatcher theDispatcher;
-	private String ignoreURL = null;
+	private final IMessageHandler messageHandler;
+	protected final Vector<Trigger> triggers;
+	protected final MyMutex mutex;
+	private boolean doShutdown;
+	protected final AbstractDevice device;
+	private int lastCalled;
+	protected final Dispatcher theDispatcher;
+	private String ignoreURL;
 
 	/**
 	 * set the case insensitive url pattern to be ignored for subscriptions
@@ -750,7 +749,7 @@ public final class SignalDispatcher extends BambiLogFactory
 	/**
 	 * 
 	 */
-	private class MsgSubscription implements Cloneable
+	protected class MsgSubscription implements Cloneable
 	{
 		protected static final String SUBSCRIPTION_ELEMENT = "MsgSubscription";
 		protected String channelID = null;
@@ -1032,8 +1031,8 @@ public final class SignalDispatcher extends BambiLogFactory
 			sub.setAttribute(AttributeName.CHANNELID, channelID);
 			sub.setAttribute(AttributeName.DEVICEID, jmfDeviceID);
 			sub.setAttribute(AttributeName.QUEUEENTRYID, queueEntry);
-			if (device != null)
-				sub.setAttribute(AttributeName.SENDERID, device.getDeviceID());
+			sub.setAttribute(AttributeName.SENDERID, device == null ? "test" : device.getDeviceID());
+
 			if (theMessage != null)
 			{
 				sub.setAttribute(AttributeName.MESSAGETYPE, theMessage.getType());
@@ -1355,25 +1354,33 @@ public final class SignalDispatcher extends BambiLogFactory
 	{
 		storage = new SubscriptionStore(dev == null ? null : dev.getDeviceDir());
 		device = dev;
+		if (dev == null)
+		{
+			log.error("Creating SignalDispatcher for null device");
+		}
 		subscriptionMap = new HashMap<String, MsgSubscription>();
-		// queueEntryMap=new VectorMap<String, String>();
 		messageHandler = _messageHandler;
 		triggers = new Vector<Trigger>();
 		mutex = new MyMutex();
 		theDispatcher = new Dispatcher();
+		doShutdown = false;
+		lastCalled = 0;
+		ignoreURL = null;
 	}
 
 	/**
 	 * check any prehistoric subscriptions that no longer work and zapp them
 	 * @param sub the subscription
 	 */
-	void checkStaleSubscription(MsgSubscription sub)
+	protected boolean checkStaleSubscription(MsgSubscription sub)
 	{
+		boolean zapped = false;
 		String url = sub.getURL();
 		if (StringUtil.getNonEmpty(url) == null)
 		{
 			log.error("deleting subscription with null url " + sub.channelID + " " + sub.getMessageType());
 			removeSubScription(sub.channelID);
+			zapped = true;
 		}
 		else
 		{
@@ -1388,10 +1395,12 @@ public final class SignalDispatcher extends BambiLogFactory
 						m.flushMessages();
 						JMFFactory.getJMFFactory().shutDown(m.getCallURL(), true);
 						log.error("removed stale subscription " + sub.channelID + " " + sub.getMessageType() + " url=" + sub.getURL());
+						zapped = true;
 					}
 				}
 			}
 		}
+		return zapped;
 	}
 
 	/**
@@ -1851,7 +1860,7 @@ public final class SignalDispatcher extends BambiLogFactory
 	 */
 	public void startup()
 	{
-		final String deviceID = device == null ? "testID" : device.getDeviceID();
+		final String deviceID = device.getDeviceID();
 		Thread thread = new Thread(theDispatcher, "SignalDispatcher_" + deviceID);
 		thread.setDaemon(true);
 		thread.start();
@@ -1924,7 +1933,7 @@ public final class SignalDispatcher extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		return "SubscriptionMap " + ((device == null) ? " null device " : device.getDeviceID()) + " : " + subscriptionMap;
+		return "SubscriptionMap; device= " + device.getDeviceID() + " : " + subscriptionMap;
 	}
 
 	/**
