@@ -809,7 +809,8 @@ public class MultiDeviceProperties extends BambiLogFactory
 		}
 		catch (final UnknownHostException x1)
 		{
-			log.error("network setup looks sub-optimal: ", x1);
+			contextURL = "http://localHost:" + getPort() + "/" + context;
+			log.error("network setup looks sub-optimal - using; " + contextURL, x1);
 		}
 		return contextURL;
 	}
