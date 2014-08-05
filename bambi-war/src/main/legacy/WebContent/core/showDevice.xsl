@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!-- Copyright 2009-2014 CIP4 -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -37,10 +38,7 @@
 
 			<!-- Body only -->
 			<body>
-				<img height="70" alt="logo">
-					<xsl:attribute name="src"><xsl:value-of
-						select="$context" />/logo.gif</xsl:attribute>
-				</img>
+				<xsl:call-template name="topnavigation" />
 				<h1>
 					<xsl:value-of select="$deviceType" />
 					- Device :
@@ -179,7 +177,6 @@
 								<input type="submit" value="show subscriptions" />
 							</form>
 						</td>
-
 					</tr>
 				</table>
 				<hr />
@@ -353,6 +350,7 @@
 		<!-- nop here -->
 	</xsl:template>
 
+	<xsl:include href="topnavigation.xsl" />
 
 	<!-- add more templates -->
 	<!-- the catchall -->

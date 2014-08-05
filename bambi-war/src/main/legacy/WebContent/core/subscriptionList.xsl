@@ -19,7 +19,7 @@
 				</title>
 			</head>
 			<body>
-				<img src="../logo.gif" height="70" alt="logo" />
+				<xsl:call-template name="topnavigation" />
 				<h1>
 					<xsl:value-of select="@DeviceID" />
 					- Subscriptions
@@ -429,6 +429,7 @@
 		<hr />
 	</xsl:template>
 	<xsl:include href="SubscriptionExtension.xsl" />
+	<xsl:include href="topnavigation.xsl" />
 	<xsl:include href="CPUTimer.xsl" />
 
 </xsl:stylesheet>

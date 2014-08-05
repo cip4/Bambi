@@ -317,6 +317,8 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		sentMessages = new FastFiFo<MessageDetails>(42);
 		optimizer = new SenderQueueOptimizer();
 		setJMFFactory(null);
+		created = System.currentTimeMillis();
+		readFromBase();
 	}
 
 	/**
@@ -326,7 +328,6 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	@Override
 	public void run()
 	{
-		readFromBase();
 		waitStartup();
 		log.info("starting messagesender loop " + this);
 		senderLoop();
@@ -517,7 +518,15 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			removedError = root.getIntAttribute("NumRemoveError", null, 0);
 			lastQueued = root.getLongAttribute("iLastQueued", null, 0);
 			lastSent = root.getLongAttribute("iLastSent", null, 0);
-			created = root.getLongAttribute("i" + AttributeName.CREATIONDATE, null, 0);
+			created = root.getLongAttribute("i" + AttributeName.CREATIONDATE, null, System.currentTimeMillis());
+			if (created <= 0)
+			{
+				created = System.currentTimeMillis();
+			}
+		}
+		else
+		{
+			log.warn("could not parse jmf message sender base file" + f.getAbsolutePath());
 		}
 	}
 
@@ -1065,7 +1074,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			ThreadUtil.notifyAll(mutexDispatch);
 		}
 		DelayedPersist.getDelayedPersist().queue(this, 420000); // 7 minutes 
-		return !isBlocked(42000);
+		return !isBlocked(42000, 2);
 	}
 
 	/**
@@ -1226,14 +1235,15 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * check whether we have not sent for longer than deltaTime milliseconds
-	 * @param deltaTime
+	 * @param deltaTime time in milliseconds that we need to be blocked
+	 * @param blockSize size below which we never consider ourselves blocked
 	 * @return
 	 */
-	public boolean isBlocked(long deltaTime)
+	public boolean isBlocked(long deltaTime, int blockSize)
 	{
-		if (_messages.isEmpty())
+		if (_messages.size() < blockSize)
 			return false;
-		long last = lastSent == 0 ? startTime : lastSent;
+		long last = lastSent == 0 ? created : lastSent;
 		return lastQueued - last > deltaTime;
 	}
 

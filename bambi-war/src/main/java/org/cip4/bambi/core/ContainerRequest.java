@@ -380,8 +380,8 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public boolean getBooleanParam(final String param)
 	{
-		final String val = getParameter(param);
-		return StringUtil.parseBoolean(val, false);
+		final String val = StringUtil.getNonEmpty(getParameter(param));
+		return val != null && StringUtil.parseBoolean(val, true);
 	}
 
 	/**

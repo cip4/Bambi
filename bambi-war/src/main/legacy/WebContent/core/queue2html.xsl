@@ -20,10 +20,7 @@
 				</xsl:if>
 			</head>
 			<body>
-				<img height="70" alt="logo">
-					<xsl:attribute name="src"><xsl:value-of
-						select="$context" />/logo.gif</xsl:attribute>
-				</img>
+				<xsl:call-template name="topnavigation" />
 				<h1>
 					Queue - DeviceID:
 					<xsl:value-of select="@DeviceID" />
@@ -538,5 +535,6 @@
 		</tr>
 	</xsl:template>
 	<xsl:include href="optionlist.xsl" />
+	<xsl:include href="topnavigation.xsl" />
 	<xsl:include href="StandardXML.xsl" />
 </xsl:stylesheet>

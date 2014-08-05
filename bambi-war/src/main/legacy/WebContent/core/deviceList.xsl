@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!-- -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:strip-space elements="*" />
@@ -23,10 +24,7 @@
 				</title>
 			</head>
 			<body>
-				<img height="70" alt="logo">
-					<xsl:attribute name="src"><xsl:value-of
-						select="$context" />/logo.gif</xsl:attribute>
-				</img>
+				<xsl:call-template name="topnavigation" />
 				<h1>
 					<xsl:value-of select="@DeviceType" />
 					- Overview
@@ -74,7 +72,7 @@
 						<tr>
 							<td>
 								requests handled:
-          </td>
+							</td>
 							<td>
 								<xsl:value-of select="@NumRequests" />
 							</td>
@@ -82,7 +80,7 @@
 						<tr>
 							<td>
 								Free Memory:
-           </td>
+							</td>
 							<td>
 								<xsl:value-of select="@MemFree" />
 							</td>
@@ -90,7 +88,7 @@
 						<tr>
 							<td>
 								Currently used Memory:
-           </td>
+							</td>
 							<td>
 								<xsl:value-of select="@MemCurrent" />
 							</td>
@@ -98,7 +96,7 @@
 						<tr>
 							<td>
 								Currently used PermGen Memory:
-           </td>
+							</td>
 							<td>
 								<xsl:value-of select="@MemPerm" />
 							</td>
@@ -107,7 +105,7 @@
 						<tr>
 							<td>
 								Total Allocated Memory:
-          </td>
+							</td>
 							<td>
 								<xsl:value-of select="@MemTotal" />
 							</td>
@@ -126,7 +124,8 @@
 						</tr>
 						<tr>
 							<td>JDFLib Build:</td>
-							<td>@build.minorversion@, JDF Schema Version: @build.majorversion@</td>
+							<td>@build.minorversion@, JDF Schema Version:
+								@build.majorversion@</td>
 						</tr>
 					</table>
 				</font>
@@ -232,6 +231,8 @@
 			</td>
 		</tr>
 	</xsl:template>
+	<xsl:include href="topnavigation.xsl" />
 	<xsl:include href="CPUTimer.xsl" />
+
 
 </xsl:stylesheet>

@@ -1389,7 +1389,7 @@ public class SignalDispatcher extends BambiLogFactory
 			{
 				for (MessageSender m : vMesSend)
 				{
-					if (m.isBlocked(1000l * 24l * 60l * 60l * 14l))
+					if (m.isBlocked(1000l * 24l * 60l * 60l * 42l, 42))
 					{
 						removeSubScription(sub.channelID);
 						m.flushMessages();
