@@ -4,7 +4,7 @@
 	version="1.0">
 	<xsl:template name="topnavigation">
 		<img height="70" alt="logo">
-			<xsl:attribute name="src"><xsl:value-of select="$context" />/logo.gif</xsl:attribute>
+			<xsl:attribute name="src"><xsl:value-of select="/@Context" />/logo.gif</xsl:attribute>
 		</img>
 	</xsl:template>
 </xsl:stylesheet>
