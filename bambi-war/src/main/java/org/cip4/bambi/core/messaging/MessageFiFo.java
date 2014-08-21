@@ -404,7 +404,7 @@ class MessageFiFo
 	 * @param messageDetails
 	 * @return
 	 */
-	public boolean remove(MessageDetails messageDetails)
+	public synchronized boolean remove(MessageDetails messageDetails)
 	{
 		boolean zapped = false;
 		if (tail != null)
