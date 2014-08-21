@@ -316,7 +316,8 @@ class MessageFiFo
 			{
 				newTail.add(tail.get(messPerDump));
 			}
-			persistTail();
+			if (head != tail)
+				persistTail();
 			tail = newTail;
 		}
 		tail.add(messageDetails);
