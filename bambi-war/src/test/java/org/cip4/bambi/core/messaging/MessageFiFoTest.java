@@ -120,7 +120,11 @@ public class MessageFiFoTest extends BambiTestCaseBase
 				nOut++;
 			}
 		}
-		for (int i = 0; i < 10000; i++)
+		log.info("dumping");
+		fifo.dumpHeadTail();
+		log.info("reactivating " + dumpDir);
+		fifo = new MessageFiFo(dumpDir);
+		for (int i = 0; i < 110000; i++)
 		{
 			for (int j = 0; j < 2; j++)
 			{
@@ -130,14 +134,25 @@ public class MessageFiFoTest extends BambiTestCaseBase
 				fifo.add(messageDetails);
 				nIn++;
 			}
+			boolean breakit = false;
 			for (int j = 0; j < 10; j++)
 			{
 				MessageDetails messageDetails = fifo.get(0);
 				assertEquals(fifo.remove(0), messageDetails);
+				if (messageDetails == null)
+				{
+					breakit = true;
+					break;
+				}
 				JDFJMF jmf = messageDetails.jmf;
 				long nJMF = StringUtil.parseLong(jmf.getDescriptiveName(), -1);
 				assertEquals(nJMF, nOut);
 				nOut++;
+			}
+			if (breakit)
+			{
+				fifo.dumpHeadTail();
+				break;
 			}
 		}
 	}

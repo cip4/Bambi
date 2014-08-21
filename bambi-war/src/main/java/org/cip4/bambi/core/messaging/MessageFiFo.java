@@ -135,8 +135,10 @@ class MessageFiFo
 		File oldHead = getDumpFile("head");
 		Vector<MessageDetails> v = readSingleFile(oldHead);
 		if (v.size() > 0)
+		{
+			oldHead.delete();
 			return v;
-
+		}
 		Vector<MessageDetails> vMD = removeFromDump();
 		return vMD;
 	}
