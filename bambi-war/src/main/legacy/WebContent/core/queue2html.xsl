@@ -262,6 +262,7 @@
 									<xsl:attribute name="value"><xsl:value-of
 										select="@filter" /></xsl:attribute>
 								</input>
+							<input type="hidden" name="refresh" value="true"/>
 							</form>
 						</td>
 
