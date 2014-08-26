@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!-- (C) 2001-2014 CIP4 -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-<!-- (C) 2001-2013 CIP4 -->
 	<xsl:strip-space elements="*" />
 	<xsl:output method="html" />
 

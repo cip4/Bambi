@@ -699,7 +699,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				for (File f : configFiles)
 				{
 					File configFile = FileUtil.getFileInDirectory(configDir, new File(f.getName()));
-					FileUtil.ensureFileInDir(configFile, cacheDir);
+					File newFile = FileUtil.ensureFileInDir(configFile, cacheDir);
+					if (newFile == null)
+					{
+						log.warn("cannot copy " + configFile + " to " + cacheDir);
+					}
 				}
 			}
 		}
@@ -1250,21 +1254,24 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * reset the signal dispatcher, hot folder and device processor
+	 * reset the signal dispatcher, hot folder and device processor; also restart from factory settings
 	 * 
 	 * this is a hard reset that removes any and all data!
 	 */
 	public void reset()
 	{
-		if (_theSignalDispatcher != null)
+		log.info("processing reset for Device: " + getDeviceID());
+		_theSignalDispatcher.reset();
+		_theQueueProcessor.reset();
+		Vector<File> files = getCacheDirs();
+		if (files != null)
 		{
-			_theSignalDispatcher.reset();
+			for (File f : files)
+			{
+				FileUtil.deleteAll(f);
+			}
 		}
-
-		if (_theQueueProcessor != null)
-		{
-			_theQueueProcessor.reset();
-		}
+		copyToCache();
 	}
 
 	/**
@@ -1360,28 +1367,28 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return null;
 		}
 
-		if (request.isMyContext(SHOW_DEVICE) || request.isMyContext("jmf") || request.isMyContext("slavejmf"))
+		if (request.isMyContext(SHOW_DEVICE))
 		{
 			if (request.getBooleanParam("restart") && getRootDevice() != null)
 			{
-				final AbstractDevice newDev = getRootDevice().createDevice(_devProperties);
-				return newDev.showDevice(request, request.getBooleanParam("refresh"));
+				return handleRestart(request);
 			}
 			else if (request.getBooleanParam("shutdown") && getRootDevice() != null)
 			{
-				shutdown();
-				getRootDevice().removeDevice(getDeviceID());
-				return getRootDevice().showDevice(request, false);
+				return handleShutdown(request);
+			}
+			else if (request.getBooleanParam("reset"))
+			{
+				return handleReset(request);
 			}
 			else
 			{
-				if (request.getBooleanParam("reset"))
-				{
-					reset();
-				}
-				updateDevice(request);
 				return showDevice(request, request.getBooleanParam("refresh"));
 			}
+		}
+		else if (request.isMyContext("jmf") || request.isMyContext("slavejmf"))
+		{
+			return showDevice(request, request.getBooleanParam("refresh"));
 		}
 		if (request.isMyContext(SHOW_SUBSCRIPTIONS))
 		{
@@ -1402,6 +1409,29 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			}
 		}
 		return null;
+	}
+
+	protected XMLResponse handleReset(final ContainerRequest request)
+	{
+		if (request.getBooleanParam("reset"))
+		{
+			reset();
+		}
+		updateDevice(request);
+		return showDevice(request, request.getBooleanParam("refresh"));
+	}
+
+	protected XMLResponse handleShutdown(final ContainerRequest request)
+	{
+		shutdown();
+		getRootDevice().removeDevice(getDeviceID());
+		return getRootDevice().showDevice(request, false);
+	}
+
+	protected XMLResponse handleRestart(final ContainerRequest request)
+	{
+		final AbstractDevice newDev = getRootDevice().createDevice(_devProperties);
+		return newDev.showDevice(request, request.getBooleanParam("refresh"));
 	}
 
 	/**
@@ -1876,10 +1906,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final VElement v = r.getChildElementVector(null, null);
 			if (v != null)
 			{
-				final int siz = v.size();
-				for (int j = 0; j < siz; j++)
+				for (KElement e : v)
 				{
-					rResp.copyElement(v.elementAt(j), null);
+					rResp.copyElement(e, null);
 				}
 			}
 		}
@@ -1891,10 +1920,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public void flush()
 	{
-		if (_theSignalDispatcher != null)
-		{
-			_theSignalDispatcher.flush();
-		}
+		_theSignalDispatcher.flush();
 	}
 
 	@Override

@@ -655,6 +655,41 @@ public class MultiDeviceProperties extends BambiLogFactory
 			return MultiDeviceProperties.this.serialize();
 		}
 
+		/**
+		 * defaults to true for legacy
+		 * 
+		 * @see org.cip4.bambi.core.IDeviceProperties#getAutoStart()
+		 */
+		@Override
+		public boolean getAutoStart()
+		{
+			return StringUtil.parseBoolean(getDeviceAttribute("AutoStart", null, null), true);
+		}
+
+		/**
+		 * set the autostart property
+		 * 
+		 *
+		 */
+		public void setAutoStart(boolean bAutoStart)
+		{
+			setDeviceAttribute("AutoStart", "" + bAutoStart);
+		}
+
+		/**
+		 * clones this inactive DeviceProperties and sets clone to active
+		 * @param deviceID the deviceID of the new device
+		 * @return a new DeviceProperties with AutoStart=true
+		 */
+		public DeviceProperties activateDeviceProps(String deviceID)
+		{
+			KElement newDevElem = root.copyElement(devRoot, null);
+			DeviceProperties newProps = createDeviceProps(newDevElem);
+			newProps.setDeviceID(deviceID);
+			newProps.setAutoStart(true);
+			devRoot.getOwnerDocument_KElement().write2File((String) null, 2, false);
+			return newProps;
+		}
 	}
 
 	/**
@@ -925,5 +960,4 @@ public class MultiDeviceProperties extends BambiLogFactory
 			element = root.appendElement(ElementName.DEVICE);
 		return this.new DeviceProperties(element);
 	}
-
 }

@@ -168,7 +168,7 @@ public final class BambiServlet extends HttpServlet
 	{
 		final ServletContext context = getServletConfig().getServletContext();
 		String baseURL;
-		if (context.getMajorVersion() <= 2 && context.getMinorVersion() < 5)
+		if (context.getMajorVersion() <= 2 && context.getMinorVersion() < 6)
 		{
 			baseURL = context.getServletContextName();
 		}

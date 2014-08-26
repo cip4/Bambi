@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -270,7 +270,6 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	class BambiTestProp implements IDeviceProperties
 	{
-
 		/*
 		 * (non-Javadoc)
 		 * @see org.cip4.bambi.core.IDeviceProperties#getAppDir()
@@ -681,6 +680,12 @@ public class BambiTestCase extends BambiGoldenTicketTest
 		{
 			// TODO Auto-generated method stub
 
+		}
+
+		@Override
+		public boolean getAutoStart()
+		{
+			return true;
 		}
 
 	}

@@ -110,7 +110,8 @@
 						</td>
 						<td>
 							<form style="margin-left: 20px">
-								<xsl:attribute name="action"><xsl:value-of select="$context" /></xsl:attribute>
+								<xsl:attribute name="action"><xsl:value-of select="$context" />/showDevice/<xsl:value-of
+										select="@DeviceID" /></xsl:attribute>
 								<input type="hidden" name="shutdown" value="true" />
 								<input type="hidden" name="setup" value="true" />
 								<input type="submit" value="shutdown"

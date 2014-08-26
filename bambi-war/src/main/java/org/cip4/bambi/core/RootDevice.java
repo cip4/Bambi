@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -77,6 +77,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.DispatchHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
@@ -110,7 +111,9 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public class RootDevice extends AbstractDevice
 {
-	protected HashMap<String, AbstractDevice> _devices = null;
+	protected final HashMap<String, AbstractDevice> _devices;
+	protected final HashMap<String, DeviceProperties> deviceTemplates;
+	protected static final String ADD_DEVICE = "addDevice";
 
 	/**
 	 * @param prop
@@ -119,6 +122,7 @@ public class RootDevice extends AbstractDevice
 	{
 		super(prop);
 		_devices = new HashMap<String, AbstractDevice>();
+		deviceTemplates = new HashMap<String, DeviceProperties>();
 		_jmfHandler.setFilterOnDeviceID(false); // accept all
 		log.info("created RootDevice '" + prop.getDeviceID() + "'");
 	}
@@ -193,30 +197,32 @@ public class RootDevice extends AbstractDevice
 	 */
 	AbstractDevice createDevice(final IDeviceProperties prop)
 	{
-		if (_devices == null)
-		{
-			log.info("map of devices is null, re-initialising map...");
-			_devices = new HashMap<String, AbstractDevice>();
-		}
-
 		final String devID = prop.getDeviceID();
-		final AbstractDevice abstractDevice = _devices.get(devID);
-		if (abstractDevice != null)
+		AbstractDevice dev = null;
+		if (prop instanceof DeviceProperties)
 		{
-			abstractDevice.shutdown(); // just in case
-			log.info("device " + devID + " is already existing");
-			_devices.remove(devID);
+			deviceTemplates.put(prop.getDeviceType(), (DeviceProperties) prop);
 		}
-		final AbstractDevice dev = prop.getDeviceInstance();
-		if (dev == null)
+		if (prop.getAutoStart())
 		{
-			log.warn("could not create device devID=" + devID);
-			return null;
+			final AbstractDevice abstractDevice = _devices.get(devID);
+			if (abstractDevice != null)
+			{
+				abstractDevice.shutdown(); // just in case
+				log.info("removing existing device " + devID);
+				_devices.remove(devID);
+			}
+			dev = prop.getDeviceInstance();
+			if (dev == null)
+			{
+				log.warn("could not create device devID=" + devID);
+				return null;
+			}
+			dev.setRootDevice(this);
+			_devices.put(devID, dev);
+			log.info("created device " + devID);
+			updateQERetrieval(prop);
 		}
-		dev.setRootDevice(this);
-		_devices.put(devID, dev);
-		log.info("created device " + devID);
-		updateQERetrieval(prop);
 		return dev;
 	}
 
@@ -397,16 +403,16 @@ public class RootDevice extends AbstractDevice
 	{
 		/**
 		 * @param request
-		 * @return true if handled
+		 * @return the response if handled
 		 */
 		@Override
 		public XMLResponse handleGet(final ContainerRequest request)
 		{
 			final AbstractDevice[] devs = getDeviceArray();
 			XMLResponse r = null;
-			for (int i = 0; i < devs.length; i++)
+			for (AbstractDevice dev : devs)
 			{
-				r = devs[i].handleGet(request);
+				r = dev.handleGet(request);
 				if (r != null)
 				{
 					return r;
@@ -585,20 +591,25 @@ public class RootDevice extends AbstractDevice
 	 */
 	public boolean removeDevice(final String deviceID)
 	{
-		if (_devices == null)
-		{
-			log.error("list of devices is null");
-			return false;
-		}
 		if (_devices.get(deviceID) == null)
 		{
-			log.warn("tried to removing non-existing device");
+			log.warn("tried to remove non-existing device");
 			return false;
 		}
-		_devices.remove(deviceID);
+		AbstractDevice dev = _devices.remove(deviceID);
+		IDeviceProperties props = dev.getProperties();
+		if (props instanceof DeviceProperties)
+		{
+			((DeviceProperties) props).setAutoStart(false);
+			((DeviceProperties) props).getDevRoot().getOwnerDocument_KElement().write2File((String) null, 2, false);
+		}
 		return true;
 	}
 
+	/**
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDevice#showDevice(org.cip4.bambi.core.ContainerRequest, boolean)
+	 */
 	@Override
 	protected XMLResponse showDevice(final ContainerRequest request, final boolean refresh)
 	{
@@ -621,23 +632,26 @@ public class RootDevice extends AbstractDevice
 		listRoot.copyAttribute("DeviceType", rootElem, null, null, null);
 		listRoot.copyElement(rootElem, null);
 		addMoreToShowDevice(listRoot, rootElem);
-		if (devices != null)
+		for (AbstractDevice ad : devices)
 		{
-			final int listSize = devices.length;
-			for (int i = 0; i < listSize; i++)
-			{
-				final AbstractDevice ad = devices[i];
-				final XMLDevice dChild = ad.getXMLDevice(false, request);
-				final KElement childElem = dChild.getRoot();
-				childElem.setAttribute("Root", false, null);
-				listRoot.copyElement(childElem, null);
-			}
+			final XMLDevice dChild = ad.getXMLDevice(false, request);
+			final KElement childElem = dChild.getRoot();
+			childElem.setAttribute("Root", false, null);
+			listRoot.copyElement(childElem, null);
+		}
+
+		Vector<String> types = ContainerUtil.getKeyVector(deviceTemplates);
+		for (String type : types)
+		{
+			IDeviceProperties prop = deviceTemplates.get(type);
+			KElement e = listRoot.appendElement("Template");
+			e.setAttribute("DeviceType", type);
+			e.setAttribute("DeviceID", prop.getDeviceID());
 		}
 
 		deviceList.setXSLTURL(getXSLT(request));
 		XMLResponse r = new XMLResponse(listRoot);
 		return r;
-
 	}
 
 	/**
@@ -715,6 +729,51 @@ public class RootDevice extends AbstractDevice
 			return StringUtil.setvString(devices, "\n", "Generic Bambi Root Device: \n", null);
 		}
 	}
+
 	// ////////////////////////////////////////////////////////////////////////////////
 
+	@Override
+	public XMLResponse handleGet(ContainerRequest request)
+	{
+		AbstractDevice newDevice = null;
+		if (request.isMyContext(ADD_DEVICE))
+		{
+			String type = request.getParameter("DeviceType");
+			String newDevID = request.getParameter(AttributeName.DEVICEID);
+			if (type == null || newDevID == null)
+			{
+				log.error("cannot create new device : id=" + newDevID + " type=" + type);
+			}
+			else
+			{
+				DeviceProperties prop = deviceTemplates.get(type);
+				final DeviceProperties newProp;
+				if (newDevID.equals(prop.getDeviceID()))
+				{
+					log.info("moving " + type + " template to device " + newDevID);
+					prop.setAutoStart(true);
+					newProp = prop;
+				}
+				else
+				{
+					KElement oldPropElem = prop.getDevRoot();
+					KElement newPropElem = oldPropElem.getParentNode_KElement().copyElement(oldPropElem, null);
+					newProp = BambiContainer.getCreateInstance().getProps().createDeviceProps(newPropElem);
+					newProp.setAutoStart(true);
+					newProp.setDeviceID(newDevID);
+					log.info("creating device from " + type + " template" + newDevID);
+				}
+				newDevice = createDevice(newProp);
+				newProp.getDevRoot().getOwnerDocument_KElement().write2File((String) null, 2, false);
+			}
+		}
+		if (newDevice != null)
+		{
+			return newDevice.showDevice(request, false);
+		}
+		else
+		{
+			return super.handleGet(request);
+		}
+	}
 }

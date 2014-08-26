@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<!-- -->
+<!-- (C) 2001-2014 CIP4 -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:strip-space elements="*" />
@@ -46,7 +46,7 @@
 					</tr>
 					<xsl:apply-templates select="XMLDevice[@Root='true']" />
 				</table>
-				<br />
+				<hr />
 				<h3>Known Devices:</h3>
 				<table cellspacing="2" border="1">
 					<tr bgcolor="#bbbbbb">
@@ -62,6 +62,15 @@
 						<th align="left"> # All</th>
 					</tr>
 					<xsl:apply-templates select="XMLDevice[@Root='false']" />
+				</table>
+				<hr />
+				<h3>Known DeviceTemplates:</h3>
+				<table cellspacing="2" border="1">
+					<tr bgcolor="#bbbbbb">
+						<th align="left"> Device Type</th>
+						<th align="left"> Device ID</th>
+					</tr>
+					<xsl:apply-templates select="Template" />
 				</table>
 				<hr />
 				<xsl:call-template name="cputimer" />
@@ -125,7 +134,8 @@
 						<tr>
 							<td>JDFLib Build:</td>
 							<td>@build.minorversion@, JDF Schema Version:
-								@build.majorversion@</td>
+								@build.majorversion@
+							</td>
 						</tr>
 					</table>
 				</font>
@@ -231,8 +241,35 @@
 			</td>
 		</tr>
 	</xsl:template>
+
+
+	<!-- -->
+	<xsl:template match="Template">
+		<xsl:variable name="context" select="../@Context" />
+		<tr>
+			<td align="left">
+				<xsl:value-of select="@DeviceType" />
+			</td>
+			<td align="left">
+				<form>
+					<xsl:attribute name="action"><xsl:value-of
+						select="$context" />/addDevice/<xsl:value-of select="/DeviceList/XMLDevice[@Root='true']/@DeviceID" /></xsl:attribute>
+
+					<input type="text" name="DeviceID">
+							<xsl:attribute name="value"><xsl:value-of
+							select="@DeviceID" /></xsl:attribute>
+					</input>
+					<input type="hidden" name="DeviceType">
+							<xsl:attribute name="value"><xsl:value-of
+							select="@DeviceType" /></xsl:attribute>
+					</input>
+					<input type="submit" value="add Device" />
+				</form>
+			</td>
+		</tr>
+	</xsl:template>
+
 	<xsl:include href="topnavigation.xsl" />
 	<xsl:include href="CPUTimer.xsl" />
-
 
 </xsl:stylesheet>

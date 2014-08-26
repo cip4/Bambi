@@ -121,6 +121,7 @@ public final class BambiContainer extends BambiLogFactory
 	}
 
 	private AbstractDevice rootDev;
+	private MultiDeviceProperties props;
 	private static BambiContainer theInstance = null;
 
 	protected boolean bWantDump = true;
@@ -302,7 +303,7 @@ public final class BambiContainer extends BambiLogFactory
 	 */
 	public boolean loadProperties(final File baseDir, final String context, final File config, final String dump)
 	{
-		MultiDeviceProperties props = new MultiDeviceProperties(baseDir, context, config);
+		props = new MultiDeviceProperties(baseDir, context, config);
 		props = props.getSubClass(config);
 		bWantDump = props.wantDump();
 		return createDevices(props, dump);
@@ -817,6 +818,15 @@ public final class BambiContainer extends BambiLogFactory
 	{
 		String devID = StringUtil.token(url, 2, "/");
 		return devID;
+	}
+
+	/**
+	 * get the singleton props
+	 * @return
+	 */
+	public MultiDeviceProperties getProps()
+	{
+		return props;
 	}
 
 }
