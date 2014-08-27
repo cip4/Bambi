@@ -667,6 +667,18 @@ public class MultiDeviceProperties extends BambiLogFactory
 		}
 
 		/**
+		 * if true, the we add ourselves to the template list and can create new devices
+		 * 
+		 * defaults to true for legacy
+		 * 
+		 * @see org.cip4.bambi.core.IDeviceProperties#getAutoStart()
+		 */
+		public boolean isTemplate()
+		{
+			return StringUtil.parseBoolean(getDeviceAttribute("Template", null, null), true);
+		}
+
+		/**
 		 * set the autostart property
 		 * 
 		 *

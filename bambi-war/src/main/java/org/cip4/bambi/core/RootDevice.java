@@ -192,18 +192,22 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * create a new device and add it to the map of devices. reload if the device is already in
-	 * @param prop
+	 * @param iProp
 	 * @return the Device, if device has been created. null, if not (maybe device with deviceID is already present)
 	 */
-	AbstractDevice createDevice(final IDeviceProperties prop)
+	AbstractDevice createDevice(final IDeviceProperties iProp)
 	{
-		final String devID = prop.getDeviceID();
+		final String devID = iProp.getDeviceID();
 		AbstractDevice dev = null;
-		if (prop instanceof DeviceProperties)
+		if (iProp instanceof DeviceProperties)
 		{
-			deviceTemplates.put(prop.getDeviceType(), (DeviceProperties) prop);
+			DeviceProperties prop = (DeviceProperties) iProp;
+			if (prop.isTemplate())
+			{
+				deviceTemplates.put(iProp.getDeviceType(), prop);
+			}
 		}
-		if (prop.getAutoStart())
+		if (iProp.getAutoStart())
 		{
 			final AbstractDevice abstractDevice = _devices.get(devID);
 			if (abstractDevice != null)
@@ -212,7 +216,7 @@ public class RootDevice extends AbstractDevice
 				log.info("removing existing device " + devID);
 				_devices.remove(devID);
 			}
-			dev = prop.getDeviceInstance();
+			dev = iProp.getDeviceInstance();
 			if (dev == null)
 			{
 				log.warn("could not create device devID=" + devID);
@@ -221,7 +225,7 @@ public class RootDevice extends AbstractDevice
 			dev.setRootDevice(this);
 			_devices.put(devID, dev);
 			log.info("created device " + devID);
-			updateQERetrieval(prop);
+			updateQERetrieval(iProp);
 		}
 		return dev;
 	}
@@ -597,13 +601,7 @@ public class RootDevice extends AbstractDevice
 			return false;
 		}
 		AbstractDevice dev = _devices.remove(deviceID);
-		IDeviceProperties props = dev.getProperties();
-		if (props instanceof DeviceProperties)
-		{
-			((DeviceProperties) props).setAutoStart(false);
-			((DeviceProperties) props).getDevRoot().getOwnerDocument_KElement().write2File((String) null, 2, false);
-		}
-		return true;
+		return dev != null;
 	}
 
 	/**
@@ -614,9 +612,55 @@ public class RootDevice extends AbstractDevice
 	protected XMLResponse showDevice(final ContainerRequest request, final boolean refresh)
 	{
 		System.gc();
-		final AbstractDevice[] devices = getDeviceArray();
 		final XMLDoc deviceList = new XMLDoc("DeviceList", null);
 
+		final KElement listRoot = appendResources(request, deviceList);
+		final XMLDevice dRoot = getXMLDevice(false, request);
+
+		final KElement rootElem = dRoot.getRoot();
+		rootElem.setAttribute("Root", true, null);
+		listRoot.copyAttribute("DeviceType", rootElem, null, null, null);
+		listRoot.copyElement(rootElem, null);
+		addMoreToShowDevice(listRoot, rootElem);
+
+		listChildDevices(request, listRoot);
+
+		listTemplates(listRoot);
+
+		deviceList.setXSLTURL(getXSLT(request));
+		XMLResponse r = new XMLResponse(listRoot);
+		return r;
+	}
+
+	protected void listTemplates(final KElement listRoot)
+	{
+		Vector<String> types = ContainerUtil.getKeyVector(deviceTemplates);
+		if (types != null)
+		{
+			for (String type : types)
+			{
+				IDeviceProperties prop = deviceTemplates.get(type);
+				KElement e = listRoot.appendElement("Template");
+				e.setAttribute("DeviceType", type);
+				e.setAttribute("DeviceID", prop.getDeviceID());
+			}
+		}
+	}
+
+	protected void listChildDevices(final ContainerRequest request, final KElement listRoot)
+	{
+		final AbstractDevice[] devices = getDeviceArray();
+		for (AbstractDevice ad : devices)
+		{
+			final XMLDevice dChild = ad.getXMLDevice(false, request);
+			final KElement childElem = dChild.getRoot();
+			childElem.setAttribute("Root", false, null);
+			listRoot.copyElement(childElem, null);
+		}
+	}
+
+	protected KElement appendResources(final ContainerRequest request, final XMLDoc deviceList)
+	{
 		final KElement listRoot = deviceList.getRoot();
 		listRoot.setAttribute("NumRequests", numRequests, null);
 		listRoot.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
@@ -625,33 +669,7 @@ public class RootDevice extends AbstractDevice
 		MemorySpy memorySpy = new MemorySpy();
 		listRoot.setAttribute("MemPerm", memorySpy.getPermGen(MemScope.current) / 1000 / 1000., null);
 		listRoot.setAttribute("MemCurrent", memorySpy.getHeapUsed(MemScope.current) / 1000 / 1000., null);
-		final XMLDevice dRoot = getXMLDevice(false, request);
-
-		final KElement rootElem = dRoot.getRoot();
-		rootElem.setAttribute("Root", true, null);
-		listRoot.copyAttribute("DeviceType", rootElem, null, null, null);
-		listRoot.copyElement(rootElem, null);
-		addMoreToShowDevice(listRoot, rootElem);
-		for (AbstractDevice ad : devices)
-		{
-			final XMLDevice dChild = ad.getXMLDevice(false, request);
-			final KElement childElem = dChild.getRoot();
-			childElem.setAttribute("Root", false, null);
-			listRoot.copyElement(childElem, null);
-		}
-
-		Vector<String> types = ContainerUtil.getKeyVector(deviceTemplates);
-		for (String type : types)
-		{
-			IDeviceProperties prop = deviceTemplates.get(type);
-			KElement e = listRoot.appendElement("Template");
-			e.setAttribute("DeviceType", type);
-			e.setAttribute("DeviceID", prop.getDeviceID());
-		}
-
-		deviceList.setXSLTURL(getXSLT(request));
-		XMLResponse r = new XMLResponse(listRoot);
-		return r;
+		return listRoot;
 	}
 
 	/**
@@ -730,42 +748,17 @@ public class RootDevice extends AbstractDevice
 		}
 	}
 
-	// ////////////////////////////////////////////////////////////////////////////////
-
+	/**
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDevice#handleGet(org.cip4.bambi.core.ContainerRequest)
+	 */
 	@Override
 	public XMLResponse handleGet(ContainerRequest request)
 	{
 		AbstractDevice newDevice = null;
 		if (request.isMyContext(ADD_DEVICE))
 		{
-			String type = request.getParameter("DeviceType");
-			String newDevID = request.getParameter(AttributeName.DEVICEID);
-			if (type == null || newDevID == null)
-			{
-				log.error("cannot create new device : id=" + newDevID + " type=" + type);
-			}
-			else
-			{
-				DeviceProperties prop = deviceTemplates.get(type);
-				final DeviceProperties newProp;
-				if (newDevID.equals(prop.getDeviceID()))
-				{
-					log.info("moving " + type + " template to device " + newDevID);
-					prop.setAutoStart(true);
-					newProp = prop;
-				}
-				else
-				{
-					KElement oldPropElem = prop.getDevRoot();
-					KElement newPropElem = oldPropElem.getParentNode_KElement().copyElement(oldPropElem, null);
-					newProp = BambiContainer.getCreateInstance().getProps().createDeviceProps(newPropElem);
-					newProp.setAutoStart(true);
-					newProp.setDeviceID(newDevID);
-					log.info("creating device from " + type + " template" + newDevID);
-				}
-				newDevice = createDevice(newProp);
-				newProp.getDevRoot().getOwnerDocument_KElement().write2File((String) null, 2, false);
-			}
+			newDevice = addDevice(request);
 		}
 		if (newDevice != null)
 		{
@@ -774,6 +767,46 @@ public class RootDevice extends AbstractDevice
 		else
 		{
 			return super.handleGet(request);
+		}
+	}
+
+	/**
+	 * add a device from template from the UI
+	 * 
+	 * @param request
+	 * @return
+	 */
+	protected AbstractDevice addDevice(ContainerRequest request)
+	{
+		String type = request.getParameter("DeviceType");
+		String newDevID = request.getParameter(AttributeName.DEVICEID);
+		if (type == null || newDevID == null)
+		{
+			log.error("cannot create new device : id=" + newDevID + " type=" + type);
+			return null;
+		}
+		else
+		{
+			DeviceProperties prop = deviceTemplates.get(type);
+			final DeviceProperties newProp;
+			if (newDevID.equals(prop.getDeviceID()))
+			{
+				log.info("moving " + type + " template to device " + newDevID);
+				prop.setAutoStart(true);
+				newProp = prop;
+			}
+			else
+			{
+				KElement oldPropElem = prop.getDevRoot();
+				KElement newPropElem = oldPropElem.getParentNode_KElement().copyElement(oldPropElem, null);
+				newProp = BambiContainer.getCreateInstance().getProps().createDeviceProps(newPropElem);
+				newProp.setAutoStart(true);
+				newProp.setDeviceID(newDevID);
+				log.info("creating device from " + type + " template" + newDevID);
+			}
+			AbstractDevice newDevice = createDevice(newProp);
+			newProp.getDevRoot().getOwnerDocument_KElement().write2File((String) null, 2, false);
+			return newDevice;
 		}
 	}
 }

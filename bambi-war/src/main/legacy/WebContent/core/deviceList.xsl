@@ -63,6 +63,8 @@
 					</tr>
 					<xsl:apply-templates select="XMLDevice[@Root='false']" />
 				</table>
+				
+				<xsl:if test="Template">
 				<hr />
 				<h3>Known DeviceTemplates:</h3>
 				<table cellspacing="2" border="1">
@@ -72,6 +74,8 @@
 					</tr>
 					<xsl:apply-templates select="Template" />
 				</table>
+				</xsl:if>
+				
 				<hr />
 				<xsl:call-template name="cputimer" />
 
