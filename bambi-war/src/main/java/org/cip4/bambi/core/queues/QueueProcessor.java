@@ -1100,34 +1100,34 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 * @param modified
 		 * @return
 		 */
-		private boolean applyModification(final ContainerRequest request, boolean modified)
+		protected boolean applyModification(final ContainerRequest request, boolean modified)
 		{
 			final EnumQueueStatus qStatus = _theQueue.getQueueStatus();
 			EnumQueueStatus qStatusNew = null;
 			final boolean bHold = request.getBooleanParam("hold");
 			if (bHold)
 			{
-				qStatusNew = _theQueue.holdQueue();
+				qStatusNew = applyHold();
 			}
 			final boolean bClose = request.getBooleanParam("close");
 			if (bClose)
 			{
-				qStatusNew = _theQueue.closeQueue();
+				qStatusNew = applyClose();
 			}
 			final boolean bResume = request.getBooleanParam("resume");
 			if (bResume)
 			{
-				qStatusNew = _theQueue.resumeQueue();
+				qStatusNew = applyResume();
 			}
 			final boolean bOpen = request.getBooleanParam("open");
 			if (bOpen)
 			{
-				qStatusNew = _theQueue.openQueue();
+				qStatusNew = applyOpen();
 			}
 			final boolean bFlush = request.getBooleanParam("flush");
 			if (bFlush)
 			{
-				final VElement v = _theQueue.flushQueue(null);
+				final VElement v = applyFlush();
 				modified = v != null;
 			}
 			if (qStatusNew != null)
@@ -1138,13 +1138,47 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			return modified;
 		}
 
+		protected VElement applyFlush()
+		{
+			final VElement v = _theQueue.flushQueue(null);
+			return v;
+		}
+
+		protected EnumQueueStatus applyOpen()
+		{
+			EnumQueueStatus qStatusNew;
+			qStatusNew = _theQueue.openQueue();
+			return qStatusNew;
+		}
+
+		protected EnumQueueStatus applyResume()
+		{
+			EnumQueueStatus qStatusNew;
+			qStatusNew = _theQueue.resumeQueue();
+			return qStatusNew;
+		}
+
+		protected EnumQueueStatus applyClose()
+		{
+			EnumQueueStatus qStatusNew;
+			qStatusNew = _theQueue.closeQueue();
+			return qStatusNew;
+		}
+
+		protected EnumQueueStatus applyHold()
+		{
+			EnumQueueStatus qStatusNew;
+			qStatusNew = _theQueue.holdQueue();
+			return qStatusNew;
+		}
+
 		/**
 		 * the filter is case insensitive
 		 * @param sortBy
 		 * @param filter the regexp to filter by (.)* is added before and after the filter
 		 * @return
 		 */
-		private JDFQueue sortOutput(final String sortBy, final String filter)
+		protected JDFQueue sortOutput(final String sortBy, final String filter)
 		{
 			JDFQueue root = filterList(filter);
 			// sort according to the given attribute
@@ -1173,7 +1207,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 * @param filter
 		 * @return
 		 */
-		private JDFQueue filterList(String filter)
+		protected JDFQueue filterList(String filter)
 		{
 			final JDFQueue root;
 			if (FILTER_DIF.equals(filter))
@@ -1246,7 +1280,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 * @param i
 		 * @return
 		 */
-		private boolean filterLength(final int i)
+		protected boolean filterLength(final int i)
 		{
 			return i < nPos * 500 || i > (nPos + 1) * 500; // performance...
 		}
@@ -1254,7 +1288,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		/**
 		 * @param request
 		 */
-		private void updateQE(final ContainerRequest request)
+		protected void updateQE(final ContainerRequest request)
 		{
 			final String qeID = request.getParameter(QE_ID);
 			if (qeID == null)
@@ -1317,7 +1351,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 * @param q
 		 * 
 		 */
-		private void addOptions(final JDFQueue q)
+		protected void addOptions(final JDFQueue q)
 		{
 			final Collection<JDFQueueEntry> v = q.getAllQueueEntry();
 			if (v != null)
@@ -2606,7 +2640,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	public XMLResponse handleGet(final ContainerRequest request)
 	{
-		XMLResponse r = this.new QueueGetHandler().handleGet(request);
+		XMLResponse r = getQueueGetHandler().handleGet(request);
 		if (r == null)
 		{
 			r = new ShowJDFHandler(_parentDevice).handleGet(request);
@@ -2616,6 +2650,15 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			r = new ShowXJDFHandler(_parentDevice).handleGet(request);
 		}
 		return r;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	protected QueueGetHandler getQueueGetHandler()
+	{
+		return new QueueGetHandler();
 	}
 
 	// //////////////////////////////////////////////////////////////////////////////////////////////

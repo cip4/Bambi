@@ -199,7 +199,7 @@ public class RootDevice extends AbstractDevice
 	{
 		final String devID = iProp.getDeviceID();
 		AbstractDevice dev = null;
-		if (iProp instanceof DeviceProperties)
+		if ((iProp instanceof DeviceProperties) && !deviceTemplates.containsKey(iProp.getDeviceType()))
 		{
 			DeviceProperties prop = (DeviceProperties) iProp;
 			if (prop.isTemplate())
@@ -207,6 +207,7 @@ public class RootDevice extends AbstractDevice
 				deviceTemplates.put(iProp.getDeviceType(), prop);
 			}
 		}
+
 		if (iProp.getAutoStart())
 		{
 			final AbstractDevice abstractDevice = _devices.get(devID);
@@ -647,18 +648,32 @@ public class RootDevice extends AbstractDevice
 		}
 	}
 
+	/**
+	 * 
+	 * @param request
+	 * @param listRoot
+	 */
 	protected void listChildDevices(final ContainerRequest request, final KElement listRoot)
 	{
 		final AbstractDevice[] devices = getDeviceArray();
-		for (AbstractDevice ad : devices)
+		if (devices != null)
 		{
-			final XMLDevice dChild = ad.getXMLDevice(false, request);
-			final KElement childElem = dChild.getRoot();
-			childElem.setAttribute("Root", false, null);
-			listRoot.copyElement(childElem, null);
+			for (AbstractDevice ad : devices)
+			{
+				final XMLDevice dChild = ad.getXMLDevice(false, request);
+				final KElement childElem = dChild.getRoot();
+				childElem.setAttribute("Root", false, null);
+				listRoot.copyElement(childElem, null);
+			}
 		}
 	}
 
+	/**
+	 * 
+	 * @param request
+	 * @param deviceList
+	 * @return
+	 */
 	protected KElement appendResources(final ContainerRequest request, final XMLDoc deviceList)
 	{
 		final KElement listRoot = deviceList.getRoot();
