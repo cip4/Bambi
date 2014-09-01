@@ -250,7 +250,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		@Override
 		public void setSlaveURL(final String slaveURL)
 		{
-			devRoot.setAttribute("SlaveURL", slaveURL, null);
+			setDeviceAttribute("SlaveURL", slaveURL);
 		}
 
 		/**
@@ -278,7 +278,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		@Override
 		public void setMaxPush(final int push)
 		{
-			devRoot.setAttribute("MaxPush", push, null);
+			setDeviceAttribute("MaxPush", StringUtil.formatInteger(push));
 		}
 
 		/**
@@ -315,7 +315,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		@Override
 		public void setSlaveMIMEExpansion(boolean extendMime)
 		{
-			devRoot.setAttribute("SlaveMIMETransferExpansion", extendMime, null);
+			setDeviceAttribute("SlaveMIMETransferExpansion", "" + extendMime);
 		}
 
 		/**
@@ -344,7 +344,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		@Override
 		public void setSlaveDeviceID(final String newSlaveID)
 		{
-			devRoot.setAttribute("SlaveDeviceID", newSlaveID, null);
+			setDeviceAttribute("SlaveDeviceID", newSlaveID);
 		}
 
 	}
