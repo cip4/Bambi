@@ -198,7 +198,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 */
 		public void setCallBackClassName(String callbackName)
 		{
-			devRoot.setAttribute("CallBackName", callbackName);
+			setDeviceAttribute("CallBackName", callbackName);
 		}
 
 		/**
@@ -231,7 +231,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 */
 		public void setDeviceClassName(final String deviceClass)
 		{
-			devRoot.setAttribute("DeviceClass", deviceClass);
+			setDeviceAttribute("DeviceClass", deviceClass);
 		}
 
 		/**
@@ -257,7 +257,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 */
 		public void setDeviceID(String deviceID)
 		{
-			devRoot.setAttribute("DeviceID", deviceID);
+			setDeviceAttribute("DeviceID", deviceID);
 		}
 
 		/**
@@ -284,7 +284,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		@Override
 		public void setDeviceType(final String deviceType)
 		{
-			devRoot.setAttribute("DeviceType", deviceType);
+			setDeviceAttribute("DeviceType", deviceType);
 		}
 
 		/**
@@ -307,7 +307,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		@Override
 		public void setDescription(final String description)
 		{
-			devRoot.setAttribute("Description", description);
+			setDeviceAttribute("Description", description);
 		}
 
 		/**
@@ -336,7 +336,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		protected void setFile(final String attribute, final File file)
 		{
 			final String fil = file == null ? null : file.getPath();
-			devRoot.setAttribute(attribute, fil);
+			setDeviceAttribute(attribute, fil);
 		}
 
 		/**
@@ -464,8 +464,8 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 */
 		public void setDeviceAttribute(final String key, final String val)
 		{
-			root.removeAttribute(key);
 			devRoot.setAttribute(key, val);
+			DelayedPersist.getDelayedPersist().queue(this, 5000);
 		}
 
 		/**
@@ -498,7 +498,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		@Override
 		public void setTypeExpression(final String exp)
 		{
-			devRoot.setAttribute(AttributeName.TYPEEXPRESSION, exp);
+			setDeviceAttribute(AttributeName.TYPEEXPRESSION, exp);
 		}
 
 		/**
@@ -595,8 +595,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		@Override
 		public void setWatchURL(final String watchURL)
 		{
-			root.setAttribute("WatchURL", watchURL);
-			devRoot.setAttribute("WatchURL", watchURL);
+			setDeviceAttribute("WatchURL", watchURL);
 		}
 
 		/**
@@ -643,7 +642,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		public void setQERetrieval(final QERetrieval qer)
 		{
 			final String s = qer == null ? "PUSH" : qer.name();
-			devRoot.setAttribute("PushPull", s);
+			setDeviceAttribute("PushPull", s);
 		}
 
 		/**
