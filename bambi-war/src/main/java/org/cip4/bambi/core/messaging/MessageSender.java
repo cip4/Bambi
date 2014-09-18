@@ -151,6 +151,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	private long firstProblem;
 	private boolean waitKaputt;
 	protected int checked;
+	protected int checkedJMF;
 	protected int removedHeartbeat;
 	protected int removedHeartbeatJMF;
 	protected int removedFireForget;
@@ -193,6 +194,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			final VElement messages = jmf == null ? null : jmf.getMessageVector(null, null);
 			if (messages != null)
 			{
+				checkedJMF++;
 				for (KElement m : messages)
 				{
 					optimizeMessage((JDFMessage) m);
@@ -271,8 +273,12 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			{
 				final JDFJMF jmf = old.getJMFRoot();
 				jmf.removeChild(old);
-				log.info("removed redundant " + old.getType() + " " + old.getLocalName() + " Message ID= " + old.getID() + " Sender= " + old.getSenderID());
 				removedHeartbeat++;
+				if (removedHeartbeat < 10 || removedHeartbeat % 1000 == 0)
+				{
+					log.info("removed redundant " + old.getType() + " " + old.getLocalName() + " Message ID= " + old.getID() + " Sender= " + old.getSenderID() + "# "
+							+ removedHeartbeat + " / " + checked);
+				}
 				final VElement v = jmf.getMessageVector(null, null);
 				if (v == null || v.size() == 0)
 				{
@@ -280,11 +286,14 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 					if (zapped)
 					{
 						removedHeartbeatJMF++;
-						log.info("removed redundant jmf # " + removedHeartbeat + " ID: " + jmf.getID() + " total checked: " + checked);
+						if (removedHeartbeatJMF < 10 || removedHeartbeatJMF % 1000 == 0)
+						{
+							log.info("removed redundant jmf # " + removedHeartbeatJMF + " ID: " + jmf.getID() + " total checked: " + checkedJMF);
+						}
 					}
 					else
 					{
-						log.warn("could not remove redundant jmf # " + removedHeartbeat + " ID: " + jmf.getID() + " total checked: " + checked);
+						log.warn("could not remove redundant jmf # " + removedHeartbeatJMF + " ID: " + jmf.getID() + " total checked: " + checkedJMF);
 					}
 				}
 			}
@@ -308,6 +317,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		removedHeartbeat = 0;
 		removedHeartbeatJMF = 0;
 		removedFireForget = 0;
+		checkedJMF = 0;
 		checked = 0;
 		waitKaputt = false;
 		callURL = cu;

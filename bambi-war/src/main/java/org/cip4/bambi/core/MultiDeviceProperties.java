@@ -438,7 +438,17 @@ public class MultiDeviceProperties extends BambiLogFactory
 		public String getDeviceAttribute(final String key)
 		{
 			return getDeviceAttribute(key, null, null);
+		}
 
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceAttribute(java.lang.String)
+		 * @param key
+		 * @param ifNotSet the default value
+		 * @return true if the option is set
+		 */
+		public boolean hasDeviceOption(final String key, boolean ifNotSet)
+		{
+			return StringUtil.parseBoolean(getDeviceAttribute(key), ifNotSet);
 		}
 
 		/**
@@ -533,7 +543,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		@Override
 		public boolean getAcceptAll()
 		{
-			return StringUtil.parseBoolean(getDeviceAttribute("AcceptAll"), false);
+			return hasDeviceOption("AcceptAll", false);
 		}
 
 		/**
@@ -662,7 +672,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		@Override
 		public boolean getAutoStart()
 		{
-			return StringUtil.parseBoolean(getDeviceAttribute("AutoStart", null, null), true);
+			return hasDeviceOption("AutoStart", true);
 		}
 
 		/**
@@ -674,7 +684,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		 */
 		public boolean isTemplate()
 		{
-			return StringUtil.parseBoolean(getDeviceAttribute("Template", null, null), true);
+			return StringUtil.parseBoolean(getDeviceAttribute("Template"), true);
 		}
 
 		/**

@@ -2183,7 +2183,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				}
 				else
 				{
-					log.warn("not updating original QE - using original" + qe2);
+					log.warn("not updating original QE - using original" + qe2.getQueueEntryID());
 					qe = qe2;
 				}
 			}
