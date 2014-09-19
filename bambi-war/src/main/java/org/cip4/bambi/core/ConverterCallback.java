@@ -72,6 +72,7 @@ package org.cip4.bambi.core;
 import java.util.Vector;
 
 import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.JDFAudit;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
@@ -158,6 +159,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 * @see org.cip4.bambi.core.IConverterCallback#prepareJDFForBambi(org.cip4.jdflib.core.JDFDoc) ensure a JobPartID in the root
 	 * @param doc the incoming JDF Document
 	 */
+	@Override
 	public JDFDoc prepareJDFForBambi(JDFDoc doc)
 	{
 		if (doc == null)
@@ -221,6 +223,38 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
+	 * @param doc
+	 * @return
+	 */
+	protected JDFDoc importXJMF(JDFDoc doc)
+	{
+		final KElement root = doc.getRoot();
+		if (XJDFHelper.XJMF.equals(root.getLocalName()))
+		{
+			log.info("importing XJMF to Bambi");
+			final XJDFToJDFConverter xc = getXJDFImporter();
+			if (xc != null)
+			{
+				doc = xc.convert(root);
+				if (doc != null)
+				{
+					FixVersion fv = new FixVersion((EnumVersion) null);
+					fv.walkTree(doc.getRoot(), null);
+				}
+				else
+				{
+					log.error("null converted document returned, bailing out");
+				}
+			}
+			else
+			{
+				log.error("null converter returned, bailing out");
+			}
+		}
+		return doc;
+	}
+
+	/**
 	 * 
 	 * get the importer for JDFD - may be overwritten to set parameters
 	 * @return the xjdf to jdf converter
@@ -241,10 +275,25 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		JDFNode root = doc.getJDFRoot();
 		if (root == null)
 			return doc;
-		log.info("exporting xjdf");
+		log.info("exporting XJDF");
 		final XJDF20 xjdf = getXJDFExporter();
 		final KElement newRoot = xjdf.makeNewJDF(root, null);
 		return new JDFDoc(newRoot.getOwnerDocument());
+	}
+
+	/**
+	 * @param doc
+	 * @return
+	 */
+	protected JDFDoc exportXJMF(JDFDoc doc)
+	{
+		JDFJMF jmf = doc.getJMFRoot();
+		if (jmf == null)
+			return doc;
+		log.info("exporting XJMF");
+		final XJDF20 xjdf = getXJDFExporter();
+		final KElement newJMF = xjdf.makeNewJMF(jmf);
+		return new JDFDoc(newJMF.getOwnerDocument());
 	}
 
 	/**
@@ -301,12 +350,14 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 * @see org.cip4.bambi.core.IConverterCallback#prepareJMFForBambi(org.cip4.jdflib.core.JDFDoc)
 	 * @param doc the JMF Doc
 	 */
+	@Override
 	public JDFDoc prepareJMFForBambi(JDFDoc doc)
 	{
 		if (doc == null)
 		{
 			return null;
 		}
+		doc = importXJMF(doc);
 		final JDFJMF jmf = doc.getJMFRoot();
 		if (fixToBambi != null)
 		{
@@ -324,6 +375,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 * @param doc the JDF doc
 	 */
 
+	@Override
 	public JDFDoc updateJDFForExtern(JDFDoc doc)
 	{
 		if (doc == null)
@@ -334,7 +386,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		if (fixToExtern != null)
 		{
 			boolean bXJDF = fixToExtern.equals(EnumVersion.Version_2_0);
-			EnumVersion fixVersion = bXJDF ? EnumVersion.Version_1_4 : fixToExtern;
+			EnumVersion fixVersion = bXJDF ? JDFAudit.getDefaultJDFVersion() : fixToExtern;
 			n.fixVersion(fixVersion);
 			if (bXJDF)
 			{
@@ -352,6 +404,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 * @see org.cip4.bambi.core.IConverterCallback#updateJMFForExtern(org.cip4.jdflib.core.JDFDoc)
 	 * @param doc the JMF doc
 	 */
+	@Override
 	public JDFDoc updateJMFForExtern(JDFDoc doc)
 	{
 		if (doc == null)
@@ -359,9 +412,15 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			return null;
 		}
 		final JDFJMF jmf = doc.getJMFRoot();
-		if (fixToExtern != null)
+		if (fixToExtern != null || "true".equals(BambiNSExtension.getMyNSAttribute(jmf, "convertXJDF")))
 		{
-			jmf.fixVersion(fixToExtern);
+			boolean bXJDF = fixToExtern != null && fixToExtern.equals(EnumVersion.Version_2_0) || "true".equals(BambiNSExtension.getMyNSAttribute(jmf, "convertXJDF"));
+			EnumVersion fixVersion = bXJDF ? JDFAudit.getDefaultJDFVersion() : fixToExtern;
+			jmf.fixVersion(fixVersion);
+			if (bXJDF)
+			{
+				doc = exportXJMF(doc);
+			}
 		}
 		for (IConverterCallback cb : postConversionList)
 		{

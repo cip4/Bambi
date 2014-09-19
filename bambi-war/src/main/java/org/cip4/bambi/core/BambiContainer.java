@@ -87,6 +87,7 @@ import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -495,15 +496,10 @@ public final class BambiContainer extends BambiLogFactory
 		if (request.isPost()) // post request
 		{
 			final String contentType = request.getContentType(true);
-			if (UrlUtil.VND_JMF.equals(contentType))
+			if (UrlUtil.VND_JMF.equals(contentType) || UrlUtil.isXMLType(contentType))
 			{
 				XMLRequest req = new XMLRequest(request);
 				r = processJMFDoc(req);
-			}
-			else if (UrlUtil.isXMLType(contentType))
-			{
-				XMLRequest req = new XMLRequest(request);
-				r = processXMLDoc(req);
 			}
 			else if (UrlUtil.isZIPType(contentType))
 			{
@@ -641,7 +637,7 @@ public final class BambiContainer extends BambiLogFactory
 		{
 			KElement e = newRequest.getXML();
 			// jmf with incorrect mime type or something that the device could translate to jmf
-			if (e instanceof JDFJMF)
+			if (e instanceof JDFJMF || XJDFHelper.XJMF.equals(e.getLocalName()))
 			{
 				return processJMFDoc(newRequest);
 			}
@@ -742,57 +738,77 @@ public final class BambiContainer extends BambiLogFactory
 	public XMLResponse processJMFDoc(final XMLRequest request)
 	{
 		startTimer(request);
-		JDFJMF jmf = (JDFJMF) request.getXML();
-		JDFDoc jmfDoc = jmf == null ? null : jmf.getOwnerDocument_JDFElement();
+		JDFElement requestRoot = (JDFElement) request.getXML();
 		final XMLResponse response;
-		if (jmf == null)
+		if (requestRoot == null)
 		{
 			response = processError(request.getRequestURI(), EnumType.Notification, 3, "Error Parsing JMF");
 		}
 		else
 		{
+			JDFDoc jmfDoc = requestRoot.getOwnerDocument_JDFElement();
 			final String deviceID = request.getDeviceID();
 			String requestURI = request.getLocalURL();
 			final IConverterCallback _callBack = getRootDev().getCallback(requestURI);
+			boolean bXJDF = XJDFHelper.XJMF.equals(jmfDoc.getRoot().getLocalName());
 
 			if (_callBack != null)
 			{
-				_callBack.prepareJMFForBambi(jmfDoc);
+				jmfDoc = _callBack.prepareJMFForBambi(jmfDoc);
 			}
-
-			// switch: sends the jmfDoc to correct device
-			JDFDoc responseJMF = null;
-			final AbstractDevice device = getDeviceFromID(deviceID);
-			final IJMFHandler handler = (device == null) ? rootDev.getHandler() : device.getHandler();
-			if (handler != null)
+			JDFJMF jmf = jmfDoc.getJMFRoot();
+			if (jmf == null)
 			{
-				responseJMF = handler.processJMF(jmfDoc);
-			}
-
-			if (responseJMF != null)
-			{
-				response = new XMLResponse(responseJMF.getJMFRoot());
-				response.setContentType(UrlUtil.VND_JMF);
-				if (_callBack != null)
-				{
-					_callBack.updateJMFForExtern(responseJMF);
-				}
+				response = processError(request.getRequestURI(), EnumType.Notification, 3, "Error processing JMF " + requestRoot.getLocalName());
 			}
 			else
 			{
-				VElement v = jmf.getMessageVector(null, null);
-				final int nMess = v == null ? 0 : v.size();
-				v = jmf.getMessageVector(EnumFamily.Signal, null);
-				int nSigs = v.size();
-				v = jmf.getMessageVector(EnumFamily.Acknowledge, null);
-				nSigs += v.size();
-				if (nMess > nSigs || nMess == 0)
+
+				// switch: sends the jmfDoc to correct device
+				JDFDoc responseJMF = null;
+				final AbstractDevice device = getDeviceFromID(deviceID);
+				final IJMFHandler handler = (device == null) ? rootDev.getHandler() : device.getHandler();
+				if (handler != null)
 				{
-					response = processError(request.getRequestURI(), null, 1, "General Error Handling JMF");
+					responseJMF = handler.processJMF(jmfDoc);
+				}
+
+				if (responseJMF != null)
+				{
+					KElement jmfRoot = responseJMF.getJMFRoot();
+					if (bXJDF)
+					{
+						BambiNSExtension.setMyNSAttribute(jmfRoot, "convertXJDF", "true");
+					}
+					if (_callBack != null)
+					{
+						responseJMF = _callBack.updateJMFForExtern(responseJMF);
+						if (responseJMF != null)
+						{
+							jmfRoot = responseJMF.getRoot();
+						}
+					}
+					response = new XMLResponse(jmfRoot);
+					response.setContentType(UrlUtil.VND_JMF);
+					BambiNSExtension.setMyNSAttribute(jmfRoot, "convertXJDF", null);
 				}
 				else
 				{
-					response = null;
+
+					VElement v = jmf.getMessageVector(null, null);
+					final int nMess = v == null ? 0 : v.size();
+					v = jmf.getMessageVector(EnumFamily.Signal, null);
+					int nSigs = v.size();
+					v = jmf.getMessageVector(EnumFamily.Acknowledge, null);
+					nSigs += v.size();
+					if (nMess > nSigs || nMess == 0)
+					{
+						response = processError(request.getRequestURI(), null, 1, "General Error Handling JMF");
+					}
+					else
+					{
+						response = null;
+					}
 				}
 			}
 		}
