@@ -86,6 +86,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.EnumUtil;
 import org.cip4.jdflib.util.StringUtil;
 
 /**
@@ -412,9 +413,10 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			return null;
 		}
 		final JDFJMF jmf = doc.getJMFRoot();
-		if (fixToExtern != null || "true".equals(BambiNSExtension.getMyNSAttribute(jmf, "convertXJDF")))
+		boolean bXJDF = EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, jmf.getMaxVersion());
+		if (fixToExtern != null || bXJDF)
 		{
-			boolean bXJDF = fixToExtern != null && fixToExtern.equals(EnumVersion.Version_2_0) || "true".equals(BambiNSExtension.getMyNSAttribute(jmf, "convertXJDF"));
+			bXJDF = bXJDF || EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, fixToExtern);
 			EnumVersion fixVersion = bXJDF ? JDFAudit.getDefaultJDFVersion() : fixToExtern;
 			jmf.fixVersion(fixVersion);
 			if (bXJDF)
