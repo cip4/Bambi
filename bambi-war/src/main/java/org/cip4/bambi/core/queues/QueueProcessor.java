@@ -2643,13 +2643,31 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		XMLResponse r = getQueueGetHandler().handleGet(request);
 		if (r == null)
 		{
-			r = new ShowJDFHandler(_parentDevice).handleGet(request);
+			r = getShowJDFHandler().handleGet(request);
 		}
 		if (r == null)
 		{
-			r = new ShowXJDFHandler(_parentDevice).handleGet(request);
+			r = getShowXJDFHandler().handleGet(request);
 		}
 		return r;
+	}
+
+	/**
+	 * hook to overwrite the ShowXJDFHandler
+	 * @return
+	 */
+	protected ShowXJDFHandler getShowXJDFHandler()
+	{
+		return new ShowXJDFHandler(_parentDevice);
+	}
+
+	/**
+	 * hook to overwrite the ShowJDFHandler
+	 * @return
+	 */
+	protected ShowJDFHandler getShowJDFHandler()
+	{
+		return new ShowJDFHandler(_parentDevice);
 	}
 
 	/**
