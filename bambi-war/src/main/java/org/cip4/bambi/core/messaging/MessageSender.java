@@ -494,6 +494,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	{
 		pause = false;
 		waitKaputt = false;
+		idle = 0;
 		ThreadUtil.notifyAll(mutexPause);
 	}
 
