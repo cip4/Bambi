@@ -776,10 +776,6 @@ public final class BambiContainer extends BambiLogFactory
 				if (responseJMF != null)
 				{
 					KElement jmfRoot = responseJMF.getJMFRoot();
-					if (bXJDF)
-					{
-						BambiNSExtension.setMyNSAttribute(jmfRoot, "convertXJDF", "true");
-					}
 					if (_callBack != null)
 					{
 						responseJMF = _callBack.updateJMFForExtern(responseJMF);
@@ -790,7 +786,6 @@ public final class BambiContainer extends BambiLogFactory
 					}
 					response = new XMLResponse(jmfRoot);
 					response.setContentType(UrlUtil.VND_JMF);
-					BambiNSExtension.setMyNSAttribute(jmfRoot, "convertXJDF", null);
 				}
 				else
 				{

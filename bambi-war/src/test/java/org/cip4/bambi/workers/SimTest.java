@@ -83,7 +83,6 @@ import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.VElement;
-import org.cip4.jdflib.goldenticket.MISGoldenTicket;
 import org.cip4.jdflib.goldenticket.MISPreGoldenTicket;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
@@ -195,7 +194,6 @@ public class SimTest extends BambiTestCase
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
 		_theGT.getNode().setJobID("j1");
-		((MISGoldenTicket) _theGT).setNodeInfoSubscription(false);
 		submitMimetoURL(getWorkerURL());
 
 	}
