@@ -99,6 +99,7 @@ import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.ByteArrayIOStream.ByteArrayIOInputStream;
 import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FastFiFo;
@@ -731,7 +732,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	private SendReturn processResponse(final MessageDetails mh, final URL url, HttpURLConnection connection) throws IOException
 	{
-		SendReturn b = SendReturn.sent;
+		SendReturn sendReturn = SendReturn.sent;
 		String header = "URL: " + url;
 		if (connection != null)
 		{
@@ -755,50 +756,63 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		}
 
 		final DumpDir inDump = getInDump(mh.senderID);
-		if (connection != null && connection.getResponseCode() == 200)
+		ByteArrayIOInputStream bis = null;
+		InputStream stream = null;
+		if (connection != null)
 		{
-			InputStream inputStream = connection.getInputStream();
-			ByteArrayIOStream bis = new ByteArrayIOStream(inputStream);
-			inputStream.close(); // copy and close so that the connection stream can be reused by keep-alive
-			if (inDump != null)
+			try
 			{
-				inDump.newFileFromStream(header, bis.getInputStream(), mh.getName());
+				stream = connection.getInputStream();
 			}
-			if (mh.respHandler != null)
+			catch (IOException x)
 			{
-				mh.respHandler.setConnection(connection);
-				mh.respHandler.setBufferedStream(bis);
-				b = mh.respHandler.handleMessage() ? SendReturn.sent : SendReturn.error;
+				// nop
+			}
+			if (stream == null)
+			{
+				stream = connection.getErrorStream();
+			}
+			if (stream != null)
+			{
+				bis = ByteArrayIOStream.getBufferedInputStream(stream);
+				stream.close();
 			}
 		}
-		else
+
+		if (connection == null || connection.getResponseCode() != 200)
 		{
-			b = SendReturn.error;
+			sendReturn = SendReturn.error;
 			if (idle == 0)
 			{
 				log.warn("could not send message to " + mh.url + " rc= " + ((connection == null) ? -1 : connection.getResponseCode()));
 			}
-			if (connection != null)
+		}
+		if (mh.respHandler != null)
+		{
+			mh.respHandler.setConnection(connection);
+			mh.respHandler.setBufferedStream(bis == null ? null : new ByteArrayIOStream(bis));
+			SendReturn sr2 = mh.respHandler.handleMessage() ? SendReturn.sent : SendReturn.error;
+			if (!SendReturn.error.equals(sendReturn))
 			{
-				if (inDump != null)
-				{
-					inDump.newFile(header, mh.getName());
-				}
-				InputStream inputStream = connection.getInputStream();
-				if (inputStream != null)
-				{
-					inputStream.close();
-				}
-			}
-			if (mh.respHandler != null)
-			{
-				mh.respHandler.setConnection(connection);
-				mh.respHandler.handleMessage(); // make sure we tell anyone who is waiting that the wait is over...
+				sendReturn = sr2;
 			}
 		}
-		return b;
+		if (inDump != null)
+		{
+			inDump.newFileFromStream(header, bis, mh.getName());
+		}
+		return sendReturn;
 	}
 
+	/**
+	 * 
+	 * @param mh
+	 * @param url
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws MessagingException
+	 */
 	private HttpURLConnection sendDetails(final MessageDetails mh, final URL url) throws FileNotFoundException, IOException, MessagingException
 	{
 		trySend++;

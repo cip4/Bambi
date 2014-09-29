@@ -750,7 +750,6 @@ public final class BambiContainer extends BambiLogFactory
 			final String deviceID = request.getDeviceID();
 			String requestURI = request.getLocalURL();
 			final IConverterCallback _callBack = getRootDev().getCallback(requestURI);
-			boolean bXJDF = XJDFHelper.XJMF.equals(jmfDoc.getRoot().getLocalName());
 
 			if (_callBack != null)
 			{
