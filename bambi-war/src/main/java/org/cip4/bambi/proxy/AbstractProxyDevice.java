@@ -580,7 +580,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			slaveJDFError.stop();
 			slaveJDFError = null;
 		}
-		final File hfStorage = new File(getProperties().getBaseDir() + File.separator + "HFDevTmpStorage" + File.separator + getDeviceID());
+		final File hfStorage = new File(getBaseDir() + File.separator + "HFDevTmpStorage" + File.separator + getDeviceID());
 		log.info("Device error output HF:" + fDeviceErrorOutput.getPath() + " device ID= " + getSlaveDeviceID());
 		final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
 		slaveJDFError = new QueueHotFolder(fDeviceErrorOutput, hfStorage, null, new ReturnHFListner(this, EnumQueueEntryStatus.Aborted), rqCommand);

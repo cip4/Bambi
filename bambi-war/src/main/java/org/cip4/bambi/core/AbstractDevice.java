@@ -685,7 +685,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected void copyToCache()
 	{
 		final Vector<File> dirs = getCacheDirs();
-		File baseDir = getProperties().getBaseDir();
+		File baseDir = getBaseDir();
 		for (File configDir : dirs)
 		{
 			File cacheDir = FileUtil.getFileInDirectory(baseDir, new File(configDir.getName()));
@@ -1268,7 +1268,12 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			for (File f : files)
 			{
-				FileUtil.deleteAll(f);
+				File cacheDir = FileUtil.getFileInDirectory(getBaseDir(), new File(f.getName()));
+				boolean bZapp = FileUtil.deleteAll(cacheDir);
+				if (!bZapp)
+				{
+					log.warn("Could not delete :" + cacheDir.getAbsolutePath());
+				}
 			}
 		}
 		copyToCache();
@@ -1740,7 +1745,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public File getCachedConfigDir()
 	{
-		File baseDir = getProperties().getBaseDir();
+		File baseDir = getBaseDir();
 		File configDir = FileUtil.getFileInDirectory(baseDir, new File("config"));
 		return configDir;
 	}

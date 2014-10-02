@@ -775,13 +775,15 @@ public class MultiDeviceProperties extends BambiLogFactory
 		}
 		else
 		{
-			root.setAttribute("AppDir", baseDir.getAbsolutePath());
+			String appDir = baseDir.getAbsolutePath();
+			root.setAttribute("AppDir", appDir);
 			final File deviceDir = getBaseDir();
 			final File fileInDirectory = FileUtil.getFileInDirectory(deviceDir, configFile);
 			final XMLDoc d2 = XMLDoc.parseFile(fileInDirectory);
 			if (d2 != null) // using config default
 			{
 				root = d2.getRoot();
+				root.setAttribute("AppDir", appDir);
 				log.info("using updated device config from: " + fileInDirectory.getAbsolutePath());
 			}
 			else if (deviceDir != null)
