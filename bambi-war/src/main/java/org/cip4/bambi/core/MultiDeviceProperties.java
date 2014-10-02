@@ -813,9 +813,6 @@ public class MultiDeviceProperties extends BambiLogFactory
 	 */
 	public int getPort()
 	{
-		if (BambiServlet.port > 0)
-			root.removeAttribute("Port");
-
 		int p = root.getIntAttribute("Port", null, BambiServlet.port);
 		if (p == 0)
 		{
