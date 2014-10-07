@@ -68,42 +68,17 @@
  */
 package org.cip4.bambi;
 
-import java.awt.Color;
-import java.awt.Desktop;
-import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.Toolkit;
+import javax.swing.*;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URI;
-
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.UnsupportedLookAndFeelException;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.eclipse.jetty.security.HashLoginService;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.bio.SocketConnector;
-import org.eclipse.jetty.webapp.WebAppContext;
 
 /**
  * Business Logic of Bambi Application.
@@ -112,15 +87,9 @@ import org.eclipse.jetty.webapp.WebAppContext;
  */
 public class ExecutorForm {
 
-	private final static String RES_BAMBI_WAR = "/org/cip4/bambi/bambi.war";
-
-	private final static String RES_VERSION = "/org/cip4/bambi/version.properties";
-
 	private JFrame frmCipBambiapp;
 
 	private JTextArea textArea;
-
-	private Server server;
 
 	private JTextField txtPort;
 
@@ -133,35 +102,20 @@ public class ExecutorForm {
 	private JButton btnStart;
 
 	private JButton btnOpen;
+
 	private JLabel label;
 
-	/**
-	 * Entry point application.
-	 * @param args
-	 * @throws UnsupportedLookAndFeelException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws ClassNotFoundException
-	 */
-	public static void main(String[] args) {
+    private BambiServer bambiServer;
 
-		// start application
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					ExecutorForm window = new ExecutorForm();
-					window.frmCipBambiapp.setVisible(true);
-				} catch (Exception e) {
-					throw new AssertionError(e);
-				}
-			}
-		});
-	}
+    private boolean auto;
 
-	/**
-	 * Create the application.
-	 */
-	public ExecutorForm() {
+    /**
+     * Create the application window.
+     * @param context default value for context.
+     * @param port default value for port.
+     * @param auto auto start.
+     */
+	public ExecutorForm(String context, String port, boolean auto) {
 
 		// init form
 		initialize();
@@ -170,6 +124,11 @@ public class ExecutorForm {
 		PrintStream printStream = new PrintStream(new JTextAreaOutputStream(textArea));
 		System.setOut(printStream);
 		System.setErr(printStream);
+
+        // set default values
+        txtContext.setText(context);
+        txtPort.setText(port);
+        this.auto = auto;
 	}
 
 	/**
@@ -308,6 +267,18 @@ public class ExecutorForm {
 		frmCipBambiapp.getContentPane().setLayout(groupLayout);
 	}
 
+    /**
+     * Display dialog.
+     */
+    public void display() {
+        frmCipBambiapp.setVisible(true);
+
+        // auto start
+        if(auto) {
+            startBambiApp();
+        }
+    }
+
 	/**
 	 * Starts Bambi in a jetty web server environment.
 	 * @throws IOException
@@ -323,66 +294,17 @@ public class ExecutorForm {
 		txtContext.setEnabled(false);
 		txtPort.setEnabled(false);
 
+        bambiServer = new BambiServer();
 		bambiThread = new Thread() {
 			public void run() {
-				startServer(port, context);
+				bambiServer.start(port, context);
 			}
 		};
 		bambiThread.start();
 
 	}
 
-	/**
-	 * Start Jetty Server.
-	 */
-	private void startServer(int port, String context) {
-		// text output console
-		System.out.println("Start Bambi....");
-		System.out.println("");
 
-		server = new Server();
-		SocketConnector connector = new SocketConnector();
-
-		// Set some timeout options to make debugging easier.
-		connector.setMaxIdleTime(1000 * 60 * 60);
-		connector.setSoLingerTime(-1);
-		connector.setPort(port);
-		server.setConnectors(new Connector[] { connector });
-
-		// war path
-		InputStream is = ExecutorForm.class.getResourceAsStream(RES_BAMBI_WAR);
-
-		String warPath = FileUtils.getTempDirectoryPath() + "/bambi.tmp.war";
-		File file = new File(warPath);
-		if (file.exists())
-			file.delete();
-		OutputStream os;
-
-		try {
-			os = new FileOutputStream(file);
-			IOUtils.copy(is, os);
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
-
-		// login service
-		HashLoginService loginService = new HashLoginService();
-		loginService.setName("test");
-
-		WebAppContext ctx = new WebAppContext();
-		ctx.setContextPath("/" + context);
-		ctx.setWar(warPath);
-		ctx.getSecurityHandler().setLoginService(loginService);
-		server.setHandler(ctx);
-
-		try {
-			server.start();
-			System.out.println("System started...");
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(100);
-		}
-	}
 
 	/**
 	 * Stop Bambi Appication.
@@ -399,7 +321,7 @@ public class ExecutorForm {
 		Thread t = new Thread() {
 			public void run() {
 				try {
-					server.stop();
+                    bambiServer.stop();
 					bambiThread.interrupt();
 					System.out.println("Bambi Server has stopped.....");
 
