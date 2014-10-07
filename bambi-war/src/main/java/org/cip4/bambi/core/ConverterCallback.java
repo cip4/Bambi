@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -158,15 +158,15 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 
 	/**
 	 * @see org.cip4.bambi.core.IConverterCallback#prepareJDFForBambi(org.cip4.jdflib.core.JDFDoc) ensure a JobPartID in the root
-	 * @param doc the incoming JDF Document
+	 * @param docIn the incoming JDF Document
 	 */
 	@Override
-	public JDFDoc prepareJDFForBambi(JDFDoc doc)
+	public JDFDoc prepareJDFForBambi(JDFDoc docIn)
 	{
-		if (doc == null)
-			return doc;
+		if (docIn == null)
+			return docIn;
 
-		doc = importXJDF(doc);
+		JDFDoc doc = importXJDF(docIn);
 
 		final JDFNode n = doc.getJDFRoot();
 		if (n == null)
@@ -186,7 +186,8 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		fixSubscriptions(n);
 		for (IConverterCallback cb : postConversionList)
 		{
-			doc = cb.prepareJDFForBambi(doc);
+			JDFDoc docIn2 = doc;
+			doc = cb.prepareJDFForBambi(docIn2);
 		}
 		return doc;
 	}
