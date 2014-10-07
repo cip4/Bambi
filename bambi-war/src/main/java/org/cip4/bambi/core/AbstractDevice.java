@@ -1388,6 +1388,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			}
 			else
 			{
+				updateDevice(request);
 				return showDevice(request, request.getBooleanParam("refresh"));
 			}
 		}

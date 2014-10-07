@@ -1802,7 +1802,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * @param qe
 	 * @return an IQueueEntry that corresponds to the qe, null if none is there
 	 */
-	IQueueEntry getIQueueEntry(final JDFQueueEntry qe, boolean waitForDoc)
+	protected IQueueEntry getIQueueEntry(final JDFQueueEntry qe, boolean waitForDoc)
 	{
 		if (qe == null)
 		{
@@ -2298,7 +2298,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * @param refID
 	 * @return the last queue that was shown
 	 */
-	JDFQueue getLastQueue(final String refID)
+	protected JDFQueue getLastQueue(final String refID)
 	{
 		final QueueDelta delta = deltaMap.get(refID);
 		deltaMap.put(refID, new QueueDelta());
@@ -2371,14 +2371,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 			if (docJDF == null)
 			{
-				final String docFile = BambiNSExtension.getDocURL(qe);
-				if (docFile != null)
-					docJDF = JDFDoc.parseFile(docFile);
-			}
-			if (docJDF == null)
-			{
-				final String docFile = _parentDevice.getJDFStorage(queueEntryID);
-				docJDF = JDFDoc.parseFile(docFile);
+				IQueueEntry iQueueEntry = getIQueueEntry(qe, true);
+				JDFNode node = iQueueEntry == null ? null : iQueueEntry.getJDF();
+				if (node != null)
+				{
+					docJDF = node.getOwnerDocument_JDFElement();
+				}
 			}
 			if (docJDF == null)
 			{
@@ -2715,7 +2713,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		else if (EnumQueueEntryStatus.Waiting.equals(status)) // no need to check processors - it is still waiting
 		{
-			IQueueEntry iQueueEntry = getIQueueEntry(qe);
+			IQueueEntry iQueueEntry = getIQueueEntry(qe, true);
 			theNode = iQueueEntry == null ? null : iQueueEntry.getJDF();
 			updateEntry(qe, EnumQueueEntryStatus.Aborted, m, resp, null);
 		}
@@ -2730,6 +2728,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		if (EnumQueueEntryStatus.Aborted.equals(newStatus))
 		{
+			if (theNode == null)
+			{
+				IQueueEntry iQueueEntry = getIQueueEntry(qe);
+				theNode = iQueueEntry == null ? null : iQueueEntry.getJDF();
+			}
 			JDFDoc theDoc = theNode == null ? null : theNode.getOwnerDocument_JDFElement();
 			returnQueueEntry(qe, null, theDoc, newStatus);
 		}

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -251,12 +251,15 @@ public class BambiNSExtension
 		}
 	}
 
-	/*** docURL *************************************************************/
+	/**
+	 * the originating request URL
+	 */
+	public static final String reqURL = "ReqURL";
 	/**
 	 * the URL where the JDFDoc can be grabbed
 	 */
 	public static final String docURL = "DocURL";
-	/*** docURL *************************************************************/
+
 	/**
 	 * the URL where the JDFDoc can be grabbed
 	 */
@@ -280,6 +283,26 @@ public class BambiNSExtension
 	public static String getDocURL(final KElement ke)
 	{
 		return getMyNSAttribute(ke, docURL);
+	}
+
+	/**
+	 * set the original request url
+	 * @param ke the KElement to work on
+	 * @param the original request url
+	 */
+	public static void setRequestURL(final KElement ke, final String _reqURL)
+	{
+		setMyNSAttribute(ke, reqURL, _reqURL);
+	}
+
+	/**
+	 * get the original request url
+	 * @param ke the KElement to work on
+	 * @return the original request url
+	 */
+	public static String getRequestURL(final KElement ke)
+	{
+		return getMyNSAttribute(ke, reqURL);
 	}
 
 	/**

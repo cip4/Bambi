@@ -104,10 +104,10 @@ import org.cip4.jdflib.util.zip.ZipReader;
 /**
  * class that handles all bambi JDF/JMF requests - regardless of the servlet context
  * previously part of {@link BambiServlet}
- * it is implemented as a Sindleton so that you always have static access
+ * it is implemented as a Singleton so that you always have static access
  * 
  * note that the get handling routines still assume a servlet context - only the actual JDF / JMF post does not
-  * @author Rainer Prosi, Heidelberger Druckmaschinen 
+ * @author Rainer Prosi, Heidelberger Druckmaschinen 
  */
 public final class BambiContainer extends BambiLogFactory
 {
@@ -547,16 +547,21 @@ public final class BambiContainer extends BambiLogFactory
 			String name = e.getName();
 			zipReader.buffer();
 			ZipEntry e2 = zipReader.getNextEntry();
-			String rootName = e2.getName();
-			if (rootName.endsWith("/") && name.startsWith(rootName))
-				zipReader.setRootEntry(rootName);
+			if (e2 != null)
+			{
+				String rootName = e2.getName();
+				if (rootName.endsWith("/") && name.startsWith(rootName))
+				{
+					zipReader.setRootEntry(rootName);
+				}
+			}
 
 			XMLRequest req = new XMLRequest(new JDFDoc(d));
 			r = processXMLDoc(req);
 		}
 		else
 		{
-			String ctWarn = "Cannot extract zip";
+			String ctWarn = "Cannot extract zip from: " + request.getRequestURI();
 			log.error(ctWarn);
 			r = processError(request.getRequestURI(), EnumType.Notification, 9, ctWarn);
 		}
@@ -566,6 +571,14 @@ public final class BambiContainer extends BambiLogFactory
 	private ZipEntry getXMLFromZip(ZipReader zipReader)
 	{
 		ZipEntry e = zipReader.getMatchingEntry("*.ptk", 0);
+		if (e == null)
+		{
+			e = zipReader.getMatchingEntry("*.xjmf", 0);
+		}
+		if (e == null)
+		{
+			e = zipReader.getMatchingEntry("*.jmf", 0);
+		}
 		if (e == null)
 		{
 			e = zipReader.getMatchingEntry("*.xjdf", 0);
@@ -756,6 +769,8 @@ public final class BambiContainer extends BambiLogFactory
 				jmfDoc = _callBack.prepareJMFForBambi(jmfDoc);
 			}
 			JDFJMF jmf = jmfDoc.getJMFRoot();
+			BambiNSExtension.setRequestURL(jmf, requestURI);
+
 			if (jmf == null)
 			{
 				response = processError(request.getRequestURI(), EnumType.Notification, 3, "Error processing JMF " + requestRoot.getLocalName());

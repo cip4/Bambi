@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -73,7 +73,6 @@ package org.cip4.bambi.core;
 import java.io.InputStream;
 
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -98,7 +97,9 @@ public class XMLRequest extends ContainerRequest
 		setContentType(theXML);
 		updateName();
 		if (theXML == null)
-			log.error("constructor for null xml element ");
+		{
+			log.error("constructor for null xml element " + super.toString());
+		}
 	}
 
 	/**
@@ -108,7 +109,7 @@ public class XMLRequest extends ContainerRequest
 	{
 		this(theDoc == null ? null : theDoc.getRoot());
 		if (theDoc == null)
-			log.error("constructor for null xml document ");
+			log.error("constructor for null xml document " + super.toString());
 	}
 
 	/**
@@ -138,14 +139,17 @@ public class XMLRequest extends ContainerRequest
 		super();
 		InputStream inStream = request.getInputStream();
 		setContainer(request);
-		final JDFParser p = new JDFParser();
-		final JDFDoc xmlDoc = p.parseStream(inStream);
+		final JDFDoc xmlDoc = JDFDoc.parseStream(inStream);
 		if (xmlDoc == null)
-			log.error("cannot parse stream: ");
+		{
+			log.error("cannot parse stream: " + super.toString());
+		}
 		theXML = xmlDoc == null ? null : xmlDoc.getRoot();
 		updateName();
 		if (request.getName() == null)
+		{
 			request.setName(getName());
+		}
 	}
 
 	/**

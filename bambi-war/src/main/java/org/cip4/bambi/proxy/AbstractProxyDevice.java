@@ -341,7 +341,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			}
 			JDFSubscription subscription = si.getSubscription();
 			String url = subscription == null ? null : subscription.getURL();
-			String deviceURLForSlave = getProperties().getDeviceURLForSlave();
+			String deviceURLForSlave = getDeviceURLForSlave();
 			if (!ContainerUtil.equals(url, deviceURLForSlave))
 			{
 				log.warn("SubscriptionInfo for wrong url:" + deviceURLForSlave + ", ignore");
@@ -834,7 +834,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	{
 		JMFBuilder builder = JMFBuilderFactory.getJMFBuilder(getDeviceID());
 		builder = builder.clone(); // we only want to set ackURL for certain messages
-		final String deviceURLForSlave = getProperties().getDeviceURLForSlave();
+		final String deviceURLForSlave = getDeviceURLForSlave();
 		if (deviceURLForSlave != null)
 		{
 			builder.setAcknowledgeURL(deviceURLForSlave);
@@ -878,15 +878,22 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	@Override
 	public IConverterCallback getCallback(final String url)
 	{
-		IProxyProperties proxyProperties = getProperties();
-		if (url != null)
+		if (url != null && isSlaveURI(url))
 		{
-			if (StringUtil.hasToken(url, SLAVEJMF, "/", 0) || url.equals(proxyProperties.getDeviceURLForSlave()) || url.equals(proxyProperties.getSlaveURL()))
-			{
-				return _slaveCallback;
-			}
+			return _slaveCallback;
 		}
 		return _callback;
+	}
+
+	/**
+	 * 
+	 * @param url
+	 * @return
+	 */
+	public boolean isSlaveURI(final String url)
+	{
+		IProxyProperties proxyProperties = getProperties();
+		return StringUtil.hasToken(url, SLAVEJMF, "/", 0) || getDeviceURLForSlave().contains(url) || proxyProperties.getSlaveURL().contains(url);
 	}
 
 	/**
