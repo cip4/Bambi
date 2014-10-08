@@ -339,6 +339,16 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				qeIDMap.remove(slaveqeID);
 			}
 		}
+
+		/**
+		 * 
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString()
+		{
+			return "QueueMap [size= " + qeIDMap.size() + " null size= " + niNull.size() + " ]";
+		}
 	}
 
 	/**
@@ -1802,7 +1812,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * @param qe
 	 * @return an IQueueEntry that corresponds to the qe, null if none is there
 	 */
-	protected IQueueEntry getIQueueEntry(final JDFQueueEntry qe, boolean waitForDoc)
+	public IQueueEntry getIQueueEntry(final JDFQueueEntry qe, boolean waitForDoc)
 	{
 		if (qe == null)
 		{

@@ -141,6 +141,7 @@ public class QueueHFListener extends BambiLogFactory implements QueueHotFolderLi
 				log.warn("_theQueue.addEntry returned null");
 				return false;
 			}
+			queueProc.updateCache(qe, qe.getQueueEntryID());
 			return waitForSubmission(qe);
 		}
 	}
@@ -151,11 +152,11 @@ public class QueueHFListener extends BambiLogFactory implements QueueHotFolderLi
 	 */
 	private boolean waitForSubmission(final JDFQueueEntry qe)
 	{
-		int iLoop = 0;
+		int iLoop = 1;
 		long t0 = System.currentTimeMillis();
 		while (iLoop++ < 42)
 		{
-			IQueueEntry iqeNew = queueProc.getIQueueEntry(qe);
+			IQueueEntry iqeNew = queueProc.getIQueueEntry(qe, true);
 			JDFQueueEntry qeNew = iqeNew == null ? null : iqeNew.getQueueEntry();
 			if (queueProc.wasSubmitted(qeNew))
 			{
@@ -167,7 +168,7 @@ public class QueueHFListener extends BambiLogFactory implements QueueHotFolderLi
 				}
 				return true;
 			}
-			if (!ThreadUtil.sleep(iLoop * 42))
+			if (!ThreadUtil.sleep(iLoop * iLoop * 42))
 			{
 				return false;
 			}
