@@ -13,7 +13,7 @@ public class App {
 
     private static final String OPT_PORT = "port";
 
-    private static final String OPT_CONTEXT = "context";
+    // private static final String OPT_CONTEXT = "context";
 
 
     /**
@@ -34,7 +34,8 @@ public class App {
 
 
         final String port = cmd.getOptionValue(OPT_PORT, "8080");
-        final String context = cmd.getOptionValue(OPT_CONTEXT, "context");
+        // final String context = cmd.getOptionValue(OPT_CONTEXT, "SimWorker");
+        final String context = "SimWorker";
         final boolean auto = cmd.hasOption(OPT_AUTO);
 
         // start application
@@ -60,7 +61,7 @@ public class App {
 
         options.addOption("a", OPT_AUTO, false, "Start bambi automatically");
         options.addOption("p", OPT_PORT, true, "Port setting");
-        options.addOption("c", OPT_CONTEXT, true, "URL Context");
+        // options.addOption("c", OPT_CONTEXT, true, "URL Context");
 
         return options;
     }

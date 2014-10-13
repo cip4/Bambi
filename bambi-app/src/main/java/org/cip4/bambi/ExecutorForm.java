@@ -182,6 +182,7 @@ public class ExecutorForm {
 		txtContext = new JTextField();
 		txtContext.setText("bambi");
 		txtContext.setColumns(10);
+        txtContext.setEnabled(false);
 
 		JLabel lblContext = new JLabel("/");
 
@@ -314,7 +315,7 @@ public class ExecutorForm {
 		btnStart.setEnabled(true);
 		btnStop.setEnabled(false);
 		btnOpen.setEnabled(false);
-		txtContext.setEnabled(true);
+		// txtContext.setEnabled(true);
 		txtPort.setEnabled(true);
 
 		// stop bambi
