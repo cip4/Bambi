@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BambiJob Error="2">
+	<JobPhase Duration="3"
+		DeviceStatus="Setup" DeviceStatusDetails="JobIncoming" 
+		NodeStatus="Ready" NodeStatusDetails="JobHeld">
+		<Amount Resource="Component" Speed="0" />
+		<Amount Resource="Media:Input" Speed="0"  />
+	</JobPhase>
+	<JobPhase Duration="5"
+		DeviceStatus="Running" DeviceStatusDetails="Processing" 
+		NodeStatus="InProgress" NodeStatusDetails="Processing">
+		<Amount Resource="Component" Waste="true"/>
+		<Amount Resource="Media:Input" Speed="0" Waste="true" />
+		</JobPhase>
+	<JobPhase Duration="1000000" 
+		DeviceStatus="Running" DeviceStatusDetails="Good" 
+		NodeStatus="InProgress" NodeStatusDetails="Good">
+		<Amount Resource="Component" Speed="20" />
+		<Amount Resource="Media:Input" Speed="20" />
+	</JobPhase>
+</BambiJob>

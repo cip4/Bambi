@@ -80,7 +80,6 @@ import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.proxy.AbstractProxyDevice;
-import org.cip4.bambi.proxy.IProxyProperties;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
@@ -145,8 +144,7 @@ public class ShowJDFHandler extends ShowHandler
 
 			if (callback)
 			{
-				final IProxyProperties pp = ((AbstractProxyDevice) _parentDevice).getProperties();
-				final IConverterCallback call = pp.getSlaveCallBackClass();
+				final IConverterCallback call = ((AbstractProxyDevice) _parentDevice).getSlaveCallBackClass();
 				if (call != null)
 				{
 					call.updateJDFForExtern(doc);

@@ -856,18 +856,31 @@ public class MultiDeviceProperties extends BambiLogFactory
 	 */
 	public String getContextURL()
 	{
-		String contextURL = null;
+		return "http://" + getHostName() + ":" + getPort() + "/" + context;
+	}
+
+	/**
+	 * @return the hostname; if network snafu either the hard coded host ip or "localhost"
+	 * @see org.cip4.bambi.core.IDeviceProperties#getContextURL()
+	 */
+	public String getHostName()
+	{
+		String hostName = null;
 		try
 		{
 			final InetAddress localHost = InetAddress.getLocalHost();
-			contextURL = "http://" + localHost.getHostName() + ":" + getPort() + "/" + context;
+			hostName = localHost.getHostName();
 		}
 		catch (final UnknownHostException x1)
 		{
-			contextURL = "http://localhost:" + getPort() + "/" + context;
-			log.error("network setup looks sub-optimal - using; " + contextURL, x1);
+			hostName = StringUtil.getNonEmpty(root.getAttribute("host", null, null));
+			if (hostName == null)
+			{
+				hostName = "localhost";
+			}
+			log.error("network setup looks sub-optimal - using; " + hostName, x1);
 		}
-		return contextURL;
+		return hostName;
 	}
 
 	/**

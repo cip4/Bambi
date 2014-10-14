@@ -67,6 +67,17 @@
         TypeExpression="(.)*DigitalPrinting(.)*"
 		MIMEExpansion="true"
 		/>
+	<Device DeviceID="simWF" 
+	DeviceType="Bambi Push Simulation Wide Format Device"
+		PushPull="Push" 
+		TrackResource="Component:Output" 
+		InputHF="/BambiHF/simWF/Input"
+		OutputHF="/BambiHF/simWF/Output" 
+		ErrorHF="/BambiHF/simWF/Error" 
+		AmountResources="Media:Input,UsageCounter" 
+        TypeExpression="(.)*DigitalPrinting(.)*"
+		MIMEExpansion="true"
+		/>
 		
 
 	<!--

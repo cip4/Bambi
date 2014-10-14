@@ -522,7 +522,10 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			final IProxyProperties proxyProperties = getProperties();
 			if (proxyProperties != null)
 			{
-				deviceRoot.setAttribute("SlaveURL", proxyProperties.getSlaveURL());
+				String slaveURL = getSlaveURL();
+				if (StringUtil.getNonEmpty(slaveURL) == null)
+					slaveURL = "Please Add";
+				deviceRoot.setAttribute("SlaveURL", slaveURL);
 				deviceRoot.setAttribute("MaxPush", proxyProperties.getMaxPush(), null);
 				deviceRoot.setAttribute("DeviceURLForSlave", proxyProperties.getDeviceURLForSlave());
 
@@ -611,7 +614,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	{
 		knownSlaveMessages = new MessageChecker(this);
 		final IProxyProperties proxyProperties = getProperties();
-		_slaveCallback = proxyProperties.getSlaveCallBackClass();
+		_slaveCallback = getSlaveCallBackClass();
 		waitingSubscribers = new HashMap<String, SlaveSubscriber>();
 		mySubscriptions = createSubscriptionMap();
 		prepareSlaveHotfolders(proxyProperties);
@@ -623,6 +626,15 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		// ensure existence of vector prior to filling
 		_theQueueProcessor.getQueue().resumeQueue(); // proxy queues should start up by default
 		addSlaveSubscriptions(8888, null, false);
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public IConverterCallback getSlaveCallBackClass()
+	{
+		return getProperties().getSlaveCallBackClass();
 	}
 
 	/**
