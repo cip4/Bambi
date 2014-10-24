@@ -191,11 +191,11 @@ public abstract class UIModifiableDevice extends WorkerDevice
 			personalID = StringUtil.token(personalID, 0, " ");
 			if (bLogout)
 			{
-				_theStatusListener.removeEmployee(employees.getEmployee(personalID));
+				getStatusListener().removeEmployee(employees.getEmployee(personalID));
 			}
 			else
 			{
-				_theStatusListener.addEmployee(employees.getEmployee(personalID));
+				getStatusListener().addEmployee(employees.getEmployee(personalID));
 			}
 		}
 

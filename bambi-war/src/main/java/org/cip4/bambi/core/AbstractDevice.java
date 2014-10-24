@@ -93,7 +93,6 @@ import org.cip4.bambi.core.queues.QueueEntryCleanup;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoGeneralID.EnumDataType;
-import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -106,7 +105,6 @@ import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
-import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.jmf.JDFDeviceFilter;
@@ -278,113 +276,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * @author prosirai
-	 */
-	protected class XMLDevice extends XMLDoc
-	{
-
-		/**
-		 * XML representation of this simDevice fore use as html display using an XSLT
-		 * @param addProcs if true, add processor elements
-		 * @param request 
-		 */
-		protected XMLDevice(final boolean addProcs, final ContainerRequest request)
-		{
-			super("XMLDevice", null);
-			prepare();
-			final KElement deviceRoot = getRoot();
-			setXSLTURL(getXSLT(request));
-
-			deviceRoot.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
-			final boolean bModify = request.getBooleanParam("modify");
-			deviceRoot.setAttribute("modify", bModify, null);
-			deviceRoot.setAttribute("NumRequests", numRequests, null);
-			deviceRoot.setAttribute("EntriesProcessed", entriesProcessed, null);
-			deviceRoot.setAttribute("VersionString", getVersionString(), null);
-			deviceRoot.copyElement(getDeviceTimer(true).toXML(), null);
-			deviceRoot.setAttribute(AttributeName.DEVICEID, getDeviceID());
-			deviceRoot.setAttribute(AttributeName.DEVICETYPE, getDeviceType());
-			deviceRoot.setAttribute("Description", getDescription());
-			deviceRoot.setAttribute("DeviceURL", getDeviceURL());
-			final IDeviceProperties properties = getProperties();
-			deviceRoot.setAttribute("WatchURL", properties.getWatchURL());
-			deviceRoot.setAttribute(AttributeName.DEVICESTATUS, getDeviceStatus().getName());
-			if (_rootDevice == null && BambiContainer.getInstance() != null)
-			{
-				deviceRoot.setAttribute("Dump", BambiContainer.getInstance().bWantDump, null);
-			}
-			addHotFolders(deviceRoot);
-			addQueueInfo(deviceRoot);
-			if (addProcs)
-			{
-				addProcessors();
-			}
-		}
-
-		/**
-		 * @param deviceRoot
-		 */
-		private void addHotFolders(final KElement deviceRoot)
-		{
-			final File inputHF = getInputHFUrl();
-			if (inputHF != null)
-			{
-				deviceRoot.setAttribute("InputHF", inputHF.getPath());
-			}
-			final IDeviceProperties properties = getProperties();
-			final File outputHF = properties.getOutputHF();
-			if (outputHF != null)
-			{
-				deviceRoot.setAttribute("OutputHF", outputHF.getPath());
-			}
-			final File errorHF = properties.getErrorHF();
-			if (errorHF != null)
-			{
-				deviceRoot.setAttribute("ErrorHF", errorHF.getPath());
-			}
-		}
-
-		/**
-		 * @param deviceRoot
-		 */
-		private void addQueueInfo(final KElement deviceRoot)
-		{
-			if (_theQueueProcessor == null)
-			{
-				log.error("device with null queueprocessor - bailing ot: ID=" + getDeviceID());
-			}
-			final JDFQueue jdfQueue = _theQueueProcessor.getQueue();
-			final EnumQueueStatus queueStatus = jdfQueue == null ? null : jdfQueue.getQueueStatus();
-			final int running = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Running);
-			final int waiting = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Waiting) + jdfQueue.numEntries(EnumQueueEntryStatus.Suspended);
-			final int completed = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Completed) + jdfQueue.numEntries(EnumQueueEntryStatus.Aborted);
-			final int all = jdfQueue == null ? 0 : jdfQueue.numEntries(null);
-
-			deviceRoot.setAttribute("QueueStatus", queueStatus == null ? "Unknown" : queueStatus.getName());
-			deviceRoot.setAttribute("QueueWaiting", waiting, null);
-			deviceRoot.setAttribute("QueueRunning", running, null);
-			deviceRoot.setAttribute("QueueCompleted", completed, null);
-			deviceRoot.setAttribute("QueueAll", all, null);
-		}
-
-		/**
-		 * hook to call any preparation setup prior to constructing
-		 */
-		protected void prepare()
-		{
-			// nop
-		}
-
-		private void addProcessors()
-		{
-			for (int i = 0; i < _deviceProcessors.size(); i++)
-			{
-				_deviceProcessors.get(i).addToDisplayXML(getRoot());
-			}
-		}
-	}
-
-	/**
 	 * handler for the KnownDevices query
 	 */
 	protected class KnownDevicesHandler extends AbstractHandler
@@ -466,14 +357,14 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		protected boolean isGlobal(JDFMessage inputMessage)
 		{
 			// TODO use JDF 1.5 ResourceQuParams/@Context when available
-			boolean b = _theStatusListener == null;
+			boolean b = getStatusListener() == null;
 			b = b || !inputMessage.getBoolAttribute(JMFHandler.subscribed, null, false);
 			return b;
 		}
 
 		protected boolean getJobResources(final JDFMessage inputMessage, final JDFResponse response)
 		{
-			final StatusCounter sc = _theStatusListener.getStatusCounter();
+			final StatusCounter sc = getStatusListener().getStatusCounter();
 			final JDFDoc docJMFResource = sc == null ? null : sc.getDocJMFResource();
 			if (docJMFResource == null)
 			{
@@ -541,16 +432,16 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		@Override
 		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 		{
-			if (_theStatusListener == null)
+			if (getStatusListener() == null)
 			{
 				return false;
 			}
-			if (!_theStatusListener.matchesQuery(inputMessage))
+			if (!getStatusListener().matchesQuery(inputMessage))
 			{
 				return false;
 			}
 
-			final JDFDoc docJMF = _theStatusListener.getStatusCounter().getDocJMFPhaseTime();
+			final JDFDoc docJMF = getStatusListener().getStatusCounter().getDocJMFPhaseTime();
 			if (docJMF == null)
 			{
 				return false;
@@ -611,7 +502,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected QueueHotFolder _submitHotFolder;
 	protected final IConverterCallback _callback;
 	protected RootDevice _rootDevice = null;
-	protected final StatusListener _theStatusListener;
+	private final StatusListener _theStatusListener;
 	protected long numRequests;
 	protected boolean acceptAll;
 	protected final MyMutex mutex;
@@ -1078,7 +969,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public XMLDevice getXMLDevice(final boolean addProcs, final ContainerRequest request)
 	{
-		return new XMLDevice(addProcs, request);
+		return new XMLDevice(this, addProcs, request);
 	}
 
 	/**
@@ -2212,5 +2103,15 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			log.error("attempting to add null processor to device: " + getDeviceID());
 		}
+	}
+
+	public int getEntriesProcessed()
+	{
+		return entriesProcessed;
+	}
+
+	public StatusListener getStatusListener()
+	{
+		return _theStatusListener;
 	}
 }

@@ -72,7 +72,6 @@
 package org.cip4.bambi.workers;
 
 import java.io.File;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
@@ -217,73 +216,6 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 
 		}
 		return isExecutable;
-	}
-
-	/**
-	 * @author Rainer Prosi
-	 */
-	protected class XMLWorkerDevice extends XMLDevice
-	{
-		/**
-		 * XML representation of this simDevice fore use as html display using an XSLT
-		 * @param addProcs if true, add processor elements
-		 * @param request
-		 */
-		public XMLWorkerDevice(final boolean addProcs, final ContainerRequest request)
-		{
-			super(addProcs, request);
-			final KElement deviceRoot = getRoot();
-			deviceRoot.setAttribute(AttributeName.TYPEEXPRESSION, getProperties().getTypeExpression());
-			deviceRoot.setAttribute("login", true, null);
-			addEmployees();
-			addKnownEmployees();
-		}
-
-		/**
-		 * 
-		 */
-		private void addKnownEmployees()
-		{
-			final KElement deviceRoot = getRoot();
-			final KElement knownEmps = deviceRoot.appendElement("KnownEmployees");
-			final Vector<JDFEmployee> vEmpLoggedIn = _theStatusListener.getStatusCounter().getEmpoyees();
-			final Vector<JDFEmployee> vEmp = employees.vEmp;
-			for (int i = 0; i < vEmp.size(); i++)
-			{
-				final JDFEmployee knownEmp = vEmp.get(i);
-				boolean bAdd = true;
-				if (vEmpLoggedIn != null)
-				{
-					for (JDFEmployee employee : vEmpLoggedIn)
-					{
-						if (knownEmp.matches(employee))
-						{
-							bAdd = false;
-							break;
-						}
-
-					}
-				}
-				if (bAdd)
-				{
-					knownEmps.copyElement(knownEmp, null);
-				}
-			}
-		}
-
-		/**
-		 * add the currently logged employees, duh
-		 */
-		private void addEmployees()
-		{
-			final KElement deviceRoot = getRoot();
-			final Vector<JDFEmployee> vEmp = _theStatusListener.getStatusCounter().getEmpoyees();
-			for (final Iterator<JDFEmployee> iterator = vEmp.iterator(); iterator.hasNext();)
-			{
-				final JDFEmployee employee = iterator.next();
-				deviceRoot.copyElement(employee, null);
-			}
-		}
 	}
 
 	protected class EmployeeList

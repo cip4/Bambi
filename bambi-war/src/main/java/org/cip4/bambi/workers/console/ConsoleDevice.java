@@ -1,9 +1,9 @@
-/*
+/**
  *
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -79,6 +79,7 @@ import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
+import org.cip4.bambi.core.XMLDevice;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.workers.JobPhase;
 import org.cip4.bambi.workers.UIModifiableDevice;
@@ -265,28 +266,6 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 	}
 
 	/**
-	 * @author prosirai
-	 */
-	protected class XMLConsoleDevice extends XMLWorkerDevice
-	{
-
-		/**
-		 * XML representation of this simDevice for use as html display using an XSLT
-		 * @param bProc
-		 * @param request
-		 */
-		public XMLConsoleDevice(final boolean bProc, final ContainerRequest request)
-		{
-			super(bProc, request);
-			final boolean bSetup = request.getBooleanParam("setup");
-			if (!bSetup)
-			{
-				// TODO
-			}
-		}
-	}
-
-	/**
 	 * @param bProc if true add processors
 	 * @param request
 	 * @return
@@ -294,7 +273,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 	@Override
 	public XMLDevice getXMLDevice(final boolean bProc, final ContainerRequest request)
 	{
-		final XMLDevice device = this.new XMLConsoleDevice(bProc, request);
+		final XMLDevice device = new XMLConsoleDevice(this, bProc, request);
 		return device;
 	}
 

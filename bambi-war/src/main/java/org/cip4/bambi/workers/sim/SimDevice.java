@@ -78,6 +78,7 @@ import java.util.Vector;
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
+import org.cip4.bambi.core.XMLDevice;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.workers.JobPhase;
 import org.cip4.bambi.workers.UIModifiableDevice;
@@ -204,27 +205,6 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	}
 
 	/**
-	 * @author prosirai
-	 */
-	protected class XMLSimDevice extends XMLWorkerDevice
-	{
-		/**
-		 * XML representation of this simDevice for use as html display using an XSLT
-		 * @param addProcs if true, add processor elements
-		 * @param request
-		 */
-		public XMLSimDevice(final boolean addProcs, final ContainerRequest request)
-		{
-			super(addProcs, request);
-			final JobPhase currentJobPhase = getCurrentJobPhase();
-			if (currentJobPhase != null)
-			{
-				currentJobPhase.writeToParent(getRoot());
-			}
-		}
-	}
-
-	/**
 	 * @param bProc if true add processors
 	 * @param request
 	 * @return
@@ -232,7 +212,7 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	@Override
 	public XMLDevice getXMLDevice(final boolean bProc, final ContainerRequest request)
 	{
-		final XMLDevice simDevice = new XMLSimDevice(bProc, request);
+		final XMLDevice simDevice = new XMLSimDevice(this, bProc, request);
 		return simDevice;
 	}
 

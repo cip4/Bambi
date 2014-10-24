@@ -84,6 +84,7 @@ import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
+import org.cip4.bambi.core.XMLDevice;
 import org.cip4.bambi.core.messaging.CommandProxyHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler;
 import org.cip4.bambi.core.messaging.MessageResponseHandler;
@@ -492,56 +493,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 				}
 			}
 			return true; // we always assume ok
-		}
-	}
-
-	/**
-	 * @author prosirai
-	 */
-	protected class XMLProxyDevice extends XMLDevice
-	{
-
-		/**
-		 * XML representation of this simDevice fore use as html display using an XSLT
-		 * @param addProcs - always ignored
-		 * @param request BambiServletRequest http context in which this is called
-		 */
-		public XMLProxyDevice(final boolean addProcs, final ContainerRequest request)
-		{
-			// proxies never show processors
-			super(false, request);
-			updateSlaveProperties();
-		}
-
-		/**
-		 * 
-		 */
-		private void updateSlaveProperties()
-		{
-			final KElement deviceRoot = getRoot();
-			final IProxyProperties proxyProperties = getProperties();
-			if (proxyProperties != null)
-			{
-				String slaveURL = getSlaveURL();
-				if (StringUtil.getNonEmpty(slaveURL) == null)
-					slaveURL = "Please Add";
-				deviceRoot.setAttribute("SlaveURL", slaveURL);
-				deviceRoot.setAttribute("MaxPush", proxyProperties.getMaxPush(), null);
-				deviceRoot.setAttribute("DeviceURLForSlave", proxyProperties.getDeviceURLForSlave());
-
-				File hf = proxyProperties.getSlaveInputHF();
-				deviceRoot.setAttribute("SlaveInputHF", hf == null ? null : hf.getPath());
-				hf = proxyProperties.getSlaveOutputHF();
-				deviceRoot.setAttribute("SlaveOutputHF", hf == null ? null : hf.getPath());
-				hf = proxyProperties.getSlaveErrorHF();
-				deviceRoot.setAttribute("SlaveErrorHF", hf == null ? null : hf.getPath());
-				final String id = proxyProperties.getSlaveDeviceID();
-				deviceRoot.setAttribute("SlaveDeviceID", id == null ? null : id);
-				deviceRoot.setAttribute("SlaveMIMETransferExpansion", proxyProperties.getSlaveMIMEExpansion(), null);
-				deviceRoot.setAttribute("SlaveMIMETransferEncoding", proxyProperties.getSlaveMIMEEncoding());
-				deviceRoot.setAttribute("SlaveMIMESemicolon", proxyProperties.getSlaveMIMESemicolon(), null);
-			}
-			deviceRoot.setAttribute("DataURL", getDataURL(null, true));
 		}
 	}
 
@@ -1154,7 +1105,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	@Override
 	public XMLDevice getXMLDevice(final boolean addProcs, final ContainerRequest request)
 	{
-		return new XMLProxyDevice(addProcs, request);
+		return new XMLProxyDevice(this, addProcs, request);
 	}
 
 	/**
