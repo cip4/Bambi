@@ -649,7 +649,7 @@ public final class BambiContainer extends BambiLogFactory
 	 */
 	public XMLResponse processXMLDoc(XMLRequest request)
 	{
-		log.info("Processing xml document");
+		log.info("Processing xml document: content type=" + request.getContentType(true));
 		XMLRequest newRequest = getRootDev().convertToJMF(request);
 		if (newRequest != null)
 		{
