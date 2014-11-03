@@ -496,10 +496,15 @@ public final class BambiContainer extends BambiLogFactory
 		if (request.isPost()) // post request
 		{
 			final String contentType = request.getContentType(true);
-			if (UrlUtil.VND_JMF.equals(contentType) || UrlUtil.isXMLType(contentType))
+			if (UrlUtil.VND_JMF.equals(contentType))
 			{
 				XMLRequest req = new XMLRequest(request);
 				r = processJMFDoc(req);
+			}
+			else if (UrlUtil.isXMLType(contentType))
+			{
+				XMLRequest req = new XMLRequest(request);
+				r = processXMLDoc(req);
 			}
 			else if (UrlUtil.isZIPType(contentType))
 			{
@@ -769,7 +774,6 @@ public final class BambiContainer extends BambiLogFactory
 				jmfDoc = _callBack.prepareJMFForBambi(jmfDoc);
 			}
 			JDFJMF jmf = jmfDoc.getJMFRoot();
-			BambiNSExtension.setRequestURL(jmf, requestURI);
 
 			if (jmf == null)
 			{
@@ -777,7 +781,7 @@ public final class BambiContainer extends BambiLogFactory
 			}
 			else
 			{
-
+				BambiNSExtension.setRequestURL(jmf, requestURI);
 				// switch: sends the jmfDoc to correct device
 				JDFDoc responseJMF = null;
 				final AbstractDevice device = getDeviceFromID(deviceID);
