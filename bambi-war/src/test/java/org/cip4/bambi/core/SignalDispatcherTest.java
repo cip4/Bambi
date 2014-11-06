@@ -72,8 +72,9 @@
 package org.cip4.bambi.core;
 
 import org.cip4.bambi.BambiTestCase;
-import org.cip4.bambi.core.SignalDispatcher.Trigger;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.messaging.SignalDispatcher;
+import org.cip4.bambi.core.messaging.Trigger;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;

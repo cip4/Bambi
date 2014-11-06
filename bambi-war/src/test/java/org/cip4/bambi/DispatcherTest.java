@@ -71,8 +71,8 @@
 
 package org.cip4.bambi;
 
-import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.messaging.SignalDispatcher;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumValidationLevel;
 import org.cip4.jdflib.jmf.JDFJMF;

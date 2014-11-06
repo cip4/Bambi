@@ -71,7 +71,8 @@ package org.cip4.bambi.core;
 
 import java.util.Vector;
 
-import org.cip4.bambi.core.SignalDispatcher.Trigger;
+import org.cip4.bambi.core.messaging.SignalDispatcher;
+import org.cip4.bambi.core.messaging.Trigger;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFDoc;

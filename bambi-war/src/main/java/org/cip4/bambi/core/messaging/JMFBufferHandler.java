@@ -77,7 +77,6 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.cip4.bambi.core.AbstractDevice;
-import org.cip4.bambi.core.SignalDispatcher;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.bambi.proxy.AbstractProxyDevice;
