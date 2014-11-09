@@ -73,7 +73,6 @@ package org.cip4.bambi.core.messaging;
 
 import java.net.HttpURLConnection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Vector;
 
 import javax.mail.Multipart;
@@ -406,7 +405,6 @@ public class JMFFactory extends BambiLogFactory
 			}
 			senders.remove(cu);
 		}
-
 	}
 
 	/**
@@ -462,7 +460,7 @@ public class JMFFactory extends BambiLogFactory
 	}
 
 	/**
-	 * get an existing MessageSender for a given url or callback
+	 * get an existing MessageSender or create it if it does not exist for a given url or callback
 	 * 
 	 * @param url the URL to send a message to, if null use the fire&forget sender
 	 * 
@@ -514,20 +512,21 @@ public class JMFFactory extends BambiLogFactory
 	 */
 	private void cleanIdleSenders()
 	{
-		final Iterator<MessageSender> it = senders.values().iterator();
-		final Vector<MessageSender> v = new Vector<MessageSender>();
-		while (it.hasNext())
+		synchronized (senders)
 		{
-			final MessageSender ms2 = it.next();
-			if (!ms2.isRunning())
+			final Vector<MessageSender> v = new Vector<MessageSender>();
+			for (MessageSender ms : senders.values())
 			{
-				v.add(ms2);
+				if (!ms.isRunning())
+				{
+					v.add(ms);
+				}
 			}
-		}
-		for (int i = 0; i < v.size(); i++)
-		{
-			senders.remove(v.get(i));
-			log.info("removing idle message sender " + v.get(i).getCallURL().getBaseURL());
+			for (MessageSender ms : v)
+			{
+				senders.remove(ms);
+				log.info("removing idle message sender " + ms.getCallURL().getBaseURL());
+			}
 		}
 	}
 
