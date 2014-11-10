@@ -855,8 +855,17 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 */
 	public boolean isSlaveURI(final String url)
 	{
+		if (url == null)
+			return false;
+
 		IProxyProperties proxyProperties = getProperties();
-		return StringUtil.hasToken(url, SLAVEJMF, "/", 0) || getDeviceURLForSlave().contains(url) || proxyProperties.getSlaveURL().contains(url);
+		String deviceURLForSlave = getDeviceURLForSlave();
+		if (deviceURLForSlave == null)
+			return false;
+		String slaveURL = proxyProperties.getSlaveURL();
+		if (slaveURL == null)
+			return false;
+		return StringUtil.hasToken(url, SLAVEJMF, "/", 0) || deviceURLForSlave.contains(url) || slaveURL.contains(url);
 	}
 
 	/**
