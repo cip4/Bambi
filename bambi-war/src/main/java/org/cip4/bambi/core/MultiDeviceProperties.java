@@ -92,7 +92,7 @@ import org.cip4.jdflib.util.thread.IPersistable;
  * container for the properties of several Bambi devices
  * @author boegerni
  */
-public class MultiDeviceProperties extends BambiLogFactory
+public class MultiDeviceProperties extends BambiLogFactory implements IPersistable
 {
 	/**
 	 * properties for a single device
@@ -624,7 +624,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		@Override
 		public boolean serialize()
 		{
-			DelayedPersist.getDelayedPersist().queue(this, 1000);
+			MultiDeviceProperties.this.serialize();
 			return true;
 		}
 
@@ -661,7 +661,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 		@Override
 		public boolean persist()
 		{
-			return MultiDeviceProperties.this.serialize();
+			return MultiDeviceProperties.this.persist();
 		}
 
 		/**
@@ -805,9 +805,9 @@ public class MultiDeviceProperties extends BambiLogFactory
 	 * serialize this to it's default location
 	 * @return true if success
 	 */
-	public boolean serialize()
+	public void serialize()
 	{
-		return root.getOwnerDocument_KElement().write2File((String) null, 2, false);
+		DelayedPersist.getDelayedPersist().queue(this, 1000);
 	}
 
 	/**
@@ -822,6 +822,19 @@ public class MultiDeviceProperties extends BambiLogFactory
 			log.warn("guessing default port - using " + p);
 		}
 		return p;
+	}
+
+	/**
+	 * 
+	 * @param port
+	 */
+	public void setPort(int port)
+	{
+		if (getPort() != port && port > 0)
+		{
+			root.setAttribute("Port", port, null);
+			serialize();
+		}
 	}
 
 	/**
@@ -952,6 +965,7 @@ public class MultiDeviceProperties extends BambiLogFactory
 	public void setSenderID(String senderID)
 	{
 		root.setAttribute(AttributeName.SENDERID, senderID);
+		serialize();
 	}
 
 	/**
@@ -992,5 +1006,15 @@ public class MultiDeviceProperties extends BambiLogFactory
 		if (element == null)
 			element = root.appendElement(ElementName.DEVICE);
 		return this.new DeviceProperties(element);
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	@Override
+	public boolean persist()
+	{
+		return root.getOwnerDocument_KElement().write2File((String) null, 2, false);
 	}
 }

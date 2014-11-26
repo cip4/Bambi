@@ -155,7 +155,9 @@ public final class BambiServlet extends HttpServlet
 		final File baseDir = new File(realPath);
 		log.info("Initializing Bambi servlet for " + baseURL);
 		final String dump = initializeDumps(config, baseDir);
-		BambiContainer.getCreateInstance().loadProperties(baseDir, baseURL, new File("config/devices.xml"), dump);
+		BambiContainer container = BambiContainer.getCreateInstance();
+		container.loadProperties(baseDir, baseURL, new File("config/devices.xml"), dump);
+		container.getProps().setPort(port);
 	}
 
 	/**
@@ -458,17 +460,15 @@ public final class BambiServlet extends HttpServlet
 	 */
 	private JDFAttributeMap getHeaderMap(HttpServletRequest request)
 	{
-		@SuppressWarnings("unchecked")
 		Enumeration<String> headers = request.getHeaderNames();
 		if (!headers.hasMoreElements())
 		{
 			return null;
 		}
-		JDFAttributeMap map = new JDFAttributeMap();
+		final JDFAttributeMap map = new JDFAttributeMap();
 		while (headers.hasMoreElements())
 		{
 			String header = headers.nextElement();
-			@SuppressWarnings("unchecked")
 			Enumeration<String> e = request.getHeaders(header);
 			VString v = new VString(e);
 			if (v.size() > 0)
@@ -476,15 +476,12 @@ public final class BambiServlet extends HttpServlet
 				map.put(header, StringUtil.setvString(v, ",", null, null));
 			}
 		}
-		if (map.size() == 0)
-			map = null;
-		return map;
+		return map.size() == 0 ? null : map;
 	}
 
 	/**
 	 *  
 	 */
-	@SuppressWarnings("unchecked")
 	private Map<String, String> getParameterMap(HttpServletRequest request)
 	{
 		Map<String, String[]> pm = request.getParameterMap();

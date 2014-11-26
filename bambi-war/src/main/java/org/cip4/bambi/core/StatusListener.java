@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -93,19 +93,20 @@ import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.thread.DelayedPersist;
+import org.cip4.jdflib.util.thread.IPersistable;
 
 /**
  * @author Rainer Prosi
  * 
  */
-public class StatusListener extends BambiLogFactory
+public class StatusListener extends BambiLogFactory implements IPersistable
 {
 
 	private final SignalDispatcher dispatcher;
 	private SignalDispatcher rootDispatcher = null;
 	protected StatusCounter theCounter;
 	private JDFNode currentNode = null;
-	private long lastSave = 0;
 
 	/**
 	 * 
@@ -161,12 +162,21 @@ public class StatusListener extends BambiLogFactory
 		if (bMod || forceOut)
 		{
 			flush("Status");
-			saveJDF(-1);
+			DelayedPersist.getDelayedPersist().queue(this, -1);
 		}
 		else
 		{
 			saveJDF(123456);
 		}
+	}
+
+	/**
+	 * 
+	 * @param deltaTime time to  wait / collct before really saving 
+	 */
+	public void saveJDF(int deltaTime)
+	{
+		DelayedPersist.getDelayedPersist().queue(this, deltaTime);
 	}
 
 	/**
@@ -206,7 +216,7 @@ public class StatusListener extends BambiLogFactory
 		{
 			dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int) (good + waste), null);
 		}
-		saveJDF(123456);
+		DelayedPersist.getDelayedPersist().queue(this, 123456);
 	}
 
 	/**
@@ -222,7 +232,7 @@ public class StatusListener extends BambiLogFactory
 			return;
 		}
 		theCounter.setPercentComplete(percent);
-		saveJDF(123456);
+		DelayedPersist.getDelayedPersist().queue(this, 123456);
 	}
 
 	/**
@@ -238,7 +248,7 @@ public class StatusListener extends BambiLogFactory
 			return;
 		}
 		theCounter.updatePercentComplete(percent);
-		saveJDF(123456);
+		DelayedPersist.getDelayedPersist().queue(this, 123456);
 	}
 
 	/**
@@ -260,7 +270,7 @@ public class StatusListener extends BambiLogFactory
 		{
 			dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int) amount, null);
 		}
-		saveJDF(123456);
+		DelayedPersist.getDelayedPersist().queue(this, 123456);
 	}
 
 	/**
@@ -278,7 +288,7 @@ public class StatusListener extends BambiLogFactory
 			{
 				currentNode.getOwnerDocument_JDFElement().setOriginalFileName(location);
 			}
-			saveJDF(-1);
+			DelayedPersist.getDelayedPersist().queue(this, -1);
 		}
 	}
 
@@ -295,12 +305,12 @@ public class StatusListener extends BambiLogFactory
 	{
 		final String oldQEID = theCounter.getQueueEntryID();
 		theCounter.writeAll(); // write all stuff in the counter to the node
-		saveJDF(-1);
+		DelayedPersist.getDelayedPersist().queue(this, -1);
 		final boolean bSame = currentNode == node;
 		currentNode = node;
 		if (!bSame)
 		{
-			saveJDF(-1);
+			DelayedPersist.getDelayedPersist().queue(this, -1);
 		}
 
 		if (!KElement.isWildCard(oldQEID))
@@ -327,21 +337,19 @@ public class StatusListener extends BambiLogFactory
 	 * 
 	 * @param timeSinceLast milliseconds time to leave between saves
 	 */
-	public void saveJDF(final int timeSinceLast)
+	@Override
+	public boolean persist()
 	{
 		if (currentNode == null)
 		{
-			return;
+			return false;
 		}
-		if (System.currentTimeMillis() - lastSave > timeSinceLast)
+		final JDFDoc ownerDoc = currentNode.getOwnerDocument_JDFElement();
+		if (ownerDoc != null && ownerDoc.getOriginalFileName() != null)
 		{
-			final JDFDoc ownerDoc = currentNode.getOwnerDocument_JDFElement();
-			if (ownerDoc != null && ownerDoc.getOriginalFileName() != null)
-			{
-				ownerDoc.write2File((String) null, 0, true);
-				lastSave = System.currentTimeMillis();
-			}
+			ownerDoc.write2File((String) null, 0, true);
 		}
+		return true;
 	}
 
 	/**
@@ -493,7 +501,7 @@ public class StatusListener extends BambiLogFactory
 		final boolean b = theCounter.removeEmployee(employee);
 		if (b)
 		{
-			saveJDF(-1);
+			DelayedPersist.getDelayedPersist().queue(this, -1);
 		}
 		return b;
 	}
@@ -512,7 +520,7 @@ public class StatusListener extends BambiLogFactory
 		final int n1 = theCounter.addEmployee(employee);
 		if (n1 != n0)
 		{
-			saveJDF(-1);
+			DelayedPersist.getDelayedPersist().queue(this, -1);
 		}
 		return n1;
 	}

@@ -74,6 +74,7 @@ package org.cip4.bambi;
 import java.io.File;
 
 import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.ConverterCallback;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.SignalDispatcher;
@@ -85,6 +86,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFSubscription;
+import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
@@ -186,6 +188,18 @@ public class CallbackTest extends BambiTestCase
 		final JDFDoc doc = new JDFDoc("JDF");
 		doc.write2File(s + File.separator + "dummy.jdf", 2, true);
 		Thread.sleep(2000);
-
 	}
+
+	/**
+	 * 
+	 */
+	public void testJMFJobID()
+	{
+		ConverterCallback cb = new ConverterCallback();
+		cb.setRemoveJobIDFromSubs(true);
+		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSubscription("abc", 32, 33, "jjj");
+		cb.prepareJMFForBambi(jmf.getOwnerDocument_JDFElement());
+		assertEquals(jmf.toDisplayXML(2).indexOf("jjj"), -1);
+	}
+
 }

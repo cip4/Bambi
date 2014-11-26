@@ -72,8 +72,10 @@ package org.cip4.bambi.core;
 import java.util.Vector;
 
 import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFAudit;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
@@ -97,6 +99,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	private EnumVersion fixToExtern = null;
 	private EnumVersion fixToBambi = null;
 	private final Vector<IConverterCallback> postConversionList;
+	private boolean removeJobIDFromSubs;
 
 	/**
 	 * get the version to modify the version for outgoing jdf and jmf
@@ -154,6 +157,25 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	{
 		super();
 		postConversionList = new Vector<IConverterCallback>();
+		setRemoveJobIDFromSubs(false);
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean isRemoveJobIDFromSubs()
+	{
+		return removeJobIDFromSubs;
+	}
+
+	/**
+	 * 
+	 * @param removeJobIDFromSubs
+	 */
+	public void setRemoveJobIDFromSubs(boolean removeJobIDFromSubs)
+	{
+		this.removeJobIDFromSubs = removeJobIDFromSubs;
 	}
 
 	/**
@@ -313,14 +335,24 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 * make sure that all jobID attributes match the root jobID in any subscriptions
 	 * @param n
 	 */
-	private void fixSubscriptions(final JDFNode n)
+	protected void fixSubscriptions(final JDFNode n)
 	{
 		if (n == null)
 		{
 			return;
 		}
-		final String jobID = StringUtil.getNonEmpty(n.getJobID(true));
-		if (jobID == null)
+		String jobID = removeJobIDFromSubs ? null : StringUtil.getNonEmpty(n.getJobID(true));
+		fixSubscriptions(n, jobID);
+	}
+
+	/**
+	 * 
+	 * @param n
+	 * @param jobID
+	 */
+	protected void fixSubscriptions(final JDFElement n, String jobID)
+	{
+		if (jobID == null && !removeJobIDFromSubs)
 		{
 			log.error("root with no JobID");
 			return;
@@ -328,24 +360,38 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		final Vector<JDFSubscription> vSubs = n.getChildrenByClass(JDFSubscription.class, true, 0);
 		if (vSubs != null)
 		{
-			for (int i = 0; i < vSubs.size(); i++)
+			JDFAttributeMap attMap = new JDFAttributeMap(AttributeName.JOBID, "*");
+			if (removeJobIDFromSubs)
 			{
-				final KElement message = vSubs.get(i).getParentNode_KElement();
+				attMap.put(AttributeName.JOBPARTID, "*");
+				attMap.put(AttributeName.QUEUEENTRYID, "*");
+			}
+			for (JDFSubscription sub : vSubs)
+			{
+				final KElement message = sub.getParentNode_KElement();
 				if (message instanceof JDFMessage)
 				{
-					final VElement v = message.getChildrenByTagName_KElement(null, null, new JDFAttributeMap(AttributeName.JOBID, "*"), false, true, 0);
+					final VElement v = message.getChildrenByTagName_KElement(null, null, attMap, false, false, 0);
 					if (v != null)
 					{
-						for (int ii = 0; ii < v.size(); ii++)
+						for (KElement e : v)
 						{
-							v.get(ii).setAttribute(AttributeName.JOBID, jobID);
+							if (removeJobIDFromSubs)
+							{
+								e.setAttribute(AttributeName.JOBPARTID, null);
+								e.setAttribute(AttributeName.JOBID, null);
+								e.setAttribute(AttributeName.QUEUEENTRYID, null);
+								e.removeChildren(ElementName.PART, null, null);
+							}
+							else
+							{
+								e.setAttribute(AttributeName.JOBID, jobID);
+							}
 						}
 					}
-
 				}
 			}
 		}
-
 	}
 
 	/**

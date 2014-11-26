@@ -328,12 +328,14 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		 * @param response
 		 * @return true if handled
 		 */
+		@Override
 		public abstract boolean handleMessage(JDFMessage inputMessage, JDFResponse response);
 
 		/**
 		 * @see org.cip4.bambi.core.messaging.IMessageHandler#getFamilies()
 		 * @return the array of families
 		 */
+		@Override
 		final public EnumFamily[] getFamilies()
 		{
 			return families;
@@ -343,6 +345,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		 * @see org.cip4.bambi.core.messaging.IMessageHandler#getMessageType()
 		 * @return the message type string
 		 */
+		@Override
 		final public String getMessageType()
 		{
 			return type;
@@ -352,6 +355,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		 * the default is false
 		 * @see org.cip4.bambi.core.messaging.IMessageHandler#isSubScribable()
 		 */
+		@Override
 		public boolean isSubScribable()
 		{
 			return false;
@@ -361,6 +365,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		 * the default is false
 		 * @see org.cip4.bambi.core.messaging.IMessageHandler#isAcknowledge()
 		 */
+		@Override
 		public boolean isAcknowledge()
 		{
 			return false;
@@ -395,6 +400,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	 * 
 	 * @param handler the handler associated with the event
 	 */
+	@Override
 	public void addHandler(final IMessageHandler handler)
 	{
 		final String typ = handler.getMessageType();
@@ -417,6 +423,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	 * @param family the family
 	 * @return the handler, null if none exists
 	 */
+	@Override
 	public IMessageHandler getHandler(final String typ, final EnumFamily family)
 	{
 		IMessageHandler h = messageMap.get(new MessageType(typ, family));
@@ -433,13 +440,15 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	 * @param doc the JDFDoc holding the JMF which is to be processed
 	 * @return the JDFDoc holding the JMF response
 	 */
+	@Override
 	public JDFDoc processJMF(final JDFDoc doc)
 	{
 		final JDFJMF jmf = doc.getJMFRoot();
 		final JDFJMF jmfResp = jmf.createResponse();
 		VElement vMess = jmf.getMessageVector(null, null);
 		final int messSize = vMess.size();
-		log.debug("handling jmf from " + jmf.getSenderID() + " id=" + jmf.getID() + " with " + messSize + " messages; total=" + messageCount);
+		if (log.isDebugEnabled())
+			log.debug("handling jmf from " + jmf.getSenderID() + " id=" + jmf.getID() + " with " + messSize + " messages; total=" + messageCount);
 		for (int i = 0; i < messSize; i++)
 		{
 			final JDFMessage m = (JDFMessage) vMess.elementAt(i);
@@ -518,6 +527,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	 * we do not call these for ourselves...
 	 * @return the list of families
 	 */
+	@Override
 	public EnumFamily[] getFamilies()
 	{
 		return null;
@@ -527,6 +537,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#getMessageType()
 	 * @return the type
 	 */
+	@Override
 	public String getMessageType()
 	{
 		return null;
@@ -538,6 +549,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	 * @param response
 	 * @return true if handled
 	 */
+	@Override
 	public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 	{
 		if (inputMessage == null)
@@ -658,6 +670,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	/**
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#isSubScribable()
 	 */
+	@Override
 	public boolean isSubScribable()
 	{
 		return false;
@@ -666,6 +679,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	/**
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#isAcknowledge()
 	 */
+	@Override
 	public boolean isAcknowledge()
 	{
 		return false;
