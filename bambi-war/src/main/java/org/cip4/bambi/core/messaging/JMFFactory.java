@@ -389,6 +389,7 @@ public class JMFFactory extends BambiLogFactory
 					shutDown(s, graceFully);
 				}
 			}
+			log.info("completed shutting down all senders " + (graceFully ? "gracefully" : "forced"));
 		}
 		else
 		// individual url

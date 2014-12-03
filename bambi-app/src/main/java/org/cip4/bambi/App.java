@@ -1,68 +1,114 @@
 package org.cip4.bambi;
 
-import org.apache.commons.cli.*;
+import java.awt.EventQueue;
 
-import java.awt.*;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 /**
  * Entrance point of the Bambi application.
  */
-public class App {
+public class App
+{
+	/**
+	 * 
+	 */
+	public App()
+	{
+		super();
+	}
 
-    private static final String OPT_AUTO = "auto";
+	private class AppRunner implements Runnable
+	{
+		private final boolean auto;
+		private final String context;
+		private final String port;
 
-    private static final String OPT_PORT = "port";
+		private AppRunner(boolean auto, String context, String port)
+		{
+			this.auto = auto;
+			this.context = context;
+			this.port = port;
+		}
 
-    // private static final String OPT_CONTEXT = "context";
+		/**
+		 * 
+		 * @see java.lang.Runnable#run()
+		 */
+		@Override
+		public void run()
+		{
+			try
+			{
+				ExecutorForm window = new ExecutorForm(context, port, auto);
+				window.display();
+			}
+			catch (Exception e)
+			{
+				throw new AssertionError(e);
+			}
+		}
+	}
 
+	private static final String OPT_AUTO = "auto";
 
-    /**
-     * Application main entrance point.
-     * @param args Application parameter
-     */
-    public static void main(String[] args) {
+	private static final String OPT_PORT = "port";
 
-        CommandLineParser parser = new BasicParser();
-        CommandLine cmd;
+	// private static final String OPT_CONTEXT = "context";
 
-        try {
-            cmd = parser.parse(createOptions(), args);
-        } catch (ParseException e) {
-            throw new AssertionError(e);
-        }
+	/**
+	 * Application main entrance point.
+	 * @param args Application parameter
+	 */
+	public static void main(String[] args)
+	{
+		new App().start(args);
+	}
 
+	/**
+	 * Application main entrance point.
+	 * @param args Application parameter
+	 */
+	public void start(String[] args)
+	{
 
+		CommandLineParser parser = new BasicParser();
+		CommandLine cmd;
 
-        final String port = cmd.getOptionValue(OPT_PORT, "8080");
-        // final String context = cmd.getOptionValue(OPT_CONTEXT, "SimWorker");
-        final String context = "SimWorker";
-        final boolean auto = cmd.hasOption(OPT_AUTO);
+		try
+		{
+			cmd = parser.parse(createOptions(), args);
+		}
+		catch (ParseException e)
+		{
+			throw new AssertionError(e);
+		}
 
-        // start application
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    ExecutorForm window = new ExecutorForm(context, port, auto);
-                    window.display();
-                } catch (Exception e) {
-                    throw new AssertionError(e);
-                }
-            }
-        });
-    }
+		final String port = cmd.getOptionValue(OPT_PORT, "8080");
+		// final String context = cmd.getOptionValue(OPT_CONTEXT, "SimWorker");
+		final String context = "SimWorker";
+		final boolean auto = cmd.hasOption(OPT_AUTO);
 
-    /**
-     * Create the cli options.
-     * @return List of all cli options.
-     */
-    private static Options createOptions() {
+		// start application
+		EventQueue.invokeLater(new AppRunner(auto, context, port));
+	}
 
-        Options options = new Options();
+	/**
+	 * Create the cli options.
+	 * @return List of all cli options.
+	 */
+	private static Options createOptions()
+	{
 
-        options.addOption("a", OPT_AUTO, false, "Start bambi automatically");
-        options.addOption("p", OPT_PORT, true, "Port setting");
-        // options.addOption("c", OPT_CONTEXT, true, "URL Context");
+		Options options = new Options();
 
-        return options;
-    }
+		options.addOption("a", OPT_AUTO, false, "Start bambi automatically");
+		options.addOption("p", OPT_PORT, true, "Port setting");
+		// options.addOption("c", OPT_CONTEXT, true, "URL Context");
+
+		return options;
+	}
 }

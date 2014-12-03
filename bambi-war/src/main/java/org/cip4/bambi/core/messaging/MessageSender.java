@@ -1201,12 +1201,8 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	public static void setBaseLocation(final File _baseLocation)
 	{
-		// this is static and can therefore only be set once for consistency
-		if (baseLocation == null)
-		{
-			MessageSender.baseLocation = FileUtil.getFileInDirectory(_baseLocation, new File("JMFStore"));
-			LogFactory.getLog(MessageSender.class).info("setting JMF Base dir to: " + _baseLocation);
-		}
+		baseLocation = FileUtil.getFileInDirectory(_baseLocation, new File("JMFStore"));
+		LogFactory.getLog(MessageSender.class).info("setting JMF Base dir to: " + _baseLocation);
 	}
 
 	/**

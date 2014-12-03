@@ -99,7 +99,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 * @author boegerni
 	 */
 	protected KElement root;
-	protected File baseDir;
 	protected String context;
 
 	/**
@@ -716,10 +715,11 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	/**
 	 * gets a subclass of this based on the value of application/@PropertiesName
 	 * @param config 
+	 * @param
 	 * 
 	 * @return the subclass instance, null if @PropertiesName is not set
 	 */
-	MultiDeviceProperties getSubClass(File config)
+	MultiDeviceProperties getSubClass(File config, File baseDir)
 	{
 		String propName = root.getAttribute("PropertiesName", null, null);
 		if (propName == null)
@@ -749,7 +749,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	public MultiDeviceProperties(File baseDir, String baseURL)
 	{
 		this.context = baseURL;
-		this.baseDir = baseDir;
 		root = new XMLDoc("application", null).getRoot();
 		root.setAttribute("AppDir", baseDir.getAbsolutePath());
 		root.setAttribute("BaseDir", baseDir.getAbsolutePath());
@@ -767,7 +766,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		final XMLDoc doc = XMLDoc.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
 		root = doc == null ? null : doc.getRoot();
 		this.context = baseURL;
-		this.baseDir = baseDir;
 
 		if (root == null || doc == null)
 		{
@@ -807,7 +805,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	public void serialize()
 	{
-		DelayedPersist.getDelayedPersist().queue(this, 1000);
+		DelayedPersist.getDelayedPersist().queue(this, 333);
 	}
 
 	/**
@@ -929,16 +927,17 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 * the jmf persistance directory <br/>
-	 * defaults to a sibling of JDFDir called JMFDir
 	 * 
-	 * @return the jmf persistance directory
-	 * @deprecated the message sender takes care of itself
+	 * @param newBase
 	 */
-	@Deprecated
-	public File getJMFDir()
+	public void setBaseDir(File newBase)
 	{
-		return FileUtil.getFileInDirectory(getBaseDir(), new File("JMFDir"));
+		if (newBase != null && !newBase.getAbsolutePath().equals(root.getAttribute("BaseDir")))
+		{
+			log.info("Setting base directory to: " + newBase.getAbsolutePath());
+			root.setAttribute("BaseDir", newBase.getAbsolutePath());
+			serialize();
+		}
 	}
 
 	/**

@@ -296,7 +296,7 @@ public final class BambiContainer extends BambiLogFactory
 
 	/**
 	 * loads properties and instantiates the devices
-	 * @param baseDir 
+	 * @param baseDir the initial application directory
 	 * @param context the servlet context information
 	 * @param config the name of the Java config xml file
 	 * @param dump the file where to dump debug requests
@@ -305,7 +305,7 @@ public final class BambiContainer extends BambiLogFactory
 	public boolean loadProperties(final File baseDir, final String context, final File config, final String dump)
 	{
 		props = new MultiDeviceProperties(baseDir, context, config);
-		props = props.getSubClass(config);
+		props = props.getSubClass(config, baseDir);
 		bWantDump = props.wantDump();
 		return createDevices(props, dump);
 	}
@@ -573,6 +573,12 @@ public final class BambiContainer extends BambiLogFactory
 		return r;
 	}
 
+	/**
+	 * retrieve the first xml like entry from a zip
+	 * 
+	 * @param zipReader
+	 * @return the matching entry, null if no matching entry
+	 */
 	private ZipEntry getXMLFromZip(ZipReader zipReader)
 	{
 		ZipEntry e = zipReader.getMatchingEntry("*.ptk", 0);
