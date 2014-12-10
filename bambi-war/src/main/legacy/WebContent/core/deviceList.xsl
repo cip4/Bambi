@@ -36,6 +36,7 @@
 						<th align="left"> Controller Type</th>
 						<th align="left"> Controller Status</th>
 						<th align="left"> Controller URL</th>
+						<th align="left"> Controller Base Directory</th>
 						<th align="left"> Dump Enabled</th>
 						<th align="left"> Controller Queue</th>
 						<th align="left"> Queue Status</th>
@@ -162,6 +163,9 @@
 			</td>
 			<td align="left">
 				<xsl:value-of select="@DeviceURL" />
+			</td>
+		<td align="left">
+				<xsl:value-of select="../@BaseDir" />
 			</td>
 			<td>
 				<form>

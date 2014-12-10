@@ -71,6 +71,7 @@
 
 package org.cip4.bambi.core;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -619,10 +620,8 @@ public class RootDevice extends AbstractDevice
 		final XMLDevice dRoot = getXMLDevice(false, request);
 
 		final KElement rootElem = dRoot.getRoot();
-		rootElem.setAttribute("Root", true, null);
-		listRoot.copyAttribute("DeviceType", rootElem, null, null, null);
-		listRoot.copyElement(rootElem, null);
 		addMoreToShowDevice(listRoot, rootElem);
+		listRoot.copyElement(rootElem, null);
 
 		listChildDevices(request, listRoot);
 
@@ -694,7 +693,14 @@ public class RootDevice extends AbstractDevice
 	 */
 	protected void addMoreToShowDevice(KElement listRoot, KElement rootElem)
 	{
-		//default implemenmtation=nop	
+		IDeviceProperties p = getProperties();
+		File baseDir = p == null ? null : p.getBaseDir();
+		if (baseDir != null)
+		{
+			listRoot.setAttribute("BaseDir", baseDir.getAbsolutePath());
+		}
+		rootElem.setAttribute("Root", true, null);
+		listRoot.copyAttribute("DeviceType", rootElem, null, null, null);
 	}
 
 	/**
