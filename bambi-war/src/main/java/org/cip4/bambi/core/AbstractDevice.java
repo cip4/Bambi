@@ -1014,10 +1014,17 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * @param contextPath
 	 * @return
 	 */
-	protected final String getXSLTBaseFromContext(final String contextPath)
+	public final String getXSLTBaseFromContext(final String contextPath)
 	{
-		//	return "/legacy/WebContent/" + StringUtil.token(contextPath, 0, "/");
-		return "/" + StringUtil.token(contextPath, 0, "/");
+		return "/" + StringUtil.token(contextPath, 0, "/") + getCSS();
+	}
+
+	private String getCSS()
+	{
+		if (!(_devProperties instanceof DeviceProperties))
+			return "/legacy";
+		else
+			return ((DeviceProperties) _devProperties).getParent().getCSS();
 	}
 
 	/**
@@ -1985,6 +1992,17 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public DataExtractor getDataExtractor(boolean bSubmit)
 	{
 		return new DataExtractor(this, bSubmit);
+	}
+
+	/**
+	 * 
+	 * @param request
+	 * @return
+	 */
+	public String getContext(final ContainerRequest request)
+	{
+		String contextRoot = request.getContextRoot();
+		return contextRoot;
 	}
 
 	/**

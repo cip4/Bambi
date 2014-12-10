@@ -71,6 +71,7 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -710,6 +711,15 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 			devRoot.getOwnerDocument_KElement().write2File((String) null, 2, false);
 			return newProps;
 		}
+
+		/**
+		 * 
+		 * @return
+		 */
+		public MultiDeviceProperties getParent()
+		{
+			return MultiDeviceProperties.this;
+		}
 	}
 
 	/**
@@ -796,6 +806,28 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 			{
 				log.info("cannot parse base file - this may be due to a subclassing of the properties");
 			}
+		}
+	}
+
+	/**
+	 * create device properties for the devices defined in the config stream
+	 * @param inStream
+	 */
+	public MultiDeviceProperties(InputStream inStream)
+	{
+		final XMLDoc doc = XMLDoc.parseStream(inStream);
+		root = doc == null ? null : doc.getRoot();
+		this.context = null;
+
+		if (root == null || doc == null)
+		{
+			log.fatal("failed to parse internal stream, rootDev is null");
+		}
+		else
+		{
+			String appDir = System.getProperty("user.dir");
+			root.setAttribute("AppDir", appDir);
+			root.getOwnerDocument_KElement().setOriginalFileName(appDir);
 		}
 	}
 
@@ -909,6 +941,24 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	{
 		final File f = getAppDir();
 		return FileUtil.getFileInDirectory(f, new File("config"));
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public String getCSS()
+	{
+		return root.getAttribute("CSS", null, "/legacy");
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public void setCSS(String css)
+	{
+		root.setAttribute("CSS", css, null);
 	}
 
 	/**

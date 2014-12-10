@@ -677,7 +677,7 @@ public class RootDevice extends AbstractDevice
 	{
 		final KElement listRoot = deviceList.getRoot();
 		listRoot.setAttribute("NumRequests", numRequests, null);
-		listRoot.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
+		listRoot.setAttribute(AttributeName.CONTEXT, getContext(request));
 		listRoot.setAttribute("MemFree", Runtime.getRuntime().freeMemory() / 1000 / 1000., null);
 		listRoot.setAttribute("MemTotal", Runtime.getRuntime().totalMemory() / 1000 / 1000., null);
 		MemorySpy memorySpy = new MemorySpy();
@@ -719,7 +719,7 @@ public class RootDevice extends AbstractDevice
 		{
 			return super.getXSLT(request);
 		}
-		final String contextPath = request.getContextRoot();
+		final String contextPath = getContext(request);
 		if (contextPath != null)
 		{
 			s = getXSLTBaseFromContext(contextPath) + s;

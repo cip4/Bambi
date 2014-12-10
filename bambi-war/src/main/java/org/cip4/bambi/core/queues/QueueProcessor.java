@@ -96,8 +96,8 @@ import org.cip4.bambi.core.messaging.AcknowledgeThread;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
-import org.cip4.bambi.core.messaging.SignalDispatcher;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
+import org.cip4.bambi.core.messaging.SignalDispatcher;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -1080,7 +1080,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			if (request.getBooleanParam("quiet") == false)
 			{
 				root = sortOutput(sortBy, filter);
-				root.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
+				root.setAttribute(AttributeName.CONTEXT, _parentDevice.getContext(request));
 				final QERetrieval qer = _parentDevice.getProperties().getQERetrieval();
 				root.setAttribute("Pull", qer == QERetrieval.PULL || qer == QERetrieval.BOTH, null);
 				if (_theQueue.numChildElements(ElementName.QUEUEENTRY, null) < 500)

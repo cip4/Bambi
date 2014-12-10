@@ -4,7 +4,7 @@
 
 	<groupId>org.cip4.tools.bambi.war</groupId>
 	<artifactId>bambi-war</artifactId>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 
 	<parent>
 		<groupId>org.cip4.tools.bambi</groupId>

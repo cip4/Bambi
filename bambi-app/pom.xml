@@ -12,43 +12,36 @@
 		<version>2.2-SNAPSHOT</version>
 	</parent>
 
-	<name>CIP4 BambiApp</name>
+	<name>CIP4 Bambi Application</name>
 	<url>http://www.cip4.org</url>
+	<description>CIP4 Bambi standalone application console or window</description>
+
+	<properties>
+		<timestamp>${maven.build.timestamp}</timestamp>
+		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<buildDirectory>${project.basedir}/target</buildDirectory>
+	</properties>
 
 	<build>
+		<directory>${buildDirectory}</directory>
 		<finalName>${project.name} ${project.version}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.3</version>
-				<executions>
-					<execution>
-						<id>copy</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>org.cip4.tools.bambi.war</groupId>
-									<artifactId>bambi-war</artifactId>
-									<version>${project.version}</version>
-									<type>war</type>
-									<destFileName>bambi.war</destFileName>
-								</artifactItem>
-							</artifactItems>
-							<outputDirectory>${project.build.directory}/classes/org/cip4/bambi</outputDirectory>
-							<overWriteReleases>true</overWriteReleases>
-							<overWriteSnapshots>true</overWriteSnapshots>
-						</configuration>
-					</execution>
-				</executions>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.0</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
+				<artifactId>maven-release-plugin</artifactId>
+				<configuration>
+					<goals>install</goals>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -66,15 +59,15 @@
 				<configuration>
 					<programs>
 						<program>
-							<mainClass>org.cip4.bambi.App</mainClass>
-							<name>${project.build.finalName}</name>
+							<mainClass>org.cip4.tools.jdfeditor.Editor</mainClass>
+							<name>jdfeditor</name>
 						</program>
 					</programs>
 					<binFolder>bin</binFolder>
 					<repositoryName>libs</repositoryName>
 					<repositoryLayout>flat</repositoryLayout>
 					<assembleDirectory>${project.build.directory}/binaries</assembleDirectory>
-					<showConsoleWindow>true</showConsoleWindow>
+					<showConsoleWindow>false</showConsoleWindow>
 					<binFileExtensions>
 						<unix>.sh</unix>
 					</binFileExtensions>
@@ -83,6 +76,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
 				<executions>
 					<execution>
 						<id>attached</id>
@@ -100,47 +94,38 @@
 			</plugin>
 		</plugins>
 	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.cip4.tools.bambi.war</groupId>
 			<artifactId>bambi-war</artifactId>
-			<type>war</type>
-			<scope>provided</scope>
-		</dependency>
-		
-		<!-- Jetty -->
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-server</artifactId>
-			<version>7.2.0.v20101020</version>
+			<version>2.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-webapp</artifactId>
-			<version>7.2.0.v20101020</version>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-jsp-2.1</artifactId>
-			<version>7.2.0.v20101020</version>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
+			<version>2.9.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.mortbay.jetty</groupId>
-			<artifactId>jsp-2.1-glassfish</artifactId>
-			<version>2.1.v20100127</version>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging-api</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>commons-cli</groupId>
-            <artifactId>commons-cli</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
@@ -150,15 +135,22 @@
 			<artifactId>junit</artifactId>
 		</dependency>
 	</dependencies>
+
 	<profiles>
 		<profile>
 			<id>windows</id>
 			<activation>
 				<property>
-			        <name>!alwaysActive</name>
-			      </property>
+					<name>!alwaysActive</name>
+				</property>
 			</activation>
 			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+						<filtering>true</filtering>
+					</resource>
+				</resources>
 				<plugins>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -176,7 +168,7 @@
 									</descriptorRefs>
 									<archive>
 										<manifest>
-											<mainClass>org.cip4.bambi.App</mainClass>
+											<mainClass>org.cip4.bambi.server.BambiServer</mainClass>
 										</manifest>
 									</archive>
 								</configuration>
@@ -228,92 +220,92 @@
 				</plugins>
 			</build>
 		</profile>
-        <profile>
-            <id>windows-jre</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>assembly</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>attached</goal>
-                                </goals>
-                                <configuration>
-                                    <descriptorRefs>
-                                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                                    </descriptorRefs>
-                                    <archive>
-                                        <manifest>
-                                            <mainClass>org.cip4.bambi.App</mainClass>
-                                        </manifest>
-                                    </archive>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>assembly2</id>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>attached</goal>
-                                </goals>
-                                <configuration>
-                                    <descriptors>
-                                        <descriptor>src/main/assemble/windows-jre/assembly-bundle.xml</descriptor>
-                                    </descriptors>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>com.akathist.maven.plugins.launch4j</groupId>
-                        <artifactId>launch4j-maven-plugin</artifactId>
-                        <version>1.5.2</version>
-                        <executions>
-                            <execution>
-                                <id>l4j-gui</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>launch4j</goal>
-                                </goals>
-                                <configuration>
-                                    <headerType>gui</headerType>
-                                    <outfile>${buildDirectory}/${project.build.finalName}-jre.exe</outfile>
-                                    <jar>${buildDirectory}/${project.build.finalName}-jar-with-dependencies.jar</jar>
-                                    <errTitle>encc</errTitle>
-                                    <icon>src/main/assemble/windows/bambi.ico</icon>
-                                    <classPath>
-                                        <mainClass>org.cip4.bambi.App</mainClass>
-                                        <addDependencies>true</addDependencies>
-                                        <preCp>anything</preCp>
-                                    </classPath>
-                                    <jre>
-                                        <path>jre7</path>
-                                        <minVersion>1.7.0</minVersion>
-                                        <initialHeapSize>96</initialHeapSize>
-                                        <maxHeapSize>1024</maxHeapSize>
-                                        <jdkPreference>jreOnly</jdkPreference>
-                                    </jre>
-                                    <versionInfo>
-                                        <fileVersion>1.0.0.0</fileVersion>
-                                        <txtFileVersion>1.0</txtFileVersion>
-                                        <fileDescription>${project.build.finalName}</fileDescription>
-                                        <copyright>CIP4</copyright>
-                                        <productVersion>1.0.0.0</productVersion>
-                                        <txtProductVersion>1.0</txtProductVersion>
-                                        <productName>${project.build.finalName}</productName>
-                                        <internalName>${project.build.finalName}</internalName>
-                                        <originalFilename>${project.build.finalName}-with-jre.exe</originalFilename>
-                                    </versionInfo>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
+		<profile>
+			<id>windows-jre</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>assembly</id>
+								<phase>package</phase>
+								<goals>
+									<goal>attached</goal>
+								</goals>
+								<configuration>
+									<descriptorRefs>
+										<descriptorRef>jar-with-dependencies</descriptorRef>
+									</descriptorRefs>
+									<archive>
+										<manifest>
+											<mainClass>org.cip4.bambi.App</mainClass>
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+							<execution>
+								<id>assembly2</id>
+								<phase>install</phase>
+								<goals>
+									<goal>attached</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>src/main/assemble/windows-jre/assembly-bundle.xml</descriptor>
+									</descriptors>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>com.akathist.maven.plugins.launch4j</groupId>
+						<artifactId>launch4j-maven-plugin</artifactId>
+						<version>1.5.2</version>
+						<executions>
+							<execution>
+								<id>l4j-gui</id>
+								<phase>package</phase>
+								<goals>
+									<goal>launch4j</goal>
+								</goals>
+								<configuration>
+									<headerType>gui</headerType>
+									<outfile>${buildDirectory}/${project.build.finalName}-jre.exe</outfile>
+									<jar>${buildDirectory}/${project.build.finalName}-jar-with-dependencies.jar</jar>
+									<errTitle>encc</errTitle>
+									<icon>src/main/assemble/windows/bambi.ico</icon>
+									<classPath>
+										<mainClass>org.cip4.bambi.App</mainClass>
+										<addDependencies>true</addDependencies>
+										<preCp>anything</preCp>
+									</classPath>
+									<jre>
+										<path>jre7</path>
+										<minVersion>1.7.0</minVersion>
+										<initialHeapSize>96</initialHeapSize>
+										<maxHeapSize>1024</maxHeapSize>
+										<jdkPreference>jreOnly</jdkPreference>
+									</jre>
+									<versionInfo>
+										<fileVersion>1.0.0.0</fileVersion>
+										<txtFileVersion>1.0</txtFileVersion>
+										<fileDescription>${project.build.finalName}</fileDescription>
+										<copyright>CIP4</copyright>
+										<productVersion>1.0.0.0</productVersion>
+										<txtProductVersion>1.0</txtProductVersion>
+										<productName>${project.build.finalName}</productName>
+										<internalName>${project.build.finalName}</internalName>
+										<originalFilename>${project.build.finalName}-with-jre.exe</originalFilename>
+									</versionInfo>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 		<profile>
 			<id>macos</id>
 			<activation>
@@ -322,7 +314,7 @@
 				</os>
 			</activation>
 			<build>
-				
+
 				<plugins>
 					<plugin>
 						<artifactId>maven-antrun-plugin</artifactId>
@@ -330,40 +322,40 @@
 						<executions>
 							<execution>
 								<goals>
-					            	<goal>run</goal>
-					            </goals>
-					            <phase>package</phase>
+									<goal>run</goal>
+								</goals>
+								<phase>package</phase>
 								<configuration>
 									<target>
 										<!-- create app folder -->
-										<mkdir dir="${project.build.directory}/dmg"/>
-										
+										<mkdir dir="${project.build.directory}/dmg" />
+
 										<!-- icon -->
-										<copy file="${basedir}/src/main/assemble/macosx/bambi.icns" tofile="${project.build.directory}/dmg/.VolumeIcon.icns"/>
-									
-										<!-- create app file-->
-										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask" classpath="${basedir}/src/main/assemble/macosx/lib/appbundler-1.0.jar" />
-										<bundleapp 
-									        outputdirectory="${project.build.directory}/dmg" 
-									        name="${project.build.finalName}" 
-									        displayname="My Java Mac OS X App" 
-									        identifier="org.cip4.bambi.App"
-									        icon="${basedir}/src/main/assemble/macosx/bambi.icns"
-									        shortversion="1.0"
-									        applicationCategory="public.app-category.developer-tools"
-									        mainclassname="org.cip4.bambi.App">
-									        <classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar" />
-									    </bundleapp>
-									    
-									    <!-- create dmg using hdiutil-->
-									    <!-- cmd: hdiutil create test.dmg -srcfolder /path/to/folder/ -->
-									    <exec executable="hdiutil">
-											<arg value="create"/>
-										    <arg value="${project.build.directory}/${project.build.finalName}.dmg"/>
-										    <arg value="-srcfolder"/>
-										    <arg value="${project.build.directory}/dmg"/>
-										    <arg value="-volname"/>
-										    <arg value="${project.build.finalName}"/>
+										<copy file="${basedir}/src/main/assemble/macosx/bambi.icns"
+											tofile="${project.build.directory}/dmg/.VolumeIcon.icns" />
+
+										<!-- create app file -->
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+											classpath="${basedir}/src/main/assemble/macosx/lib/appbundler-1.0.jar" />
+										<bundleapp outputdirectory="${project.build.directory}/dmg"
+											name="${project.build.finalName}" displayname="My Java Mac OS X App"
+											identifier="org.cip4.bambi.App" icon="${basedir}/src/main/assemble/macosx/bambi.icns"
+											shortversion="1.0" applicationCategory="public.app-category.developer-tools"
+											mainclassname="org.cip4.bambi.App">
+											<classpath
+												file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar" />
+										</bundleapp>
+
+										<!-- create dmg using hdiutil -->
+										<!-- cmd: hdiutil create test.dmg -srcfolder /path/to/folder/ -->
+										<exec executable="hdiutil">
+											<arg value="create" />
+											<arg
+												value="${project.build.directory}/${project.build.finalName}.dmg" />
+											<arg value="-srcfolder" />
+											<arg value="${project.build.directory}/dmg" />
+											<arg value="-volname" />
+											<arg value="${project.build.finalName}" />
 										</exec>
 									</target>
 								</configuration>
