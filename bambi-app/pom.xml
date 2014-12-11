@@ -59,8 +59,8 @@
 				<configuration>
 					<programs>
 						<program>
-							<mainClass>org.cip4.tools.jdfeditor.Editor</mainClass>
-							<name>jdfeditor</name>
+							<mainClass>org.cip4.bambi.server.BambiServer</mainClass>
+							<name>Bambi App</name>
 						</program>
 					</programs>
 					<binFolder>bin</binFolder>
@@ -193,7 +193,7 @@
 									<errTitle>encc</errTitle>
 									<icon>src/main/assemble/windows/bambi.ico</icon>
 									<classPath>
-										<mainClass>org.cip4.bambi.App</mainClass>
+										<mainClass>org.cip4.bambi.server.BambiServer</mainClass>
 										<addDependencies>true</addDependencies>
 										<preCp>anything</preCp>
 									</classPath>
@@ -240,7 +240,7 @@
 									</descriptorRefs>
 									<archive>
 										<manifest>
-											<mainClass>org.cip4.bambi.App</mainClass>
+											<mainClass>org.cip4.bambi.server.BambiServer</mainClass>
 										</manifest>
 									</archive>
 								</configuration>
@@ -338,10 +338,10 @@
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
 											classpath="${basedir}/src/main/assemble/macosx/lib/appbundler-1.0.jar" />
 										<bundleapp outputdirectory="${project.build.directory}/dmg"
-											name="${project.build.finalName}" displayname="My Java Mac OS X App"
+											name="${project.build.finalName}" displayname="CIP4 Bambi App"
 											identifier="org.cip4.bambi.App" icon="${basedir}/src/main/assemble/macosx/bambi.icns"
 											shortversion="1.0" applicationCategory="public.app-category.developer-tools"
-											mainclassname="org.cip4.bambi.App">
+											mainclassname="org.cip4.bambi.server.BambiServer">
 											<classpath
 												file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar" />
 										</bundleapp>
