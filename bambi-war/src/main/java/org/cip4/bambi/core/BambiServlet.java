@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -133,10 +133,6 @@ public final class BambiServlet extends HttpServlet
 	protected boolean dumpEmpty = false;
 	protected DumpDir bambiDumpIn = null;
 	protected DumpDir bambiDumpOut = null;
-	/**
-	 * cludge to get port number
-	 */
-	public static int port = 0;
 
 	/**
 	 * Initializes the servlet.
@@ -157,7 +153,6 @@ public final class BambiServlet extends HttpServlet
 		final String dump = initializeDumps(config, baseDir);
 		BambiContainer container = BambiContainer.getCreateInstance();
 		container.loadProperties(baseDir, baseURL, new File("config/devices.xml"), dump);
-		container.getProps().setPort(port);
 	}
 
 	/**
@@ -441,17 +436,6 @@ public final class BambiServlet extends HttpServlet
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException
 	{
 		doGetPost(request, response, false);
-	}
-
-	@Override
-	protected void service(final HttpServletRequest arg0, final HttpServletResponse arg1) throws ServletException, IOException
-	{
-		// TODO find correct server port at startup
-		if (port == 0)
-		{
-			port = arg0.getServerPort();
-		}
-		super.service(arg0, arg1);
 	}
 
 	/**

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -156,6 +156,11 @@ public class QueueHFListener extends BambiLogFactory implements QueueHotFolderLi
 		long t0 = System.currentTimeMillis();
 		while (iLoop++ < 42)
 		{
+			// a 42 millisecond initial wait to allow the processor to clean up
+			if (!ThreadUtil.sleep(iLoop * iLoop * 42))
+			{
+				return false;
+			}
 			IQueueEntry iqeNew = queueProc.getIQueueEntry(qe, true);
 			JDFQueueEntry qeNew = iqeNew == null ? null : iqeNew.getQueueEntry();
 			if (queueProc.wasSubmitted(qeNew))
@@ -167,10 +172,6 @@ public class QueueHFListener extends BambiLogFactory implements QueueHotFolderLi
 					log.info("waited " + t0 + " seconds for response queue submission response. qeID=" + iqeNew.getQueueEntryID());
 				}
 				return true;
-			}
-			if (!ThreadUtil.sleep(iLoop * iLoop * 42))
-			{
-				return false;
 			}
 		}
 		log.warn("no queueentry response in reasonable time: " + qe.getQueueEntryID());

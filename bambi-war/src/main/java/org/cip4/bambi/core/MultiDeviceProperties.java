@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -88,6 +88,7 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.thread.DelayedPersist;
 import org.cip4.jdflib.util.thread.IPersistable;
+import org.cip4.jdfutility.server.JettyServer;
 
 /**
  * container for the properties of several Bambi devices
@@ -845,7 +846,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	public int getPort()
 	{
-		int p = root.getIntAttribute("Port", null, BambiServlet.port);
+		int p = root.getIntAttribute("Port", null, JettyServer.getPort());
 		if (p == 0)
 		{
 			p = 8080; // better guess - default tomcat Port

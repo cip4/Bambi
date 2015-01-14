@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -101,6 +101,10 @@ public class BambiServer extends JettyServer
 	public BambiServer() throws BambiException
 	{
 		super();
+		if (getPort() < 0)
+		{
+			setPort(getDefaultPort());
+		}
 		File configFile = new File("config/devices.xml");
 		if (XMLDoc.parseFile(configFile) != null)
 		{
@@ -247,16 +251,6 @@ public class BambiServer extends JettyServer
 	protected String getHome()
 	{
 		return context + "/overview";
-	}
-
-	/**
-	 * @see org.cip4.jdfutility.server.JettyServer#setPort(int)
-	 */
-	@Override
-	public void setPort(int port)
-	{
-		super.setPort(port);
-		BambiServlet.port = port;
 	}
 
 	/**
