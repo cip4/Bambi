@@ -264,6 +264,8 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	protected String deviceID = "device";
 	protected String workerURLBase = "http://localhost:44482/SimWorker/jmf/";
 
+	protected boolean wantContainer;
+
 	/**
 	 * banbi test case
 	 */
@@ -271,6 +273,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	{
 		BasicConfigurator.configure();
 		JDFJMF.setTheSenderID("BambiTest");
+		wantContainer = false;
 	}
 
 	/**
@@ -491,6 +494,8 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 */
 	protected void startContainer()
 	{
+		if (!wantContainer)
+			return;
 		bambiContainer = BambiContainer.getCreateInstance();
 		MultiDeviceProperties props = createPropertiesForContainer();
 		props.getRoot().setAttribute("WebProxy", "proxy:8080");

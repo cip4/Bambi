@@ -74,16 +74,16 @@ import java.io.File;
 
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IConverterCallback;
-import org.cip4.bambi.core.IDeviceProperties;
+import org.cip4.bambi.proxy.IProxyProperties;
 import org.cip4.jdflib.core.VString;
 
-class BambiTestProp implements IDeviceProperties
+public class BambiTestProp implements IProxyProperties
 {
 
 	/**
 	 * @param bambiTestCase
 	 */
-	BambiTestProp()
+	public BambiTestProp()
 	{
 		super();
 	}
@@ -181,6 +181,7 @@ class BambiTestProp implements IDeviceProperties
 	 * (non-Javadoc)
 	 * @see org.cip4.bambi.core.IDeviceProperties#getMaxPush()
 	 */
+	@Override
 	public int getMaxPush()
 	{
 		return 0;
@@ -210,6 +211,7 @@ class BambiTestProp implements IDeviceProperties
 	 * (non-Javadoc)
 	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
 	 */
+	@Override
 	public String getSlaveDeviceID()
 	{
 
@@ -220,6 +222,7 @@ class BambiTestProp implements IDeviceProperties
 	 * (non-Javadoc)
 	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveErrorHF()
 	 */
+	@Override
 	public File getSlaveErrorHF()
 	{
 
@@ -230,6 +233,7 @@ class BambiTestProp implements IDeviceProperties
 	 * (non-Javadoc)
 	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveInputHF()
 	 */
+	@Override
 	public File getSlaveInputHF()
 	{
 
@@ -240,6 +244,7 @@ class BambiTestProp implements IDeviceProperties
 	 * (non-Javadoc)
 	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveOutputHF()
 	 */
+	@Override
 	public File getSlaveOutputHF()
 	{
 
@@ -250,6 +255,7 @@ class BambiTestProp implements IDeviceProperties
 	 * (non-Javadoc)
 	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveURL()
 	 */
+	@Override
 	public String getSlaveURL()
 	{
 
@@ -306,17 +312,6 @@ class BambiTestProp implements IDeviceProperties
 	 */
 	@Override
 	public String getControllerMIMEEncoding()
-	{
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.cip4.bambi.core.IDeviceProperties#getReturnMIME()
-	 */
-	@Override
-	public QEReturn getReturnMIME()
 	{
 
 		return null;
@@ -486,7 +481,6 @@ class BambiTestProp implements IDeviceProperties
 	@Override
 	public String getDescription()
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -496,7 +490,6 @@ class BambiTestProp implements IDeviceProperties
 	@Override
 	public void setDescription(String description)
 	{
-		// TODO Auto-generated method stub
 
 	}
 
@@ -504,6 +497,102 @@ class BambiTestProp implements IDeviceProperties
 	public boolean getAutoStart()
 	{
 		return true;
+	}
+
+	@Override
+	public void setSlaveErrorHF(File hf)
+	{
+
+	}
+
+	@Override
+	public void setSlaveInputHF(File hf)
+	{
+
+	}
+
+	@Override
+	public void setSlaveOutputHF(File hf)
+	{
+
+	}
+
+	@Override
+	public void setSlaveURL(String newSlaveURL)
+	{
+
+	}
+
+	@Override
+	public void setSlaveDeviceID(String newSlaveID)
+	{
+
+	}
+
+	@Override
+	public String getDeviceURLForSlave()
+	{
+		return null;
+	}
+
+	@Override
+	public int getMaxSlaveRunning()
+	{
+		return 99;
+	}
+
+	@Override
+	public void setMaxPush(int push)
+	{
+
+	}
+
+	@Override
+	public int getSlaveHTTPChunk()
+	{
+		return 0;
+	}
+
+	@Override
+	public String getSlaveMIMEEncoding()
+	{
+		return null;
+	}
+
+	@Override
+	public boolean isSlaveMimePackaging()
+	{
+		return false;
+	}
+
+	@Override
+	public boolean getSlaveMIMEExpansion()
+	{
+		return false;
+	}
+
+	@Override
+	public boolean getSlaveMIMESemicolon()
+	{
+		return false;
+	}
+
+	@Override
+	public IConverterCallback getSlaveCallBackClass()
+	{
+		return null;
+	}
+
+	@Override
+	public void setSlaveMIMEExpansion(boolean extendMime)
+	{
+
+	}
+
+	@Override
+	public org.cip4.bambi.core.IDeviceProperties.QEReturn getReturnMIME()
+	{
+		return null;
 	}
 
 }

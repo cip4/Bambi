@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -185,12 +185,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 */
 		protected void cleanOrphans()
 		{
-			final Vector<String> v = ContainerUtil.getKeyVector(deltaMap);
-			if (v != null)
+			final Vector<String> keys = ContainerUtil.getKeyVector(deltaMap);
+			if (keys != null)
 			{
-				for (int i = 0; i < v.size(); i++)
+				for (String key : keys)
 				{
-					final String key = v.get(i);
 					final QueueDelta delta = deltaMap.get(key);
 					if (delta.isOrphan())
 					{
@@ -1535,9 +1534,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		_parentDevice = theParentDevice;
 		_listeners = new Vector<Object>();
 		deltaMap = new HashMap<String, QueueDelta>();
-		init();
 		queueMap = new QueueMap();
 		_mutexMap = new MutexMap<String>();
+		init();
 	}
 
 	/**
@@ -1562,6 +1561,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		jmfHandler.addHandler(new SubmissionMethodsHandler());
 	}
 
+	/**
+	 * 
+	 */
 	protected void init()
 	{
 		final String deviceID = _parentDevice.getDeviceID();
@@ -1595,14 +1597,41 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	{
 		_theQueue.setAutomated(true);
 		_theQueue.setDeviceID(deviceID);
-		_theQueue.setMaxCompletedEntries(100);
-		_theQueue.setMaxWaitingEntries(-1);
-		_theQueue.setMaxRunningEntries(1);
+		_theQueue.setMaxCompletedEntries(getMaxCompleted());
+		_theQueue.setMaxWaitingEntries(getMaxWaiting());
+		_theQueue.setMaxRunningEntries(getMaxRunning());
 		_theQueue.setDescriptiveName("Queue for " + _parentDevice.getDeviceType());
 		_theQueue.setCleanupCallback(_parentDevice.getQECleanup()); // zapps any attached files when removing qe
 		_cbCanExecute = new CanExecuteCallBack(deviceID, BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL));
 		_theQueue.setExecuteCallback(_cbCanExecute);
 		BambiNSExtension.setMyNSAttribute(_theQueue, "EnsureNS", "Dummy"); // ensure that some bambi ns exists
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int getMaxRunning()
+	{
+		return 1;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int getMaxWaiting()
+	{
+		return -1;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int getMaxCompleted()
+	{
+		return 100;
 	}
 
 	/**
@@ -1651,7 +1680,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	/**
 	 * @return
 	 */
-	private JDFDoc readQueueFile()
+	protected JDFDoc readQueueFile()
 	{
 		boolean exist = _queueFile.exists();
 		JDFDoc d = exist ? JDFDoc.parseFile(_queueFile.getAbsolutePath()) : null;
@@ -2074,7 +2103,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				final String docURL = BambiNSExtension.getDocURL(qe);
 				if (docURL != null)
 				{
-					hs.add(new File(StringUtil.token(docURL, -1, File.separator)));
+					hs.add(new File(StringUtil.token(docURL, getMaxWaiting(), File.separator)));
 				}
 			}
 		}
@@ -2102,7 +2131,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			ThreadUtil.notifyAll(elementAt);
 		}
 		final SignalDispatcher signalDispatcher = _parentDevice.getSignalDispatcher();
-		signalDispatcher.triggerQueueEntry(qeID, null, -1, EnumType.QueueStatus.getName());
+		signalDispatcher.triggerQueueEntry(qeID, null, getMaxWaiting(), EnumType.QueueStatus.getName());
 	}
 
 	/**

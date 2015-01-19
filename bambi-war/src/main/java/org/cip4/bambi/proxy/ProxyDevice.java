@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -849,7 +849,6 @@ public class ProxyDevice extends AbstractProxyDevice
 		if (maxPush > 0)
 		{
 			_theQueueProcessor.getQueue().setMaxRunningEntries(maxPush);
-			// TODO correctly dispatch them
 		}
 	}
 
@@ -1071,15 +1070,13 @@ public class ProxyDevice extends AbstractProxyDevice
 	protected void reloadQueue()
 	{
 		final JDFQueue q = _theQueueProcessor.getQueue();
-		BambiNSExtension.setSlaveURL(q, "true");
 		final VElement qev = q.getQueueEntryVector();
 
 		if (qev != null)
 		{
-			final int qSize = qev.size();
-			for (int i = 0; i < qSize; i++)
+			for (KElement e : qev)
 			{
-				final JDFQueueEntry qe = (JDFQueueEntry) qev.get(i);
+				final JDFQueueEntry qe = (JDFQueueEntry) e;
 				final EnumQueueEntryStatus stat = qe.getQueueEntryStatus();
 				if (!qe.isCompleted() && BambiNSExtension.getSlaveQueueEntryID(qe) != null)
 				{
