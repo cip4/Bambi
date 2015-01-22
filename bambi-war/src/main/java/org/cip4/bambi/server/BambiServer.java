@@ -146,9 +146,9 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 * 
+	 * grab list of resources from self
 	 */
-	private void unpackResourceList()
+	protected void unpackResourceList()
 	{
 		if (!new File("list.txt").canRead())
 		{
@@ -156,7 +156,7 @@ public class BambiServer extends JettyServer
 			InputStream listStream = myClass.getResourceAsStream("list.txt");
 			if (listStream == null)
 			{
-				log.fatal("No list found - cannot unpack resources");
+				log.error("No list found - cannot unpack resources");
 			}
 			else
 			{
