@@ -197,10 +197,21 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 */
 		protected QueueDelta()
 		{
-			lastQueue = cloneQueue();
+			lastQueue = createLastQueue();
 			creationTime = System.currentTimeMillis();
 			if (!RegularJanitor.getJanitor().hasSweeper(this))
+			{
 				RegularJanitor.getJanitor().addSweeper(new TimeSweeper(42 * 60, this), true);
+			}
+		}
+
+		/**
+		 * 
+		 * @return
+		 */
+		protected JDFQueue createLastQueue()
+		{
+			return cloneQueue();
 		}
 
 		/**
@@ -2883,15 +2894,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 * create a comple clone of theQueue
+	 * create a complete clone of theQueue
 	 *  
 	 * @return the clone
 	 */
 	protected JDFQueue cloneQueue()
 	{
-		XMLDoc doc = _theQueue.getOwnerDocument_KElement();
-		XMLDoc clone = doc.clone();
-		return (JDFQueue) clone.getRoot();
+		return (JDFQueue) _theQueue.cloneNewDoc();
 	}
 
 	/**
