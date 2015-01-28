@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -96,8 +96,8 @@ import org.cip4.bambi.core.messaging.AcknowledgeThread;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
-import org.cip4.bambi.core.messaging.SignalDispatcher;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
+import org.cip4.bambi.core.messaging.SignalDispatcher;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -108,7 +108,6 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFComment;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
-import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -150,6 +149,8 @@ import org.cip4.jdflib.util.thread.DelayedPersist;
 import org.cip4.jdflib.util.thread.IPersistable;
 import org.cip4.jdflib.util.thread.MutexMap;
 import org.cip4.jdflib.util.thread.MyMutex;
+import org.cip4.jdflib.util.thread.RegularJanitor;
+import org.cip4.jdflib.util.thread.TimeSweeper;
 
 /**
  * 
@@ -166,18 +167,51 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * 
 	 * July 6, 2009
 	 */
-	protected class QueueDelta
+	protected class QueueDelta implements Runnable
 	{
-		protected JDFQueue lastQueue;
+		private final JDFQueue lastQueue;
+
+		/**
+		 * 
+		 * @return
+		 */
+		protected JDFQueue getLastQueue()
+		{
+			return lastQueue;
+		}
+
+		/**
+		 * hook to add performance updates to the queuefilter
+		 * @param qf
+		 * @return
+		 */
+		protected JDFQueueFilter updateFilter(JDFQueueFilter qf)
+		{
+			return qf;
+		}
+
 		private final long creationTime;
 
 		/**
 		 * 
 		 */
-		public QueueDelta()
+		protected QueueDelta()
 		{
-			lastQueue = cloneQueue();
+			lastQueue = createLastQueue();
 			creationTime = System.currentTimeMillis();
+			if (!RegularJanitor.getJanitor().hasSweeper(this))
+			{
+				RegularJanitor.getJanitor().addSweeper(new TimeSweeper(42 * 60, this), true);
+			}
+		}
+
+		/**
+		 * 
+		 * @return
+		 */
+		protected JDFQueue createLastQueue()
+		{
+			return cloneQueue();
 		}
 
 		/**
@@ -185,12 +219,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 */
 		protected void cleanOrphans()
 		{
-			final Vector<String> v = ContainerUtil.getKeyVector(deltaMap);
-			if (v != null)
+			final Vector<String> keys = ContainerUtil.getKeyVector(deltaMap);
+			if (keys != null)
 			{
-				for (int i = 0; i < v.size(); i++)
+				for (String key : keys)
 				{
-					final String key = v.get(i);
 					final QueueDelta delta = deltaMap.get(key);
 					if (delta.isOrphan())
 					{
@@ -206,6 +239,26 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		private boolean isOrphan()
 		{
 			return System.currentTimeMillis() - creationTime > 1000 * 60 * 66; // retain a bit over an hour
+		}
+
+		/**
+		 * 
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString()
+		{
+			return "QueueDelta [lastQueue.size=" + (lastQueue == null ? 0 : lastQueue.numEntries(null)) + ", creationTime=" + creationTime + "]";
+		}
+
+		/**
+		 * 
+		 * @see java.lang.Runnable#run()
+		 */
+		@Override
+		public void run()
+		{
+			cleanOrphans();
 		}
 	}
 
@@ -1080,7 +1133,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			if (request.getBooleanParam("quiet") == false)
 			{
 				root = sortOutput(sortBy, filter);
-				root.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
+				root.setAttribute(AttributeName.CONTEXT, _parentDevice.getContext(request));
 				final QERetrieval qer = _parentDevice.getProperties().getQERetrieval();
 				root.setAttribute("Pull", qer == QERetrieval.PULL || qer == QERetrieval.BOTH, null);
 				if (_theQueue.numChildElements(ElementName.QUEUEENTRY, null) < 500)
@@ -1225,8 +1278,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				final JDFQueue lastQueue = getLastQueue(filter);
 				if (lastQueue != null)
 				{
-					final JDFQueueFilter f = (JDFQueueFilter) new JDFDoc(ElementName.QUEUEFILTER).getRoot();
+					JDFQueueFilter f = (JDFQueueFilter) new JDFDoc(ElementName.QUEUEFILTER).getRoot();
 					f.setUpdateGranularity(EnumUpdateGranularity.ChangesOnly);
+					f = updateFilter(f, filter);
 					root = f.copy(_theQueue, lastQueue, null);
 				}
 				else
@@ -1535,9 +1589,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		_parentDevice = theParentDevice;
 		_listeners = new Vector<Object>();
 		deltaMap = new HashMap<String, QueueDelta>();
-		init();
 		queueMap = new QueueMap();
 		_mutexMap = new MutexMap<String>();
+		init();
 	}
 
 	/**
@@ -1562,6 +1616,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		jmfHandler.addHandler(new SubmissionMethodsHandler());
 	}
 
+	/**
+	 * 
+	 */
 	protected void init()
 	{
 		final String deviceID = _parentDevice.getDeviceID();
@@ -1595,14 +1652,41 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	{
 		_theQueue.setAutomated(true);
 		_theQueue.setDeviceID(deviceID);
-		_theQueue.setMaxCompletedEntries(100);
-		_theQueue.setMaxWaitingEntries(-1);
-		_theQueue.setMaxRunningEntries(1);
+		_theQueue.setMaxCompletedEntries(getMaxCompleted());
+		_theQueue.setMaxWaitingEntries(getMaxWaiting());
+		_theQueue.setMaxRunningEntries(getMaxRunning());
 		_theQueue.setDescriptiveName("Queue for " + _parentDevice.getDeviceType());
 		_theQueue.setCleanupCallback(_parentDevice.getQECleanup()); // zapps any attached files when removing qe
 		_cbCanExecute = new CanExecuteCallBack(deviceID, BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL));
 		_theQueue.setExecuteCallback(_cbCanExecute);
 		BambiNSExtension.setMyNSAttribute(_theQueue, "EnsureNS", "Dummy"); // ensure that some bambi ns exists
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int getMaxRunning()
+	{
+		return 1;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int getMaxWaiting()
+	{
+		return -1;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int getMaxCompleted()
+	{
+		return 100;
 	}
 
 	/**
@@ -1651,7 +1735,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	/**
 	 * @return
 	 */
-	private JDFDoc readQueueFile()
+	protected JDFDoc readQueueFile()
 	{
 		boolean exist = _queueFile.exists();
 		JDFDoc d = exist ? JDFDoc.parseFile(_queueFile.getAbsolutePath()) : null;
@@ -2074,7 +2158,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				final String docURL = BambiNSExtension.getDocURL(qe);
 				if (docURL != null)
 				{
-					hs.add(new File(StringUtil.token(docURL, -1, File.separator)));
+					hs.add(new File(StringUtil.token(docURL, getMaxWaiting(), File.separator)));
 				}
 			}
 		}
@@ -2102,7 +2186,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			ThreadUtil.notifyAll(elementAt);
 		}
 		final SignalDispatcher signalDispatcher = _parentDevice.getSignalDispatcher();
-		signalDispatcher.triggerQueueEntry(qeID, null, -1, EnumType.QueueStatus.getName());
+		signalDispatcher.triggerQueueEntry(qeID, null, getMaxWaiting(), EnumType.QueueStatus.getName());
 	}
 
 	/**
@@ -2261,25 +2345,21 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 	}
 
-	private JDFQueue copyToMessage(final JDFMessage mess, final JDFResponse resp)
+	/**
+	 * 
+	 * @param mess
+	 * @param resp
+	 * @return
+	 */
+	protected JDFQueue copyToMessage(final JDFMessage mess, final JDFResponse resp)
 	{
-		JDFQueueFilter qf = null;
-		try
-		{
-			qf = mess == null ? null : mess.getQueueFilter(0);
-		}
-		catch (final JDFException e)
-		{
-			log.warn("problems with queuefilter - ignoring", e);
-		}
+		JDFQueueFilter qf = mess == null ? null : mess.getQueueFilter(0);
 		final JDFQueue q = _theQueue.copyToResponse(resp, qf, getLastQueue(resp, qf));
-		if (qf != null && EnumUpdateGranularity.ChangesOnly.equals(qf.getUpdateGranularity()) && q.getQueueEntry(0) == null)
-		{
-			//we have an empty queue
-			return null;
-		}
+		if (qf != null)
+			qf = updateFilter(qf, resp.getrefID());
+		//we have an empty queue
 		removeBambiNSExtensions(q);
-		return q;
+		return (qf != null && EnumUpdateGranularity.ChangesOnly.equals(qf.getUpdateGranularity()) && q.getQueueEntry(0) == null) ? null : q;
 	}
 
 	/**
@@ -2290,7 +2370,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * @param qf
 	 * @return
 	 */
-	private JDFQueue getLastQueue(final JDFResponse resp, final JDFQueueFilter qf)
+	private JDFQueue getLastQueue(final JDFResponse resp, JDFQueueFilter qf)
 	{
 		if (resp == null || qf == null)
 		{
@@ -2311,13 +2391,38 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	protected JDFQueue getLastQueue(final String refID)
 	{
 		final QueueDelta delta = deltaMap.get(refID);
-		deltaMap.put(refID, new QueueDelta());
+		QueueDelta queueDelta = getQueueDelta();
+		if (queueDelta == null)
+		{
+			deltaMap.remove(refID);
+		}
+		deltaMap.put(refID, queueDelta);
 		if (delta == null)
 		{
 			return null;
 		}
-		delta.cleanOrphans();
-		return delta.lastQueue;
+		return delta.getLastQueue();
+	}
+
+	/**
+	 * @param qf
+	 * @param refID
+	 * 
+	 * @return the updated queue filter
+	 */
+	protected JDFQueueFilter updateFilter(JDFQueueFilter qf, final String refID)
+	{
+		final QueueDelta delta = deltaMap.get(refID);
+		return (delta == null) ? qf : delta.updateFilter(qf);
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	protected QueueDelta getQueueDelta()
+	{
+		return new QueueDelta();
 	}
 
 	/**
@@ -2789,15 +2894,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 * create a comple clone of theQueue
+	 * create a complete clone of theQueue
 	 *  
 	 * @return the clone
 	 */
 	protected JDFQueue cloneQueue()
 	{
-		XMLDoc doc = _theQueue.getOwnerDocument_KElement();
-		XMLDoc clone = doc.clone();
-		return (JDFQueue) clone.getRoot();
+		return (JDFQueue) _theQueue.cloneNewDoc();
 	}
 
 	/**

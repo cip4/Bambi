@@ -184,7 +184,7 @@ public abstract class ShowHandler implements IGetHandler
 			return null;
 		}
 		doc.setXSLTURL(_parentDevice.getXSLT(request));
-		root.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
+		root.setAttribute(AttributeName.CONTEXT, _parentDevice.getContext(request));
 		final String qeID = request.getParameter(QueueProcessor.QE_ID);
 		root.setAttribute(AttributeName.QUEUEENTRYID, UrlUtil.escape(qeID, true));
 		return doc;

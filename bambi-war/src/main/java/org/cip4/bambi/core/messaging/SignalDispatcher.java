@@ -199,11 +199,11 @@ public class SignalDispatcher extends BambiLogFactory
 					listMessageSenders(request, true, pos);
 					if (pos > 0)
 					{
-						setXSLTURL(request.getContextRoot() + "/subscriptionDetails.xsl");
+						setXSLTURL(device.getXSLTBaseFromContext(request.getContextRoot()) + "/subscriptionDetails.xsl");
 					}
 					else
 					{
-						setXSLTURL(request.getContextRoot() + "/subscriptionList.xsl");
+						setXSLTURL(device.getXSLTBaseFromContext(request.getContextRoot()) + "/subscriptionList.xsl");
 					}
 				}
 				else
@@ -211,13 +211,13 @@ public class SignalDispatcher extends BambiLogFactory
 					listChannels(request, details);
 					device.addMoreToXMLSubscriptions(root);
 					listMessageSenders(request, false, -1);
-					setXSLTURL(request.getContextRoot() + "/subscriptionList.xsl");
+					setXSLTURL(device.getXSLTBaseFromContext(request.getContextRoot()) + "/subscriptionList.xsl");
 				}
 			}
 			else
 			{
 				showDetails(request, details, pos);
-				setXSLTURL(request.getContextRoot() + "/subscriptionDetails.xsl");
+				setXSLTURL(device.getContext(request) + "/subscriptionDetails.xsl");
 			}
 			XMLResponse r = new XMLResponse(getRoot());
 			return r;
@@ -341,7 +341,7 @@ public class SignalDispatcher extends BambiLogFactory
 		{
 			if (device != null) // may be null in test scenarios
 				root.setAttribute(AttributeName.DEVICEID, device.getDeviceID());
-			root.setAttribute(AttributeName.CONTEXT, ((request == null) ? null : request.getContextRoot()));
+			root.setAttribute(AttributeName.CONTEXT, ((request == null) ? null : device.getContext(request)));
 		}
 
 		/**

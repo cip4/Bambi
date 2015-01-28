@@ -314,8 +314,9 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		JDFJMF jmf = doc.getJMFRoot();
 		if (jmf == null)
 			return doc;
-		log.info("exporting XJMF");
 		final XJDF20 xjdf = getXJDFExporter();
+		if (xjdf.isAbstractMessage())
+			log.info("exporting XJMF");
 		final KElement newJMF = xjdf.makeNewJMF(jmf);
 		return new JDFDoc(newJMF.getOwnerDocument());
 	}

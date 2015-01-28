@@ -1,9 +1,7 @@
-/*
- *
+/**
  * The CIP4 Software License, Version 1.0
  *
- *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -68,122 +66,156 @@
  *  
  * 
  */
-/**
- * 
- */
-package org.cip4.bambi.core;
+package org.cip4.bambi.server;
 
-import org.cip4.bambi.core.queues.IQueueEntry;
-import org.cip4.bambi.core.queues.QueueProcessor;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.jmf.JDFCommand;
-import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFQueueEntry;
-import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
-import org.cip4.jdflib.util.ThreadUtil;
-import org.cip4.jdflib.util.hotfolder.QueueHotFolderListener;
+import java.awt.event.ActionEvent;
+import java.io.File;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+import org.cip4.bambi.core.BambiContainer;
+import org.cip4.bambi.core.MultiDeviceProperties;
+import org.cip4.jdflib.util.logging.LogConfigurator;
+import org.cip4.jdfutility.server.JettyServer;
+import org.cip4.jdfutility.server.ui.JettyFrame;
 
 /**
- * @author Rainer Prosi, Heidelberger Druckmaschinen
- * 
+ * @author rainer prosi
+ * @date Jan 11, 2011
  */
-public class QueueHFListener extends BambiLogFactory implements QueueHotFolderListener
+public class BambiFrame extends JettyFrame
 {
+	JButton baseDirButton;
+	JTextField baseDirText;
+	JCheckBox cbLegacy;
+
+	/**
+	 * @param server
+	 */
+	public BambiFrame(JettyServer server)
+	{
+		super(server);
+	}
+
 	/**
 	 * 
 	 */
-	private IConverterCallback _callBack = null;
-	private final QueueProcessor queueProc;
-
-	/**
-	 * @param qProc
-	 * @param callBackClass
-	 */
-	public QueueHFListener(final QueueProcessor qProc, final IConverterCallback callBackClass)
+	protected void browse()
 	{
-		queueProc = qProc;
-		_callBack = callBackClass;
+		JFileChooser fc = new JFileChooser();
+		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		fc.setSelectedFile(getProp().getBaseDir());
+		int i = fc.showOpenDialog(this);
+		if (i == JFileChooser.APPROVE_OPTION)
+		{
+			File f = fc.getSelectedFile();
+			getProp().setBaseDir(f);
+			setBaseDirText(f);
+			LogConfigurator.configureLog(getProp().getBaseDir().getAbsolutePath(), "bambi.log");
+		}
 	}
 
 	/**
-	 * @see org.cip4.jdflib.util.hotfolder.QueueHotFolderListener#submitted(org.cip4.jdflib.jmf.JDFJMF)
-	 * @param submissionJMF
+	 * 
+	 * @return
+	 */
+	MultiDeviceProperties getProp()
+	{
+		return ((BambiServer) server).getProp();
+	}
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * @see org.cip4.jdfutility.server.ui.JettyFrame#getFrameName()
 	 */
 	@Override
-	public boolean submitted(final JDFJMF submissionJMF)
+	protected String getFrameName()
 	{
-		log.info("HFListner:submitted");
-		final JDFCommand command = submissionJMF.getCommand(0);
+		return "Bambi";
+	}
 
-		if (_callBack != null)
+	/**
+	 * 
+	 * @see org.cip4.jdfutility.server.ui.JettyFrame#createPanel()
+	 */
+	@Override
+	protected JPanel createPanel()
+	{
+		JPanel panel = super.createPanel();
+		baseDirButton = new JButton("Browse Base Directory");
+		baseDirButton.addActionListener(this);
+		panel.add(baseDirButton);
+		baseDirText = new JTextField();
+		panel.add(baseDirText);
+		setBaseDirText(getProp().getBaseDir());
+		cbLegacy = new JCheckBox("Legacy style");
+		cbLegacy.setSelected("/legacy".equals(getProp().getCSS()));
+		cbLegacy.addActionListener(this);
+		panel.add(cbLegacy);
+		return panel;
+	}
+
+	/**
+	 * 
+	 * @param baseDir
+	 */
+	private void setBaseDirText(File baseDir)
+	{
+		baseDirText.setText(baseDir.getAbsolutePath());
+		baseDirText.setEditable(false);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent arg0)
+	{
+		if (baseDirButton.equals(arg0.getSource()))
 		{
-			_callBack.prepareJMFForBambi(submissionJMF.getOwnerDocument_JDFElement());
+			browse();
 		}
-
-		final JDFQueueSubmissionParams qsp = command.getQueueSubmissionParams(0);
-
-		JDFDoc doc = qsp.getURLDoc();
-		if (doc == null)
+		else if (cbLegacy.equals(arg0.getSource()))
 		{
-			log.warn("could not process JDF File at URL: " + qsp.getURL());
-			return false;
+			getProp().setCSS(cbLegacy.isSelected() ? "/legacy" : "/webapp");
+			getProp().serialize();
+			if (BambiContainer.getInstance() != null)
+			{
+				BambiContainer.getInstance().getProps().setCSS(cbLegacy.isSelected() ? "/legacy" : "/webapp");
+				BambiContainer.getInstance().getProps().serialize();
+			}
+
 		}
 		else
 		{
-			if (_callBack != null)
-			{
-				doc = _callBack.prepareJDFForBambi(doc);
-			}
-
-			final JDFQueueEntry qe = queueProc.addEntry(command, null, doc);
-			if (qe == null)
-			{
-				log.warn("_theQueue.addEntry returned null");
-				return false;
-			}
-			queueProc.updateCache(qe, qe.getQueueEntryID());
-			return waitForSubmission(qe);
+			super.actionPerformed(arg0);
 		}
 	}
 
 	/**
-	 * @param qe
-	 * @return
-	 */
-	private boolean waitForSubmission(final JDFQueueEntry qe)
-	{
-		int iLoop = 1;
-		long t0 = System.currentTimeMillis();
-		while (iLoop++ < 42)
-		{
-			// a 42 millisecond initial wait to allow the processor to clean up
-			if (!ThreadUtil.sleep(iLoop * iLoop * 42))
-			{
-				return false;
-			}
-			IQueueEntry iqeNew = queueProc.getIQueueEntry(qe, true);
-			JDFQueueEntry qeNew = iqeNew == null ? null : iqeNew.getQueueEntry();
-			if (queueProc.wasSubmitted(qeNew))
-			{
-				if (iLoop > 10)
-				{
-					t0 = System.currentTimeMillis() - t0;
-					t0 /= 1000;
-					log.info("waited " + t0 + " seconds for response queue submission response. qeID=" + iqeNew.getQueueEntryID());
-				}
-				return true;
-			}
-		}
-		log.warn("no queueentry response in reasonable time: " + qe.getQueueEntryID());
-		return false;
-	}
-
-	/**
-	 * @see java.lang.Object#toString()
+	 * 
+	 * @see org.cip4.jdfutility.server.ui.JettyFrame#started()
 	 */
 	@Override
-	public String toString()
+	protected void started()
 	{
-		return "QueueHFListener [queueProc=" + queueProc + "]";
+		super.started();
+		baseDirButton.setEnabled(false);
+	}
+
+	/**
+	 * 
+	 * @see org.cip4.jdfutility.server.ui.JettyFrame#stopped()
+	 */
+	@Override
+	protected void stopped()
+	{
+		super.stopped();
+		baseDirButton.setEnabled(true);
 	}
 }

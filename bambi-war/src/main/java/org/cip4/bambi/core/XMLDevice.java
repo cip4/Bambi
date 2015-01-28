@@ -34,7 +34,7 @@ public class XMLDevice extends XMLDoc
 		final KElement deviceRoot = getRoot();
 		setXSLTURL(parentDevice.getXSLT(request));
 
-		deviceRoot.setAttribute(AttributeName.CONTEXT, request.getContextRoot());
+		deviceRoot.setAttribute(AttributeName.CONTEXT, parentDevice.getContext(request));
 		final boolean bModify = request.getBooleanParam("modify");
 		deviceRoot.setAttribute("modify", bModify, null);
 		deviceRoot.setAttribute("NumRequests", parentDevice.numRequests, null);

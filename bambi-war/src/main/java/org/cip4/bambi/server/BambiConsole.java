@@ -1,9 +1,7 @@
-/*
- *
+/**
  * The CIP4 Software License, Version 1.0
  *
- *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -68,122 +66,26 @@
  *  
  * 
  */
-/**
- * 
- */
-package org.cip4.bambi.core;
+package org.cip4.bambi.server;
 
-import org.cip4.bambi.core.queues.IQueueEntry;
-import org.cip4.bambi.core.queues.QueueProcessor;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.jmf.JDFCommand;
-import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFQueueEntry;
-import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
-import org.cip4.jdflib.util.ThreadUtil;
-import org.cip4.jdflib.util.hotfolder.QueueHotFolderListener;
+import org.cip4.jdflib.util.MyArgs;
+import org.cip4.jdfutility.server.JettyServer;
+import org.cip4.jdfutility.server.ui.JettyConsole;
 
 /**
- * @author Rainer Prosi, Heidelberger Druckmaschinen
- * 
+ *  
+ * @author rainer prosi
+ * @date Jan 11, 2011
  */
-public class QueueHFListener extends BambiLogFactory implements QueueHotFolderListener
+public class BambiConsole extends JettyConsole
 {
-	/**
-	 * 
-	 */
-	private IConverterCallback _callBack = null;
-	private final QueueProcessor queueProc;
 
 	/**
-	 * @param qProc
-	 * @param callBackClass
+	 * @param server
+	 * @param args 
 	 */
-	public QueueHFListener(final QueueProcessor qProc, final IConverterCallback callBackClass)
+	public BambiConsole(JettyServer server, MyArgs args)
 	{
-		queueProc = qProc;
-		_callBack = callBackClass;
-	}
-
-	/**
-	 * @see org.cip4.jdflib.util.hotfolder.QueueHotFolderListener#submitted(org.cip4.jdflib.jmf.JDFJMF)
-	 * @param submissionJMF
-	 */
-	@Override
-	public boolean submitted(final JDFJMF submissionJMF)
-	{
-		log.info("HFListner:submitted");
-		final JDFCommand command = submissionJMF.getCommand(0);
-
-		if (_callBack != null)
-		{
-			_callBack.prepareJMFForBambi(submissionJMF.getOwnerDocument_JDFElement());
-		}
-
-		final JDFQueueSubmissionParams qsp = command.getQueueSubmissionParams(0);
-
-		JDFDoc doc = qsp.getURLDoc();
-		if (doc == null)
-		{
-			log.warn("could not process JDF File at URL: " + qsp.getURL());
-			return false;
-		}
-		else
-		{
-			if (_callBack != null)
-			{
-				doc = _callBack.prepareJDFForBambi(doc);
-			}
-
-			final JDFQueueEntry qe = queueProc.addEntry(command, null, doc);
-			if (qe == null)
-			{
-				log.warn("_theQueue.addEntry returned null");
-				return false;
-			}
-			queueProc.updateCache(qe, qe.getQueueEntryID());
-			return waitForSubmission(qe);
-		}
-	}
-
-	/**
-	 * @param qe
-	 * @return
-	 */
-	private boolean waitForSubmission(final JDFQueueEntry qe)
-	{
-		int iLoop = 1;
-		long t0 = System.currentTimeMillis();
-		while (iLoop++ < 42)
-		{
-			// a 42 millisecond initial wait to allow the processor to clean up
-			if (!ThreadUtil.sleep(iLoop * iLoop * 42))
-			{
-				return false;
-			}
-			IQueueEntry iqeNew = queueProc.getIQueueEntry(qe, true);
-			JDFQueueEntry qeNew = iqeNew == null ? null : iqeNew.getQueueEntry();
-			if (queueProc.wasSubmitted(qeNew))
-			{
-				if (iLoop > 10)
-				{
-					t0 = System.currentTimeMillis() - t0;
-					t0 /= 1000;
-					log.info("waited " + t0 + " seconds for response queue submission response. qeID=" + iqeNew.getQueueEntryID());
-				}
-				return true;
-			}
-		}
-		log.warn("no queueentry response in reasonable time: " + qe.getQueueEntryID());
-		return false;
-	}
-
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString()
-	{
-		return "QueueHFListener [queueProc=" + queueProc + "]";
+		super(server, args);
 	}
 }

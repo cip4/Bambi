@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -71,6 +71,7 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -78,6 +79,7 @@ import java.net.UnknownHostException;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -87,6 +89,7 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.thread.DelayedPersist;
 import org.cip4.jdflib.util.thread.IPersistable;
+import org.cip4.jdfutility.server.JettyServer;
 
 /**
  * container for the properties of several Bambi devices
@@ -710,6 +713,15 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 			devRoot.getOwnerDocument_KElement().write2File((String) null, 2, false);
 			return newProps;
 		}
+
+		/**
+		 * 
+		 * @return
+		 */
+		public MultiDeviceProperties getParent()
+		{
+			return MultiDeviceProperties.this;
+		}
 	}
 
 	/**
@@ -770,6 +782,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		if (root == null || doc == null)
 		{
 			log.fatal("failed to parse " + configFile + " at " + FileUtil.getFileInDirectory(baseDir, configFile).getAbsolutePath() + ", rootDev is null");
+			throw new JDFException("snafu");
 		}
 		else
 		{
@@ -800,6 +813,28 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
+	 * create device properties for the devices defined in the config stream
+	 * @param inStream
+	 */
+	public MultiDeviceProperties(InputStream inStream)
+	{
+		final XMLDoc doc = XMLDoc.parseStream(inStream);
+		root = doc == null ? null : doc.getRoot();
+		this.context = null;
+
+		if (root == null || doc == null)
+		{
+			log.fatal("failed to parse internal stream, rootDev is null");
+		}
+		else
+		{
+			String appDir = System.getProperty("user.dir");
+			root.setAttribute("AppDir", appDir);
+			root.getOwnerDocument_KElement().setOriginalFileName(appDir);
+		}
+	}
+
+	/**
 	 * serialize this to it's default location
 	 * @return true if success
 	 */
@@ -813,7 +848,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	public int getPort()
 	{
-		int p = root.getIntAttribute("Port", null, BambiServlet.port);
+		int p = root.getIntAttribute("Port", null, JettyServer.getPort());
 		if (p == 0)
 		{
 			p = 8080; // better guess - default tomcat Port
@@ -909,6 +944,24 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	{
 		final File f = getAppDir();
 		return FileUtil.getFileInDirectory(f, new File("config"));
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public String getCSS()
+	{
+		return root.getAttribute("CSS", null, "/legacy");
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public void setCSS(String css)
+	{
+		root.setAttribute("CSS", css, null);
 	}
 
 	/**

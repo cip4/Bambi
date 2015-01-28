@@ -232,7 +232,7 @@ public final class BambiContainer extends BambiLogFactory
 			err.setAttribute("errorDetails", errorDetails);
 			err.setAttribute("Context", request.getContextRoot());
 			err.setAttribute("URL", request.getRequestURI());
-			d.setXSLTURL(request.getContextRoot() + "/error.xsl");
+			d.setXSLTURL(theInstance.getRootDev().getXSLTBaseFromContext(request.getContext()) + "/error.xsl");
 			return new XMLResponse(err);
 		}
 	}

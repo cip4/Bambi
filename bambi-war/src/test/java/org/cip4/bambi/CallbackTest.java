@@ -106,7 +106,7 @@ public class CallbackTest extends BambiTestCase
 
 		/**
 		 * 
-		 * @see org.cip4.bambi.BambiTestCase.BambiTestProp#getCallBackClass()
+		 * @see org.cip4.bambi.BambiTestProp#getCallBackClass()
 		 * @return
 		 */
 		@Override
@@ -128,7 +128,7 @@ public class CallbackTest extends BambiTestCase
 
 		/**
 		 * 
-		 * @see org.cip4.bambi.BambiTestCase.BambiTestProp#getDeviceID()
+		 * @see org.cip4.bambi.BambiTestProp#getDeviceID()
 		 * @return
 		 */
 		@Override
