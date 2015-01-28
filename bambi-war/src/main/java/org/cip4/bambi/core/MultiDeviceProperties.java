@@ -79,6 +79,7 @@ import java.net.UnknownHostException;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -781,6 +782,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		if (root == null || doc == null)
 		{
 			log.fatal("failed to parse " + configFile + " at " + FileUtil.getFileInDirectory(baseDir, configFile).getAbsolutePath() + ", rootDev is null");
+			throw new JDFException("snafu");
 		}
 		else
 		{

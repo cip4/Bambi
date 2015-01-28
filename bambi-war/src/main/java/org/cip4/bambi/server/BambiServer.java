@@ -108,11 +108,18 @@ public class BambiServer extends JettyServer
 		File configFile = new File("config/devices.xml");
 		if (XMLDoc.parseFile(configFile) != null)
 		{
+			log.info("loading local file from: " + configFile.getAbsolutePath());
 			mp = new MultiDeviceProperties(new File("."), null, configFile);
 		}
 		else
 		{
-			mp = new MultiDeviceProperties(getClass().getResourceAsStream("config/devices.xml"));
+			log.info("loading resource file from class: " + getClass().getSimpleName());
+			InputStream resourceAsStream = getClass().getResourceAsStream("/config/devices.xml");
+			if (resourceAsStream == null)
+			{
+				log.error("invalid resource stream ");
+			}
+			mp = new MultiDeviceProperties(resourceAsStream);
 		}
 
 		unpackResourceList();
@@ -153,7 +160,7 @@ public class BambiServer extends JettyServer
 		if (!new File("list.txt").canRead())
 		{
 			Class<? extends BambiServer> myClass = getClass();
-			InputStream listStream = myClass.getResourceAsStream("list.txt");
+			InputStream listStream = myClass.getResourceAsStream("/list.txt");
 			if (listStream == null)
 			{
 				log.error("No list found - cannot unpack resources");
@@ -164,12 +171,37 @@ public class BambiServer extends JettyServer
 				String line;
 				try
 				{
-					line = "list.txt";
+					line = "./list.txt";
+					String lastLine = "";
 					while (line != null)
 					{
-						InputStream nextStream = myClass.getResourceAsStream(line);
-						if (nextStream != null) // directory
-							FileUtil.streamToFile(nextStream, new File(line));
+						if (!lastLine.startsWith(line))
+						{
+							String shortLine = line.substring(1);
+							InputStream nextStream = myClass.getResourceAsStream(shortLine);
+							if (nextStream != null) // directory
+							{
+								log.info("Streaming resource file " + line);
+								File newFile = FileUtil.streamToFile(nextStream, new File(line));
+								if (newFile != null)
+								{
+									log.info("Streamed resource file " + newFile.getAbsolutePath());
+								}
+								else
+								{
+									log.warn("Cannot stream resource file " + line);
+								}
+							}
+							else
+							{
+								log.warn("no stream for resource file " + line);
+							}
+						}
+						else
+						{
+							log.info("skipping resource directory " + line);
+						}
+						lastLine = line;
 						line = r.readLine();
 					}
 				}
@@ -189,6 +221,7 @@ public class BambiServer extends JettyServer
 	 * 
 	 * @return
 	 */
+	@Override
 	protected int getDefaultPort()
 	{
 		return 8080;
