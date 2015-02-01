@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -546,12 +546,12 @@ public class RootDevice extends AbstractDevice
 			return this;
 		if (_devices == null)
 		{
-			log.warn("list of devices is null");
+			log.warn("list of devices is null - defaulting to root");
 			return this;
 		}
 		else if (deviceID == null)
 		{
-			log.info("attempting to retrieve null device - defaulting to root");
+			log.debug("attempting to retrieve null device - defaulting to root");
 			return this;
 		}
 		return _devices.get(deviceID);

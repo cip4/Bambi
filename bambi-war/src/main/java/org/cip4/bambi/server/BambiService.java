@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -68,7 +68,7 @@
  */
 package org.cip4.bambi.server;
 
-import org.cip4.bambi.core.BambiException;
+import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdflib.util.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
 import org.cip4.jdfutility.server.JettyService;
@@ -96,7 +96,7 @@ public class BambiService extends JettyService
 	 */
 	public static void main(String[] args)
 	{
-		LogConfigurator.configureLog(".", "bambi.log");
+		LogConfigurator.configureLog(new UserDir("bambi").getLogPath(), "bambi.log");
 		if (theService == null)
 			theService = new BambiService();
 		theService.doMain(args);
@@ -108,14 +108,6 @@ public class BambiService extends JettyService
 	@Override
 	public JettyServer getServer(String[] args)
 	{
-		try
-		{
-			return new BambiServer();
-		}
-		catch (BambiException e)
-		{
-			log.fatal("cannot create server: ", e);
-		}
-		return null;
+		return BambiServer.getBambiServer();
 	}
 }

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -70,6 +70,7 @@
  */
 package org.cip4.bambi.core;
 
+import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.StringUtil;
@@ -222,7 +223,8 @@ public class ContainerRequest extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		return "ContainerRequest Name=" + name + " URL=" + requestURI + " Content Type=" + contentType + " Method=" + getMethod() + " Parameters: " + parameterMap;
+		return getClass().getSimpleName() + " Name=" + name + " URL=" + requestURI + " Content Type=" + contentType + " Method=" + getMethod() + " Parameters: "
+				+ ((parameterMap == null || parameterMap.size() == 0) ? "{}" : parameterMap.showKeys(JDFConstants.BLANK));
 	}
 
 	/**

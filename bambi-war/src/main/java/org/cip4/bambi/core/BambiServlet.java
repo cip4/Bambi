@@ -89,12 +89,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.server.BambiServer;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.file.UserDir;
 
 /**
  * Entrance point for Bambi servlets
@@ -144,12 +146,9 @@ public final class BambiServlet extends HttpServlet
 		super.init(config);
 		String baseURL = getContextPath();
 
-		final ServletContext context = config.getServletContext();
-		String realPath = context.getRealPath("/");
-		if (realPath == null)
-			realPath = ".";
+		String realPath = new UserDir(BambiServer.BAMBI).getToolPath();
 		final File baseDir = new File(realPath);
-		log.info("Initializing Bambi servlet for " + baseURL);
+		log.info("Initializing Bambi servlet for " + baseURL + " at " + realPath);
 		final String dump = initializeDumps(config, baseDir);
 		BambiContainer container = BambiContainer.getCreateInstance();
 		container.loadProperties(baseDir, baseURL, new File("config/devices.xml"), dump);

@@ -74,6 +74,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiException;
 import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.MultiDeviceProperties;
@@ -81,8 +82,10 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MyArgs;
+import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdflib.util.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
+import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
@@ -93,23 +96,46 @@ import org.eclipse.jetty.servlet.ServletHolder;
  */
 public class BambiServer extends JettyServer
 {
+	public static final String BAMBI = "bambi";
 	final MultiDeviceProperties mp;
+
+	/**
+	 * 
+	 */
+	public static BambiServer getBambiServer()
+	{
+		if (theServer == null)
+		{
+			try
+			{
+				theServer = new BambiServer();
+			}
+			catch (BambiException e)
+			{
+				LogFactory.getLog(BambiServer.class).fatal("Cannot create bambi serber", e);
+			}
+		}
+		return (BambiServer) theServer;
+	}
 
 	/**
 	 * @throws BambiException if config file is not readable
 	 */
-	public BambiServer() throws BambiException
+	protected BambiServer() throws BambiException
 	{
 		super();
+		UserDir userDir = new UserDir(BAMBI);
 		if (getPort() < 0)
 		{
 			setPort(getDefaultPort());
 		}
 		File configFile = new File("config/devices.xml");
-		if (XMLDoc.parseFile(configFile) != null)
+		File toolDir = new File(userDir.getToolPath());
+		File absoluteConfig = FileUtil.getFileInDirectory(toolDir, configFile);
+		if (XMLDoc.parseFile(absoluteConfig) != null)
 		{
-			log.info("loading local file from: " + configFile.getAbsolutePath());
-			mp = new MultiDeviceProperties(new File("."), null, configFile);
+			log.info("loading local file from: " + absoluteConfig.getAbsolutePath());
+			mp = new MultiDeviceProperties(toolDir, null, configFile);
 		}
 		else
 		{
@@ -122,7 +148,7 @@ public class BambiServer extends JettyServer
 			mp = new MultiDeviceProperties(resourceAsStream);
 		}
 
-		unpackResourceList();
+		unpackResourceList(userDir);
 
 		KElement root = mp.getRoot();
 		if (root == null)
@@ -154,10 +180,14 @@ public class BambiServer extends JettyServer
 
 	/**
 	 * grab list of resources from self
+	 * @param userDir 
 	 */
-	protected void unpackResourceList()
+	protected void unpackResourceList(UserDir userDir)
 	{
-		if (!new File("list.txt").canRead())
+		File toolDir = new File(userDir.getToolPath());
+		File listTxt = new File("list.txt");
+		listTxt = FileUtil.getFileInDirectory(toolDir, listTxt);
+		if (!listTxt.canRead())
 		{
 			Class<? extends BambiServer> myClass = getClass();
 			InputStream listStream = myClass.getResourceAsStream("/list.txt");
@@ -181,15 +211,17 @@ public class BambiServer extends JettyServer
 							InputStream nextStream = myClass.getResourceAsStream(shortLine);
 							if (nextStream != null) // directory
 							{
-								log.info("Streaming resource file " + line);
-								File newFile = FileUtil.streamToFile(nextStream, new File(line));
+								File toFile = new File(line.substring(2));
+								toFile = FileUtil.getFileInDirectory(toolDir, toFile);
+								File newFile = FileUtil.streamToFile(nextStream, toFile);
+								log.info("Streaming resource file " + toFile.getAbsolutePath());
 								if (newFile != null)
 								{
 									log.info("Streamed resource file " + newFile.getAbsolutePath());
 								}
 								else
 								{
-									log.warn("Cannot stream resource file " + line);
+									log.warn("Cannot stream resource file " + toFile.getAbsolutePath());
 								}
 							}
 							else
@@ -213,7 +245,7 @@ public class BambiServer extends JettyServer
 		}
 		else
 		{
-			log.info("list.txt already extracted at: " + System.getProperty("user.dir"));
+			log.info("list.txt already extracted at: " + userDir.getToolPath());
 		}
 	}
 
@@ -235,7 +267,7 @@ public class BambiServer extends JettyServer
 	 */
 	public static void main(String[] args) throws Exception
 	{
-		LogConfigurator.configureLog(".", "bambi.log");
+		LogConfigurator.configureLog(new UserDir(BAMBI).getLogPath(), "bambi.log");
 		BambiServer bambiServer = new BambiServer();
 		LogConfigurator.configureLog(bambiServer.getProp().getBaseDir().getAbsolutePath(), "bambi.log");
 		MyArgs myArgs = new MyArgs(args, "c", "p", "");
@@ -293,5 +325,13 @@ public class BambiServer extends JettyServer
 	public MultiDeviceProperties getProp()
 	{
 		return mp;
+	}
+
+	@Override
+	protected ResourceHandler createResourceHandler()
+	{
+		ResourceHandler resourceHandler = new MyResourceHandler(context);
+		resourceHandler.setResourceBase(new UserDir(BAMBI).getToolPath());
+		return resourceHandler;
 	}
 }

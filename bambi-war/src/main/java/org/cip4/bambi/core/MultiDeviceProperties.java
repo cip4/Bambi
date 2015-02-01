@@ -782,7 +782,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		if (root == null || doc == null)
 		{
 			log.fatal("failed to parse " + configFile + " at " + FileUtil.getFileInDirectory(baseDir, configFile).getAbsolutePath() + ", rootDev is null");
-			throw new JDFException("snafu");
+			throw new JDFException("snafu: failed to parse " + configFile + " at " + FileUtil.getFileInDirectory(baseDir, configFile).getAbsolutePath() + ", rootDev is null");
 		}
 		else
 		{
