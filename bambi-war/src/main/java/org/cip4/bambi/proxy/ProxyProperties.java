@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -76,6 +76,7 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.StringUtil;
 
 /**
@@ -88,6 +89,15 @@ public class ProxyProperties extends MultiDeviceProperties
 	 * properties for a single device
 	 * @author boegerni
 	 */
+
+	/**
+	 * 
+	 * @param doc
+	 */
+	public ProxyProperties(XMLDoc doc)
+	{
+		super(doc);
+	}
 
 	/**
 	 * @param baseDir

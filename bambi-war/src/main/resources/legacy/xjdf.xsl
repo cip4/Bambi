@@ -1,4 +1,4 @@
-
+<!-- Copyright 2009-2015 CIP4 -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	version="1.0" xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1"
 	xmlns:bambi="www.cip4.org/Bambi">
@@ -9,7 +9,7 @@
 		<html>
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
-				<link rel="stylesheet" type="text/css" href="../css/styles_pc.css" />
+				<link rel="stylesheet" type="text/css" href="/legacy/css/styles_pc.css" />
 				<link rel="icon" href="favicon.ico" type="image/x-icon" />
 				<title>
 					JDF Single Node
@@ -19,7 +19,7 @@
 				</title>
 			</head>
 			<body>
-				<img src="../logo.gif" height="70" alt="logo" />
+				<img src="/legacy/logo.gif" height="70" alt="logo" />
 				<table>
 					<tr>
 						<td>

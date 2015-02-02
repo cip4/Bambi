@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -79,6 +79,7 @@ import org.apache.commons.io.IOUtils;
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.UrlUtil;
+import org.junit.Test;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -105,12 +106,14 @@ public class BambiServletTest extends BambiTestCase
 	}
 
 	/**
+	 * @throws BambiException 
 	 * 
 	 * 
 	 */
-	public void testParseEnv()
+	@Test
+	public void testParseEnv() throws BambiException
 	{
 		System.setProperty("foo", "/a/b/c");
-		assertEquals(new BambiServlet().parseEnv("%foo/bar"), "/a/b/c/bar");
+		assertEquals(BambiServlet.parseEnv("%foo/bar"), "/a/b/c/bar");
 	}
 }

@@ -124,18 +124,20 @@ public class BambiServer extends JettyServer
 	public BambiServer() throws BambiException
 	{
 		super();
-		UserDir userDir = new UserDir(BAMBI);
 		if (getPort() < 0)
 		{
 			setPort(getDefaultPort());
 		}
 		File configFile = new File("config/devices.xml");
-		File toolDir = new File(userDir.getToolPath());
+		UserDir userDir = getUserDir();
+		String toolPath = getToolPath();
+		File toolDir = new File(toolPath);
 		File absoluteConfig = FileUtil.getFileInDirectory(toolDir, configFile);
+		final MultiDeviceProperties mpTmp;
 		if (XMLDoc.parseFile(absoluteConfig) != null)
 		{
 			log.info("loading local file from: " + absoluteConfig.getAbsolutePath());
-			mp = new MultiDeviceProperties(toolDir, null, configFile);
+			mpTmp = new MultiDeviceProperties(toolDir, null, configFile);
 		}
 		else
 		{
@@ -145,8 +147,9 @@ public class BambiServer extends JettyServer
 			{
 				log.error("invalid resource stream ");
 			}
-			mp = new MultiDeviceProperties(resourceAsStream);
+			mpTmp = new MultiDeviceProperties(resourceAsStream);
 		}
+		mp = mpTmp.getSubClass();
 
 		unpackResourceList(userDir);
 
@@ -179,11 +182,36 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
+	 * 
+	 *  
+	 * @return
+	 */
+	public String getToolPath()
+	{
+		UserDir userDir = getUserDir();
+		return userDir == null ? "." : userDir.getToolPath();
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	protected UserDir getUserDir()
+	{
+		return new UserDir(BAMBI);
+	}
+
+	/**
 	 * grab list of resources from self
 	 * @param userDir 
 	 */
 	protected void unpackResourceList(UserDir userDir)
 	{
+		if (userDir == null)
+		{
+			log.info("no user directory specified, bailing out");
+			return;
+		}
 		File toolDir = new File(userDir.getToolPath());
 		File listTxt = new File("list.txt");
 		listTxt = FileUtil.getFileInDirectory(toolDir, listTxt);
@@ -292,7 +320,7 @@ public class BambiServer extends JettyServer
 		ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		contextHandler.setContextPath(context);
 		contextHandler.setWelcomeFiles(new String[] { "index.jsp" });
-		BambiServlet myServlet = new BambiServlet();
+		BambiServlet myServlet = new BambiServlet(this);
 		ServletHolder servletHolder = new ServletHolder(myServlet);
 		setInitParams(servletHolder);
 		contextHandler.addServlet(servletHolder, "/*");
@@ -331,7 +359,7 @@ public class BambiServer extends JettyServer
 	protected ResourceHandler createResourceHandler()
 	{
 		ResourceHandler resourceHandler = new MyResourceHandler(context);
-		resourceHandler.setResourceBase(new UserDir(BAMBI).getToolPath());
+		resourceHandler.setResourceBase(getToolPath());
 		return resourceHandler;
 	}
 }

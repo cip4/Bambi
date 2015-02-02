@@ -729,20 +729,22 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 * @param config 
 	 * @param
 	 * 
-	 * @return the subclass instance, null if @PropertiesName is not set
+	 * @return the subclass instance, this if @PropertiesName is not set
 	 */
-	MultiDeviceProperties getSubClass(File config, File baseDir)
+	public MultiDeviceProperties getSubClass()
 	{
 		String propName = root.getAttribute("PropertiesName", null, null);
 		if (propName == null)
+		{
 			return this;
+		}
 
 		try
 		{
 			final Class<?> c = Class.forName(propName);
-			final Constructor<?> con = c.getConstructor(new Class[] { File.class, String.class, File.class });
-			MultiDeviceProperties subClass = (MultiDeviceProperties) con.newInstance(new Object[] { baseDir, context, config });
-			subClass.root = root;
+			final Constructor<?> con = c.getConstructor(new Class[] { XMLDoc.class });
+			MultiDeviceProperties subClass = (MultiDeviceProperties) con.newInstance(new Object[] { root.getOwnerDocument_KElement() });
+			subClass.context = context;
 			return subClass;
 		}
 		catch (final Throwable x)
@@ -750,11 +752,11 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 			log.error("Cannot instantiate Device properties: " + propName, x);
 			return this;
 		}
-
 	}
 
 	/**
 	 * create device properties for the devices defined in the config file
+	 * this is for tests only
 	 * @param baseDir 
 	 * @param baseURL 
 	 */
@@ -768,33 +770,33 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 	/**
 	 * create device properties for the devices defined in the config file
-	 * @param baseDir 
+	 * @param appDir 
 	 * @param baseURL 
 	 * @param configFile the config file
 	 */
-	public MultiDeviceProperties(File baseDir, String baseURL, final File configFile)
+	public MultiDeviceProperties(File appDir, String baseURL, final File configFile)
 	{
 		// to evaluate current name and send it back rather than 127.0.0.1
-		final XMLDoc doc = XMLDoc.parseFile(FileUtil.getFileInDirectory(baseDir, configFile));
+		final XMLDoc doc = XMLDoc.parseFile(FileUtil.getFileInDirectory(appDir, configFile));
 		root = doc == null ? null : doc.getRoot();
 		this.context = baseURL;
 
-		if (root == null || doc == null)
+		if (root == null)
 		{
-			log.fatal("failed to parse " + configFile + " at " + FileUtil.getFileInDirectory(baseDir, configFile).getAbsolutePath() + ", rootDev is null");
-			throw new JDFException("snafu: failed to parse " + configFile + " at " + FileUtil.getFileInDirectory(baseDir, configFile).getAbsolutePath() + ", rootDev is null");
+			log.fatal("failed to parse " + configFile + " at " + FileUtil.getFileInDirectory(appDir, configFile).getAbsolutePath() + ", rootDev is null");
+			throw new JDFException("snafu: failed to parse " + configFile + " at " + FileUtil.getFileInDirectory(appDir, configFile).getAbsolutePath() + ", rootDev is null");
 		}
 		else
 		{
-			String appDir = baseDir.getAbsolutePath();
-			root.setAttribute("AppDir", appDir);
+			String appPath = appDir.getAbsolutePath();
+			root.setAttribute("AppDir", appPath);
 			final File deviceDir = getBaseDir();
 			final File fileInDirectory = FileUtil.getFileInDirectory(deviceDir, configFile);
 			final XMLDoc d2 = XMLDoc.parseFile(fileInDirectory);
 			if (d2 != null) // using config default
 			{
 				root = d2.getRoot();
-				root.setAttribute("AppDir", appDir);
+				root.setAttribute("AppDir", appPath);
 				log.info("using updated device config from: " + fileInDirectory.getAbsolutePath());
 			}
 			else if (deviceDir != null)
@@ -818,7 +820,15 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	public MultiDeviceProperties(InputStream inStream)
 	{
-		final XMLDoc doc = XMLDoc.parseStream(inStream);
+		this(XMLDoc.parseStream(inStream));
+	}
+
+	/**
+	 * 
+	 * @param doc
+	 */
+	protected MultiDeviceProperties(final XMLDoc doc)
+	{
 		root = doc == null ? null : doc.getRoot();
 		this.context = null;
 

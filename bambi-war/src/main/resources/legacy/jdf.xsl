@@ -1,5 +1,5 @@
+<!-- Copyright 2009-2015 CIP4 -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi">
-
   <xsl:template match="/*">
     <xsl:variable name="context" select="@Context"/>
     <html>
@@ -13,7 +13,7 @@
         </title>
       </head>
       <body>
-        <img src="../logo.gif" height="70" alt="logo"/>
+        <img src="/legacy/logo.gif" height="70" alt="logo"/>
         <table cellspacing="5" border="2" bgcolor="#dddddd">
           <tr>
             <td>

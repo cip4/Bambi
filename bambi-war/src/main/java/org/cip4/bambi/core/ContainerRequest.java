@@ -223,8 +223,8 @@ public class ContainerRequest extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		return getClass().getSimpleName() + " Name=" + name + " URL=" + requestURI + " Content Type=" + contentType + " Method=" + getMethod() + " Parameters: "
-				+ ((parameterMap == null || parameterMap.size() == 0) ? "{}" : parameterMap.showKeys(JDFConstants.BLANK));
+		return getClass().getSimpleName() + " Name=" + name + " URL=" + requestURI + " Content Type=" + contentType + " Method=" + getMethod() + " Parameters: " + "{"
+				+ ((parameterMap == null || parameterMap.size() == 0) ? "" : parameterMap.showKeys(JDFConstants.BLANK)) + "}";
 	}
 
 	/**

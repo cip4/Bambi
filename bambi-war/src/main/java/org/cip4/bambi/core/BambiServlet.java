@@ -113,12 +113,14 @@ public final class BambiServlet extends HttpServlet
 
 	/**
 	 * 
+	 * @param bambiServer
 	 */
-	public BambiServlet()
+	public BambiServlet(BambiServer bambiServer)
 	{
 		super();
 		initLogging();
 		BambiContainer.getCreateInstance();
+		theServer = bambiServer;
 	}
 
 	/**
@@ -135,6 +137,7 @@ public final class BambiServlet extends HttpServlet
 	protected boolean dumpEmpty = false;
 	protected DumpDir bambiDumpIn = null;
 	protected DumpDir bambiDumpOut = null;
+	protected final BambiServer theServer;
 
 	/**
 	 * Initializes the servlet.
@@ -146,7 +149,7 @@ public final class BambiServlet extends HttpServlet
 		super.init(config);
 		String baseURL = getContextPath();
 
-		String realPath = new UserDir(BambiServer.BAMBI).getToolPath();
+		String realPath = theServer.getToolPath();
 		final File baseDir = new File(realPath);
 		log.info("Initializing Bambi servlet for " + baseURL + " at " + realPath);
 		final String dump = initializeDumps(config, baseDir);
