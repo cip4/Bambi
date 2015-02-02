@@ -121,7 +121,7 @@ public class BambiServer extends JettyServer
 	/**
 	 * @throws BambiException if config file is not readable
 	 */
-	protected BambiServer() throws BambiException
+	public BambiServer() throws BambiException
 	{
 		super();
 		UserDir userDir = new UserDir(BAMBI);
