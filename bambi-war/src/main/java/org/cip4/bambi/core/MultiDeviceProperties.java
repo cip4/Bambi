@@ -840,7 +840,9 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		{
 			String appDir = System.getProperty("user.dir");
 			root.setAttribute("AppDir", appDir);
-			root.getOwnerDocument_KElement().setOriginalFileName(appDir);
+			File configFile = new File("config/devices.xml");
+			configFile = FileUtil.getFileInDirectory(getAppDir(), configFile);
+			root.getOwnerDocument_KElement().setOriginalFileName(configFile.getAbsolutePath());
 		}
 	}
 
