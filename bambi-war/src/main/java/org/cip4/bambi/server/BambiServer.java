@@ -124,10 +124,6 @@ public class BambiServer extends JettyServer
 	public BambiServer() throws BambiException
 	{
 		super();
-		if (getPort() < 0)
-		{
-			setPort(getDefaultPort());
-		}
 		File configFile = new File("config/devices.xml");
 		UserDir userDir = getUserDir();
 		String toolPath = getToolPath();

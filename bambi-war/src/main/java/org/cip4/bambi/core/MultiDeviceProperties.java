@@ -862,6 +862,10 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		int p = root.getIntAttribute("Port", null, 0);
 		if (p == 0)
 		{
+			p = root.getIntAttribute("JettyPort", null, 0);
+		}
+		if (p == 0)
+		{
 			p = 8080; // better guess - default tomcat Port
 			log.warn("guessing default port - using " + p);
 		}
