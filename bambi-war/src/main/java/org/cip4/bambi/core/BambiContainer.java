@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -302,10 +302,9 @@ public final class BambiContainer extends BambiLogFactory
 	 * @param dump the file where to dump debug requests
 	 * @return 
 	 */
-	public boolean loadProperties(final File baseDir, final String context, final File config, final String dump)
+	public boolean loadProperties(final File baseDir, final String context, final String dump)
 	{
-		props = new MultiDeviceProperties(baseDir, context, config);
-		props = props.getSubClass();
+		props = MultiDeviceProperties.getProperties(baseDir, context);
 		bWantDump = props.wantDump();
 		return createDevices(props, dump);
 	}
@@ -787,11 +786,10 @@ public final class BambiContainer extends BambiLogFactory
 			}
 			else
 			{
-				BambiNSExtension.setRequestURL(jmf, requestURI);
 				// switch: sends the jmfDoc to correct device
 				JDFDoc responseJMF = null;
 				final AbstractDevice device = getDeviceFromID(deviceID);
-				final IJMFHandler handler = (device == null) ? rootDev.getHandler() : device.getHandler();
+				final IJMFHandler handler = (device == null) ? rootDev.getJMFHandler(requestURI) : device.getJMFHandler(requestURI);
 				if (handler != null)
 				{
 					responseJMF = handler.processJMF(jmfDoc);

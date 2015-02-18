@@ -154,7 +154,7 @@ public class CallbackTest extends BambiTestCase
 	public void testAddCallback()
 	{
 		final JMFHandler h = new JMFHandler(null);
-		final SignalDispatcher d = new SignalDispatcher(h, null);
+		final SignalDispatcher d = new SignalDispatcher(null);
 		System.out.println(new MyTestCallback().getClass().getCanonicalName());
 		d.addHandlers(h);
 

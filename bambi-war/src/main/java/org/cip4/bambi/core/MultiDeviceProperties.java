@@ -76,6 +76,8 @@ import java.lang.reflect.Constructor;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
@@ -102,6 +104,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	protected KElement root;
 	protected String context;
+	final static File configFile = new File("config/devices.xml");
 
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -730,7 +733,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 * 
 	 * @return the subclass instance, this if @PropertiesName is not set
 	 */
-	public MultiDeviceProperties getSubClass()
+	private MultiDeviceProperties getSubClass()
 	{
 		String propName = root.getAttribute("PropertiesName", null, null);
 		if (propName == null)
@@ -759,9 +762,9 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 * @param baseDir 
 	 * @param baseURL 
 	 */
-	public MultiDeviceProperties(File baseDir, String baseURL)
+	public MultiDeviceProperties(File baseDir)
 	{
-		this.context = baseURL;
+		this.context = "test";
 		root = new XMLDoc("application", null).getRoot();
 		root.setAttribute("AppDir", baseDir.getAbsolutePath());
 		root.setAttribute("BaseDir", baseDir.getAbsolutePath());
@@ -773,51 +776,71 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 * @param baseURL 
 	 * @param configFile the config file
 	 */
-	public MultiDeviceProperties(File appDir, String baseURL, final File configFile)
+	public static MultiDeviceProperties getProperties(File appDir, String baseURL)
 	{
 		// to evaluate current name and send it back rather than 127.0.0.1
-		final XMLDoc doc = XMLDoc.parseFile(FileUtil.getFileInDirectory(appDir, configFile));
-		root = doc == null ? null : doc.getRoot();
-		this.context = baseURL;
+		final XMLDoc doc = getXMLDoc(appDir);
+		Log log = LogFactory.getLog(MultiDeviceProperties.class);
 
-		if (root == null)
+		if (doc == null)
 		{
-			log.fatal("failed to parse " + configFile + " at " + FileUtil.getFileInDirectory(appDir, configFile).getAbsolutePath() + ", rootDev is null");
-			throw new JDFException("snafu: failed to parse " + configFile + " at " + FileUtil.getFileInDirectory(appDir, configFile).getAbsolutePath() + ", rootDev is null");
+			log.fatal("failed to parse " + configFile + " at " + getConfigFile(appDir).getAbsolutePath() + ", rootDev is null");
+			throw new JDFException("snafu: failed to parse " + configFile + " at " + getConfigFile(appDir).getAbsolutePath() + ", rootDev is null");
+		}
+
+		String appPath = appDir.getAbsolutePath();
+		MultiDeviceProperties mp = new MultiDeviceProperties(doc).getSubClass();
+		final File deviceDir = mp.getBaseDir();
+		final File fileInDirectory = getConfigFile(deviceDir);
+		final XMLDoc d2 = XMLDoc.parseFile(fileInDirectory);
+		if (d2 != null) // using config default
+		{
+			mp = new MultiDeviceProperties(d2).getSubClass();
+			log.info("using updated device config from: " + fileInDirectory.getAbsolutePath());
+		}
+		else if (deviceDir != null)
+		// using webapp devices
+		{
+			log.info("using executable local device config file");
+			deviceDir.mkdirs();
+			doc.setOriginalFileName(fileInDirectory.getAbsolutePath());
+			mp.serialize();
 		}
 		else
 		{
-			String appPath = appDir.getAbsolutePath();
-			root.setAttribute("AppDir", appPath);
-			final File deviceDir = getBaseDir();
-			final File fileInDirectory = FileUtil.getFileInDirectory(deviceDir, configFile);
-			final XMLDoc d2 = XMLDoc.parseFile(fileInDirectory);
-			if (d2 != null) // using config default
-			{
-				root = d2.getRoot();
-				root.setAttribute("AppDir", appPath);
-				log.info("using updated device config from: " + fileInDirectory.getAbsolutePath());
-			}
-			else if (deviceDir != null)
-			// using webapp devices
-			{
-				log.info("using executable local device config file");
-				deviceDir.mkdirs();
-				doc.setOriginalFileName(fileInDirectory.getAbsolutePath());
-				serialize();
-			}
-			else
-			{
-				log.info("cannot parse base file - this may be due to a subclassing of the properties");
-			}
+			log.info("cannot parse base file - this may be due to a subclassing of the properties");
 		}
+		mp.context = baseURL;
+		mp.root.setAttribute("AppDir", appPath);
+		return mp;
+	}
+
+	/**
+	 * 
+	 * @param appDir
+	 * @return
+	 */
+	public static XMLDoc getXMLDoc(File appDir)
+	{
+		final XMLDoc doc = XMLDoc.parseFile(getConfigFile(appDir));
+		return doc;
+	}
+
+	/**
+	 * 
+	 * @param appDir
+	 * @return
+	 */
+	public static File getConfigFile(File appDir)
+	{
+		return FileUtil.getFileInDirectory(appDir, configFile);
 	}
 
 	/**
 	 * create device properties for the devices defined in the config stream
 	 * @param inStream
 	 */
-	public MultiDeviceProperties(InputStream inStream)
+	private MultiDeviceProperties(InputStream inStream)
 	{
 		this(XMLDoc.parseStream(inStream));
 	}
@@ -831,17 +854,15 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		root = doc == null ? null : doc.getRoot();
 		this.context = null;
 
-		if (root == null || doc == null)
+		if (root == null)
 		{
 			log.fatal("failed to parse internal stream, rootDev is null");
 		}
-		else
+		else if (StringUtil.getNonEmpty(doc.getOriginalFileName()) == null)
 		{
 			String appDir = System.getProperty("user.dir");
 			root.setAttribute("AppDir", appDir);
-			File configFile = new File("config/devices.xml");
-			configFile = FileUtil.getFileInDirectory(getAppDir(), configFile);
-			root.getOwnerDocument_KElement().setOriginalFileName(configFile.getAbsolutePath());
+			root.getOwnerDocument_KElement().setOriginalFileName(getConfigFile(new File(appDir)).getAbsolutePath());
 		}
 	}
 
@@ -1083,5 +1104,16 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	public boolean persist()
 	{
 		return root.getOwnerDocument_KElement().write2File((String) null, 2, false);
+	}
+
+	/**
+	 * 
+	 * @param resourceAsStream
+	 * @return
+	 */
+	public static MultiDeviceProperties getProperties(InputStream resourceAsStream)
+	{
+		MultiDeviceProperties multiDeviceProperties = new MultiDeviceProperties(resourceAsStream);
+		return multiDeviceProperties.getSubClass();
 	}
 }

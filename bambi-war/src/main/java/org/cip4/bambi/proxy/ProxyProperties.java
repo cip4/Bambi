@@ -92,30 +92,20 @@ public class ProxyProperties extends MultiDeviceProperties
 
 	/**
 	 * 
+	 * @param baseDir
+	 */
+	public ProxyProperties(File baseDir)
+	{
+		super(baseDir);
+	}
+
+	/**
+	 * 
 	 * @param doc
 	 */
-	public ProxyProperties(XMLDoc doc)
+	protected ProxyProperties(XMLDoc doc)
 	{
 		super(doc);
-	}
-
-	/**
-	 * @param baseDir
-	 * @param baseURL
-	 */
-	public ProxyProperties(File baseDir, String baseURL)
-	{
-		super(baseDir, baseURL);
-	}
-
-	/**
-	 * @param baseDir
-	 * @param baseURL
-	 * @param configFile
-	 */
-	public ProxyProperties(File baseDir, String baseURL, File configFile)
-	{
-		super(baseDir, baseURL, configFile);
 	}
 
 	/**

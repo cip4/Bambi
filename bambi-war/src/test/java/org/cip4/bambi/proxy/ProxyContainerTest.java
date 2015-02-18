@@ -273,7 +273,7 @@ public class ProxyContainerTest extends BambiContainerTest
 	@Override
 	protected MultiDeviceProperties createPropertiesForContainer()
 	{
-		MultiDeviceProperties props = new ProxyProperties(new File(sm_dirContainer), "test");
+		MultiDeviceProperties props = new ProxyProperties(new File(sm_dirContainer));
 		return props;
 	}
 

@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -125,7 +125,6 @@ public class SignalDispatcher extends BambiLogFactory
 {
 	protected final HashMap<String, MsgSubscription> subscriptionMap; // map of slaveChannelID / Subscription
 	private final SubscriptionStore storage;
-	final IMessageHandler messageHandler;
 	protected final Vector<Trigger> triggers;
 	protected final MyMutex mutex;
 	private boolean doShutdown;
@@ -733,10 +732,10 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * constructor
-	 * @param _messageHandler message handler
-	 * @param dev device for this ID of the device this SignalHandler is working for. Required for debugging purposes only.
+	 * @param 
+	 * @param dev device for this ID of the device this SignalHandler is working for. 
 	 */
-	public SignalDispatcher(final IMessageHandler _messageHandler, final AbstractDevice dev)
+	public SignalDispatcher(final AbstractDevice dev)
 	{
 		device = dev;
 		if (dev == null)
@@ -745,7 +744,6 @@ public class SignalDispatcher extends BambiLogFactory
 		}
 		subscriptionMap = new HashMap<String, MsgSubscription>();
 		storage = new SubscriptionStore(this, dev == null ? null : dev.getDeviceDir());
-		messageHandler = _messageHandler;
 		triggers = new Vector<Trigger>();
 		mutex = new MyMutex();
 		theDispatcher = new Dispatcher();
@@ -1237,8 +1235,8 @@ public class SignalDispatcher extends BambiLogFactory
 	 */
 	public void addHandlers(final IJMFHandler jmfHandler)
 	{
-		jmfHandler.addHandler(this.new StopPersistentChannelHandler());
-		jmfHandler.addHandler(this.new KnownSubscriptionsHandler());
+		jmfHandler.addHandler(new StopPersistentChannelHandler());
+		jmfHandler.addHandler(new KnownSubscriptionsHandler());
 	}
 
 	/**
@@ -1331,4 +1329,24 @@ public class SignalDispatcher extends BambiLogFactory
 		removeSubScriptions(null, null, null);
 	}
 
+	/**
+	 * loop over all handlers, trying to handle a message
+	 * 
+	 * @param q
+	 * @param r
+	 * @return
+	 */
+	public boolean handleMessage(JDFQuery q, JDFResponse r)
+	{
+		Vector<JMFHandler> v = device.getJMFHandlers();
+		for (JMFHandler h : v)
+		{
+			boolean handled = h.handleMessage(q, r);
+			if (handled)
+			{
+				return handled;
+			}
+		}
+		return false;
+	}
 }

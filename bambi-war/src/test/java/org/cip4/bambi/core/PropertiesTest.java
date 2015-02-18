@@ -96,7 +96,7 @@ public class PropertiesTest extends BambiTestCase
 	{
 		super.setUp();
 		JDFElement.setDefaultJDFVersion(EnumVersion.Version_1_4);
-		props = new MultiDeviceProperties(new File(sm_dirTestData + "ContainerTest"), "test");
+		props = new MultiDeviceProperties(new File(sm_dirTestData + "ContainerTest"));
 		DeviceProperties devProp = props.createDeviceProps(null);
 		devProp.setDeviceID("testDevice1");
 		devProp.setCallBackClassName("org.cip4.bambi.extensions.ExtensionCallback");

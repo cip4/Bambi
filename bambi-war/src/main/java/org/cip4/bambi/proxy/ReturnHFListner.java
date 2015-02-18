@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -70,6 +70,9 @@ package org.cip4.bambi.proxy;
 
 import java.io.File;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -88,6 +91,7 @@ class ReturnHFListner implements QueueHotFolderListener
 	 */
 	private final AbstractProxyDevice abstractProxyDevice;
 	private final EnumQueueEntryStatus hfStatus;
+	private final Log log;
 
 	/**
 	 * @param status
@@ -97,33 +101,40 @@ class ReturnHFListner implements QueueHotFolderListener
 	{
 		this.abstractProxyDevice = abstractProxyDevice;
 		hfStatus = status;
+		log = LogFactory.getLog(getClass());
 	}
 
+	/**
+	 * 
+	 * @see org.cip4.jdflib.util.hotfolder.QueueHotFolderListener#submitted(org.cip4.jdflib.jmf.JDFJMF)
+	 */
+	@Override
 	public boolean submitted(final JDFJMF submissionJMF)
 	{
-		this.abstractProxyDevice.getLog().info("ReturnHFListner:submitted");
+		log.info("ReturnHFListner:submitted");
 		final JDFCommand command = submissionJMF.getCommand(0);
 		final JDFReturnQueueEntryParams rqp = command.getReturnQueueEntryParams(0);
 
 		final JDFDoc doc = rqp == null ? null : rqp.getURLDoc();
 		if (doc == null || rqp == null)
 		{
-			this.abstractProxyDevice.getLog().warn("could not process JDF File");
+			log.warn("could not process JDF File");
 			return false;
 		}
-		if (this.abstractProxyDevice.getJMFHandler() != null)
+		JMFHandler jmfHandler = abstractProxyDevice.getJMFHandler(abstractProxyDevice.getDeviceURLForSlave());
+		if (jmfHandler != null)
 		{
 			final KElement n = doc.getRoot();
 			if (n == null)
 			{
-				this.abstractProxyDevice.getLog().warn("could not process JDF File");
+				log.warn("could not process JDF File");
 				return false;
 			}
 
 			// assume the rootDev was the executed baby...
 			rqp.setAttribute(hfStatus.getName(), n.getAttribute(AttributeName.ID));
 			// let the standard returnqe handler do the work
-			final JDFDoc responseJMF = this.abstractProxyDevice.getJMFHandler().processJMF(submissionJMF.getOwnerDocument_JDFElement());
+			final JDFDoc responseJMF = jmfHandler.processJMF(submissionJMF.getOwnerDocument_JDFElement());
 			try
 			{
 				final JDFJMF jmf = responseJMF.getJMFRoot();
@@ -138,12 +149,12 @@ class ReturnHFListner implements QueueHotFolderListener
 					}
 					if (!byebye)
 					{
-						this.abstractProxyDevice.getLog().error("could not delete JDF File: " + urlToFile);
+						log.error("could not delete JDF File: " + urlToFile);
 					}
 				}
 				else
 				{
-					this.abstractProxyDevice.getLog().error("could not process JDF File");
+					log.error("could not process JDF File");
 				}
 			}
 			catch (final Throwable e)
@@ -160,6 +171,6 @@ class ReturnHFListner implements QueueHotFolderListener
 	 */
 	private void handleError(final JDFJMF submissionJMF)
 	{
-		this.abstractProxyDevice.getLog().error("error handling hf return");
+		log.error("error handling hf return");
 	}
 }

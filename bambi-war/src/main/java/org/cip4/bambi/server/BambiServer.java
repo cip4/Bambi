@@ -79,7 +79,6 @@ import org.cip4.bambi.core.BambiException;
 import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MyArgs;
 import org.cip4.jdflib.util.file.UserDir;
@@ -124,16 +123,14 @@ public class BambiServer extends JettyServer
 	public BambiServer() throws BambiException
 	{
 		super();
-		File configFile = new File("config/devices.xml");
 		UserDir userDir = getUserDir();
 		String toolPath = getToolPath();
 		File toolDir = new File(toolPath);
-		File absoluteConfig = FileUtil.getFileInDirectory(toolDir, configFile);
 		final MultiDeviceProperties mpTmp;
-		if (XMLDoc.parseFile(absoluteConfig) != null)
+		if (MultiDeviceProperties.getXMLDoc(toolDir) != null)
 		{
-			log.info("loading local file from: " + absoluteConfig.getAbsolutePath());
-			mpTmp = new MultiDeviceProperties(toolDir, null, configFile);
+			log.info("loading local file from: " + toolDir.getAbsolutePath());
+			mpTmp = MultiDeviceProperties.getProperties(toolDir, null);
 		}
 		else
 		{
@@ -141,11 +138,11 @@ public class BambiServer extends JettyServer
 			InputStream resourceAsStream = getClass().getResourceAsStream("/config/devices.xml");
 			if (resourceAsStream == null)
 			{
-				log.error("invalid resource stream ");
+				log.fatal("invalid resource stream ");
 			}
-			mpTmp = new MultiDeviceProperties(resourceAsStream);
+			mpTmp = MultiDeviceProperties.getProperties(resourceAsStream);
 		}
-		mp = mpTmp.getSubClass();
+		mp = mpTmp;
 
 		unpackResourceList(userDir);
 
@@ -153,6 +150,7 @@ public class BambiServer extends JettyServer
 		if (root == null)
 		{
 			final String logString;
+			File configFile = MultiDeviceProperties.getConfigFile(toolDir);
 			if (configFile.exists())
 			{
 				logString = "corrupt config file at :" + configFile.getAbsolutePath();

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -87,6 +87,7 @@ import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.XMLDevice;
 import org.cip4.bambi.core.messaging.CommandProxyHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler;
+import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.MessageResponseHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.bambi.proxy.MessageChecker.KnownMessageDetails;
@@ -181,6 +182,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 */
 	protected IConverterCallback _slaveCallback;
 	protected MessageChecker knownSlaveMessages;
+	private JMFHandler _slaveJmfHandler;
 
 	/**
 	 * 
@@ -572,7 +574,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 		super.init();
 
-		_jmfHandler.setFilterOnDeviceID(false);
+		getJMFHandler(getDeviceURL()).setFilterOnDeviceID(false);
 		_theSignalDispatcher.setIgnoreURL(getDeviceURLForSlave());
 		// ensure existence of vector prior to filling
 		_theQueueProcessor.getQueue().resumeQueue(); // proxy queues should start up by default
@@ -858,10 +860,10 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		if (url == null)
 			return false;
 
-		IProxyProperties proxyProperties = getProperties();
 		String deviceURLForSlave = getDeviceURLForSlave();
 		if (deviceURLForSlave == null)
 			return false;
+		IProxyProperties proxyProperties = getProperties();
 		String slaveURL = proxyProperties.getSlaveURL();
 		if (slaveURL == null)
 			return false;
@@ -894,8 +896,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected void addHandlers()
 	{
 		super.addHandlers();
-		addHandler(new JMFBufferHandler(AbstractProxyDevice.this, null, new EnumFamily[] { EnumFamily.Signal }, this));
-		addHandler(new CommandProxyHandler(AbstractProxyDevice.this, "*"));
+		_slaveJmfHandler = new JMFHandler(this);
+		addHandler(new JMFBufferHandler(AbstractProxyDevice.this, null, new EnumFamily[] { EnumFamily.Signal }, this), getDeviceURLForSlave());
+		addHandler(new CommandProxyHandler(AbstractProxyDevice.this, "*"), null);
 	}
 
 	@Override
@@ -1215,6 +1218,28 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	{
 		super.wasSubmitted(newQE);
 		newQE.setStatusDetails(SUBMITTING);
+	}
+
+	/**
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDevice#getJMFHandler(java.lang.String)
+	 */
+	@Override
+	public JMFHandler getJMFHandler(String url)
+	{
+		return isSlaveURI(url) ? _slaveJmfHandler : super.getJMFHandler(url);
+	}
+
+	/**
+	 * get all jmf handlers
+	 * @return the _jmfHandler
+	 */
+	@Override
+	public Vector<JMFHandler> getJMFHandlers()
+	{
+		Vector<JMFHandler> v = super.getJMFHandlers();
+		v.add(_slaveJmfHandler);
+		return v;
 	}
 
 }

@@ -514,7 +514,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 */
 	protected MultiDeviceProperties createPropertiesForContainer()
 	{
-		MultiDeviceProperties props = new MultiDeviceProperties(new File(sm_dirContainer), "test");
+		MultiDeviceProperties props = new MultiDeviceProperties(new File(sm_dirContainer));
 		return props;
 	}
 

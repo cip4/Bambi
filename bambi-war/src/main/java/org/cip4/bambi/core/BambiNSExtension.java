@@ -285,26 +285,6 @@ public class BambiNSExtension
 	}
 
 	/**
-	 * set the original request url
-	 * @param ke the KElement to work on
-	 * @param the original request url
-	 */
-	public static void setRequestURL(final KElement ke, final String _reqURL)
-	{
-		setMyNSAttribute(ke, reqURL, _reqURL);
-	}
-
-	/**
-	 * get the original request url
-	 * @param ke the KElement to work on
-	 * @return the original request url
-	 */
-	public static String getRequestURL(final KElement ke)
-	{
-		return getMyNSAttribute(ke, reqURL);
-	}
-
-	/**
 	 * get the associated JDF
 	 * @param ke the KElement to work on
 	 * @return docURL the location of the JDF

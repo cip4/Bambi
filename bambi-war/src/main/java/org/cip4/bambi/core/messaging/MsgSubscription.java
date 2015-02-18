@@ -185,7 +185,7 @@ public class MsgSubscription implements Cloneable
 		jmf.setDeviceID(jmfDeviceID);
 		// this is the handling of the actual message
 		q.setAttribute(JMFHandler.subscribed, "true");
-		final boolean b = this.signalDispatcher.messageHandler.handleMessage(q, r);
+		final boolean b = signalDispatcher.handleMessage(q, r);
 		q.removeAttribute(JMFHandler.subscribed);
 		if (!b && log.isDebugEnabled())
 		{

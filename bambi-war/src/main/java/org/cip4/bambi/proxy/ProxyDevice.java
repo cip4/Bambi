@@ -844,7 +844,8 @@ public class ProxyDevice extends AbstractProxyDevice
 		super(properties);
 		final IProxyProperties proxyProperties = getProperties();
 		statusContainer = new ResponseMerger();
-		_jmfHandler.setFilterOnDeviceID(false);
+		getJMFHandler(getDeviceURLForSlave()).setFilterOnDeviceID(false);
+		getJMFHandler(null).setFilterOnDeviceID(false);
 		final int maxPush = proxyProperties.getMaxPush();
 		if (maxPush > 0)
 		{
@@ -885,15 +886,17 @@ public class ProxyDevice extends AbstractProxyDevice
 	protected void addHandlers()
 	{
 		super.addHandlers();
-		_jmfHandler.addHandler(this.new RequestQueueEntryHandler());
-		_jmfHandler.addHandler(this.new ReturnQueueEntryHandler());
-		_jmfHandler.addHandler(this.new QueueStatusSignalHandler());
-		_jmfHandler.addHandler(this.new StatusSignalHandler());
-		_jmfHandler.addHandler(this.new StatusQueryHandler());
-		_jmfHandler.addHandler(this.new ResourceQueryHandler());
-		_jmfHandler.addHandler(this.new ResourceSignalHandler());
-		_jmfHandler.addHandler(this.new NotificationSignalHandler());
-		_jmfHandler.addHandler(this.new NotificationQueryHandler());
+		String deviceURLForSlave = getDeviceURLForSlave();
+		getJMFHandler(deviceURLForSlave).addHandler(new RequestQueueEntryHandler());
+		getJMFHandler(deviceURLForSlave).addHandler(new ReturnQueueEntryHandler());
+		getJMFHandler(deviceURLForSlave).addHandler(new QueueStatusSignalHandler());
+		getJMFHandler(deviceURLForSlave).addHandler(new StatusSignalHandler());
+		getJMFHandler(deviceURLForSlave).addHandler(new ResourceSignalHandler());
+		getJMFHandler(deviceURLForSlave).addHandler(new NotificationSignalHandler());
+
+		getJMFHandler(null).addHandler(new StatusQueryHandler());
+		getJMFHandler(null).addHandler(new ResourceQueryHandler());
+		getJMFHandler(null).addHandler(new NotificationQueryHandler());
 	}
 
 	/**

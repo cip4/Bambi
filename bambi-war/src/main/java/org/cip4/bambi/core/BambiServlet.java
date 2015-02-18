@@ -96,7 +96,6 @@ import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
-import org.cip4.jdflib.util.file.UserDir;
 
 /**
  * Entrance point for Bambi servlets
@@ -154,7 +153,7 @@ public final class BambiServlet extends HttpServlet
 		log.info("Initializing Bambi servlet for " + baseURL + " at " + realPath);
 		final String dump = initializeDumps(config, baseDir);
 		BambiContainer container = BambiContainer.getCreateInstance();
-		container.loadProperties(baseDir, baseURL, new File("config/devices.xml"), dump);
+		container.loadProperties(baseDir, baseURL, dump);
 	}
 
 	/**

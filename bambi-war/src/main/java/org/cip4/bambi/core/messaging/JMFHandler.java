@@ -410,10 +410,21 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			log.error("Unknown message type or family in addhandler - bailing out! type=" + typ + " families=" + families);
 			return;
 		}
-		for (int i = 0; i < families.length; i++)
+		for (EnumFamily family : families)
 		{
-			messageMap.put(new MessageType(typ, families[i]), handler);
+			addHandler(handler, typ, family);
 		}
+	}
+
+	/**
+	 * 
+	 * @param handler
+	 * @param typ
+	 * @param family
+	 */
+	public void addHandler(final IMessageHandler handler, final String typ, EnumFamily family)
+	{
+		messageMap.put(new MessageType(typ, family), handler);
 	}
 
 	/**

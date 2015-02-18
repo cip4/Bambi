@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -68,6 +68,7 @@
  */
 package org.cip4.bambi.core.messaging;
 
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -111,7 +112,7 @@ public abstract class DispatchHandler extends JMFHandler.AbstractHandler
 	 * @param checkReturnCode
 	 * @return
 	 */
-	public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response, final IJMFHandler[] devs, final boolean checkReturnCode)
+	public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response, final AbstractDevice[] devs, final boolean checkReturnCode)
 	{
 
 		if (devs == null)
@@ -124,8 +125,9 @@ public abstract class DispatchHandler extends JMFHandler.AbstractHandler
 		final JDFJMF jmfin = inputMessage.getJMFRoot();
 
 		boolean bSignal = false;
-		for (IJMFHandler jmfHandler : devs)
+		for (AbstractDevice dev : devs)
 		{
+			IJMFHandler jmfHandler = dev.getJMFHandler(null);
 			final IMessageHandler mh = jmfHandler.getHandler(inputMessage.getType(), inputMessage.getFamily());
 			if (mh != null)
 			{

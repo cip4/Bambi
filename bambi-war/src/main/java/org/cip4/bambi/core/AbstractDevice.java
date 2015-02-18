@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -79,7 +79,6 @@ import java.util.Vector;
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.AcknowledgeMap;
-import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.IResponseHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationHandler;
@@ -151,7 +150,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
  * chance to fire.
  * @author boegerni
  */
-public abstract class AbstractDevice extends BambiLogFactory implements IGetHandler, IJMFHandler
+public abstract class AbstractDevice extends BambiLogFactory implements IGetHandler
 {
 	/**
 	 * @return the queueprocessor of this device
@@ -468,18 +467,31 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	protected static final String SHOW_DEVICE = "showDevice";
 	protected static final String SHOW_SUBSCRIPTIONS = "showSubscriptions";
+
 	protected final QueueProcessor _theQueueProcessor;
 	protected final Vector<AbstractDeviceProcessor> _deviceProcessors;
 	protected final SignalDispatcher _theSignalDispatcher;
-	protected final JMFHandler _jmfHandler;
+	private final JMFHandler _jmfHandler;
 	private final QueueEntryRequester qeRequester;
 
 	/**
+	 * @param url the target URL - used by proxies
 	 * @return the _jmfHandler
 	 */
-	public JMFHandler getJMFHandler()
+	public JMFHandler getJMFHandler(String url)
 	{
 		return _jmfHandler;
+	}
+
+	/**
+	 * get all jmf handlers
+	 * @return the _jmfHandler
+	 */
+	public Vector<JMFHandler> getJMFHandlers()
+	{
+		Vector<JMFHandler> v = new Vector<JMFHandler>();
+		v.add(_jmfHandler);
+		return v;
 	}
 
 	/**
@@ -561,7 +573,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected SignalDispatcher createSignalDispatcher()
 	{
-		return new SignalDispatcher(_jmfHandler, this);
+		return new SignalDispatcher(this);
 	}
 
 	/**
@@ -779,10 +791,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected void addHandlers()
 	{
-		addHandler(this.new KnownDevicesHandler());
-		addHandler(new NotificationHandler(this, _theStatusListener));
-		addHandler(AcknowledgeMap.getMap());
-		addHandler(getShutdownHandler());
+		final String deviceURL = getDeviceURL();
+		addHandler(new KnownDevicesHandler(), deviceURL);
+		addHandler(new NotificationHandler(this, _theStatusListener), deviceURL);
+		addHandler(AcknowledgeMap.getMap(), deviceURL);
+		addHandler(getShutdownHandler(), deviceURL);
 		addJobHandlers();
 	}
 
@@ -802,8 +815,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected void addJobHandlers()
 	{
-		addHandler(this.new ResourceHandler());
-		addHandler(this.new StatusHandler());
+		final String deviceURL = getDeviceURL();
+		addHandler(this.new ResourceHandler(), deviceURL);
+		addHandler(this.new StatusHandler(), deviceURL);
 	}
 
 	/**
@@ -867,15 +881,15 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.messaging.IJMFHandler#processJMF(org.cip4.jdflib.core.JDFDoc)
+	 * 
 	 * @param doc
-	 * @return the doc representing the response
+	 * @param url
+		 * @return the doc representing the response
 	 */
-	@Override
-	public JDFDoc processJMF(final JDFDoc doc)
+	public JDFDoc processJMF(final JDFDoc doc, String url)
 	{
 		log.info("JMF processed by " + _devProperties.getDeviceID());
-		return _jmfHandler.processJMF(doc);
+		return getJMFHandler(url).processJMF(doc);
 	}
 
 	/**
@@ -934,20 +948,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * add a MessageHandler to this devices JMFHandler, if null - don't
 	 * @param handler the MessageHandler to add
 	 */
-	@Override
-	public void addHandler(final IMessageHandler handler)
+	public void addHandler(final IMessageHandler handler, String url)
 	{
-		if (handler != null)
-			_jmfHandler.addHandler(handler);
-	}
-
-	/**
-	 * get the JMFHandler of this device
-	 * @return the jmfHandler for this device
-	 */
-	public IJMFHandler getHandler()
-	{
-		return _jmfHandler;
+		getJMFHandler(url).addHandler(handler);
 	}
 
 	/**
@@ -1751,12 +1754,15 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.messaging.IJMFHandler#getHandler(java.lang.String, org.cip4.jdflib.jmf.JDFMessage.EnumFamily)
+	 * 
+	 * @param typ
+	 * @param family
+	 * @param url
+	 * @return
 	 */
-	@Override
-	public IMessageHandler getHandler(final String typ, final EnumFamily family)
+	public IMessageHandler getHandler(final String typ, final EnumFamily family, String url)
 	{
-		return _jmfHandler == null ? null : _jmfHandler.getHandler(typ, family);
+		return getJMFHandler(url).getHandler(typ, family);
 	}
 
 	/**

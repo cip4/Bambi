@@ -124,7 +124,7 @@ public class RootDevice extends AbstractDevice
 		super(prop);
 		_devices = new HashMap<String, AbstractDevice>();
 		deviceTemplates = new HashMap<String, DeviceProperties>();
-		_jmfHandler.setFilterOnDeviceID(false); // accept all
+		getJMFHandler(null).setFilterOnDeviceID(false); // accept all
 		log.info("created RootDevice '" + prop.getDeviceID() + "'");
 	}
 
@@ -136,14 +136,14 @@ public class RootDevice extends AbstractDevice
 	protected void addHandlers()
 	{
 		// not here - these should be grabbed by catchall super.addHandlers();
-		_jmfHandler.addHandler(this.new KnownDevicesHandler());
-		_jmfHandler.addHandler(this.new StatusHandler());
+		getJMFHandler(null).addHandler(new KnownDevicesHandler());
+		getJMFHandler(null).addHandler(new StatusHandler());
 		// this guy is the catchall
-		_jmfHandler.addHandler(this.new RootDispatchHandler("*", new EnumFamily[] { EnumFamily.Query, EnumFamily.Command, EnumFamily.Signal }));
-		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.AbortQueueEntry, new EnumFamily[] { EnumFamily.Command }));
-		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.HoldQueueEntry, new EnumFamily[] { EnumFamily.Command }));
-		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.RemoveQueueEntry, new EnumFamily[] { EnumFamily.Command }));
-		_jmfHandler.addHandler(this.new QueueDispatchHandler(EnumType.ResumeQueueEntry, new EnumFamily[] { EnumFamily.Command }));
+		getJMFHandler(null).addHandler(new RootDispatchHandler("*", new EnumFamily[] { EnumFamily.Query, EnumFamily.Command, EnumFamily.Signal }));
+		getJMFHandler(null).addHandler(new QueueDispatchHandler(EnumType.AbortQueueEntry, new EnumFamily[] { EnumFamily.Command }));
+		getJMFHandler(null).addHandler(new QueueDispatchHandler(EnumType.HoldQueueEntry, new EnumFamily[] { EnumFamily.Command }));
+		getJMFHandler(null).addHandler(new QueueDispatchHandler(EnumType.RemoveQueueEntry, new EnumFamily[] { EnumFamily.Command }));
+		getJMFHandler(null).addHandler(new QueueDispatchHandler(EnumType.ResumeQueueEntry, new EnumFamily[] { EnumFamily.Command }));
 	}
 
 	@Override
@@ -442,7 +442,7 @@ public class RootDevice extends AbstractDevice
 		public QueueDispatchHandler(final EnumType _type, final EnumFamily[] _families)
 		{
 			super(_type, _families);
-			superHandler = _jmfHandler.getHandler(_type.getName(), _families[0]);
+			superHandler = getJMFHandler(null).getHandler(_type.getName(), _families[0]);
 		}
 
 		/**
@@ -452,7 +452,7 @@ public class RootDevice extends AbstractDevice
 		public QueueDispatchHandler(final String _type, final EnumFamily[] _families)
 		{
 			super(_type, _families);
-			superHandler = _jmfHandler.getHandler(_type, _families[0]);
+			superHandler = getJMFHandler(null).getHandler(_type, _families[0]);
 		}
 
 		/**
