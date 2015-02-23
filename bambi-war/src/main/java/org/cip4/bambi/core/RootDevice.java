@@ -92,6 +92,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFDeviceFilter;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -112,6 +113,10 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public class RootDevice extends AbstractDevice
 {
+	/**
+	 * 
+	 */
+	private static final String DEVICE_TYPE = "DeviceType";
 	protected final HashMap<String, AbstractDevice> _devices;
 	protected final HashMap<String, DeviceProperties> deviceTemplates;
 	protected static final String ADD_DEVICE = "addDevice";
@@ -415,13 +420,16 @@ public class RootDevice extends AbstractDevice
 		public XMLResponse handleGet(final ContainerRequest request)
 		{
 			final AbstractDevice[] devs = getDeviceArray();
-			XMLResponse r = null;
-			for (AbstractDevice dev : devs)
+			if (devs != null)
 			{
-				r = dev.handleGet(request);
-				if (r != null)
+				XMLResponse r = null;
+				for (AbstractDevice dev : devs)
 				{
-					return r;
+					r = dev.handleGet(request);
+					if (r != null)
+					{
+						return r;
+					}
 				}
 			}
 			return RootDevice.this.handleGet(request);
@@ -592,18 +600,39 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * remove device
+	 * 
 	 * @param deviceID ID of the device to be removed
 	 * @return true if success
 	 */
 	public boolean removeDevice(final String deviceID)
 	{
-		if (_devices.get(deviceID) == null)
+		final AbstractDevice dev = _devices.remove(deviceID);
+		if (dev == null)
 		{
 			log.warn("tried to remove non-existing device");
 			return false;
 		}
-		AbstractDevice dev = _devices.remove(deviceID);
-		return dev != null;
+		if (getProperties() instanceof DeviceProperties)
+		{
+			final DeviceProperties properties = (DeviceProperties) dev.getProperties();
+			KElement e = properties.getDevRoot();
+			KElement multiRoot = properties.getRoot();
+			String typ = e.getAttribute(DEVICE_TYPE);
+			if (typ != null)
+			{
+				VElement v = multiRoot.getChildrenByTagName(e.getLocalName(), null, new JDFAttributeMap(DEVICE_TYPE, typ), true, true, 0);
+				if (v != null && v.size() > 1)
+				{
+					e.deleteNode();
+				}
+				else
+				{
+					e.setAttribute("AutoStart", false, null);
+				}
+			}
+			multiRoot.getOwnerDocument_KElement().write2File((String) null, 2, false);
+		}
+		return true;
 	}
 
 	/**
@@ -641,7 +670,7 @@ public class RootDevice extends AbstractDevice
 			{
 				IDeviceProperties prop = deviceTemplates.get(type);
 				KElement e = listRoot.appendElement("Template");
-				e.setAttribute("DeviceType", type);
+				e.setAttribute(DEVICE_TYPE, type);
 				e.setAttribute("DeviceID", prop.getDeviceID());
 			}
 		}
@@ -700,7 +729,7 @@ public class RootDevice extends AbstractDevice
 			listRoot.setAttribute("BaseDir", baseDir.getAbsolutePath());
 		}
 		rootElem.setAttribute("Root", true, null);
-		listRoot.copyAttribute("DeviceType", rootElem, null, null, null);
+		listRoot.copyAttribute(DEVICE_TYPE, rootElem, null, null, null);
 	}
 
 	/**
@@ -799,7 +828,7 @@ public class RootDevice extends AbstractDevice
 	 */
 	protected AbstractDevice addDevice(ContainerRequest request)
 	{
-		String type = request.getParameter("DeviceType");
+		String type = request.getParameter(DEVICE_TYPE);
 		String newDevID = request.getParameter(AttributeName.DEVICEID);
 		if (type == null || newDevID == null)
 		{

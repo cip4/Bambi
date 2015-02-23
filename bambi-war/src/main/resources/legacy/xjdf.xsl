@@ -167,7 +167,7 @@
 	<!-- ///////////////////////////////////////////////// -->
 
 	<xsl:template match="xjdf:Intent">
-		<xsl:call-template name="xjdfResource">
+		<xsl:call-template name="set">
 			<xsl:with-param name="header" select="'Product Intent Resource'" />
 		</xsl:call-template>
 	</xsl:template>
