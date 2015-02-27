@@ -19,7 +19,7 @@
 				</title>
 			</head>
 			<body>
-				<img src="/legacy/logo.gif" height="70" alt="logo" />
+				<xsl:call-template name="topnavigation" />
 				<table>
 					<tr>
 						<td>
@@ -1131,6 +1131,8 @@
 			</xsl:call-template>
 		</xsl:for-each>
 	</xsl:template>
+
+	<xsl:include href="topnavigation.xsl" />
 	<xsl:include href="StandardXML.xsl" />
-	<!-- ///////////////////////////////////////////////// -->
+	
 </xsl:stylesheet>
