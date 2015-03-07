@@ -11,7 +11,11 @@
 
 
 
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi">
+<xsl:stylesheet version="1.0"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1"
+  xmlns:bambi="www.cip4.org/Bambi"
+  >
   
   <xsl:param name="refresh"/>
   <xsl:output method="html"/>
@@ -753,4 +757,19 @@
   </xsl:template>
   <xsl:include href="optionlist.xsl"/>
   <xsl:include href="StandardXML.xsl"/>
+
+  <!--
+  Change "dateFormatter" value according to format you wish to see dates in browser.
+  List of supported values:
+    USDate: format as "MM/DD/YYYY",
+    EURODate: format as "DD/MM/YYYY",
+    ISODate: format as "YYYY/MM/DD".
+
+  If incorrect value specified: fallback to "ISODate".
+  Current value: "EURODate".
+  -->
+  <!--xsl:variable name="dateFormatter" select="'USDate'"/-->
+  <xsl:variable name="dateFormatter" select="'EURODate'"/>
+  <!--xsl:variable name="dateFormatter" select="'ISODate'"/-->
+
 </xsl:stylesheet>

@@ -296,7 +296,7 @@
       <div><xsl:attribute name="class"><xsl:value-of select="@DeviceID" /> arrowright</xsl:attribute>
       <img>
       <xsl:attribute name="src"><xsl:value-of
-						select="$context" />/images/arrowright.svg</xsl:attribute></img>
+						select="$context" />/webapp/images/arrowright.svg</xsl:attribute></img>
       </div>
       
       <!-- Device desctiption -->
