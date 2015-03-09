@@ -375,7 +375,6 @@ public final class BambiContainer extends BambiLogFactory
 		if (v == null || v.size() == 0)
 		{
 			log.fatal("no devices found " + props);
-			System.out.println("no devices found " + props);
 		}
 		else
 		{

@@ -589,16 +589,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 				if (log.isDebugEnabled())
 				{
 					StringBuffer b = new StringBuffer();
-					b.append("handling message #");
-					b.append(messageCount);
-					b.append("; family= ");
-					b.append(inputMessage.getLocalName());
-					b.append(" type=");
-					b.append(inputMessage.getType());
-					b.append(" Sender= ");
-					b.append(inputMessage.getSenderID());
-					b.append(" id= ");
-					b.append(inputMessage.getID());
+					b.append("handling message #").append(messageCount).append("; family= ").append(inputMessage.getLocalName()).append(" type=").append(inputMessage.getType()).append(" Sender= ").append(inputMessage.getSenderID()).append(" id= ").append(inputMessage.getID());
 					log.debug(b.toString());
 				}
 				handled = handler.handleMessage(inputMessage, response);

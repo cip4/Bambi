@@ -93,7 +93,6 @@ import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.bambi.proxy.MessageChecker.KnownMessageDetails;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
-import org.cip4.jdflib.core.JDFAudit;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.KElement;
@@ -797,13 +796,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 */
 	public JMFBuilder getBuilderForSlave()
 	{
-		JMFBuilder builder = JMFBuilderFactory.getJMFBuilder(getDeviceID());
-		builder = builder.clone(); // we only want to set ackURL for certain messages
-		final String deviceURLForSlave = getDeviceURLForSlave();
-		if (deviceURLForSlave != null)
-		{
-			builder.setAcknowledgeURL(deviceURLForSlave);
-		}
+		String deviceURLForSlave = getDeviceURLForSlave();
+		JMFBuilder builder = JMFBuilderFactory.getJMFBuilder(deviceURLForSlave);
 		return builder;
 	}
 
@@ -1037,16 +1031,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * overwrite to provide your favorite version string
-	 * @return
-	 */
-	@Override
-	public String getVersionString()
-	{
-		return "Generic Bambi Proxy Device " + JDFAudit.software();
-	}
-
-	/**
 	 * @param newSlaveURL 
 	 * 
 	 */
@@ -1240,6 +1224,20 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		Vector<JMFHandler> v = super.getJMFHandlers();
 		v.add(_slaveJmfHandler);
 		return v;
+	}
+
+	/**
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDevice#preSetup()
+	 */
+	@Override
+	protected void preSetup()
+	{
+		super.preSetup();
+		if (getDeviceURLForSlave() != null)
+		{
+			getBuilderForSlave().setAcknowledgeURL(getDeviceURLForSlave());
+		}
 	}
 
 }

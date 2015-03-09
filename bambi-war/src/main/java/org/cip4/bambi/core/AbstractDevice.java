@@ -500,7 +500,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public String getVersionString()
 	{
-		return "Generic Bambi Device " + JDFAudit.software();
+		return getAgentName() + " " + getAgentVersion();
 	}
 
 	/**
@@ -577,11 +577,33 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * preparation setup, e.g. for logging
+	 * preparation setup, e.g. for logging and setting up the jmf builders
 	 */
 	protected void preSetup()
 	{
-		// empty shell
+		// ensure a null builder that will be used to clone all other builders has correct agentname etc.
+		JMFBuilder b0 = JMFBuilderFactory.getJMFBuilder(null);
+		b0.setAgentName(getAgentName());
+		b0.setAgentVersion(getAgentVersion());
+		b0.setSenderID(getDeviceID());
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	protected String getAgentVersion()
+	{
+		return JDFAudit.getStaticAgentVersion();
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	protected String getAgentName()
+	{
+		return "CIP4 Bambi Simulator";
 	}
 
 	/**
@@ -604,10 +626,13 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				for (File f : configFiles)
 				{
 					File configFile = FileUtil.getFileInDirectory(configDir, new File(f.getName()));
-					File newFile = FileUtil.ensureFileInDir(configFile, cacheDir);
-					if (newFile == null)
+					if (configFile.isFile())
 					{
-						log.warn("cannot copy " + configFile + " to " + cacheDir);
+						File newFile = FileUtil.ensureFileInDir(configFile, cacheDir);
+						if (newFile == null)
+						{
+							log.warn("cannot copy " + configFile + " to " + cacheDir);
+						}
 					}
 				}
 			}
@@ -728,7 +753,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return;
 		}
 
-		JMFBuilder jmfBuilder = JMFBuilderFactory.getJMFBuilder(getDeviceID());
+		JMFBuilder jmfBuilder = getJMFBuilder();
 		final JDFJMF[] jmfs = jmfBuilder.createSubscriptions(watchURL, null, 30., 0);
 		if (jmfs == null)
 		{
@@ -740,6 +765,15 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			updateWatchSubscription(query);
 			_theSignalDispatcher.addSubscription(query, null);
 		}
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	protected JMFBuilder getJMFBuilder()
+	{
+		return JMFBuilderFactory.getJMFBuilder(getDeviceID());
 	}
 
 	/**

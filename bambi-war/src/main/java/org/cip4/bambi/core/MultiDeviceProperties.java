@@ -779,40 +779,68 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	public static MultiDeviceProperties getProperties(File appDir, String baseURL)
 	{
 		// to evaluate current name and send it back rather than 127.0.0.1
-		final XMLDoc doc = getXMLDoc(appDir);
+		final XMLDoc installDoc = getXMLDoc(appDir);
 		Log log = LogFactory.getLog(MultiDeviceProperties.class);
 
-		if (doc == null)
+		if (installDoc == null)
 		{
 			log.fatal("failed to parse " + configFile + " at " + getConfigFile(appDir).getAbsolutePath() + ", rootDev is null");
 			throw new JDFException("snafu: failed to parse " + configFile + " at " + getConfigFile(appDir).getAbsolutePath() + ", rootDev is null");
 		}
 
 		String appPath = appDir.getAbsolutePath();
-		MultiDeviceProperties mp = new MultiDeviceProperties(doc).getSubClass();
-		final File deviceDir = mp.getBaseDir();
-		final File fileInDirectory = getConfigFile(deviceDir);
-		final XMLDoc d2 = XMLDoc.parseFile(fileInDirectory);
-		if (d2 != null) // using config default
+		MultiDeviceProperties installProps = new MultiDeviceProperties(installDoc).getSubClass();
+		final File deviceDir = installProps.getBaseDir();
+		final File localConfigFile = getConfigFile(deviceDir);
+		final XMLDoc localDoc = XMLDoc.parseFile(localConfigFile);
+		boolean mustCopy = deviceDir != null;
+		if (localDoc != null) // using config default
 		{
-			mp = new MultiDeviceProperties(d2).getSubClass();
-			log.info("using updated device config from: " + fileInDirectory.getAbsolutePath());
+			MultiDeviceProperties localProps = new MultiDeviceProperties(localDoc).getSubClass();
+			if (installProps.isCompatible(localProps))
+			{
+				installProps = localProps;
+				log.info("using updated device config from: " + localConfigFile.getAbsolutePath());
+				mustCopy = false;
+			}
+			else
+			{
+				log.warn("overwriting incompatible device config in: " + localConfigFile.getAbsolutePath());
+			}
 		}
-		else if (deviceDir != null)
+		if (mustCopy)
 		// using webapp devices
 		{
-			log.info("using executable local device config file");
+			log.info("copying to local device config file: " + localConfigFile.getAbsolutePath());
 			deviceDir.mkdirs();
-			doc.setOriginalFileName(fileInDirectory.getAbsolutePath());
-			mp.serialize();
+			installDoc.setOriginalFileName(localConfigFile.getAbsolutePath());
+			installProps.serialize();
 		}
-		else
-		{
-			log.info("cannot parse base file - this may be due to a subclassing of the properties");
-		}
-		mp.context = baseURL;
-		mp.root.setAttribute("AppDir", appPath);
-		return mp;
+
+		installProps.context = baseURL;
+		installProps.root.setAttribute("AppDir", appPath);
+
+		return installProps;
+	}
+
+	/**
+	 * @param mp2
+	 * @return
+	 */
+	protected boolean isCompatible(MultiDeviceProperties mp2)
+	{
+		if (mp2 == null)
+			return false;
+		final String configVersion = getConfigVersion();
+		return configVersion.equals(mp2.getConfigVersion());
+	}
+
+	/**
+	 * @return a version string - should never be null
+	 */
+	private String getConfigVersion()
+	{
+		return root.getAttribute("ConfigVersion");
 	}
 
 	/**
