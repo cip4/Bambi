@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no" ?><!-- DWXMLSource="http://almserver:8080/SimWorker" -->
-  <xsl:stylesheet version="1.0" 
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<xsl:stylesheet version="1.0" 
   xmlns="http://www.w3.org/1999/xhtml" 
   xmlns:bambi="www.cip4.org/Bambi" 
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -41,7 +41,7 @@
     
     
     <body>
-    <div id="content-wrapper"><!----> 
+    <div id="content-wrapper">
       
       <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
       <!-- +++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -164,7 +164,7 @@
     
     <!-- Queue Status Details -->
     <div class="box running"><img class="symbol">
-      <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/running.svg</xsl:attribute>
+      <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/running.svg</xsl:attribute>
       </img>
     <h3>Running</h3>
     <xsl:value-of select="@QueueRunning"></xsl:value-of>
@@ -172,7 +172,7 @@
     
     <!-- QueueWaiting -->
     <div class="box root queue-waiting"><img class="symbol">
-      <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/waiting.svg</xsl:attribute>
+      <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/waiting.svg</xsl:attribute>
       </img>
     <h3>Waiting</h3>
     <xsl:value-of select="@QueueWaiting"></xsl:value-of>
@@ -180,7 +180,7 @@
     
     <!-- QueueCompleted -->
     <div class="box completed"><img class="symbol">
-      <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/modify.svg</xsl:attribute>
+      <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/modify.svg</xsl:attribute>
       </img>
     <h3>Completed</h3>
     <xsl:value-of select="@QueueCompleted"></xsl:value-of>
@@ -241,7 +241,7 @@
                     <!-- close button -->
                     <a class="popupclose" href="#">
                         <img class="buttonsymbolimage popupclosebutton">
-                            <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/close.svg</xsl:attribute>
+                            <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/close.svg</xsl:attribute>
                         </img>
                     </a>
                 </div>
@@ -255,7 +255,7 @@
                 <!-- close button 
           		<a class="popupclose" href="#">
                 	<img class="buttonsymbolimage popupclosebutton">
-                    	<xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/close.svg</xsl:attribute>
+                    	<xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/close.svg</xsl:attribute>
                     </img>
                 </a>-->
                 <!-- Content frame -->             
@@ -271,7 +271,7 @@
                   <!-- close button -->
                     <a class="popupclose" href="#">
                         <img class="buttonsymbolimage popupclosebutton">
-                            <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/close.svg</xsl:attribute>
+                            <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/close.svg</xsl:attribute>
                         </img>
                     </a>
               </div>
@@ -296,7 +296,7 @@
       <div><xsl:attribute name="class"><xsl:value-of select="@DeviceID" /> arrowright</xsl:attribute>
       <img>
       <xsl:attribute name="src"><xsl:value-of
-						select="$context" />/images/arrowright.svg</xsl:attribute></img>
+						select="$context" />/webapp/images/arrowright.svg</xsl:attribute></img>
       </div>
       
       <!-- Device desctiption -->
@@ -345,7 +345,7 @@
               <!-- Arrow that points out that there is more information to open -->
               <div><xsl:attribute name="class"><xsl:value-of select="@DeviceID" /> arrowright</xsl:attribute>
                   <img>
-                      <xsl:attribute name="src"><xsl:value-of select="$context" />/images/arrowright.svg</xsl:attribute></img>
+                      <xsl:attribute name="src"><xsl:value-of select="$context" />/webapp/images/arrowright.svg</xsl:attribute></img>
               </div>
         
               <h3>Details</h3>
@@ -394,11 +394,11 @@
           <!-- Arrow, showing the item can be expanded -->
           <div><xsl:attribute name="class"><xsl:value-of select="@DeviceID" /> arrowright</xsl:attribute>
       			<img>
-      				<xsl:attribute name="src"><xsl:value-of select="$context" />/images/arrowright.svg</xsl:attribute></img>
+      				<xsl:attribute name="src"><xsl:value-of select="$context" />/webapp/images/arrowright.svg</xsl:attribute></img>
 	   		</div>
             <!-- symbol for the queue status -->
             <img class="symbol">
-            <xsl:attribute name="src"><xsl:value-of select="$context" />/images/queue-status.svg</xsl:attribute>
+            <xsl:attribute name="src"><xsl:value-of select="$context" />/webapp/images/queue-status.svg</xsl:attribute>
             </img>
             <div class="openexternal">
             <a target="_new">
@@ -430,7 +430,7 @@
           
           <!-- QueueRunning -->
           <div class="box running"><img class="symbol">
-            <xsl:attribute name="src"><xsl:value-of select="$context" />/images/running.svg</xsl:attribute>
+            <xsl:attribute name="src"><xsl:value-of select="$context" />/webapp/images/running.svg</xsl:attribute>
             </img>
           <h3>Running</h3>
           <xsl:value-of select="@QueueRunning" />
@@ -438,7 +438,7 @@
           
           <!-- QueueWaiting -->
           <div class="box waiting"><img class="symbol">
-            <xsl:attribute name="src"><xsl:value-of select="$context" />/images/waiting.svg</xsl:attribute>
+            <xsl:attribute name="src"><xsl:value-of select="$context" />/webapp/images/waiting.svg</xsl:attribute>
             </img>
           <h3>Waiting</h3>
           <xsl:value-of select="@QueueWaiting" />
@@ -446,7 +446,7 @@
           
           <!-- QueueCompleted -->
           <div class="box completed"><img class="symbol">
-            <xsl:attribute name="src"><xsl:value-of select="$context" />/images/modify.svg</xsl:attribute>
+            <xsl:attribute name="src"><xsl:value-of select="$context" />/webapp/images/modify.svg</xsl:attribute>
             </img>
           <h3>Completed</h3>
           <xsl:value-of select="@QueueCompleted" />

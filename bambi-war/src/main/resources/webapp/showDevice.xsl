@@ -133,7 +133,7 @@
                 <input type="submit" class="button" value="Stop reloading (modify page)" />
               </form>
             </div><div class="buttonsymbol reload stop">
-            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/arrowright.svg</xsl:attribute></img>
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/arrowright.svg</xsl:attribute></img>
             </div>
             
           </xsl:when>
@@ -152,7 +152,7 @@
               </form>
             </div>
             <div class="buttonsymbol reload continually">
-            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/refresh.svg</xsl:attribute></img>
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/refresh.svg</xsl:attribute></img>
             </div>
             
           </xsl:otherwise>
@@ -173,7 +173,7 @@
           </form>
         </div>
         <div class="buttonsymbol refresh-once">
-            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/refresh.svg</xsl:attribute></img>
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/refresh.svg</xsl:attribute></img>
             </div>
         <!--</div>-->
       
@@ -192,7 +192,7 @@
             <input type="submit" class="button" value="Shutdown" title="attention this removes the device - adding a new device is not yet implemented!" />
           </form>
         </div><div class="buttonsymbol shutdown">
-            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/shutdown.svg</xsl:attribute></img>
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/shutdown.svg</xsl:attribute></img>
             </div>
         
         <!-- Restart the Device -->
@@ -206,7 +206,7 @@
             <input type="hidden" name="restart" value="true" />
           </form>
         </div><div class="buttonsymbol restart">
-            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/restart.svg</xsl:attribute></img>
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/restart.svg</xsl:attribute></img>
             </div>
         
         <!-- Reset the Device -->
@@ -223,7 +223,7 @@
         </div>
         
         <div class="buttonsymbol reset">
-          <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/reset.svg</xsl:attribute></img>
+          <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/reset.svg</xsl:attribute></img>
         </div>
         
         <!-- Modify/Edit the Device --> 
@@ -243,7 +243,7 @@
             </form>
           </div>
           <div class="buttonsymbol modify">
-            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/modify.svg</xsl:attribute></img>
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/modify.svg</xsl:attribute></img>
           </div>
           
         </xsl:if>
@@ -283,7 +283,7 @@
                       <!-- Symbol -->
               <div class="buttonsymbol">
                 <img class="buttonsymbolimage">
-                    <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/open.svg</xsl:attribute>
+                    <xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/open.svg</xsl:attribute>
                 </img>
               </div>
               
@@ -326,7 +326,7 @@
           </form>
           
           <div class="buttonsymbol">
-            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/show.svg</xsl:attribute></img>
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/show.svg</xsl:attribute></img>
           </div>
           
 
