@@ -554,8 +554,8 @@
 		EURODate: format as "DD/MM/YYYY",
 		ISODate: format as "YYYY/MM/DD".
 	
-	If incorrect value specified: fallback to default.
-	Default value: "ISODate".
+	If incorrect value specified: fallback to "ISODate".
+	Current value: "EURODate".
 	-->
 	<!--xsl:variable name="dateFormatter" select="'USDate'"/-->
 	<xsl:variable name="dateFormatter" select="'EURODate'"/>
