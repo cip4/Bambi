@@ -174,7 +174,7 @@
               </form>
             </div>
             <div class="buttonsymbol reload continually">
-              <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/refresh.svg</xsl:attribute></img>
+              <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/refresh.svg</xsl:attribute></img>
             </div>
 
               <!-- Open Queue Button -->
@@ -184,7 +184,7 @@
                 <input type="submit" class="button" value="Open"/>
               </form>
               <div class="buttonsymbol">
-            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/open.svg</xsl:attribute></img>
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/open.svg</xsl:attribute></img>
             </div>
               </div>
               
@@ -199,7 +199,7 @@
                 <input type="submit" class="button" value="Close"/>
               </form>
               <div class="buttonsymbol">
-            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/close.svg</xsl:attribute></img>
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/close.svg</xsl:attribute></img>
             </div>
            </div>
            
@@ -212,7 +212,7 @@
                 <input type="submit" class="button" value="Resume"/>
               </form>
               <div class="buttonsymbol">
-                <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/resume.svg</xsl:attribute></img>
+                <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/resume.svg</xsl:attribute></img>
               </div>
             </div>
               
@@ -225,7 +225,7 @@
                 <input type="submit" class="button" value="Hold"/>
               </form>
               <div class="buttonsymbol">
-            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/hold.svg</xsl:attribute></img>
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/hold.svg</xsl:attribute></img>
             </div>
               </div>
               
@@ -246,7 +246,7 @@
                 </input>
               </form>
               <div class="buttonsymbol">
-                <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/arrowleft.svg</xsl:attribute></img>
+                <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/arrowleft.svg</xsl:attribute></img>
                 </div>
             </div>
             
@@ -264,7 +264,7 @@
                 </input>
              </form>
               <div class="buttonsymbol">
-                <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/arrowleft.svg</xsl:attribute></img>
+                <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/arrowleft.svg</xsl:attribute></img>
                 </div>
               </div>
               
@@ -288,7 +288,7 @@
                 </input>
              </form>
               <div class="buttonsymbol">
-                <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/refresh.svg</xsl:attribute></img>
+                <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/refresh.svg</xsl:attribute></img>
                 </div>
             </div>
             
@@ -301,7 +301,7 @@
                 <input type="submit" class="button" value="Flush"/>
               </form>
               <div class="buttonsymbol">
-                <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/flush.svg</xsl:attribute></img>
+                <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/flush.svg</xsl:attribute></img>
                 </div>
               </div>
               
@@ -323,7 +323,7 @@
                 <input type="submit" class="button" value="next &gt;" title="show next frame"/>
               </form>
               <div class="buttonsymbol">
-            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/arrowright.svg</xsl:attribute></img>
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/arrowright.svg</xsl:attribute></img>
             </div>
             </div>
             
@@ -341,7 +341,7 @@
                 </input>
               </form>
               <div class="buttonsymbol">
-            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/arrowright.svg</xsl:attribute></img>
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/arrowright.svg</xsl:attribute></img>
             </div>
             </div>
               
@@ -360,7 +360,7 @@
                
                <div class="buttonwrapper"> <input type="submit" class="button" value="Filter"/> 
               <div class="buttonsymbol">
-            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/images/filter.svg</xsl:attribute></img>
+            <img class="buttonsymbolimage"><xsl:attribute name="src"><xsl:value-of select="$context"></xsl:value-of>/webapp/images/filter.svg</xsl:attribute></img>
             </div> </div></form>
               
             </div>
@@ -614,7 +614,7 @@
       
       
       <img class="center verticalopen">
-      <xsl:attribute name="src"><xsl:value-of select="$context" />/images/arrowdown.svg</xsl:attribute>
+      <xsl:attribute name="src"><xsl:value-of select="$context" />/webapp/images/arrowdown.svg</xsl:attribute>
       </img>
       
       
@@ -744,7 +744,7 @@
       
       
       <img class="center verticalclose">
-      <xsl:attribute name="src"><xsl:value-of select="$context" />/images/close.svg</xsl:attribute>
+      <xsl:attribute name="src"><xsl:value-of select="$context" />/webapp/images/close.svg</xsl:attribute>
       </img>
       
       
