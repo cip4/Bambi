@@ -1,4 +1,6 @@
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<xsl:stylesheet version="1.0"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  >
   <!--   ///////////////////////////////////////////////// -->
   <xsl:template name="default">
     <xsl:param name="pre"/>
@@ -177,14 +179,57 @@
       </xsl:call-template>
     </xsl:if>
   </xsl:template>
-  
-  <xsl:template name="dateTime">
+
+  <xsl:template name="usDate">
     <xsl:param name="val"/>
     <xsl:if test="$val">
       <xsl:variable name="date" select="concat(substring($val,6,2),'/',substring($val,9,2),'/',substring($val,1,4))"/>
-      <xsl:variable name="time" select="substring($val,12,8)"/>
       <xsl:value-of select="$date"/>
+    </xsl:if>
+  </xsl:template>
+  <xsl:template name="euroDate">
+    <xsl:param name="val"/>
+    <xsl:if test="$val">
+      <xsl:variable name="date" select="concat(substring($val,9,2),'/',substring($val,6,2),'/',substring($val,1,4))"/>
+      <xsl:value-of select="$date"/>
+    </xsl:if>
+  </xsl:template>
+  <xsl:template name="isoDate">
+    <xsl:param name="val"/>
+    <xsl:if test="$val">
+      <xsl:variable name="date" select="concat(substring($val,1,4),'/',substring($val,6,2),'/',substring($val,9,2))"/>
+      <xsl:value-of select="$date"/>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template name="dateTime">
+    <xsl:param name="val"/>
+    <xsl:if test="$val">
+      <xsl:choose>
+        <xsl:when test="$dateFormatter = 'USDate'">
+          <xsl:call-template name="usDate">
+            <xsl:with-param name="val">
+              <xsl:value-of select="$val"/>
+            </xsl:with-param>
+          </xsl:call-template>
+        </xsl:when>
+        <xsl:when test="$dateFormatter = 'EURODate'">
+          <xsl:call-template name="euroDate">
+            <xsl:with-param name="val">
+              <xsl:value-of select="$val"/>
+            </xsl:with-param>
+          </xsl:call-template>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="isoDate">
+            <xsl:with-param name="val">
+              <xsl:value-of select="$val"/>
+            </xsl:with-param>
+          </xsl:call-template>
+        </xsl:otherwise>
+      </xsl:choose>
       /
+      <xsl:variable name="time" select="substring($val,12,8)"/>
       <xsl:value-of select="$time"/>
     </xsl:if>
   </xsl:template>
