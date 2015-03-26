@@ -356,4 +356,13 @@ public class BambiServer extends JettyServer
 		resourceHandler.setResourceBase(getToolPath());
 		return resourceHandler;
 	}
+
+	@Override
+	public void setPort(int port)
+	{
+		super.setPort(port);
+		if (mp != null)
+			mp.setPort(port);
+	}
+
 }
