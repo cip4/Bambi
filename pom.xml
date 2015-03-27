@@ -17,11 +17,11 @@
 		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
 		<buildDirectory>${project.basedir}/target</buildDirectory>
 	</properties>
-	<scm>
-		<connection>scm:svn:http://svn.cip4.org/svnroot/trunk/Bambi</connection>
-		<tag>HEAD</tag>
-		<url>http://svn.cip4.org/websvn</url>
-	</scm>
+    <scm>
+        <url>https://stash.cip4.org/scm/tool/bambi.git</url>
+        <developerConnection>scm:git:https://stash.cip4.org/scm/tool/bambi.git</developerConnection>
+        <connection>scm:git:https://stash.cip4.org/scm/tool/bambi.git</connection>
+    </scm>
     <repositories>
         <repository>
             <id>sonatype-nexus-snapshots</id>
@@ -145,6 +145,11 @@
 				<artifactId>servlet-api</artifactId>
 				<version>2.5</version>
 			</dependency>
+            <dependency>
+                <groupId>xerces</groupId>
+                <artifactId>xercesImpl</artifactId>
+                <version>2.9.1</version>
+            </dependency>
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
