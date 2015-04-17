@@ -34,9 +34,9 @@
 	<Device DeviceID="sim001" 
 	DeviceType="Bambi Simulation HotFolder Device 001"
 		TrackResource="Component:Output" 
-		InputHF="/BambiHF/sim001/Input"
-		OutputHF="/BambiHF/sim001/Output" 
-		ErrorHF="/BambiHF/sim001/Error" 
+		InputHF="/bambidata/BambiHF/sim001/Input"
+		OutputHF="/bambidata/BambiHF/sim001/Output" 
+		ErrorHF="/bambidata/BambiHF/sim001/Error" 
 		ProxyURL="http://localhost:8080/BambiProxy/slavejmf/pullproxy"
 		AcceptAll="true"/>
 	
@@ -56,17 +56,17 @@
 		ErrorHF="/BambiHF/sim003/Error" 
 		MIMEExpansion="true"/>
 
-<Device DeviceID="simIDP"
-DeviceType="Bambi Push Simulation IDP Device"
-PushPull="Push"
-TrackResource="Component:Output"
-InputHF="/BambiHF/simIDP/Input"
-OutputHF="/BambiHF/simIDP/Output"
-ErrorHF="/BambiHF/simIDP/Error"
-AmountResources="Media:Input,UsageCounter"
-TypeExpression="(.)*DigitalPrinting(.)*"
-MIMEExpansion="true"
-/>
+	<Device DeviceID="simIDP"
+		DeviceType="Bambi Push Simulation IDP Device"
+		PushPull="Push"
+		TrackResource="Component:Output"
+		InputHF="/bambidata/BambiHF/simIDP/Input"
+		OutputHF="/bambidata/BambiHF/simIDP/Output"
+		ErrorHF="/bambidata/BambiHF/simIDP/Error"
+		AmountResources="Media:Input,UsageCounter"
+		TypeExpression="(.)*DigitalPrinting(.)*"
+		MIMEExpansion="true"
+	/>
 <Device DeviceID="simWF"
 DeviceType="Bambi Push Simulation Wide Format Device"
 PushPull="Push"

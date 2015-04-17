@@ -1,4 +1,3 @@
-./.DS_Store
 ./build.number
 ./config/devices.xml
 ./config/employees.xml
@@ -119,4 +118,4 @@
 ./webapp/WEB-INF
 ./webapp/xjdf.xsl
 ./webapp
-.
+./bambi-struts-1.0.war
