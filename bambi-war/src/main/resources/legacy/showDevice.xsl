@@ -79,7 +79,7 @@
 							<td>
 								<img height="70" hspace="10" alt="logo">
 									<xsl:attribute name="src"><xsl:value-of
-										select="$context" />/logo.gif</xsl:attribute>
+										select="$context" />/legacy/logo.gif</xsl:attribute>
 								</img>
 							</td>
 							<td>
