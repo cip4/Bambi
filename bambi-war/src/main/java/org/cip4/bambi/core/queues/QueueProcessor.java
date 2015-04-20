@@ -622,7 +622,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				updateEntry(qe, EnumQueueEntryStatus.Waiting, m, resp, null);
 				_parentDevice.fixEntry(qe, doc);
-				_parentDevice.getDataExtractor(true).extractFiles(qe, doc);
+				DataExtractor dataExtractor = _parentDevice.getDataExtractor(true);
+				if (dataExtractor != null)
+				{
+					dataExtractor.extractFiles(qe, doc);
+				}
 				storeDoc(qe, doc, null, null);
 			}
 		}

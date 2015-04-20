@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2009-2014 CIP4 -->
+<!-- Copyright 2009-2015 CIP4 -->
 <xsl:stylesheet version="1.0"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1"

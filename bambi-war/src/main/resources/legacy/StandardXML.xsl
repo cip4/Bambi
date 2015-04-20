@@ -1,6 +1,6 @@
+<!-- (C) 2001-2015 CIP4 -->
 <xsl:stylesheet version="1.0"
-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  >
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform" >
   <!--   ///////////////////////////////////////////////// -->
   <xsl:template name="default">
     <xsl:param name="pre"/>
@@ -263,5 +263,20 @@
       <xsl:value-of select="$time"/>
     </xsl:if>
   </xsl:template>
+  
+  	<!--
+	Change "dateFormatter" value according to format you wish to see dates in browser.
+	List of supported values:
+		USDate: format as "MM/DD/YYYY",
+		EURODate: format as "DD/MM/YYYY",
+		ISODate: format as "YYYY/MM/DD".
+	
+	If incorrect value specified: fallback to "ISODate".
+	Current value: "EURODate".
+	-->
+	<!--xsl:variable name="dateFormatter" select="'USDate'"/-->
+	<xsl:variable name="dateFormatter" select="'EURODate'"/>
+	<!--xsl:variable name="dateFormatter" select="'ISODate'"/-->
+  
 
 </xsl:stylesheet>

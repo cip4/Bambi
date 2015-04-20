@@ -512,7 +512,11 @@ public class ProxyDevice extends AbstractProxyDevice
 			if (proc != null)
 			{
 				final JDFQueueEntry qeBambi = getQueueProcessor().getQueueEntry(slaveQueueEntryID, null);
-				getDataExtractor().extractFiles(qeBambi, theDoc);
+				DataExtractor dataExtractor = getDataExtractor();
+				if (dataExtractor != null)
+				{
+					dataExtractor.extractFiles(qeBambi, theDoc);
+				}
 				proc.returnFromSlave(m, resp, theDoc);
 			}
 			return true;

@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -142,9 +142,9 @@ public class DataExtractor extends BambiLogFactory
 
 		log.info("extracting attached files to: " + extractDir);
 		String dataURL = getDataURL(newQE);
-		if (dataURL != null)
+		IElementConverter ex = getExtractor(extractDir, dataURL);
+		if (ex != null)
 		{
-			IElementConverter ex = getExtractor(extractDir, dataURL);
 			ex.convert(doc.getRoot());
 		}
 	}
@@ -170,11 +170,34 @@ public class DataExtractor extends BambiLogFactory
 	protected IElementConverter getExtractor(final File jobDirectory, String dataURL)
 	{
 		File hfDirectory = parentDevice._submitHotFolder == null ? null : parentDevice._submitHotFolder.getHfDirectory();
-		String absolutePath = hfDirectory == null ? null : hfDirectory.getAbsolutePath();
-		URLExtractor ex = new URLExtractor(jobDirectory, absolutePath, dataURL);
+		String hotfolderPath = hfDirectory == null ? null : hfDirectory.getAbsolutePath();
+		URLExtractor ex = getURLExtractor(jobDirectory, dataURL, hotfolderPath);
 		for (URLProtocol protocol : protocols)
 			ex.addProtocol(protocol);
 		return ex;
+	}
+
+	/**
+	 * get the base urlExtractor
+	 * @param jobDirectory
+	 * @param dataURL
+	 * @param hotfolderPath
+	 * @return
+	 */
+	protected URLExtractor getURLExtractor(final File jobDirectory, String dataURL, String hotfolderPath)
+	{
+		URLExtractor ex = new URLExtractor(jobDirectory, hotfolderPath, dataURL);
+		return ex;
+	}
+
+	/**
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		return "DataExtractor [protocols=" + protocols + ", bSubmit=" + bSubmit + "]";
 	}
 
 }
