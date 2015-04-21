@@ -1,4 +1,5 @@
 ./build.number
+
 ./config/devices.xml
 ./config/employees.xml
 ./config/job.xml
@@ -8,8 +9,7 @@
 ./config/job_simIDP.xml
 ./config/job_simWF.xml
 ./config/resinfo_simIDP.xml
-./config
-./legacy/.DS_Store
+
 ./legacy/bambi.jpg
 ./legacy/bambi.log
 ./legacy/CPUTimer.xsl
@@ -18,7 +18,6 @@
 ./legacy/css/styles_pc.css
 ./legacy/css/transparent8.gif
 ./legacy/css/v3_bg_white.jpg
-./legacy/css
 ./legacy/DeviceDetails.xsl
 ./legacy/DeviceExtension.xsl
 ./legacy/deviceList.xsl
@@ -43,19 +42,15 @@
 ./legacy/subscriptionList.xsl
 ./legacy/topnavigation.xsl
 ./legacy/xjdf.xsl
-./legacy
+
 ./list.txt
 ./META-INF/MANIFEST.MF
-./META-INF
+./WEB-INF/web.xml
+
 ./org/cip4/bambi/bambi_128.png
 ./org/cip4/bambi/cip4.png
 ./org/cip4/bambi/version.properties
-./org/cip4/bambi
-./org/cip4
-./org
-./WEB-INF/web.xml
-./WEB-INF
-./webapp/.DS_Store
+
 ./webapp/bambi.jpg
 ./webapp/bambi.log
 ./webapp/CPUTimer.xsl
@@ -64,7 +59,6 @@
 ./webapp/css/styles_pc.css
 ./webapp/css/transparent8.gif
 ./webapp/css/v3_bg_white.jpg
-./webapp/css
 ./webapp/DeviceDetails.xsl
 ./webapp/DeviceExtension.xsl
 ./webapp/deviceList.xsl
@@ -97,11 +91,9 @@
 ./webapp/images/shutdown.svg
 ./webapp/images/subscriptions.svg
 ./webapp/images/waiting.svg
-./webapp/images
 ./webapp/index.jsp
 ./webapp/jdf.xsl
 ./webapp/js/refresh.js
-./webapp/js
 ./webapp/log4j.properties
 ./webapp/login.xsl
 ./webapp/logo.gif
@@ -115,7 +107,6 @@
 ./webapp/SubscriptionExtension.xsl
 ./webapp/subscriptionList.xsl
 ./webapp/WEB-INF/web.xml
-./webapp/WEB-INF
 ./webapp/xjdf.xsl
-./webapp
+
 ./bambi-ngui-1.0.war
