@@ -84,9 +84,15 @@ import org.cip4.jdflib.util.MyArgs;
 import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdflib.util.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.websocket.server.WebSocketHandler;
+import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
+import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 
 /**
  * standalone app for bambi using an embedded jetty server
@@ -311,6 +317,8 @@ public class BambiServer extends JettyServer
 	@Override
 	protected ServletContextHandler createServletHandler()
 	{
+		log.info("context: " + context);
+		
 		ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		contextHandler.setContextPath(context);
 		contextHandler.setWelcomeFiles(new String[] { "index.jsp" });
@@ -318,6 +326,11 @@ public class BambiServer extends JettyServer
 		ServletHolder servletHolder = new ServletHolder(myServlet);
 		setInitParams(servletHolder);
 		contextHandler.addServlet(servletHolder, "/*");
+		
+		
+//		contextHandler.addServlet(StockServiceSocketServlet.class, "/echo");
+		
+		
 		return contextHandler;
 	}
 
@@ -352,8 +365,57 @@ public class BambiServer extends JettyServer
 	@Override
 	protected ResourceHandler createResourceHandler()
 	{
+		log.info("context: " + context);
+		
 		ResourceHandler resourceHandler = new MyResourceHandler(context);
 		resourceHandler.setResourceBase(getToolPath());
 		return resourceHandler;
 	}
+	
+	@Override
+	protected void addMoreHandlers(HandlerList handlers) {
+		System.out.println("handlers.length: " + handlers.getHandlers().length);
+		
+		WebAppContext webapp = new WebAppContext();
+        webapp.setContextPath("/bambi-ngui");
+        File warFile = new File(getToolPath() + "/bambi-ngui-1.0.war");
+        webapp.setWar(warFile.getAbsolutePath());
+        
+        if (null != webapp) {
+            handlers.addHandler(webapp);
+        }
+        
+        ContextHandler handler2 = createWebSocketHandler();
+        if (null != handler2) {
+            handlers.addHandler(handler2);
+        }
+        
+		System.out.println("handlers.length: " + handlers.getHandlers().length);
+	}
+	
+	protected ContextHandler createWebSocketHandler() {
+		/*WebSocketHandler wsHandler = new WebSocketHandler() {
+	        @Override
+	        public void configure(WebSocketServletFactory factory) {
+	            factory.register(AdapterEchoSocket.class);
+	        }
+	    };*/
+	    
+		/*ContextHandler echoContext = new ContextHandler();
+		echoContext.setContextPath("/echo");
+		echoContext.setHandler(wsHandler);*/
+	    
+//	    ServletContextHandler echoContext = new ServletContextHandler();
+//	    echoContext.setContextPath("/echo");
+//	    echoContext.addServlet(StockServiceSocketServlet.class, "/echo");
+		
+		return null /*echoContext*/;
+	}
+	
+    /*public static class StockServiceSocketServlet extends WebSocketServlet {
+        @Override
+        public void configure(WebSocketServletFactory factory) {
+            factory.register(StockServiceWebSocket.class);
+        }
+    }*/
 }
