@@ -118,4 +118,4 @@
 ./webapp/WEB-INF
 ./webapp/xjdf.xsl
 ./webapp
-./bambi-struts-1.0.war
+./bambi-ngui-1.0.war

@@ -39,9 +39,9 @@
 		</plugins>
 		<resources>
 			<resource>
-				<directory>../bambi-struts/target/</directory>
+				<directory>../bambi-ngui/target/</directory>
 				<includes>
-					<include>bambi-struts-1.0.war</include>
+					<include>bambi-ngui-1.0.war</include>
 				</includes>
 			</resource>
 			<resource>
