@@ -22,14 +22,13 @@ import org.cip4.bambi.core.XMLResponse;
 import com.opensymphony.xwork2.ActionSupport;
 
 public class HomeAction extends ActionSupport implements ServletRequestAware {
-	final static Logger log = Logger.getLogger(HomeAction.class);
+	private final static Logger log = Logger.getLogger(HomeAction.class);
+	
 	private HttpServletRequest request;
-//	private StreamRequest sr;
 	
 	private List<XMLDevice> device;
 	
 	public String execute() throws Exception {
-//		BambiContainer.getCreateInstance();
 		BambiContainer theContainer = BambiContainer.getInstance();
 		log.info("theContainer action: " + theContainer);
 		
@@ -66,11 +65,9 @@ public class HomeAction extends ActionSupport implements ServletRequestAware {
 	}
 	
 	private void parseResponse(XMLResponse xr) {
-		log.info("xr: " + xr);
-		log.info("xr.getXMLDoc().getRoot().getChildElementArray.length: " + xr.getXMLDoc().getRoot().getChildElementArray().length);
+		log.debug("xr: " + xr);
 		
 		String xmlResp = xr.getXML().toDisplayXML(0);
-		log.debug("xmlResp: " + xmlResp);
 		
 		InputStream is = new ByteArrayInputStream(xmlResp.getBytes());
 		
@@ -78,9 +75,6 @@ public class HomeAction extends ActionSupport implements ServletRequestAware {
 			JAXBContext jaxbContext = JAXBContext.newInstance(DeviceList.class);
 			Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 			DeviceList deviceList = (DeviceList) jaxbUnmarshaller.unmarshal(is);
-			
-			log.debug("0, deviceId: " + deviceList.getXMLDevice().get(0).getDeviceId());
-			log.debug("1, deviceId: " + deviceList.getXMLDevice().get(1).getDeviceId());
 			
 			device = deviceList.getXMLDevice();
 		} catch (JAXBException e) {
