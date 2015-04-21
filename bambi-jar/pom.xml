@@ -12,11 +12,11 @@
 		<version>2.2-SNAPSHOT</version>
 	</parent>
 
-	<name>CIP4-Bambi-jar</name>
+	<name>CIP4-Bambi Jar</name>
 	<url>http://www.cip4.org</url>
 
 	<build>
-		<finalName>${project.name}-${project.version}</finalName>
+		<finalName>CIP4-Bambi-jar-${project.version}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -59,6 +59,7 @@
 			<artifactId>bambi-war</artifactId>
 			<version>2.2-SNAPSHOT</version>
 		</dependency>
+
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
@@ -93,6 +94,12 @@
 			<groupId>org.eclipse.jetty.websocket</groupId>
 			<artifactId>websocket-server</artifactId>
 			<version>9.2.4.v20141103</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>jasper</artifactId>
+			<version>6.0.43</version>
 		</dependency>
 
 	</dependencies>

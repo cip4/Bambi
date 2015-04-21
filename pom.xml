@@ -9,6 +9,8 @@
 	<url>http://www.cip4.org</url>
     
 	<modules>
+		<module>bambi-struts</module>
+		<module>bambi-jar</module>
 		<module>bambi-app</module>
 		<module>bambi-war</module>
 	</modules>
@@ -151,6 +153,43 @@
 				<version>4.11</version>
 				<scope>test</scope>
 			</dependency>
+			
+<dependency>
+	<groupId>org.eclipse.jetty</groupId>
+	<artifactId>jetty-servlet</artifactId>
+	<version>9.2.4.v20141103</version>
+</dependency>
+<dependency>
+	<groupId>org.eclipse.jetty</groupId>
+	<artifactId>jetty-server</artifactId>
+	<version>9.2.4.v20141103</version>
+</dependency>
+<dependency>
+	<groupId>org.eclipse.jetty</groupId>
+	<artifactId>jetty-jsp</artifactId>
+	<version>9.2.4.v20141103</version>
+</dependency>
+<dependency>
+	<groupId>org.eclipse.jetty.aggregate</groupId>
+	<artifactId>jetty-all</artifactId>
+	<version>9.2.4.v20141103</version>
+</dependency>
+<dependency>
+	<groupId>org.eclipse.jetty</groupId>
+	<artifactId>jetty-webapp</artifactId>
+	<version>9.2.4.v20141103</version>
+</dependency>
+<dependency>
+    <groupId>org.eclipse.jetty.websocket</groupId>
+    <artifactId>websocket-server</artifactId>
+    <version>9.2.4.v20141103</version>
+</dependency>
+<dependency>
+    <groupId>org.eclipse.jetty</groupId>
+    <artifactId>apache-jsp</artifactId>
+    <version>9.2.4.v20141103</version>
+</dependency>
+
 		</dependencies>
 	</dependencyManagement>
 </project>
