@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "XMLDevice")
 public class XMLDevice {
 	private String deviceId;
+	private int queueAll;
 
 	public String getDeviceId() {
 		return deviceId;
@@ -15,5 +16,14 @@ public class XMLDevice {
 	@XmlAttribute(name = "DeviceID")
 	public void setDeviceId(String deviceId) {
 		this.deviceId = deviceId;
+	}
+
+	public int getQueueAll() {
+		return queueAll;
+	}
+
+	@XmlAttribute(name = "QueueAll")
+	public void setQueueAll(int queueAll) {
+		this.queueAll = queueAll;
 	}
 }
