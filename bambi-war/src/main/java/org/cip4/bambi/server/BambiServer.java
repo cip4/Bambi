@@ -75,9 +75,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.cip4.bambi.core.BambiException;
 import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.MultiDeviceProperties;
+import org.cip4.bambi.server.mockImpl.MySessionSocketCreator;
+import org.cip4.bambi.server.mockImpl.MyServiceWebSocket;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MyArgs;
@@ -101,6 +104,8 @@ import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
  */
 public class BambiServer extends JettyServer
 {
+	private final static Logger log = Logger.getLogger(BambiServer.class);
+	
 	public static final String BAMBI = "bambi";
 	final MultiDeviceProperties mp;
 
@@ -328,7 +333,8 @@ public class BambiServer extends JettyServer
 		contextHandler.addServlet(servletHolder, "/*");
 		
 		
-//		contextHandler.addServlet(StockServiceSocketServlet.class, "/echo");
+//		TODO this shall be moved to Bambi-NGUI
+		contextHandler.addServlet(StockServiceSocketServlet.class, "/echo");
 		
 		
 		return contextHandler;
@@ -384,38 +390,44 @@ public class BambiServer extends JettyServer
         if (null != webapp) {
             handlers.addHandler(webapp);
         }
+        System.out.println("handlers.length: " + handlers.getHandlers().length);
         
         ContextHandler handler2 = createWebSocketHandler();
         if (null != handler2) {
             handlers.addHandler(handler2);
         }
         
+		log.debug("handlers.length: " + handlers.getHandlers().length);
 		System.out.println("handlers.length: " + handlers.getHandlers().length);
 	}
 	
-	protected ContextHandler createWebSocketHandler() {
+//	TODO this shall be moved to Bambi-NGUI
+	private ContextHandler createWebSocketHandler() {
 		/*WebSocketHandler wsHandler = new WebSocketHandler() {
 	        @Override
 	        public void configure(WebSocketServletFactory factory) {
-	            factory.register(AdapterEchoSocket.class);
+	            factory.register(StockServiceSocketServlet.class /*AdapterEchoSocket.class* /);
 	        }
-	    };*/
+	    };
 	    
-		/*ContextHandler echoContext = new ContextHandler();
+		ContextHandler echoContext = new ContextHandler();
 		echoContext.setContextPath("/echo");
-		echoContext.setHandler(wsHandler);*/
-	    
-//	    ServletContextHandler echoContext = new ServletContextHandler();
-//	    echoContext.setContextPath("/echo");
-//	    echoContext.addServlet(StockServiceSocketServlet.class, "/echo");
+		echoContext.setHandler(wsHandler);
 		
-		return null /*echoContext*/;
+		return echoContext;*/
+	    
+		return null;
 	}
-	
-    /*public static class StockServiceSocketServlet extends WebSocketServlet {
+
+//	TODO this shall be moved to Bambi-NGUI
+    public static class StockServiceSocketServlet extends WebSocketServlet {
         @Override
         public void configure(WebSocketServletFactory factory) {
-            factory.register(StockServiceWebSocket.class);
+            factory.register(MyServiceWebSocket.class);
+            log.debug("registered websocket: " + this);
+            System.out.println("registered websocket: " + this);
+            
+            factory.setCreator(new MySessionSocketCreator());
         }
-    }*/
+    }
 }
