@@ -7,6 +7,7 @@ application = {
 		
 		
 		var ws = new WebSocket("ws://" + location.hostname + ":" + location.port + "/SimWorker/echo");
+//		var ws = new WebSocket("ws://" + location.hostname + ":" + location.port + "/bambi-ngui/echo");
 		ws.onopen = function () {
 			console.log('ws onopen');
 			ws.send("ky-ky! это я - такое сообщение!");
@@ -18,7 +19,8 @@ application = {
 			console.log('ws error', e);
 		};
 		ws.onmessage = function (e) {
-			console.log('ws onmessage', e);
+//			console.log('ws onmessage, full: ', e);
+			console.log('ws onmessage, data: ', e.data);
 		};
 	}
 };
