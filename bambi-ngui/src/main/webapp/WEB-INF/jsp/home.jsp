@@ -13,7 +13,7 @@
 
     <div>
     <s:iterator status="stat" value="devices">
-      <div style="display: table-row;" class="device">
+      <div id="<s:property value="deviceId"/>" style="display: table-row;" class="device">
         <div id="deviceId" style="display: table-cell;" class="deviceId"><s:property value="deviceId"/></div>
         <div id="queueAll" style="display: table-cell;" class="queueAll"><s:property value="queueAll"/></div>
       </div>

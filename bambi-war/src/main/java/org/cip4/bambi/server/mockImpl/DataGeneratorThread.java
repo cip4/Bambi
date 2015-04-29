@@ -5,6 +5,20 @@ public class DataGeneratorThread extends Thread {
 	private MyServiceWebSocket service;
 	private static int i;
 	
+	private static String sampleJson = "{\"employees\":"
+		+ "["
+			+ "{\"firstName\":\"John\", \"lastName\":\"Doe\"},"
+			+ "{\"firstName\":\"Anna\", \"lastName\":\"Smith\"},"
+			+ "{\"firstName\":\"Peter\", \"lastName\":\"Jones\"}"
+		+ "]"
+			+ "}";
+	
+	private static String templateDeviceQueueJson = 
+			"{"
+			+ "\"deviceId\":\"${deviceId}\","
+			+ "\"queueAll\":\"${queueAll}\""
+			+ "}";
+	
 	public void setStockServiceWebSocket(MyServiceWebSocket s) {
 		service = s;
 	}
@@ -13,11 +27,14 @@ public class DataGeneratorThread extends Thread {
 		while (true) {
 			try {
 				Thread.sleep(20000);
-				service.send("Это я - такой ответ! i: " + i);
+//				service.send(sampleJson);
+				
+				String s = templateDeviceQueueJson.replace("${deviceId}", "sim001").replace("${queueAll}", "" + i);
+				service.send(s);
+				
 				i++;
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				e.printStackTrace(System.out);
 			}
 		}
 	}

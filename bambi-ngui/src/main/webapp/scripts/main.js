@@ -21,6 +21,12 @@ application = {
 		ws.onmessage = function (e) {
 //			console.log('ws onmessage, full: ', e);
 			console.log('ws onmessage, data: ', e.data);
+			
+			var data = e.data;
+			var obj = JSON.parse(data);
+			console.log('obj: ', obj);
+			
+			$("#" + obj.deviceId + " .queueAll").text(obj.queueAll);
 		};
 	}
 };
