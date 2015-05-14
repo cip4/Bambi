@@ -1,0 +1,49 @@
+body {
+  background-image: url("paper.gif");
+  background-repeat: repeat;
+  border: 1px solid;
+  margin: 0 auto;
+  text-align: center;
+  width: 1216px;
+}
+
+body, table, form, input, td, th, p, textarea, select {
+  font-family: Verdana, Helvetica, sans serif;
+  font-size: 11px;
+}
+
+.pane {
+  background: none repeat scroll 0 0 #fff;
+  border: 1px solid #bbb;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.left-panel {
+  border: 1px solid #bbb;
+  vertical-align: top;
+  width: 20%;
+}
+
+.main-panel {
+  border: 1px solid #bbb;
+}
+
+.running {
+  background-color: #74da20;
+}
+
+.status-bar {
+  height: 4px;
+  /*margin-top: 30px;*/
+  width: 150px;
+}
+
+.button {
+  background-color: #bbb;
+  float: right;
+}
+
+.hide {
+  display: none;
+}
