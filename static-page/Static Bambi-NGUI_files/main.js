@@ -8,6 +8,22 @@ application = {
 			$(this).parent().parent().siblings(".main-panel").children(".queue-entries").toggleClass("hide");
 		});
 		
+		$(".icon-level").bind('click', function(e) {
+			console.log("change level");
+			var parentEl = $(this).parent();
+			
+			if (parentEl.hasClass("view-level-1")) {
+				parentEl.toggleClass("view-level-1");
+				parentEl.toggleClass("view-level-2");
+			} else if (parentEl.hasClass("view-level-2")) {
+				parentEl.toggleClass("view-level-2");
+				parentEl.toggleClass("view-level-3");
+			} else {
+				parentEl.toggleClass("view-level-3");
+				parentEl.toggleClass("view-level-1");
+			}
+		});
+		
 		console.log("all ok: page loaded, scripts fired");
 		console.log("window.location: " + window.location);
 		console.log("location.hostname: " + location.hostname);
