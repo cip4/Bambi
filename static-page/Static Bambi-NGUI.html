@@ -1,8 +1,10 @@
 <html>
 <head>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <link type="text/css" rel="stylesheet" href="Static%20Bambi-NGUI_files/main.css">
+    <link type="text/css" rel="stylesheet" href="Static%20Bambi-NGUI_files/css/main.css">
     <script type="text/javascript" src="Static%20Bambi-NGUI_files/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" src="Static%20Bambi-NGUI_files/jquery/jquery-ui.min.js"></script>
+    
     <script type="text/javascript" src="Static%20Bambi-NGUI_files/main.js"></script>
     <title>Bambi Sim Device Root - Overview</title>
 </head>
@@ -18,11 +20,11 @@
     <table class="pane">
       <tbody>
         <tr>
-          <td class="left-panel">
-            <div>Device-01
-              <span class="button details">[Show details]</span>
+          <td class="left-panel device-Device-01">
+            <div><b>Device: Device-01</b>
+              <span class="button details" title="Show details"></span>
             </div>
-            <div class="status-bar running"></div>
+            <div class="device-status-bar running"></div>
             <div class="device-details hide">
               <div>* ID: xxx</div>
               <div>* URL: xxx</div>
@@ -32,18 +34,21 @@
               <div>* Error Hot Folder: xxx</div>
             </div>
             <div>&nbsp;</div>
-            <div>Queue-01
-              <span class="button entries">[Show entries]</span>
+            <div class="queue-header">Queue
+              <span class="button entries" title="Show entries"></span>
             </div>
-            <div class="status-bar running"></div>
-            <div title="Waiting/Running/Completed/All">Queue stat: 0/0/3/3</div>
+            <div class="queue-status-bar running"></div>
+            <div class="queue-stat">
+              <span title="Waiting/Running/Completed/All">Queue stat:</span>
+              <span class="queue-stat-value">0/0/3/3</span>
+            </div>
           </td>
           <td class="main-panel">
           <div class="queue-entries hide">
             <div class="view-level-1">
               <div class="icon-level"></div>
               <div class="" style="display:inline-block;">Job ID: 01</div>
-              <div class="status-bar running"></div>
+              <div class="queue-status-bar running"></div>
               <div>* Submission: 2015-MAR-08 12:34:56</div>
               <div class="view level-basic">
                 <div>* Priority: xxx</div>
@@ -59,7 +64,7 @@
             <div class="view-level-1">
               <div class="icon-level"></div>
               <div class="" style="display:inline-block;">Job ID: 02</div>
-              <div class="status-bar running"></div>
+              <div class="queue-status-bar running"></div>
               <div>* Submission: 2015-MAR-08 12:34:56</div>
               <div class="view level-basic">
                 <div>* Priority: xxx</div>
@@ -75,7 +80,7 @@
             <div class="view-level-1">
               <div class="icon-level"></div>
               <div class="" style="display:inline-block;">Job ID: 03</div>
-              <div class="status-bar running"></div>
+              <div class="queue-status-bar running"></div>
               <div>* Submission: 2015-MAR-08 12:34:56</div>
               <div class="view level-basic">
                 <div>* Priority: xxx</div>
@@ -92,11 +97,11 @@
           </td>
         </tr>
         <tr>
-          <td class="left-panel">
-            <div>Device-02
-              <span class="button details">[Show details]</span>
+          <td class="left-panel device-Device-02">
+            <div><b>Device: Device-02</b>
+              <span class="button details" title="Show details"></span>
             </div>
-            <div class="status-bar running"></div>
+            <div class="device-status-bar running"></div>
             <div class="device-details hide">
               <div>* ID: xxx</div>
               <div>* URL: xxx</div>
@@ -106,11 +111,14 @@
               <div>* Error Hot Folder: xxx</div>
             </div>
             <div>&nbsp;</div>
-            <div>Queue-02
-              <span class="button entries">[Show entries]</span>
+            <div class="queue-header">Queue
+              <span class="button entries" title="Show entries"></span>
             </div>
-            <div class="status-bar running"></div>
-            <div title="Waiting/Running/Completed/All">Queue stat: 0/0/0/0</div>
+            <div class="queue-status-bar running"></div>
+            <div class="queue-stat">
+              <span title="Waiting/Running/Completed/All">Queue stat:</span>
+              <span class="queue-stat-value">0/0/0/0</span>
+            </div>
           </td>
           <td class="main-panel">
             <div class="queue-entries hide">...list of queue entries</div>
@@ -118,10 +126,10 @@
         </tr>
         <tr>
           <td class="left-panel">
-            <div>Device-03
-              <span class="button details">[Show details]</span>
+            <div><b>Device: Device-03</b>
+              <span class="button details" title="Show details"></span>
             </div>
-            <div class="status-bar running"></div>
+            <div class="device-status-bar running"></div>
             <div class="device-details hide">
               <div>* ID: xxx</div>
               <div>* URL: xxx</div>
@@ -131,11 +139,14 @@
               <div>* Error Hot Folder: xxx</div>
             </div>
             <div>&nbsp;</div>
-            <div>Queue-03
-              <span class="button entries">[Show entries]</span>
+            <div class="queue-header">Queue
+              <span class="button entries" title="Show entries"></span>
             </div>
-            <div class="status-bar running"></div>
-            <div title="Waiting/Running/Completed/All">Queue stat: 0/0/0/0</div>
+            <div class="queue-status-bar running"></div>
+            <div class="queue-stat">
+              <span title="Waiting/Running/Completed/All">Queue stat:</span>
+              <span>0/0/0/0</span>
+            </div>
           </td>
           <td class="main-panel">
             <div class="queue-entries hide">...list of queue entries</div>
@@ -143,6 +154,17 @@
         </tr>
       </tbody>
     </table>
+    
+    <!--div class="table pane">
+      <div class="table-tr" style="height:50px">
+        <div class="table-td" style="width: 20%; float: left;">td-1</div>
+        <div class="table-td" style="width: 80%; float: left;">td-2</div>
+      </div>
+      <div class="table-tr" style="height:50px">
+        <div class="table-td" style="width: 20%; float: left;">td-3</div>
+        <div class="table-td" style="width: 80%; float: left;">td-4</div>
+      </div>
+    </div-->
 
 </body>
 </html>

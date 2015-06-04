@@ -1,3 +1,4 @@
+var i = 0;
 application = {
 	bindAll : function() {
 		$(".button.details").bind('click', function(e) {
@@ -7,6 +8,17 @@ application = {
 		$(".button.entries").bind('click', function(e) {
 			$(this).parent().parent().siblings(".main-panel").children(".queue-entries").toggleClass("hide");
 		});
+		
+		setInterval(function() {
+			console.log('i: ' + i);
+			$(".device-Device-01 .queue-stat-value").text("0/0/0/" + i);
+			$(".device-Device-01 .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);
+			
+			$(".device-Device-02 .queue-stat-value").text("0/0/0/" + i);
+			$(".device-Device-02 .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);
+			
+			i++;
+		}, 3000);
 		
 		$(".icon-level").bind('click', function(e) {
 			console.log("change level");

@@ -1,5 +1,5 @@
 body {
-  background-image: url("images/paper.gif");
+  background-image: url("../images/paper.gif");
   background-repeat: repeat;
   border: 1px solid;
   margin: 0 auto;
@@ -33,27 +33,64 @@ body, table, form, input, td, th, p, textarea, select {
   background-color: #74da20;
 }
 
-.status-bar {
+.device-status-bar {
   height: 4px;
   /*margin-top: 30px;*/
   width: 150px;
 }
 
+.queue-status-bar {
+  height: 4px;
+  margin-left: 15px;
+  width: 135px;
+}
+
+.queue-header {
+  margin-left: 15px;
+}
+
+.queue-stat {
+  margin-left: 15px;
+}
+
 .button {
   background-color: #bbb;
   float: right;
+  height: 16px;
+  width: 16px;
 }
+
+.button.details {
+  background: url("../images/information.png") no-repeat;
+}
+
+.button.entries {
+  background: url("../images/application_view_list.png") no-repeat;
+}
+
 
 .hide {
   display: none;
 }
 
 .icon-level {
-  background: url("images/eye.png") no-repeat;
   display: inline-block;
   height: 16px;
   width: 16px;
 }
+
+.view-level-1 .icon-level {
+  background: url("../images/lightbulb_off.png") no-repeat;
+}
+
+.view-level-2 .icon-level {
+  background: url("../images/lightbulb.png") no-repeat;
+}
+
+.view-level-3 .icon-level {
+  background: url("../images/lightbulb.png") no-repeat;
+}
+
 
 .view-level-1 .level-basic {
   display: none;
