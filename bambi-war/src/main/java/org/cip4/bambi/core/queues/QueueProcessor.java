@@ -1265,12 +1265,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				nextinvert = null;
 				lastSortBy = null;
 			}
+			reduceLength(root);
 			return root;
 		}
 
 		/**
 		 * filter the queue by string
-		 * @param root
+		 * 
 		 * @param filter
 		 * @return
 		 */
@@ -1322,11 +1323,14 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				root = cloneQueue();
 			}
-			reduceLength(root);
 			return root;
 		}
 
-		void reduceLength(final JDFQueue root)
+		/**
+		 * 
+		 * @param root
+		 */
+		protected void reduceLength(final JDFQueue root)
 		{
 			final VElement v = root.getChildElementVector(ElementName.QUEUEENTRY, null);
 			final int size = v.size();
