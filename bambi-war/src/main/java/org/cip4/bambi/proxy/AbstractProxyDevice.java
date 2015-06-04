@@ -526,35 +526,41 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @param fDeviceErrorOutput
+	 * @param deviceErrorOutput
 	 */
-	private void reloadSlaveErrorHF(final File fDeviceErrorOutput)
+	private void reloadSlaveErrorHF(final File deviceErrorOutput)
 	{
 		if (slaveJDFError != null)
 		{
 			slaveJDFError.stop();
 			slaveJDFError = null;
 		}
-		final File hfStorage = new File(getBaseDir() + File.separator + "HFDevTmpStorage" + File.separator + getDeviceID());
-		log.info("Device error output HF:" + fDeviceErrorOutput.getPath() + " device ID= " + getSlaveDeviceID());
-		final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
-		slaveJDFError = new QueueHotFolder(fDeviceErrorOutput, hfStorage, null, new ReturnHFListner(this, EnumQueueEntryStatus.Aborted), rqCommand);
+		if (deviceErrorOutput != null)
+		{
+			final File hfStorage = new File(getBaseDir() + File.separator + "HFDevTmpStorage" + File.separator + getDeviceID());
+			log.info("Device error output HF:" + deviceErrorOutput.getPath() + " device ID= " + getSlaveDeviceID());
+			final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
+			slaveJDFError = new QueueHotFolder(deviceErrorOutput, hfStorage, null, new ReturnHFListner(this, EnumQueueEntryStatus.Aborted), rqCommand);
+		}
 	}
 
 	/**
-	 * @param fDeviceJDFOutput
+	 * @param deviceJDFOutput
 	 */
-	private void reloadSlaveOutputHF(final File fDeviceJDFOutput)
+	private void reloadSlaveOutputHF(final File deviceJDFOutput)
 	{
 		if (slaveJDFOutput != null)
 		{
 			slaveJDFOutput.stop();
 			slaveJDFOutput = null;
 		}
-		final File hfStorage = new File(getDeviceDir() + File.separator + "HFDevTmpStorage");
-		log.info("Device output HF:" + fDeviceJDFOutput.getPath() + " device ID= " + getSlaveDeviceID());
-		final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
-		slaveJDFOutput = new QueueHotFolder(fDeviceJDFOutput, hfStorage, null, new ReturnHFListner(this, EnumQueueEntryStatus.Completed), rqCommand);
+		if (deviceJDFOutput != null)
+		{
+			final File hfStorage = new File(getDeviceDir() + File.separator + "HFDevTmpStorage");
+			log.info("Device output HF:" + deviceJDFOutput.getPath() + " device ID= " + getSlaveDeviceID());
+			final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
+			slaveJDFOutput = new QueueHotFolder(deviceJDFOutput, hfStorage, null, new ReturnHFListner(this, EnumQueueEntryStatus.Completed), rqCommand);
+		}
 	}
 
 	/**
@@ -978,6 +984,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			properties.setSlaveErrorHF(newHFF);
 			properties.serialize();
+			reloadSlaveErrorHF(newHFF);
 		}
 	}
 
@@ -995,6 +1002,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			properties.setSlaveOutputHF(newHFF);
 			properties.serialize();
+			reloadSlaveOutputHF(newHFF);
 		}
 	}
 
@@ -1012,6 +1020,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			properties.setSlaveInputHF(newHFF);
 			properties.serialize();
+			// no reloading is necessary - this hf is listned to by the slave
 		}
 	}
 
@@ -1146,6 +1155,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		super.reset();
 		waitingSubscribers.clear();
 		addSlaveSubscriptions(1000, null, true);
+		reloadSlaveErrorHF(null);
+		reloadSlaveOutputHF(null);
+		prepareSlaveHotfolders(getProperties());
 	}
 
 	/**

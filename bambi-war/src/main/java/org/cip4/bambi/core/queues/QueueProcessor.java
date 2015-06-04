@@ -1322,6 +1322,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				root = cloneQueue();
 			}
+			reduceLength(root);
+			return root;
+		}
+
+		void reduceLength(final JDFQueue root)
+		{
 			final VElement v = root.getChildElementVector(ElementName.QUEUEENTRY, null);
 			final int size = v.size();
 			root.setAttribute("TotalQueueSize", size, null);
@@ -1340,7 +1346,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					v.get(i).deleteNode();
 				}
 			}
-			return root;
 		}
 
 		/**

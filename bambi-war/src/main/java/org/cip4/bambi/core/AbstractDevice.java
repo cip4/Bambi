@@ -1215,6 +1215,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			}
 		}
 		copyToCache();
+
+		createHotFolder(null);
+		final File hfURL = getInputHFUrl();
+		createHotFolder(hfURL);
 	}
 
 	/**
