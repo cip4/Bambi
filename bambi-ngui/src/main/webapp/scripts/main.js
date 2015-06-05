@@ -59,6 +59,7 @@ application = {
 					obj.UpdateUI.queueCompleted + "/" + obj.UpdateUI.queueAll;
 			
 			$(".device-" + obj.UpdateUI.JMF.SenderID + " .queue-stat-value").text(v);
+			$(".device-" + obj.UpdateUI.JMF.SenderID + " .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);
 			
 //			$("#" + obj.deviceId + " .queueAll").text(obj.queueAll);
 		};

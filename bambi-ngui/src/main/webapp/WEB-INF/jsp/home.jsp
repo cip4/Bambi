@@ -4,6 +4,8 @@
 <head>
   <link type="text/css" rel="stylesheet" href="<s:url value="/css/main.css" />" />
   <script type="text/javascript" src="<s:url value="/scripts/jquery-1.11.2.min.js" />"></script>
+  <script type="text/javascript" src="<s:url value="/scripts/jquery/jquery-ui.min.js" />"></script>
+
   <script type="text/javascript" src="<s:url value="/scripts/main.js" />"></script>
   <title><s:text name="home.title"/></title>
 </head>

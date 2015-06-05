@@ -901,8 +901,10 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 			return;
 		}
 		
+		System.out.println("About to notify total observers: " + observersList.size());
+		
 		String xmlRespStr = xmlResponse.getXML().toDisplayXML(2);
-		System.out.println("xmlRespStr: " + xmlRespStr);
+//		System.out.println("xmlRespStr: " + xmlRespStr);
 		
 		String updateUIXml = "<UpdateUI " + parseQueue(xmlRespStr) + ">" + xmlRespStr + "</UpdateUI>";
 		
@@ -910,14 +912,14 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 		System.out.println("jsonObj.toString: " + jsonObj.toString());
 		
 		for (Observer obs : observersList) {
-			System.out.println("notifyListeners obs:" + obs);
+//			System.out.println("notifyListeners obs:" + obs);
 			obs.refreshData(this, jsonObj.toString());
 		}
 	}
 	
 	private String parseQueue(final String xmlRespStr) {
 		String xmlRespFixed = StringUtils.remove(xmlRespStr, "xmlns=\"http://www.CIP4.org/JDFSchema_1_1\"");
-		System.out.println("xmlRespFixed: " + xmlRespFixed);
+//		System.out.println("xmlRespFixed: " + xmlRespFixed);
 		
 		String result = "queueWaiting='-' queueRunning='-' queueCompleted='-' queueAll='-'";
 		
@@ -942,14 +944,14 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 			Integer complet = Integer.parseInt(completResult);
 			Integer all = waiting + running + complet;
 			
-			System.out.println("waiting: " + waitingResult + ", running: " + runningResult + ", completed: " + completResult);
+//			System.out.println("waiting: " + waitingResult + ", running: " + runningResult + ", completed: " + completResult);
 			
 			result = StringUtils.replaceOnce(result, "-", "" + waiting);
 			result = StringUtils.replaceOnce(result, "-", "" + running);
 			result = StringUtils.replaceOnce(result, "-", "" + complet);
 			result = StringUtils.replaceOnce(result, "-", "" + all);
 			
-			System.out.println("result: " + result);
+//			System.out.println("result: " + result);
 			
 			return result;
 		} catch (ParserConfigurationException e) {
