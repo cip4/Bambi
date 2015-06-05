@@ -74,6 +74,11 @@
 			<artifactId>jetty-all</artifactId>
 			<version>9.2.4.v20141103</version>
 		</dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20140107</version>
+        </dependency>
 	</dependencies>
 
 </project>

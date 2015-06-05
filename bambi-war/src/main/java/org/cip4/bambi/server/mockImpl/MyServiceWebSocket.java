@@ -7,6 +7,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
+import org.cip4.bambi.core.BambiContainer;
+import org.cip4.bambi.core.Observable;
+import org.cip4.bambi.core.Observer;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
@@ -14,16 +17,18 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.common.WebSocketSession;
+import org.json.JSONObject;
+import org.json.XML;
 
 @WebSocket
-public class MyServiceWebSocket {
+public class MyServiceWebSocket implements Observer {
 	private final static Logger log = Logger.getLogger(MyServiceWebSocket.class);
 	
 	private HttpSession httpSession;
     private Session session;
     private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     
-    private static DataGeneratorThread t;
+//    private static DataGeneratorThread t;
     
     MyServiceWebSocket(HttpSession httpSession) {
     	this.httpSession = httpSession;
@@ -38,9 +43,11 @@ public class MyServiceWebSocket {
     	this.session = session;
     	System.out.println("handleConnect, session=" + session);
     	
-    	t = new DataGeneratorThread();
-    	t.setStockServiceWebSocket(this);
-    	t.start();
+//    	t = new DataGeneratorThread();
+//    	t.setStockServiceWebSocket(this);
+//    	t.start();
+    	
+    	BambiContainer.getInstance().addListener(this);
     }
 
     // called when the connection closed
@@ -48,6 +55,8 @@ public class MyServiceWebSocket {
     public void handleClose(int statusCode, String reason) {
     	log.debug("handleClose, statusCode=" + statusCode + ", reason=" + reason);
     	System.out.println("handleClose, statusCode=" + statusCode + ", reason=" + reason);
+    	
+    	BambiContainer.getInstance().removeListener(this);
     }
 
     // called when a message received from the browser
@@ -86,4 +95,12 @@ public class MyServiceWebSocket {
             log.error("Error", e);
         }
     }
+
+	@Override
+	public void refreshData(final Observable observable, final String jsonObj) {
+		System.out.println("---> UPDATE occurred in observable: " + observable);
+		
+		send(jsonObj);
+	}
+
 }

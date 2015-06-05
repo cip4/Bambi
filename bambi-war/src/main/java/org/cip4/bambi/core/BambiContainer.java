@@ -70,14 +70,26 @@
  */
 package org.cip4.bambi.core;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
+import org.apache.commons.lang.StringUtils;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
@@ -100,6 +112,11 @@ import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.zip.ZipReader;
+import org.json.JSONObject;
+import org.json.XML;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * class that handles all bambi JDF/JMF requests - regardless of the servlet context
@@ -109,8 +126,9 @@ import org.cip4.jdflib.util.zip.ZipReader;
  * note that the get handling routines still assume a servlet context - only the actual JDF / JMF post does not
  * @author Rainer Prosi, Heidelberger Druckmaschinen 
  */
-public final class BambiContainer extends BambiLogFactory
+public final class BambiContainer extends BambiLogFactory implements Observable
 {
+	private List<Observer> observersList = new ArrayList<Observer>();
 	/**
 	 * use getCreateInstance from outside
 	 */
@@ -527,6 +545,9 @@ public final class BambiContainer extends BambiLogFactory
 					r = processError(request.getRequestURI(), EnumType.Notification, 9, ctWarn);
 				}
 			}
+			
+//			notify subscribers about recent changes
+			notifyListeners(r);
 		}
 		else
 		// get request
@@ -859,6 +880,89 @@ public final class BambiContainer extends BambiLogFactory
 	public MultiDeviceProperties getProps()
 	{
 		return props;
+	}
+
+	@Override
+	public void addListener(final Observer obs) {
+		System.out.println("addListener obs:" + obs);
+		observersList.add(obs);
+	}
+
+	@Override
+	public void removeListener(final Observer obs) {
+		System.out.println("removeListener obs:" + obs);
+		observersList.remove(obs);
+	}
+
+	@Override
+	public void notifyListeners(final XMLResponse xmlResponse) {
+		if (observersList.size() == 0) {
+			System.out.println("No observers available, skipping current notification");
+			return;
+		}
+		
+		String xmlRespStr = xmlResponse.getXML().toDisplayXML(2);
+		System.out.println("xmlRespStr: " + xmlRespStr);
+		
+		String updateUIXml = "<UpdateUI " + parseQueue(xmlRespStr) + ">" + xmlRespStr + "</UpdateUI>";
+		
+		JSONObject jsonObj = XML.toJSONObject(updateUIXml);
+		System.out.println("jsonObj.toString: " + jsonObj.toString());
+		
+		for (Observer obs : observersList) {
+			System.out.println("notifyListeners obs:" + obs);
+			obs.refreshData(this, jsonObj.toString());
+		}
+	}
+	
+	private String parseQueue(final String xmlRespStr) {
+		String xmlRespFixed = StringUtils.remove(xmlRespStr, "xmlns=\"http://www.CIP4.org/JDFSchema_1_1\"");
+		System.out.println("xmlRespFixed: " + xmlRespFixed);
+		
+		String result = "queueWaiting='-' queueRunning='-' queueCompleted='-' queueAll='-'";
+		
+		DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+		domFactory.setNamespaceAware(true); 
+	    try {
+			DocumentBuilder builder = domFactory.newDocumentBuilder();
+			InputSource is = new InputSource(new ByteArrayInputStream(xmlRespFixed.getBytes("utf-8")));
+			Document doc = builder.parse(is);
+			
+			XPath xpath = XPathFactory.newInstance().newXPath();
+			XPathExpression waitingQueueElementsExpr = xpath.compile("count(/JMF/Response/Queue/QueueEntry[@Status='Waiting'])");
+			XPathExpression runningQueueElementsExpr = xpath.compile("count(/JMF/Response/Queue/QueueEntry[@Status='Running'])");
+			XPathExpression completQueueElementsExpr = xpath.compile("count(/JMF/Response/Queue/QueueEntry[@Status='Completed'])");
+			
+			String waitingResult = (String) waitingQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
+			String runningResult = (String) runningQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
+			String completResult = (String) completQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
+			
+			Integer waiting = Integer.parseInt(waitingResult);
+			Integer running = Integer.parseInt(runningResult);
+			Integer complet = Integer.parseInt(completResult);
+			Integer all = waiting + running + complet;
+			
+			System.out.println("waiting: " + waitingResult + ", running: " + runningResult + ", completed: " + completResult);
+			
+			result = StringUtils.replaceOnce(result, "-", "" + waiting);
+			result = StringUtils.replaceOnce(result, "-", "" + running);
+			result = StringUtils.replaceOnce(result, "-", "" + complet);
+			result = StringUtils.replaceOnce(result, "-", "" + all);
+			
+			System.out.println("result: " + result);
+			
+			return result;
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace(System.out);
+		} catch (SAXException e) {
+			e.printStackTrace(System.out);
+		} catch (IOException e) {
+			e.printStackTrace(System.out);
+		} catch (XPathExpressionException e) {
+			e.printStackTrace(System.out);
+		}
+	    
+	    return result;
 	}
 
 }
