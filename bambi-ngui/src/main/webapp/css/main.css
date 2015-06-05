@@ -1,6 +1,117 @@
 body {
+  background-image: url("../images/paper.gif");
+  background-repeat: repeat;
   border: 1px solid;
   margin: 0 auto;
   text-align: center;
   width: 1216px;
+}
+
+body, table, form, input, td, th, p, textarea, select {
+  font-family: Verdana, Helvetica, sans serif;
+  font-size: 11px;
+}
+
+.pane {
+  background: none repeat scroll 0 0 #fff;
+  border: 1px solid #bbb;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.left-panel {
+  border: 1px solid #bbb;
+  vertical-align: top;
+  width: 20%;
+}
+
+.main-panel {
+  border: 1px solid #bbb;
+}
+
+.running {
+  background-color: #74da20;
+}
+
+.device-status-bar {
+  height: 4px;
+  /*margin-top: 30px;*/
+  width: 150px;
+}
+
+.queue-status-bar {
+  height: 4px;
+  margin-left: 15px;
+  width: 135px;
+}
+
+.queue-header {
+  margin-left: 15px;
+}
+
+.queue-stat {
+  margin-left: 15px;
+}
+
+.button {
+  background-color: #bbb;
+  float: right;
+  height: 16px;
+  width: 16px;
+}
+
+.button.details {
+  background: url("../images/information.png") no-repeat;
+}
+
+.button.entries {
+  background: url("../images/application_view_list.png") no-repeat;
+}
+
+
+.hide {
+  display: none;
+}
+
+.icon-level {
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+}
+
+.view-level-1 .icon-level {
+  background: url("../images/lightbulb_off.png") no-repeat;
+}
+
+.view-level-2 .icon-level {
+  background: url("../images/lightbulb.png") no-repeat;
+}
+
+.view-level-3 .icon-level {
+  background: url("../images/lightbulb.png") no-repeat;
+}
+
+
+.view-level-1 .level-basic {
+  display: none;
+}
+
+.view-level-1 .level-full {
+  display: none;
+}
+
+.view-level-2 .level-basic {
+  display: block;
+}
+
+.view-level-2 .level-full {
+  display: none;
+}
+
+.view-level-3 .level-basic {
+  display: block;
+}
+
+.view-level-3 .level-full {
+  display: block;
 }
