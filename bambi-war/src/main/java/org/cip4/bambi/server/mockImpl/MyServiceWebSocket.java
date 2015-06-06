@@ -1,6 +1,7 @@
 package org.cip4.bambi.server.mockImpl;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -29,8 +30,14 @@ public class MyServiceWebSocket implements Observer {
     private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     
 //    private static DataGeneratorThread t;
+    private static final PingClientThread t;
     
-    MyServiceWebSocket(HttpSession httpSession) {
+    static {
+    	t = new PingClientThread();
+    	t.start();
+    }
+    
+    public MyServiceWebSocket(HttpSession httpSession) {
     	this.httpSession = httpSession;
     	
     	System.out.println("StockServiceWebSocket, httpSession: " + httpSession);
@@ -48,6 +55,7 @@ public class MyServiceWebSocket implements Observer {
 //    	t.start();
     	
     	BambiContainer.getInstance().addListener(this);
+    	t.addPingListener(this);
     }
 
     // called when the connection closed
@@ -57,6 +65,7 @@ public class MyServiceWebSocket implements Observer {
     	System.out.println("handleClose, statusCode=" + statusCode + ", reason=" + reason);
     	
     	BambiContainer.getInstance().removeListener(this);
+    	t.removePingListener(this);
     }
 
     // called when a message received from the browser
@@ -67,11 +76,11 @@ public class MyServiceWebSocket implements Observer {
 
     // called in case of an error
     @OnWebSocketError
-    public void handleError(Throwable error) {
-    	error.printStackTrace();
+    public void handleError(Throwable t) {
+    	System.out.println("Error: " + t.getMessage());
+    	t.printStackTrace();
     	
-        log.error("Error", error);
-        System.out.println("Error: " + error.getMessage());
+        log.error("Error: " + t.getMessage(), t);
     }
  
     // sends message to browser
@@ -79,6 +88,24 @@ public class MyServiceWebSocket implements Observer {
         try {
             if (session.isOpen()) {
                 session.getRemote().sendString(message);
+                
+                String data = "You There?";
+                ByteBuffer payload = ByteBuffer.wrap(data.getBytes());
+                
+                session.getRemote().sendPing(payload);
+            }
+        } catch (IOException e) {
+            log.error("Error", e);
+        }
+    }
+    
+    public void sendPing() {
+        try {
+            if (session.isOpen()) {
+                String data = "You There?";
+                ByteBuffer payload = ByteBuffer.wrap(data.getBytes());
+                
+                session.getRemote().sendPing(payload);
             }
         } catch (IOException e) {
             log.error("Error", e);

@@ -1,6 +1,6 @@
 package org.cip4.bambi.server.mockImpl;
 
-
+@Deprecated
 public class DataGeneratorThread extends Thread {
 	private MyServiceWebSocket service;
 	private static int i;
