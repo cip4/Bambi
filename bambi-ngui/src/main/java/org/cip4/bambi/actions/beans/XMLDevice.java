@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "XMLDevice")
 public class XMLDevice {
 	private String deviceId;
+	private String deviceStatus;
 	private int queueAll;
 	private int queueCompleted;
 	private int queueRunning;
@@ -20,6 +21,15 @@ public class XMLDevice {
 	@XmlAttribute(name = "DeviceID")
 	public void setDeviceId(String deviceId) {
 		this.deviceId = deviceId;
+	}
+
+	public String getDeviceStatus() {
+		return deviceStatus;
+	}
+
+	@XmlAttribute(name = "DeviceStatus")
+	public void setDeviceStatus(String deviceStatus) {
+		this.deviceStatus = deviceStatus;
 	}
 
 	public int getQueueAll() {

@@ -50,19 +50,32 @@ application = {
 			var obj = JSON.parse(data);
 			console.log('obj: ', obj);
 			
-			console.log('SenderID: ', obj.UpdateUI.JMF.SenderID);
-			console.log('queue.lenght: ', obj.UpdateUI.JMF.Response.Queue.QueueEntry.length);
+			console.log('SenderID: ', obj.UpdateDeviceQueue.JMF.SenderID);
+			console.log('queue.lenght: ', obj.UpdateDeviceQueue.JMF.Response.Queue.QueueEntry.length);
 			
-//			var queueAll = obj.UpdateUI.JMF.Response.Queue.QueueEntry.length;
-			var v = obj.UpdateUI.queueWaiting + "/" +
-					obj.UpdateUI.queueRunning + "/" +
-					obj.UpdateUI.queueCompleted + "/" + obj.UpdateUI.queueAll;
+//			var queueAll = obj.UpdateDeviceQueue.JMF.Response.Queue.QueueEntry.length;
+//			var v = obj.UpdateDeviceQueue.queueWaiting + "/" +
+//					obj.UpdateDeviceQueue.queueRunning + "/" +
+//					obj.UpdateDeviceQueue.queueCompleted + "/" +
+//					obj.UpdateDeviceQueue.queueAll;
 			
-			$(".device-" + obj.UpdateUI.JMF.SenderID + " .queue-stat-value").text(v);
-			$(".device-" + obj.UpdateUI.JMF.SenderID + " .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);
+//			if () {
+//			}
 			
-//			$("#" + obj.deviceId + " .queueAll").text(obj.queueAll);
+			application.updateDeviceQueue(obj);
+//			$(".device-" + obj.UpdateDeviceQueue.JMF.SenderID + " .queue-stat-value").text(v);
+//			$(".device-" + obj.UpdateDeviceQueue.JMF.SenderID + " .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);
 		};
+	},
+	
+	updateDeviceQueue : function(obj) {
+		var v = obj.UpdateDeviceQueue.queueWaiting + "/" +
+				obj.UpdateDeviceQueue.queueRunning + "/" +
+				obj.UpdateDeviceQueue.queueCompleted + "/" +
+				obj.UpdateDeviceQueue.queueAll;
+		
+		$(".device-" + obj.UpdateDeviceQueue.JMF.SenderID + " .queue-stat-value").text(v);
+		$(".device-" + obj.UpdateDeviceQueue.JMF.SenderID + " .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);
 	}
 	
 };

@@ -29,21 +29,56 @@ body, table, form, input, td, th, p, textarea, select {
   border: 1px solid #bbb;
 }
 
-.running {
-  background-color: #74da20;
-}
+
+
+/************* Device status *************/
 
 .device-status-bar {
+  background-color: #ff0000;
   height: 4px;
   /*margin-top: 30px;*/
   width: 150px;
 }
 
+.device-status-bar.running {
+  background-color: #74da20;
+}
+
+.device-status-bar.idle {
+  background-color: #ff7800;
+}
+
+/************* Queue status *************/
+
 .queue-status-bar {
+  background-color: #ff0000;
   height: 4px;
   margin-left: 15px;
   width: 135px;
 }
+
+.queue-status-bar.waiting {
+  background-color: #ff7800;
+}
+
+.queue-status-bar.held {
+  background-color: #000000;
+}
+
+/************* Job status *************/
+
+.job-status-bar {
+  background-color: #ff0000;
+  height: 4px;
+  margin-left: 15px;
+  width: 135px;
+}
+
+.job-status-bar.running {
+  background-color: #74da20;
+}
+
+
 
 .queue-header {
   margin-left: 15px;

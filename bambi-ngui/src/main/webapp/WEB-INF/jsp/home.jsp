@@ -34,7 +34,7 @@
               <s:param name="param1" value="<s:property value="queueAll"/>" />
             </s:include> --%>
 
-<div class="device-status-bar running"></div>
+<div class="device-status-bar <s:property value="deviceStatus"/>"></div>
 <div class="device-details hide">
   <div>* ID: xxx</div>
   <div>* URL: xxx</div>
@@ -48,7 +48,7 @@
 <div class="queue-header">Queue
   <span class="button entries" title="Show entries"></span>
 </div>
-<div class="queue-status-bar running"></div>
+<div class="queue-status-bar <s:property value="queueStatus"/>"></div>
 <div class="queue-stat">
   <span title="Waiting/Running/Completed/All">Queue stat:</span>
   <span class="queue-stat-value"><s:property value="queueWaiting"/>/<s:property value="queueRunning"/>/<s:property value="queueCompleted"/>/<s:property value="queueAll"/></span>

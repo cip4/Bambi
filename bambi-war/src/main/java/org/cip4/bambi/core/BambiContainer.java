@@ -906,7 +906,7 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 		String xmlRespStr = xmlResponse.getXML().toDisplayXML(2);
 //		System.out.println("xmlRespStr: " + xmlRespStr);
 		
-		String updateUIXml = "<UpdateUI " + parseQueue(xmlRespStr) + ">" + xmlRespStr + "</UpdateUI>";
+		String updateUIXml = "<UpdateDeviceQueue " + parseQueue(xmlRespStr) + ">" + xmlRespStr + "</UpdateDeviceQueue>";
 		
 		JSONObject jsonObj = XML.toJSONObject(updateUIXml);
 		System.out.println("jsonObj.toString: " + jsonObj.toString());
@@ -921,7 +921,7 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 		String xmlRespFixed = StringUtils.remove(xmlRespStr, "xmlns=\"http://www.CIP4.org/JDFSchema_1_1\"");
 //		System.out.println("xmlRespFixed: " + xmlRespFixed);
 		
-		String result = "queueWaiting='-' queueRunning='-' queueCompleted='-' queueAll='-'";
+		String result = "queueWaiting='-' queueRunning='-' queueCompleted='-' queueAll='-' queueStatus='-'";
 		
 		DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
 		domFactory.setNamespaceAware(true); 
@@ -934,10 +934,12 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 			XPathExpression waitingQueueElementsExpr = xpath.compile("count(/JMF/Response/Queue/QueueEntry[@Status='Waiting'])");
 			XPathExpression runningQueueElementsExpr = xpath.compile("count(/JMF/Response/Queue/QueueEntry[@Status='Running'])");
 			XPathExpression completQueueElementsExpr = xpath.compile("count(/JMF/Response/Queue/QueueEntry[@Status='Completed'])");
+			XPathExpression queueStatusExpr = xpath.compile("string(/JMF/Response/Queue/@Status)");
 			
 			String waitingResult = (String) waitingQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
 			String runningResult = (String) runningQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
 			String completResult = (String) completQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
+			String statusResult = (String) queueStatusExpr.evaluate(doc, XPathConstants.STRING);
 			
 			Integer waiting = Integer.parseInt(waitingResult);
 			Integer running = Integer.parseInt(runningResult);
@@ -950,6 +952,7 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 			result = StringUtils.replaceOnce(result, "-", "" + running);
 			result = StringUtils.replaceOnce(result, "-", "" + complet);
 			result = StringUtils.replaceOnce(result, "-", "" + all);
+			result = StringUtils.replaceOnce(result, "-", statusResult);
 			
 //			System.out.println("result: " + result);
 			
