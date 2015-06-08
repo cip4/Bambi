@@ -1,4 +1,6 @@
 var i = 0;
+var jobid = 0;
+
 application = {
 	bindAll : function() {
 		$(".button.details").bind('click', function(e) {
@@ -20,21 +22,34 @@ application = {
 			i++;
 		}, 3000);
 		
-		$(".icon-level").bind('click', function(e) {
-			console.log("change level");
-			var parentEl = $(this).parent();
+		setInterval(function() {
+			var jobCode =
+			'<div class="view-level-1 hide jobid-' + jobid + '">' +
+            '<div class="icon-level"></div>' +
+            '<div style="display:inline-block;" class="">Job ID: ' + jobid + '</div>' +
+            '<div class="queue-status-bar running"></div>' +
+            '<div>* Submission: 2015-MAR-08 12:34:56</div>' +
+            '<div class="view level-basic">' +
+              '<div>* Priority: xxx</div>' +
+              '<div>* Start: 2015-MAR-08 12:34:56</div>' +
+              '<div>* End: 2015-MAR-08 12:34:56</div>' +
+            '</div>' +
+            '<div class="view level-full">' +
+              '<div>* Attribute-01: xxx</div>' +
+              '<div>* Attribute-02: xxx</div>' +
+            '</div>' +
+            '<div>&nbsp;</div>' +
+          '</div>';
 			
-			if (parentEl.hasClass("view-level-1")) {
-				parentEl.toggleClass("view-level-1");
-				parentEl.toggleClass("view-level-2");
-			} else if (parentEl.hasClass("view-level-2")) {
-				parentEl.toggleClass("view-level-2");
-				parentEl.toggleClass("view-level-3");
-			} else {
-				parentEl.toggleClass("view-level-3");
-				parentEl.toggleClass("view-level-1");
-			}
-		});
+			$(".device-Device-01 .queue-entries").prepend(jobCode);
+			
+			$("tr.device-Device-01 .view-level-1.hide.jobid-" + jobid).fadeIn(1000);
+//			$("tr.device-Device-01 .view-level-1.hide").fadeIn(1000);
+			
+			jobid++;
+		}, 15000);
+		
+		application.setJobHandler();
 		
 		console.log("all ok: page loaded, scripts fired");
 		console.log("window.location: " + window.location);
@@ -64,6 +79,24 @@ application = {
 			
 			$("#" + obj.deviceId + " .queueAll").text(obj.queueAll);
 		};
+	},
+	
+	setJobHandler : function(obj) {
+		$("tr").delegate("div.icon-level", "click", function() {
+			console.log("change level");
+			var parentEl = $(this).parent();
+			
+			if (parentEl.hasClass("view-level-1")) {
+				parentEl.toggleClass("view-level-1");
+				parentEl.toggleClass("view-level-2");
+			} else if (parentEl.hasClass("view-level-2")) {
+				parentEl.toggleClass("view-level-2");
+				parentEl.toggleClass("view-level-3");
+			} else {
+				parentEl.toggleClass("view-level-3");
+				parentEl.toggleClass("view-level-1");
+			}
+		});
 	}
 };
 
