@@ -4,8 +4,10 @@
     <link type="text/css" rel="stylesheet" href="Static%20Bambi-NGUI_files/css/main.css">
     <script type="text/javascript" src="Static%20Bambi-NGUI_files/jquery-1.11.2.min.js"></script>
     <script type="text/javascript" src="Static%20Bambi-NGUI_files/jquery/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="Static%20Bambi-NGUI_files/jquery/jquery.tmpl.min.js"></script>
     
     <script type="text/javascript" src="Static%20Bambi-NGUI_files/main.js"></script>
+    <script type="text/javascript" src="Static%20Bambi-NGUI_files/data-generators.js"></script>
     <title>Bambi Sim Device Root - Overview</title>
 </head>
 
@@ -16,6 +18,25 @@
     <div style="float: right;">
       <input id="searchId" style="float: right;"></input>
     </div>
+    
+    <script type="text/html" id="jobTemplate">
+        <div class="view-level-1 hide jobid-${param.jobid}">
+            <div class="icon-level"></div>
+            <div style="display:inline-block;" class="">Job ID: ${param.jobid}</div>
+            <div class="queue-status-bar running"></div>
+            <div>* Submission: ${param.submission}</div>
+            <div class="view level-basic">
+              <div>* Priority: xxx</div>
+              <div>* Start: 2015-MAR-08 12:34:56</div>
+              <div>* End: 2015-MAR-08 12:34:56</div>
+            </div>
+            <div class="view level-full">
+              <div>* Attribute-01: xxx</div>
+              <div>* Attribute-02: xxx</div>
+            </div>
+            <div>&nbsp;</div>
+        </div>
+    </script>
     
     <table class="pane">
       <tbody>
@@ -40,7 +61,7 @@
             <div class="queue-status-bar running"></div>
             <div class="queue-stat">
               <span title="Waiting/Running/Completed/All">Queue stat:</span>
-              <span class="queue-stat-value">0/0/3/3</span>
+              <span class="queue-stat-value">0/0/0/3</span>
             </div>
           </td>
           <td class="main-panel">

@@ -1,6 +1,3 @@
-var i = 0;
-var jobid = 0;
-
 application = {
 	bindAll : function() {
 		$(".button.details").bind('click', function(e) {
@@ -10,44 +7,6 @@ application = {
 		$(".button.entries").bind('click', function(e) {
 			$(this).parent().parent().siblings(".main-panel").children(".queue-entries").toggleClass("hide");
 		});
-		
-		setInterval(function() {
-			console.log('i: ' + i);
-			$(".device-Device-01 .queue-stat-value").text("0/0/0/" + i);
-			$(".device-Device-01 .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);
-			
-			$(".device-Device-02 .queue-stat-value").text("0/0/0/" + i);
-			$(".device-Device-02 .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);
-			
-			i++;
-		}, 3000);
-		
-		setInterval(function() {
-			var jobCode =
-			'<div class="view-level-1 hide jobid-' + jobid + '">' +
-            '<div class="icon-level"></div>' +
-            '<div style="display:inline-block;" class="">Job ID: ' + jobid + '</div>' +
-            '<div class="queue-status-bar running"></div>' +
-            '<div>* Submission: 2015-MAR-08 12:34:56</div>' +
-            '<div class="view level-basic">' +
-              '<div>* Priority: xxx</div>' +
-              '<div>* Start: 2015-MAR-08 12:34:56</div>' +
-              '<div>* End: 2015-MAR-08 12:34:56</div>' +
-            '</div>' +
-            '<div class="view level-full">' +
-              '<div>* Attribute-01: xxx</div>' +
-              '<div>* Attribute-02: xxx</div>' +
-            '</div>' +
-            '<div>&nbsp;</div>' +
-          '</div>';
-			
-			$(".device-Device-01 .queue-entries").prepend(jobCode);
-			
-			$("tr.device-Device-01 .view-level-1.hide.jobid-" + jobid).fadeIn(1000);
-//			$("tr.device-Device-01 .view-level-1.hide").fadeIn(1000);
-			
-			jobid++;
-		}, 15000);
 		
 		application.setJobHandler();
 		
@@ -77,8 +36,36 @@ application = {
 			var obj = JSON.parse(data);
 			console.log('obj: ', obj);
 			
-			$("#" + obj.deviceId + " .queueAll").text(obj.queueAll);
+			application.updateDeviceQueue(obj);
+			application.addDeviceJob(obj);
 		};
+	},
+	
+	updateDeviceQueue : function(obj) {
+		if (obj.UpdateDeviceQueue === undefined) {
+			console.log("No UpdateDeviceQueue exists");
+			return;
+		}
+		
+		var v = obj.UpdateDeviceQueue.queueWaiting + "/" +
+				obj.UpdateDeviceQueue.queueRunning + "/" +
+				obj.UpdateDeviceQueue.queueCompleted + "/" +
+				obj.UpdateDeviceQueue.queueAll;
+		
+		$(".device-" + obj.UpdateDeviceQueue.JMF.SenderID + " .queue-stat-value").text(v);
+		$(".device-" + obj.UpdateDeviceQueue.JMF.SenderID + " .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);
+	},
+	
+	addDeviceJob : function(obj) {
+		if (obj.AddDeviceJob === undefined) {
+			console.log("No AddDeviceJob exists");
+			return;
+		}
+		
+		var job = $.tmpl($("#jobTemplate").html(), { param:obj.AddDeviceJob });
+		$(".device-" + obj.AddDeviceJob.DeviceId + " .queue-entries").prepend(job);
+		
+		$("tr.device-" + obj.AddDeviceJob.DeviceId + " .view-level-1.hide.jobid-" + obj.AddDeviceJob.jobid).fadeIn(1000);
 	},
 	
 	setJobHandler : function(obj) {
