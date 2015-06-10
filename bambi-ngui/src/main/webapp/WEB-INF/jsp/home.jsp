@@ -3,8 +3,9 @@
 <html>
 <head>
   <link type="text/css" rel="stylesheet" href="<s:url value="/css/main.css" />" />
-  <script type="text/javascript" src="<s:url value="/scripts/jquery-1.11.2.min.js" />"></script>
+  <script type="text/javascript" src="<s:url value="/scripts/jquery/jquery-1.11.2.min.js" />"></script>
   <script type="text/javascript" src="<s:url value="/scripts/jquery/jquery-ui.min.js" />"></script>
+  <script type="text/javascript" src="<s:url value="/scripts/jquery/jquery.tmpl.min.js" />"></script>
 
   <script type="text/javascript" src="<s:url value="/scripts/main.js" />"></script>
   <title><s:text name="home.title"/></title>
@@ -12,6 +13,25 @@
 
   <body>
     <h2><s:text name="home.title"/></h2>
+
+    <script type="text/html" id="jobTemplate">
+        <div class="view-level-1 hide jobid-${param.jobid}">
+            <div class="icon-level"></div>
+            <div style="display:inline-block;" class="">Job ID: ${param.jobid}</div>
+            <div class="queue-status-bar running"></div>
+            <div>* Submission: ${param.submission}</div>
+            <div class="view level-basic">
+              <div>* Priority: xxx</div>
+              <div>* Start: 2015-MAR-08 12:34:56</div>
+              <div>* End: 2015-MAR-08 12:34:56</div>
+            </div>
+            <div class="view level-full">
+              <div>* Attribute-01: xxx</div>
+              <div>* Attribute-02: xxx</div>
+            </div>
+            <div>&nbsp;</div>
+        </div>
+    </script>
 
     <%-- <div>
     <s:iterator status="stat" value="devices">
@@ -30,9 +50,6 @@
             <div><b>Device: <s:property value="deviceId"/></b>
               <span class="button details" title="Show details"></span>
             </div>
-            <%-- <s:include value="deviceProperties.jsp">
-              <s:param name="param1" value="<s:property value="queueAll"/>" />
-            </s:include> --%>
 
 <div class="device-status-bar <s:property value="deviceStatus"/>"></div>
 <div class="device-details hide">

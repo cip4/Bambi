@@ -8,21 +8,7 @@ application = {
 			$(this).parent().parent().siblings(".main-panel").children(".queue-entries").toggleClass("hide");
 		});
 		
-		$(".icon-level").bind('click', function(e) {
-			console.log("change level");
-			var parentEl = $(this).parent();
-			
-			if (parentEl.hasClass("view-level-1")) {
-				parentEl.toggleClass("view-level-1");
-				parentEl.toggleClass("view-level-2");
-			} else if (parentEl.hasClass("view-level-2")) {
-				parentEl.toggleClass("view-level-2");
-				parentEl.toggleClass("view-level-3");
-			} else {
-				parentEl.toggleClass("view-level-3");
-				parentEl.toggleClass("view-level-1");
-			}
-		});
+		application.setJobHandler();
 		
 		console.log("all ok: page loaded, scripts fired");
 		console.log("window.location: " + window.location);
@@ -50,25 +36,17 @@ application = {
 			var obj = JSON.parse(data);
 			console.log('obj: ', obj);
 			
-			console.log('SenderID: ', obj.UpdateDeviceQueue.JMF.SenderID);
-			console.log('queue.lenght: ', obj.UpdateDeviceQueue.JMF.Response.Queue.QueueEntry.length);
-			
-//			var queueAll = obj.UpdateDeviceQueue.JMF.Response.Queue.QueueEntry.length;
-//			var v = obj.UpdateDeviceQueue.queueWaiting + "/" +
-//					obj.UpdateDeviceQueue.queueRunning + "/" +
-//					obj.UpdateDeviceQueue.queueCompleted + "/" +
-//					obj.UpdateDeviceQueue.queueAll;
-			
-//			if () {
-//			}
-			
 			application.updateDeviceQueue(obj);
-//			$(".device-" + obj.UpdateDeviceQueue.JMF.SenderID + " .queue-stat-value").text(v);
-//			$(".device-" + obj.UpdateDeviceQueue.JMF.SenderID + " .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);
+			application.addDeviceJob(obj);
 		};
 	},
 	
 	updateDeviceQueue : function(obj) {
+		if (obj.UpdateDeviceQueue === undefined) {
+			console.log("No UpdateDeviceQueue exists");
+			return;
+		}
+		
 		var v = obj.UpdateDeviceQueue.queueWaiting + "/" +
 				obj.UpdateDeviceQueue.queueRunning + "/" +
 				obj.UpdateDeviceQueue.queueCompleted + "/" +
@@ -76,8 +54,37 @@ application = {
 		
 		$(".device-" + obj.UpdateDeviceQueue.JMF.SenderID + " .queue-stat-value").text(v);
 		$(".device-" + obj.UpdateDeviceQueue.JMF.SenderID + " .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);
-	}
+	},
 	
+	addDeviceJob : function(obj) {
+		if (obj.AddDeviceJob === undefined) {
+			console.log("No AddDeviceJob exists");
+			return;
+		}
+		
+		var job = $.tmpl($("#jobTemplate").html(), { param:obj.AddDeviceJob });
+		$(".device-" + obj.AddDeviceJob.DeviceId + " .queue-entries").prepend(job);
+		
+		$("tr.device-" + obj.AddDeviceJob.DeviceId + " .view-level-1.hide.jobid-" + obj.AddDeviceJob.jobid).fadeIn(1000);
+	},
+	
+	setJobHandler : function(obj) {
+		$("tr").delegate("div.icon-level", "click", function() {
+			console.log("change level");
+			var parentEl = $(this).parent();
+			
+			if (parentEl.hasClass("view-level-1")) {
+				parentEl.toggleClass("view-level-1");
+				parentEl.toggleClass("view-level-2");
+			} else if (parentEl.hasClass("view-level-2")) {
+				parentEl.toggleClass("view-level-2");
+				parentEl.toggleClass("view-level-3");
+			} else {
+				parentEl.toggleClass("view-level-3");
+				parentEl.toggleClass("view-level-1");
+			}
+		});
+	}
 };
 
 $(document).ready(function() {
