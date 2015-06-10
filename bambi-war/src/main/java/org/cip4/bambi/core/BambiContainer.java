@@ -906,7 +906,7 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 		String xmlRespStr = xmlResponse.getXML().toDisplayXML(2);
 //		System.out.println("xmlRespStr: " + xmlRespStr);
 		
-		String updateUIXml = "<UpdateDeviceQueue " + parseQueue(xmlRespStr) + ">" + xmlRespStr + "</UpdateDeviceQueue>";
+		String updateUIXml = "<UpdateDeviceQueue " + parseQueue(xmlRespStr) + "></UpdateDeviceQueue>";
 		
 		JSONObject jsonObj = XML.toJSONObject(updateUIXml);
 		System.out.println("jsonObj.toString: " + jsonObj.toString());
@@ -921,7 +921,7 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 		String xmlRespFixed = StringUtils.remove(xmlRespStr, "xmlns=\"http://www.CIP4.org/JDFSchema_1_1\"");
 //		System.out.println("xmlRespFixed: " + xmlRespFixed);
 		
-		String result = "queueWaiting='-' queueRunning='-' queueCompleted='-' queueAll='-' queueStatus='-'";
+		String result = "deviceId='{$deviceId}' queueWaiting='-' queueRunning='-' queueCompleted='-' queueAll='-' queueStatus='-'";
 		
 		DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
 		domFactory.setNamespaceAware(true); 
@@ -931,11 +931,13 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 			Document doc = builder.parse(is);
 			
 			XPath xpath = XPathFactory.newInstance().newXPath();
+			XPathExpression deviceIdExpr = xpath.compile("string(/JMF/@SenderID)");
 			XPathExpression waitingQueueElementsExpr = xpath.compile("count(/JMF/Response/Queue/QueueEntry[@Status='Waiting'])");
 			XPathExpression runningQueueElementsExpr = xpath.compile("count(/JMF/Response/Queue/QueueEntry[@Status='Running'])");
 			XPathExpression completQueueElementsExpr = xpath.compile("count(/JMF/Response/Queue/QueueEntry[@Status='Completed'])");
 			XPathExpression queueStatusExpr = xpath.compile("string(/JMF/Response/Queue/@Status)");
 			
+			String deviceIdResult = (String) deviceIdExpr.evaluate(doc, XPathConstants.STRING);
 			String waitingResult = (String) waitingQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
 			String runningResult = (String) runningQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
 			String completResult = (String) completQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
@@ -948,6 +950,7 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 			
 //			System.out.println("waiting: " + waitingResult + ", running: " + runningResult + ", completed: " + completResult);
 			
+			result = StringUtils.replaceOnce(result, "{$deviceId}", deviceIdResult);
 			result = StringUtils.replaceOnce(result, "-", "" + waiting);
 			result = StringUtils.replaceOnce(result, "-", "" + running);
 			result = StringUtils.replaceOnce(result, "-", "" + complet);
