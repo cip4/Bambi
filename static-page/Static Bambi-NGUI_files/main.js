@@ -52,8 +52,10 @@ application = {
 				obj.UpdateDeviceQueue.queueCompleted + "/" +
 				obj.UpdateDeviceQueue.queueAll;
 		
-		$(".device-" + obj.UpdateDeviceQueue.JMF.SenderID + " .queue-stat-value").text(v);
-		$(".device-" + obj.UpdateDeviceQueue.JMF.SenderID + " .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);
+		$("tr.device-" + obj.UpdateDeviceQueue.deviceId + " .left-panel .queue-status-bar").removeClass().addClass("queue-status-bar").addClass(obj.UpdateDeviceQueue.queueStatus);
+		
+		$(".device-" + obj.UpdateDeviceQueue.deviceId + " .queue-stat-value").text(v);
+		$(".device-" + obj.UpdateDeviceQueue.deviceId + " .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);
 	},
 	
 	addDeviceJob : function(obj) {
@@ -63,9 +65,9 @@ application = {
 		}
 		
 		var job = $.tmpl($("#jobTemplate").html(), { param:obj.AddDeviceJob });
-		$(".device-" + obj.AddDeviceJob.DeviceId + " .queue-entries").prepend(job);
+		$(".device-" + obj.AddDeviceJob.deviceId + " .queue-entries").prepend(job);
 		
-		$("tr.device-" + obj.AddDeviceJob.DeviceId + " .view-level-1.hide.jobid-" + obj.AddDeviceJob.jobid).fadeIn(1000);
+		$("tr.device-" + obj.AddDeviceJob.deviceId + " .view-level-1.hide.jobid-" + obj.AddDeviceJob.jobid).fadeIn(1000);
 	},
 	
 	setJobHandler : function(obj) {

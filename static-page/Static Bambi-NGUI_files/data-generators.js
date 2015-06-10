@@ -8,8 +8,8 @@ DataGenerator = {
 			
 			var obj =
 				{
-				UpdateDeviceQueue : {queueWaiting:0, queueRunning:0, queueCompleted:0, queueAll:jobid, JMF : {SenderID:"Device-01"}},
-				AddDeviceJob : {DeviceId:"Device-01", jobid:jobid, status:"running", submission: "2015-MAR-08 12:34:56"}
+				UpdateDeviceQueue : {deviceId:"Device-01", queueWaiting:0, queueRunning:0, queueCompleted:0, queueAll:jobid, queueStatus:"Held"},
+				AddDeviceJob : {deviceId:"Device-01", jobid:jobid, status:"running", submission:"2015-MAR-08 12:34:56"}
 				};
 			
 			application.updateDeviceQueue(obj);
