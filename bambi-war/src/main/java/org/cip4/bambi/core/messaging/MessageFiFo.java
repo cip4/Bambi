@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -371,7 +371,9 @@ class MessageFiFo
 		final KElement meassagesRoot = xmlDoc.getRoot();
 		log.info("writing " + vM.size() + " pending messages to: " + f.getAbsolutePath());
 		for (MessageDetails md : vM)
+		{
 			md.appendToXML(meassagesRoot, 1, false);
+		}
 		xmlDoc.write2File(f, 2, false);
 	}
 

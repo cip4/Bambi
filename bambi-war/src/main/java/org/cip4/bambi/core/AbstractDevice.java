@@ -219,7 +219,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final String queueURL = getDeviceURL();
 			if (log.isDebugEnabled())
 				log.debug("Sending RequestQueueEntry for " + queueURL + " to: " + proxyURL);
-			JMFBuilder jmfBuilder = JMFBuilderFactory.getJMFBuilder(getDeviceID());
+			JMFBuilder jmfBuilder = getJMFBuilder();
 			final JDFJMF jmf = jmfBuilder.buildRequestQueueEntry(queueURL, null);
 			boolean ok = sendJMF(jmf, proxyURL, null);
 			ThreadUtil.wait(mutex, 2222); // wait a short while for an immediate response
@@ -771,7 +771,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * 
 	 * @return
 	 */
-	protected JMFBuilder getJMFBuilder()
+	public JMFBuilder getJMFBuilder()
 	{
 		return JMFBuilderFactory.getJMFBuilder(getDeviceID());
 	}
@@ -2007,7 +2007,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected XMLRequest createSubmitFromJDF(KElement e)
 	{
-		JDFJMF sqe = new JMFBuilder().buildSubmitQueueEntry(null);
+		JDFJMF sqe = getJMFBuilder().buildSubmitQueueEntry(null);
 		sqe.getCommand(0).getQueueSubmissionParams(0).setURL("dummy");
 		MimeWriter mimeWriter = new MimeWriter();
 		mimeWriter.buildMimePackage(sqe.getOwnerDocument_JDFElement(), e.getOwnerDocument_KElement(), false);

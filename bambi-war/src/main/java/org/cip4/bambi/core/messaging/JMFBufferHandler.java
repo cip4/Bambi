@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -209,12 +209,6 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			return c;
 		}
 
-		@Override
-		public String toString()
-		{
-			return "[MessageIdentifier: slaveChannelID=" + slaveChannelID + " Type=" + msgType + " SenderID=" + senderID + "]";
-		}
-
 		/**
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
@@ -283,6 +277,12 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			hc += slaveChannelID == null ? 0 : slaveChannelID.hashCode();
 			hc += misChannelID == null ? 0 : misChannelID.hashCode();
 			return hc;
+		}
+
+		@Override
+		public String toString()
+		{
+			return "MessageIdentifier [misChannelID=" + misChannelID + ", slaveChannelID=" + slaveChannelID + ", msgType=" + msgType + ", senderID=" + senderID + "]";
 		}
 	}
 
@@ -366,8 +366,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		getSignals(inputMessage, response);
 		if (!response.getSubscribed())
 		{
-			response.deleteNode();// always zapp the dummy response except
-			// in a subscription
+			response.deleteNode();// always zapp the dummy response except in a subscription
 		}
 
 		inputMessage.deleteNode(); // also zapp the query
@@ -447,7 +446,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			{
 				if (mi == null)
 				{
-					log.error("null mi in keyset");
+					log.error("null MessageIdentifier in keyset");
 					continue;
 				}
 				if (mi.matches(messageIdentifier))
@@ -603,7 +602,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			return keySet;
 		}
 
-		private final HashMap<MessageIdentifier, JDFSignal> lastSent;
+		protected final HashMap<MessageIdentifier, JDFSignal> lastSent;
 
 		/**
 		 * return true if the signal corresponds to the input query
@@ -829,7 +828,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		@Override
 		protected Vector<JDFSignal> getSignalsFromMap(final MessageIdentifier mi)
 		{
-			Vector<JDFSignal> sis = messageMap.get(mi);
+			Vector<JDFSignal> sis = super.getSignalsFromMap(mi);
 			// only add ever so often...
 			if (sis == null || sis.size() == 0)
 			{
@@ -852,12 +851,13 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 						}
 						if (bIdle)
 						{
-
 							if (sis == null)
 							{
 								sis = new Vector<JDFSignal>();
 							}
 							lastSig.setTime(new JDFDate());
+							// ensure new ID for signal
+							lastSig.removeAttribute(AttributeName.ID);
 							lastSig.appendAnchor(null);
 							sis.add(lastSig);
 						}
@@ -867,12 +867,6 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			if (sis != null && sis.size() == 0)
 			{
 				sis = null;
-			}
-			if (sis != null)
-			{
-				Vector<JDFSignal> clone = new Vector<JDFSignal>();
-				clone.addAll(sis);
-				sis = clone;
 			}
 			return sis;
 		}
@@ -894,31 +888,31 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			else
 			{
 				final String senderID = theSignal.getSenderID();
-				for (int i = 0; i < devInfos.size(); i++)
+				for (KElement di : devInfos)
 				{
-					final JDFDeviceInfo di = (JDFDeviceInfo) devInfos.get(i);
-					final String did = di.getDeviceID();
-					if (!ContainerUtil.equals(did, senderID))
+					JDFDeviceInfo devInfo = (JDFDeviceInfo) di;
+					final String deviceID = devInfo.getDeviceID();
+					if (!ContainerUtil.equals(deviceID, senderID))
 					{
-						JDFSignal s = null;
-						for (int ii = 1; ii < sigs.size(); ii++)
+						JDFSignal signal = null;
+						for (KElement eSig : sigs)
 						{
-							final JDFSignal s2 = (JDFSignal) sigs.get(ii);
-							if (ContainerUtil.equals(s2.getSenderID(), did))
+							JDFSignal sig2 = (JDFSignal) eSig;
+							if (ContainerUtil.equals(sig2.getSenderID(), deviceID))
 							{
-								s = s2;
+								signal = sig2;
 								break;
 							}
 						}
-						if (s == null)
+						if (signal == null)
 						{
-							s = JDFJMF.createJMF(EnumFamily.Signal, EnumType.Status).getSignal(0);
-							s.copyElement(theSignal.getQueue(0), null);
-							sigs.add(s);
+							signal = JDFJMF.createJMF(EnumFamily.Signal, EnumType.Status).getSignal(0);
+							signal.copyElement(theSignal.getQueue(0), null);
+							sigs.add(signal);
 						}
-						s.setSenderID(did);
-						s.setTime(theSignal.getTime());
-						s.moveElement(di, null);
+						signal.setSenderID(deviceID);
+						signal.setTime(theSignal.getTime());
+						signal.moveElement(devInfo, null);
 					}
 				}
 			}

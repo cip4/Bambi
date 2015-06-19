@@ -132,7 +132,6 @@ import org.cip4.jdflib.jmf.JDFResubmissionParams;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFSubmissionMethods;
 import org.cip4.jdflib.jmf.JMFBuilder;
-import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.resource.JDFNotification;
@@ -169,7 +168,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	protected class QueueDelta implements Runnable
 	{
-		private final JDFQueue lastQueue;
+		protected final JDFQueue lastQueue;
 
 		/**
 		 * 
@@ -178,16 +177,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		protected JDFQueue getLastQueue()
 		{
 			return lastQueue;
-		}
-
-		/**
-		 * hook to add performance updates to the queuefilter
-		 * @param qf
-		 * @return
-		 */
-		protected JDFQueueFilter updateFilter(JDFQueueFilter qf)
-		{
-			return qf;
 		}
 
 		private final long creationTime;
@@ -391,6 +380,15 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				qeIDMap.remove(slaveqeID);
 			}
+		}
+
+		/**
+		 * 
+		 * @return
+		 */
+		protected int size()
+		{
+			return qeIDMap == null ? 0 : qeIDMap.size();
 		}
 
 		/**
@@ -742,8 +740,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				return false;
 			}
-			final JDFQueue q = copyToMessage(m, resp);
-			return (resp.getQueue(0) == q);
+			copyToMessage(m, resp);
+			return true;
 		}
 
 		/**
@@ -1102,7 +1100,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			nPos = 0;
 		}
 
-		private static final String FILTER_DIF = "_FILTER_DIF_";
+		protected static final String FILTER_DIF = "_FILTER_DIF_";
 
 		/**
 		 * @param request
@@ -1115,7 +1113,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			boolean modified = false;
 			String sortBy = StringUtil.getNonEmpty(request.getParameter("SortBy"));
 			final String filter = StringUtil.getNonEmpty(request.getParameter("filter"));
-			nPos = request.getIntegerParam("pos");
+			nPos = request.getParameter("pos") == null ? lastPos : request.getIntegerParam("pos");
 			if (request.isMyContext("showQueue"))
 			{
 				modified = applyModification(request, modified);
@@ -1126,7 +1124,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				modified = true;
 				// ensure identical sorting as last time by undoing the sort inversion
 				sortBy = lastSortBy;
-				nextinvert = nextinvert == null ? lastSortBy : null;
 			}
 			else
 			{
@@ -1144,7 +1141,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				{
 					root.setAttribute("Refresh", true, null);
 				}
-				root.setAttribute("pos", nPos, null);
+				root.setAttribute("sortby", sortBy, null);
 				root.getOwnerDocument_JDFElement().setXSLTURL(_parentDevice.getXSLT(request));
 				addOptions(root);
 			}
@@ -1152,7 +1149,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				final XMLDoc doc = new JDFDoc(ElementName.QUEUE);
 				root = (JDFQueue) doc.getRoot();
-
 			}
 			XMLResponse response = new XMLResponse(root);
 			if (modified)
@@ -1245,14 +1241,18 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 * @param filter the regexp to filter by (.)* is added before and after the filter
 		 * @return
 		 */
-		protected JDFQueue sortOutput(final String sortBy, final String filter)
+		private JDFQueue sortOutput(final String sortBy, final String filter)
 		{
 			JDFQueue root = filterList(filter);
 			// sort according to the given attribute
 			if (sortBy != null)
 			{
-				boolean invert = sortBy.equals(lastSortBy) && sortBy.equals(nextinvert);
-				nextinvert = invert ? null : sortBy;
+				boolean invert = sortBy.equals(lastSortBy) && lastPos == nPos;
+				if (invert && lastinvert)
+				{
+					invert = false;
+				}
+				lastinvert = invert;
 				lastSortBy = sortBy;
 				if (sortBy.endsWith("Time"))
 				{
@@ -1262,16 +1262,38 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			else
 			{
-				nextinvert = null;
 				lastSortBy = null;
 			}
-			reduceLength(root);
+			final VElement v = root.getChildElementVector(ElementName.QUEUEENTRY, null);
+			final int size = v.size();
+			root.setAttribute("TotalQueueSize", size, null);
+			if (nPos < 0)
+			{
+				nPos = nPos + 1 + size / 500;
+			}
+			if (nPos * 500 > size)
+			{
+				nPos = 0;
+			}
+			root.setAttribute("pos", nPos, null);
+			lastPos = nPos;
+			if ((nPos + 1) * 500 < size)
+			{
+				root.setAttribute("hasNext", true, null);
+			}
+			for (int i = 0; i < size; i++)
+			{
+				if (filterLength(i))
+				{
+					v.get(i).deleteNode();
+				}
+			}
 			return root;
 		}
 
 		/**
 		 * filter the queue by string
-		 * 
+		 * @param root
 		 * @param filter
 		 * @return
 		 */
@@ -1281,11 +1303,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			if (FILTER_DIF.equals(filter))
 			{
 				final JDFQueue lastQueue = getLastQueue(filter);
+				nPos = 0;
 				if (lastQueue != null)
 				{
 					JDFQueueFilter f = (JDFQueueFilter) new JDFDoc(ElementName.QUEUEFILTER).getRoot();
 					f.setUpdateGranularity(EnumUpdateGranularity.ChangesOnly);
-					f = updateFilter(f, filter);
 					root = f.copy(_theQueue, lastQueue, null);
 				}
 				else
@@ -1323,33 +1345,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				root = cloneQueue();
 			}
-			return root;
-		}
 
-		/**
-		 * 
-		 * @param root
-		 */
-		protected void reduceLength(final JDFQueue root)
-		{
-			final VElement v = root.getChildElementVector(ElementName.QUEUEENTRY, null);
-			final int size = v.size();
-			root.setAttribute("TotalQueueSize", size, null);
-			if (nPos < 0)
-			{
-				nPos = nPos + 1 + size / 500;
-			}
-			if ((nPos + 1) * 500 < size)
-			{
-				root.setAttribute("hasNext", true, null);
-			}
-			for (int i = 0; i < size; i++)
-			{
-				if (filterLength(i))
-				{
-					v.get(i).deleteNode();
-				}
-			}
+			return root;
 		}
 
 		/**
@@ -1556,8 +1553,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	private RollingBackupFile _queueFile = null;
-	String nextinvert = null;
+	boolean lastinvert = false;
 	String lastSortBy = null;
+	int lastPos = 0;
 
 	/**
 	 */
@@ -1573,7 +1571,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	static final String MODIFY_QE = "modifyQE";
 
 	protected JDFQueue _theQueue;
-	private final Vector<Object> _listeners;
+	private final Vector<MyMutex> _listeners;
 	protected AbstractDevice _parentDevice = null;
 	protected long lastSort = 0;
 	protected final HashMap<String, QueueDelta> deltaMap;
@@ -1600,7 +1598,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		log.info("Creating queueProcessor");
 		nextPush = null;
 		_parentDevice = theParentDevice;
-		_listeners = new Vector<Object>();
+		_listeners = new Vector<MyMutex>();
 		deltaMap = new HashMap<String, QueueDelta>();
 		queueMap = new QueueMap();
 		_mutexMap = new MutexMap<String>();
@@ -1973,12 +1971,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 * @param o
+	 * @param mutex
 	 */
-	public void removeListener(final Object o)
+	public void removeListener(final MyMutex mutex)
 	{
 		log.info("removing listener for " + (_parentDevice != null ? _parentDevice.getDeviceID() : " unknown "));
-		_listeners.remove(o);
+		_listeners.remove(mutex);
 	}
 
 	/**
@@ -2193,10 +2191,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	protected void notifyListeners(final String qeID)
 	{
-		for (int i = 0; i < _listeners.size(); i++)
+		for (MyMutex mutex : _listeners)
 		{
-			final Object elementAt = _listeners.elementAt(i);
-			ThreadUtil.notifyAll(elementAt);
+			ThreadUtil.notifyAll(mutex);
 		}
 		final SignalDispatcher signalDispatcher = _parentDevice.getSignalDispatcher();
 		signalDispatcher.triggerQueueEntry(qeID, null, getMaxWaiting(), EnumType.QueueStatus.getName());
@@ -2367,12 +2364,19 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	protected JDFQueue copyToMessage(final JDFMessage mess, final JDFResponse resp)
 	{
 		JDFQueueFilter qf = mess == null ? null : mess.getQueueFilter(0);
-		final JDFQueue q = _theQueue.copyToResponse(resp, qf, getLastQueue(resp, qf));
-		if (qf != null)
-			qf = updateFilter(qf, resp.getrefID());
+		JDFQueue q = _theQueue.copyToResponse(resp, qf, getLastQueue(resp, qf));
+		if (q != null)
+		{
+			q.setQueueSize(queueMap.size());
+		}
 		//we have an empty queue
 		removeBambiNSExtensions(q);
-		return (qf != null && EnumUpdateGranularity.ChangesOnly.equals(qf.getUpdateGranularity()) && q.getQueueEntry(0) == null) ? null : q;
+		if (qf != null && EnumUpdateGranularity.ChangesOnly.equals(qf.getUpdateGranularity()) && q.getQueueEntry(0) == null)
+		{
+			resp.deleteNode();
+			q = null;
+		}
+		return q;
 	}
 
 	/**
@@ -2415,18 +2419,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			return null;
 		}
 		return delta.getLastQueue();
-	}
-
-	/**
-	 * @param qf
-	 * @param refID
-	 * 
-	 * @return the updated queue filter
-	 */
-	protected JDFQueueFilter updateFilter(JDFQueueFilter qf, final String refID)
-	{
-		final QueueDelta delta = deltaMap.get(refID);
-		return (delta == null) ? qf : delta.updateFilter(qf);
 	}
 
 	/**
@@ -2489,7 +2481,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		void returnQueueEntry(VString finishedNodes, JDFDoc docJDF)
 		{
 			log.info("returning queue entry");
-			JMFBuilder jmfBuilder = JMFBuilderFactory.getJMFBuilder(_parentDevice.getDeviceID());
+			JMFBuilder jmfBuilder = _parentDevice.getJMFBuilder();
 
 			final JDFJMF jmf = jmfBuilder.buildReturnQueueEntry(queueEntryID);
 			final JDFDoc docJMF = jmf.getOwnerDocument_JDFElement();
@@ -2917,7 +2909,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 * TODO Please insert comment!
+	 * 
 	 * @param qeNew
 	 * @return
 	 */

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -105,7 +105,6 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
-import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.resource.JDFEvent;
@@ -721,8 +720,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		}
 
 		final AbstractProxyDevice p = getParent();
-		final String senderID = p.getDeviceID();
-		JMFBuilder jmfBuilder = JMFBuilderFactory.getJMFBuilder(senderID);
+		JMFBuilder jmfBuilder = p.getJMFBuilder();
 		final JDFJMF jmfs[] = jmfBuilder.createSubscriptions(p.getDeviceURLForSlave(), null, 10., 0);
 		final JDFNodeInfo ni = root.getCreateNodeInfo();
 		for (JDFJMF jmf : jmfs)

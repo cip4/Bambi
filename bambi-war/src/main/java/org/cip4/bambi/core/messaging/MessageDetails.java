@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -235,7 +235,7 @@ public class MessageDetails extends BambiLogFactory
 		}
 		final KElement jmf1 = element.getElement(ElementName.JMF);
 		// must clone the root
-		jmf = (JDFJMF) (jmf1 == null ? null : new JDFDoc(ElementName.JMF).getRoot().copyInto(jmf1, false));
+		jmf = (JDFJMF) (jmf1 == null ? null : jmf1.cloneNewDoc());
 		final String mimeURL = element.getAttribute("MimeUrl", null, null);
 		if (mimeURL != null)
 		{

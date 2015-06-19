@@ -109,7 +109,6 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
-import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.node.NodeIdentifier;
@@ -1099,7 +1098,7 @@ public class ProxyDevice extends AbstractProxyDevice
 				}
 			}
 		}
-		final JDFJMF jmfQS = new JMFBuilder().buildQueueStatus();
+		final JDFJMF jmfQS = getJMFBuilder().buildQueueStatus();
 		sendJMFToSlave(jmfQS, new QueueSynchronizeHandler(jmfQS));
 	}
 
@@ -1184,7 +1183,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 		if (status == null)
 		{
-			JMFBuilder jmfBuilder = JMFBuilderFactory.getJMFBuilder(getDeviceID());
+			JMFBuilder jmfBuilder = getJMFBuilder();
 			final JDFJMF jmf = jmfBuilder.buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
 			if (jmf != null)
 			{

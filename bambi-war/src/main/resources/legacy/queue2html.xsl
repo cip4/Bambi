@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright 2009-2015 CIP4 -->
 <xsl:stylesheet version="1.0"
-	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1"
-	xmlns:bambi="www.cip4.org/Bambi"
-	>
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1"
+	xmlns:bambi="www.cip4.org/Bambi">
 	<xsl:output method="html" />
 	<xsl:template match="jdf:Queue">
 		<xsl:variable name="context" select="@Context" />
@@ -222,6 +220,10 @@
 										select="@DeviceID" /></xsl:attribute>
 									<input type="hidden" name="pos" value="0" />
 									<input type="submit" value="&lt;&lt; first" title="show first frame" />
+									<input type="hidden" name="SortBy">
+										<xsl:attribute name="value"><xsl:value-of
+											select="@sortby" /></xsl:attribute>
+									</input>
 									<input type="hidden" name="filter">
 										<xsl:attribute name="value"><xsl:value-of
 											select="@filter" /></xsl:attribute>
@@ -242,6 +244,10 @@
 									<input type="hidden" name="filter">
 										<xsl:attribute name="value"><xsl:value-of
 											select="@filter" /></xsl:attribute>
+									</input>
+									<input type="hidden" name="SortBy">
+										<xsl:attribute name="value"><xsl:value-of
+											select="@sortby" /></xsl:attribute>
 									</input>
 								</form>
 							</td>
@@ -268,7 +274,11 @@
 									<xsl:attribute name="value"><xsl:value-of
 										select="@filter" /></xsl:attribute>
 								</input>
-							<input type="hidden" name="refresh" value="true"/>
+								<input type="hidden" name="SortBy">
+									<xsl:attribute name="value"><xsl:value-of
+										select="@sortby" /></xsl:attribute>
+								</input>
+								<input type="hidden" name="refresh" value="true" />
 							</form>
 						</td>
 
@@ -284,6 +294,10 @@
 											select="number(@pos)+1" /></xsl:attribute>
 									</input>
 									<input type="submit" value="next &gt;" title="show next frame" />
+									<input type="hidden" name="SortBy">
+										<xsl:attribute name="value"><xsl:value-of
+											select="@sortby" /></xsl:attribute>
+									</input>
 								</form>
 							</td>
 							<td align="center">
@@ -296,6 +310,10 @@
 									<input type="hidden" name="filter">
 										<xsl:attribute name="value"><xsl:value-of
 											select="@filter" /></xsl:attribute>
+									</input>
+									<input type="hidden" name="SortBy">
+										<xsl:attribute name="value"><xsl:value-of
+											select="@sortby" /></xsl:attribute>
 									</input>
 								</form>
 							</td>
@@ -544,5 +562,5 @@
 	<xsl:include href="optionlist.xsl" />
 	<xsl:include href="topnavigation.xsl" />
 	<xsl:include href="StandardXML.xsl" />
-	
+
 </xsl:stylesheet>
