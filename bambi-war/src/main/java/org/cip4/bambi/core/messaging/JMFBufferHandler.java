@@ -595,14 +595,17 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			{
 				keySet.addAll(messageMap.keySet());
 			}
-			synchronized (lastSent)
+			if (lastSent != null)
 			{
-				keySet.addAll(lastSent.keySet());
+				synchronized (lastSent)
+				{
+					keySet.addAll(lastSent.keySet());
+				}
 			}
 			return keySet;
 		}
 
-		protected final HashMap<MessageIdentifier, JDFSignal> lastSent;
+		protected HashMap<MessageIdentifier, JDFSignal> lastSent;
 
 		/**
 		 * return true if the signal corresponds to the input query
@@ -751,18 +754,24 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 
 		protected void dispatchSingleSignal(final JDFSignal inSignal, final String qeID, MessageIdentifier mi)
 		{
-			JDFSignal lastSignal;
-			synchronized (lastSent) // we don't need any races here
+			JDFSignal lastSignal = null;
+			if (lastSent != null)
 			{
-				lastSignal = lastSent.get(mi);
+				synchronized (lastSent) // we don't need any races here
+				{
+					lastSignal = lastSent.get(mi);
+				}
 			}
 			handleSingleSignal(inSignal, mi);
 			StatusSignalComparator comparator = lastSignal == null ? null : getComparator();
 			boolean sameStatusSignal = comparator != null && comparator.isSameStatusSignal(inSignal, lastSignal);
 			getDispatcher().triggerChannel(mi.misChannelID, qeID, null, -1, false, sameStatusSignal);
-			synchronized (lastSent)
+			if (lastSent != null)
 			{
-				lastSent.put(mi, inSignal);
+				synchronized (lastSent)
+				{
+					lastSent.put(mi, inSignal);
+				}
 			}
 		}
 
@@ -829,7 +838,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		protected Vector<JDFSignal> getSignalsFromMap(final MessageIdentifier mi)
 		{
 			Vector<JDFSignal> sis = super.getSignalsFromMap(mi);
-			if (sis == null || sis.size() == 0)
+			if (lastSent != null && (sis == null || sis.size() == 0))
 			{
 				synchronized (lastSent)
 				{
