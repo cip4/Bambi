@@ -71,6 +71,7 @@
 package org.cip4.bambi.core.messaging;
 
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -515,7 +516,7 @@ public class SignalDispatcher extends BambiLogFactory
 							final int next = last + t.amount;
 							if (next / sub.repeatAmount > last / sub.repeatAmount)
 							{
-								sub.lastAmount = next; // not a typo - modify of nthe original subscription
+								sub.lastAmount = next; // not a typo - modify of the original subscription
 								v.add(subClone);
 							}
 						}
@@ -569,6 +570,7 @@ public class SignalDispatcher extends BambiLogFactory
 								sub.lastTry = now;
 							}
 							sub = sub.clone();
+							sub.trigger = null;
 							subVector.add(sub);
 						}
 					}
@@ -1116,13 +1118,12 @@ public class SignalDispatcher extends BambiLogFactory
 	 */
 	public Trigger triggerChannel(final String channelID, final String queueEntryID, final NodeIdentifier nodeIdentifier, final int amount, final boolean last, final boolean ignoreIfTime)
 	{
-		final MsgSubscription s = subscriptionMap.get(channelID);
+		final MsgSubscription subscription = subscriptionMap.get(channelID);
 		Trigger tNew = null;
-		if (s != null)
+		if (subscription != null)
 		{
-			if (!ignoreIfTime || s.repeatTime <= 0)
+			if (!ignoreIfTime || subscription.repeatTime <= 0)
 			{
-
 				tNew = new Trigger(queueEntryID, nodeIdentifier, channelID, amount);
 				synchronized (triggers)
 				{
@@ -1166,21 +1167,20 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * get a trigger from triggers, if it is in there, else null
-	 * @param new1
+	 * @param newTrigger
 	 * @return
 	 */
-	private Trigger getTrigger(final Trigger new1)
+	private Trigger getTrigger(final Trigger newTrigger)
 	{
-		if (triggers == null)
+		if (triggers == null || newTrigger == null)
 		{
 			return null;
 		}
-		final int size = triggers.size();
-		for (int i = 0; i < size; i++)
+		for (Trigger t : triggers)
 		{
-			if (triggers.get(i).equals(new1))
+			if (newTrigger.equals(t))
 			{
-				return triggers.get(i);
+				return t;
 			}
 		}
 		return null;
@@ -1198,35 +1198,30 @@ public class SignalDispatcher extends BambiLogFactory
 	public Trigger[] triggerQueueEntry(final String queueEntryID, final NodeIdentifier nodeID, final int amount, final String msgType)
 	{
 		final Vector<MsgSubscription> v = ContainerUtil.toValueVector(subscriptionMap, false);
-		final int si = v == null ? 0 : v.size();
-		if (si == 0 || v == null)
+		final int size = v == null ? 0 : v.size();
+		if (size == 0 || v == null)
 		{
 			return null;
 		}
-		Trigger[] locTriggers = new Trigger[si];
+		Trigger[] triggers = new Trigger[size];
 		int n = 0;
-		for (int i = 0; i < si; i++)
+		for (int i = 0; i < size; i++)
 		{
 			final MsgSubscription sub = v.get(i);
 			if (sub.matchesQueueEntry(queueEntryID) && sub.matchesType(msgType))
 			{
-				locTriggers[n++] = triggerChannel(sub.channelID, queueEntryID, nodeID, amount, i + 1 == si, false);
+				triggers[n++] = triggerChannel(sub.channelID, queueEntryID, nodeID, amount, i + 1 == size, false);
 			}
 		}
 		if (n == 0)
 		{
 			return null;
 		}
-		if (n < si)
+		if (n < size)
 		{
-			final Trigger[] t2 = new Trigger[n];
-			for (int i = 0; i < n; i++)
-			{
-				t2[i] = locTriggers[i];
-			}
-			locTriggers = t2;
+			triggers = Arrays.copyOf(triggers, n);
 		}
-		return locTriggers;
+		return triggers;
 	}
 
 	/**

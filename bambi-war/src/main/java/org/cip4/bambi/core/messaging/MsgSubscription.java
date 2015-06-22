@@ -194,7 +194,7 @@ public class MsgSubscription implements Cloneable
 		}
 		final int nResp = jmf.numChildElements(ElementName.RESPONSE, null);
 		final int nSignals = jmf.numChildElements(ElementName.SIGNAL, null);
-		JDFJMF jmfOut = (nResp + nSignals > 0) ? new JDFDoc("JMF").getJMFRoot() : null;
+		JDFJMF jmfOut = (nResp + nSignals > 0) ? new JDFDoc(ElementName.JMF).getJMFRoot() : null;
 		for (int i = 0; i < nResp; i++)
 		{
 			final JDFSignal s = jmfOut.getCreateSignal(i);
@@ -255,7 +255,7 @@ public class MsgSubscription implements Cloneable
 		for (int i = siz - 1; i >= 0; i--)
 		{
 			final JDFSignal s = (JDFSignal) v.get(i);
-			if (!StringUtil.matchesSimple(s.getSenderID(), jmfDeviceID) || this.signalDispatcher.device.deleteSignal(s))
+			if (!StringUtil.matchesSimple(s.getSenderID(), jmfDeviceID) || signalDispatcher.device.deleteSignal(s))
 			{
 				if (s != null)
 				{

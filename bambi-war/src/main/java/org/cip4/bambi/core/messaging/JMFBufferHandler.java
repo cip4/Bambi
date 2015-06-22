@@ -757,7 +757,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				lastSignal = lastSent.get(mi);
 			}
 			handleSingleSignal(inSignal, mi);
-			StatusSignalComparator comparator = getComparator();
+			StatusSignalComparator comparator = lastSignal == null ? null : getComparator();
 			boolean sameStatusSignal = comparator != null && comparator.isSameStatusSignal(inSignal, lastSignal);
 			getDispatcher().triggerChannel(mi.misChannelID, qeID, null, -1, false, sameStatusSignal);
 			synchronized (lastSent)
@@ -829,7 +829,6 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		protected Vector<JDFSignal> getSignalsFromMap(final MessageIdentifier mi)
 		{
 			Vector<JDFSignal> sis = super.getSignalsFromMap(mi);
-			// only add ever so often...
 			if (sis == null || sis.size() == 0)
 			{
 				synchronized (lastSent)
