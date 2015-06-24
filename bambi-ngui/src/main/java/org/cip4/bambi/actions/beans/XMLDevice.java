@@ -1,8 +1,12 @@
 package org.cip4.bambi.actions.beans;
 
+import java.util.Collection;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 
 @XmlRootElement(name = "XMLDevice")
 public class XMLDevice {
@@ -13,6 +17,7 @@ public class XMLDevice {
 	private int queueRunning;
 	private int queueWaiting;
 	private String queueStatus;
+	private Collection<JDFQueueEntry> jobsQueue;
 
 	public String getDeviceId() {
 		return deviceId;
@@ -75,6 +80,14 @@ public class XMLDevice {
 	@XmlAttribute(name = "QueueStatus")
 	public void setQueueStatus(String queueStatus) {
 		this.queueStatus = queueStatus;
+	}
+
+	public Collection<JDFQueueEntry> getJobsQueue() {
+		return jobsQueue;
+	}
+
+	public void setJobsQueue(Collection<JDFQueueEntry> jobsQueue) {
+		this.jobsQueue = jobsQueue;
 	}
 
 }

@@ -124,9 +124,7 @@ public class MyServiceWebSocket implements Observer {
     }
 
 	@Override
-	public void refreshData(final Observable observable, final String jsonObj) {
-		System.out.println("---> UPDATE occurred in observable: " + observable);
-		
+	public void refreshData(final String jsonObj) {
 		send(jsonObj);
 	}
 

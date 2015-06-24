@@ -38,6 +38,7 @@ application = {
 			
 			application.updateDeviceQueue(obj);
 			application.addDeviceJob(obj);
+			application.deleteDeviceJob(obj);
 		};
 	},
 	
@@ -46,11 +47,8 @@ application = {
 			console.log("No UpdateDeviceQueue exists");
 			return;
 		}
-		
-		var v = obj.UpdateDeviceQueue.queueWaiting + "/" +
-				obj.UpdateDeviceQueue.queueRunning + "/" +
-				obj.UpdateDeviceQueue.queueCompleted + "/" +
-				obj.UpdateDeviceQueue.queueAll;
+
+		var v = obj.UpdateDeviceQueue.queueStat;
 		
 		$("tr.device-" + obj.UpdateDeviceQueue.deviceId + " .left-panel .queue-status-bar").removeClass().addClass("queue-status-bar").addClass(obj.UpdateDeviceQueue.queueStatus);
 		
@@ -68,6 +66,17 @@ application = {
 		$(".device-" + obj.AddDeviceJob.deviceId + " .queue-entries").prepend(job);
 		
 		$("tr.device-" + obj.AddDeviceJob.deviceId + " .view-level-1.hide.jobid-" + obj.AddDeviceJob.jobid).fadeIn(1000);
+	},
+	
+	deleteDeviceJob : function(obj) {
+		if (obj.DeleteDeviceJob === undefined) {
+			console.log("No DeleteDeviceJob exists");
+			return;
+		}
+		
+		$("tr.device-" + obj.DeleteDeviceJob.deviceId + " .view-level-1.jobid-" + obj.DeleteDeviceJob.jobid).fadeOut(1000, function() {
+			$("tr.device-" + obj.DeleteDeviceJob.deviceId + " .view-level-1.jobid-" + obj.DeleteDeviceJob.jobid).remove();
+		});
 	},
 	
 	setJobHandler : function(obj) {
