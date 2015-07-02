@@ -2443,14 +2443,17 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
+	 * 
 	 * @param qe
 	 * @param finishedNodes
 	 * @param docJDF
-	 * @param newStatus 
+	 * @param newStatus
+	 * @return
 	 */
-	public void returnQueueEntry(final JDFQueueEntry qe, VString finishedNodes, JDFDoc docJDF, EnumQueueEntryStatus newStatus)
+	public boolean returnQueueEntry(final JDFQueueEntry qe, VString finishedNodes, JDFDoc docJDF, EnumQueueEntryStatus newStatus)
 	{
-		new QueueEntryReturn(qe, newStatus).returnQueueEntry(finishedNodes, docJDF);
+		QueueEntryReturn queueEntryReturn = new QueueEntryReturn(qe, newStatus);
+		return queueEntryReturn.returnQueueEntry(finishedNodes, docJDF);
 	}
 
 	private class QueueEntryReturn
@@ -2478,7 +2481,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 * @param finishedNodes
 		 * @param docJDF
 		 */
-		void returnQueueEntry(VString finishedNodes, JDFDoc docJDF)
+		boolean returnQueueEntry(VString finishedNodes, JDFDoc docJDF)
 		{
 			log.info("returning queue entry");
 			JMFBuilder jmfBuilder = _parentDevice.getJMFBuilder();
@@ -2501,7 +2504,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			if (docJDF == null)
 			{
 				log.error("cannot load the JDFDoc to return");
-				return;
+				return false;
 			}
 			finishedNodes = updateFinishedNodes(finishedNodes, docJDF);
 
@@ -2534,9 +2537,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			if (!bOK)
 			{
-				returnHF(docJDF, bAborted);
+				bOK = returnHF(docJDF, bAborted);
 			}
 			removeSubscriptions();
+			return bOK;
 		}
 
 		private void callBacks(JDFDoc docJDF, final JDFDoc docJMF)

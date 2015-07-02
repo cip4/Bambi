@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -197,17 +197,15 @@ public class JMFFactory extends BambiLogFactory
 	private int nThreads = 0;
 	private final boolean shutdown = false;
 	private final HashMap<EnumType, IMessageOptimizer> optimizers;
-	private final String devID;
 	private final long startTime;
 
 	/**
-	 * @param deviceID
+	 * 
 	 */
-	public JMFFactory(final String deviceID) // all static
+	private JMFFactory() // all static
 	{
 		super();
 		optimizers = new HashMap<EnumType, IMessageOptimizer>();
-		devID = deviceID;
 		startTime = System.currentTimeMillis();
 	}
 
@@ -220,7 +218,7 @@ public class JMFFactory extends BambiLogFactory
 		{
 			if (theFactory == null)
 			{
-				theFactory = new JMFFactory("static");
+				theFactory = new JMFFactory();
 			}
 		}
 		return theFactory;
@@ -487,8 +485,8 @@ public class JMFFactory extends BambiLogFactory
 			MessageSender ms = senders.get(cu);
 			if (ms != null && !ms.isRunning())
 			{
-				senders.remove(cu);
-				log.info("removing idle message sender " + cu.url);
+				shutDown(cu, false);
+				log.info("removed idle message sender " + cu.url);
 				ms = null;
 			}
 			if (ms == null)
@@ -498,9 +496,9 @@ public class JMFFactory extends BambiLogFactory
 				ms.setStartTime(startTime);
 				ms.setJMFFactory(this);
 				senders.put(cu, ms);
-				String name = "MessageSender_" + devID + "_" + nThreads++ + "_" + cu.getBaseURL();
+				String name = "MessageSender_" + nThreads++ + "_" + cu.getBaseURL();
 				Thread thread = new Thread(ms, name);
-				log.info("creating new message sender " + name);
+				log.info("creating new message sender: " + name);
 				thread.setDaemon(false);
 				thread.start();
 			}
@@ -525,6 +523,7 @@ public class JMFFactory extends BambiLogFactory
 			}
 			for (MessageSender ms : v)
 			{
+				ms.shutDown(false);
 				senders.remove(ms);
 				log.info("removing idle message sender " + ms.getCallURL().getBaseURL());
 			}
@@ -537,6 +536,6 @@ public class JMFFactory extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		return "JMFFactory " + devID + " threads=" + nThreads;
+		return "JMFFactory : threads=" + nThreads + " Senders: " + senders;
 	}
 }

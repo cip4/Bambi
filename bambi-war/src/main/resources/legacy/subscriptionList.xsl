@@ -61,6 +61,8 @@
 						<th align="left" title="Number of heartbeat messages removed "> JMF Removed</th>
 						<th align="left" title="Number of fire &amp; forget messages not sent "> Fire &amp; Forget Removed</th>
 						<th align="left" title="Number of error messages not sent "> JMF Errors Removed</th>
+						<th align="left" title="Average Real Time per message"> Average Real Time</th>
+						<th align="left" title="Total Real Time for all messages since last startup"> Total Real Time</th>
 						<th align="left" title="Time of last message sending"> Last time Sent</th>
 						<th align="left" title="Time the last message was queued for sending"> Last time Queued</th>
 						<th align="left" title="Time the message sender started up"> Active since</th>
@@ -253,6 +255,12 @@
 			</td>
 			<td align="left">
 				<xsl:value-of select="@NumRemoveError" />
+			</td>
+			<td align="left">
+				<xsl:value-of select="CPUTimer/@AverageRealTime" />
+			</td>
+			<td align="left">
+				<xsl:value-of select="CPUTimer/@TotalRealTime" />
 			</td>
 			<td align="left">
 				<xsl:value-of select="@LastSent" />
