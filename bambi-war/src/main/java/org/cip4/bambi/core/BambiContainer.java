@@ -931,7 +931,7 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 		
 	}
 
-	public static void notifyAdded(String deviceId, String jobId, String submission) {
+	public static void notifyDeviceJobAdded(String deviceId, String jobId, String submission) {
 		System.out.println("notifyAdded deviceId: " + deviceId + ", jobId: " + jobId);
 
 		String notifyXml =
@@ -944,24 +944,40 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 		prepareNotificationMessage(notifyXml);
 	}
 
-	public static void notifyRemoved(String deviceId, String jobId) {
+	public static void notifyDeviceJobRemoved(String deviceId, String jobId) {
 		System.out.println("notifyDeleted deviceId: " + deviceId + ", jobId: " + jobId);
 
 		String notifyXml =
 				"<DeleteDeviceJob "
 				+ "deviceId='" + deviceId + "' "
-				+ "jobid='" + jobId + "'>"
+				+ "jobid='" + jobId +"'"
+				+ ">"
 				+ "</DeleteDeviceJob>";
 		prepareNotificationMessage(notifyXml);
 	}
 
-	public static void notifyQueueStat(String deviceId, String queueStat) {
-		String updateQueueXml = "<UpdateDeviceQueue deviceId='" + deviceId + "' "
+	public static void notifyDeviceQueueStat(String deviceId, String queueStat) {
+		String updateQueueXml =
+				"<UpdateDeviceQueue deviceId='" + deviceId + "' "
 				+ "queueStat='" + queueStat + "'"
 				+ ">"
 				+ "</UpdateDeviceQueue>";
 
 		prepareNotificationMessage(updateQueueXml);
+	}
+	
+	public static void notifyDeviceJobPropertiesChanged(String deviceId, String jobId, String status, String start, String end) {
+		String notifyXml =
+				"<JobPropertiesChanged "
+				+ "deviceId='" + deviceId + "' "
+				+ "jobId='" + jobId + "' "
+				+ "status='" + status + "'"
+				+ "start='" + start + "'"
+				+ "end='" + end + "'"
+				+ ">"
+				+ "</JobPropertiesChanged>";
+
+		prepareNotificationMessage(notifyXml);
 	}
 
 	private static void prepareNotificationMessage(String updateUIXml) {

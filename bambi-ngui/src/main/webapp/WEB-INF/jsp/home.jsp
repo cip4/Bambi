@@ -18,7 +18,7 @@
         <div class="view-level-1 hide jobid-\${param.jobid}">
             <div class="icon-level"></div>
             <div style="display:inline-block;" class="">Job ID: \${param.jobid}</div>
-            <div class="queue-status-bar running"></div>
+            <div class="job-status-bar running-xxx"></div>
             <div>* Submission: \${param.submission}</div>
             <div class="view level-basic">
               <div>* Priority: xxx</div>
@@ -78,12 +78,18 @@
               <div class="view-level-1 jobid-<s:property value="queueEntryID"/>">
                 <div class="icon-level"></div>
                 <div class="" style="display:inline-block;">Job ID: <s:property value="queueEntryID"/></div>
-                <div class="queue-status-bar running"></div>
+                <div class="job-status-bar <s:property value="queueEntryStatus.name"/>"></div>
                 <div>* Submission: <s:property value="submissionTime.dateTimeISO"/></div>
                 <div class="view level-basic">
                   <div>* Priority: xxx</div>
-                  <div>* Start: 2015-MAR-08 12:34:56</div>
-                  <div>* End: 2015-MAR-08 12:34:56</div>
+                  <div>*
+                    <span>Start:</span>
+                    <span class="job-started"><s:property value="startTime.dateTimeISO"/></span>
+                  </div>
+                  <div>*
+                    <span>End:</span>
+                    <span class="job-ended"><s:property value="endTime.dateTimeISO"/></span>
+                  </div>
                 </div>
                 <div class="view level-full">
                   <div>* Attribute-01: xxx</div>

@@ -73,17 +73,27 @@ body, table, form, input, td, th, p, textarea, select {
 /************* Job status *************/
 
 .job-status-bar {
-  background-color: #ff0000;
+  background-color: #c4c4c4;
   height: 4px;
   margin-left: 15px;
   width: 135px;
 }
 
-.job-status-bar.running {
+.job-status-bar.waiting {
+  background-color: #ff7800;
+}
+
+.job-status-bar.running,
+.job-status-bar.completed {
   background-color: #74da20;
 }
 
+.job-status-bar.aborted {
+  background-color: #ff0000;
+}
 
+
+/************* Common *************/
 
 .queue-header {
   margin-left: 15px;
