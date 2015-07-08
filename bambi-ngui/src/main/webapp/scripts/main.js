@@ -51,7 +51,7 @@ application = {
 	},
 	
 	updateDeviceQueue : function(obj) {
-		var v = obj.UpdateDeviceQueue.queueStat;
+		var v = obj.UpdateDeviceQueue.queueStatistic;
 		
 		$("tr.device-" + obj.UpdateDeviceQueue.deviceId + " .left-panel .queue-status-bar").removeClass().addClass("queue-status-bar").addClass(obj.UpdateDeviceQueue.queueStatus);
 		

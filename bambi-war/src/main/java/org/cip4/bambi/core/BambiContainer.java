@@ -931,13 +931,14 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 		
 	}
 
-	public static void notifyDeviceJobAdded(String deviceId, String jobId, String submission) {
+	public static void notifyDeviceJobAdded(String deviceId, String jobId, String status, String submission) {
 		System.out.println("notifyAdded deviceId: " + deviceId + ", jobId: " + jobId);
 
 		String notifyXml =
 				"<AddDeviceJob "
 				+ "deviceId='" + deviceId + "' "
 				+ "jobid='" + jobId + "'"
+				+ "status='" + status + "'"
 				+ "submission='" + submission + "'"
 				+ ">"
 				+ "</AddDeviceJob>";
@@ -956,10 +957,11 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 		prepareNotificationMessage(notifyXml);
 	}
 
-	public static void notifyDeviceQueueStat(String deviceId, String queueStat) {
+	public static void notifyDeviceQueueStat(String deviceId, String queueStatus, String queueStatistic) {
 		String updateQueueXml =
 				"<UpdateDeviceQueue deviceId='" + deviceId + "' "
-				+ "queueStat='" + queueStat + "'"
+				+ "queueStatus='" + queueStatus + "' "
+				+ "queueStatistic='" + queueStatistic + "'"
 				+ ">"
 				+ "</UpdateDeviceQueue>";
 

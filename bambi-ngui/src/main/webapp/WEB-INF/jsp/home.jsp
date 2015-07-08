@@ -18,12 +18,18 @@
         <div class="view-level-1 hide jobid-\${param.jobid}">
             <div class="icon-level"></div>
             <div style="display:inline-block;" class="">Job ID: \${param.jobid}</div>
-            <div class="job-status-bar running-xxx"></div>
+            <div class="job-status-bar \${param.status}"></div>
             <div>* Submission: \${param.submission}</div>
             <div class="view level-basic">
               <div>* Priority: xxx</div>
-              <div>* Start: 2015-MAR-08 12:34:56</div>
-              <div>* End: 2015-MAR-08 12:34:56</div>
+              <div>*
+                <span>Start:</span>
+                <span class="job-started">\${param.start}</span>
+              </div>
+              <div>*
+                <span>End:</span>
+                <span class="job-ended">\${param.end}</span>
+              </div>
             </div>
             <div class="view level-full">
               <div>* Attribute-01: xxx</div>
