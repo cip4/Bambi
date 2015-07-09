@@ -13,6 +13,8 @@
 
   <body>
     <h2>Bambi Sim Device Root - Overview</h2>
+    <a href="settings" target="_blank" style="float: right;">Settings</a>
+    <br/><br/>
     
     <div style="float: right;">Search by</div>
     <div style="float: right;">
@@ -23,12 +25,18 @@
         <div class="view-level-1 hide jobid-${param.jobid}">
             <div class="icon-level"></div>
             <div style="display:inline-block;" class="">Job ID: ${param.jobid}</div>
-            <div class="queue-status-bar running"></div>
+            <div class="job-status-bar ${param.status}"></div>
             <div>* Submission: ${param.submission}</div>
             <div class="view level-basic">
               <div>* Priority: xxx</div>
-              <div>* Start: 2015-MAR-08 12:34:56</div>
-              <div>* End: 2015-MAR-08 12:34:56</div>
+              <div>*
+                <span>Start:</span>
+                <span class="job-started">${param.start}</span>
+              </div>
+              <div>*
+                <span>End:</span>
+                <span class="job-ended">${param.end}</span>
+              </div>
             </div>
             <div class="view level-full">
               <div>* Attribute-01: xxx</div>
@@ -69,7 +77,7 @@
             <div class="view-level-1">
               <div class="icon-level"></div>
               <div class="" style="display:inline-block;">Job ID: 01</div>
-              <div class="queue-status-bar running"></div>
+              <div class="job-status-bar running"></div>
               <div>* Submission: 2015-MAR-08 12:34:56</div>
               <div class="view level-basic">
                 <div>* Priority: xxx</div>
