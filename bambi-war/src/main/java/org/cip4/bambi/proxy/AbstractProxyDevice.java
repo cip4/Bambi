@@ -1210,9 +1210,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @param newQE
 	 */
 	@Override
-	public void prepareSubmit(JDFQueueEntry newQE)
+	public void prepareSubmit(JDFQueueEntry newQE, JDFDoc jdf)
 	{
-		super.wasSubmitted(newQE);
+		super.prepareSubmit(newQE, jdf);
 		newQE.setStatusDetails(SUBMITTING);
 	}
 

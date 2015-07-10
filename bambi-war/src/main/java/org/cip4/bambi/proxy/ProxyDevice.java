@@ -1006,7 +1006,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			return null;
 		}
 		final JDFQueueEntry qe = _theQueueProcessor.getQueueEntry(null, nid);
-		final IQueueEntry iqe = _theQueueProcessor.getIQueueEntry(qe);
+		final IQueueEntry iqe = _theQueueProcessor.getIQueueEntry(qe, true);
 		return createExistingProcessor(iqe);
 	}
 
@@ -1022,7 +1022,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		// we don't have an active proc, but this might be a multiple retQE - try to generate from old
 		if (proc == null)
 		{
-			final IQueueEntry iqe = _theQueueProcessor.getIQueueEntry(qe);
+			final IQueueEntry iqe = _theQueueProcessor.getIQueueEntry(qe, true);
 			proc = createExistingProcessor(iqe);
 		}
 		return proc;
@@ -1086,7 +1086,7 @@ public class ProxyDevice extends AbstractProxyDevice
 				final EnumQueueEntryStatus stat = qe.getQueueEntryStatus();
 				if (!qe.isCompleted() && BambiNSExtension.getSlaveQueueEntryID(qe) != null)
 				{
-					final IQueueEntry iqe = _theQueueProcessor.getIQueueEntry(qe);
+					final IQueueEntry iqe = _theQueueProcessor.getIQueueEntry(qe, true);
 					if (iqe == null)
 					{
 						log.error("no Queue entry refreshing queue " + qe.getQueueEntryID() + " Status= " + stat == null ? "unknown" : stat.getName());

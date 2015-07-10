@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -209,7 +209,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 * process one phase for a given JDF node
 	 * @param n the currently processed node
 	 */
-	private void processPhase(final JDFNode n)
+	protected void processPhase(final JDFNode n)
 	{
 		final JDFResourceLink rlAmount = getAmountLink(n);
 		final String namedRes = rlAmount == null ? null : rlAmount.getrRef();
@@ -301,7 +301,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 * @param n
 	 * @return the "main" amount link
 	 */
-	private JDFResourceLink getAmountLink(final JDFNode n)
+	protected JDFResourceLink getAmountLink(final JDFNode n)
 	{
 		final VJDFAttributeMap vMap = n.getNodeInfoPartMapVector();
 

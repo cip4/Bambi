@@ -694,7 +694,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				log.warn("could not find queueentry for " + identifier);
 				return false;
 			}
-			final IQueueEntry iqe = getIQueueEntry(qe);
+			final IQueueEntry iqe = getIQueueEntry(qe, true);
 			JDFNode n = iqe.getJDF();
 			if (n == null)
 			{
@@ -1887,7 +1887,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	{
 		JDFQueueEntry qe = getQueue().getQueueEntry(qeID);
 		if (qe == null || waitForDoc && BambiNSExtension.getDocURL(qe) == null)
+		{
 			return null;
+		}
 		else
 		{
 			return getIQueueEntry(qe, waitForDoc);
@@ -1905,6 +1907,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * @param qe
+	 * @param waitForDoc if true we wait for an existing doc and also we do not check whether it is executable
 	 * @return an IQueueEntry that corresponds to the qe, null if none is there
 	 */
 	public IQueueEntry getIQueueEntry(final JDFQueueEntry qe, boolean waitForDoc)
@@ -1932,7 +1935,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			return null;
 		}
 
-		final JDFNode n = _parentDevice.getNodeFromDoc(theDoc);
+		final JDFNode n = waitForDoc && theDoc != null ? theDoc.getJDFRoot() : _parentDevice.getNodeFromDoc(theDoc);
 		return new QueueEntry(n, qe);
 	}
 
@@ -2072,7 +2075,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			notifyListeners(qeID);
 			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID);
 			newQE = _theQueue.getQueueEntry(qeID);
-			prepareSubmit(newQE);
+			prepareSubmit(newQE, theJDF);
 		}
 		// wait a very short moment to allow any potential processing of the newly created entry to commence, prior to returning the entry
 		ThreadUtil.sleep(42);
@@ -2083,9 +2086,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * prepare qe for submission
 	 * @param newQE
 	 */
-	protected void prepareSubmit(JDFQueueEntry newQE)
+	protected void prepareSubmit(JDFQueueEntry newQE, JDFDoc jdf)
 	{
-		_parentDevice.prepareSubmit(newQE);
+		_parentDevice.prepareSubmit(newQE, jdf);
 	}
 
 	/**
@@ -2854,7 +2857,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			if (theNode == null)
 			{
-				IQueueEntry iQueueEntry = getIQueueEntry(qe);
+				IQueueEntry iQueueEntry = getIQueueEntry(qe, true);
 				theNode = iQueueEntry == null ? null : iQueueEntry.getJDF();
 			}
 			JDFDoc theDoc = theNode == null ? null : theNode.getOwnerDocument_JDFElement();
