@@ -13,6 +13,8 @@
 
   <body>
     <h2><s:text name="home.title"/></h2>
+    <a href="settings" target="_blank" style="float: right;">Settings</a>
+    <br/><br/>
 
     <script type="text/html" id="jobTemplate">
         <div class="view-level-1 hide jobid-\${param.jobid}">

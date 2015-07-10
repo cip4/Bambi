@@ -124,7 +124,7 @@ public class MyServiceWebSocket implements Observer {
     }
 
 	@Override
-	public void refreshData(final String jsonObj) {
+	public void pushData(final String jsonObj) {
 		send(jsonObj);
 	}
 

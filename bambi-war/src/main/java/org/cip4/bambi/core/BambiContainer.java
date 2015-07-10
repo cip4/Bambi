@@ -70,7 +70,6 @@
  */
 package org.cip4.bambi.core;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,16 +79,7 @@ import java.util.zip.ZipEntry;
 
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.lang.StringUtils;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
@@ -114,9 +104,6 @@ import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.zip.ZipReader;
 import org.json.JSONObject;
 import org.json.XML;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 /**
  * class that handles all bambi JDF/JMF requests - regardless of the servlet context
@@ -553,9 +540,6 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 		}
 		stopTimer(request);
 		
-//		notify subscribers about recent changes
-		notifyListeners(r);
-		
 		return r;
 	}
 
@@ -895,45 +879,7 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 		observersList.remove(obs);
 	}
 
-	@Override
-	@Deprecated
-	public void notifyListeners(final XMLResponse xmlResponse) {
-		if (observersList.size() == 0) {
-			System.out.println("No observers available, skipping current notification");
-			return;
-		}
-		
-		System.out.println("About to notify total observers: " + observersList.size());
-		
-		String respNode = xmlResponse.getXML().getNodeName();
-		
-		String xmlRespStr = xmlResponse.getXML().toDisplayXML(2);
-		System.out.println("xmlRespStr: " + xmlRespStr);
-		
-		if (respNode.equalsIgnoreCase("JMF")) {
-//			String updateUIXml = "<UpdateDeviceQueue " + parseDeviceJmfResponseQueue(xmlRespStr) + "></UpdateDeviceQueue>";
-//			String addDeviceJobXml = "<AddDeviceJob " + parseAddDeviceJob(xmlRespStr) + "></AddDeviceJob>";
-			
-//			TODO: add more Queue-related commands
-//			AbortQueueEntry
-//			RemoveQueueEntry
-			
-//			prepareNotificationMessage(updateUIXml);
-//			prepareNotificationMessage(addDeviceJobXml);
-		} else if (respNode.equalsIgnoreCase("Queue")) {
-//			String updateUIXml = "<UpdateDeviceQueue " + parseDeviceQueue(xmlRespStr) + "></UpdateDeviceQueue>";
-//			prepareNotificationMessage(updateUIXml);
-		} else if (respNode.equalsIgnoreCase("DeviceList")) {
-//			skip show list of devices
-		} else {
-			System.out.println("Unsupported yet response node: '" + respNode + "', xmlRespStr: " + xmlRespStr);
-		}
-		
-	}
-
 	public static void notifyDeviceJobAdded(String deviceId, String jobId, String status, String submission) {
-		System.out.println("notifyAdded deviceId: " + deviceId + ", jobId: " + jobId);
-
 		String notifyXml =
 				"<AddDeviceJob "
 				+ "deviceId='" + deviceId + "' "
@@ -942,22 +888,20 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 				+ "submission='" + submission + "'"
 				+ ">"
 				+ "</AddDeviceJob>";
-		prepareNotificationMessage(notifyXml);
+		prepareAndPushNotificationMessage(notifyXml);
 	}
 
 	public static void notifyDeviceJobRemoved(String deviceId, String jobId) {
-		System.out.println("notifyDeleted deviceId: " + deviceId + ", jobId: " + jobId);
-
 		String notifyXml =
 				"<DeleteDeviceJob "
 				+ "deviceId='" + deviceId + "' "
 				+ "jobid='" + jobId +"'"
 				+ ">"
 				+ "</DeleteDeviceJob>";
-		prepareNotificationMessage(notifyXml);
+		prepareAndPushNotificationMessage(notifyXml);
 	}
 
-	public static void notifyDeviceQueueStat(String deviceId, String queueStatus, String queueStatistic) {
+	public static void notifyDeviceQueueStatus(String deviceId, String queueStatus, String queueStatistic) {
 		String updateQueueXml =
 				"<UpdateDeviceQueue deviceId='" + deviceId + "' "
 				+ "queueStatus='" + queueStatus + "' "
@@ -965,7 +909,7 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 				+ ">"
 				+ "</UpdateDeviceQueue>";
 
-		prepareNotificationMessage(updateQueueXml);
+		prepareAndPushNotificationMessage(updateQueueXml);
 	}
 	
 	public static void notifyDeviceJobPropertiesChanged(String deviceId, String jobId, String status, String start, String end) {
@@ -979,136 +923,16 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 				+ ">"
 				+ "</JobPropertiesChanged>";
 
-		prepareNotificationMessage(notifyXml);
+		prepareAndPushNotificationMessage(notifyXml);
 	}
 
-	private static void prepareNotificationMessage(String updateUIXml) {
-		JSONObject jsonObj = XML.toJSONObject(updateUIXml);
+	private static void prepareAndPushNotificationMessage(String message) {
+		JSONObject jsonObj = XML.toJSONObject(message);
 		System.out.println("jsonObj.toString: " + jsonObj.toString());
 		
 		for (Observer obs : observersList) {
-//			System.out.println("notifyListeners obs:" + obs);
-			obs.refreshData(jsonObj.toString());
+			obs.pushData(jsonObj.toString());
 		}
-	}
-
-	private String parseAddDeviceJob(final String xmlRespStr) {
-		String xmlRespFixed = StringUtils.remove(xmlRespStr, "xmlns=\"http://www.CIP4.org/JDFSchema_1_1\"");
-		
-		String result = "deviceId='simIDP' jobid='100' status='running' submission='2015-MAR-08 12:34:56'";
-		return result;
-	}
-
-	private String parseDeviceQueue(final String xmlRespStr) {
-		String xmlRespFixed = StringUtils.remove(xmlRespStr, "xmlns=\"http://www.CIP4.org/JDFSchema_1_1\"");
-//		System.out.println("xmlRespFixed: " + xmlRespFixed);
-		
-		String result = "deviceId='{$deviceId}' queueWaiting='-' queueRunning='-' queueCompleted='-' queueAll='-' queueStatus='-'";
-		
-		DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
-		domFactory.setNamespaceAware(true); 
-	    try {
-			DocumentBuilder builder = domFactory.newDocumentBuilder();
-			InputSource is = new InputSource(new ByteArrayInputStream(xmlRespFixed.getBytes("utf-8")));
-			Document doc = builder.parse(is);
-			
-			XPath xpath = XPathFactory.newInstance().newXPath();
-			XPathExpression deviceIdExpr = xpath.compile("string(/Queue/@DeviceID)");
-			XPathExpression waitingQueueElementsExpr = xpath.compile("count(/Queue/QueueEntry[@Status='Waiting'])");
-			XPathExpression runningQueueElementsExpr = xpath.compile("count(/Queue/QueueEntry[@Status='Running'])");
-			XPathExpression completQueueElementsExpr = xpath.compile("count(/Queue/QueueEntry[@Status='Completed'])");
-			XPathExpression queueStatusExpr = xpath.compile("string(/Queue/@Status)");
-			
-			String deviceIdResult = (String) deviceIdExpr.evaluate(doc, XPathConstants.STRING);
-			String waitingResult = (String) waitingQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
-			String runningResult = (String) runningQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
-			String completResult = (String) completQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
-			String statusResult = (String) queueStatusExpr.evaluate(doc, XPathConstants.STRING);
-			
-			Integer waiting = Integer.parseInt(waitingResult);
-			Integer running = Integer.parseInt(runningResult);
-			Integer complet = Integer.parseInt(completResult);
-			Integer all = waiting + running + complet;
-			
-//			System.out.println("waiting: " + waitingResult + ", running: " + runningResult + ", completed: " + completResult);
-			
-			result = StringUtils.replaceOnce(result, "{$deviceId}", deviceIdResult);
-			result = StringUtils.replaceOnce(result, "-", "" + waiting);
-			result = StringUtils.replaceOnce(result, "-", "" + running);
-			result = StringUtils.replaceOnce(result, "-", "" + complet);
-			result = StringUtils.replaceOnce(result, "-", "" + all);
-			result = StringUtils.replaceOnce(result, "-", statusResult);
-			
-			System.out.println("result: " + result);
-			
-			return result;
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace(System.out);
-		} catch (SAXException e) {
-			e.printStackTrace(System.out);
-		} catch (IOException e) {
-			e.printStackTrace(System.out);
-		} catch (XPathExpressionException e) {
-			e.printStackTrace(System.out);
-		}
-	    
-	    return result;
-	}
-
-	private String parseDeviceJmfResponseQueue(final String xmlRespStr) {
-		String xmlRespFixed = StringUtils.remove(xmlRespStr, "xmlns=\"http://www.CIP4.org/JDFSchema_1_1\"");
-//		System.out.println("xmlRespFixed: " + xmlRespFixed);
-		
-		String result = "deviceId='{$deviceId}' queueWaiting='-' queueRunning='-' queueCompleted='-' queueAll='-' queueStatus='-'";
-		
-		DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
-		domFactory.setNamespaceAware(true); 
-	    try {
-			DocumentBuilder builder = domFactory.newDocumentBuilder();
-			InputSource is = new InputSource(new ByteArrayInputStream(xmlRespFixed.getBytes("utf-8")));
-			Document doc = builder.parse(is);
-			
-			XPath xpath = XPathFactory.newInstance().newXPath();
-			XPathExpression deviceIdExpr = xpath.compile("string(/JMF/@SenderID)");
-			XPathExpression waitingQueueElementsExpr = xpath.compile("count(/JMF/Response/Queue/QueueEntry[@Status='Waiting'])");
-			XPathExpression runningQueueElementsExpr = xpath.compile("count(/JMF/Response/Queue/QueueEntry[@Status='Running'])");
-			XPathExpression completQueueElementsExpr = xpath.compile("count(/JMF/Response/Queue/QueueEntry[@Status='Completed'])");
-			XPathExpression queueStatusExpr = xpath.compile("string(/JMF/Response/Queue/@Status)");
-			
-			String deviceIdResult = (String) deviceIdExpr.evaluate(doc, XPathConstants.STRING);
-			String waitingResult = (String) waitingQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
-			String runningResult = (String) runningQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
-			String completResult = (String) completQueueElementsExpr.evaluate(doc, XPathConstants.STRING);
-			String statusResult = (String) queueStatusExpr.evaluate(doc, XPathConstants.STRING);
-			
-			Integer waiting = Integer.parseInt(waitingResult);
-			Integer running = Integer.parseInt(runningResult);
-			Integer complet = Integer.parseInt(completResult);
-			Integer all = waiting + running + complet;
-			
-//			System.out.println("waiting: " + waitingResult + ", running: " + runningResult + ", completed: " + completResult);
-			
-			result = StringUtils.replaceOnce(result, "{$deviceId}", deviceIdResult);
-			result = StringUtils.replaceOnce(result, "-", "" + waiting);
-			result = StringUtils.replaceOnce(result, "-", "" + running);
-			result = StringUtils.replaceOnce(result, "-", "" + complet);
-			result = StringUtils.replaceOnce(result, "-", "" + all);
-			result = StringUtils.replaceOnce(result, "-", statusResult);
-			
-//			System.out.println("result: " + result);
-			
-			return result;
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace(System.out);
-		} catch (SAXException e) {
-			e.printStackTrace(System.out);
-		} catch (IOException e) {
-			e.printStackTrace(System.out);
-		} catch (XPathExpressionException e) {
-			e.printStackTrace(System.out);
-		}
-	    
-	    return result;
 	}
 
 }
