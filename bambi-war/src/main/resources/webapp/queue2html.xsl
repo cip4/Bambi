@@ -564,8 +564,15 @@
               <xsl:value-of select="@QueueEntryID"/>
             </a>
         </em>
-      
-      
+        <br/>
+
+        <!-- Submit -->
+        <em class="smaller">Submission:</em><br/>
+        <em>
+            <xsl:call-template name="dateTime">
+                <xsl:with-param name="val" select="@SubmissionTime"/>
+            </xsl:call-template>
+        </em>
       
       <!-- Status Bar -->
       <div>
@@ -757,19 +764,5 @@
   </xsl:template>
   <xsl:include href="optionlist.xsl"/>
   <xsl:include href="StandardXML.xsl"/>
-
-  <!--
-  Change "dateFormatter" value according to format you wish to see dates in browser.
-  List of supported values:
-    USDate: format as "MM/DD/YYYY",
-    EURODate: format as "DD/MM/YYYY",
-    ISODate: format as "YYYY/MM/DD".
-
-  If incorrect value specified: fallback to "ISODate".
-  Current value: "EURODate".
-  -->
-  <!--xsl:variable name="dateFormatter" select="'USDate'"/-->
-  <xsl:variable name="dateFormatter" select="'EURODate'"/>
-  <!--xsl:variable name="dateFormatter" select="'ISODate'"/-->
 
 </xsl:stylesheet>

@@ -207,9 +207,9 @@ public class BambiServer extends JettyServer
 			return;
 		}
 		File toolDir = new File(userDir.getToolPath());
-		File listTxt = new File("list.txt");
-		listTxt = FileUtil.getFileInDirectory(toolDir, listTxt);
-		if (!listTxt.canRead())
+//		File listTxt = new File("list.txt");
+//		listTxt = FileUtil.getFileInDirectory(toolDir, listTxt);
+		if (true /*!listTxt.canRead()*/)
 		{
 			Class<? extends BambiServer> myClass = getClass();
 			InputStream listStream = myClass.getResourceAsStream("/list.txt");
