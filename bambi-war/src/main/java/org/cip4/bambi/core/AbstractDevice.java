@@ -2139,13 +2139,22 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * stub to update the qe based on doc properties
+	 * stub to update the qe based on doc properties 
 	 * @param newQE
 	 * @param jdf the JDF doc
 	 */
 	public void prepareSubmit(JDFQueueEntry newQE, JDFDoc jdf)
 	{
-		// nop
+		if (jdf != null)
+		{
+			JDFNode root = jdf.getJDFRoot();
+			EnumActivation activation = root.getActivation(false);
+			if (activation != null && !EnumActivation.Active.equals(activation))
+			{
+				newQE.setActivation(activation);
+				root.setActivation(EnumActivation.Active);
+			}
+		}
 	}
 
 	/**
