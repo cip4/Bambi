@@ -658,7 +658,7 @@
           </div>
           
           
-          <div class="subrow">
+          <!--div class="subrow">
               <div class="SubmissionTime">
                    <em class="smaller">Submission: </em><br/>
                    <em>
@@ -667,7 +667,7 @@
                     </xsl:call-template>
                    </em>
                </div>     
-           </div>
+           </div-->
            
           <div class="subrow">
               <div class="StartTime">

@@ -227,10 +227,9 @@
             </xsl:with-param>
           </xsl:call-template>
         </xsl:otherwise>
-      </xsl:choose>
-      /
-      <xsl:variable name="time" select="substring($val,12,8)"/>
-      <xsl:value-of select="$time"/>
+      </xsl:choose>,
+<xsl:variable name="time" select="substring($val,12,8)"/>
+<xsl:value-of select="$time"/>
     </xsl:if>
   </xsl:template>
 
