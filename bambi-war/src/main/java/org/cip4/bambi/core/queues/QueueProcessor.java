@@ -2075,7 +2075,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			notifyListeners(qeID);
 			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID);
 			newQE = _theQueue.getQueueEntry(qeID);
-			prepareSubmit(newQE, theJDF);
+			prepareSubmit(newQE);
 		}
 		// wait a very short moment to allow any potential processing of the newly created entry to commence, prior to returning the entry
 		ThreadUtil.sleep(42);
@@ -2086,9 +2086,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * prepare qe for submission
 	 * @param newQE
 	 */
-	protected void prepareSubmit(JDFQueueEntry newQE, JDFDoc jdf)
+	protected void prepareSubmit(JDFQueueEntry newQE)
 	{
-		_parentDevice.prepareSubmit(newQE, jdf);
+		_parentDevice.prepareSubmit(newQE);
 	}
 
 	/**
