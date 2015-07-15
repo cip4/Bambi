@@ -1259,6 +1259,13 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return null;
 		}
 		qe.setFromJDF(root); // set jobid, jobpartid, partmaps
+		EnumActivation activation = root.getActivation(false);
+		if (activation != null && !EnumActivation.Active.equals(activation))
+		{
+			qe.setQueueEntryStatus(EnumQueueEntryStatus.Held);
+			root.setActivation(EnumActivation.Active);
+		}
+
 		final int prio = qe.getPriority();
 		if (prio > 0)
 		{
@@ -2141,20 +2148,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	/**
 	 * stub to update the qe based on doc properties 
 	 * @param newQE
-	 * @param jdf the JDF doc
+	 * @param  
 	 */
-	public void prepareSubmit(JDFQueueEntry newQE, JDFDoc jdf)
+	public void prepareSubmit(JDFQueueEntry newQE)
 	{
-		if (jdf != null)
-		{
-			JDFNode root = jdf.getJDFRoot();
-			EnumActivation activation = root.getActivation(false);
-			if (activation != null && !EnumActivation.Active.equals(activation))
-			{
-				newQE.setActivation(activation);
-				root.setActivation(EnumActivation.Active);
-			}
-		}
+		// dummy stub
 	}
 
 	/**
