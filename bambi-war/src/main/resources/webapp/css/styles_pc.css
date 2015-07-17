@@ -65,9 +65,9 @@ em.smaller {
 	font-size:10px;
 	color:#000
 	}
-em:hover ~ em.smaller {
+/*em:hover ~ em.smaller {
 	display:block;
-	}
+	}*/
 .column-5 em.smaller {
 	display:inline;
 	}

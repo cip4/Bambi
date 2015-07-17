@@ -1,5 +1,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi">
 
+  <xsl:include href="StandardXML.xsl"/>
+
   <!--  device processor -->
   <xsl:template match="bambi:Processor">
     
@@ -8,7 +10,10 @@
     <em>
     <xsl:value-of select="@DeviceStatus"/>
     since
-    <xsl:value-of select="@StartTime"/>
+    <xsl:call-template name="dateTime">
+        <xsl:with-param name="val" select="@StartTime"/>
+    </xsl:call-template>
+
     </em>
     </div>
     <xsl:if test="@DeviceStatusDetails">

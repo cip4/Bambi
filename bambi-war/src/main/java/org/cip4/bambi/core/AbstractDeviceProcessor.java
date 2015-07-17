@@ -143,7 +143,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 				final JDFDate startDate = sc.getStartDate();
 				if (startDate != null)
 				{
-					processor.setAttribute(AttributeName.STARTTIME, XMLResponse.formatLong(startDate.getTimeInMillis()));
+					processor.setAttribute(AttributeName.STARTTIME, startDate.getDateTimeISO());
 					processor.setAttribute("JobsProcessed", entriesProcessed, null);
 				}
 			}
