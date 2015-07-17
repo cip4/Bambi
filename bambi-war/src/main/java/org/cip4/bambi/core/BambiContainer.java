@@ -102,8 +102,6 @@ import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.zip.ZipReader;
-import org.json.JSONObject;
-import org.json.XML;
 
 /**
  * class that handles all bambi JDF/JMF requests - regardless of the servlet context
@@ -113,9 +111,10 @@ import org.json.XML;
  * note that the get handling routines still assume a servlet context - only the actual JDF / JMF post does not
  * @author Rainer Prosi, Heidelberger Druckmaschinen 
  */
-public final class BambiContainer extends BambiLogFactory implements Observable
+public final class BambiContainer extends BambiLogFactory
 {
-	private static List<Observer> observersList = new ArrayList<Observer>();
+	private final List<Observer> observersList;
+
 	/**
 	 * use getCreateInstance from outside
 	 */
@@ -124,6 +123,7 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 		super();
 		rootDev = null;
 		log.info("Creating Bambi Container");
+		observersList = new ArrayList<Observer>();
 	}
 
 	private AbstractDevice rootDev;
@@ -539,7 +539,7 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 			r = handleGet(request);
 		}
 		stopTimer(request);
-		
+
 		return r;
 	}
 
@@ -865,74 +865,6 @@ public final class BambiContainer extends BambiLogFactory implements Observable
 	public MultiDeviceProperties getProps()
 	{
 		return props;
-	}
-
-	@Override
-	public void addListener(final Observer obs) {
-		System.out.println("addListener obs:" + obs);
-		observersList.add(obs);
-	}
-
-	@Override
-	public void removeListener(final Observer obs) {
-		System.out.println("removeListener obs:" + obs);
-		observersList.remove(obs);
-	}
-
-	public static void notifyDeviceJobAdded(String deviceId, String jobId, String status, String submission) {
-		String notifyXml =
-				"<AddDeviceJob "
-				+ "deviceId='" + deviceId + "' "
-				+ "jobid='" + jobId + "'"
-				+ "status='" + status + "'"
-				+ "submission='" + submission + "'"
-				+ ">"
-				+ "</AddDeviceJob>";
-		prepareAndPushNotificationMessage(notifyXml);
-	}
-
-	public static void notifyDeviceJobRemoved(String deviceId, String jobId) {
-		String notifyXml =
-				"<DeleteDeviceJob "
-				+ "deviceId='" + deviceId + "' "
-				+ "jobid='" + jobId +"'"
-				+ ">"
-				+ "</DeleteDeviceJob>";
-		prepareAndPushNotificationMessage(notifyXml);
-	}
-
-	public static void notifyDeviceQueueStatus(String deviceId, String queueStatus, String queueStatistic) {
-		String updateQueueXml =
-				"<UpdateDeviceQueue deviceId='" + deviceId + "' "
-				+ "queueStatus='" + queueStatus + "' "
-				+ "queueStatistic='" + queueStatistic + "'"
-				+ ">"
-				+ "</UpdateDeviceQueue>";
-
-		prepareAndPushNotificationMessage(updateQueueXml);
-	}
-	
-	public static void notifyDeviceJobPropertiesChanged(String deviceId, String jobId, String status, String start, String end) {
-		String notifyXml =
-				"<JobPropertiesChanged "
-				+ "deviceId='" + deviceId + "' "
-				+ "jobId='" + jobId + "' "
-				+ "status='" + status + "'"
-				+ "start='" + start + "'"
-				+ "end='" + end + "'"
-				+ ">"
-				+ "</JobPropertiesChanged>";
-
-		prepareAndPushNotificationMessage(notifyXml);
-	}
-
-	private static void prepareAndPushNotificationMessage(String message) {
-		JSONObject jsonObj = XML.toJSONObject(message);
-		System.out.println("jsonObj.toString: " + jsonObj.toString());
-		
-		for (Observer obs : observersList) {
-			obs.pushData(jsonObj.toString());
-		}
 	}
 
 }
