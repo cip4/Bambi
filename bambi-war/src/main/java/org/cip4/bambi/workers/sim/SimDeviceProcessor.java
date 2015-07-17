@@ -303,16 +303,15 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 */
 	protected JDFResourceLink getAmountLink(final JDFNode n)
 	{
-		final VJDFAttributeMap vMap = n.getNodeInfoPartMapVector();
-
 		final VElement v = n.getResourceLinks(new JDFAttributeMap(AttributeName.USAGE, EnumUsage.Output));
 		if (v != null)
 		{
+			final JobPhase currentJobPhase = getCurrentJobPhase();
+			VString vs = currentJobPhase == null ? new VString() : currentJobPhase.getAmountResourceNames();
 			for (KElement e : v)
 			{
 				final JDFResourceLink rl = (JDFResourceLink) e;
-				final double d = rl.getAmountPoolSumDouble(AttributeName.AMOUNT, vMap);
-				if (d >= 0)
+				if (vs.contains(rl.getLinkedResourceName()) || vs.contains(rl.getNamedProcessUsage()))
 				{
 					return rl;
 				}
