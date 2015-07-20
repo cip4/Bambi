@@ -372,7 +372,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		}
 		qe.setDeviceID(_parent.getDeviceID());
 		final String queueEntryID = qe.getQueueEntryID();
-		log.info("Processing queue entry: " + queueEntryID);
+		log.info("Processing queueentry " + queueEntryID);
 		prepareAmounts(node);
 		return bOK;
 	}

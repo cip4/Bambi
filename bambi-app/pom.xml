@@ -102,12 +102,6 @@
 			<version>2.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.cip4.tools.bambi.jar</groupId>
-			<artifactId>bambi-jar</artifactId>
-			<version>2.2-SNAPSHOT</version>
-		</dependency>
-
-		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 		</dependency>
