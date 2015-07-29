@@ -282,7 +282,7 @@ public final class BambiContainer extends BambiLogFactory
 	 * @param deviceID
 	 * @return
 	 */
-	protected AbstractDevice getDeviceFromID(final String deviceID)
+	public AbstractDevice getDeviceFromID(final String deviceID)
 	{
 		final RootDevice root = getRootDevice();
 		final AbstractDevice dev = root == null ? rootDev : root.getDevice(deviceID);

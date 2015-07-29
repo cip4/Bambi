@@ -1,5 +1,7 @@
-/**
+/*
+ *
  * The CIP4 Software License, Version 1.0
+ *
  *
  * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
@@ -66,48 +68,89 @@
  *  
  * 
  */
-package org.cip4.bambi.server;
+package org.cip4.bambi.core;
 
-import org.cip4.jdflib.util.file.UserDir;
-import org.cip4.jdflib.util.logging.LogConfigurator;
-import org.cip4.jdfutility.server.JettyServer;
-import org.cip4.jdfutility.server.JettyService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
- * standard bambi windows service wrapper
- * @author rainer prosi
- * @date Oct 26, 2011
+ * Class implements default notification mechanism, which is simply empty, thus
+ * "no-notifications" strategy. It is implemented as a Singleton so that you
+ * always have static access.
+ * 
+ * @author Rainer Prosi, Heidelberger Druckmaschinen
  */
-public class BambiService extends JettyService
+public class BambiNotifyDef implements BambiNotify
 {
-	/**
-	 * 
-	 */
-	public BambiService()
-	{
-		super();
-		log.info("creating bambi service instance");
+	protected Log log;
+
+	private static BambiNotifyDef theInstance;
+	private static BambiNotify notifier;
+
+	static {
+		theInstance = new BambiNotifyDef();
 	}
 
 	/**
-	 * 
-	 * main ...
-	 * @param args
+	 * use getInstance from outside
 	 */
-	public static void main(String[] args)
+	protected BambiNotifyDef()
 	{
-		LogConfigurator.configureLog(new UserDir("bambi").getLogPath(), "bambi.log");
-		if (theService == null)
-			theService = new BambiService();
-		theService.doMain(args);
+		log = LogFactory.getLog(getClass());
+		log.info("Creating default Bambi Notifier");
+	}
+	
+	public static BambiNotifyDef getInstance()
+	{
+		return theInstance;
 	}
 
-	/**
-	 * @see org.cip4.jdfutility.server.JettyService#getServer(java.lang.String[])
-	 */
-	@Override
-	public JettyServer getServer(String[] args)
+	public void setImpl(BambiNotify impl)
 	{
-		return BambiServer.getBambiServer();
+		log.info("Switch from default to other implementation, impl: " + impl);
+		notifier = impl;
 	}
+
+	public void addListener(final Observer obs)
+	{
+		if (null != notifier) {
+			notifier.addListener(obs);
+		}
+	}
+
+	public void removeListener(final Observer obs)
+	{
+		if (null != notifier) {
+			notifier.removeListener(obs);
+		}
+	}
+
+	public void notifyDeviceJobAdded(final String deviceId, final String jobId, final String status, final String submission)
+	{
+		if (null != notifier) {
+			notifier.notifyDeviceJobAdded(deviceId, jobId, status, submission);
+		}
+	}
+
+	public void notifyDeviceJobRemoved(final String deviceId, final String jobId)
+	{
+		if (null != notifier) {
+			notifier.notifyDeviceJobRemoved(deviceId, jobId);
+		}
+	}
+
+	public void notifyDeviceQueueStatus(final String deviceId, final String queueStatus, final String queueStatistic)
+	{
+		if (null != notifier) {
+			notifier.notifyDeviceQueueStatus(deviceId, queueStatus, queueStatistic);
+		}
+	}
+
+	public void notifyDeviceJobPropertiesChanged(final String deviceId, final String jobId, final String status, final String start, final String end)
+	{
+		if (null != notifier) {
+			notifier.notifyDeviceJobPropertiesChanged(deviceId, jobId, status, start, end);
+		}
+	}
+
 }

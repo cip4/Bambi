@@ -1,5 +1,7 @@
-/**
+/*
+ *
  * The CIP4 Software License, Version 1.0
+ *
  *
  * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
@@ -66,48 +68,23 @@
  *  
  * 
  */
-package org.cip4.bambi.server;
-
-import org.cip4.jdflib.util.file.UserDir;
-import org.cip4.jdflib.util.logging.LogConfigurator;
-import org.cip4.jdfutility.server.JettyServer;
-import org.cip4.jdfutility.server.JettyService;
+package org.cip4.bambi.core;
 
 /**
- * standard bambi windows service wrapper
- * @author rainer prosi
- * @date Oct 26, 2011
+ * 
+ * @author Rainer Prosi, Heidelberger Druckmaschinen
  */
-public class BambiService extends JettyService
+public interface BambiNotify
 {
-	/**
-	 * 
-	 */
-	public BambiService()
-	{
-		super();
-		log.info("creating bambi service instance");
-	}
+	void addListener(final Observer obs);
 
-	/**
-	 * 
-	 * main ...
-	 * @param args
-	 */
-	public static void main(String[] args)
-	{
-		LogConfigurator.configureLog(new UserDir("bambi").getLogPath(), "bambi.log");
-		if (theService == null)
-			theService = new BambiService();
-		theService.doMain(args);
-	}
+	void removeListener(final Observer obs);
 
-	/**
-	 * @see org.cip4.jdfutility.server.JettyService#getServer(java.lang.String[])
-	 */
-	@Override
-	public JettyServer getServer(String[] args)
-	{
-		return BambiServer.getBambiServer();
-	}
+	void notifyDeviceJobAdded(final String deviceId, final String jobId, final String status, final String submission);
+
+	void notifyDeviceJobRemoved(final String deviceId, final String jobId);
+
+	void notifyDeviceQueueStatus(final String deviceId, final String queueStatus, final String queueStatistic);
+
+	void notifyDeviceJobPropertiesChanged(final String deviceId, final String jobId, final String status, final String start, final String end);
 }
