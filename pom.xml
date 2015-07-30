@@ -103,7 +103,7 @@
 			<dependency>
 				<groupId>org.cip4.lib.jdf</groupId>
 				<artifactId>JDFLibJ</artifactId>
-				<version>2.1.5.87-SNAPSHOT</version>
+				<version>2.1.5.88-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>log4j</groupId>
