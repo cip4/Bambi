@@ -2,8 +2,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.cip4.tools.bambi.war</groupId>
-	<artifactId>bambi-war</artifactId>
+	<groupId>org.cip4.tools.bambi.resources</groupId>
+	<artifactId>bambi-resources</artifactId>
 	<packaging>jar</packaging>
 
 	<parent>
@@ -12,50 +12,20 @@
 		<version>2.2-SNAPSHOT</version>
 	</parent>
 
-	<name>CIP4-Bambi Core</name>
+	<name>CIP4-Bambi Resources</name>
 	<url>http://www.cip4.org</url>
 
 	<build>
-		<finalName>CIP4-Bambi-${project.version}</finalName>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<skipTests>true</skipTests>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>attached</goal>
-						</goals>
-						<configuration>
-							<descriptors>
-								<descriptor>src/main/assemble/assembly-jar.xml</descriptor>
-							</descriptors>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
+		<finalName>CIP4-Bambi-resources-${project.version}</finalName>
 	</build>
 
 	<dependencies>
-		<dependency> 
-			<groupId>org.cip4.tools.jdfutility</groupId>
-			<artifactId>JDFUtility</artifactId>
-			<version>1.0-SNAPSHOT</version>
+		<dependency>
+			<groupId>org.cip4.tools.bambi.war</groupId>
+			<artifactId>bambi-war</artifactId>
+			<version>2.2-SNAPSHOT</version>
 		</dependency>
+
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
@@ -82,13 +52,22 @@
 			<artifactId>mail</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty.websocket</groupId>
+			<artifactId>websocket-server</artifactId>
+			<version>9.2.4.v20141103</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>jasper</artifactId>
+			<version>6.0.43</version>
+		</dependency>
+
 	</dependencies>
 
 </project>
