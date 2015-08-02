@@ -17,6 +17,14 @@
 
 	<build>
 		<finalName>CIP4-Bambi-resources-${project.version}</finalName>
+		<resources>
+			<resource>
+				<directory>../bambi-ngui/target/</directory>
+				<includes>
+					<include>bambi-ngui-1.0.war</include>
+				</includes>
+			</resource>
+		</resources>
 	</build>
 
 	<dependencies>

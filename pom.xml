@@ -9,6 +9,7 @@
 	<url>http://www.cip4.org</url>
 
 	<modules>
+		<module>bambi-ngui</module>
 		<module>bambi-resources</module>
 		<module>bambi-app</module>
 		<module>bambi-war</module>

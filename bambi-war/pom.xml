@@ -24,6 +24,7 @@
 				<configuration>
 					<skipTests>true</skipTests>
 				</configuration>
+				<version>2.12.4</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
