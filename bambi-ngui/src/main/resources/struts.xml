@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+
+  <constant name="struts.enable.DynamicMethodInvocation" value="false"/>
+  <constant name="struts.devMode" value="true"/>
+
+
+  <package name="root" namespace="/" extends="struts-default">
+    <action name="*" class="org.cip4.bambi.actions.HomeAction">
+      <result name="success">/WEB-INF/jsp/home.jsp</result>
+      <result name="error">/WEB-INF/jsp/error.jsp</result>
+    </action>
+    
+    <!--action name="showDevice" class="org.cip4.bambi.actions.ShowDeviceAction">
+      <result>/WEB-INF/jsp/showDevice.jsp</result>
+    </action>
+    
+    <action name="showQueue" class="org.cip4.bambi.actions.ShowQueueAction">
+      <result>/WEB-INF/jsp/showQueue.jsp</result>
+    </action-->
+  </package>
+
+  <package name="jmf" namespace="/jmf" extends="struts-default">
+    <action name="*" class="org.cip4.bambi.actions.JmfAction">
+      <result name="success">/WEB-INF/jsp/jmf.jsp</result>
+    </action>
+  </package>
+
+  <package name="show_device" namespace="/showDevice" extends="struts-default">
+    <action name="*" class="org.cip4.bambi.actions.ShowDeviceAction">
+      <result>/WEB-INF/jsp/showDevice.jsp</result>
+    </action>
+  </package>
+
+  <package name="show_Queue" namespace="/showQueue" extends="struts-default">
+    <action name="*" class="org.cip4.bambi.actions.ShowQueueAction">
+      <result>/WEB-INF/jsp/showQueue.jsp</result>
+    </action>
+  </package>
+
+</struts>
