@@ -21,6 +21,7 @@
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<buildDirectory>${project.basedir}/target</buildDirectory>
+		<mainClass>org.cip4.bambi.ngui.server.BambiServerNgui</mainClass>
 	</properties>
 
 	<build>
@@ -59,7 +60,7 @@
 				<configuration>
 					<programs>
 						<program>
-							<mainClass>org.cip4.bambi.server.BambiServer</mainClass>
+							<mainClass>${mainClass}</mainClass>
 							<name>Bambi App</name>
 						</program>
 					</programs>
@@ -108,6 +109,23 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20140107</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-webapp</artifactId>
+			<version>9.2.4.v20141103</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty.websocket</groupId>
+			<artifactId>websocket-server</artifactId>
+			<version>9.2.4.v20141103</version>
+		</dependency>
+
+		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 		</dependency>
@@ -131,10 +149,6 @@
 		<dependency>
 			<groupId>javax.mail</groupId>
 			<artifactId>mail</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -174,7 +188,7 @@
 									</descriptorRefs>
 									<archive>
 										<manifest>
-											<mainClass>org.cip4.bambi.server.BambiServer</mainClass>
+											<mainClass>${mainClass}</mainClass>
 										</manifest>
 									</archive>
 								</configuration>
@@ -199,7 +213,7 @@
 									<errTitle>encc</errTitle>
 									<icon>src/main/assemble/windows/bambi.ico</icon>
 									<classPath>
-										<mainClass>org.cip4.bambi.server.BambiServer</mainClass>
+										<mainClass>${mainClass}</mainClass>
 										<addDependencies>true</addDependencies>
 										<preCp>anything</preCp>
 									</classPath>
@@ -246,7 +260,7 @@
 									</descriptorRefs>
 									<archive>
 										<manifest>
-											<mainClass>org.cip4.bambi.server.BambiServer</mainClass>
+											<mainClass>${mainClass}</mainClass>
 										</manifest>
 									</archive>
 								</configuration>
@@ -347,7 +361,7 @@
 											name="${project.build.finalName}" displayname="CIP4 Bambi App"
 											identifier="org.cip4.bambi.App" icon="${basedir}/src/main/assemble/macosx/bambi.icns"
 											shortversion="1.0" applicationCategory="public.app-category.developer-tools"
-											mainclassname="org.cip4.bambi.server.BambiServer">
+											mainclassname="${mainClass}">
 											<classpath
 												file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar" />
 										</bundleapp>

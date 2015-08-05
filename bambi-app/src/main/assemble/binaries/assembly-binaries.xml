@@ -18,6 +18,9 @@
 				<include>*.*</include>
 				<include>*/*.*</include>
 			</includes>
+			<excludes>
+				<exclude>libs/servlet-api-6.0.43.jar</exclude>
+			</excludes>
 		</fileSet>
 		<fileSet>
 			<directory>src/main/assemble/binaries/includes</directory>
