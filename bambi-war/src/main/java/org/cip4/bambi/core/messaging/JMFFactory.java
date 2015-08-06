@@ -80,7 +80,6 @@ import javax.mail.Multipart;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -340,7 +339,7 @@ public class JMFFactory extends BambiLogFactory
 		final HttpURLConnection uc = handler.getConnection();
 		if (uc != null)
 		{
-			final JDFDoc d = new JDFParser().parseStream(handler.getBufferedStream());
+			final JDFDoc d = JDFDoc.parseStream(handler.getBufferedStream());
 			if (d != null)
 			{
 				final JDFJMF root = d.getJMFRoot();

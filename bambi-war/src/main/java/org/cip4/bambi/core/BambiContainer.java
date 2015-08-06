@@ -119,12 +119,13 @@ public final class BambiContainer extends BambiLogFactory
 		super();
 		rootDev = null;
 		log.info("Creating Bambi Container");
+		nLogGet = 0;
 	}
 
 	private AbstractDevice rootDev;
 	private MultiDeviceProperties props;
 	private static BambiContainer theInstance = null;
-
+	private int nLogGet;
 	protected boolean bWantDump = true;
 
 	/**
@@ -610,7 +611,10 @@ public final class BambiContainer extends BambiLogFactory
 	 */
 	private XMLResponse handleGet(final StreamRequest request)
 	{
-		log.info("Handling UI Get request: " + request);
+		if ((nLogGet++ < 10) || (nLogGet % 100 == 0))
+		{
+			log.info("Handling UI Get request# " + nLogGet + " " + request);
+		}
 		XMLResponse r = new OverviewHandler().handleGet(request);
 		if (r == null)
 		{

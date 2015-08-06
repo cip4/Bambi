@@ -84,7 +84,6 @@ import org.cip4.bambi.workers.JobPhase;
 import org.cip4.bambi.workers.UIModifiableDevice;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -190,7 +189,7 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 			deviceFile = FileUtil.getFileInDirectory(cacheDir, new File("resinfo.xml"));
 			log.info("defaulting to generic file " + deviceFile.getAbsolutePath());
 		}
-		JDFDoc doc = new JDFParser().parseFile(deviceFile);
+		JDFDoc doc = JDFDoc.parseFile(deviceFile);
 		JDFJMF jmf = doc == null ? null : doc.getJMFRoot();
 		if (jmf == null)
 		{

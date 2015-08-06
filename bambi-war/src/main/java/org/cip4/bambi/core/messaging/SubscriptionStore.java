@@ -78,7 +78,6 @@ import org.cip4.bambi.core.messaging.SignalDispatcher.XMLSubscriptions;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
-import org.cip4.jdflib.core.XMLParser;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.RollingBackupFile;
 
@@ -111,8 +110,7 @@ class SubscriptionStore
 	public void load()
 	{
 		loading = true;
-		final XMLParser parser = new XMLParser();
-		final XMLDoc d = parser.parseFile(backup);
+		final XMLDoc d = XMLDoc.parseFile(backup);
 		final KElement root = d == null ? null : d.getRoot();
 		try
 		{

@@ -78,7 +78,6 @@ import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.node.JDFNode;
@@ -128,8 +127,7 @@ public class ShowXJDFHandler extends ShowHandler
 			log.warn("cannot process file: " + f);
 			return null;
 		}
-		final JDFParser p = new JDFParser();
-		JDFDoc doc = p.parseStream(is);
+		JDFDoc doc = JDFDoc.parseStream(is);
 		if (doc == null)
 		{
 			log.warn("cannot parse file: " + f);

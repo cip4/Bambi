@@ -84,7 +84,6 @@ import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFNodeInfo;
-import org.cip4.jdflib.core.JDFParser;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
@@ -138,8 +137,7 @@ public class ShowJDFHandler extends ShowHandler
 		InputStream is = FileUtil.getBufferedInputStream(f);
 		if (repair || !raw || callback && (_parentDevice instanceof AbstractProxyDevice))
 		{
-			final JDFParser p = new JDFParser();
-			JDFDoc doc = p.parseStream(is);
+			JDFDoc doc = JDFDoc.parseStream(is);
 			doc = prepareRoot(doc, request);
 
 			if (callback)
