@@ -103,7 +103,7 @@ import org.eclipse.jetty.websocket.server.WebSocketHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 
-public class BambiServerNgui extends org.cip4.bambi.server.BambiServer
+public class BambiServerNgui extends BambiServer
 {
 	private final static Logger log = Logger.getLogger(BambiServerNgui.class);
 

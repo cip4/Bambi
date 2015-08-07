@@ -96,6 +96,8 @@ import org.eclipse.jetty.servlet.ServletHolder;
 public class BambiServer extends JettyServer
 {
 	public static final String BAMBI = "bambi";
+	public static final String RESOURCES_FILE = "/list.txt";
+	
 	final MultiDeviceProperties mp;
 
 	/**
@@ -207,12 +209,12 @@ public class BambiServer extends JettyServer
 			return;
 		}
 		File toolDir = new File(userDir.getToolPath());
-//		File listTxt = new File("list.txt");
-//		listTxt = FileUtil.getFileInDirectory(toolDir, listTxt);
-		if (true /*!listTxt.canRead()*/)
+		File listTxt = new File(RESOURCES_FILE);
+		listTxt = FileUtil.getFileInDirectory(toolDir, listTxt);
+		if (!listTxt.canRead())
 		{
 			Class<? extends BambiServer> myClass = getClass();
-			InputStream listStream = myClass.getResourceAsStream("/list.txt");
+			InputStream listStream = myClass.getResourceAsStream(RESOURCES_FILE);
 			if (listStream == null)
 			{
 				log.error("No list found - cannot unpack resources");
@@ -220,43 +222,34 @@ public class BambiServer extends JettyServer
 			else
 			{
 				BufferedReader r = new BufferedReader(new InputStreamReader(listStream));
-				String line;
+				String line = null;
 				try
 				{
-					line = "./list.txt";
-					String lastLine = "";
-					while (line != null)
+					while ((line = r.readLine()) != null)
 					{
-						if (!lastLine.startsWith(line))
+						if (line.isEmpty())
+							continue;
+						
+						InputStream nextStream = myClass.getResourceAsStream(line);
+						if (nextStream != null)
 						{
-							String shortLine = line.substring(1);
-							InputStream nextStream = myClass.getResourceAsStream(shortLine);
-							if (nextStream != null) // directory
+							File toFile = new File(line.substring(1));
+							toFile = FileUtil.getFileInDirectory(toolDir, toFile);
+							log.info("Streaming resource file " + toFile.getAbsolutePath());
+							File newFile = FileUtil.streamToFile(nextStream, toFile);
+							if (newFile != null)
 							{
-								File toFile = new File(line.substring(2));
-								toFile = FileUtil.getFileInDirectory(toolDir, toFile);
-								File newFile = FileUtil.streamToFile(nextStream, toFile);
-								log.info("Streaming resource file " + toFile.getAbsolutePath());
-								if (newFile != null)
-								{
-									log.info("Streamed resource file " + newFile.getAbsolutePath());
-								}
-								else
-								{
-									log.warn("Cannot stream resource file " + toFile.getAbsolutePath());
-								}
+								log.info("Streamed resource file " + newFile.getAbsolutePath());
 							}
 							else
 							{
-								log.warn("no stream for resource file " + line);
+								log.warn("Cannot stream resource file " + toFile.getAbsolutePath());
 							}
 						}
 						else
 						{
-							log.info("skipping resource directory " + line);
+							log.warn("no stream for resource file " + line);
 						}
-						lastLine = line;
-						line = r.readLine();
 					}
 				}
 				catch (IOException e)

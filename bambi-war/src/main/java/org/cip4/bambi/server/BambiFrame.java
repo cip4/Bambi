@@ -69,7 +69,11 @@
 package org.cip4.bambi.server;
 
 import java.awt.event.ActionEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -79,6 +83,8 @@ import javax.swing.JTextField;
 
 import org.cip4.bambi.core.BambiContainer;
 import org.cip4.bambi.core.MultiDeviceProperties;
+import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdflib.util.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
 import org.cip4.jdfutility.server.ui.JettyFrame;
@@ -89,9 +95,10 @@ import org.cip4.jdfutility.server.ui.JettyFrame;
  */
 public class BambiFrame extends JettyFrame
 {
-	JButton baseDirButton;
-	JTextField baseDirText;
-	JCheckBox cbLegacy;
+	private JButton baseDirButton;
+	private JButton extractXsltButton;
+	private JTextField baseDirText;
+	private JCheckBox cbLegacy;
 
 	/**
 	 * @param server
@@ -150,16 +157,24 @@ public class BambiFrame extends JettyFrame
 	protected JPanel createPanel()
 	{
 		JPanel panel = super.createPanel();
+		
+		extractXsltButton = new JButton("Extract .xsl files");
+		extractXsltButton.addActionListener(this);
+		panel.add(extractXsltButton);
+		
 		baseDirButton = new JButton("Browse Base Directory");
 		baseDirButton.addActionListener(this);
 		panel.add(baseDirButton);
+		
 		baseDirText = new JTextField();
 		panel.add(baseDirText);
 		setBaseDirText(getProp().getBaseDir());
+		
 		cbLegacy = new JCheckBox("Legacy style");
 		cbLegacy.setSelected("/legacy".equals(getProp().getCSS()));
 		cbLegacy.addActionListener(this);
 		panel.add(cbLegacy);
+		
 		return panel;
 	}
 
@@ -174,13 +189,13 @@ public class BambiFrame extends JettyFrame
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent arg0)
+	public void actionPerformed(ActionEvent event)
 	{
-		if (baseDirButton.equals(arg0.getSource()))
+		if (baseDirButton.equals(event.getSource()))
 		{
 			browse();
 		}
-		else if (cbLegacy.equals(arg0.getSource()))
+		else if (cbLegacy.equals(event.getSource()))
 		{
 			getProp().setCSS(cbLegacy.isSelected() ? "/legacy" : "/webapp");
 			getProp().serialize();
@@ -191,9 +206,60 @@ public class BambiFrame extends JettyFrame
 			}
 
 		}
+		else if (extractXsltButton.equals(event.getSource()))
+		{
+			extractResources();
+		}
 		else
 		{
-			super.actionPerformed(arg0);
+			super.actionPerformed(event);
+		}
+	}
+	
+	/**
+	 * Extract only .xsl resource files, overwriting existing.
+	 */
+	private void extractResources()
+	{
+		Class<? extends BambiFrame> myClass = getClass();
+		InputStream listStream = myClass.getResourceAsStream(BambiServer.RESOURCES_FILE);
+		BufferedReader r = new BufferedReader(new InputStreamReader(listStream));
+		String line = null;
+		
+		UserDir userDir = new UserDir(BambiServer.BAMBI);
+		File toolDir = new File(userDir.getToolPath());
+		
+		try
+		{
+			while ((line = r.readLine()) != null)
+			{
+				if (line.isEmpty() || !line.endsWith(".xsl"))
+					continue;
+				
+				InputStream nextStream = myClass.getResourceAsStream(line);
+				if (nextStream != null)
+				{
+					File toFile = new File(line.substring(1));
+					toFile = FileUtil.getFileInDirectory(toolDir, toFile);
+					log.info("Streaming resource file " + toFile.getAbsolutePath());
+					File newFile = FileUtil.streamToFile(nextStream, toFile);
+					if (newFile != null)
+					{
+						log.info("Streamed resource file " + newFile.getAbsolutePath());
+					}
+					else
+					{
+						log.warn("Cannot stream resource file " + toFile.getAbsolutePath());
+					}
+				}
+				else
+				{
+					log.warn("no stream for resource file " + line);
+				}
+			}
+		} catch (IOException e)
+		{
+			log.error("Error: " + e.getMessage(), e);
 		}
 	}
 
