@@ -1200,9 +1200,19 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @see org.cip4.bambi.core.AbstractDevice#wasSubmitted(org.cip4.jdflib.jmf.JDFQueueEntry)
 	 */
 	@Override
-	public boolean wasSubmitted(JDFQueueEntry qeNew)
+	public boolean wasSubmitted(JDFQueueEntry qe)
 	{
-		return super.wasSubmitted(qeNew) && !SUBMITTING.equals(qeNew.getStatusDetails());
+		return super.wasSubmitted(qe) && !isSubmitting(qe);
+	}
+
+	/**
+	 * 
+	 * @param qe
+	 * @return
+	 */
+	public boolean isSubmitting(JDFQueueEntry qe)
+	{
+		return qe == null ? false : SUBMITTING.equals(qe.getStatusDetails());
 	}
 
 	/**

@@ -141,7 +141,6 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	}
 
 	private boolean doShutDown = false;
-	private boolean doShutDownGracefully = false;
 	protected MessageFiFo _messages;
 	protected FastFiFo<MessageDetails> sentMessages = null;
 	private static VectorMap<String, DumpDir> vDumps = new VectorMap<String, DumpDir>();
@@ -381,15 +380,6 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 						}
 					}
 				}
-
-				if (doShutDownGracefully && (_messages.isEmpty() || idle > 10)) // idle>10 kills - we are having problems...
-				{
-					if (!_messages.isEmpty())
-					{
-						log.error("shutting down not so gracefully after 10 gracefull attempts");
-					}
-					doShutDown = true;
-				}
 			}
 			catch (final Throwable x)
 			{
@@ -400,17 +390,21 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 			if (sentFirstMessage != SendReturn.sent && sentFirstMessage != SendReturn.removed)
 			{
-				if (idle++ > 3600 && _messages.size() == 0)
+				idle++;
+				if (_messages.size() == 0)
 				{
-					// no success or idle for an hour...
-					doShutDownGracefully = true;
-					log.info("Shutting down idle and empty thread for base url: " + callURL.getBaseURL());
+					if (idle > 333)
+					{
+						// no success or idle for an hour...
+						doShutDown = true;
+						log.info("Shutting down idle and empty thread for base url: " + callURL.getBaseURL());
+					}
 				}
 				else
 				{ // stepwise increment - try every second 10 times, then every 15 seconds, then every 5 minutes
 					int minIdle = 10;
-					int wait = (SendReturn.error == sentFirstMessage && idle > minIdle && !doShutDownGracefully && !doShutDown) ? 15000 : 1000;
-					if (wait == 15000 && idle > minIdle)
+					int wait = 15000;
+					if (idle > minIdle)
 					{
 						wait *= (idle / minIdle);
 						if (wait > 424242)
@@ -419,7 +413,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 							if (_messages.size() > 0)
 							{
 								long t0 = lastSent == 0 ? startTime : lastSent;
-								log.warn("Still waiting in blocked message thread for " + callURL.getBaseURL() + " unsuccessfull for "
+								log.warn("Still waiting in blocked message thread for " + callURL.getBaseURL() + " unsuccessful for "
 										+ ((System.currentTimeMillis() - t0) / 60000l) + " minutes");
 							}
 						}
@@ -431,7 +425,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 					}
 					if (!ThreadUtil.wait(mutexDispatch, wait))
 					{
-						shutDown(true);
+						shutDown(false);
 					}
 				}
 			}
@@ -927,15 +921,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	public void shutDown(final boolean gracefully)
 	{
-		if (gracefully)
-		{
-			doShutDownGracefully = true;
-			idle = 0; // set everything to a clean state
-		}
-		else
-		{
-			doShutDown = true;
-		}
+		doShutDown = true;
 		myFactory.senders.remove(callURL);
 		ThreadUtil.notifyAll(mutexDispatch);
 	}
@@ -1013,7 +999,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	public boolean queueMessage(final JDFJMF jmf, final IResponseHandler handler, final String url, final IConverterCallback _callBack)
 	{
-		if (doShutDown || doShutDownGracefully)
+		if (doShutDown)
 		{
 			log.warn("cannot queue message during shutdown!");
 			return false;
@@ -1049,7 +1035,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	public boolean queuePost(final IResponseHandler handler, final String url, final IConverterCallback _callBack)
 	{
-		if (doShutDown || doShutDownGracefully)
+		if (doShutDown)
 		{
 			log.warn("cannot queue message during shutdown!");
 			return false;
@@ -1115,7 +1101,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	public boolean queueMimeMessage(final Multipart multpart, final IResponseHandler handler, final IConverterCallback callback, final MIMEDetails md, final String senderID, final String url)
 	{
-		if (doShutDown || doShutDownGracefully)
+		if (doShutDown)
 		{
 			log.warn("cannot queue message during shutdown!");
 			return false;

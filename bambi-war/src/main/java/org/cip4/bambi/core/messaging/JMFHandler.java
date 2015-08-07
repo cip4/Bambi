@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -130,8 +130,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			family = _family;
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
@@ -146,8 +145,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			return ContainerUtil.equals(family, mt.family) && ContainerUtil.equals(type, mt.type);
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
 		 * @see java.lang.Object#hashCode()
 		 */
@@ -157,8 +155,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			return (type == null ? 0 : type.hashCode()) + (family == null ? 0 : family.hashCode());
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
 		 * @see java.lang.Object#toString()
 		 */
@@ -174,8 +171,8 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	 */
 	protected HashMap<MessageType, IMessageHandler> messageMap; // key = type ,
 	protected SignalDispatcher _signalDispatcher;
-	protected boolean bFilterOnDeviceID = false;
-	protected AbstractDevice _parentDevice = null;
+	protected boolean bFilterOnDeviceID;
+	protected AbstractDevice _parentDevice;
 	private long messageCount;
 
 	/**
@@ -192,10 +189,9 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			super(EnumType.KnownMessages, new EnumFamily[] { EnumFamily.Query });
 		}
 
-		/*
-		 * (non-Javadoc)
+		/**
 		 * 
-		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -246,11 +242,10 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 				return false;
 			}
 
-			final Iterator<MessageType> it = messageMap.keySet().iterator();
+			final Vector<MessageType> vMessageType = ContainerUtil.getKeyVector(messageMap);
 			final HashMap<String, MessageStuff> hTypeFamily = new HashMap<String, MessageStuff>();
-			while (it.hasNext())
+			for (MessageType typ : vMessageType)
 			{
-				final MessageType typ = it.next();
 				final IMessageHandler h = messageMap.get(typ);
 				if (hTypeFamily.get(typ.type) == null)
 				{
@@ -274,7 +269,6 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			while (iTyp.hasNext())
 			{
 				final String typ = iTyp.next().getKey();
-				log.debug("Known Message: " + typ);
 				if (KElement.isWildCard(typ))
 				{
 					continue; // skip "*"
@@ -378,7 +372,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		@Override
 		public String toString()
 		{
-			return "AbstractHandler: " + getMessageType() + ", " + getFamilies();
+			return getClass().getSimpleName() + " : " + getMessageType() + ", " + getFamilies();
 		}
 	}
 
@@ -389,10 +383,11 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	{
 		super();
 		messageMap = new HashMap<MessageType, IMessageHandler>();
-		addHandler(this.new KnownMessagesHandler());
 		_signalDispatcher = null;
 		_parentDevice = dev;
+		addHandler(this.new KnownMessagesHandler());
 		messageCount = 0;
+		bFilterOnDeviceID = false;
 	}
 
 	/**
@@ -424,7 +419,16 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	 */
 	public void addHandler(final IMessageHandler handler, final String typ, EnumFamily family)
 	{
-		messageMap.put(new MessageType(typ, family), handler);
+		IMessageHandler old = messageMap.put(new MessageType(typ, family), handler);
+		if (old != null)
+		{
+			log.info(_parentDevice.getDeviceID() + ": removing old IMessageHandler: " + old.getClass().getSimpleName());
+			log.info(_parentDevice.getDeviceID() + ": replacing with new IMessageHandler: " + handler.getClass().getSimpleName());
+		}
+		else
+		{
+			log.info(_parentDevice.getDeviceID() + ": adding new IMessageHandler: " + handler.getClass().getSimpleName());
+		}
 	}
 
 	/**
@@ -458,8 +462,10 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		final JDFJMF jmfResp = jmf.createResponse();
 		VElement vMess = jmf.getMessageVector(null, null);
 		final int messSize = vMess.size();
+
 		if (log.isDebugEnabled())
 			log.debug("handling jmf from " + jmf.getSenderID() + " id=" + jmf.getID() + " with " + messSize + " messages; total=" + messageCount);
+
 		for (int i = 0; i < messSize; i++)
 		{
 			final JDFMessage m = (JDFMessage) vMess.elementAt(i);
@@ -476,14 +482,12 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			}
 			handleMessage(m, mResp);
 
-			if ((m instanceof JDFSignal) && mResp != null && mResp.getReturnCode() == 0)
+			if ((m instanceof JDFSignal) && mResp != null && mResp.getReturnCode() == 0 && !EnumChannelMode.Reliable.equals(((JDFSignal) m).getChannelMode()))
 			{
-				if (!EnumChannelMode.Reliable.equals(((JDFSignal) m).getChannelMode()))
-				{
-					mResp.deleteNode();
-				}
+				mResp.deleteNode();
 			}
 		}
+
 		vMess = jmfResp.getMessageVector(null, null);
 		if (vMess != null && vMess.size() > 0)
 		{
@@ -686,5 +690,4 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	{
 		return false;
 	}
-
 }

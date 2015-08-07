@@ -377,7 +377,7 @@ public class JMFFactory extends BambiLogFactory
 	{
 		if (cu == null) // null = all
 		{
-			log.info("shutting down all senders " + (graceFully ? "gracefully" : "forced"));
+			log.info("shutting down all senders ");
 			final Vector<CallURL> keySet = ContainerUtil.getKeyVector(senders);
 			if (keySet != null)
 			{
@@ -386,7 +386,7 @@ public class JMFFactory extends BambiLogFactory
 					shutDown(s, graceFully);
 				}
 			}
-			log.info("completed shutting down all senders " + (graceFully ? "gracefully" : "forced"));
+			log.info("completed shutting down all senders ");
 		}
 		else
 		// individual url
@@ -512,18 +512,17 @@ public class JMFFactory extends BambiLogFactory
 	{
 		synchronized (senders)
 		{
-			final Vector<MessageSender> v = new Vector<MessageSender>();
+			final Vector<MessageSender> vRemove = new Vector<MessageSender>();
 			for (MessageSender ms : senders.values())
 			{
 				if (!ms.isRunning())
 				{
-					v.add(ms);
+					vRemove.add(ms);
 				}
 			}
-			for (MessageSender ms : v)
+			for (MessageSender ms : vRemove)
 			{
 				ms.shutDown(false);
-				senders.remove(ms);
 				log.info("removing idle message sender " + ms.getCallURL().getBaseURL());
 			}
 		}

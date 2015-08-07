@@ -813,8 +813,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 */
 	private String getSlaveQEID(final String queueEntryID)
 	{
-		final JDFQueue q = getParent().getQueueProcessor().getQueue();
-		return BambiNSExtension.getSlaveQueueEntryID(q.getQueueEntry(queueEntryID));
+		return BambiNSExtension.getSlaveQueueEntryID(getParent().getQueueProcessor().getQueueEntry(queueEntryID));
 	}
 
 	/**

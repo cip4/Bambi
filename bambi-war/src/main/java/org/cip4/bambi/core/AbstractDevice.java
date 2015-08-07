@@ -812,7 +812,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		hfStorage.mkdirs(); // just in case
 		if (hfStorage.isDirectory())
 		{
-			_submitHotFolder = new QueueHotFolder(hfURL, hfStorage, "jdf,xjdf,xml", new QueueHFListener(_theQueueProcessor, _devProperties.getCallBackClass()), null);
+			JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null);
+			JDFJMF jmf2 = JMFBuilderFactory.getJMFBuilder(null).buildResubmitQueueEntry(null, null);
+			jmf.copyElement(jmf2.getCommand(0), null);
+
+			_submitHotFolder = new QueueHotFolder(hfURL, hfStorage, "jdf,xjdf,xml", new QueueHFListener(_theQueueProcessor, _devProperties.getCallBackClass()), jmf);
 		}
 		else
 		{
@@ -1083,19 +1087,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			status = EnumDeviceStatus.Unknown;
 		}
 		return status;
-	}
-
-	/**
-	 * 
-	 *@deprecated - use the 3 parameter version
-	 * @param queueEntryID
-	 * @param status
-	 * @return
-	 */
-	@Deprecated
-	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status)
-	{
-		return stopProcessing(queueEntryID, status, null);
 	}
 
 	/**
@@ -2185,13 +2176,42 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public int getEntriesProcessed()
 	{
 		return entriesProcessed;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public StatusListener getStatusListener()
 	{
 		return _theStatusListener;
+	}
+
+	/**
+	 * 
+	 * @param jdfRoot
+	 * @param qeID
+	 * @return
+	 */
+	public boolean canResubmit(JDFNode jdfRoot, String qeID)
+	{
+		IQueueEntry iqeOld = _theQueueProcessor.getIQueueEntry(qeID, false);
+		JDFQueueEntry qeOld = iqeOld == null ? null : iqeOld.getQueueEntry();
+		if (qeOld == null)
+		{
+			return false;
+		}
+		else
+		{
+			EnumQueueEntryStatus qes = qeOld.getQueueEntryStatus();
+			return qeOld.isCompleted() || EnumQueueEntryStatus.Waiting.equals(qes) || EnumQueueEntryStatus.Held.equals(qes);
+		}
 	}
 }

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -382,13 +382,9 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	@Override
 	public abstract EnumQueueEntryStatus processDoc(JDFNode n, JDFQueueEntry qe);
 
-	final private boolean processQueueEntry()
+	final protected boolean processQueueEntry()
 	{
-		currentQE = _parent.getQEFromParent();
-		if (currentQE == null)
-		{
-			return false;
-		}
+		currentQE = fillCurrentQE();
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		if (qe == null)
 		{
@@ -438,6 +434,15 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		boolean b = finalizeProcessDoc(qes) && bOK;
 		timer.stop();
 		return b;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	protected IQueueEntry fillCurrentQE()
+	{
+		return _parent.getQEFromParent();
 	}
 
 	/**
