@@ -391,6 +391,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			if (sentFirstMessage != SendReturn.sent && sentFirstMessage != SendReturn.removed)
 			{
 				idle++;
+				int wait = 1000;
 				if (_messages.size() == 0)
 				{
 					if (idle > 333)
@@ -403,7 +404,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				else
 				{ // stepwise increment - try every second 10 times, then every 15 seconds, then every 5 minutes
 					int minIdle = 10;
-					int wait = 15000;
+					wait = 15000;
 					if (idle > minIdle)
 					{
 						wait *= (idle / minIdle);
@@ -423,10 +424,10 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 					{
 						waitKaputt = false;
 					}
-					if (!ThreadUtil.wait(mutexDispatch, wait))
-					{
-						shutDown(false);
-					}
+				}
+				if (!ThreadUtil.wait(mutexDispatch, wait))
+				{
+					shutDown(false);
 				}
 			}
 		}
