@@ -70,13 +70,8 @@
  */
 package org.cip4.bambi.ngui.server;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
-import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
 import org.cip4.bambi.core.BambiException;
 import org.cip4.bambi.core.BambiServlet;
@@ -87,12 +82,9 @@ import org.cip4.bambi.ngui.server.mockImpl.MyServiceWebSocket;
 import org.cip4.bambi.server.BambiFrame;
 import org.cip4.bambi.server.BambiServer;
 import org.cip4.bambi.server.BambiService;
-import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MyArgs;
 import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdflib.util.logging.LogConfigurator;
-import org.cip4.jdfutility.server.JettyServer;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;

@@ -158,7 +158,8 @@ public class BambiFrame extends JettyFrame
 	{
 		JPanel panel = super.createPanel();
 		
-		extractXsltButton = new JButton("Extract .xsl files");
+		extractXsltButton = new JButton("Extract all resources");
+		extractXsltButton.setToolTipText("Bambi restart suggested");
 		extractXsltButton.addActionListener(this);
 		panel.add(extractXsltButton);
 		
@@ -233,7 +234,7 @@ public class BambiFrame extends JettyFrame
 		{
 			while ((line = r.readLine()) != null)
 			{
-				if (line.isEmpty() || !line.endsWith(".xsl"))
+				if (line.isEmpty())
 					continue;
 				
 				InputStream nextStream = myClass.getResourceAsStream(line);
@@ -272,6 +273,7 @@ public class BambiFrame extends JettyFrame
 	{
 		super.started();
 		baseDirButton.setEnabled(false);
+		extractXsltButton.setEnabled(false);
 	}
 
 	/**
@@ -283,5 +285,6 @@ public class BambiFrame extends JettyFrame
 	{
 		super.stopped();
 		baseDirButton.setEnabled(true);
+		extractXsltButton.setEnabled(true);
 	}
 }
