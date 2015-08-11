@@ -485,30 +485,38 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				return false;
 			}
-			log.debug("Handling  SubmitQueueEntry");
+
 			JDFDoc doc = getDocFromMessage(m);
 			final JDFQueueSubmissionParams qsp = m.getQueueSubmissionParams(0);
 			if (qsp == null)
 			{
 				JMFHandler.errorResponse(resp, "QueueSubmissionParams are missing or invalid", 9, EnumClass.Error);
-				return true;
 			}
-
-			if (doc == null)
+			else if (doc == null)
 			{
 				updateEntry(null, null, m, resp, null);
 				String errorMsg = "failed to get JDFDoc from '" + qsp.getURL() + "' on SubmitQueueEntry";
 				errorMsg += "\nin thread: " + Thread.currentThread().getName();
 				JMFHandler.errorResponse(resp, errorMsg, 9, EnumClass.Error);
-				return true;
 			}
-
-			final JDFQueueEntry qe = addEntry((JDFCommand) m, resp, doc);
-			final int rc = resp.getReturnCode();
-
-			if (rc != 0)
+			else
 			{
-				if (rc == 112)
+				final JDFQueueEntry qe = addEntry((JDFCommand) m, resp, doc);
+				int rc = resp.getReturnCode();
+				if (qe == null && rc == 0)
+				{
+					log.warn("whazzup: rc=0 but no queue entry");
+					rc = 112;
+				}
+
+				if (rc == 0)
+				{
+					resp.removeChild(ElementName.QUEUEENTRY, null, 0);
+					final JDFQueueEntry qeNew = (JDFQueueEntry) resp.copyElement(qe, null);
+					BambiNSExtension.removeBambiExtensions(qeNew);
+					updateEntry(qe, null, m, resp, null);
+				}
+				else if (rc == 112)
 				{
 					JMFHandler.errorResponse(resp, "Submission failed - queue is not accepting new submissions", rc, EnumClass.Error);
 				}
@@ -520,19 +528,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				{
 					JMFHandler.errorResponse(resp, "failed to add entry: invalid or missing message parameters", rc, EnumClass.Error);
 				}
-
-				return true; // error was filled by handler
-			}
-			if (qe == null)
-			{
-				return true;
-			}
-			else
-			{
-				resp.removeChild(ElementName.QUEUEENTRY, null, 0);
-				final JDFQueueEntry qeNew = (JDFQueueEntry) resp.copyElement(qe, null);
-				BambiNSExtension.removeBambiExtensions(qeNew);
-				updateEntry(qe, null, m, resp, null);
 			}
 			return true;
 		}

@@ -385,6 +385,10 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	final protected boolean processQueueEntry()
 	{
 		currentQE = fillCurrentQE();
+		if (currentQE == null)
+		{
+			return false;
+		}
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		if (qe == null)
 		{
