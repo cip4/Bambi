@@ -487,10 +487,26 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 
 			JDFDoc doc = getDocFromMessage(m);
+			processDoc(m, resp, doc);
+			// this is not a bug the return of processdoc is success - this true is handled (at all)
+			return true;
+		}
+
+		/**
+		 * 
+		 * @param m
+		 * @param resp
+		 * @param doc
+		 * @return true if success
+		 */
+		protected boolean processDoc(final JDFMessage m, final JDFResponse resp, JDFDoc doc)
+		{
 			final JDFQueueSubmissionParams qsp = m.getQueueSubmissionParams(0);
+			final boolean bRet;
 			if (qsp == null)
 			{
 				JMFHandler.errorResponse(resp, "QueueSubmissionParams are missing or invalid", 9, EnumClass.Error);
+				bRet = false;
 			}
 			else if (doc == null)
 			{
@@ -498,6 +514,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				String errorMsg = "failed to get JDFDoc from '" + qsp.getURL() + "' on SubmitQueueEntry";
 				errorMsg += "\nin thread: " + Thread.currentThread().getName();
 				JMFHandler.errorResponse(resp, errorMsg, 9, EnumClass.Error);
+				bRet = false;
 			}
 			else
 			{
@@ -528,26 +545,37 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				{
 					JMFHandler.errorResponse(resp, "failed to add entry: invalid or missing message parameters", rc, EnumClass.Error);
 				}
+				bRet = rc == 0;
 			}
-			return true;
+			return bRet;
 		}
+	}
 
-		/**
-		 * 
-		 * @param m
-		 * @return
-		 */
-		protected JDFDoc getDocFromMessage(final JDFMessage m)
+	/**
+	 * 
+	 * @param m
+	 * @return
+	 */
+	protected JDFDoc getDocFromMessage(final JDFMessage m)
+	{
+		JDFDoc doc = null;
+		if (EnumType.SubmitQueueEntry.equals(m.getEnumType()))
 		{
 			final JDFQueueSubmissionParams qsp = m.getQueueSubmissionParams(0);
-			JDFDoc doc = qsp == null ? null : qsp.getURLDoc();
-			final IConverterCallback callback = doc == null ? null : _parentDevice.getCallback(null);
-			if (callback != null)
-			{
-				doc = callback.prepareJDFForBambi(doc);
-			}
-			return doc;
+			doc = qsp == null ? null : qsp.getURLDoc();
 		}
+		else if (EnumType.ResubmitQueueEntry.equals(m.getEnumType()))
+		{
+			final JDFResubmissionParams rsp = m.getResubmissionParams(0);
+			doc = rsp == null ? null : rsp.getURLDoc();
+		}
+
+		final IConverterCallback callback = doc == null ? null : _parentDevice.getCallback(null);
+		if (callback != null)
+		{
+			doc = callback.prepareJDFForBambi(doc);
+		}
+		return doc;
 	}
 
 	/**
@@ -606,23 +634,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				log.error("ResubmissionParams are missing or invalid");
 			}
 			return true;
-		}
-
-		/**
-		 * 
-		 * @param m
-		 * @return
-		 */
-		protected JDFDoc getDocFromMessage(final JDFMessage m)
-		{
-			final JDFResubmissionParams rsp = m.getResubmissionParams(0);
-			JDFDoc doc = rsp == null ? null : rsp.getURLDoc();
-			final IConverterCallback callback = doc == null ? null : _parentDevice.getCallback(null);
-			if (callback != null)
-			{
-				doc = callback.prepareJDFForBambi(doc);
-			}
-			return doc;
 		}
 
 		/**
