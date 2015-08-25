@@ -29,6 +29,12 @@
     </action>
   </package>
 
+  <package name="settings" namespace="/settings" extends="struts-default">
+    <action name="*" class="org.cip4.bambi.actions.SettingsAction">
+      <result>/WEB-INF/jsp/settings.jsp</result>
+    </action>
+  </package>
+
   <package name="show_device" namespace="/showDevice" extends="struts-default">
     <action name="*" class="org.cip4.bambi.actions.ShowDeviceAction">
       <result>/WEB-INF/jsp/showDevice.jsp</result>
