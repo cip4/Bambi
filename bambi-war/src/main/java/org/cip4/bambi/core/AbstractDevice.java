@@ -1486,7 +1486,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			newWatchURL = StringUtil.getNonEmpty(newWatchURL);
 			// explicit empty strings must be handled
-			if (newWatchURL != null && !UrlUtil.isHttp(newWatchURL))
+			if (newWatchURL != null && !UrlUtil.isHttp(newWatchURL) && !UrlUtil.isHttps(newWatchURL))
 			{
 				log.warn("attempting to set invalid watch url: (" + newWatchURL + ") ignore");
 				return;

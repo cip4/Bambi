@@ -847,7 +847,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			log.debug(" sending empty content to: " + url.toExternalForm());
 		final HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
 		UrlPart p = UrlUtil.writeToURL(url.toExternalForm(), null, UrlUtil.POST, UrlUtil.TEXT_UNKNOWN, hd);
-		HttpURLConnection connection = p == null ? null : p.getConnection();
+		HttpURLConnection connection = (HttpURLConnection) (p == null ? null : p.getConnection());
 		if (outDump != null)
 		{
 			String header = "URL: " + url;
