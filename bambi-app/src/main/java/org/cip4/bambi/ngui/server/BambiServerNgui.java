@@ -75,23 +75,18 @@ import java.io.File;
 import org.apache.log4j.Logger;
 import org.cip4.bambi.core.BambiException;
 import org.cip4.bambi.core.BambiServlet;
-import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.ngui.server.mockImpl.BambiNotifyReal;
-import org.cip4.bambi.ngui.server.mockImpl.MySessionSocketCreator;
 import org.cip4.bambi.ngui.server.mockImpl.MyServiceWebSocket;
+import org.cip4.bambi.ngui.server.mockImpl.MySessionSocketCreator;
 import org.cip4.bambi.server.BambiFrame;
 import org.cip4.bambi.server.BambiServer;
 import org.cip4.bambi.server.BambiService;
 import org.cip4.jdflib.util.MyArgs;
 import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdflib.util.logging.LogConfigurator;
-import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.webapp.WebAppContext;
-import org.eclipse.jetty.websocket.server.WebSocketHandler;
 import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 
@@ -114,12 +109,11 @@ public class BambiServerNgui extends BambiServer
 		ServletHolder servletHolder = new ServletHolder(myServlet);
 		setInitParams(servletHolder);
 		contextHandler.addServlet(servletHolder, "/*");
-		
-		
+
 		log.info("create servlet for /echo");
-//		TODO this shall be moved to Bambi-NGUI
+		//		TODO this shall be moved to Bambi-NGUI
 		contextHandler.addServlet(StockServiceSocketServlet.class, "/echo");
-		
+
 		return contextHandler;
 	}
 
@@ -133,19 +127,20 @@ public class BambiServerNgui extends BambiServer
 		File warFile = new File(getToolPath() + "/bambi-ngui-1.0.war");
 		webapp.setWar(warFile.getAbsolutePath());
 
-		if (null != webapp) {
+		if (null != webapp)
+		{
 			handlers.addHandler(webapp);
 		}
 
 		log.debug("handlers.length: " + handlers.getHandlers().length);
 		System.out.println("handlers.length: " + handlers.getHandlers().length);
 	}
-	
+
 	public static void main(String[] args) throws Exception
 	{
 		LogConfigurator.configureLog(new UserDir(BAMBI).getLogPath(), "bambi.log");
 		BambiNotifyReal.getInstance();
-		
+
 		BambiServerNgui bambiServer = new BambiServerNgui();
 		LogConfigurator.configureLog(bambiServer.getProp().getBaseDir().getAbsolutePath(), "bambi.log");
 		MyArgs myArgs = new MyArgs(args, "c", "p", "");
