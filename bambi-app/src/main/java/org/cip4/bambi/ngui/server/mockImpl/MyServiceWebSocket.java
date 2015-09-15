@@ -1,6 +1,6 @@
 /*
  *
- * The CIP4 Software License, Version 1.0 
+ * The CIP4 Software License, Version 1.0
  *
  *
  * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
@@ -84,6 +84,8 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.json.JSONObject;
+import org.json.XML;
 
 /**
  * Implements websocket session to browser.
@@ -92,120 +94,98 @@ import org.eclipse.jetty.websocket.api.annotations.WebSocket;
  *
  */
 @WebSocket
-public class MyServiceWebSocket implements Observer
-{
+public class MyServiceWebSocket implements Observer {
 	private final static Logger log = Logger.getLogger(MyServiceWebSocket.class);
-
+	
 	private static final String YOU_THERE = "You There?";
 	private static final ByteBuffer PAYLOAD_PING = ByteBuffer.wrap(YOU_THERE.getBytes());
+	
+	private HttpSession httpSession;
+    private Session session;
+    
+    private static final PingClientThread pingClientThread;
+    
+    static {
+    	pingClientThread = new PingClientThread();
+    	pingClientThread.start();
+    }
+    
+    public MyServiceWebSocket(HttpSession httpSession) {
+    	this.httpSession = httpSession;
+    	
+    	System.out.println("StockServiceWebSocket, httpSession: " + httpSession);
+    	System.out.println("StockServiceWebSocket, httpSession.getId: " + httpSession.getId());
+    }
 
-	private final HttpSession httpSession;
-	private Session session;
+    // called when the socket connection with the browser is established
+    @OnWebSocketConnect
+    public void handleConnect(Session session) {
+    	this.session = session;
+    	System.out.println("handleConnect, session: " + session);
+    	
+    	BambiNotifyDef.getInstance().addListener(this);
+    	pingClientThread.addPingListener(this);
+    }
 
-	private static final PingClientThread pingClientThread;
+    // called when the connection closed
+    @OnWebSocketClose
+    public void handleClose(int statusCode, String reason) {
+    	log.debug("handleClose, statusCode=" + statusCode + ", reason=" + reason);
+    	System.out.println("handleClose, statusCode=" + statusCode + ", reason=" + reason);
+    	
+    	BambiNotifyDef.getInstance().removeListener(this);
+    	pingClientThread.removePingListener(this);
+    }
 
-	static
-	{
-		pingClientThread = new PingClientThread();
-		pingClientThread.start();
-	}
+    // called when a message received from the browser
+    @OnWebSocketMessage
+    public void handleMessage(Session session, String message) {
+    	System.out.println("handleMessage, httpSession.getId: " + httpSession.getId() + ", message: " + message);
+    }
 
-	public MyServiceWebSocket(HttpSession httpSession)
-	{
-		this.httpSession = httpSession;
-
-		System.out.println("StockServiceWebSocket, httpSession: " + httpSession);
-		System.out.println("StockServiceWebSocket, httpSession.getId: " + httpSession.getId());
-	}
-
-	// called when the socket connection with the browser is established
-	@OnWebSocketConnect
-	public void handleConnect(Session session)
-	{
-		this.session = session;
-		System.out.println("handleConnect, session: " + session);
-
-		BambiNotifyDef.getInstance().addListener(this);
-		pingClientThread.addPingListener(this);
-	}
-
-	// called when the connection closed
-	@OnWebSocketClose
-	public void handleClose(int statusCode, String reason)
-	{
-		log.debug("handleClose, statusCode=" + statusCode + ", reason=" + reason);
-		System.out.println("handleClose, statusCode=" + statusCode + ", reason=" + reason);
-
-		BambiNotifyDef.getInstance().removeListener(this);
-		pingClientThread.removePingListener(this);
-	}
-
-	// called when a message received from the browser
-	@OnWebSocketMessage
-	public void handleMessage(Session session, String message)
-	{
-		System.out.println("handleMessage, httpSession.getId: " + httpSession.getId() + ", message: " + message);
-	}
-
-	// called in case of an error
-	@OnWebSocketError
-	public void handleError(Throwable t)
-	{
-		System.out.println("Error: " + t.getMessage());
-		t.printStackTrace();
-
-		log.error("Error: " + t.getMessage(), t);
-	}
-
-	// sends message to browser
-	public void send(String message)
-	{
-		try
-		{
-			if (session.isOpen())
-			{
-				session.getRemote().sendString(message);
-			}
-		}
-		catch (IOException e)
-		{
-			log.error("Error", e);
-		}
-	}
-
-	public void sendPing()
-	{
-		try
-		{
-			if (session.isOpen())
-			{
-				session.getRemote().sendPing(PAYLOAD_PING);
-			}
-		}
-		catch (IOException e)
-		{
-			log.error("Error", e);
-		}
-	}
-
-	// closes the socket
-	private void stop()
-	{
-		System.out.println("stop");
-
-		try
-		{
-			session.disconnect();
-		}
-		catch (IOException e)
-		{
-			log.error("Error", e);
-		}
-	}
+    // called in case of an error
+    @OnWebSocketError
+    public void handleError(Throwable t) {
+    	System.out.println("Error: " + t.getMessage());
+    	t.printStackTrace();
+    	
+        log.error("Error: " + t.getMessage(), t);
+    }
+ 
+    // sends message to browser
+    public void send(String message) {
+        try {
+            if (session.isOpen()) {
+                session.getRemote().sendString(message);
+            }
+        } catch (IOException e) {
+            log.error("Error", e);
+        }
+    }
+    
+    public void sendPing() {
+        try {
+            if (session.isOpen()) {
+                session.getRemote().sendPing(PAYLOAD_PING);
+            }
+        } catch (IOException e) {
+            log.error("Error", e);
+        }
+    }
+ 
+    // closes the socket
+    private void stop() {
+    	System.out.println("stop");
+    	
+        try {
+            session.disconnect();
+        } catch (IOException e) {
+            log.error("Error", e);
+        }
+    }
 
 	@Override
-	public void pushData(final String jsonObj)
-	{
+	public void pushData(final String jsonObj) {
 		send(jsonObj);
 	}
 
