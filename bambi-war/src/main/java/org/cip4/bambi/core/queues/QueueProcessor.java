@@ -469,9 +469,30 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	protected class SubmitQueueEntryHandler extends AbstractHandler
 	{
+		/**
+		 * 
+		 */
 		public SubmitQueueEntryHandler()
 		{
 			super(EnumType.SubmitQueueEntry, new EnumFamily[] { EnumFamily.Command });
+		}
+
+		/**
+		 * 
+		 * @param m
+		 * @return
+		 */
+		protected JDFDoc getDocFromMessage(final JDFMessage m)
+		{
+			final JDFQueueSubmissionParams qsp = m.getQueueSubmissionParams(0);
+			JDFDoc doc = qsp == null ? null : qsp.getURLDoc();
+
+			final IConverterCallback callback = doc == null ? null : _parentDevice.getCallback(null);
+			if (callback != null)
+			{
+				doc = callback.prepareJDFForBambi(doc);
+			}
+			return doc;
 		}
 
 		/**
@@ -552,33 +573,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 * 
-	 * @param m
-	 * @return
-	 */
-	protected JDFDoc getDocFromMessage(final JDFMessage m)
-	{
-		JDFDoc doc = null;
-		if (EnumType.SubmitQueueEntry.equals(m.getEnumType()))
-		{
-			final JDFQueueSubmissionParams qsp = m.getQueueSubmissionParams(0);
-			doc = qsp == null ? null : qsp.getURLDoc();
-		}
-		else if (EnumType.ResubmitQueueEntry.equals(m.getEnumType()))
-		{
-			final JDFResubmissionParams rsp = m.getResubmissionParams(0);
-			doc = rsp == null ? null : rsp.getURLDoc();
-		}
-
-		final IConverterCallback callback = doc == null ? null : _parentDevice.getCallback(null);
-		if (callback != null)
-		{
-			doc = callback.prepareJDFForBambi(doc);
-		}
-		return doc;
-	}
-
-	/**
 	 * handler for the resubmitqueueentry message
 	 * 
 	 * @author rainer prosi
@@ -634,6 +628,24 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				log.error("ResubmissionParams are missing or invalid");
 			}
 			return true;
+		}
+
+		/**
+		 * 
+		 * @param m
+		 * @return
+		 */
+		protected JDFDoc getDocFromMessage(final JDFMessage m)
+		{
+			final JDFResubmissionParams rsp = m.getResubmissionParams(0);
+			JDFDoc doc = rsp == null ? null : rsp.getURLDoc();
+
+			final IConverterCallback callback = doc == null ? null : _parentDevice.getCallback(null);
+			if (callback != null)
+			{
+				doc = callback.prepareJDFForBambi(doc);
+			}
+			return doc;
 		}
 
 		/**
