@@ -1043,11 +1043,15 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @param newSlaveURL 
 	 * 
 	 */
-	protected void updateSlaveURL(final String newSlaveURL)
+	protected void updateSlaveURL(String newSlaveURL)
 	{
 		if (newSlaveURL == null)
 		{
 			return;
+		}
+		else if ("-".equals(newSlaveURL))
+		{
+			newSlaveURL = null;
 		}
 		final IProxyProperties properties = getProperties();
 		final String oldSlaveURL = properties.getSlaveURL();

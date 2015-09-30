@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -305,5 +305,13 @@ public class SlaveSubscriber extends Thread
 	public String toString()
 	{
 		return "SlaveSubscriber: qeid=" + slaveQEID + " " + abstractProxyDevice.knownSlaveMessages;
+	}
+
+	/**
+	 * @return the waitBefore
+	 */
+	protected int getWaitBefore()
+	{
+		return waitBefore;
 	}
 }

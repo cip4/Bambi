@@ -162,7 +162,7 @@ public class ShowXJDFHandler extends ShowHandler
 	protected XJDF20 getViewXJDFConverter()
 	{
 		final XJDF20 xjdf20 = new XJDF20();
-		xjdf20.retainAll();
+		xjdf20.setRetainAll(true);
 		xjdf20.setWantProduct(false);
 		xjdf20.setHTMLColor(true);
 
