@@ -70,53 +70,39 @@
  */
 package org.cip4.bambi.actions;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.ServletRequestAware;
-import org.cip4.bambi.actions.beans.Settings;
 import org.cip4.bambi.core.BambiContainer;
+import org.cip4.bambi.settings.ConfigurationHandler;
 
 import com.opensymphony.xwork2.ActionSupport;
 
-public class SettingsAction extends ActionSupport implements ServletRequestAware {
-	private final static Logger log = Logger.getLogger(SettingsAction.class);
-
+public class SaveSettingsAction extends ActionSupport implements ServletRequestAware {
+	private final static Logger log = Logger.getLogger(SaveSettingsAction.class);
+	
 	private final static BambiContainer theContainer = BambiContainer.getInstance();
-
+	
 	private HttpServletRequest request;
-
-	private List<Settings> settings;
-	private List<String> formatters;
-
+	
+	private String dateTimeFormatter;
+	
 	public String execute() throws Exception {
 		log.info("theContainer action: " + theContainer);
-
-		formatters = new ArrayList<String>();
-		formatters.add("US");
-		formatters.add("EURO");
-		formatters.add("ISO");
-
+		log.info("dateTimeFormatter: " + dateTimeFormatter);
+		
+		ConfigurationHandler.getInstance().setDateTimeFormatter(dateTimeFormatter);
+		
 		String pageName = SUCCESS;
-
+		
 		return pageName;
 	}
-
-	public List<Settings> getSettings() {
-		return settings;
+	
+	public void setDateTimeFormatter(String dateTimeFormatter) {
+		this.dateTimeFormatter = dateTimeFormatter;
 	}
-
-	public List<String> getFormatters() {
-		return formatters;
-	}
-
-	public String getCurrentFormatter() {
-		return "EURO";
-	}
-
+	
 	public void setServletRequest(HttpServletRequest httpServletRequest) {
 		request = httpServletRequest;
 	}

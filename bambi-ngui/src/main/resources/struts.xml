@@ -34,6 +34,12 @@
       <result>/WEB-INF/jsp/settings.jsp</result>
     </action>
   </package>
+  <package name="save_settings" namespace="/save_settings" extends="struts-default">
+    <action name="*" class="org.cip4.bambi.actions.SaveSettingsAction">
+      <result name="success">/WEB-INF/jsp/settings/settings_saved_success.jsp</result>
+      <result name="error">/WEB-INF/jsp/settings/settings_saved_error.jsp</result>
+    </action>
+  </package>
 
   <package name="show_device" namespace="/showDevice" extends="struts-default">
     <action name="*" class="org.cip4.bambi.actions.ShowDeviceAction">
