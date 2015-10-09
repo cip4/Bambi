@@ -125,7 +125,7 @@ public class BambiNotifyDef implements BambiNotify
 		}
 	}
 
-	public void notifyDeviceJobAdded(final String deviceId, final String jobId, final String status, final String submission)
+	public void notifyDeviceJobAdded(final String deviceId, final String jobId, final String status, final long submission)
 	{
 		if (null != notifier) {
 			notifier.notifyDeviceJobAdded(deviceId, jobId, status, submission);
@@ -146,7 +146,7 @@ public class BambiNotifyDef implements BambiNotify
 		}
 	}
 
-	public void notifyDeviceJobPropertiesChanged(final String deviceId, final String jobId, final String status, final String start, final String end)
+	public void notifyDeviceJobPropertiesChanged(final String deviceId, final String jobId, final String status, final long start, final long end)
 	{
 		if (null != notifier) {
 			notifier.notifyDeviceJobPropertiesChanged(deviceId, jobId, status, start, end);

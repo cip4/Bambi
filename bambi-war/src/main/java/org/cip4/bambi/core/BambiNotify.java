@@ -80,11 +80,11 @@ public interface BambiNotify
 
 	void removeListener(final Observer obs);
 
-	void notifyDeviceJobAdded(final String deviceId, final String jobId, final String status, final String submission);
+	void notifyDeviceJobAdded(final String deviceId, final String jobId, final String status, final long submission);
 
 	void notifyDeviceJobRemoved(final String deviceId, final String jobId);
 
 	void notifyDeviceQueueStatus(final String deviceId, final String queueStatus, final String queueStatistic);
 
-	void notifyDeviceJobPropertiesChanged(final String deviceId, final String jobId, final String status, final String start, final String end);
+	void notifyDeviceJobPropertiesChanged(final String deviceId, final String jobId, final String status, final long start, final long end);
 }

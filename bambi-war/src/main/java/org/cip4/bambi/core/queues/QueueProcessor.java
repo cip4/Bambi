@@ -2171,7 +2171,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		newQEReal.copyInto(newQE, false);
 		slaveQueueMap.addEntry(newQEReal, true);
-		BambiNotifyDef.getInstance().notifyDeviceJobAdded(_theQueue.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(), newQEReal.getSubmissionTime().getDateTimeISO());
+		BambiNotifyDef.getInstance().notifyDeviceJobAdded(_theQueue.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(), newQEReal.getSubmissionTime().getTimeInMillis());
 		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
 
 		boolean ok = storeJDF(theJDF, newQEID);
@@ -2412,7 +2412,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					qe.setQueueEntryStatus(status);
 					qe.setStatusDetails(statusDetails);
 
-					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), "---", "---");
+					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), 0, 0);
 					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
 				}
 				else if (status.equals(EnumQueueEntryStatus.Aborted) || status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Suspended))
@@ -3045,22 +3045,22 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		return result;
 	}
 
-	private String getStartTime(final JDFQueueEntry qe)
+	private long getStartTime(final JDFQueueEntry qe)
 	{
 		if (qe.getStartTime() == null)
 		{
-			return "---";
+			return 0;
 		}
-		return qe.getStartTime().getDateTimeISO() == null ? "---" : qe.getStartTime().getDateTimeISO();
+		return qe.getStartTime().getTimeInMillis();
 	}
 
-	private String getEndTime(final JDFQueueEntry qe)
+	private long getEndTime(final JDFQueueEntry qe)
 	{
 		if (qe.getEndTime() == null)
 		{
-			return "---";
+			return 0;
 		}
-		return qe.getEndTime().getDateTimeISO() == null ? "---" : qe.getEndTime().getDateTimeISO();
+		return qe.getEndTime().getTimeInMillis();
 	}
 
 	/**

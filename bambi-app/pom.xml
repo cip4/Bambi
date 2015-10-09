@@ -103,6 +103,13 @@
 			<version>2.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>org.cip4.tools.bambi.ngui</groupId>
+			<artifactId>bambi-ngui</artifactId>
+			<version>1.0</version>
+			<classifier>classes</classifier>
+		</dependency>
+
+		<dependency>
 			<groupId>org.cip4.tools.bambi.resources</groupId>
 			<artifactId>bambi-resources</artifactId>
 			<version>2.2-SNAPSHOT</version>

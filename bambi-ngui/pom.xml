@@ -76,6 +76,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.6</version>
                 <configuration>
+                    <attachClasses>true</attachClasses>
                	    <packagingExcludes>
                	        WEB-INF/lib/javax.*.jar,
                	        WEB-INF/lib/jetty-*.jar,

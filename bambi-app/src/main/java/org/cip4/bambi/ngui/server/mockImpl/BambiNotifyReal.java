@@ -70,7 +70,9 @@
  */
 package org.cip4.bambi.ngui.server.mockImpl;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -78,6 +80,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNotify;
 import org.cip4.bambi.core.BambiNotifyDef;
 import org.cip4.bambi.core.Observer;
+import org.cip4.bambi.settings.ConfigurationHandler;
 import org.json.JSONObject;
 import org.json.XML;
 
@@ -90,6 +93,8 @@ import org.json.XML;
  */
 public final class BambiNotifyReal implements BambiNotify
 {
+	private static final String NO_VALUE = "---";
+
 	private static final Log log = LogFactory.getLog(BambiNotifyReal.class.getName());
 	
 	private final List<Observer> observersList;
@@ -151,9 +156,16 @@ public final class BambiNotifyReal implements BambiNotify
 	 * @param submission
 	 */
 	@Override
-	public void notifyDeviceJobAdded(final String deviceId, final String jobId, final String status, final String submission)
+	public void notifyDeviceJobAdded(final String deviceId, final String jobId, final String status, final long submission)
 	{
-		String notifyXml = "<AddDeviceJob " + "deviceId='" + deviceId + "' " + "jobid='" + jobId + "'" + "status='" + status + "'" + "submission='" + submission + "'" + ">" + "</AddDeviceJob>";
+		String submissionStr = NO_VALUE;
+		if (submission > 0)
+		{
+			SimpleDateFormat format = new SimpleDateFormat(ConfigurationHandler.getInstance().getDateTimeFormatterPattern());
+			submissionStr = format.format(new Date(submission));
+		}
+		
+		String notifyXml = "<AddDeviceJob " + "deviceId='" + deviceId + "' " + "jobid='" + jobId + "'" + "status='" + status + "'" + "submission='" + submissionStr + "'" + ">" + "</AddDeviceJob>";
 		prepareAndPushNotificationMessage(notifyXml);
 	}
 
@@ -185,9 +197,21 @@ public final class BambiNotifyReal implements BambiNotify
 	 * @param end
 	 */
 	@Override
-	public void notifyDeviceJobPropertiesChanged(final String deviceId, final String jobId, final String status, final String start, final String end)
+	public void notifyDeviceJobPropertiesChanged(final String deviceId, final String jobId, final String status, final long start, final long end)
 	{
-		String notifyXml = "<JobPropertiesChanged " + "deviceId='" + deviceId + "' " + "jobId='" + jobId + "' " + "status='" + status + "'" + "start='" + start + "'" + "end='" + end + "'" + ">" + "</JobPropertiesChanged>";
+		SimpleDateFormat format = new SimpleDateFormat(ConfigurationHandler.getInstance().getDateTimeFormatterPattern());
+		String startStr = NO_VALUE;
+		if (start > 0)
+		{
+			startStr = format.format(new Date(start));
+		}
+		String endStr = NO_VALUE;
+		if (end > 0)
+		{
+			endStr = format.format(new Date(end));
+		}
+		
+		String notifyXml = "<JobPropertiesChanged " + "deviceId='" + deviceId + "' " + "jobId='" + jobId + "' " + "status='" + status + "'" + "start='" + startStr + "'" + "end='" + endStr + "'" + ">" + "</JobPropertiesChanged>";
 		prepareAndPushNotificationMessage(notifyXml);
 	}
 
