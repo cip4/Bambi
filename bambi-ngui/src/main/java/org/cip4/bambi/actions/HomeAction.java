@@ -85,6 +85,7 @@ import javax.xml.bind.Unmarshaller;
 
 import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.ServletRequestAware;
+import org.cip4.bambi.actions.beans.DeviceJob;
 import org.cip4.bambi.actions.beans.DeviceList;
 import org.cip4.bambi.actions.beans.XMLDevice;
 import org.cip4.bambi.core.AbstractDevice;
@@ -92,6 +93,7 @@ import org.cip4.bambi.core.BambiContainer;
 import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.StreamRequest;
 import org.cip4.bambi.core.XMLResponse;
+import org.cip4.bambi.settings.BambiServerUtils;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 
 import com.opensymphony.xwork2.ActionSupport;
@@ -169,15 +171,18 @@ public class HomeAction extends ActionSupport implements ServletRequestAware {
 			final Collection<JDFQueueEntry> queueCurrent = theContainer.getDeviceFromID(device.getDeviceId()).getQueueProcessor().getQueue().getAllQueueEntry();
 			log.info("Device: '" + device.getDeviceId() + "' has queue size: " + queueCurrent.size());
 			
-//			this code just to see API to be used in .jsp
-			final List<JDFQueueEntry> queue = new ArrayList<JDFQueueEntry>();
+			final List<DeviceJob> queue = new ArrayList<DeviceJob>();
 			Iterator<JDFQueueEntry> it = queueCurrent.iterator();
 			while (it.hasNext()) {
-				JDFQueueEntry job = it.next();
-//				job.getJobID();
-//				job.getQueueEntryID();
-//				job.getSubmissionTime().getDateTimeISO();
-//				job.getPriority();
+				JDFQueueEntry jdfJob = it.next();
+				
+				DeviceJob job = new DeviceJob();
+				job.setJobId(jdfJob.getQueueEntryID());
+				job.setPriority("" + jdfJob.getPriority());
+				job.setStatus(jdfJob.getQueueEntryStatus().getName());
+				job.setSubmitted(BambiServerUtils.convertTime(jdfJob.getSubmissionTime().getTimeInMillis()));
+				job.setStarted(BambiServerUtils.convertTime(getStartTime(jdfJob)));
+				job.setEnded(BambiServerUtils.convertTime(getEndTime(jdfJob)));
 				
 				queue.add(job);
 			}
@@ -190,8 +195,26 @@ public class HomeAction extends ActionSupport implements ServletRequestAware {
 	public List<XMLDevice> getDevices() {
 		return deviceList;
 	}
-
+	
 	public void setServletRequest(HttpServletRequest httpServletRequest) {
 		request = httpServletRequest;
+	}
+	
+	private long getStartTime(final JDFQueueEntry qe)
+	{
+		if (qe.getStartTime() == null)
+		{
+			return 0;
+		}
+		return qe.getStartTime().getTimeInMillis();
+	}
+
+	private long getEndTime(final JDFQueueEntry qe)
+	{
+		if (qe.getEndTime() == null)
+		{
+			return 0;
+		}
+		return qe.getEndTime().getTimeInMillis();
 	}
 }

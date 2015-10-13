@@ -70,6 +70,8 @@
  */
 package org.cip4.bambi.settings;
 
+import java.text.SimpleDateFormat;
+
 import org.apache.log4j.Logger;
 
 public class ConfigurationHandler
@@ -79,6 +81,7 @@ public class ConfigurationHandler
 	private static ConfigurationHandler instance;
 	
 	private String dateTimeFormatter;
+	private SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	
 	static
 	{
@@ -95,14 +98,19 @@ public class ConfigurationHandler
 		return instance;
 	}
 	
+	public SimpleDateFormat getDateTimeFormatter()
+	{
+		return format;
+	}
+	
 	public String getDateTimeFormatterPattern()
 	{
-		return "yyyy/MM/dd HH:mm:ss";
-//		return dateTimeFormatter;
+		return dateTimeFormatter;
 	}
 
 	public void setDateTimeFormatter(String dateTimeFormatter)
 	{
 		this.dateTimeFormatter = dateTimeFormatter;
+		format = new SimpleDateFormat(dateTimeFormatter);
 	}
 }

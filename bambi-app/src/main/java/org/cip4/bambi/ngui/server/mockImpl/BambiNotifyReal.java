@@ -80,6 +80,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNotify;
 import org.cip4.bambi.core.BambiNotifyDef;
 import org.cip4.bambi.core.Observer;
+import org.cip4.bambi.settings.BambiServerUtils;
 import org.cip4.bambi.settings.ConfigurationHandler;
 import org.json.JSONObject;
 import org.json.XML;
@@ -158,12 +159,7 @@ public final class BambiNotifyReal implements BambiNotify
 	@Override
 	public void notifyDeviceJobAdded(final String deviceId, final String jobId, final String status, final long submission)
 	{
-		String submissionStr = NO_VALUE;
-		if (submission > 0)
-		{
-			SimpleDateFormat format = new SimpleDateFormat(ConfigurationHandler.getInstance().getDateTimeFormatterPattern());
-			submissionStr = format.format(new Date(submission));
-		}
+		String submissionStr = BambiServerUtils.convertTime(submission);
 		
 		String notifyXml = "<AddDeviceJob " + "deviceId='" + deviceId + "' " + "jobid='" + jobId + "'" + "status='" + status + "'" + "submission='" + submissionStr + "'" + ">" + "</AddDeviceJob>";
 		prepareAndPushNotificationMessage(notifyXml);
@@ -199,7 +195,7 @@ public final class BambiNotifyReal implements BambiNotify
 	@Override
 	public void notifyDeviceJobPropertiesChanged(final String deviceId, final String jobId, final String status, final long start, final long end)
 	{
-		SimpleDateFormat format = new SimpleDateFormat(ConfigurationHandler.getInstance().getDateTimeFormatterPattern());
+		SimpleDateFormat format = ConfigurationHandler.getInstance().getDateTimeFormatter();
 		String startStr = NO_VALUE;
 		if (start > 0)
 		{

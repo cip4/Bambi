@@ -85,18 +85,18 @@
             <s:iterator status="jobsStatus" value="jobsQueue" var="jobsIterator">
               <div class="view-level-1 jobid-<s:property value="queueEntryID"/>">
                 <div class="icon-level"></div>
-                <div class="" style="display:inline-block;">Job ID: <s:property value="queueEntryID"/></div>
-                <div class="job-status-bar <s:property value="queueEntryStatus.name"/>"></div>
-                <div>* Submission: <s:property value="submissionTime.dateTimeISO"/></div>
+                <div class="" style="display:inline-block;">Job ID: <s:property value="jobId"/></div>
+                <div class="job-status-bar <s:property value="status"/>"></div>
+                <div>* Submission: <s:property value="submitted"/></div>
                 <div class="view level-basic">
-                  <div>* Priority: xxx</div>
+                  <div>* Priority: <s:property value="priority"/></div>
                   <div>*
                     <span>Start:</span>
-                    <span class="job-started"><s:property value="startTime.dateTimeISO"/></span>
+                    <span class="job-started"><s:property value="started"/></span>
                   </div>
                   <div>*
                     <span>End:</span>
-                    <span class="job-ended"><s:property value="endTime.dateTimeISO"/></span>
+                    <span class="job-ended"><s:property value="ended"/></span>
                   </div>
                 </div>
                 <div class="view level-full">

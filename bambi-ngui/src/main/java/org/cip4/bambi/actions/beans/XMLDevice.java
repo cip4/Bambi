@@ -6,8 +6,6 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.cip4.jdflib.jmf.JDFQueueEntry;
-
 @XmlRootElement(name = "XMLDevice")
 public class XMLDevice {
 	private String deviceId;
@@ -17,7 +15,7 @@ public class XMLDevice {
 	private int queueRunning;
 	private int queueWaiting;
 	private String queueStatus;
-	private Collection<JDFQueueEntry> jobsQueue;
+	private Collection<DeviceJob> jobsQueue;
 
 	public String getDeviceId() {
 		return deviceId;
@@ -82,11 +80,11 @@ public class XMLDevice {
 		this.queueStatus = queueStatus;
 	}
 
-	public Collection<JDFQueueEntry> getJobsQueue() {
+	public Collection<DeviceJob> getJobsQueue() {
 		return jobsQueue;
 	}
 
-	public void setJobsQueue(Collection<JDFQueueEntry> jobsQueue) {
+	public void setJobsQueue(Collection<DeviceJob> jobsQueue) {
 		this.jobsQueue = jobsQueue;
 	}
 
