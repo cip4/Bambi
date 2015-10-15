@@ -76,6 +76,7 @@ import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.ServletRequestAware;
 import org.cip4.bambi.core.BambiContainer;
 import org.cip4.bambi.settings.ConfigurationHandler;
+import org.cip4.bambi.settings.DateTimeFormatterEnum;
 
 import com.opensymphony.xwork2.ActionSupport;
 
@@ -86,21 +87,23 @@ public class SaveSettingsAction extends ActionSupport implements ServletRequestA
 	
 	private HttpServletRequest request;
 	
-	private String dateTimeFormatter;
+	private String patternName;
 	
 	public String execute() throws Exception {
 		log.info("theContainer action: " + theContainer);
-		log.info("dateTimeFormatter: " + dateTimeFormatter);
+		log.debug("set new patternName: " + patternName);
 		
-		ConfigurationHandler.getInstance().setDateTimeFormatter(dateTimeFormatter);
+		DateTimeFormatterEnum f = DateTimeFormatterEnum.lookupByName(patternName);
+		
+		ConfigurationHandler.getInstance().setDateTimePattern(f.getPattern());
 		
 		String pageName = SUCCESS;
 		
 		return pageName;
 	}
 	
-	public void setDateTimeFormatter(String dateTimeFormatter) {
-		this.dateTimeFormatter = dateTimeFormatter;
+	public void setDateTimeFormatter(String patternName) {
+		this.patternName = patternName;
 	}
 	
 	public void setServletRequest(HttpServletRequest httpServletRequest) {

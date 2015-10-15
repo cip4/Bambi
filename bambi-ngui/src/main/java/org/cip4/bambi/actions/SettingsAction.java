@@ -79,6 +79,8 @@ import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.ServletRequestAware;
 import org.cip4.bambi.actions.beans.Settings;
 import org.cip4.bambi.core.BambiContainer;
+import org.cip4.bambi.settings.ConfigurationHandler;
+import org.cip4.bambi.settings.DateTimeFormatterEnum;
 
 import com.opensymphony.xwork2.ActionSupport;
 
@@ -96,9 +98,9 @@ public class SettingsAction extends ActionSupport implements ServletRequestAware
 		log.info("theContainer action: " + theContainer);
 
 		formatters = new ArrayList<String>();
-		formatters.add("US");
-		formatters.add("EURO");
-		formatters.add("ISO");
+		formatters.add(DateTimeFormatterEnum.US.getName());
+		formatters.add(DateTimeFormatterEnum.EURO.getName());
+		formatters.add(DateTimeFormatterEnum.ISO.getName());
 
 		String pageName = SUCCESS;
 
@@ -114,7 +116,7 @@ public class SettingsAction extends ActionSupport implements ServletRequestAware
 	}
 
 	public String getCurrentFormatter() {
-		return "EURO";
+		return ConfigurationHandler.getInstance().getDateTimeFormatterName();
 	}
 
 	public void setServletRequest(HttpServletRequest httpServletRequest) {

@@ -77,15 +77,17 @@
                 <version>2.6</version>
                 <configuration>
                     <attachClasses>true</attachClasses>
-               	    <packagingExcludes>
-               	        WEB-INF/lib/javax.*.jar,
-               	        WEB-INF/lib/jetty-*.jar,
-               	        WEB-INF/lib/apache-*.jar,
-               	        WEB-INF/lib/org.eclipse.*.jar,
-               	        WEB-INF/lib/bambi-war-*.jar,
-               	        WEB-INF/lib/JDFUtility-*.jar,
-               	        WEB-INF/lib/JDFLibJ-*.jar,
-               	    </packagingExcludes>
+                    <!-- exclude settings package, thus only one will be packaged in bambi-ngui-1.0-classes.jar -->
+                    <packagingExcludes>
+                        WEB-INF/lib/javax.*.jar,
+                        WEB-INF/lib/jetty-*.jar,
+                        WEB-INF/lib/apache-*.jar,
+                        WEB-INF/lib/org.eclipse.*.jar,
+                        WEB-INF/lib/bambi-war-*.jar,
+                        WEB-INF/lib/JDFUtility-*.jar,
+                        WEB-INF/lib/JDFLibJ-*.jar,
+                        WEB-INF/classes/org/cip4/bambi/settings/,
+                    </packagingExcludes>
                 </configuration>
             </plugin>
         </plugins>

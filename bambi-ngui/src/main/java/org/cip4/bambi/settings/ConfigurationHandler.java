@@ -76,12 +76,12 @@ import org.apache.log4j.Logger;
 
 public class ConfigurationHandler
 {
-	private final static Logger log = Logger.getLogger(ConfigurationHandler.class);
+	private static final Logger LOG = Logger.getLogger(ConfigurationHandler.class);
 	
-	private static ConfigurationHandler instance;
+	private static final ConfigurationHandler instance;
 	
-	private String dateTimeFormatter;
-	private SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+	private String dateTimePattern = DateTimeFormatterEnum.ISO.getPattern();
+	private SimpleDateFormat formatter = new SimpleDateFormat(dateTimePattern);
 	
 	static
 	{
@@ -100,17 +100,27 @@ public class ConfigurationHandler
 	
 	public SimpleDateFormat getDateTimeFormatter()
 	{
-		return format;
+		LOG.info("formatter.toPattern: " + formatter.toPattern() + ", this: " + this + ", location: " + ConfigurationHandler.class.getProtectionDomain().getCodeSource().getLocation());
+		
+		return formatter;
 	}
 	
-	public String getDateTimeFormatterPattern()
+	public String getDateTimePattern()
 	{
-		return dateTimeFormatter;
+		return dateTimePattern;
+	}
+	
+	public String getDateTimeFormatterName()
+	{
+		DateTimeFormatterEnum d = DateTimeFormatterEnum.lookupByPattern(dateTimePattern);
+		return d.getName();
 	}
 
-	public void setDateTimeFormatter(String dateTimeFormatter)
+	public void setDateTimePattern(final String pattern)
 	{
-		this.dateTimeFormatter = dateTimeFormatter;
-		format = new SimpleDateFormat(dateTimeFormatter);
+		LOG.info("pattern: " + pattern + ", this: " + this + ", location: " + ConfigurationHandler.class.getProtectionDomain().getCodeSource().getLocation());
+		
+		dateTimePattern = pattern;
+		formatter = new SimpleDateFormat(pattern);
 	}
 }

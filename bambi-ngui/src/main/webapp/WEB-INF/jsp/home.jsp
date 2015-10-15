@@ -83,7 +83,7 @@
           <td class="main-panel">
             <div class="queue-entries hide">
             <s:iterator status="jobsStatus" value="jobsQueue" var="jobsIterator">
-              <div class="view-level-1 jobid-<s:property value="queueEntryID"/>">
+              <div class="view-level-1 jobid-<s:property value="jobId"/>">
                 <div class="icon-level"></div>
                 <div class="" style="display:inline-block;">Job ID: <s:property value="jobId"/></div>
                 <div class="job-status-bar <s:property value="status"/>"></div>
