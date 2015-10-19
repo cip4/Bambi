@@ -68,55 +68,66 @@
  *  
  * 
  */
-package org.cip4.bambi.settings;
+package org.cip4.bambi.util;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
+import java.io.IOException;
 
-public enum DateTimeFormatterEnum
-{
-	US("US",     "MM/dd/yyyy HH:mm:ss"),
-	EURO("EURO", "dd/MM/yyyy HH:mm:ss"),
-	ISO("ISO",   "yyyy/MM/dd HH:mm:ss");
-	
-	private static final Map<String, DateTimeFormatterEnum> lookupByNameMap = new HashMap<String, DateTimeFormatterEnum>();
-	private static final Map<String, DateTimeFormatterEnum> lookupByPatternMap = new HashMap<String, DateTimeFormatterEnum>();
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.SystemUtils;
 
-	private final String name;
-	private final String pattern;
-	
-	static
+/**
+ * Util class for defining generic locations on a file system.
+ */
+public class DirectoryUtil {
+	private static final String CIP4_FOLDER = "CIP4Tools/Bambi";
+	private static final String LINUX_FOLDER = "." + CIP4_FOLDER;
+	private static final String OSX_FOLDER = "Library/Preferences/" + CIP4_FOLDER;
+	private static final String WINDOWS_FOLDER = "AppData/Local/" + CIP4_FOLDER;
+
+	/**
+	 * Returns the location of the Bambi folder in the CIP4Tool folder.
+	 * 
+	 * @return Location of the Bambi folder in the CIP4Tool folder.
+	 */
+	public static String getApplicationDir()
 	{
-		for (DateTimeFormatterEnum f : DateTimeFormatterEnum.values())
+		String pathDir = "";
+		if (isLinux())
 		{
-			lookupByNameMap.put(f.getName(), f);
-			lookupByPatternMap.put(f.getPattern(), f);
+			pathDir = FilenameUtils.concat(FileUtils.getUserDirectoryPath(), LINUX_FOLDER);
+		} else if (isOsX())
+		{
+			pathDir = FilenameUtils.concat(FileUtils.getUserDirectoryPath(), OSX_FOLDER);
+		} else if (isWindows())
+		{
+			pathDir = FilenameUtils.concat(FileUtils.getUserDirectoryPath(), WINDOWS_FOLDER);
 		}
+		
+		try
+		{
+			FileUtils.forceMkdir(new File(pathDir));
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		return pathDir;
 	}
 
-	private DateTimeFormatterEnum(String name, String pattern)
+	private static boolean isLinux()
 	{
-		this.name = name;
-		this.pattern = pattern;
+		return SystemUtils.IS_OS_LINUX;
 	}
-	
-	public String getName()
+
+	private static boolean isOsX()
 	{
-		return name;
+		return SystemUtils.IS_OS_MAC_OSX;
 	}
-	
-	public String getPattern()
+
+	private static boolean isWindows()
 	{
-		return pattern;
-	}
-	
-	public static DateTimeFormatterEnum lookupByName(String name)
-	{
-		return lookupByNameMap.get(name);
-	}
-	
-	public static DateTimeFormatterEnum lookupByPattern(String pattern)
-	{
-		return lookupByPatternMap.get(pattern);
+		return SystemUtils.IS_OS_WINDOWS;
 	}
 }

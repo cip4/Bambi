@@ -70,9 +70,19 @@
  */
 package org.cip4.bambi.settings;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.cip4.bambi.util.DirectoryUtil;
 
 public class ConfigurationHandler
 {
@@ -80,8 +90,17 @@ public class ConfigurationHandler
 	
 	private static final ConfigurationHandler instance;
 	
-	private String dateTimePattern = DateTimeFormatterEnum.ISO.getPattern();
-	private SimpleDateFormat formatter = new SimpleDateFormat(dateTimePattern);
+	private static final String BASE_DIR = DirectoryUtil.getApplicationDir();
+	private static final String FILENAME = File.separator + "bambi-ngui.properties";
+	
+	public static final String KEY_FORMAT = "timestamp.format";
+	private static final String KEY_FORMAT_DEFAULT = DateTimeFormatterEnum.ISO.getPattern();
+	private static final Map<String, String> DEFAULT_PROPERTIES_MAP = new HashMap<String, String>();
+	
+	private static Properties prop = new Properties();
+	
+	private String dateTimePattern;
+	private SimpleDateFormat formatter;
 	
 	static
 	{
@@ -90,7 +109,11 @@ public class ConfigurationHandler
 
 	private ConfigurationHandler()
 	{
-
+		dateTimePattern = DateTimeFormatterEnum.ISO.getPattern();
+		formatter = new SimpleDateFormat(dateTimePattern);
+		
+		initDefaultProperties();
+		initProperties();
 	}
 
 	public static synchronized ConfigurationHandler getInstance()
@@ -98,10 +121,45 @@ public class ConfigurationHandler
 		return instance;
 	}
 	
+	private static void initDefaultProperties()
+	{
+		DEFAULT_PROPERTIES_MAP.put(KEY_FORMAT, KEY_FORMAT_DEFAULT);
+	}
+	
+	private static void initProperties()
+	{
+		LOG.info("baseDir: " + BASE_DIR);
+		LOG.info("Initializing properties from file: " + BASE_DIR + FILENAME);
+		prop = new Properties();
+		InputStream input = null;
+		try
+		{
+			input = new FileInputStream(BASE_DIR + FILENAME);
+			prop.load(input);
+			input.close();
+		} catch (IOException e)
+		{
+			LOG.error("Error: " + e.getMessage(), e);
+		}
+	}
+	
+	public void saveProperties()
+	{
+		LOG.info("Saving properties to file: " + BASE_DIR + FILENAME);
+		OutputStream output = null;
+		try
+		{
+			output = new FileOutputStream(BASE_DIR + FILENAME);
+			prop.store(output, "Bambi NGUI properties");
+			output.close();
+		} catch (IOException e)
+		{
+			LOG.error("Error: " + e.getMessage(), e);
+		}
+	}
+	
 	public SimpleDateFormat getDateTimeFormatter()
 	{
-		LOG.info("formatter.toPattern: " + formatter.toPattern() + ", this: " + this + ", location: " + ConfigurationHandler.class.getProtectionDomain().getCodeSource().getLocation());
-		
 		return formatter;
 	}
 	
@@ -118,9 +176,17 @@ public class ConfigurationHandler
 
 	public void setDateTimePattern(final String pattern)
 	{
-		LOG.info("pattern: " + pattern + ", this: " + this + ", location: " + ConfigurationHandler.class.getProtectionDomain().getCodeSource().getLocation());
-		
 		dateTimePattern = pattern;
 		formatter = new SimpleDateFormat(pattern);
+	}
+	
+	public String getProperty(String key)
+	{
+		String value = prop.getProperty(key);
+		if (null == value)
+		{
+			value = DEFAULT_PROPERTIES_MAP.get(key);
+		}
+		return value;
 	}
 }

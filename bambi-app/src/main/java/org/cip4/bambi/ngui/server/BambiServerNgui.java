@@ -82,6 +82,7 @@ import org.cip4.bambi.ngui.server.mockImpl.MyServiceWebSocket;
 import org.cip4.bambi.server.BambiFrame;
 import org.cip4.bambi.server.BambiServer;
 import org.cip4.bambi.server.BambiService;
+import org.cip4.bambi.settings.ConfigurationHandler;
 import org.cip4.jdflib.util.MyArgs;
 import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdflib.util.logging.LogConfigurator;
@@ -97,7 +98,7 @@ import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 
 public class BambiServerNgui extends BambiServer
 {
-	private final static Logger log = Logger.getLogger(BambiServerNgui.class);
+	private static final Logger log = Logger.getLogger(BambiServerNgui.class);
 
 	public BambiServerNgui() throws BambiException
 	{
@@ -145,6 +146,7 @@ public class BambiServerNgui extends BambiServer
 	{
 		LogConfigurator.configureLog(new UserDir(BAMBI).getLogPath(), "bambi.log");
 		BambiNotifyReal.getInstance();
+		ConfigurationHandler.getInstance();
 		
 		BambiServerNgui bambiServer = new BambiServerNgui();
 		LogConfigurator.configureLog(bambiServer.getProp().getBaseDir().getAbsolutePath(), "bambi.log");
@@ -156,7 +158,10 @@ public class BambiServerNgui extends BambiServer
 		else
 		{
 			BambiFrame frame = new BambiFrame(bambiServer);
-			System.exit(frame.waitCompleted());
+			int result = frame.waitCompleted();
+			ConfigurationHandler.getInstance().saveProperties();
+			
+			System.exit(result);
 		}
 	}
 
