@@ -15,6 +15,21 @@ application = {
 		console.log("location.hostname: " + location.hostname);
 		console.log("location.port: " + location.port);
 		
+		$(document).contextmenu({
+			delegate: ".has-change-status-menu",
+			menu: [
+				{title: "Set queue status:"},
+				{title: "----"},
+				{title: "Open", cmd: "open"},
+				{title: "Close", cmd: "close"},
+				{title: "Resume", cmd: "resume"},
+				{title: "Hold", cmd: "hold"}
+			],
+			select: function(event, ui) {
+				console.log("Selected '" + ui.cmd + "' command on element text: " + ui.target.text());
+				console.log("ui.target.context.id: " + ui.target.context.id);
+			}
+		});
 		
 		var ws = new WebSocket("ws://" + location.hostname + ":" + location.port + "/SimWorker/echo");
 //		var ws = new WebSocket("ws://" + location.hostname + ":" + location.port + "/bambi-ngui/echo");
@@ -54,6 +69,7 @@ application = {
 		var v = obj.UpdateDeviceQueue.queueStatistic;
 		
 		$("tr.device-" + obj.UpdateDeviceQueue.deviceId + " .left-panel .queue-status-bar").removeClass().addClass("queue-status-bar").addClass(obj.UpdateDeviceQueue.queueStatus);
+		$("tr.device-" + obj.UpdateDeviceQueue.deviceId + " .left-panel .queue-status-bar").html(obj.UpdateDeviceQueue.queueStatus);
 		
 		$(".device-" + obj.UpdateDeviceQueue.deviceId + " .queue-stat-value").text(v);
 		$(".device-" + obj.UpdateDeviceQueue.deviceId + " .queue-stat-value").effect('highlight', {color:'#F00'}, 1000);

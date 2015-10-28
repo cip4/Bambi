@@ -2,12 +2,18 @@
 <%@ taglib prefix="s" uri="/struts-tags" %>
 <html>
 <head>
-  <link type="text/css" rel="stylesheet" href="<s:url value="/css/main.css" />" />
+  <%-- 3rd party resources --%>
+  <link type="text/css" rel="stylesheet" href="<s:url value="/css/themes/vader/jquery-ui.css" />" />
+
   <script type="text/javascript" src="<s:url value="/scripts/jquery/jquery-1.11.2.min.js" />"></script>
   <script type="text/javascript" src="<s:url value="/scripts/jquery/jquery-ui.min.js" />"></script>
   <script type="text/javascript" src="<s:url value="/scripts/jquery/jquery.tmpl.min.js" />"></script>
+  <script type="text/javascript" src="<s:url value="/scripts/jquery/jquery.ui-contextmenu.min.js" />"></script>
 
+  <%-- Bambi resources --%>
+  <link type="text/css" rel="stylesheet" href="<s:url value="/css/main.css" />" />
   <script type="text/javascript" src="<s:url value="/scripts/main.js" />"></script>
+
   <title><s:text name="home.title"/></title>
 </head>
 
@@ -53,7 +59,7 @@
     <table class="pane">
       <tbody>
         <s:iterator status="devicesStatus" value="devices" var="devicesIterator">
-        <tr class="device-<s:property value="deviceId"/>">
+        <tr id="<s:property value="deviceId"/>" class="device-<s:property value="deviceId"/>">
           <td class="left-panel device-<s:property value="deviceId"/>">
             <div><b>Device: <s:property value="deviceId"/></b>
               <span class="button details" title="Show details"></span>
@@ -73,7 +79,8 @@
 <div class="queue-header">Queue
   <span class="button entries" title="Show entries"></span>
 </div>
-<div class="queue-status-bar <s:property value="queueStatus"/>"></div>
+<div id="<s:property value="deviceId"/>" class="queue-status-bar has-change-status-menu <s:property value="queueStatus"/>"><s:property value="queueStatus"/>
+</div>
 <div class="queue-stat">
   <span title="Waiting/Running/Completed/All">Queue stat:</span>
   <span class="queue-stat-value"><s:property value="queueWaiting"/>/<s:property value="queueRunning"/>/<s:property value="queueCompleted"/>/<s:property value="queueAll"/></span>

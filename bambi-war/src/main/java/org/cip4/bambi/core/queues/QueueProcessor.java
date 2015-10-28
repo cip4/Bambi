@@ -1211,27 +1211,27 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 */
 		protected boolean applyModification(final ContainerRequest request, boolean modified)
 		{
-			final EnumQueueStatus qStatus = _theQueue.getQueueStatus();
-			EnumQueueStatus qStatusNew = null;
+			final EnumQueueStatus queueStatusCurrent = _theQueue.getQueueStatus();
+			EnumQueueStatus queueStatusNew = null;
 			final boolean bHold = request.getBooleanParam("hold");
 			if (bHold)
 			{
-				qStatusNew = applyHold();
+				queueStatusNew = applyHold();
 			}
 			final boolean bClose = request.getBooleanParam("close");
 			if (bClose)
 			{
-				qStatusNew = applyClose();
+				queueStatusNew = applyClose();
 			}
 			final boolean bResume = request.getBooleanParam("resume");
 			if (bResume)
 			{
-				qStatusNew = applyResume();
+				queueStatusNew = applyResume();
 			}
 			final boolean bOpen = request.getBooleanParam("open");
 			if (bOpen)
 			{
-				qStatusNew = applyOpen();
+				queueStatusNew = applyOpen();
 			}
 			final boolean bFlush = request.getBooleanParam("flush");
 			if (bFlush)
@@ -1239,9 +1239,14 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				final VElement v = applyFlush();
 				modified = v != null;
 			}
-			if (qStatusNew != null)
+			if (queueStatusNew != null)
 			{
-				modified = modified || !ContainerUtil.equals(qStatusNew, qStatus);
+				modified = modified || !ContainerUtil.equals(queueStatusNew, queueStatusCurrent);
+			}
+
+			if (modified)
+			{
+				BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), queueStatusNew.getName(), getQueueStatistic());
 			}
 
 			return modified;
@@ -1255,29 +1260,25 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		protected EnumQueueStatus applyOpen()
 		{
-			EnumQueueStatus qStatusNew;
-			qStatusNew = _theQueue.openQueue();
+			EnumQueueStatus qStatusNew = _theQueue.openQueue();
 			return qStatusNew;
 		}
 
 		protected EnumQueueStatus applyResume()
 		{
-			EnumQueueStatus qStatusNew;
-			qStatusNew = _theQueue.resumeQueue();
+			EnumQueueStatus qStatusNew = _theQueue.resumeQueue();
 			return qStatusNew;
 		}
 
 		protected EnumQueueStatus applyClose()
 		{
-			EnumQueueStatus qStatusNew;
-			qStatusNew = _theQueue.closeQueue();
+			EnumQueueStatus qStatusNew = _theQueue.closeQueue();
 			return qStatusNew;
 		}
 
 		protected EnumQueueStatus applyHold()
 		{
-			EnumQueueStatus qStatusNew;
-			qStatusNew = _theQueue.holdQueue();
+			 EnumQueueStatus qStatusNew = _theQueue.holdQueue();
 			return qStatusNew;
 		}
 

@@ -53,7 +53,7 @@ body, table, form, input, td, th, p, textarea, select {
 
 .queue-status-bar {
   background-color: #ff0000;
-  height: 4px;
+  height: 13px;
   margin-left: 15px;
   width: 135px;
 }
@@ -67,7 +67,7 @@ body, table, form, input, td, th, p, textarea, select {
 }
 
 .queue-status-bar.held {
-  background-color: #000000;
+  background-color: #c0c0c0;
 }
 
 /************* Job status *************/
