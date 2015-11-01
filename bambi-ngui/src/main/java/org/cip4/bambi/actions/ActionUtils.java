@@ -18,7 +18,7 @@ public class ActionUtils {
 		StreamRequest sr = new StreamRequest(request.getInputStream());
 		final String contentType = request.getContentType();
 		sr.setContentType(contentType);
-		sr.setRequestURI(request.getRequestURL().toString());
+		sr.setRequestURI("/" /*request.getRequestURL().toString()*/);
 		sr.setHeaderMap(getHeaderMap(request));
 		sr.setParameterMap(new JDFAttributeMap(getParameterMap(request)));
 		sr.setRemoteHost(request.getRemoteHost());

@@ -14,9 +14,11 @@ application = {
 		console.log("window.location: " + window.location);
 		console.log("location.hostname: " + location.hostname);
 		console.log("location.port: " + location.port);
-		
+	},
+
+	bindContextMenu : function() {
 		$(document).contextmenu({
-			delegate: ".has-change-status-menu",
+			delegate: ".has-menu-queue-change-status",
 			menu: [
 				{title: "Set queue status:"},
 				{title: "----"},
@@ -28,9 +30,16 @@ application = {
 			select: function(event, ui) {
 				console.log("Selected '" + ui.cmd + "' command on element text: " + ui.target.text());
 				console.log("ui.target.context.id: " + ui.target.context.id);
+				$.ajax({
+					method: "POST",
+					url: "queueChangeStatus",
+					data: "deviceId=" + ui.target.context.id + "&newStatus=" + ui.cmd
+				});
 			}
 		});
-		
+	},
+
+	bindWebSocketTransport : function() {
 		var ws = new WebSocket("ws://" + location.hostname + ":" + location.port + "/SimWorker/echo");
 //		var ws = new WebSocket("ws://" + location.hostname + ":" + location.port + "/bambi-ngui/echo");
 		ws.onopen = function () {
@@ -64,11 +73,11 @@ application = {
 			}
 		};
 	},
-	
+
 	updateDeviceQueue : function(obj) {
 		var v = obj.UpdateDeviceQueue.queueStatistic;
 		
-		$("tr.device-" + obj.UpdateDeviceQueue.deviceId + " .left-panel .queue-status-bar").removeClass().addClass("queue-status-bar").addClass(obj.UpdateDeviceQueue.queueStatus);
+		$("tr.device-" + obj.UpdateDeviceQueue.deviceId + " .left-panel .queue-status-bar").removeClass().addClass("queue-status-bar").addClass("has-menu-queue-change-status").addClass(obj.UpdateDeviceQueue.queueStatus);
 		$("tr.device-" + obj.UpdateDeviceQueue.deviceId + " .left-panel .queue-status-bar").html(obj.UpdateDeviceQueue.queueStatus);
 		
 		$(".device-" + obj.UpdateDeviceQueue.deviceId + " .queue-stat-value").text(v);
@@ -115,5 +124,7 @@ application = {
 };
 
 $(document).ready(function() {
+	application.bindWebSocketTransport();
 	application.bindAll();
+	application.bindContextMenu();
 });

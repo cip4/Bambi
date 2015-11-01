@@ -73,6 +73,8 @@ package org.cip4.bambi.core;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 
 import javax.mail.BodyPart;
@@ -293,6 +295,19 @@ public final class BambiContainer extends BambiLogFactory
 			return null;
 		}
 		return dev;
+	}
+
+	public List<String> getDevices()
+	{
+		List<String> result = new ArrayList<String>();
+		final RootDevice root = getRootDevice();
+		AbstractDevice[] devices = root.getDeviceArray();
+
+		for (AbstractDevice device : devices) {
+			result.add(device.getDeviceID());
+		}
+
+		return result;
 	}
 
 	/**

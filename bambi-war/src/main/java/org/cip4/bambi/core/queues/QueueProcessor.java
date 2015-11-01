@@ -1133,7 +1133,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	}
 
-	protected class QueueGetHandler implements IGetHandler
+	public class QueueGetHandler implements IGetHandler
 	{
 		private int nPos;
 
@@ -1258,27 +1258,31 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			return v;
 		}
 
-		protected EnumQueueStatus applyOpen()
+		public EnumQueueStatus applyOpen()
 		{
 			EnumQueueStatus qStatusNew = _theQueue.openQueue();
+			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), qStatusNew.getName(), getQueueStatistic());
 			return qStatusNew;
 		}
 
-		protected EnumQueueStatus applyResume()
+		public EnumQueueStatus applyResume()
 		{
 			EnumQueueStatus qStatusNew = _theQueue.resumeQueue();
+			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), qStatusNew.getName(), getQueueStatistic());
 			return qStatusNew;
 		}
 
-		protected EnumQueueStatus applyClose()
+		public EnumQueueStatus applyClose()
 		{
 			EnumQueueStatus qStatusNew = _theQueue.closeQueue();
+			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), qStatusNew.getName(), getQueueStatistic());
 			return qStatusNew;
 		}
 
-		protected EnumQueueStatus applyHold()
+		public EnumQueueStatus applyHold()
 		{
 			 EnumQueueStatus qStatusNew = _theQueue.holdQueue();
+			 BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), qStatusNew.getName(), getQueueStatistic());
 			return qStatusNew;
 		}
 
@@ -2888,7 +2892,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * 
 	 * @return
 	 */
-	protected QueueGetHandler getQueueGetHandler()
+	public QueueGetHandler getQueueGetHandler()
 	{
 		return new QueueGetHandler();
 	}
@@ -3004,9 +3008,17 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		return (JDFQueue) _theQueue.cloneNewDoc();
 	}
 
-	private String getQueueStatistic()
+	public class QueueStatistic
 	{
-		String result = "${W}/${R}/${C}/${ALL}";
+		public int waiting = 0;
+		public int running = 0;
+		public int completed = 0;
+		public int all = 0;
+	}
+
+	public QueueStatistic getQueueStatistic2()
+	{
+		QueueStatistic result = new QueueStatistic();
 
 		final JDFQueue clonedQueue = cloneQueue();
 
@@ -3017,7 +3029,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		final Map<String, JDFQueueEntry> queueEntryIDMap = clonedQueue.getQueueEntryIDMap();
 		if (queueEntryIDMap == null)
 		{
-			return "0/0/0/0";
+			return result;
 		}
 		final Iterator<String> it = queueEntryIDMap.keySet().iterator();
 		while (it.hasNext())
@@ -3038,10 +3050,24 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 		}
 
-		result = StringUtils.replaceOnce(result, "${W}", "" + waiting);
-		result = StringUtils.replaceOnce(result, "${R}", "" + running);
-		result = StringUtils.replaceOnce(result, "${C}", "" + completed);
-		result = StringUtils.replaceOnce(result, "${ALL}", "" + queueEntryIDMap.size());
+		result.waiting = waiting;
+		result.running = running;
+		result.completed = completed;
+		result.all = queueEntryIDMap.size();
+
+		return result;
+	}
+
+	public String getQueueStatistic()
+	{
+		String result = "${W}/${R}/${C}/${ALL}";
+
+		QueueStatistic queueStatistic = getQueueStatistic2();
+
+		result = StringUtils.replaceOnce(result, "${W}", "" + queueStatistic.waiting);
+		result = StringUtils.replaceOnce(result, "${R}", "" + queueStatistic.running);
+		result = StringUtils.replaceOnce(result, "${C}", "" + queueStatistic.completed);
+		result = StringUtils.replaceOnce(result, "${ALL}", "" + queueStatistic.all);
 
 		return result;
 	}

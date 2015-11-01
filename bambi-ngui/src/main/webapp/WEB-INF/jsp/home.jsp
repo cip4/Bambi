@@ -79,7 +79,7 @@
 <div class="queue-header">Queue
   <span class="button entries" title="Show entries"></span>
 </div>
-<div id="<s:property value="deviceId"/>" class="queue-status-bar has-change-status-menu <s:property value="queueStatus"/>"><s:property value="queueStatus"/>
+<div id="<s:property value="deviceId"/>" class="queue-status-bar has-menu-queue-change-status <s:property value="queueStatus"/>"><s:property value="queueStatus"/>
 </div>
 <div class="queue-stat">
   <span title="Waiting/Running/Completed/All">Queue stat:</span>

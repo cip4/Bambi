@@ -8,10 +8,18 @@
   <constant name="struts.devMode" value="true"/>
 
 
-  <package name="root" namespace="/" extends="struts-default">
-    <action name="*" class="org.cip4.bambi.actions.HomeAction">
+  <package name="default" namespace="/" extends="struts-default">
+    <action name="">
+      <result>/WEB-INF/jsp/index.jsp</result>
+    </action>
+
+    <action name="home" class="org.cip4.bambi.actions.HomeAction2">
       <result name="success">/WEB-INF/jsp/home.jsp</result>
       <result name="error">/WEB-INF/jsp/error.jsp</result>
+    </action>
+
+    <action name="queueChangeStatus" class="org.cip4.bambi.actions.QueueStatusAction">
+      <result>/WEB-INF/jsp/empty.jsp</result>
     </action>
     
     <!--action name="showDevice" class="org.cip4.bambi.actions.ShowDeviceAction">

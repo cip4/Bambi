@@ -70,8 +70,6 @@
  */
 package org.cip4.bambi.actions;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -79,92 +77,78 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 
 import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.ServletRequestAware;
 import org.cip4.bambi.actions.beans.DeviceJob;
-import org.cip4.bambi.actions.beans.DeviceList;
 import org.cip4.bambi.actions.beans.XMLDevice;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiContainer;
-import org.cip4.bambi.core.StreamRequest;
-import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.settings.BambiServerUtils;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 
 import com.opensymphony.xwork2.ActionSupport;
 
-public class HomeAction extends ActionSupport implements ServletRequestAware {
-	private final static Logger log = Logger.getLogger(HomeAction.class);
+public class HomeAction2 extends ActionSupport implements ServletRequestAware {
+	private static final Logger LOG = Logger.getLogger(HomeAction2.class);
 	
-	private final static BambiContainer theContainer = BambiContainer.getInstance();
+	private static final BambiContainer theContainer = BambiContainer.getInstance();
 	
 	private HttpServletRequest request;
 	
 	private List<XMLDevice> deviceList = new ArrayList<XMLDevice>();
 	
 	public String execute() throws Exception {
-		log.info("theContainer action: " + theContainer);
+		LOG.info("theContainer action: " + theContainer);
 		
 		String pageName = SUCCESS;
 		
 		if (theContainer == null) {
 			pageName = ERROR;
 		} else {
-			log.info("... some work occured here");
+			LOG.info("... some work occured here");
 			
-			AbstractDevice rootDev = theContainer.getRootDev();
-			rootDev.startWork();
+//			AbstractDevice rootDev = theContainer.getRootDev();
+//			rootDev.startWork();
 			
 			boolean isPost = request.getMethod().equalsIgnoreCase("POST") ? true : false;
 			
-			StreamRequest sr = ActionUtils.createStreamRequest(request);
-			sr.setPost(isPost);
-			
-			XMLResponse xr = null;
-			try {
-				xr = theContainer.processStream(sr);
-//				writeResponse(xr, response);
-				parseResponse(xr);
-				fillDevicesQueue();
-			}
-			catch (Throwable t) {
-				log.error("Error processing request for: " + request.getPathInfo(), t);
-				pageName = ERROR;
-			}
-			
-			rootDev.endWork();
+//			rootDev.endWork();
 		}
+		
+		List<String> devices = theContainer.getDevices();
+		
+		for (String deviceId : devices) {
+			AbstractDevice device = theContainer.getDeviceFromID(deviceId);
+			
+			XMLDevice deviceModel = new XMLDevice();
+			deviceModel.setDeviceId(deviceId);
+			deviceModel.setDeviceStatus(device.getDeviceStatus().getName());
+			
+			if (null == device.getQueueProcessor().getQueue().getStatus())
+			{
+				deviceModel.setQueueStatus("Held" /*EnumQueueEntryStatus.Held.getName()*/);
+			} else
+			{
+				deviceModel.setQueueStatus(device.getQueueProcessor().getQueue().getStatus().getName());
+			}
+			deviceModel.setQueueWaiting(device.getQueueProcessor().getQueueStatistic2().waiting);
+			deviceModel.setQueueRunning(device.getQueueProcessor().getQueueStatistic2().running);
+			deviceModel.setQueueCompleted(device.getQueueProcessor().getQueueStatistic2().completed);
+			deviceModel.setQueueAll(device.getQueueProcessor().getQueueStatistic2().all);
+			
+			deviceList.add(deviceModel);
+		}
+		fillDevicesQueue();
 		
 		return pageName;
-	}
-	
-	private void parseResponse(XMLResponse xr) {
-//		log.debug("xr: " + xr);
-		
-		String xmlResp = xr.getXML().toDisplayXML(0);
-		
-		InputStream is = new ByteArrayInputStream(xmlResp.getBytes());
-		
-		try {
-			JAXBContext jaxbContext = JAXBContext.newInstance(DeviceList.class);
-			Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-			final DeviceList deviceListLocal = (DeviceList) jaxbUnmarshaller.unmarshal(is);
-			
-			deviceList = deviceListLocal.getXMLDevice();
-		} catch (JAXBException e) {
-			log.error("Error:", e);
-		}
-		
 	}
 	
 	private void fillDevicesQueue() {
 		for (XMLDevice device : deviceList) {
 			final Collection<JDFQueueEntry> queueCurrent = theContainer.getDeviceFromID(device.getDeviceId()).getQueueProcessor().getQueue().getAllQueueEntry();
-			log.info("Device: '" + device.getDeviceId() + "' has queue size: " + queueCurrent.size());
+			LOG.info("Device: '" + device.getDeviceId() + "' has queue size: " + queueCurrent.size());
 			
 			final List<DeviceJob> queue = new ArrayList<DeviceJob>();
 			Iterator<JDFQueueEntry> it = queueCurrent.iterator();
@@ -212,5 +196,4 @@ public class HomeAction extends ActionSupport implements ServletRequestAware {
 		}
 		return qe.getEndTime().getTimeInMillis();
 	}
-
 }

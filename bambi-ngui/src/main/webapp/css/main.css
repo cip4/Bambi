@@ -83,6 +83,10 @@ body, table, form, input, td, th, p, textarea, select {
   background-color: #ff7800;
 }
 
+.job-status-bar.suspended {
+  background-color: #ffb800;
+}
+
 .job-status-bar.running {
   background-color: #9ad4fd;
 }
