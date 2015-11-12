@@ -4,9 +4,9 @@ settings = {
 			console.log("Send POST request, serialize: " + $("#saveSettings").serialize());
 			$.ajax({
 				type: "POST",
-				url: "/bambi-ngui/save_settings/",
+				url: "/bambi-ngui/settings/save",
 //				dataType: "json",
-				data: $("#saveSettings").serialize(), // "dateTimeFormatter=123",
+				data: $("#saveSettings").serialize(),
 				success: function(data, textStatus, jqXHR) {
 					console.log("POST: success");
 				},

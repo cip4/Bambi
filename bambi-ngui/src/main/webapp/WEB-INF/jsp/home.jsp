@@ -19,7 +19,7 @@
 
   <body>
     <h2><s:text name="home.title"/></h2>
-    <a href="settings/" target="_blank" style="float: right;">Settings</a>
+    <a href="settings/view" target="_blank" style="float: right;">Settings</a>
     <br/><br/>
 
     <script type="text/html" id="jobTemplate">
@@ -79,7 +79,7 @@
 <div class="queue-header">Queue
   <span class="button entries" title="Show entries"></span>
 </div>
-<div id="<s:property value="deviceId"/>" class="queue-status-bar has-menu-queue-change-status <s:property value="queueStatus"/>"><s:property value="queueStatus"/>
+<div id="<s:property value="deviceId"/>" class="queue-status-bar <s:property value="queueStatus"/>"><s:property value="queueStatus"/>
 </div>
 <div class="queue-stat">
   <span title="Waiting/Running/Completed/All">Queue stat:</span>
