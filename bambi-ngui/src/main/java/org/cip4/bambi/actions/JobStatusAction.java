@@ -75,43 +75,44 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.log4j.Logger;
 import org.apache.struts2.interceptor.ServletRequestAware;
 import org.cip4.bambi.core.BambiContainer;
-import org.cip4.bambi.core.BambiNotifyDef;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
 
 import com.opensymphony.xwork2.ActionSupport;
 
-public class QueueStatusAction extends ActionSupport implements ServletRequestAware
+public class JobStatusAction extends ActionSupport implements ServletRequestAware
 {
-	private static final Logger LOG = Logger.getLogger(QueueStatusAction.class);
-	
+	private static final Logger LOG = Logger.getLogger(JobStatusAction.class);
+
 	private final static BambiContainer bambiContainer = BambiContainer.getInstance();
 
 	private HttpServletRequest request;
 	private String deviceId;
+	private String jobId;
 	private String newStatus;
 
 	public String execute() throws Exception
 	{
-		LOG.info("QueueStatusAction deviceId: " + deviceId + ", newStatus: " + newStatus);
+		LOG.info("JobStatusAction deviceId: " + deviceId + ", jobId: " + jobId + ", newStatus: " + newStatus);
+		JDFQueueEntry qe = bambiContainer.getDeviceFromID(deviceId).getQueueProcessor().getQueueEntry(jobId);
 		
-		if (newStatus.equalsIgnoreCase("open"))
-			bambiContainer.getDeviceFromID(deviceId).getQueueProcessor().getQueueGetHandler().applyOpen();
-		else if (newStatus.equalsIgnoreCase("close"))
-			bambiContainer.getDeviceFromID(deviceId).getQueueProcessor().getQueueGetHandler().applyClose();
-		else if (newStatus.equalsIgnoreCase("resume"))
-			bambiContainer.getDeviceFromID(deviceId).getQueueProcessor().getQueueGetHandler().applyResume();
-		else if (newStatus.equalsIgnoreCase("hold"))
-			bambiContainer.getDeviceFromID(deviceId).getQueueProcessor().getQueueGetHandler().applyHold();
+		EnumQueueEntryStatus status = EnumQueueEntryStatus.getEnum(newStatus);
 		
-//		BambiNotifyDef.getInstance().notifyDeviceQueueStatus( _theQueue.getDeviceID(), queueStatusNew.getName(), getQueueStatistic());
+		bambiContainer.getDeviceFromID(deviceId).getQueueProcessor().updateEntry(qe, status, null, null, "");
 		
 		return SUCCESS;
 	}
-	
+
 	public void setDeviceId(String deviceId)
 	{
 		this.deviceId = deviceId;
 	}
-	
+
+	public void setJobId(String jobId)
+	{
+		this.jobId = jobId;
+	}
+
 	public void setNewStatus(String newStatus)
 	{
 		this.newStatus = newStatus;

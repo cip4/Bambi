@@ -23,10 +23,10 @@
     <br/><br/>
 
     <script type="text/html" id="jobTemplate">
-        <div class="view-level-1 hide jobid-\${param.jobid}">
+        <div class="view-level-1 hide jobid-\${param.jobId}">
             <div class="icon-level"></div>
-            <div style="display:inline-block;" class="">Job ID: \${param.jobid}</div>
-            <div class="job-status-bar \${param.status}"></div>
+            <div style="display:inline-block;" class="">Job ID: \${param.jobId}</div>
+            <div class="job-status-bar \${param.status}" deviceid="\${param.deviceId}" jobid="\${param.jobId}"></div>
             <div>* Submission: \${param.submission}</div>
             <div class="view level-basic">
               <div>* Priority: xxx</div>
@@ -93,7 +93,7 @@
               <div class="view-level-1 jobid-<s:property value="jobId"/>">
                 <div class="icon-level"></div>
                 <div class="" style="display:inline-block;">Job ID: <s:property value="jobId"/></div>
-                <div class="job-status-bar <s:property value="status"/>"></div>
+                <div class="job-status-bar <s:property value="status"/>" deviceid="<s:property value="deviceId"/>" jobid="<s:property value="jobId"/>"></div>
                 <div>* Submission: <s:property value="submitted"/></div>
                 <div class="view level-basic">
                   <div>* Priority: <s:property value="priority"/></div>

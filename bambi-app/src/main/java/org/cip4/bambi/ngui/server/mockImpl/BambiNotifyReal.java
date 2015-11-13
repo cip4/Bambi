@@ -161,7 +161,7 @@ public final class BambiNotifyReal implements BambiNotify
 	{
 		String submissionStr = BambiServerUtils.convertTime(submission);
 		
-		String notifyXml = "<AddDeviceJob " + "deviceId='" + deviceId + "' " + "jobid='" + jobId + "'" + "status='" + status + "'" + "submission='" + submissionStr + "'" + ">" + "</AddDeviceJob>";
+		String notifyXml = "<AddDeviceJob " + "deviceId='" + deviceId + "' " + "jobId='" + jobId + "'" + "status='" + status + "'" + "submission='" + submissionStr + "'" + ">" + "</AddDeviceJob>";
 		prepareAndPushNotificationMessage(notifyXml);
 	}
 
@@ -173,7 +173,7 @@ public final class BambiNotifyReal implements BambiNotify
 	@Override
 	public void notifyDeviceJobRemoved(final String deviceId, final String jobId)
 	{
-		String notifyXml = "<DeleteDeviceJob " + "deviceId='" + deviceId + "' " + "jobid='" + jobId +"'" + ">" + "</DeleteDeviceJob>";
+		String notifyXml = "<DeleteDeviceJob " + "deviceId='" + deviceId + "' " + "jobId='" + jobId +"'" + ">" + "</DeleteDeviceJob>";
 		prepareAndPushNotificationMessage(notifyXml);
 	}
 

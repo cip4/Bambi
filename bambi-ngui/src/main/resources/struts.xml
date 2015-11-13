@@ -22,6 +22,10 @@
       <result>/WEB-INF/jsp/empty.jsp</result>
     </action>
 
+    <action name="jobChangeStatus" class="org.cip4.bambi.actions.JobStatusAction">
+      <result>/WEB-INF/jsp/empty.jsp</result>
+    </action>
+
     <!--action name="showDevice" class="org.cip4.bambi.actions.ShowDeviceAction">
       <result>/WEB-INF/jsp/showDevice.jsp</result>
     </action>

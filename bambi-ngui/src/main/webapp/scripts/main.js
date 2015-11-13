@@ -28,12 +28,18 @@ application = {
 				{title: "Hold", cmd: "hold"}
 			],
 			select: function(event, ui) {
-				console.log("Selected '" + ui.cmd + "' command on element text: " + ui.target.text());
-				console.log("ui.target.context.id: " + ui.target.context.id);
+//				console.log("Selected '" + ui.cmd + "' command on element text: " + ui.target.text());
+
+				var deviceId = ui.target.context.id;
+//				console.log("deviceId: " + deviceId);
+
+				if (deviceId === undefined)
+					return;
+
 				$.ajax({
 					method: "POST",
 					url: "queueChangeStatus",
-					data: "deviceId=" + ui.target.context.id + "&newStatus=" + ui.cmd
+					data: "deviceId=" + deviceId + "&newStatus=" + ui.cmd
 				});
 			}
 		});
@@ -53,13 +59,22 @@ application = {
 				{title: "Aborted", cmd: "Aborted"}
 			],
 			select: function(event, ui) {
-				console.log("Selected '" + ui.cmd + "' command on element text: " + ui.target.text());
-				console.log("ui.target.context.id: " + ui.target.context.id);
-//				$.ajax({
-//					method: "POST",
-//					url: "jobChangeStatus",
-//					data: "deviceId=" + ui.target.context.id + "&newStatus=" + ui.cmd
-//				});
+//				console.log("Selected '" + ui.cmd + "' command on element text: " + ui.target.text());
+
+				var deviceId = ui.target.attr("deviceid");
+//				console.log("deviceId: " + deviceId);
+
+				var jobId = ui.target.attr("jobid");
+//				console.log("jobId: " + jobId);
+
+				if ((deviceId === undefined) || (jobId === undefined))
+					return;
+
+				$.ajax({
+					method: "POST",
+					url: "jobChangeStatus",
+					data: "deviceId=" + deviceId + "&jobId=" + jobId + "&newStatus=" + ui.cmd
+				});
 			}
 		});
 	},
@@ -120,12 +135,12 @@ application = {
 		var job = $.tmpl($("#jobTemplate").html(), { param:obj.AddDeviceJob });
 		$(".device-" + obj.AddDeviceJob.deviceId + " .queue-entries").prepend(job);
 		
-		$("tr.device-" + obj.AddDeviceJob.deviceId + " .view-level-1.hide.jobid-" + obj.AddDeviceJob.jobid).fadeIn(1000);
+		$("tr.device-" + obj.AddDeviceJob.deviceId + " .view-level-1.hide.jobid-" + obj.AddDeviceJob.jobId).fadeIn(1000);
 	},
 	
 	deleteDeviceJob : function(obj) {
-		$("tr.device-" + obj.DeleteDeviceJob.deviceId + " .jobid-" + obj.DeleteDeviceJob.jobid).fadeOut(1000, function() {
-			$("tr.device-" + obj.DeleteDeviceJob.deviceId + " .jobid-" + obj.DeleteDeviceJob.jobid).remove();
+		$("tr.device-" + obj.DeleteDeviceJob.deviceId + " .jobid-" + obj.DeleteDeviceJob.jobId).fadeOut(1000, function() {
+			$("tr.device-" + obj.DeleteDeviceJob.deviceId + " .jobid-" + obj.DeleteDeviceJob.jobId).remove();
 		});
 	},
 	

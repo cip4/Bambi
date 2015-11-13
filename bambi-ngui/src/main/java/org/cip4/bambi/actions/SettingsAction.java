@@ -87,7 +87,7 @@ import com.opensymphony.xwork2.ActionSupport;
 public class SettingsAction extends ActionSupport implements ServletRequestAware {
 	private final static Logger log = Logger.getLogger(SettingsAction.class);
 
-	private final static BambiContainer theContainer = BambiContainer.getInstance();
+	private final static BambiContainer bambiContainer = BambiContainer.getInstance();
 
 	private HttpServletRequest request;
 
@@ -95,7 +95,7 @@ public class SettingsAction extends ActionSupport implements ServletRequestAware
 	private List<String> formatters;
 
 	public String execute() throws Exception {
-		log.info("theContainer action: " + theContainer);
+		log.info("bambiContainer action: " + bambiContainer);
 
 		formatters = new ArrayList<String>();
 		formatters.add(DateTimeFormatterEnum.US.getName());
