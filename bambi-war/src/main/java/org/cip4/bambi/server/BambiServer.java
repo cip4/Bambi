@@ -97,8 +97,17 @@ public class BambiServer extends JettyServer
 {
 	public static final String BAMBI = "bambi";
 	public static final String RESOURCES_FILE = "/list.txt";
-	
+
 	final MultiDeviceProperties mp;
+	protected BambiServlet myServlet;
+
+	/**
+	 * @return the myServlet
+	 */
+	public BambiServlet getServlet()
+	{
+		return myServlet;
+	}
 
 	/**
 	 * 
@@ -229,7 +238,7 @@ public class BambiServer extends JettyServer
 					{
 						if (line.isEmpty())
 							continue;
-						
+
 						InputStream nextStream = myClass.getResourceAsStream(line);
 						if (nextStream != null)
 						{
@@ -307,7 +316,7 @@ public class BambiServer extends JettyServer
 		ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		contextHandler.setContextPath(context);
 		contextHandler.setWelcomeFiles(new String[] { "index.jsp" });
-		BambiServlet myServlet = new BambiServlet(this);
+		myServlet = new BambiServlet(this);
 		ServletHolder servletHolder = new ServletHolder(myServlet);
 		setInitParams(servletHolder);
 		contextHandler.addServlet(servletHolder, "/*");
