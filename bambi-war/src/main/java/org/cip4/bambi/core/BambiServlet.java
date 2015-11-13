@@ -74,9 +74,6 @@ package org.cip4.bambi.core;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -90,8 +87,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.server.BambiServer;
-import org.cip4.jdflib.core.VString;
-import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
@@ -270,7 +265,7 @@ public final class BambiServlet extends HttpServlet
 	 * @param bPost
 	 * @throws IOException
 	 */
-	private void doGetPost(final HttpServletRequest request, final HttpServletResponse response, boolean bPost) throws IOException
+	public void doGetPost(final HttpServletRequest request, final HttpServletResponse response, boolean bPost) throws IOException
 	{
 		BambiContainer theContainer = BambiContainer.getInstance();
 		if (theContainer == null)
@@ -284,7 +279,7 @@ public final class BambiServlet extends HttpServlet
 			String getPost = bPost ? "post" : "get";
 			log.debug("Processing " + getPost + " request for: " + request.getPathInfo());
 
-			StreamRequest sr = createStreamRequest(request);
+			StreamRequest sr = StreamRequest.createStreamRequest(request);
 			sr.setPost(bPost);
 
 			XMLResponse xr = null;
@@ -346,23 +341,6 @@ public final class BambiServlet extends HttpServlet
 			final String h2 = header + "\nContext Length: " + request.getContentLength();
 			bambiDumpIn.newFileFromStream(h2, sr.getInputStream(), sr.getName());
 		}
-	}
-
-	/**
-	 * @param request
-	 * @return
-	 * @throws IOException
-	 */
-	private StreamRequest createStreamRequest(final HttpServletRequest request) throws IOException
-	{
-		StreamRequest sr = new StreamRequest(request.getInputStream());
-		final String contentType = request.getContentType();
-		sr.setContentType(contentType);
-		sr.setRequestURI(request.getRequestURL().toString());
-		sr.setHeaderMap(getHeaderMap(request));
-		sr.setParameterMap(new JDFAttributeMap(getParameterMap(request)));
-		sr.setRemoteHost(request.getRemoteHost());
-		return sr;
 	}
 
 	/**
@@ -437,56 +415,5 @@ public final class BambiServlet extends HttpServlet
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException
 	{
 		doGetPost(request, response, false);
-	}
-
-	/**
-	 * returns the headers as an attributemap
-	 * @return map of headers, null if no headers exist
-	 */
-	private JDFAttributeMap getHeaderMap(HttpServletRequest request)
-	{
-		Enumeration<String> headers = request.getHeaderNames();
-		if (!headers.hasMoreElements())
-		{
-			return null;
-		}
-		final JDFAttributeMap map = new JDFAttributeMap();
-		while (headers.hasMoreElements())
-		{
-			String header = headers.nextElement();
-			Enumeration<String> e = request.getHeaders(header);
-			VString v = new VString(e);
-			if (v.size() > 0)
-			{
-				map.put(header, StringUtil.setvString(v, ",", null, null));
-			}
-		}
-		return map.size() == 0 ? null : map;
-	}
-
-	/**
-	 *  
-	 */
-	private Map<String, String> getParameterMap(HttpServletRequest request)
-	{
-		Map<String, String[]> pm = request.getParameterMap();
-		Map<String, String> retMap = new JDFAttributeMap();
-		Set<String> keyset = pm.keySet();
-		for (String key : keyset)
-		{
-			String[] strings = pm.get(key);
-			if (strings != null && strings.length > 0)
-			{
-				String s = strings[0];
-				for (int i = 1; i < strings.length; i++)
-				{
-					s += "," + strings[i];
-				}
-				s = StringUtil.getNonEmpty(s);
-				if (s != null)
-					retMap.put(key, s);
-			}
-		}
-		return retMap.size() == 0 ? null : retMap;
 	}
 }

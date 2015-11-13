@@ -816,7 +816,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			JDFJMF jmf2 = JMFBuilderFactory.getJMFBuilder(null).buildResubmitQueueEntry(null, null);
 			jmf.copyElement(jmf2.getCommand(0), null);
 
-			_submitHotFolder = new QueueHotFolder(hfURL, hfStorage, "jdf,xjdf,xml", new QueueHFListener(_theQueueProcessor, _devProperties.getCallBackClass()), jmf);
+			_submitHotFolder = new QueueHotFolder(hfURL, hfStorage, "jdf,xjdf,xml", new DeviceHFListener(this), jmf);
 		}
 		else
 		{

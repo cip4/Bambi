@@ -70,10 +70,20 @@
  */
 package org.cip4.bambi.core;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.cip4.jdflib.core.JDFConstants;
+import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.ByteArrayIOFileStream;
 import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.StringUtil;
 
 /**
  * class to package an input stream together with the context information of the request
@@ -82,6 +92,77 @@ import org.cip4.jdflib.util.ByteArrayIOStream;
  */
 public class StreamRequest extends ContainerRequest
 {
+
+	/**
+	 * @param request
+	 * @return
+	 * @throws IOException
+	 */
+	public static StreamRequest createStreamRequest(final HttpServletRequest request) throws IOException
+	{
+		StreamRequest sr = new StreamRequest(request.getInputStream());
+		final String contentType = request.getContentType();
+		sr.setContentType(contentType);
+		sr.setRequestURI(request.getRequestURL().toString());
+		sr.setHeaderMap(sr.getHeaderMap(request));
+		sr.setParameterMap(new JDFAttributeMap(sr.getParameterMap(request)));
+		sr.setRemoteHost(request.getRemoteHost());
+		return sr;
+	}
+
+	/**
+	 *  
+	 */
+	private Map<String, String> getParameterMap(HttpServletRequest request)
+	{
+		Map<String, String[]> pm = request.getParameterMap();
+		Map<String, String> retMap = new JDFAttributeMap();
+		Set<String> keyset = pm.keySet();
+		for (String key : keyset)
+		{
+			String[] strings = pm.get(key);
+			if (strings != null && strings.length > 0)
+			{
+				String s = strings[0];
+				for (int i = 1; i < strings.length; i++)
+				{
+					s += "," + strings[i];
+				}
+				s = StringUtil.getNonEmpty(s);
+				if (s != null)
+				{
+					retMap.put(key, s);
+				}
+			}
+		}
+		return retMap.size() == 0 ? null : retMap;
+	}
+
+	/**
+	 * returns the headers as an attributemap
+	 * @return map of headers, null if no headers exist
+	 */
+	private JDFAttributeMap getHeaderMap(HttpServletRequest request)
+	{
+		Enumeration<String> headers = request.getHeaderNames();
+		if (!headers.hasMoreElements())
+		{
+			return null;
+		}
+		final JDFAttributeMap map = new JDFAttributeMap();
+		while (headers.hasMoreElements())
+		{
+			String header = headers.nextElement();
+			Enumeration<String> e = request.getHeaders(header);
+			VString v = new VString(e);
+			if (v.size() > 0)
+			{
+				map.put(header, StringUtil.setvString(v, JDFConstants.COMMA, null, null));
+			}
+		}
+		return map.size() == 0 ? null : map;
+	}
+
 	/**
 	 * @param theStream
 	 */
