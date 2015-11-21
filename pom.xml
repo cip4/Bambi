@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cip4.tools.bambi</groupId>
 	<artifactId>Bambi</artifactId>
-	<version>Paris-15.10.1-SNAPSHOT</version>
+	<version>Paris-15.10</version>
 	<packaging>pom</packaging>
 	<name>bambi</name>
 	<url>http://www.cip4.org</url>
@@ -23,7 +23,7 @@
         <url>https://stash.cip4.org/scm/tool/bambi.git</url>
         <developerConnection>scm:git:https://stash.cip4.org/scm/tool/bambi.git</developerConnection>
         <connection>scm:git:https://stash.cip4.org/scm/tool/bambi.git</connection>
-      <tag>HEAD</tag>
+      <tag>Bambi-Paris-15.10</tag>
   </scm>
 	<issueManagement>
 		<system>JIRA</system>
