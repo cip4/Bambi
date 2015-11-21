@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cip4.tools.bambi</groupId>
 	<artifactId>Bambi</artifactId>
-	<version>2.2-SNAPSHOT</version>
+	<version>Paris-15.10</version>
 	<packaging>pom</packaging>
 	<name>bambi</name>
 	<url>http://www.cip4.org</url>
@@ -23,7 +23,8 @@
         <url>https://stash.cip4.org/scm/tool/bambi.git</url>
         <developerConnection>scm:git:https://stash.cip4.org/scm/tool/bambi.git</developerConnection>
         <connection>scm:git:https://stash.cip4.org/scm/tool/bambi.git</connection>
-    </scm>
+      <tag>Bambi-Paris-15.10</tag>
+  </scm>
 	<issueManagement>
 		<system>JIRA</system>
 		<url>https://jira.cip4.org/browse/BAMBI</url>
