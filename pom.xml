@@ -24,6 +24,10 @@
         <developerConnection>scm:git:https://stash.cip4.org/scm/tool/bambi.git</developerConnection>
         <connection>scm:git:https://stash.cip4.org/scm/tool/bambi.git</connection>
     </scm>
+	<issueManagement>
+		<system>JIRA</system>
+		<url>https://jira.cip4.org/browse/BAMBI</url>
+	</issueManagement>
     <repositories>
         <repository>
             <id>sonatype-nexus-snapshots</id>
@@ -86,9 +90,11 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-release-plugin</artifactId>
+					<version>2.5.3</version>
 					<configuration>
-		                <goals>install</goals>
-		            </configuration>
+						<autoVersionSubmodules>true</autoVersionSubmodules>
+						<goals>install</goals>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -148,28 +154,26 @@
 				<version>4.11</version>
 				<scope>test</scope>
 			</dependency>
-
-<dependency>
-	<groupId>org.eclipse.jetty</groupId>
-	<artifactId>jetty-servlet</artifactId>
-	<version>9.2.4.v20141103</version>
-</dependency>
-<dependency>
-	<groupId>org.eclipse.jetty</groupId>
-	<artifactId>jetty-server</artifactId>
-	<version>9.2.4.v20141103</version>
-</dependency>
-<dependency>
-	<groupId>org.eclipse.jetty</groupId>
-	<artifactId>jetty-jsp</artifactId>
-	<version>9.2.4.v20141103</version>
-</dependency>
-<dependency>
-	<groupId>org.eclipse.jetty</groupId>
-	<artifactId>jetty-webapp</artifactId>
-	<version>9.2.4.v20141103</version>
-</dependency>
-
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-servlet</artifactId>
+                <version>9.2.4.v20141103</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>9.2.4.v20141103</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-jsp</artifactId>
+                <version>9.2.4.v20141103</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-webapp</artifactId>
+                <version>9.2.4.v20141103</version>
+            </dependency>
 		</dependencies>
 	</dependencyManagement>
 </project>
