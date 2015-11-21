@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.cip4.tools.bambi</groupId>
 		<artifactId>Bambi</artifactId>
-		<version>Paris-15.10</version>
+		<version>Paris-15.10.1-SNAPSHOT</version>
 	</parent>
 
 	<name>CIP4 Bambi Application</name>
@@ -99,19 +99,19 @@
 		<dependency>
 			<groupId>org.cip4.tools.bambi.war</groupId>
 			<artifactId>bambi-war</artifactId>
-			<version>Paris-15.10</version>
+			<version>Paris-15.10.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.cip4.tools.bambi.ngui</groupId>
 			<artifactId>bambi-ngui</artifactId>
-			<version>Paris-15.10</version>
+			<version>1.0</version>
 			<classifier>classes</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>org.cip4.tools.bambi.resources</groupId>
 			<artifactId>bambi-resources</artifactId>
-			<version>Paris-15.10</version>
+			<version>Paris-15.10.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
