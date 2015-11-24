@@ -11,7 +11,7 @@
 		<version>Paris-15.10.1-SNAPSHOT</version>
 	</parent>
 
-	<name>CIP4 Bambi Application</name>
+	<name>CIP4 BambiApp</name>
 	<url>http://www.cip4.org</url>
 	<description>CIP4 Bambi standalone application console or window</description>
 
@@ -361,7 +361,7 @@
 
 										<!-- create app file -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask" classpath="${basedir}/src/main/assemble/macosx/lib/appbundler-1.0.jar" />
-										<bundleapp outputdirectory="${project.build.directory}/dmg" name="${project.build.finalName}" displayname="CIP4 Bambi App" identifier="org.cip4.bambi.App" icon="${basedir}/src/main/assemble/macosx/bambi.icns" shortversion="1.0" applicationCategory="public.app-category.developer-tools" mainclassname="${mainClass}">
+										<bundleapp outputdirectory="${project.build.directory}/dmg" name="${pom.name}" displayname="${pom.name}" identifier="org.cip4.bambi.App" icon="${basedir}/src/main/assemble/macosx/bambi.icns" shortversion="${pom.version}" applicationCategory="public.app-category.developer-tools" mainclassname="${mainClass}">
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar" />
 										</bundleapp>
 

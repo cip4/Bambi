@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -59,31 +59,153 @@
  * originally based on software 
  * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
  * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
+ *
  * For more information on The International Cooperation for the 
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.server;
 
-import org.cip4.jdflib.util.MyArgs;
+import org.cip4.jdflib.util.ThreadUtil;
+import org.cip4.jdflib.util.thread.MyMutex;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 
 /**
- *  
+ * null service for automatically not running a service
  * @author rainer prosi
- * @date Jan 11, 2011
+ * @date Jan 20, 2012
  */
-public class BambiConsole extends JettyConsole
+public class NullServer extends JettyServer
 {
+    private class NullThread extends Thread
+    {
+        /**
+         *
+         */
+        public NullThread()
+        {
+            super("nullthread");
+        }
 
-	/**
-	 * @param server
-	 * @param args 
-	 */
-	public BambiConsole(JettyServer server, MyArgs args)
-	{
-		super(server, args);
-	}
+        /**
+         *
+         * @see java.lang.Thread#run()
+         */
+        @Override
+        public void run()
+        {
+            log.info("Starting dummy null server thread");
+            ThreadUtil.wait(mutex, 0);
+            log.info("Completed dummy null server thread");
+        }
+    }
+
+    /**
+     *
+     */
+    public NullServer()
+    {
+        super();
+        log.info("creating null server");
+        mutex = new MyMutex();
+        theThread = null;
+    }
+
+    private final MyMutex mutex;
+    private NullThread theThread;
+
+    /**
+     *
+     */
+    @Override
+    public void start()
+    {
+        log.info("starting null server");
+        theThread = new NullThread();
+        theThread.start();
+    }
+
+    /**
+     *
+     */
+    @Override
+    public void stop()
+    {
+        log.info("stopping null server");
+        ThreadUtil.notifyAll(mutex);
+        theThread = null;
+    }
+
+    /**
+     */
+    @Override
+    protected String getHome()
+    {
+        return null;
+    }
+
+    /**
+     */
+    @Override
+    protected ServletContextHandler createServletHandler()
+    {
+        return null;
+    }
+
+    /**
+     *
+     */
+    @Override
+    public boolean isRunning()
+    {
+        return theThread != null;
+    }
+
+    /**
+     *
+     */
+    @Override
+    public boolean isStarted()
+    {
+        return theThread != null;
+    }
+
+    /**
+     *
+     */
+    @Override
+    public boolean isStarting()
+    {
+        return false;
+    }
+
+    /**
+     *
+     */
+    @Override
+    public boolean isStopped()
+    {
+        return theThread == null;
+    }
+
+    /**
+     *
+     */
+    @Override
+    public boolean isStopping()
+    {
+        return false;
+    }
+
+    /**
+     *
+     */
+    @Override
+    protected int getDefaultPort()
+    {
+        return 8080;
+    }
+
 }

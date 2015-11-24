@@ -83,7 +83,6 @@ import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MyArgs;
 import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdflib.util.logging.LogConfigurator;
-import org.cip4.jdfutility.server.JettyServer;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -308,7 +307,6 @@ public class BambiServer extends JettyServer
 
 	/**
 	 * 
-	 * @see org.cip4.jdfutility.server.JettyServer#createServletHandler()
 	 */
 	@Override
 	protected ServletContextHandler createServletHandler()
@@ -334,7 +332,6 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 * @see org.cip4.jdfutility.server.JettyServer#getHome()
 	 */
 	@Override
 	protected String getHome()

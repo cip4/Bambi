@@ -70,8 +70,6 @@ package org.cip4.bambi.server;
 
 import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdflib.util.logging.LogConfigurator;
-import org.cip4.jdfutility.server.JettyServer;
-import org.cip4.jdfutility.server.JettyService;
 
 /**
  * standard bambi windows service wrapper
