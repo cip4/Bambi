@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.cip4.tools.bambi.app</groupId>
@@ -9,10 +8,10 @@
 	<parent>
 		<groupId>org.cip4.tools.bambi</groupId>
 		<artifactId>Bambi</artifactId>
-		<version>2.2-SNAPSHOT</version>
+		<version>Paris-15.10.1-SNAPSHOT</version>
 	</parent>
 
-	<name>CIP4 Bambi Application</name>
+	<name>CIP4 BambiApp</name>
 	<url>http://www.cip4.org</url>
 	<description>CIP4 Bambi standalone application console or window</description>
 
@@ -100,7 +99,7 @@
 		<dependency>
 			<groupId>org.cip4.tools.bambi.war</groupId>
 			<artifactId>bambi-war</artifactId>
-			<version>2.2-SNAPSHOT</version>
+			<version>Paris-15.10.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.cip4.tools.bambi.ngui</groupId>
@@ -112,7 +111,7 @@
 		<dependency>
 			<groupId>org.cip4.tools.bambi.resources</groupId>
 			<artifactId>bambi-resources</artifactId>
-			<version>2.2-SNAPSHOT</version>
+			<version>Paris-15.10.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -358,27 +357,19 @@
 										<mkdir dir="${project.build.directory}/dmg" />
 
 										<!-- icon -->
-										<copy file="${basedir}/src/main/assemble/macosx/bambi.icns"
-											tofile="${project.build.directory}/dmg/.VolumeIcon.icns" />
+										<copy file="${basedir}/src/main/assemble/macosx/bambi.icns" tofile="${project.build.directory}/dmg/.VolumeIcon.icns" />
 
 										<!-- create app file -->
-										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/assemble/macosx/lib/appbundler-1.0.jar" />
-										<bundleapp outputdirectory="${project.build.directory}/dmg"
-											name="${project.build.finalName}" displayname="CIP4 Bambi App"
-											identifier="org.cip4.bambi.App" icon="${basedir}/src/main/assemble/macosx/bambi.icns"
-											shortversion="1.0" applicationCategory="public.app-category.developer-tools"
-											mainclassname="${mainClass}">
-											<classpath
-												file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar" />
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask" classpath="${basedir}/src/main/assemble/macosx/lib/appbundler-1.0.jar" />
+										<bundleapp outputdirectory="${project.build.directory}/dmg" name="${pom.name}" displayname="${pom.name}" identifier="org.cip4.bambi.App" icon="${basedir}/src/main/assemble/macosx/bambi.icns" shortversion="${pom.version}" applicationCategory="public.app-category.developer-tools" mainclassname="${mainClass}">
+											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar" />
 										</bundleapp>
 
 										<!-- create dmg using hdiutil -->
 										<!-- cmd: hdiutil create test.dmg -srcfolder /path/to/folder/ -->
 										<exec executable="hdiutil">
 											<arg value="create" />
-											<arg
-												value="${project.build.directory}/${project.build.finalName}.dmg" />
+											<arg value="${project.build.directory}/${project.build.finalName}.dmg" />
 											<arg value="-srcfolder" />
 											<arg value="${project.build.directory}/dmg" />
 											<arg value="-volname" />

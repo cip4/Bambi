@@ -59,31 +59,100 @@
  * originally based on software 
  * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
  * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
+ *
  * For more information on The International Cooperation for the 
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.server;
 
+import java.io.IOException;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.util.MyArgs;
 
 /**
- *  
  * @author rainer prosi
- * @date Jan 11, 2011
+ *
  */
-public class BambiConsole extends JettyConsole
+public abstract class JettyConsole
 {
 
-	/**
-	 * @param server
-	 * @param args 
-	 */
-	public BambiConsole(JettyServer server, MyArgs args)
-	{
-		super(server, args);
-	}
+    /**
+     *
+     */
+    protected final JettyServer server;
+    final Log log;
+
+    /**
+     *
+     * @param server
+     * @param args
+     */
+    public JettyConsole(JettyServer server, MyArgs args)
+    {
+        super();
+        log = LogFactory.getLog(getClass());
+        this.server = server;
+        init(args);
+        run();
+    }
+
+    /**
+     * run in a standard interactive console
+     *
+     */
+    public void run()
+    {
+        start();
+        System.out.println("press any key to stop");
+        try
+        {
+            System.in.read();
+        }
+        catch (IOException e)
+        {
+            // NOP
+        }
+        stop();
+        System.out.println("ciao");
+    }
+
+    /**
+     *
+     * start the actual server
+     */
+    public void start()
+    {
+        try
+        {
+            server.runServer();
+        }
+        catch (Throwable e)
+        {
+            log.fatal(e);
+        }
+    }
+
+    /**
+     * init ze sörver
+     * @param args
+     */
+    protected void init(MyArgs args)
+    {
+        server.setPort(args.intParameter('p', 8080, 10));
+    }
+
+    /**
+     *
+     */
+    public void stop()
+    {
+        server.stop();
+        server.destroy();
+    }
+
 }

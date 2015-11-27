@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cip4.tools.bambi</groupId>
 	<artifactId>Bambi</artifactId>
-	<version>2.2-SNAPSHOT</version>
+	<version>Paris-15.10.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>bambi</name>
 	<url>http://www.cip4.org</url>
@@ -23,7 +23,12 @@
         <url>https://stash.cip4.org/scm/tool/bambi.git</url>
         <developerConnection>scm:git:https://stash.cip4.org/scm/tool/bambi.git</developerConnection>
         <connection>scm:git:https://stash.cip4.org/scm/tool/bambi.git</connection>
-    </scm>
+      <tag>HEAD</tag>
+  </scm>
+	<issueManagement>
+		<system>JIRA</system>
+		<url>https://jira.cip4.org/browse/BAMBI</url>
+	</issueManagement>
     <repositories>
         <repository>
             <id>sonatype-nexus-snapshots</id>
@@ -86,9 +91,11 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-release-plugin</artifactId>
+					<version>2.5.3</version>
 					<configuration>
-		                <goals>install</goals>
-		            </configuration>
+						<autoVersionSubmodules>true</autoVersionSubmodules>
+						<goals>install</goals>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -105,7 +112,7 @@
 			<dependency>
 				<groupId>org.cip4.lib.jdf</groupId>
 				<artifactId>JDFLibJ</artifactId>
-				<version>2.1.5.90-SNAPSHOT</version>
+				<version>2.1.5.91-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>log4j</groupId>
@@ -148,28 +155,31 @@
 				<version>4.11</version>
 				<scope>test</scope>
 			</dependency>
-
-<dependency>
-	<groupId>org.eclipse.jetty</groupId>
-	<artifactId>jetty-servlet</artifactId>
-	<version>9.2.4.v20141103</version>
-</dependency>
-<dependency>
-	<groupId>org.eclipse.jetty</groupId>
-	<artifactId>jetty-server</artifactId>
-	<version>9.2.4.v20141103</version>
-</dependency>
-<dependency>
-	<groupId>org.eclipse.jetty</groupId>
-	<artifactId>jetty-jsp</artifactId>
-	<version>9.2.4.v20141103</version>
-</dependency>
-<dependency>
-	<groupId>org.eclipse.jetty</groupId>
-	<artifactId>jetty-webapp</artifactId>
-	<version>9.2.4.v20141103</version>
-</dependency>
-
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-servlet</artifactId>
+                <version>9.2.4.v20141103</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>9.2.4.v20141103</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-jsp</artifactId>
+                <version>9.2.4.v20141103</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-webapp</artifactId>
+                <version>9.2.4.v20141103</version>
+            </dependency>
+			<dependency>
+				<groupId>xerces</groupId>
+				<artifactId>xercesImpl</artifactId>
+				<version>2.9.1</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 </project>
