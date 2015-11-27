@@ -86,6 +86,8 @@ import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdflib.util.logging.LogConfigurator;
+import org.cip4.jdfutility.server.JettyServer;
+import org.cip4.jdfutility.server.ui.JettyFrame;
 
 /**
  * @author rainer prosi
@@ -139,6 +141,7 @@ public class BambiFrame extends JettyFrame
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * @see org.cip4.jdfutility.server.ui.JettyFrame#getFrameName()
 	 */
 	@Override
 	protected String getFrameName()
@@ -148,6 +151,7 @@ public class BambiFrame extends JettyFrame
 
 	/**
 	 * 
+	 * @see org.cip4.jdfutility.server.ui.JettyFrame#createPanel()
 	 */
 	@Override
 	protected JPanel createPanel()
@@ -262,6 +266,7 @@ public class BambiFrame extends JettyFrame
 
 	/**
 	 * 
+	 * @see org.cip4.jdfutility.server.ui.JettyFrame#started()
 	 */
 	@Override
 	protected void started()
@@ -273,6 +278,7 @@ public class BambiFrame extends JettyFrame
 
 	/**
 	 * 
+	 * @see org.cip4.jdfutility.server.ui.JettyFrame#stopped()
 	 */
 	@Override
 	protected void stopped()
