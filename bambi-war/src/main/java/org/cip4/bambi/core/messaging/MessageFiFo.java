@@ -150,7 +150,10 @@ class MessageFiFo
 		File remove = dumps.remove(0);
 		Vector<MessageDetails> v = readSingleFile(remove);
 		remove.delete();
-		log.info("reactivating file from disk: " + remove.getAbsolutePath() + " messages pending: " + size());
+		if (size() > 0)
+		{
+			log.info("reactivating file from disk: " + remove.getAbsolutePath() + " messages pending: " + size());
+		}
 		return v;
 	}
 
@@ -189,7 +192,10 @@ class MessageFiFo
 		if (vDumps == null)
 			vDumps = new Vector<File>();
 		Collections.sort(vDumps);
-		log.info("read pending messages: in " + dumpDir.getAbsolutePath() + " #files= " + vDumps.size());
+		if (vDumps.size() > 0)
+		{
+			log.info("read pending messages: in " + dumpDir.getAbsolutePath() + " #files= " + vDumps.size());
+		}
 		return vDumps;
 	}
 
@@ -369,7 +375,10 @@ class MessageFiFo
 	{
 		XMLDoc xmlDoc = new XMLDoc("MessageSender", null);
 		final KElement meassagesRoot = xmlDoc.getRoot();
-		log.info("writing " + vM.size() + " pending messages to: " + f.getAbsolutePath());
+		if (vM.size() > 0)
+		{
+			log.info("writing " + vM.size() + " pending messages to: " + f.getAbsolutePath());
+		}
 		for (MessageDetails md : vM)
 		{
 			md.appendToXML(meassagesRoot, 1, false);

@@ -465,8 +465,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 	}
 
-	protected static final String SHOW_DEVICE = "showDevice";
-	protected static final String SHOW_SUBSCRIPTIONS = "showSubscriptions";
+	public static final String SHOW_DEVICE = "showDevice";
+	public static final String SHOW_SUBSCRIPTIONS = "showSubscriptions";
 
 	protected final QueueProcessor _theQueueProcessor;
 	protected final Vector<AbstractDeviceProcessor> _deviceProcessors;
