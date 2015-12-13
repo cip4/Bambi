@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -76,6 +76,10 @@ import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.enums.ValuedEnum;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
@@ -257,4 +261,28 @@ public class XMLResponse extends BambiLogFactory
 		}
 	}
 
+	/**
+	 * 
+	 * @param sr the servlet response to serialize into
+	 */
+	public void writeResponse(HttpServletResponse sr)
+	{
+		try
+		{
+			sr.setContentType(getContentType());
+			ServletOutputStream outputStream = sr.getOutputStream();
+			InputStream inputStream = getInputStream(); // note that getInputStream optionally serializes the XMLResponse xml document
+			sr.setContentLength(getContentLength());
+			if (inputStream != null)
+			{
+				IOUtils.copy(inputStream, outputStream);
+			}
+			outputStream.flush();
+			outputStream.close();
+		}
+		catch (final IOException e)
+		{
+			log.error("cannot write to stream: ", e);
+		}
+	}
 }

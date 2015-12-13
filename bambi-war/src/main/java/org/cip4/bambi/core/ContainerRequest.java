@@ -190,7 +190,7 @@ public class ContainerRequest extends BambiLogFactory
 	public String getDeviceID()
 	{
 		String localURL = getLocalURL();
-		return BambiContainer.getDeviceIDFromURL(localURL);
+		return ServletContainer.getDeviceIDFromURL(localURL);
 	}
 
 	/**

@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -74,9 +74,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdfutility.html.HTMLUtil;
 
 /**
  * class to forward general requests for data from a non-tomcat enabled directory
@@ -104,6 +106,7 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 	 * @return the data requested
 	 * @param request the get request to handle
 	 */
+	@Override
 	public XMLResponse handleGet(final ContainerRequest request)
 	{
 		final String path = request.getRequestURI();
@@ -133,9 +136,18 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 		{
 			try
 			{
-				log.info("serving file at path= " + path + " from " + file.getAbsolutePath());
 				final OutputStream outputStream = response.getOutputStream();
-				IOUtils.copy(FileUtil.getBufferedInputStream(file), outputStream);
+				if (file.isDirectory())
+				{
+					KElement root = HTMLUtil.createHTMLRoot();
+					HTMLUtil.appendHeader(root, 1, "Directory listing is not supported ");
+					root.write2Stream(outputStream);
+				}
+				else
+				{
+					log.info("serving file at path= " + path + " from " + file.getAbsolutePath());
+					IOUtils.copy(FileUtil.getBufferedInputStream(file), outputStream);
+				}
 			}
 			catch (final IOException x)
 			{

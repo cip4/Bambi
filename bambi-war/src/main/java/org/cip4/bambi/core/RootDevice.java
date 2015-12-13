@@ -583,7 +583,7 @@ public class RootDevice extends AbstractDevice
 	@Override
 	public IConverterCallback getCallback(final String url)
 	{
-		final String devID = BambiContainer.getDeviceIDFromURL(url);
+		final String devID = ServletContainer.getDeviceIDFromURL(url);
 		final AbstractDevice dev = devID == null ? null : getDevice(devID);
 		return (dev != null && !(dev instanceof RootDevice)) ? dev.getCallback(url) : _callback;
 	}

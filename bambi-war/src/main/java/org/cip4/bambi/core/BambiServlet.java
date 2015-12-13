@@ -78,12 +78,10 @@ import java.io.InputStream;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.server.BambiServer;
@@ -286,7 +284,10 @@ public final class BambiServlet extends HttpServlet
 			try
 			{
 				xr = theContainer.processStream(sr);
-				writeResponse(xr, response);
+				if (xr != null)
+				{
+					xr.writeResponse(response);
+				}
 			}
 			catch (Throwable x)
 			{
@@ -373,35 +374,6 @@ public final class BambiServlet extends HttpServlet
 			log.warn("shutting down null container - ignore");
 		}
 		super.destroy();
-	}
-
-	/**
-	 * @param r the XMLResponse to serialize
-	 * @param sr the servlet response to serialize into
-	 */
-	private void writeResponse(XMLResponse r, HttpServletResponse sr)
-	{
-		if (r == null)
-		{
-			return; // don't write empty stuff
-		}
-		try
-		{
-			sr.setContentType(r.getContentType());
-			ServletOutputStream outputStream = sr.getOutputStream();
-			InputStream inputStream = r.getInputStream(); // note that getInputStream optionally serializes the XMLResponse xml document
-			sr.setContentLength(r.getContentLength());
-			if (inputStream != null)
-			{
-				IOUtils.copy(inputStream, outputStream);
-			}
-			outputStream.flush();
-			outputStream.close();
-		}
-		catch (final IOException e)
-		{
-			log.error("cannot write to stream: ", e);
-		}
 	}
 
 	/**

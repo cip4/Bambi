@@ -75,33 +75,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
 
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 
 import org.cip4.bambi.core.messaging.IJMFHandler;
-import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
-import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
-import org.cip4.jdflib.util.StringUtil;
-import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeReader;
-import org.cip4.jdflib.util.zip.ZipReader;
 
 /**
  * class that handles all bambi JDF/JMF requests - regardless of the servlet context
@@ -111,7 +104,7 @@ import org.cip4.jdflib.util.zip.ZipReader;
  * note that the get handling routines still assume a servlet context - only the actual JDF / JMF post does not
  * @author Rainer Prosi, Heidelberger Druckmaschinen 
  */
-public final class BambiContainer extends BambiLogFactory
+public final class BambiContainer extends ServletContainer
 {
 	/**
 	 * use getCreateInstance from outside
@@ -127,26 +120,6 @@ public final class BambiContainer extends BambiLogFactory
 	private AbstractDevice rootDev;
 	private MultiDeviceProperties props;
 	private static BambiContainer theInstance = null;
-	private int nLogGet;
-	protected boolean bWantDump = true;
-
-	/**
-	 * Getter for wantDump attribute.
-	 * @return the wantDump
-	 */
-	public boolean wantDump()
-	{
-		return bWantDump;
-	}
-
-	/**
-	 * Setter for wantDump attribute.
-	 * @param wantDump the wantDump to set
-	 */
-	public void setWantDump(boolean wantDump)
-	{
-		bWantDump = wantDump;
-	}
 
 	/**
 	 * 
@@ -172,72 +145,6 @@ public final class BambiContainer extends BambiLogFactory
 	public synchronized static BambiContainer getInstance()
 	{
 		return theInstance;
-	}
-
-	/**
-	 * handler for final handler for any non-handled url
-	 * @author prosirai
-	 * 
-	 */
-	public static class UnknownErrorHandler implements IGetHandler
-	{
-		private String details = null;
-		private String message = "No handler for URL";
-
-		/**
-		 *  
-		 */
-		public UnknownErrorHandler()
-		{
-			super();
-		}
-
-		/**
-		 * 
-		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.ContainerRequest)
-		 * @param request
-		 * @return
-		 */
-		@Override
-		public XMLResponse handleGet(final ContainerRequest request)
-		{
-			return showErrorPage(message, details, request);
-		}
-
-		/**
-		 * @param d the error details string
-		 */
-		public void setDetails(final String d)
-		{
-			details = d;
-		}
-
-		/**
-		 * @param m the error details string
-		 */
-		public void setMessage(final String m)
-		{
-			message = m;
-		}
-
-		/**
-		 * display an error on error.jsp
-		 * @param errorMsg short message describing the error
-		 * @param errorDetails detailed error info
-		 * @param request required to forward the page
-		 * @return 
-		 */
-		protected XMLResponse showErrorPage(final String errorMsg, final String errorDetails, final ContainerRequest request)
-		{
-			final XMLDoc d = new XMLDoc("BambiError", null);
-			final KElement err = d.getRoot();
-			err.setAttribute("errorMsg", errorMsg);
-			err.setAttribute("errorDetails", errorDetails);
-			err.setAttribute("Context", request.getContextRoot());
-			err.setAttribute("URL", request.getRequestURI());
-			d.setXSLTURL(theInstance.getRootDev().getXSLTBaseFromContext(request.getContext()) + "/error.xsl");
-			return new XMLResponse(err);
-		}
 	}
 
 	/**
@@ -297,13 +204,18 @@ public final class BambiContainer extends BambiLogFactory
 		return dev;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public List<String> getDevices()
 	{
 		List<String> result = new ArrayList<String>();
 		final RootDevice root = getRootDevice();
 		AbstractDevice[] devices = root.getDeviceArray();
 
-		for (AbstractDevice device : devices) {
+		for (AbstractDevice device : devices)
+		{
 			result.add(device.getDeviceID());
 		}
 
@@ -436,32 +348,9 @@ public final class BambiContainer extends BambiLogFactory
 	}
 
 	/**
-	 * @param requestURI
-	 * @param messageType
-	 * @param returnCode
-	 * @param notification
-	 * @return 
-	 */
-	public XMLResponse processError(final String requestURI, final EnumType messageType, final int returnCode, final String notification)
-	{
-		log.warn("processError- rc: " + returnCode + " " + notification == null ? "" : notification);
-		final JDFJMF error = JDFJMF.createJMF(EnumFamily.Response, messageType);
-		final JDFResponse r = error.getResponse(0);
-		r.setReturnCode(returnCode);
-		r.setErrorText(notification, null);
-		final IConverterCallback _callBack = getRootDev().getCallback(requestURI);
-		if (_callBack != null)
-		{
-			_callBack.updateJMFForExtern(error.getOwnerDocument_JDFElement());
-		}
-		final XMLResponse response = new XMLResponse(error);
-		response.setContentType(UrlUtil.VND_JMF);
-		return response;
-	}
-
-	/**
 	 * 
 	 */
+	@Override
 	public void shutDown()
 	{
 		try
@@ -473,10 +362,7 @@ public final class BambiContainer extends BambiLogFactory
 		{
 			log.error("exception shutting down! ", x);
 		}
-		final JMFFactory factory = JMFFactory.getJMFFactory();
-		factory.shutDown(null, true);
-		ThreadUtil.sleep(5234); // leave some time for cleanup
-		factory.shutDown(null, false);
+		super.shutDown();
 		if (this == theInstance)
 		{
 			log.info("removing singleton container instance ");
@@ -487,136 +373,12 @@ public final class BambiContainer extends BambiLogFactory
 	/**
 	 * 
 	 */
+	@Override
 	public void reset()
 	{
+		log.info("resetting: " + toString());
 		rootDev.reset();
-		final JMFFactory factory = JMFFactory.getJMFFactory();
-		factory.shutDown(null, false);
-	}
-
-	/**
-	 * process an incoming stream 
-	 * dispatch to the appropriate processors based on the content type
-	 * 
-	 * @param request 
-	 * @return 
-	 * @throws IOException 
-	 */
-	public XMLResponse processStream(final StreamRequest request) throws IOException
-	{
-		final XMLResponse r;
-		startTimer(request);
-
-		if (request.isPost()) // post request
-		{
-			final String contentType = request.getContentType(true);
-			if (UrlUtil.VND_JMF.equals(contentType))
-			{
-				XMLRequest req = new XMLRequest(request);
-				r = processJMFDoc(req);
-			}
-			else if (UrlUtil.isXMLType(contentType))
-			{
-				XMLRequest req = new XMLRequest(request);
-				r = processXMLDoc(req);
-			}
-			else if (UrlUtil.isZIPType(contentType))
-			{
-				r = processZip(request);
-			}
-			else
-			{
-				final boolean isMultipart = MimeUtil.isMimeMultiPart(contentType);
-				if (isMultipart)
-				{
-					log.info("Processing multipart request... (ContentType: " + contentType + ")");
-					r = processMultiPart(request);
-				}
-				else
-				{
-					String ctWarn = "Unknown HTTP ContentType: " + contentType;
-					log.error(ctWarn);
-					ctWarn += "\nFor JMF , please use: " + UrlUtil.VND_JMF;
-					ctWarn += "\nFor JDF , please use: " + UrlUtil.VND_JDF;
-					ctWarn += "\nFor MIME, please use: " + MimeUtil.MULTIPART_RELATED;
-					ctWarn += "\n\n Input Message:\n\n";
-					r = processError(request.getRequestURI(), EnumType.Notification, 9, ctWarn);
-				}
-			}
-		}
-		else
-		// get request
-		{
-			r = handleGet(request);
-		}
-		stopTimer(request);
-		return r;
-	}
-
-	private XMLResponse processZip(final StreamRequest request)
-	{
-		final InputStream is = request.getInputStream();
-		ZipReader zipReader = new ZipReader(is);
-		zipReader.setCaseSensitive(false);
-		ZipEntry e = getXMLFromZip(zipReader);
-		XMLDoc d = zipReader.getXMLDoc();
-		final XMLResponse r;
-		if (d != null)
-		{
-			String name = e.getName();
-			zipReader.buffer();
-			ZipEntry e2 = zipReader.getNextEntry();
-			if (e2 != null)
-			{
-				String rootName = e2.getName();
-				if (rootName.endsWith("/") && name.startsWith(rootName))
-				{
-					zipReader.setRootEntry(rootName);
-				}
-			}
-
-			XMLRequest req = new XMLRequest(new JDFDoc(d));
-			r = processXMLDoc(req);
-		}
-		else
-		{
-			String ctWarn = "Cannot extract zip from: " + request.getRequestURI();
-			log.error(ctWarn);
-			r = processError(request.getRequestURI(), EnumType.Notification, 9, ctWarn);
-		}
-		return r;
-	}
-
-	/**
-	 * retrieve the first xml like entry from a zip
-	 * 
-	 * @param zipReader
-	 * @return the matching entry, null if no matching entry
-	 */
-	private ZipEntry getXMLFromZip(ZipReader zipReader)
-	{
-		ZipEntry e = zipReader.getMatchingEntry("*.ptk", 0);
-		if (e == null)
-		{
-			e = zipReader.getMatchingEntry("*.xjmf", 0);
-		}
-		if (e == null)
-		{
-			e = zipReader.getMatchingEntry("*.jmf", 0);
-		}
-		if (e == null)
-		{
-			e = zipReader.getMatchingEntry("*.xjdf", 0);
-		}
-		if (e == null)
-		{
-			e = zipReader.getMatchingEntry("*.jdf", 0);
-		}
-		if (e == null)
-		{
-			e = zipReader.getMatchingEntry("*.xml", 0);
-		}
-		return e;
+		super.reset();
 	}
 
 	/**
@@ -624,7 +386,8 @@ public final class BambiContainer extends BambiLogFactory
 	 * @param request
 	 * @return
 	 */
-	private XMLResponse handleGet(final StreamRequest request)
+	@Override
+	protected XMLResponse handleGet(final StreamRequest request)
 	{
 		if ((nLogGet++ < 10) || (nLogGet % 100 == 0))
 		{
@@ -647,7 +410,8 @@ public final class BambiContainer extends BambiLogFactory
 	/**
 	 * @param request
 	 */
-	private void startTimer(ContainerRequest request)
+	@Override
+	protected void startTimer(ContainerRequest request)
 	{
 		AbstractDevice dev = getDeviceFromID(request.getDeviceID());
 		if (dev == null)
@@ -658,7 +422,8 @@ public final class BambiContainer extends BambiLogFactory
 	/**
 	 * @param request
 	 */
-	private void stopTimer(ContainerRequest request)
+	@Override
+	protected void stopTimer(ContainerRequest request)
 	{
 		AbstractDevice dev = getDeviceFromID(request.getDeviceID());
 		if (dev == null)
@@ -670,6 +435,7 @@ public final class BambiContainer extends BambiLogFactory
 	 * @param request
 	 * @return
 	 */
+	@Override
 	public XMLResponse processXMLDoc(XMLRequest request)
 	{
 		log.info("Processing xml document: content type=" + request.getContentType(true));
@@ -695,6 +461,7 @@ public final class BambiContainer extends BambiLogFactory
 	 * @return 
 	 * @throws IOException 
 	 */
+	@Override
 	public XMLResponse processMultiPart(final StreamRequest request) throws IOException
 	{
 		startTimer(request);
@@ -739,6 +506,7 @@ public final class BambiContainer extends BambiLogFactory
 	 * @param request
 	 * @return the generated response
 	 */
+	@Override
 	public XMLResponse processMultipleDocuments(final MimeRequest request)
 	{
 		startTimer(request);
@@ -776,6 +544,7 @@ public final class BambiContainer extends BambiLogFactory
 	 * @param request the http request to service
 	 * @return
 	 */
+	@Override
 	public XMLResponse processJMFDoc(final XMLRequest request)
 	{
 		startTimer(request);
@@ -862,22 +631,34 @@ public final class BambiContainer extends BambiLogFactory
 	}
 
 	/**
-	 * @param url
-	 * @return the deviceID
-	 */
-	public static String getDeviceIDFromURL(String url)
-	{
-		String devID = StringUtil.token(url, 2, "/");
-		return devID;
-	}
-
-	/**
 	 * get the singleton props
 	 * @return
 	 */
 	public MultiDeviceProperties getProps()
 	{
 		return props;
+	}
+
+	/**
+	 * 
+	 * @param requestURI
+	 * @return
+	 */
+	@Override
+	protected IConverterCallback getCallback(String requestURI)
+	{
+		return getRootDev().getCallback(requestURI);
+	}
+
+	/**
+	 * 
+	 * @param request
+	 * @return
+	 */
+	@Override
+	protected XMLRequest convertToJMF(XMLRequest request)
+	{
+		return getRootDev().convertToJMF(request);
 	}
 
 }
