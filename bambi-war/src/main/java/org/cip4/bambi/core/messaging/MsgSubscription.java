@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -149,7 +149,7 @@ public class MsgSubscription implements Cloneable
 		theMessage = (JDFMessage) m;
 		trigger = new Trigger(null, null, null, 0);
 		// TODO observation targets
-		if (repeatTime == 0 && repeatAmount == 0 && EnumType.Status.equals(theMessage.getType())) // reasonable default
+		if (repeatTime == 0 && repeatAmount == 0 && EnumType.Status.equals(theMessage.getEnumType())) // reasonable default
 		{
 			repeatAmount = 100;
 			repeatTime = 15;
@@ -302,8 +302,8 @@ public class MsgSubscription implements Cloneable
 	@Override
 	public String toString()
 	{
-		return "[MsgSubscription: slaveChannelID=" + channelID + " Type=" + getMessageType() + " QueueEntry=" + queueEntry + " lastAmount=" + lastAmount + "\nrepeatAmount="
-				+ repeatAmount + " repeatTime=" + repeatTime + " lastTime=" + lastTime + "\nURL=" + url + " device ID=" + jmfDeviceID + " Sent=" + sentMessages + "]";
+		return "[MsgSubscription: slaveChannelID=" + channelID + " Type=" + getMessageType() + " URL=" + url + " device ID=" + jmfDeviceID + " QueueEntry=" + queueEntry
+				+ " lastAmount=" + lastAmount + " repeatAmount=" + repeatAmount + " repeatTime=" + repeatTime + " lastTime=" + lastTime + " Sent=" + sentMessages + "]";
 	}
 
 	/**

@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -864,7 +864,6 @@ public class SignalDispatcher extends BambiLogFactory
 		}
 
 		final MsgSubscription sub = new MsgSubscription(this, subMess, queueEntryID);
-		log.info("adding subscription " + sub);
 		final String url = sub.getURL();
 		if (!UrlUtil.isURL(url))
 		{
@@ -879,16 +878,17 @@ public class SignalDispatcher extends BambiLogFactory
 		}
 		if (subscriptionMap.containsKey(sub.channelID))
 		{
-			log.error("subscription already exists for:" + sub.channelID);
+			log.warn("subscription already exists for:" + sub.channelID);
 			return null;
 		}
 		if (subscriptionMap.containsValue(sub))
 		{
-			log.info("identical subscription already exists for:" + sub.channelID);
+			log.info("ignoring identical subscription already exists for:" + sub.channelID);
 			return null;
 		}
 		synchronized (subscriptionMap)
 		{
+			log.info("adding subscription " + sub);
 			subscriptionMap.put(sub.channelID, sub);
 		}
 		sub.trigger.queueEntryID = queueEntryID;
@@ -970,14 +970,13 @@ public class SignalDispatcher extends BambiLogFactory
 		for (int i = 0; i < siz; i++)
 		{
 			final JDFJMF jmf = nodeInfo.getJMF(i);
-			// TODO regs
+			// TODO registrations
 			final VElement vMess = jmf.getMessageVector(EnumFamily.Query, null);
 			if (vMess != null)
 			{
-				final int nMess = vMess.size();
-				for (int j = 0; j < nMess; j++)
+				for (KElement mess : vMess)
 				{
-					final JDFQuery q = (JDFQuery) vMess.elementAt(j);
+					final JDFQuery q = (JDFQuery) mess;
 					final String channelID = addSubscription(q, queueEntryID);
 					if (channelID != null)
 					{
@@ -1017,7 +1016,11 @@ public class SignalDispatcher extends BambiLogFactory
 		MsgSubscription ret = null;
 		synchronized (triggers)
 		{
-			triggers.remove(channelID);
+			final Trigger triggerByChannel = getTrigger(channelID);
+			if (triggerByChannel != null)
+			{
+				triggers.remove(triggerByChannel);
+			}
 		}
 		synchronized (subscriptionMap)
 		{
@@ -1026,6 +1029,18 @@ public class SignalDispatcher extends BambiLogFactory
 		log.info("removing subscription for channelid=" + channelID);
 		storage.persist();
 		return ret;
+	}
+
+	private Trigger getTrigger(final String channelID)
+	{
+		for (final Trigger trigger : triggers)
+		{
+			if (channelID.equals(trigger.channelID))
+			{
+				return trigger;
+			}
+		}
+		return null;
 	}
 
 	/**

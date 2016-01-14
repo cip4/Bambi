@@ -82,7 +82,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.elementwalker.FixVersion;
 import org.cip4.jdflib.extensions.XJDF20;
-import org.cip4.jdflib.extensions.XJDFHelper;
+import org.cip4.jdflib.extensions.XJDFConstants;
 import org.cip4.jdflib.extensions.xjdfwalker.XJDFToJDFConverter;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -221,7 +221,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	protected JDFDoc importXJDF(JDFDoc doc)
 	{
 		final KElement root = doc.getRoot();
-		if (XJDFHelper.XJDF.equals(root.getLocalName()))
+		if (((String) XJDFConstants.XJDF).equals(root.getLocalName()))
 		{
 			log.info("importing xjdf to Bambi");
 			final XJDFToJDFConverter xc = getXJDFImporter();
@@ -253,7 +253,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	protected JDFDoc importXJMF(JDFDoc doc)
 	{
 		final KElement root = doc.getRoot();
-		if (XJDFHelper.XJMF.equals(root.getLocalName()))
+		if (((String) XJDFConstants.XJMF).equals(root.getLocalName()))
 		{
 			log.info("importing XJMF to Bambi");
 			final XJDFToJDFConverter xc = getXJDFImporter();

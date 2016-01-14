@@ -81,7 +81,7 @@ import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
-import org.cip4.jdflib.extensions.XJDFHelper;
+import org.cip4.jdflib.extensions.XJDFConstants;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -339,7 +339,7 @@ public abstract class ServletContainer extends BambiLogFactory
 		{
 			KElement e = newRequest.getXML();
 			// jmf with incorrect mime type or something that the device could translate to jmf
-			if (e instanceof JDFJMF || XJDFHelper.XJMF.equals(e.getLocalName()))
+			if (e instanceof JDFJMF || ((String) XJDFConstants.XJMF).equals(e.getLocalName()))
 			{
 				return processJMFDoc(newRequest);
 			}

@@ -86,7 +86,7 @@ import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
-import org.cip4.jdflib.extensions.XJDFHelper;
+import org.cip4.jdflib.extensions.XJDFConstants;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -444,7 +444,7 @@ public final class BambiContainer extends ServletContainer
 		{
 			KElement e = newRequest.getXML();
 			// jmf with incorrect mime type or something that the device could translate to jmf
-			if (e instanceof JDFJMF || XJDFHelper.XJMF.equals(e.getLocalName()))
+			if (e instanceof JDFJMF || ((String) XJDFConstants.XJMF).equals(e.getLocalName()))
 			{
 				return processJMFDoc(newRequest);
 			}
