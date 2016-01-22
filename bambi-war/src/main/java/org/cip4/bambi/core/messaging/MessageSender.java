@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -640,6 +640,11 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			firstProblem = 0;
 			_messages.remove(0);
 			sentMessages.push(mesDetails);
+		}
+		else if (SendReturn.removed.equals(sendReturn))
+		{
+			_messages.remove(0);
+			removedError++;
 		}
 		else
 		{
