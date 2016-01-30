@@ -544,14 +544,14 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	protected File getPersistLocation(boolean bDir)
 	{
 		String loc = callURL.getBaseURL();
-		if (loc == null)
-		{
-			log.error("cannot persist jmf to null location");
-			return null;
-		}
 		loc = UrlUtil.removeProtocol(loc);
 		loc = StringUtil.replaceCharSet(loc, ":\\", "/", 0);
 		loc = StringUtil.replaceString(loc, "//", "/");
+		if (loc == null)
+		{
+			log.error("cannot persist jmf to location; " + callURL.getBaseURL());
+			return null;
+		}
 
 		File f = FileUtil.getFileInDirectory(baseLocation, new File(loc));
 		f.mkdirs();
