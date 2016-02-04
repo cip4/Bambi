@@ -187,6 +187,11 @@ public class SignalDispatcher extends BambiLogFactory
 			{
 				flushSender(request);
 			}
+			final boolean bZappFirst = request.getBooleanParam("ZappFirst");
+			if (bZappFirst)
+			{
+				zappFirstMessage(request);
+			}
 			final String details = request.getParameter("DetailID");
 
 			final int pos = request.getIntegerParam("pos");
@@ -280,6 +285,22 @@ public class SignalDispatcher extends BambiLogFactory
 				for (MessageSender messageSender : v)
 				{
 					messageSender.flushMessages();
+				}
+			}
+		}
+
+		/**
+		 * @param request
+		 */
+		private void zappFirstMessage(final ContainerRequest request)
+		{
+			final String url = request.getParameter(AttributeName.URL);
+			final Vector<MessageSender> v = device.getJMFFactory().getMessageSenders(url);
+			if (v != null)
+			{
+				for (MessageSender messageSender : v)
+				{
+					messageSender.zappFirstMessage();
 				}
 			}
 		}

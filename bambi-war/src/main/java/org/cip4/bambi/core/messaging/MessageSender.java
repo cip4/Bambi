@@ -174,6 +174,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	private SenderQueueOptimizer optimizer = null;
 	private long startTime;
+	private boolean zappFirst;
 
 	protected class SenderQueueOptimizer extends BambiLogFactory
 	{
@@ -328,6 +329,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		optimizer = new SenderQueueOptimizer();
 		setJMFFactory(null);
 		created = System.currentTimeMillis();
+		zappFirst = false;
 		readFromBase();
 	}
 
@@ -369,15 +371,12 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				timer.stop();
 				if (sentFirstMessage == SendReturn.sent)
 				{
-					synchronized (_messages)
+					sent++;
+					lastSent = System.currentTimeMillis();
+					idle = 0;
+					if (sent < 10 || (sent % 1000) == 0)
 					{
-						sent++;
-						lastSent = System.currentTimeMillis();
-						idle = 0;
-						if (sent < 10 || (sent % 1000) == 0)
-						{
-							log.info("successfully sent JMF # " + sent + " to " + callURL);
-						}
+						log.info("successfully sent JMF # " + sent + " to " + callURL);
 					}
 				}
 			}
@@ -569,8 +568,6 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	private SendReturn sendFirstMessage()
 	{
 		MessageDetails mesDetails;
-		JDFJMF jmf;
-		Multipart mp;
 
 		// don't synchronize the whole thing - otherwise the get handler may be blocked
 		synchronized (_messages)
@@ -581,31 +578,20 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			}
 			timer.start();
 			mesDetails = _messages.get(0);
-			if (mesDetails == null)
+			if (mesDetails == null || zappFirst || KElement.isWildCard(mesDetails.url))
 			{
 				_messages.remove(0);
 				removedError++;
-				log.warn("removed null queued message in message queue");
-				return SendReturn.removed; // should never happen
-			}
-
-			jmf = mesDetails.jmf;
-			mp = mesDetails.mime;
-			if (KElement.isWildCard(mesDetails.url))
-			{
-				log.error("Sending to bad url - bailing out! " + mesDetails.url);
-				_messages.remove(0);
-				removedError++;
-				mesDetails.setReturn(SendReturn.error);
-				sentMessages.push(mesDetails);
-				return SendReturn.error; // snafu anyhow but not sent but no retry useful
+				zappFirst = false;
+				log.warn("removed first message in message queue");
+				return SendReturn.removed;
 			}
 
 			if (mesDetails.respHandler != null && mesDetails.respHandler.isAborted())
 			{
 				_messages.remove(0);
 				removedError++;
-				log.warn("removed aborted message to: " + mesDetails.url);
+				log.warn("removed timed out message to: " + mesDetails.url);
 				mesDetails.setReturn(SendReturn.removed);
 				sentMessages.push(mesDetails);
 				return SendReturn.removed;
@@ -650,9 +636,9 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		{
 			firstProblem = System.currentTimeMillis();
 			String isMime = "";
-			if (jmf != null)
+			if (mesDetails.jmf != null)
 				isMime = "JMF";
-			if (mp != null)
+			if (mesDetails.mime != null)
 				isMime += "MIME";
 			if ("".equals(isMime))
 				isMime = "Empty";
@@ -1213,6 +1199,18 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			{
 				log.error("Problems deleting message directory Messages from " + (pers == null ? "null" : pers.getAbsolutePath()));
 			}
+		}
+	}
+
+	/**
+	 * remove first unsent message without sending it
+	 */
+	public void zappFirstMessage()
+	{
+		zappFirst = true;
+		if (!pause)
+		{
+			ThreadUtil.notifyAll(mutexDispatch);
 		}
 	}
 

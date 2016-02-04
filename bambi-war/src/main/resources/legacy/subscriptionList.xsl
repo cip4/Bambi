@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<!--  Copyright 2009-2014 CIP4 -->
+<!--  Copyright 2009-2016 CIP4 -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:bambi="www.cip4.org/Bambi" xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -12,7 +12,7 @@
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
 				<link rel="stylesheet" type="text/css" href="/legacy/css/styles_pc.css" />
-				<link rel="icon" href="favicon.ico" type="image/x-icon" />
+				<link rel="icon" href="/legacy/favicon.ico" type="image/x-icon" />
 				<title>
 					<xsl:value-of select="@DeviceID" />
 					- Subscriptions
@@ -67,6 +67,7 @@
 						<th align="left" title="Time the last message was queued for sending"> Last time Queued</th>
 						<th align="left" title="Time the message sender started up"> Active since</th>
 						<th align="left"> Show Sent Messages</th>
+						<th align="left" title="remove first unsent message without sending."> Remove first</th>
 						<th align="left" title="pause or resume sending of outqiong messages"> pause / resume</th>
 						<th align="left"
 							title="remove this sender - does NOT flush pending messages"> Remove Sender</th>
@@ -293,6 +294,19 @@
 						<xsl:attribute name="value"><xsl:value-of
 							select="@URL" /></xsl:attribute>
 					</input>
+					<input type="hidden" name="ZappFirst" value="true" />					
+					<input type="submit" value="Remove First" />
+				</form>
+			</td>
+			<td align="center">
+				<form>
+					<xsl:attribute name="action"><xsl:value-of
+						select="../@Context" />/showSubscriptions/<xsl:value-of
+						select="../@DeviceID" /></xsl:attribute>
+					<input type="hidden" name="URL">
+						<xsl:attribute name="value"><xsl:value-of
+							select="@URL" /></xsl:attribute>
+					</input>
 					<xsl:choose>
 						<xsl:when test="@pause='true'">
 							<input type="hidden" name="pause" value="false" />
@@ -315,7 +329,7 @@
 						<xsl:attribute name="value"><xsl:value-of
 							select="@URL" /></xsl:attribute>
 					</input>
-					<input type="submit" value="remove" />
+					<input type="submit" value="remove sender" />
 				</form>
 			</td>
 			<td align="center">
