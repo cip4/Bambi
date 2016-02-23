@@ -116,6 +116,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.extensions.XJDFZipReader;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFFlushQueueInfo;
 import org.cip4.jdflib.jmf.JDFFlushQueueParams;
@@ -154,6 +155,7 @@ import org.cip4.jdflib.util.thread.MutexMap;
 import org.cip4.jdflib.util.thread.MyMutex;
 import org.cip4.jdflib.util.thread.RegularJanitor;
 import org.cip4.jdflib.util.thread.TimeSweeper;
+import org.cip4.jdflib.util.zip.ZipReader;
 
 /**
  * 
@@ -486,7 +488,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			final JDFQueueSubmissionParams qsp = m.getQueueSubmissionParams(0);
 			JDFDoc doc = qsp == null ? null : qsp.getURLDoc();
-
+			if (doc == null)
+			{
+				String url = qsp.getURL();
+				ZipReader zipReader = qsp.getOwnerDocument_KElement().getZipReader();
+				doc = getDocFromXJDFZip(url, zipReader);
+			}
 			final IConverterCallback callback = doc == null ? null : _parentDevice.getCallback(null);
 			if (callback != null)
 			{
@@ -639,7 +646,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			final JDFResubmissionParams rsp = m.getResubmissionParams(0);
 			JDFDoc doc = rsp == null ? null : rsp.getURLDoc();
-
+			if (doc == null)
+			{
+				String url = rsp.getURL();
+				ZipReader zipReader = rsp.getOwnerDocument_KElement().getZipReader();
+				doc = getDocFromXJDFZip(url, zipReader);
+			}
 			final IConverterCallback callback = doc == null ? null : _parentDevice.getCallback(null);
 			if (callback != null)
 			{
@@ -1281,8 +1293,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		public EnumQueueStatus applyHold()
 		{
-			 EnumQueueStatus qStatusNew = _theQueue.holdQueue();
-			 BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), qStatusNew.getName(), getQueueStatistic());
+			EnumQueueStatus qStatusNew = _theQueue.holdQueue();
+			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), qStatusNew.getName(), getQueueStatistic());
 			return qStatusNew;
 		}
 
@@ -3098,5 +3110,25 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	public boolean wasSubmitted(JDFQueueEntry qeNew)
 	{
 		return _parentDevice.wasSubmitted(qeNew);
+	}
+
+	/**
+	 * 
+	 * @param url
+	 * @param zipReader
+	 * @return
+	 */
+	protected JDFDoc getDocFromXJDFZip(String url, ZipReader zipReader)
+	{
+		JDFDoc doc = null;
+		if (UrlUtil.isRelativeURL(url) && zipReader != null)
+		{
+			XJDFZipReader xzr = new XJDFZipReader(zipReader);
+			xzr.setPath(url);
+			xzr.convertXJDF();
+			JDFNode node = xzr.getJDFRoot();
+			doc = node == null ? null : node.getOwnerDocument_JDFElement();
+		}
+		return doc;
 	}
 }

@@ -444,7 +444,7 @@ public final class BambiContainer extends ServletContainer
 		{
 			KElement e = newRequest.getXML();
 			// jmf with incorrect mime type or something that the device could translate to jmf
-			if (e instanceof JDFJMF || ((String) XJDFConstants.XJMF).equals(e.getLocalName()))
+			if (e instanceof JDFJMF || XJDFConstants.XJMF.equals(e.getLocalName()))
 			{
 				return processJMFDoc(newRequest);
 			}

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -106,7 +106,6 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
-import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.extensions.XJDFConstants;
 import org.cip4.jdflib.jmf.JDFDeviceFilter;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
@@ -1964,17 +1963,17 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			log.error("request with null XML root - bailing out");
 			return null;
 		}
-		if (e instanceof JDFJMF || XJDF20.rootJMF.equals(e.getLocalName()))
+		if (e instanceof JDFJMF || XJDFConstants.XJMF.equals(e.getLocalName()))
 		{
 			return request;
 		}
 
-		if (!(e instanceof JDFNode) && !((String) XJDFConstants.XJDF).equals(e.getLocalName()))
+		if (!(e instanceof JDFNode) && !XJDFConstants.XJDF.equals(e.getLocalName()))
 		{
 			KElement e2 = e.getChildByTagName(ElementName.JDF, null, 0, null, false, false);
 			if (e2 == null)
 			{
-				e2 = e.getChildByTagName((String) XJDFConstants.XJDF, null, 0, null, false, false);
+				e2 = e.getChildByTagName(XJDFConstants.XJDF, null, 0, null, false, false);
 			}
 			if (e2 != null)
 			{
@@ -1982,7 +1981,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			}
 		}
 
-		if (e instanceof JDFNode || ((String) XJDFConstants.XJDF).equals(e.getLocalName()))
+		if (e instanceof JDFNode || XJDFConstants.XJDF.equals(e.getLocalName()))
 		{
 			final XMLRequest r2 = createSubmitFromJDF(e);
 			if (r2 != null)
@@ -2005,8 +2004,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected XMLRequest createSubmitFromJDF(KElement e)
 	{
-		JDFJMF sqe = getJMFBuilder().buildSubmitQueueEntry(null);
-		sqe.getCommand(0).getQueueSubmissionParams(0).setURL("dummy");
+		JDFJMF sqe = getJMFBuilder().buildSubmitQueueEntry(null, "dummy");
+
 		MimeWriter mimeWriter = new MimeWriter();
 		mimeWriter.buildMimePackage(sqe.getOwnerDocument_JDFElement(), e.getOwnerDocument_KElement(), false);
 		MimeReader mimeReader = new MimeReader(mimeWriter);

@@ -82,10 +82,13 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.extensions.XJDFConstants;
+import org.cip4.jdflib.extensions.XJDFHelper;
+import org.cip4.jdflib.extensions.XJDFZipReader;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
@@ -259,12 +262,30 @@ public abstract class ServletContainer extends BambiLogFactory
 		final InputStream is = request.getInputStream();
 		ZipReader zipReader = new ZipReader(is);
 		zipReader.setCaseSensitive(false);
+		return processZip(request, zipReader);
+	}
+
+	/**
+	 * 
+	 * @param request
+	 * @param zipReader
+	 * @return
+	 */
+	protected XMLResponse processZip(final StreamRequest request, ZipReader zipReader)
+	{
 		ZipEntry e = getXMLFromZip(zipReader);
-		XMLDoc d = zipReader.getXMLDoc();
-		final XMLResponse r;
-		if (d != null)
+		String name = e == null ? null : e.getName();
+		XMLDoc d;
+		if (XJDFHelper.XJDF.equalsIgnoreCase(UrlUtil.extension(name)))
 		{
-			String name = e.getName();
+			XJDFZipReader xjdfZipReader = new XJDFZipReader(zipReader);
+			xjdfZipReader.convertXJDF();
+			JDFNode jdfRoot = xjdfZipReader.getJDFRoot();
+			d = jdfRoot == null ? null : jdfRoot.getOwnerDocument_JDFElement();
+		}
+		else
+		{
+			d = zipReader.getXMLDoc();
 			zipReader.buffer();
 			ZipEntry e2 = zipReader.getNextEntry();
 			if (e2 != null)
@@ -275,7 +296,10 @@ public abstract class ServletContainer extends BambiLogFactory
 					zipReader.setRootEntry(rootName);
 				}
 			}
-
+		}
+		final XMLResponse r;
+		if (d != null)
+		{
 			XMLRequest req = new XMLRequest(new JDFDoc(d));
 			r = processXMLDoc(req);
 		}
@@ -339,7 +363,7 @@ public abstract class ServletContainer extends BambiLogFactory
 		{
 			KElement e = newRequest.getXML();
 			// jmf with incorrect mime type or something that the device could translate to jmf
-			if (e instanceof JDFJMF || ((String) XJDFConstants.XJMF).equals(e.getLocalName()))
+			if (e instanceof JDFJMF || XJDFConstants.XJMF.equals(e.getLocalName()))
 			{
 				return processJMFDoc(newRequest);
 			}

@@ -76,6 +76,7 @@ import java.io.OutputStream;
 import org.apache.commons.io.IOUtils;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.StreamUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdfutility.html.HTMLUtil;
@@ -142,6 +143,7 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 					KElement root = HTMLUtil.createHTMLRoot();
 					HTMLUtil.appendHeader(root, 1, "Directory listing is not supported ");
 					root.write2Stream(outputStream);
+					StreamUtil.close(outputStream);
 				}
 				else
 				{

@@ -369,16 +369,6 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			{
 				sentFirstMessage = sendFirstMessage();
 				timer.stop();
-				if (sentFirstMessage == SendReturn.sent)
-				{
-					sent++;
-					lastSent = System.currentTimeMillis();
-					idle = 0;
-					if (sent < 10 || (sent % 1000) == 0)
-					{
-						log.info("successfully sent JMF # " + sent + " to " + callURL);
-					}
-				}
 			}
 			catch (final Throwable x)
 			{
@@ -387,7 +377,21 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				timer.stop();
 			}
 
-			if (sentFirstMessage != SendReturn.sent && sentFirstMessage != SendReturn.removed)
+			if (sentFirstMessage == SendReturn.sent)
+			{
+				sent++;
+				lastSent = System.currentTimeMillis();
+				idle = 0;
+				if (sent < 10 || (sent % 1000) == 0)
+				{
+					log.info("successfully sent JMF # " + sent + " to " + callURL);
+				}
+			}
+			else if (sentFirstMessage == SendReturn.removed)
+			{
+				idle = 0;
+			}
+			else
 			{
 				idle++;
 				int wait = 1000;
@@ -583,7 +587,9 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				_messages.remove(0);
 				removedError++;
 				zappFirst = false;
-				log.warn("removed first message in message queue");
+				log.warn("removed first message in message queue to: " + mesDetails.url);
+				mesDetails.setReturn(SendReturn.removed);
+				sentMessages.push(mesDetails);
 				return SendReturn.removed;
 			}
 

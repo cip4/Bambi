@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -244,11 +244,10 @@ public class BambiTestHelper extends BambiTestCaseBase
 	{
 		JMFBuilder builder = new JMFBuilder();
 		builder.setAcknowledgeURL(acknowledgeURL);
-		final JDFJMF jmf = builder.buildSubmitQueueEntry(returnURL);
+		final JDFJMF jmf = builder.buildSubmitQueueEntry(returnURL, "dummy");
 		final JDFDoc docJMF = jmf.getOwnerDocument_JDFElement();
 		final JDFCommand com = jmf.getCommand(0);
 		final JDFQueueSubmissionParams queueSubmissionParams = com.getCreateQueueSubmissionParams(0);
-		queueSubmissionParams.setURL("dummy");
 		queueSubmissionParams.setPriority(42);
 		updateJobIDs(d);
 		if (returnJMF != null)
