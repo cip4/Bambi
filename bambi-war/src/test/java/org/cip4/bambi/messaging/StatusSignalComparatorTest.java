@@ -68,6 +68,9 @@
  */
 package org.cip4.bambi.messaging;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.messaging.StatusSignalComparator;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
@@ -82,6 +85,7 @@ import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.resource.JDFDevice;
 import org.cip4.jdflib.util.JDFDate;
+import org.junit.Test;
 
 /**
   * @author Rainer Prosi, Heidelberger Druckmaschinen *
@@ -91,6 +95,7 @@ public class StatusSignalComparatorTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testIsSameStatusSignal()
 	{
 		final JMFBuilder b = new JMFBuilder();
@@ -115,6 +120,7 @@ public class StatusSignalComparatorTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testIsSameStatusSignalIdle()
 	{
 		final JMFBuilder b = new JMFBuilder();

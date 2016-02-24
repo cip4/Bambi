@@ -71,6 +71,8 @@
 
 package org.cip4.bambi.core.queues;
 
+import static org.junit.Assert.assertFalse;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -82,6 +84,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.junit.Test;
 
 /**
  * test for the various queue processor functions
@@ -98,7 +101,7 @@ public class ExtensionHFTest extends BambiContainerTest
 	 * @param devProp
 	 */
 	@Override
-	protected void moreSetup(DeviceProperties devProp)
+	protected void moreSetup(final DeviceProperties devProp)
 	{
 		inputHF = new File(sm_dirTestData + "ContainerTest/InputHF");
 		outputHF = new File(sm_dirTestData + "ContainerTest/OutputHF");
@@ -110,6 +113,7 @@ public class ExtensionHFTest extends BambiContainerTest
 	 * @throws IOException
 	 * @throws MessagingException
 	 */
+    @Test
 	public void testSubmitXJDF_HF() throws IOException, MessagingException
 	{
 		for (int i = 0; i < 1; i++)
@@ -122,10 +126,10 @@ public class ExtensionHFTest extends BambiContainerTest
 				ThreadUtil.sleep(1000);
 			}
 			System.out.println("Submit " + i);
-			XJDF20 conv = new XJDF20();
-			KElement xjdf = conv.makeNewJDF(_theGT.getNode(), null);
+			final XJDF20 conv = new XJDF20();
+			final KElement xjdf = conv.makeNewJDF(_theGT.getNode(), null);
 
-			File fileInDirectory = FileUtil.getFileInDirectory(inputHF, new File("test.xjdf"));
+			final File fileInDirectory = FileUtil.getFileInDirectory(inputHF, new File("test.xjdf"));
 			xjdf.getOwnerDocument_KElement().write2File(fileInDirectory, 2, false);
 
 			ThreadUtil.sleep(10000);

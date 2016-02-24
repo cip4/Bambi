@@ -70,6 +70,8 @@
  */
 package org.cip4.bambi.core.messaging;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 
 import org.cip4.bambi.BambiTestCaseBase;
@@ -95,7 +97,7 @@ public class MessageFiFoTest extends BambiTestCaseBase
 	@Test
 	public void testFill()
 	{
-		File dumpDir = new File(sm_dirTestDataTemp + "/fifo");
+		final File dumpDir = new File(sm_dirTestDataTemp + "/fifo");
 		FileUtil.deleteAll(dumpDir);
 		MessageFiFo fifo = new MessageFiFo(dumpDir);
 		long nIn = 0;
@@ -104,18 +106,18 @@ public class MessageFiFoTest extends BambiTestCaseBase
 		{
 			for (int j = 0; j < 10; j++)
 			{
-				KElement e = new JDFDoc("elem").getRoot();
+				final KElement e = new JDFDoc("elem").getRoot();
 				e.appendElement(ElementName.JMF).setAttribute(AttributeName.DESCRIPTIVENAME, "" + nIn);
-				MessageDetails messageDetails = new MessageDetails(e);
+				final MessageDetails messageDetails = new MessageDetails(e);
 				fifo.add(messageDetails);
 				nIn++;
 			}
 			for (int j = 0; j < 2; j++)
 			{
-				MessageDetails messageDetails = fifo.get(0);
+				final MessageDetails messageDetails = fifo.get(0);
 				assertEquals(fifo.remove(0), messageDetails);
-				JDFJMF jmf = messageDetails.jmf;
-				long nJMF = StringUtil.parseLong(jmf.getDescriptiveName(), -1);
+				final JDFJMF jmf = messageDetails.jmf;
+				final long nJMF = StringUtil.parseLong(jmf.getDescriptiveName(), -1);
 				assertEquals(nJMF, nOut);
 				nOut++;
 			}
@@ -128,24 +130,24 @@ public class MessageFiFoTest extends BambiTestCaseBase
 		{
 			for (int j = 0; j < 2; j++)
 			{
-				KElement e = new JDFDoc("elem").getRoot();
+				final KElement e = new JDFDoc("elem").getRoot();
 				e.appendElement(ElementName.JMF).setAttribute(AttributeName.DESCRIPTIVENAME, "" + nIn);
-				MessageDetails messageDetails = new MessageDetails(e);
+				final MessageDetails messageDetails = new MessageDetails(e);
 				fifo.add(messageDetails);
 				nIn++;
 			}
 			boolean breakit = false;
 			for (int j = 0; j < 10; j++)
 			{
-				MessageDetails messageDetails = fifo.get(0);
+				final MessageDetails messageDetails = fifo.get(0);
 				assertEquals(fifo.remove(0), messageDetails);
 				if (messageDetails == null)
 				{
 					breakit = true;
 					break;
 				}
-				JDFJMF jmf = messageDetails.jmf;
-				long nJMF = StringUtil.parseLong(jmf.getDescriptiveName(), -1);
+				final JDFJMF jmf = messageDetails.jmf;
+				final long nJMF = StringUtil.parseLong(jmf.getDescriptiveName(), -1);
 				assertEquals(nJMF, nOut);
 				nOut++;
 			}

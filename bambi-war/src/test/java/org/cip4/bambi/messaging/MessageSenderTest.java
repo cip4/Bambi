@@ -71,6 +71,8 @@
 
 package org.cip4.bambi.messaging;
 
+import static org.junit.Assert.assertNotNull;
+
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestHelper;
 import org.cip4.bambi.core.messaging.JMFFactory;
@@ -79,6 +81,8 @@ import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
@@ -94,6 +98,7 @@ public class MessageSenderTest extends BambiTestCase
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
 	 */
 	@Override
+    @Before
 	public void setUp() throws Exception
 	{
 		super.setUp();
@@ -103,6 +108,7 @@ public class MessageSenderTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
+    @Test
 	public void testBadURL() throws Exception
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription(snafu, 1, 0, null);
@@ -114,6 +120,7 @@ public class MessageSenderTest extends BambiTestCase
 	 * 
 	 *  
 	 */
+    @Test
 	public void testSendToDump()
 	{
 		s.queuePost(null, "http://localhost:8080/httpdump/messagesendertest", null);

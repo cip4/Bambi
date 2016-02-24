@@ -71,6 +71,10 @@
 
 package org.cip4.bambi.core;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -93,6 +97,7 @@ public class BambiServletTest extends BambiTestCase
 	 * @throws IOException
 	 * 
 	 */
+    @Test
 	public void testUnknownContentType() throws IOException
 	{
 		final XMLDoc d = new XMLDoc("test", null);

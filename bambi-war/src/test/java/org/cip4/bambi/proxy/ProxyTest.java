@@ -71,6 +71,10 @@
 
 package org.cip4.bambi.proxy;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 
 import org.cip4.bambi.BambiTestCase;
@@ -90,6 +94,8 @@ import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
   * @author Rainer Prosi, Heidelberger Druckmaschinen *
@@ -128,7 +134,8 @@ public class ProxyTest extends BambiTestCase
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
 	 */
 	@Override
-	protected void setUp() throws Exception
+    @Before
+    public void setUp() throws Exception
 	{
 		bUpdateJobID = true;
 		workerURLBase = "http://localhost:8080/BambiProxy/jmf/";
@@ -143,30 +150,33 @@ public class ProxyTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
+    @Test
 	public void testKnownDevices() throws Exception
 	{
-		BambiTestHelper h = new BambiTestHelper();
-		JMFBuilder b = h.getBuilder();
-		JDFJMF jmf = b.buildKnownDevicesQuery(EnumDeviceDetails.Brief);
-		JDFDoc d = h.submitJMFtoURL(jmf, getWorkerURL());
+		final BambiTestHelper h = new BambiTestHelper();
+		final JMFBuilder b = h.getBuilder();
+		final JDFJMF jmf = b.buildKnownDevicesQuery(EnumDeviceDetails.Brief);
+		final JDFDoc d = h.submitJMFtoURL(jmf, getWorkerURL());
 		assertNotNull(d);
 	}
 
 	/**
 	 * @throws Exception
 	 */
+    @Test
 	public void testKnownMessages() throws Exception
 	{
-		BambiTestHelper h = new BambiTestHelper();
-		JMFBuilder b = h.getBuilder();
-		JDFJMF jmf = b.buildKnownMessagesQuery();
-		JDFDoc d = h.submitJMFtoURL(jmf, getWorkerURL());
+		final BambiTestHelper h = new BambiTestHelper();
+		final JMFBuilder b = h.getBuilder();
+		final JDFJMF jmf = b.buildKnownMessagesQuery();
+		final JDFDoc d = h.submitJMFtoURL(jmf, getWorkerURL());
 		assertNotNull(d);
 	}
 
 	/**
 	 * @throws Exception
 	 */
+    @Test
 	public void testSubmitQueueEntry_MIME() throws Exception
 	{
 		_theGT.devID = getDeviceID();
@@ -179,6 +189,7 @@ public class ProxyTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
+    @Test
 	public void testSubmitQueueEntry_MIME_Many() throws Exception
 	{
 		for (int i = 1; i < 200; i++)
@@ -194,6 +205,7 @@ public class ProxyTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
+    @Test
 	public void testAbortQueueEntry() throws Exception
 	{
 		submitMimetoURL(getWorkerURL());
@@ -233,10 +245,11 @@ public class ProxyTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
+    @Test
 	public void testRequestQE() throws Exception
 	{
-		String proxyUrl = StringUtil.replaceString(getWorkerURL(), "push", "pull");
-		String proxySlaveUrl = StringUtil.replaceString(getProxyURLForSlave(), "push", "pull");
+		final String proxyUrl = StringUtil.replaceString(getWorkerURL(), "push", "pull");
+		final String proxySlaveUrl = StringUtil.replaceString(getProxyURLForSlave(), "push", "pull");
 		for (int i = 0; i < 1; i++)
 		{
 			submitMimetoURL(proxyUrl);
@@ -256,7 +269,7 @@ public class ProxyTest extends BambiTestCase
 				ni = new NodeIdentifier(jobID, jobPartID, null);
 				final JDFJMF pull = new JMFBuilder().buildRequestQueueEntry(getWorkerURL(), ni);
 				// pull.getCommand(0).setSenderID("sim001"); // needed for the senderID
-				CPUTimer ct = new CPUTimer(true);
+				final CPUTimer ct = new CPUTimer(true);
 				final JDFDoc dresp2 = submitJMFtoURL(pull, proxySlaveUrl);
 				System.out.println(ni + "" + i + ct.toString());
 				assertNotNull(dresp2);
@@ -277,7 +290,7 @@ public class ProxyTest extends BambiTestCase
 	 * @param devProp
 	*/
 	@Override
-	protected void moreSetup(DeviceProperties devProp)
+	protected void moreSetup(final DeviceProperties devProp)
 	{
 		super.moreSetup(devProp);
 		devProp.setDeviceClassName("org.cip4.bambi.proxy.ProxyDevice");
@@ -290,7 +303,7 @@ public class ProxyTest extends BambiTestCase
 	@Override
 	protected MultiDeviceProperties createPropertiesForContainer()
 	{
-		MultiDeviceProperties props = new ProxyProperties(new File(sm_dirContainer));
+		final MultiDeviceProperties props = new ProxyProperties(new File(sm_dirContainer));
 		return props;
 	}
 }

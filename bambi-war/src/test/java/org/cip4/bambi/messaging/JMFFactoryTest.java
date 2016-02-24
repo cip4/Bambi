@@ -71,6 +71,11 @@
 
 package org.cip4.bambi.messaging;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.net.HttpURLConnection;
 
 import javax.mail.Multipart;
@@ -94,6 +99,8 @@ import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.MimeUtil;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
@@ -107,6 +114,7 @@ public class JMFFactoryTest extends BambiTestCase
 	 * @throws Exception
 	 */
 	@Override
+    @Before
 	public void setUp() throws Exception
 	{
 		super.setUp();
@@ -115,6 +123,7 @@ public class JMFFactoryTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testCallURLGetBaseURL()
 	{
 		CallURL cu = new CallURL("http://foo/bar?abc");
@@ -128,6 +137,7 @@ public class JMFFactoryTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testStatus()
 	{
 		JDFJMF jmf = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
@@ -148,6 +158,7 @@ public class JMFFactoryTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testResumeQueueEntry()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildResumeQueueEntry("12345");
@@ -159,6 +170,7 @@ public class JMFFactoryTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testRemoveQueueEntry()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildRemoveQueueEntry("12345");
@@ -170,6 +182,7 @@ public class JMFFactoryTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testQueueStatus()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
@@ -195,6 +208,7 @@ public class JMFFactoryTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
+    @Test
 	public void testMultiStatus() throws Exception
 	{
 		final long t = System.currentTimeMillis();
@@ -212,6 +226,7 @@ public class JMFFactoryTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
+    @Test
 	public void testAbortAll() throws Exception
 	{
 		final long t = System.currentTimeMillis();
@@ -278,6 +293,7 @@ public class JMFFactoryTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
+    @Test
 	public void testSubmitQueueEntry_MIME() throws Exception
 	{
 		// get number of QueueEntries before submitting

@@ -71,9 +71,13 @@
 
 package org.cip4.bambi;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.junit.Test;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -86,6 +90,7 @@ public class JMFQuery_ResponderTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testStatus()
 	{
 		final JDFDoc doc = new JDFDoc("JMF");
@@ -100,6 +105,7 @@ public class JMFQuery_ResponderTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testKnownDevices()
 	{
 		final JDFDoc doc = new JDFDoc("JMF");

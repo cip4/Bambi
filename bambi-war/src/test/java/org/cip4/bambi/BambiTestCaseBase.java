@@ -71,8 +71,6 @@ package org.cip4.bambi;
 
 import java.io.File;
 
-import junit.framework.TestCase;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -109,7 +107,7 @@ import org.junit.Before;
  * @author prosirai
  * 
  */
-public abstract class BambiTestCaseBase extends TestCase
+public abstract class BambiTestCaseBase
 {
 	/**
 	 * 
@@ -127,9 +125,8 @@ public abstract class BambiTestCaseBase extends TestCase
 	 * 
 	 * @param name
 	 */
-	public BambiTestCaseBase(String name)
+	public BambiTestCaseBase(final String name)
 	{
-		super(name);
 		LogConfigurator.configureLog(null, null);
 		setTestNetwork(false);
 	}
@@ -144,11 +141,15 @@ public abstract class BambiTestCaseBase extends TestCase
 	private static String getTestDataDir()
 	{
 
-		String path = "test" + File.separator + "data";
-		File dataFile = new File(path);
-		if (!dataFile.isDirectory()) // legacy - pre maven file structure support
-			path = BambiTestCaseBase.class.getResource("/data").getPath();
-		path = FilenameUtils.normalize(path) + File.separator;
+        String path = "../HDBambiUtil-J/test/data";
+        File dataFile = new File(path).getAbsoluteFile();
+		if (!dataFile.isDirectory())
+        {
+            path = BambiTestCaseBase.class.getResource("/").getPath();
+            dataFile = new File(path);
+        }
+        path = FilenameUtils.normalize(dataFile.getAbsolutePath())
+                        + File.separator;
 
 		return path;
 
@@ -239,9 +240,8 @@ public abstract class BambiTestCaseBase extends TestCase
 	 * 
 	 * @see junit.framework.TestCase#setUp()
 	 */
-	@Override
 	@Before
-	protected void setUp() throws Exception
+    public void setUp() throws Exception
 	{
 		JDFElement.setDefaultJDFVersion(defaultVersion);
 		senderID = "TestSender";
@@ -270,9 +270,8 @@ public abstract class BambiTestCaseBase extends TestCase
 	 *  
 	 * @see junit.framework.TestCase#tearDown()
 	 */
-	@Override
 	@After
-	protected void tearDown() throws Exception
+    public void tearDown() throws Exception
 	{
 		KElement.setLongID(true);
 		JDFElement.setDefaultJDFVersion(EnumVersion.Version_1_3);
@@ -289,7 +288,7 @@ public abstract class BambiTestCaseBase extends TestCase
 	 * @param e
 	 * @param filename
 	 */
-	protected void writeTest(KElement e, String filename)
+	protected void writeTest(final KElement e, final String filename)
 	{
 		e.write2File(sm_dirTestDataTemp + filename);
 	}
@@ -344,7 +343,7 @@ public abstract class BambiTestCaseBase extends TestCase
 	 * Setter for bTestNetwork attribute.
 	 * @param bTestNetwork the bTestNetwork to set
 	 */
-	public void setTestNetwork(boolean bTestNetwork)
+	public void setTestNetwork(final boolean bTestNetwork)
 	{
 		this.bTestNetwork = bTestNetwork;
 	}

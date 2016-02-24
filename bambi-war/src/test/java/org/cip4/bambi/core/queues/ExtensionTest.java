@@ -71,6 +71,8 @@
 
 package org.cip4.bambi.core.queues;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.io.IOException;
 
 import javax.mail.MessagingException;
@@ -81,6 +83,7 @@ import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.junit.Test;
 
 /**
  * test for the various queue processor functions
@@ -106,6 +109,7 @@ public class ExtensionTest extends BambiContainerTest
 	 * @throws IOException
 	 * @throws MessagingException
 	 */
+    @Test
 	public void testSubmitXJDF() throws IOException, MessagingException
 	{
 		for (int i = 0; i < 1; i++)
@@ -118,10 +122,10 @@ public class ExtensionTest extends BambiContainerTest
 				ThreadUtil.sleep(1000);
 			}
 			System.out.println("Submit " + i);
-			XJDF20 conv = new XJDF20();
-			KElement xjdf = conv.makeNewJDF(_theGT.getNode(), null);
-			StreamRequest req = createSubmissionStreamRequest(xjdf);
-			XMLResponse r = bambiContainer.processStream(req);
+			final XJDF20 conv = new XJDF20();
+			final KElement xjdf = conv.makeNewJDF(_theGT.getNode(), null);
+			final StreamRequest req = createSubmissionStreamRequest(xjdf);
+			final XMLResponse r = bambiContainer.processStream(req);
 			assertNotNull(r.getXML());
 		}
 

@@ -68,6 +68,8 @@
  */
 package org.cip4.bambi.proxy;
 
+import static org.junit.Assert.assertEquals;
+
 import java.net.HttpURLConnection;
 
 import org.cip4.jdflib.core.JDFAudit;
@@ -75,6 +77,7 @@ import org.cip4.jdflib.goldenticket.IDPGoldenTicket;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumType;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.junit.Test;
 
 /**
  * TODO Please insert comment!
@@ -141,6 +144,7 @@ public class DigitalProxyTest extends ProxyTest
 	/**
 	 * @throws Exception
 	 */
+    @Test
 	public void testSimpleDigiNode() throws Exception
 	{
 		for (int ii = 0; ii < 1; ii++)
@@ -149,9 +153,9 @@ public class DigitalProxyTest extends ProxyTest
 			goldenTicket.makeReadyAll();
 			final JDFNode node = goldenTicket.getNode();
 			node.setType(EnumType.Combined);
-			String workerURL = getWorkerURL();
+			final String workerURL = getWorkerURL();
 			//			workerURL = "http://192.168.1.107:8080/dpp/jmf/dfe";
-			HttpURLConnection p = submitMimetoURL(workerURL);
+			final HttpURLConnection p = submitMimetoURL(workerURL);
 			assertEquals(p.getResponseCode(), 200);
 			ThreadUtil.sleep(1234);
 			System.out.println("sub: " + ii);

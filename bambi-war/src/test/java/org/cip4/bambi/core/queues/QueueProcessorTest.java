@@ -71,6 +71,8 @@
 
 package org.cip4.bambi.core.queues;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.io.IOException;
 
 import javax.mail.MessagingException;
@@ -89,6 +91,8 @@ import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlPart;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeWriter;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * test for the various queue processor functions
@@ -104,6 +108,7 @@ public class QueueProcessorTest extends BambiContainerTest
 	 * @throws IOException
 	 * @throws MessagingException
 	 */
+    @Test
 	public void testReturnQE() throws IOException, MessagingException
 	{
 		final JDFDoc docJMF = new JDFDoc("JMF");
@@ -116,15 +121,15 @@ public class QueueProcessorTest extends BambiContainerTest
 		returnQEParams.setQueueEntryID(queueEntryID);
 		final JDFDoc docJDF = JDFDoc.parseFile("C:\\data\\jdf\\foo.jdf");
 		returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
-		MimeWriter mw = new MimeWriter();
+		final MimeWriter mw = new MimeWriter();
 		mw.buildMimePackage(docJMF, docJDF, false);
 		final MIMEDetails mimeDetails = new MIMEDetails();
 		mimeDetails.transferEncoding = UrlUtil.BINARY;
 		mimeDetails.modifyBoundarySemicolon = false;
 		mw.setMIMEDetails(mimeDetails);
-		StreamRequest req = new StreamRequest(mw.getInputStream());
+		final StreamRequest req = new StreamRequest(mw.getInputStream());
 		req.setContentType(MimeUtil.MULTIPART_RELATED);
-		XMLResponse resp = bambiContainer.processStream(req);
+		final XMLResponse resp = bambiContainer.processStream(req);
 
 		assertNotNull(resp.getXML());
 	}
@@ -133,10 +138,11 @@ public class QueueProcessorTest extends BambiContainerTest
 	 * 
 	 *  
 	 */
+    @Test
 	public void testRemoveQE()
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildRemoveQueueEntry(queueEntryId);
-		UrlPart p = jmf.getOwnerDocument_JDFElement().write2HttpURL(UrlUtil.stringToURL(getWorkerURL()), null);
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildRemoveQueueEntry(queueEntryId);
+		final UrlPart p = jmf.getOwnerDocument_JDFElement().write2HttpURL(UrlUtil.stringToURL(getWorkerURL()), null);
 		p.buffer();
 	}
 
@@ -144,10 +150,11 @@ public class QueueProcessorTest extends BambiContainerTest
 	 * 
 	 *  
 	 */
+    @Test
 	public void testSuspendQE()
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSuspendQueueEntry(queueEntryId);
-		UrlPart p = jmf.getOwnerDocument_JDFElement().write2HttpURL(UrlUtil.stringToURL(getWorkerURL()), null);
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSuspendQueueEntry(queueEntryId);
+		final UrlPart p = jmf.getOwnerDocument_JDFElement().write2HttpURL(UrlUtil.stringToURL(getWorkerURL()), null);
 		p.buffer();
 	}
 
@@ -155,10 +162,11 @@ public class QueueProcessorTest extends BambiContainerTest
 	 * 
 	 *  
 	 */
+    @Test
 	public void testResumeQE()
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildResumeQueueEntry(queueEntryId);
-		UrlPart p = jmf.getOwnerDocument_JDFElement().write2HttpURL(UrlUtil.stringToURL(getWorkerURL()), null);
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildResumeQueueEntry(queueEntryId);
+		final UrlPart p = jmf.getOwnerDocument_JDFElement().write2HttpURL(UrlUtil.stringToURL(getWorkerURL()), null);
 		p.buffer();
 	}
 
@@ -166,6 +174,7 @@ public class QueueProcessorTest extends BambiContainerTest
 	 * @see org.cip4.bambi.core.BambiContainerTest#setUp()
 	 */
 	@Override
+    @Before
 	public void setUp() throws Exception
 	{
 		super.setUp();

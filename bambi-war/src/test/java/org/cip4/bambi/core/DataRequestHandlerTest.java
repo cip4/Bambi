@@ -68,6 +68,9 @@
  */
 package org.cip4.bambi.core;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.File;
 import java.io.InputStream;
 
@@ -75,6 +78,7 @@ import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.FileUtil;
+import org.junit.Test;
 
 /**
  *  
@@ -89,10 +93,12 @@ public class DataRequestHandlerTest extends BambiTestCase
 	 * @param devProp
 	 */
 	@Override
-	protected void moreSetup(DeviceProperties devProp)
+	protected void moreSetup(final DeviceProperties devProp)
 	{
 		if (extern)
-			devProp.setDeviceClassName("org.cip4.bambi.core.HandlerDevice");
+        {
+            devProp.setDeviceClassName("org.cip4.bambi.core.HandlerDevice");
+        }
 
 	}
 
@@ -101,6 +107,7 @@ public class DataRequestHandlerTest extends BambiTestCase
 	 *  
 	 * @throws Exception its a test!
 	 */
+    @Test
 	public void testHandle() throws Exception
 	{
 		extern = false;
@@ -110,17 +117,17 @@ public class DataRequestHandlerTest extends BambiTestCase
 		System.out.println(f.getAbsolutePath());
 		assertNotNull(f);
 		startContainer();
-		StreamRequest sr = new StreamRequest((InputStream) null);
+		final StreamRequest sr = new StreamRequest((InputStream) null);
 		sr.setPost(false);
 		sr.setRequestURI("http://dummy:8080/war/data/" + deviceID + "/qeID/foo.txt");
-		XMLResponse resp = bambiContainer.processStream(sr);
+		final XMLResponse resp = bambiContainer.processStream(sr);
 		assertNotNull(resp);
-		InputStream is = resp.getInputStream();
+		final InputStream is = resp.getInputStream();
 		assertNotNull(is);
 
-		byte bb[] = new byte[20];
-		int l = is.read(bb);
-		String bbb = new String(bb, 0, l);
+		final byte bb[] = new byte[20];
+		final int l = is.read(bb);
+		final String bbb = new String(bb, 0, l);
 		assertEquals("blahblah", bbb);
 	}
 
@@ -129,6 +136,7 @@ public class DataRequestHandlerTest extends BambiTestCase
 	*  
 	* @throws Exception its a test!
 	*/
+    @Test
 	public void testHandleExtern() throws Exception
 	{
 		extern = true;
@@ -138,17 +146,17 @@ public class DataRequestHandlerTest extends BambiTestCase
 		System.out.println(f.getAbsolutePath());
 		assertNotNull(f);
 		startContainer();
-		StreamRequest sr = new StreamRequest((InputStream) null);
+		final StreamRequest sr = new StreamRequest((InputStream) null);
 		sr.setPost(false);
 		sr.setRequestURI("http://dummy:8080/war/data/" + deviceID + "/qeID/foo.txt");
-		XMLResponse resp = bambiContainer.processStream(sr);
+		final XMLResponse resp = bambiContainer.processStream(sr);
 		assertNotNull(resp);
-		InputStream is = resp.getInputStream();
+		final InputStream is = resp.getInputStream();
 		assertNotNull(is);
 
-		byte bb[] = new byte[20];
-		int l = is.read(bb);
-		String bbb = new String(bb, 0, l);
+		final byte bb[] = new byte[20];
+		final int l = is.read(bb);
+		final String bbb = new String(bb, 0, l);
 		assertEquals("blahblah", bbb);
 	}
 }

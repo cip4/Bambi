@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -70,6 +70,10 @@
  */
 
 package org.cip4.bambi;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -210,13 +214,13 @@ public class BambiTestHelper extends BambiTestCaseBase
 	{
 		final JDFDoc docJMF = createSubmitJMF(d);
 
-		MimeWriter mimeWriter = new MimeWriter();
+		final MimeWriter mimeWriter = new MimeWriter();
 		mimeWriter.buildMimePackage(docJMF, d, extendReference);
 
-		MimeRequest mr = new MimeRequest(new MimeReader(mimeWriter));
+		final MimeRequest mr = new MimeRequest(new MimeReader(mimeWriter));
 		mr.setPost(true);
 		mr.setRequestURI(url);
-		XMLResponse r = container.processMultipleDocuments(mr);
+		final XMLResponse r = container.processMultipleDocuments(mr);
 		return r;
 	}
 
@@ -228,10 +232,10 @@ public class BambiTestHelper extends BambiTestCaseBase
 	 */
 	public XMLResponse submitXMLtoContainer(final XMLDoc d, final String url) throws MalformedURLException
 	{
-		XMLRequest xmlRequest = new XMLRequest(d);
+		final XMLRequest xmlRequest = new XMLRequest(d);
 		xmlRequest.setPost(true);
 		xmlRequest.setRequestURI(url);
-		XMLResponse r = container.processXMLDoc(xmlRequest);
+		final XMLResponse r = container.processXMLDoc(xmlRequest);
 		return r;
 	}
 
@@ -242,12 +246,13 @@ public class BambiTestHelper extends BambiTestCaseBase
 	 */
 	public JDFDoc createSubmitJMF(final JDFDoc d) throws MalformedURLException
 	{
-		JMFBuilder builder = new JMFBuilder();
+		final JMFBuilder builder = new JMFBuilder();
 		builder.setAcknowledgeURL(acknowledgeURL);
-		final JDFJMF jmf = builder.buildSubmitQueueEntry(returnURL, "dummy");
+		final JDFJMF jmf = builder.buildSubmitQueueEntry(returnURL);
 		final JDFDoc docJMF = jmf.getOwnerDocument_JDFElement();
 		final JDFCommand com = jmf.getCommand(0);
 		final JDFQueueSubmissionParams queueSubmissionParams = com.getCreateQueueSubmissionParams(0);
+		queueSubmissionParams.setURL("dummy");
 		queueSubmissionParams.setPriority(42);
 		updateJobIDs(d);
 		if (returnJMF != null)
@@ -356,9 +361,9 @@ public class BambiTestHelper extends BambiTestCaseBase
 	{
 		if (container != null)
 		{
-			XMLRequest request = new XMLRequest(xml);
+			final XMLRequest request = new XMLRequest(xml);
 			request.setRequestURI(url);
-			XMLResponse res = container.processXMLDoc(request);
+			final XMLResponse res = container.processXMLDoc(request);
 			return res.getXMLDoc();
 		}
 		try

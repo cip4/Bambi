@@ -71,6 +71,12 @@
 
 package org.cip4.bambi;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.net.HttpURLConnection;
 
 import javax.mail.Multipart;
@@ -89,6 +95,7 @@ import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.MimeUtil;
+import org.junit.Test;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -198,6 +205,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testSuspendResumeQE()
 	{
 		final JDFQueueEntry runningQE = getRunningQueueEntry();
@@ -273,6 +281,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testAbortRemoveQE()
 	{
 		final JDFQueueEntry runningQE = getRunningQueueEntry();
@@ -313,6 +322,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testSuspendAbortQE()
 	{
 		final JDFQueueEntry runningQE = getRunningQueueEntry();
@@ -370,6 +380,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
+    @Test
 	public void testRogueWaves() throws Exception
 	{
 		for (int i = 0; i < 20; i++)

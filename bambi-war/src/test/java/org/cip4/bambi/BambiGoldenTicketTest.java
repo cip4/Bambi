@@ -74,7 +74,9 @@ import org.cip4.jdflib.core.JDFAudit;
 import org.cip4.jdflib.core.JDFElement.EnumValidationLevel;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.goldenticket.BaseGoldenTicket;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
@@ -87,8 +89,9 @@ public abstract class BambiGoldenTicketTest extends BambiTestCaseBase
 	 * 
 	 * @see org.cip4.jdflib.JDFTestCaseBase#setUp()
 	 */
-	@Override
-	protected void setUp() throws Exception
+    @Override
+    @Before
+    public void setUp() throws Exception
 	{
 		agentName = JDFAudit.getStaticAgentName();
 		KElement.setLongID(false);
@@ -100,8 +103,9 @@ public abstract class BambiGoldenTicketTest extends BambiTestCaseBase
 	 * 
 	 * @see org.cip4.jdflib.JDFTestCaseBase#tearDown()
 	 */
-	@Override
-	protected void tearDown() throws Exception
+    @Override
+    @After
+    public void tearDown() throws Exception
 	{
 		JDFAudit.setStaticAgentName(agentName);
 		KElement.setLongID(true);

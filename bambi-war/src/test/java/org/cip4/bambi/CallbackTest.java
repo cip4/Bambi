@@ -71,6 +71,9 @@
 
 package org.cip4.bambi;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 
 import org.cip4.bambi.core.AbstractDevice;
@@ -89,6 +92,7 @@ import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.junit.Test;
 
 /**
   * @author Rainer Prosi, Heidelberger Druckmaschinen *
@@ -151,6 +155,7 @@ public class CallbackTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testAddCallback()
 	{
 		final JMFHandler h = new JMFHandler(null);
@@ -179,6 +184,7 @@ public class CallbackTest extends BambiTestCase
 	 * 
 	 * @throws Exception
 	 */
+    @Test
 	public void testHFCallback() throws Exception
 	{
 		final MyProp myProp = new MyProp();
@@ -193,11 +199,12 @@ public class CallbackTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testJMFJobID()
 	{
-		ConverterCallback cb = new ConverterCallback();
+		final ConverterCallback cb = new ConverterCallback();
 		cb.setRemoveJobIDFromSubs(true);
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSubscription("abc", 32, 33, "jjj");
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSubscription("abc", 32, 33, "jjj");
 		cb.prepareJMFForBambi(jmf.getOwnerDocument_JDFElement());
 		assertEquals(jmf.toDisplayXML(2).indexOf("jjj"), -1);
 	}

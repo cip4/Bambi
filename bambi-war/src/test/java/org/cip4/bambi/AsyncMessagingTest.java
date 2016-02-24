@@ -71,6 +71,8 @@
 
 package org.cip4.bambi;
 
+import static org.junit.Assert.assertEquals;
+
 import java.net.HttpURLConnection;
 
 import org.cip4.bambi.core.IConverterCallback;
@@ -133,7 +135,8 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	 * 
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#handleMessage()
 	 */
-	public boolean handleMessage()
+	@Override
+    public boolean handleMessage()
 	{
 		return true;
 	}
@@ -164,7 +167,8 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	 * 
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
 	 */
-	public HttpURLConnection getConnection()
+	@Override
+    public HttpURLConnection getConnection()
 	{
 		return c;
 	}
@@ -174,7 +178,8 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	 * 
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#setConnection(java.net.HttpURLConnection)
 	 */
-	public void setConnection(final HttpURLConnection con)
+	@Override
+    public void setConnection(final HttpURLConnection con)
 	{
 		c = con;
 
@@ -184,7 +189,8 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	 * 
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(org.cip4.jdflib.util.ByteArrayIOStream)
 	 */
-	public void setBufferedStream(final ByteArrayIOStream bis)
+	@Override
+    public void setBufferedStream(final ByteArrayIOStream bis)
 	{
 		// TODO Auto-generated method stub
 
@@ -204,7 +210,8 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	/**
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#setCallBack(org.cip4.bambi.core.IConverterCallback)
 	 */
-	public void setCallBack(final IConverterCallback back)
+	@Override
+    public void setCallBack(final IConverterCallback back)
 	{
 		// TODO Auto-generated method stub
 
@@ -213,7 +220,8 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	/**
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#getFinalMessage()
 	 */
-	public JDFMessage getFinalMessage()
+	@Override
+    public JDFMessage getFinalMessage()
 	{
 		// TODO Auto-generated method stub
 		return null;
@@ -222,7 +230,8 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	/**
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#getResponse()
 	 */
-	public JDFResponse getResponse()
+	@Override
+    public JDFResponse getResponse()
 	{
 		// TODO Auto-generated method stub
 		return null;
@@ -231,7 +240,8 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	/**
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#isAborted()
 	 */
-	public boolean isAborted()
+	@Override
+    public boolean isAborted()
 	{
 		// TODO Auto-generated method stub
 		return false;
@@ -240,7 +250,8 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	/**
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#setMessage(org.cip4.jdflib.jmf.JDFMessage)
 	 */
-	public void setMessage(final JDFMessage response)
+	@Override
+    public void setMessage(final JDFMessage response)
 	{
 		// TODO Auto-generated method stub
 
@@ -249,7 +260,8 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	/**
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#waitHandled(int, boolean)
 	 */
-	public void waitHandled(final int milliSeconds, final int milliSeconds2, final boolean abortTimeOut)
+	@Override
+    public void waitHandled(final int milliSeconds, final int milliSeconds2, final boolean abortTimeOut)
 	{
 		// TODO Auto-generated method stub
 

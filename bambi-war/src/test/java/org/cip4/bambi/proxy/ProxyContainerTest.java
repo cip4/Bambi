@@ -70,6 +70,10 @@
  */
 package org.cip4.bambi.proxy;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -92,6 +96,7 @@ import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.junit.Test;
 
 /**
  * 
@@ -107,11 +112,12 @@ public class ProxyContainerTest extends BambiContainerTest
 	 * test of generic command proxy
 	 * @throws IOException
 	 */
+    @Test
 	public void testNewJDF() throws IOException
 	{
 		final BambiTestHelper helper = getHelper();
 		helper.container = bambiContainer;
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildNewJDFCommand();
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildNewJDFCommand();
 		final XMLResponse r = helper.submitXMLtoContainer(jmf.getOwnerDocument_KElement(), getWorkerURL());
 		assertNotNull(r);
 	}
@@ -121,19 +127,20 @@ public class ProxyContainerTest extends BambiContainerTest
 	 * test rqe to a proxy device
 	 * @throws IOException 
 	 */
+    @Test
 	public void testRequestQueueEntry() throws IOException
 	{
 		testSubmit();
-		JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
+		final JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
 		assertEquals(queue.numEntries(null), 1);
 		JDFQueueEntry qe = queue.getNextExecutableQueueEntry();
 
 		final String jobID = qe.getJobID();
 		final String jobPartID = qe.getJobPartID();
-		NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
+		final NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
 		final JDFJMF pull = new JMFBuilder().buildRequestQueueEntry(getDumpURL(), ni);
 		pull.getCommand(0).getRequestQueueEntryParams(0).setAttribute(AttributeName.ACTIVATION, EnumActivation.Informative.getName());
-		CPUTimer ct = new CPUTimer(true);
+		final CPUTimer ct = new CPUTimer(true);
 		final JDFDoc dresp2 = submitJMFtoURL(pull, getProxyURLForSlave());
 		System.out.println(ni + ct.toString());
 		qe = queue.getNextExecutableQueueEntry();
@@ -147,20 +154,21 @@ public class ProxyContainerTest extends BambiContainerTest
 	 * test rqe to a proxy device
 	 * @throws IOException ex
 	 */
+    @Test
 	public void testRequestQueueEntryInformative() throws IOException
 	{
 		deviceID = "sim001";
 		testSubmit();
-		JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
+		final JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
 		assertEquals(queue.numEntries(null), 1);
 		JDFQueueEntry qe = queue.getNextExecutableQueueEntry();
 
 		final String jobID = qe.getJobID();
 		final String jobPartID = qe.getJobPartID();
-		NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
+		final NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
 		final JDFJMF pull = new JMFBuilder().buildRequestQueueEntry(getWorkerURL(), ni);
 		pull.getCommand(0).getRequestQueueEntryParams(0).setAttribute(AttributeName.ACTIVATION, EnumActivation.Informative.getName());
-		CPUTimer ct = new CPUTimer(true);
+		final CPUTimer ct = new CPUTimer(true);
 		final JDFDoc dresp2 = submitJMFtoURL(pull, getProxyURLForSlave());
 		System.out.println(ni + ct.toString());
 		qe = queue.getNextExecutableQueueEntry();
@@ -172,9 +180,13 @@ public class ProxyContainerTest extends BambiContainerTest
 		{
 			dresp3 = submitJMFtoURL(pull, getProxyURLForSlave());
 			if (dresp3.getJMFRoot().getResponse(0).getReturnCode() != 0)
-				fail("" + i);
-			else
-				System.out.print(i + "\n");
+            {
+                fail("" + i);
+            }
+            else
+            {
+                System.out.print(i + "\n");
+            }
 		}
 		assertNotNull(dresp3);
 
@@ -185,28 +197,31 @@ public class ProxyContainerTest extends BambiContainerTest
 	 * test rqe to a proxy device
 	 * @throws IOException ex
 	 */
+    @Test
 	public void testRequestQueueEntryInformativeThenReal() throws IOException
 	{
 		testSubmit();
-		JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
+		final JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
 		assertEquals(queue.numEntries(null), 1);
 		JDFQueueEntry qe = queue.getNextExecutableQueueEntry();
 
 		final String jobID = qe.getJobID();
 		final String jobPartID = qe.getJobPartID();
-		NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
+		final NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
 		final JDFJMF pull = new JMFBuilder().buildRequestQueueEntry(getDumpURL(), ni);
 		pull.getCommand(0).getRequestQueueEntryParams(0).setAttribute(AttributeName.ACTIVATION, EnumActivation.Informative.getName());
-		CPUTimer ct = new CPUTimer(true);
+		final CPUTimer ct = new CPUTimer(true);
 		final JDFDoc dresp2 = submitJMFtoURL(pull, getProxyURLForSlave());
 		System.out.println(ni + ct.toString());
 		qe = queue.getNextExecutableQueueEntry();
 		assertNotNull(qe);
 		assertNotNull(dresp2);
 		pull.getCommand(0).getRequestQueueEntryParams(0).setAttribute(AttributeName.ACTIVATION, EnumActivation.Active.getName());
-		JDFDoc dresp3 = submitJMFtoURL(pull, getProxyURLForSlave());
+		final JDFDoc dresp3 = submitJMFtoURL(pull, getProxyURLForSlave());
 		if (dresp3.getJMFRoot().getResponse(0).getReturnCode() != 0)
-			fail();
+        {
+            fail();
+        }
 		assertNotNull(dresp3);
 
 	}
@@ -216,19 +231,20 @@ public class ProxyContainerTest extends BambiContainerTest
 	* test rqe to a proxy device
 	* @throws IOException ex
 	*/
+    @Test
 	public void testRequestQueueEntryForce() throws IOException
 	{
 		testSubmit();
-		JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
+		final JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
 		assertEquals(queue.numEntries(null), 1);
 		JDFQueueEntry qe = queue.getNextExecutableQueueEntry();
 
 		final String jobID = qe.getJobID();
 		final String jobPartID = qe.getJobPartID();
-		NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
+		final NodeIdentifier ni = new NodeIdentifier(jobID, jobPartID, null);
 		final JDFJMF pull = new JMFBuilder().buildRequestQueueEntry(getDumpURL(), ni);
 		pull.getCommand(0).getRequestQueueEntryParams(0).setAttribute(AttributeName.SUBMITPOLICY, EnumSubmitPolicy.Force.getName());
-		CPUTimer ct = new CPUTimer(true);
+		final CPUTimer ct = new CPUTimer(true);
 		final JDFDoc dresp2 = submitJMFtoURL(pull, getProxyURLForSlave());
 		System.out.println(ni + ct.toString());
 		qe = queue.getNextExecutableQueueEntry();
@@ -239,9 +255,13 @@ public class ProxyContainerTest extends BambiContainerTest
 		{
 			dresp3 = submitJMFtoURL(pull, getProxyURLForSlave());
 			if (dresp3.getJMFRoot().getResponse(0).getReturnCode() != 0)
-				ThreadUtil.sleep(1000);
-			else
-				break;
+            {
+                ThreadUtil.sleep(1000);
+            }
+            else
+            {
+                break;
+            }
 		}
 		assertNotNull(dresp3);
 
@@ -260,9 +280,9 @@ public class ProxyContainerTest extends BambiContainerTest
 	 * @param devProp
 	 */
 	@Override
-	protected void moreSetup(DeviceProperties devProp)
+	protected void moreSetup(final DeviceProperties devProp)
 	{
-		ProxyDeviceProperties pdp = (ProxyDeviceProperties) devProp;
+		final ProxyDeviceProperties pdp = (ProxyDeviceProperties) devProp;
 		pdp.setDeviceClassName("org.cip4.bambi.proxy.ProxyDevice");
 		pdp.setMaxPush(0);
 	}
@@ -273,7 +293,7 @@ public class ProxyContainerTest extends BambiContainerTest
 	@Override
 	protected MultiDeviceProperties createPropertiesForContainer()
 	{
-		MultiDeviceProperties props = new ProxyProperties(new File(sm_dirContainer));
+		final MultiDeviceProperties props = new ProxyProperties(new File(sm_dirContainer));
 		return props;
 	}
 

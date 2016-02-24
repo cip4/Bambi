@@ -71,6 +71,10 @@
 
 package org.cip4.bambi.core;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.SignalDispatcher;
@@ -81,6 +85,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.junit.Test;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -107,6 +112,7 @@ public class SignalDispatcherTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testAddSubscription()
 	{
 		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
@@ -126,6 +132,7 @@ public class SignalDispatcherTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testWaitQueued()
 	{
 		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);

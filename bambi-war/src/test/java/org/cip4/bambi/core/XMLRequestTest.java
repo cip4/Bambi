@@ -70,10 +70,13 @@
  */
 package org.cip4.bambi.core;
 
+import static org.junit.Assert.assertEquals;
+
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.UrlUtil;
+import org.junit.Test;
 
 /**
   * @author Rainer Prosi, Heidelberger Druckmaschinen *
@@ -83,10 +86,11 @@ public class XMLRequestTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testConstruct()
 	{
-		JDFJMF jmf = new JMFBuilder().buildHoldQueueEntry("42");
-		XMLRequest req = new XMLRequest(jmf);
+		final JDFJMF jmf = new JMFBuilder().buildHoldQueueEntry("42");
+		final XMLRequest req = new XMLRequest(jmf);
 		assertEquals(jmf, req.getXML());
 		assertEquals(UrlUtil.VND_JMF, req.getContentType(true));
 	}

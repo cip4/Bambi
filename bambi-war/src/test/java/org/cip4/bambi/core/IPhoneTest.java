@@ -71,6 +71,8 @@
 
 package org.cip4.bambi.core;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.io.IOException;
 
 import org.cip4.bambi.BambiTestCase;
@@ -82,6 +84,8 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -95,14 +99,15 @@ public class IPhoneTest extends BambiTestCase
 	 * @throws IOException
 	 * 
 	 */
+    @Test
 	public void testStatus() throws IOException
 	{
-		JDFJMF jmf = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
-		JDFStatusQuParams sqp = jmf.getMessageElement(EnumFamily.Query, EnumType.Status, 0).getCreateStatusQuParams(0);
+		final JDFJMF jmf = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
+		final JDFStatusQuParams sqp = jmf.getMessageElement(EnumFamily.Query, EnumType.Status, 0).getCreateStatusQuParams(0);
 		sqp.setQueueInfo(true);
 		sqp.setJobDetails(EnumJobDetails.Full);
 		sqp.setDeviceDetails(EnumDeviceDetails.Full);
-		JDFResponse resp = sendToURL(jmf, getWorkerURL());
+		final JDFResponse resp = sendToURL(jmf, getWorkerURL());
 		resp.getOwnerDocument_JDFElement().write2File(sm_dirTestDataTemp + "iphone.jmf", 2, false);
 		assertNotNull(resp);
 	}
@@ -112,7 +117,8 @@ public class IPhoneTest extends BambiTestCase
 	 * @throws Exception
 	*/
 	@Override
-	protected void setUp() throws Exception
+    @Before
+    public void setUp() throws Exception
 	{
 		super.setUp();
 		workerURLBase = "http://kie-wf19prdy:6351/icsportal/jmf/";

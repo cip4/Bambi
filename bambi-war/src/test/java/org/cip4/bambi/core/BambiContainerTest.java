@@ -71,6 +71,10 @@
 
 package org.cip4.bambi.core;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -94,6 +98,7 @@ import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.mime.MimeWriter;
+import org.junit.Test;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -115,10 +120,11 @@ public class BambiContainerTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testConstruct()
 	{
 		assertNotNull(bambiContainer.getRootDev());
-		AbstractDevice deviceFromID = bambiContainer.getDeviceFromID("device");
+		final AbstractDevice deviceFromID = bambiContainer.getDeviceFromID("device");
 		assertNotNull(deviceFromID);
 		assertEquals(deviceFromID.getDeviceID(), "device");
 		assertNotNull("proxy incorrectly set? ", UrlUtil.writeToURL("http://www.example.com", null, UrlUtil.GET, UrlUtil.TEXT_PLAIN, null));
@@ -127,10 +133,11 @@ public class BambiContainerTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testHandleJMF()
 	{
-		JDFJMF jmf = new JMFBuilder().buildKnownMessagesQuery();
-		XMLResponse resp = bambiContainer.processJMFDoc(new XMLRequest(jmf));
+		final JDFJMF jmf = new JMFBuilder().buildKnownMessagesQuery();
+		final XMLResponse resp = bambiContainer.processJMFDoc(new XMLRequest(jmf));
 		assertNotNull(resp);
 		assertTrue(((JDFElement) resp.getXML()).isValid(EnumValidationLevel.Complete));
 	}
@@ -138,37 +145,40 @@ public class BambiContainerTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testHandleJunkXML()
 	{
-		KElement junk = new XMLDoc("junk", null).getRoot();
+		final KElement junk = new XMLDoc("junk", null).getRoot();
 
-		XMLRequest request = new XMLRequest(junk);
+		final XMLRequest request = new XMLRequest(junk);
 		request.setContentType("application/junk+xml");
-		XMLResponse resp = bambiContainer.processXMLDoc(request);
+		final XMLResponse resp = bambiContainer.processXMLDoc(request);
 		assertNotNull(resp);
 	}
 
 	/**
 	 * 
 	 */
+    @Test
 	public void testSubmitRawJDF()
 	{
-		JDFDoc junk = new JDFDoc("JDF");
+		final JDFDoc junk = new JDFDoc("JDF");
 
-		XMLRequest request = new XMLRequest(junk);
-		XMLResponse resp = bambiContainer.processXMLDoc(request);
+		final XMLRequest request = new XMLRequest(junk);
+		final XMLResponse resp = bambiContainer.processXMLDoc(request);
 		assertNotNull(resp);
 	}
 
 	/**
 	 * 
 	 */
+    @Test
 	public void testSubmitRawXJDF()
 	{
-		XMLDoc junk = new XMLDoc("XJDF", null);
+		final XMLDoc junk = new XMLDoc("XJDF", null);
 
-		XMLRequest request = new XMLRequest(junk);
-		XMLResponse resp = bambiContainer.processXMLDoc(request);
+		final XMLRequest request = new XMLRequest(junk);
+		final XMLResponse resp = bambiContainer.processXMLDoc(request);
 		assertNotNull(resp);
 	}
 
@@ -176,14 +186,15 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException 
 	 * 
 	 */
+    @Test
 	public void testHandleStreamXML() throws IOException
 	{
-		JDFJMF jmf = new JMFBuilder().buildKnownMessagesQuery();
-		ByteArrayIOStream ios = new ByteArrayIOStream();
+		final JDFJMF jmf = new JMFBuilder().buildKnownMessagesQuery();
+		final ByteArrayIOStream ios = new ByteArrayIOStream();
 		jmf.getOwnerDocument_JDFElement().write2Stream(ios, 0, true);
-		StreamRequest r = new StreamRequest(ios.getInputStream());
+		final StreamRequest r = new StreamRequest(ios.getInputStream());
 		r.setContentType(UrlUtil.TEXT_XML);
-		XMLResponse resp = bambiContainer.processStream(r);
+		final XMLResponse resp = bambiContainer.processStream(r);
 		assertNotNull(resp);
 		resp.getXMLDoc().write2File(sm_dirTestDataTemp + "handleStream.resp.jmf", 2, false);
 		assertTrue(((JDFElement) resp.getXML()).isValid(EnumValidationLevel.Complete));
@@ -193,14 +204,15 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException 
 	 * 
 	 */
+    @Test
 	public void testHandleStreamError() throws IOException
 	{
-		JDFJMF jmf = new JMFBuilder().buildKnownMessagesQuery();
-		ByteArrayIOStream ios = new ByteArrayIOStream();
+		final JDFJMF jmf = new JMFBuilder().buildKnownMessagesQuery();
+		final ByteArrayIOStream ios = new ByteArrayIOStream();
 		jmf.getOwnerDocument_JDFElement().write2Stream(ios, 0, true);
-		StreamRequest r = new StreamRequest(ios.getInputStream());
+		final StreamRequest r = new StreamRequest(ios.getInputStream());
 		r.setContentType(MimeUtil.MULTIPART_RELATED);
-		XMLResponse resp = bambiContainer.processStream(r);
+		final XMLResponse resp = bambiContainer.processStream(r);
 		assertNotNull(resp);
 		resp.getXMLDoc().write2File(sm_dirTestDataTemp + "handleStream.resp.jmf", 2, false);
 		assertTrue(((JDFElement) resp.getXML()).isValid(EnumValidationLevel.Complete));
@@ -221,12 +233,13 @@ public class BambiContainerTest extends BambiTestCase
 	/**
 	 * 
 	 */
+    @Test
 	public void testHandleJMFSubscription()
 	{
-		JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://www.example.com", 15, 0, null);
-		XMLResponse resp = bambiContainer.processJMFDoc(new XMLRequest(jmf));
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://www.example.com", 15, 0, null);
+		final XMLResponse resp = bambiContainer.processJMFDoc(new XMLRequest(jmf));
 		assertNotNull(resp);
-		JDFJMF jmfResp = (JDFJMF) resp.getXML();
+		final JDFJMF jmfResp = (JDFJMF) resp.getXML();
 		resp.getXMLDoc().write2File(sm_dirTestDataTemp + "respSubs.jmf", 2, false);
 		assertTrue(jmfResp.isValid(EnumValidationLevel.Complete));
 		assertTrue(jmfResp.getResponse(0).getSubscribed());
@@ -236,14 +249,15 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException if bad things happen
 	 * 
 	 */
+    @Test
 	public void testHandleGet() throws IOException
 	{
-		StreamRequest sr = new StreamRequest((InputStream) null);
+		final StreamRequest sr = new StreamRequest((InputStream) null);
 		sr.setPost(false);
 		sr.setRequestURI("http://dummy:8080/war/showQueue/" + deviceID);
-		XMLResponse resp = bambiContainer.processStream(sr);
+		final XMLResponse resp = bambiContainer.processStream(sr);
 		assertNotNull(resp);
-		KElement htmlResp = resp.getXML();
+		final KElement htmlResp = resp.getXML();
 		assertNotNull(htmlResp);
 		assertTrue(htmlResp instanceof JDFQueue);
 	}
@@ -252,18 +266,19 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException if bad things happen
 	 * 
 	 */
+    @Test
 	public void testSubmit() throws IOException
 	{
 
 		final JDFDoc docJDF = _theGT.getNode().getOwnerDocument_JDFElement();
 
-		BambiTestHelper helper = getHelper();
-		XMLResponse resp = helper.submitMimetoContainer(docJDF, getWorkerURL() + deviceID);
+		final BambiTestHelper helper = getHelper();
+		final XMLResponse resp = helper.submitMimetoContainer(docJDF, getWorkerURL() + deviceID);
 		assertNotNull(resp);
-		KElement htmlResp = resp.getXML();
+		final KElement htmlResp = resp.getXML();
 		assertNotNull(htmlResp);
 		assertTrue(htmlResp instanceof JDFJMF);
-		JDFQueue queue = helper.getQueueStatus(getWorkerURL());
+		final JDFQueue queue = helper.getQueueStatus(getWorkerURL());
 		assertTrue(queue.numEntries(null) > 0);
 
 	}
@@ -272,20 +287,21 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException 
 	 * 
 	 */
+    @Test
 	public void testSubmitCrap() throws IOException
 	{
 
 		final JDFDoc docJDF = _theGT.getNode().getOwnerDocument_JDFElement();
 
-		BambiTestHelper helper = new BambiTestHelper();
-		JDFDoc jmfDoc = helper.createSubmitJMF(docJDF);
-		MimeWriter mimeWriter = new MimeWriter();
+		final BambiTestHelper helper = new BambiTestHelper();
+		final JDFDoc jmfDoc = helper.createSubmitJMF(docJDF);
+		final MimeWriter mimeWriter = new MimeWriter();
 		mimeWriter.buildMimePackage(jmfDoc, null, false);
-		MimeRequest mr = new MimeRequest(new MimeReader(mimeWriter));
+		final MimeRequest mr = new MimeRequest(new MimeReader(mimeWriter));
 		mr.setRequestURI("http://dummy:8080/war/jmf/" + deviceID);
-		XMLResponse resp = bambiContainer.processMultipleDocuments(mr);
+		final XMLResponse resp = bambiContainer.processMultipleDocuments(mr);
 		assertNotNull(resp);
-		KElement htmlResp = resp.getXML();
+		final KElement htmlResp = resp.getXML();
 		assertNotNull(htmlResp);
 		assertTrue(htmlResp instanceof JDFJMF);
 	}
@@ -294,9 +310,10 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException 
 	 * 
 	 */
+    @Test
 	public void testSubmitMany() throws IOException
 	{
-		CPUTimer ct = new CPUTimer(false);
+		final CPUTimer ct = new CPUTimer(false);
 		for (int i = 0; i < 1000; i++)
 		{
 			ct.start();
@@ -314,17 +331,17 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException
 	 * @throws MessagingException
 	 */
-	protected StreamRequest createSubmissionStreamRequest(KElement jdf) throws MalformedURLException, IOException, MessagingException
+	protected StreamRequest createSubmissionStreamRequest(final KElement jdf) throws MalformedURLException, IOException, MessagingException
 	{
 		final BambiTestHelper helper = new BambiTestHelper();
 		helper.returnJMF = returnJMF;
-		JDFDoc xjdfDoc = new JDFDoc(jdf.getOwnerDocument());
-		JDFDoc jmfDoc = helper.createSubmitJMF(xjdfDoc);
-		MimeWriter mw = new MimeWriter();
+		final JDFDoc xjdfDoc = new JDFDoc(jdf.getOwnerDocument());
+		final JDFDoc jmfDoc = helper.createSubmitJMF(xjdfDoc);
+		final MimeWriter mw = new MimeWriter();
 		mw.buildMimePackage(jmfDoc, xjdfDoc, false);
-		ByteArrayIOStream ios = new ByteArrayIOStream();
+		final ByteArrayIOStream ios = new ByteArrayIOStream();
 		mw.writeToStream(ios);
-		StreamRequest req = new StreamRequest(ios.getInputStream());
+		final StreamRequest req = new StreamRequest(ios.getInputStream());
 		req.setContentType(MimeUtil.MULTIPART_RELATED);
 		return req;
 	}

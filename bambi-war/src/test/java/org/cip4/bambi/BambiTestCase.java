@@ -71,6 +71,8 @@
 
 package org.cip4.bambi;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -99,6 +101,11 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.UrlUtil;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.Timeout;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
@@ -107,8 +114,12 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public class BambiTestCase extends BambiGoldenTicketTest
 {
+    @Rule
+    public Timeout globalTimeout = new Timeout(60000);
+
 	@Override
-	protected void setUp() throws Exception
+    @Before
+    public void setUp() throws Exception
 	{
 		super.setUp();
 		BaseGoldenTicket.setMisURL("http://localhost:8080/httpdump/BambiTest");
@@ -206,7 +217,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 */
 	protected void createIDPGT()
 	{
-		IDPGoldenTicket idpGoldenTicket = new IDPGoldenTicket(1);
+		final IDPGoldenTicket idpGoldenTicket = new IDPGoldenTicket(1);
 		idpGoldenTicket.m_pdfFile = sm_dirTestData + "url1.pdf";
 		idpGoldenTicket.good = 100;
 		idpGoldenTicket.waste = 0;
@@ -236,7 +247,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 */
 	protected enumGTType getGTType()
 	{
-		return (gt == null) ? enumGTType.MISCP : gt;
+		return gt == null ? enumGTType.MISCP : gt;
 	}
 
 	protected enum enumGTType
@@ -346,9 +357,10 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	/**
 	 * dummy so that we can simply run the directory as a test
 	 */
+    @Test
 	public void testNothing()
 	{
-		int i = 1;
+		final int i = 1;
 		assertTrue(1 == i);
 	}
 
@@ -396,11 +408,13 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 * @return
 	 * @throws MalformedURLException
 	 */
-	protected HttpURLConnection submitMimetoURL(final JDFDoc d, String url, boolean extendReference) throws MalformedURLException
+	protected HttpURLConnection submitMimetoURL(final JDFDoc d, String url, final boolean extendReference) throws MalformedURLException
 	{
 		ensureCurrentGT();
 		if (url == null)
-			url = getWorkerURL();
+        {
+            url = getWorkerURL();
+        }
 		final BambiTestHelper helper = getHelper();
 		helper.extendReference = extendReference;
 
@@ -483,7 +497,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	/**
 	 * @param devProp
 	 */
-	protected void moreSetup(DeviceProperties devProp)
+	protected void moreSetup(final DeviceProperties devProp)
 	{
 		// dummy stub
 
@@ -495,12 +509,14 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	protected void startContainer()
 	{
 		if (!wantContainer)
-			return;
+        {
+            return;
+        }
 		bambiContainer = BambiContainer.getCreateInstance();
-		MultiDeviceProperties props = createPropertiesForContainer();
+		final MultiDeviceProperties props = createPropertiesForContainer();
 		props.getRoot().setAttribute("WebProxy", "proxy:8080");
 
-		DeviceProperties devProp = props.createDeviceProps(null);
+		final DeviceProperties devProp = props.createDeviceProps(null);
 		devProp.setDeviceID(deviceID);
 		devProp.setCallBackClassName("org.cip4.bambi.extensions.ExtensionCallback");
 		moreSetup(devProp);
@@ -514,7 +530,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 */
 	protected MultiDeviceProperties createPropertiesForContainer()
 	{
-		MultiDeviceProperties props = new MultiDeviceProperties(new File(sm_dirContainer));
+		final MultiDeviceProperties props = new MultiDeviceProperties(new File(sm_dirContainer));
 		return props;
 	}
 
@@ -523,11 +539,14 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 * @throws Exception
 	 */
 	@Override
-	protected void tearDown() throws Exception
+    @After
+    public void tearDown() throws Exception
 	{
 		super.tearDown();
 		if (bambiContainer != null)
-			bambiContainer.shutDown();
+        {
+            bambiContainer.shutDown();
+        }
 	}
 
 }
