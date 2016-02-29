@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -102,7 +102,7 @@ public class MessageFiFoTest extends BambiTestCaseBase
 		MessageFiFo fifo = new MessageFiFo(dumpDir);
 		long nIn = 0;
 		long nOut = 0;
-		for (int i = 0; i < 10000; i++)
+		for (int i = 0; i < 333; i++)
 		{
 			for (int j = 0; j < 10; j++)
 			{
@@ -126,7 +126,7 @@ public class MessageFiFoTest extends BambiTestCaseBase
 		fifo.dumpHeadTail();
 		log.info("reactivating " + dumpDir);
 		fifo = new MessageFiFo(dumpDir);
-		for (int i = 0; i < 110000; i++)
+		for (int i = 0; i < 424; i++)
 		{
 			for (int j = 0; j < 2; j++)
 			{
