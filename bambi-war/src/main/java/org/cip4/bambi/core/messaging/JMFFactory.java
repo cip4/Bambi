@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -87,6 +87,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.thread.MyMutex;
 
@@ -221,6 +222,23 @@ public class JMFFactory extends BambiLogFactory
 			}
 		}
 		return theFactory;
+	}
+
+	/**
+	 * 
+	 */
+	public static void shutdown()
+	{
+		if (theFactory != null)
+		{
+			theFactory.shutDown(null, true);
+			if (theFactory.senders.size() > 0)
+			{
+				ThreadUtil.sleep(1234);
+				theFactory.shutDown(null, false);
+			}
+			theFactory = null;
+		}
 	}
 
 	/**

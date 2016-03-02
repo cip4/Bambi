@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -141,15 +141,14 @@ public abstract class BambiTestCaseBase
 	private static String getTestDataDir()
 	{
 
-        String path = "../HDBambiUtil-J/test/data";
-        File dataFile = new File(path).getAbsoluteFile();
+		String path = "test/data";
+		File dataFile = new File(path).getAbsoluteFile();
 		if (!dataFile.isDirectory())
-        {
-            path = BambiTestCaseBase.class.getResource("/").getPath();
-            dataFile = new File(path);
-        }
-        path = FilenameUtils.normalize(dataFile.getAbsolutePath())
-                        + File.separator;
+		{
+			path = BambiTestCaseBase.class.getResource("/").getPath();
+			dataFile = new File(path);
+		}
+		path = FilenameUtils.normalize(dataFile.getAbsolutePath()) + File.separator;
 
 		return path;
 
@@ -241,7 +240,7 @@ public abstract class BambiTestCaseBase
 	 * @see junit.framework.TestCase#setUp()
 	 */
 	@Before
-    public void setUp() throws Exception
+	public void setUp() throws Exception
 	{
 		JDFElement.setDefaultJDFVersion(defaultVersion);
 		senderID = "TestSender";
@@ -271,7 +270,7 @@ public abstract class BambiTestCaseBase
 	 * @see junit.framework.TestCase#tearDown()
 	 */
 	@After
-    public void tearDown() throws Exception
+	public void tearDown() throws Exception
 	{
 		KElement.setLongID(true);
 		JDFElement.setDefaultJDFVersion(EnumVersion.Version_1_3);

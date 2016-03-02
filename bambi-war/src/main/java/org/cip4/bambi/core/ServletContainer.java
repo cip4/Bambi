@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -91,7 +91,6 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
-import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.zip.ZipReader;
@@ -106,6 +105,7 @@ import org.cip4.jdflib.util.zip.ZipReader;
  */
 public abstract class ServletContainer extends BambiLogFactory
 {
+
 	/**
 	 * use getCreateInstance from outside
 	 */
@@ -122,7 +122,9 @@ public abstract class ServletContainer extends BambiLogFactory
 	 */
 	public static String getDeviceIDFromURL(String url)
 	{
-		String devID = StringUtil.token(url, 2, "/");
+		String devID = StringUtil.token(url, -1, "/");
+		devID = StringUtil.token(devID, 0, "?&");
+		devID = StringUtil.trim(devID, null);
 		return devID;
 	}
 
@@ -183,10 +185,7 @@ public abstract class ServletContainer extends BambiLogFactory
 	 */
 	public void shutDown()
 	{
-		final JMFFactory factory = JMFFactory.getJMFFactory();
-		factory.shutDown(null, true);
-		ThreadUtil.sleep(5234); // leave some time for cleanup
-		factory.shutDown(null, false);
+		JMFFactory.shutdown();
 	}
 
 	/**
@@ -194,8 +193,7 @@ public abstract class ServletContainer extends BambiLogFactory
 	 */
 	public void reset()
 	{
-		final JMFFactory factory = JMFFactory.getJMFFactory();
-		factory.shutDown(null, false);
+		JMFFactory.shutdown();
 	}
 
 	/**

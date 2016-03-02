@@ -141,7 +141,7 @@ public class MsgSubscription implements Cloneable
 			return;
 		}
 		channelID = m.getID();
-		url = sub.getURL();
+		url = StringUtil.trim(sub.getURL(), null);
 		queueEntry = qeid;
 
 		repeatAmount = sub.getRepeatStep();

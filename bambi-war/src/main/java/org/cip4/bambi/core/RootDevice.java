@@ -513,7 +513,7 @@ public class RootDevice extends AbstractDevice
 			}
 			_devices.clear();
 		}
-		JMFFactory.getJMFFactory().shutDown(null, true);
+		JMFFactory.shutdown();
 		super.shutdown();
 	}
 
