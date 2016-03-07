@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.cip4.tools.bambi</groupId>
 		<artifactId>Bambi</artifactId>
-		<version>Montreal-16.03</version>
+		<version>Montreal-16.03.1-SNAPSHOT</version>
 	</parent>
 
 	<name>CIP4-Bambi Resources</name>
