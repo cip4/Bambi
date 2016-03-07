@@ -20,9 +20,9 @@
 		<buildDirectory>${project.basedir}/target</buildDirectory>
 	</properties>
     <scm>
-        <url>https://stash.cip4.org/scm/tool/bambi.git</url>
-        <developerConnection>scm:git:https://stash.cip4.org/scm/tool/bambi.git</developerConnection>
-        <connection>scm:git:https://stash.cip4.org/scm/tool/bambi.git</connection>
+        <url>https://bitbucket.cip4.org/scm/tool/bambi.git</url>
+        <developerConnection>scm:git:https://bitbucket.cip4.org/scm/tool/bambi.git</developerConnection>
+        <connection>scm:git:https://bitbucket.cip4.org/scm/tool/bambi.git</connection>
       <tag>HEAD</tag>
   </scm>
 	<issueManagement>
