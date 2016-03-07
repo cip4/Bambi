@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cip4.tools.bambi</groupId>
 	<artifactId>Bambi</artifactId>
-	<version>Montreal-16.03.1-SNAPSHOT</version>
+	<version>Montreal-16.03</version>
 	<packaging>pom</packaging>
 	<name>bambi</name>
 	<url>http://www.cip4.org</url>
@@ -23,7 +23,7 @@
         <url>https://bitbucket.cip4.org/scm/tool/bambi.git</url>
         <developerConnection>scm:git:https://bitbucket.cip4.org/scm/tool/bambi.git</developerConnection>
         <connection>scm:git:https://bitbucket.cip4.org/scm/tool/bambi.git</connection>
-      <tag>HEAD</tag>
+      <tag>Bambi-Montreal-16.03</tag>
   </scm>
 	<issueManagement>
 		<system>JIRA</system>
