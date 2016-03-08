@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -70,6 +70,8 @@
  */
 package org.cip4.bambi.core;
 
+import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
@@ -83,7 +85,9 @@ import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.ByteArrayIOFileStream;
 import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * class to package an input stream together with the context information of the request
@@ -111,6 +115,25 @@ public class StreamRequest extends ContainerRequest
 	}
 
 	/**
+	 * @param file
+	 * @return
+	 *  
+	 */
+	public static StreamRequest createStreamRequest(final File file)
+	{
+		BufferedInputStream fileStream = FileUtil.getBufferedInputStream(file);
+		if (fileStream == null)
+		{
+			return null;
+		}
+		StreamRequest sr = new StreamRequest(fileStream);
+		final String contentType = UrlUtil.getMimeTypeFromURL(file.getName());
+		sr.setContentType(contentType);
+		sr.setRequestURI(file.getAbsolutePath());
+		return sr;
+	}
+
+	/**
 	 *  
 	 */
 	private Map<String, String> getParameterMap(HttpServletRequest request)
@@ -126,7 +149,7 @@ public class StreamRequest extends ContainerRequest
 				String s = strings[0];
 				for (int i = 1; i < strings.length; i++)
 				{
-					s += "," + strings[i];
+					s += JDFConstants.COMMA + strings[i];
 				}
 				s = StringUtil.getNonEmpty(s);
 				if (s != null)

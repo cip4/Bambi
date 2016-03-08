@@ -299,6 +299,7 @@ public abstract class ServletContainer extends BambiLogFactory
 		if (d != null)
 		{
 			XMLRequest req = new XMLRequest(new JDFDoc(d));
+			req.setContainer(request);
 			r = processXMLDoc(req);
 		}
 		else

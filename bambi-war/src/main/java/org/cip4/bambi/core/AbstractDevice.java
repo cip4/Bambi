@@ -816,6 +816,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			jmf.copyElement(jmf2.getCommand(0), null);
 
 			_submitHotFolder = new QueueHotFolder(hfURL, hfStorage, "jdf,xjdf,xml", new DeviceHFListener(this), jmf);
+			StreamRedirectListener streamRedirectListener = new StreamRedirectListener(this);
+			_submitHotFolder.addListener(streamRedirectListener, "zip");
+			_submitHotFolder.addListener(streamRedirectListener, "mjm");
+			_submitHotFolder.addListener(streamRedirectListener, "mjd");
 		}
 		else
 		{
@@ -2011,6 +2015,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		MimeReader mimeReader = new MimeReader(mimeWriter);
 		BodyPartHelper jmfHelper = mimeReader.getBodyPartHelper(0);
 		JDFDoc docJDF = jmfHelper.getJDFDoc();
+		if (docJDF != null)
+			docJDF.copyMeta(e.getOwnerDocument_KElement());
 		return docJDF != null ? new XMLRequest(docJDF) : null;
 	}
 
