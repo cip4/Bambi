@@ -303,12 +303,12 @@
 									<errTitle>encc</errTitle>
 									<icon>src/main/assemble/windows/bambi.ico</icon>
 									<classPath>
-										<mainClass>org.cip4.bambi.App</mainClass>
+										<mainClass>${mainClass}</mainClass>
 										<addDependencies>true</addDependencies>
 										<preCp>anything</preCp>
 									</classPath>
 									<jre>
-										<path>jre7</path>
+										<path>src/main/assemble/windows-jre/includes/jre7</path>
 										<minVersion>1.7.0</minVersion>
 										<initialHeapSize>96</initialHeapSize>
 										<maxHeapSize>1024</maxHeapSize>

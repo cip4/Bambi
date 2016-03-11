@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -75,8 +75,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.cip4.bambi.core.BambiNotify;
 import org.cip4.bambi.core.BambiNotifyDef;
 import org.cip4.bambi.core.Observer;
@@ -96,7 +95,7 @@ public final class BambiNotifyReal implements BambiNotify
 {
 	private static final String NO_VALUE = "---";
 
-	private static final Log log = LogFactory.getLog(BambiNotifyReal.class.getName());
+	private static final Logger log = Logger.getLogger(BambiNotifyReal.class);
 	
 	private final List<Observer> observersList;
 	

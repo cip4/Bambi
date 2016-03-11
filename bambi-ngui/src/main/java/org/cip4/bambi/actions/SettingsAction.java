@@ -107,9 +107,9 @@ public class SettingsAction extends ActionSupport implements ServletRequestAware
 		return pageName;
 	}
 
-	public List<Settings> getSettings() {
-		return settings;
-	}
+//	public List<Settings> getSettings() {
+//		return settings;
+//	}
 
 	public List<String> getFormatters() {
 		return formatters;
@@ -117,6 +117,10 @@ public class SettingsAction extends ActionSupport implements ServletRequestAware
 
 	public String getCurrentFormatter() {
 		return ConfigurationHandler.getInstance().getDateTimeFormatterName();
+	}
+
+	public HttpServletRequest getServletRequest() {
+		return request;
 	}
 
 	public void setServletRequest(HttpServletRequest httpServletRequest) {

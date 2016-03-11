@@ -144,12 +144,15 @@ public class BambiServerNgui extends BambiServer
 	
 	public static void main(String[] args) throws Exception
 	{
-		LogConfigurator.configureLog(new UserDir(BAMBI).getLogPath(), "bambi.log");
+//		LogConfigurator.configureLog(new UserDir(BAMBI).getLogPath(), "bambi.log");
+		BambiServerNgui bambiServer = new BambiServerNgui();
+
+		LogConfigurator.configureLog(bambiServer.getProp().getBaseDir().getAbsolutePath(), "bambi.log");
+		log.info("BambiServerNgui");
+
 		BambiNotifyReal.getInstance();
 		ConfigurationHandler.getInstance();
-		
-		BambiServerNgui bambiServer = new BambiServerNgui();
-		LogConfigurator.configureLog(bambiServer.getProp().getBaseDir().getAbsolutePath(), "bambi.log");
+
 		MyArgs myArgs = new MyArgs(args, "c", "p", "");
 		if (myArgs.boolParameter('c'))
 		{
