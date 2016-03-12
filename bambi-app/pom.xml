@@ -99,7 +99,7 @@
 		<dependency>
 			<groupId>org.cip4.tools.bambi.war</groupId>
 			<artifactId>bambi-war</artifactId>
-			<version>DRUPA-16.05-SNAPSHOT</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.cip4.tools.bambi.ngui</groupId>
@@ -111,7 +111,7 @@
 		<dependency>
 			<groupId>org.cip4.tools.bambi.resources</groupId>
 			<artifactId>bambi-resources</artifactId>
-			<version>DRUPA-16.05-SNAPSHOT</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
@@ -246,6 +246,7 @@
 				</plugins>
 			</build>
 		</profile>
+		<!-- windows-jre profile does not work as expected -->
 		<profile>
 			<id>windows-jre</id>
 			<build>

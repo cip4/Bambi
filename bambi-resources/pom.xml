@@ -4,15 +4,14 @@
 	<groupId>org.cip4.tools.bambi.resources</groupId>
 	<artifactId>bambi-resources</artifactId>
 	<packaging>jar</packaging>
+	<name>CIP4-Bambi Resources</name>
+	<url>http://www.cip4.org</url>
 
 	<parent>
 		<groupId>org.cip4.tools.bambi</groupId>
 		<artifactId>Bambi</artifactId>
 		<version>DRUPA-16.05-SNAPSHOT</version>
 	</parent>
-
-	<name>CIP4-Bambi Resources</name>
-	<url>http://www.cip4.org</url>
 
 	<build>
 		<finalName>CIP4-Bambi-resources-${project.version}</finalName>

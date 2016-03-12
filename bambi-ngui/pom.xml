@@ -21,7 +21,7 @@
         <dependency>
             <groupId>org.cip4.tools.bambi.war</groupId>
             <artifactId>bambi-war</artifactId>
-            <version>DRUPA-16.05-SNAPSHOT</version>
+            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
