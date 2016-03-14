@@ -396,6 +396,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		 */
 		public boolean getResourceList(JDFMessage inMessage, JDFResponse response)
 		{
+			response.deleteNode();
 			return true;
 		}
 

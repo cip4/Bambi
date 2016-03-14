@@ -342,32 +342,37 @@ public class RootDevice extends AbstractDevice
 			final boolean bGood = super.handleMessage(inputMessage, response);
 			if (bGood && bQueue)
 			{
-				final VElement vq = response.getChildElementVector(ElementName.QUEUE, null);
-				if (vq != null)
-				{
-					final JDFQueue q = _theQueueProcessor.getQueue().copyToResponse(response, null, null);
-					final int nQ = vq.size();
-					final JDFQueueEntry qe0 = q.getQueueEntry(0);
-					for (int i = 0; i < nQ; i++)
-					{
-						final JDFQueue qi = (JDFQueue) vq.elementAt(i);
-						final VElement vQE = qi.getQueueEntryVector();
-						if (vQE != null)
-						{
-							final int nQE = vQE.size();
-
-							for (int j = 0; j < nQE; j++)
-							{
-								q.copyElement(vQE.elementAt(j), qe0);
-							}
-						}
-					}
-					QueueProcessor.removeBambiNSExtensions(q);
-				}
+				cleanQueues(response);
 			}
 			return bGood;
 		}
 
+		/**
+		 * 
+		 * @param response
+		 */
+		private void cleanQueues(final JDFResponse response)
+		{
+			final VElement vq = response.getChildElementVector(ElementName.QUEUE, null);
+			final JDFQueue q = vq == null ? null : _theQueueProcessor.getQueue().copyToResponse(response, null, null);
+			if (q != null)
+			{
+				final JDFQueueEntry qe0 = q.getQueueEntry(0);
+				for (KElement eQ : vq)
+				{
+					final JDFQueue qi = (JDFQueue) eQ;
+					final VElement vQE = qi.getQueueEntryVector();
+					if (vQE != null)
+					{
+						for (KElement qe : vQE)
+						{
+							q.copyElement(qe, qe0);
+						}
+					}
+				}
+				QueueProcessor.removeBambiNSExtensions(q);
+			}
+		}
 	}
 
 	/**
