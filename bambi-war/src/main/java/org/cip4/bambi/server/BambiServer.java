@@ -74,8 +74,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Logger;
 import org.cip4.bambi.core.BambiException;
 import org.cip4.bambi.core.BambiServlet;
 import org.cip4.bambi.core.MultiDeviceProperties;
@@ -96,8 +96,6 @@ import org.eclipse.jetty.servlet.ServletHolder;
  */
 public class BambiServer extends JettyServer
 {
-	private static final Logger log = Logger.getLogger(BambiServer.class);
-
 	public static final String BAMBI = "bambi";
 	public static final String RESOURCES_FILE = "/list.txt";
 
@@ -295,6 +293,7 @@ public class BambiServer extends JettyServer
 	public static void main(String[] args) throws Exception
 	{
 		LogConfigurator.configureLog(new UserDir(BAMBI).getLogPath(), "bambi.log");
+		Log log = LogFactory.getLog(BambiServer.class);
 		log.info("BambiServer");
 		BambiServer bambiServer = new BambiServer();
 		LogConfigurator.configureLog(bambiServer.getProp().getBaseDir().getAbsolutePath(), "bambi.log");
