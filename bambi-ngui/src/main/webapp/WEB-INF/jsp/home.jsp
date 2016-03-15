@@ -19,6 +19,7 @@
 
   <body>
     <h2><s:text name="home.title"/></h2>
+    <h3>Version:&nbsp;<s:property value="@org.cip4.bambi.server.RuntimeProperties@productVersion"/></h3>
     <a href="settings/view" target="_blank" style="float: right;">Settings</a>
     <br/><br/>
 

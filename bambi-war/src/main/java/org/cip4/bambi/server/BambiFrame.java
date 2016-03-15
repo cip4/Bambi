@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -74,6 +74,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Properties;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -146,7 +147,24 @@ public class BambiFrame extends JettyFrame
 	@Override
 	protected String getFrameName()
 	{
-		return "Bambi";
+		retrieveVersion();
+		return "Bambi" + ", version: " + RuntimeProperties.productVersion;
+	}
+
+	private void retrieveVersion() {
+		String path = "META-INF/maven/org.cip4.tools.bambi.war/bambi-war/pom.properties";
+		InputStream is = BambiFrame.class.getClassLoader().getResourceAsStream(path);
+
+		Properties prop = new Properties();
+		try
+		{
+			prop.load(is);
+			String version = (String) prop.get("version");
+			RuntimeProperties.productVersion = version;
+		} catch (IOException e)
+		{
+			log.error("Error while retrieving product version, error: " + e.getMessage(), e);
+		}
 	}
 
 	/**
