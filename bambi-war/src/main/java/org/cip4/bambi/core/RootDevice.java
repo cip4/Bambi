@@ -717,6 +717,7 @@ public class RootDevice extends AbstractDevice
 		MemorySpy memorySpy = new MemorySpy();
 		listRoot.setAttribute("MemPerm", memorySpy.getPermGen(MemScope.current) / 1000 / 1000., null);
 		listRoot.setAttribute("MemCurrent", memorySpy.getHeapUsed(MemScope.current) / 1000 / 1000., null);
+		listRoot.setAttribute("VersionString", RuntimeProperties.productVersion, null);
 		return listRoot;
 	}
 
