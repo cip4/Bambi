@@ -719,6 +719,7 @@ public class RootDevice extends AbstractDevice
 		listRoot.setAttribute("MemPerm", memorySpy.getPermGen(MemScope.current) / 1000 / 1000., null);
 		listRoot.setAttribute("MemCurrent", memorySpy.getHeapUsed(MemScope.current) / 1000 / 1000., null);
 		listRoot.setAttribute("VersionString", RuntimeProperties.productVersion, null);
+		listRoot.setAttribute("JdfLibVersion", getAgentVersion(), null);
 		return listRoot;
 	}
 

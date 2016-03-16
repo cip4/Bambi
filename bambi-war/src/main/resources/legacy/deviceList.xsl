@@ -138,7 +138,7 @@
 						</tr>
 						<tr>
 							<td>JDFLib Build:</td>
-							<td>@build.minorversion@, JDF Schema Version:
+							<td><xsl:value-of select="@JdfLibVersion" />, JDF Schema Version:
 								@build.majorversion@
 							</td>
 						</tr>
