@@ -315,7 +315,7 @@ public final class BambiServlet extends HttpServlet
 	{
 		if (bambiDumpOut != null && (dumpEmpty || (xr != null && xr.hasContent())))
 		{
-			final String header = getDumpHeader(sr);
+			final String header = sr.getDumpHeader();
 			final InputStream buf = xr.getInputStream();
 
 			final File in = bambiDumpOut.newFileFromStream(header, buf, sr.getName());
@@ -338,23 +338,10 @@ public final class BambiServlet extends HttpServlet
 	{
 		if (bBuf)
 		{
-			final String header = getDumpHeader(sr);
+			final String header = sr.getDumpHeader();
 			final String h2 = header + "\nContext Length: " + request.getContentLength();
 			bambiDumpIn.newFileFromStream(h2, sr.getInputStream(), sr.getName());
 		}
-	}
-
-	/**
-	 * @param sr
-	 * @return
-	 */
-	private String getDumpHeader(final ContainerRequest sr)
-	{
-		String header = "Context Path: " + sr.getRequestURI();
-		header += "\nMethod: " + sr.getMethod();
-		header += "\nContext Type: " + sr.getContentType(false);
-		header += "\nRemote host: " + sr.getRemoteHost();
-		return header;
 	}
 
 	/**

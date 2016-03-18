@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -72,9 +72,11 @@ package org.cip4.bambi.core;
 
 import java.io.InputStream;
 
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.extensions.XJDFConstants;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.node.JDFNode;
@@ -125,9 +127,21 @@ public class XMLRequest extends ContainerRequest
 		{
 			setContentType(UrlUtil.VND_JDF);
 		}
-		else
+		else if (xml != null)
 		{
-			setContentType(UrlUtil.TEXT_XML);
+			String name = xml.getLocalName();
+			if (XJDFConstants.XJMF.equals(name))
+			{
+				setContentType(UrlUtil.VND_XJMF);
+			}
+			else if (XJDFConstants.XJDF.equals(name))
+			{
+				setContentType(UrlUtil.VND_XJDF);
+			}
+			else
+			{
+				setContentType(UrlUtil.TEXT_XML);
+			}
 		}
 	}
 
@@ -146,6 +160,7 @@ public class XMLRequest extends ContainerRequest
 		}
 		theXML = xmlDoc == null ? null : xmlDoc.getRoot();
 		updateName();
+		setContentType(theXML);
 		if (request.getName() == null)
 		{
 			request.setName(getName());
@@ -163,12 +178,18 @@ public class XMLRequest extends ContainerRequest
 			JDFJMF jmf = (JDFJMF) theXML;
 			JDFMessage m = jmf == null ? null : jmf.getMessageElement(null, null, 0);
 			if (m != null)
+			{
 				setName(m.getType());
+			}
 			else
-				setName("JMF");
+			{
+				setName(ElementName.JMF);
+			}
 		}
 		else if (theXML != null)
+		{
 			setName(theXML.getLocalName());
+		}
 	}
 
 	private final KElement theXML;

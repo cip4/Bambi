@@ -112,7 +112,7 @@ public abstract class ServletContainer extends BambiLogFactory
 	protected ServletContainer()
 	{
 		super();
-		log.info("Creating Servlet Container");
+		log.info("Creating Servlet Container: " + toString());
 		nLogGet = 0;
 	}
 
@@ -185,6 +185,7 @@ public abstract class ServletContainer extends BambiLogFactory
 	 */
 	public void shutDown()
 	{
+		log.info("Shutting down Container " + toString());
 		JMFFactory.shutdown();
 	}
 
@@ -193,6 +194,7 @@ public abstract class ServletContainer extends BambiLogFactory
 	 */
 	public void reset()
 	{
+		log.info("resetting Container " + toString());
 		JMFFactory.shutdown();
 	}
 
@@ -257,6 +259,7 @@ public abstract class ServletContainer extends BambiLogFactory
 
 	private XMLResponse processZip(final StreamRequest request)
 	{
+		log.info("Processing zip request:  " + toString());
 		final InputStream is = request.getInputStream();
 		ZipReader zipReader = new ZipReader(is);
 		zipReader.setCaseSensitive(false);
@@ -276,6 +279,7 @@ public abstract class ServletContainer extends BambiLogFactory
 		XMLDoc d;
 		if (XJDFHelper.XJDF.equalsIgnoreCase(UrlUtil.extension(name)))
 		{
+			log.info("Processing XJDF zip request:  " + toString());
 			XJDFZipReader xjdfZipReader = new XJDFZipReader(zipReader);
 			xjdfZipReader.convertXJDF();
 			JDFNode jdfRoot = xjdfZipReader.getJDFRoot();
@@ -283,6 +287,7 @@ public abstract class ServletContainer extends BambiLogFactory
 		}
 		else
 		{
+			log.info("Processing XML zip request:  " + toString());
 			d = zipReader.getXMLDoc();
 			zipReader.buffer();
 			ZipEntry e2 = zipReader.getNextEntry();
