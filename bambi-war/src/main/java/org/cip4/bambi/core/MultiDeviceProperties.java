@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -78,6 +78,7 @@ import java.net.UnknownHostException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.server.BambiServer;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
@@ -89,6 +90,7 @@ import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdflib.util.thread.DelayedPersist;
 import org.cip4.jdflib.util.thread.IPersistable;
 
@@ -98,13 +100,15 @@ import org.cip4.jdflib.util.thread.IPersistable;
  */
 public class MultiDeviceProperties extends BambiLogFactory implements IPersistable
 {
+	private static Log log = LogFactory.getLog(MultiDeviceProperties.class);
 	/**
 	 * properties for a single device
 	 * @author boegerni
 	 */
 	protected KElement root;
 	protected String context;
-	final static File configFile = new File("config/devices.xml");
+
+	private static final File DEVICES_CONFIG_FILE = new File("config/devices.xml");
 
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -771,21 +775,17 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 * create device properties for the devices defined in the config file
-	 * @param appDir 
-	 * @param baseURL 
-	 * @param configFile the config file
+	 * Create device properties for the devices defined in the config file.
 	 */
 	public static MultiDeviceProperties getProperties(File appDir, String baseURL)
 	{
 		// to evaluate current name and send it back rather than 127.0.0.1
 		final XMLDoc installDoc = getXMLDoc(appDir);
-		Log log = LogFactory.getLog(MultiDeviceProperties.class);
 
 		if (installDoc == null)
 		{
-			log.fatal("failed to parse " + configFile + " at " + getConfigFile(appDir).getAbsolutePath() + ", rootDev is null");
-			throw new JDFException("snafu: failed to parse " + configFile + " at " + getConfigFile(appDir).getAbsolutePath() + ", rootDev is null");
+			log.fatal("Failed to parse " + DEVICES_CONFIG_FILE + " at " + getConfigFile(appDir).getAbsolutePath() + ", rootDev is null");
+			throw new JDFException("Failed to parse " + DEVICES_CONFIG_FILE + " at " + getConfigFile(appDir).getAbsolutePath() + ", rootDev is null");
 		}
 
 		String appPath = appDir.getAbsolutePath();
@@ -861,7 +861,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	public static File getConfigFile(File appDir)
 	{
-		return FileUtil.getFileInDirectory(appDir, configFile);
+		return FileUtil.getFileInDirectory(appDir, DEVICES_CONFIG_FILE);
 	}
 
 	/**
@@ -1034,7 +1034,11 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	public File getBaseDir()
 	{
-		File f = getRootFile("BaseDir");
+		UserDir userDir = new UserDir(BambiServer.BAMBI);
+
+		File f1 = getRootFile("BaseDir");
+		File f = new File(userDir.getToolPath() + f1.getAbsolutePath());
+
 		if (!FileUtil.isAbsoluteFile(f))
 		{
 			final File fBase = getAppDir();

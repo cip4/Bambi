@@ -30,9 +30,10 @@
 	CallBackName="org.cip4.bambi.extensions.ExtensionCallback">
 	
 	<Device DeviceID="SimWorkerRoot" 
-	DeviceType="Bambi Sim Device Root" />
+		DeviceType="Bambi Sim Device Root" />
+
 	<Device DeviceID="sim001" 
-	DeviceType="Bambi Simulation HotFolder Device 001"
+		DeviceType="Bambi Simulation HotFolder Device 001"
 		TrackResource="Component:Output" 
 		InputHF="/BambiHF/sim001/Input"
 		OutputHF="/BambiHF/sim001/Output" 
@@ -41,14 +42,14 @@
 		AcceptAll="true"/>
 	
 	<Device DeviceID="sim002" 
-	DeviceType="Bambi Simulation HotFolder Device 002"
+		DeviceType="Bambi Simulation HotFolder Device 002"
 		TrackResource="Component:Output" 
 		InputHF="/BambiHF/sim002/Input"
 		OutputHF="/BambiHF/sim002/Output" 
 		ErrorHF="/BambiHF/sim002/Error" />
 	
 	<Device DeviceID="sim003" 
-	DeviceType="Bambi Push Simulation Device 003"
+		DeviceType="Bambi Push Simulation Device 003"
 		PushPull="Push" 
 		TrackResource="Component:Output" 
 		InputHF="/BambiHF/sim003/Input"
@@ -56,29 +57,27 @@
 		ErrorHF="/BambiHF/sim003/Error" 
 		MIMEExpansion="true"/>
 
-<Device DeviceID="simIDP"
-DeviceType="Bambi Push Simulation IDP Device"
-PushPull="Push"
-TrackResource="Component:Output"
-InputHF="/BambiHF/simIDP/Input"
-OutputHF="/BambiHF/simIDP/Output"
-ErrorHF="/BambiHF/simIDP/Error"
-AmountResources="Media:Input,UsageCounter"
-TypeExpression="(.)*DigitalPrinting(.)*"
-MIMEExpansion="true"
-/>
-<Device DeviceID="simWF"
-DeviceType="Bambi Push Simulation Wide Format Device"
-PushPull="Push"
-TrackResource="Component:Output"
-InputHF="/BambiHF/simIDP/Input"
-OutputHF="/BambiHF/simIDP/Output"
-ErrorHF="/BambiHF/simIDP/Error"
-AmountResources="Media:Input,UsageCounter"
-TypeExpression="(.)*DigitalPrinting(.)*"
-MIMEExpansion="true"
-/>
+	<Device DeviceID="simIDP"
+		DeviceType="Bambi Push Simulation IDP Device"
+		PushPull="Push"
+		TrackResource="Component:Output"
+		InputHF="/BambiHF/simIDP/Input"
+		OutputHF="/BambiHF/simIDP/Output"
+		ErrorHF="/BambiHF/simIDP/Error"
+		AmountResources="Media:Input,UsageCounter"
+		TypeExpression="(.)*DigitalPrinting(.)*"
+		MIMEExpansion="true"/>
 
+	<Device DeviceID="simWF"
+		DeviceType="Bambi Push Simulation Wide Format Device"
+		PushPull="Push"
+		TrackResource="Component:Output"
+		InputHF="/BambiHF/simIDP/Input"
+		OutputHF="/BambiHF/simIDP/Output"
+		ErrorHF="/BambiHF/simIDP/Error"
+		AmountResources="Media:Input,UsageCounter"
+		TypeExpression="(.)*DigitalPrinting(.)*"
+		MIMEExpansion="true"/>
 
 	<!--
 <Device DeviceID="platesetter"

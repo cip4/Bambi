@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -76,6 +76,8 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.cip4.bambi.server.BambiServer;
+import org.cip4.jdflib.util.file.UserDir;
 
 /**
  * Util class for defining generic locations on a file system.
@@ -94,17 +96,19 @@ public class DirectoryUtil {
 	public static String getApplicationDir()
 	{
 		String pathDir = "";
-		if (isLinux())
-		{
-			pathDir = FilenameUtils.concat(FileUtils.getUserDirectoryPath(), LINUX_FOLDER);
-		} else if (isOsX())
-		{
-			pathDir = FilenameUtils.concat(FileUtils.getUserDirectoryPath(), OSX_FOLDER);
-		} else if (isWindows())
-		{
-			pathDir = FilenameUtils.concat(FileUtils.getUserDirectoryPath(), WINDOWS_FOLDER);
-		}
-		
+//		if (isLinux())
+//		{
+//			pathDir = FilenameUtils.concat(FileUtils.getUserDirectoryPath(), LINUX_FOLDER);
+//		} else if (isOsX())
+//		{
+//			pathDir = FilenameUtils.concat(FileUtils.getUserDirectoryPath(), OSX_FOLDER);
+//		} else if (isWindows())
+//		{
+//			pathDir = FilenameUtils.concat(FileUtils.getUserDirectoryPath(), WINDOWS_FOLDER);
+//		}
+
+		pathDir = new UserDir(BambiServer.BAMBI).getToolPath();
+
 		try
 		{
 			FileUtils.forceMkdir(new File(pathDir));
