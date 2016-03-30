@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -87,21 +87,22 @@ import org.cip4.bambi.util.DirectoryUtil;
 public class ConfigurationHandler
 {
 	private static final Logger LOG = Logger.getLogger(ConfigurationHandler.class);
-	
+
 	private static final ConfigurationHandler instance;
-	
+
 	private static final String BASE_DIR = DirectoryUtil.getApplicationDir();
 	private static final String FILENAME = File.separator + "bambi-ngui.properties";
-	
-	public static final String KEY_FORMAT = "timestamp.format";
-	private static final String KEY_FORMAT_DEFAULT = DateTimeFormatterEnum.ISO.getPattern();
+
+	private static final String TIMESTAMP_FORMAT_KEY = "timestamp.format";
+	private static final String TIMESTAMP_FORMAT_DEFAULT = DateTimeFormatterEnum.ISO.getName();
+
 	private static final Map<String, String> DEFAULT_PROPERTIES_MAP = new HashMap<String, String>();
-	
+
 	private static Properties prop = new Properties();
-	
+
 	private String dateTimePattern;
 	private SimpleDateFormat formatter;
-	
+
 	static
 	{
 		instance = new ConfigurationHandler();
@@ -123,7 +124,7 @@ public class ConfigurationHandler
 	
 	private static void initDefaultProperties()
 	{
-		DEFAULT_PROPERTIES_MAP.put(KEY_FORMAT, KEY_FORMAT_DEFAULT);
+		DEFAULT_PROPERTIES_MAP.put(TIMESTAMP_FORMAT_KEY, TIMESTAMP_FORMAT_DEFAULT);
 	}
 	
 	private static void initProperties()
@@ -170,7 +171,7 @@ public class ConfigurationHandler
 	
 	public String getDateTimeFormatterName()
 	{
-		DateTimeFormatterEnum d = DateTimeFormatterEnum.lookupByPattern(dateTimePattern);
+		DateTimeFormatterEnum d = DateTimeFormatterEnum.lookupByName(getProperty(TIMESTAMP_FORMAT_KEY));
 		return d.getName();
 	}
 
@@ -178,8 +179,16 @@ public class ConfigurationHandler
 	{
 		dateTimePattern = pattern;
 		formatter = new SimpleDateFormat(pattern);
+		prop.setProperty(TIMESTAMP_FORMAT_KEY, DateTimeFormatterEnum.lookupByPattern(dateTimePattern).getName());
 	}
-	
+
+	public void setDateTimeName(final String name)
+	{
+		dateTimePattern = DateTimeFormatterEnum.lookupByName(name).getPattern();
+		formatter = new SimpleDateFormat(dateTimePattern);
+		prop.setProperty(TIMESTAMP_FORMAT_KEY, name);
+	}
+
 	public String getProperty(String key)
 	{
 		String value = prop.getProperty(key);
