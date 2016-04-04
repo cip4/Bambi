@@ -215,22 +215,23 @@
 
 				<font size="-1" color="#b0c4de">
 					<table>
-						<xsl:if test="@VersionString">
+						<xsl:if test="@ReleaseVersionString">
 							<tr>
 								<td>Bambi Product Version:</td>
 								<td>
-									<xsl:value-of select="@VersionString" />
+									<xsl:value-of select="@ReleaseVersionString" />
 								</td>
 							</tr>
 						</xsl:if>
-						<tr>
-							<td>Bambi Internal Build: </td>
-							<td>@build.number@ at @build.timestamp@</td>
-						</tr>
+						<xsl:if test="@ReleaseTimestampString">
+							<tr>
+								<td>Bambi Release date/time: </td>
+								<td><xsl:value-of select="@ReleaseTimestampString" /></td>
+							</tr>
+						</xsl:if>
 						<tr>
 							<td>JDFLib Build:</td>
-							<td><xsl:value-of select="@JdfLibVersion" />, JDF Schema Version:
-								@build.majorversion@
+							<td><xsl:value-of select="@JdfLibVersion" />
 							</td>
 						</tr>
 					</table>

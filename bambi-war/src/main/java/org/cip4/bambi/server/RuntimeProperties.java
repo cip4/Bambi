@@ -71,4 +71,5 @@ package org.cip4.bambi.server;
 public class RuntimeProperties
 {
 	public static String productVersion = "no-version";
+	public static String productBuildTimestamp = "no-build-timestamp";
 }

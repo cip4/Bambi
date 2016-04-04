@@ -1,6 +1,8 @@
 /list.txt
 /bambi-ngui-1.0.war
 
+/config/bambi-buildtime.properties
+
 /config/devices.xml
 /config/employees.xml
 /config/job.xml

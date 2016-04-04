@@ -18,8 +18,9 @@
 
 	<properties>
 		<app.name>Bambi 2.2-SNAPSHOT</app.name>
-		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
 		<buildDirectory>${project.basedir}/target</buildDirectory>
+		<timestamp>${maven.build.timestamp}</timestamp>
+		<maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss (z)</maven.build.timestamp.format>
 	</properties>
     <scm>
         <url>https://bitbucket.cip4.org/scm/tool/bambi.git</url>

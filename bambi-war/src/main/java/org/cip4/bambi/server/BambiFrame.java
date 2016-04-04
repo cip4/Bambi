@@ -71,6 +71,7 @@ package org.cip4.bambi.server;
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -96,14 +97,16 @@ import org.cip4.jdfutility.server.ui.JettyFrame;
  */
 public class BambiFrame extends JettyFrame
 {
+	private static final long serialVersionUID = 1L;
+
+	private static final String BASE_DIR = new UserDir(BambiServer.BAMBI).getToolPath();
+	private static final String FILENAME = File.separator + "config" + File.separator + "bambi-buildtime.properties";
+
 	private JButton baseDirButton;
 	private JButton extractXsltButton;
 	private JTextField baseDirText;
 	private JCheckBox cbLegacy;
 
-	/**
-	 * @param server
-	 */
 	public BambiFrame(JettyServer server)
 	{
 		super(server);
@@ -127,19 +130,10 @@ public class BambiFrame extends JettyFrame
 		}
 	}
 
-	/**
-	 * 
-	 * @return
-	 */
-	MultiDeviceProperties getProp()
+	private MultiDeviceProperties getProp()
 	{
 		return ((BambiServer) server).getProp();
 	}
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
 
 	/**
 	 * @see org.cip4.jdfutility.server.ui.JettyFrame#getFrameName()
@@ -148,23 +142,27 @@ public class BambiFrame extends JettyFrame
 	protected String getFrameName()
 	{
 		retrieveVersion();
-		return "Bambi" + ", version: " + RuntimeProperties.productVersion;
+		return "Bambi, version: " + RuntimeProperties.productVersion + ", date: " + RuntimeProperties.productBuildTimestamp;
 	}
 
 	private void retrieveVersion() {
-		String path = "META-INF/maven/org.cip4.tools.bambi.war/bambi-war/pom.properties";
-		InputStream is = BambiFrame.class.getClassLoader().getResourceAsStream(path);
-
-		Properties prop = new Properties();
+		Properties releaseProp = new Properties();
+		InputStream input = null;
 		try
 		{
-			prop.load(is);
-			String version = (String) prop.get("version");
-			RuntimeProperties.productVersion = version;
+			input = new FileInputStream(BASE_DIR + FILENAME);
+			releaseProp.load(input);
+			input.close();
 		} catch (IOException e)
 		{
-			log.error("Error while retrieving product version, error: " + e.getMessage(), e);
+			log.error("Error: " + e.getMessage(), e);
 		}
+
+		String releaseVersion = releaseProp.getProperty("release.version");
+		RuntimeProperties.productVersion = releaseVersion;
+
+		String releaseBuildTimestamp = releaseProp.getProperty("release.build.timestamp");
+		RuntimeProperties.productBuildTimestamp = releaseBuildTimestamp;
 	}
 
 	/**
@@ -236,7 +234,7 @@ public class BambiFrame extends JettyFrame
 	}
 	
 	/**
-	 * Extract only .xsl resource files, overwriting existing.
+	 * Extract all listed files, overwriting existing.
 	 */
 	private void extractResources()
 	{

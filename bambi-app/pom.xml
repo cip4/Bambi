@@ -16,8 +16,6 @@
 	<description>CIP4 Bambi standalone application console or window</description>
 
 	<properties>
-		<timestamp>${maven.build.timestamp}</timestamp>
-		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<buildDirectory>${project.basedir}/target</buildDirectory>
 		<mainClass>org.cip4.bambi.ngui.server.BambiServerNgui</mainClass>

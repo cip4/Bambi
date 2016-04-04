@@ -15,6 +15,12 @@
 	<url>http://www.cip4.org</url>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 		<finalName>CIP4-Bambi-${project.version}</finalName>
 		<plugins>
 			<plugin>

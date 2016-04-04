@@ -114,6 +114,8 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public class RootDevice extends AbstractDevice
 {
+	public static final String RELEASE_VERSION_STRING = "ReleaseVersionString";
+	public static final String RELEASE_TIMESTAMP_STRING = "ReleaseTimestampString";
 	/**
 	 * 
 	 */
@@ -718,7 +720,8 @@ public class RootDevice extends AbstractDevice
 		MemorySpy memorySpy = new MemorySpy();
 		listRoot.setAttribute("MemPerm", memorySpy.getPermGen(MemScope.current) / 1000 / 1000., null);
 		listRoot.setAttribute("MemCurrent", memorySpy.getHeapUsed(MemScope.current) / 1000 / 1000., null);
-		listRoot.setAttribute("VersionString", RuntimeProperties.productVersion, null);
+		listRoot.setAttribute(RELEASE_VERSION_STRING, RuntimeProperties.productVersion, null);
+		listRoot.setAttribute(RELEASE_TIMESTAMP_STRING, RuntimeProperties.productBuildTimestamp, null);
 		listRoot.setAttribute("JdfLibVersion", getAgentVersion(), null);
 		return listRoot;
 	}
