@@ -7,6 +7,12 @@ BODY  {
 	/* Hier werden die Hintergrundfarbe  und die Schriftart des gesamten Dokumentes definiert */ 
 }
 
+.top-navigation {
+	display: block;
+	font-size: 11px;
+}
+
+
 H1 {
 	font-size : 8mm;
 	font-family : Geneva, Arial, Helvetica, sans-serif;

@@ -21,7 +21,11 @@
     <h2><s:text name="home.title"/></h2>
     <h3>Version:&nbsp;<s:property value="@org.cip4.bambi.server.RuntimeProperties@productVersion"/></h3>
     <h3>Date:&nbsp;<s:property value="@org.cip4.bambi.server.RuntimeProperties@productBuildTimestamp"/></h3>
-    <a href="settings/view" target="_blank" style="float: right;">Settings</a>
+    <div style="display: block; float: right;">
+        <div><a href="/" target="_blank">Open Bambi (new window)</a></div>
+        <div><a href="settings/view" target="_blank">Settings</a></div>
+    </div>
+
     <br/><br/>
 
     <script type="text/html" id="jobTemplate">
