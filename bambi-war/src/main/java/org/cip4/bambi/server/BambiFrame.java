@@ -278,6 +278,8 @@ public class BambiFrame extends JettyFrame
 		{
 			log.error("Error: " + e.getMessage(), e);
 		}
+
+		setTitle(getFrameName()); // set title as release info can be changed after extracting
 	}
 
 	/**
