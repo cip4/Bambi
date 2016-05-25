@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -1059,7 +1059,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				qeid = StringUtil.getNonEmpty(rqp.getQueueEntryID());
 				ni = rqp.getIdentifier();
 			}
-			final JDFQueueEntry qe = _theDevice.getQueueProcessor().getQueueEntry(qeid, ni);
+			final JDFQueueEntry qe = _theDevice == null ? null : _theDevice.getQueueProcessor().getQueueEntry(qeid, ni);
 			return qe == null ? null : qe.getQueueEntryID();
 		}
 	}
