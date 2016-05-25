@@ -295,7 +295,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 */
 	protected SignalDispatcher getDispatcher()
 	{
-		return _theDevice.getSignalDispatcher();
+		return _theDevice == null ? null : _theDevice.getSignalDispatcher();
 	}
 
 	protected AbstractDevice _theDevice; // required for mapping to queueentries
@@ -547,7 +547,8 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	protected boolean handleSignal(final JDFSignal inSignal, final JDFResponse response)
 	{
 		final String qeID = getQueueEntryIDForSignal(inSignal);
-		final Set<String> requests = getDispatcher().getChannels(inSignal.getEnumType(), inSignal.getSenderID(), qeID);
+		SignalDispatcher dispatcher = getDispatcher();
+		final Set<String> requests = dispatcher == null ? null : dispatcher.getChannels(inSignal.getEnumType(), inSignal.getSenderID(), qeID);
 		final MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
 
 		if (mi != null)
@@ -562,7 +563,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				{
 					messageMap.putOne(mi[i], inSignal);
 					boolean last = i + 1 == mi.length;
-					getDispatcher().triggerChannel(mi[i].misChannelID, qeID, null, -1, last, true);
+					dispatcher.triggerChannel(mi[i].misChannelID, qeID, null, -1, last, true);
 				}
 			}
 		}
