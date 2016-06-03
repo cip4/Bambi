@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.cip4.tools.bambi.ngui</groupId>
     <artifactId>bambi-ngui</artifactId>
-    <version>1.0</version>
+    <version>DRUPA-16.05</version>
     <packaging>war</packaging>
     <name>CIP4-Bambi NGUI</name>
 
@@ -14,7 +14,7 @@
     <parent>
         <groupId>org.cip4.tools.bambi</groupId>
         <artifactId>Bambi</artifactId>
-        <version>DRUPA-16.05-SNAPSHOT</version>
+        <version>DRUPA-16.05</version>
     </parent>
 
     <dependencies>
