@@ -90,6 +90,7 @@ import org.cip4.jdflib.extensions.XJDFConstants;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
@@ -413,10 +414,28 @@ public final class BambiContainer extends ServletContainer
 	@Override
 	protected void startTimer(ContainerRequest request)
 	{
-		AbstractDevice dev = getDeviceFromID(request.getDeviceID());
+		CPUTimer deviceTimer = getTimer(request);
+		if (deviceTimer != null)
+		{
+			deviceTimer.start();
+		}
+	}
+
+	/**
+	 * 
+	 * @param request
+	 * @return
+	 */
+	CPUTimer getTimer(ContainerRequest request)
+	{
+		String deviceID = request == null ? null : request.getDeviceID();
+		AbstractDevice dev = getDeviceFromID(deviceID);
 		if (dev == null)
+		{
 			dev = getRootDev();
-		dev.getDeviceTimer(false).start();
+		}
+		CPUTimer deviceTimer = dev == null ? null : dev.getDeviceTimer(false);
+		return deviceTimer;
 	}
 
 	/**
@@ -425,10 +444,12 @@ public final class BambiContainer extends ServletContainer
 	@Override
 	protected void stopTimer(ContainerRequest request)
 	{
-		AbstractDevice dev = getDeviceFromID(request.getDeviceID());
-		if (dev == null)
-			dev = getRootDev();
-		dev.getDeviceTimer(false).stop();
+		CPUTimer deviceTimer = getTimer(request);
+		if (deviceTimer != null)
+		{
+			deviceTimer.stop();
+		}
+
 	}
 
 	/**

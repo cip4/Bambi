@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -95,6 +95,7 @@ import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.mime.MimeWriter;
@@ -120,7 +121,7 @@ public class BambiContainerTest extends BambiTestCase
 	/**
 	 * 
 	 */
-    @Test
+	@Test
 	public void testConstruct()
 	{
 		assertNotNull(bambiContainer.getRootDev());
@@ -133,7 +134,30 @@ public class BambiContainerTest extends BambiTestCase
 	/**
 	 * 
 	 */
-    @Test
+	@Test
+	public void testGetTimer()
+	{
+		assertNotNull(bambiContainer.getTimer(null));
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void testStartStopTimer()
+	{
+		bambiContainer.startTimer(null);
+		ThreadUtil.sleep(50);
+		CPUTimer t = bambiContainer.getTimer(null);
+		assertTrue(t.getCurrentRealTime() > 10);
+		bambiContainer.stopTimer(null);
+		assertTrue(t.getTotalRealTime() > 10);
+	}
+
+	/**
+	 * 
+	 */
+	@Test
 	public void testHandleJMF()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildKnownMessagesQuery();
@@ -145,7 +169,7 @@ public class BambiContainerTest extends BambiTestCase
 	/**
 	 * 
 	 */
-    @Test
+	@Test
 	public void testHandleJunkXML()
 	{
 		final KElement junk = new XMLDoc("junk", null).getRoot();
@@ -159,7 +183,7 @@ public class BambiContainerTest extends BambiTestCase
 	/**
 	 * 
 	 */
-    @Test
+	@Test
 	public void testSubmitRawJDF()
 	{
 		final JDFDoc junk = new JDFDoc("JDF");
@@ -172,7 +196,7 @@ public class BambiContainerTest extends BambiTestCase
 	/**
 	 * 
 	 */
-    @Test
+	@Test
 	public void testSubmitRawXJDF()
 	{
 		final XMLDoc junk = new XMLDoc("XJDF", null);
@@ -186,7 +210,7 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException 
 	 * 
 	 */
-    @Test
+	@Test
 	public void testHandleStreamXML() throws IOException
 	{
 		final JDFJMF jmf = new JMFBuilder().buildKnownMessagesQuery();
@@ -204,7 +228,7 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException 
 	 * 
 	 */
-    @Test
+	@Test
 	public void testHandleStreamError() throws IOException
 	{
 		final JDFJMF jmf = new JMFBuilder().buildKnownMessagesQuery();
@@ -233,7 +257,7 @@ public class BambiContainerTest extends BambiTestCase
 	/**
 	 * 
 	 */
-    @Test
+	@Test
 	public void testHandleJMFSubscription()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://www.example.com", 15, 0, null);
@@ -249,7 +273,7 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException if bad things happen
 	 * 
 	 */
-    @Test
+	@Test
 	public void testHandleGet() throws IOException
 	{
 		final StreamRequest sr = new StreamRequest((InputStream) null);
@@ -266,7 +290,7 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException if bad things happen
 	 * 
 	 */
-    @Test
+	@Test
 	public void testSubmit() throws IOException
 	{
 
@@ -287,7 +311,7 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException 
 	 * 
 	 */
-    @Test
+	@Test
 	public void testSubmitCrap() throws IOException
 	{
 
@@ -310,7 +334,7 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException 
 	 * 
 	 */
-    @Test
+	@Test
 	public void testSubmitMany() throws IOException
 	{
 		final CPUTimer ct = new CPUTimer(false);
