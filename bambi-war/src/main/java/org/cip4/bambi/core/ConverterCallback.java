@@ -102,7 +102,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 {
 	private EnumVersion fixToExtern = null;
 	private EnumVersion fixToBambi = null;
-	private final Vector<IConverterCallback> postConversionList;
+	private Vector<IConverterCallback> postConversionList;
 	private boolean removeJobIDFromSubs;
 
 	/**
@@ -112,11 +112,14 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 */
 	public ConverterCallback(final ConverterCallback other)
 	{
-		super();
-		fixToBambi = other.fixToBambi;
-		fixToExtern = other.fixToExtern;
-		postConversionList = other.postConversionList;
-		removeJobIDFromSubs = other.removeJobIDFromSubs;
+		this();
+		if (other != null)
+		{
+			fixToBambi = other.fixToBambi;
+			fixToExtern = other.fixToExtern;
+			postConversionList = other.postConversionList;
+			removeJobIDFromSubs = other.removeJobIDFromSubs;
+		}
 	}
 
 	/**
