@@ -94,6 +94,7 @@ import org.cip4.jdflib.resource.process.JDFContact;
 import org.cip4.jdflib.resource.process.JDFExposedMedia;
 import org.cip4.jdflib.resource.process.JDFMedia;
 import org.cip4.jdflib.resource.process.JDFPerson;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.logging.LogConfigurator;
@@ -144,9 +145,9 @@ public abstract class BambiTestCaseBase
 		if (!dataFile.isDirectory())
 		{
 			path = BambiTestCaseBase.class.getResource("/").getPath();
-			dataFile = new File(path);
+			dataFile = FileUtil.getFileInDirectory(new File(path), new File("data"));
 		}
-		path = FilenameUtils.normalize(dataFile.getAbsolutePath()) + File.separator + "data" + File.separator;
+		path = FilenameUtils.normalize(dataFile.getAbsolutePath()) + File.separator;
 
 		return path;
 
