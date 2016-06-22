@@ -70,11 +70,12 @@
  */
 package org.cip4.bambi.core.messaging;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.zip.DataFormatException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
-import javax.mail.BodyPart;
-import javax.mail.MessagingException;
 import javax.mail.Multipart;
 
 import org.cip4.bambi.core.BambiLogFactory;
@@ -83,17 +84,20 @@ import org.cip4.bambi.core.messaging.MessageSender.SendReturn;
 import org.cip4.jdflib.auto.JDFAutoSignal.EnumChannelMode;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
-import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
-import org.cip4.jdflib.util.mime.MimeReader;
 
 /**
  * MessageDetails describes one jmf or mime package that is queued for a given url
@@ -105,9 +109,9 @@ import org.cip4.jdflib.util.mime.MimeReader;
 public class MessageDetails extends BambiLogFactory
 {
 	final protected JDFJMF jmf;
-	final protected Multipart mime;
+	protected JDFNode jdf;
 	protected IResponseHandler respHandler;
-	final protected MIMEDetails mimeDet;
+	protected MIMEDetails mimeDet;
 	final protected String senderID;
 	final protected String url;
 	protected IConverterCallback callback;
@@ -128,6 +132,7 @@ public class MessageDetails extends BambiLogFactory
 	protected MessageDetails(final JDFJMF _jmf, final IResponseHandler _respHandler, final IConverterCallback _callback, final HTTPDetails hdet, final String detailedURL)
 	{
 		jmf = _jmf;
+		jdf = null;
 		JDFMessage mess = jmf == null ? null : jmf.getMessageElement(null, null, 0);
 		name = mess == null ? "Null_JMF" : mess.getType();
 		senderID = jmf == null ? null : jmf.getSenderID();
@@ -144,7 +149,6 @@ public class MessageDetails extends BambiLogFactory
 			mimeDet = new MIMEDetails();
 			mimeDet.httpDetails = hdet;
 		}
-		mime = null;
 		fireForget = true;
 		if (jmf != null)
 		{
@@ -161,24 +165,18 @@ public class MessageDetails extends BambiLogFactory
 
 	/**
 	 * 
-	 * @param _mime
+	 * @param jmf
+	 * @param jdf
 	 * @param _respHandler the response handler to handle the response after the message is queued
 	 * @param _callback the callback to apply to the message prior to sending it
 	 * @param mdet the http and mime details
-	 * @param _senderID the senderID of the sender
 	 * @param _url the complete, fully expanded url to send to
 	 */
-	protected MessageDetails(final Multipart _mime, final IResponseHandler _respHandler, final IConverterCallback _callback, final MIMEDetails mdet, final String _senderID, final String _url)
+	protected MessageDetails(JDFJMF jmf, JDFNode jdf, final IResponseHandler _respHandler, final IConverterCallback _callback, final MIMEDetails mdet, final String _url)
 	{
-		name = "mime";
-		mime = _mime;
+		this(jmf, _respHandler, _callback, null, _url);
 		mimeDet = mdet;
-		senderID = _senderID;
-		url = _url;
-		setRespHandler(_respHandler, _callback);
-		jmf = null;
-		createTime = System.currentTimeMillis();
-		fireForget = true;
+		this.jdf = jdf;
 	}
 
 	/**
@@ -236,24 +234,9 @@ public class MessageDetails extends BambiLogFactory
 		final KElement jmf1 = element.getElement(ElementName.JMF);
 		// must clone the root
 		jmf = (JDFJMF) (jmf1 == null ? null : jmf1.cloneNewDoc());
-		final String mimeURL = element.getAttribute("MimeUrl", null, null);
-		if (mimeURL != null)
-		{
-			mime = new MimeReader(mimeURL).getMultiPart();
-			if (mime != null)
-			{
-				final File mimFile = UrlUtil.urlToFile(mimeURL);
-				final boolean bZapp = mimFile.delete();
-				if (!bZapp)
-				{
-					mimFile.deleteOnExit();
-				}
-			}
-		}
-		else
-		{
-			mime = null;
-		}
+		final KElement jdf1 = element.getElement(ElementName.JDF);
+		jdf = (JDFNode) (jdf1 == null ? null : jdf1.cloneNewDoc());
+
 		final String encoding = element.getAttribute("TransferEncoding", null, null);
 		if (encoding != null)
 		{
@@ -294,26 +277,9 @@ public class MessageDetails extends BambiLogFactory
 				final KElement makeNewJMF = bXJDF ? displayJMF(jmf) : jmf;
 				message.copyElement(makeNewJMF, null);
 			}
-			else
-			// mime
+			if (jdf != null)
 			{
-				if (mimeDet != null)
-				{
-					message.setAttribute("TransferEncoding", mimeDet.transferEncoding);
-				}
-				BodyPart bp = null;
-				try
-				{
-					bp = mime == null ? null : mime.getBodyPart(0);
-				}
-				catch (final MessagingException e)
-				{
-					// nop
-				}
-				final JDFDoc jmfBP = MimeUtil.getJDFDoc(bp);
-				final JDFJMF _jmf = jmfBP == null ? null : jmfBP.getJMFRoot();
-				final KElement makeNewJMF = bXJDF ? displayJMF(_jmf) : _jmf;
-				message.copyElement(makeNewJMF, null);
+				message.copyElement(jdf, null);
 			}
 		}
 		else
@@ -345,8 +311,8 @@ public class MessageDetails extends BambiLogFactory
 		JDFMessage m = jmf == null ? null : jmf.getMessageElement(null, null, 0);
 		if (m != null)
 			ret += " Message Type=" + m.getType();
-		if (mime != null)
-			ret += "Mime";
+		if (jdf != null)
+			ret += "Package";
 
 		return ret;
 	}
@@ -406,5 +372,154 @@ public class MessageDetails extends BambiLogFactory
 	public String getName()
 	{
 		return name;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public String getContentType()
+	{
+		if (jdf != null)
+		{
+			if (callback == null || !UrlUtil.VND_XJDF.equals(callback.getJDFContentType()))
+			{
+				return MimeUtil.MULTIPART_RELATED;
+			}
+			else
+			{
+				return UrlUtil.APPLICATION_ZIP;
+			}
+		}
+		else if (jmf != null)
+		{
+			return callback == null ? UrlUtil.VND_JMF : callback.getJMFContentType();
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	public InputStream getInputStream()
+	{
+		try
+		{
+			String contentType = getContentType();
+			if (UrlUtil.APPLICATION_ZIP.equals(contentType))
+			{
+				return getZipStream();
+			}
+			else if (MimeUtil.MULTIPART_RELATED.equals(contentType))
+			{
+				return getMimeInputStream();
+			}
+			else if (jmf != null)
+			{
+				return getJMFInputStream();
+			}
+			else
+			{
+				return null;
+			}
+		}
+		catch (IOException e)
+		{
+			log.error("error writing stream ", e);
+		}
+		return null;
+	}
+
+	InputStream getJMFInputStream()
+	{
+		if (callback == null)
+		{
+			ByteArrayIOStream bos = new ByteArrayIOStream();
+			jmf.write2Stream(bos);
+			return bos.getInputStream();
+		}
+		else
+		{
+			return callback.getJMFExternStream(jmf.getOwnerDocument_JDFElement());
+		}
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	InputStream getMimeInputStream()
+	{
+		ByteArrayIOStream bos = new ByteArrayIOStream();
+		Multipart mp = MimeUtil.buildMimePackage(jmf.getOwnerDocument_JDFElement(), jdf.getOwnerDocument_JDFElement(), false);
+		try
+		{
+			MimeUtil.writeToStream(mp, bos, mimeDet);
+		}
+		catch (Exception e)
+		{
+			log.error("Problems writing to stream", e);
+			return null;
+		}
+		return bos.getInputStream();
+	}
+
+	InputStream getZipStream() throws IOException
+	{
+		ByteArrayIOStream bos = new ByteArrayIOStream();
+		ZipOutputStream zos = new ZipOutputStream(bos);
+		final VElement v = jmf.getChildrenByTagName(null, null, new JDFAttributeMap(AttributeName.URL, "*"), false, false, 0);
+		String jobID = "Job_" + jdf.getJobID(true) + ".jdf";
+		if (v != null)
+		{
+			for (KElement e : v)
+			{
+				e.setAttribute(AttributeName.URL, jobID);
+			}
+		}
+		final KElement xmlJMF;
+		final KElement xmlJDF;
+		if (callback != null)
+		{
+			XMLDoc d2 = callback.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+			xmlJMF = d2.getRoot();
+			XMLDoc d3 = callback.updateJDFForExtern(jdf.getOwnerDocument_JDFElement());
+			xmlJDF = d3.getRoot();
+		}
+		else
+		{
+			xmlJDF = jdf;
+			xmlJMF = jmf;
+		}
+		writeXML(xmlJMF, name + ".jmf", zos);
+		writeXML(xmlJDF, jobID, zos);
+
+		// TODO add extended
+		zos.close();
+
+		return bos.getInputStream();
+	}
+
+	/**
+	 * @param xjmf
+	 * @param zos
+	 * @throws IOException
+	 */
+	private void writeXML(KElement xml, String name, final ZipOutputStream zos)
+	{
+		if (xml != null)
+		{
+			try
+			{
+				final ZipEntry ze = new ZipEntry(name);
+				zos.putNextEntry(ze);
+				xml.write2Stream(zos);
+				zos.closeEntry();
+			}
+			catch (final Exception x)
+			{
+				log.error("oops: ", x);
+			}
+		}
 	}
 }

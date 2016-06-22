@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -76,8 +76,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.mail.Multipart;
-
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
@@ -97,7 +95,6 @@ import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
-import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -115,7 +112,6 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.JDFDate;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -320,16 +316,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				final JDFJMF jmf = b.buildResubmitQueueEntry(slaveQEID, null);
 				final JDFResubmissionParams rsp = jmf.getCommand(0).getResubmissionParams(0);
 				// required in case we convert e.g. to JDF2.0
-				KElement modNode = jdf;
-				if (slaveCallBack != null)
-				{
-					if (isMime)
-					{
-						final JDFDoc d = slaveCallBack.updateJDFForExtern(new JDFDoc(jdf.getOwnerDocument()));
-						modNode = d.getRoot();
-					}
-					slaveCallBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
-				}
 
 				if (isMime)
 				{
@@ -340,16 +326,16 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				{
 					String jdfURL = device.getDeviceURL();
 					jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/" + AbstractProxyDevice.SLAVEJMF + "/");
-					modNode.getOwnerDocument_KElement().write2File((String) null, 0, true);
+					jdf.getOwnerDocument_KElement().write2File((String) null, 0, true);
 					jdfURL += "?Callback=true&qeID=" + myQEID;
 					rsp.setURL(jdfURL);
 				}
-				if (modNode != null)
+				if (jdf != null)
 				{
 					try
 					{
 
-						final JDFMessage r = writeToQueue(jmf.getOwnerDocument_JDFElement(), modNode.getOwnerDocument_KElement());
+						final JDFMessage r = writeToQueue(jmf, jdf);
 						if (r != null)
 						{
 							if (!EnumType.ResubmitQueueEntry.equals(r.getEnumType())) // total snafu???
@@ -364,14 +350,13 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 						}
 						else
 						{
-							getLog().error("resubmit- no response at: " + slaveURL);
+							log.error("resubmit- no response at: " + slaveURL);
 							return 1;
 						}
 					}
 					catch (final IOException x)
 					{
-						getLog().error("resubmit - IOEXception at: ", x);
-						modNode = null;
+						log.error("resubmit - IOEXception at: ", x);
 					}
 				}
 				return 1;
@@ -444,29 +429,16 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			prepareQSP(queueSubParams, deviceOutputHF);
 
 			final JDFNode node = getCloneJDFForSlave(); // the retained internal node
-			log.debug("get clone: " + (node == null ? "null" : node.getJobID(false)));
-			KElement modNode = node; // the external node
-			if (slaveCallBack != null)
-			{
-				if (isMime)
-				{
-					log.debug("calling slave callback for mime submission");
-					final JDFDoc d = slaveCallBack.updateJDFForExtern(new JDFDoc(node.getOwnerDocument()));
-					modNode = d.getRoot();
-				}
-				log.debug("calling slave callback for jmf submission");
-				slaveCallBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
-			}
 
-			setJDFURL(isMime, queueSubParams, modNode);
+			setJDFURL(isMime, queueSubParams, node);
 			final JDFQueueEntry qe = currentQE.getQueueEntry();
 
-			if (modNode != null)
+			if (node != null)
 			{
 				final String urlString = qurl == null ? null : qurl.toExternalForm();
 				try
 				{
-					final JDFMessage r = writeToQueue(jmf.getOwnerDocument_JDFElement(), modNode.getOwnerDocument_KElement());
+					final JDFMessage r = writeToQueue(jmf, node);
 					if (isLive()) // only evaluate response for live submission - who cares what is happening informative
 					{
 						processSubmitResponse(qe, urlString, r);
@@ -475,10 +447,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				catch (final IOException x)
 				{
 					log.error("snafu submitting to queue at " + urlString, x);
-					modNode = null;
 				}
 			}
-			if (modNode == null)
+			if (node == null)
 			{
 				log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
 				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null, null);
@@ -519,7 +490,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			}
 		}
 
-		protected JDFMessage writeToQueue(final JDFDoc docJMF, final XMLDoc docJDF) throws IOException
+		protected JDFMessage writeToQueue(final JDFJMF jmf, final JDFNode jdf) throws IOException
 		{
 			log.debug("submitting to queue, url=" + qurl);
 			if (qurl == null)
@@ -527,18 +498,17 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				log.error("writeToQueue: attempting to write to null url");
 				return null;
 			}
-			final JDFCommand c = docJMF.getJMFRoot().getCommand(0);
+			final JDFCommand c = jmf.getCommand(0);
 			final SubmitQueueEntryResponseHandler sqh = new SubmitQueueEntryResponseHandler(c.getID());
 			if (isMime)
 			{
-				log.info("submitting MIME JMF, ID=" + c.getID());
-				final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, expandMime);
-				_parent.getJMFFactory().send2URL(mp, qurl.toExternalForm(), sqh, slaveCallBack, ud, _parent.getDeviceID());
+				log.info("submitting Package JMF, ID=" + c.getID());
+				_parent.getJMFFactory().send2URL(jmf, jdf, qurl.toExternalForm(), sqh, slaveCallBack, ud, _parent.getDeviceID());
 			}
 			else
 			{
 				log.info("submitting RAW JMF, ID=" + c.getID());
-				getParent().sendJMFToSlave(docJMF.getJMFRoot(), sqh);
+				getParent().sendJMFToSlave(jmf, sqh);
 			}
 			sqh.waitHandled(submitWait, 6 * submitWait, false);
 			final JDFMessage handlerResponse = handleQueueAcknowledge(sqh);

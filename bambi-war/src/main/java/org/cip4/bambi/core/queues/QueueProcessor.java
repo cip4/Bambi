@@ -80,8 +80,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
-import javax.mail.Multipart;
-
 import org.apache.commons.lang.StringUtils;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiLogFactory;
@@ -142,7 +140,6 @@ import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
-import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
@@ -2743,13 +2740,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
 				final JDFDoc docJMF = jmf.getOwnerDocument_JDFElement();
-				final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, _parentDevice.getProperties().getControllerMIMEExpansion());
 				final MIMEDetails mimeDetails = new MIMEDetails();
 				final String devID = _parentDevice.getDeviceID();
 				mimeDetails.httpDetails.setChunkSize(properties.getControllerHTTPChunk());
 				mimeDetails.transferEncoding = properties.getControllerMIMEEncoding();
 				mimeDetails.modifyBoundarySemicolon = StringUtil.parseBoolean(properties.getDeviceAttribute("FixMIMEBoundarySemicolon"), false);
-				response = _parentDevice.getJMFFactory().send2URLSynch(mp, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
+				response = _parentDevice.getJMFFactory().send2URLSynch(jmf, docJMF.getJDFRoot(), returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
 			}
 			else
 			// http

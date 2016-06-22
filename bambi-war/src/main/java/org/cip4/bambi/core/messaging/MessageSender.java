@@ -70,6 +70,7 @@
  */
 package org.cip4.bambi.core.messaging;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -80,8 +81,8 @@ import java.net.URL;
 import java.util.Vector;
 
 import javax.mail.MessagingException;
-import javax.mail.Multipart;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiContainer;
 import org.cip4.bambi.core.BambiLogFactory;
@@ -98,6 +99,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFSignal;
+import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.ByteArrayIOStream.ByteArrayIOInputStream;
 import org.cip4.jdflib.util.CPUTimer;
@@ -105,8 +107,6 @@ import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFDate;
-import org.cip4.jdflib.util.MimeUtil;
-import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlPart;
@@ -644,7 +644,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			String isMime = "";
 			if (mesDetails.jmf != null)
 				isMime = "JMF";
-			if (mesDetails.mime != null)
+			if (mesDetails.jdf != null)
 				isMime += "MIME";
 			if ("".equals(isMime))
 				isMime = "Empty";
@@ -798,117 +798,36 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * 
-	 * @param mh
+	 * @param mesDetails
 	 * @param url
 	 * @return
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * @throws MessagingException
 	 */
-	private HttpURLConnection sendDetails(final MessageDetails mh, final URL url) throws FileNotFoundException, IOException, MessagingException
+	private HttpURLConnection sendDetails(final MessageDetails mesDetails, final URL url) throws FileNotFoundException, IOException, MessagingException
 	{
 		trySend++;
-		JDFJMF jmf = mh.jmf;
-		Multipart mp = mh.mime;
-		HttpURLConnection connection = null;
-		if (jmf != null && mp != null)
+
+		if (mesDetails == null)
+			return null;
+		final DumpDir outDump = getOutDump(mesDetails.senderID);
+		InputStream is = mesDetails.getInputStream();
+		String contentType = mesDetails.getContentType();
+		final HTTPDetails hd = mesDetails.mimeDet == null ? null : mesDetails.mimeDet.httpDetails;
+		UrlPart p = UrlUtil.writeToURL(url.toExternalForm(), is, UrlUtil.POST, contentType, hd);
+
+		String header = "URL: " + url;
+		final File dump = outDump.newFile(header, mesDetails.getName());
+		if (dump != null)
 		{
-			log.warn("Both mime package and JMF specified - sending both");
+			FileUtil.streamToFile(ByteArrayIOStream.getBufferedInputStream(is), dump);
+			final BufferedOutputStream fos = FileUtil.getBufferedOutputStream(dump, true);
+			IOUtils.copy(is, fos);
+			fos.close();
 		}
 
-		final DumpDir outDump = getOutDump(mh.senderID);
-		if (jmf != null)
-		{
-			connection = sendJMF(mh, jmf, url, outDump);
-		}
-		if (mp != null) // mime package
-		{
-			connection = sendMime(mh, mp, url, outDump);
-		}
-		if (jmf == null && mp == null)
-		{
-			connection = sendEmpty(mh, url, outDump);
-		}
-		return connection;
-	}
-
-	/**
-	 * @param mh
-	 * @param url
-	 * @param outDump
-	 * @return
-	 */
-	private HttpURLConnection sendEmpty(MessageDetails mh, URL url, DumpDir outDump)
-	{
-		if (log.isDebugEnabled())
-			log.debug(" sending empty content to: " + url.toExternalForm());
-		final HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
-		UrlPart p = UrlUtil.writeToURL(url.toExternalForm(), null, UrlUtil.POST, UrlUtil.TEXT_UNKNOWN, hd);
-		HttpURLConnection connection = (HttpURLConnection) (p == null ? null : p.getConnection());
-		if (outDump != null)
-		{
-			String header = "URL: " + url;
-			outDump.newFile(header, mh.getName());
-		}
-		return connection;
-	}
-
-	/**
-	 * @param mh
-	 * @param mp
-	 * @param url
-	 * @param outDump
-	 * @return
-	 * @throws IOException
-	 * @throws MessagingException
-	 * @throws FileNotFoundException
-	 */
-	private HttpURLConnection sendMime(final MessageDetails mh, Multipart mp, final URL url, final DumpDir outDump) throws IOException, MessagingException, FileNotFoundException
-	{
-		log.info("sending mime to: " + url.toExternalForm());
-		HttpURLConnection connection = MimeUtil.writeToURL(mp, mh.url, mh.mimeDet);
-		if (outDump != null)
-		{
-			String header = "URL: " + url;
-			final File dump = outDump.newFile(header, mh.getName());
-			if (dump != null)
-			{
-				final FileOutputStream fos = new FileOutputStream(dump, true);
-				MimeUtil.writeToStream(mp, fos, mh.mimeDet);
-				fos.close();
-			}
-		}
-		return connection;
-	}
-
-	/**
-	 * @param mh
-	 * @param jmf
-	 * @param url
-	 * @param outDump
-	 * @return
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 */
-	private HttpURLConnection sendJMF(final MessageDetails mh, JDFJMF jmf, final URL url, final DumpDir outDump) throws FileNotFoundException, IOException
-	{
-		if (log.isDebugEnabled())
-			log.debug("sending jmf ID=" + jmf.getID() + " to: " + url.toExternalForm());
-		final JDFDoc jmfDoc = jmf.getOwnerDocument_JDFElement();
-		final HTTPDetails hd = mh.mimeDet == null ? null : mh.mimeDet.httpDetails;
-		HttpURLConnection connection = jmfDoc.write2HTTPURL(url, hd);
-		if (outDump != null)
-		{
-			String header = "URL: " + url;
-			final File dump = outDump.newFile(header, mh.getName());
-			if (dump != null)
-			{
-				final FileOutputStream fos = new FileOutputStream(dump, true);
-				jmfDoc.write2Stream(fos, 0, true);
-				fos.close();
-			}
-		}
-		return connection;
+		return (HttpURLConnection) (p == null ? null : p.getConnection());
 	}
 
 	/**
@@ -1003,23 +922,28 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			return false;
 		}
 
-		if (_callBack != null)
+		final MessageDetails messageDetails = new MessageDetails(jmf, handler, _callBack, null, url);
+		return queueMessageDetails(messageDetails);
+	}
+
+	/**
+	 * queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required
+	 * 
+	 * @param jmf the message to send
+	 * @param handler
+	 * @param url
+	 * @param _callBack
+	 * @return true, if the message is successfully queued. false, if this MessageSender is unable to accept further messages (i. e. it is shutting down).
+	 */
+	public boolean queueMessage(final JDFJMF jmf, JDFNode node, final IResponseHandler handler, final String url, final IConverterCallback _callBack)
+	{
+		if (doShutDown)
 		{
-			try
-			{
-				_callBack.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
-			}
-			catch (Throwable x)
-			{
-				log.error("exception modifying message: ", x);
-			}
-		}
-		if (log.isDebugEnabled())
-		{
-			log.debug("Queueing jmf message, ID=" + jmf.getID() + " to: " + url);
+			log.warn("cannot queue message during shutdown!");
+			return false;
 		}
 
-		final MessageDetails messageDetails = new MessageDetails(jmf, handler, _callBack, null, url);
+		final MessageDetails messageDetails = new MessageDetails(jmf, node, handler, _callBack, null, url);
 		return queueMessageDetails(messageDetails);
 	}
 
@@ -1084,29 +1008,6 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		}
 		DelayedPersist.getDelayedPersist().queue(this, 420000); // 7 minutes 
 		return !isBlocked(42000, 2);
-	}
-
-	/**
-	 * queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required
-	 * 
-	 * @param multpart
-	 * @param handler
-	 * @param callback
-	 * @param md
-	 * @param senderID
-	 * @param url
-	 * @return true, if the message is successfully queued. false, if this MessageSender is unable to accept further messages (i. e. it is shutting down).
-	 */
-	public boolean queueMimeMessage(final Multipart multpart, final IResponseHandler handler, final IConverterCallback callback, final MIMEDetails md, final String senderID, final String url)
-	{
-		if (doShutDown)
-		{
-			log.warn("cannot queue message during shutdown!");
-			return false;
-		}
-		log.info("Queueing mime message to: " + url);
-		final MessageDetails messageDetails = new MessageDetails(multpart, handler, callback, md, senderID, url);
-		return queueMessageDetails(messageDetails);
 	}
 
 	/**

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -70,10 +70,12 @@
  */
 package org.cip4.bambi.core;
 
+import java.io.InputStream;
+
 import org.cip4.jdflib.core.JDFDoc;
 
 /**
- * this interface modifies jdf and jmf that are exchanged between Bambi and 3rd party Comtrollers or drvices
+ * this interface modifies jdf and jmf that are exchanged between Bambi and 3rd party Controllers or devices
  * 
  * Copyright (C) 2007 Heidelberger Druckmaschinen AG. All Rights Reserved.
  * 
@@ -109,5 +111,29 @@ public interface IConverterCallback
 	 * @return the document representing the updated node
 	 */
 	public JDFDoc updateJMFForExtern(JDFDoc doc);
+
+	/**
+	 * return the modified JMF as a stream
+	 * @return
+	 */
+	public InputStream getJMFExternStream(JDFDoc doc);
+
+	/**
+	 * return the modified JDF as a stream
+	 * @return
+	 */
+	public InputStream getJDFExternStream(JDFDoc doc);
+
+	/**
+	 * 
+	 * @return the external content type for JDF
+	 */
+	public String getJDFContentType();
+
+	/**
+	 * 
+	 * @return the external content type for JMF
+	 */
+	public String getJMFContentType();
 
 }

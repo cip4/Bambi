@@ -131,8 +131,6 @@ public abstract class BambiTestCaseBase
 		setTestNetwork(false);
 	}
 
-	// static protected final String sm_dirTestSchema = ".." + File.separator + "schema" + File.separator + "Version_1_4" + File.separator;
-	// static protected final String sm_dirTestData = "src" + File.separator + "test" + File.separator + "resources" + File.separator + "data" + File.separator;
 	static protected final String sm_dirTestData = getTestDataDir();
 	static protected final String sm_dirTestSchema = sm_dirTestData + "schema" + File.separator + "Version_1_4" + File.separator;
 	static protected final String sm_dirTestDataTemp = sm_dirTestData + "temp" + File.separator;
@@ -148,7 +146,7 @@ public abstract class BambiTestCaseBase
 			path = BambiTestCaseBase.class.getResource("/").getPath();
 			dataFile = new File(path);
 		}
-		path = FilenameUtils.normalize(dataFile.getAbsolutePath()) + File.separator;
+		path = FilenameUtils.normalize(dataFile.getAbsolutePath()) + File.separator + "data" + File.separator;
 
 		return path;
 

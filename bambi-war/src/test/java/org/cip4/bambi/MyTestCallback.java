@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -70,9 +70,12 @@
  */
 package org.cip4.bambi;
 
+import java.io.InputStream;
+
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -93,6 +96,7 @@ public class MyTestCallback implements IConverterCallback
 	/**
 	 * @see org.cip4.bambi.core.IConverterCallback#prepareJDFForBambi(org.cip4.jdflib.core.JDFDoc)
 	 */
+	@Override
 	public JDFDoc prepareJDFForBambi(final JDFDoc doc)
 	{
 		doc.getJDFRoot().setAttribute("bambi:callback", "prepareJDFForBambi", BambiNSExtension.MY_NS);
@@ -102,6 +106,7 @@ public class MyTestCallback implements IConverterCallback
 	/**
 	 * @see org.cip4.bambi.core.IConverterCallback#prepareJMFForBambi(org.cip4.jdflib.core.JDFDoc)
 	 */
+	@Override
 	public JDFDoc prepareJMFForBambi(final JDFDoc doc)
 	{
 		doc.getJMFRoot().setAttribute("bambi:callback", "prepareJMFForBambi", BambiNSExtension.MY_NS);
@@ -111,6 +116,7 @@ public class MyTestCallback implements IConverterCallback
 	/**
 	 * @see org.cip4.bambi.core.IConverterCallback#updateJDFForExtern(org.cip4.jdflib.core.JDFDoc)
 	 */
+	@Override
 	public JDFDoc updateJDFForExtern(final JDFDoc doc)
 	{
 		doc.getJDFRoot().setAttribute("bambi:callback", "updateJDFForExtern", BambiNSExtension.MY_NS);
@@ -120,10 +126,35 @@ public class MyTestCallback implements IConverterCallback
 	/**
 	 * @see org.cip4.bambi.core.IConverterCallback#updateJMFForExtern(org.cip4.jdflib.core.JDFDoc)
 	 */
+	@Override
 	public JDFDoc updateJMFForExtern(final JDFDoc doc)
 	{
 		doc.getJMFRoot().setAttribute("bambi:callback", "updateJMFForExtern", BambiNSExtension.MY_NS);
 		return doc;
+	}
+
+	@Override
+	public InputStream getJMFExternStream(JDFDoc doc)
+	{
+		return null;
+	}
+
+	@Override
+	public InputStream getJDFExternStream(JDFDoc doc)
+	{
+		return null;
+	}
+
+	@Override
+	public String getJDFContentType()
+	{
+		return UrlUtil.VND_JDF;
+	}
+
+	@Override
+	public String getJMFContentType()
+	{
+		return UrlUtil.VND_JMF;
 	}
 
 }

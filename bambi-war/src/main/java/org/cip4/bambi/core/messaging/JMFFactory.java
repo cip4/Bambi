@@ -75,8 +75,6 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Vector;
 
-import javax.mail.Multipart;
-
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.jdflib.core.JDFDoc;
@@ -84,6 +82,7 @@ import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.StringUtil;
@@ -242,9 +241,10 @@ public class JMFFactory extends BambiLogFactory
 	}
 
 	/**
-	 * sends a mime multipart message to a given URL
+	 * sends a mime or zip multipart message to a given URL
 	 * 
-	 * @param mp
+	 * @param jmf
+	 * @param jdf
 	 * @param url the URL to send the JMF to
 	 * @param handler
 	 * @param callback
@@ -252,21 +252,25 @@ public class JMFFactory extends BambiLogFactory
 	 * @param deviceID
 	 * @return 
 	 */
-	public boolean send2URL(final Multipart mp, final String url, final IResponseHandler handler, final IConverterCallback callback, final MIMEDetails md, final String deviceID)
+	public boolean send2URL(final JDFJMF jmf, final JDFNode jdf, final String url, final IResponseHandler handler, final IConverterCallback callback, final MIMEDetails md, final String deviceID)
 	{
 		if (shutdown)
 		{
 			return false;
 		}
 
-		if (mp == null || url == null)
+		if (jmf == null || jdf == null || url == null)
 		{
-			log.error("failed to send JDFMessage, message and/or URL is null");
+			log.error("failed to send JDFMessage, jdf, jmf and/or URL is null");
 			return false;
+		}
+		if (deviceID != null)
+		{
+			jmf.setSenderID(deviceID);
 		}
 
 		final MessageSender ms = getCreateMessageSender(url);
-		return ms.queueMimeMessage(mp, handler, callback, md, deviceID, url);
+		return ms.queueMessage(jmf, jdf, handler, url, callback);
 	}
 
 	/**
@@ -378,10 +382,10 @@ public class JMFFactory extends BambiLogFactory
 	 * 
 	 * @return the response if successful, otherwise null
 	 */
-	public HttpURLConnection send2URLSynch(final Multipart mp, final String url, final IConverterCallback callback, final MIMEDetails md, final String senderID, final int milliSeconds)
+	public HttpURLConnection send2URLSynch(final JDFJMF jmf, JDFNode jdf, final String url, final IConverterCallback callback, final MIMEDetails md, final String senderID, final int milliSeconds)
 	{
 		final MessageResponseHandler handler = new MessageResponseHandler((String) null);
-		send2URL(mp, url, handler, callback, md, senderID);
+		send2URL(jmf, jdf, url, handler, callback, md, senderID);
 		handler.waitHandled(milliSeconds, 10000, true);
 		return handler.getConnection();
 	}

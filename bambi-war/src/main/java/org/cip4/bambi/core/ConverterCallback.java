@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -69,6 +69,8 @@
  */
 package org.cip4.bambi.core;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Vector;
 
 import org.cip4.jdflib.core.AttributeName;
@@ -88,8 +90,10 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.EnumUtil;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * mother of all converters
@@ -221,7 +225,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	protected JDFDoc importXJDF(JDFDoc doc)
 	{
 		final KElement root = doc.getRoot();
-		if (((String) XJDFConstants.XJDF).equals(root.getLocalName()))
+		if (XJDFConstants.XJDF.equals(root.getLocalName()))
 		{
 			log.info("importing xjdf to Bambi");
 			final XJDFToJDFConverter xc = getXJDFImporter();
@@ -253,7 +257,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	protected JDFDoc importXJMF(JDFDoc doc)
 	{
 		final KElement root = doc.getRoot();
-		if (((String) XJDFConstants.XJMF).equals(root.getLocalName()))
+		if (XJDFConstants.XJMF.equals(root.getLocalName()))
 		{
 			log.info("importing XJMF to Bambi");
 			final XJDFToJDFConverter xc = getXJDFImporter();
@@ -427,14 +431,14 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	@Override
 	public JDFDoc updateJDFForExtern(JDFDoc doc)
 	{
-		if (doc == null)
+		final JDFNode n = doc == null ? null : doc.getJDFRoot();
+		if (n == null)
 		{
 			return null;
 		}
-		final JDFNode n = doc.getJDFRoot();
 		if (fixToExtern != null)
 		{
-			boolean bXJDF = fixToExtern.equals(EnumVersion.Version_2_0);
+			boolean bXJDF = isXJDF();
 			EnumVersion fixVersion = bXJDF ? JDFAudit.getDefaultJDFVersion() : fixToExtern;
 			n.fixVersion(fixVersion);
 			if (bXJDF)
@@ -447,6 +451,16 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			doc = cb.updateJDFForExtern(doc);
 		}
 		return doc;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	boolean isXJDF()
+	{
+		boolean bXJDF = fixToExtern == null ? false : fixToExtern.equals(EnumVersion.Version_2_0);
+		return bXJDF;
 	}
 
 	/**
@@ -478,4 +492,65 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		}
 		return doc;
 	}
+
+	/**
+	 * 
+	 * @see org.cip4.bambi.core.IConverterCallback#getJMFExternStream(org.cip4.jdflib.core.JDFDoc)
+	 */
+	@Override
+	public InputStream getJMFExternStream(JDFDoc doc)
+	{
+		JDFDoc doc2 = updateJMFForExtern(doc);
+		return writeToStream(doc2);
+	}
+
+	protected InputStream writeToStream(JDFDoc doc2)
+	{
+		if (doc2 != null)
+		{
+			ByteArrayIOStream bos = new ByteArrayIOStream();
+			try
+			{
+				doc2.write2Stream(bos, 2, false);
+			}
+			catch (IOException e)
+			{
+				return null;
+			}
+			return bos.getInputStream();
+		}
+		return null;
+	}
+
+	/**
+	 * 
+	 * @see org.cip4.bambi.core.IConverterCallback#getJDFExternStream(org.cip4.jdflib.core.JDFDoc)
+	 */
+	@Override
+	public InputStream getJDFExternStream(JDFDoc doc)
+	{
+		JDFDoc doc2 = updateJDFForExtern(doc);
+		return writeToStream(doc2);
+	}
+
+	/**
+	 * 
+	 * @see org.cip4.bambi.core.IConverterCallback#getJDFContentType()
+	 */
+	@Override
+	public String getJDFContentType()
+	{
+		return isXJDF() ? UrlUtil.VND_XJDF : UrlUtil.VND_JDF;
+	}
+
+	/**
+	 * 
+	 * @see org.cip4.bambi.core.IConverterCallback#getJMFContentType()
+	 */
+	@Override
+	public String getJMFContentType()
+	{
+		return isXJDF() ? UrlUtil.VND_XJMF : UrlUtil.VND_JMF;
+	}
+
 }
