@@ -476,7 +476,7 @@ public class SignalDispatcher extends BambiLogFactory
 			final JDFJMF signalJMF = sub.getSignal();
 			if (signalJMF != null)
 			{
-				boolean ok = device.sendJMF(signalJMF, url, null);
+				boolean ok = device.getJMFFactory().send2URL(signalJMF, url, null, sub.getCallback(), device.getDeviceID());
 				if (!ok)
 				{
 					checkStaleSubscription(sub);
@@ -914,6 +914,7 @@ public class SignalDispatcher extends BambiLogFactory
 		}
 		sub.trigger.queueEntryID = queueEntryID;
 		storage.persist();
+		sub.setCallback(device.getCallback(url, sub));
 		return sub.channelID;
 	}
 

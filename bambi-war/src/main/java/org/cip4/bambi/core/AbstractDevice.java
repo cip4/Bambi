@@ -85,6 +85,7 @@ import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
+import org.cip4.bambi.core.messaging.MsgSubscription;
 import org.cip4.bambi.core.messaging.ShutdownJMFHandler;
 import org.cip4.bambi.core.messaging.SignalDispatcher;
 import org.cip4.bambi.core.messaging.StatusOptimizer;
@@ -2219,5 +2220,18 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			EnumQueueEntryStatus qes = qeOld.getQueueEntryStatus();
 			return qeOld.isCompleted() || EnumQueueEntryStatus.Waiting.equals(qes) || EnumQueueEntryStatus.Held.equals(qes);
 		}
+	}
+
+	/**
+	 * hook to define a specialized callback for a subscription
+	 * default - use the standard callback 
+	 * 
+	 * @param url
+	 * @param sub
+	 * @return
+	 */
+	public IConverterCallback getCallback(String url, MsgSubscription sub)
+	{
+		return getCallback(url);
 	}
 }

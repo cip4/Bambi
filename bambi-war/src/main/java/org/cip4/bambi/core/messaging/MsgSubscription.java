@@ -74,6 +74,7 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -123,6 +124,7 @@ public class MsgSubscription implements Cloneable
 	protected int sentMessages = 0;
 	protected String jmfDeviceID = null; // the senderID of the incoming (subscribed) jmf
 	final Log log;
+	private IConverterCallback callback;
 
 	/**
 	 * 
@@ -296,6 +298,7 @@ public class MsgSubscription implements Cloneable
 		c.queueEntry = queueEntry;
 		c.lastTime = lastTime;
 		c.sentMessages = sentMessages;
+		c.callback = callback; // ref only NOT Cloned (!!!)
 		return c;
 	}
 
@@ -419,6 +422,7 @@ public class MsgSubscription implements Cloneable
 		lastTime = 0;
 		lastTime = 0;
 		lastSentJMF = new FastFiFo<JDFJMF>(10);
+		callback = null;
 	}
 
 	/**
@@ -560,5 +564,23 @@ public class MsgSubscription implements Cloneable
 	public JDFMessage getQuery()
 	{
 		return theMessage;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public IConverterCallback getCallback()
+	{
+		return callback;
+	}
+
+	/**
+	 * 
+	 * @param callback
+	 */
+	public void setCallback(IConverterCallback callback)
+	{
+		this.callback = callback;
 	}
 }

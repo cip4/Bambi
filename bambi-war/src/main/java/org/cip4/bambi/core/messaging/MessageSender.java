@@ -76,7 +76,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Vector;
 
 import javax.mail.MessagingException;
@@ -688,17 +687,16 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	private SendReturn sendHTTP(final MessageDetails mh)
 	{
-		final URL url = UrlUtil.stringToURL(mh.url);
-		if (url == null || (!UrlUtil.isHttp(mh.url) && !UrlUtil.isHttps(mh.url)))
+		if (mh.url == null || (!UrlUtil.isHttp(mh.url) && !UrlUtil.isHttps(mh.url)))
 		{
-			log.error("Invalid url: " + url + " removing message");
+			log.error("Invalid url: " + mh.url + " removing message");
 			return SendReturn.removed;
 		}
 		SendReturn b = SendReturn.sent;
 		try
 		{
-			HttpURLConnection connection = sendDetails(mh, url);
-			b = processResponse(mh, url, connection);
+			HttpURLConnection connection = sendDetails(mh);
+			b = processResponse(mh, connection);
 		}
 		catch (final Throwable e)
 		{
@@ -715,23 +713,23 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	/**
 	 * 
 	 *  
-	 * @param mh
-	 * @param url
+	 * @param mesDetails
 	 * @param connection
 	 * @return
 	 * @throws IOException
 	 */
-	private SendReturn processResponse(final MessageDetails mh, final URL url, HttpURLConnection connection) throws IOException
+	private SendReturn processResponse(final MessageDetails mesDetails, HttpURLConnection connection) throws IOException
 	{
 		SendReturn sendReturn = SendReturn.sent;
+		final String url = mesDetails == null ? null : mesDetails.url;
 		String header = "URL: " + url;
 		if (connection != null)
 		{
 			try
 			{
-				if (mh.respHandler != null)
+				if (mesDetails.respHandler != null)
 				{
-					mh.respHandler.setConnection(connection);
+					mesDetails.respHandler.setConnection(connection);
 				}
 				connection.setReadTimeout(30000); // 30 seconds should suffice
 				header += "\nResponse code:" + connection.getResponseCode();
@@ -746,7 +744,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			}
 		}
 
-		final DumpDir inDump = getInDump(mh.senderID);
+		final DumpDir inDump = getInDump(mesDetails.senderID);
 		ByteArrayIOInputStream bis = null;
 		InputStream stream = null;
 		if (connection != null)
@@ -775,14 +773,14 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			sendReturn = SendReturn.error;
 			if (idle == 0)
 			{
-				log.warn("could not send message to " + mh.url + " rc= " + ((connection == null) ? -1 : connection.getResponseCode()));
+				log.warn("could not send message to " + mesDetails.url + " rc= " + ((connection == null) ? -1 : connection.getResponseCode()));
 			}
 		}
-		if (mh.respHandler != null)
+		if (mesDetails.respHandler != null)
 		{
-			mh.respHandler.setConnection(connection);
-			mh.respHandler.setBufferedStream(bis == null ? null : new ByteArrayIOStream(bis));
-			SendReturn sr2 = mh.respHandler.handleMessage() ? SendReturn.sent : SendReturn.error;
+			mesDetails.respHandler.setConnection(connection);
+			mesDetails.respHandler.setBufferedStream(bis == null ? null : new ByteArrayIOStream(bis));
+			SendReturn sr2 = mesDetails.respHandler.handleMessage() ? SendReturn.sent : SendReturn.error;
 			if (!SendReturn.error.equals(sendReturn))
 			{
 				sendReturn = sr2;
@@ -790,7 +788,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		}
 		if (inDump != null)
 		{
-			inDump.newFileFromStream(header, bis, mh.getName());
+			inDump.newFileFromStream(header, bis, mesDetails.getName());
 		}
 		return sendReturn;
 	}
@@ -798,18 +796,18 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	/**
 	 * 
 	 * @param mesDetails
-	 * @param url
 	 * @return
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * @throws MessagingException
 	 */
-	private HttpURLConnection sendDetails(final MessageDetails mesDetails, final URL url) throws FileNotFoundException, IOException, MessagingException
+	private HttpURLConnection sendDetails(final MessageDetails mesDetails) throws FileNotFoundException, IOException, MessagingException
 	{
 		trySend++;
 
 		if (mesDetails == null)
 			return null;
+		final String url = mesDetails.url;
 		InputStream is = mesDetails.getInputStream();
 		String contentType = mesDetails.getContentType();
 		final HTTPDetails hd = mesDetails.mimeDet == null ? null : mesDetails.mimeDet.httpDetails;
@@ -822,7 +820,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			IOUtils.copy(ByteArrayIOStream.getBufferedInputStream(is), fos);
 			fos.close();
 		}
-		UrlPart p = UrlUtil.writeToURL(url.toExternalForm(), ByteArrayIOStream.getBufferedInputStream(is), UrlUtil.POST, contentType, hd);
+		UrlPart p = UrlUtil.writeToURL(url, ByteArrayIOStream.getBufferedInputStream(is), UrlUtil.POST, contentType, hd);
 
 		return (HttpURLConnection) (p == null ? null : p.getConnection());
 	}
