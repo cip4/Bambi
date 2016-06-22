@@ -132,6 +132,7 @@ import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.CPUTimer.CPUTimerFactory;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.EnumUtil;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
@@ -2232,6 +2233,20 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public IConverterCallback getCallback(String url, MsgSubscription sub)
 	{
-		return getCallback(url);
+		IConverterCallback cb = getCallback(url);
+		if (cb instanceof ConverterCallback && sub != null)
+		{
+			ConverterCallback newCallback = new ConverterCallback((ConverterCallback) cb);
+			final JDFMessage m = sub.getQuery();
+			if (m != null && EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, m.getMaxVersion(true)))
+			{
+				newCallback.setFixToExtern(EnumVersion.Version_2_0);
+			}
+			return newCallback;
+		}
+		else
+		{
+			return cb;
+		}
 	}
 }
