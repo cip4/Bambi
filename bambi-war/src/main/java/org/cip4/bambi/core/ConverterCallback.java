@@ -106,6 +106,20 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	private boolean removeJobIDFromSubs;
 
 	/**
+	 * copy ctor
+	 * 
+	 * @param other
+	 */
+	public ConverterCallback(final ConverterCallback other)
+	{
+		super();
+		fixToBambi = other.fixToBambi;
+		fixToExtern = other.fixToExtern;
+		postConversionList = other.postConversionList;
+		removeJobIDFromSubs = other.removeJobIDFromSubs;
+	}
+
+	/**
 	 * get the version to modify the version for outgoing jdf and jmf
 	 * @return the fixTo
 	 */
