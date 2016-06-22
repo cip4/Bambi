@@ -73,7 +73,6 @@ package org.cip4.bambi.core.messaging;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -811,21 +810,19 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 		if (mesDetails == null)
 			return null;
-		final DumpDir outDump = getOutDump(mesDetails.senderID);
 		InputStream is = mesDetails.getInputStream();
 		String contentType = mesDetails.getContentType();
 		final HTTPDetails hd = mesDetails.mimeDet == null ? null : mesDetails.mimeDet.httpDetails;
-		UrlPart p = UrlUtil.writeToURL(url.toExternalForm(), is, UrlUtil.POST, contentType, hd);
-
 		String header = "URL: " + url;
-		final File dump = outDump.newFile(header, mesDetails.getName());
+		final DumpDir outDump = getOutDump(mesDetails.senderID);
+		final File dump = outDump == null ? null : outDump.newFile(header, mesDetails.getName());
 		if (dump != null)
 		{
-			FileUtil.streamToFile(ByteArrayIOStream.getBufferedInputStream(is), dump);
 			final BufferedOutputStream fos = FileUtil.getBufferedOutputStream(dump, true);
-			IOUtils.copy(is, fos);
+			IOUtils.copy(ByteArrayIOStream.getBufferedInputStream(is), fos);
 			fos.close();
 		}
+		UrlPart p = UrlUtil.writeToURL(url.toExternalForm(), ByteArrayIOStream.getBufferedInputStream(is), UrlUtil.POST, contentType, hd);
 
 		return (HttpURLConnection) (p == null ? null : p.getConnection());
 	}
