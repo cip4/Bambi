@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -74,7 +74,9 @@ import java.io.File;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.SignalDispatcher.XMLSubscriptions;
+import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
@@ -120,6 +122,9 @@ class SubscriptionStore
 				for (KElement subElem : v)
 				{
 					final MsgSubscription sub = new MsgSubscription(this.signalDispatcher, subElem);
+					IConverterCallback callback = signalDispatcher.device.getCallback(sub.url, sub);
+					sub.setCallback(callback);
+
 					synchronized (this.signalDispatcher.subscriptionMap)
 					{
 						if (sub.channelID != null)
@@ -156,9 +161,9 @@ class SubscriptionStore
 		{
 			return;
 		}
-		final XMLSubscriptions xmls = this.signalDispatcher.new XMLSubscriptions();
+		final XMLSubscriptions xmls = signalDispatcher.new XMLSubscriptions();
 		xmls.setXMLRoot(null);
-		xmls.listChannels(null, "*");
+		xmls.listChannels(null, JDFConstants.STAR);
 		xmls.write2File(backup.getNewFile(), 2, false);
 	}
 
