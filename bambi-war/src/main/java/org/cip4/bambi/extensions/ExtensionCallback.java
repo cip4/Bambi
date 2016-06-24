@@ -86,11 +86,18 @@ import org.cip4.jdflib.node.JDFNode;
 public class ExtensionCallback extends ConverterCallback
 {
 
+	/**
+	 * 
+	 */
 	public ExtensionCallback()
 	{
 		super();
 	}
 
+	/**
+	 * 
+	 * @param other
+	 */
 	public ExtensionCallback(ExtensionCallback other)
 	{
 		super(other);
@@ -142,6 +149,15 @@ public class ExtensionCallback extends ConverterCallback
 		}
 		return doc;
 
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.ConverterCallback#clone()
+	 */
+	@Override
+	protected ExtensionCallback clone()
+	{
+		return new ExtensionCallback(this);
 	}
 
 }

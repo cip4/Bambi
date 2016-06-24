@@ -98,8 +98,17 @@ import org.cip4.jdflib.util.UrlUtil;
 /**
  * mother of all converters
  */
-public class ConverterCallback extends BambiLogFactory implements IConverterCallback
+public class ConverterCallback extends BambiLogFactory implements IConverterCallback, Cloneable
 {
+	/**
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	protected ConverterCallback clone()
+	{
+		return new ConverterCallback(this);
+	}
+
 	private EnumVersion fixToExtern = null;
 	private EnumVersion fixToBambi = null;
 	private Vector<IConverterCallback> postConversionList;

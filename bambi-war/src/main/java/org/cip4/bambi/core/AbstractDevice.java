@@ -2236,7 +2236,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		IConverterCallback cb = getCallback(url);
 		if (cb instanceof ConverterCallback && sub != null)
 		{
-			ConverterCallback newCallback = new ConverterCallback((ConverterCallback) cb);
+			ConverterCallback newCallback = ((ConverterCallback) cb).clone();
 			final JDFMessage m = sub.getQuery();
 			if (m != null && EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, m.getMaxVersion(true)))
 			{

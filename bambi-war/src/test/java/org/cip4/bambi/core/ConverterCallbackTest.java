@@ -104,11 +104,23 @@ public class ConverterCallbackTest extends BambiTestCaseBase
 	 * 
 	 */
 	@Test
-	public void testClone()
+	public void testCopyCtor()
 	{
 		ConverterCallback cb = new ConverterCallback();
 		cb.setFixToBambi(EnumVersion.Version_2_0);
 		ConverterCallback cb2 = new ConverterCallback(cb);
+		assertEquals(cb.getFixToBambi(), cb2.getFixToBambi());
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void testClone()
+	{
+		ConverterCallback cb = new ConverterCallback();
+		cb.setFixToBambi(EnumVersion.Version_2_0);
+		ConverterCallback cb2 = cb.clone();
 		assertEquals(cb.getFixToBambi(), cb2.getFixToBambi());
 	}
 
