@@ -71,20 +71,27 @@
 
 package org.cip4.bambi.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Vector;
+
 import org.cip4.bambi.BambiTestCase;
+import org.cip4.bambi.BambiTestDevice;
 import org.cip4.bambi.core.messaging.JMFHandler;
+import org.cip4.bambi.core.messaging.MsgSubscription;
 import org.cip4.bambi.core.messaging.SignalDispatcher;
 import org.cip4.bambi.core.messaging.Trigger;
+import org.cip4.bambi.proxy.ProxyDevice;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -101,18 +108,19 @@ public class SignalDispatcherTest extends BambiTestCase
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
 	 */
 	@Override
+	@Before
 	public void setUp()
 	{
-		final JMFHandler h = new JMFHandler(null);
-		d = new SignalDispatcher(null);
-
+		ProxyDevice rootDev = new BambiTestDevice();
+		final JMFHandler h = new JMFHandler(rootDev);
+		d = new SignalDispatcher(rootDev);
 		d.addHandlers(h);
 	}
 
 	/**
 	 * 
 	 */
-    @Test
+	@Test
 	public void testAddSubscription()
 	{
 		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
@@ -132,7 +140,38 @@ public class SignalDispatcherTest extends BambiTestCase
 	/**
 	 * 
 	 */
-    @Test
+	@Test
+	public void testRemoveSubscription()
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			EnumType status = EnumType.Notification;
+			if (i == 0)
+				status = EnumType.Status;
+			else if (i == 1)
+				status = EnumType.Resource;
+
+			final JDFJMF jmf1 = JDFJMF.createJMF(EnumFamily.Query, status);
+			final JDFQuery q1 = jmf1.getQuery(0);
+			final JDFSubscription s1 = q1.appendSubscription();
+			s1.setRepeatTime(1.0);
+			s1.setURL("http://localhost:8080/httpdump/");
+			assertNotNull(d.addSubscription(q1, null));
+		}
+
+		assertEquals(3, d.getChannels(null, null, null).size());
+
+		Vector<MsgSubscription> vr = d.removeSubScriptions(null, "http://localhost:8080/httpdump/", "Resource");
+		assertEquals(vr.size(), 1);
+		assertEquals(2, d.getChannels(null, null, null).size());
+		ThreadUtil.sleep(4000);
+		d.shutdown();
+	}
+
+	/**
+	 * 
+	 */
+	@Test
 	public void testWaitQueued()
 	{
 		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);

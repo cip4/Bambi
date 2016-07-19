@@ -655,7 +655,8 @@ public class SignalDispatcher extends BambiLogFactory
 			{
 				queueEntryID = null;
 			}
-			final Vector<MsgSubscription> vSubs = removeSubScriptions(queueEntryID, url, null);
+
+			final Vector<MsgSubscription> vSubs = removeSubScriptions(queueEntryID, url, spcp.getMessageType());
 			if (vSubs == null)
 			{
 				JMFHandler.errorResponse(response, "No matching subscriptions found", 111, EnumClass.Error);
@@ -1130,7 +1131,7 @@ public class SignalDispatcher extends BambiLogFactory
 					if (mess != null)
 					{
 						final String typ = mess.getType();
-						if (messageType.equals(typ))
+						if (!messageType.equals(typ))
 						{
 							continue; // non-matching type
 						}
