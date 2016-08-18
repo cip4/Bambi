@@ -444,7 +444,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		long t = System.currentTimeMillis() - startTime;
 		if (t < 12345)
 		{
-			ThreadUtil.sleep((int) (12345 - t));
+			ThreadUtil.wait(mutexDispatch, (int) (12345 - t));
 		}
 	}
 
@@ -836,6 +836,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		doShutDown = true;
 		myFactory.senders.remove(callURL);
 		ThreadUtil.notifyAll(mutexDispatch);
+		ThreadUtil.notifyAll(mutexPause);
 	}
 
 	/**

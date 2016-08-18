@@ -96,6 +96,7 @@ import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -147,7 +148,7 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-    @Test
+	@Test
 	public void testSubmitQueueEntry_MIME() throws Exception
 	{
 		_theGT.devID = getDeviceID();
@@ -158,7 +159,7 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-    @Test
+	@Test
 	public void testSubmitQueueEntry_HF() throws Exception
 	{
 		// get number of QueueEntries before submitting
@@ -176,7 +177,7 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-    @Test
+	@Test
 	public void testResubmitQueueEntry_MIME() throws Exception
 	{
 		// get number of QueueEntries before submitting
@@ -193,7 +194,7 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-    @Test
+	@Test
 	public void testSubmitQueueEntry_Subscription() throws Exception
 	{
 		// get number of QueueEntries before submitting
@@ -225,7 +226,7 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-    @Test
+	@Test
 	public void testSubmitQueueEntry_X() throws Exception
 	{
 		for (int i = 0; i < 1; i++)
@@ -245,7 +246,7 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-    @Test
+	@Test
 	public void testSubmitQueueEntry_MIME_Many() throws Exception
 	{
 		for (int i = 1; i < 2000; i++)
@@ -261,7 +262,7 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-    @Test
+	@Test
 	public void testAbortQueueEntry() throws Exception
 	{
 		// build SubmitQueueEntry
@@ -304,7 +305,7 @@ public class SimTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-    @Test
+	@Test
 	public void testPlateSetter() throws Exception
 	{
 		_theGT = new MISPreGoldenTicket(1, EnumVersion.Version_1_3, 2, 2, null);
@@ -320,4 +321,11 @@ public class SimTest extends BambiTestCase
 		submitMimetoURL(getWorkerURL());
 	}
 
+	@Ignore
+	@Test
+	public void testSendFileToSim() throws Throwable
+	{
+		JDFDoc d = JDFDoc.parseFile("/data/test.xml");
+		submitMimetoURL(d, "http://localhost:8080/SimWorker/jmf/sim003", false);
+	}
 }
