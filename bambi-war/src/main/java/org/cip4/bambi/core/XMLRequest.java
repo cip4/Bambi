@@ -176,7 +176,7 @@ public class XMLRequest extends ContainerRequest
 		if (theXML instanceof JDFJMF)
 		{
 			JDFJMF jmf = (JDFJMF) theXML;
-			JDFMessage m = jmf == null ? null : jmf.getMessageElement(null, null, 0);
+			JDFMessage m = jmf.getMessageElement(null, null, 0);
 			if (m != null)
 			{
 				setName(m.getType());
