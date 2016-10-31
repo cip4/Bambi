@@ -1263,15 +1263,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			root.setActivation(EnumActivation.Active);
 		}
 
-		final int prio = qe.getPriority();
-		if (prio > 0)
-		{
-			final JDFNodeInfo ni = root.getCreateNodeInfo();
-			if (!ni.hasAttribute(AttributeName.JOBPRIORITY))
-			{
-				ni.setJobPriority(prio);
-			}
-		}
+		updatePriority(qe, root);
 		JDFCustomerInfo ci = root.getInheritedCustomerInfo(null);
 		if (ci != null)
 		{
@@ -1283,6 +1275,24 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 		final String qeID = qe.getQueueEntryID();
 		return qeID;
+	}
+
+	/**
+	 * 
+	 * @param qethe queueEntry to extract from
+	 * @param root the root JDFD
+	 */
+	protected void updatePriority(final JDFQueueEntry qe, final JDFNode root)
+	{
+		final int prio = qe.hasNonEmpty(AttributeName.PRIORITY) ? qe.getPriority() : -1;
+		if (prio > 0)
+		{
+			final JDFNodeInfo ni = root.getCreateNodeInfo();
+			if (!ni.hasAttribute(AttributeName.JOBPRIORITY))
+			{
+				ni.setJobPriority(prio);
+			}
+		}
 	}
 
 	/**
