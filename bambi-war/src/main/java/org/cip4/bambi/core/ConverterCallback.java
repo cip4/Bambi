@@ -385,7 +385,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	{
 		if (jobID == null && !removeJobIDFromSubs)
 		{
-			log.error("root with no JobID");
+			log.warn("root subscription with no JobID: ");
 			return;
 		}
 		final Vector<JDFSubscription> vSubs = n.getChildrenByClass(JDFSubscription.class, true, 0);

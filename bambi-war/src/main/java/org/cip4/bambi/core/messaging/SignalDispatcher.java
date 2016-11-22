@@ -1324,7 +1324,7 @@ public class SignalDispatcher extends BambiLogFactory
 				final MsgSubscription sub = subscriptionMap.get(key);
 				boolean bMatch = sub.matchesQueueEntry(queueEntryID);
 				bMatch = bMatch && (typNam == null || typNam.equals(sub.getMessageType()));
-				bMatch = bMatch && (sub.jmfDeviceID == null || sub.jmfDeviceID.equals(senderID));
+				bMatch = bMatch && (senderID == null || sub.jmfDeviceID == null || sub.jmfDeviceID.equals(senderID));
 
 				if (bMatch)
 				{
@@ -1333,6 +1333,16 @@ public class SignalDispatcher extends BambiLogFactory
 			}
 		}
 		return keySet2;
+	}
+
+	/**
+	 * 
+	 * @param typ
+	 * @return
+	 */
+	public boolean hasSubscription(EnumType typ)
+	{
+		return !getChannels(typ, null, null).isEmpty();
 	}
 
 	/**

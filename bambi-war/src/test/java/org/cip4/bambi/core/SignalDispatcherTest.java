@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -72,6 +72,7 @@
 package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -92,6 +93,7 @@ import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -102,7 +104,7 @@ import org.junit.Test;
 public class SignalDispatcherTest extends BambiTestCase
 {
 
-	SignalDispatcher d;
+	SignalDispatcher dispatcher;
 
 	/**
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
@@ -113,8 +115,8 @@ public class SignalDispatcherTest extends BambiTestCase
 	{
 		ProxyDevice rootDev = new BambiTestDevice();
 		final JMFHandler h = new JMFHandler(rootDev);
-		d = new SignalDispatcher(rootDev);
-		d.addHandlers(h);
+		dispatcher = new SignalDispatcher(rootDev);
+		dispatcher.addHandlers(h);
 	}
 
 	/**
@@ -128,13 +130,48 @@ public class SignalDispatcherTest extends BambiTestCase
 		final JDFSubscription s = q.appendSubscription();
 		s.setRepeatTime(1.0);
 		s.setURL("http://localhost:8080/httpdump/");
-		assertNotNull(d.addSubscription(q, null));
-		assertNull(d.addSubscription(q, null));
+		assertNotNull(dispatcher.addSubscription(q, null));
+		assertNull(dispatcher.addSubscription(q, null));
 		s.setRepeatTime(5.0);
 		q.setID("1234");
-		assertNotNull(d.addSubscription(q, null));
+		assertNotNull(dispatcher.addSubscription(q, null));
 		ThreadUtil.sleep(4000);
-		d.shutdown();
+		dispatcher.shutdown();
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void testGetChannels()
+	{
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
+		final JDFQuery q = jmf.getQuery(0);
+		final JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(1.0);
+		s.setURL("http://localhost:8080/httpdump/");
+		assertEquals(0, dispatcher.getChannels(EnumType.KnownMessages, null, null).size());
+		dispatcher.addSubscription(q, null);
+		assertEquals(1, dispatcher.getChannels(EnumType.KnownMessages, null, null).size());
+		assertEquals(0, dispatcher.getChannels(EnumType.Resource, null, null).size());
+	}
+
+	/**
+	* 
+	*/
+	@Test
+	public void testHasSubsrciption()
+	{
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
+		final JDFQuery q = jmf.getQuery(0);
+		final JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(1.0);
+		s.setURL("http://localhost:8080/httpdump/");
+		assertFalse(dispatcher.hasSubscription(EnumType.KnownMessages));
+		assertFalse(dispatcher.hasSubscription(null));
+		dispatcher.addSubscription(q, null);
+		assertTrue(dispatcher.hasSubscription(null));
+		assertTrue(dispatcher.hasSubscription(EnumType.KnownMessages));
 	}
 
 	/**
@@ -156,21 +193,22 @@ public class SignalDispatcherTest extends BambiTestCase
 			final JDFSubscription s1 = q1.appendSubscription();
 			s1.setRepeatTime(1.0);
 			s1.setURL("http://localhost:8080/httpdump/");
-			assertNotNull(d.addSubscription(q1, null));
+			assertNotNull(dispatcher.addSubscription(q1, null));
 		}
 
-		assertEquals(3, d.getChannels(null, null, null).size());
+		assertEquals(3, dispatcher.getChannels(null, null, null).size());
 
-		Vector<MsgSubscription> vr = d.removeSubScriptions(null, "http://localhost:8080/httpdump/", "Resource");
+		Vector<MsgSubscription> vr = dispatcher.removeSubScriptions(null, "http://localhost:8080/httpdump/", "Resource");
 		assertEquals(vr.size(), 1);
-		assertEquals(2, d.getChannels(null, null, null).size());
+		assertEquals(2, dispatcher.getChannels(null, null, null).size());
 		ThreadUtil.sleep(4000);
-		d.shutdown();
+		dispatcher.shutdown();
 	}
 
 	/**
 	 * 
 	 */
+	@Ignore
 	@Test
 	public void testWaitQueued()
 	{
@@ -179,18 +217,18 @@ public class SignalDispatcherTest extends BambiTestCase
 		final JDFSubscription s = q.appendSubscription();
 		s.setRepeatTime(1.0);
 		s.setURL("http://localhost:8080/httpdump/");
-		assertNotNull(d.addSubscription(q, null));
-		assertNull(d.addSubscription(q, null));
+		assertNotNull(dispatcher.addSubscription(q, null));
+		assertNull(dispatcher.addSubscription(q, null));
 		s.setRepeatTime(5.0);
 		q.setID("1234");
-		assertNotNull(d.addSubscription(q, null));
-		final Trigger[] ts = d.triggerQueueEntry(null, null, -1, null);
+		assertNotNull(dispatcher.addSubscription(q, null));
+		final Trigger[] ts = dispatcher.triggerQueueEntry(null, null, -1, null);
 		assertNotNull(ts);
 		final long t0 = System.currentTimeMillis();
 		Trigger.waitQueued(ts, 4000);
 		final long t1 = System.currentTimeMillis();
 		assertTrue(t1 - t0 < 3000);
-		d.shutdown();
+		dispatcher.shutdown();
 	}
 
 }
