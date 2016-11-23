@@ -580,7 +580,8 @@ public final class BambiContainer extends ServletContainer
 			JDFDoc jmfDoc = requestRoot.getOwnerDocument_JDFElement();
 			final String deviceID = request.getDeviceID();
 			String requestURI = request.getLocalURL();
-			final IConverterCallback _callBack = getRootDev().getCallback(requestURI);
+			AbstractDevice rDev = getRootDev();
+			final IConverterCallback _callBack = rDev == null ? null : rDev.getCallback(requestURI);
 
 			if (_callBack != null)
 			{
