@@ -125,6 +125,8 @@ public class MsgSubscription implements Cloneable
 	protected String jmfDeviceID = null; // the senderID of the incoming (subscribed) jmf
 	final Log log;
 	private IConverterCallback callback;
+	// do we want to support job specific subscriptions?
+	private static boolean specific = true;
 
 	/**
 	 * 
@@ -144,7 +146,7 @@ public class MsgSubscription implements Cloneable
 		}
 		channelID = m.getID();
 		url = StringUtil.trim(sub.getURL(), null);
-		queueEntry = qeid;
+		queueEntry = isSpecific() ? qeid : null;
 
 		repeatAmount = sub.getRepeatStep();
 		repeatTime = (long) sub.getRepeatTime();
@@ -436,8 +438,8 @@ public class MsgSubscription implements Cloneable
 	{
 		this(signalDispatcher);
 		channelID = sub.getAttribute(AttributeName.CHANNELID, null, null);
-		jmfDeviceID = sub.getAttribute(AttributeName.DEVICEID, null, null);
-		queueEntry = sub.getAttribute(AttributeName.QUEUEENTRYID, null, null);
+		jmfDeviceID = isSpecific() ? sub.getAttribute(AttributeName.DEVICEID, null, null) : null;
+		queueEntry = isSpecific() ? sub.getAttribute(AttributeName.QUEUEENTRYID, null, null) : null;
 		url = sub.getAttribute(AttributeName.URL, null, null);
 		repeatTime = sub.getLongAttribute(AttributeName.REPEATTIME, null, 0);
 		repeatAmount = sub.getIntAttribute(AttributeName.REPEATSTEP, null, 0);
@@ -490,13 +492,16 @@ public class MsgSubscription implements Cloneable
 			return false;
 		}
 		final MsgSubscription msg = (MsgSubscription) obj;
-		if (repeatAmount != msg.repeatAmount || repeatTime != msg.repeatTime)
+		if (isSpecific())
 		{
-			return false;
-		}
-		if (!ContainerUtil.equals(queueEntry, msg.queueEntry))
-		{
-			return false;
+			if (repeatAmount != msg.repeatAmount || repeatTime != msg.repeatTime)
+			{
+				return false;
+			}
+			if (!ContainerUtil.equals(queueEntry, msg.queueEntry))
+			{
+				return false;
+			}
 		}
 		if (!ContainerUtil.equals(url, msg.url))
 		{
@@ -517,7 +522,7 @@ public class MsgSubscription implements Cloneable
 
 	protected boolean matchesQueueEntry(final String qeID)
 	{
-		return queueEntry == null || queueEntry.equals(qeID);
+		return !isSpecific() || queueEntry == null || queueEntry.equals(qeID);
 	}
 
 	/**
@@ -536,8 +541,12 @@ public class MsgSubscription implements Cloneable
 	@Override
 	public int hashCode()
 	{
-		int hc = repeatAmount + 100000 * (int) repeatTime;
-		hc += queueEntry == null ? 0 : queueEntry.hashCode();
+		int hc = 0;
+		if (isSpecific())
+		{
+			hc += repeatAmount + 100000 * (int) repeatTime;
+			hc += queueEntry == null ? 0 : queueEntry.hashCode();
+		}
 		hc += url == null ? 0 : url.hashCode();
 		final String messageType = getMessageType();
 		hc += messageType == null ? 0 : messageType.hashCode();
@@ -582,5 +591,15 @@ public class MsgSubscription implements Cloneable
 	public void setCallback(IConverterCallback callback)
 	{
 		this.callback = callback;
+	}
+
+	public static boolean isSpecific()
+	{
+		return specific;
+	}
+
+	public static void setSpecific(boolean specific)
+	{
+		MsgSubscription.specific = specific;
 	}
 }

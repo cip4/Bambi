@@ -873,7 +873,7 @@ public class SignalDispatcher extends BambiLogFactory
 	 * @param queueEntryID the associated QueueEntryID, may be null.
 	 * @return the slaveChannelID of the subscription, if successful, else null
 	 */
-	public synchronized String addSubscription(final IJMFSubscribable subMess, final String queueEntryID)
+	public synchronized String addSubscription(final IJMFSubscribable subMess, String queueEntryID)
 	{
 		if (subMess == null)
 		{
@@ -885,6 +885,10 @@ public class SignalDispatcher extends BambiLogFactory
 			return null;
 		}
 
+		if (!MsgSubscription.isSpecific())
+		{
+			queueEntryID = null;
+		}
 		final MsgSubscription sub = new MsgSubscription(this, subMess, queueEntryID);
 		final String url = sub.getURL();
 		if (!UrlUtil.isURL(url))

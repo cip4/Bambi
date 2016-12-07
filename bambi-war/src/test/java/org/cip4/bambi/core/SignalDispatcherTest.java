@@ -90,8 +90,8 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
+import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
-import org.cip4.jdflib.util.ThreadUtil;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -135,7 +135,57 @@ public class SignalDispatcherTest extends BambiTestCase
 		s.setRepeatTime(5.0);
 		q.setID("1234");
 		assertNotNull(dispatcher.addSubscription(q, null));
-		ThreadUtil.sleep(4000);
+		dispatcher.shutdown();
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void testAddSubscriptionNonSpecific()
+	{
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Status);
+		final JDFQuery q = jmf.getQuery(0);
+		JDFStatusQuParams sqp = q.getCreateStatusQuParams(0);
+		final JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(1.0);
+		s.setURL("http://localhost:8080/httpdump/");
+
+		assertNotNull(dispatcher.addSubscription(q, null));
+		assertNull(dispatcher.addSubscription(q, null));
+		MsgSubscription.setSpecific(false);
+		s.setRepeatTime(5.0);
+		for (int i = 0; i < 42; i++)
+		{
+			q.setID("q" + i);
+			sqp.setQueueEntryID("q" + i);
+			assertNull(dispatcher.addSubscription(q, "q" + i));
+		}
+		dispatcher.shutdown();
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void testAddSubscriptionQE()
+	{
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Status);
+		final JDFQuery q = jmf.getQuery(0);
+		JDFStatusQuParams sqp = q.getCreateStatusQuParams(0);
+		final JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(1.0);
+		s.setURL("http://localhost:8080/httpdump/");
+
+		assertNotNull(dispatcher.addSubscription(q, null));
+		assertNull(dispatcher.addSubscription(q, null));
+		MsgSubscription.setSpecific(true);
+		for (int i = 0; i < 42; i++)
+		{
+			sqp.setQueueEntryID("q" + i);
+			q.setID("q" + i);
+			assertNotNull(dispatcher.addSubscription(q, "q" + i));
+		}
 		dispatcher.shutdown();
 	}
 
@@ -201,7 +251,6 @@ public class SignalDispatcherTest extends BambiTestCase
 		Vector<MsgSubscription> vr = dispatcher.removeSubScriptions(null, "http://localhost:8080/httpdump/", "Resource");
 		assertEquals(vr.size(), 1);
 		assertEquals(2, dispatcher.getChannels(null, null, null).size());
-		ThreadUtil.sleep(4000);
 		dispatcher.shutdown();
 	}
 
