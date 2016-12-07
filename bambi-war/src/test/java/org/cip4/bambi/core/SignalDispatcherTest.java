@@ -113,6 +113,7 @@ public class SignalDispatcherTest extends BambiTestCase
 	@Before
 	public void setUp()
 	{
+		MsgSubscription.setSpecific(true);
 		ProxyDevice rootDev = new BambiTestDevice();
 		final JMFHandler h = new JMFHandler(rootDev);
 		dispatcher = new SignalDispatcher(rootDev);
