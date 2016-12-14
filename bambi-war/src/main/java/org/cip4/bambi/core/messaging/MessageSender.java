@@ -385,10 +385,6 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 					log.info("successfully sent JMF # " + sent + " to " + callURL);
 				}
 			}
-			else if (sentFirstMessage == SendReturn.removed)
-			{
-				idle = 0;
-			}
 			else
 			{
 				idle++;
@@ -415,8 +411,8 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 							if (_messages.size() > 0)
 							{
 								long t0 = lastSent == 0 ? startTime : lastSent;
-								log.warn("Still waiting in blocked message thread for " + callURL.getBaseURL() + " unsuccessful for "
-										+ ((System.currentTimeMillis() - t0) / 60000l) + " minutes");
+								log.warn("Still waiting in blocked message thread for " + callURL.getBaseURL() + " unsuccessful for " + ((System.currentTimeMillis() - t0) / 60000l)
+										+ " minutes");
 							}
 						}
 						waitKaputt = true;
@@ -647,6 +643,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			if ("".equals(isMime))
 				isMime = "Empty";
 
+			boolean needLog = true;
 			String warn = "Sender: " + mesDetails.senderID + " Error sending " + isMime + " message to: " + mesDetails.url + " return code=" + sendReturn;
 			if (mesDetails.isFireForget())
 			{
@@ -655,6 +652,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				removedFireForget++;
 				warn += removedFireForget;
 				sendReturn = SendReturn.removed;
+				needLog = (removedFireForget < 10) || (removedFireForget % 100) == 0;
 			}
 			else
 			{
@@ -666,14 +664,19 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 					_messages.remove(0);
 					removedError++;
 					sendReturn = SendReturn.removed;
+					needLog = (removedError < 10) || (removedError % 100) == 0;
 				}
 				else
 				{
 					String warn2 = " - retaining message for resend; messages pending: " + _messages.size() + " times delayed: " + idle;
 					warn += warn2;
+					needLog = (idle < 10) || (idle % 100) == 0;
 				}
 			}
-			log.warn(warn);
+			if (needLog)
+			{
+				log.warn(warn);
+			}
 		}
 		mesDetails.setReturn(sendReturn);
 		return sendReturn;
@@ -1013,8 +1016,8 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	@Override
 	public String toString()
 	{
-		return "MessageSender - URL: " + callURL.url + " size: " + _messages.size() + " total: " + sent + " last queued at " + XMLResponse.formatLong(lastQueued)
-				+ " last sent at " + XMLResponse.formatLong(lastSent);
+		return "MessageSender - URL: " + callURL.url + " size: " + _messages.size() + " total: " + sent + " last queued at " + XMLResponse.formatLong(lastQueued) + " last sent at "
+				+ XMLResponse.formatLong(lastSent);
 	}
 
 	/**
@@ -1111,6 +1114,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	public void zappFirstMessage()
 	{
 		zappFirst = true;
+		idle = 0;
 		if (!pause)
 		{
 			ThreadUtil.notifyAll(mutexDispatch);
