@@ -973,11 +973,14 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	{
 		if (waitKaputt && messageDetails.isFireForget())
 		{
-			String warn = " not queueing fire&forget to " + callURL.url + "; message #";
 			removedFireForget++;
-			warn += removedFireForget;
-			warn += " currently waiting: " + _messages.size();
-			log.warn(warn);
+			if (removedFireForget < 10 || (removedFireForget % 100) == 0)
+			{
+				String warn = " not queueing fire&forget to " + callURL.url + "; message #";
+				warn += removedFireForget;
+				warn += " currently waiting: " + _messages.size();
+				log.warn(warn);
+			}
 			trySend++;
 			return false;
 		}
