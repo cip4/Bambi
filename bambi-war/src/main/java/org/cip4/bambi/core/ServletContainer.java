@@ -78,9 +78,9 @@ import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 
 import org.cip4.bambi.core.messaging.JMFFactory;
+import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.extensions.XJDFConstants;
 import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.extensions.XJDFZipReader;
@@ -276,10 +276,10 @@ public abstract class ServletContainer extends BambiLogFactory
 	{
 		ZipEntry e = getXMLFromZip(zipReader);
 		String name = e == null ? null : e.getName();
-		XMLDoc d;
+		JDFDoc d;
 		if (XJDFHelper.XJDF.equalsIgnoreCase(UrlUtil.extension(name)))
 		{
-			log.info("Processing XJDF zip request:  " + toString());
+			log.info("Processing XJDF zip request: " + request);
 			XJDFZipReader xjdfZipReader = new XJDFZipReader(zipReader);
 			xjdfZipReader.convertXJDF();
 			JDFNode jdfRoot = xjdfZipReader.getJDFRoot();
@@ -288,13 +288,13 @@ public abstract class ServletContainer extends BambiLogFactory
 		else
 		{
 			log.info("Processing XML zip request:  " + toString());
-			d = zipReader.getXMLDoc();
+			d = zipReader.getJDFDoc();
 			zipReader.buffer();
 			ZipEntry e2 = zipReader.getNextEntry();
 			if (e2 != null)
 			{
 				String rootName = e2.getName();
-				if (rootName.endsWith("/") && name.startsWith(rootName))
+				if (rootName.endsWith(JDFConstants.SLASH) && name.startsWith(rootName))
 				{
 					zipReader.setRootEntry(rootName);
 				}
@@ -303,7 +303,7 @@ public abstract class ServletContainer extends BambiLogFactory
 		final XMLResponse r;
 		if (d != null)
 		{
-			XMLRequest req = new XMLRequest(new JDFDoc(d));
+			XMLRequest req = new XMLRequest(d);
 			req.setContainer(request);
 			r = processXMLDoc(req);
 		}
