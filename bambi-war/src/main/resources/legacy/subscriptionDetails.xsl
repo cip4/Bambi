@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<!-- (C) 2001-2015 CIP4 -->
+<!-- (C) 2001-2017 CIP4 -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -12,8 +12,8 @@
 		<html>
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
-				<link rel="stylesheet" type="text/css" href="../css/styles_pc.css" />
-				<link rel="icon" href="favicon.ico" type="image/x-icon" />
+				<link rel="stylesheet" type="text/css" href="/legacy/css/styles_pc.css" />
+				<link rel="icon" href="/legacy/favicon.ico" type="image/x-icon" />
 				<title>
 					Device
 					<xsl:value-of select="@DeviceID" />
@@ -21,7 +21,7 @@
 				</title>
 			</head>
 			<body>
-				<img src="../logo.gif" height="70" alt="logo" />
+				<img src="/legacy/logo.gif" height="70" alt="logo" />
 				<h1>
 					Device
 					<xsl:value-of select="@DeviceID" />
@@ -215,5 +215,5 @@
 	</xsl:template>
 	<!-- end of template RemovedChannel -->
 	<xsl:include href="SubscriptionExtension.xsl" />
-
+	<xsl:include href="topnavigation.xsl" />
 </xsl:stylesheet>
