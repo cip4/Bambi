@@ -2,8 +2,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -19,17 +19,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -55,18 +55,18 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2006, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- * 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2006, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.core.messaging;
 
@@ -119,7 +119,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * this class handles subscriptions <br>
- * 
+ *
  * @author rainer prosi
  */
 public class SignalDispatcher extends BambiLogFactory
@@ -160,7 +160,7 @@ public class SignalDispatcher extends BambiLogFactory
 		}
 
 		/**
-		 * 
+		 *
 		 * @param request
 		 * @return
 		 */
@@ -222,7 +222,7 @@ public class SignalDispatcher extends BambiLogFactory
 			else
 			{
 				showDetails(request, details, pos);
-				setXSLTURL(device.getContext(request) + "/subscriptionDetails.xsl");
+				setXSLTURL(device.getXSLTBaseFromContext(device.getContext(request)) + "/subscriptionDetails.xsl");
 			}
 			XMLResponse r = new XMLResponse(getRoot());
 			return r;
@@ -307,8 +307,8 @@ public class SignalDispatcher extends BambiLogFactory
 
 		/**
 		 * @param request
-		 * @param bListSenders 
-		 * @param pos 
+		 * @param bListSenders
+		 * @param pos
 		 */
 		private void listMessageSenders(final ContainerRequest request, final boolean bListSenders, final int pos)
 		{
@@ -406,7 +406,7 @@ public class SignalDispatcher extends BambiLogFactory
 		private final CPUTimer timer;
 
 		/**
-		 * 
+		 *
 		 */
 		public Dispatcher()
 		{
@@ -440,7 +440,7 @@ public class SignalDispatcher extends BambiLogFactory
 		}
 
 		/**
-		 * 
+		 *
 		 */
 		void flush()
 		{
@@ -607,7 +607,7 @@ public class SignalDispatcher extends BambiLogFactory
 	public class StopPersistentChannelHandler extends AbstractHandler
 	{
 		/**
-		 * 
+		 *
 		 */
 		public StopPersistentChannelHandler()
 		{
@@ -712,7 +712,7 @@ public class SignalDispatcher extends BambiLogFactory
 	public class KnownSubscriptionsHandler extends AbstractHandler
 	{
 		/**
-		 * 
+		 *
 		 */
 		public KnownSubscriptionsHandler()
 		{
@@ -756,8 +756,8 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * constructor
-	 * @param 
-	 * @param dev device for this ID of the device this SignalHandler is working for. 
+	 * @param
+	 * @param dev device for this ID of the device this SignalHandler is working for.
 	 */
 	public SignalDispatcher(final AbstractDevice dev)
 	{
@@ -1016,9 +1016,9 @@ public class SignalDispatcher extends BambiLogFactory
 	}
 
 	/**
-	 * 
+	 *
 	 * get the subscription for a given channelID
-	 * 
+	 *
 	 * @param channelID the channelID of the subscription
 	 * @return
 	 */
@@ -1100,9 +1100,9 @@ public class SignalDispatcher extends BambiLogFactory
 	}
 
 	/**
-	 * 
+	 *
 	 * returns the channelIDs of all matching subscriptions
-	 * 
+	 *
 	 * @param queueEntryID the queueEntryID of the subscriptions to remove
 	 * @param url url of subscriptions to zapp
 	 * @param messageType TODO
@@ -1340,7 +1340,7 @@ public class SignalDispatcher extends BambiLogFactory
 	}
 
 	/**
-	 * 
+	 *
 	 * @param typ
 	 * @return
 	 */
@@ -1378,7 +1378,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * loop over all handlers, trying to handle a message
-	 * 
+	 *
 	 * @param q
 	 * @param r
 	 * @return
