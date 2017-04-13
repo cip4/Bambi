@@ -2,8 +2,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -19,17 +19,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -55,18 +55,18 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2006, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- * 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2006, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.core.messaging;
 
@@ -74,13 +74,16 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.ConverterCallback;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.extensions.XJDFConstants;
 import org.cip4.jdflib.ifaces.IJMFSubscribable;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -96,12 +99,12 @@ import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.StringUtil;
 
 /**
- * 
+ *
  */
 public class MsgSubscription implements Cloneable
 {
 	/**
-	 * 
+	 *
 	 */
 	private final SignalDispatcher signalDispatcher;
 	protected static final String SUBSCRIPTION_ELEMENT = "MsgSubscription";
@@ -109,6 +112,7 @@ public class MsgSubscription implements Cloneable
 	protected String queueEntry;
 	protected String url;
 	protected int repeatAmount, lastAmount;
+	EnumVersion version;
 	/**
 	 * the last successful submission
 	 */
@@ -129,10 +133,10 @@ public class MsgSubscription implements Cloneable
 	private static boolean specific = true;
 
 	/**
-	 * 
+	 *
+	 * @param signalDispatcher
 	 * @param m
 	 * @param qeid
-	 * @param signalDispatcher TODO
 	 */
 	MsgSubscription(SignalDispatcher signalDispatcher, final IJMFSubscribable m, final String qeid)
 	{
@@ -143,6 +147,12 @@ public class MsgSubscription implements Cloneable
 			log.error("Subscribing to non subscription ");
 			channelID = null;
 			return;
+		}
+		KElement root = sub.getDocRoot();
+		version = EnumVersion.getEnum(root.getNonEmpty(AttributeName.VERSION));
+		if (version == null)
+		{
+			version = XJDFConstants.XJMF.equals(root.getLocalName()) ? EnumVersion.Version_2_0 : EnumVersion.Version_1_5;
 		}
 		channelID = m.getID();
 		url = StringUtil.trim(sub.getURL(), null);
@@ -169,19 +179,20 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 * get a signal that corresponds to this subscription
-	 * @return the jmf element that contains any signals generated by this subscription null if no signals were generated
+	 * get all signals that correspond to this subscription
+	 * @return the jmf element that contains any signals generated by this subscription
+	 * null if no signals were generated
 	 */
 	protected JDFJMF getSignal()
 	{
 		if (!(theMessage instanceof JDFQuery))
 		{
-			// TODO guess what...
 			log.error("registrations not supported");
 			return null;
 		}
 		JDFQuery q = (JDFQuery) theMessage;
 		final JDFJMF jmf = q.createResponse();
+		jmf.setMaxVersion(version);
 		JDFResponse r = jmf.getResponse(0);
 		// make a copy so that modifications do not have an effect
 		q = (JDFQuery) jmf.copyElement(q, null);
@@ -196,22 +207,27 @@ public class MsgSubscription implements Cloneable
 			log.debug("Unhandled message: " + q.getType());
 			return null;
 		}
+
 		final int nResp = jmf.numChildElements(ElementName.RESPONSE, null);
 		final int nSignals = jmf.numChildElements(ElementName.SIGNAL, null);
 		JDFJMF jmfOut = (nResp + nSignals > 0) ? new JDFDoc(ElementName.JMF).getJMFRoot() : null;
-		for (int i = 0; i < nResp; i++)
+		if (jmfOut != null)
 		{
-			final JDFSignal s = jmfOut.getCreateSignal(i);
-			r = jmf.getResponse(i);
-			s.convertResponse(r, q);
+			jmfOut.setMaxVersion(version);
+			for (int i = 0; i < nResp; i++)
+			{
+				final JDFSignal s = jmfOut.getCreateSignal(i);
+				r = jmf.getResponse(i);
+				s.convertResponse(r, q);
+			}
+			for (int i = 0; i < nSignals; i++)
+			{
+				JDFSignal s = jmf.getSignal(i);
+				jmfOut.copyElement(s, null);
+			}
+			jmfOut = filterSenders(jmfOut);
+			finalizeSentMessages(jmfOut);
 		}
-		for (int i = 0; i < nSignals; i++)
-		{
-			JDFSignal s = jmf.getSignal(i);
-			jmfOut.copyElement(s, null);
-		}
-		jmfOut = filterSenders(jmfOut);
-		finalizeSentMessages(jmfOut);
 		return jmfOut;
 	}
 
@@ -272,8 +288,8 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 * @return
 	 */
 	public String getURL()
@@ -282,14 +298,15 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @see java.lang.Object#clone()
 	 */
 	@Override
 	public MsgSubscription clone()
 	{
 		MsgSubscription c = new MsgSubscription(this.signalDispatcher);
+		c.version = version;
 		c.channelID = channelID;
 		c.lastAmount = lastAmount;
 		c.repeatAmount = repeatAmount;
@@ -304,15 +321,8 @@ public class MsgSubscription implements Cloneable
 		return c;
 	}
 
-	@Override
-	public String toString()
-	{
-		return "[MsgSubscription: slaveChannelID=" + channelID + " Type=" + getMessageType() + " URL=" + url + " device ID=" + jmfDeviceID + " QueueEntry=" + queueEntry
-				+ " lastAmount=" + lastAmount + " repeatAmount=" + repeatAmount + " repeatTime=" + repeatTime + " lastTime=" + lastTime + " Sent=" + sentMessages + "]";
-	}
-
 	/**
-	 * 
+	 *
 	 * @param parent
 	 * @param details
 	 * @param pos
@@ -331,10 +341,10 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 * 
+	 *
 	 * @param sub
 	 * @param details
-	 * @param pos 
+	 * @param pos
 	 */
 	protected void setXML(final KElement sub, final String details, int pos)
 	{
@@ -342,6 +352,10 @@ public class MsgSubscription implements Cloneable
 		setSubscription(sub);
 		sub.setAttribute(AttributeName.TYPE, theMessage.getType());
 		sub.setAttribute("Sent", sentMessages, null);
+		if (version != null)
+		{
+			sub.setAttribute(AttributeName.VERSION, version.getName(), null);
+		}
 		sub.setAttribute("LastTime", sentMessages == 0 ? " - " : XMLResponse.formatLong((lastTime * 1000)));
 		if (pos <= 0)
 		{
@@ -358,9 +372,6 @@ public class MsgSubscription implements Cloneable
 					final KElement message = sub.appendElement("Message");
 					if (pos == sentArray.length - i)
 					{
-						//							final XJDF20 x2 = new XJDF20();
-						//							x2.setUpdateVersion(false);
-						//							final KElement newJMF = message.copyElement(x2.makeNewJMF(sentArray[i]), null);
 						final KElement newJMF = message.copyElement(sentArray[i], null);
 						newJMF.setAttribute(AttributeName.TIMESTAMP, sentArray[i].getTimeStamp().getDateTimeISO());
 					}
@@ -403,11 +414,11 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 * creates a MsgSubscription  
-	 * 
+	 * creates a MsgSubscription
+	 *
 	 * - must be maintained in synch with @see setXML (duh...)
 	 * @param signalDispatcher TODO
-	 *  
+	 *
 	 */
 	MsgSubscription(SignalDispatcher signalDispatcher)
 	{
@@ -425,14 +436,15 @@ public class MsgSubscription implements Cloneable
 		lastTime = 0;
 		lastSentJMF = new FastFiFo<JDFJMF>(10);
 		callback = null;
+		version = null;
 	}
 
 	/**
 	 * creates a MsgSubscription from an XML element
-	 * 
+	 *
 	 * - must be maintained in synch with @see setXML (duh...)
 	 * @param sub
-	 * @param signalDispatcher 
+	 * @param signalDispatcher
 	 */
 	MsgSubscription(SignalDispatcher signalDispatcher, final KElement sub)
 	{
@@ -444,10 +456,11 @@ public class MsgSubscription implements Cloneable
 		repeatTime = sub.getLongAttribute(AttributeName.REPEATTIME, null, 0);
 		repeatAmount = sub.getIntAttribute(AttributeName.REPEATSTEP, null, 0);
 		sentMessages = sub.getIntAttribute("Sent", null, 0);
+		version = EnumVersion.getEnum(sub.getNonEmpty(AttributeName.VERSION));
 		final KElement subsub = sub.getElement("Sub");
 		if (subsub != null)
 		{
-			final JDFJMF jmf = new JDFDoc("JMF").getJMFRoot();
+			final JDFJMF jmf = new JDFDoc(ElementName.JMF).getJMFRoot();
 			theMessage = (JDFMessage) jmf.copyElement(subsub.getFirstChildElement(), null);
 		}
 		else
@@ -481,7 +494,7 @@ public class MsgSubscription implements Cloneable
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -504,6 +517,10 @@ public class MsgSubscription implements Cloneable
 			}
 		}
 		if (!ContainerUtil.equals(url, msg.url))
+		{
+			return false;
+		}
+		if (!ContainerUtil.equals(version, msg.version))
 		{
 			return false;
 		}
@@ -535,7 +552,7 @@ public class MsgSubscription implements Cloneable
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -547,9 +564,10 @@ public class MsgSubscription implements Cloneable
 			hc += repeatAmount + 100000 * (int) repeatTime;
 			hc += queueEntry == null ? 0 : queueEntry.hashCode();
 		}
-		hc += url == null ? 0 : url.hashCode();
+		hc += url == null ? 0 : hc * 42 + url.hashCode();
+		hc += version == null ? 0 : hc * 42 + version.hashCode();
 		final String messageType = getMessageType();
-		hc += messageType == null ? 0 : messageType.hashCode();
+		hc += messageType == null ? 0 : hc * 4 + messageType.hashCode();
 		return hc;
 	}
 
@@ -567,7 +585,7 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the query message
 	 */
 	public JDFMessage getQuery()
@@ -576,7 +594,7 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public IConverterCallback getCallback()
@@ -585,12 +603,16 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 * 
+	 *
 	 * @param callback
 	 */
 	public void setCallback(IConverterCallback callback)
 	{
 		this.callback = callback;
+		if (callback instanceof ConverterCallback)
+		{
+			((ConverterCallback) this.callback).setFixToExtern(version);
+		}
 	}
 
 	public static boolean isSpecific()
@@ -601,5 +623,16 @@ public class MsgSubscription implements Cloneable
 	public static void setSpecific(boolean specific)
 	{
 		MsgSubscription.specific = specific;
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		return "MsgSubscription [" + (channelID != null ? "channelID=" + channelID + ", " : "") + (queueEntry != null ? "queueEntry=" + queueEntry + ", " : "")
+				+ (url != null ? "url=" + url + ", " : "") + (version != null ? "version=" + version + ", " : "") + "lastTime=" + lastTime + ", lastTry=" + lastTry
+				+ ", repeatTime=" + repeatTime + ", " + (jmfDeviceID != null ? "jmfDeviceID=" + jmfDeviceID : "") + "]";
 	}
 }

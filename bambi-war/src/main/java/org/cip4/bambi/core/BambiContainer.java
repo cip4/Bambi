@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.core;
 
@@ -81,6 +81,7 @@ import javax.mail.MessagingException;
 
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.MessageSender;
+import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
@@ -101,9 +102,9 @@ import org.cip4.jdflib.util.mime.MimeReader;
  * class that handles all bambi JDF/JMF requests - regardless of the servlet context
  * previously part of {@link BambiServlet}
  * it is implemented as a Singleton so that you always have static access
- * 
+ *
  * note that the get handling routines still assume a servlet context - only the actual JDF / JMF post does not
- * @author Rainer Prosi, Heidelberger Druckmaschinen 
+ * @author Rainer Prosi, Heidelberger Druckmaschinen
  */
 public final class BambiContainer extends ServletContainer
 {
@@ -123,8 +124,8 @@ public final class BambiContainer extends ServletContainer
 	private static BambiContainer theInstance = null;
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 * @return the singleton bambi container instance
 	 */
 	public synchronized static BambiContainer getCreateInstance()
@@ -139,8 +140,8 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 * @return the singleton bambi container instance
 	 */
 	public synchronized static BambiContainer getInstance()
@@ -151,12 +152,12 @@ public final class BambiContainer extends ServletContainer
 	/**
 	 * handler for the overview page
 	 * @author prosirai
-	 * 
+	 *
 	 */
 	protected class OverviewHandler implements IGetHandler
 	{
 		/**
-		 * 
+		 *
 		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.ContainerRequest)
 		 * @param request
 		 * @return
@@ -181,7 +182,7 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 * @return the root dispatcher device 
+	 * @return the root dispatcher device
 	 */
 	private RootDevice getRootDevice()
 	{
@@ -206,7 +207,7 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public List<String> getDevices()
@@ -229,7 +230,7 @@ public final class BambiContainer extends ServletContainer
 	 * @param context the servlet context information
 	 * @param config the name of the Java config xml file
 	 * @param dump the file where to dump debug requests
-	 * @return 
+	 * @return
 	 */
 	public boolean loadProperties(final File baseDir, final String context, final String dump)
 	{
@@ -239,7 +240,7 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 * 
+	 *
 	 * @param prop
 	 * @param needController
 	 * @return
@@ -349,7 +350,7 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Override
 	public void shutDown()
@@ -372,7 +373,7 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Override
 	public void reset()
@@ -383,7 +384,7 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 * 
+	 *
 	 * @param request
 	 * @return
 	 */
@@ -422,7 +423,7 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 * 
+	 *
 	 * @param request
 	 * @return
 	 */
@@ -478,9 +479,9 @@ public final class BambiContainer extends ServletContainer
 
 	/**
 	 * Parses a multipart request.
-	 * @param request 
-	 * @return 
-	 * @throws IOException 
+	 * @param request
+	 * @return
+	 * @throws IOException
 	 */
 	@Override
 	public XMLResponse processMultiPart(final StreamRequest request) throws IOException
@@ -561,7 +562,7 @@ public final class BambiContainer extends ServletContainer
 
 	/**
 	 * process the main, i.e. doc #0 JMF document
-	 * 
+	 *
 	 * @param request the http request to service
 	 * @return
 	 */
@@ -596,23 +597,24 @@ public final class BambiContainer extends ServletContainer
 			else
 			{
 				// switch: sends the jmfDoc to correct device
-				JDFDoc responseJMF = null;
+				JDFDoc responseDoc = null;
 				final AbstractDevice device = getDeviceFromID(deviceID);
 				final IJMFHandler handler = (device == null) ? rootDev.getJMFHandler(requestURI) : device.getJMFHandler(requestURI);
 				if (handler != null)
 				{
-					responseJMF = handler.processJMF(jmfDoc);
+					responseDoc = handler.processJMF(jmfDoc);
 				}
 
-				if (responseJMF != null)
+				if (responseDoc != null)
 				{
-					KElement jmfRoot = responseJMF.getJMFRoot();
+					KElement jmfRoot = responseDoc.getJMFRoot();
+					jmfRoot.copyAttribute(AttributeName.MAXVERSION, jmf);
 					if (_callBack != null)
 					{
-						responseJMF = _callBack.updateJMFForExtern(responseJMF);
-						if (responseJMF != null)
+						responseDoc = _callBack.updateJMFForExtern(responseDoc);
+						if (responseDoc != null)
 						{
-							jmfRoot = responseJMF.getRoot();
+							jmfRoot = responseDoc.getRoot();
 						}
 					}
 					response = new XMLResponse(jmfRoot);
@@ -662,7 +664,7 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 * 
+	 *
 	 * @param requestURI
 	 * @return
 	 */
@@ -673,7 +675,7 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 * 
+	 *
 	 * @param request
 	 * @return
 	 */
