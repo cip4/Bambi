@@ -383,13 +383,13 @@ public class MessageDetails extends BambiLogFactory
 	{
 		if (jdf != null)
 		{
-			if (callback == null || !UrlUtil.VND_XJDF.equals(callback.getJDFContentType()))
+			if (callback != null && UrlUtil.VND_XJDF.equals(callback.getJDFContentType()) && UrlUtil.VND_XJMF.equals(callback.getJMFContentType()))
 			{
-				return MimeUtil.MULTIPART_RELATED;
+				return UrlUtil.APPLICATION_ZIP;
 			}
 			else
 			{
-				return UrlUtil.APPLICATION_ZIP;
+				return MimeUtil.MULTIPART_RELATED;
 			}
 		}
 		else if (jmf != null)
