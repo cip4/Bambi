@@ -72,7 +72,9 @@ package org.cip4.bambi.core.messaging;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import javax.mail.BodyPart;
@@ -94,6 +96,20 @@ import org.junit.Test;
 
 public class MessageDetailsTest extends BambiTestCaseBase
 {
+
+	class MyCallback extends ConverterCallback
+	{
+
+		/**
+		 * @see org.cip4.bambi.core.ConverterCallback#getJMFContentType()
+		 */
+		@Override
+		public String getJMFContentType()
+		{
+			return UrlUtil.VND_JMF;
+		}
+
+	}
 
 	/**
 	 *
@@ -183,10 +199,11 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	}
 
 	/**
+	 * @throws IOException
 	 *
 	 */
 	@Test
-	public void testStreamZip()
+	public void testStreamZip() throws IOException
 	{
 		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
 		JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
@@ -198,6 +215,25 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		zr.buffer();
 		assertNotNull(zr);
 		assertEquals(zr.getEntries().size(), 2);
+		assertEquals('P', is.read());
+
+	}
+
+	/**
+	 * @throws Throwable
+	 *
+	 */
+	@Test
+	public void testStreamNoZip() throws Throwable
+	{
+		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
+		ConverterCallback cb = new MyCallback();
+		cb.setFixToExtern(EnumVersion.Version_2_0);
+		MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
+		assertEquals(MimeUtil.MULTIPART_RELATED, md.getContentType());
+		InputStream is = md.getInputStream();
+		assertNotSame('P', is.read());
 	}
 
 	/**
