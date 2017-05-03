@@ -105,6 +105,7 @@ import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFDate;
+import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlPart;
@@ -936,13 +937,27 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	public boolean queueMessage(final JDFJMF jmf, JDFNode node, final IResponseHandler handler, final String url, final IConverterCallback _callBack)
 	{
+		return queueMessage(jmf, node, handler, url, _callBack, null);
+	}
+
+	/**
+	 * queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required
+	 * 
+	 * @param jmf the message to send
+	 * @param handler
+	 * @param url
+	 * @param _callBack
+	 * @return true, if the message is successfully queued. false, if this MessageSender is unable to accept further messages (i. e. it is shutting down).
+	 */
+	public boolean queueMessage(final JDFJMF jmf, JDFNode node, final IResponseHandler handler, final String url, final IConverterCallback _callBack, MIMEDetails md)
+	{
 		if (doShutDown)
 		{
 			log.warn("cannot queue message during shutdown!");
 			return false;
 		}
 
-		final MessageDetails messageDetails = new MessageDetails(jmf, node, handler, _callBack, null, url);
+		final MessageDetails messageDetails = new MessageDetails(jmf, node, handler, _callBack, md, url);
 		return queueMessageDetails(messageDetails);
 	}
 

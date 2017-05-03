@@ -270,7 +270,7 @@ public class JMFFactory extends BambiLogFactory
 		}
 
 		final MessageSender ms = getCreateMessageSender(url);
-		return ms.queueMessage(jmf, jdf, handler, url, callback);
+		return ms.queueMessage(jmf, jdf, handler, url, callback, md);
 	}
 
 	/**
