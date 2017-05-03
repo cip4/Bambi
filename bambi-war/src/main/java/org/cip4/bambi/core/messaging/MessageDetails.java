@@ -84,6 +84,7 @@ import org.cip4.bambi.core.messaging.MessageSender.SendReturn;
 import org.cip4.jdflib.auto.JDFAutoSignal.EnumChannelMode;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.XMLDoc;
@@ -452,7 +453,20 @@ public class MessageDetails extends BambiLogFactory
 	InputStream getMimeInputStream()
 	{
 		ByteArrayIOStream bos = new ByteArrayIOStream();
-		Multipart mp = MimeUtil.buildMimePackage(jmf.getOwnerDocument_JDFElement(), jdf.getOwnerDocument_JDFElement(), false);
+		final JDFDoc docJMF;
+		final JDFDoc docJDF;
+		if (callback != null)
+		{
+			docJMF = callback.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+			docJDF = callback.updateJDFForExtern(jdf.getOwnerDocument_JDFElement());
+		}
+		else
+		{
+			docJDF = jdf.getOwnerDocument_JDFElement();
+			docJMF = jmf.getOwnerDocument_JDFElement();
+		}
+
+		Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
 		try
 		{
 			MimeUtil.writeToStream(mp, bos, mimeDet);
