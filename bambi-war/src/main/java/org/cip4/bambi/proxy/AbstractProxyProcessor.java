@@ -432,29 +432,36 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 			setJDFURL(isMime, queueSubParams, node);
 			final JDFQueueEntry qe = currentQE.getQueueEntry();
-
-			if (node != null)
+			if (qe != null)
 			{
-				final String urlString = qurl == null ? null : qurl.toExternalForm();
-				try
+				if (node != null)
 				{
-					final JDFMessage r = writeToQueue(jmf, node);
-					if (isLive()) // only evaluate response for live submission - who cares what is happening informative
+					final String urlString = qurl == null ? null : qurl.toExternalForm();
+					try
 					{
-						processSubmitResponse(qe, urlString, r);
+						final JDFMessage r = writeToQueue(jmf, node);
+						if (isLive()) // only evaluate response for live submission - who cares what is happening informative
+						{
+							processSubmitResponse(qe, urlString, r);
+						}
+					}
+					catch (final IOException x)
+					{
+						log.error("snafu submitting to queue at " + urlString, x);
 					}
 				}
-				catch (final IOException x)
+				if (node == null)
 				{
-					log.error("snafu submitting to queue at " + urlString, x);
+					log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
+					_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null, null);
+				}
+				log.info("Submission completed: " + qe.getQueueEntryID());
+				if (!isLive())
+				{
+					BambiNSExtension.setDeviceURL(qe, null);
+					qe.setStatusDetails(null);
 				}
 			}
-			if (node == null)
-			{
-				log.error("submitToQueue - no JDFDoc at: " + BambiNSExtension.getDocURL(qe));
-				_queueProcessor.updateEntry(qe, EnumQueueEntryStatus.Aborted, null, null, null);
-			}
-			log.info("Submission completed: " + ((qe == null) ? "null" : qe.getQueueEntryID()));
 			return isLive() ? new QueueEntry(node, qe) : null;
 		}
 
