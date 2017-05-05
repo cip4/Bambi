@@ -2739,13 +2739,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			if (QEReturn.MIME.equals(qr))
 			{
 				returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
-				final JDFDoc docJMF = jmf.getOwnerDocument_JDFElement();
 				final MIMEDetails mimeDetails = new MIMEDetails();
 				final String devID = _parentDevice.getDeviceID();
 				mimeDetails.httpDetails.setChunkSize(properties.getControllerHTTPChunk());
 				mimeDetails.transferEncoding = properties.getControllerMIMEEncoding();
 				mimeDetails.modifyBoundarySemicolon = StringUtil.parseBoolean(properties.getDeviceAttribute("FixMIMEBoundarySemicolon"), false);
-				response = _parentDevice.getJMFFactory().send2URLSynch(jmf, docJMF.getJDFRoot(), returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
+				final JDFNode jdfRoot = docJDF == null ? null : docJDF.getJDFRoot();
+				response = _parentDevice.getJMFFactory().send2URLSynch(jmf, jdfRoot, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
 			}
 			else
 			// http

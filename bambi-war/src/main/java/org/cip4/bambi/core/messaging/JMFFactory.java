@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -259,11 +259,25 @@ public class JMFFactory extends BambiLogFactory
 			return false;
 		}
 
-		if (jmf == null || jdf == null || url == null)
+		boolean ok = true;
+		if (jmf == null)
 		{
-			log.error("failed to send JDFMessage, jdf, jmf and/or URL is null");
-			return false;
+			log.error("failed to send JDFMessage, jmf is null");
+			ok = false;
 		}
+		else if (jdf == null)
+		{
+			log.error("failed to send JDFMessage, jdf is null");
+			ok = false;
+		}
+		else if (url == null)
+		{
+			log.error("failed to send JDFMessage, URL is null");
+			ok = false;
+		}
+		if (!ok)
+			return false;
+
 		if (deviceID != null)
 		{
 			jmf.setSenderID(deviceID);
