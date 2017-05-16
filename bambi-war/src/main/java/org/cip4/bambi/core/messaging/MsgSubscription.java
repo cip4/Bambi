@@ -149,7 +149,11 @@ public class MsgSubscription implements Cloneable
 			return;
 		}
 		KElement root = sub.getDocRoot();
-		version = EnumVersion.getEnum(root.getNonEmpty(AttributeName.VERSION));
+		version = EnumVersion.getEnum(root.getNonEmpty(AttributeName.MAXVERSION));
+		if (version == null)
+		{
+			version = EnumVersion.getEnum(root.getNonEmpty(AttributeName.VERSION));
+		}
 		if (version == null)
 		{
 			version = XJDFConstants.XJMF.equals(root.getLocalName()) ? EnumVersion.Version_2_0 : EnumVersion.Version_1_5;
@@ -489,7 +493,6 @@ public class MsgSubscription implements Cloneable
 			final JDFStatusQuParams sqp = theMessage.getCreateStatusQuParams(0);
 			sqp.setQueueEntryID(queueEntryID);
 		}
-
 	}
 
 	/*
