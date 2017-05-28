@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,51 +56,61 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 
 package org.cip4.bambi.core.queues;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
 
 import javax.mail.MessagingException;
 
-import org.cip4.bambi.core.BambiContainerTest;
+import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.StreamRequest;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
+import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
+import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlPart;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeWriter;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * test for the various queue processor functions
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- * 
+ *
  * 03.12.2008
  */
-public class QueueProcessorTest extends BambiContainerTest
+public class QueueProcessorTest extends BambiTestCase
 {
 	String queueEntryId = "qe_130102_112609938_007349";
 
@@ -108,7 +118,8 @@ public class QueueProcessorTest extends BambiContainerTest
 	 * @throws IOException
 	 * @throws MessagingException
 	 */
-    @Test
+	@Test
+	@Ignore
 	public void testReturnQE() throws IOException, MessagingException
 	{
 		final JDFDoc docJMF = new JDFDoc("JMF");
@@ -135,10 +146,11 @@ public class QueueProcessorTest extends BambiContainerTest
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 */
-    @Test
+	@Test
+	@Ignore
 	public void testRemoveQE()
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildRemoveQueueEntry(queueEntryId);
@@ -147,10 +159,83 @@ public class QueueProcessorTest extends BambiContainerTest
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 */
-    @Test
+	@Test
+	public void testConstruct()
+	{
+		QueueProcessor qp = new QueueProcessor(getDevice());
+		assertNotNull(qp);
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testAddEntryMany()
+	{
+		QueueProcessor qp = new QueueProcessor(getDevice());
+		JMFBuilder jmfBuilder = new JMFBuilder();
+		for (int i = 0; i < 100; i++)
+		{
+			JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+			JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+			JDFNode jdf = JDFNode.createRoot();
+			jdf.setJobID("J" + i);
+			JDFDoc doc = jdf.getOwnerDocument_JDFElement();
+			JDFQueueEntry qe = qp.addEntry(c, r, doc);
+			assertNotNull(qe);
+		}
+		assertEquals(100, qp.getQueue().getQueueSize());
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testAddEntryManyQueue()
+	{
+		QueueProcessor qp = new QueueProcessor(getDevice());
+		JMFBuilder jmfBuilder = new JMFBuilder();
+		for (int i = 0; i < 100; i++)
+		{
+			JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+			JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+			JDFNode jdf = JDFNode.createRoot();
+			jdf.setJobID("J" + i);
+			JDFDoc doc = jdf.getOwnerDocument_JDFElement();
+			qp.addEntry(c, r, doc);
+			JDFQueue queue = r.getQueue(0);
+			assertNull(queue.getQueueEntry(0));
+			assertEquals(i + 1, queue.getQueueSize());
+		}
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testAddEntry()
+	{
+		QueueProcessor qp = new QueueProcessor(getDevice());
+		JMFBuilder jmfBuilder = new JMFBuilder();
+		JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+		JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+		JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		JDFQueueEntry qe = qp.addEntry(c, r, doc);
+		assertNotNull(qe);
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	@Ignore
 	public void testSuspendQE()
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSuspendQueueEntry(queueEntryId);
@@ -159,10 +244,11 @@ public class QueueProcessorTest extends BambiContainerTest
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 */
-    @Test
+	@Test
+	@Ignore
 	public void testResumeQE()
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildResumeQueueEntry(queueEntryId);
@@ -174,11 +260,13 @@ public class QueueProcessorTest extends BambiContainerTest
 	 * @see org.cip4.bambi.core.BambiContainerTest#setUp()
 	 */
 	@Override
-    @Before
+	@Before
 	public void setUp() throws Exception
 	{
+		wantContainer = false;
 		super.setUp();
 		workerURLBase = "http://localhost:44482/SimWorker/jmf/simIDP";
 		deviceID = "simIDP";
 	}
+
 }

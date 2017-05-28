@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 
 package org.cip4.bambi;
@@ -78,6 +78,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 
 import org.apache.log4j.BasicConfigurator;
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiContainer;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
@@ -103,23 +104,19 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.UrlUtil;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.Timeout;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
- * 
+ *
  * abstract test case for all bambi tests note that this has some site specific details that must be modified
  */
 public class BambiTestCase extends BambiGoldenTicketTest
 {
-    @Rule
-    public Timeout globalTimeout = new Timeout(60000);
 
 	@Override
-    @Before
-    public void setUp() throws Exception
+	@Before
+	public void setUp() throws Exception
 	{
 		super.setUp();
 		BaseGoldenTicket.setMisURL("http://localhost:8080/httpdump/BambiTest");
@@ -166,7 +163,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected void postAssign()
 	{
@@ -175,7 +172,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected void createPackShapeDefGT()
 	{
@@ -184,7 +181,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected void createPackLayoutGT()
 	{
@@ -193,7 +190,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected void createPackCADGT()
 	{
@@ -202,7 +199,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected void createFinStitchGT()
 	{
@@ -213,7 +210,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected void createIDPGT()
 	{
@@ -225,7 +222,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected void createMISPreGT()
 	{
@@ -233,7 +230,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected void createMISCPGT()
 	{
@@ -289,7 +286,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	/**
 	 * @return
-	 * 
+	 *
 	 */
 	protected String getWorkerURL()
 	{
@@ -302,8 +299,17 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	}
 
 	/**
+	 *
 	 * @return
-	 * 
+	 */
+	protected AbstractDevice getDevice()
+	{
+		return new BambiTestDevice();
+	}
+
+	/**
+	 * @return
+	 *
 	 */
 	protected String getDumpURL()
 	{
@@ -357,7 +363,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	/**
 	 * dummy so that we can simply run the directory as a test
 	 */
-    @Test
+	@Test
 	public void testNothing()
 	{
 		final int i = 1;
@@ -412,9 +418,9 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	{
 		ensureCurrentGT();
 		if (url == null)
-        {
-            url = getWorkerURL();
-        }
+		{
+			url = getWorkerURL();
+		}
 		final BambiTestHelper helper = getHelper();
 		helper.extendReference = extendReference;
 
@@ -504,14 +510,14 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected void startContainer()
 	{
 		if (!wantContainer)
-        {
-            return;
-        }
+		{
+			return;
+		}
 		bambiContainer = BambiContainer.getCreateInstance();
 		final MultiDeviceProperties props = createPropertiesForContainer();
 		props.getRoot().setAttribute("WebProxy", "proxy:8080");
@@ -539,14 +545,14 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 * @throws Exception
 	 */
 	@Override
-    @After
-    public void tearDown() throws Exception
+	@After
+	public void tearDown() throws Exception
 	{
 		super.tearDown();
 		if (bambiContainer != null)
-        {
-            bambiContainer.shutDown();
-        }
+		{
+			bambiContainer.shutDown();
+		}
 	}
 
 }
