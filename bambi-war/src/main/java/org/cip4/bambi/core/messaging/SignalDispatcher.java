@@ -1290,6 +1290,15 @@ public class SignalDispatcher extends BambiLogFactory
 	}
 
 	/**
+	 * the number of currently active subscriptions
+	 * @return
+	 */
+	public int size()
+	{
+		return subscriptionMap.size();
+	}
+
+	/**
 	 * stop the dispatcher thread
 	 */
 	public void shutdown()
