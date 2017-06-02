@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 
 package org.cip4.bambi.core;
@@ -162,7 +162,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * @author Rainer Prosi, Heidelberger Druckmaschinen *
 	 */
 	private class QueueEntryRequester
@@ -290,7 +290,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
@@ -326,7 +326,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public class ResourceHandler extends AbstractHandler
 	{
 		/**
-		 * 
+		 *
 		 */
 		public ResourceHandler()
 		{
@@ -351,7 +351,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 
 		/**
-		 * 
+		 *
 		 * check whether we have a global or job context
 		 * @param inputMessage
 		 * @return
@@ -392,7 +392,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 		/**
 		 * fill a resourcelist - overwrite this with your favorite real lists
-		 * @param inMessage 
+		 * @param inMessage
 		 * @param response
 		 * @return
 		 */
@@ -419,7 +419,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public class StatusHandler extends AbstractHandler
 	{
 		/**
-		 * 
+		 *
 		 */
 		public StatusHandler()
 		{
@@ -511,7 +511,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public void addMoreToXMLSubscriptions(KElement rootList)
 	{
-		//nop 
+		//nop
 	}
 
 	private final IDeviceProperties _devProperties;
@@ -556,7 +556,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * create the signal dispatcher and link it to the jmf handler
 	 * @return
 	 */
@@ -570,7 +570,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the signaldispatcher for this
 	 */
 	protected SignalDispatcher createSignalDispatcher()
@@ -591,7 +591,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	protected String getAgentVersion()
@@ -600,7 +600,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	protected String getAgentName()
@@ -642,7 +642,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * vector of directories that need to be copied to cache
 	 * @return
 	 */
@@ -679,7 +679,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 *create a new independent processor
 	 */
 	protected void createNewProcessor()
@@ -698,7 +698,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * get the input hot folder path. If null, we won't create a hot folder
 	 * @return
 	 */
@@ -708,8 +708,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 * @return
 	 */
 	protected QueueEntryRequester getQueueEntryRequester()
@@ -718,8 +718,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 * @return
 	 */
 	protected IConverterCallback getCallBackClass()
@@ -728,7 +728,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * get the approriate statusoptimizer<br/>
 	 * may be overwritten for additional optimizers
 	 * @return
@@ -739,7 +739,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected abstract void reloadQueue();
 
@@ -761,16 +761,16 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			return;
 		}
-		for (int i = 0; i < jmfs.length; i++)
+		for (JDFJMF jmf : jmfs)
 		{
-			final JDFQuery query = jmfs[i].getQuery(0);
+			final JDFQuery query = jmf.getQuery(0);
 			updateWatchSubscription(query);
 			_theSignalDispatcher.addSubscription(query, null);
 		}
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public JMFBuilder getJMFBuilder()
@@ -831,7 +831,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected void addHandlers()
 	{
@@ -925,7 +925,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * @param doc
 	 * @param url
 		 * @return the doc representing the response
@@ -1011,7 +1011,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * factory for the XML representation of this simDevice fore use as html display using an XSLT
-	 * 
+	 *
 	 * @param addProcs
 	 * @param request
 	 * @return the XMLDEvice
@@ -1099,7 +1099,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * stop the processing the given QueueEntry
 	 * @param queueEntryID the ID of the QueueEntry to stop
 	 * @param status target status of the QueueEntry (Suspended,Aborted,Held)
-	 * @param statusDetails 
+	 * @param statusDetails
 	 * @return the updated QueueEntry
 	 */
 	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status, String statusDetails)
@@ -1190,7 +1190,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * reset the signal dispatcher, hot folder and device processor; also restart from factory settings
-	 * 
+	 *
 	 * this is a hard reset that removes any and all data!
 	 */
 	public void reset()
@@ -1242,8 +1242,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public abstract VString canAccept(JDFNode jdf, String queueEntryID);
 
 	/**
-	 * stub that allows moving data to and from the jdfdoc to the queueentry 
-	 * 
+	 * stub that allows moving data to and from the jdfdoc to the queueentry
+	 *
 	 * @param qe
 	 * @param doc
 	 * @return the updated queueEntryID
@@ -1278,7 +1278,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * @param qethe queueEntry to extract from
 	 * @param root the root JDFD
 	 */
@@ -1446,7 +1446,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *  
+	 *
 	 * @param description
 	 */
 	private void updateDescription(String description)
@@ -1462,7 +1462,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *  
+	 *
 	 * @param dumpSwitch
 	 */
 	protected void updateDump(boolean dumpSwitch)
@@ -1487,7 +1487,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * update newWatchURL from the UI
-	 * @param newWatchURL 
+	 * @param newWatchURL
 	 */
 	private void updateWatchURL(String newWatchURL)
 	{
@@ -1519,8 +1519,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * @param newHF 
-	 * 
+	 * @param newHF
+	 *
 	 */
 	private void updateInputHF(String newHF)
 	{
@@ -1539,8 +1539,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * @param newHF 
-	 * 
+	 * @param newHF
+	 *
 	 */
 	private void updateOutputHF(String newHF)
 	{
@@ -1556,8 +1556,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * @param newHF 
-	 * 
+	 * @param newHF
+	 *
 	 */
 	private void updateErrorHF(String newHF)
 	{
@@ -1573,8 +1573,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * @param newDeviceType 
-	 * 
+	 * @param newDeviceType
+	 *
 	 */
 	private void updateDeviceType(final String newDeviceType)
 	{
@@ -1610,7 +1610,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * @param bGlobal 
+	 * @param bGlobal
 	 * @return
 	 */
 	public CPUTimer getDeviceTimer(boolean bGlobal)
@@ -1636,11 +1636,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * send a jmf via the factory, setting all defaults to this device
-	 * 
+	 *
 	 * @param jmf the jmf to send
 	 * @param url the url to send to
 	 * @param responseHandler the response handler - may be null
-	 * 
+	 *
 	 * @return true if successfully queued
 	 */
 	public boolean sendJMF(final JDFJMF jmf, final String url, final IResponseHandler responseHandler)
@@ -1684,7 +1684,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * return the name of the JDF file storage for a given queueentryid
-	 * 
+	 *
 	 * @param newQEID the QueueEntryID of the entry to search
 	 * @return {@link String} the file name of the storage
 	 */
@@ -1709,7 +1709,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * return the name of the storage directory for a given queueentryid
-	 * 
+	 *
 	 * @param newQEID the QueueEntryID of the entry to search, if null. get the parent directory
 	 * @return {@link File} the file of the storage
 	 */
@@ -1806,7 +1806,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * @param typ
 	 * @param family
 	 * @param url
@@ -1968,7 +1968,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	/**
 	 * convert any XML to the appropriate JMF
 	 * the default implementation only checks whether it already is jmf
-	 * 
+	 *
 	 * @param request
 	 * @return
 	 */
@@ -2015,22 +2015,28 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * create a submitqueuentry from raw JDF
+	 * create a submitqueuentry from raw JDF or XJDF
 	 * @param e the jdf or xjdf root element
 	 * @return the xmlrequest to submit
 	 */
 	protected XMLRequest createSubmitFromJDF(KElement e)
 	{
 		JDFJMF sqe = getJMFBuilder().buildSubmitQueueEntry(null, "dummy");
+		if (XJDFConstants.XJDF.equals(e.getLocalName()))
+		{
+			sqe.setMaxVersion(EnumVersion.Version_2_0);
+		}
 
 		MimeWriter mimeWriter = new MimeWriter();
 		mimeWriter.buildMimePackage(sqe.getOwnerDocument_JDFElement(), e.getOwnerDocument_KElement(), false);
 		MimeReader mimeReader = new MimeReader(mimeWriter);
 		BodyPartHelper jmfHelper = mimeReader.getBodyPartHelper(0);
-		JDFDoc docJDF = jmfHelper.getJDFDoc();
-		if (docJDF != null)
-			docJDF.copyMeta(e.getOwnerDocument_KElement());
-		return docJDF != null ? new XMLRequest(docJDF) : null;
+		JDFDoc docJMF = jmfHelper.getJDFDoc();
+		if (docJMF != null)
+		{
+			docJMF.copyMeta(e.getOwnerDocument_KElement());
+		}
+		return docJMF != null ? new XMLRequest(docJMF) : null;
 	}
 
 	/**
@@ -2055,7 +2061,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * @param request
 	 * @return
 	 */
@@ -2079,7 +2085,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *  
+	 *
 	 */
 	void incEntriesProcessed()
 	{
@@ -2132,7 +2138,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * check post submission whether all is well
-	 * 
+	 *
 	 * @param qeNew
 	 * @return
 	 */
@@ -2155,9 +2161,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * stub to update the qe based on doc properties 
+	 * stub to update the qe based on doc properties
 	 * @param newQE
-	 * @param  
+	 * @param
 	 */
 	public void prepareSubmit(JDFQueueEntry newQE)
 	{
@@ -2195,7 +2201,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public int getEntriesProcessed()
@@ -2204,7 +2210,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public StatusListener getStatusListener()
@@ -2213,7 +2219,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * 
+	 *
 	 * @param jdfRoot
 	 * @param qeID
 	 * @return
@@ -2235,8 +2241,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * hook to define a specialized callback for a subscription
-	 * default - use the standard callback 
-	 * 
+	 * default - use the standard callback
+	 *
 	 * @param url
 	 * @param sub
 	 * @return

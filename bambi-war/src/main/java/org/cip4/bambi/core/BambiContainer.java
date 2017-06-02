@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -618,7 +618,7 @@ public final class BambiContainer extends ServletContainer
 						}
 					}
 					response = new XMLResponse(jmfRoot);
-					response.setContentType(UrlUtil.VND_JMF);
+					response.setContentType(XJDFConstants.XJMF.equals(jmfRoot.getLocalName()) ? UrlUtil.VND_XJMF : UrlUtil.VND_JMF);
 				}
 				else
 				{
