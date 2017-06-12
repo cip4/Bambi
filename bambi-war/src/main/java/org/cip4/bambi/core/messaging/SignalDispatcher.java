@@ -403,6 +403,8 @@ public class SignalDispatcher extends BambiLogFactory
 	protected class Dispatcher implements Runnable
 	{
 		int sentMessages;
+		int sentTime;
+		int sentTrigger;
 		private final CPUTimer timer;
 
 		/**
@@ -412,6 +414,8 @@ public class SignalDispatcher extends BambiLogFactory
 		{
 			super();
 			sentMessages = 0;
+			sentTime = 0;
+			sentTrigger = 0;
 			timer = new CPUTimer(false);
 		}
 
@@ -449,8 +453,10 @@ public class SignalDispatcher extends BambiLogFactory
 			// spam them out
 			for (MsgSubscription sub : triggerVector)
 			{
-				if (log.isDebugEnabled())
-					log.debug("Trigger Signalling : slaveChannelID=" + sub.channelID);
+				if ((sentTrigger++ < 10) || ((sentTrigger % 1000) == 0))
+				{
+					log.info("Trigger Signalling : slaveChannelID=" + sub.channelID);
+				}
 				queueMessageInSender(sub);
 			}
 			// select pending time subscriptions
@@ -458,8 +464,10 @@ public class SignalDispatcher extends BambiLogFactory
 			// spam them out
 			for (MsgSubscription sub : subVector)
 			{
-				if (log.isDebugEnabled())
-					log.debug("Time Signalling: slaveChannelID=" + sub.channelID);
+				if ((sentTime++ < 10) || ((sentTime % 1000) == 0))
+				{
+					log.info("Time Signalling: slaveChannelID=" + sub.channelID);
+				}
 
 				queueMessageInSender(sub);
 			}
@@ -472,28 +480,38 @@ public class SignalDispatcher extends BambiLogFactory
 		 */
 		private void queueMessageInSender(final MsgSubscription sub)
 		{
-			final String url = sub.getURL();
-			final JDFJMF signalJMF = sub.getSignal();
-			if (signalJMF != null)
+			try
 			{
-				boolean ok = device.getJMFFactory().send2URL(signalJMF, url, null, sub.getCallback(), device.getDeviceID());
-				if (!ok)
+				final String url = sub.getURL();
+				final JDFJMF signalJMF = sub.getSignal();
+				if (signalJMF != null)
 				{
-					checkStaleSubscription(sub);
+					boolean ok = device.getJMFFactory().send2URL(signalJMF, url, null, sub.getCallback(), device.getDeviceID());
+					if (!ok)
+					{
+						checkStaleSubscription(sub);
+					}
+					final MsgSubscription realSubSubscription = subscriptionMap.get(sub.channelID);
+					if (realSubSubscription != null)
+					{
+						realSubSubscription.lastTime = System.currentTimeMillis() / 1000;
+						realSubSubscription.lastSentJMF.push(signalJMF);
+						realSubSubscription.sentMessages++;
+					}
+					sentMessages++;
+					if ((sentMessages < 10) || ((sentMessages % 1000) == 0))
+					{
+						log.info("Sent message# " + sentMessages + " " + timer.getSingleSummary());
+					}
 				}
-				final MsgSubscription realSubSubscription = subscriptionMap.get(sub.channelID);
-				if (realSubSubscription != null)
-				{
-					realSubSubscription.lastTime = System.currentTimeMillis() / 1000;
-					realSubSubscription.lastSentJMF.push(signalJMF);
-					realSubSubscription.sentMessages++;
-				}
-				sentMessages++;
 			}
-			else
+			catch (Throwable t)
 			{
-				log.debug("no Signal for subscription: " + sub);
+				log.error("Exception while queueing message", t);
+				//cool down
+				ThreadUtil.sleep(4242);
 			}
+
 			// also notify that the trigger was processed in case of failure - else we wait a long time...
 			if (sub.trigger != null)
 			{
@@ -598,6 +616,15 @@ public class SignalDispatcher extends BambiLogFactory
 				}
 			} // end synch map
 			return subVector;
+		}
+
+		/**
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString()
+		{
+			return "Dispatcher [sentMessages=" + sentMessages + ", sentTime=" + sentTime + ", sentTrigger=" + sentTrigger + "]";
 		}
 	}
 
