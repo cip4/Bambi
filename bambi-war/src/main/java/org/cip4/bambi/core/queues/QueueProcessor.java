@@ -2787,6 +2787,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				final JDFNode n = docJDF.getJDFRoot();
 				if (n == null)
 				{
+					log.warn("no root node - whazzup? ");
 					finishedNodes = new VString("rootDev", null);
 				}
 				else
