@@ -455,7 +455,7 @@ public class SignalDispatcher extends BambiLogFactory
 			{
 				if ((sentTrigger++ < 10) || ((sentTrigger % 1000) == 0))
 				{
-					log.info("Trigger Signalling : slaveChannelID=" + sub.channelID);
+					log.info("Trigger Signalling : slaveChannelID=" + sub.channelID + " #" + sentTrigger);
 				}
 				queueMessageInSender(sub);
 			}
@@ -466,7 +466,7 @@ public class SignalDispatcher extends BambiLogFactory
 			{
 				if ((sentTime++ < 10) || ((sentTime % 1000) == 0))
 				{
-					log.info("Time Signalling: slaveChannelID=" + sub.channelID);
+					log.info("Time Signalling: slaveChannelID=" + sub.channelID + " #" + sentTime);
 				}
 
 				queueMessageInSender(sub);
