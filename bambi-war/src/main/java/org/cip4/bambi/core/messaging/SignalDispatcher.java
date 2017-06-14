@@ -933,7 +933,7 @@ public class SignalDispatcher extends BambiLogFactory
 		}
 		final MsgSubscription sub = new MsgSubscription(this, subMess, queueEntryID);
 		final String url = sub.getURL();
-		if (!UrlUtil.isURL(url))
+        if (!UrlUtil.isHttp(url) && !UrlUtil.isHttps(url))
 		{
 			JMFHandler.errorResponse(resp, "Attempting to subscribe to invalid URL: " + url, 6, EnumClass.Error);
 			return null;
