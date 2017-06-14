@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.core.messaging;
 
@@ -99,7 +99,7 @@ import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.EnumUtil;
 
 /**
- * 
+ *
  * @author rainer
  */
 public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMFHandler
@@ -131,7 +131,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		}
 
 		/**
-		 * 
+		 *
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
 		@Override
@@ -146,7 +146,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		}
 
 		/**
-		 * 
+		 *
 		 * @see java.lang.Object#hashCode()
 		 */
 		@Override
@@ -156,7 +156,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		}
 
 		/**
-		 * 
+		 *
 		 * @see java.lang.Object#toString()
 		 */
 		@Override
@@ -167,7 +167,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected HashMap<MessageType, IMessageHandler> messageMap; // key = type ,
 	protected SignalDispatcher _signalDispatcher;
@@ -176,7 +176,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	private long messageCount;
 
 	/**
-	 * 
+	 *
 	 * handler for the knownmessages query
 	 */
 	protected class KnownMessagesHandler extends AbstractHandler
@@ -190,7 +190,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		}
 
 		/**
-		 * 
+		 *
 		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
@@ -208,7 +208,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		 * create the KnownMessages Response from the internal hashMap
 		 * @param m
 		 * @param resp
-		 * 
+		 *
 		 * @return true if handled correctly
 		 */
 		private boolean handleKnownMessages(final JDFMessage m, final JDFMessage resp)
@@ -216,7 +216,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			/**
 			 * small helper to collect data for filling into messageservice elements
 			 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-			 * 
+			 *
 			 * Jun 29, 2009
 			 */
 			class MessageStuff
@@ -288,7 +288,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	}
 
 	/**
-	 * 
+	 *
 	 * handler for the StopPersistentChannel command
 	 */
 	public static abstract class AbstractHandler extends BambiLogFactory implements IMessageHandler
@@ -392,7 +392,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 	/**
 	 * add a message handler
-	 * 
+	 *
 	 * @param handler the handler associated with the event
 	 */
 	@Override
@@ -412,7 +412,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	}
 
 	/**
-	 * 
+	 *
 	 * @param handler
 	 * @param typ
 	 * @param family
@@ -433,7 +433,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 	/**
 	 * return a handler for a given type and family.
-	 * 
+	 *
 	 * @param typ the message type, "*" is a wildcard that will be called in case no individual handler exists
 	 * @param family the family
 	 * @return the handler, null if none exists
@@ -451,7 +451,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 	/**
 	 * the big processing dispatcher
-	 * 
+	 *
 	 * @param doc the JDFDoc holding the JMF which is to be processed
 	 * @return the JDFDoc holding the JMF response
 	 */
@@ -476,12 +476,11 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			{
 				log.warn("no response provided ??? " + id + " " + m.getFamily() + " " + m.getType());
 			}
-			if (_signalDispatcher != null)
+			boolean hasSubscription = _signalDispatcher == null ? false : _signalDispatcher.findSubscription(m, mResp);
+			if (!hasSubscription)
 			{
-				_signalDispatcher.findSubscription(m, mResp);
+				handleMessage(m, mResp);
 			}
-			handleMessage(m, mResp);
-
 			if ((m instanceof JDFSignal) && mResp != null && mResp.getReturnCode() == 0 && !EnumChannelMode.Reliable.equals(((JDFSignal) m).getChannelMode()))
 			{
 				mResp.deleteNode();
@@ -504,7 +503,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 	/**
 	 * standard handler for unimplemented messages
-	 * 
+	 *
 	 * @param m
 	 * @param resp
 	 */
@@ -515,7 +514,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 	/**
 	 * standard error message creator
-	 * 
+	 *
 	 * @param resp the response to make an error
 	 * @param text the explicit error text
 	 * @param rc the jmf response returncode

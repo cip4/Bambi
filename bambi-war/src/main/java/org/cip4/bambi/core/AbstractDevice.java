@@ -765,7 +765,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			final JDFQuery query = jmf.getQuery(0);
 			updateWatchSubscription(query);
-			_theSignalDispatcher.addSubscription(query, null);
+			_theSignalDispatcher.addSubscription(query, null, null);
 		}
 	}
 

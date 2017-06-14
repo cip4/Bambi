@@ -842,24 +842,26 @@ public class SignalDispatcher extends BambiLogFactory
 	 * find subscriptions in a message and add them if appropriate
 	 * @param m
 	 * @param resp
+	 * @return true if we have a subscription
 	 */
-	public void findSubscription(final JDFMessage m, final JDFResponse resp)
+	public boolean findSubscription(final JDFMessage m, final JDFResponse resp)
 	{
 		if (!(m instanceof IJMFSubscribable))
 		{
-			return;
+			return false;
 		}
 		final IJMFSubscribable query = (IJMFSubscribable) m;
 		final JDFSubscription sub = query.getSubscription();
 		if (sub == null)
 		{
-			return;
+			return false;
 		}
-		final String channelID = addSubscription(query, findQueueEntryID(m));
+		final String channelID = addSubscription(query, findQueueEntryID(m), resp);
 		if (resp != null && channelID != null)
 		{
 			resp.setSubscribed(true);
 		}
+		return true;
 	}
 
 	/**
@@ -895,12 +897,25 @@ public class SignalDispatcher extends BambiLogFactory
 	}
 
 	/**
+	 *
+	 * @param subMess
+	 * @param queueEntryID
+	 * @return
+	 * @deprecated
+	 */
+	@Deprecated
+	public synchronized String addSubscription(final IJMFSubscribable subMess, String queueEntryID)
+	{
+		return addSubscription(subMess, queueEntryID, null);
+	}
+
+	/**
 	 * add a subscription - returns the slaveChannelID of the new subscription, null if snafu
 	 * @param subMess the subscription message - one of query or registration
 	 * @param queueEntryID the associated QueueEntryID, may be null.
 	 * @return the slaveChannelID of the subscription, if successful, else null
 	 */
-	public synchronized String addSubscription(final IJMFSubscribable subMess, String queueEntryID)
+	public synchronized String addSubscription(final IJMFSubscribable subMess, String queueEntryID, JDFResponse resp)
 	{
 		if (subMess == null)
 		{
@@ -920,23 +935,23 @@ public class SignalDispatcher extends BambiLogFactory
 		final String url = sub.getURL();
 		if (!UrlUtil.isURL(url))
 		{
-			log.error("Attempting to subscribe to invalid URL: " + url);
+			JMFHandler.errorResponse(resp, "Attempting to subscribe to invalid URL: " + url, 6, EnumClass.Error);
 			return null;
 		}
 		sub.setQueueEntryID(queueEntryID);
 		if (sub.channelID == null)
 		{
-			log.error("Null ChannelID while attempting to subscribe to URL: " + url);
+			JMFHandler.errorResponse(resp, "Null ChannelID while attempting to subscribe to URL: " + url, 6, EnumClass.Error);
 			return null;
 		}
 		if (subscriptionMap.containsKey(sub.channelID))
 		{
-			log.warn("subscription already exists for:" + sub.channelID);
+			JMFHandler.errorResponse(resp, "subscription already exists for channel:" + sub.channelID, 14, EnumClass.Warning);
 			return null;
 		}
 		if (subscriptionMap.containsValue(sub))
 		{
-			log.info("ignoring identical subscription already exists for:" + sub.channelID);
+			JMFHandler.errorResponse(resp, "identical " + ((JDFMessage) subMess).getType() + " subscription already exists for URL:" + sub.url, 14, EnumClass.Warning);
 			return null;
 		}
 		synchronized (subscriptionMap)
@@ -1031,7 +1046,7 @@ public class SignalDispatcher extends BambiLogFactory
 				for (KElement mess : vMess)
 				{
 					final JDFQuery q = (JDFQuery) mess;
-					final String channelID = addSubscription(q, queueEntryID);
+					final String channelID = addSubscription(q, queueEntryID, null);
 					if (channelID != null)
 					{
 						vs.add(channelID);
