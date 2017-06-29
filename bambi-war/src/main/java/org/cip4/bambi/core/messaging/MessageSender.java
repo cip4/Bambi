@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.core.messaging;
 
@@ -118,7 +118,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * allow a JMF message to be sent in its own thread
- * 
+ *
  * @author boegerni
  */
 public class MessageSender extends BambiLogFactory implements Runnable, IPersistable
@@ -178,7 +178,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	protected class SenderQueueOptimizer extends BambiLogFactory
 	{
 		/**
-		 * 
+		 *
 		 */
 		public SenderQueueOptimizer()
 		{
@@ -186,7 +186,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		}
 
 		/**
-		 * 
+		 *
 		 * @param jmf
 		 */
 		protected void optimize(final JDFJMF jmf)
@@ -302,7 +302,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * constructor -use the static {@link JMFFactory#getCreateMessageSender(String)}
-	 * 
+	 *
 	 * @param cu the URL to send the message to
 	 */
 	MessageSender(final CallURL cu)
@@ -347,7 +347,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	}
 
 	/**
-	 * 
+	 *
 	 * this is the main loop!
 	 */
 	protected void senderLoop()
@@ -432,7 +432,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	}
 
 	/**
-	 * 
+	 *
 	 * make sure we don't spam during startup
 	 */
 	protected void waitStartup()
@@ -561,7 +561,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	/**
 	 * send the first enqueued message and return true if all went well
 	 * also update any returned responses for Bambi internally
-	 * 
+	 *
 	 * @return boolean true if the message is assumed sent false if an error was detected and the Message must remain in the queue
 	 */
 	private SendReturn sendFirstMessage()
@@ -685,7 +685,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * send a message via http
-	 * 
+	 *
 	 * @param mh the messagedetails
 	 * @return the success as a sendreturn enum
 	 */
@@ -702,6 +702,12 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			HttpURLConnection connection = sendDetails(mh);
 			b = processResponse(mh, connection);
 		}
+		catch (final IllegalArgumentException e)
+		{
+			log.error("Invalid stream " + e.getMessage());
+			return SendReturn.removed;
+
+		}
 		catch (final Throwable e)
 		{
 			log.error("Exception in sendHTTP: " + e.getMessage());
@@ -715,8 +721,8 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 * @param mesDetails
 	 * @param connection
 	 * @return
@@ -798,14 +804,14 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	}
 
 	/**
-	 * 
+	 *
 	 * @param mesDetails
 	 * @return
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * @throws MessagingException
 	 */
-	private HttpURLConnection sendDetails(final MessageDetails mesDetails) throws FileNotFoundException, IOException, MessagingException
+	private HttpURLConnection sendDetails(final MessageDetails mesDetails) throws FileNotFoundException, IOException, MessagingException, IllegalArgumentException
 	{
 		trySend++;
 
@@ -813,6 +819,10 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			return null;
 		final String url = mesDetails.url;
 		InputStream is = mesDetails.getInputStream();
+		if (is == null)
+		{
+			throw new IllegalArgumentException("sending null stream to " + url);
+		}
 		String contentType = mesDetails.getContentType();
 		final HTTPDetails hd = mesDetails.mimeDet == null ? null : mesDetails.mimeDet.httpDetails;
 		String header = "URL: " + url;
@@ -831,7 +841,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * stop sending new messages immediately and shut down
-	 * 
+	 *
 	 * @param gracefully true - process remaining messages first, then shut down. <br/>
 	 * false - shut down immediately, skip remaining messages.
 	 */
@@ -845,7 +855,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * return true if the thread is still running
-	 * 
+	 *
 	 * @return true if running
 	 */
 	public boolean isRunning()
@@ -855,7 +865,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * return true if tesatURL fits this url
-	 * 
+	 *
 	 * @param testURL the url to check against
 	 * @return true if running
 	 */
@@ -865,7 +875,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	}
 
 	/**
-	 * 
+	 *
 	 * get the in dump for this message
 	 * @param senderID
 	 * @return
@@ -879,7 +889,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	}
 
 	/**
-	 * 
+	 *
 	 * get the out dump for this message
 	 * @param senderID
 	 * @return
@@ -894,7 +904,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * add debug dump directories for a given senderID
-	 * 
+	 *
 	 * @param senderID
 	 * @param inDump
 	 * @param outDump
@@ -907,7 +917,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required
-	 * 
+	 *
 	 * @param jmf the message to send
 	 * @param handler
 	 * @param url
@@ -928,7 +938,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required
-	 * 
+	 *
 	 * @param jmf the message to send
 	 * @param handler
 	 * @param url
@@ -942,7 +952,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required
-	 * 
+	 *
 	 * @param jmf the message to send
 	 * @param handler
 	 * @param url
@@ -963,7 +973,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required
-	 * 
+	 *
 	 * @param handler
 	 * @param url
 	 * @param _callBack
@@ -1023,7 +1033,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		{
 			ThreadUtil.notifyAll(mutexDispatch);
 		}
-		DelayedPersist.getDelayedPersist().queue(this, 420000); // 7 minutes 
+		DelayedPersist.getDelayedPersist().queue(this, 420000); // 7 minutes
 		return !isBlocked(42000, 2);
 	}
 
@@ -1040,11 +1050,11 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * creates a descriptive xml Object for this MessageSender
-	 * 
+	 *
 	 * @param root the parent into which I append myself, if null create a new document
 	 * @param posQueuedMessages
-	 * @param bXJDF 
-	 * 
+	 * @param bXJDF
+	 *
 	 * @return the appended element
 	 */
 	public KElement appendToXML(final KElement root, final int posQueuedMessages, boolean bXJDF)
@@ -1098,7 +1108,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * set the base directory for serializing and deserializing messages
-	 * 
+	 *
 	 * @param _baseLocation the baseLocation to set
 	 */
 	public static void setBaseLocation(final File _baseLocation)
@@ -1161,7 +1171,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * set the startTime to the startTime of the device
-	 * 
+	 *
 	 * @param startTime
 	 */
 	public void setStartTime(long startTime)
