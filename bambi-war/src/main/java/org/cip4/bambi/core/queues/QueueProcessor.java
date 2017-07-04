@@ -2844,11 +2844,15 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		JDFQueueEntryDef def = m.getQueueEntryDef(0);
 		if (def == null)
 		{
-
 			JDFQueueFilter qf = (JDFQueueFilter) m.getXPathElement("*/QueueFilter");
 			if (qf == null)
 			{
-				JMFHandler.errorResponse(resp, "Message contains no Filter", 105, EnumClass.Error);
+				JMFHandler.errorResponse(resp, "Message contains no QueueFilter", 105, EnumClass.Error);
+				return null;
+			}
+			else if (qf.getAttributeMap().isEmpty() && qf.getQueueEntryDef(0) == null)
+			{
+				JMFHandler.errorResponse(resp, "Message contains empty QueueFilter", 105, EnumClass.Error);
 				return null;
 			}
 			else
@@ -2997,12 +3001,15 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			return false;
 		}
-		final JDFQueueEntry qe = getMessageQueueEntry(m, resp);
-		if (qe == null)
+		final Vector<JDFQueueEntry> v = getMessageQueueEntries(m, resp);
+		if (v == null)
 		{
 			return true;
 		}
-		abortSingleEntry(m, resp, qe);
+		for (JDFQueueEntry qe : v)
+		{
+			abortSingleEntry(m, resp, qe);
+		}
 		return true;
 	}
 

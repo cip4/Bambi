@@ -294,6 +294,23 @@ public class QueueProcessorTest extends BambiTestCase
 	 *
 	 */
 	@Test
+	public void testMessageQEEmpty()
+	{
+		QueueProcessor qp = new QueueProcessor(getDevice());
+		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
+		qe.setQueueEntryID("q1");
+		JMFBuilder jmfBuilder = new JMFBuilder();
+		JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry).getCommand(0);
+		JDFResumeQueueEntryParams aqp = (JDFResumeQueueEntryParams) c.appendElement(ElementName.RESUMEQUEUEENTRYPARAMS);
+		aqp.getCreateQueueFilter(0);
+		assertNull(qp.getMessageQueueEntry(c, null));
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
 	@Ignore
 	public void testSuspendQE()
 	{
