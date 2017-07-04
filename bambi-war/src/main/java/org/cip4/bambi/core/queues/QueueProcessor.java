@@ -1083,13 +1083,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			for (JDFQueueEntry qe : v)
 			{
-				holdSingleEntry(m, resp, qe);
+				resumeSingleEntry(m, resp, qe);
 			}
 
 			return false;
 		}
 
-		protected void holdSingleEntry(final JDFMessage m, final JDFResponse resp, JDFQueueEntry qe)
+		protected void resumeSingleEntry(final JDFMessage m, final JDFResponse resp, JDFQueueEntry qe)
 		{
 			final EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 			final String qeid = qe.getQueueEntryID();
