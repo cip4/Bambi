@@ -115,6 +115,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.extensions.XJDFZipReader;
+import org.cip4.jdflib.jmf.JDFAbortQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFFlushQueueInfo;
 import org.cip4.jdflib.jmf.JDFFlushQueueParams;
@@ -2390,7 +2391,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				}
 				else
 				{
-					log.warn("not updating original QE - using original" + qe2.getQueueEntryID());
+					log.warn("not updating QE - using original from Queue " + qe2.getQueueEntryID());
 					qe = qe2;
 				}
 			}
@@ -2818,33 +2819,84 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 	}
 
-	// //////////////////////////////////////////////////////////////////////////////////////////////
-	protected JDFQueueEntry getMessageQueueEntry(final JDFMessage m, final JDFResponse resp)
+	/**
+	 *
+	 */
+	protected Vector<JDFQueueEntry> getMessageQueueEntries(final JDFMessage m, final JDFResponse resp)
 	{
-		final JDFQueueEntryDef def = m.getQueueEntryDef(0);
+		JDFQueueEntryDef def = m.getQueueEntryDef(0);
 		if (def == null)
 		{
-			JMFHandler.errorResponse(resp, "Message contains no QueueEntryDef", 105, EnumClass.Error);
-			return null;
-		}
 
-		final String qeid = def.getQueueEntryID();
-		if (KElement.isWildCard(qeid))
-		{
-			JMFHandler.errorResponse(resp, "QueueEntryDef does not contain any QueueEntryID", 105, EnumClass.Error);
-			return null;
+			JDFQueueFilter qf = (JDFQueueFilter) m.getXPathElement("*/QueueFilter");
+			if (qf == null)
+			{
+				JMFHandler.errorResponse(resp, "Message contains no Filter", 105, EnumClass.Error);
+				return null;
+			}
+			else
+			{
+				int maxEnt = qf.getMaxEntries();
+				qf.setMaxEntries(Integer.MAX_VALUE);
+				JDFQueue q = qf.copy(_theQueue, null, resp);
+				qf.setMaxEntries(maxEnt);
+				if (q == null || q.numEntries(null) == 0)
+				{
+					JMFHandler.errorResponse(resp, "found no QueueEntry matching filter ", 105, EnumClass.Error);
+					return null;
+				}
+				else
+				{
+					Vector<JDFQueueEntry> childrenByClass = q.getChildrenByClass(JDFQueueEntry.class, false, -1);
+					Vector<JDFQueueEntry> ret = new Vector<>();
+					for (JDFQueueEntry qe : childrenByClass)
+					{
+						JDFQueueEntry mine = getQueueEntry(qe.getQueueEntryID());
+						if (mine != null)
+						{
+							ret.add(mine);
+						}
+					}
+					return ret.isEmpty() ? null : ret;
+				}
+			}
 		}
-		log.info("processing getMessageQueueEntryID for " + qeid);
-		final JDFQueueEntry qe = getQueueEntry(qeid);
-		if (qe == null)
+		else
 		{
-			JMFHandler.errorResponse(resp, "found no QueueEntry with QueueEntryID=" + qeid, 105, EnumClass.Error);
+
+			final String qeid = def.getQueueEntryID();
+			if (KElement.isWildCard(qeid))
+			{
+				JMFHandler.errorResponse(resp, "QueueEntryDef does not contain any QueueEntryID", 105, EnumClass.Error);
+				return null;
+			}
+			log.info("processing getMessageQueueEntryID for " + qeid);
+			final JDFQueueEntry qe = getQueueEntry(qeid);
+			if (qe == null)
+			{
+				JMFHandler.errorResponse(resp, "found no QueueEntry with QueueEntryID=" + qeid, 105, EnumClass.Error);
+				return null;
+			}
+			Vector<JDFQueueEntry> v = new Vector<>();
+			v.add(qe);
+			return v;
 		}
-		return qe;
 
 	}
 
-	// //////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 *
+	 */
+	protected JDFQueueEntry getMessageQueueEntry(final JDFMessage m, final JDFResponse resp)
+	{
+		Vector<JDFQueueEntry> v = getMessageQueueEntries(m, resp);
+		if (v == null)
+		{
+			return null;
+		}
+		return v.get(0);
+
+	}
 
 	/**
 	 * remove all Bambi namespace extensions from a given queue
@@ -2956,7 +3008,17 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			updateEntry(qe, EnumQueueEntryStatus.Aborted, m, resp, null);
 		}
 		final String queueEntryID = qe.getQueueEntryID();
-		final JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, EnumNodeStatus.Aborted, null);
+		EnumNodeStatus nodestatus = EnumNodeStatus.Aborted;
+		JDFAbortQueueEntryParams aqp = (JDFAbortQueueEntryParams) m.getElement(ElementName.ABORTQUEUEENTRYPARAMS);
+		if (aqp != null)
+		{
+			EnumNodeStatus endStatus = aqp.getEndStatus();
+			if (endStatus != null)
+			{
+				nodestatus = endStatus;
+			}
+		}
+		final JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, nodestatus, null);
 
 		// has to be waiting, held, running or suspended: abort it!
 		EnumQueueEntryStatus newStatus = (returnQE == null ? null : returnQE.getQueueEntryStatus());

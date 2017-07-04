@@ -82,7 +82,9 @@ import javax.mail.MessagingException;
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.StreamRequest;
 import org.cip4.bambi.core.XMLResponse;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.jmf.JDFAbortQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -91,6 +93,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JDFResumeQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
@@ -228,6 +231,62 @@ public class QueueProcessorTest extends BambiTestCase
 		JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
 		JDFQueueEntry qe = qp.addEntry(c, r, doc);
 		assertNotNull(qe);
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testMessageQEAbort()
+	{
+		QueueProcessor qp = new QueueProcessor(getDevice());
+		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
+		qe.setQueueEntryID("q1");
+		JMFBuilder jmfBuilder = new JMFBuilder();
+		JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.AbortQueueEntry).getCommand(0);
+		JDFAbortQueueEntryParams aqp = (JDFAbortQueueEntryParams) c.appendElement(ElementName.ABORTQUEUEENTRYPARAMS);
+		aqp.getCreateQueueFilter().appendQueueEntryDef("q1");
+		assertEquals(qe, qp.getMessageQueueEntry(c, null));
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testMessageQEAbortJobID()
+	{
+		QueueProcessor qp = new QueueProcessor(getDevice());
+		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
+		qe.setQueueEntryID("q1");
+		qe.setJobID("j1");
+		qe = qp.getQueue().appendQueueEntry();
+		qe.setQueueEntryID("q2");
+		qe.setJobID("j2");
+		JMFBuilder jmfBuilder = new JMFBuilder();
+		JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.AbortQueueEntry).getCommand(0);
+		JDFAbortQueueEntryParams aqp = (JDFAbortQueueEntryParams) c.appendElement(ElementName.ABORTQUEUEENTRYPARAMS);
+		aqp.getCreateQueueFilter().setJobID("j2");
+		assertEquals(qe, qp.getMessageQueueEntry(c, null));
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testMessageQEResume()
+	{
+		QueueProcessor qp = new QueueProcessor(getDevice());
+		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
+		qe.setQueueEntryID("q1");
+		JMFBuilder jmfBuilder = new JMFBuilder();
+		JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry).getCommand(0);
+		JDFResumeQueueEntryParams aqp = (JDFResumeQueueEntryParams) c.appendElement(ElementName.RESUMEQUEUEENTRYPARAMS);
+		aqp.getCreateQueueFilter(0).appendQueueEntryDef("q1");
+		assertEquals(qe.getQueueEntryID(), qp.getMessageQueueEntry(c, null).getQueueEntryID());
+		assertEquals(qe.getQueueEntryID(), qp.getMessageQueueEntry(c, null).getQueueEntryID());
 	}
 
 	/**
