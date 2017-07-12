@@ -754,7 +754,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				// this happens when a server is at the url but the war is not loaded
 				getLog().warn("Error reading response: " + fx.getMessage());
 				connection = null;
-				responseCode = -1;
+				responseCode = 404;
 			}
 		}
 
@@ -787,7 +787,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			sendReturn = SendReturn.error;
 			if (idle == 0)
 			{
-				log.warn("could not send message to unavailable " + mesDetails.url + " no return; rc=-1 ");
+				log.warn("could not send message to unavailable " + mesDetails.url + " no return; rc= " + responseCode);
 			}
 		}
 		else if (responseCode / 100 != 2)
