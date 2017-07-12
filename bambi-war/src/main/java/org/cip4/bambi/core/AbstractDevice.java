@@ -2000,17 +2000,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 		if (e instanceof JDFNode || XJDFConstants.XJDF.equals(e.getLocalName()))
 		{
-			final XMLRequest r2 = createSubmitFromJDF(e);
-			if (r2 != null)
-			{
-				r2.setContainer(request);
-				return r2;
-			}
+			return createSubmitFromJDF(e, request);
 		}
-		else
-		{
 
-		}
 		return null;
 	}
 
@@ -2019,13 +2011,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * @param e the jdf or xjdf root element
 	 * @return the xmlrequest to submit
 	 */
-	protected XMLRequest createSubmitFromJDF(KElement e)
+	protected XMLRequest createSubmitFromJDF(KElement e, XMLRequest request)
 	{
-		JDFJMF sqe = getJMFBuilder().buildSubmitQueueEntry(null, "dummy");
-		if (XJDFConstants.XJDF.equals(e.getLocalName()))
-		{
-			sqe.setMaxVersion(EnumVersion.Version_2_0);
-		}
+		final JDFJMF sqe = createSubmissionJMF(e, request);
 
 		MimeWriter mimeWriter = new MimeWriter();
 		mimeWriter.buildMimePackage(sqe.getOwnerDocument_JDFElement(), e.getOwnerDocument_KElement(), false);
@@ -2036,7 +2024,37 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			docJMF.copyMeta(e.getOwnerDocument_KElement());
 		}
-		return docJMF != null ? new XMLRequest(docJMF) : null;
+		XMLRequest xmlRequest = docJMF != null ? new XMLRequest(docJMF) : null;
+        if (xmlRequest != null)
+        {
+            xmlRequest.setContainer(request);
+        }
+		return xmlRequest;
+	}
+
+	/**
+	 *
+	 * @param e
+	 * @param request
+	 * @return
+	 */
+	protected JDFJMF createSubmissionJMF(KElement e, XMLRequest request)
+	{
+		String updateMethod = request == null ? null : request.getParameter(AttributeName.UPDATEMETHOD);
+		final JDFJMF sqe;
+		if ("Complete".equalsIgnoreCase(updateMethod) || "Incremental".equalsIgnoreCase(updateMethod))
+		{
+			sqe = getJMFBuilder().buildResubmitQueueEntry(null, "dummy");
+		}
+		else
+		{
+			sqe = getJMFBuilder().buildSubmitQueueEntry(null, "dummy");
+		}
+		if (XJDFConstants.XJDF.equals(e.getLocalName()))
+		{
+			sqe.setMaxVersion(EnumVersion.Version_2_0);
+		}
+		return sqe;
 	}
 
 	/**

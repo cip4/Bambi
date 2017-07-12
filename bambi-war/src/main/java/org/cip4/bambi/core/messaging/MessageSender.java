@@ -733,16 +733,19 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		SendReturn sendReturn = SendReturn.sent;
 		final String url = mesDetails == null ? null : mesDetails.url;
 		String header = "URL: " + url;
+		int responseCode = -1;
 		if (connection != null)
 		{
 			try
 			{
+				responseCode = connection.getResponseCode();
+
 				if (mesDetails.respHandler != null)
 				{
 					mesDetails.respHandler.setConnection(connection);
 				}
 				connection.setReadTimeout(30000); // 30 seconds should suffice
-				header += "\nResponse code:" + connection.getResponseCode();
+				header += "\nResponse code:" + responseCode;
 				header += "\nContent type:" + connection.getContentType();
 				header += "\nContent length:" + connection.getContentLength();
 			}
@@ -751,6 +754,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				// this happens when a server is at the url but the war is not loaded
 				getLog().warn("Error reading response: " + fx.getMessage());
 				connection = null;
+				responseCode = -1;
 			}
 		}
 
@@ -778,12 +782,31 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			}
 		}
 
-		if (connection == null || connection.getResponseCode() != 200)
+		if (connection == null)
 		{
 			sendReturn = SendReturn.error;
 			if (idle == 0)
 			{
-				log.warn("could not send message to " + mesDetails.url + " rc= " + ((connection == null) ? -1 : connection.getResponseCode()));
+				log.warn("could not send message to unavailable " + mesDetails.url + " no return; rc=-1 ");
+			}
+		}
+		else if (responseCode / 100 != 2)
+		{
+			if (isRemoveRC(responseCode))
+			{
+				sendReturn = SendReturn.removed;
+				if (idle == 0)
+				{
+					log.error("removing message that causes server error at " + mesDetails.url + " rc= " + responseCode);
+				}
+			}
+			else
+			{
+				sendReturn = SendReturn.error;
+				if (idle == 0)
+				{
+					log.warn("error sending message to " + mesDetails.url + " rc= " + responseCode);
+				}
 			}
 		}
 		if (mesDetails.respHandler != null)
@@ -801,6 +824,17 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			inDump.newFileFromStream(header, bis, mesDetails.getName());
 		}
 		return sendReturn;
+	}
+
+	/**
+	 *
+	 * @param connection
+	 * @return
+	 * @throws IOException
+	 */
+	protected boolean isRemoveRC(int responseCode) throws IOException
+	{
+		return responseCode >= 400 && responseCode != 404;
 	}
 
 	/**
