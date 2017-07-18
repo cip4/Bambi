@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 
 package org.cip4.bambi.core.messaging;
@@ -92,15 +92,15 @@ import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * factory for sending JMF messages
- * 
+ *
  * @author boegerni
- * 
+ *
  */
 public class JMFFactory extends BambiLogFactory
 {
 	/**
 	 * @author Rainer Prosi, Heidelberger Druckmaschinen
-	 * 
+	 *
 	 */
 	public static class CallURL implements Comparable<CallURL>
 	{
@@ -132,7 +132,7 @@ public class JMFFactory extends BambiLogFactory
 
 		/**
 		 * @param _url the url
-		 * 
+		 *
 		 */
 		public CallURL(final String _url)
 		{
@@ -175,7 +175,7 @@ public class JMFFactory extends BambiLogFactory
 
 		/**
 		 * compares based on url values
-		 * 
+		 *
 		 * @param o the other callURL to compare to
 		 * @return -1 if this is smaller
 		 */
@@ -188,8 +188,6 @@ public class JMFFactory extends BambiLogFactory
 
 	// end of inner class CallURL
 
-	// ////////////////////////////////////////////////////////////
-
 	private static JMFFactory theFactory = null;
 	private static MyMutex factoryMutex = new MyMutex();
 	final HashMap<CallURL, MessageSender> senders = new HashMap<CallURL, MessageSender>();
@@ -197,15 +195,33 @@ public class JMFFactory extends BambiLogFactory
 	private final boolean shutdown = false;
 	private final HashMap<EnumType, IMessageOptimizer> optimizers;
 	private final long startTime;
+	private boolean zapp500;
 
 	/**
-	 * 
+	 *
 	 */
 	private JMFFactory() // all static
 	{
 		super();
 		optimizers = new HashMap<EnumType, IMessageOptimizer>();
 		startTime = System.currentTimeMillis();
+		zapp500 = false;
+	}
+
+	/**
+	 * @return the zapp500
+	 */
+	public boolean isZapp500()
+	{
+		return zapp500;
+	}
+
+	/**
+	 * @param zapp500 the zapp500 to set
+	 */
+	public void setZapp500(boolean zapp500)
+	{
+		this.zapp500 = zapp500;
 	}
 
 	/**
@@ -224,7 +240,7 @@ public class JMFFactory extends BambiLogFactory
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public static void shutdown()
 	{
@@ -242,7 +258,7 @@ public class JMFFactory extends BambiLogFactory
 
 	/**
 	 * sends a mime or zip multipart message to a given URL
-	 * 
+	 *
 	 * @param jmf
 	 * @param jdf
 	 * @param url the URL to send the JMF to
@@ -250,7 +266,7 @@ public class JMFFactory extends BambiLogFactory
 	 * @param callback
 	 * @param md
 	 * @param deviceID
-	 * @return 
+	 * @return
 	 */
 	public boolean send2URL(final JDFJMF jmf, final JDFNode jdf, final String url, final IResponseHandler handler, final IConverterCallback callback, final MIMEDetails md, final String deviceID)
 	{
@@ -289,11 +305,11 @@ public class JMFFactory extends BambiLogFactory
 
 	/**
 	 * POSTS a empty url message to a given URL
-	 * 
+	 *
 	 * @param url the URL to send the JMF to
 	 * @param handler
 	 * @param callback
-	 * @return 
+	 * @return
 	 */
 	public boolean send2URL(final String url, final IResponseHandler handler, final IConverterCallback callback)
 	{
@@ -393,7 +409,7 @@ public class JMFFactory extends BambiLogFactory
 	 * @param md
 	 * @param senderID
 	 * @param milliSeconds
-	 * 
+	 *
 	 * @return the response if successful, otherwise null
 	 */
 	public HttpURLConnection send2URLSynch(final JDFJMF jmf, JDFNode jdf, final String url, final IConverterCallback callback, final MIMEDetails md, final String senderID, final int milliSeconds)
@@ -405,7 +421,7 @@ public class JMFFactory extends BambiLogFactory
 	}
 
 	/**
-	 * 
+	 *
 	 * @param cu the callURL to shut down, if null all of them
 	 * @param graceFully
 	 */
@@ -495,11 +511,11 @@ public class JMFFactory extends BambiLogFactory
 
 	/**
 	 * get an existing MessageSender or create it if it does not exist for a given url or callback
-	 * 
+	 *
 	 * @param url the URL to send a message to, if null use the fire&forget sender
-	 * 
+	 *
 	 * @return the MessageSender that will queue and dispatch the message
-	 * 
+	 *
 	 */
 	public MessageSender getCreateMessageSender(final String url)
 	{
@@ -570,6 +586,6 @@ public class JMFFactory extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		return "JMFFactory : threads=" + nThreads + " Senders: " + senders;
+		return "JMFFactory : threads=" + nThreads + " zapp500=" + zapp500 + " Senders: " + senders;
 	}
 }

@@ -828,13 +828,14 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 *
-	 * @param connection
+	 * @param responseCode
 	 * @return
-	 * @throws IOException
+	 *
 	 */
 	protected boolean isRemoveRC(int responseCode) throws IOException
 	{
-		return responseCode >= 400 && responseCode != 404;
+		boolean zapp500 = myFactory.isZapp500();
+		return responseCode >= 400 && (zapp500 || responseCode < 500) && responseCode != 404 && responseCode != 408 && responseCode != 429;
 	}
 
 	/**
