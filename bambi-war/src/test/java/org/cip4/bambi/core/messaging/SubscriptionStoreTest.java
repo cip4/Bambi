@@ -1,4 +1,5 @@
-/**
+/*
+ *
  * The CIP4 Software License, Version 1.0
  *
  *
@@ -58,9 +59,8 @@
  * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
  * originally based on software
- * copyright (c) 1999-2006, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
  * copyright (c) 1999-2001, Agfa-Gevaert N.V.
- *
  *
  * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
@@ -70,110 +70,89 @@
  */
 package org.cip4.bambi.core.messaging;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.File;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.cip4.bambi.core.IConverterCallback;
-import org.cip4.bambi.core.messaging.SignalDispatcher.XMLSubscriptions;
-import org.cip4.jdflib.core.JDFConstants;
-import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.VElement;
-import org.cip4.jdflib.core.XMLDoc;
-import org.cip4.jdflib.util.FileUtil;
-import org.cip4.jdflib.util.RollingBackupFile;
+import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.bambi.BambiTestDevice;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFQuery;
+import org.cip4.jdflib.jmf.JMFBuilder;
+import org.junit.Test;
 
-class SubscriptionStore
+/**
+ *
+ * @author rainer prosi
+ *
+ */
+public class SubscriptionStoreTest extends BambiTestCaseBase
 {
-	/**
-	 *
-	 */
-	private final SignalDispatcher signalDispatcher;
-	private final RollingBackupFile backup;
-	private boolean loading;
-	private final Log log;
 
 	/**
 	 *
-	 * @param signalDispatcher
-	 * @param dir
 	 */
-	SubscriptionStore(SignalDispatcher signalDispatcher, final File dir)
+	@Test
+	public void testCreateDispatcher()
 	{
-		this.signalDispatcher = signalDispatcher;
-		log = LogFactory.getLog(getClass());
-		loading = false;
-		backup = new RollingBackupFile(FileUtil.getFileInDirectory(dir, new File("subscriptions.xml")), 8);
+		SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		assertNotNull(d);
 	}
 
 	/**
-	 * load subscriptions from file
+	 *
 	 */
-	public void load()
+	@Test
+	public void testCreateStore()
 	{
-		loading = true;
-		final XMLDoc d = XMLDoc.parseFile(backup);
-		final KElement root = d == null ? null : d.getRoot();
-		try
-		{
-			if (root != null)
-			{
-				final VElement v = root.getChildElementVector(MsgSubscription.SUBSCRIPTION_ELEMENT, null);
-				for (KElement subElem : v)
-				{
-					final MsgSubscription sub = new MsgSubscription(this.signalDispatcher, subElem);
-					IConverterCallback callback = signalDispatcher.device.getCallback(sub.url, sub);
-					sub.setCallback(callback);
-
-					synchronized (signalDispatcher.subscriptionMap)
-					{
-						if (sub.channelID != null)
-						{
-							signalDispatcher.subscriptionMap.put(sub.channelID, sub);
-							log.info("reloading subscription for channelID=" + sub.channelID + " to: " + sub.url);
-							JMFFactory.getJMFFactory().getCreateMessageSender(sub.url);
-						}
-						else
-						{
-							log.warn("cannot reload subscription without channelID to: " + sub.url);
-						}
-					}
-				}
-			}
-			else
-			{
-				log.info("no subscriptions loaded from " + backup);
-			}
-		}
-		catch (final Throwable x)
-		{
-			log.error("unknown exception while loading subscriptions", x);
-		}
-		loading = false;
+		SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		SubscriptionStore ss = new SubscriptionStore(d, new File(sm_dirTestDataTemp + "subs"));
+		assertNotNull(ss);
 	}
 
 	/**
-	 * write all subscriptions to disk
+	 *
 	 */
-	public void persist()
+	@Test
+	public void testExtend()
 	{
-		if (loading)
-		{
-			log.warn("persisting while loading - not a good idea!");
-			return;
-		}
-		final XMLSubscriptions xmls = signalDispatcher.new XMLSubscriptions();
-		xmls.setXMLRoot(null);
-		xmls.listChannels(null, JDFConstants.STAR);
-		File newFile = backup.getNewFile();
-		log.info("persisting to " + newFile);
-		xmls.write2File(newFile, 2, false);
+		SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		SubscriptionStore ss = new SubscriptionStore(d, new File(sm_dirTestDataTemp + "subs"));
+		JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://abc.com", 0, 0, null);
+		JDFQuery q = jmf.getQuery(0);
+		q.setID("q");
+		q.getSubscription().setAttribute("Foo", "Bar");
+
+		d.addSubscription(q, null, null);
+		ss.persist();
+
+		SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
+		SubscriptionStore ss2 = new SubscriptionStore(d2, new File(sm_dirTestDataTemp + "subs"));
+		ss2.load();
+		assertEquals("Bar", ((JDFQuery) d2.getSubscriptionMessage("q")).getSubscription().getAttribute("Foo"));
+
 	}
 
-	@Override
-	public String toString()
+	/**
+	 *
+	 */
+	@Test
+	public void testLoad()
 	{
-		return "SubscriptionStore [backup=" + backup + ", loading=" + loading + "]";
-	}
+		SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		SubscriptionStore ss = new SubscriptionStore(d, new File(sm_dirTestDataTemp + "subs"));
+		JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://abc.com", 0, 0, null);
+		JDFQuery q = jmf.getQuery(0);
+		q.setID("q");
 
+		d.addSubscription(q, null, null);
+		ss.persist();
+
+		SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
+		SubscriptionStore ss2 = new SubscriptionStore(d2, new File(sm_dirTestDataTemp + "subs"));
+		ss2.load();
+		assertEquals("q", d2.getChannels(null, null, null).iterator().next());
+
+	}
 }
