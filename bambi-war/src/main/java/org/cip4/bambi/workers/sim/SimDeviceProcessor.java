@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.workers.sim;
 
@@ -101,9 +101,9 @@ import org.cip4.jdflib.util.ThreadUtil;
 /**
  * abstract parent class for device processors, with additional functionality for JobPhases <br>
  * The device processor is the actual working part of a device. The individual job phases of the job are executed here.
- * 
+ *
  * @author boegerni
- * 
+ *
  */
 public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 {
@@ -113,7 +113,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * constructor
-	 * 
+	 *
 	 * @param queueProcessor points to the QueueProcessor
 	 * @param statusListener points to the StatusListener
 	 * @param devProperties device properties
@@ -151,7 +151,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * get the current job phase, null if none is there
-	 * 
+	 *
 	 * @return the current phase
 	 */
 	@Override
@@ -166,7 +166,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * process a queue entry
-	 * 
+	 *
 	 * @param n the JDF node to process
 	 * @param qe the JDF queueentry that corresponds to this
 	 * @return EnumQueueEntryStatus the final status of the queuentry
@@ -174,32 +174,29 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	@Override
 	public EnumQueueEntryStatus processDoc(final JDFNode n, final JDFQueueEntry qe)
 	{
-		String qeid = qe == null ? "#null#" : qe.getQueueEntryID();
+		String qeid = getQueueEntryID();
 		if (!bActive)
 		{
 			log.info("removing inactive JDF: " + qeid);
 			return EnumQueueEntryStatus.Removed;
 		}
-		log.debug("processing JDF: " + qeid);
+		log.info("processing JDF: " + getJobID() + " qeID=" + qeid);
 		JobPhase lastPhase = null;
 		while (_jobPhases.size() > 0)
 		{
 			processPhase(n);
 			lastPhase = _jobPhases.remove(0); // phase(0) is always the active phase
 		}
-		if (lastPhase == null)
-		{
-			return EnumQueueEntryStatus.Aborted;
-		}
-
-		EnumQueueEntryStatus qes = EnumNodeStatus.getQueueEntryStatus(lastPhase.getNodeStatus());
+		EnumQueueEntryStatus qes = lastPhase == null ? null : EnumNodeStatus.getQueueEntryStatus(lastPhase.getNodeStatus());
 		if (qes == null)
 		{
+			log.warn("Aborted Job " + getJobID() + " geID= " + qeid);
 			return EnumQueueEntryStatus.Aborted;
 		}
 		if (lastPhase.getTimeToGo() <= 0 && EnumQueueEntryStatus.Running.equals(qes)) // final phase was active
 		{
 			qes = EnumQueueEntryStatus.Completed;
+			log.info("Completed Job " + getJobID() + " geID= " + qeid);
 		}
 
 		return qes;
@@ -233,7 +230,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			_statusListener.setEmployees(employees);
 		}
 		double todoAmount = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.AMOUNT, nodeInfoPartMapVector);
-		log.debug("processing new job phase: " + phase.toString());
+		log.info("processing new job phase: " + getJobID() + " / " + getQueueEntryID() + phase.shortString());
 		_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(), false);
 		long deltaT = 1000;
 		while (phase.getTimeToGo() > 0)
@@ -266,7 +263,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 						if (all > todoAmount && todoAmount > 0)
 						{
 							phase.setTimeToGo(0);
-							log.debug("phase end for resource: " + namedRes);
+							log.info("phase " + getJobID() + " / " + getQueueEntryID() + " end for resource: " + namedRes + " done=" + all + " planned=" + todoAmount);
 							reachedEnd = true;
 						}
 					}
@@ -335,6 +332,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			return;
 		}
 		final int iEvent = (int) (Math.random() * 100.);
+		log.info("random event: " + getJobID() + " / " + getQueueEntryID());
 		_statusListener.setEvent("" + iEvent, iEvent > 90 ? "Error" : "Event" + iEvent, StringUtil.getRandomString());
 	}
 
@@ -347,7 +345,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#initializeProcessDoc(org.cip4.jdflib.node.JDFNode, org.cip4.jdflib.jmf.JDFQueueEntry)
 	 * @param node
 	 * @param qe
@@ -378,8 +376,8 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 * @param node
 	 */
 	protected void loadJob(final JDFNode node)
@@ -400,8 +398,8 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @param node
 	 */
 	protected void prepareAmounts(final JDFNode node)
@@ -423,13 +421,14 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * stop the processor with the new status (either completed or aborted)
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#stopProcessing(org.cip4.jdflib.core.JDFElement.EnumNodeStatus)
 	 * @param newStatus
 	 */
 	@Override
 	public EnumNodeStatus stopProcessing(final EnumNodeStatus newStatus)
 	{
+		log.info("Stop processing " + getJobID() + " / " + getQueueEntryID());
 		synchronized (_jobPhases)
 		{
 			JobPhase p = getCurrentJobPhase();
@@ -450,9 +449,9 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	}
 
 	/**
-	 * get the amount factor for this node, e.g. by evaluating a layout or runlist 
-	 * defaults to 1 but may be overwritten for specific processors 
-	 * 
+	 * get the amount factor for this node, e.g. by evaluating a layout or runlist
+	 * defaults to 1 but may be overwritten for specific processors
+	 *
 	 * @param res the resource to calculate the amount for
 	 * @param master the master resource that defines the amount=1
 	 * @param node the jdf node with details to evaluate
@@ -465,7 +464,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * proceed to the next job phase
-	 * 
+	 *
 	 * @param nextPhase the next job phase to process.<br>
 	 * Phase timeToGo is ignored in this class, it is advancing to the next phase solely by doNextPhase().
 	 */
@@ -482,13 +481,13 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	}
 
 	/**
-	 * 
+	 *
 	 * @param node
 	 * @return the initial job phase
 	 */
 	protected JobPhase initFirstPhase(final JDFNode node)
 	{
-		log.debug("initializing first phase");
+		log.info("initializing first phase " + getJobID() + " / " + getQueueEntryID());
 		final JobPhase firstPhase = new JobPhase();
 		firstPhase.setDeviceStatus(EnumDeviceStatus.Setup);
 		firstPhase.setDeviceStatusDetails("Setup");
