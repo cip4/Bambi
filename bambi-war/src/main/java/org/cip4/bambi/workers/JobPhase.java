@@ -68,7 +68,6 @@
  */
 package org.cip4.bambi.workers;
 
-import java.io.Serializable;
 import java.util.Vector;
 
 import org.cip4.bambi.core.BambiLogFactory;
@@ -132,9 +131,8 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 	/**
 		 *
 		 */
-	public class PhaseAmount implements Serializable
+	public class PhaseAmount
 	{
-		private static final long serialVersionUID = -8504631585951268571L;
 
 		/**
 		 * waste to be produced in this job phase

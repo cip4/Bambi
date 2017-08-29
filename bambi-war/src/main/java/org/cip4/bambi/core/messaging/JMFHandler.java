@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -75,6 +75,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Vector;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiLogFactory;
@@ -372,7 +373,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		@Override
 		public String toString()
 		{
-			return getClass().getSimpleName() + " : " + getMessageType() + ", " + getFamilies();
+			return getClass().getSimpleName() + " : " + getMessageType() + ", " + ArrayUtils.toString(getFamilies());
 		}
 	}
 
@@ -402,7 +403,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		final EnumFamily[] families = handler.getFamilies();
 		if (typ == null || families == null)
 		{
-			log.error("Unknown message type or family in addhandler - bailing out! type=" + typ + " families=" + families);
+			log.error("Unknown message type or family in addhandler - bailing out! type=" + typ + " families=" + ArrayUtils.toString(families));
 			return;
 		}
 		for (EnumFamily family : families)
