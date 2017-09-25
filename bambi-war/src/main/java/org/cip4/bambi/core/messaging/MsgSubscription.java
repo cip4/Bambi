@@ -130,7 +130,7 @@ public class MsgSubscription implements Cloneable
 	final Log log;
 	private IConverterCallback callback;
 	// do we want to support job specific subscriptions?
-	private static boolean specific = true;
+	private static boolean specific = false;
 
 	/**
 	 *
@@ -173,7 +173,7 @@ public class MsgSubscription implements Cloneable
 			repeatTime = 15;
 		}
 		final JDFJMF ownerJMF = ((JDFMessage) m).getJMFRoot();
-		jmfDeviceID = ownerJMF != null ? ownerJMF.getDeviceID() : null;
+		jmfDeviceID = (isSpecific() && ownerJMF != null) ? ownerJMF.getDeviceID() : null;
 		if ("".equals(jmfDeviceID) || ContainerUtil.equals(jmfDeviceID, this.signalDispatcher.device.getDeviceID()))
 		{
 			// zapp any filters to myself - they represent all my kids
