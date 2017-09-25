@@ -130,7 +130,7 @@ public class MsgSubscription implements Cloneable
 	final Log log;
 	private IConverterCallback callback;
 	// do we want to support job specific subscriptions?
-	private static boolean specific = false;
+	private static boolean specific = true;
 
 	/**
 	 *
