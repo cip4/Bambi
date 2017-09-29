@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.core;
 
@@ -111,7 +111,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 * 
+	 *
 	 * 13.02.2009
 	 */
 	public class DeviceProperties implements IDeviceProperties, IPersistable
@@ -183,7 +183,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		}
 
 		/**
-		 * @param callbackType 
+		 * @param callbackType
 		 * @return the name of the callback class, null if no callback is requested
 		 */
 		protected String getCallBackClassName(String callbackType)
@@ -260,7 +260,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 		/**
 		 * @param deviceID the deviceID to set
-		 * 
+		 *
 		 */
 		public void setDeviceID(String deviceID)
 		{
@@ -295,7 +295,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		}
 
 		/**
-		 * 
+		 *
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDescription()
 		 */
 		@Override
@@ -308,7 +308,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		}
 
 		/**
-		 * 
+		 *
 		 * @see org.cip4.bambi.core.IDeviceProperties#setDescription(java.lang.String)
 		 */
 		@Override
@@ -338,7 +338,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 		/**
 		 * @param attribute the attribute to set the file as
-		 * @param file 
+		 * @param file
 		 */
 		protected void setFile(final String attribute, final File file)
 		{
@@ -477,7 +477,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		/**
 		 * @param key
 		 * @param val the value to set
-		 *  
+		 *
 		 */
 		public void setDeviceAttribute(final String key, final String val)
 		{
@@ -673,7 +673,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 		/**
 		 * defaults to true for legacy
-		 * 
+		 *
 		 * @see org.cip4.bambi.core.IDeviceProperties#getAutoStart()
 		 */
 		@Override
@@ -684,9 +684,9 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 		/**
 		 * if true, the we add ourselves to the template list and can create new devices
-		 * 
+		 *
 		 * defaults to true for legacy
-		 * 
+		 *
 		 * @see org.cip4.bambi.core.IDeviceProperties#getAutoStart()
 		 */
 		public boolean isTemplate()
@@ -696,7 +696,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 		/**
 		 * set the autostart property
-		 * 
+		 *
 		 *
 		 */
 		public void setAutoStart(boolean bAutoStart)
@@ -720,7 +720,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		}
 
 		/**
-		 * 
+		 *
 		 * @return
 		 */
 		public MultiDeviceProperties getParent()
@@ -731,9 +731,9 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 	/**
 	 * gets a subclass of this based on the value of application/@PropertiesName
-	 * @param config 
+	 * @param config
 	 * @param
-	 * 
+	 *
 	 * @return the subclass instance, this if @PropertiesName is not set
 	 */
 	private MultiDeviceProperties getSubClass()
@@ -762,8 +762,8 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	/**
 	 * create device properties for the devices defined in the config file
 	 * this is for tests only
-	 * @param baseDir 
-	 * @param baseURL 
+	 * @param baseDir
+	 * @param baseURL
 	 */
 	public MultiDeviceProperties(File baseDir)
 	{
@@ -844,7 +844,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 * 
+	 *
 	 * @param appDir
 	 * @return
 	 */
@@ -855,7 +855,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 * 
+	 *
 	 * @param appDir
 	 * @return
 	 */
@@ -874,7 +874,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 * 
+	 *
 	 * @param doc
 	 */
 	protected MultiDeviceProperties(final XMLDoc doc)
@@ -922,7 +922,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 * 
+	 *
 	 * @param port
 	 */
 	public void setPort(int port)
@@ -961,7 +961,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 * @return 
+	 * @return
 	 * @see org.cip4.bambi.core.IDeviceProperties#getContextURL()
 	 */
 	public String getContextURL()
@@ -1011,7 +1011,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public String getCSS()
@@ -1020,7 +1020,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public void setCSS(String css)
@@ -1037,7 +1037,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		UserDir userDir = new UserDir(BambiServer.BAMBI);
 
 		File f1 = getRootFile("BaseDir");
-		File f = new File(userDir.getToolPath() + f1.getAbsolutePath());
+		File f = FileUtil.isAbsoluteFile(f1) ? f1 : FileUtil.getFileInDirectory(new File(userDir.getToolPath()), f1);
 
 		if (!FileUtil.isAbsoluteFile(f))
 		{
@@ -1048,7 +1048,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 * 
+	 *
 	 * @param newBase
 	 */
 	public void setBaseDir(File newBase)
@@ -1129,7 +1129,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	@Override
@@ -1139,7 +1139,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 * 
+	 *
 	 * @param resourceAsStream
 	 * @return
 	 */
