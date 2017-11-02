@@ -75,6 +75,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
@@ -88,6 +89,7 @@ import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
@@ -112,6 +114,7 @@ import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.pool.JDFAncestorPool;
 import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.MemorySpy;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -224,7 +227,7 @@ public class SignalDispatcher extends BambiLogFactory
 				showDetails(request, details, pos);
 				setXSLTURL(device.getXSLTBaseFromContext(device.getContext(request)) + "/subscriptionDetails.xsl");
 			}
-			XMLResponse r = new XMLResponse(getRoot());
+			final XMLResponse r = new XMLResponse(getRoot());
 			return r;
 
 		}
@@ -282,7 +285,7 @@ public class SignalDispatcher extends BambiLogFactory
 			final Vector<MessageSender> v = device.getJMFFactory().getMessageSenders(url);
 			if (v != null)
 			{
-				for (MessageSender messageSender : v)
+				for (final MessageSender messageSender : v)
 				{
 					messageSender.flushMessages();
 				}
@@ -298,7 +301,7 @@ public class SignalDispatcher extends BambiLogFactory
 			final Vector<MessageSender> v = device.getJMFFactory().getMessageSenders(url);
 			if (v != null)
 			{
-				for (MessageSender messageSender : v)
+				for (final MessageSender messageSender : v)
 				{
 					messageSender.zappFirstMessage();
 				}
@@ -410,7 +413,7 @@ public class SignalDispatcher extends BambiLogFactory
 		/**
 		 *
 		 */
-		public Dispatcher()
+		protected Dispatcher()
 		{
 			super();
 			sentMessages = 0;
@@ -451,7 +454,7 @@ public class SignalDispatcher extends BambiLogFactory
 			timer.start();
 			final Vector<MsgSubscription> triggerVector = getTriggerSubscriptions();
 			// spam them out
-			for (MsgSubscription sub : triggerVector)
+			for (final MsgSubscription sub : triggerVector)
 			{
 				if ((sentTrigger++ < 10) || ((sentTrigger % 1000) == 0))
 				{
@@ -462,7 +465,7 @@ public class SignalDispatcher extends BambiLogFactory
 			// select pending time subscriptions
 			final Vector<MsgSubscription> subVector = getTimeSubscriptions();
 			// spam them out
-			for (MsgSubscription sub : subVector)
+			for (final MsgSubscription sub : subVector)
 			{
 				if ((sentTime++ < 10) || ((sentTime % 1000) == 0))
 				{
@@ -478,7 +481,7 @@ public class SignalDispatcher extends BambiLogFactory
 		 * queue a message in the appropriate sender
 		 * @param sub
 		 */
-		private void queueMessageInSender(final MsgSubscription sub)
+		protected void queueMessageInSender(final MsgSubscription sub)
 		{
 			try
 			{
@@ -486,7 +489,7 @@ public class SignalDispatcher extends BambiLogFactory
 				final JDFJMF signalJMF = sub.getSignal();
 				if (signalJMF != null)
 				{
-					boolean ok = device.getJMFFactory().send2URL(signalJMF, url, null, sub.getCallback(), device.getDeviceID());
+					final boolean ok = device.getJMFFactory().send2URL(signalJMF, url, null, sub.getCallback(), device.getDeviceID());
 					if (!ok)
 					{
 						checkStaleSubscription(sub);
@@ -501,11 +504,13 @@ public class SignalDispatcher extends BambiLogFactory
 					sentMessages++;
 					if ((sentMessages < 10) || ((sentMessages % 1000) == 0))
 					{
-						log.info("Sent message# " + sentMessages + " " + timer.getSingleSummary());
+						final Map<String, Long> memMap = new MemorySpy().getSummaryMap();
+						log.info("Sent message# " + sentMessages + "to URL: " + url + JDFConstants.BLANK + timer.getSingleSummary() + JDFConstants.BLANK + "mem used: "
+								+ memMap.get("Current") + JDFConstants.SLASH + memMap.get("Total"));
 					}
 				}
 			}
-			catch (Throwable t)
+			catch (final Throwable t)
 			{
 				log.error("Exception while queueing message", t);
 				//cool down
@@ -523,7 +528,7 @@ public class SignalDispatcher extends BambiLogFactory
 		 * get the triggered subscriptions, either forced (amount=-1) or by amount
 		 * @return the vector of triggered subscriptions
 		 */
-		private Vector<MsgSubscription> getTriggerSubscriptions()
+		protected Vector<MsgSubscription> getTriggerSubscriptions()
 		{
 			synchronized (triggers)
 			{
@@ -562,7 +567,7 @@ public class SignalDispatcher extends BambiLogFactory
 					}
 				}
 				// remove active triggers that will be returned
-				for (Trigger t : vSnafu)
+				for (final Trigger t : vSnafu)
 				{
 					final boolean b = triggers.remove(t);
 					if (!b)
@@ -575,7 +580,7 @@ public class SignalDispatcher extends BambiLogFactory
 					}
 
 				}
-				for (MsgSubscription sub : v)
+				for (final MsgSubscription sub : v)
 				{
 					final boolean b = triggers.remove(sub.trigger);
 					if (!b)
@@ -587,7 +592,7 @@ public class SignalDispatcher extends BambiLogFactory
 			}
 		}
 
-		private Vector<MsgSubscription> getTimeSubscriptions()
+		protected Vector<MsgSubscription> getTimeSubscriptions()
 		{
 			final Vector<MsgSubscription> subVector = new Vector<MsgSubscription>();
 			synchronized (subscriptionMap)
@@ -690,7 +695,7 @@ public class SignalDispatcher extends BambiLogFactory
 			}
 			else
 			{
-				for (MsgSubscription sub : vSubs)
+				for (final MsgSubscription sub : vSubs)
 				{
 					addToResponse(response, sub);
 				}
@@ -797,20 +802,29 @@ public class SignalDispatcher extends BambiLogFactory
 		storage = new SubscriptionStore(this, dev == null ? null : dev.getDeviceDir());
 		triggers = new Vector<Trigger>();
 		mutex = new MyMutex();
-		theDispatcher = new Dispatcher();
+		theDispatcher = getDispatcher();
 		doShutdown = false;
 		lastCalled = 0;
 		ignoreURL = null;
 	}
 
 	/**
+	 *
+	 * @return
+	 */
+	protected Dispatcher getDispatcher()
+	{
+		return new Dispatcher();
+	}
+
+	/**
 	 * check any prehistoric subscriptions that no longer work and zapp them
 	 * @param sub the subscription
 	 */
-	protected boolean checkStaleSubscription(MsgSubscription sub)
+	protected boolean checkStaleSubscription(final MsgSubscription sub)
 	{
 		boolean zapped = false;
-		String url = sub.getURL();
+		final String url = sub.getURL();
 		if (StringUtil.getNonEmpty(url) == null)
 		{
 			log.error("deleting subscription with null url " + sub.channelID + " " + sub.getMessageType());
@@ -819,10 +833,10 @@ public class SignalDispatcher extends BambiLogFactory
 		}
 		else
 		{
-			Vector<MessageSender> vMesSend = JMFFactory.getJMFFactory().getMessageSenders(url);
+			final Vector<MessageSender> vMesSend = JMFFactory.getJMFFactory().getMessageSenders(url);
 			if (vMesSend != null)
 			{
-				for (MessageSender m : vMesSend)
+				for (final MessageSender m : vMesSend)
 				{
 					if (m.isBlocked(1000l * 24l * 60l * 60l * 42l * 2l, 420))
 					{
@@ -904,7 +918,7 @@ public class SignalDispatcher extends BambiLogFactory
 	 * @deprecated
 	 */
 	@Deprecated
-	public synchronized String addSubscription(final IJMFSubscribable subMess, String queueEntryID)
+	public synchronized String addSubscription(final IJMFSubscribable subMess, final String queueEntryID)
 	{
 		return addSubscription(subMess, queueEntryID, null);
 	}
@@ -915,7 +929,7 @@ public class SignalDispatcher extends BambiLogFactory
 	 * @param queueEntryID the associated QueueEntryID, may be null.
 	 * @return the slaveChannelID of the subscription, if successful, else null
 	 */
-	public synchronized String addSubscription(final IJMFSubscribable subMess, String queueEntryID, JDFResponse resp)
+	public synchronized String addSubscription(final IJMFSubscribable subMess, String queueEntryID, final JDFResponse resp)
 	{
 		if (subMess == null)
 		{
@@ -933,7 +947,7 @@ public class SignalDispatcher extends BambiLogFactory
 		}
 		final MsgSubscription sub = new MsgSubscription(this, subMess, queueEntryID);
 		final String url = sub.getURL();
-        if (!UrlUtil.isHttp(url) && !UrlUtil.isHttps(url))
+		if (!UrlUtil.isHttp(url) && !UrlUtil.isHttps(url))
 		{
 			JMFHandler.errorResponse(resp, "Attempting to subscribe to invalid URL: " + url, 6, EnumClass.Error);
 			return null;
@@ -1043,7 +1057,7 @@ public class SignalDispatcher extends BambiLogFactory
 			final VElement vMess = jmf.getMessageVector(EnumFamily.Query, null);
 			if (vMess != null)
 			{
-				for (KElement mess : vMess)
+				for (final KElement mess : vMess)
 				{
 					final JDFQuery q = (JDFQuery) mess;
 					final String channelID = addSubscription(q, queueEntryID, null);
@@ -1066,7 +1080,7 @@ public class SignalDispatcher extends BambiLogFactory
 	 */
 	public JDFMessage getSubscriptionMessage(final String channelID)
 	{
-		MsgSubscription msgSubscription = subscriptionMap.get(channelID);
+		final MsgSubscription msgSubscription = subscriptionMap.get(channelID);
 		return msgSubscription == null ? null : msgSubscription.theMessage;
 	}
 
@@ -1128,7 +1142,7 @@ public class SignalDispatcher extends BambiLogFactory
 			if (v != null && v.size() > 0)
 			{
 				log.info("removing multiple subscriptions for qe=" + queueEntryID + " URL=" + url);
-				for (String key : v)
+				for (final String key : v)
 				{
 					final MsgSubscription mSub = removeSubScription(key);
 					if (mSub != null)
@@ -1260,7 +1274,7 @@ public class SignalDispatcher extends BambiLogFactory
 		{
 			return null;
 		}
-		for (Trigger t : triggers)
+		for (final Trigger t : triggers)
 		{
 			if (newTrigger.equals(t))
 			{
@@ -1324,7 +1338,7 @@ public class SignalDispatcher extends BambiLogFactory
 	public void startup()
 	{
 		final String deviceID = device.getDeviceID();
-		Thread thread = new Thread(theDispatcher, "SignalDispatcher_" + deviceID);
+		final Thread thread = new Thread(theDispatcher, "SignalDispatcher_" + deviceID);
 		thread.setDaemon(true);
 		thread.start();
 		log.info("dispatcher thread 'SignalDispatcher_" + deviceID + "' started");
@@ -1395,7 +1409,7 @@ public class SignalDispatcher extends BambiLogFactory
 	 * @param typ
 	 * @return
 	 */
-	public boolean hasSubscription(EnumType typ)
+	public boolean hasSubscription(final EnumType typ)
 	{
 		return !getChannels(typ, null, null).isEmpty();
 	}
@@ -1434,12 +1448,12 @@ public class SignalDispatcher extends BambiLogFactory
 	 * @param r
 	 * @return
 	 */
-	public boolean handleMessage(JDFQuery q, JDFResponse r)
+	public boolean handleMessage(final JDFQuery q, final JDFResponse r)
 	{
-		Vector<JMFHandler> v = device.getJMFHandlers();
-		for (JMFHandler h : v)
+		final Vector<JMFHandler> v = device.getJMFHandlers();
+		for (final JMFHandler h : v)
 		{
-			boolean handled = h.handleMessage(q, r);
+			final boolean handled = h.handleMessage(q, r);
 			if (handled)
 			{
 				return handled;
