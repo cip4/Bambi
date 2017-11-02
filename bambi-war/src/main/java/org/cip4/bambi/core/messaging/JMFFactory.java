@@ -219,7 +219,7 @@ public class JMFFactory extends BambiLogFactory
 	/**
 	 * @param zapp500 the zapp500 to set
 	 */
-	public void setZapp500(boolean zapp500)
+	public void setZapp500(final boolean zapp500)
 	{
 		this.zapp500 = zapp500;
 	}
@@ -343,9 +343,14 @@ public class JMFFactory extends BambiLogFactory
 		{
 			return false;
 		}
-		if (jmf == null || url == null)
+		if (jmf == null)
 		{
-			log.error("failed to send JDFMessage, message and/or URL is null");
+			log.error("failed to send JDFMessage, message is null");
+			return false;
+		}
+		else if (url == null)
+		{
+			log.error("failed to send JDFMessage, target URL is null");
 			return false;
 		}
 
@@ -412,7 +417,7 @@ public class JMFFactory extends BambiLogFactory
 	 *
 	 * @return the response if successful, otherwise null
 	 */
-	public HttpURLConnection send2URLSynch(final JDFJMF jmf, JDFNode jdf, final String url, final IConverterCallback callback, final MIMEDetails md, final String senderID, final int milliSeconds)
+	public HttpURLConnection send2URLSynch(final JDFJMF jmf, final JDFNode jdf, final String url, final IConverterCallback callback, final MIMEDetails md, final String senderID, final int milliSeconds)
 	{
 		final MessageResponseHandler handler = new MessageResponseHandler((String) null);
 		send2URL(jmf, jdf, url, handler, callback, md, senderID);
@@ -433,7 +438,7 @@ public class JMFFactory extends BambiLogFactory
 			final Vector<CallURL> keySet = ContainerUtil.getKeyVector(senders);
 			if (keySet != null)
 			{
-				for (CallURL s : keySet)
+				for (final CallURL s : keySet)
 				{
 					shutDown(s, graceFully);
 				}
@@ -547,8 +552,8 @@ public class JMFFactory extends BambiLogFactory
 				ms.setStartTime(startTime);
 				ms.setJMFFactory(this);
 				senders.put(cu, ms);
-				String name = "MessageSender_" + nThreads++ + "_" + cu.getBaseURL();
-				Thread thread = new Thread(ms, name);
+				final String name = "MessageSender_" + nThreads++ + "_" + cu.getBaseURL();
+				final Thread thread = new Thread(ms, name);
 				log.info("creating new message sender: " + name);
 				thread.setDaemon(false);
 				thread.start();
@@ -565,14 +570,14 @@ public class JMFFactory extends BambiLogFactory
 		synchronized (senders)
 		{
 			final Vector<MessageSender> vRemove = new Vector<MessageSender>();
-			for (MessageSender ms : senders.values())
+			for (final MessageSender ms : senders.values())
 			{
 				if (!ms.isRunning())
 				{
 					vRemove.add(ms);
 				}
 			}
-			for (MessageSender ms : vRemove)
+			for (final MessageSender ms : vRemove)
 			{
 				ms.shutDown(false);
 				log.info("removing idle message sender " + ms.getCallURL().getBaseURL());

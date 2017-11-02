@@ -267,10 +267,8 @@ public class SignalDispatcher extends BambiLogFactory
 			final Vector<MessageSender> v = factory.getMessageSenders(url);
 			if (v != null)
 			{
-				for (int i = 0; i < v.size(); i++)
+				for (final MessageSender messageSender : v)
 				{
-					final MessageSender messageSender = v.get(i);
-
 					messageSender.shutDown(true);
 				}
 			}
