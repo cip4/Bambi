@@ -195,7 +195,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			if (messages != null)
 			{
 				checkedJMF++;
-				for (KElement m : messages)
+				for (final KElement m : messages)
 				{
 					optimizeMessage((JDFMessage) m);
 				}
@@ -222,12 +222,12 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				return;
 			}
 			checked++;
-			Vector<MessageDetails> tail = _messages.getTailClone();
+			final Vector<MessageDetails> tail = _messages.getTailClone();
 			if (tail != null)
 			{
 				for (int i = tail.size() - 1; i >= 0; i--)
 				{
-					MessageDetails messageDetails = tail.get(i);
+					final MessageDetails messageDetails = tail.get(i);
 					if (messageDetails == null)
 					{
 						log.warn("empty message in tail...");
@@ -282,7 +282,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				final VElement v = jmf.getMessageVector(null, null);
 				if (v == null || v.size() == 0)
 				{
-					boolean zapped = _messages.remove(messageDetails);
+					final boolean zapped = _messages.remove(messageDetails);
 					if (zapped)
 					{
 						removedHeartbeatJMF++;
@@ -392,16 +392,17 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				int wait = 1000;
 				if (_messages.size() == 0)
 				{
-					if (idle > 333)
+					if (idle > 3333)
 					{
 						// no success or idle for an hour...
-						doShutDown = true;
 						log.info("Shutting down idle and empty thread for base url: " + callURL.getBaseURL());
+						shutDown(true);
+						break;
 					}
 				}
 				else
 				{ // stepwise increment - try every second 10 times, then every 15 seconds, then every 5 minutes
-					int minIdle = 10;
+					final int minIdle = 10;
 					wait = 15000;
 					if (idle > minIdle)
 					{
@@ -411,7 +412,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 							wait = 424242;
 							if (_messages.size() > 0)
 							{
-								long t0 = lastSent == 0 ? startTime : lastSent;
+								final long t0 = lastSent == 0 ? startTime : lastSent;
 								log.warn("Still waiting in blocked message thread for " + callURL.getBaseURL() + " unsuccessful for " + ((System.currentTimeMillis() - t0) / 60000l)
 										+ " minutes");
 							}
@@ -438,7 +439,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	protected void waitStartup()
 	{
 		// wait a while before sending messages so that all processors are alive before we start throwing messages
-		long t = System.currentTimeMillis() - startTime;
+		final long t = System.currentTimeMillis() - startTime;
 		if (t < 12345)
 		{
 			ThreadUtil.wait(mutexDispatch, (int) (12345 - t));
@@ -449,7 +450,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 * write all pending messages to disk
 	 * @param clearMessages if true flush me
 	 */
-	private void write2Base(boolean clearMessages)
+	private void write2Base(final boolean clearMessages)
 	{
 		final File f = getPersistLocation(false);
 		if (f == null)
@@ -539,7 +540,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 * @param bDir if true return the parent directory
 	 * @return the file where we persist
 	 */
-	protected File getPersistLocation(boolean bDir)
+	protected File getPersistLocation(final boolean bDir)
 	{
 		String loc = callURL.getBaseURL();
 		loc = UrlUtil.removeProtocol(loc);
@@ -604,7 +605,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		{
 			if (firstProblem != 0)
 			{
-				long tWait = System.currentTimeMillis() - firstProblem;
+				final long tWait = System.currentTimeMillis() - firstProblem;
 				final String duration;
 				if (tWait < 60000)
 				{
@@ -659,7 +660,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			{
 				if ((System.currentTimeMillis() - mesDetails.createTime) > (1000l * 3600l * 24l * 42l) && (_messages.size() > 1000))
 				{
-					String warn2 = " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.createTime).getDateTimeISO() + " messages pending: "
+					final String warn2 = " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.createTime).getDateTimeISO() + " messages pending: "
 							+ _messages.size();
 					warn += warn2;
 					_messages.remove(0);
@@ -669,7 +670,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				}
 				else
 				{
-					String warn2 = " - retaining message for resend; messages pending: " + _messages.size() + " times delayed: " + idle;
+					final String warn2 = " - retaining message for resend; messages pending: " + _messages.size() + " times delayed: " + idle;
 					warn += warn2;
 					needLog = (idle < 10) || (idle % 100) == 0;
 				}
@@ -699,7 +700,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		SendReturn b = SendReturn.sent;
 		try
 		{
-			HttpURLConnection connection = sendDetails(mh);
+			final HttpURLConnection connection = sendDetails(mh);
 			b = processResponse(mh, connection);
 		}
 		catch (final IllegalArgumentException e)
@@ -749,7 +750,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				header += "\nContent type:" + connection.getContentType();
 				header += "\nContent length:" + connection.getContentLength();
 			}
-			catch (FileNotFoundException fx)
+			catch (final FileNotFoundException fx)
 			{
 				// this happens when a server is at the url but the war is not loaded
 				getLog().warn("Error reading response: " + fx.getMessage());
@@ -767,7 +768,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			{
 				stream = connection.getInputStream();
 			}
-			catch (IOException x)
+			catch (final IOException x)
 			{
 				// nop
 			}
@@ -813,7 +814,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		{
 			mesDetails.respHandler.setConnection(connection);
 			mesDetails.respHandler.setBufferedStream(bis == null ? null : new ByteArrayIOStream(bis));
-			SendReturn sr2 = mesDetails.respHandler.handleMessage() ? SendReturn.sent : SendReturn.error;
+			final SendReturn sr2 = mesDetails.respHandler.handleMessage() ? SendReturn.sent : SendReturn.error;
 			if (!SendReturn.error.equals(sendReturn))
 			{
 				sendReturn = sr2;
@@ -832,9 +833,9 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 * @return
 	 *
 	 */
-	protected boolean isRemoveRC(int responseCode)
+	protected boolean isRemoveRC(final int responseCode)
 	{
-		boolean b400 = responseCode >= 400 && responseCode < 500 && responseCode != 404 && responseCode != 408 && responseCode != 429;
+		final boolean b400 = responseCode >= 400 && responseCode < 500 && responseCode != 404 && responseCode != 408 && responseCode != 429;
 		boolean b500 = myFactory.isZapp500();
 		if (b500)
 			b500 = responseCode >= 500 && responseCode < 600 && responseCode != 503 && responseCode != 504 && responseCode != 507 && responseCode != 509;
@@ -856,14 +857,14 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		if (mesDetails == null)
 			return null;
 		final String url = mesDetails.url;
-		InputStream is = mesDetails.getInputStream();
+		final InputStream is = mesDetails.getInputStream();
 		if (is == null)
 		{
 			throw new IllegalArgumentException("sending null stream to " + url);
 		}
-		String contentType = mesDetails.getContentType();
+		final String contentType = mesDetails.getContentType();
 		final HTTPDetails hd = mesDetails.mimeDet == null ? null : mesDetails.mimeDet.httpDetails;
-		String header = "URL: " + url;
+		final String header = "URL: " + url;
 		final DumpDir outDump = getOutDump(mesDetails.senderID);
 		final File dump = outDump == null ? null : outDump.newFile(header, mesDetails.getName());
 		if (dump != null)
@@ -872,7 +873,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			IOUtils.copy(ByteArrayIOStream.getBufferedInputStream(is), fos);
 			fos.close();
 		}
-		UrlPart p = UrlUtil.writeToURL(url, ByteArrayIOStream.getBufferedInputStream(is), UrlUtil.POST, contentType, hd);
+		final UrlPart p = UrlUtil.writeToURL(url, ByteArrayIOStream.getBufferedInputStream(is), UrlUtil.POST, contentType, hd);
 
 		return (HttpURLConnection) (p == null ? null : p.getConnection());
 	}
@@ -920,7 +921,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	private DumpDir getInDump(final String senderID)
 	{
-		BambiContainer c = BambiContainer.getInstance();
+		final BambiContainer c = BambiContainer.getInstance();
 		if (c == null || !c.wantDump())
 			return null;
 		return vDumps.getOne(senderID, 0);
@@ -934,7 +935,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	private DumpDir getOutDump(final String senderID)
 	{
-		BambiContainer c = BambiContainer.getInstance();
+		final BambiContainer c = BambiContainer.getInstance();
 		if (c == null || !c.wantDump())
 			return null;
 		return vDumps.getOne(senderID, 1);
@@ -983,7 +984,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 * @param _callBack
 	 * @return true, if the message is successfully queued. false, if this MessageSender is unable to accept further messages (i. e. it is shutting down).
 	 */
-	public boolean queueMessage(final JDFJMF jmf, JDFNode node, final IResponseHandler handler, final String url, final IConverterCallback _callBack)
+	public boolean queueMessage(final JDFJMF jmf, final JDFNode node, final IResponseHandler handler, final String url, final IConverterCallback _callBack)
 	{
 		return queueMessage(jmf, node, handler, url, _callBack, null);
 	}
@@ -997,7 +998,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 * @param _callBack
 	 * @return true, if the message is successfully queued. false, if this MessageSender is unable to accept further messages (i. e. it is shutting down).
 	 */
-	public boolean queueMessage(final JDFJMF jmf, JDFNode node, final IResponseHandler handler, final String url, final IConverterCallback _callBack, MIMEDetails md)
+	public boolean queueMessage(final JDFJMF jmf, final JDFNode node, final IResponseHandler handler, final String url, final IConverterCallback _callBack, final MIMEDetails md)
 	{
 		if (doShutDown)
 		{
@@ -1095,7 +1096,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 *
 	 * @return the appended element
 	 */
-	public KElement appendToXML(final KElement root, final int posQueuedMessages, boolean bXJDF)
+	public KElement appendToXML(final KElement root, final int posQueuedMessages, final boolean bXJDF)
 	{
 
 		final KElement messagesRoot = root == null ? new XMLDoc("MessageSender", null).getRoot() : root.appendElement("MessageSender");
@@ -1117,7 +1118,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			messagesRoot.setAttribute("pause", pause, null);
 			messagesRoot.setAttribute("idle", idle, null);
 			messagesRoot.setAttribute("Active", !doShutDown, null);
-			boolean problems = lastQueued - lastSent > 60000;
+			final boolean problems = lastQueued - lastSent > 60000;
 			messagesRoot.setAttribute("Problems", problems, null);
 			messagesRoot.setAttribute("iLastQueued", StringUtil.formatLong(lastQueued), null);
 			messagesRoot.setAttribute("iLastSent", StringUtil.formatLong(lastSent), null);
@@ -1166,7 +1167,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			_messages.clear();
 			final File pers = getPersistLocation(true);
 			log.warn("Deleting message directory Messages from " + (pers == null ? "null" : pers.getAbsolutePath()));
-			boolean ok = FileUtil.deleteAll(pers);
+			final boolean ok = FileUtil.deleteAll(pers);
 			if (!ok)
 			{
 				log.error("Problems deleting message directory Messages from " + (pers == null ? "null" : pers.getAbsolutePath()));
@@ -1212,7 +1213,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 *
 	 * @param startTime
 	 */
-	public void setStartTime(long startTime)
+	public void setStartTime(final long startTime)
 	{
 		this.startTime = startTime;
 	}
@@ -1223,11 +1224,11 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 * @param blockSize size below which we never consider ourselves blocked
 	 * @return
 	 */
-	public boolean isBlocked(long deltaTime, int blockSize)
+	public boolean isBlocked(final long deltaTime, final int blockSize)
 	{
 		if (_messages.size() < blockSize)
 			return false;
-		long last = lastSent == 0 ? created : lastSent;
+		final long last = lastSent == 0 ? created : lastSent;
 		return lastQueued - last > deltaTime;
 	}
 
