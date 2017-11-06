@@ -117,8 +117,8 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	@Test
 	public void testGetContentType()
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
-		MessageDetails md = new MessageDetails(jmf, null, null, null, "http://foo");
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://foo");
 		assertEquals(UrlUtil.VND_JMF, md.getContentType());
 	}
 
@@ -128,9 +128,20 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	@Test
 	public void testNameJMF()
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
-		MessageDetails md = new MessageDetails(jmf, null, null, null, "http://foo");
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://foo");
 		assertEquals("Status", md.getName());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testNameMilestone()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildMilestone("grunz", "j1");
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://foo");
+		assertEquals("Milestone:grunz", md.getName());
 	}
 
 	/**
@@ -139,10 +150,10 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	@Test
 	public void testNameElem()
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
-		KElement message = new JDFDoc("Message").getRoot();
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final KElement message = new JDFDoc("Message").getRoot();
 		message.copyElement(jmf, null);
-		MessageDetails md = new MessageDetails(message);
+		final MessageDetails md = new MessageDetails(message);
 		assertEquals("Status", md.getName());
 	}
 
@@ -152,9 +163,9 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	@Test
 	public void testGetStream()
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
-		MessageDetails md = new MessageDetails(jmf, null, null, null, "http://foo");
-		InputStream is = md.getInputStream();
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://foo");
+		final InputStream is = md.getInputStream();
 		assertNotNull(JDFDoc.parseStream(is).getJMFRoot());
 	}
 
@@ -164,11 +175,11 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	@Test
 	public void testContentTypeZip()
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
-		JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
-		ConverterCallback cb = new ConverterCallback();
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		final JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
+		final ConverterCallback cb = new ConverterCallback();
 		cb.setFixToExtern(EnumVersion.Version_2_0);
-		MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
+		final MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
 		assertEquals(UrlUtil.APPLICATION_ZIP, md.getContentType());
 	}
 
@@ -178,10 +189,10 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	@Test
 	public void testContentTypeMime()
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
-		JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
-		ConverterCallback cb = new ConverterCallback();
-		MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		final JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
+		final ConverterCallback cb = new ConverterCallback();
+		final MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
 		assertEquals(MimeUtil.MULTIPART_RELATED, md.getContentType());
 	}
 
@@ -191,10 +202,10 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	@Test
 	public void testContentTypeXJMF()
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
-		ConverterCallback cb = new ConverterCallback();
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		final ConverterCallback cb = new ConverterCallback();
 		cb.setFixToExtern(EnumVersion.Version_2_0);
-		MessageDetails md = new MessageDetails(jmf, null, cb, null, "http://foo");
+		final MessageDetails md = new MessageDetails(jmf, null, cb, null, "http://foo");
 		assertEquals(UrlUtil.VND_XJMF, md.getContentType());
 	}
 
@@ -205,13 +216,13 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	@Test
 	public void testStreamZip() throws IOException
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
-		JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
-		ConverterCallback cb = new ConverterCallback();
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		final JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
+		final ConverterCallback cb = new ConverterCallback();
 		cb.setFixToExtern(EnumVersion.Version_2_0);
-		MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
-		InputStream is = md.getInputStream();
-		ZipReader zr = ZipReader.getZipReader(is);
+		final MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
+		final InputStream is = md.getInputStream();
+		final ZipReader zr = ZipReader.getZipReader(is);
 		zr.buffer();
 		assertNotNull(zr);
 		assertEquals(zr.getEntries().size(), 2);
@@ -226,13 +237,13 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	@Test
 	public void testStreamNoZip() throws Throwable
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
-		JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
-		ConverterCallback cb = new MyCallback();
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		final JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
+		final ConverterCallback cb = new MyCallback();
 		cb.setFixToExtern(EnumVersion.Version_2_0);
-		MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
+		final MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
 		assertEquals(MimeUtil.MULTIPART_RELATED, md.getContentType());
-		InputStream is = md.getInputStream();
+		final InputStream is = md.getInputStream();
 		assertNotSame('P', is.read());
 	}
 
@@ -242,12 +253,12 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	@Test
 	public void testStreamMime()
 	{
-		JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
-		JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
-		ConverterCallback cb = new ConverterCallback();
-		MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
-		InputStream is = md.getInputStream();
-		BodyPart[] bp = MimeUtil.extractMultipartMime(is);
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		final JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
+		final ConverterCallback cb = new ConverterCallback();
+		final MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
+		final InputStream is = md.getInputStream();
+		final BodyPart[] bp = MimeUtil.extractMultipartMime(is);
 
 		assertNotNull(bp);
 		assertEquals(bp.length, 2);

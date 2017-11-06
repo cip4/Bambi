@@ -92,7 +92,10 @@ import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.resource.JDFMilestone;
+import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
@@ -118,6 +121,7 @@ public class MessageDetails extends BambiLogFactory
 	protected IConverterCallback callback;
 	final protected long createTime;
 	protected boolean fireForget;
+
 	private MessageSender.SendReturn sendReturn;
 	private static boolean allSignalsReliable = false;
 	final private String name;
@@ -134,8 +138,8 @@ public class MessageDetails extends BambiLogFactory
 	{
 		jmf = _jmf;
 		jdf = null;
-		JDFMessage mess = jmf == null ? null : jmf.getMessageElement(null, null, 0);
-		name = mess == null ? "Null_JMF" : mess.getType();
+		final JDFMessage mess = jmf == null ? null : jmf.getMessageElement(null, null, 0);
+		name = getMessageName(mess);
 		senderID = jmf == null ? null : jmf.getSenderID();
 		url = detailedURL;
 		createTime = System.currentTimeMillis();
@@ -173,7 +177,7 @@ public class MessageDetails extends BambiLogFactory
 	 * @param mdet the http and mime details
 	 * @param _url the complete, fully expanded url to send to
 	 */
-	protected MessageDetails(JDFJMF jmf, JDFNode jdf, final IResponseHandler _respHandler, final IConverterCallback _callback, final MIMEDetails mdet, final String _url)
+	protected MessageDetails(final JDFJMF jmf, final JDFNode jdf, final IResponseHandler _respHandler, final IConverterCallback _callback, final MIMEDetails mdet, final String _url)
 	{
 		this(jmf, _respHandler, _callback, null, _url);
 		mimeDet = mdet;
@@ -210,7 +214,7 @@ public class MessageDetails extends BambiLogFactory
 		{
 			t0 = new JDFDate(element.getAttribute(AttributeName.TIMESTAMP)).getTimeInMillis();
 		}
-		catch (DataFormatException e)
+		catch (final DataFormatException e)
 		{
 			t0 = System.currentTimeMillis();
 		}
@@ -236,8 +240,8 @@ public class MessageDetails extends BambiLogFactory
 		jmf = (JDFJMF) (jmf1 == null ? null : jmf1.cloneNewDoc());
 		final KElement jdf1 = element.getElement(ElementName.JDF);
 		jdf = (JDFNode) (jdf1 == null ? null : jdf1.cloneNewDoc());
-		JDFMessage mess = jmf == null ? null : jmf.getMessageElement(null, null, 0);
-		name = mess == null ? "Null_JMF" : mess.getType();
+		final JDFMessage mess = jmf == null ? null : jmf.getMessageElement(null, null, 0);
+		name = getMessageName(mess);
 
 		final String encoding = element.getAttribute("TransferEncoding", null, null);
 		if (encoding != null)
@@ -252,13 +256,34 @@ public class MessageDetails extends BambiLogFactory
 	}
 
 	/**
+	 *
+	 * @param mess
+	 * @return
+	 */
+	String getMessageName(final JDFMessage mess)
+	{
+		String nam = mess == null ? "Null_JMF" : mess.getType();
+		if (ElementName.NOTIFICATION.equals(nam) && mess instanceof JDFSignal)
+		{
+			final JDFNotification not = ((JDFSignal) mess).getNotification();
+			final JDFMilestone ms = not == null ? null : not.getMilestone();
+			final String msName = ms == null ? null : ms.getMilestoneType();
+			if (!msName.isEmpty())
+			{
+				nam = "Milestone:" + msName;
+			}
+		}
+		return nam;
+	}
+
+	/**
 	 * method to display this as XML - used in the web UI
 	 *
 	 * @param messageList the parent list
 	 * @param i
 	 * @param bXJDF
 	 */
-	void appendToXML(final KElement messageList, final int i, boolean bXJDF)
+	void appendToXML(final KElement messageList, final int i, final boolean bXJDF)
 	{
 		final KElement message = messageList.appendElement("Message");
 		message.setAttribute(AttributeName.NAME, name);
@@ -310,7 +335,7 @@ public class MessageDetails extends BambiLogFactory
 	public String toString()
 	{
 		String ret = "MessageDetails: from: " + senderID + " to: " + url;
-		JDFMessage m = jmf == null ? null : jmf.getMessageElement(null, null, 0);
+		final JDFMessage m = jmf == null ? null : jmf.getMessageElement(null, null, 0);
 		if (m != null)
 			ret += " Message Type=" + m.getType();
 		if (jdf != null)
@@ -323,7 +348,7 @@ public class MessageDetails extends BambiLogFactory
 	 * Setter for allSignalsReliable attribute., if true, all signals are assumed fire and forget
 	 * @param allSignalsReliable the allSignalsFireForget to set
 	 */
-	public static void setAllSignalsReliable(boolean allSignalsReliable)
+	public static void setAllSignalsReliable(final boolean allSignalsReliable)
 	{
 		MessageDetails.allSignalsReliable = allSignalsReliable;
 	}
@@ -342,7 +367,7 @@ public class MessageDetails extends BambiLogFactory
 	 *
 	 * @param fireForget
 	 */
-	public void setFireForget(boolean fireForget)
+	public void setFireForget(final boolean fireForget)
 	{
 		this.fireForget = fireForget;
 	}
@@ -351,7 +376,7 @@ public class MessageDetails extends BambiLogFactory
 	 *
 	 * @param sendReturn
 	 */
-	public void setReturn(SendReturn sendReturn)
+	public void setReturn(final SendReturn sendReturn)
 	{
 		this.sendReturn = sendReturn;
 
@@ -407,7 +432,7 @@ public class MessageDetails extends BambiLogFactory
 	{
 		try
 		{
-			String contentType = getContentType();
+			final String contentType = getContentType();
 			if (UrlUtil.APPLICATION_ZIP.equals(contentType))
 			{
 				return getZipStream();
@@ -425,7 +450,7 @@ public class MessageDetails extends BambiLogFactory
 				return null;
 			}
 		}
-		catch (IOException e)
+		catch (final IOException e)
 		{
 			log.error("error writing stream ", e);
 		}
@@ -436,7 +461,7 @@ public class MessageDetails extends BambiLogFactory
 	{
 		if (callback == null)
 		{
-			ByteArrayIOStream bos = new ByteArrayIOStream();
+			final ByteArrayIOStream bos = new ByteArrayIOStream();
 			jmf.write2Stream(bos);
 			return bos.getInputStream();
 		}
@@ -452,7 +477,7 @@ public class MessageDetails extends BambiLogFactory
 	 */
 	InputStream getMimeInputStream()
 	{
-		ByteArrayIOStream bos = new ByteArrayIOStream();
+		final ByteArrayIOStream bos = new ByteArrayIOStream();
 		final JDFDoc docJMF;
 		final JDFDoc docJDF;
 		if (callback != null)
@@ -466,12 +491,12 @@ public class MessageDetails extends BambiLogFactory
 			docJMF = jmf.getOwnerDocument_JDFElement();
 		}
 
-		Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
+		final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
 		try
 		{
 			MimeUtil.writeToStream(mp, bos, mimeDet);
 		}
-		catch (Exception e)
+		catch (final Exception e)
 		{
 			log.error("Problems writing to stream", e);
 			return null;
@@ -481,13 +506,13 @@ public class MessageDetails extends BambiLogFactory
 
 	InputStream getZipStream() throws IOException
 	{
-		ByteArrayIOStream bos = new ByteArrayIOStream();
-		ZipOutputStream zos = new ZipOutputStream(bos);
+		final ByteArrayIOStream bos = new ByteArrayIOStream();
+		final ZipOutputStream zos = new ZipOutputStream(bos);
 		final VElement v = jmf.getChildrenByTagName(null, null, new JDFAttributeMap(AttributeName.URL, "*"), false, false, 0);
-		String jobID = "Job_" + jdf.getJobID(true) + ".jdf";
+		final String jobID = "Job_" + jdf.getJobID(true) + ".jdf";
 		if (v != null)
 		{
-			for (KElement e : v)
+			for (final KElement e : v)
 			{
 				e.setAttribute(AttributeName.URL, jobID);
 			}
@@ -496,9 +521,9 @@ public class MessageDetails extends BambiLogFactory
 		final KElement xmlJDF;
 		if (callback != null)
 		{
-			XMLDoc d2 = callback.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+			final XMLDoc d2 = callback.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
 			xmlJMF = d2.getRoot();
-			XMLDoc d3 = callback.updateJDFForExtern(jdf.getOwnerDocument_JDFElement());
+			final XMLDoc d3 = callback.updateJDFForExtern(jdf.getOwnerDocument_JDFElement());
 			xmlJDF = d3.getRoot();
 		}
 		else
@@ -520,7 +545,7 @@ public class MessageDetails extends BambiLogFactory
 	 * @param zos
 	 * @throws IOException
 	 */
-	private void writeXML(KElement xml, String name, final ZipOutputStream zos)
+	private void writeXML(final KElement xml, final String name, final ZipOutputStream zos)
 	{
 		if (xml != null)
 		{

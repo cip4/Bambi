@@ -605,29 +605,12 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		{
 			if (firstProblem != 0)
 			{
-				final long tWait = System.currentTimeMillis() - firstProblem;
-				final String duration;
-				if (tWait < 60000)
-				{
-					duration = (tWait / 1000l) + " seconds";
-				}
-				else if (tWait < 60l * 60000l)
-				{
-					duration = (tWait / 60000l) + " minutes";
-				}
-				else if (tWait < 3600l * 60000l)
-				{
-					duration = (tWait / 3600000l) + " hours";
-				}
-				else
-				{
-					duration = (tWait / (3600000l * 24l)) + " days";
-				}
-				log.info("successfully reactivated message sender to: " + mesDetails.url + " after " + duration + " messages pending: " + _messages.size());
+				reactivate(mesDetails);
 			}
 			firstProblem = 0;
 			_messages.remove(0);
 			sentMessages.push(mesDetails);
+			log.info("Successfully sent " + mesDetails.getName() + " #" + sent + " to " + mesDetails.url);
 		}
 		else if (SendReturn.removed.equals(sendReturn))
 		{
@@ -649,7 +632,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			String warn = "Sender: " + mesDetails.senderID + " Error sending " + isMime + " message to: " + mesDetails.url + " return code=" + sendReturn;
 			if (mesDetails.isFireForget())
 			{
-				warn += " - removing fire&forget message #";
+				warn += " - removing fire&forget " + mesDetails.getName() + " message #";
 				_messages.remove(0);
 				removedFireForget++;
 				warn += removedFireForget;
@@ -660,8 +643,8 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			{
 				if ((System.currentTimeMillis() - mesDetails.createTime) > (1000l * 3600l * 24l * 42l) && (_messages.size() > 1000))
 				{
-					final String warn2 = " - removing prehistoric reliable message: creation time: " + new JDFDate(mesDetails.createTime).getDateTimeISO() + " messages pending: "
-							+ _messages.size();
+					final String warn2 = " - removing prehistoric reliable " + mesDetails.getName() + " message: creation time: "
+							+ new JDFDate(mesDetails.createTime).getDateTimeISO() + " messages pending: " + _messages.size();
 					warn += warn2;
 					_messages.remove(0);
 					removedError++;
@@ -670,7 +653,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				}
 				else
 				{
-					final String warn2 = " - retaining message for resend; messages pending: " + _messages.size() + " times delayed: " + idle;
+					final String warn2 = " - retaining " + mesDetails.getName() + " message for resend; messages pending: " + _messages.size() + " times delayed: " + idle;
 					warn += warn2;
 					needLog = (idle < 10) || (idle % 100) == 0;
 				}
@@ -684,24 +667,47 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		return sendReturn;
 	}
 
+	void reactivate(final MessageDetails mesDetails)
+	{
+		final long tWait = System.currentTimeMillis() - firstProblem;
+		final String duration;
+		if (tWait < 60000)
+		{
+			duration = (tWait / 1000l) + " seconds";
+		}
+		else if (tWait < 60l * 60000l)
+		{
+			duration = (tWait / 60000l) + " minutes";
+		}
+		else if (tWait < 3600l * 60000l)
+		{
+			duration = (tWait / 3600000l) + " hours";
+		}
+		else
+		{
+			duration = (tWait / (3600000l * 24l)) + " days";
+		}
+		log.info("successfully reactivated message sender " + mesDetails.getName() + " to: " + mesDetails.url + " after " + duration + " messages pending: " + _messages.size());
+	}
+
 	/**
 	 * send a message via http
 	 *
-	 * @param mh the messagedetails
+	 * @param messagedetails the messagedetails
 	 * @return the success as a sendreturn enum
 	 */
-	private SendReturn sendHTTP(final MessageDetails mh)
+	private SendReturn sendHTTP(final MessageDetails messagedetails)
 	{
-		if (mh.url == null || (!UrlUtil.isHttp(mh.url) && !UrlUtil.isHttps(mh.url)))
+		if (messagedetails.url == null || (!UrlUtil.isHttp(messagedetails.url) && !UrlUtil.isHttps(messagedetails.url)))
 		{
-			log.error("Invalid url: " + mh.url + " removing message");
+			log.error("Invalid url: " + messagedetails.url + " removing message " + messagedetails.getName());
 			return SendReturn.removed;
 		}
 		SendReturn b = SendReturn.sent;
 		try
 		{
-			final HttpURLConnection connection = sendDetails(mh);
-			b = processResponse(mh, connection);
+			final HttpURLConnection connection = sendDetails(messagedetails);
+			b = processResponse(messagedetails, connection);
 		}
 		catch (final IllegalArgumentException e)
 		{
@@ -712,12 +718,13 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		catch (final Throwable e)
 		{
 			log.error("Exception in sendHTTP: " + e.getMessage());
-			if (mh.respHandler != null)
+			if (messagedetails.respHandler != null)
 			{
-				mh.respHandler.handleMessage(); // make sure we tell anyone who is waiting that the wait is over...
+				messagedetails.respHandler.handleMessage(); // make sure we tell anyone who is waiting that the wait is over...
 			}
 			b = SendReturn.error;
 		}
+
 		return b;
 	}
 
@@ -806,7 +813,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				sendReturn = SendReturn.error;
 				if (idle == 0)
 				{
-					log.warn("error sending message to " + mesDetails.url + " rc= " + responseCode);
+					log.warn("error sending message " + mesDetails.getName() + " to " + mesDetails.url + " rc= " + responseCode);
 				}
 			}
 		}
