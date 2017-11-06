@@ -100,6 +100,7 @@ import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 
@@ -268,7 +269,7 @@ public class MessageDetails extends BambiLogFactory
 			final JDFNotification not = ((JDFSignal) mess).getNotification();
 			final JDFMilestone ms = not == null ? null : not.getMilestone();
 			final String msName = ms == null ? null : ms.getMilestoneType();
-			if (!msName.isEmpty())
+			if (!StringUtil.isEmpty(msName))
 			{
 				nam = "Milestone:" + msName;
 			}
