@@ -141,7 +141,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildMilestone("grunz", "j1");
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://foo");
-		assertEquals("Milestone:grunz", md.getName());
+		assertEquals("Milestone_grunz", md.getName());
 	}
 
 	/**

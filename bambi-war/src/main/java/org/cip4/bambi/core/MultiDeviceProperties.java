@@ -186,10 +186,10 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		 * @param callbackType
 		 * @return the name of the callback class, null if no callback is requested
 		 */
-		protected String getCallBackClassName(String callbackType)
+		protected String getCallBackClassName(final String callbackType)
 		{
-			String name = devRoot.getAttribute(callbackType, null, null);
-			if (name == null && !"null".equalsIgnoreCase(name))
+			String name = devRoot.getNonEmpty(callbackType);
+			if (name == null)
 			{
 				name = root.getAttribute(callbackType, null, null);
 			}
@@ -203,7 +203,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		/**
 		 * @param callbackName
 		 */
-		public void setCallBackClassName(String callbackName)
+		public void setCallBackClassName(final String callbackName)
 		{
 			setDeviceAttribute("CallBackName", callbackName);
 		}
@@ -262,7 +262,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		 * @param deviceID the deviceID to set
 		 *
 		 */
-		public void setDeviceID(String deviceID)
+		public void setDeviceID(final String deviceID)
 		{
 			setDeviceAttribute("DeviceID", deviceID);
 		}
@@ -453,7 +453,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		 * @param ifNotSet the default value
 		 * @return true if the option is set
 		 */
-		public boolean hasDeviceOption(final String key, boolean ifNotSet)
+		public boolean hasDeviceOption(final String key, final boolean ifNotSet)
 		{
 			return StringUtil.parseBoolean(getDeviceAttribute(key), ifNotSet);
 		}
@@ -699,7 +699,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		 *
 		 *
 		 */
-		public void setAutoStart(boolean bAutoStart)
+		public void setAutoStart(final boolean bAutoStart)
 		{
 			setDeviceAttribute("AutoStart", "" + bAutoStart);
 		}
@@ -709,10 +709,10 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		 * @param deviceID the deviceID of the new device
 		 * @return a new DeviceProperties with AutoStart=true
 		 */
-		public DeviceProperties activateDeviceProps(String deviceID)
+		public DeviceProperties activateDeviceProps(final String deviceID)
 		{
-			KElement newDevElem = root.copyElement(devRoot, null);
-			DeviceProperties newProps = createDeviceProps(newDevElem);
+			final KElement newDevElem = root.copyElement(devRoot, null);
+			final DeviceProperties newProps = createDeviceProps(newDevElem);
 			newProps.setDeviceID(deviceID);
 			newProps.setAutoStart(true);
 			devRoot.getOwnerDocument_KElement().write2File((String) null, 2, false);
@@ -738,7 +738,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	private MultiDeviceProperties getSubClass()
 	{
-		String propName = root.getAttribute("PropertiesName", null, null);
+		final String propName = root.getAttribute("PropertiesName", null, null);
 		if (propName == null)
 		{
 			return this;
@@ -748,7 +748,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		{
 			final Class<?> c = Class.forName(propName);
 			final Constructor<?> con = c.getConstructor(new Class[] { XMLDoc.class });
-			MultiDeviceProperties subClass = (MultiDeviceProperties) con.newInstance(new Object[] { root.getOwnerDocument_KElement() });
+			final MultiDeviceProperties subClass = (MultiDeviceProperties) con.newInstance(new Object[] { root.getOwnerDocument_KElement() });
 			subClass.context = context;
 			return subClass;
 		}
@@ -765,7 +765,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 * @param baseDir
 	 * @param baseURL
 	 */
-	public MultiDeviceProperties(File baseDir)
+	public MultiDeviceProperties(final File baseDir)
 	{
 		this.context = "test";
 		root = new XMLDoc("application", null).getRoot();
@@ -776,11 +776,11 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	/**
 	 * Create device properties for the devices defined in the config file.
 	 */
-	public static MultiDeviceProperties getProperties(File appDir, String baseURL)
+	public static MultiDeviceProperties getProperties(final File appDir, final String baseURL)
 	{
 		// to evaluate current name and send it back rather than 127.0.0.1
 		final XMLDoc installDoc = getXMLDoc(appDir);
-		Log sLog = LogFactory.getLog(MultiDeviceProperties.class);
+		final Log sLog = LogFactory.getLog(MultiDeviceProperties.class);
 
 		if (installDoc == null)
 		{
@@ -788,7 +788,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 			throw new JDFException("Failed to parse " + DEVICES_CONFIG_FILE + " at " + getConfigFile(appDir).getAbsolutePath() + ", rootDev is null");
 		}
 
-		String appPath = appDir.getAbsolutePath();
+		final String appPath = appDir.getAbsolutePath();
 		MultiDeviceProperties installProps = new MultiDeviceProperties(installDoc).getSubClass();
 		final File deviceDir = installProps.getBaseDir();
 		final File localConfigFile = getConfigFile(deviceDir);
@@ -796,7 +796,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		boolean mustCopy = deviceDir != null;
 		if (localDoc != null) // using config default
 		{
-			MultiDeviceProperties localProps = new MultiDeviceProperties(localDoc).getSubClass();
+			final MultiDeviceProperties localProps = new MultiDeviceProperties(localDoc).getSubClass();
 			if (installProps.isCompatible(localProps))
 			{
 				installProps = localProps;
@@ -827,7 +827,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 * @param mp2
 	 * @return
 	 */
-	protected boolean isCompatible(MultiDeviceProperties mp2)
+	protected boolean isCompatible(final MultiDeviceProperties mp2)
 	{
 		if (mp2 == null)
 			return false;
@@ -848,7 +848,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 * @param appDir
 	 * @return
 	 */
-	public static XMLDoc getXMLDoc(File appDir)
+	public static XMLDoc getXMLDoc(final File appDir)
 	{
 		final XMLDoc doc = XMLDoc.parseFile(getConfigFile(appDir));
 		return doc;
@@ -859,7 +859,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 * @param appDir
 	 * @return
 	 */
-	public static File getConfigFile(File appDir)
+	public static File getConfigFile(final File appDir)
 	{
 		return FileUtil.getFileInDirectory(appDir, DEVICES_CONFIG_FILE);
 	}
@@ -868,7 +868,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 * create device properties for the devices defined in the config stream
 	 * @param inStream
 	 */
-	private MultiDeviceProperties(InputStream inStream)
+	private MultiDeviceProperties(final InputStream inStream)
 	{
 		this(XMLDoc.parseStream(inStream));
 	}
@@ -888,7 +888,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		}
 		else if (StringUtil.getNonEmpty(doc.getOriginalFileName()) == null)
 		{
-			String appDir = System.getProperty("user.dir");
+			final String appDir = System.getProperty("user.dir");
 			root.setAttribute("AppDir", appDir);
 			root.getOwnerDocument_KElement().setOriginalFileName(getConfigFile(new File(appDir)).getAbsolutePath());
 		}
@@ -925,7 +925,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 *
 	 * @param port
 	 */
-	public void setPort(int port)
+	public void setPort(final int port)
 	{
 		if (getPort() != port && port > 0)
 		{
@@ -1023,7 +1023,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 *
 	 * @return
 	 */
-	public void setCSS(String css)
+	public void setCSS(final String css)
 	{
 		root.setAttribute("CSS", css, null);
 	}
@@ -1034,9 +1034,9 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	public File getBaseDir()
 	{
-		UserDir userDir = new UserDir(BambiServer.BAMBI);
+		final UserDir userDir = new UserDir(BambiServer.BAMBI);
 
-		File f1 = getRootFile("BaseDir");
+		final File f1 = getRootFile("BaseDir");
 		File f = FileUtil.isAbsoluteFile(f1) ? f1 : FileUtil.getFileInDirectory(new File(userDir.getToolPath()), f1);
 
 		if (!FileUtil.isAbsoluteFile(f))
@@ -1051,7 +1051,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 *
 	 * @param newBase
 	 */
-	public void setBaseDir(File newBase)
+	public void setBaseDir(final File newBase)
 	{
 		if (newBase != null && !newBase.getAbsolutePath().equals(root.getAttribute("BaseDir")))
 		{
@@ -1082,7 +1082,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	/**
 	 * @param senderID the sender ID...
 	 */
-	public void setSenderID(String senderID)
+	public void setSenderID(final String senderID)
 	{
 		root.setAttribute(AttributeName.SENDERID, senderID);
 		serialize();
@@ -1143,9 +1143,9 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 * @param resourceAsStream
 	 * @return
 	 */
-	public static MultiDeviceProperties getProperties(InputStream resourceAsStream)
+	public static MultiDeviceProperties getProperties(final InputStream resourceAsStream)
 	{
-		MultiDeviceProperties multiDeviceProperties = new MultiDeviceProperties(resourceAsStream);
+		final MultiDeviceProperties multiDeviceProperties = new MultiDeviceProperties(resourceAsStream);
 		return multiDeviceProperties.getSubClass();
 	}
 }

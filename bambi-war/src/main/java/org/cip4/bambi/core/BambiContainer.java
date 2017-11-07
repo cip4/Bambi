@@ -197,13 +197,7 @@ public final class BambiContainer extends ServletContainer
 	public AbstractDevice getDeviceFromID(final String deviceID)
 	{
 		final RootDevice root = getRootDevice();
-		final AbstractDevice dev = root == null ? rootDev : root.getDevice(deviceID);
-		if (dev == null)
-		{
-			log.warn("invalid request: device with id=" + (deviceID == null ? "null" : deviceID + " not found"));
-			return null;
-		}
-		return dev;
+		return root == null ? rootDev : root.getDevice(deviceID);
 	}
 
 	/**
@@ -212,11 +206,11 @@ public final class BambiContainer extends ServletContainer
 	 */
 	public List<String> getDevices()
 	{
-		List<String> result = new ArrayList<String>();
+		final List<String> result = new ArrayList<String>();
 		final RootDevice root = getRootDevice();
-		AbstractDevice[] devices = root.getDeviceArray();
+		final AbstractDevice[] devices = root.getDeviceArray();
 
-		for (AbstractDevice device : devices)
+		for (final AbstractDevice device : devices)
 		{
 			result.add(device.getDeviceID());
 		}
@@ -309,7 +303,7 @@ public final class BambiContainer extends ServletContainer
 		else
 		{
 			final boolean needController = v.size() > 1;
-			for (KElement nextDevice : v)
+			for (final KElement nextDevice : v)
 			{
 				log.info("Creating Device " + nextDevice.getAttribute("DeviceID"));
 				final IDeviceProperties prop = props.createDeviceProps(nextDevice);
@@ -344,7 +338,7 @@ public final class BambiContainer extends ServletContainer
 	/**
 	 * @param rootDev the rootDev to set
 	 */
-	public void setRootDev(AbstractDevice rootDev)
+	public void setRootDev(final AbstractDevice rootDev)
 	{
 		this.rootDev = rootDev;
 	}
@@ -360,7 +354,7 @@ public final class BambiContainer extends ServletContainer
 			log.info("shutting down container: ");
 			rootDev.shutdown();
 		}
-		catch (Throwable x)
+		catch (final Throwable x)
 		{
 			log.error("exception shutting down! ", x);
 		}
@@ -368,8 +362,16 @@ public final class BambiContainer extends ServletContainer
 		if (this == theInstance)
 		{
 			log.info("removing singleton container instance ");
-			theInstance = null;
+			removeInstance();
 		}
+	}
+
+	/**
+	 *
+	 */
+	static void removeInstance()
+	{
+		theInstance = null;
 	}
 
 	/**
@@ -413,9 +415,9 @@ public final class BambiContainer extends ServletContainer
 	 * @param request
 	 */
 	@Override
-	protected void startTimer(ContainerRequest request)
+	protected void startTimer(final ContainerRequest request)
 	{
-		CPUTimer deviceTimer = getTimer(request);
+		final CPUTimer deviceTimer = getTimer(request);
 		if (deviceTimer != null)
 		{
 			deviceTimer.start();
@@ -427,15 +429,15 @@ public final class BambiContainer extends ServletContainer
 	 * @param request
 	 * @return
 	 */
-	CPUTimer getTimer(ContainerRequest request)
+	CPUTimer getTimer(final ContainerRequest request)
 	{
-		String deviceID = request == null ? null : request.getDeviceID();
+		final String deviceID = request == null ? null : request.getDeviceID();
 		AbstractDevice dev = getDeviceFromID(deviceID);
 		if (dev == null)
 		{
 			dev = getRootDev();
 		}
-		CPUTimer deviceTimer = dev == null ? null : dev.getDeviceTimer(false);
+		final CPUTimer deviceTimer = dev == null ? null : dev.getDeviceTimer(false);
 		return deviceTimer;
 	}
 
@@ -443,9 +445,9 @@ public final class BambiContainer extends ServletContainer
 	 * @param request
 	 */
 	@Override
-	protected void stopTimer(ContainerRequest request)
+	protected void stopTimer(final ContainerRequest request)
 	{
-		CPUTimer deviceTimer = getTimer(request);
+		final CPUTimer deviceTimer = getTimer(request);
 		if (deviceTimer != null)
 		{
 			deviceTimer.stop();
@@ -458,13 +460,13 @@ public final class BambiContainer extends ServletContainer
 	 * @return
 	 */
 	@Override
-	public XMLResponse processXMLDoc(XMLRequest request)
+	public XMLResponse processXMLDoc(final XMLRequest request)
 	{
 		log.info("Processing xml document: content type=" + request.getContentType(true));
-		XMLRequest newRequest = getRootDev().convertToJMF(request);
+		final XMLRequest newRequest = getRootDev().convertToJMF(request);
 		if (newRequest != null)
 		{
-			KElement e = newRequest.getXML();
+			final KElement e = newRequest.getXML();
 			// jmf with incorrect mime type or something that the device could translate to jmf
 			if (e instanceof JDFJMF || XJDFConstants.XJMF.equals(e.getLocalName()))
 			{
@@ -472,8 +474,8 @@ public final class BambiContainer extends ServletContainer
 			}
 		}
 
-		KElement e = request.getXML();
-		String notification = "cannot process xml of type root = " + ((e == null) ? "null" : e.getLocalName()) + "; Content-Type: " + request.getContentType(false);
+		final KElement e = request.getXML();
+		final String notification = "cannot process xml of type root = " + ((e == null) ? "null" : e.getLocalName()) + "; Content-Type: " + request.getContentType(false);
 		return processError(request.getRequestURI(), EnumType.Notification, 3, notification);
 	}
 
@@ -502,14 +504,14 @@ public final class BambiContainer extends ServletContainer
 			{// messaging exceptions
 				if (bp.length > 1)
 				{
-					MimeRequest req = new MimeRequest(mr);
+					final MimeRequest req = new MimeRequest(mr);
 					req.setContainer(request);
 					r = processMultipleDocuments(req);
 				}
 				else
 				// unpack the only body part and throw it at the processor again
 				{
-					StreamRequest sr = new StreamRequest(bp[0].getInputStream());
+					final StreamRequest sr = new StreamRequest(bp[0].getInputStream());
 					sr.setContainer(request);
 					r = processStream(sr);
 				}
@@ -533,8 +535,8 @@ public final class BambiContainer extends ServletContainer
 	{
 		startTimer(request);
 		final XMLResponse r;
-		MimeReader reader = request.getReader();
-		BodyPart[] bp = reader == null ? null : reader.getBodyParts();
+		final MimeReader reader = request.getReader();
+		final BodyPart[] bp = reader == null ? null : reader.getBodyParts();
 		log.info("processMultipleDocuments- parts: " + (bp == null ? 0 : bp.length));
 		if (bp == null || bp.length == 0)
 		{
@@ -549,7 +551,7 @@ public final class BambiContainer extends ServletContainer
 			}
 			else
 			{
-				XMLRequest r2 = new XMLRequest(docJDF[0].getJMFRoot());
+				final XMLRequest r2 = new XMLRequest(docJDF[0].getJMFRoot());
 				r2.setContainer(request);
 				r = processXMLDoc(r2);
 				request.setName(r2.getName());
@@ -570,7 +572,7 @@ public final class BambiContainer extends ServletContainer
 	public XMLResponse processJMFDoc(final XMLRequest request)
 	{
 		startTimer(request);
-		JDFElement requestRoot = (JDFElement) request.getXML();
+		final JDFElement requestRoot = (JDFElement) request.getXML();
 		final XMLResponse response;
 		if (requestRoot == null)
 		{
@@ -580,15 +582,15 @@ public final class BambiContainer extends ServletContainer
 		{
 			JDFDoc jmfDoc = requestRoot.getOwnerDocument_JDFElement();
 			final String deviceID = request.getDeviceID();
-			String requestURI = request.getLocalURL();
-			AbstractDevice rDev = getRootDev();
+			final String requestURI = request.getLocalURL();
+			final AbstractDevice rDev = getRootDev();
 			final IConverterCallback _callBack = rDev == null ? null : rDev.getCallback(requestURI);
 
 			if (_callBack != null)
 			{
 				jmfDoc = _callBack.prepareJMFForBambi(jmfDoc);
 			}
-			JDFJMF jmf = jmfDoc.getJMFRoot();
+			final JDFJMF jmf = jmfDoc.getJMFRoot();
 
 			if (jmf == null)
 			{
@@ -669,7 +671,7 @@ public final class BambiContainer extends ServletContainer
 	 * @return
 	 */
 	@Override
-	protected IConverterCallback getCallback(String requestURI)
+	protected IConverterCallback getCallback(final String requestURI)
 	{
 		return getRootDev().getCallback(requestURI);
 	}
@@ -680,7 +682,7 @@ public final class BambiContainer extends ServletContainer
 	 * @return
 	 */
 	@Override
-	protected XMLRequest convertToJMF(XMLRequest request)
+	protected XMLRequest convertToJMF(final XMLRequest request)
 	{
 		return getRootDev().convertToJMF(request);
 	}

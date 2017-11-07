@@ -271,7 +271,7 @@ public class MessageDetails extends BambiLogFactory
 			final String msName = ms == null ? null : ms.getMilestoneType();
 			if (!StringUtil.isEmpty(msName))
 			{
-				nam = "Milestone:" + msName;
+				nam = "Milestone_" + msName;
 			}
 		}
 		return nam;
