@@ -76,8 +76,6 @@ import java.net.HttpURLConnection;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
@@ -108,6 +106,7 @@ import org.cip4.jdflib.auto.JDFAutoSubmissionMethods.EnumPackaging;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFComment;
+import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.KElement;
@@ -1660,6 +1659,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	private final SlaveQueueMap slaveQueueMap;
 	private boolean searchByJobPartID = true;
 	protected final MutexMap<String> _mutexMap;
+	private QueueStatistic lastStatistic;
 
 	/**
 	 * @param searchByJobPartID the searchByJobPartID to set
@@ -1683,6 +1683,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		slaveQueueMap = new SlaveQueueMap();
 		_mutexMap = new MutexMap<String>();
 		init();
+		lastStatistic = new QueueStatistic();
 	}
 
 	/**
@@ -3116,68 +3117,67 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		return (JDFQueue) _theQueue.cloneNewDoc();
 	}
 
-	public class QueueStatistic
+	class QueueStatistic
 	{
-		public int waiting = 0;
-		public int running = 0;
-		public int completed = 0;
-		public int all = 0;
-	}
+		private static final long CURRENT_LIMIT = 4200l;
+		final int waiting;
+		final int running;
+		final int completed;
+		final int all;
+		private final long created;
 
-	public QueueStatistic getQueueStatistic2()
-	{
-		final QueueStatistic result = new QueueStatistic();
-
-		final JDFQueue clonedQueue = cloneQueue();
-
-		int waiting = 0;
-		int running = 0;
-		int completed = 0;
-
-		final Map<String, JDFQueueEntry> queueEntryIDMap = clonedQueue.getQueueEntryIDMap();
-		if (queueEntryIDMap == null)
+		/**
+		 *
+		 */
+		QueueStatistic()
 		{
-			return result;
-		}
-		final Iterator<String> it = queueEntryIDMap.keySet().iterator();
-		while (it.hasNext())
-		{
-			final String key = it.next();
-			final JDFQueueEntry qe = queueEntryIDMap.get(key);
-			if (qe.getQueueEntryStatus().equals(EnumQueueEntryStatus.Waiting))
+			synchronized (_theQueue)
 			{
-				waiting++;
+				waiting = _theQueue.numEntries(EnumQueueEntryStatus.Waiting);
+				running = _theQueue.numEntries(EnumQueueEntryStatus.Running);
+				completed = _theQueue.numEntries(EnumQueueEntryStatus.Completed);
+				all = _theQueue.numEntries(null);
 			}
-			else if (qe.getQueueEntryStatus().equals(EnumQueueEntryStatus.Running))
-			{
-				running++;
-			}
-			else if (qe.getQueueEntryStatus().equals(EnumQueueEntryStatus.Completed))
-			{
-				completed++;
-			}
+
+			created = System.currentTimeMillis();
 		}
 
-		result.waiting = waiting;
-		result.running = running;
-		result.completed = completed;
-		result.all = queueEntryIDMap.size();
+		/**
+		 *
+		 * @return
+		 */
+		boolean isCurrent()
+		{
+			final boolean current = System.currentTimeMillis() - created < CURRENT_LIMIT;
+			return current;
+		}
 
-		return result;
+		/**
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString()
+		{
+			return "QueueStatistic [waiting=" + waiting + ", running=" + running + ", completed=" + completed + ", all=" + all + ", created=" + created + "]";
+		}
 	}
 
 	public String getQueueStatistic()
 	{
-		String result = "${W}/${R}/${C}/${ALL}";
+		synchronized (lastStatistic)
+		{
+			String result = "${W}/${R}/${C}/${ALL}";
 
-		final QueueStatistic queueStatistic = getQueueStatistic2();
-
-		result = StringUtils.replaceOnce(result, "${W}", "" + queueStatistic.waiting);
-		result = StringUtils.replaceOnce(result, "${R}", "" + queueStatistic.running);
-		result = StringUtils.replaceOnce(result, "${C}", "" + queueStatistic.completed);
-		result = StringUtils.replaceOnce(result, "${ALL}", "" + queueStatistic.all);
-
-		return result;
+			if (!lastStatistic.isCurrent())
+			{
+				lastStatistic = new QueueStatistic();
+			}
+			result = StringUtils.replaceOnce(result, "${W}", JDFConstants.EMPTYSTRING + lastStatistic.waiting);
+			result = StringUtils.replaceOnce(result, "${R}", JDFConstants.EMPTYSTRING + lastStatistic.running);
+			result = StringUtils.replaceOnce(result, "${C}", JDFConstants.EMPTYSTRING + lastStatistic.completed);
+			result = StringUtils.replaceOnce(result, "${ALL}", JDFConstants.EMPTYSTRING + lastStatistic.all);
+			return result;
+		}
 	}
 
 	private long getStartTime(final JDFQueueEntry qe)
