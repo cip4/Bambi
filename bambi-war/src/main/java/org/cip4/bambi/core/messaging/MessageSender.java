@@ -583,7 +583,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				_messages.remove(0);
 				removedError++;
 				zappFirst = false;
-				log.warn("removed first message in message queue to: " + mesDetails.url);
+				log.warn("removed first " + mesDetails.getName() + " message in message queue to: " + mesDetails.url);
 				mesDetails.setReturn(SendReturn.removed);
 				sentMessages.push(mesDetails);
 				return SendReturn.removed;
@@ -593,7 +593,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			{
 				_messages.remove(0);
 				removedError++;
-				log.warn("removed timed out message to: " + mesDetails.url);
+				log.warn("removed timed out " + mesDetails.getName() + " message to: " + mesDetails.url);
 				mesDetails.setReturn(SendReturn.removed);
 				sentMessages.push(mesDetails);
 				return SendReturn.removed;
@@ -610,7 +610,12 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			firstProblem = 0;
 			_messages.remove(0);
 			sentMessages.push(mesDetails);
-			log.info("Successfully sent " + mesDetails.getName() + " #" + sent + " to " + mesDetails.url);
+			String msg = "Successfully sent " + mesDetails.getName() + " #" + sent + " to " + mesDetails.url;
+			if (_messages.size() > 0)
+			{
+				msg += " waiting: " + _messages.size();
+			}
+			log.info(msg);
 		}
 		else if (SendReturn.removed.equals(sendReturn))
 		{
@@ -661,6 +666,10 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			if (needLog)
 			{
 				log.warn(warn);
+			}
+			else
+			{
+				log.info(warn);
 			}
 		}
 		mesDetails.setReturn(sendReturn);
@@ -1062,6 +1071,12 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		}
 		synchronized (_messages)
 		{
+			String msg = "queued " + messageDetails.getName() + " #" + sent + " to " + messageDetails.url;
+			if (_messages.size() > 0)
+			{
+				msg += " size=" + _messages.size();
+			}
+			log.info(msg);
 			_messages.add(messageDetails);
 			if (_messages.size() >= 1000)
 			{
