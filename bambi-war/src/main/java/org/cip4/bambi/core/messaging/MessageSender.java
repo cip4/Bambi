@@ -274,7 +274,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				final JDFJMF jmf = old.getJMFRoot();
 				jmf.removeChild(old);
 				removedHeartbeat++;
-				if (removedHeartbeat < 10 || removedHeartbeat % 1000 == 0)
+				if (myFactory.isLogLots() || removedHeartbeat < 10 || removedHeartbeat % 1000 == 0)
 				{
 					log.info("removed redundant " + old.getType() + " " + old.getLocalName() + " Message ID= " + old.getID() + " Sender= " + old.getSenderID() + "# "
 							+ removedHeartbeat + " / " + checked);
@@ -286,7 +286,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 					if (zapped)
 					{
 						removedHeartbeatJMF++;
-						if (removedHeartbeatJMF < 10 || removedHeartbeatJMF % 1000 == 0)
+						if (myFactory.isLogLots() || removedHeartbeatJMF < 10 || removedHeartbeatJMF % 1000 == 0)
 						{
 							log.info("removed redundant jmf # " + removedHeartbeatJMF + " ID: " + jmf.getID() + " total checked: " + checkedJMF);
 						}
@@ -381,7 +381,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				sent++;
 				lastSent = System.currentTimeMillis();
 				idle = 0;
-				if (sent < 10 || (sent % 1000) == 0)
+				if (myFactory.isLogLots() || sent < 10 || (sent % 1000) == 0)
 				{
 					log.info("successfully sent JMF # " + sent + " to " + callURL);
 				}
@@ -610,12 +610,15 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			firstProblem = 0;
 			_messages.remove(0);
 			sentMessages.push(mesDetails);
-			String msg = "Successfully sent " + mesDetails.getName() + " #" + sent + " to " + mesDetails.url;
-			if (_messages.size() > 0)
+			if (myFactory.isLogLots())
 			{
-				msg += " waiting: " + _messages.size();
+				String msg = "Successfully sent " + mesDetails.getName() + " #" + sent + " to " + mesDetails.url;
+				if (_messages.size() > 0)
+				{
+					msg += " waiting: " + _messages.size();
+				}
+				log.info(msg);
 			}
-			log.info(msg);
 		}
 		else if (SendReturn.removed.equals(sendReturn))
 		{
@@ -769,7 +772,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			catch (final FileNotFoundException fx)
 			{
 				// this happens when a server is at the url but the war is not loaded
-				getLog().warn("Error reading response: " + fx.getMessage());
+				log.warn("Error reading response: " + fx.getMessage());
 				connection = null;
 				responseCode = 404;
 			}
@@ -1054,7 +1057,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		if (waitKaputt && messageDetails.isFireForget())
 		{
 			removedFireForget++;
-			if (removedFireForget < 10 || (removedFireForget % 100) == 0)
+			if (myFactory.isLogLots() || removedFireForget < 10 || (removedFireForget % 100) == 0)
 			{
 				String warn = " not queueing fire&forget to " + callURL.url + "; message #";
 				warn += removedFireForget;
@@ -1071,12 +1074,15 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		}
 		synchronized (_messages)
 		{
-			String msg = "queued " + messageDetails.getName() + " #" + sent + " to " + messageDetails.url;
-			if (_messages.size() > 0)
+			if (myFactory.isLogLots())
 			{
-				msg += " size=" + _messages.size();
+				String msg = "queued " + messageDetails.getName() + " #" + sent + " to " + messageDetails.url;
+				if (_messages.size() > 0)
+				{
+					msg += " size=" + _messages.size();
+				}
+				log.info(msg);
 			}
-			log.info(msg);
 			_messages.add(messageDetails);
 			if (_messages.size() >= 1000)
 			{
@@ -1084,9 +1090,9 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				{
 					log.warn("queueing message into blocked sender to " + callURL + " size=" + _messages.size());
 				}
-				else if (log.isDebugEnabled())
+				else if (myFactory.isLogLots())
 				{
-					log.debug("queueing message into blocked sender to " + callURL + " size=" + _messages.size());
+					log.info("queueing message into blocked sender to " + callURL + " size=" + _messages.size());
 				}
 			}
 		}

@@ -196,6 +196,23 @@ public class JMFFactory extends BambiLogFactory
 	private final HashMap<EnumType, IMessageOptimizer> optimizers;
 	private final long startTime;
 	private boolean zapp500;
+	private boolean logLots;
+
+	/**
+	 * @return the logLots
+	 */
+	public boolean isLogLots()
+	{
+		return logLots;
+	}
+
+	/**
+	 * @param logLots the logLots to set
+	 */
+	public void setLogLots(final boolean logLots)
+	{
+		this.logLots = logLots;
+	}
 
 	/**
 	 *
@@ -206,6 +223,7 @@ public class JMFFactory extends BambiLogFactory
 		optimizers = new HashMap<EnumType, IMessageOptimizer>();
 		startTime = System.currentTimeMillis();
 		zapp500 = false;
+		logLots = false;
 	}
 
 	/**
@@ -591,6 +609,6 @@ public class JMFFactory extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		return "JMFFactory : threads=" + nThreads + " zapp500=" + zapp500 + " Senders: " + senders;
+		return "JMFFactory : threads=" + nThreads + " zapp500=" + zapp500 + " logLots=" + logLots + " Senders: " + senders;
 	}
 }
