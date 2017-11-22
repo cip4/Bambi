@@ -306,7 +306,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 * @param _families
 	 * @param device the device that this buffer handles - used to dispatch qe specific subscriptions
 	 */
-	public JMFBufferHandler(AbstractDevice dev, final EnumType _type, final EnumFamily[] _families, final AbstractDevice device)
+	public JMFBufferHandler(final AbstractDevice dev, final EnumType _type, final EnumFamily[] _families, final AbstractDevice device)
 	{
 		super(dev, _type, _families);
 		_theDevice = device;
@@ -403,7 +403,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		{
 			return false;
 		}
-		for (String ignoreSenderID : ignoreSenderIDs)
+		for (final String ignoreSenderID : ignoreSenderIDs)
 		{
 			if (senderID.indexOf(ignoreSenderID) >= 0)
 			{
@@ -439,10 +439,10 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		{
 			final MessageIdentifier messageIdentifier = new MessageIdentifier(inputMessage, inputMessage.getJMFRoot().getDeviceID());
 			final Set<MessageIdentifier> keySet = getMessageIdentifierSet();
-			JDFJMF jmf = response.getJMFRoot();
+			final JDFJMF jmf = response.getJMFRoot();
+			int nSig = 0;
 			final Vector<MessageIdentifier> messageIdentifiers = new Vector<MessageIdentifier>();
-
-			for (MessageIdentifier mi : keySet)
+			for (final MessageIdentifier mi : keySet)
 			{
 				if (mi == null)
 				{
@@ -455,7 +455,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 					final Vector<JDFSignal> sis = getSignalsFromMap(mi);
 					if (sis != null)
 					{
-						for (JDFSignal signal : sis)
+						for (final JDFSignal signal : sis)
 						{
 							// copy the potentially inherited senderID
 							final JDFSignal sNew = (JDFSignal) jmf.copyElement(signal, null);
@@ -464,6 +464,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 							{
 								sNew.setSenderID(signal.getSenderID());
 								sNew.copyAttribute(AttributeName.REFID, inputMessage, AttributeName.ID, null, null);
+								nSig++;
 							}
 							else
 							{
@@ -473,16 +474,32 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 					}
 				}
 			}
-			for (MessageIdentifier mi : messageIdentifiers)
-			{
-				messageMap.remove(mi);
-			}
-			if (messageIdentifiers.size() == 0)
-			{
-				jmf = null;
-			}
-			return jmf;
+			return cleanup(jmf, messageIdentifiers, nSig);
 		}
+	}
+
+	/**
+	 *
+	 * @param jmf
+	 * @param messageIdentifiers
+	 * @param nSig
+	 * @return
+	 */
+	protected JDFJMF cleanup(final JDFJMF jmf, final Vector<MessageIdentifier> messageIdentifiers, final int nSig)
+	{
+		for (final MessageIdentifier mi : messageIdentifiers)
+		{
+			messageMap.remove(mi);
+		}
+		if (nSig == 0)
+		{
+			return null;
+		}
+		else if (nSig > 1)
+		{
+			log.info("generated " + nSig + " signal jmf");
+		}
+		return jmf;
 	}
 
 	/**
@@ -529,7 +546,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			Vector<JDFSignal> sis = messageMap.get(mi);
 			if (sis != null)
 			{
-				Vector<JDFSignal> clone = new Vector<JDFSignal>();
+				final Vector<JDFSignal> clone = new Vector<JDFSignal>();
 				clone.addAll(sis);
 				sis = clone;
 			}
@@ -547,7 +564,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	protected boolean handleSignal(final JDFSignal inSignal, final JDFResponse response)
 	{
 		final String qeID = getQueueEntryIDForSignal(inSignal);
-		SignalDispatcher dispatcher = getDispatcher();
+		final SignalDispatcher dispatcher = getDispatcher();
 		final Set<String> requests = dispatcher == null ? null : dispatcher.getChannels(inSignal.getEnumType(), inSignal.getSenderID(), qeID);
 		final MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
 
@@ -562,7 +579,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				for (int i = 0; i < mi.length; i++)
 				{
 					messageMap.putOne(mi[i], inSignal);
-					boolean last = i + 1 == mi.length;
+					final boolean last = i + 1 == mi.length;
 					dispatcher.triggerChannel(mi[i].misChannelID, qeID, null, -1, last, true);
 				}
 			}
@@ -648,7 +665,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 					boolean bMatch = false;
 					if (vjp != null)
 					{
-						for (JDFJobPhase jp : vjp)
+						for (final JDFJobPhase jp : vjp)
 						{
 							if (jp.getIdentifier().matches(sqp.getIdentifier()) || ContainerUtil.equals(sqp.getQueueEntryID(), jp.getQueueEntryID()))
 							{
@@ -706,13 +723,13 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		@Override
 		protected boolean handleQuery(final JDFMessage inputMessage, final JDFResponse response)
 		{
-			boolean isSubscription = response.getSubscribed();
+			final boolean isSubscription = response.getSubscribed();
 			boolean deleteResponse = !isSubscription;
 			if (!isSubscription)
 			{
 				getSignals(inputMessage, response);
 			}
-			JDFStatusQuParams sqp = inputMessage.getStatusQuParams();
+			final JDFStatusQuParams sqp = inputMessage.getStatusQuParams();
 			if (sqp != null && sqp.getQueueInfo())
 			{
 				deleteResponse = false;
@@ -747,7 +764,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				final MessageIdentifier[] messageIdentifiers = new MessageIdentifier(inSignal, null).cloneChannels(requests);
 				if (messageIdentifiers != null)
 				{
-					for (MessageIdentifier mi : messageIdentifiers)
+					for (final MessageIdentifier mi : messageIdentifiers)
 					{
 						dispatchSingleSignal(inSignal, qeID, mi);
 					}
@@ -757,7 +774,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			return true;
 		}
 
-		protected void dispatchSingleSignal(final JDFSignal inSignal, final String qeID, MessageIdentifier mi)
+		protected void dispatchSingleSignal(final JDFSignal inSignal, final String qeID, final MessageIdentifier mi)
 		{
 			JDFSignal lastSignal = null;
 			if (lastSent != null)
@@ -768,8 +785,8 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				}
 			}
 			handleSingleSignal(inSignal, mi);
-			StatusSignalComparator comparator = lastSignal == null ? null : getComparator();
-			boolean sameStatusSignal = comparator != null && comparator.isSameStatusSignal(inSignal, lastSignal);
+			final StatusSignalComparator comparator = lastSignal == null ? null : getComparator();
+			final boolean sameStatusSignal = comparator != null && comparator.isSameStatusSignal(inSignal, lastSignal);
 			getDispatcher().triggerChannel(mi.misChannelID, qeID, null, -1, false, sameStatusSignal);
 			if (lastSent != null)
 			{
@@ -901,16 +918,16 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			else
 			{
 				final String senderID = theSignal.getSenderID();
-				for (KElement di : devInfos)
+				for (final KElement di : devInfos)
 				{
-					JDFDeviceInfo devInfo = (JDFDeviceInfo) di;
+					final JDFDeviceInfo devInfo = (JDFDeviceInfo) di;
 					final String deviceID = devInfo.getDeviceID();
 					if (!ContainerUtil.equals(deviceID, senderID))
 					{
 						JDFSignal signal = null;
-						for (KElement eSig : sigs)
+						for (final KElement eSig : sigs)
 						{
-							JDFSignal sig2 = (JDFSignal) eSig;
+							final JDFSignal sig2 = (JDFSignal) eSig;
 							if (ContainerUtil.equals(sig2.getSenderID(), deviceID))
 							{
 								signal = sig2;
@@ -1081,7 +1098,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		 * @param listener
 		 * @param dev
 		 */
-		public NotificationHandler(final AbstractDevice dev, StatusListener listener)
+		public NotificationHandler(final AbstractDevice dev, final StatusListener listener)
 		{
 			super(dev);
 			theStatusListener = listener;
