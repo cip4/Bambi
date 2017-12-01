@@ -809,7 +809,83 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 	}
 
-	protected class RemoveQueueEntryHandler extends AbstractHandler
+	/**
+	 *
+	 * @author rainerprosi
+	 *
+	 */
+	abstract class AbortRemoveHandler extends AbstractHandler
+	{
+
+		AbortRemoveHandler(final EnumType _type, final EnumFamily[] _families)
+		{
+			super(_type, _families);
+		}
+
+		protected void abortSingleEntry(final JDFMessage m, final JDFResponse resp, final JDFQueueEntry qe)
+		{
+			final EnumQueueEntryStatus status = qe.getQueueEntryStatus();
+			final String qeid = qe.getQueueEntryID();
+			JDFNode theNode = null;
+			if (EnumQueueEntryStatus.Completed.equals(status))
+			{
+				updateEntry(qe, status, m, resp, null);
+				JMFHandler.errorResponse(resp, "cannot abort QueueEntry with ID=" + qeid + ", it is already completed", 114, EnumClass.Error);
+				return;
+			}
+			else if (EnumQueueEntryStatus.Aborted.equals(status))
+			{
+				updateEntry(qe, status, m, resp, null);
+				JMFHandler.errorResponse(resp, "cannot abort QueueEntry with ID=" + qeid + ", it is already aborted", 113, EnumClass.Error);
+				return;
+			}
+			else if (EnumQueueEntryStatus.Waiting.equals(status)) // no need to check processors - it is still waiting
+			{
+				final IQueueEntry iQueueEntry = getIQueueEntry(qe, true);
+				theNode = iQueueEntry == null ? null : iQueueEntry.getJDF();
+				updateEntry(qe, EnumQueueEntryStatus.Aborted, m, resp, null);
+			}
+			final String queueEntryID = qe.getQueueEntryID();
+			EnumNodeStatus nodestatus = EnumNodeStatus.Aborted;
+			final JDFAbortQueueEntryParams aqp = (JDFAbortQueueEntryParams) m.getElement(ElementName.ABORTQUEUEENTRYPARAMS);
+			if (aqp != null)
+			{
+				final EnumNodeStatus endStatus = aqp.getEndStatus();
+				if (endStatus != null)
+				{
+					nodestatus = endStatus;
+				}
+			}
+			final JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, nodestatus, null);
+
+			// has to be waiting, held, running or suspended: abort it!
+			EnumQueueEntryStatus newStatus = (returnQE == null ? null : returnQE.getQueueEntryStatus());
+			if (newStatus == null)
+			{
+				newStatus = EnumQueueEntryStatus.Aborted;
+			}
+			if (EnumQueueEntryStatus.Aborted.equals(newStatus))
+			{
+				if (theNode == null)
+				{
+					final IQueueEntry iQueueEntry = getIQueueEntry(qe, true);
+					theNode = iQueueEntry == null ? null : iQueueEntry.getJDF();
+				}
+				final JDFDoc theDoc = theNode == null ? null : theNode.getOwnerDocument_JDFElement();
+				returnQueueEntry(qe, null, theDoc, newStatus);
+			}
+			updateEntry(qe, newStatus, m, resp, null);
+			log.info("aborted QueueEntry with ID=" + qeid + " new status=" + newStatus.getName());
+		}
+
+	}
+
+	/**
+	 *
+	 *
+	 *
+	 */
+	protected class RemoveQueueEntryHandler extends AbortRemoveHandler
 	{
 		public RemoveQueueEntryHandler()
 		{
@@ -1042,7 +1118,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	// //////////////////////////////////////////////////////////////////////////////////////
 
-	protected class AbortQueueEntryHandler extends AbstractHandler
+	protected class AbortQueueEntryHandler extends AbortRemoveHandler
 	{
 
 		public AbortQueueEntryHandler()
@@ -1055,6 +1131,31 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			return abortQueueEntry(m, resp);
 		}
+
+		/**
+		 * @param m
+		 * @param resp
+		 * @return true if successfully aborted
+		 */
+		protected boolean abortQueueEntry(final JDFMessage m, final JDFResponse resp)
+		{
+			if (m == null || resp == null)
+			{
+				return false;
+			}
+			final Vector<JDFQueueEntry> v = getMessageQueueEntries(m, resp);
+			if (v == null)
+			{
+				return true;
+			}
+			log.info("received AbortQueueEntry - message ID: " + m.getID());
+			for (final JDFQueueEntry qe : v)
+			{
+				abortSingleEntry(m, resp, qe);
+			}
+			return true;
+		}
+
 	}
 
 	protected class ResumeQueueEntryHandler extends AbstractHandler
@@ -2986,86 +3087,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	public QueueGetHandler getQueueGetHandler()
 	{
 		return new QueueGetHandler();
-	}
-
-	/**
-	 * @param m
-	 * @param resp
-	 * @return true if successfully aborted
-	 */
-	protected boolean abortQueueEntry(final JDFMessage m, final JDFResponse resp)
-	{
-		if (m == null || resp == null)
-		{
-			return false;
-		}
-		final Vector<JDFQueueEntry> v = getMessageQueueEntries(m, resp);
-		if (v == null)
-		{
-			return true;
-		}
-		log.info("received AbortQueueEntry - message ID: " + m.getID());
-		for (final JDFQueueEntry qe : v)
-		{
-			abortSingleEntry(m, resp, qe);
-		}
-		return true;
-	}
-
-	protected void abortSingleEntry(final JDFMessage m, final JDFResponse resp, final JDFQueueEntry qe)
-	{
-		final EnumQueueEntryStatus status = qe.getQueueEntryStatus();
-		final String qeid = qe.getQueueEntryID();
-		JDFNode theNode = null;
-		if (EnumQueueEntryStatus.Completed.equals(status))
-		{
-			updateEntry(qe, status, m, resp, null);
-			JMFHandler.errorResponse(resp, "cannot abort QueueEntry with ID=" + qeid + ", it is already completed", 114, EnumClass.Error);
-			return;
-		}
-		else if (EnumQueueEntryStatus.Aborted.equals(status))
-		{
-			updateEntry(qe, status, m, resp, null);
-			JMFHandler.errorResponse(resp, "cannot abort QueueEntry with ID=" + qeid + ", it is already aborted", 113, EnumClass.Error);
-			return;
-		}
-		else if (EnumQueueEntryStatus.Waiting.equals(status)) // no need to check processors - it is still waiting
-		{
-			final IQueueEntry iQueueEntry = getIQueueEntry(qe, true);
-			theNode = iQueueEntry == null ? null : iQueueEntry.getJDF();
-			updateEntry(qe, EnumQueueEntryStatus.Aborted, m, resp, null);
-		}
-		final String queueEntryID = qe.getQueueEntryID();
-		EnumNodeStatus nodestatus = EnumNodeStatus.Aborted;
-		final JDFAbortQueueEntryParams aqp = (JDFAbortQueueEntryParams) m.getElement(ElementName.ABORTQUEUEENTRYPARAMS);
-		if (aqp != null)
-		{
-			final EnumNodeStatus endStatus = aqp.getEndStatus();
-			if (endStatus != null)
-			{
-				nodestatus = endStatus;
-			}
-		}
-		final JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, nodestatus, null);
-
-		// has to be waiting, held, running or suspended: abort it!
-		EnumQueueEntryStatus newStatus = (returnQE == null ? null : returnQE.getQueueEntryStatus());
-		if (newStatus == null)
-		{
-			newStatus = EnumQueueEntryStatus.Aborted;
-		}
-		if (EnumQueueEntryStatus.Aborted.equals(newStatus))
-		{
-			if (theNode == null)
-			{
-				final IQueueEntry iQueueEntry = getIQueueEntry(qe, true);
-				theNode = iQueueEntry == null ? null : iQueueEntry.getJDF();
-			}
-			final JDFDoc theDoc = theNode == null ? null : theNode.getOwnerDocument_JDFElement();
-			returnQueueEntry(qe, null, theDoc, newStatus);
-		}
-		updateEntry(qe, newStatus, m, resp, null);
-		log.info("aborted QueueEntry with ID=" + qeid + " new status=" + newStatus.getName());
 	}
 
 	/**
