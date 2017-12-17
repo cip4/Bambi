@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -76,16 +76,16 @@ import org.cip4.jdflib.util.ContainerUtil;
 
 /**
  * class that optimizes multiple status signals in case of network blocks
- * 
+ *
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- * 
+ *
  * August 9, 2009
  */
 public class StatusOptimizer extends BambiLogFactory implements IMessageOptimizer
 {
 
 	/**
-	 * 
+	 *
 	 */
 	public StatusOptimizer()
 	{
@@ -95,6 +95,7 @@ public class StatusOptimizer extends BambiLogFactory implements IMessageOptimize
 	/**
 	 * @see org.cip4.bambi.core.messaging.IMessageOptimizer#optimize(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 	 */
+	@Override
 	public optimizeResult optimize(final JDFMessage newMessage, final JDFMessage oldMessage)
 	{
 		if (newMessage == null || oldMessage == null)

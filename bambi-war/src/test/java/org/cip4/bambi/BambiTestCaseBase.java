@@ -104,14 +104,14 @@ import org.junit.Before;
 
 /**
  * base class for JDFLib test case classes
- * 
+ *
  * @author prosirai
- * 
+ *
  */
 public abstract class BambiTestCaseBase
 {
 	/**
-	 * 
+	 *
 	 */
 	public BambiTestCaseBase()
 	{
@@ -123,7 +123,7 @@ public abstract class BambiTestCaseBase
 	}
 
 	/**
-	 * 
+	 *
 	 * @param name
 	 */
 	public BambiTestCaseBase(final String name)
@@ -235,7 +235,7 @@ public abstract class BambiTestCaseBase
 
 	// //////////////////////////////////////////////////////////////////////////
 	/**
-	 * 
+	 *
 	 * @see junit.framework.TestCase#setUp()
 	 */
 	@Before
@@ -251,6 +251,7 @@ public abstract class BambiTestCaseBase
 		author = JDFAudit.getStaticAuthor();
 		mem = getCurrentMem();
 		log = LogFactory.getLog(getClass());
+		new File(sm_dirTestDataTemp).mkdirs();
 	}
 
 	/**
@@ -265,7 +266,7 @@ public abstract class BambiTestCaseBase
 	}
 
 	/**
-	 *  
+	 *
 	 * @see junit.framework.TestCase#tearDown()
 	 */
 	@After
@@ -281,7 +282,7 @@ public abstract class BambiTestCaseBase
 	}
 
 	/**
-	 * 
+	 *
 	 * write an element to the standard test directory sm_dirTestDataTemp
 	 * @param e
 	 * @param filename

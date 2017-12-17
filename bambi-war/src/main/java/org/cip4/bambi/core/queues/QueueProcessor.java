@@ -3137,12 +3137,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		return (JDFQueue) _theQueue.cloneNewDoc();
 	}
 
-	class QueueStatistic
+	public class QueueStatistic
 	{
-		final int waiting;
-		final int running;
-		final int completed;
-		final int all;
+		public final int waiting;
+		public final int running;
+		public final int completed;
+		public final int all;
 
 		/**
 		 *
@@ -3167,6 +3167,15 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			return "QueueStatistic [waiting=" + waiting + ", running=" + running + ", completed=" + completed + ", all=" + all;
 		}
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public QueueStatistic getQueueStatistic2()
+	{
+		return new QueueStatistic();
 	}
 
 	/**

@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -82,9 +82,9 @@ import org.cip4.jdflib.util.thread.MyMutex;
 /**
  * Handler class for Acknowledges - checks a message for an acknowledgeURL and makes any appropriate message handlers asynchronous <br/>
  * this class handles incoming asynchronous requests i.e. outgoing acknowledge messages (extern sent an AcknowledgeURL)
- * 
+ *
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- * 
+ *
  * June 28, 2009
  */
 public class AcknowledgeThread extends BambiLogFactory implements IMessageHandler
@@ -120,9 +120,9 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 
 	/**
 	 * this is the thread that waits for the handler to finish and then sends the acknowledge
-	 * 
+	 *
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 * 
+	 *
 	 * June 28, 2009
 	 */
 	protected class RunThread extends Thread
@@ -195,8 +195,8 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 	 * handles acknowledges - also waits max 1 second for synchronous handling, if possible
 	 * @param response
 	 * @param inputMessage
-	 * @return 
-	 * 
+	 * @return
+	 *
 	 */
 	private boolean handleWithAcknowledge(final JDFMessage inputMessage, final JDFResponse response)
 	{
@@ -235,6 +235,7 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 	/**
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#getFamilies()
 	 */
+	@Override
 	public EnumFamily[] getFamilies()
 	{
 		return baseHandler.getFamilies();
@@ -243,6 +244,7 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 	/**
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#getMessageType()
 	 */
+	@Override
 	public String getMessageType()
 	{
 		return baseHandler.getMessageType();
@@ -251,6 +253,7 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 	/**
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 	 */
+	@Override
 	public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 	{
 		if (baseHandler == null || inputMessage == null)
@@ -275,6 +278,7 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 	/**
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#isSubScribable()
 	 */
+	@Override
 	public boolean isSubScribable()
 	{
 		return false;
@@ -285,6 +289,7 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 	 * @return true if acknowledges are handled
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#isSubScribable()
 	 */
+	@Override
 	public boolean isAcknowledge()
 	{
 		return true;

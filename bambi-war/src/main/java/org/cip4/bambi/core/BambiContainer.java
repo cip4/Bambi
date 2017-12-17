@@ -544,21 +544,34 @@ public final class BambiContainer extends ServletContainer
 		}
 		else
 		{
-			final JDFDoc docJDF[] = MimeUtil.getJMFSubmission(bp[0].getParent());
-			if (docJDF == null || docJDF.length == 0)
-			{
-				r = processError(request.getRequestURI(), EnumType.Notification, 2, "proccessMultipleDocuments- no body parts, bailing out!");
-			}
-			else
-			{
-				final XMLRequest r2 = new XMLRequest(docJDF[0].getJMFRoot());
-				r2.setContainer(request);
-				r = processXMLDoc(r2);
-				request.setName(r2.getName());
-			}
+			r = processMultipleGood(request, bp);
 		}
 		stopTimer(request);
 
+		return r;
+	}
+
+	/**
+	 *
+	 * @param request
+	 * @param bp
+	 * @return
+	 */
+	protected XMLResponse processMultipleGood(final MimeRequest request, final BodyPart[] bp)
+	{
+		final XMLResponse r;
+		final JDFDoc docJDF[] = MimeUtil.getJMFSubmission(bp[0].getParent());
+		if (docJDF == null || docJDF.length == 0)
+		{
+			r = processError(request.getRequestURI(), EnumType.Notification, 2, "proccessMultipleDocuments- no body parts, bailing out!");
+		}
+		else
+		{
+			final XMLRequest r2 = new XMLRequest(docJDF[0].getJMFRoot());
+			r2.setContainer(request);
+			r = processXMLDoc(r2);
+			request.setName(r2.getName());
+		}
 		return r;
 	}
 
@@ -609,40 +622,53 @@ public final class BambiContainer extends ServletContainer
 
 				if (responseDoc != null)
 				{
-					KElement jmfRoot = responseDoc.getJMFRoot();
-					jmfRoot.copyAttribute(AttributeName.MAXVERSION, jmf);
-					if (_callBack != null)
-					{
-						responseDoc = _callBack.updateJMFForExtern(responseDoc);
-						if (responseDoc != null)
-						{
-							jmfRoot = responseDoc.getRoot();
-						}
-					}
-					response = new XMLResponse(jmfRoot);
-					response.setContentType(XJDFConstants.XJMF.equals(jmfRoot.getLocalName()) ? UrlUtil.VND_XJMF : UrlUtil.VND_JMF);
+					response = processGoodJMF(_callBack, jmf, responseDoc);
 				}
 				else
 				{
-
-					VElement v = jmf.getMessageVector(null, null);
-					final int nMess = v == null ? 0 : v.size();
-					v = jmf.getMessageVector(EnumFamily.Signal, null);
-					int nSigs = v.size();
-					v = jmf.getMessageVector(EnumFamily.Acknowledge, null);
-					nSigs += v.size();
-					if (nMess > nSigs || nMess == 0)
-					{
-						response = processError(request.getRequestURI(), null, 1, "General Error Handling JMF");
-					}
-					else
-					{
-						response = null;
-					}
+					response = processBadJMF(request, jmf);
 				}
 			}
 		}
 		stopTimer(request);
+		return response;
+	}
+
+	protected XMLResponse processBadJMF(final XMLRequest request, final JDFJMF jmf)
+	{
+		final XMLResponse response;
+		VElement v = jmf.getMessageVector(null, null);
+		final int nMess = v == null ? 0 : v.size();
+		v = jmf.getMessageVector(EnumFamily.Signal, null);
+		int nSigs = v.size();
+		v = jmf.getMessageVector(EnumFamily.Acknowledge, null);
+		nSigs += v.size();
+		if (nMess > nSigs || nMess == 0)
+		{
+			response = processError(request.getRequestURI(), null, 1, "General Error Handling JMF");
+		}
+		else
+		{
+			response = null;
+		}
+		return response;
+	}
+
+	protected XMLResponse processGoodJMF(final IConverterCallback _callBack, final JDFJMF jmf, JDFDoc responseDoc)
+	{
+		final XMLResponse response;
+		KElement jmfRoot = responseDoc.getJMFRoot();
+		jmfRoot.copyAttribute(AttributeName.MAXVERSION, jmf);
+		if (_callBack != null)
+		{
+			responseDoc = _callBack.updateJMFForExtern(responseDoc);
+			if (responseDoc != null)
+			{
+				jmfRoot = responseDoc.getRoot();
+			}
+		}
+		response = new XMLResponse(jmfRoot);
+		response.setContentType(XJDFConstants.XJMF.equals(jmfRoot.getLocalName()) ? UrlUtil.VND_XJMF : UrlUtil.VND_JMF);
 		return response;
 	}
 

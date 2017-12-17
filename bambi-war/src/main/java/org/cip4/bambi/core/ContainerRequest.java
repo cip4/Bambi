@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.core;
 
@@ -78,7 +78,7 @@ import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * class to package an XML document together with the context information of the request
- * 
+ *
  * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class ContainerRequest extends BambiLogFactory
@@ -99,7 +99,7 @@ public class ContainerRequest extends BambiLogFactory
 
 	/**
 	 * get a descriptive name for this
-	 *  
+	 *
 	 * @return
 	 */
 	public String getName()
@@ -108,11 +108,11 @@ public class ContainerRequest extends BambiLogFactory
 	}
 
 	/**
-	 * 
+	 *
 	 * set a descriptive name for this
 	 * @param name
 	 */
-	public void setName(String name)
+	public void setName(final String name)
 	{
 		this.name = name;
 	}
@@ -125,7 +125,7 @@ public class ContainerRequest extends BambiLogFactory
 	/**
 	 * @param remoteHost the remoteHost to set
 	 */
-	public void setRemoteHost(String remoteHost)
+	public void setRemoteHost(final String remoteHost)
 	{
 		this.remoteHost = remoteHost;
 	}
@@ -168,7 +168,7 @@ public class ContainerRequest extends BambiLogFactory
 	/**
 	 * @param headerMap the headerMap to set
 	 */
-	public void setHeaderMap(JDFAttributeMap headerMap)
+	public void setHeaderMap(final JDFAttributeMap headerMap)
 	{
 		this.headerMap = headerMap;
 	}
@@ -176,7 +176,7 @@ public class ContainerRequest extends BambiLogFactory
 	/**
 	 * @param parameterMap the parameterMap to set
 	 */
-	public void setParameterMap(JDFAttributeMap parameterMap)
+	public void setParameterMap(final JDFAttributeMap parameterMap)
 	{
 		this.parameterMap = parameterMap == null ? null : parameterMap.clone();
 	}
@@ -192,7 +192,7 @@ public class ContainerRequest extends BambiLogFactory
 	/**
 	 * @param requestURI the requestURI to set
 	 */
-	public void setRequestURI(String requestURI)
+	public void setRequestURI(final String requestURI)
 	{
 		this.requestURI = requestURI;
 	}
@@ -202,13 +202,13 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public String getDeviceID()
 	{
-		String localURL = getLocalURL();
+		final String localURL = getLocalURL();
 		return ServletContainer.getDeviceIDFromURL(localURL);
 	}
 
 	/**
 	 * @return the tokenized request
-	 * 
+	 *
 	 */
 	public VString getContextList()
 	{
@@ -222,11 +222,11 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public String getLocalURL()
 	{
-		VString v = getContextList();
-		VString v2 = new VString();
+		final VString v = getContextList();
+		final VString v2 = new VString();
 		for (int i = 2; i < v.size(); i++)
 			v2.add(v.get(i));
-		return StringUtil.setvString(v2, "/", null, null);
+		return StringUtil.setvString(v2, JDFConstants.SLASH, null, null);
 	}
 
 	/**
@@ -244,11 +244,11 @@ public class ContainerRequest extends BambiLogFactory
 	 * @param bStrip if true, only get first token until ;
 	 * @return the contentType
 	 */
-	public String getContentType(boolean bStrip)
+	public String getContentType(final boolean bStrip)
 	{
 		if (bStrip)
 		{
-			String ct = StringUtil.token(contentType, 0, ";");
+			final String ct = StringUtil.token(contentType, 0, ";");
 			return ct == null ? ct : ct.trim();
 		}
 		return contentType;
@@ -257,7 +257,7 @@ public class ContainerRequest extends BambiLogFactory
 	/**
 	 * @param contentType the contentType to set
 	 */
-	public void setContentType(String contentType)
+	public void setContentType(final String contentType)
 	{
 		this.contentType = contentType;
 	}
@@ -266,7 +266,7 @@ public class ContainerRequest extends BambiLogFactory
 	 * sets all values except the main contents
 	 * @param request the container to clone
 	 */
-	public void setContainer(ContainerRequest request)
+	public void setContainer(final ContainerRequest request)
 	{
 		setRequestURI(request.getRequestURI());
 		setContentType(request.getContentType(false));
@@ -294,7 +294,7 @@ public class ContainerRequest extends BambiLogFactory
 	/**
 	 * @param bPost if true, POST, else GET
 	 */
-	public void setPost(boolean bPost)
+	public void setPost(final boolean bPost)
 	{
 		this.bPost = bPost;
 	}
@@ -323,7 +323,7 @@ public class ContainerRequest extends BambiLogFactory
 	}
 
 	/**
-	 * 
+	 *
 	 * @param checkContext
 	 * @return
 	 */
@@ -342,7 +342,7 @@ public class ContainerRequest extends BambiLogFactory
 	/**
 	 * @param method the method string
 	 */
-	public void setMethod(String method)
+	public void setMethod(final String method)
 	{
 		this.bPost = UrlUtil.POST.equalsIgnoreCase(method.trim());
 	}
@@ -356,10 +356,10 @@ public class ContainerRequest extends BambiLogFactory
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @return the war file name portion of the request context, i.e the location where index.html etc are located
-	 * 
+	 *
 	 */
 	public String getContextRoot()
 	{
@@ -368,22 +368,22 @@ public class ContainerRequest extends BambiLogFactory
 
 	/**
 	 * get a request header value
-	 * 
+	 *
 	 * @param header the header key
 	 * @return String - the header value, null if header is not set
 	 */
-	public String getHeader(String header)
+	public String getHeader(final String header)
 	{
 		return headerMap == null ? null : headerMap.get(header);
 	}
 
 	/**
 	 * get a request header value
-	 * 
+	 *
 	 * @param header the header key
 	 * @return String - the header value, null if header is not set
 	 */
-	public String getParameter(String header)
+	public String getParameter(final String header)
 	{
 		return parameterMap == null ? null : parameterMap.get(header);
 	}
