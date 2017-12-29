@@ -177,6 +177,16 @@ public class DeviceServletTest extends BambiTestCase
 	}
 
 	@Test
+	public void testXJDFSubmit() throws Exception
+	{
+		final JDFResponse resp = singleMIMESubmit("SingleMIME");
+		assertNotNull(resp);
+		assertEquals(0, resp.getReturnCode());
+		final String qeid = StringUtil.getNonEmpty(resp.getQueueEntry(0).getQueueEntryID());
+		assertNotNull(qeid);
+	}
+
+	@Test
 	public void testMultiSubmit() throws Exception
 	{
 		final VString qeids = new VString();
