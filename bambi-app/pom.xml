@@ -102,7 +102,7 @@
 		<dependency>
 			<groupId>org.cip4.tools.bambi.ngui</groupId>
 			<artifactId>bambi-ngui</artifactId>
-			<version>1.0</version>
+			<version>${project.parent.version}</version>
 			<classifier>classes</classifier>
 		</dependency>
 

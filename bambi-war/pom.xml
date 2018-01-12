@@ -11,7 +11,7 @@
 		<version>Bologna-18.03-SNAPSHOT</version>
 	</parent>
 
-	<name>CIP4-Bambi Core</name>
+	<name>CIP4 Bambi Core (war)</name>
 	<url>http://www.cip4.org</url>
 
 	<build>

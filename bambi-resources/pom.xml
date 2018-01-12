@@ -27,6 +27,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.cip4.tools.bambi.war</groupId>
+			<artifactId>bambi-war</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 		</dependency>
