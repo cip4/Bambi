@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 
 package org.cip4.bambi.proxy;
@@ -151,8 +151,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected SubscriptionMap mySubscriptions;
 
 	/**
-	 * @author Rainer Prosi, Heidelberger Druckmaschinen 
-	 * 
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen
+	 *
 	 * enumeration how to set up synchronization of status with the slave
 	 */
 	public enum EnumSlaveStatus
@@ -171,7 +171,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		 */
 		NODEINFO,
 		/**
-		 * don't update status 
+		 * don't update status
 		 */
 		NONE
 	}
@@ -184,15 +184,15 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	private JMFHandler _slaveJmfHandler;
 
 	/**
-	 * 
-	 * @author Rainer Prosi, Heidelberger Druckmaschinen 
+	 *
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen
 	 */
 	protected class StopPersistantHandler extends MessageResponseHandler
 	{
 		/**
 		 * @param jmf
 		 */
-		public StopPersistantHandler(JDFJMF jmf)
+		public StopPersistantHandler(final JDFJMF jmf)
 		{
 			super(jmf);
 		}
@@ -218,17 +218,17 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
-	 * @author Rainer Prosi, Heidelberger Druckmaschinen 
+	 *
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen
 	 */
 	protected class KnownMessagesResponseHandler extends MessageResponseHandler
 	{
 
 		/**
 		 * @param jmf the jmf containing the query to handle as first query
-		 *  
+		 *
 		 */
-		public KnownMessagesResponseHandler(JDFJMF jmf)
+		public KnownMessagesResponseHandler(final JDFJMF jmf)
 		{
 			super(jmf);
 		}
@@ -245,19 +245,19 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 		/**
 		 * @return vector of all jmfs that still need to be sent
-		 * 
+		 *
 		 */
 		public Set<KnownMessageDetails> completeHandling()
 		{
-			JDFMessage m = getFinalMessage();
-			Set<KnownMessageDetails> theSet = new HashSet<KnownMessageDetails>();
-			VElement v = m == null ? null : m.getChildElementVector(ElementName.MESSAGESERVICE, null);
+			final JDFMessage m = getFinalMessage();
+			final Set<KnownMessageDetails> theSet = new HashSet<KnownMessageDetails>();
+			final VElement v = m == null ? null : m.getChildElementVector(ElementName.MESSAGESERVICE, null);
 			if (v != null)
 			{
 				for (int i = 0; i < v.size(); i++)
 				{
-					JDFMessageService ms = (JDFMessageService) v.get(i);
-					KnownMessageDetails processedMessageService = processMessageService(ms);
+					final JDFMessageService ms = (JDFMessageService) v.get(i);
+					final KnownMessageDetails processedMessageService = processMessageService(ms);
 					if (processedMessageService != null)
 						theSet.add(processedMessageService);
 				}
@@ -268,18 +268,18 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		/**
 		 * process an individual existing messageservice and update the cache appropriately
 		 * @param ms
-		 * @return 
+		 * @return
 		 */
-		private KnownMessageDetails processMessageService(JDFMessageService ms)
+		private KnownMessageDetails processMessageService(final JDFMessageService ms)
 		{
-			KnownMessageDetails knownMessageDetails = new KnownMessageDetails(ms);
+			final KnownMessageDetails knownMessageDetails = new KnownMessageDetails(ms);
 			return knownMessageDetails.getType() == null ? null : knownMessageDetails;
 		}
 	}
 
 	/**
-	 * 
-	 * @author Rainer Prosi, Heidelberger Druckmaschinen 
+	 *
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen
 	 */
 	protected class KnownSubscriptionsHandler extends MessageResponseHandler
 	{
@@ -288,9 +288,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 		/**
 		 * @param jmf the jmf containing the query to handle as first query
-		 * @param createSubscriptions 
+		 * @param createSubscriptions
 		 */
-		public KnownSubscriptionsHandler(JDFJMF jmf, Vector<JDFJMF> createSubscriptions)
+		public KnownSubscriptionsHandler(final JDFJMF jmf, final Vector<JDFJMF> createSubscriptions)
 		{
 			super(jmf);
 			sendjmfs = createSubscriptions;
@@ -308,20 +308,20 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 		/**
 		 * @return vector of all jmfs that still need to be sent
-		 * 
+		 *
 		 */
 		public Vector<JDFJMF> completeHandling()
 		{
 			if (sendjmfs == null)
 				return null;
-			JDFMessage m = getFinalMessage();
-			Vector<JDFJMF> vjmf = new Vector<JDFJMF>();
-			VElement v = m == null ? null : m.getChildElementVector(ElementName.SUBSCRIPTIONINFO, null);
+			final JDFMessage m = getFinalMessage();
+			final Vector<JDFJMF> vjmf = new Vector<JDFJMF>();
+			final VElement v = m == null ? null : m.getChildElementVector(ElementName.SUBSCRIPTIONINFO, null);
 			if (v != null)
 			{
 				for (int i = 0; i < v.size(); i++)
 				{
-					JDFSubscriptionInfo si = (JDFSubscriptionInfo) v.get(i);
+					final JDFSubscriptionInfo si = (JDFSubscriptionInfo) v.get(i);
 					processSubscription(si);
 				}
 			}
@@ -333,30 +333,30 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		 * process an individual existing subscription and update the cache appropriately
 		 * @param si
 		 */
-		private void processSubscription(JDFSubscriptionInfo si)
+		private void processSubscription(final JDFSubscriptionInfo si)
 		{
-			String channelID = StringUtil.getNonEmpty(si.getChannelID());
+			final String channelID = StringUtil.getNonEmpty(si.getChannelID());
 			if (channelID == null)
 			{
 				log.warn("SubscriptionInfo without channelID, ignore");
 				return;
 			}
-			JDFSubscription subscription = si.getSubscription();
-			String url = subscription == null ? null : subscription.getURL();
-			String deviceURLForSlave = getDeviceURLForSlave();
+			final JDFSubscription subscription = si.getSubscription();
+			final String url = subscription == null ? null : subscription.getURL();
+			final String deviceURLForSlave = getDeviceURLForSlave();
 			if (!ContainerUtil.equals(url, deviceURLForSlave))
 			{
 				log.warn("SubscriptionInfo for wrong url:" + deviceURLForSlave + ", ignore");
 				return;
 			}
-			EnumType siType = si.getEnumType();
-			for (JDFJMF jdfjmf : sendjmfs)
+			final EnumType siType = si.getEnumType();
+			for (final JDFJMF jdfjmf : sendjmfs)
 			{
-				EnumType typ = jdfjmf.getQuery(0).getEnumType();
+				final EnumType typ = jdfjmf.getQuery(0).getEnumType();
 				if (ContainerUtil.equals(typ, siType))
 				{
 					// may be null at startup - ignore counting
-					ProxySubscription oldSub = mySubscriptions == null ? null : mySubscriptions.get(typ);
+					final ProxySubscription oldSub = mySubscriptions == null ? null : mySubscriptions.get(typ);
 					if (oldSub == null)
 					{
 						getLog().info("adding existing subscription to list; type=" + typ.getName() + " channelID=" + channelID);
@@ -378,8 +378,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
-	 * @author Rainer Prosi, Heidelberger Druckmaschinen 
+	 *
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen
 	 */
 	protected class QueueEntryAbortHandler extends MessageResponseHandler
 	{
@@ -425,16 +425,16 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
+	 *
 	  * @author Rainer Prosi, Heidelberger Druckmaschinen *
 	 */
 	protected class QueueSynchronizeHandler extends MessageResponseHandler
 	{
 		/**
 		 * @param jmf the jmf containing the query to handle as first query
-		 * 
+		 *
 		 */
-		public QueueSynchronizeHandler(JDFJMF jmf)
+		public QueueSynchronizeHandler(final JDFJMF jmf)
 		{
 			super(jmf);
 		}
@@ -564,7 +564,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#init()
 	 */
 	@Override
@@ -587,7 +587,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public IConverterCallback getSlaveCallBackClass()
@@ -596,8 +596,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 * @return
 	 */
 	protected SubscriptionMap createSubscriptionMap()
@@ -607,10 +607,10 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 * @param waitMillis
-	 * @param slaveQEID 
+	 * @param slaveQEID
 	 * @param reset if true remove all existing subscriptions
 	 */
-	public void addSlaveSubscriptions(int waitMillis, String slaveQEID, boolean reset)
+	public void addSlaveSubscriptions(final int waitMillis, String slaveQEID, final boolean reset)
 	{
 		final EnumSlaveStatus slaveStatus = getSlaveStatus();
 		if (!EnumSlaveStatus.JMFGLOBAL.equals(slaveStatus) && !EnumSlaveStatus.JMF.equals(slaveStatus))
@@ -618,7 +618,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		if (EnumSlaveStatus.JMFGLOBAL.equals(slaveStatus))
 			slaveQEID = null;
 
-		SlaveSubscriber slaveSubscriber = getSlaveSubscriber(waitMillis, slaveQEID);
+		final SlaveSubscriber slaveSubscriber = getSlaveSubscriber(waitMillis, slaveQEID);
 		if (slaveSubscriber != null)
 		{
 			slaveSubscriber.setReset(reset);
@@ -627,13 +627,13 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * slave subscriber factory 
-	 * 
+	 * slave subscriber factory
+	 *
 	 * @param waitMillis
 	 * @param slaveQEID
 	 * @return
 	 */
-	protected final SlaveSubscriber getSlaveSubscriber(final int waitMillis, String slaveQEID)
+	protected final SlaveSubscriber getSlaveSubscriber(final int waitMillis, final String slaveQEID)
 	{
 		final String slaveURL = getSlaveURL();
 		if (StringUtil.getNonEmpty(slaveURL) == null)
@@ -645,7 +645,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			log.info("retrieve slave subscriber for URL: " + slaveURL);
 		}
-		String key = getKey(slaveQEID);
+		final String key = getKey(slaveQEID);
 		synchronized (waitingSubscribers)
 		{
 			SlaveSubscriber slaveSubscriber = waitingSubscribers.get(key);
@@ -671,9 +671,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 * @param slaveQEID
-	 * @return 
+	 * @return
 	 */
-	protected String getKey(String slaveQEID)
+	protected String getKey(final String slaveQEID)
 	{
 		return slaveQEID == null ? "##__null__##" : slaveQEID;
 	}
@@ -722,21 +722,13 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			mySubscriptions.shutdown(this);
 		}
 		super.shutdown();
-		if (slaveJDFError != null)
-		{
-			slaveJDFError.stop();
-		}
-		if (slaveJDFOutput != null)
-		{
-			slaveJDFOutput.stop();
-		}
 	}
 
 	/**
 	 * sends messages to the slave to stop processing
 	 * @param newStatus
 	 * @param slaveQE
-	 * @return 
+	 * @return
 	 */
 	protected EnumNodeStatus stopSlaveProcess(final String slaveQE, final EnumNodeStatus newStatus)
 	{
@@ -773,7 +765,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			log.warn("Skip sending null jmf to slave.");
 			return false;
 		}
-		String slaveURL = StringUtil.getNonEmpty(getSlaveURL());
+		final String slaveURL = StringUtil.getNonEmpty(getSlaveURL());
 		if (slaveURL == null)
 		{
 			log.info("Skip sending jmf to slave to null DeviceID=" + getDeviceID());
@@ -787,7 +779,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
+	 *
 	 * get the slave URL
 	 * @return the slave URL
 	 */
@@ -802,8 +794,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 */
 	public JMFBuilder getBuilderForSlave()
 	{
-		String deviceURLForSlave = getDeviceURLForSlave();
-		JMFBuilder builder = JMFBuilderFactory.getJMFBuilder(deviceURLForSlave);
+		final String deviceURLForSlave = getDeviceURLForSlave();
+		final JMFBuilder builder = JMFBuilderFactory.getJMFBuilder(deviceURLForSlave);
 		return builder;
 	}
 
@@ -821,7 +813,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			return EnumSlaveStatus.valueOf(s.toUpperCase());
 		}
-		catch (IllegalArgumentException x)
+		catch (final IllegalArgumentException x)
 		{
 			log.error("Illegal slave status value: " + s);
 			return null;
@@ -851,7 +843,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
+	 *
 	 * @param url
 	 * @return
 	 */
@@ -860,11 +852,11 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		if (url == null)
 			return false;
 
-		String deviceURLForSlave = getDeviceURLForSlave();
+		final String deviceURLForSlave = getDeviceURLForSlave();
 		if (deviceURLForSlave == null)
 			return false;
-		IProxyProperties proxyProperties = getProperties();
-		String slaveURL = proxyProperties.getSlaveURL();
+		final IProxyProperties proxyProperties = getProperties();
+		final String slaveURL = proxyProperties.getSlaveURL();
 		if (slaveURL == null)
 			return false;
 		return StringUtil.hasToken(url, SLAVEJMF, "/", 0) || deviceURLForSlave.contains(url) || slaveURL.contains(url);
@@ -964,15 +956,15 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		}
 		if (s.contains("SlaveMIMETransferExpansion"))
 		{
-			boolean expand = request.getBooleanParam("SlaveMIMETransferExpansion");
+			final boolean expand = request.getBooleanParam("SlaveMIMETransferExpansion");
 			updateSlaveMIMEExpansion(expand);
 		}
 
 	}
 
 	/**
-	 * @param newHF 
-	 * 
+	 * @param newHF
+	 *
 	 */
 	private void updateSlaveErrorHF(String newHF)
 	{
@@ -989,8 +981,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @param newHF 
-	 * 
+	 * @param newHF
+	 *
 	 */
 	private void updateSlaveOutputHF(String newHF)
 	{
@@ -1007,8 +999,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @param newHF 
-	 * 
+	 * @param newHF
+	 *
 	 */
 	private void updateSlaveInputHF(String newHF)
 	{
@@ -1025,10 +1017,10 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @param bExtendMime 
-	 * 
+	 * @param bExtendMime
+	 *
 	 */
-	private void updateSlaveMIMEExpansion(boolean bExtendMime)
+	private void updateSlaveMIMEExpansion(final boolean bExtendMime)
 	{
 		final IProxyProperties properties = getProperties();
 		final boolean extend = properties.getSlaveMIMEExpansion();
@@ -1040,8 +1032,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @param newSlaveURL 
-	 * 
+	 * @param newSlaveURL
+	 *
 	 */
 	protected void updateSlaveURL(String newSlaveURL)
 	{
@@ -1064,8 +1056,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @param push 
-	 * 
+	 * @param push
+	 *
 	 */
 	private void updateMaxPush(final String push)
 	{
@@ -1085,8 +1077,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * @param newSlave 
-	 * 
+	 * @param newSlave
+	 *
 	 */
 	private void updateSlaveDeviceID(final String newSlave)
 	{
@@ -1105,7 +1097,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#getXMLDevice(boolean, org.cip4.bambi.core.ContainerRequest)
 	 * @param addProcs
 	 * @param request
@@ -1128,7 +1120,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.node.JDFNode, java.lang.String)
 	 * @param doc
 	 * @param queueEntryID
@@ -1173,12 +1165,12 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#addMoreToXMLSubscriptions(org.cip4.jdflib.core.KElement)
 	 * @param rootDevice
 	 */
 	@Override
-	public void addMoreToXMLSubscriptions(KElement rootDevice)
+	public void addMoreToXMLSubscriptions(final KElement rootDevice)
 	{
 		super.addMoreToXMLSubscriptions(rootDevice);
 		if (mySubscriptions != null)
@@ -1190,9 +1182,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @see org.cip4.bambi.core.AbstractDevice#getDataURL(JDFQueueEntry, boolean)
 	 */
 	@Override
-	public String getDataURL(JDFQueueEntry queueEntry, boolean bSubmit)
+	public String getDataURL(final JDFQueueEntry queueEntry, final boolean bSubmit)
 	{
-		IProxyProperties proxyProperties = getProperties();
+		final IProxyProperties proxyProperties = getProperties();
 		if (proxyProperties.getSlaveMIMEExpansion() && proxyProperties.isSlaveMimePackaging())
 			return null;
 		String deviceURL = getDeviceURL();
@@ -1204,38 +1196,38 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @see org.cip4.bambi.core.AbstractDevice#wasSubmitted(org.cip4.jdflib.jmf.JDFQueueEntry)
 	 */
 	@Override
-	public boolean wasSubmitted(JDFQueueEntry qe)
+	public boolean wasSubmitted(final JDFQueueEntry qe)
 	{
 		return super.wasSubmitted(qe) && !isSubmitting(qe);
 	}
 
 	/**
-	 * 
+	 *
 	 * @param qe
 	 * @return
 	 */
-	public boolean isSubmitting(JDFQueueEntry qe)
+	public boolean isSubmitting(final JDFQueueEntry qe)
 	{
 		return qe == null ? false : SUBMITTING.equals(qe.getStatusDetails());
 	}
 
 	/**
-	 * prepare submission in proxies by setting status details to submitting 
+	 * prepare submission in proxies by setting status details to submitting
 	 * @param newQE
 	 */
 	@Override
-	public void prepareSubmit(JDFQueueEntry newQE)
+	public void prepareSubmit(final JDFQueueEntry newQE)
 	{
 		super.prepareSubmit(newQE);
 		newQE.setStatusDetails(SUBMITTING);
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#getJMFHandler(java.lang.String)
 	 */
 	@Override
-	public JMFHandler getJMFHandler(String url)
+	public JMFHandler getJMFHandler(final String url)
 	{
 		return isSlaveURI(url) ? _slaveJmfHandler : super.getJMFHandler(url);
 	}
@@ -1247,13 +1239,13 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	@Override
 	public Vector<JMFHandler> getJMFHandlers()
 	{
-		Vector<JMFHandler> v = super.getJMFHandlers();
+		final Vector<JMFHandler> v = super.getJMFHandlers();
 		v.add(_slaveJmfHandler);
 		return v;
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#preSetup()
 	 */
 	@Override
@@ -1264,6 +1256,25 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		{
 			getBuilderForSlave().setAcknowledgeURL(getDeviceURLForSlave());
 		}
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.AbstractDevice#shutdownHotFolders()
+	 */
+	@Override
+	protected void shutdownHotFolders()
+	{
+		if (slaveJDFError != null)
+		{
+			log.info("Shutting down hotfolder: " + slaveJDFError.getHfDirectory());
+			slaveJDFError.stop();
+		}
+		if (slaveJDFOutput != null)
+		{
+			log.info("Shutting down hotfolder: " + slaveJDFOutput.getHfDirectory());
+			slaveJDFOutput.stop();
+		}
+		super.shutdownHotFolders();
 	}
 
 }

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -1180,14 +1180,23 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			p.shutdown();
 		}
 		_deviceProcessors.clear();
-		if (_submitHotFolder != null)
-		{
-			_submitHotFolder.stop();
-		}
+		shutdownHotFolders();
 
 		if (_theQueueProcessor != null)
 		{
 			_theQueueProcessor.shutdown();
+		}
+	}
+
+	/**
+	 *
+	 */
+	protected void shutdownHotFolders()
+	{
+		if (_submitHotFolder != null)
+		{
+			log.info("Shutting down hotfolder: " + _submitHotFolder.getHfDirectory());
+			_submitHotFolder.stop();
 		}
 	}
 

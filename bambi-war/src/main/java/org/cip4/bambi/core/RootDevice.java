@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 
 package org.cip4.bambi.core;
@@ -117,7 +117,7 @@ public class RootDevice extends AbstractDevice
 	public static final String RELEASE_VERSION_STRING = "ReleaseVersionString";
 	public static final String RELEASE_TIMESTAMP_STRING = "ReleaseTimestampString";
 	/**
-	 * 
+	 *
 	 */
 	private static final String DEVICE_TYPE = "DeviceType";
 	protected final HashMap<String, AbstractDevice> _devices;
@@ -169,12 +169,12 @@ public class RootDevice extends AbstractDevice
 	@Override
 	public VString canAccept(final JDFNode jdf, final String queueEntryID)
 	{
-		VString vs = new VString();
-		Set<String> deviceIDs = _devices.keySet();
-		for (String id : deviceIDs)
+		final VString vs = new VString();
+		final Set<String> deviceIDs = _devices.keySet();
+		for (final String id : deviceIDs)
 		{
 			final AbstractDevice ad = _devices.get(id);
-			VString canAccept = ad.canAccept(jdf, queueEntryID);
+			final VString canAccept = ad.canAccept(jdf, queueEntryID);
 			vs.appendUnique(canAccept);
 		}
 		return vs.size() == 0 ? null : vs;
@@ -210,7 +210,7 @@ public class RootDevice extends AbstractDevice
 		AbstractDevice dev = null;
 		if ((iProp instanceof DeviceProperties) && !deviceTemplates.containsKey(iProp.getDeviceType()))
 		{
-			DeviceProperties prop = (DeviceProperties) iProp;
+			final DeviceProperties prop = (DeviceProperties) iProp;
 			if (prop.isTemplate())
 			{
 				deviceTemplates.put(iProp.getDeviceType(), prop);
@@ -245,10 +245,10 @@ public class RootDevice extends AbstractDevice
 	 */
 	private void updateQERetrieval(final IDeviceProperties prop)
 	{
-		QERetrieval myqeRet = getProperties().getQERetrieval();
+		final QERetrieval myqeRet = getProperties().getQERetrieval();
 		if (!QERetrieval.BOTH.equals(myqeRet))
 		{
-			QERetrieval devqeRet = prop.getQERetrieval();
+			final QERetrieval devqeRet = prop.getQERetrieval();
 			if (!devqeRet.equals(myqeRet))
 			{
 				getProperties().setQERetrieval(QERetrieval.BOTH);
@@ -268,7 +268,7 @@ public class RootDevice extends AbstractDevice
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
@@ -321,13 +321,13 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 * 
+	 *
 	 * Apr 28, 2009
 	 */
 	public class StatusHandler extends RootDispatchHandler
 	{
 		/**
-		 * 
+		 *
 		 */
 		public StatusHandler()
 		{
@@ -351,7 +351,7 @@ public class RootDevice extends AbstractDevice
 		}
 
 		/**
-		 * 
+		 *
 		 * @param response
 		 */
 		private void cleanQueues(final JDFResponse response)
@@ -361,13 +361,13 @@ public class RootDevice extends AbstractDevice
 			if (q != null)
 			{
 				final JDFQueueEntry qe0 = q.getQueueEntry(0);
-				for (KElement eQ : vq)
+				for (final KElement eQ : vq)
 				{
 					final JDFQueue qi = (JDFQueue) eQ;
 					final VElement vQE = qi.getQueueEntryVector();
 					if (vQE != null)
 					{
-						for (KElement qe : vQE)
+						for (final KElement qe : vQE)
 						{
 							q.copyElement(qe, qe0);
 						}
@@ -431,7 +431,7 @@ public class RootDevice extends AbstractDevice
 			if (devs != null)
 			{
 				XMLResponse r = null;
-				for (AbstractDevice dev : devs)
+				for (final AbstractDevice dev : devs)
 				{
 					r = dev.handleGet(request);
 					if (r != null)
@@ -509,10 +509,8 @@ public class RootDevice extends AbstractDevice
 		if (_devices != null)
 		{
 			final Set<String> keys = _devices.keySet();
-			final Iterator<String> it = keys.iterator();
-			while (it.hasNext())
+			for (final String devID : keys)
 			{
-				final String devID = it.next();
 				final AbstractDevice dev = _devices.get(devID);
 				if (dev != null)
 				{
@@ -527,7 +525,7 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * resets this and all child devices
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#reset()
 	 */
 	@Override
@@ -608,7 +606,7 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * remove device
-	 * 
+	 *
 	 * @param deviceID ID of the device to be removed
 	 * @return true if success
 	 */
@@ -623,12 +621,12 @@ public class RootDevice extends AbstractDevice
 		if (getProperties() instanceof DeviceProperties)
 		{
 			final DeviceProperties properties = (DeviceProperties) dev.getProperties();
-			KElement e = properties.getDevRoot();
-			KElement multiRoot = properties.getRoot();
-			String typ = e.getAttribute(DEVICE_TYPE);
+			final KElement e = properties.getDevRoot();
+			final KElement multiRoot = properties.getRoot();
+			final String typ = e.getAttribute(DEVICE_TYPE);
 			if (typ != null)
 			{
-				VElement v = multiRoot.getChildrenByTagName(e.getLocalName(), null, new JDFAttributeMap(DEVICE_TYPE, typ), true, true, 0);
+				final VElement v = multiRoot.getChildrenByTagName(e.getLocalName(), null, new JDFAttributeMap(DEVICE_TYPE, typ), true, true, 0);
 				if (v != null && v.size() > 1)
 				{
 					e.deleteNode();
@@ -644,7 +642,7 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#showDevice(org.cip4.bambi.core.ContainerRequest, boolean)
 	 */
 	@Override
@@ -665,19 +663,19 @@ public class RootDevice extends AbstractDevice
 		listTemplates(listRoot);
 
 		deviceList.setXSLTURL(getXSLT(request));
-		XMLResponse r = new XMLResponse(listRoot);
+		final XMLResponse r = new XMLResponse(listRoot);
 		return r;
 	}
 
 	protected void listTemplates(final KElement listRoot)
 	{
-		Vector<String> types = ContainerUtil.getKeyVector(deviceTemplates);
+		final Vector<String> types = ContainerUtil.getKeyVector(deviceTemplates);
 		if (types != null)
 		{
-			for (String type : types)
+			for (final String type : types)
 			{
-				IDeviceProperties prop = deviceTemplates.get(type);
-				KElement e = listRoot.appendElement("Template");
+				final IDeviceProperties prop = deviceTemplates.get(type);
+				final KElement e = listRoot.appendElement("Template");
 				e.setAttribute(DEVICE_TYPE, type);
 				e.setAttribute("DeviceID", prop.getDeviceID());
 			}
@@ -685,7 +683,7 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
+	 *
 	 * @param request
 	 * @param listRoot
 	 */
@@ -694,7 +692,7 @@ public class RootDevice extends AbstractDevice
 		final AbstractDevice[] devices = getDeviceArray();
 		if (devices != null)
 		{
-			for (AbstractDevice ad : devices)
+			for (final AbstractDevice ad : devices)
 			{
 				final XMLDevice dChild = ad.getXMLDevice(false, request);
 				final KElement childElem = dChild.getRoot();
@@ -705,7 +703,7 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
+	 *
 	 * @param request
 	 * @param deviceList
 	 * @return
@@ -717,7 +715,7 @@ public class RootDevice extends AbstractDevice
 		listRoot.setAttribute(AttributeName.CONTEXT, getContext(request));
 		listRoot.setAttribute("MemFree", Runtime.getRuntime().freeMemory() / 1000 / 1000., null);
 		listRoot.setAttribute("MemTotal", Runtime.getRuntime().totalMemory() / 1000 / 1000., null);
-		MemorySpy memorySpy = new MemorySpy();
+		final MemorySpy memorySpy = new MemorySpy();
 		listRoot.setAttribute("MemPerm", memorySpy.getPermGen(MemScope.current) / 1000 / 1000., null);
 		listRoot.setAttribute("MemCurrent", memorySpy.getHeapUsed(MemScope.current) / 1000 / 1000., null);
 		listRoot.setAttribute(RELEASE_VERSION_STRING, RuntimeProperties.productVersion, null);
@@ -731,10 +729,10 @@ public class RootDevice extends AbstractDevice
 	 * @param listRoot
 	 * @param rootElem
 	 */
-	protected void addMoreToShowDevice(KElement listRoot, KElement rootElem)
+	protected void addMoreToShowDevice(final KElement listRoot, final KElement rootElem)
 	{
-		IDeviceProperties p = getProperties();
-		File baseDir = p == null ? null : p.getBaseDir();
+		final IDeviceProperties p = getProperties();
+		final File baseDir = p == null ? null : p.getBaseDir();
 		if (baseDir != null)
 		{
 			listRoot.setAttribute("BaseDir", baseDir.getAbsolutePath());
@@ -782,11 +780,11 @@ public class RootDevice extends AbstractDevice
 	@Override
 	public String getVersionString()
 	{
-		AbstractDevice[] deviceArray = getDeviceArray();
-		VString devices = new VString();
+		final AbstractDevice[] deviceArray = getDeviceArray();
+		final VString devices = new VString();
 		if (deviceArray != null)
 		{
-			for (AbstractDevice dev : deviceArray)
+			for (final AbstractDevice dev : deviceArray)
 			{
 				if (!(dev instanceof RootDevice))
 				{
@@ -810,11 +808,11 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#handleGet(org.cip4.bambi.core.ContainerRequest)
 	 */
 	@Override
-	public XMLResponse handleGet(ContainerRequest request)
+	public XMLResponse handleGet(final ContainerRequest request)
 	{
 		AbstractDevice newDevice = null;
 		if (request.isMyContext(ADD_DEVICE))
@@ -833,14 +831,14 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * add a device from template from the UI
-	 * 
+	 *
 	 * @param request
 	 * @return
 	 */
-	protected AbstractDevice addDevice(ContainerRequest request)
+	protected AbstractDevice addDevice(final ContainerRequest request)
 	{
-		String type = request.getParameter(DEVICE_TYPE);
-		String newDevID = request.getParameter(AttributeName.DEVICEID);
+		final String type = request.getParameter(DEVICE_TYPE);
+		final String newDevID = request.getParameter(AttributeName.DEVICEID);
 		if (type == null || newDevID == null)
 		{
 			log.error("cannot create new device : id=" + newDevID + " type=" + type);
@@ -848,7 +846,7 @@ public class RootDevice extends AbstractDevice
 		}
 		else
 		{
-			DeviceProperties prop = deviceTemplates.get(type);
+			final DeviceProperties prop = deviceTemplates.get(type);
 			final DeviceProperties newProp;
 			if (newDevID.equals(prop.getDeviceID()))
 			{
@@ -858,16 +856,37 @@ public class RootDevice extends AbstractDevice
 			}
 			else
 			{
-				KElement oldPropElem = prop.getDevRoot();
-				KElement newPropElem = oldPropElem.getParentNode_KElement().copyElement(oldPropElem, null);
+				final KElement oldPropElem = prop.getDevRoot();
+				final KElement newPropElem = oldPropElem.getParentNode_KElement().copyElement(oldPropElem, null);
 				newProp = BambiContainer.getCreateInstance().getProps().createDeviceProps(newPropElem);
 				newProp.setAutoStart(true);
 				newProp.setDeviceID(newDevID);
 				log.info("creating device from " + type + " template" + newDevID);
 			}
-			AbstractDevice newDevice = createDevice(newProp);
+			final AbstractDevice newDevice = createDevice(newProp);
 			newProp.getDevRoot().getOwnerDocument_KElement().write2File((String) null, 2, false);
 			return newDevice;
 		}
+	}
+
+	/**
+	 * overwrite if you want to handle disconnected dumps
+	 * @return
+	 */
+	public boolean isDisconnected()
+	{
+		return false;
+	}
+
+	/**
+	 *
+	 * @param request
+	 * @return
+	 */
+	public XMLResponse processDisconnect(final StreamRequest request)
+	{
+		final XMLResponse xmlResponse = new XMLResponse(null);
+		xmlResponse.setHttpRC(503, "Currently not accepting new requests");
+		return xmlResponse;
 	}
 }

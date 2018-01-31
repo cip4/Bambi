@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -96,11 +96,13 @@ public class XMLResponse extends BambiLogFactory
 	/**
 	 * @param theXML the xml to write - may be null
 	 */
-	public XMLResponse(KElement theXML)
+	public XMLResponse(final KElement theXML)
 	{
 		super();
+		httpRC = 200;
 		this.theXML = theXML;
 		theBuffer = null;
+		notification = null;
 		if (theXML != null)
 		{
 			setContentType(UrlUtil.TEXT_XML);
@@ -110,6 +112,8 @@ public class XMLResponse extends BambiLogFactory
 	private KElement theXML;
 	private ByteArrayIOStream theBuffer;
 	private String contentType;
+	int httpRC;
+	private String notification;
 
 	/**
 	 * @return
@@ -146,7 +150,7 @@ public class XMLResponse extends BambiLogFactory
 	 *
 	 *  @param e the xml to set
 	 */
-	public void setXML(KElement e)
+	public void setXML(final KElement e)
 	{
 		theXML = e;
 		theBuffer = null;
@@ -172,7 +176,7 @@ public class XMLResponse extends BambiLogFactory
 	/**
 	 * @param contentType the contentType to set
 	 */
-	public void setContentType(String contentType)
+	public void setContentType(final String contentType)
 	{
 		this.contentType = contentType;
 	}
@@ -192,7 +196,7 @@ public class XMLResponse extends BambiLogFactory
 	 */
 	public InputStream getInputStream()
 	{
-		XMLDoc d = getXMLDoc();
+		final XMLDoc d = getXMLDoc();
 		if (d != null)
 		{
 			theBuffer = new ByteArrayIOStream();
@@ -200,7 +204,7 @@ public class XMLResponse extends BambiLogFactory
 			{
 				d.write2Stream(theBuffer, 2, false);
 			}
-			catch (IOException x)
+			catch (final IOException x)
 			{
 				theBuffer = null;
 			}
@@ -214,12 +218,12 @@ public class XMLResponse extends BambiLogFactory
 	 */
 	public boolean hasContent()
 	{
-		InputStream is = getInputStream();
+		final InputStream is = getInputStream();
 		try
 		{
 			return is != null && is.read() >= 0;
 		}
-		catch (IOException x)
+		catch (final IOException x)
 		{
 			return false;
 		}
@@ -266,20 +270,28 @@ public class XMLResponse extends BambiLogFactory
 	 *
 	 * @param sr the servlet response to serialize into
 	 */
-	public void writeResponse(HttpServletResponse sr)
+	public void writeResponse(final HttpServletResponse sr)
 	{
 		try
 		{
-			sr.setContentType(getContentType());
-			ServletOutputStream outputStream = sr.getOutputStream();
-			InputStream inputStream = getInputStream(); // note that getInputStream optionally serializes the XMLResponse xml document
-			sr.setContentLength(getContentLength());
-			if (inputStream != null)
+			if (httpRC != 200)
 			{
-				IOUtils.copy(inputStream, outputStream);
+				sr.sendError(httpRC, notification);
+				log.warn("sending rc: " + httpRC + " " + notification);
 			}
-			outputStream.flush();
-			outputStream.close();
+			else
+			{
+				sr.setContentType(getContentType());
+				final ServletOutputStream outputStream = sr.getOutputStream();
+				final InputStream inputStream = getInputStream(); // note that getInputStream optionally serializes the XMLResponse xml document
+				sr.setContentLength(getContentLength());
+				if (inputStream != null)
+				{
+					IOUtils.copy(inputStream, outputStream);
+				}
+				outputStream.flush();
+				outputStream.close();
+			}
 		}
 		catch (final EofException e)
 		{
@@ -289,5 +301,22 @@ public class XMLResponse extends BambiLogFactory
 		{
 			log.error("cannot write to stream: ", e);
 		}
+	}
+
+	/**
+	 * @return the httpRC
+	 */
+	public int getHttpRC()
+	{
+		return httpRC;
+	}
+
+	/**
+	 * @param httpRC the httpRC to set
+	 */
+	public void setHttpRC(final int httpRC, final String notification)
+	{
+		this.httpRC = httpRC;
+		this.notification = notification;
 	}
 }

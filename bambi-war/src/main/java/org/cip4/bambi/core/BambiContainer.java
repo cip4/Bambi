@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -711,6 +711,22 @@ public final class BambiContainer extends ServletContainer
 	protected XMLRequest convertToJMF(final XMLRequest request)
 	{
 		return getRootDev().convertToJMF(request);
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.ServletContainer#processStream(org.cip4.bambi.core.StreamRequest)
+	 */
+	@Override
+	public XMLResponse processStream(final StreamRequest request) throws IOException
+	{
+		if (getRootDevice() != null && getRootDevice().isDisconnected())
+		{
+			return getRootDevice().processDisconnect(request);
+		}
+		else
+		{
+			return super.processStream(request);
+		}
 	}
 
 }
