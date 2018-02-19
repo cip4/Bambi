@@ -3,68 +3,36 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights
- * reserved.
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the
+ * distribution.
  *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        The International Cooperation for the Integration of
- *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
+ * 3. The end-user documentation included with the redistribution, if any, must include the following acknowledgment: "This product includes software developed by the The International Cooperation for
+ * the Integration of Processes in Prepress, Press and Postpress (www.cip4.org)" Alternately, this acknowledgment may appear in the software itself, if and wherever such third-party acknowledgments
+ * normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of
- *    Processes in  Prepress, Press and Postpress" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact info@cip4.org.
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of Processes in Prepress, Press and Postpress" must not be used to endorse or promote products derived from this software
+ * without prior written permission. For written permission, please contact info@cip4.org.
  *
- * 5. Products derived from this software may not be called "CIP4",
- *    nor may "CIP4" appear in their name, without prior written
- *    permission of the CIP4 organization
+ * 5. Products derived from this software may not be called "CIP4", nor may "CIP4" appear in their name, without prior written permission of the CIP4 organization
  *
- * Usage of this software in commercial products is subject to restrictions. For
- * details please consult info@cip4.org.
+ * Usage of this software in commercial products is subject to restrictions. For details please consult info@cip4.org.
  *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
- * THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE. ====================================================================
  *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration
- * of Processes in Prepress, Press and Postpress and was
- * originally based on software
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
- * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
+ * originally based on software copyright (c) 1999-2001, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
  *
- * For more information on The International Cooperation for the
- * Integration of Processes in  Prepress, Press and Postpress , please see
- * <http://www.cip4.org/>.
+ * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
  *
  *
  */
@@ -175,6 +143,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	protected boolean bFilterOnDeviceID;
 	protected AbstractDevice _parentDevice;
 	private long messageCount;
+	private static int warnCount = 0;
 
 	/**
 	 *
@@ -207,6 +176,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 		/**
 		 * create the KnownMessages Response from the internal hashMap
+		 * 
 		 * @param m
 		 * @param resp
 		 *
@@ -216,9 +186,10 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		{
 			/**
 			 * small helper to collect data for filling into messageservice elements
+			 * 
 			 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
 			 *
-			 * Jun 29, 2009
+			 *         Jun 29, 2009
 			 */
 			class MessageStuff
 			{
@@ -228,7 +199,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 				protected MessageStuff()
 				{
-					vFamily = new Vector<EnumFamily>();
+					vFamily = new Vector<>();
 					bSubscribe = false;
 					bAcknowledge = false;
 				}
@@ -244,8 +215,8 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			}
 
 			final Vector<MessageType> vMessageType = ContainerUtil.getKeyVector(messageMap);
-			final HashMap<String, MessageStuff> hTypeFamily = new HashMap<String, MessageStuff>();
-			for (MessageType typ : vMessageType)
+			final HashMap<String, MessageStuff> hTypeFamily = new HashMap<>();
+			for (final MessageType typ : vMessageType)
 			{
 				final IMessageHandler h = messageMap.get(typ);
 				if (hTypeFamily.get(typ.type) == null)
@@ -348,6 +319,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 		/**
 		 * the default is false
+		 * 
 		 * @see org.cip4.bambi.core.messaging.IMessageHandler#isSubScribable()
 		 */
 		@Override
@@ -358,6 +330,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 		/**
 		 * the default is false
+		 * 
 		 * @see org.cip4.bambi.core.messaging.IMessageHandler#isAcknowledge()
 		 */
 		@Override
@@ -383,7 +356,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	public JMFHandler(final AbstractDevice dev)
 	{
 		super();
-		messageMap = new HashMap<MessageType, IMessageHandler>();
+		messageMap = new HashMap<>();
 		_signalDispatcher = null;
 		_parentDevice = dev;
 		addHandler(this.new KnownMessagesHandler());
@@ -406,7 +379,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			log.error("Unknown message type or family in addhandler - bailing out! type=" + typ + " families=" + ArrayUtils.toString(families));
 			return;
 		}
-		for (EnumFamily family : families)
+		for (final EnumFamily family : families)
 		{
 			addHandler(handler, typ, family);
 		}
@@ -418,9 +391,9 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	 * @param typ
 	 * @param family
 	 */
-	public void addHandler(final IMessageHandler handler, final String typ, EnumFamily family)
+	public void addHandler(final IMessageHandler handler, final String typ, final EnumFamily family)
 	{
-		IMessageHandler old = messageMap.put(new MessageType(typ, family), handler);
+		final IMessageHandler old = messageMap.put(new MessageType(typ, family), handler);
 		if (old != null)
 		{
 			log.info(_parentDevice.getDeviceID() + ": removing old IMessageHandler: " + old.getClass().getSimpleName());
@@ -477,7 +450,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			{
 				log.warn("no response provided ??? " + id + " " + m.getFamily() + " " + m.getType());
 			}
-			boolean hasSubscription = _signalDispatcher == null ? false : _signalDispatcher.findSubscription(m, mResp);
+			final boolean hasSubscription = _signalDispatcher == null ? false : _signalDispatcher.findSubscription(m, mResp);
 			if (!hasSubscription)
 			{
 				handleMessage(m, mResp);
@@ -532,14 +505,15 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		{
 			LogFactory.getLog(JMFHandler.class).error("JMF error: rc=" + rc + " " + text);
 		}
-		else
+		else if (warnCount++ < 10 || warnCount % 100 == 0)
 		{
-			LogFactory.getLog(JMFHandler.class).warn("JMF error: rc=" + rc + " " + text);
+			LogFactory.getLog(JMFHandler.class).warn("JMF warning: rc=" + rc + " " + text);
 		}
 	}
 
 	/**
 	 * we do not call these for ourselves...
+	 * 
 	 * @return the list of families
 	 */
 	@Override
@@ -560,6 +534,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 	/**
 	 * the handler implements itself as a generic handler
+	 * 
 	 * @param inputMessage
 	 * @param response
 	 * @return true if handled
@@ -592,8 +567,9 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 			{
 				if (log.isDebugEnabled())
 				{
-					StringBuffer b = new StringBuffer();
-					b.append("handling message #").append(messageCount).append("; family= ").append(inputMessage.getLocalName()).append(" type=").append(inputMessage.getType()).append(" Sender= ").append(inputMessage.getSenderID()).append(" id= ").append(inputMessage.getID());
+					final StringBuffer b = new StringBuffer();
+					b.append("handling message #").append(messageCount).append("; family= ").append(inputMessage.getLocalName()).append(" type=").append(inputMessage.getType()).append(" Sender= ")
+							.append(inputMessage.getSenderID()).append(" id= ").append(inputMessage.getID());
 					log.debug(b.toString());
 				}
 				handled = handler.handleMessage(inputMessage, response);
