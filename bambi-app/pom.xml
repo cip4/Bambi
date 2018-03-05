@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.cip4.tools.bambi</groupId>
 		<artifactId>Bambi</artifactId>
-		<version>Copenhagen-19.03-SNAPSHOT</version>
+		<version>Bologna-18.03-SNAPSHOT</version>
 	</parent>
 
 	<name>CIP4 BambiApp</name>
