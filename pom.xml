@@ -4,7 +4,7 @@
 
 	<groupId>org.cip4.tools.bambi</groupId>
 	<artifactId>Bambi</artifactId>
-	<version>Bologna-18.03-SNAPSHOT</version>
+	<version>Bologna-18.03</version>
 	<packaging>pom</packaging>
 	<name>bambi</name>
 	<url>http://www.cip4.org</url>
@@ -26,7 +26,7 @@
         <url>https://bitbucket.cip4.org/scm/tool/bambi.git</url>
         <developerConnection>scm:git:https://bitbucket.cip4.org/scm/tool/bambi.git</developerConnection>
         <connection>scm:git:https://bitbucket.cip4.org/scm/tool/bambi.git</connection>
-      <tag>HEAD</tag>
+      <tag>Bambi-Bologna-18.03</tag>
   </scm>
 	<issueManagement>
 		<system>JIRA</system>
