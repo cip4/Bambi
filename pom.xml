@@ -116,7 +116,7 @@
 			<dependency>
 				<groupId>org.cip4.lib.jdf</groupId>
 				<artifactId>JDFLibJ</artifactId>
-				<version>2.1.5.91-SNAPSHOT</version>
+				<version>LATEST</version>
 			</dependency>
 			<dependency>
 				<groupId>log4j</groupId>
