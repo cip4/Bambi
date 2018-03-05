@@ -4,7 +4,7 @@
 
 	<groupId>org.cip4.tools.bambi</groupId>
 	<artifactId>Bambi</artifactId>
-	<version>Copenhagen-19.03-SNAPSHOT</version>
+	<version>Bologna-18.03-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>bambi</name>
 	<url>http://www.cip4.org</url>
