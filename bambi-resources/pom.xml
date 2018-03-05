@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>org.cip4.tools.bambi</groupId>
 		<artifactId>Bambi</artifactId>
-		<version>Bologna-18.03</version>
+		<version>Copenhagen-19.03-SNAPSHOT</version>
 	</parent>
 
 	<build>
