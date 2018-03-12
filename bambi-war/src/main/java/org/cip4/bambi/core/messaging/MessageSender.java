@@ -3,68 +3,36 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights
- * reserved.
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the
+ * distribution.
  *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        The International Cooperation for the Integration of
- *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
+ * 3. The end-user documentation included with the redistribution, if any, must include the following acknowledgment: "This product includes software developed by the The International Cooperation for
+ * the Integration of Processes in Prepress, Press and Postpress (www.cip4.org)" Alternately, this acknowledgment may appear in the software itself, if and wherever such third-party acknowledgments
+ * normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of
- *    Processes in  Prepress, Press and Postpress" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact info@cip4.org.
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of Processes in Prepress, Press and Postpress" must not be used to endorse or promote products derived from this software
+ * without prior written permission. For written permission, please contact info@cip4.org.
  *
- * 5. Products derived from this software may not be called "CIP4",
- *    nor may "CIP4" appear in their name, without prior written
- *    permission of the CIP4 organization
+ * 5. Products derived from this software may not be called "CIP4", nor may "CIP4" appear in their name, without prior written permission of the CIP4 organization
  *
- * Usage of this software in commercial products is subject to restrictions. For
- * details please consult info@cip4.org.
+ * Usage of this software in commercial products is subject to restrictions. For details please consult info@cip4.org.
  *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
- * THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE. ====================================================================
  *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration
- * of Processes in Prepress, Press and Postpress and was
- * originally based on software
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
- * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
+ * originally based on software copyright (c) 1999-2001, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
  *
- * For more information on The International Cooperation for the
- * Integration of Processes in  Prepress, Press and Postpress , please see
- * <http://www.cip4.org/>.
+ * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
  *
  *
  */
@@ -142,7 +110,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	private boolean doShutDown = false;
 	protected MessageFiFo _messages;
 	protected FastFiFo<MessageDetails> sentMessages = null;
-	private static VectorMap<String, DumpDir> vDumps = new VectorMap<String, DumpDir>();
+	private static VectorMap<String, DumpDir> vDumps = new VectorMap<>();
 	private final MyMutex mutexDispatch = new MyMutex();
 	private final MyMutex mutexPause = new MyMutex();
 	private int trySend;
@@ -276,8 +244,8 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				removedHeartbeat++;
 				if (myFactory.isLogLots() || removedHeartbeat < 10 || removedHeartbeat % 1000 == 0)
 				{
-					log.info("removed redundant " + old.getType() + " " + old.getLocalName() + " Message ID= " + old.getID() + " Sender= " + old.getSenderID() + "# "
-							+ removedHeartbeat + " / " + checked);
+					log.info("removed redundant " + old.getType() + " " + old.getLocalName() + " Message ID= " + old.getID() + " Sender= " + old.getSenderID() + "# " + removedHeartbeat + " / "
+							+ checked);
 				}
 				final VElement v = jmf.getMessageVector(null, null);
 				if (v == null || v.size() == 0)
@@ -324,7 +292,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		timer = new CPUTimer(false);
 		created = System.currentTimeMillis();
 		_messages = new MessageFiFo(getPersistLocation(true));
-		sentMessages = new FastFiFo<MessageDetails>(42);
+		sentMessages = new FastFiFo<>(42);
 		optimizer = new SenderQueueOptimizer();
 		setJMFFactory(null);
 		created = System.currentTimeMillis();
@@ -413,8 +381,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 							if (_messages.size() > 0)
 							{
 								final long t0 = lastSent == 0 ? startTime : lastSent;
-								log.warn("Still waiting in blocked message thread for " + callURL.getBaseURL() + " unsuccessful for " + ((System.currentTimeMillis() - t0) / 60000l)
-										+ " minutes");
+								log.warn("Still waiting in blocked message thread for " + callURL.getBaseURL() + " unsuccessful for " + ((System.currentTimeMillis() - t0) / 60000l) + " minutes");
 							}
 						}
 						waitKaputt = true;
@@ -448,6 +415,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * write all pending messages to disk
+	 *
 	 * @param clearMessages if true flush me
 	 */
 	private void write2Base(final boolean clearMessages)
@@ -560,8 +528,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	}
 
 	/**
-	 * send the first enqueued message and return true if all went well
-	 * also update any returned responses for Bambi internally
+	 * send the first enqueued message and return true if all went well also update any returned responses for Bambi internally
 	 *
 	 * @return boolean true if the message is assumed sent false if an error was detected and the Message must remain in the queue
 	 */
@@ -651,8 +618,8 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			{
 				if ((System.currentTimeMillis() - mesDetails.createTime) > (1000l * 3600l * 24l * 42l) && (_messages.size() > 1000))
 				{
-					final String warn2 = " - removing prehistoric reliable " + mesDetails.getName() + " message: creation time: "
-							+ new JDFDate(mesDetails.createTime).getDateTimeISO() + " messages pending: " + _messages.size();
+					final String warn2 = " - removing prehistoric reliable " + mesDetails.getName() + " message: creation time: " + new JDFDate(mesDetails.createTime).getDateTimeISO()
+							+ " messages pending: " + _messages.size();
 					warn += warn2;
 					_messages.remove(0);
 					removedError++;
@@ -669,10 +636,6 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			if (needLog)
 			{
 				log.warn(warn);
-			}
-			else
-			{
-				log.info(warn);
 			}
 		}
 		mesDetails.setReturn(sendReturn);
@@ -901,7 +864,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 * stop sending new messages immediately and shut down
 	 *
 	 * @param gracefully true - process remaining messages first, then shut down. <br/>
-	 * false - shut down immediately, skip remaining messages.
+	 *            false - shut down immediately, skip remaining messages.
 	 */
 	public void shutDown(final boolean gracefully)
 	{
@@ -935,6 +898,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	/**
 	 *
 	 * get the in dump for this message
+	 *
 	 * @param senderID
 	 * @return
 	 */
@@ -949,6 +913,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	/**
 	 *
 	 * get the out dump for this message
+	 *
 	 * @param senderID
 	 * @return
 	 */
@@ -1248,6 +1213,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 
 	/**
 	 * check whether we have not sent for longer than deltaTime milliseconds
+	 *
 	 * @param deltaTime time in milliseconds that we need to be blocked
 	 * @param blockSize size below which we never consider ourselves blocked
 	 * @return
