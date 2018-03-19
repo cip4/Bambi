@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -2229,10 +2229,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		JDFQueueEntry newQE;
+		final JDFQueueSubmissionParams qsp = submitQueueEntry.getQueueSubmissionParams(0);
 		synchronized (_theQueue)
 		{
-
-			final JDFQueueSubmissionParams qsp = submitQueueEntry.getQueueSubmissionParams(0);
 			if (qsp == null)
 			{
 				log.error("error submitting new queueentry");
@@ -2263,11 +2262,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 			BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
 			_parentDevice.fixEntry(newQE, theJDF);
-			final DataExtractor dataExtractor = _parentDevice.getDataExtractor(true);
-			if (dataExtractor != null)
-			{
-				dataExtractor.extractFiles(newQE, theJDF);
-			}
+		}
+
+		extractToJob(theJDF, newQE);
+
+		synchronized (_theQueue)
+		{
 			if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
 			{
 				newResponse.setReturnCode(120);
@@ -2279,11 +2279,20 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			notifyListeners(qeID);
 			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID);
 			newQE = getQueueEntry(qeID);
-			prepareSubmit(newQE);
 		}
+		prepareSubmit(newQE);
 		// wait a very short moment to allow any potential processing of the newly created entry to commence, prior to returning the entry
-		ThreadUtil.sleep(42);
+		ThreadUtil.sleep(123);
 		return newQE;
+	}
+
+	protected void extractToJob(final JDFDoc theJDF, final JDFQueueEntry newQE)
+	{
+		final DataExtractor dataExtractor = _parentDevice.getDataExtractor(true);
+		if (dataExtractor != null)
+		{
+			dataExtractor.extractFiles(newQE, theJDF);
+		}
 	}
 
 	/**
