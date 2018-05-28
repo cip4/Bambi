@@ -2,69 +2,37 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights
- * reserved.
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the
+ * distribution.
  *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        The International Cooperation for the Integration of
- *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
+ * 3. The end-user documentation included with the redistribution, if any, must include the following acknowledgment: "This product includes software developed by the The International Cooperation for
+ * the Integration of Processes in Prepress, Press and Postpress (www.cip4.org)" Alternately, this acknowledgment may appear in the software itself, if and wherever such third-party acknowledgments
+ * normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of
- *    Processes in  Prepress, Press and Postpress" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact info@cip4.org.
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of Processes in Prepress, Press and Postpress" must not be used to endorse or promote products derived from this software
+ * without prior written permission. For written permission, please contact info@cip4.org.
  *
- * 5. Products derived from this software may not be called "CIP4",
- *    nor may "CIP4" appear in their name, without prior written
- *    permission of the CIP4 organization
+ * 5. Products derived from this software may not be called "CIP4", nor may "CIP4" appear in their name, without prior written permission of the CIP4 organization
  *
- * Usage of this software in commercial products is subject to restrictions. For
- * details please consult info@cip4.org.
+ * Usage of this software in commercial products is subject to restrictions. For details please consult info@cip4.org.
  *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
- * THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE. ====================================================================
  *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration
- * of Processes in Prepress, Press and Postpress and was
- * originally based on software
- * copyright (c) 1999-2006, Heidelberger Druckmaschinen AG
- * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
+ * originally based on software copyright (c) 1999-2006, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
  *
  *
- * For more information on The International Cooperation for the
- * Integration of Processes in  Prepress, Press and Postpress , please see
- * <http://www.cip4.org/>.
+ * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
  *
  *
  */
@@ -113,6 +81,16 @@ public class MsgSubscription implements Cloneable
 	protected String url;
 	protected int repeatAmount, lastAmount;
 	EnumVersion version;
+
+	/**
+	 *
+	 * @return
+	 */
+	public EnumVersion getVersion()
+	{
+		return version;
+	}
+
 	/**
 	 * the last successful submission
 	 */
@@ -138,7 +116,7 @@ public class MsgSubscription implements Cloneable
 	 * @param m
 	 * @param qeid
 	 */
-	MsgSubscription(SignalDispatcher signalDispatcher, final IJMFSubscribable m, final String qeid)
+	MsgSubscription(final SignalDispatcher signalDispatcher, final IJMFSubscribable m, final String qeid)
 	{
 		this(signalDispatcher);
 		final JDFSubscription sub = m.getSubscription();
@@ -148,7 +126,7 @@ public class MsgSubscription implements Cloneable
 			channelID = null;
 			return;
 		}
-		KElement root = sub.getDocRoot();
+		final KElement root = sub.getDocRoot();
 		version = EnumVersion.getEnum(root.getNonEmpty(AttributeName.MAXVERSION));
 		if (version == null)
 		{
@@ -184,8 +162,8 @@ public class MsgSubscription implements Cloneable
 
 	/**
 	 * get all signals that correspond to this subscription
-	 * @return the jmf element that contains any signals generated by this subscription
-	 * null if no signals were generated
+	 *
+	 * @return the jmf element that contains any signals generated by this subscription null if no signals were generated
 	 */
 	protected JDFJMF getSignal()
 	{
@@ -226,7 +204,7 @@ public class MsgSubscription implements Cloneable
 			}
 			for (int i = 0; i < nSignals; i++)
 			{
-				JDFSignal s = jmf.getSignal(i);
+				final JDFSignal s = jmf.getSignal(i);
 				jmfOut.copyElement(s, null);
 			}
 			jmfOut = filterSenders(jmfOut);
@@ -248,12 +226,12 @@ public class MsgSubscription implements Cloneable
 
 	protected void updateChannelMode(final JDFJMF jmfOut)
 	{
-		JDFSubscription subscription = ((JDFQuery) theMessage).getSubscription();
-		String channelMode = subscription.getAttribute(AttributeName.CHANNELMODE, null, null);
+		final JDFSubscription subscription = ((JDFQuery) theMessage).getSubscription();
+		final String channelMode = subscription.getAttribute(AttributeName.CHANNELMODE, null, null);
 		if (channelMode != null)
 		{
-			Vector<JDFSignal> signals = jmfOut.getChildrenByClass(JDFSignal.class, false, 0);
-			for (JDFSignal s : signals)
+			final Vector<JDFSignal> signals = jmfOut.getChildrenByClass(JDFSignal.class, false, 0);
+			for (final JDFSignal s : signals)
 			{
 				s.setAttribute(AttributeName.CHANNELMODE, channelMode);
 			}
@@ -309,7 +287,7 @@ public class MsgSubscription implements Cloneable
 	@Override
 	public MsgSubscription clone()
 	{
-		MsgSubscription c = new MsgSubscription(this.signalDispatcher);
+		final MsgSubscription c = new MsgSubscription(this.signalDispatcher);
 		c.version = version;
 		c.channelID = channelID;
 		c.lastAmount = lastAmount;
@@ -421,10 +399,11 @@ public class MsgSubscription implements Cloneable
 	 * creates a MsgSubscription
 	 *
 	 * - must be maintained in synch with @see setXML (duh...)
+	 *
 	 * @param signalDispatcher TODO
 	 *
 	 */
-	MsgSubscription(SignalDispatcher signalDispatcher)
+	MsgSubscription(final SignalDispatcher signalDispatcher)
 	{
 		this.signalDispatcher = signalDispatcher;
 		log = LogFactory.getLog(getClass());
@@ -438,7 +417,7 @@ public class MsgSubscription implements Cloneable
 		lastAmount = 0;
 		lastTime = 0;
 		lastTime = 0;
-		lastSentJMF = new FastFiFo<JDFJMF>(10);
+		lastSentJMF = new FastFiFo<>(10);
 		callback = null;
 		version = null;
 	}
@@ -447,10 +426,11 @@ public class MsgSubscription implements Cloneable
 	 * creates a MsgSubscription from an XML element
 	 *
 	 * - must be maintained in synch with @see setXML (duh...)
+	 *
 	 * @param sub
 	 * @param signalDispatcher
 	 */
-	MsgSubscription(SignalDispatcher signalDispatcher, final KElement sub)
+	MsgSubscription(final SignalDispatcher signalDispatcher, final KElement sub)
 	{
 		this(signalDispatcher);
 		channelID = sub.getAttribute(AttributeName.CHANNELID, null, null);
@@ -609,7 +589,7 @@ public class MsgSubscription implements Cloneable
 	 *
 	 * @param callback
 	 */
-	public void setCallback(IConverterCallback callback)
+	public void setCallback(final IConverterCallback callback)
 	{
 		this.callback = callback;
 		if (callback instanceof ConverterCallback)
@@ -623,7 +603,7 @@ public class MsgSubscription implements Cloneable
 		return specific;
 	}
 
-	public static void setSpecific(boolean specific)
+	public static void setSpecific(final boolean specific)
 	{
 		MsgSubscription.specific = specific;
 	}
@@ -635,7 +615,7 @@ public class MsgSubscription implements Cloneable
 	public String toString()
 	{
 		return "MsgSubscription [" + (channelID != null ? "channelID=" + channelID + ", " : "") + (queueEntry != null ? "queueEntry=" + queueEntry + ", " : "")
-				+ (url != null ? "url=" + url + ", " : "") + (version != null ? "version=" + version + ", " : "") + "lastTime=" + lastTime + ", lastTry=" + lastTry
-				+ ", repeatTime=" + repeatTime + ", " + (jmfDeviceID != null ? "jmfDeviceID=" + jmfDeviceID : "") + "]";
+				+ (url != null ? "url=" + url + ", " : "") + (version != null ? "version=" + version + ", " : "") + "lastTime=" + lastTime + ", lastTry=" + lastTry + ", repeatTime=" + repeatTime
+				+ ", " + (jmfDeviceID != null ? "jmfDeviceID=" + jmfDeviceID : "") + "]";
 	}
 }

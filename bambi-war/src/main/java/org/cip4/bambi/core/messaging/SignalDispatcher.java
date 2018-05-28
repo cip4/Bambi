@@ -2,69 +2,37 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights
- * reserved.
+ * Copyright (c) 2001-2017 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the
+ * distribution.
  *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        The International Cooperation for the Integration of
- *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
+ * 3. The end-user documentation included with the redistribution, if any, must include the following acknowledgment: "This product includes software developed by the The International Cooperation for
+ * the Integration of Processes in Prepress, Press and Postpress (www.cip4.org)" Alternately, this acknowledgment may appear in the software itself, if and wherever such third-party acknowledgments
+ * normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of
- *    Processes in  Prepress, Press and Postpress" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact info@cip4.org.
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of Processes in Prepress, Press and Postpress" must not be used to endorse or promote products derived from this software
+ * without prior written permission. For written permission, please contact info@cip4.org.
  *
- * 5. Products derived from this software may not be called "CIP4",
- *    nor may "CIP4" appear in their name, without prior written
- *    permission of the CIP4 organization
+ * 5. Products derived from this software may not be called "CIP4", nor may "CIP4" appear in their name, without prior written permission of the CIP4 organization
  *
- * Usage of this software in commercial products is subject to restrictions. For
- * details please consult info@cip4.org.
+ * Usage of this software in commercial products is subject to restrictions. For details please consult info@cip4.org.
  *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
- * THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE. ====================================================================
  *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration
- * of Processes in Prepress, Press and Postpress and was
- * originally based on software
- * copyright (c) 1999-2006, Heidelberger Druckmaschinen AG
- * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
+ * originally based on software copyright (c) 1999-2006, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
  *
  *
- * For more information on The International Cooperation for the
- * Integration of Processes in  Prepress, Press and Postpress , please see
- * <http://www.cip4.org/>.
+ * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
  *
  *
  */
@@ -139,6 +107,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * set the case insensitive url pattern to be ignored for subscriptions
+	 * 
 	 * @param _ignoreURL the pattern to ignore;
 	 */
 	public void setIgnoreURL(final String _ignoreURL)
@@ -477,6 +446,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 		/**
 		 * queue a message in the appropriate sender
+		 * 
 		 * @param sub
 		 */
 		protected void queueMessageInSender(final MsgSubscription sub)
@@ -503,15 +473,15 @@ public class SignalDispatcher extends BambiLogFactory
 					if ((sentMessages < 10) || ((sentMessages % 1000) == 0))
 					{
 						final Map<String, Long> memMap = new MemorySpy().getSummaryMap();
-						log.info("Sent message# " + sentMessages + "to URL: " + url + JDFConstants.BLANK + timer.getSingleSummary() + JDFConstants.BLANK + "mem used: "
-								+ memMap.get("Current") + JDFConstants.SLASH + memMap.get("Total"));
+						log.info("Sent message# " + sentMessages + "to URL: " + url + JDFConstants.BLANK + timer.getSingleSummary() + JDFConstants.BLANK + "mem used: " + memMap.get("Current")
+								+ JDFConstants.SLASH + memMap.get("Total"));
 					}
 				}
 			}
 			catch (final Throwable t)
 			{
 				log.error("Exception while queueing message", t);
-				//cool down
+				// cool down
 				ThreadUtil.sleep(4242);
 			}
 
@@ -524,14 +494,15 @@ public class SignalDispatcher extends BambiLogFactory
 
 		/**
 		 * get the triggered subscriptions, either forced (amount=-1) or by amount
+		 * 
 		 * @return the vector of triggered subscriptions
 		 */
 		protected Vector<MsgSubscription> getTriggerSubscriptions()
 		{
 			synchronized (triggers)
 			{
-				final Vector<MsgSubscription> v = new Vector<MsgSubscription>();
-				final Vector<Trigger> vSnafu = new Vector<Trigger>();
+				final Vector<MsgSubscription> v = new Vector<>();
+				final Vector<Trigger> vSnafu = new Vector<>();
 				final Iterator<Trigger> it = triggers.iterator(); // active triggers
 				while (it.hasNext())
 				{
@@ -592,7 +563,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 		protected Vector<MsgSubscription> getTimeSubscriptions()
 		{
-			final Vector<MsgSubscription> subVector = new Vector<MsgSubscription>();
+			final Vector<MsgSubscription> subVector = new Vector<>();
 			synchronized (subscriptionMap)
 			{
 				final Iterator<Entry<String, MsgSubscription>> it = subscriptionMap.entrySet().iterator();
@@ -786,6 +757,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * constructor
+	 * 
 	 * @param
 	 * @param dev device for this ID of the device this SignalHandler is working for.
 	 */
@@ -796,9 +768,9 @@ public class SignalDispatcher extends BambiLogFactory
 		{
 			log.error("Creating SignalDispatcher for null device");
 		}
-		subscriptionMap = new HashMap<String, MsgSubscription>();
+		subscriptionMap = new HashMap<>();
 		storage = new SubscriptionStore(this, dev == null ? null : dev.getDeviceDir());
-		triggers = new Vector<Trigger>();
+		triggers = new Vector<>();
 		mutex = new MyMutex();
 		theDispatcher = getDispatcher();
 		doShutdown = false;
@@ -817,6 +789,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * check any prehistoric subscriptions that no longer work and zapp them
+	 * 
 	 * @param sub the subscription
 	 */
 	protected boolean checkStaleSubscription(final MsgSubscription sub)
@@ -852,6 +825,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * find subscriptions in a message and add them if appropriate
+	 * 
 	 * @param m
 	 * @param resp
 	 * @return true if we have a subscription
@@ -923,6 +897,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * add a subscription - returns the slaveChannelID of the new subscription, null if snafu
+	 * 
 	 * @param subMess the subscription message - one of query or registration
 	 * @param queueEntryID the associated QueueEntryID, may be null.
 	 * @return the slaveChannelID of the subscription, if successful, else null
@@ -1003,6 +978,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * add a subscription returns the slaveChannelID of the new subscription, null if snafu
+	 * 
 	 * @param node the node to search for inline jmfs
 	 * @param queueEntryID the associated QueueEntryID, may be null.
 	 * @return the channelIDs of the subscriptions, if successful, else null
@@ -1078,12 +1054,24 @@ public class SignalDispatcher extends BambiLogFactory
 	 */
 	public JDFMessage getSubscriptionMessage(final String channelID)
 	{
-		final MsgSubscription msgSubscription = subscriptionMap.get(channelID);
+		final MsgSubscription msgSubscription = getSubscription(channelID);
 		return msgSubscription == null ? null : msgSubscription.theMessage;
 	}
 
 	/**
+	 *
+	 * @param channelID
+	 * @return
+	 */
+	public MsgSubscription getSubscription(final String channelID)
+	{
+		final MsgSubscription msgSubscription = subscriptionMap.get(channelID);
+		return msgSubscription;
+	}
+
+	/**
 	 * remove a know subscription by channelid
+	 * 
 	 * @param channelID the channelID of the subscription to remove
 	 * @return the removed subscription, null if nothing was removed
 	 */
@@ -1126,6 +1114,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * remove a know subscription by queueEntryID
+	 * 
 	 * @param queueEntryID the queueEntryID of the subscriptions to remove
 	 * @param url url of subscriptions to zapp
 	 * @param messageType TODO
@@ -1133,7 +1122,7 @@ public class SignalDispatcher extends BambiLogFactory
 	 */
 	public Vector<MsgSubscription> removeSubScriptions(final String queueEntryID, final String url, final String messageType)
 	{
-		final Vector<MsgSubscription> vSubs = new Vector<MsgSubscription>();
+		final Vector<MsgSubscription> vSubs = new Vector<>();
 		synchronized (subscriptionMap)
 		{
 			final VString v = getSubscriptionKeys(queueEntryID, url, messageType);
@@ -1204,6 +1193,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * trigger a subscription based on slave ChannelID
+	 * 
 	 * @param channelID the channelid of the channel to trigger
 	 * @param queueEntryID the queuentryid of the active queueentry
 	 * @param nodeIdentifier the nodeIdentifier of the active task
@@ -1214,7 +1204,7 @@ public class SignalDispatcher extends BambiLogFactory
 	 */
 	public Trigger triggerChannel(final String channelID, final String queueEntryID, final NodeIdentifier nodeIdentifier, final int amount, final boolean last, final boolean ignoreIfTime)
 	{
-		final MsgSubscription subscription = subscriptionMap.get(channelID);
+		final MsgSubscription subscription = getSubscription(channelID);
 		Trigger tNew = null;
 		if (subscription != null)
 		{
@@ -1263,6 +1253,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * get a trigger from triggers, if it is in there, else null
+	 * 
 	 * @param newTrigger
 	 * @return
 	 */
@@ -1284,6 +1275,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * trigger a subscription based on queuentryID
+	 * 
 	 * @param queueEntryID the queuentryid of the active queueentry
 	 * @param nodeID the nodeIdentifier of the active task
 	 * @param amount the amount produced since the last call, 0 if unknown, -1 for a global trigger
@@ -1322,6 +1314,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * add all JMF handlers that this dispatcher can handle
+	 * 
 	 * @param jmfHandler
 	 */
 	public void addHandlers(final IJMFHandler jmfHandler)
@@ -1345,6 +1338,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * the number of currently active subscriptions
+	 * 
 	 * @return
 	 */
 	public int size()
@@ -1372,6 +1366,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * return all subscription channels for a given message type and device id
+	 * 
 	 * @param typ the message type filter
 	 * @param senderID the senderid filter
 	 * @param queueEntryID
@@ -1379,7 +1374,7 @@ public class SignalDispatcher extends BambiLogFactory
 	 */
 	public Set<String> getChannels(final EnumType typ, final String senderID, final String queueEntryID)
 	{
-		final Set<String> keySet2 = new HashSet<String>();
+		final Set<String> keySet2 = new HashSet<>();
 		final String typNam = typ == null ? null : typ.getName();
 		synchronized (subscriptionMap)
 		{
@@ -1423,7 +1418,7 @@ public class SignalDispatcher extends BambiLogFactory
 	/**
 	 * @see java.lang.Object#toString()
 	 * @return
-	*/
+	 */
 	@Override
 	public String toString()
 	{
