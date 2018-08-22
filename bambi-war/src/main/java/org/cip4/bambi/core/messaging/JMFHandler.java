@@ -80,8 +80,8 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 	protected class MessageType
 	{
-		public String type;
-		public EnumFamily family;
+		public final String type;
+		public final EnumFamily family;
 
 		/**
 		 * @param typ
@@ -176,7 +176,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 		/**
 		 * create the KnownMessages Response from the internal hashMap
-		 * 
+		 *
 		 * @param m
 		 * @param resp
 		 *
@@ -186,7 +186,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		{
 			/**
 			 * small helper to collect data for filling into messageservice elements
-			 * 
+			 *
 			 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
 			 *
 			 *         Jun 29, 2009
@@ -319,7 +319,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 		/**
 		 * the default is false
-		 * 
+		 *
 		 * @see org.cip4.bambi.core.messaging.IMessageHandler#isSubScribable()
 		 */
 		@Override
@@ -330,7 +330,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 		/**
 		 * the default is false
-		 * 
+		 *
 		 * @see org.cip4.bambi.core.messaging.IMessageHandler#isAcknowledge()
 		 */
 		@Override
@@ -513,7 +513,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 	/**
 	 * we do not call these for ourselves...
-	 * 
+	 *
 	 * @return the list of families
 	 */
 	@Override
@@ -534,7 +534,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 
 	/**
 	 * the handler implements itself as a generic handler
-	 * 
+	 *
 	 * @param inputMessage
 	 * @param response
 	 * @return true if handled

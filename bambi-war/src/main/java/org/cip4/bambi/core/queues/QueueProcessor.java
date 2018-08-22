@@ -3,68 +3,36 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights
- * reserved.
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the
+ * distribution.
  *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        The International Cooperation for the Integration of
- *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
+ * 3. The end-user documentation included with the redistribution, if any, must include the following acknowledgment: "This product includes software developed by the The International Cooperation for
+ * the Integration of Processes in Prepress, Press and Postpress (www.cip4.org)" Alternately, this acknowledgment may appear in the software itself, if and wherever such third-party acknowledgments
+ * normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of
- *    Processes in  Prepress, Press and Postpress" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact info@cip4.org.
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of Processes in Prepress, Press and Postpress" must not be used to endorse or promote products derived from this software
+ * without prior written permission. For written permission, please contact info@cip4.org.
  *
- * 5. Products derived from this software may not be called "CIP4",
- *    nor may "CIP4" appear in their name, without prior written
- *    permission of the CIP4 organization
+ * 5. Products derived from this software may not be called "CIP4", nor may "CIP4" appear in their name, without prior written permission of the CIP4 organization
  *
- * Usage of this software in commercial products is subject to restrictions. For
- * details please consult info@cip4.org.
+ * Usage of this software in commercial products is subject to restrictions. For details please consult info@cip4.org.
  *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
- * THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE. ====================================================================
  *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration
- * of Processes in Prepress, Press and Postpress and was
- * originally based on software
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
- * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
+ * originally based on software copyright (c) 1999-2001, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
  *
- * For more information on The International Cooperation for the
- * Integration of Processes in  Prepress, Press and Postpress , please see
- * <http://www.cip4.org/>.
+ * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
  *
  *
  */
@@ -165,9 +133,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * class that handles queue differences
+	 *
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
 	 *
-	 * July 6, 2009
+	 *         July 6, 2009
 	 */
 	protected class QueueDelta implements Runnable
 	{
@@ -270,9 +239,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 */
 		public SlaveQueueMap()
 		{
-			slaveQeIDMap = new HashMap<String, JDFQueueEntry>();
-			niMap = new HashMap<NodeIdentifier, JDFQueueEntry>();
-			niNull = new HashSet<NodeIdentifier>();
+			slaveQeIDMap = new HashMap<>();
+			niMap = new HashMap<>();
+			niNull = new HashSet<>();
 			fill(_theQueue);
 		}
 
@@ -371,6 +340,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		/**
 		 * remove a slave qe from the map
+		 *
 		 * @param qe
 		 */
 		protected void removeEntry(final JDFQueueEntry qe)
@@ -406,7 +376,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 *
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
 	 *
-	 * July 6, 2009
+	 *         July 6, 2009
 	 */
 	protected class CanExecuteCallBack extends ExecuteCallback
 	{
@@ -701,7 +671,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
 	 *
-	 * July 10, 2009
+	 *         July 10, 2009
 	 */
 	public class NewJDFQueryHandler extends AbstractHandler
 	{
@@ -771,9 +741,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * public in order to enable reference from updating devices
+	 *
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
 	 *
-	 * 03.12.2008
+	 *         03.12.2008
 	 */
 	public class QueueStatusHandler extends AbstractHandler
 	{
@@ -928,8 +899,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				abortSingleEntry(m, resp, qe); // abort before removing
 			}
 			status = qe.getQueueEntryStatus();
-			if (EnumQueueEntryStatus.Held.equals(status) || EnumQueueEntryStatus.Waiting.equals(status) || EnumQueueEntryStatus.Completed.equals(status)
-					|| EnumQueueEntryStatus.Aborted.equals(status) || EnumQueueEntryStatus.Suspended.equals(status))
+			if (EnumQueueEntryStatus.Held.equals(status) || EnumQueueEntryStatus.Waiting.equals(status) || EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status)
+					|| EnumQueueEntryStatus.Suspended.equals(status))
 			{
 				final String queueEntryID = qe.getQueueEntryID();
 				JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, null, null); // use null to flag a removal
@@ -1078,7 +1049,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
 	 *
-	 * 03.12.2008
+	 *         03.12.2008
 	 */
 	protected abstract class ModifyQueueStatusHandler extends AbstractHandler
 	{
@@ -1409,6 +1380,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		/**
 		 * the filter is case insensitive
+		 *
 		 * @param sortBy
 		 * @param filter the regexp to filter by (.)* is added before and after the filter
 		 * @return
@@ -1465,6 +1437,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		/**
 		 * filter the queue by string
+		 *
 		 * @param root
 		 * @param filter
 		 * @return
@@ -1523,6 +1496,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		/**
 		 * TODO add support for next
+		 *
 		 * @param i
 		 * @return
 		 */
@@ -1717,7 +1691,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			if (EnumType.SubmissionMethods.equals(typ))
 			{
 				final JDFSubmissionMethods sm = resp.appendSubmissionMethods();
-				final Vector<EnumPackaging> v = new Vector<EnumPackaging>();
+				final Vector<EnumPackaging> v = new Vector<>();
 				v.add(EnumPackaging.MIME);
 				sm.setPackaging(v);
 				sm.setURLSchemes(new VString("http,file", ","));
@@ -1778,10 +1752,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		log.info("Creating queueProcessor");
 		nextPush = null;
 		_parentDevice = theParentDevice;
-		_listeners = new Vector<MyMutex>();
-		deltaMap = new HashMap<String, QueueDelta>();
+		_listeners = new Vector<>();
+		deltaMap = new HashMap<>();
 		slaveQueueMap = new SlaveQueueMap();
-		_mutexMap = new MutexMap<String>();
+		_mutexMap = new MutexMap<>();
 		init();
 	}
 
@@ -1963,6 +1937,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * get a qe by nodeidentifier - all Entries are evaluated
+	 *
 	 * @param slaveQueueEntryID the qeid in the context of the slave device
 	 * @param nodeID the JDFNode.NodeIdentifier
 	 * @return the queue entry
@@ -2025,6 +2000,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * get the next queue entry only waiting entries that have not been forwarded to a lower level device are taken into account
+	 *
 	 * @param deviceID
 	 * @param canPush
 	 * @return the next queue entry
@@ -2169,6 +2145,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * add a listner object that is notified of queue changes
+	 *
 	 * @param listner
 	 */
 	public void addListener(final MyMutex listner)
@@ -2188,6 +2165,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * returns null if the device cannot process the jdf ticket
+	 *
 	 * @param jdf
 	 * @param queueEntryID may be null in case of a new submission
 	 * @return list of valid deviceIDS if any, else null if none
@@ -2297,6 +2275,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * prepare qe for submission
+	 *
 	 * @param newQE
 	 */
 	protected void prepareSubmit(final JDFQueueEntry newQE)
@@ -2327,7 +2306,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		newQEReal.copyInto(newQE, false);
 		slaveQueueMap.addEntry(newQEReal, true);
-		BambiNotifyDef.getInstance().notifyDeviceJobAdded(_theQueue.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(), newQEReal.getSubmissionTime().getTimeInMillis());
+		BambiNotifyDef.getInstance().notifyDeviceJobAdded(_theQueue.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(),
+				newQEReal.getSubmissionTime().getTimeInMillis());
 		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
 
 		final boolean ok = storeJDF(theJDF, newQEID);
@@ -2351,6 +2331,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	/**
 	 *
 	 * store the JDF again
+	 *
 	 * @param theJDF
 	 * @param newQEID
 	 * @return
@@ -2384,7 +2365,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		synchronized (_theQueue)
 		{
 			crap = FileUtil.listFilesWithExtension(_parentDevice.getJDFDir(), "jdf");
-			hs = new HashSet<File>();
+			hs = new HashSet<>();
 			final VElement v = _theQueue.getQueueEntryVector();
 			for (int i = 0; i < v.size(); i++)
 			{
@@ -2435,6 +2416,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * make the memory queue persistent
+	 *
 	 * @return true if ok
 	 */
 	@Override
@@ -2616,7 +2598,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			q.setQueueSize(slaveQueueMap.size());
 		}
-		//we have an empty queue
+		// we have an empty queue
 		removeBambiNSExtensions(q);
 		if (qf != null && EnumUpdateGranularity.ChangesOnly.equals(qf.getUpdateGranularity()) && q.getQueueEntry(0) == null)
 		{
@@ -2703,7 +2685,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		return queueEntryReturn.returnQueueEntry(finishedNodes, docJDF);
 	}
 
-	private class QueueEntryReturn
+	class QueueEntryReturn
 	{
 		final JDFQueueEntry qe;
 		final IDeviceProperties properties;
@@ -2758,14 +2740,21 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			if (EnumNodeStatus.Completed.equals(qe.getStatus()))
 			{
 				returnQEParams.setCompleted(finishedNodes);
+				log.info("Received return request for completed entry: " + queueEntryID);
 			}
 			else if (EnumNodeStatus.Aborted.equals(qe.getStatus()))
 			{
 				returnQEParams.setAborted(finishedNodes);
 				bAborted = true;
 				setNodesAborted(docJDF, finishedNodes);
+				log.info("Received return request for aborted entry: " + queueEntryID);
 			}
 
+			return reallyReturn(docJDF, jmf, bAborted);
+		}
+
+		boolean reallyReturn(JDFDoc docJDF, final JDFJMF jmf, final boolean bAborted)
+		{
 			boolean bOK = false;
 			_parentDevice.flush();
 
@@ -2944,6 +2933,15 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			notificationComment.setText("Node aborted in queue entry: " + qe.getQueueEntryID());
 			log.warn("Node aborted in queue entry: " + qe.getQueueEntryID());
 		}
+
+		/**
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString()
+		{
+			return "QueueEntryReturn [status=" + qe.getQueueEntryStatus() + ", queueEntryID=" + queueEntryID + "]";
+		}
 	}
 
 	/**
@@ -3031,6 +3029,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * remove all Bambi namespace extensions from a given queue
+	 *
 	 * @param queue the queue to filter
 	 *
 	 */
@@ -3073,6 +3072,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * hook to overwrite the ShowXJDFHandler
+	 *
 	 * @return
 	 */
 	protected ShowXJDFHandler getShowXJDFHandler()
@@ -3082,6 +3082,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	/**
 	 * hook to overwrite the ShowJDFHandler
+	 *
 	 * @return
 	 */
 	protected ShowJDFHandler getShowJDFHandler()

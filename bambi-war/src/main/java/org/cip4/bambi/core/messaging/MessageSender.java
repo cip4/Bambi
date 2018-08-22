@@ -686,7 +686,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		}
 		catch (final IllegalArgumentException e)
 		{
-			log.error("Invalid stream " + e.getMessage());
+			log.warn("Invalid stream " + e.getMessage());
 			return SendReturn.removed;
 
 		}
