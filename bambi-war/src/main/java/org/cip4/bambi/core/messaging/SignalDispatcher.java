@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -96,7 +96,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
 public class SignalDispatcher extends BambiLogFactory
 {
 	protected final HashMap<String, MsgSubscription> subscriptionMap; // map of slaveChannelID / Subscription
-	private final SubscriptionStore storage;
+	protected final SubscriptionStore storage;
 	protected final Vector<Trigger> triggers;
 	protected final MyMutex mutex;
 	private boolean doShutdown;
@@ -107,7 +107,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * set the case insensitive url pattern to be ignored for subscriptions
-	 * 
+	 *
 	 * @param _ignoreURL the pattern to ignore;
 	 */
 	public void setIgnoreURL(final String _ignoreURL)
@@ -446,7 +446,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 		/**
 		 * queue a message in the appropriate sender
-		 * 
+		 *
 		 * @param sub
 		 */
 		protected void queueMessageInSender(final MsgSubscription sub)
@@ -494,7 +494,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 		/**
 		 * get the triggered subscriptions, either forced (amount=-1) or by amount
-		 * 
+		 *
 		 * @return the vector of triggered subscriptions
 		 */
 		protected Vector<MsgSubscription> getTriggerSubscriptions()
@@ -757,7 +757,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * constructor
-	 * 
+	 *
 	 * @param
 	 * @param dev device for this ID of the device this SignalHandler is working for.
 	 */
@@ -789,7 +789,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * check any prehistoric subscriptions that no longer work and zapp them
-	 * 
+	 *
 	 * @param sub the subscription
 	 */
 	protected boolean checkStaleSubscription(final MsgSubscription sub)
@@ -825,7 +825,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * find subscriptions in a message and add them if appropriate
-	 * 
+	 *
 	 * @param m
 	 * @param resp
 	 * @return true if we have a subscription
@@ -897,7 +897,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * add a subscription - returns the slaveChannelID of the new subscription, null if snafu
-	 * 
+	 *
 	 * @param subMess the subscription message - one of query or registration
 	 * @param queueEntryID the associated QueueEntryID, may be null.
 	 * @return the slaveChannelID of the subscription, if successful, else null
@@ -978,7 +978,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * add a subscription returns the slaveChannelID of the new subscription, null if snafu
-	 * 
+	 *
 	 * @param node the node to search for inline jmfs
 	 * @param queueEntryID the associated QueueEntryID, may be null.
 	 * @return the channelIDs of the subscriptions, if successful, else null
@@ -1071,7 +1071,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * remove a know subscription by channelid
-	 * 
+	 *
 	 * @param channelID the channelID of the subscription to remove
 	 * @return the removed subscription, null if nothing was removed
 	 */
@@ -1114,7 +1114,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * remove a know subscription by queueEntryID
-	 * 
+	 *
 	 * @param queueEntryID the queueEntryID of the subscriptions to remove
 	 * @param url url of subscriptions to zapp
 	 * @param messageType TODO
@@ -1193,7 +1193,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * trigger a subscription based on slave ChannelID
-	 * 
+	 *
 	 * @param channelID the channelid of the channel to trigger
 	 * @param queueEntryID the queuentryid of the active queueentry
 	 * @param nodeIdentifier the nodeIdentifier of the active task
@@ -1253,7 +1253,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * get a trigger from triggers, if it is in there, else null
-	 * 
+	 *
 	 * @param newTrigger
 	 * @return
 	 */
@@ -1275,7 +1275,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * trigger a subscription based on queuentryID
-	 * 
+	 *
 	 * @param queueEntryID the queuentryid of the active queueentry
 	 * @param nodeID the nodeIdentifier of the active task
 	 * @param amount the amount produced since the last call, 0 if unknown, -1 for a global trigger
@@ -1314,7 +1314,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * add all JMF handlers that this dispatcher can handle
-	 * 
+	 *
 	 * @param jmfHandler
 	 */
 	public void addHandlers(final IJMFHandler jmfHandler)
@@ -1338,7 +1338,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * the number of currently active subscriptions
-	 * 
+	 *
 	 * @return
 	 */
 	public int size()
@@ -1366,7 +1366,7 @@ public class SignalDispatcher extends BambiLogFactory
 
 	/**
 	 * return all subscription channels for a given message type and device id
-	 * 
+	 *
 	 * @param typ the message type filter
 	 * @param senderID the senderid filter
 	 * @param queueEntryID

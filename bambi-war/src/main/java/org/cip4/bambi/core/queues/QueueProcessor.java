@@ -2769,7 +2769,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				docJDF = _parentDevice.getCallback(null).updateJDFForExtern(docJDF);
 			}
 			final String returnURL = BambiNSExtension.getReturnURL(qe);
-			if (!bOK && returnURL != null)
+			if (!bOK && returnURL != null && docJDF != null)
 			{
 				bOK = returnJDFUrl(docJDF);
 			}

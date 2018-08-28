@@ -210,7 +210,7 @@ public class ConverterCallbackTest extends BambiTestCaseBase
 		final ConverterCallback cb = new ConverterCallback();
 		cb.setFixToExtern(EnumVersion.Version_2_0);
 		assertNull(cb.exportXJDF(null));
-		assertNull(cb.exportXJDF(new JDFDoc(ElementName.JDF)));
+		assertEquals(XJDFConstants.XJDF, cb.exportXJDF(new JDFDoc(ElementName.JDF)).getRoot().getNodeName());
 	}
 
 }
