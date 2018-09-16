@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -85,7 +85,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
  *
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  *
- * June 28, 2009
+ *         June 28, 2009
  */
 public class AcknowledgeThread extends BambiLogFactory implements IMessageHandler
 {
@@ -94,6 +94,7 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 
 	/**
 	 * number of milliseconds to wait before going asynch (acknowledge) if<=0, ALWAYS go asynch
+	 *
 	 * @param waitForSych the waitForSych to set
 	 */
 	public void setWaitForSych(final int waitForSych)
@@ -123,7 +124,7 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 	 *
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
 	 *
-	 * June 28, 2009
+	 *         June 28, 2009
 	 */
 	protected class RunThread extends Thread
 	{
@@ -149,6 +150,7 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 		/**
 		 * let the base handler do its thing...<br/>
 		 * note that any changes here must be reflected in @see handleWithAcknowledge
+		 *
 		 * @see java.lang.Thread#run()
 		 */
 		@Override
@@ -193,6 +195,7 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 
 	/**
 	 * handles acknowledges - also waits max 1 second for synchronous handling, if possible
+	 *
 	 * @param response
 	 * @param inputMessage
 	 * @return
@@ -218,7 +221,7 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 		if (waitForSych > 0)
 		{
 			final boolean b = thread.waitHandled(waitForSych);
-			if (b && response != null && r2 != null)
+			if (b && response != null)
 			{
 				response.removeAttribute(AttributeName.ACKNOWLEDGED);
 				r2.removeAttribute(AttributeName.XSITYPE);
@@ -286,6 +289,7 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 
 	/**
 	 * this one abviously handles acknowledges...
+	 *
 	 * @return true if acknowledges are handled
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#isSubScribable()
 	 */
