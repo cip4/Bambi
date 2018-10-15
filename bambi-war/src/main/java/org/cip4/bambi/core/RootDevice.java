@@ -106,7 +106,7 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * add handlers to this
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#addHandlers()
 	 */
 	@Override
@@ -170,7 +170,7 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * create a new device and add it to the map of devices. reload if the device is already in
-	 * 
+	 *
 	 * @param iProp
 	 * @return the Device, if device has been created. null, if not (maybe device with deviceID is already present)
 	 */
@@ -520,7 +520,7 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * get a device
-	 * 
+	 *
 	 * @param deviceID ID of the device to get
 	 * @return the {@link AbstractDevice} for a given device ID
 	 */
@@ -553,7 +553,7 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * get the IConverterCallback for a given local url - excluding the context
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#getCallback(java.lang.String)
 	 * @param url
 	 * @return IConverterCallback the callback, null if none found
@@ -568,7 +568,7 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * get an array of all child devices
-	 * 
+	 *
 	 * @return an array of all child devices
 	 */
 	public AbstractDevice[] getDeviceArray()
@@ -699,7 +699,7 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * hook to add additional information from overwritten classes
-	 * 
+	 *
 	 * @param listRoot
 	 * @param rootElem
 	 */
@@ -845,7 +845,7 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * overwrite if you want to handle disconnected dumps
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isDisconnected()
@@ -863,5 +863,16 @@ public class RootDevice extends AbstractDevice
 		final XMLResponse xmlResponse = new XMLResponse(null);
 		xmlResponse.setHttpRC(503, "Currently not accepting new requests");
 		return xmlResponse;
+	}
+
+	/**
+	 * hook to allow the root device to process a stream - default do nothing and let the container do its thing
+	 *
+	 * @param request
+	 * @return
+	 */
+	public XMLResponse processStream(final StreamRequest request)
+	{
+		return null;
 	}
 }
