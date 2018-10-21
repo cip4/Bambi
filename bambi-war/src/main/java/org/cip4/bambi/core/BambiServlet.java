@@ -3,70 +3,38 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
- * reserved.
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the
+ * distribution.
  *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
- *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
+ * 3. The end-user documentation included with the redistribution, if any, must include the following acknowledgment: "This product includes software developed by the The International Cooperation for
+ * the Integration of Processes in Prepress, Press and Postpress (www.cip4.org)" Alternately, this acknowledgment may appear in the software itself, if and wherever such third-party acknowledgments
+ * normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
- *    Processes in  Prepress, Press and Postpress" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact info@cip4.org.
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of Processes in Prepress, Press and Postpress" must not be used to endorse or promote products derived from this software
+ * without prior written permission. For written permission, please contact info@cip4.org.
  *
- * 5. Products derived from this software may not be called "CIP4",
- *    nor may "CIP4" appear in their name, without prior written
- *    permission of the CIP4 organization
+ * 5. Products derived from this software may not be called "CIP4", nor may "CIP4" appear in their name, without prior written permission of the CIP4 organization
  *
- * Usage of this software in commercial products is subject to restrictions. For
- * details please consult info@cip4.org.
+ * Usage of this software in commercial products is subject to restrictions. For details please consult info@cip4.org.
  *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
- * THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE. ====================================================================
  *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
- * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
- * Integration of Processes in  Prepress, Press and Postpress , please see
- * <http://www.cip4.org/>.
- *  
- * 
+ * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
+ * originally based on software copyright (c) 1999-2001, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
+ *
+ *
  */
 
 package org.cip4.bambi.core;
@@ -91,68 +59,60 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
- * Entrance point for Bambi servlets
- * note that most processing has been moved to the servlet independent class @see BambiContainer
+ * Entrance point for Bambi servlets note that most processing has been moved to the servlet independent class @see BambiContainer
+ *
  * @author boegerni
- *  
+ *
  */
 public final class BambiServlet extends HttpServlet
 {
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1926504814491033980L;
 
 	/**
-	 * 
+	 *
 	 * @param bambiServer
 	 */
-	public BambiServlet(BambiServer bambiServer)
+	public BambiServlet(final BambiServer bambiServer)
 	{
 		super();
-		initLogging();
+		log = LogFactory.getLog(getClass());
 		BambiContainer.getCreateInstance();
 		theServer = bambiServer;
 	}
 
-	/**
-	 * 
-	 *this should be overwritten for nice logging features
-	 */
-	protected void initLogging()
-	{
-		log = LogFactory.getLog(getClass());
-	}
-
-	protected Log log = null;
-	protected boolean dumpGet = false;
-	protected boolean dumpEmpty = false;
-	protected DumpDir bambiDumpIn = null;
-	protected DumpDir bambiDumpOut = null;
-	protected final BambiServer theServer;
+	final Log log;
+	private boolean dumpGet = false;
+	private boolean dumpEmpty = false;
+	private DumpDir bambiDumpIn = null;
+	private DumpDir bambiDumpOut = null;
+	private final BambiServer theServer;
 
 	/**
 	 * Initializes the servlet.
+	 *
 	 * @throws ServletException
 	 */
 	@Override
 	public void init(final ServletConfig config) throws ServletException
 	{
 		super.init(config);
-		String baseURL = getContextPath();
+		final String baseURL = getContextPath();
 
-		String realPath = theServer.getToolPath();
+		final String realPath = theServer.getToolPath();
 		final File baseDir = new File(realPath);
 		log.info("Initializing Bambi servlet for " + baseURL + " at " + realPath);
 		final String dump = initializeDumps(config, baseDir);
-		BambiContainer container = BambiContainer.getCreateInstance();
+		final BambiContainer container = BambiContainer.getCreateInstance();
 		container.loadProperties(baseDir, baseURL, dump);
 	}
 
 	/**
-	 * 
+	 *
 	 * getContextPath is new in servlet api 2.5
-	 * 
+	 *
 	 * @return the context
 	 */
 	protected String getContextPath()
@@ -174,7 +134,7 @@ public final class BambiServlet extends HttpServlet
 		return baseURL;
 	}
 
-	private String initializeDumps(final ServletConfig config, File baseDir)
+	private String initializeDumps(final ServletConfig config, final File baseDir)
 	{
 		String dump = System.getProperty("bambiDump");
 		if (dump == null)
@@ -204,9 +164,9 @@ public final class BambiServlet extends HttpServlet
 			bambiDumpIn = new DumpDir(FileUtil.getFileInDirectory(dumpFile, new File("in")));
 			bambiDumpOut = new DumpDir(FileUtil.getFileInDirectory(dumpFile, new File("out")));
 			final String iniDumpGet = config.getInitParameter("bambiDumpGet");
-			dumpGet = iniDumpGet == null ? false : "true".compareToIgnoreCase(iniDumpGet) == 0;
+			dumpGet = StringUtil.parseBoolean(iniDumpGet, false);
 			final String iniDumpEmpty = config.getInitParameter("bambiDumpEmpty");
-			dumpEmpty = iniDumpEmpty == null ? false : "true".compareToIgnoreCase(iniDumpEmpty) == 0;
+			dumpEmpty = StringUtil.parseBoolean(iniDumpEmpty, false);
 			log.info("initializing http dump directory: " + dump + " get=" + dumpGet + " empty=" + dumpEmpty);
 		}
 		return dump;
@@ -214,6 +174,7 @@ public final class BambiServlet extends HttpServlet
 
 	/**
 	 * parse a string for environment variables
+	 *
 	 * @param dump
 	 * @return
 	 */
@@ -222,8 +183,8 @@ public final class BambiServlet extends HttpServlet
 		dump = StringUtil.getNonEmpty(dump);
 		if (dump == null || !dump.startsWith("%"))
 			return dump;
-		int posS = dump.indexOf("/");
-		int posB = dump.indexOf("\\");
+		int posS = dump.indexOf('/');
+		int posB = dump.indexOf('\\');
 		if (posS < 0)
 			posS = 999999;
 		if (posB < 0)
@@ -232,7 +193,7 @@ public final class BambiServlet extends HttpServlet
 			posS = posB;
 		if (posS == 999999)
 			return dump;
-		String env = dump.substring(1, posS);
+		final String env = dump.substring(1, posS);
 		String newBase = System.getProperty(env);
 		if (newBase == null)
 			newBase = System.getenv(env);
@@ -247,6 +208,7 @@ public final class BambiServlet extends HttpServlet
 
 	/**
 	 * Handles the HTTP <code>POST</code> method.
+	 *
 	 * @param request servlet request
 	 * @param response servlet response
 	 * @throws IOException
@@ -263,21 +225,21 @@ public final class BambiServlet extends HttpServlet
 	 * @param bPost
 	 * @throws IOException
 	 */
-	public void doGetPost(final HttpServletRequest request, final HttpServletResponse response, boolean bPost) throws IOException
+	public void doGetPost(final HttpServletRequest request, final HttpServletResponse response, final boolean bPost) throws IOException
 	{
-		BambiContainer theContainer = BambiContainer.getInstance();
+		final BambiContainer theContainer = BambiContainer.getInstance();
 		if (theContainer == null)
 		{
 			log.error("No container Running");
 		}
 		else
 		{
-			AbstractDevice rootDev = theContainer.getRootDev();
+			final AbstractDevice rootDev = theContainer.getRootDev();
 			rootDev.startWork();
-			String getPost = bPost ? "post" : "get";
+			final String getPost = bPost ? "post" : "get";
 			log.debug("Processing " + getPost + " request for: " + request.getPathInfo());
 
-			StreamRequest sr = StreamRequest.createStreamRequest(request);
+			final StreamRequest sr = StreamRequest.createStreamRequest(request);
 			sr.setPost(bPost);
 
 			XMLResponse xr = null;
@@ -289,7 +251,7 @@ public final class BambiServlet extends HttpServlet
 					xr.writeResponse(response);
 				}
 			}
-			catch (Throwable x)
+			catch (final Throwable x)
 			{
 				log.error("Snafu processing " + getPost + " request for: " + request.getPathInfo(), x);
 			}
@@ -306,12 +268,12 @@ public final class BambiServlet extends HttpServlet
 
 	/**
 	 * dump the outgoing stuff
-	 *  
+	 *
 	 * @param getPost
 	 * @param sr
 	 * @param xr
 	 */
-	protected void dumpOutGoing(String getPost, StreamRequest sr, XMLResponse xr)
+	protected void dumpOutGoing(final String getPost, final StreamRequest sr, final XMLResponse xr)
 	{
 		if (bambiDumpOut != null && (dumpEmpty || (xr != null && xr.hasContent())))
 		{
@@ -327,14 +289,14 @@ public final class BambiServlet extends HttpServlet
 	}
 
 	/**
-	 * 
+	 *
 	 * dump the incoming stuff
-	 *  
+	 *
 	 * @param request
 	 * @param bBuf
 	 * @param sr
 	 */
-	protected void dumpIncoming(final HttpServletRequest request, final boolean bBuf, StreamRequest sr)
+	protected void dumpIncoming(final HttpServletRequest request, final boolean bBuf, final StreamRequest sr)
 	{
 		if (bBuf)
 		{
@@ -351,7 +313,7 @@ public final class BambiServlet extends HttpServlet
 	public void destroy()
 	{
 		log.info("shutting down servlet: ");
-		BambiContainer container = BambiContainer.getInstance();
+		final BambiContainer container = BambiContainer.getInstance();
 		if (container != null)
 		{
 			container.shutDown();
@@ -364,7 +326,7 @@ public final class BambiServlet extends HttpServlet
 	}
 
 	/**
-	 * 
+	 *
 	 * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 * @param request
 	 * @param response

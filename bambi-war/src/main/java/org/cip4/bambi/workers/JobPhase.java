@@ -1,68 +1,36 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights
- * reserved.
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the
+ * distribution.
  *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        The International Cooperation for the Integration of
- *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
+ * 3. The end-user documentation included with the redistribution, if any, must include the following acknowledgment: "This product includes software developed by the The International Cooperation for
+ * the Integration of Processes in Prepress, Press and Postpress (www.cip4.org)" Alternately, this acknowledgment may appear in the software itself, if and wherever such third-party acknowledgments
+ * normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of
- *    Processes in  Prepress, Press and Postpress" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact info@cip4.org.
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of Processes in Prepress, Press and Postpress" must not be used to endorse or promote products derived from this software
+ * without prior written permission. For written permission, please contact info@cip4.org.
  *
- * 5. Products derived from this software may not be called "CIP4",
- *    nor may "CIP4" appear in their name, without prior written
- *    permission of the CIP4 organization
+ * 5. Products derived from this software may not be called "CIP4", nor may "CIP4" appear in their name, without prior written permission of the CIP4 organization
  *
- * Usage of this software in commercial products is subject to restrictions. For
- * details please consult info@cip4.org.
+ * Usage of this software in commercial products is subject to restrictions. For details please consult info@cip4.org.
  *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
- * THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE. ====================================================================
  *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration
- * of Processes in Prepress, Press and Postpress and was
- * originally based on software
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
- * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
+ * originally based on software copyright (c) 1999-2001, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
  *
- * For more information on The International Cooperation for the
- * Integration of Processes in  Prepress, Press and Postpress , please see
- * <http://www.cip4.org/>.
+ * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
  *
  *
  */
@@ -86,9 +54,10 @@ import org.cip4.jdflib.util.StringUtil;
 
 /**
  * a single job phase
+ *
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  *
- * September 29, 2009
+ *         September 29, 2009
  */
 public class JobPhase extends BambiLogFactory implements Cloneable
 {
@@ -100,7 +69,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 		/**
 			 *
 			 */
-		Vector<JDFEmployee> theEmployee = new Vector<JDFEmployee>();
+		Vector<JDFEmployee> theEmployee = new Vector<>();
 
 		/**
 		 * @param e
@@ -222,7 +191,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 
 	// end of inner class PhaseAmount
 
-	protected Vector<PhaseAmount> amounts = new Vector<PhaseAmount>();
+	protected Vector<PhaseAmount> amounts = new Vector<>();
 
 	/**
 	 * construction of a JobPhase
@@ -243,7 +212,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 		deviceStatusDetails = phaseElement.getXPathAttribute("@DeviceStatusDetails", "");
 		nodeStatus = EnumNodeStatus.getEnum(phaseElement.getXPathAttribute("@NodeStatus", "Waiting"));
 		nodeStatusDetails = phaseElement.getXPathAttribute("@NodeStatusDetails", "");
-		timeToGo = 1000 * StringUtil.parseInt(phaseElement.getXPathAttribute("@Duration", "0"), 0);
+		timeToGo = 1000l * StringUtil.parseLong(phaseElement.getXPathAttribute("@Duration", "0"), 0);
 		employee = new PhaseEmployees(phaseElement);
 
 		if (phaseElement.hasAttribute("Error"))
@@ -255,7 +224,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 			setErrorChance(StringUtil.parseDouble(phaseElement.getXPathAttribute("../@Error", "0"), 0) * 0.001);
 		}
 		final VElement vA = phaseElement.getChildElementVector("Amount", null);
-		for (KElement amount : vA)
+		for (final KElement amount : vA)
 		{
 			double speed = amount.getRealAttribute("Speed", null, 0);
 			if (speed < 0)
@@ -264,7 +233,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 			}
 			final boolean bGood = !amount.getBoolAttribute("Waste", null, false);
 			// timeToGo is seconds, speed is / hour
-			PhaseAmount pa = setAmount(amount.getAttribute("Resource"), speed, bGood);
+			final PhaseAmount pa = setAmount(amount.getAttribute("Resource"), speed, bGood);
 			pa.masterAmount = amount.getBoolAttribute("Master", null, false);
 		}
 	}
@@ -307,8 +276,8 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 
 	public String shortString()
 	{
-		String s = "[JobPhase: Duration=" + timeToGo + ", DeviceStatus=" + deviceStatus.getName() + ", DeviceStatusDetails=" + deviceStatusDetails + ", NodeStatus="
-				+ nodeStatus.getName() + ", NodeStatusDetails=" + nodeStatusDetails;
+		final String s = "[JobPhase: Duration=" + timeToGo + ", DeviceStatus=" + deviceStatus.getName() + ", DeviceStatusDetails=" + deviceStatusDetails + ", NodeStatus=" + nodeStatus.getName()
+				+ ", NodeStatusDetails=" + nodeStatusDetails;
 		return s;
 	}
 
@@ -440,7 +409,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 	 */
 	public PhaseAmount getPhaseAmount(final String res)
 	{
-		for (PhaseAmount amount : amounts)
+		for (final PhaseAmount amount : amounts)
 		{
 			if (amount.matchesRes(res))
 			{
@@ -456,7 +425,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 	public VString getAmountResourceNames()
 	{
 		final VString v = new VString();
-		for (PhaseAmount amount : amounts)
+		for (final PhaseAmount amount : amounts)
 		{
 			v.add(amount.resourceName);
 		}
@@ -465,17 +434,18 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 
 	/**
 	 * get the single master amount - i.e. the amount used for calculating all derived amounts
+	 *
 	 * @return
 	 */
 	public String getMasterAmountResourceName()
 	{
-		for (PhaseAmount amount : amounts)
+		for (final PhaseAmount amount : amounts)
 		{
 			if (amount.masterAmount == true)
 				return amount.resourceName;
 		}
 		// if no specific master - grab first non zero
-		for (PhaseAmount amount : amounts)
+		for (final PhaseAmount amount : amounts)
 		{
 			if (amount.speed > 0)
 				return amount.resourceName;
@@ -554,7 +524,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 		{
 			return;
 		}
-		for (PhaseAmount pa : amounts)
+		for (final PhaseAmount pa : amounts)
 		{
 			if (rl.matchesString(pa.getResource()))
 			{
@@ -589,6 +559,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 
 	/**
 	 * write myself to an element
+	 *
 	 * @param root
 	 */
 	@SuppressWarnings("unchecked")
@@ -606,9 +577,9 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 			final VString v = getAmountResourceNames();
 			if (v != null)
 			{
-				for (String resname : v)
+				for (final String resname : v)
 				{
-					PhaseAmount pa = getPhaseAmount(resname);
+					final PhaseAmount pa = getPhaseAmount(resname);
 					pa.addAmount(phase);
 				}
 			}
@@ -628,10 +599,10 @@ public class JobPhase extends BambiLogFactory implements Cloneable
 	 * @param master the master resource that contains the base value to scale
 	 * @param factor the factor to scale the speed by
 	 */
-	public void scaleAmount(String res, String master, double factor)
+	public void scaleAmount(final String res, final String master, final double factor)
 	{
-		PhaseAmount pa = getPhaseAmount(res);
-		PhaseAmount masterAmount = getPhaseAmount(master);
+		final PhaseAmount pa = getPhaseAmount(res);
+		final PhaseAmount masterAmount = getPhaseAmount(master);
 		if (pa == null || masterAmount == null)
 		{
 			log.error("bad phases for scaling, base=" + res + " master=" + master + " missing=" + ((pa == null) ? res : master));
