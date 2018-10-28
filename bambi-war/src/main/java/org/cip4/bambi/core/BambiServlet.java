@@ -227,42 +227,49 @@ public final class BambiServlet extends HttpServlet
 	 */
 	public void doGetPost(final HttpServletRequest request, final HttpServletResponse response, final boolean bPost) throws IOException
 	{
-		final BambiContainer theContainer = BambiContainer.getInstance();
-		if (theContainer == null)
+		try
 		{
-			log.error("No container Running");
-		}
-		else
-		{
-			final AbstractDevice rootDev = theContainer.getRootDev();
-			rootDev.startWork();
-			final String getPost = bPost ? "post" : "get";
-			log.debug("Processing " + getPost + " request for: " + request.getPathInfo());
-
-			final StreamRequest sr = StreamRequest.createStreamRequest(request);
-			sr.setPost(bPost);
-
-			XMLResponse xr = null;
-			try
+			final BambiContainer theContainer = BambiContainer.getInstance();
+			if (theContainer == null)
 			{
-				xr = theContainer.processStream(sr);
-				if (xr != null)
+				log.error("No container Running");
+			}
+			else
+			{
+				final AbstractDevice rootDev = theContainer.getRootDev();
+				rootDev.startWork();
+				final String getPost = bPost ? "post" : "get";
+				log.debug("Processing " + getPost + " request for: " + request.getPathInfo());
+
+				final StreamRequest sr = StreamRequest.createStreamRequest(request);
+				sr.setPost(bPost);
+
+				XMLResponse xr = null;
+				try
 				{
-					xr.writeResponse(response);
+					xr = theContainer.processStream(sr);
+					if (xr != null)
+					{
+						xr.writeResponse(response);
+					}
 				}
+				catch (final Throwable x)
+				{
+					log.error("Snafu processing " + getPost + " request for: " + request.getPathInfo(), x);
+				}
+				final boolean bBuf = theContainer.wantDump() && (dumpGet || bPost) && bambiDumpIn != null;
+				if (bBuf)
+				{
+					dumpIncoming(request, bBuf, sr);
+					dumpOutGoing(getPost, sr, xr);
+				}
+				request.getInputStream().close(); // avoid mem leaks
+				rootDev.endWork();
 			}
-			catch (final Throwable x)
-			{
-				log.error("Snafu processing " + getPost + " request for: " + request.getPathInfo(), x);
-			}
-			final boolean bBuf = theContainer.wantDump() && (dumpGet || bPost) && bambiDumpIn != null;
-			if (bBuf)
-			{
-				dumpIncoming(request, bBuf, sr);
-				dumpOutGoing(getPost, sr, xr);
-			}
-			request.getInputStream().close(); // avoid mem leaks
-			rootDev.endWork();
+		}
+		catch (final IOException x)
+		{
+			log.warn("whazzap???",x);
 		}
 	}
 
