@@ -106,9 +106,9 @@ import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlUtil;
-import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.mime.MimeWriter;
+import org.cip4.jdflib.util.net.HTTPDetails;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen abstract test case for all bambi tests note that this has some site specific details that must be modified

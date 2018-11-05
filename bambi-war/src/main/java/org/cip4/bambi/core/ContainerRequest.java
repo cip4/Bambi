@@ -43,6 +43,7 @@ import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.net.HTTPDetails;
 
 /**
  * class to package an XML document together with the context information of the request
@@ -358,7 +359,7 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public String getParameter(final String header)
 	{
-		return parameterMap == null ? null : parameterMap.get(header);
+		return parameterMap == null ? null : parameterMap.getNonEmpty(header);
 	}
 
 	/**
@@ -403,5 +404,20 @@ public class ContainerRequest extends BambiLogFactory
 	public String getRemoteHost()
 	{
 		return remoteHost;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public String getBearerToken()
+	{
+
+		final VString tokens = VString.getVString(getHeader(UrlUtil.AUTHORIZATION), null);
+		if (tokens != null && tokens.size() == 2 && HTTPDetails.BEARER.equals(tokens.get(0)))
+		{
+			return tokens.get(1);
+		}
+		return getParameter("access_token");
 	}
 }

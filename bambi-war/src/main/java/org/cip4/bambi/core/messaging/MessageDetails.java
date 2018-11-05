@@ -100,9 +100,9 @@ import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.net.HTTPDetails;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
-import org.cip4.jdflib.util.UrlUtil.HTTPDetails;
 
 /**
  * MessageDetails describes one jmf or mime package that is queued for a given url
