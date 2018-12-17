@@ -41,6 +41,7 @@ package org.cip4.bambi.core;
 import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
+import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.net.HTTPDetails;
@@ -131,8 +132,7 @@ public class ContainerRequest extends BambiLogFactory
 	public String getDumpHeader()
 	{
 		String header = "Context Path: " + getRequestURI();
-		header += "\nMethod: " + getMethod();
-		header += "\nContext Type: " + getContentType(false);
+		header += "\nMethod: " + getMethod() + " Content Type: " + getContentType(false) + " time:" + new JDFDate().getFormattedDateTime(JDFDate.DATETIMEISO_MILLI);
 		header += "\nRemote host: " + getRemoteHost();
 		return header;
 	}

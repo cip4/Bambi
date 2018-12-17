@@ -472,8 +472,10 @@ public class SignalDispatcher extends BambiLogFactory
 					sentMessages++;
 					if ((sentMessages < 10) || ((sentMessages % 1000) == 0))
 					{
-						final Map<String, Long> memMap = new MemorySpy().getSummaryMap();
-						log.info("Sent message# " + sentMessages + "to URL: " + url + JDFConstants.BLANK + timer.getSingleSummary() + JDFConstants.BLANK + "mem used: " + memMap.get("Current")
+						final MemorySpy memorySpy = new MemorySpy();
+						memorySpy.setWantMega(true);
+						final Map<String, Long> memMap = memorySpy.getSummaryMap();
+						log.info("Sent message# " + sentMessages + "to URL: " + url + JDFConstants.BLANK + timer.getSingleSummary() + JDFConstants.BLANK + "mem used (MB): " + memMap.get("Current")
 								+ JDFConstants.SLASH + memMap.get("Total"));
 					}
 				}

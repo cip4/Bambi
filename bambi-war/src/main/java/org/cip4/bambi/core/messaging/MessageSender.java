@@ -74,12 +74,12 @@ import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
-import org.cip4.jdflib.util.net.HTTPDetails;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlPart;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.VectorMap;
+import org.cip4.jdflib.util.net.HTTPDetails;
 import org.cip4.jdflib.util.thread.DelayedPersist;
 import org.cip4.jdflib.util.thread.IPersistable;
 import org.cip4.jdflib.util.thread.MyMutex;
@@ -1022,7 +1022,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		if (waitKaputt && messageDetails.isFireForget())
 		{
 			removedFireForget++;
-			if (myFactory.isLogLots() || removedFireForget < 10 || (removedFireForget % 100) == 0)
+			if (myFactory.isLogLots() || removedFireForget < 10 || (removedFireForget % 1000) == 0)
 			{
 				String warn = " not queueing fire&forget to " + callURL.url + "; message #";
 				warn += removedFireForget;
