@@ -320,6 +320,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 */
 	protected void senderLoop()
 	{
+		long lastLog = 0;
 		while (!doShutDown)
 		{
 			if (pause)
@@ -344,10 +345,11 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				timer.stop();
 			}
 
+			long ct0 = System.currentTimeMillis();
 			if (sentFirstMessage == SendReturn.sent)
 			{
 				sent++;
-				lastSent = System.currentTimeMillis();
+				lastSent = ct0;
 				idle = 0;
 				if (myFactory.isLogLots() || sent < 10 || (sent % 1000) == 0)
 				{
@@ -378,10 +380,12 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 						if (wait > 424242)
 						{
 							wait = 424242;
-							if (_messages.size() > 0)
+							if (_messages.size() > 0 && (ct0 - lastLog) > 60000l)
 							{
 								final long t0 = lastSent == 0 ? startTime : lastSent;
-								log.warn("Still waiting in blocked message thread for " + callURL.getBaseURL() + " unsuccessful for " + ((System.currentTimeMillis() - t0) / 60000l) + " minutes");
+								log.warn("Waiting in blocked message thread: " + callURL.getBaseURL() + " unsuccessful for " + ((ct0 - t0) / 60000l) + " minutes; size="
+										+ _messages.size());
+								lastLog = ct0;
 							}
 						}
 						waitKaputt = true;

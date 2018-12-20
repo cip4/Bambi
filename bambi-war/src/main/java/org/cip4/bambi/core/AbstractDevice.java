@@ -605,7 +605,15 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final File[] configFiles = configDir.listFiles();
 			if (configFiles == null)
 			{
-				log.warn("something is wrong - no directory exists: " + configDir.getAbsolutePath());
+				final boolean b = configDir.mkdirs();
+				if (b || configDir.isDirectory())
+				{
+					log.info("ensured empty directory exists: " + configDir.getAbsolutePath());
+				}
+				else
+				{
+					log.warn("problems creating empty directory exists: " + configDir.getAbsolutePath());
+				}
 			}
 			else
 			{
