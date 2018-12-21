@@ -269,7 +269,7 @@ public final class BambiServlet extends HttpServlet
 		}
 		catch (final IOException x)
 		{
-			log.warn("whazzap???",x);
+			log.warn("whazzap???", x);
 		}
 	}
 
@@ -285,7 +285,7 @@ public final class BambiServlet extends HttpServlet
 		if (bambiDumpOut != null && (dumpEmpty || (xr != null && xr.hasContent())))
 		{
 			final String header = sr.getDumpHeader();
-			final InputStream buf = xr.getInputStream();
+			final InputStream buf = xr == null ? null : xr.getInputStream();
 
 			final File in = bambiDumpOut.newFileFromStream(header, buf, sr.getName());
 			if (in != null)

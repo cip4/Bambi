@@ -345,7 +345,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				timer.stop();
 			}
 
-			long ct0 = System.currentTimeMillis();
+			final long ct0 = System.currentTimeMillis();
 			if (sentFirstMessage == SendReturn.sent)
 			{
 				sent++;
@@ -383,8 +383,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 							if (_messages.size() > 0 && (ct0 - lastLog) > 60000l)
 							{
 								final long t0 = lastSent == 0 ? startTime : lastSent;
-								log.warn("Waiting in blocked message thread: " + callURL.getBaseURL() + " unsuccessful for " + ((ct0 - t0) / 60000l) + " minutes; size="
-										+ _messages.size());
+								log.warn("Waiting in blocked message thread: " + callURL.getBaseURL() + " unsuccessful for " + ((ct0 - t0) / 60000l) + " minutes; size=" + _messages.size());
 								lastLog = ct0;
 							}
 						}
@@ -549,47 +548,24 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			}
 			timer.start();
 			mesDetails = _messages.get(0);
-			if (mesDetails == null || zappFirst || KElement.isWildCard(mesDetails.url))
-			{
-				_messages.remove(0);
-				removedError++;
-				zappFirst = false;
-				log.warn("removed first " + mesDetails.getName() + " message in message queue to: " + mesDetails.url);
-				mesDetails.setReturn(SendReturn.removed);
-				sentMessages.push(mesDetails);
-				return SendReturn.removed;
-			}
-
-			if (mesDetails.respHandler != null && mesDetails.respHandler.isAborted())
-			{
-				_messages.remove(0);
-				removedError++;
-				log.warn("removed timed out " + mesDetails.getName() + " message to: " + mesDetails.url);
-				mesDetails.setReturn(SendReturn.removed);
-				sentMessages.push(mesDetails);
-				return SendReturn.removed;
-			}
 		}
+		final SendReturn details = checkDetails(mesDetails);
+		if (details != null)
+			return details;
 
 		SendReturn sendReturn = sendHTTP(mesDetails);
+		synchronized (_messages)
+		{
+			sendReturn = processMessageResponse(mesDetails, sendReturn);
+		}
+		return sendReturn;
+	}
+
+	public SendReturn processMessageResponse(final MessageDetails mesDetails, SendReturn sendReturn)
+	{
 		if (SendReturn.sent == sendReturn)
 		{
-			if (firstProblem != 0)
-			{
-				reactivate(mesDetails);
-			}
-			firstProblem = 0;
-			_messages.remove(0);
-			sentMessages.push(mesDetails);
-			if (myFactory.isLogLots())
-			{
-				String msg = "Successfully sent " + mesDetails.getName() + " #" + sent + " to " + mesDetails.url;
-				if (_messages.size() > 0)
-				{
-					msg += " waiting: " + _messages.size();
-				}
-				log.info(msg);
-			}
+			processSuccess(mesDetails);
 		}
 		else if (SendReturn.removed.equals(sendReturn))
 		{
@@ -598,52 +574,111 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		}
 		else
 		{
-			firstProblem = System.currentTimeMillis();
-			String isMime = "";
-			if (mesDetails.jmf != null)
-				isMime = "JMF";
-			if (mesDetails.jdf != null)
-				isMime += "MIME";
-			if ("".equals(isMime))
-				isMime = "Empty";
-
-			boolean needLog = true;
-			String warn = "Sender: " + mesDetails.senderID + " Error sending " + isMime + " message to: " + mesDetails.url + " return code=" + sendReturn;
-			if (mesDetails.isFireForget())
-			{
-				warn += " - removing fire&forget " + mesDetails.getName() + " message #";
-				_messages.remove(0);
-				removedFireForget++;
-				warn += removedFireForget;
-				sendReturn = SendReturn.removed;
-				needLog = (removedFireForget < 10) || (removedFireForget % 100) == 0;
-			}
-			else
-			{
-				if ((System.currentTimeMillis() - mesDetails.createTime) > (1000l * 3600l * 24l * 42l) && (_messages.size() > 1000))
-				{
-					final String warn2 = " - removing prehistoric reliable " + mesDetails.getName() + " message: creation time: " + new JDFDate(mesDetails.createTime).getDateTimeISO()
-							+ " messages pending: " + _messages.size();
-					warn += warn2;
-					_messages.remove(0);
-					removedError++;
-					sendReturn = SendReturn.removed;
-					needLog = (removedError < 10) || (removedError % 100) == 0;
-				}
-				else
-				{
-					final String warn2 = " - retaining " + mesDetails.getName() + " message for resend; messages pending: " + _messages.size() + " times delayed: " + idle;
-					warn += warn2;
-					needLog = (idle < 10) || (idle % 100) == 0;
-				}
-			}
-			if (needLog)
-			{
-				log.warn(warn);
-			}
+			sendReturn = processProblem(mesDetails, sendReturn);
 		}
 		mesDetails.setReturn(sendReturn);
 		return sendReturn;
+	}
+
+	public SendReturn processProblem(final MessageDetails mesDetails, SendReturn sendReturn)
+	{
+		firstProblem = System.currentTimeMillis();
+		String isMime = "";
+		if (mesDetails.jmf != null)
+			isMime = "JMF";
+		if (mesDetails.jdf != null)
+			isMime += "MIME";
+		if ("".equals(isMime))
+			isMime = "Empty";
+
+		boolean needLog = true;
+		String warn = "Sender: " + mesDetails.senderID + " Error sending " + isMime + " message to: " + mesDetails.url + " return code=" + sendReturn;
+		if (mesDetails.isFireForget())
+		{
+			warn += " - removing fire&forget " + mesDetails.getName() + " message #";
+			_messages.remove(0);
+			removedFireForget++;
+			warn += removedFireForget;
+			sendReturn = SendReturn.removed;
+			needLog = (removedFireForget < 10) || (removedFireForget % 100) == 0;
+		}
+		else
+		{
+			if ((System.currentTimeMillis() - mesDetails.createTime) > (1000l * 3600l * 24l * 42l) && (_messages.size() > 1000))
+			{
+				final String warn2 = " - removing prehistoric reliable " + mesDetails.getName() + " message: creation time: " + new JDFDate(mesDetails.createTime).getDateTimeISO()
+						+ " messages pending: " + _messages.size();
+				warn += warn2;
+				_messages.remove(0);
+				removedError++;
+				sendReturn = SendReturn.removed;
+				needLog = (removedError < 10) || (removedError % 100) == 0;
+			}
+			else
+			{
+				final String warn2 = " - retaining " + mesDetails.getName() + " message for resend; messages pending: " + _messages.size() + " times delayed: " + idle;
+				warn += warn2;
+				needLog = (idle < 10) || (idle % 100) == 0;
+			}
+		}
+		if (needLog)
+		{
+			log.warn(warn);
+		}
+		return sendReturn;
+	}
+
+	public void processSuccess(final MessageDetails mesDetails)
+	{
+		if (firstProblem != 0)
+		{
+			reactivate(mesDetails);
+		}
+		firstProblem = 0;
+		_messages.remove(0);
+		sentMessages.push(mesDetails);
+		if (myFactory.isLogLots())
+		{
+			String msg = "Successfully sent " + mesDetails.getName() + " #" + sent + " to " + mesDetails.url;
+			if (_messages.size() > 0)
+			{
+				msg += " waiting: " + _messages.size();
+			}
+			log.info(msg);
+		}
+	}
+
+	SendReturn checkDetails(final MessageDetails mesDetails)
+	{
+		if (mesDetails == null)
+		{
+			_messages.remove(0);
+			log.warn("removed null message in message queue ");
+			return SendReturn.removed;
+		}
+		else if (zappFirst || KElement.isWildCard(mesDetails.url))
+		{
+			_messages.remove(0);
+			removedError++;
+			zappFirst = false;
+			log.warn("removed first " + mesDetails.getName() + " message in message queue to: " + mesDetails.url);
+			mesDetails.setReturn(SendReturn.removed);
+			sentMessages.push(mesDetails);
+			return SendReturn.removed;
+		}
+		else if (mesDetails.respHandler != null && mesDetails.respHandler.isAborted())
+		{
+			_messages.remove(0);
+			removedError++;
+			log.warn("removed timed out " + mesDetails.getName() + " message to: " + mesDetails.url);
+			mesDetails.setReturn(SendReturn.removed);
+			sentMessages.push(mesDetails);
+			return SendReturn.removed;
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	void reactivate(final MessageDetails mesDetails)
@@ -718,7 +753,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	private SendReturn processResponse(final MessageDetails mesDetails, HttpURLConnection connection) throws IOException
 	{
 		SendReturn sendReturn = SendReturn.sent;
-		final String url = mesDetails == null ? null : mesDetails.url;
+		final String url = mesDetails.url;
 		String header = "URL: " + url;
 		int responseCode = -1;
 		if (connection != null)

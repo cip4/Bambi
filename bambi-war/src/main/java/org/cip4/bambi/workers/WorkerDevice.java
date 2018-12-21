@@ -3,70 +3,38 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
- * reserved.
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the
+ * distribution.
  *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
- *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
+ * 3. The end-user documentation included with the redistribution, if any, must include the following acknowledgment: "This product includes software developed by the The International Cooperation for
+ * the Integration of Processes in Prepress, Press and Postpress (www.cip4.org)" Alternately, this acknowledgment may appear in the software itself, if and wherever such third-party acknowledgments
+ * normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
- *    Processes in  Prepress, Press and Postpress" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact info@cip4.org.
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of Processes in Prepress, Press and Postpress" must not be used to endorse or promote products derived from this software
+ * without prior written permission. For written permission, please contact info@cip4.org.
  *
- * 5. Products derived from this software may not be called "CIP4",
- *    nor may "CIP4" appear in their name, without prior written
- *    permission of the CIP4 organization
+ * 5. Products derived from this software may not be called "CIP4", nor may "CIP4" appear in their name, without prior written permission of the CIP4 organization
  *
- * Usage of this software in commercial products is subject to restrictions. For
- * details please consult info@cip4.org.
+ * Usage of this software in commercial products is subject to restrictions. For details please consult info@cip4.org.
  *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
- * THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE. ====================================================================
  *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
- * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
- * Integration of Processes in  Prepress, Press and Postpress , please see
- * <http://www.cip4.org/>.
- *  
+ * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
+ * originally based on software copyright (c) 1999-2001, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
  * 
+ * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
+ * 
+ *
  */
 
 package org.cip4.bambi.workers;
@@ -103,6 +71,7 @@ import org.cip4.jdflib.util.StringUtil;
 
 /**
  * a simple data input terminal/console JDF device . <br>
+ * 
  * @author Rainer Prosi
  */
 public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
@@ -117,7 +86,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	 * @param jdf
 	 * @param queueEntryID
 	 * @return
-	*/
+	 */
 	@Override
 	public VString canAccept(final JDFNode jdf, final String queueEntryID)
 	{
@@ -185,10 +154,10 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 			return true;
 		}
 
-		JDFDevice dev = (JDFDevice) n2.getResource(ElementName.DEVICE, EnumUsage.Input, 0);
+		final JDFDevice dev = (JDFDevice) n2.getResource(ElementName.DEVICE, EnumUsage.Input, 0);
 		if (dev != null)
 		{
-			String devID = StringUtil.getNonEmpty(dev.getDeviceID());
+			final String devID = StringUtil.getNonEmpty(dev.getDeviceID());
 			if (devID != null && !devID.equals(getDeviceID()))
 			{
 				log.debug("Device " + getDeviceID() + " Node found with non-matching device: " + devID);
@@ -196,7 +165,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 			}
 		}
 		final String types = n2.getTypesString();
-		boolean b = StringUtil.matchesSimple(types, _typeExpression);
+		final boolean b = StringUtil.matchesSimple(types, _typeExpression);
 		if (!b)
 		{
 			log.debug("Device " + getDeviceID() + " Node found with non-matching type: " + types);
@@ -204,8 +173,8 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 		}
 
 		// also check for executable nodes
-		EnumNodeStatus ns = n2.getPartStatus(null, -1);
-		boolean isExecutable = EnumNodeStatus.Waiting.equals(ns) || EnumNodeStatus.Ready.equals(ns) || EnumNodeStatus.Suspended.equals(ns);
+		final EnumNodeStatus ns = n2.getPartStatus(null, -1);
+		final boolean isExecutable = EnumNodeStatus.Waiting.equals(ns) || EnumNodeStatus.Ready.equals(ns) || EnumNodeStatus.Suspended.equals(ns);
 		if (!isExecutable)
 		{
 			log.debug("node found with non-executable status: " + ns);
@@ -242,7 +211,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 			{
 				return null;
 			}
-			for (JDFEmployee emp : vEmp)
+			for (final JDFEmployee emp : vEmp)
 			{
 				if (emp.matches(personalID))
 				{
@@ -255,10 +224,10 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	}
 
 	/**
-	 * 
+	 *
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 * 
-	 * Sep 29, 2009
+	 *
+	 *         Sep 29, 2009
 	 */
 	protected class EmployeeLoader
 	{
@@ -266,7 +235,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 		final static String employeeXML = "employees.xml";
 
 		/**
-		 * 
+		 *
 		 */
 		public EmployeeLoader()
 		{
@@ -278,18 +247,19 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 			Vector<JDFEmployee> v = loadFile();
 			if (v == null)
 			{
-				v = new Vector<JDFEmployee>();
+				v = new Vector<>();
 			}
 			return new EmployeeList(v);
 		}
 
 		/**
-		 *  load the employee file
+		 * load the employee file
+		 * 
 		 * @return
 		 */
 		private Vector<JDFEmployee> loadFile()
 		{
-			File deviceDir = getCachedConfigDir();
+			final File deviceDir = getCachedConfigDir();
 			final File employeePathLocal = FileUtil.getFileInDirectory(deviceDir, employeeFile);
 			if (!employeePathLocal.canRead())
 			{
@@ -309,7 +279,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 				log.info("No employees found in file: " + employeePathLocal + ", skip employee loading.");
 				return null;
 			}
-			final Vector<JDFEmployee> vPA = new Vector<JDFEmployee>(v.size());
+			final Vector<JDFEmployee> vPA = new Vector<>(v.size());
 			for (int i = 0; i < v.size(); i++)
 			{
 				final JDFEmployee pa = (JDFEmployee) v.get(i);
@@ -329,6 +299,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 
 	/**
 	 * check whether this resource should track amounts
+	 * 
 	 * @param resLink
 	 * @return
 	 */
@@ -371,7 +342,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	private void updateTypeExpression(final String newTypeX)
 	{
@@ -395,7 +366,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 		final JDFAttributeMap map = request.getParameterMap();
 		final Set<String> s = map == null ? null : map.keySet();
 
-		final String exp = request.getParameter(AttributeName.TYPEEXPRESSION);
+		final String exp = s == null ? null : request.getParameter(AttributeName.TYPEEXPRESSION);
 		if (exp != null && s.contains(AttributeName.TYPEEXPRESSION))
 		{
 			updateTypeExpression(exp);
@@ -403,7 +374,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#getXSLT(org.cip4.bambi.core.ContainerRequest)
 	 */
 	@Override

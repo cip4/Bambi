@@ -330,9 +330,12 @@ public class SignalDispatcher extends BambiLogFactory
 		 */
 		protected void setXMLRoot(final ContainerRequest request)
 		{
-			if (device != null) // may be null in test scenarios
+			if (device != null)
+			{
+				// may be null in test scenarios
 				root.setAttribute(AttributeName.DEVICEID, device.getDeviceID());
-			root.setAttribute(AttributeName.CONTEXT, ((request == null) ? null : device.getContext(request)));
+				root.setAttribute(AttributeName.CONTEXT, ((request == null) ? null : device.getContext(request)));
+			}
 		}
 
 		/**

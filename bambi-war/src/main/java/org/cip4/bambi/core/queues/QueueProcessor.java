@@ -109,11 +109,11 @@ import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
-import org.cip4.jdflib.util.net.HTTPDetails;
 import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.net.HTTPDetails;
 import org.cip4.jdflib.util.thread.DelayedPersist;
 import org.cip4.jdflib.util.thread.IPersistable;
 import org.cip4.jdflib.util.thread.MutexMap;
@@ -1336,7 +1336,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				modified = modified || !ContainerUtil.equals(queueStatusNew, queueStatusCurrent);
 			}
 
-			if (modified)
+			if (modified && queueStatusNew != null)
 			{
 				BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), queueStatusNew.getName(), getQueueStatistic());
 			}
@@ -2597,14 +2597,15 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		if (q != null)
 		{
 			q.setQueueSize(slaveQueueMap.size());
+			// we have an empty queue
+			removeBambiNSExtensions(q);
+			if (qf != null && EnumUpdateGranularity.ChangesOnly.equals(qf.getUpdateGranularity()) && q.getQueueEntry(0) == null)
+			{
+				resp.deleteNode();
+				q = null;
+			}
 		}
-		// we have an empty queue
-		removeBambiNSExtensions(q);
-		if (qf != null && EnumUpdateGranularity.ChangesOnly.equals(qf.getUpdateGranularity()) && q.getQueueEntry(0) == null)
-		{
-			resp.deleteNode();
-			q = null;
-		}
+
 		return q;
 	}
 

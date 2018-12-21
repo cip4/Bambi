@@ -178,12 +178,13 @@ public final class BambiContainer extends ServletContainer
 		final List<String> result = new ArrayList<>();
 		final RootDevice root = getRootDevice();
 		final AbstractDevice[] devices = root.getDeviceArray();
-
-		for (final AbstractDevice device : devices)
+		if (devices != null)
 		{
-			result.add(device.getDeviceID());
+			for (final AbstractDevice device : devices)
+			{
+				result.add(device.getDeviceID());
+			}
 		}
-
 		return result;
 	}
 
@@ -239,7 +240,7 @@ public final class BambiContainer extends ServletContainer
 		// we already have a root / dispatcher device - use it as base
 		{
 			final RootDevice rd = getRootDevice();
-			d = rd.createDevice(prop);
+			d = rd == null ? null : rd.createDevice(prop);
 		}
 		if (d != null && d.mustDie())
 		{

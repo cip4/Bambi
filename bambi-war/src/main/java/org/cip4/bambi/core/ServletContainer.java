@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -31,9 +31,9 @@
  *
  * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
  * originally based on software copyright (c) 1999-2001, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
- * 
+ *
  * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
- * 
+ *
  *
  */
 package org.cip4.bambi.core;
@@ -67,7 +67,7 @@ import org.cip4.jdflib.util.zip.ZipReader;
  * class that handles all bambi JDF/JMF requests - regardless of the servlet context previously part of {@link BambiServlet} it is implemented as a Singleton so that you always have static access
  *
  * note that the get handling routines still assume a servlet context - only the actual JDF / JMF post does not
- * 
+ *
  * @author Rainer Prosi, Heidelberger Druckmaschinen
  */
 public abstract class ServletContainer extends BambiLogFactory
@@ -100,7 +100,7 @@ public abstract class ServletContainer extends BambiLogFactory
 
 	/**
 	 * Getter for wantDump attribute.
-	 * 
+	 *
 	 * @return the wantDump
 	 */
 	public boolean wantDump()
@@ -110,7 +110,7 @@ public abstract class ServletContainer extends BambiLogFactory
 
 	/**
 	 * Setter for wantDump attribute.
-	 * 
+	 *
 	 * @param wantDump the wantDump to set
 	 */
 	public void setWantDump(final boolean wantDump)
@@ -127,7 +127,7 @@ public abstract class ServletContainer extends BambiLogFactory
 	 */
 	public XMLResponse processError(final String requestURI, final EnumType messageType, final int returnCode, final String notification)
 	{
-		log.warn("processError- rc: " + returnCode + " " + notification == null ? "" : notification);
+		log.warn("processError- rc: " + returnCode + " " + ((notification == null) ? JDFConstants.EMPTYSTRING : notification));
 		final JDFJMF error = JDFJMF.createJMF(EnumFamily.Response, messageType);
 		final JDFResponse r = error.getResponse(0);
 		r.setReturnCode(returnCode);
@@ -269,7 +269,7 @@ public abstract class ServletContainer extends BambiLogFactory
 			if (e2 != null)
 			{
 				final String rootName = e2.getName();
-				if (rootName.endsWith(JDFConstants.SLASH) && name.startsWith(rootName))
+				if (rootName.endsWith(JDFConstants.SLASH) && name != null && name.startsWith(rootName))
 				{
 					zipReader.setRootEntry(rootName);
 				}
@@ -357,7 +357,7 @@ public abstract class ServletContainer extends BambiLogFactory
 
 	/**
 	 * Parses a multipart request.
-	 * 
+	 *
 	 * @param request
 	 * @return
 	 * @throws IOException
@@ -403,7 +403,7 @@ public abstract class ServletContainer extends BambiLogFactory
 
 	/**
 	 * process a multipart request - including job submission
-	 * 
+	 *
 	 * @param request
 	 * @return the generated response
 	 */

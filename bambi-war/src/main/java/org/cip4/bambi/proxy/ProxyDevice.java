@@ -3,70 +3,38 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
- * reserved.
+ * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the
+ * distribution.
  *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
- *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
+ * 3. The end-user documentation included with the redistribution, if any, must include the following acknowledgment: "This product includes software developed by the The International Cooperation for
+ * the Integration of Processes in Prepress, Press and Postpress (www.cip4.org)" Alternately, this acknowledgment may appear in the software itself, if and wherever such third-party acknowledgments
+ * normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
- *    Processes in  Prepress, Press and Postpress" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact info@cip4.org.
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of Processes in Prepress, Press and Postpress" must not be used to endorse or promote products derived from this software
+ * without prior written permission. For written permission, please contact info@cip4.org.
  *
- * 5. Products derived from this software may not be called "CIP4",
- *    nor may "CIP4" appear in their name, without prior written
- *    permission of the CIP4 organization
+ * 5. Products derived from this software may not be called "CIP4", nor may "CIP4" appear in their name, without prior written permission of the CIP4 organization
  *
- * Usage of this software in commercial products is subject to restrictions. For
- * details please consult info@cip4.org.
+ * Usage of this software in commercial products is subject to restrictions. For details please consult info@cip4.org.
  *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
- * THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE. ====================================================================
  *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
- * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
- * Integration of Processes in  Prepress, Press and Postpress , please see
- * <http://www.cip4.org/>.
- *  
- * 
+ * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
+ * originally based on software copyright (c) 1999-2001, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
+ *
+ *
  */
 
 package org.cip4.bambi.proxy;
@@ -119,8 +87,8 @@ import org.cip4.jdflib.util.UrlUtil.URLProtocol;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- * 
- * 04.12.2008
+ *
+ *         04.12.2008
  */
 public class ProxyDevice extends AbstractProxyDevice
 {
@@ -131,7 +99,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 
 		/**
-		 * 
+		 *
 		 * @param m the message to process
 		 * @return
 		 */
@@ -181,7 +149,8 @@ public class ProxyDevice extends AbstractProxyDevice
 					else
 					{
 						final String devID = di2.getDeviceID();
-						final JDFDeviceInfo di3 = KElement.isWildCard(devID) ? null : (JDFDeviceInfo) response.getChildWithAttribute(ElementName.DEVICEINFO, AttributeName.DEVICEID, null, devID, 0, true);
+						final JDFDeviceInfo di3 = KElement.isWildCard(devID) ? null
+								: (JDFDeviceInfo) response.getChildWithAttribute(ElementName.DEVICEINFO, AttributeName.DEVICEID, null, devID, 0, true);
 						if (di3 != null)
 						{
 							final VElement phases = di2.getChildElementVector(ElementName.JOBPHASE, null, null, true, -1, false);
@@ -203,7 +172,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 		/**
 		 * @param m the query input message
-		 * @param response 
+		 * @param response
 		 * @return JDFDoc the response message
 		 */
 		public boolean fillResourceResponse(final JDFMessage m, final JDFResponse response)
@@ -278,7 +247,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 			boolean bRet = false;
 			final JDFJMF jmfm = m.getJMFRoot();
-			//			final JDFJMF jmfr = resp.getJMFRoot();
+			// final JDFJMF jmfr = resp.getJMFRoot();
 			for (int i = 0; i < procs.size(); i++)
 			{
 				bRet = procs.get(i).handleNotificationQuery(m, resp) || bRet;
@@ -300,6 +269,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 	/**
 	 * simple dispatcher
+	 *
 	 * @author prosirai
 	 */
 	protected class RequestQueueEntryHandler extends AbstractHandler
@@ -317,7 +287,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			 * @param queueURL the url to submit to
 			 * @param activation the queuentry activation
 			 */
-			public SubmitThread(IQueueEntry iqe, String queueURL, EnumActivation activation)
+			public SubmitThread(final IQueueEntry iqe, final String queueURL, final EnumActivation activation)
 			{
 				super("RequestQE_" + getDeviceID() + "_" + numSubmitThread++);
 				this.iqe = iqe;
@@ -331,7 +301,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 			/**
 			 * @see java.lang.Thread#run()
-			*/
+			 */
 			@Override
 			public void run()
 			{
@@ -340,16 +310,16 @@ public class ProxyDevice extends AbstractProxyDevice
 				{
 					submitQueueEntry(iqe, queueURL, activation);
 				}
-				catch (Throwable x)
+				catch (final Throwable x)
 				{
-					log.error("Error submitting to proxy for qe= " + iqe == null ? "null" : iqe.getQueueEntryID(), x);
+					log.error("Error submitting to proxy for qe= " + ((iqe == null) ? "null" : iqe.getQueueEntryID()), x);
 				}
 				ThreadUtil.notifyAll(this);
 				submitThreadMap.remove(iqe.getQueueEntryID());
 			}
 
 			/**
-			 * 
+			 *
 			 * @see java.lang.Thread#toString()
 			 */
 			@Override
@@ -359,8 +329,9 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 
 			/**
-			 * 
+			 *
 			 * isAlive and no timeout
+			 *
 			 * @return true if we should be alive
 			 */
 			public boolean isRunning()
@@ -373,11 +344,11 @@ public class ProxyDevice extends AbstractProxyDevice
 		{
 			super(EnumType.RequestQueueEntry, new EnumFamily[] { EnumFamily.Command });
 			numSubmitThread = 0;
-			submitThreadMap = new HashMap<String, SubmitThread>();
+			submitThreadMap = new HashMap<>();
 		}
 
 		/**
-		 * 
+		 *
 		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 * @param m
 		 * @param resp
@@ -405,14 +376,14 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 
 			final NodeIdentifier nid = requestQEParams.getIdentifier();
-			EnumActivation activation = EnumActivation.getEnum(requestQEParams.getAttribute(AttributeName.ACTIVATION));
+			final EnumActivation activation = EnumActivation.getEnum(requestQEParams.getAttribute(AttributeName.ACTIVATION));
 			// submit a specific QueueEntry
 			IQueueEntry iqe = _theQueueProcessor.getWaitingQueueEntry(nid);
-			EnumSubmitPolicy subPolicy = requestQEParams.getSubmitPolicy();
+			final EnumSubmitPolicy subPolicy = requestQEParams.getSubmitPolicy();
 			if (iqe == null && (EnumActivation.Informative.equals(activation) || EnumSubmitPolicy.Force.equals(subPolicy)))
 			{
 				log.info("submitting non-standard busy qe");
-				JDFQueueEntry qe = _theQueueProcessor.getQueueEntry(null, nid);
+				final JDFQueueEntry qe = _theQueueProcessor.getQueueEntry(null, nid);
 				iqe = _theQueueProcessor.getIQueueEntry(qe);
 			}
 			final JDFQueueEntry qe = iqe == null ? null : iqe.getQueueEntry();
@@ -422,7 +393,7 @@ public class ProxyDevice extends AbstractProxyDevice
 				{
 					qe.setDeviceID(m.getSenderID());
 					waitSubmitThread(iqe.getQueueEntryID(), resp);
-					SubmitThread submitThread = new SubmitThread(iqe, queueURL, activation);
+					final SubmitThread submitThread = new SubmitThread(iqe, queueURL, activation);
 					submitThreadMap.put(iqe.getQueueEntryID(), submitThread);
 					submitThread.start();
 				}
@@ -440,14 +411,15 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 * 
+		 *
 		 * wait for any previous submissions
-		 * @param qeID 
+		 *
+		 * @param qeID
 		 * @param resp
 		 */
-		private void waitSubmitThread(String qeID, final JDFResponse resp)
+		private void waitSubmitThread(final String qeID, final JDFResponse resp)
 		{
-			SubmitThread submitThread = submitThreadMap.get(qeID);
+			final SubmitThread submitThread = submitThreadMap.get(qeID);
 			if (submitThread != null && submitThread.isRunning())
 			{
 				log.info("waiting for previous submit to complete");
@@ -474,7 +446,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 * 
+		 *
 		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 * @param m the message to handle
 		 * @param resp the response to fill
@@ -511,7 +483,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			if (proc != null)
 			{
 				final JDFQueueEntry qeBambi = getQueueProcessor().getQueueEntry(slaveQueueEntryID, null);
-				DataExtractor dataExtractor = getDataExtractor();
+				final DataExtractor dataExtractor = getDataExtractor();
 				if (dataExtractor != null)
 				{
 					dataExtractor.extractFiles(qeBambi, theDoc);
@@ -522,14 +494,13 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 * this one also does http, in case the slave provides files with http
-		 * we want to have these files under control
-		 *  
+		 * this one also does http, in case the slave provides files with http we want to have these files under control
+		 *
 		 * @return the data extractor
 		 */
 		private DataExtractor getDataExtractor()
 		{
-			DataExtractor ex = ProxyDevice.this.getDataExtractor(false);
+			final DataExtractor ex = ProxyDevice.this.getDataExtractor(false);
 			ex.addProtocol(URLProtocol.http);
 			return ex;
 		}
@@ -540,7 +511,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		 * @param theDoc the jdf doc that is returned
 		 * @return the ProxyDeviceProcessor that handles messages from slaveQEID
 		 */
-		protected AbstractProxyProcessor getProcessorForReturnQE(final JDFReturnQueueEntryParams rqp, final JDFResponse resp, JDFDoc theDoc)
+		protected AbstractProxyProcessor getProcessorForReturnQE(final JDFReturnQueueEntryParams rqp, final JDFResponse resp, final JDFDoc theDoc)
 		{
 			final String slaveQEID = rqp == null ? null : StringUtil.getNonEmpty(rqp.getQueueEntryID());
 			AbstractProxyProcessor proc = getProcessorForSlaveQEID(slaveQEID);
@@ -548,7 +519,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			if (proc == null && theDoc != null)
 			{
 				final JDFNode node = theDoc.getJDFRoot();
-				NodeIdentifier nid = node == null ? null : node.getIdentifier();
+				final NodeIdentifier nid = node == null ? null : node.getIdentifier();
 				proc = getProcessorForNID(nid);
 				if (proc != null)
 				{
@@ -557,9 +528,9 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 			if (proc == null)
 			{
-				final JDFNode node = theDoc.getJDFRoot();
-				NodeIdentifier nid = node == null ? null : node.getIdentifier();
-				final String errorMsg = "QueueEntry with slave QueueEntryID = " + slaveQEID + ", job identifier: " + nid == null ? " - " : nid + " is not being processed";
+				final JDFNode node = theDoc == null ? null : theDoc.getJDFRoot();
+				final NodeIdentifier nid = node == null ? null : node.getIdentifier();
+				final String errorMsg = "QueueEntry with slave QueueEntryID = " + slaveQEID + ", job identifier: " + nid + " is not being processed";
 				JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
 			}
 			return proc;
@@ -567,8 +538,8 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 * @author rainer prosi
 	 * @date Jan 17, 2013
 	 */
@@ -580,7 +551,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 * 
+		 *
 		 * @see org.cip4.bambi.core.AbstractDevice.StatusHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
@@ -617,7 +588,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
@@ -641,7 +612,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
@@ -697,7 +668,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see org.cip4.bambi.IMessageHandler#handleMessage(org.cip4.jdflib.jmf. JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 		 */
 		@Override
@@ -738,11 +709,10 @@ public class ProxyDevice extends AbstractProxyDevice
 		 * @see SignalHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 * @param inputMessage
 		 * @param response
-		 * @return
-		 * TODO implement...
-		*/
+		 * @return TODO implement...
+		 */
 		@Override
-		public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 		{
 			super.handleMessage(inputMessage, response);
 			response.setReturnCode(0);
@@ -760,7 +730,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 * 
+		 *
 		 * @see org.cip4.bambi.core.messaging.SignalHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
@@ -775,7 +745,7 @@ public class ProxyDevice extends AbstractProxyDevice
 			boolean b = false;
 			if (proxyProcessors != null)
 			{
-				for (ProxyDeviceProcessor devProc : proxyProcessors)
+				for (final ProxyDeviceProcessor devProc : proxyProcessors)
 				{
 					b = devProc.handleStatusSignal(m, resp) || b;
 				}
@@ -787,8 +757,8 @@ public class ProxyDevice extends AbstractProxyDevice
 				NodeIdentifier ni = sqp == null ? null : sqp.getIdentifier();
 				if (ni == null)
 				{
-					JDFDeviceInfo di = m.getDeviceInfo(0);
-					JDFJobPhase jp = di == null ? null : di.getJobPhase(0);
+					final JDFDeviceInfo di = m.getDeviceInfo(0);
+					final JDFJobPhase jp = di == null ? null : di.getJobPhase(0);
 					if (jp != null)
 					{
 						ni = jp.getIdentifier();
@@ -823,8 +793,8 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 * @param m 
-		 * @param resp 
+		 * @param m
+		 * @param resp
 		 * @return true if handled
 		 */
 		private boolean handleIdle(final JDFMessage m, final JDFResponse resp)
@@ -871,7 +841,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		{
 			return null;
 		}
-		final Vector<StatusListener> v = new Vector<StatusListener>(size);
+		final Vector<StatusListener> v = new Vector<>(size);
 		for (int i = 0; i < size; i++)
 		{
 			final ProxyDeviceProcessor pd = procs.get(i);
@@ -889,7 +859,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	protected void addHandlers()
 	{
 		super.addHandlers();
-		String deviceURLForSlave = getDeviceURLForSlave();
+		final String deviceURLForSlave = getDeviceURLForSlave();
 		getJMFHandler(deviceURLForSlave).addHandler(new RequestQueueEntryHandler());
 		getJMFHandler(deviceURLForSlave).addHandler(new ReturnQueueEntryHandler());
 		getJMFHandler(deviceURLForSlave).addHandler(new QueueStatusSignalHandler());
@@ -905,7 +875,7 @@ public class ProxyDevice extends AbstractProxyDevice
 	/**
 	 * @param iqe
 	 * @param slaveQueueURL
-	 * @param activation 
+	 * @param activation
 	 * @return true if the processor is added
 	 */
 	public ProxyDeviceProcessor submitQueueEntry(final IQueueEntry iqe, final String slaveQueueURL, final EnumActivation activation)
@@ -943,6 +913,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 	/**
 	 * get a simple file name for the JDF in a queueentry
+	 *
 	 * @param qe the JDFQueueEntry to name mangle
 	 * @return the file name for the jdf
 	 */
@@ -953,6 +924,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 	/**
 	 * gets the device processor for a given queueEntry
+	 *
 	 * @return the processor that is processing queueEntryID, null if none matches
 	 */
 	protected Vector<ProxyDeviceProcessor> getProxyProcessors()
@@ -962,7 +934,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		{
 			return null;
 		}
-		final Vector<ProxyDeviceProcessor> v = new Vector<ProxyDeviceProcessor>(size);
+		final Vector<ProxyDeviceProcessor> v = new Vector<>(size);
 		for (int i = 0; i < size; i++)
 		{
 			final AbstractDeviceProcessor theDeviceProcessor = _deviceProcessors.get(i);
@@ -975,8 +947,8 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
-	 * @param slaveQEID 
-	 * @param nid 
+	 * @param slaveQEID
+	 * @param nid
 	 * @return the ProxyDeviceProcessor that handles messages from slaveQEID
 	 */
 	protected ProxyDeviceProcessor getProcessorForSignal(final String slaveQEID, final NodeIdentifier nid)
@@ -1058,7 +1030,7 @@ public class ProxyDevice extends AbstractProxyDevice
 				continue;
 			}
 			final ProxyDeviceProcessor proc = (ProxyDeviceProcessor) aProc;
-			IQueueEntry currentQE = proc.getCurrentQE();
+			final IQueueEntry currentQE = proc.getCurrentQE();
 			final String qeID = currentQE == null ? null : currentQE.getQueueEntryID();
 			if (qeID != null && bambiQEID.equals(qeID))
 			{
@@ -1080,7 +1052,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 		if (qev != null)
 		{
-			for (KElement e : qev)
+			for (final KElement e : qev)
 			{
 				final JDFQueueEntry qe = (JDFQueueEntry) e;
 				final EnumQueueEntryStatus stat = qe.getQueueEntryStatus();
@@ -1089,7 +1061,7 @@ public class ProxyDevice extends AbstractProxyDevice
 					final IQueueEntry iqe = _theQueueProcessor.getIQueueEntry(qe, true);
 					if (iqe == null)
 					{
-						log.error("no Queue entry refreshing queue " + qe.getQueueEntryID() + " Status= " + stat == null ? "unknown" : stat.getName());
+						log.error("no Queue entry refreshing queue " + qe.getQueueEntryID() + " Status= " + ((stat == null) ? "unknown" : stat.getName()));
 					}
 					else
 					{
@@ -1104,7 +1076,7 @@ public class ProxyDevice extends AbstractProxyDevice
 
 	/**
 	 * @param iqe the queueentry to check for
-	 * @return 
+	 * @return
 	 */
 	protected AbstractProxyProcessor createExistingProcessor(final IQueueEntry iqe)
 	{
@@ -1124,8 +1096,8 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 * @param iqe
 	 * @return
 	 */
@@ -1136,22 +1108,22 @@ public class ProxyDevice extends AbstractProxyDevice
 
 	/**
 	 * clean up any queueEntries that may still pretend to be running if only one is allowed
-	 * 
+	 *
 	 * @param slaveDeviceID the slave device id to clean up for
 	 */
-	void cleanupMultipleRunning(String ignoreQEID, String slaveDeviceID)
+	void cleanupMultipleRunning(final String ignoreQEID, final String slaveDeviceID)
 	{
-		int maxRun = getProperties().getMaxSlaveRunning();
+		final int maxRun = getProperties().getMaxSlaveRunning();
 		if (maxRun <= 1)
 		{
-			JDFAttributeMap attMap = new JDFAttributeMap(AttributeName.DEVICEID, slaveDeviceID);
-			VElement queues = _theQueueProcessor.getQueue().getQueueEntryVector(attMap, null);
+			final JDFAttributeMap attMap = new JDFAttributeMap(AttributeName.DEVICEID, slaveDeviceID);
+			final VElement queues = _theQueueProcessor.getQueue().getQueueEntryVector(attMap, null);
 			if (queues != null && queues.size() > 1)
 			{
-				for (KElement e : queues)
+				for (final KElement e : queues)
 				{
-					JDFQueueEntry qe = (JDFQueueEntry) e;
-					String queueEntryID = qe.getQueueEntryID();
+					final JDFQueueEntry qe = (JDFQueueEntry) e;
+					final String queueEntryID = qe.getQueueEntryID();
 					if (ignoreQEID.equals(queueEntryID))
 						continue;
 					ProxyDeviceProcessor pdp = (ProxyDeviceProcessor) getProcessor(queueEntryID, 0);
@@ -1175,15 +1147,15 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#stopProcessing(java.lang.String, org.cip4.jdflib.core.JDFElement.EnumNodeStatus, java.lang.String)
 	 */
 	@Override
-	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status, String statusDetails)
+	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status, final String statusDetails)
 	{
 		if (status == null)
 		{
-			JMFBuilder jmfBuilder = getJMFBuilder();
+			final JMFBuilder jmfBuilder = getJMFBuilder();
 			final JDFJMF jmf = jmfBuilder.buildRemoveQueueEntry(getSlaveQEID(queueEntryID));
 			if (jmf != null)
 			{

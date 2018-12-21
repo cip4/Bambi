@@ -686,11 +686,12 @@ public class RootDevice extends AbstractDevice
 		final KElement listRoot = deviceList.getRoot();
 		listRoot.setAttribute("NumRequests", numRequests, null);
 		listRoot.setAttribute(AttributeName.CONTEXT, getContext(request));
-		listRoot.setAttribute("MemFree", Runtime.getRuntime().freeMemory() / 1000 / 1000., null);
-		listRoot.setAttribute("MemTotal", Runtime.getRuntime().totalMemory() / 1000 / 1000., null);
 		final MemorySpy memorySpy = new MemorySpy();
-		listRoot.setAttribute("MemPerm", memorySpy.getPermGen(MemScope.current) / 1000 / 1000., null);
-		listRoot.setAttribute("MemCurrent", memorySpy.getHeapUsed(MemScope.current) / 1000 / 1000., null);
+		memorySpy.setWantMega(true);
+		listRoot.setAttribute("MemFree", memorySpy.getFreeMem(), null);
+		listRoot.setAttribute("MemTotal", memorySpy.getTotalMemory(), null);
+		listRoot.setAttribute("MemPerm", memorySpy.getPermGen(MemScope.current), null);
+		listRoot.setAttribute("MemCurrent", memorySpy.getHeapUsed(MemScope.current), null);
 		listRoot.setAttribute(RELEASE_VERSION_STRING, RuntimeProperties.getProductVersion(), null);
 		listRoot.setAttribute(RELEASE_TIMESTAMP_STRING, RuntimeProperties.getProductBuildTimestamp(), null);
 		listRoot.setAttribute("JdfLibVersion", getAgentVersion(), null);
