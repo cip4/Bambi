@@ -312,7 +312,7 @@ public class ProxyDevice extends AbstractProxyDevice
 				}
 				catch (final Throwable x)
 				{
-					log.error("Error submitting to proxy for qe= " + ((iqe == null) ? "null" : iqe.getQueueEntryID()), x);
+					log.error(getDeviceID() + ": error submitting to proxy; qe= " + iqe.getQueueEntryID(), x);
 				}
 				ThreadUtil.notifyAll(this);
 				submitThreadMap.remove(iqe.getQueueEntryID());

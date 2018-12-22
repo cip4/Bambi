@@ -177,7 +177,7 @@ public final class BambiContainer extends ServletContainer
 	{
 		final List<String> result = new ArrayList<>();
 		final RootDevice root = getRootDevice();
-		final AbstractDevice[] devices = root.getDeviceArray();
+		final AbstractDevice[] devices = root == null ? null : root.getDeviceArray();
 		if (devices != null)
 		{
 			for (final AbstractDevice device : devices)
@@ -464,7 +464,7 @@ public final class BambiContainer extends ServletContainer
 		startTimer(request);
 		final InputStream inStream = request.getInputStream();
 		final MimeReader mr = new MimeReader(inStream);
-		final BodyPart bp[] = mr.getBodyParts();
+		final BodyPart[] bp = mr.getBodyParts();
 		log.info("Body Parts: " + ((bp == null) ? 0 : bp.length));
 		XMLResponse r = null;
 		if (bp == null || bp.length == 0)
