@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -478,7 +478,7 @@ public class SignalDispatcher extends BambiLogFactory
 						final MemorySpy memorySpy = new MemorySpy();
 						memorySpy.setWantMega(true);
 						final Map<String, Long> memMap = memorySpy.getSummaryMap();
-						log.info("Sent message# " + sentMessages + "to URL: " + url + JDFConstants.BLANK + timer.getSingleSummary() + JDFConstants.BLANK + "mem used (MB): " + memMap.get("Current")
+						log.info("Sent message# " + sentMessages + " to URL: " + url + JDFConstants.BLANK + timer.getSingleSummary() + JDFConstants.BLANK + "mem used (MB): " + memMap.get("Current")
 								+ JDFConstants.SLASH + memMap.get("Total"));
 					}
 				}
