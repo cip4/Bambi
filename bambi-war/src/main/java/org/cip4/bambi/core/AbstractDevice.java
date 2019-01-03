@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -343,24 +343,23 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			final StatusCounter sc = getStatusListener().getStatusCounter();
 			final JDFDoc docJMFResource = sc == null ? null : sc.getDocJMFResource();
-			if (docJMFResource == null)
-			{
-				return getResourceList(inputMessage, response);
-			}
-			final JDFSignal response2 = docJMFResource.getJMFRoot().getSignal(0);
-			response.copyInto(response2, false);
-			response.removeAttribute(AttributeName.REFID);
 			final JDFResourceQuParams inRQP = inputMessage.getResourceQuParams();
-			if (inRQP != null)
+			if (docJMFResource != null)
 			{
-				final JDFResourceQuParams rqPStatusListner = (JDFResourceQuParams) response.removeChild(ElementName.RESOURCEQUPARAMS, null, 0);
-				inRQP.copyAttribute(AttributeName.JOBID, rqPStatusListner);
-				inRQP.copyAttribute(AttributeName.JOBPARTID, rqPStatusListner);
-				inRQP.copyAttribute(AttributeName.QUEUEENTRYID, rqPStatusListner);
-			}
-			else
-			{
-				inputMessage.moveElement(response.getElement(ElementName.RESOURCEQUPARAMS, null, 0), null);
+				final JDFSignal response2 = docJMFResource.getJMFRoot().getSignal(0);
+				response.copyInto(response2, false);
+				response.removeAttribute(AttributeName.REFID);
+				if (inRQP != null)
+				{
+					final JDFResourceQuParams rqPStatusListner = (JDFResourceQuParams) response.removeChild(ElementName.RESOURCEQUPARAMS, null, 0);
+					inRQP.copyAttribute(AttributeName.JOBID, rqPStatusListner);
+					inRQP.copyAttribute(AttributeName.JOBPARTID, rqPStatusListner);
+					inRQP.copyAttribute(AttributeName.QUEUEENTRYID, rqPStatusListner);
+				}
+				else
+				{
+					inputMessage.moveElement(response.getElement(ElementName.RESOURCEQUPARAMS, null, 0), null);
+				}
 			}
 			return true;
 		}
