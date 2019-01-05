@@ -1,74 +1,43 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
- * reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the
+ * distribution.
  *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
- *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
+ * 3. The end-user documentation included with the redistribution, if any, must include the following acknowledgment: "This product includes software developed by the The International Cooperation for
+ * the Integration of Processes in Prepress, Press and Postpress (www.cip4.org)" Alternately, this acknowledgment may appear in the software itself, if and wherever such third-party acknowledgments
+ * normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
- *    Processes in  Prepress, Press and Postpress" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact info@cip4.org.
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of Processes in Prepress, Press and Postpress" must not be used to endorse or promote products derived from this software
+ * without prior written permission. For written permission, please contact info@cip4.org.
  *
- * 5. Products derived from this software may not be called "CIP4",
- *    nor may "CIP4" appear in their name, without prior written
- *    permission of the CIP4 organization
+ * 5. Products derived from this software may not be called "CIP4", nor may "CIP4" appear in their name, without prior written permission of the CIP4 organization
  *
- * Usage of this software in commercial products is subject to restrictions. For
- * details please consult info@cip4.org.
+ * Usage of this software in commercial products is subject to restrictions. For details please consult info@cip4.org.
  *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
- * THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE. ====================================================================
  *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
- * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
- * Integration of Processes in  Prepress, Press and Postpress , please see
- * <http://www.cip4.org/>.
- *  
- * 
+ * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
+ * originally based on software copyright (c) 1999-2001, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
+ *
+ *
  */
 package org.cip4.bambi.core.messaging;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Vector;
 
@@ -84,6 +53,7 @@ import org.cip4.jdflib.util.StringUtil;
 
 /**
  * class that has a head and a tail and also serializes intermediate messages
+ *
  * @author rainer prosi
  * @date Mar 18, 2014
  */
@@ -92,7 +62,7 @@ class MessageFiFo
 	/**
 	 * @param dumpDir
 	 */
-	MessageFiFo(File dumpDir)
+	MessageFiFo(final File dumpDir)
 	{
 		super();
 		log = LogFactory.getLog(getClass());
@@ -102,11 +72,11 @@ class MessageFiFo
 		tail = createTail();
 	}
 
-	private Vector<MessageDetails> createTail()
+	private ArrayList<MessageDetails> createTail()
 	{
-		File oldTail = getDumpFile("tail");
-		Vector<MessageDetails> v = readSingleFile(oldTail);
-		if (v.size() > 0)
+		final File oldTail = getDumpFile("tail");
+		final ArrayList<MessageDetails> v = readSingleFile(oldTail);
+		if (!v.isEmpty())
 			return v;
 
 		if (dumps.isEmpty())
@@ -119,36 +89,36 @@ class MessageFiFo
 		}
 	}
 
-	private File getDumpFile(String headTail)
+	private File getDumpFile(final String headTail)
 	{
-		File localFile = new File("MsgDump." + headTail + ".xml");
-		File oldTail = FileUtil.getFileInDirectory(dumpDir, localFile);
+		final File localFile = new File("MsgDump." + headTail + ".xml");
+		final File oldTail = FileUtil.getFileInDirectory(dumpDir, localFile);
 		return oldTail;
 	}
 
 	/**
-	 *  
+	 *
 	 * @return
 	 */
-	private synchronized Vector<MessageDetails> readFirstDump()
+	private synchronized ArrayList<MessageDetails> readFirstDump()
 	{
-		File oldHead = getDumpFile("head");
-		Vector<MessageDetails> v = readSingleFile(oldHead);
-		if (v.size() > 0)
+		final File oldHead = getDumpFile("head");
+		final ArrayList<MessageDetails> v = readSingleFile(oldHead);
+		if (!v.isEmpty())
 		{
 			oldHead.delete();
 			return v;
 		}
-		Vector<MessageDetails> vMD = removeFromDump();
+		final ArrayList<MessageDetails> vMD = removeFromDump();
 		return vMD;
 	}
 
-	private Vector<MessageDetails> removeFromDump()
+	private ArrayList<MessageDetails> removeFromDump()
 	{
 		if (dumps.isEmpty())
-			return new Vector<MessageDetails>();
-		File remove = dumps.remove(0);
-		Vector<MessageDetails> v = readSingleFile(remove);
+			return new ArrayList<>();
+		final File remove = dumps.remove(0);
+		final ArrayList<MessageDetails> v = readSingleFile(remove);
 		remove.delete();
 		if (size() > 0)
 		{
@@ -157,9 +127,9 @@ class MessageFiFo
 		return v;
 	}
 
-	private Vector<MessageDetails> readSingleFile(File inputFile)
+	private ArrayList<MessageDetails> readSingleFile(final File inputFile)
 	{
-		Vector<MessageDetails> vMD = new Vector<MessageDetails>();
+		final ArrayList<MessageDetails> vMD = new ArrayList<>();
 		if (inputFile != null && inputFile.canRead())
 		{
 			final JDFDoc d = JDFDoc.parseFile(inputFile);
@@ -169,10 +139,10 @@ class MessageFiFo
 				final KElement root = d.getRoot();
 
 				final VElement v = root.getChildElementVector("Message", null);
-				int zapp = 0;
-				for (KElement e : v)
+				final int zapp = 0;
+				for (final KElement e : v)
 				{
-					MessageDetails messageDetails = new MessageDetails(e);
+					final MessageDetails messageDetails = new MessageDetails(e);
 					vMD.add(messageDetails);
 				}
 				log.info(" read " + v.size() + " messages from " + inputFile.getAbsolutePath() + " and removed messages: " + zapp);
@@ -184,15 +154,16 @@ class MessageFiFo
 
 	/**
 	 * read all files from dumpdir
+	 *
 	 * @return
 	 */
-	private Vector<File> readDump()
+	private ArrayList<File> readDump()
 	{
-		Vector<File> vDumps = ContainerUtil.toVector(FileUtil.listFilesWithExpression(dumpDir, "*.msg.xml"));
+		ArrayList<File> vDumps = ContainerUtil.toArrayList(FileUtil.listFilesWithExpression(dumpDir, "*.msg.xml"));
 		if (vDumps == null)
-			vDumps = new Vector<File>();
+			vDumps = new ArrayList<>();
 		Collections.sort(vDumps);
-		if (vDumps.size() > 0)
+		if (!vDumps.isEmpty())
 		{
 			log.info("read pending messages: in " + dumpDir.getAbsolutePath() + " #files= " + vDumps.size());
 		}
@@ -200,18 +171,18 @@ class MessageFiFo
 	}
 
 	final Log log;
-	Vector<MessageDetails> head;
-	Vector<MessageDetails> tail;
-	final Vector<File> dumps;
+	ArrayList<MessageDetails> head;
+	ArrayList<MessageDetails> tail;
+	final ArrayList<File> dumps;
 	final File dumpDir;
 	static final int messPerDump = 421;
 
 	/**
-	 *  
+	 *
 	 * @param i
 	 * @return
 	 */
-	public MessageDetails get(int i)
+	public MessageDetails get(final int i)
 	{
 		if (i < head.size())
 			return head.get(0);
@@ -221,21 +192,22 @@ class MessageFiFo
 	}
 
 	/**
-	 *  
+	 *
 	 * return a clone of tail so that we can optimize without blocking the head
+	 *
 	 * @return
 	 */
 	public synchronized Vector<MessageDetails> getTailClone()
 	{
 		if (tail == null)
 			return null;
-		Vector<MessageDetails> v = new Vector<MessageDetails>();
+		final Vector<MessageDetails> v = new Vector<>();
 		v.addAll(tail);
 		return v;
 	}
 
 	/**
-	 *  
+	 *
 	 * @return
 	 */
 	public int size()
@@ -255,18 +227,18 @@ class MessageFiFo
 	}
 
 	/**
-	 * 
+	 *
 	 * @param i
-	 * @return 
+	 * @return
 	 */
-	public synchronized MessageDetails remove(int i)
+	public synchronized MessageDetails remove(final int i)
 	{
 		if (i < head.size())
 		{
-			MessageDetails remove = head.remove(i);
-			if (head.size() == 0)
+			final MessageDetails remove = head.remove(i);
+			if (head.isEmpty())
 			{
-				if (dumps.size() > 0)
+				if (!dumps.isEmpty())
 				{
 					head = removeFromDump();
 				}
@@ -282,7 +254,7 @@ class MessageFiFo
 		{
 			return tail.remove(i - tailStart());
 		}
-		else if (head.size() == 0 && dumps.size() > 0)
+		else if (head.isEmpty() && !dumps.isEmpty())
 		{
 			head = removeFromDump();
 			return remove(i);
@@ -292,34 +264,34 @@ class MessageFiFo
 	}
 
 	/**
-	 *  
+	 *
 	 * @return
 	 */
 	public boolean isEmpty()
 	{
-		return size() == 0;
+		return get(0) == null;
 	}
 
 	/**
 	 * cleans up the metadata - note the files still need to be deleted
-	 * 
+	 *
 	 */
 	public void clear()
 	{
-		head = new Vector<MessageDetails>();
+		head = new ArrayList<>();
 		tail = head;
 		dumps.clear();
 	}
 
 	/**
-	 *  
+	 *
 	 * @param messageDetails
 	 */
-	public synchronized void add(MessageDetails messageDetails)
+	public synchronized void add(final MessageDetails messageDetails)
 	{
 		if (tail.size() >= messPerDump)
 		{
-			Vector<MessageDetails> newTail = new Vector<MessageDetails>();
+			final ArrayList<MessageDetails> newTail = new ArrayList<>();
 			while (tail.size() > messPerDump)
 			{
 				newTail.add(tail.get(messPerDump));
@@ -343,43 +315,43 @@ class MessageFiFo
 	}
 
 	/**
-	 *  
+	 *
 	 * @return
 	 */
 	private File getNewTail()
 	{
 		int iPos = 0;
-		for (File f : dumps)
+		for (final File f : dumps)
 		{
 			int ii = getPos(f);
 			if (ii >= iPos)
 				iPos = ++ii;
 		}
-		String dumpName = StringUtil.sprintf("%06i.msg", "" + iPos);
+		final String dumpName = StringUtil.sprintf("%06i.msg", "" + iPos);
 		return getDumpFile(dumpName);
 	}
 
 	/**
-	 * 
+	 *
 	 * @param f
 	 * @return
 	 */
-	private int getPos(File f)
+	private int getPos(final File f)
 	{
-		String name = f.getName();
-		String token = StringUtil.token(name, -3, ".");
+		final String name = f.getName();
+		final String token = StringUtil.token(name, -3, ".");
 		return StringUtil.parseInt(token, -1);
 	}
 
-	private void persistFile(final File f, Vector<MessageDetails> vM)
+	private void persistFile(final File f, final ArrayList<MessageDetails> vM)
 	{
-		XMLDoc xmlDoc = new XMLDoc("MessageSender", null);
+		final XMLDoc xmlDoc = new XMLDoc("MessageSender", null);
 		final KElement meassagesRoot = xmlDoc.getRoot();
 		if (vM.size() > 0)
 		{
 			log.info("writing " + vM.size() + " pending messages to: " + f.getAbsolutePath());
 		}
-		for (MessageDetails md : vM)
+		for (final MessageDetails md : vM)
 		{
 			md.appendToXML(meassagesRoot, 1, false);
 		}
@@ -387,13 +359,13 @@ class MessageFiFo
 	}
 
 	/**
-	 *  
+	 *
 	 */
 	public synchronized void dumpHeadTail()
 	{
-		File headFile = getDumpFile("head");
+		final File headFile = getDumpFile("head");
 		headFile.delete();
-		File tailFile = getDumpFile("tail");
+		final File tailFile = getDumpFile("tail");
 		tailFile.delete();
 		if (!head.isEmpty())
 			persistFile(headFile, head);
@@ -411,11 +383,11 @@ class MessageFiFo
 	}
 
 	/**
-	 * 
+	 *
 	 * @param messageDetails
 	 * @return
 	 */
-	public synchronized boolean remove(MessageDetails messageDetails)
+	public synchronized boolean remove(final MessageDetails messageDetails)
 	{
 		boolean zapped = false;
 		if (tail != null)
