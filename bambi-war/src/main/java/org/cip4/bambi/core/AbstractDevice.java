@@ -1850,22 +1850,25 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public void addQueueToStatusResponse(final JDFMessage inputMessage, final JDFResponse response)
 	{
-		final JDFStatusQuParams statusQuParams = inputMessage.getStatusQuParams();
-		final boolean bQueue = statusQuParams == null ? false : statusQuParams.getQueueInfo();
-		if (bQueue)
+		if (response != null)
 		{
-			final JDFQueue queue = _theQueueProcessor.getQueue();
-			if (queue != null)
+			final JDFStatusQuParams statusQuParams = inputMessage.getStatusQuParams();
+			final boolean bQueue = statusQuParams == null ? false : statusQuParams.getQueueInfo();
+			if (bQueue)
 			{
-				synchronized (queue)
+				final JDFQueue queue = _theQueueProcessor.getQueue();
+				if (queue != null)
 				{
-					final JDFQueue qq = (JDFQueue) response.copyElement(queue, null);
-					QueueProcessor.removeBambiNSExtensions(qq);
+					synchronized (queue)
+					{
+						final JDFQueue qq = (JDFQueue) response.copyElement(queue, null);
+						QueueProcessor.removeBambiNSExtensions(qq);
+					}
 				}
-			}
-			else
-			{
-				log.warn("no queue in queueprocessor - ignoring");
+				else
+				{
+					log.warn("no queue in queueprocessor - ignoring");
+				}
 			}
 		}
 	}

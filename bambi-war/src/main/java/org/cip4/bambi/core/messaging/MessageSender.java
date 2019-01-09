@@ -44,7 +44,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.util.Vector;
+import java.util.List;
 
 import javax.mail.MessagingException;
 
@@ -190,7 +190,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				return;
 			}
 			checked++;
-			final Vector<MessageDetails> tail = _messages.getTailClone();
+			final List<MessageDetails> tail = _messages.getTailClone();
 			if (tail != null)
 			{
 				for (int i = tail.size() - 1; i >= 0; i--)

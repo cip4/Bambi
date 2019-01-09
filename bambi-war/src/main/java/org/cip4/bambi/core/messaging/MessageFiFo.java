@@ -39,6 +39,7 @@ package org.cip4.bambi.core.messaging;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Vector;
 
 import org.apache.commons.logging.Log;
@@ -72,10 +73,10 @@ class MessageFiFo
 		tail = createTail();
 	}
 
-	private ArrayList<MessageDetails> createTail()
+	private List<MessageDetails> createTail()
 	{
 		final File oldTail = getDumpFile("tail");
-		final ArrayList<MessageDetails> v = readSingleFile(oldTail);
+		final List<MessageDetails> v = readSingleFile(oldTail);
 		if (!v.isEmpty())
 			return v;
 
@@ -100,25 +101,25 @@ class MessageFiFo
 	 *
 	 * @return
 	 */
-	private synchronized ArrayList<MessageDetails> readFirstDump()
+	private synchronized List<MessageDetails> readFirstDump()
 	{
 		final File oldHead = getDumpFile("head");
-		final ArrayList<MessageDetails> v = readSingleFile(oldHead);
+		final List<MessageDetails> v = readSingleFile(oldHead);
 		if (!v.isEmpty())
 		{
 			oldHead.delete();
 			return v;
 		}
-		final ArrayList<MessageDetails> vMD = removeFromDump();
+		final List<MessageDetails> vMD = removeFromDump();
 		return vMD;
 	}
 
-	private ArrayList<MessageDetails> removeFromDump()
+	private List<MessageDetails> removeFromDump()
 	{
 		if (dumps.isEmpty())
 			return new ArrayList<>();
 		final File remove = dumps.remove(0);
-		final ArrayList<MessageDetails> v = readSingleFile(remove);
+		final List<MessageDetails> v = readSingleFile(remove);
 		remove.delete();
 		if (size() > 0)
 		{
@@ -127,7 +128,7 @@ class MessageFiFo
 		return v;
 	}
 
-	private ArrayList<MessageDetails> readSingleFile(final File inputFile)
+	private List<MessageDetails> readSingleFile(final File inputFile)
 	{
 		final ArrayList<MessageDetails> vMD = new ArrayList<>();
 		if (inputFile != null && inputFile.canRead())
@@ -157,9 +158,9 @@ class MessageFiFo
 	 *
 	 * @return
 	 */
-	private ArrayList<File> readDump()
+	private List<File> readDump()
 	{
-		ArrayList<File> vDumps = ContainerUtil.toArrayList(FileUtil.listFilesWithExpression(dumpDir, "*.msg.xml"));
+		List<File> vDumps = ContainerUtil.toArrayList(FileUtil.listFilesWithExpression(dumpDir, "*.msg.xml"));
 		if (vDumps == null)
 			vDumps = new ArrayList<>();
 		Collections.sort(vDumps);
@@ -171,9 +172,9 @@ class MessageFiFo
 	}
 
 	final Log log;
-	ArrayList<MessageDetails> head;
-	ArrayList<MessageDetails> tail;
-	final ArrayList<File> dumps;
+	List<MessageDetails> head;
+	List<MessageDetails> tail;
+	final List<File> dumps;
 	final File dumpDir;
 	static final int messPerDump = 421;
 
@@ -343,7 +344,7 @@ class MessageFiFo
 		return StringUtil.parseInt(token, -1);
 	}
 
-	private void persistFile(final File f, final ArrayList<MessageDetails> vM)
+	private void persistFile(final File f, final List<MessageDetails> vM)
 	{
 		final XMLDoc xmlDoc = new XMLDoc("MessageSender", null);
 		final KElement meassagesRoot = xmlDoc.getRoot();
