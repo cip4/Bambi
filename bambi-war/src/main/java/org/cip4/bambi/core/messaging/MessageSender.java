@@ -731,7 +731,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		}
 		catch (final Throwable e)
 		{
-			log.error("Exception in sendHTTP: " + e.getMessage());
+			log.error("Exception in sendHTTP: " + e.getClass().getSimpleName() + " Message= " + e.getMessage());
 			if (messagedetails.respHandler != null)
 			{
 				messagedetails.respHandler.handleMessage(); // make sure we tell anyone who is waiting that the wait is over...
