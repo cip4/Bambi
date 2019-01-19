@@ -100,7 +100,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://foo");
-		assertEquals("Status.TestSender", md.getName());
+		assertEquals("Status." + jmf.getSenderID(), md.getName());
 	}
 
 	/**

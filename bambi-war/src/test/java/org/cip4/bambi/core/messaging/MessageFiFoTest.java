@@ -142,11 +142,11 @@ public class MessageFiFoTest extends BambiTestCaseBase
 		final MessageFiFo fifo = new MessageFiFo(dumpDir);
 		final KElement e = new JDFDoc("elem").getRoot();
 		final JDFJMF jmf = (JDFJMF) e.appendElement(ElementName.JMF);
-		jmf.appendSignal(EnumType.Resource);
+		jmf.appendSignal(EnumType.Resource).appendResourceInfo().appendResource(ElementName.MISCCONSUMABLE);
 		final MessageDetails messageDetails = new MessageDetails(e);
 		fifo.add(messageDetails);
 		final MessageDetails d2 = fifo.get(0);
-		assertEquals("Resource", d2.getName());
+		assertEquals("Resource_MiscConsumable." + jmf.getSenderID(), d2.getName());
 
 	}
 

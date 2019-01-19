@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -143,7 +143,6 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 	protected boolean bFilterOnDeviceID;
 	protected AbstractDevice _parentDevice;
 	private long messageCount;
-	private static int warnCount = 0;
 
 	/**
 	 *
@@ -505,7 +504,7 @@ public class JMFHandler extends BambiLogFactory implements IMessageHandler, IJMF
 		{
 			LogFactory.getLog(JMFHandler.class).error("JMF error: rc=" + rc + " " + text);
 		}
-		else if (warnCount++ < 10 || warnCount % 100 == 0)
+		else
 		{
 			LogFactory.getLog(JMFHandler.class).warn("JMF warning: rc=" + rc + " " + text);
 		}
