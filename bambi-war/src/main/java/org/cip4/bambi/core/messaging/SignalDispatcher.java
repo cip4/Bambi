@@ -1380,22 +1380,25 @@ public class SignalDispatcher extends BambiLogFactory
 	public Set<String> getChannels(final EnumType typ, final String senderID, final String queueEntryID)
 	{
 		final Set<String> keySet2 = new HashSet<>();
-		final String typNam = typ == null ? null : typ.getName();
-		synchronized (subscriptionMap)
+		if (!subscriptionMap.isEmpty())
 		{
-			final Set<String> keySet = subscriptionMap.keySet();
-			final Iterator<String> it = keySet.iterator();
-			while (it.hasNext())
+			final String typNam = typ == null ? null : typ.getName();
+			synchronized (subscriptionMap)
 			{
-				final String key = it.next();
-				final MsgSubscription sub = subscriptionMap.get(key);
-				boolean bMatch = sub.matchesQueueEntry(queueEntryID);
-				bMatch = bMatch && (typNam == null || typNam.equals(sub.getMessageType()));
-				bMatch = bMatch && (senderID == null || sub.jmfDeviceID == null || sub.jmfDeviceID.equals(senderID));
-
-				if (bMatch)
+				final Set<String> keySet = subscriptionMap.keySet();
+				final Iterator<String> it = keySet.iterator();
+				while (it.hasNext())
 				{
-					keySet2.add(key);
+					final String key = it.next();
+					final MsgSubscription sub = subscriptionMap.get(key);
+					boolean bMatch = sub.matchesQueueEntry(queueEntryID);
+					bMatch = bMatch && (typNam == null || typNam.equals(sub.getMessageType()));
+					bMatch = bMatch && (senderID == null || sub.jmfDeviceID == null || sub.jmfDeviceID.equals(senderID));
+
+					if (bMatch)
+					{
+						keySet2.add(key);
+					}
 				}
 			}
 		}
@@ -1409,6 +1412,10 @@ public class SignalDispatcher extends BambiLogFactory
 	 */
 	public boolean hasSubscription(final EnumType typ)
 	{
+		if (typ == null)
+		{
+			return !subscriptionMap.isEmpty();
+		}
 		return !getChannels(typ, null, null).isEmpty();
 	}
 
