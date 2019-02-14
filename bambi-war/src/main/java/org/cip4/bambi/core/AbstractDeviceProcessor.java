@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -68,7 +68,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
 /**
  * abstract parent class for device processors <br>
  * The device processor is the actual working part of a device.
- * 
+ *
  * @author boegerni
  *
  */
@@ -321,7 +321,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 	/**
 	 * initialize the IDeviceProcessor
-	 * 
+	 *
 	 * @param queueProcessor
 	 * @param statusListener
 	 * @param devProperties
@@ -420,7 +420,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 	/**
 	 * generic setup of processing
-	 * 
+	 *
 	 * @param node the node to process
 	 * @param qe the queueEntryID of the job to process
 	 * @return true if ok
@@ -530,7 +530,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 	/**
 	 * signal that processing has finished and prepare the StatusCounter for the next process
-	 * 
+	 *
 	 * @param qes the final queue entry status of the entry
 	 * @return true if successfully processed
 	 */
@@ -566,7 +566,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			_queueProcessor.returnQueueEntry(qe, null, null, qes);
 		}
 		qe.removeAttribute(AttributeName.DEVICEID);
-		log.info("finalized processing JDF: ");
+		log.info("finalized processing JDF: " + ((qes == null) ? "??? null ???" : qes.getName()));
 		_queueProcessor.updateEntry(qe, qes, null, null, null);
 		currentQE = null;
 		return bReturn;
@@ -574,7 +574,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 	/**
 	 * stops the currently processed task, called e.g. from the queueprocessor upon AbortQueueEntry
-	 * 
+	 *
 	 * @param newStatus if null retain status
 	 * @return the new status, null in case of snafu
 	 */
@@ -582,7 +582,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 	/**
 	 * stops the currently processed task, called e.g. from the queueprocessor upon AbortQueueEntry
-	 * 
+	 *
 	 * @param newStatus if null retain status
 	 * @param statusDetails - not used in the default implementation
 	 * @return the new status, null in case of snafu
@@ -614,7 +614,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 	/**
 	 * get the currently processed IQueueEntry
-	 * 
+	 *
 	 * @return
 	 */
 	public IQueueEntry getCurrentQE()
@@ -624,7 +624,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 	/**
 	 * get the currently processed QueueEntryID
-	 * 
+	 *
 	 * @return
 	 */
 	public String getQueueEntryID()
@@ -634,7 +634,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 	/**
 	 * get the currently processed JobID
-	 * 
+	 *
 	 * @return
 	 */
 	public String getJobID()

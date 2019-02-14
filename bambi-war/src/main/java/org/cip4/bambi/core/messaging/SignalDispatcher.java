@@ -1379,30 +1379,27 @@ public class SignalDispatcher extends BambiLogFactory
 	 */
 	public Set<String> getChannels(final EnumType typ, final String senderID, final String queueEntryID)
 	{
-		final Set<String> keySet2 = new HashSet<>();
+		final Set<String> knownKeys = new HashSet<>();
 		if (!subscriptionMap.isEmpty())
 		{
 			final String typNam = typ == null ? null : typ.getName();
 			synchronized (subscriptionMap)
 			{
 				final Set<String> keySet = subscriptionMap.keySet();
-				final Iterator<String> it = keySet.iterator();
-				while (it.hasNext())
+				for (final String key : keySet)
 				{
-					final String key = it.next();
 					final MsgSubscription sub = subscriptionMap.get(key);
 					boolean bMatch = sub.matchesQueueEntry(queueEntryID);
 					bMatch = bMatch && (typNam == null || typNam.equals(sub.getMessageType()));
 					bMatch = bMatch && (senderID == null || sub.jmfDeviceID == null || sub.jmfDeviceID.equals(senderID));
-
 					if (bMatch)
 					{
-						keySet2.add(key);
+						knownKeys.add(key);
 					}
 				}
 			}
 		}
-		return keySet2;
+		return knownKeys;
 	}
 
 	/**

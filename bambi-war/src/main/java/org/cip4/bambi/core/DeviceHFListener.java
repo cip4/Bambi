@@ -44,6 +44,7 @@ import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.hotfolder.QueueHotFolderListener;
 
 /**
@@ -82,12 +83,19 @@ public class DeviceHFListener extends BambiLogFactory implements QueueHotFolderL
 		}
 
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
+		if (jmfHandler == null)
+		{
+			log.error("no handler for message - bailing out");
+			return false;
+		}
 		final JDFResponse resp = clone.appendResponse(m.getEnumType());
-		final boolean handled = jmfHandler == null ? false : jmfHandler.handleMessage(m, resp);
-		final boolean ok = handled && resp != null && resp.getReturnCode() == 0;
+		final boolean handled = jmfHandler.handleMessage(m, resp);
+		final boolean ok = handled && resp.getReturnCode() == 0;
 		if (!ok)
 		{
-			log.warn("Problems with hot file");
+			final JDFNotification n = resp.getNotification();
+			final String s = n == null ? null : n.getCommentText();
+			log.warn("Problems with hot file: rc=" + resp.getReturnCode() + " " + s);
 		}
 		return ok;
 	}

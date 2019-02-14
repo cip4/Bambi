@@ -2898,9 +2898,16 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			return bOK;
 		}
 
+		/**
+		 * ensure valid finished nodes
+		 * 
+		 * @param finishedNodes
+		 * @param docJDF
+		 * @return
+		 */
 		public VString updateFinishedNodes(VString finishedNodes, final JDFDoc docJDF)
 		{
-			if (finishedNodes == null || finishedNodes.size() == 0)
+			if (ContainerUtil.isEmpty(finishedNodes))
 			{
 				final JDFNode n = docJDF.getJDFRoot();
 				if (n == null)
@@ -2931,8 +2938,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			final JDFNotification not = root.getCreateAuditPool().addNotification(EnumClass.Warning, null, qe.getPartMapVector());
 			final JDFComment notificationComment = not.appendComment();
 			notificationComment.setLanguage("en");
-			notificationComment.setText("Node aborted in queue entry: " + qe.getQueueEntryID());
-			log.warn("Node aborted in queue entry: " + qe.getQueueEntryID());
+			notificationComment.setText("Node aborted in queue entry: " + qe.getQueueEntryID() + " JobID=" + root.getJobID(true));
+			log.warn("Node aborted in queue entry: " + qe.getQueueEntryID() + " JobID=" + root.getJobID(true));
 		}
 
 		/**
