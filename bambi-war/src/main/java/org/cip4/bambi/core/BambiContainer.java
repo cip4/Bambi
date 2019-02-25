@@ -570,8 +570,7 @@ public final class BambiContainer extends ServletContainer
 			JDFDoc jmfDoc = requestRoot.getOwnerDocument_JDFElement();
 			final String deviceID = request.getDeviceID();
 			final String requestURI = request.getLocalURL();
-			final AbstractDevice rDev = getRootDev();
-			final IConverterCallback _callBack = rDev == null ? null : rDev.getCallback(requestURI);
+			final IConverterCallback _callBack = rootDev.getCallback(requestURI);
 
 			if (_callBack != null)
 			{
@@ -587,6 +586,7 @@ public final class BambiContainer extends ServletContainer
 			{
 				// switch: sends the jmfDoc to correct device
 				JDFDoc responseDoc = null;
+				rootDev.updateFromRequest(jmf, request);
 				final AbstractDevice device = getDeviceFromID(deviceID);
 				final IJMFHandler handler = (device == null) ? rootDev.getJMFHandler(requestURI) : device.getJMFHandler(requestURI);
 				if (handler != null)

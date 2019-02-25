@@ -1350,7 +1350,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			return null;
 		}
-
+		log.info("Handling manual request: " + request);
 		if (request.isMyContext(SHOW_DEVICE))
 		{
 			if (request.getBooleanParam("restart") && getRootDevice() != null)
@@ -2315,5 +2315,17 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			return cb;
 		}
+	}
+
+	/**
+	 * extract stuff from the request - defaulr do nothing
+	 *
+	 * @param jmf
+	 * @param request
+	 */
+	public void updateFromRequest(final JDFJMF jmf, final ContainerRequest request)
+	{
+		// default nop
+
 	}
 }

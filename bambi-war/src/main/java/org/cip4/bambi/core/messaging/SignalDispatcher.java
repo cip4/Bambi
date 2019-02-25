@@ -40,6 +40,7 @@ package org.cip4.bambi.core.messaging;
 
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -320,6 +321,7 @@ public class SignalDispatcher extends BambiLogFactory
 			{
 				for (final MsgSubscription ms : v)
 				{
+					log.info(ms.toString());
 					ms.appendToXML(root, details, -1);
 				}
 			}
@@ -682,7 +684,7 @@ public class SignalDispatcher extends BambiLogFactory
 		 * @param response
 		 * @param sub
 		 */
-		private void addToResponse(final JDFResponse response, final MsgSubscription sub)
+		void addToResponse(final JDFResponse response, final MsgSubscription sub)
 		{
 			if (response == null)
 			{
@@ -694,6 +696,7 @@ public class SignalDispatcher extends BambiLogFactory
 			}
 			else
 			{
+				log.info("removed subscription " + sub);
 				final VString vs = StringUtil.tokenize(response.getDescriptiveName(), ":", false);
 				if (vs.size() < 2)
 				{
@@ -739,12 +742,11 @@ public class SignalDispatcher extends BambiLogFactory
 			final String qeID = sf == null ? null : StringUtil.getNonEmpty(sf.getQueueEntryID());
 
 			final Set<String> ss = getChannels(null, senderID, qeID);
-			final Vector<MsgSubscription> v = ContainerUtil.toValueVector(subscriptionMap);
+			final Collection<MsgSubscription> v = ContainerUtil.toArrayList(subscriptionMap);
 			if (v != null)
 			{
-				for (int i = 0; i < v.size(); i++)
+				for (final MsgSubscription sub : v)
 				{
-					final MsgSubscription sub = v.get(i);
 					if (!ss.contains(sub.channelID))
 					{
 						continue;

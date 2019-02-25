@@ -614,7 +614,7 @@ public class MsgSubscription implements Cloneable
 	@Override
 	public String toString()
 	{
-		return "MsgSubscription [" + (channelID != null ? "channelID=" + channelID + ", " : "") + (queueEntry != null ? "queueEntry=" + queueEntry + ", " : "")
+		return "MsgSubscription [" + getMessageType() + (channelID != null ? "channelID=" + channelID + ", " : "") + (queueEntry != null ? "queueEntry=" + queueEntry + ", " : "")
 				+ (url != null ? "url=" + url + ", " : "") + (version != null ? "version=" + version + ", " : "") + "lastTime=" + lastTime + ", lastTry=" + lastTry + ", repeatTime=" + repeatTime
 				+ ", " + (jmfDeviceID != null ? "jmfDeviceID=" + jmfDeviceID : "") + "]";
 	}

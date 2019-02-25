@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -383,7 +383,21 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 							if (_messages.size() > 0 && (ct0 - lastLog) > 60000l)
 							{
 								final long t0 = lastSent == 0 ? startTime : lastSent;
-								log.warn("Waiting in blocked message thread: " + callURL.getBaseURL() + " unsuccessful for " + ((ct0 - t0) / 60000l) + " minutes; size=" + _messages.size());
+								final long t = (ct0 - t0) / 60000l;
+								final String tmp;
+								if (t < 60)
+								{
+									tmp = t + " minutes; size=";
+								}
+								else if (t < 60 * 24)
+								{
+									tmp = (t / 60) + " hours; size=";
+								}
+								else
+								{
+									tmp = (t / (60 * 24)) + " days; size=";
+								}
+								log.warn("Waiting in blocked message thread: " + callURL.getBaseURL() + " unsuccessful for " + tmp + _messages.size());
 								lastLog = ct0;
 							}
 						}
@@ -400,6 +414,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				}
 			}
 		}
+
 	}
 
 	/**

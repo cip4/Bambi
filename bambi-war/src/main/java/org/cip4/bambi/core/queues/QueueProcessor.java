@@ -696,7 +696,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			final JDFNewJDFQuParams nqParams = m.getNewJDFQuParams(0);
 			if (nqParams == null || !nqParams.hasAttribute(AttributeName.JOBID))
 			{
-				JMFHandler.errorResponse(resp, "missing or insufficient NewJDFQuParams", 7, EnumClass.Error);
+				JMFHandler.errorResponse(resp, "missing Params or missing JobID in NewJDFQuParams", 7, EnumClass.Error);
 				return false;
 			}
 			final String qeID = StringUtil.getNonEmpty(nqParams.getQueueEntryID());
@@ -2900,7 +2900,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		/**
 		 * ensure valid finished nodes
-		 * 
+		 *
 		 * @param finishedNodes
 		 * @param docJDF
 		 * @return

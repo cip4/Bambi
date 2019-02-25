@@ -66,6 +66,17 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	 *
 	 */
 	@Test
+	public void testGetType()
+	{
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		assertEquals("Status", s.getMessageType());
+	}
+
+	/**
+	 *
+	 */
+	@Test
 	public void testGetVersion()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
