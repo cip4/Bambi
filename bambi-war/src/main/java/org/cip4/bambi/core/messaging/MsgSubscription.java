@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -169,12 +169,13 @@ public class MsgSubscription implements Cloneable
 	{
 		if (!(theMessage instanceof JDFQuery))
 		{
-			log.error("registrations not supported");
+			log.error("registrations not supported: " + theMessage.getType());
 			return null;
 		}
 		JDFQuery q = (JDFQuery) theMessage;
 		final JDFJMF jmf = q.createResponse();
 		jmf.setMaxVersion(version);
+		jmf.setVersion(version);
 		JDFResponse r = jmf.getResponse(0);
 		// make a copy so that modifications do not have an effect
 		q = (JDFQuery) jmf.copyElement(q, null);

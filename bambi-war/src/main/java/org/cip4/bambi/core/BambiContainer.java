@@ -605,6 +605,8 @@ public final class BambiContainer extends ServletContainer
 			}
 		}
 		stopTimer(request);
+		if (getRootDevice() != null)
+			getRootDevice().postProcessJMF(request, response);
 		return response;
 	}
 

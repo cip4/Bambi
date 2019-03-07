@@ -330,7 +330,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			final JDFResourceQuParams rqp = inputMessage.getResourceQuParams();
 			final String scope = rqp == null ? null : rqp.getNonEmpty(AttributeName.SCOPE);
-			return "Allowed".equals(scope) || "Present".equals(scope);
+			final String context = rqp == null ? null : rqp.getNonEmpty(AttributeName.CONTEXT);
+			return "Allowed".equals(scope) || "Present".equals(scope) || "Global".equals(context);
 		}
 
 		/**
