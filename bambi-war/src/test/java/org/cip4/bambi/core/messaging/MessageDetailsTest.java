@@ -52,6 +52,7 @@ import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.core.ConverterCallback;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
+import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
@@ -60,7 +61,9 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.net.HTTPDetails;
 import org.cip4.jdflib.util.zip.ZipReader;
 import org.junit.Test;
 
@@ -137,6 +140,73 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		message.copyElement(jmf, null);
 		final MessageDetails md = new MessageDetails(message);
 		assertTrue(md.getName().startsWith("Status"));
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testEncoding()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final KElement message = new JDFDoc("Message").getRoot();
+		message.appendElement(MessageDetails.MIME).setAttribute(AttributeName.ENCODING, "foo");
+		message.copyElement(jmf, null);
+		final MessageDetails md = new MessageDetails(message);
+		assertEquals("foo", md.mimeDet.transferEncoding);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testHTTPHeader()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final KElement message = new JDFDoc("Message").getRoot();
+		message.appendElement(MessageDetails.MIME).appendElement(MessageDetails.HTTP).setAttribute("bar", "foo");
+		message.copyElement(jmf, null);
+		final MessageDetails md = new MessageDetails(message);
+		assertEquals("foo", md.mimeDet.httpDetails.getHeader("bar"));
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testEncodingRound()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final KElement message = new JDFDoc("Message").getRoot();
+		message.copyElement(jmf, null);
+		final MessageDetails md = new MessageDetails(message);
+		md.mimeDet = new MIMEDetails();
+		md.mimeDet.transferEncoding = "fnarf";
+		final KElement msgs = new JDFDoc("r").getRoot();
+		md.appendToXML(msgs, 0, false);
+		final MessageDetails md2 = new MessageDetails(msgs.getElement("Message"));
+
+		assertEquals("fnarf", md2.mimeDet.transferEncoding);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testHTTPRound()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final KElement message = new JDFDoc("Message").getRoot();
+		message.copyElement(jmf, null);
+		final MessageDetails md = new MessageDetails(message);
+		md.mimeDet = new MIMEDetails();
+		md.mimeDet.httpDetails = new HTTPDetails();
+		md.mimeDet.httpDetails.setHeader("a", "c");
+		final KElement msgs = new JDFDoc("r").getRoot();
+		md.appendToXML(msgs, 0, false);
+		final MessageDetails md2 = new MessageDetails(msgs.getElement("Message"));
+
+		assertEquals("c", md2.mimeDet.httpDetails.getHeader("a"));
 	}
 
 	/**

@@ -55,6 +55,7 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.extensions.XJDF20;
@@ -82,6 +83,10 @@ import org.cip4.jdflib.util.net.HTTPDetails;
  */
 public class MessageDetails extends BambiLogFactory
 {
+	private static final String CALLBACK_CLASS = "CallbackClass";
+	private static final String MESSAGE = "Message";
+	static final String HTTP = "HTTP";
+	static final String MIME = "Mime";
 	final protected JDFJMF jmf;
 	protected JDFNode jdf;
 	protected IResponseHandler respHandler;
@@ -193,7 +198,7 @@ public class MessageDetails extends BambiLogFactory
 			t0 = System.currentTimeMillis();
 
 		createTime = t0;
-		final String cbClass = element.getAttribute("CallbackClass", null, null);
+		final String cbClass = element.getAttribute(CALLBACK_CLASS, null, null);
 		if (cbClass != null)
 		{
 			try
@@ -214,11 +219,21 @@ public class MessageDetails extends BambiLogFactory
 		final JDFMessage mess = jmf == null ? null : jmf.getMessageElement(null, null, 0);
 		name = getMessageName(mess);
 
-		final String encoding = element.getAttribute("TransferEncoding", null, null);
-		if (encoding != null)
+		final KElement mime = element.getElement(MIME);
+		if (mime != null)
 		{
 			mimeDet = new MIMEDetails();
-			mimeDet.transferEncoding = encoding;
+			mimeDet.transferEncoding = mime.getNonEmpty(AttributeName.ENCODING);
+			final KElement httpDet = mime.getElement(HTTP);
+			if (httpDet != null)
+			{
+				mimeDet.httpDetails = new HTTPDetails();
+				final JDFAttributeMap map = httpDet.getAttributeMap();
+				for (final String key : map.keySet())
+				{
+					mimeDet.httpDetails.setHeader(key, map.get(key));
+				}
+			}
 		}
 		else
 		{
@@ -272,7 +287,7 @@ public class MessageDetails extends BambiLogFactory
 	 */
 	void appendToXML(final KElement messageList, final int i, final boolean bXJDF)
 	{
-		final KElement message = messageList.appendElement("Message");
+		final KElement message = messageList.appendElement(MESSAGE);
 		message.setAttribute(AttributeName.NAME, name);
 		message.setAttribute(AttributeName.URL, url);
 		message.setAttribute(AttributeName.SENDERID, senderID);
@@ -280,11 +295,12 @@ public class MessageDetails extends BambiLogFactory
 		message.setAttribute("Return", sendReturn == null ? "unsent" : sendReturn.name(), null);
 		final JDFDate d = new JDFDate(createTime);
 		message.setAttribute(AttributeName.TIMESTAMP, d.getDateTimeISO());
+		appendMimeDetails(message);
 		if (i >= 0)
 		{
 			if (callback != null)
 			{
-				message.setAttribute("CallbackClass", callback.getClass().getCanonicalName());
+				message.setAttribute(CALLBACK_CLASS, callback.getClass().getCanonicalName());
 			}
 			if (jmf != null)
 			{
@@ -299,6 +315,35 @@ public class MessageDetails extends BambiLogFactory
 		else
 		{
 			message.setAttribute(AttributeName.TIMESTAMP, d.getDateTimeISO());
+		}
+	}
+
+	void appendMimeDetails(final KElement message)
+	{
+		if (mimeDet != null)
+		{
+			final KElement mime = message.appendElement(MIME);
+			mime.setNonEmpty(AttributeName.ENCODING, mimeDet.transferEncoding);
+			appendHttpDetails(mime);
+
+		}
+
+	}
+
+	void appendHttpDetails(final KElement mime)
+	{
+		final HTTPDetails hd = mimeDet == null ? null : mimeDet.httpDetails;
+		if (hd != null)
+		{
+			final VString headers = hd.getHeaders();
+			if (!VString.isEmpty(headers))
+			{
+				final KElement http = mime.appendElement(HTTP);
+				for (final String header : headers)
+				{
+					http.setNonEmpty(header, hd.getHeader(header));
+				}
+			}
 		}
 	}
 

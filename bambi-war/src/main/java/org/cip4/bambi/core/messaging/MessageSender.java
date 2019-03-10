@@ -827,7 +827,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				log.warn("could not send message to unavailable " + mesDetails.url + " no return; rc= " + responseCode);
 			}
 		}
-		else if (responseCode / 100 != 2)
+		else if (!UrlUtil.isReturnCodeOK(responseCode))
 		{
 			if (isRemoveRC(responseCode))
 			{
@@ -1001,7 +1001,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 	 * @param _callBack
 	 * @return true, if the message is successfully queued. false, if this MessageSender is unable to accept further messages (i. e. it is shutting down).
 	 */
-	public boolean queueMessage(final JDFJMF jmf, final IResponseHandler handler, final String url, final IConverterCallback _callBack)
+	public boolean queueMessage(final JDFJMF jmf, final IResponseHandler handler, final String url, final IConverterCallback _callBack, final HTTPDetails det)
 	{
 		if (doShutDown)
 		{
@@ -1009,8 +1009,23 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			return false;
 		}
 
-		final MessageDetails messageDetails = new MessageDetails(jmf, handler, _callBack, null, url);
+		final MessageDetails messageDetails = new MessageDetails(jmf, handler, _callBack, det, url);
 		return queueMessageDetails(messageDetails);
+	}
+
+	/**
+	 * queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required
+	 *
+	 * @param jmf the message to send
+	 * @param handler
+	 * @param url
+	 * @param _callBack
+	 * @return true, if the message is successfully queued. false, if this MessageSender is unable to accept further messages (i. e. it is shutting down).
+	 */
+	public boolean queueMessage(final JDFJMF jmf, final IResponseHandler handler, final String url, final IConverterCallback _callBack)
+	{
+
+		return queueMessage(jmf, handler, url, _callBack, null);
 	}
 
 	/**

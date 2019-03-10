@@ -3,68 +3,36 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights
- * reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
  *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the
+ * distribution.
  *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:
- *       "This product includes software developed by the
- *        The International Cooperation for the Integration of
- *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
+ * 3. The end-user documentation included with the redistribution, if any, must include the following acknowledgment: "This product includes software developed by the The International Cooperation for
+ * the Integration of Processes in Prepress, Press and Postpress (www.cip4.org)" Alternately, this acknowledgment may appear in the software itself, if and wherever such third-party acknowledgments
+ * normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of
- *    Processes in  Prepress, Press and Postpress" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written
- *    permission, please contact info@cip4.org.
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of Processes in Prepress, Press and Postpress" must not be used to endorse or promote products derived from this software
+ * without prior written permission. For written permission, please contact info@cip4.org.
  *
- * 5. Products derived from this software may not be called "CIP4",
- *    nor may "CIP4" appear in their name, without prior written
- *    permission of the CIP4 organization
+ * 5. Products derived from this software may not be called "CIP4", nor may "CIP4" appear in their name, without prior written permission of the CIP4 organization
  *
- * Usage of this software in commercial products is subject to restrictions. For
- * details please consult info@cip4.org.
+ * Usage of this software in commercial products is subject to restrictions. For details please consult info@cip4.org.
  *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR
- * THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INTERNATIONAL COOPERATION FOR THE INTEGRATION OF PROCESSES IN PREPRESS, PRESS AND POSTPRESS OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE. ====================================================================
  *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration
- * of Processes in Prepress, Press and Postpress and was
- * originally based on software
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
- * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
+ * originally based on software copyright (c) 1999-2001, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
  *
- * For more information on The International Cooperation for the
- * Integration of Processes in  Prepress, Press and Postpress , please see
- * <http://www.cip4.org/>.
+ * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
  *
  *
  */
@@ -88,6 +56,7 @@ import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.net.HTTPDetails;
 import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
@@ -108,6 +77,7 @@ public class JMFFactory extends BambiLogFactory
 
 		/**
 		 * get the base url that is used to define equal senders
+		 *
 		 * @return the base url
 		 */
 		public String getBaseURL()
@@ -190,7 +160,7 @@ public class JMFFactory extends BambiLogFactory
 
 	private static JMFFactory theFactory = null;
 	private static MyMutex factoryMutex = new MyMutex();
-	final HashMap<CallURL, MessageSender> senders = new HashMap<CallURL, MessageSender>();
+	final HashMap<CallURL, MessageSender> senders = new HashMap<>();
 	private int nThreads = 0;
 	private final boolean shutdown = false;
 	private final HashMap<EnumType, IMessageOptimizer> optimizers;
@@ -220,7 +190,7 @@ public class JMFFactory extends BambiLogFactory
 	private JMFFactory() // all static
 	{
 		super();
-		optimizers = new HashMap<EnumType, IMessageOptimizer>();
+		optimizers = new HashMap<>();
 		startTime = System.currentTimeMillis();
 		zapp500 = false;
 		logLots = false;
@@ -348,6 +318,7 @@ public class JMFFactory extends BambiLogFactory
 
 	/**
 	 * sends a JMF message to a given URL
+	 *
 	 * @param jmf the message to send
 	 * @param url the URL to send the JMF to
 	 * @param handler
@@ -357,31 +328,12 @@ public class JMFFactory extends BambiLogFactory
 	 */
 	public boolean send2URL(final JDFJMF jmf, final String url, final IResponseHandler handler, final IConverterCallback callback, final String senderID)
 	{
-		if (shutdown)
-		{
-			return false;
-		}
-		if (jmf == null)
-		{
-			log.error("failed to send JDFMessage, message is null");
-			return false;
-		}
-		else if (url == null)
-		{
-			log.error("failed to send JDFMessage, target URL is null");
-			return false;
-		}
-
-		final MessageSender ms = getCreateMessageSender(url);
-		if (senderID != null)
-		{
-			jmf.setSenderID(senderID);
-		}
-		return ms.queueMessage(jmf, handler, url, callback);
+		return send2URL(jmf, url, handler, callback, senderID, null);
 	}
 
 	/**
 	 * sends a JMF message to a given URL synchronously
+	 *
 	 * @param jmf the message to send
 	 * @param url the URL to send the JMF to
 	 * @param callback
@@ -399,6 +351,7 @@ public class JMFFactory extends BambiLogFactory
 
 	/**
 	 * sends a JMF message to a given URL sychronusly
+	 *
 	 * @param jmf the message to send
 	 * @param url the URL to send the JMF to
 	 * @param callback
@@ -426,6 +379,7 @@ public class JMFFactory extends BambiLogFactory
 
 	/**
 	 * sends a mime multipart package to a given URL synchronously
+	 *
 	 * @param mp the mime multipart to send
 	 * @param url the URL to send the JMF to
 	 * @param callback
@@ -435,7 +389,8 @@ public class JMFFactory extends BambiLogFactory
 	 *
 	 * @return the response if successful, otherwise null
 	 */
-	public HttpURLConnection send2URLSynch(final JDFJMF jmf, final JDFNode jdf, final String url, final IConverterCallback callback, final MIMEDetails md, final String senderID, final int milliSeconds)
+	public HttpURLConnection send2URLSynch(final JDFJMF jmf, final JDFNode jdf, final String url, final IConverterCallback callback, final MIMEDetails md, final String senderID,
+			final int milliSeconds)
 	{
 		final MessageResponseHandler handler = new MessageResponseHandler((String) null);
 		send2URL(jmf, jdf, url, handler, callback, md, senderID);
@@ -587,7 +542,7 @@ public class JMFFactory extends BambiLogFactory
 	{
 		synchronized (senders)
 		{
-			final Vector<MessageSender> vRemove = new Vector<MessageSender>();
+			final Vector<MessageSender> vRemove = new Vector<>();
 			for (final MessageSender ms : senders.values())
 			{
 				if (!ms.isRunning())
@@ -610,5 +565,40 @@ public class JMFFactory extends BambiLogFactory
 	public String toString()
 	{
 		return "JMFFactory : threads=" + nThreads + " zapp500=" + zapp500 + " logLots=" + logLots + " Senders: " + senders;
+	}
+
+	/**
+	 * sends a JMF message to a given URL
+	 *
+	 * @param jmf the message to send
+	 * @param url the URL to send the JMF to
+	 * @param handler
+	 * @param callback
+	 * @param senderID the senderID of the caller
+	 * @return true if successfully queued
+	 */
+	public boolean send2URL(final JDFJMF jmf, final String url, final IResponseHandler handler, final IConverterCallback callback, final String senderID, final HTTPDetails det)
+	{
+		if (shutdown)
+		{
+			return false;
+		}
+		if (jmf == null)
+		{
+			log.error("failed to send JDFMessage, message is null");
+			return false;
+		}
+		else if (url == null)
+		{
+			log.error("failed to send JDFMessage, target URL is null");
+			return false;
+		}
+
+		final MessageSender ms = getCreateMessageSender(url);
+		if (senderID != null)
+		{
+			jmf.setSenderID(senderID);
+		}
+		return ms.queueMessage(jmf, handler, url, callback, det);
 	}
 }

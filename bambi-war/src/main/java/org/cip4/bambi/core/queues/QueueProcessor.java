@@ -2884,7 +2884,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					log.error("cannot read returnqe response: " + x);
 					responseCode = 0;
 				}
-				if (responseCode == 200)
+				if (UrlUtil.isReturnCodeOK(responseCode))
 				{
 					log.info("ReturnQueueEntry for " + queueEntryID + " has been sent to " + returnJMF);
 					bOK = true;
