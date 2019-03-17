@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -40,12 +40,10 @@ package org.cip4.bambi.core;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.mail.BodyPart;
-import javax.mail.MessagingException;
 
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.MessageSender;
@@ -452,53 +450,6 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 * Parses a multipart request.
-	 *
-	 * @param request
-	 * @return
-	 * @throws IOException
-	 */
-	@Override
-	public XMLResponse processMultiPart(final StreamRequest request) throws IOException
-	{
-		startTimer(request);
-		final InputStream inStream = request.getInputStream();
-		final MimeReader mr = new MimeReader(inStream);
-		final BodyPart[] bp = mr.getBodyParts();
-		log.info("Body Parts: " + ((bp == null) ? 0 : bp.length));
-		XMLResponse r = null;
-		if (bp == null || bp.length == 0)
-		{
-			r = processError(request.getRequestURI(), EnumType.Notification, 9, "No body parts in mime package");
-		}
-		else
-		{
-			try
-			{// messaging exceptions
-				if (bp.length > 1)
-				{
-					final MimeRequest req = new MimeRequest(mr);
-					req.setContainer(request);
-					r = processMultipleDocuments(req);
-				}
-				else
-				// unpack the only body part and throw it at the processor again
-				{
-					final StreamRequest sr = new StreamRequest(bp[0].getInputStream());
-					sr.setContainer(request);
-					r = processStream(sr);
-				}
-			}
-			catch (final MessagingException x)
-			{
-				r = processError(request.getRequestURI(), null, 9, "Messaging exception\n" + x.getLocalizedMessage());
-			}
-		}
-		stopTimer(request);
-		return r;
-	}
-
-	/**
 	 * process a multipart request - including job submission
 	 *
 	 * @param request
@@ -605,7 +556,7 @@ public final class BambiContainer extends ServletContainer
 			}
 		}
 		stopTimer(request);
-		RootDevice rd = getRootDevice();
+		final RootDevice rd = getRootDevice();
 		if (rd != null)
 			rd.postProcessJMF(request, response);
 		return response;

@@ -1135,7 +1135,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			ThreadUtil.notifyAll(mutexDispatch);
 		}
 		DelayedPersist.getDelayedPersist().queue(this, 420000); // 7 minutes
-		return !isBlocked(42000, 2);
+		return !isBlocked(42000, 42);
 	}
 
 	/**

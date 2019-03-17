@@ -690,7 +690,6 @@ public class RootDevice extends AbstractDevice
 		memorySpy.setWantMega(true);
 		listRoot.setAttribute("MemFree", memorySpy.getFreeMem(), null);
 		listRoot.setAttribute("MemTotal", memorySpy.getTotalMemory(), null);
-		listRoot.setAttribute("MemPerm", memorySpy.getPermGen(MemScope.current), null);
 		listRoot.setAttribute("MemCurrent", memorySpy.getHeapUsed(MemScope.current), null);
 		listRoot.setAttribute(RELEASE_VERSION_STRING, RuntimeProperties.getProductVersion(), null);
 		listRoot.setAttribute(RELEASE_TIMESTAMP_STRING, RuntimeProperties.getProductBuildTimestamp(), null);

@@ -439,9 +439,9 @@ public class SignalDispatcher extends BambiLogFactory
 			// spam them out
 			for (final MsgSubscription sub : subVector)
 			{
-				if ((sentTime++ < 10) || ((sentTime % 1000) == 0))
+				if ((sentTime++ < 10) || ((sentTime % 1000) == 0) && sub.theMessage != null)
 				{
-					log.info("Time Signalling: slaveChannelID=" + sub.channelID + " #" + sentTime);
+					log.info("Time Signalling: " + sub.theMessage.getType() + " slaveChannelID=" + sub.channelID + " #" + sentTime);
 				}
 
 				queueMessageInSender(sub);
