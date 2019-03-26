@@ -41,10 +41,18 @@ package org.cip4.bambi.core.messaging;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.extensions.MessageHelper;
+import org.cip4.jdflib.extensions.XJMFHelper;
+import org.cip4.jdflib.extensions.xjdfwalker.XJDFToJDFConverter;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.junit.Test;
 
@@ -61,6 +69,22 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 		jmf.setMaxVersion(EnumVersion.Version_2_0);
 		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
 		assertEquals(EnumVersion.Version_2_0, s.version);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testSenderID()
+	{
+		final XJMFHelper h = new XJMFHelper();
+		final MessageHelper mh = h.appendMessage(EnumFamily.Query, EnumType.Status);
+		mh.appendElement(ElementName.SUBSCRIPTION).setAttribute("URL", "u2");
+		final XJDFToJDFConverter xc = new XJDFToJDFConverter(null);
+		final JDFDoc d = xc.convert(h.getRoot());
+		final JDFJMF jmf = d.getJMFRoot();
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		assertNull(s.jmfDeviceID);
 	}
 
 	/**

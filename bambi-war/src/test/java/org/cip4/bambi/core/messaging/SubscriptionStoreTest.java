@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -40,13 +40,21 @@ package org.cip4.bambi.core.messaging;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.File;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
+import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.extensions.MessageHelper;
+import org.cip4.jdflib.extensions.XJMFHelper;
+import org.cip4.jdflib.extensions.xjdfwalker.XJDFToJDFConverter;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.junit.Test;
@@ -147,4 +155,36 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		assertEquals(EnumVersion.Version_2_0, d2.getSubscription("q").getVersion());
 
 	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testSenderID()
+	{
+		final SignalDispatcher dis = new SignalDispatcher(new BambiTestDevice());
+		final SubscriptionStore ss = new SubscriptionStore(dis, new File(sm_dirTestDataTemp + "subs2"));
+
+		final XJMFHelper h = new XJMFHelper();
+		final MessageHelper mh = h.appendMessage(EnumFamily.Query, EnumType.Status);
+		mh.appendElement(ElementName.SUBSCRIPTION).setAttribute("URL", "http://u2/abc");
+		final XJDFToJDFConverter xc = new XJDFToJDFConverter(null);
+		final JDFDoc d = xc.convert(h.getRoot());
+		final JDFJMF jmf = d.getJMFRoot();
+		final JDFQuery query = jmf.getQuery(0);
+		query.setID("q");
+		final MsgSubscription s = new MsgSubscription(null, query, null);
+		assertNull(s.jmfDeviceID);
+
+		dis.addSubscription(query, null, null);
+		ss.persist();
+
+		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
+		final SubscriptionStore ss2 = new SubscriptionStore(d2, new File(sm_dirTestDataTemp + "subs2"));
+		ss2.load();
+		final MsgSubscription sloaded = d2.getSubscription("q");
+		assertEquals(EnumVersion.Version_2_0, sloaded.getVersion());
+		assertNull(sloaded.jmfDeviceID);
+	}
+
 }
