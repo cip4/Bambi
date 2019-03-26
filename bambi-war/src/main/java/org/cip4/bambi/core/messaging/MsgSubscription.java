@@ -151,8 +151,8 @@ public class MsgSubscription implements Cloneable
 			repeatTime = 15;
 		}
 		final JDFJMF ownerJMF = ((JDFMessage) m).getJMFRoot();
-		jmfDeviceID = (isSpecific() && ownerJMF != null) ? ownerJMF.getDeviceID() : null;
-		if ("".equals(jmfDeviceID) || ContainerUtil.equals(jmfDeviceID, this.signalDispatcher.device.getDeviceID()))
+		jmfDeviceID = (ownerJMF != null) ? ownerJMF.getDeviceID() : null;
+		if (StringUtil.isEmpty(jmfDeviceID) || signalDispatcher != null && ContainerUtil.equals(jmfDeviceID, signalDispatcher.device.getDeviceID()))
 		{
 			// zapp any filters to myself - they represent all my kids
 			jmfDeviceID = null;
@@ -435,8 +435,8 @@ public class MsgSubscription implements Cloneable
 	{
 		this(signalDispatcher);
 		channelID = sub.getAttribute(AttributeName.CHANNELID, null, null);
-		jmfDeviceID = isSpecific() ? sub.getAttribute(AttributeName.DEVICEID, null, null) : null;
-		queueEntry = isSpecific() ? sub.getAttribute(AttributeName.QUEUEENTRYID, null, null) : null;
+		jmfDeviceID = sub.getNonEmpty(AttributeName.DEVICEID);
+		queueEntry = isSpecific() ? sub.getNonEmpty(AttributeName.QUEUEENTRYID) : null;
 		url = sub.getAttribute(AttributeName.URL, null, null);
 		repeatTime = sub.getLongAttribute(AttributeName.REPEATTIME, null, 0);
 		repeatAmount = sub.getIntAttribute(AttributeName.REPEATSTEP, null, 0);

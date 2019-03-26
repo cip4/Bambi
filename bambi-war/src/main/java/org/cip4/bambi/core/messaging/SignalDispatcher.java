@@ -430,7 +430,7 @@ public class SignalDispatcher extends BambiLogFactory
 			{
 				if ((sentTrigger++ < 10) || ((sentTrigger % 1000) == 0))
 				{
-					log.info("Trigger Signalling : slaveChannelID=" + sub.channelID + " #" + sentTrigger);
+					log.info("Trigger queue: " + sub.getMessageType() + " channelID=" + sub.channelID + " #" + sentTrigger);
 				}
 				queueMessageInSender(sub);
 			}
@@ -906,7 +906,7 @@ public class SignalDispatcher extends BambiLogFactory
 	 * add a subscription - returns the slaveChannelID of the new subscription, null if snafu
 	 *
 	 * @param subMess the subscription message - one of query or registration
-	 * @param queueEntryID the associated QueueEntryID, may be null.
+	 * @param queueEntryID the associated QueueEntryID, should be null.
 	 * @return the slaveChannelID of the subscription, if successful, else null
 	 */
 	public synchronized String addSubscription(final IJMFSubscribable subMess, String queueEntryID, final JDFResponse resp)

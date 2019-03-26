@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -39,6 +39,7 @@
 package org.cip4.bambi.core.messaging;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.cip4.bambi.BambiTestCaseBase;
@@ -71,6 +72,63 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
 		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
 		assertEquals("Status", s.getMessageType());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testDeviceID()
+	{
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
+		jmf.setDeviceID("d1");
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		assertEquals("d1", s.jmfDeviceID);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testQEID()
+	{
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
+		jmf.setDeviceID("d1");
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), "q");
+		assertEquals("q", s.queueEntry);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testEquals()
+	{
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
+		jmf.setDeviceID("d1");
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), "q");
+		final MsgSubscription s2 = new MsgSubscription(null, jmf.getQuery(0), "q");
+		assertEquals(s, s2);
+		final MsgSubscription s3 = new MsgSubscription(null, jmf.getQuery(0), "q1");
+		assertNotEquals(s, s3);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testEqualsDev()
+	{
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
+		jmf.setDeviceID("d1");
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		final JDFJMF jmf2 = (JDFJMF) jmf.cloneNewDoc();
+		jmf2.setDeviceID("d1");
+		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0), null);
+		assertEquals(s, s2);
+		jmf2.setDeviceID("d2");
+		final MsgSubscription s3 = new MsgSubscription(null, jmf2.getQuery(0), null);
+		assertNotEquals(s, s3);
 	}
 
 	/**
