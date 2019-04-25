@@ -795,7 +795,6 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			}
 		}
 
-		final DumpDir inDump = getInDump(mesDetails.senderID);
 		ByteArrayIOInputStream bis = null;
 		InputStream stream = null;
 		if (connection != null)
@@ -822,7 +821,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 		if (connection == null)
 		{
 			sendReturn = SendReturn.error;
-			if (idle == 0)
+			if (idle == 0 || (idle % 100 == 0))
 			{
 				log.warn("could not send message to unavailable " + mesDetails.url + " no return; rc= " + responseCode);
 			}
@@ -840,7 +839,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 			else
 			{
 				sendReturn = SendReturn.error;
-				if (idle == 0)
+				if (idle == 0 || (idle % 100 == 0))
 				{
 					log.warn("error sending message " + mesDetails.getName() + " to " + mesDetails.url + " rc= " + responseCode);
 				}
@@ -856,6 +855,7 @@ public class MessageSender extends BambiLogFactory implements Runnable, IPersist
 				sendReturn = sr2;
 			}
 		}
+		final DumpDir inDump = getInDump(mesDetails.senderID);
 		if (inDump != null)
 		{
 			inDump.newFileFromStream(header, bis, mesDetails.getName());

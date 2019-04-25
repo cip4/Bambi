@@ -988,8 +988,16 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final KElement root = dp.getDevRoot();
 			if (root != null)
 			{
-				final KElement deviceCap = root.getElement(ElementName.DEVICECAP);
-				dev.copyElement(deviceCap, null);
+				dev.copyElement(root.getElement(ElementName.DEVICECAP), null);
+				dev.copyElement(root.getElement(ElementName.COSTCENTER), null);
+				final VElement modules = root.getChildElementVector(ElementName.MODULE, null);
+				if (!ContainerUtil.isEmpty(modules))
+				{
+					for (final KElement mod : modules)
+					{
+						root.copyElement(mod, null);
+					}
+				}
 			}
 		}
 	}
