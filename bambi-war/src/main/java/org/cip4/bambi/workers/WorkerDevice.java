@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -31,9 +31,9 @@
  *
  * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
  * originally based on software copyright (c) 1999-2001, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
- * 
+ *
  * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
- * 
+ *
  *
  */
 
@@ -71,7 +71,7 @@ import org.cip4.jdflib.util.StringUtil;
 
 /**
  * a simple data input terminal/console JDF device . <br>
- * 
+ *
  * @author Rainer Prosi
  */
 public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
@@ -99,9 +99,9 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 				return null;
 			}
 			if (EnumQueueEntryStatus.Running.equals(qe.getQueueEntryStatus()))
-
 			{
 				JMFHandler.errorResponse(null, "Queuentry already running - QueueEntryID: " + queueEntryID, 106, EnumClass.Error);
+				return null;
 			}
 		}
 
@@ -146,7 +146,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	 * @param n2 the JDF node to test against
 	 * @return true if this device can process n2
 	 */
-	private boolean canAccept(final JDFNode n2)
+	protected boolean canAccept(final JDFNode n2)
 	{
 		if (getProperties().getAcceptAll())
 		{
@@ -254,7 +254,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 
 		/**
 		 * load the employee file
-		 * 
+		 *
 		 * @return
 		 */
 		private Vector<JDFEmployee> loadFile()
@@ -299,7 +299,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 
 	/**
 	 * check whether this resource should track amounts
-	 * 
+	 *
 	 * @param resLink
 	 * @return
 	 */
