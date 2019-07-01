@@ -114,6 +114,24 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	 *
 	 */
 	@Test
+	public void testDeviceIDEquals()
+	{
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
+		jmf.setDeviceID("d1");
+		final MsgSubscription s1 = new MsgSubscription(null, jmf.getQuery(0), null);
+		final JDFJMF jmf2 = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
+		jmf2.setDeviceID("d1");
+		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0), null);
+		assertEquals(s1, s2);
+		jmf2.setDeviceID("d2");
+		final MsgSubscription s3 = new MsgSubscription(null, jmf2.getQuery(0), null);
+		assertNotEquals(s1, s3);
+	}
+
+	/**
+	 *
+	 */
+	@Test
 	public void testQEID()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);

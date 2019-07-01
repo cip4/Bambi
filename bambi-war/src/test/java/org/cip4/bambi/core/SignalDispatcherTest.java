@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -100,11 +100,35 @@ public class SignalDispatcherTest extends BambiTestCase
 		final JDFSubscription s = q.appendSubscription();
 		s.setRepeatTime(1.0);
 		s.setURL("http://localhost:8080/httpdump/");
-		assertNotNull(dispatcher.addSubscription(q, null));
-		assertNull(dispatcher.addSubscription(q, null));
+		assertNotNull(dispatcher.addSubscription(q, null, null));
+		assertNull(dispatcher.addSubscription(q, null, null));
 		s.setRepeatTime(5.0);
 		q.setID("1234");
-		assertNotNull(dispatcher.addSubscription(q, null));
+		assertNotNull(dispatcher.addSubscription(q, null, null));
+		dispatcher.shutdown();
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testAddSubscriptionDevID()
+	{
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
+		final JDFQuery q = jmf.getQuery(0);
+		final JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(1.0);
+		s.setURL("http://localhost:8080/httpdump/");
+		final JDFJMF jmf2 = (JDFJMF) jmf.cloneNewDoc();
+		jmf.setDeviceID("d1");
+		jmf2.setDeviceID("d2");
+		final JDFQuery q2 = jmf2.getQuery(0);
+		q2.setID("newID");
+
+		assertNotNull(dispatcher.addSubscription(q, null, null));
+		assertNotNull(dispatcher.addSubscription(q2, null, null));
+		q2.setID("newID2");
+		assertNull(dispatcher.addSubscription(q2, null, null));
 		dispatcher.shutdown();
 	}
 
