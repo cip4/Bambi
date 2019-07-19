@@ -384,7 +384,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			timer.stop();
 			return bOK;
 		}
-		log.info("processing: " + queueEntryID);
+		log.info("processing: " + node.getJobID(true) + " qeID=" + queueEntryID);
 
 		EnumQueueEntryStatus qes;
 		try
@@ -566,7 +566,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			_queueProcessor.returnQueueEntry(qe, null, null, qes);
 		}
 		qe.removeAttribute(AttributeName.DEVICEID);
-		log.info("finalized processing JDF: " + ((qes == null) ? "??? null ???" : qes.getName()));
+		log.info("finalized processing JDF: " + getJobID() + " " + ((qes == null) ? "??? null ???" : qes.getName()));
 		_queueProcessor.updateEntry(qe, qes, null, null, null);
 		currentQE = null;
 		return bReturn;
