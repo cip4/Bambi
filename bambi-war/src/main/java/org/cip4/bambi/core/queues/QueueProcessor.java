@@ -2490,7 +2490,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		statusDetails = StringUtil.getNonEmpty(statusDetails);
 		synchronized (_theQueue)
 		{
-			final JDFQueueEntry qe2 = _theQueue.getQueueEntry(qe.getQueueEntryID());
+			final JDFQueueEntry qe2 = getQueueEntry(qe.getQueueEntryID());
 			if (qe2 != qe)
 			{
 				if (qe2 == null)

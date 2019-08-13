@@ -45,6 +45,7 @@ import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.core.JDFResourceLink.EnumUsage;
@@ -563,13 +564,23 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		if (bReturn)
 		{
-			_queueProcessor.returnQueueEntry(qe, null, null, qes);
+			_queueProcessor.returnQueueEntry(qe, null, getCurrentJDF(), qes);
 		}
 		qe.removeAttribute(AttributeName.DEVICEID);
 		log.info("finalized processing JDF: " + getJobID() + " " + ((qes == null) ? "??? null ???" : qes.getName()));
 		_queueProcessor.updateEntry(qe, qes, null, null, null);
 		currentQE = null;
 		return bReturn;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public JDFDoc getCurrentJDF()
+	{
+		final JDFNode jdf = currentQE == null ? null : currentQE.getJDF();
+		return jdf == null ? null : jdf.getOwnerDocument_JDFElement();
 	}
 
 	/**
