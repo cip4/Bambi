@@ -83,6 +83,7 @@ import org.cip4.jdflib.util.net.HTTPDetails;
  */
 public class MessageDetails extends BambiLogFactory
 {
+	private static final String CB_DETAILS = "CBDetails";
 	private static final String CALLBACK_CLASS = "CallbackClass";
 	private static final String MESSAGE = "Message";
 	static final String HTTP = "HTTP";
@@ -195,7 +196,9 @@ public class MessageDetails extends BambiLogFactory
 			t0 = System.currentTimeMillis();
 		}
 		if (t0 < 10000)
+		{
 			t0 = System.currentTimeMillis();
+		}
 
 		createTime = t0;
 		final String cbClass = element.getAttribute(CALLBACK_CLASS, null, null);
@@ -205,6 +208,9 @@ public class MessageDetails extends BambiLogFactory
 			{
 				final Class<?> c = Class.forName(cbClass);
 				callback = (IConverterCallback) c.newInstance();
+				final KElement cbd = element.getElement(CB_DETAILS);
+				final JDFAttributeMap m = cbd == null ? null : cbd.getAttributeMap();
+				callback.setCallbackDetails(m);
 			}
 			catch (final Throwable x)
 			{
@@ -301,6 +307,11 @@ public class MessageDetails extends BambiLogFactory
 			if (callback != null)
 			{
 				message.setAttribute(CALLBACK_CLASS, callback.getClass().getCanonicalName());
+				final JDFAttributeMap callbackDetails = callback.getCallbackDetails();
+				if (!JDFAttributeMap.isEmpty(callbackDetails))
+				{
+					message.appendElement(CB_DETAILS).setAttributes(callbackDetails);
+				}
 			}
 			if (jmf != null)
 			{
@@ -369,9 +380,13 @@ public class MessageDetails extends BambiLogFactory
 		String ret = "MessageDetails: from: " + senderID + " to: " + url;
 		final JDFMessage m = jmf == null ? null : jmf.getMessageElement(null, null, 0);
 		if (m != null)
+		{
 			ret += " Message Type=" + m.getType();
+		}
 		if (jdf != null)
+		{
 			ret += "Package";
+		}
 
 		return ret;
 	}

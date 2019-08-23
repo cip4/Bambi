@@ -70,18 +70,20 @@ import org.junit.Test;
 public class MessageDetailsTest extends BambiTestCaseBase
 {
 
-	class MyCallback extends ConverterCallback
+	/**
+	 * @throws Throwable
+	 *
+	 */
+	@Test
+	public void testCBDetails() throws Throwable
 	{
-
-		/**
-		 * @see org.cip4.bambi.core.ConverterCallback#getJMFContentType()
-		 */
-		@Override
-		public String getJMFContentType()
-		{
-			return UrlUtil.VND_JMF;
-		}
-
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		final MessageDetails md = new MessageDetails(jmf, null, new MyTestCallback(), null, "abc");
+		final KElement root = new JDFDoc("Root").getRoot();
+		md.appendToXML(root, 2, false);
+		assertEquals("b", root.getXPathAttribute("Message/CBDetails/@a", null));
+		final MessageDetails md2 = new MessageDetails(root.getElement("Message"));
+		assertEquals("b", md2.callback.getCallbackDetails().get("a"));
 	}
 
 	/**
@@ -291,7 +293,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
 		final JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
-		final ConverterCallback cb = new MyCallback();
+		final ConverterCallback cb = new MyTestCallback();
 		cb.setFixToExtern(EnumVersion.Version_2_0);
 		final MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
 		assertEquals(MimeUtil.MULTIPART_RELATED, md.getContentType());

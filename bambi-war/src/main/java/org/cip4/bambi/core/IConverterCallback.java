@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -73,6 +73,7 @@ package org.cip4.bambi.core;
 import java.io.InputStream;
 
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 
 /**
  * this interface modifies jdf and jmf that are exchanged between Bambi and 3rd party Controllers or devices
@@ -86,6 +87,7 @@ public interface IConverterCallback
 {
 	/**
 	 * prepare the jdf for the internal Bambi device prior to submitting
+	 * 
 	 * @param doc the Document to modify
 	 * @return the document representing the updated node
 	 */
@@ -93,6 +95,7 @@ public interface IConverterCallback
 
 	/**
 	 * update the processed jdf for the external controller/manager
+	 * 
 	 * @param doc the Document to modify
 	 * @return the document representing the updated node
 	 */
@@ -100,6 +103,7 @@ public interface IConverterCallback
 
 	/**
 	 * prepare a jmf for the device prior to submitting
+	 * 
 	 * @param doc the Document to modify
 	 * @return the document representing the updated node
 	 */
@@ -107,6 +111,7 @@ public interface IConverterCallback
 
 	/**
 	 * update a jmf from the the external controller/manager
+	 * 
 	 * @param doc the Document to modify
 	 * @return the document representing the updated node
 	 */
@@ -114,12 +119,14 @@ public interface IConverterCallback
 
 	/**
 	 * return the modified JMF as a stream
+	 * 
 	 * @return
 	 */
 	public InputStream getJMFExternStream(JDFDoc doc);
 
 	/**
 	 * return the modified JDF as a stream
+	 * 
 	 * @return
 	 */
 	public InputStream getJDFExternStream(JDFDoc doc);
@@ -129,6 +136,26 @@ public interface IConverterCallback
 	 * @return the external content type for JDF
 	 */
 	public String getJDFContentType();
+
+	/**
+	 * for serialization
+	 * 
+	 * @return
+	 */
+	default public JDFAttributeMap getCallbackDetails()
+	{
+		return null;
+	}
+
+	/**
+	 * for serialization
+	 * 
+	 * @param map
+	 */
+	default public void setCallbackDetails(final JDFAttributeMap map)
+	{
+		// nop
+	}
 
 	/**
 	 * 
