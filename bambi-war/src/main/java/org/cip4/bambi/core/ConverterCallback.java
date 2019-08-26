@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -555,6 +555,20 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	public String getJMFContentType()
 	{
 		return isXJDF() ? UrlUtil.VND_XJMF : UrlUtil.VND_JMF;
+	}
+
+	@Override
+	public JDFAttributeMap getCallbackDetails()
+	{
+		// nop
+		return null;
+	}
+
+	@Override
+	public void setCallbackDetails(final JDFAttributeMap map)
+	{
+		// nop
+
 	}
 
 }
