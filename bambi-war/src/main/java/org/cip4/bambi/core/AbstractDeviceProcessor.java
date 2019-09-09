@@ -53,6 +53,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
@@ -75,6 +76,19 @@ import org.cip4.jdflib.util.thread.MyMutex;
  */
 public abstract class AbstractDeviceProcessor extends BambiLogFactory implements IDeviceProcessor
 {
+	/**
+	 * for unit tests
+	 *
+	 * @param n
+	 */
+	public void setTestQE(final JDFNode node)
+	{
+		shutdown();
+		final JDFQueue q = (JDFQueue) new JDFDoc(ElementName.QUEUE).getRoot();
+		final JDFQueueEntry qeDummy = q.appendQueueEntry();
+		currentQE = new QueueEntry(node, qeDummy);
+	}
+
 	/**
 	 * note: the queue processor points to the queue processor of the device, it !does not! copy it
 	 */
@@ -352,6 +366,10 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	@Override
 	public abstract EnumQueueEntryStatus processDoc(JDFNode n, JDFQueueEntry qe);
 
+	/**
+	 *
+	 * @return
+	 */
 	final protected boolean processQueueEntry()
 	{
 		currentQE = fillCurrentQE();
@@ -359,6 +377,15 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		{
 			return false;
 		}
+		return processExistingQueueEntry();
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public boolean processExistingQueueEntry()
+	{
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
 		if (qe == null)
 		{
@@ -690,6 +717,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	public void setParent(final AbstractDevice device)
 	{
 		_parent = device;
+		_queueProcessor = device.getQueueProcessor();
 	}
 
 	@Override

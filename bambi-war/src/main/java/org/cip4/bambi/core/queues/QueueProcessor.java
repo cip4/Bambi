@@ -44,6 +44,7 @@ import java.net.HttpURLConnection;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Vector;
 
 import org.apache.commons.lang.StringUtils;
@@ -2984,7 +2985,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				}
 				else
 				{
-					final Vector<JDFQueueEntry> childrenByClass = q.getChildrenByClass(JDFQueueEntry.class, false, -1);
+					final List<JDFQueueEntry> childrenByClass = q.getChildArrayByClass(JDFQueueEntry.class, false, -1);
 					final Vector<JDFQueueEntry> ret = new Vector<>();
 					for (final JDFQueueEntry qe : childrenByClass)
 					{

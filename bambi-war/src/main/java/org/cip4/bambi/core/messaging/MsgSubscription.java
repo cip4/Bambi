@@ -38,7 +38,7 @@
  */
 package org.cip4.bambi.core.messaging;
 
-import java.util.Vector;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -231,7 +231,7 @@ public class MsgSubscription implements Cloneable
 		final String channelMode = subscription.getAttribute(AttributeName.CHANNELMODE, null, null);
 		if (channelMode != null)
 		{
-			final Vector<JDFSignal> signals = jmfOut.getChildrenByClass(JDFSignal.class, false, 0);
+			final List<JDFSignal> signals = jmfOut.getChildArrayByClass(JDFSignal.class, false, 0);
 			for (final JDFSignal s : signals)
 			{
 				s.setAttribute(AttributeName.CHANNELMODE, channelMode);

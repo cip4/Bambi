@@ -39,6 +39,7 @@ package org.cip4.bambi.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Vector;
 
 import org.cip4.jdflib.core.AttributeName;
@@ -366,7 +367,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			log.warn("root subscription with no JobID: ");
 			return;
 		}
-		final Vector<JDFSubscription> vSubs = n.getChildrenByClass(JDFSubscription.class, true, 0);
+		final List<JDFSubscription> vSubs = n.getChildArrayByClass(JDFSubscription.class, true, 0);
 		if (vSubs != null)
 		{
 			final JDFAttributeMap attMap = new JDFAttributeMap(AttributeName.JOBID, "*");

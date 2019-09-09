@@ -41,6 +41,7 @@ package org.cip4.bambi.core.messaging;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
@@ -640,7 +641,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			{
 				if (!sqpIdentifier.equals(new NodeIdentifier()))
 				{
-					final Vector<JDFJobPhase> vjp = di.getChildrenByClass(JDFJobPhase.class, false, 0);
+					final List<JDFJobPhase> vjp = di.getChildArrayByClass(JDFJobPhase.class, false, 0);
 					boolean bMatch = false;
 					if (vjp != null)
 					{

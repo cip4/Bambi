@@ -2162,7 +2162,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		final EnumType typ = s.getEnumType();
 		if (EnumType.Status.equals(typ))
 		{
-			final Vector<JDFDeviceInfo> devInfos = s.getChildrenByClass(JDFDeviceInfo.class, false, -1);
+			final List<JDFDeviceInfo> devInfos = s.getChildArrayByClass(JDFDeviceInfo.class, false, -1);
 			if (devInfos == null || devInfos.size() == 0)
 			{
 				if ((numRequests < 1000) || (numRequests % 1000 == 0))
