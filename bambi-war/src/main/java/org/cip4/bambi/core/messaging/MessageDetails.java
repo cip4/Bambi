@@ -46,7 +46,8 @@ import java.util.zip.ZipOutputStream;
 
 import javax.mail.Multipart;
 
-import org.cip4.bambi.core.BambiLogFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.MessageSender.SendReturn;
 import org.cip4.jdflib.auto.JDFAutoSignal.EnumChannelMode;
@@ -81,13 +82,14 @@ import org.cip4.jdflib.util.net.HTTPDetails;
  *
  *         before May 26, 2009
  */
-public class MessageDetails extends BambiLogFactory
+public class MessageDetails
 {
 	private static final String CB_DETAILS = "CBDetails";
 	private static final String CALLBACK_CLASS = "CallbackClass";
 	private static final String MESSAGE = "Message";
 	static final String HTTP = "HTTP";
 	static final String MIME = "Mime";
+	static final private Log log = LogFactory.getLog(MessageDetails.class);
 	final protected JDFJMF jmf;
 	protected JDFNode jdf;
 	protected IResponseHandler respHandler;
