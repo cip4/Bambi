@@ -279,22 +279,29 @@ public final class BambiContainer extends ServletContainer
 			final boolean needController = v.size() > 1;
 			for (final KElement nextDevice : v)
 			{
-				log.info("Creating Device " + nextDevice.getAttribute("DeviceID"));
+				final String devID = nextDevice.getAttribute("DeviceID");
+				log.info("Creating Device " + devID);
 				final IDeviceProperties prop = props.createDeviceProps(nextDevice);
 				final AbstractDevice d = createDevice(prop, needController);
 				created = created || d != null;
-				if (d != null && dump != null)
+				if (d != null)
 				{
 					final String senderID = d.getDeviceID();
-					final DumpDir dumpSendIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inMessage." + senderID)));
-					final DumpDir dumpSendOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outMessage." + senderID)));
-					MessageSender.addDumps(senderID, dumpSendIn, dumpSendOut);
-					log.info("Created Device JMF dumps for senderID " + senderID);
+					if (dump != null)
+					{
+						final DumpDir dumpSendIn = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("inMessage." + senderID)));
+						final DumpDir dumpSendOut = new DumpDir(FileUtil.getFileInDirectory(new File(dump), new File("outMessage." + senderID)));
+						MessageSender.addDumps(senderID, dumpSendIn, dumpSendOut);
+						log.info("Created Device JMF dumps for senderID " + senderID);
+					}
+					else if (d != null)
+					{
+						log.info("Skipping Device JMF dumps for senderID " + senderID);
+					}
 				}
-				else if (d != null)
+				else
 				{
-					final String senderID = d.getDeviceID();
-					log.info("Skipping Device JMF dumps for senderID " + senderID);
+					log.warn("Not creating " + devID);
 				}
 			}
 		}

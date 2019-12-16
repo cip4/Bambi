@@ -209,6 +209,10 @@ public class RootDevice extends AbstractDevice
 			log.info("created device " + devID);
 			updateQERetrieval(iProp);
 		}
+		else
+		{
+			log.warn("not creating device; Autostart=false " + devID);
+		}
 		return dev;
 	}
 
