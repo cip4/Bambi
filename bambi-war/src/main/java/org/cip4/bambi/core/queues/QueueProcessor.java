@@ -1158,8 +1158,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				resumeSingleEntry(m, resp, qe);
 			}
-
-			return false;
+			return true;
 		}
 
 		protected void resumeSingleEntry(final JDFMessage m, final JDFResponse resp, final JDFQueueEntry qe)
@@ -3028,7 +3027,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	protected JDFQueueEntry getMessageQueueEntry(final JDFMessage m, final JDFResponse resp)
 	{
 		final Vector<JDFQueueEntry> v = getMessageQueueEntries(m, resp);
-		if (v == null)
+		if (ContainerUtil.isEmpty(v))
 		{
 			return null;
 		}

@@ -177,6 +177,8 @@ public class RootDevice extends AbstractDevice
 	AbstractDevice createDevice(final IDeviceProperties iProp)
 	{
 		final String devID = iProp.getDeviceID();
+		log.info("creating child from root device " + devID);
+
 		AbstractDevice dev = null;
 		if ((iProp instanceof DeviceProperties) && !deviceTemplates.containsKey(iProp.getDeviceType()))
 		{

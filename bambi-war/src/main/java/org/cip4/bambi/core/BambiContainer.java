@@ -220,6 +220,7 @@ public final class BambiContainer extends ServletContainer
 		{
 			if (needController)
 			{
+				log.info("creating root device " + prop.getDeviceID());
 				d = prop.getDeviceInstance();
 				if (d != null && !(d instanceof RootDevice))
 				{
@@ -230,6 +231,7 @@ public final class BambiContainer extends ServletContainer
 			}
 			else
 			{
+				log.info("creating non root device " + prop.getDeviceID());
 				d = prop.getDeviceInstance();
 			}
 			rootDev = d;
@@ -237,11 +239,13 @@ public final class BambiContainer extends ServletContainer
 		else
 		// we already have a root / dispatcher device - use it as base
 		{
+			log.info("adding non root device " + prop.getDeviceID());
 			final RootDevice rd = getRootDevice();
 			d = rd == null ? null : rd.createDevice(prop);
 		}
 		if (d != null && d.mustDie())
 		{
+			log.info("removing non root device " + prop.getDeviceID());
 			d.shutdown();
 			d = null;
 		}
