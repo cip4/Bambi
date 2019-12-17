@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<!-- Copyright 2009-2014 CIP4 -->
+<!-- Copyright 2009-2019 CIP4 -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -13,6 +13,7 @@
 			<xsl:variable name="deviceStatus" select="@DeviceStatus" />
 			<xsl:variable name="context" select="@Context" />
 			<xsl:variable name="modify" select="@modify" />
+			<xsl:variable name="mutable" select="@mutable" />
 			<head>
 				<link rel="stylesheet" type="text/css">
 					<xsl:attribute name="href"><xsl:value-of
@@ -108,6 +109,7 @@
 								<input type="submit" value="refresh page" />
 							</form>
 						</td>
+				        <xsl:if test="$mutable='true'">
 						<td>
 							<form style="margin-left: 20px">
 								<xsl:attribute name="action"><xsl:value-of
@@ -140,6 +142,7 @@
 								<input type="hidden" name="reset" value="true" />
 							</form>
 						</td>
+						</xsl:if>
 						<xsl:if test="$modify!='true'">
 							<td>
 								<form style="margin-left: 20px">

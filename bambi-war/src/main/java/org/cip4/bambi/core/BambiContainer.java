@@ -294,7 +294,7 @@ public final class BambiContainer extends ServletContainer
 						MessageSender.addDumps(senderID, dumpSendIn, dumpSendOut);
 						log.info("Created Device JMF dumps for senderID " + senderID);
 					}
-					else if (d != null)
+					else
 					{
 						log.info("Skipping Device JMF dumps for senderID " + senderID);
 					}

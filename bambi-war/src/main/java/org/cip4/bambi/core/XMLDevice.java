@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -60,7 +60,7 @@ public class XMLDevice extends XMLDoc
 
 	/**
 	 * XML representation of this simDevice fore use as html display using an XSLT
-	 * 
+	 *
 	 * @param addProcs if true, add processor elements
 	 * @param request
 	 * @param abstractDevice TODO
@@ -76,6 +76,7 @@ public class XMLDevice extends XMLDoc
 		deviceRoot.setAttribute(AttributeName.CONTEXT, parentDevice.getContext(request));
 		final boolean bModify = request.getBooleanParam("modify");
 		deviceRoot.setAttribute("modify", bModify, null);
+		deviceRoot.setAttribute("mutable", parentDevice.isMutable(), null);
 		deviceRoot.setAttribute("NumRequests", parentDevice.numRequests, null);
 		deviceRoot.setAttribute("EntriesProcessed", parentDevice.getEntriesProcessed(), null);
 		deviceRoot.setAttribute(RootDevice.RELEASE_VERSION_STRING, RuntimeProperties.getProductVersion(), null);

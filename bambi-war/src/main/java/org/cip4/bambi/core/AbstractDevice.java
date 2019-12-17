@@ -121,6 +121,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
  */
 public abstract class AbstractDevice extends BambiLogFactory implements IGetHandler
 {
+
 	/**
 	 * @return the queueprocessor of this device
 	 */
@@ -446,6 +447,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 	}
 
+	protected static final String REFRESH = "refresh";
 	public static final String SHOW_DEVICE = "showDevice";
 	public static final String SHOW_SUBSCRIPTIONS = "showSubscriptions";
 
@@ -1225,7 +1227,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		log.info("processing reset for Device: " + getDeviceID());
 		_theSignalDispatcher.reset();
 		_theQueueProcessor.reset();
-		final Vector<File> files = getCacheDirs();
+		final List<File> files = getCacheDirs();
 		if (files != null)
 		{
 			for (final File f : files)
@@ -1362,27 +1364,31 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		log.info("Handling manual request: " + request);
 		if (request.isMyContext(SHOW_DEVICE))
 		{
-			if (request.getBooleanParam("restart") && getRootDevice() != null)
+			if (isMutable())
 			{
-				return handleRestart(request);
-			}
-			else if (request.getBooleanParam("shutdown") && getRootDevice() != null)
-			{
-				return handleShutdown(request);
-			}
-			else if (request.getBooleanParam("reset"))
-			{
-				return handleReset(request);
+				if (request.getBooleanParam("restart"))
+				{
+					return handleRestart(request);
+				}
+				else if (request.getBooleanParam("shutdown"))
+				{
+					return handleShutdown(request);
+				}
+				else if (request.getBooleanParam("reset"))
+				{
+					return handleReset(request);
+				}
 			}
 			else
 			{
 				updateDevice(request);
-				return showDevice(request, request.getBooleanParam("refresh"));
 			}
+
+			return showDevice(request, request.getBooleanParam(REFRESH));
 		}
 		else if (request.isMyContext("jmf") || request.isMyContext("slavejmf"))
 		{
-			return showDevice(request, request.getBooleanParam("refresh"));
+			return showDevice(request, request.getBooleanParam(REFRESH));
 		}
 		if (request.isMyContext(SHOW_SUBSCRIPTIONS))
 		{
@@ -1405,6 +1411,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		return null;
 	}
 
+	protected boolean isMutable()
+	{
+		return getRootDevice() != null;
+	}
+
 	protected XMLResponse handleReset(final ContainerRequest request)
 	{
 		if (request.getBooleanParam("reset"))
@@ -1412,7 +1423,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			reset();
 		}
 		updateDevice(request);
-		return showDevice(request, request.getBooleanParam("refresh"));
+		return showDevice(request, request.getBooleanParam(REFRESH));
 	}
 
 	protected XMLResponse handleShutdown(final ContainerRequest request)
@@ -1425,7 +1436,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected XMLResponse handleRestart(final ContainerRequest request)
 	{
 		final AbstractDevice newDev = getRootDevice().createDevice(_devProperties);
-		return newDev.showDevice(request, request.getBooleanParam("refresh"));
+		return newDev.showDevice(request, request.getBooleanParam(REFRESH));
 	}
 
 	/**
@@ -1438,7 +1449,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		final Set<String> stringSet = map == null ? null : map.keySet();
 		if (stringSet == null)
 			return;
-
+		log.info("updating device " + getDeviceID() + " from UI");
 		final String watchURL = request.getParameter("WatchURL");
 		if (watchURL != null && stringSet.contains("WatchURL"))
 		{
@@ -1802,7 +1813,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		final XMLDevice simDevice = getXMLDevice(true, request);
 		if (refresh)
 		{
-			simDevice.getRoot().setAttribute("refresh", true, null);
+			simDevice.getRoot().setAttribute(REFRESH, true, null);
 		}
 
 		final XMLResponse r = new XMLResponse(simDevice.getRoot());
