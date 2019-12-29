@@ -38,12 +38,12 @@
  */
 package org.cip4.bambi.core.messaging;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.StatusListener;
@@ -72,8 +72,8 @@ import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.JDFDate;
+import org.cip4.jdflib.util.ListMap;
 import org.cip4.jdflib.util.StringUtil;
-import org.cip4.jdflib.util.VectorMap;
 
 /**
  * Class that buffers messages for subscriptions and integrates the results over time
@@ -263,7 +263,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	protected VString ignoreSenderIDs = null;
 	private static int logCounter = 0;
 	private static int multiCounter = 0;
-	protected VectorMap<MessageIdentifier, JDFSignal> messageMap = new VectorMap<>();
+	protected ListMap<MessageIdentifier, JDFSignal> messageMap = new ListMap<>();
 
 	/**
 	 * @return the _theDispatcher
@@ -417,7 +417,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			final Set<MessageIdentifier> keySet = getMessageIdentifierSet();
 			final JDFJMF jmf = response.getJMFRoot();
 			int nSig = 0;
-			final Vector<MessageIdentifier> messageIdentifiers = new Vector<>();
+			final List<MessageIdentifier> messageIdentifiers = new ArrayList<>();
 			for (final MessageIdentifier mi : keySet)
 			{
 				if (mi == null)
@@ -428,7 +428,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				if (mi.matches(messageIdentifier))
 				{
 					messageIdentifiers.add(mi);
-					final Vector<JDFSignal> sis = getSignalsFromMap(mi);
+					final List<JDFSignal> sis = getSignalsFromMap(mi);
 					if (sis != null)
 					{
 						for (final JDFSignal signal : sis)
@@ -461,7 +461,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 * @param nSig
 	 * @return
 	 */
-	protected JDFJMF cleanup(final JDFJMF jmf, final Vector<MessageIdentifier> messageIdentifiers, final int nSig)
+	protected JDFJMF cleanup(final JDFJMF jmf, final List<MessageIdentifier> messageIdentifiers, final int nSig)
 	{
 		for (final MessageIdentifier mi : messageIdentifiers)
 		{
@@ -518,14 +518,14 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 * @param mi
 	 * @return
 	 */
-	protected Vector<JDFSignal> getSignalsFromMap(final MessageIdentifier mi)
+	protected List<JDFSignal> getSignalsFromMap(final MessageIdentifier mi)
 	{
 		synchronized (messageMap)
 		{
-			Vector<JDFSignal> sis = messageMap.get(mi);
+			List<JDFSignal> sis = messageMap.get(mi);
 			if (sis != null)
 			{
-				final Vector<JDFSignal> clone = new Vector<>();
+				final List<JDFSignal> clone = new ArrayList<>();
 				clone.addAll(sis);
 				sis = clone;
 			}
@@ -837,9 +837,9 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		 * @return
 		 */
 		@Override
-		protected Vector<JDFSignal> getSignalsFromMap(final MessageIdentifier mi)
+		protected List<JDFSignal> getSignalsFromMap(final MessageIdentifier mi)
 		{
-			Vector<JDFSignal> sis = super.getSignalsFromMap(mi);
+			List<JDFSignal> sis = super.getSignalsFromMap(mi);
 			if (lastSent != null && (sis == null || sis.size() == 0))
 			{
 				synchronized (lastSent)
@@ -863,7 +863,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 						{
 							if (sis == null)
 							{
-								sis = new Vector<>();
+								sis = new ArrayList<>();
 							}
 							lastSig.setTime(new JDFDate());
 							// ensure new ID for signal
