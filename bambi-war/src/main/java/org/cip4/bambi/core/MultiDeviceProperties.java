@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -894,6 +894,15 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 			p = 8080; // better guess - default tomcat Port
 			log.warn("guessing default port - using " + p);
 		}
+		return p;
+	}
+
+	/**
+	 * @return the ssl port, for jetty ssl
+	 */
+	public int getSSLPort()
+	{
+		final int p = root.getIntAttribute("SSLPort", null, 0);
 		return p;
 	}
 

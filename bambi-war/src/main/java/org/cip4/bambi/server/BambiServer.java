@@ -1,8 +1,8 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2020 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,17 +18,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -54,17 +54,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.server;
 
@@ -111,7 +111,7 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public static BambiServer getBambiServer()
 	{
@@ -121,9 +121,9 @@ public class BambiServer extends JettyServer
 			{
 				theServer = new BambiServer();
 			}
-			catch (BambiException e)
+			catch (final BambiException e)
 			{
-				LogFactory.getLog(BambiServer.class).fatal("Cannot create bambi serber", e);
+				LogFactory.getLog(BambiServer.class).fatal("Cannot create bambi server", e);
 			}
 		}
 		return (BambiServer) theServer;
@@ -135,9 +135,9 @@ public class BambiServer extends JettyServer
 	public BambiServer() throws BambiException
 	{
 		super();
-		UserDir userDir = getUserDir();
-		String toolPath = getToolPath();
-		File toolDir = new File(toolPath);
+		final UserDir userDir = getUserDir();
+		final String toolPath = getToolPath();
+		final File toolDir = new File(toolPath);
 		final MultiDeviceProperties mpTmp;
 		if (MultiDeviceProperties.getXMLDoc(toolDir) != null)
 		{
@@ -147,7 +147,7 @@ public class BambiServer extends JettyServer
 		else
 		{
 			log.info("loading resource file from class: " + getClass().getSimpleName());
-			InputStream resourceAsStream = getClass().getResourceAsStream("/config/devices.xml");
+			final InputStream resourceAsStream = getClass().getResourceAsStream("/config/devices.xml");
 			if (resourceAsStream == null)
 			{
 				log.fatal("invalid resource stream ");
@@ -158,11 +158,11 @@ public class BambiServer extends JettyServer
 
 		unpackResourceList(userDir);
 
-		KElement root = mp.getRoot();
+		final KElement root = mp.getRoot();
 		if (root == null)
 		{
 			final String logString;
-			File configFile = MultiDeviceProperties.getConfigFile(toolDir);
+			final File configFile = MultiDeviceProperties.getConfigFile(toolDir);
 			if (configFile.exists())
 			{
 				logString = "corrupt config file at :" + configFile.getAbsolutePath();
@@ -174,13 +174,18 @@ public class BambiServer extends JettyServer
 			log.fatal(logString);
 			throw new BambiException(logString);
 		}
-		int iport = mp.getPort();
+		final int iport = mp.getPort();
 		setPort(iport);
+		final int sslPort = mp.getSSLPort();
+		if (sslPort > 0)
+		{
+			setSSLPort(sslPort, null);
+		}
 
 		setContext(root.getAttribute("Context", null, null));
 		if (context == null || "".equals(context))
 		{
-			String logString = "no context specified for servlet, bailing out";
+			final String logString = "no context specified for servlet, bailing out";
 			log.fatal(logString);
 			throw new BambiException(logString);
 		}
@@ -188,18 +193,18 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 * @return
 	 */
 	public String getToolPath()
 	{
-		UserDir userDir = getUserDir();
+		final UserDir userDir = getUserDir();
 		return userDir == null ? "." : userDir.getToolPath();
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	protected UserDir getUserDir()
@@ -209,29 +214,29 @@ public class BambiServer extends JettyServer
 
 	/**
 	 * grab list of resources from self
-	 * @param userDir 
+	 * @param userDir
 	 */
-	protected void unpackResourceList(UserDir userDir)
+	protected void unpackResourceList(final UserDir userDir)
 	{
 		if (userDir == null)
 		{
 			log.info("no user directory specified, bailing out");
 			return;
 		}
-		File toolDir = new File(userDir.getToolPath());
+		final File toolDir = new File(userDir.getToolPath());
 		File listTxt = new File(RESOURCES_FILE);
 		listTxt = FileUtil.getFileInDirectory(toolDir, listTxt);
 		if (!listTxt.canRead())
 		{
-			Class<? extends BambiServer> myClass = getClass();
-			InputStream listStream = myClass.getResourceAsStream(RESOURCES_FILE);
+			final Class<? extends BambiServer> myClass = getClass();
+			final InputStream listStream = myClass.getResourceAsStream(RESOURCES_FILE);
 			if (listStream == null)
 			{
 				log.error("No list found - cannot unpack resources");
 			}
 			else
 			{
-				BufferedReader r = new BufferedReader(new InputStreamReader(listStream));
+				final BufferedReader r = new BufferedReader(new InputStreamReader(listStream));
 				String line = null;
 				try
 				{
@@ -240,13 +245,13 @@ public class BambiServer extends JettyServer
 						if (line.isEmpty())
 							continue;
 
-						InputStream nextStream = myClass.getResourceAsStream(line);
+						final InputStream nextStream = myClass.getResourceAsStream(line);
 						if (nextStream != null)
 						{
 							File toFile = new File(line.substring(1));
 							toFile = FileUtil.getFileInDirectory(toolDir, toFile);
 							log.info("Streaming resource file " + toFile.getAbsolutePath());
-							File newFile = FileUtil.streamToFile(nextStream, toFile);
+							final File newFile = FileUtil.streamToFile(nextStream, toFile);
 							if (newFile != null)
 							{
 								log.info("Streamed resource file " + newFile.getAbsolutePath());
@@ -262,7 +267,7 @@ public class BambiServer extends JettyServer
 						}
 					}
 				}
-				catch (IOException e)
+				catch (final IOException e)
 				{
 					line = null;
 				}
@@ -275,7 +280,7 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	@Override
@@ -285,49 +290,49 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 * 
-	 *  
+	 *
+	 *
 	 * @param args
 	 * @throws Exception
 	 */
-	public static void main(String[] args) throws Exception
+	public static void main(final String[] args) throws Exception
 	{
 		LogConfigurator.configureLog(new UserDir(BAMBI).getLogPath(), "bambi.log");
-		Log log = LogFactory.getLog(BambiServer.class);
+		final Log log = LogFactory.getLog(BambiServer.class);
 		log.info("BambiServer");
-		BambiServer bambiServer = new BambiServer();
+		final BambiServer bambiServer = new BambiServer();
 		LogConfigurator.configureLog(bambiServer.getProp().getBaseDir().getAbsolutePath(), "bambi.log");
-		MyArgs myArgs = new MyArgs(args, "c", "p", "");
+		final MyArgs myArgs = new MyArgs(args, "c", "ps", "");
 		if (myArgs.boolParameter('c'))
 		{
 			BambiService.main(args);
 		}
 		else
 		{
-			BambiFrame frame = new BambiFrame(bambiServer);
+			final BambiFrame frame = new BambiFrame(bambiServer);
 			System.exit(frame.waitCompleted());
 		}
 	}
 
 	/**
-	 * 
+	 *
 	 * @see org.cip4.jdfutility.server.JettyServer#createServletHandler()
 	 */
 	@Override
 	protected ServletContextHandler createServletHandler()
 	{
-		ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		final ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		contextHandler.setContextPath(context);
 		contextHandler.setWelcomeFiles(new String[] { "index.jsp" });
 		myServlet = new BambiServlet(this);
-		ServletHolder servletHolder = new ServletHolder(myServlet);
+		final ServletHolder servletHolder = new ServletHolder(myServlet);
 		setInitParams(servletHolder);
 		contextHandler.addServlet(servletHolder, "/*");
 		return contextHandler;
 	}
 
 	/**
-	 * 
+	 *
 	 * overwrite this to set some more params
 	 * @param servletHolder
 	 */
@@ -346,7 +351,7 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 * 
+	 *
 	 * @return
 	 */
 	public MultiDeviceProperties getProp()
@@ -357,13 +362,13 @@ public class BambiServer extends JettyServer
 	@Override
 	protected ResourceHandler createResourceHandler()
 	{
-		ResourceHandler resourceHandler = new MyResourceHandler(context);
+		final ResourceHandler resourceHandler = new MyResourceHandler(context);
 		resourceHandler.setResourceBase(getToolPath());
 		return resourceHandler;
 	}
 
 	@Override
-	public void setPort(int port)
+	public void setPort(final int port)
 	{
 		super.setPort(port);
 		if (mp != null)
