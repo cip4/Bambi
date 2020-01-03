@@ -65,12 +65,7 @@
 			<artifactId>jasper</artifactId>
 			<version>6.0.43</version>
 		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>apache-jsp</artifactId>
-			<version>9.2.4.v20141103</version>
-		</dependency>
-
+	
 	</dependencies>
 
 </project>
