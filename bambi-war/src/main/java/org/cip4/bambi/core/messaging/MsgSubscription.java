@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -48,9 +48,11 @@ import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.extensions.XJDFConstants;
 import org.cip4.jdflib.ifaces.IJMFSubscribable;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -134,7 +136,7 @@ public class MsgSubscription implements Cloneable
 		}
 		if (version == null)
 		{
-			version = XJDFConstants.XJMF.equals(root.getLocalName()) ? EnumVersion.Version_2_0 : EnumVersion.Version_1_5;
+			version = XJDFConstants.XJMF.equals(root.getLocalName()) ? XJDF20.getDefaultVersion() : JDFElement.getDefaultJDFVersion();
 		}
 		channelID = m.getID();
 		url = StringUtil.trim(sub.getURL(), null);
