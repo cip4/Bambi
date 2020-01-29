@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -293,7 +293,7 @@ public class ContainerRequest extends BambiLogFactory
 			return true;
 		}
 		final String reqDeviceID = getDeviceID();
-		return reqDeviceID == null || deviceID.equals(reqDeviceID);
+		return reqDeviceID == null || deviceID.equalsIgnoreCase(reqDeviceID);
 	}
 
 	/**
@@ -309,7 +309,7 @@ public class ContainerRequest extends BambiLogFactory
 		}
 
 		final String myContext = getContext();
-		return checkContext.equals(myContext);
+		return checkContext.equalsIgnoreCase(myContext);
 
 	}
 
@@ -326,7 +326,7 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public String getContext()
 	{
-		return StringUtil.token(requestURI, 2 + 1, "/");
+		return StringUtil.token(requestURI, 2 + 1, JDFConstants.SLASH);
 	}
 
 	/**
@@ -337,7 +337,7 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public String getContextRoot()
 	{
-		return "/" + StringUtil.token(requestURI, 2, "/");
+		return JDFConstants.SLASH + StringUtil.token(requestURI, 2, JDFConstants.SLASH);
 	}
 
 	/**
