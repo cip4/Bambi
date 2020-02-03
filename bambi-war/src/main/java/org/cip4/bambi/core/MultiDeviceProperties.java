@@ -139,7 +139,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 				}
 				catch (final Throwable x)
 				{
-					log.error("Cannot instantiate callback class: " + _callBackName);
+					log.error("Cannot instantiate callback class: " + _callBackName, x);
 				}
 			}
 			return null;
