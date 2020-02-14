@@ -518,10 +518,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public AbstractDevice(final IDeviceProperties prop)
 	{
 		super();
+		_devProperties = prop;
 		log.info("creating " + this);
 		entriesProcessed = idleCount = 0;
 		skipIdle = 10;
-		_devProperties = prop;
 		copyToCache();
 		numRequests = 0;
 		_submitHotFolder = null;
@@ -953,7 +953,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	@Override
 	public String toString()
 	{
-		return ("[" + this.getClass().getName() + " Properties=" + _devProperties.toString() + "]");
+		return (this.getClass().getName() + " Properties=" + _devProperties);
 	}
 
 	/**
