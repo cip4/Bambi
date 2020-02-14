@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -518,6 +518,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public AbstractDevice(final IDeviceProperties prop)
 	{
 		super();
+		log.info("creating " + this);
 		entriesProcessed = idleCount = 0;
 		skipIdle = 10;
 		_devProperties = prop;
@@ -531,13 +532,16 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		qeRequester = getQueueEntryRequester();
 		_deviceProcessors = new Vector<>();
 		acceptAll = false;
+		log.info("Running preSetup " + this);
 		preSetup();
 		mutex = new MyMutex();
 		_theQueueProcessor = buildQueueProcessor();
 		_theQueueProcessor.addHandlers(_jmfHandler);
 		_theQueueProcessor.addListener(mutex);
 		_theStatusListener = new StatusListener(_theSignalDispatcher, getDeviceID(), getICSVersions());
+		log.info("Running Init " + this);
 		init();
+		log.info("Done creating " + this);
 	}
 
 	/**
