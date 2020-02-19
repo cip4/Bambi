@@ -154,6 +154,18 @@ public class ContainerRequest extends BambiLogFactory
 	}
 
 	/**
+	 * @param parameterMap the parameterMap to set
+	 */
+	public void setParameter(final String key, final String value)
+	{
+		if (parameterMap == null)
+		{
+			parameterMap = new JDFAttributeMap();
+		}
+		parameterMap.putNotNull(key, value);
+	}
+
+	/**
 	 * @return the requestURI
 	 */
 	public String getRequestURI()
@@ -348,7 +360,7 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public String getHeader(final String header)
 	{
-		return headerMap == null ? null : headerMap.get(header);
+		return headerMap == null ? null : headerMap.getIgnoreCase(header);
 	}
 
 	/**
@@ -359,7 +371,7 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public String getParameter(final String header)
 	{
-		return parameterMap == null ? null : parameterMap.getNonEmpty(header);
+		return parameterMap == null ? null : parameterMap.getIgnoreCase(header);
 	}
 
 	/**

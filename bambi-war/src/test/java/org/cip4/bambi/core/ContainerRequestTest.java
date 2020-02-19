@@ -103,6 +103,22 @@ public class ContainerRequestTest extends BambiTestCaseBase
 	 *
 	 */
 	@Test
+	public void tesSetparameter()
+	{
+		final ContainerRequest req = new ContainerRequest();
+		req.setRequestURI("http://host/foo/bar/dev");
+		req.setParameter("a", "b");
+		req.setParameter("c", "d");
+		assertEquals("b", req.getParameter("a"));
+		assertEquals("d", req.getParameter("c"));
+		req.setParameter("c", "e");
+		assertEquals("e", req.getParameter("c"));
+	}
+
+	/**
+	 *
+	 */
+	@Test
 	public void testgetDevice()
 	{
 		final ContainerRequest req = new ContainerRequest();
@@ -139,6 +155,19 @@ public class ContainerRequestTest extends BambiTestCaseBase
 		req.setRequestURI("http://host/foo/bar/dev");
 		assertTrue(req.isMyContext("bar"));
 		assertTrue(req.isMyContext("BAR"));
+	}
+
+	/**
+	*
+	*/
+	@Test
+	public void testgetParameter()
+	{
+		final ContainerRequest req = new ContainerRequest();
+		req.setRequestURI("http://host/foo/bar/dev");
+		req.setParameterMap(new JDFAttributeMap("A", "B"));
+		assertEquals("B", req.getParameter("a"));
+		assertEquals("B", req.getParameter("A"));
 	}
 
 }

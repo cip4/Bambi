@@ -953,7 +953,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	@Override
 	public String toString()
 	{
-		return (this.getClass().getName() + " Properties=" + _devProperties);
+		final String propName = (_devProperties == null) ? "null" : _devProperties.getClass().getSimpleName();
+		return (getClass().getName() + " Properties=" + propName);
 	}
 
 	/**
