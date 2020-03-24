@@ -901,8 +901,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				abortSingleEntry(m, resp, qe); // abort before removing
 			}
 			status = qe.getQueueEntryStatus();
-			if (EnumQueueEntryStatus.Held.equals(status) || EnumQueueEntryStatus.Waiting.equals(status) || EnumQueueEntryStatus.Completed.equals(status)
-					|| EnumQueueEntryStatus.Aborted.equals(status) || EnumQueueEntryStatus.Suspended.equals(status))
+			if (EnumQueueEntryStatus.Held.equals(status) || EnumQueueEntryStatus.Waiting.equals(status) || EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status)
+					|| EnumQueueEntryStatus.Suspended.equals(status))
 			{
 				final String queueEntryID = qe.getQueueEntryID();
 				JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, null, null); // use null to flag a removal
@@ -2246,13 +2246,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
 			{
 				newResponse.setReturnCode(120);
-				log.error("error storing queueentry: " + newResponse.getReturnCode());
+				log.error("error storing queueentry: " + QE_ID + " " + newResponse.getReturnCode());
 				return null;
 			}
 			persist(300000);
 			final String qeID = newQE.getQueueEntryID();
 			notifyListeners(qeID);
-			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID);
+			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID + " / " + theJDF.getJDFRoot().getJobID(true));
 			newQE = getQueueEntry(qeID);
 		}
 		prepareSubmit(newQE);
@@ -2303,7 +2303,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		newQEReal.copyInto(newQE, false);
 		slaveQueueMap.addEntry(newQEReal, true);
-		BambiNotifyDef.getInstance().notifyDeviceJobAdded(_theQueue.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(), newQEReal.getSubmissionTime().getTimeInMillis());
+		BambiNotifyDef.getInstance().notifyDeviceJobAdded(_theQueue.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(),
+				newQEReal.getSubmissionTime().getTimeInMillis());
 		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
 
 		final boolean ok = storeJDF(theJDF, newQEID);
