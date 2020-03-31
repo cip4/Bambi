@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -46,6 +46,7 @@ import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFQueue;
+import org.cip4.jdflib.util.PlatformUtil;
 
 /**
  * @author rainer prosi
@@ -72,10 +73,26 @@ public class XMLDevice extends XMLDoc
 		prepare();
 		final KElement deviceRoot = getRoot();
 		setXSLTURL(parentDevice.getXSLT(request));
-
-		deviceRoot.setAttribute(AttributeName.CONTEXT, parentDevice.getContext(request));
 		final boolean bModify = request.getBooleanParam("modify");
 		deviceRoot.setAttribute("modify", bModify, null);
+		deviceRoot.setAttribute(AttributeName.CONTEXT, parentDevice.getContext(request));
+
+		setRoot(deviceRoot);
+		addHotFolders(deviceRoot);
+		addQueueInfo(deviceRoot);
+		if (addProcs)
+		{
+			addProcessors();
+		}
+	}
+
+	/**
+	 *
+	 * @param request
+	 * @param deviceRoot
+	 */
+	protected void setRoot(final KElement deviceRoot)
+	{
 		deviceRoot.setAttribute("mutable", parentDevice.isMutable(), null);
 		deviceRoot.setAttribute("NumRequests", parentDevice.numRequests, null);
 		deviceRoot.setAttribute("EntriesProcessed", parentDevice.getEntriesProcessed(), null);
@@ -89,23 +106,18 @@ public class XMLDevice extends XMLDoc
 		deviceRoot.setAttribute("DeviceURL", parentDevice.getDeviceURL());
 		final IDeviceProperties properties = parentDevice.getProperties();
 		deviceRoot.setAttribute("WatchURL", properties.getWatchURL());
+		deviceRoot.setAttribute("JavaVersion", PlatformUtil.getProperty("java.version"));
 		deviceRoot.setAttribute(AttributeName.DEVICESTATUS, parentDevice.getDeviceStatus().getName());
 		if (parentDevice._rootDevice == null && BambiContainer.getInstance() != null)
 		{
 			deviceRoot.setAttribute("Dump", BambiContainer.getInstance().bWantDump, null);
-		}
-		addHotFolders(deviceRoot);
-		addQueueInfo(deviceRoot);
-		if (addProcs)
-		{
-			addProcessors();
 		}
 	}
 
 	/**
 	 * @param deviceRoot
 	 */
-	private void addHotFolders(final KElement deviceRoot)
+	protected void addHotFolders(final KElement deviceRoot)
 	{
 		final File inputHF = parentDevice.getInputHFUrl();
 		if (inputHF != null)
@@ -128,7 +140,7 @@ public class XMLDevice extends XMLDoc
 	/**
 	 * @param deviceRoot
 	 */
-	private void addQueueInfo(final KElement deviceRoot)
+	protected void addQueueInfo(final KElement deviceRoot)
 	{
 		if (parentDevice._theQueueProcessor == null)
 		{
@@ -162,7 +174,7 @@ public class XMLDevice extends XMLDoc
 	/**
 	 *
 	 */
-	private void addProcessors()
+	protected void addProcessors()
 	{
 		for (final AbstractDeviceProcessor proc : parentDevice._deviceProcessors)
 		{
