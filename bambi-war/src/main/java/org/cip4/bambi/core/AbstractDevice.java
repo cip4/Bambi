@@ -415,11 +415,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		@Override
 		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 		{
-			if (getStatusListener() == null)
-			{
-				return false;
-			}
-			if (!getStatusListener().matchesQuery(inputMessage))
+			if (getStatusListener() == null || !getStatusListener().matchesQuery(inputMessage))
 			{
 				return false;
 			}
