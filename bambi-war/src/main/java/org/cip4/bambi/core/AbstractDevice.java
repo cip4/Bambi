@@ -816,11 +816,12 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 		if (hfStorage.isDirectory())
 		{
-			final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null);
+			final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(getReturnJMF());
 			final JDFJMF jmf2 = JMFBuilderFactory.getJMFBuilder(null).buildResubmitQueueEntry(null, null);
 			jmf.copyElement(jmf2.getCommand(0), null);
 
 			_submitHotFolder = new QueueHotFolder(hfURL, hfStorage, "jdf,xjdf,xml", new DeviceHFListener(this), jmf);
+			_submitHotFolder.setRetry(3);
 			final StreamRedirectListener streamRedirectListener = new StreamRedirectListener(this);
 			_submitHotFolder.addListener(streamRedirectListener, "zip");
 			_submitHotFolder.addListener(streamRedirectListener, "mjm");
@@ -830,6 +831,16 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			log.error("input hot folder could not be created " + hfURL);
 		}
+	}
+
+	/**
+	 * overwrite if you have a decent default
+	 *
+	 * @return
+	 */
+	protected String getReturnJMF()
+	{
+		return _devProperties.getDeviceAttribute(AttributeName.RETURNURL);
 	}
 
 	/**
