@@ -70,6 +70,7 @@ import org.cip4.jdflib.util.thread.IPersistable;
  */
 public class MultiDeviceProperties extends BambiLogFactory implements IPersistable
 {
+	static final String CONFIG_VERSION = "ConfigVersion";
 	/**
 	 * properties for a single device
 	 *
@@ -767,14 +768,14 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		final File deviceDir = installProps.getBaseDir();
 		final File localConfigFile = getConfigFile(deviceDir);
 		final XMLDoc localDoc = XMLDoc.parseFile(localConfigFile);
-		boolean mustCopy = deviceDir != null;
+		boolean mustCopy = true;
 		if (localDoc != null) // using config default
 		{
 			final MultiDeviceProperties localProps = new MultiDeviceProperties(localDoc).getSubClass();
 			if (installProps.isCompatible(localProps))
 			{
 				installProps = localProps;
-				sLog.info("using updated device config from: " + localConfigFile.getAbsolutePath());
+				sLog.info("using local device config from: " + localConfigFile.getAbsolutePath());
 				mustCopy = false;
 			}
 			else
@@ -798,15 +799,15 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 * @param mp2
+	 * @param localProps
 	 * @return
 	 */
-	protected boolean isCompatible(final MultiDeviceProperties mp2)
+	protected boolean isCompatible(final MultiDeviceProperties localProps)
 	{
-		if (mp2 == null)
+		if (localProps == null)
 			return false;
 		final String configVersion = getConfigVersion();
-		return configVersion.equals(mp2.getConfigVersion());
+		return configVersion.equals(localProps.getConfigVersion());
 	}
 
 	/**
@@ -814,7 +815,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	private String getConfigVersion()
 	{
-		return root.getAttribute("ConfigVersion");
+		return root.getAttribute(CONFIG_VERSION);
 	}
 
 	/**

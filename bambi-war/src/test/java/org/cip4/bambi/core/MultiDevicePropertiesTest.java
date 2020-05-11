@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -39,6 +39,7 @@
 package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -87,6 +88,31 @@ public class MultiDevicePropertiesTest extends BambiTestCaseBase
 		p.persist();
 		p.persist();
 		assertTrue(new File(sm_dirTestDataTemp + "foo.1.ini").exists());
+	}
+
+	@Test
+	public void testIsCompatible()
+	{
+		final XMLDoc d = new XMLDoc("application", null);
+		d.setOriginalFileName(sm_dirTestDataTemp + "foo.ini");
+		final MultiDeviceProperties p = new MultiDeviceProperties(d);
+		assertTrue(p.isCompatible(p));
+	}
+
+	@Test
+	public void testIsCompatibleNot()
+	{
+		final XMLDoc d = new XMLDoc("application", null);
+		d.setOriginalFileName(sm_dirTestDataTemp + "foo.ini");
+		final MultiDeviceProperties p = new MultiDeviceProperties(d);
+		final XMLDoc d2 = d.clone();
+		d2.getRoot().setAttribute(MultiDeviceProperties.CONFIG_VERSION, "v1");
+		final MultiDeviceProperties p2 = new MultiDeviceProperties(d2);
+		assertFalse(p.isCompatible(p2));
+		d.getRoot().setAttribute(MultiDeviceProperties.CONFIG_VERSION, "v2");
+		assertFalse(p.isCompatible(p2));
+		d.getRoot().setAttribute(MultiDeviceProperties.CONFIG_VERSION, "v1");
+		assertTrue(p.isCompatible(p2));
 	}
 
 }

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -50,6 +50,7 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.extensions.MessageHelper;
+import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.extensions.XJMFHelper;
 import org.cip4.jdflib.extensions.xjdfwalker.XJDFToJDFConverter;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -183,7 +184,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final SubscriptionStore ss2 = new SubscriptionStore(d2, new File(sm_dirTestDataTemp + "subs2"));
 		ss2.load();
 		final MsgSubscription sloaded = d2.getSubscription("q");
-		assertEquals(EnumVersion.Version_2_0, sloaded.getVersion());
+		assertEquals(XJDFHelper.defaultVersion(), sloaded.getVersion());
 		assertNull(sloaded.jmfDeviceID);
 	}
 
