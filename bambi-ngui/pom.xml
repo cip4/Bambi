@@ -7,7 +7,7 @@
     <name>CIP4-Bambi NGUI</name>
 
     <properties>
-        <struts2.version>2.3.20</struts2.version>
+        <struts2.version>2.5.22</struts2.version>
     </properties>
 
     <parent>
