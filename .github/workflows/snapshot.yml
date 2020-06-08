@@ -19,7 +19,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build docker container
-        run: docker build -t bambi:latest .
+        run: docker build -t docker.pkg.github.com/cip4/bambi:latest .
+
+      - name: Push docker container
+        run: docker docker.pkg.github.com/cip4/bambi:latest
 
   macosx-snapshot:
     runs-on: macos-latest
