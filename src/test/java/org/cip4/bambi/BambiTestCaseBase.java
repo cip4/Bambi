@@ -139,17 +139,7 @@ public abstract class BambiTestCaseBase
 
 	private static String getTestDataDir()
 	{
-
-		String path = "test/data";
-		File dataFile = new File(path).getAbsoluteFile();
-		if (!dataFile.isDirectory())
-		{
-			path = BambiTestCaseBase.class.getResource("/").getPath();
-			dataFile = FileUtil.getFileInDirectory(new File(path), new File("data"));
-		}
-		path = FilenameUtils.normalize(dataFile.getAbsolutePath()) + File.separator;
-
-		return path;
+		return BambiTestCaseBase.class.getResource("/data").getPath() + File.separator;
 
 	}
 
