@@ -1,0 +1,923 @@
+@charset "utf-8";
+/* CSS Document */
+
+/*<link href='http://fonts.googleapis.com/css?family=Roboto+Condensed:400,700|Roboto:400,500' rel='stylesheet' type='text/css' />*/
+html {
+	height:100%;
+	min-width:100%;
+	max-width:800%;
+	overflow:scroll;
+	padding:0;
+	margin:0;
+	}
+body {
+	font-family: 'Roboto', Helvetica, Arial;
+	font-size: 16px;
+	line-height: 20px;
+	color: #333333;
+	/*overflow:scroll;*/
+	/*height:2000px; from2000*/
+	min-width:100%;
+	padding:0;
+	margin:0;
+}
+
+/* Typography ============================================================ */
+
+h1 {
+	font-family: 'Roboto', Helvetica, Arial;
+	font-size: 22px;
+	margin: 0 0 15px 0;
+}
+
+h2 {
+	font-family: 'Roboto Condensed', Helvetica, Arial;
+	font-size: 22px;
+	line-height: 30px;
+	font-weight: 500;
+}
+
+h3 {
+	font-family: 'Roboto Condensed', Helvetica, Arial;
+	font-size: 16px;
+	line-height: 20px;
+	font-weight: 700;
+}
+
+p {
+	/*border-top: solid thin #ccc;*/
+
+	margin:0px !important;
+	padding:0px 0px 5px 0px !important;
+}
+
+em {
+	font-family: 'Roboto Condensed', Helvetica, Arial;
+	font-weight: 400;
+	color: #999999;
+	font-style:normal;
+	word-wrap: break-word;
+	white-space:pre-line;
+}
+em.smaller {
+	display:none;
+	font-weight:300;
+	font-size:10px;
+	color:#000
+	}
+/*em:hover ~ em.smaller {
+	display:block;
+	}*/
+.column-5 em.smaller {
+	display:inline;
+	}
+
+h2, h3, p, em {
+	margin: 0 0 5px 0;
+}
+
+a {
+	text-decoration: none;
+	color:#666;
+}
+
+.button p {
+	/*display: inline-block;*/
+	padding: 6px 0;
+	text-align: center;
+	width: 75%;
+	float:left;
+}
+
+.button:link, .button:visited {
+	font-family: 'Roboto Condensed', Helvetica, Arial;
+	color: #666666;
+}
+
+.button:hover {
+	color: #FFFFFF;
+}
+
+.form-white p, .form-grey p {
+	padding: 6px 10px;
+}
+
+/* Images ============================================================ */
+
+a:after {
+	}
+
+/* Layout ============================================================ */
+p {
+	padding: 10px;}
+
+iframe {
+	margin:0;
+	padding:0;
+	border:none;
+	position:relative;
+	height:100%;
+	top:0px;
+	overflow-y:visible;
+	}
+
+.clear {
+	clear:both;
+	}
+.displaynone {
+	display:none;
+	}
+
+
+
+
+/* iframes containing multiple columns */
+	
+.single-column-frame {
+	width:300px;
+	}
+.double-column-frame {
+	width:620px;
+	overflow:hidden;
+	height:6000px; /*from2000*/
+	overflow:visible;
+	}
+.triple-column-frame {
+	width:900px;
+	overflow:hidden;
+	height:2000px; /*from2000*/
+	}
+	
+.noheight {
+	height:auto !important;
+	}
+/*.popupcontent .noheight {
+	min-height:100px;*/
+	}
+	
+.nowidth {
+	width:auto !important;
+	}
+	
+.float-left {
+	float:left;
+	}
+
+
+.button, .select-box-white, .select-box-grey, .form-white, .form-grey {
+	border-bottom: 1px solid #CCCCCC;
+	margin-bottom: 15px;
+}
+
+/*.device:hover,*/ .column-grey input:checked + label, .column-grey input + label:hover {
+	background-color:#fff;
+	display:block;
+	z-index:10000;
+	}
+	
+/*.device:hover,*/ .column-white input:checked + label, .column-grey input + label:hover {
+	background-color:#F3F3F3;
+	display:block;
+	z-index:10000;
+	}
+
+.open ~ .close ~ .close-label {
+	display:none !important;
+	}
+	
+.open:checked ~ .close ~ .close-label {
+	display:block !important;
+	}
+	
+.open ~ .close:checked ~ .close-label {
+	display:none !important;
+	}
+
+.open, .close {
+	clear:both;
+	height:32px;
+	width:260px;
+	border-top:thin solid #DDDDDD;
+	margin-top: 10px;
+	}
+
+.center {
+	margin:0 auto;
+	}
+	
+input.selector {
+	display:none;
+	}
+
+label {
+	cursor:pointer;
+	z-index:200;
+	}
+
+/* ---------------------------------------- */
+/* ---------------------------------------- */
+/* ---------------------------------------- */
+/* ------------- Specific CSS ------------- */
+/* ---------------------------------------- */
+/* ---------------------------------------- */
+/* ---------------------------------------- */
+
+.root-controller {	
+	width:329px !important;
+	/*float:left;*/
+	position:absolute;
+	top:0px;
+	left:0px;
+	height:2000px; /*from2000*/
+	padding:15px;
+	}
+	
+/* ---------------------------------------- */
+/* ---------------------------------------- */
+/* ---------------------------------------- */
+/* -------- Larger Layout Elements -------- */
+/* ---------------------------------------- */
+/* ---------------------------------------- */
+/* ---------------------------------------- */
+	
+.root-controller .box {
+	width:300px;
+	}
+
+.subrow .form-white:first-child {
+	margin-top:10px !important;
+	}
+
+/* content-wrapper */
+
+#content-wrapper {
+	position:relative;
+
+	/*position:absolute;*/
+	/*display:inline-table;*/
+	/*white-space:nowrap;*/
+	height:3000px;
+	/*min-width:100%;*/
+	overflow:hidden !important;
+	width:1535px;
+	}
+	
+/* Devices */
+
+.devices {
+	margin:0 !important;
+	padding:15px 0 0 0;
+	left:331px;
+}
+
+/* Detailwrapper */
+
+input.selector:checked ~ div.detailwrapper{
+	display:block;
+	float:right;
+	height:2000px; !important; /*from2000px*/
+}
+
+.detailwrapper {
+	z-index:0;
+	position:absolute !important;
+	left:301px;
+	top:0px;
+	padding:0 !important;
+	margin:0 !important;
+	display:none;
+	min-height:100%; /*from2000*/
+	width:300px;
+}
+
+/* device-details */
+.device-details {
+	margin:0 !important;
+	padding-top:15px;
+	background-color:#fff;
+	position:absolute;
+	left:0px;
+	}
+
+/* queueEntryDetails */
+
+input:checked + label.queueEntryDetails {
+	display:none;
+	}
+input + label.queueEntryDetails {
+	display:block;
+	}
+
+/* column */
+
+.column-grey {
+	width: 300px !important;
+	background-color: #F3F3F3;
+	padding-top:15px;
+	border-right:thin solid #ccc !important;
+	height:5000px; /*from2000*/
+}
+
+.column-white {
+	width: 300px;
+	background-color: #FFFFFF;
+	padding-top:15px;
+	border-right:thin solid #ccc !important;
+	height:5000px; /*from2000*/
+}
+
+.column-1 {
+	position:absolute;
+	top:0;
+	left:0;
+	width:360px;
+	}
+
+.column-2 {
+	position:absolute;
+	top:0;
+	left:360px;
+	width:300px;
+	}
+
+.column-3 {
+	position:absolute;
+	top:0;
+	left:660px;
+	width:300px;
+	}
+
+.column-4 {
+	position:absolute;
+	top:0;
+	left:962px;
+	width:300px;
+	}
+
+.column-5 {
+	position:absolute;
+	top:0;
+	left:301px !important; /*because always inside an iframe*/
+	width:300px;
+	}
+
+/* Popup */
+
+.popupwrapper {
+	position:fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	display:none;
+	background-color: rgba(0,0,0,0.5);
+	z-index: 999999;
+	}
+
+.popupwrapper:target {
+	display:inline;
+	z-index:999999;
+	position:fixed;
+	}
+	
+.popupwrapper > div {
+	top:50px;
+	left:50px;
+	right:50px;
+	bottom:50px;
+	position: fixed;
+	padding: 5px 20px 13px 20px;
+	min-width:250px; */
+	border: #ccc solid thin;
+	background: #fff;
+	overflow:hidden;
+}
+
+.popupframe {
+	position:relative;
+	top:0;
+	bottom:0;
+	left:0;
+	right:0;
+	min-width:250px;
+	width:calc(100% + 40px);
+	min-height:100%;
+	overflow-x:hidden;
+	}
+	
+.popupclose {
+	position:fixed;
+	right:65px !important;
+	top:65px !important;
+	z-index:10000;
+	}
+.popupclosebutton {
+	width:30px !important;
+	top:0px !important;
+	}
+
+.popupcontent {
+	position:relative;
+	width:calc(100% - 50px) !important;
+	padding-top:15px;
+	padding-right:20px;
+	}
+
+/* box */
+
+.box {
+	width: 270px;
+	height: 90px;
+	padding: 10px 10px 0 20px;
+	border-bottom:solid thin #ccc;
+	word-wrap: break-word;
+}
+
+.popupcontent .box {
+	width:calc(100% - 20px);
+	position:relative;
+	min-height:110px;
+	margin-left:0;
+	padding:0;
+	border:none;
+	}
+
+/* row */
+.row {
+	height:auto;
+	clear:both;
+	border-bottom:solid thin #ccc;
+	padding-bottom:15px;
+	margin-top:15px;
+	width:100%;
+	}
+
+/* subrow */
+.subrow {
+	border-bottom:thin solid #ddd;
+	margin:0px 0px;
+	padding:10px 0px;
+	width:255px;
+	clear:both;
+	}
+.subrow:last-child {
+	border-bottom:none;
+	}
+.popupcontent .subrow {
+	border-bottom:none;
+	border-left:solid thin #ddd;
+	display:inline-block;
+	height:90px;
+	margin:0 10px 0 0;
+	clear:both;
+	position:relative;
+	clear:right;
+	float:left;
+	padding:0 0 0 10px;
+	width:110px;
+	overflow:hidden;
+	}
+.popupcontent .MessageSender .subrow{
+	min-height:150px;
+	}
+.popupcontent .subrow:nth-child(1) {
+	width:150px;
+	}
+
+/* subcolumn */
+.subcolumn {
+	float:left;
+	clear:none;
+	padding: 0px 15px;
+	margin:15px 0px;
+	border-right:thin solid #ccc;
+	height:100%;
+	position:relative;
+	}
+	
+.subcolumn:last-child {
+	border-right:none;
+	}
+
+.headline-wrapper {
+	padding-left:10px;
+	border-bottom:solid thin #ccc;
+	height:160px;
+	}
+.box-headline {
+	padding-top:100px !important;
+	bottom:0px !important;	
+	position:relative;
+	vertical-align:bottom !important;
+	}
+	
+/* ---------------------------------------- */
+/* ---------------------------------------- */
+/* ---------------------------------------- */
+/* -------- Smaller Layout Elements ------- */
+/* ---------------------------------------- */
+/* ---------------------------------------- */
+/* ---------------------------------------- */
+
+/* status-bar */
+.status-bar {
+	width: 150px;
+	height: 4px;
+	margin-top:30px;
+}
+
+.status-bar.red, .status-bar.Aborted, .status-bar.PendingReturn {
+	background-color: #FF1900;
+}
+
+.status-bar.orange, .status-bar.Idle, .status-bar.Waiting, .status-bar.Suspended, .status-bar.Waiting, .status-bar.Held {
+	background-color: #FF7800;
+}
+
+.status-bar.green, .status-bar.Completed, .status-bar.Running {
+	background-color: #74DA20;
+}
+
+.status-bar.yellow {
+	background-color: #F0E000;
+}
+
+.status-bar.blue {
+	background-color: #5E80D0;
+}
+
+.symbol {
+	float:left;
+	height:25px;
+	position:relative;
+	left:-5px;
+	margin-right:10px;
+	}
+
+/* icon when active */
+.green-icon {
+	background-color: #009900;
+}
+
+/* button */
+.button {
+	background-color: #CCCCCC;
+	width: 152px;
+	height: 32px;
+	-webkit-border-radius: 1px;
+	-moz-border-radius: 1px;
+	border-radius: 1px;
+	border:none;
+	float:left;
+	clear:both;
+	cursor:pointer;
+}
+
+.popupcontent .button {
+	width:110px;
+	}
+
+/* buttonsymbol */
+.buttonsymbol {
+	background-color: #CCCCCC;
+	width: 32px;
+	height: 32px;
+	-webkit-border-radius: 1px;
+	-moz-border-radius: 1px;
+	border-radius: 1px;
+	border:none;
+	margin-bottom:15px;
+	position:relative;
+	left:154px;
+}
+
+.popupcontent .buttonsymbol {
+	margin:0;
+	left:0;
+	}
+	
+/* buttonsymbolimage */
+.popupcontent .buttonsymbolimage {
+	margin:0;
+	top:0;
+	padding:0;
+	position:relative;
+	}
+.buttonsymbolimage {
+	position:relative;
+	z-index:10000;
+	width:32px;
+	height:32px;
+	top:-47px; /* ToDo woher kommt das? */
+	}
+
+.icon {
+	border-left: 1px solid #FFFFFF;
+	float: right;
+	padding: 2px;
+}
+
+.select-box-white {
+	background-color: #FFFFFF;
+	width: 180px;
+	height: 32px;
+}
+
+.select-box-grey {
+	background-color: #F3F3F3;
+	width: 180px;
+	height: 32px;
+}
+
+.form-white {
+	background-color: #FFFFFF;
+	width: 180px;
+	height: 32px;
+	border:solid thin #ccc;
+}
+
+.form-grey {
+	background-color: #F3F3F3;
+	width: 180px;
+	height: 32px;
+	border:solid thin #ccc;
+}
+
+.verticalopen, .verticalclose {
+	width:20px;
+	position:absolute;
+	margin: 0 0 0 -10px;
+	left: 50%;
+	}
+	
+.logo {
+	position:relative;
+	left:-15px;
+	}
+
+.arrowright {
+	position:absolute;
+	right:10px;
+	
+	vertical-align:central;
+	}
+	
+.arrowright img {
+	width:20px;
+	height:20px;
+	position:relative;
+	top:-10px;
+	margin-top:50%;
+	}
+
+
+/* ----------------------------------------------------------- */
+/* ----------------------------------------------------------- */
+/* ----------------------------------------------------------- */
+/* --------------- More specific Layout Elements ------------- */
+/* ----------------------------------------------------------- */
+/* ----------------------------------------------------------- */
+/* ----------------------------------------------------------- */
+
+.login {
+	padding-top:30px;}
+
+.column-5 .cputimer {
+	border-bottom:none !important;
+	}
+
+.popupcontent .subrow.half {
+	width:90px !important;
+	}
+
+.popupcontent > .headline-wrapper {
+	width:calc(100% - 30px);
+	}
+	
+div.device-details-spacer, span.device-queue, div.node-status, div.devices, div.detailwrapper {
+	position:absolute;
+	top:0px;
+	bottom:0px;
+	float:left;
+	clear:none;
+	width:300px;
+	}
+	
+span.device-queue {
+	left:960px;
+	}
+
+.root-details-wrapper {
+	border:solid thin #ccc;
+	overflow:hidden;
+	}
+
+.root-headline {
+	padding-left:0px;
+	border-bottom:none;
+	}
+	
+div.details-frame, div.queue-frame {
+  	position:absolute !important;
+	left:301px;
+	top:0px;
+	bottom:0px;
+	height:2000px; /*from2000*/;
+	}
+
+div.details-frame iframe.details-frame {
+	width:620px;
+	}
+
+.modifyable {
+	position:absolute;
+	top:0px;
+	left:300px;
+	}
+
+input:checked + label p .device-arrow, input:checked + label p .device-functions-arrow {
+	display:none;
+	}
+
+input + label + div {
+	display:none;
+	}
+
+input:checked + label + div {
+	display:block;
+	}
+
+
+/* open queue in new window */
+.openexternal {
+	position:absolute;
+	bottom:10px;
+	right:15px;
+	}
+.openexternal .smaller {
+	display:inline;
+	}
+
+.queue-status {
+	position:relative; /* for "external" link positioning */
+	}
+
+.popupcontent .buttonclose {
+	position:relative;
+	top:15px;
+	right:15px;
+	}
+
+.popupcontent .MessageSender {
+	min-height:170px;
+	}
+
+
+
+/*-----------------------------------------------------------------------------------------------------------------*/
+/*------------------------------------------ Responsiveness for queue only View -----------------------------------*/
+/*---------------------------------------- (when queue opened in external window) ---------------------------------*/
+/*-----------------------------------------------------------------------------------------------------------------*/
+
+@media screen and (min-width: 1100px) {
+	
+	.column-5 {
+		width:calc(100% - 301px);
+		min-width:1305px;
+		}
+	.column-5 .box {
+		width:calc(100% - 30px);
+		}
+	.open, .close, .open-label, .close-label {
+		display:none;
+		}
+	.queueEntryDetailsWrapper {
+		display:block;
+		position:absolute;
+		left:300px;
+		top:0px;
+		width:100%;
+		height:100%;
+		padding:10px 0;
+		}
+
+	.column-5 .subrow {
+		border-bottom:none;
+		border-left:solid thin #ddd;
+		display:inline-block;
+		height:calc(100% - 20px);
+		margin:0 10px 0 0;
+		clear:both;
+		position:relative;
+		clear:right;
+		float:left;
+		padding:0 0 0 10px;
+		width:150px;
+		overflow:hidden;
+		}
+		
+	.column-5 .form-white {
+		width:130px;
+		}
+		
+	.queueEntry {
+		position:relative;
+		}
+	.clear {
+		clear:both;
+		/*width:calc(100% - 300px);*/
+		display:block;
+		}
+	.column-5 em.smaller {
+		}
+	.column-5 .status-bar {
+		margin-top:30px;
+		margin-bottom:10px;
+		}
+	.previewwrapper {
+		width:270px;
+		overflow:hidden;
+		}
+	}
+
+
+/*-----------------------------------------------------------------------------------------------------------------*/
+/*---------------------------------------------- Responsiveness popup View ----------------------------------------*/
+/*-----------------------------------------------------------------------------------------------------------------*/
+
+@media screen and (max-width: 1300px) {
+.subscriptionDetails .secondRow {
+	position:relative;
+	float:none;
+	clear:both;
+	}
+	
+.popupcontent .subrow {
+	width:200px !important;
+	}
+	
+.popupcontent .subrow.half {
+	width:90px !important;
+	}
+	
+.popupcontent .headline-wrapper {
+	max-width:100%;
+	}
+.popupcontent .box.noheight {
+	min-height:none;
+	height:auto;
+/*	max-height:100px;*/
+	padding:45px 0 15px 0;
+	}
+
+.row {
+	height:auto;
+	clear:both;
+	border-bottom:solid thin #ccc;
+	padding-bottom:15px;
+	margin-top:15px;
+
+	}
+}
+
+
+@media screen and (max-width: 960px) {
+.popupcontent {
+	position:relative;
+	width:calc(100% - 50px) !important;
+	}
+	
+.popupcontent .subrow {
+	border-bottom:none;
+	float:none !important;
+	width:100%;
+	position:relative;
+	}
+	
+.popupcontent .box {
+
+	position:relative;
+	min-height:110px;
+	margin-left:0;
+	padding-left:0;
+	}
+	
+.subscriptionDetails {
+	display:none;
+	position:relative;
+	float:none;
+	}
+
+.row {
+	height:auto;
+	clear:both;
+	border-bottom:solid thin #ccc;
+	padding-bottom:15px;
+	margin-top:15px;
+
+	}
+
+	
+	}
+
+	

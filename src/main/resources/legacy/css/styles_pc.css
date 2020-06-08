@@ -1,0 +1,464 @@
+BODY  {
+	margin-top: 0px;
+	background-color : white;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	background-image: url(/legacy/css/v3_bg_white.jpg);
+	background-repeat: no-repeat;
+	/* Hier werden die Hintergrundfarbe  und die Schriftart des gesamten Dokumentes definiert */ 
+}
+
+.top-navigation {
+	display: block;
+	font-size: 11px;
+}
+
+
+H1 {
+	font-size : 8mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+H2 {
+	font-size : 6mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+H3 {
+	font-size : 5mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+H4 {
+	font-size : 4mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+H5 {
+	font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+P {
+	font-size : 14px;		/* old value: 3.5mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+}
+
+UL {
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+}
+
+LI {
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+}
+
+TH {
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+}
+
+TD {
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+}
+
+
+PRE, TT, CODE, KBD, SAMP { font-family: monospace }
+
+
+.navigation, .navigation A:link, .navigation A:visited {
+	color: #000000;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+	font-weight: bold;
+	text-decoration: none;
+	background-color: #FF9933;
+	/* Klasse fuer linke Navigationsleiste (inkl. darin enthaltene Links) */ 
+}
+
+.small {
+	font-size: 14px;		/* old value: 3.5mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	/* Klasse mit kleiner Schrift */ 
+}
+
+.formheader {
+	font-size: 14px;		/* old value: 3.5mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	font-weight: bold;
+	background-color: #dddddd;
+	/* Klasse fuer Headerzelle in Formularen, meist die linke Spalte */ 
+}
+
+.formcell {
+	font-size: 14px;		/* old value: 3.5mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	background-color: #EEEEEE;
+	/* Klasse fuer normale Zelle in Formularen, meist die rechten Spalten */ 
+}
+
+.listheader {
+	font-size: 14px;		/* old value: 3.5mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	background-color: #cccccc;
+	background-position: left;
+	font-weight: bold;
+	/* Klasse fuer Ueberschrift in tabellarischen Listen */ 
+}
+
+.page_options {
+	background-color: #cccccc;
+}
+
+.page_wide {
+	width: 835px;
+}
+
+.sidebar_title  {
+	color: #000000;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+	font-weight: bold;
+	padding-top: 5px;
+	padding-left:10px;
+	padding-bottom: 5px;
+	padding-right: 40px;
+	background-image: url(/gif/v3_bg_nav_title.jpg);
+	background-repeat: repeat-y;
+}
+
+.sidebar_text {
+	color: #000000;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+	font-weight: normal;
+	text-decoration: none;
+	padding-top: 5px;
+	padding-left: 10px;
+	padding-right: 40px;
+}
+
+.sidebar_link {
+	color: #000000;
+	text-decoration: none;
+}
+	
+.sidebar_ul{
+	list-style-image: url(/gif/arrow_right.gif);
+	padding-left: 0px;
+	list-style-position: outside;
+}
+
+.sidebar_li {
+	list-style-image: url(/gif/arrow_right.gif);
+	padding-left: 0px;
+	list-style-position: outside;
+}
+
+.homepage_buttons  {
+	color: #000000;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+	font-weight: bold;
+	text-decoration: none;
+	width: 350px;
+	background-image: url(/gif/v3_bg_shaded.jpg);
+	opacity: 0.9;	/* not supported by IE 7.0 and before */
+	filter: alpha(opacity=90);	/* for IE */
+	text-align: center;
+	padding: 5px;
+}
+
+.homepage_news_title  {
+	color: #000000;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+	font-weight: bold;
+	text-decoration: none;
+	width: 350px;
+	background-image: url(/gif/v3_bg_shaded.jpg);
+	opacity: 0.9;	/* not supported by IE 7.0 and before */
+	filter: alpha(opacity=90);	/* for IE */
+	text-align: center;
+	padding: 5px;
+	z-index: 1;
+}
+
+.homepage_news {
+	color: #000000;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+	font-weight: bold;
+	background-color: #eeeeee;
+	opacity: 0.9;	/* not supported by IE 7.0 and before */
+	filter: alpha(opacity=90);	/* for IE */
+	padding: 5px;
+}
+
+.footer {
+	font-size: 14px;		/* old value: 3.5mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	color: #000000;
+	padding: 5px;
+	width: 830px;
+	background-color: #dddddd;
+	background-image: url(/gif/v3_bg_footer.gif);
+	background-repeat: repeat-x;
+}
+
+.emptybody {  background-color: #FFFFFF; background-image: url(../gif/transparent8.gif); background-repeat: no-repeat}
+.verysmall { font-size : 2.7mm; font-family: Geneva, Arial, Helvetica, sans-serif; }
+.homepage {  padding-bottom: 8px}
+
+
+/* ----------------------- CIP4 Bulletin --------------------------------------- */
+
+.bulletin_h1 {
+	font-size : 5mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+.bulletin_h2 {
+	font-size : 4.5mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+.bulletin.h3 {
+	font-size : 4mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+.bulletin.h4 {
+	font-size : 3.5mm;
+	font-family : Geneva, Arial, Helvetica, sans-serif;
+	color : rgb(0, 0, 0);
+	vertical-align : top;
+ 	font-weight:bold;
+}
+
+
+/* ----------------------- CIP4 Questionnaire --------------------------------------- */
+
+		.quest_counter_label {
+			font-size : 4mm;
+			font-weight : bold;
+			color : rgb(102, 102, 102);
+			background-color : rgb(238, 238, 238);
+			text-align : right;
+			width : 90px;
+		}		
+
+		.quest_counter {
+			font-family : Courier New, Courier, mono;
+			font-size : 4.5mm;
+			font-weight : bold;
+			color : rgb(255, 255, 255);
+			background-color : rgb(0, 0, 0);
+			text-align : center;
+			width : 90px;
+		}	
+
+		.quest_nav {
+			font-size : 14px;		/* old value: 3.5mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+			font-family: Geneva, Arial, Helvetica, sans-serif;
+			background-color : #cccccc;
+			text-align : center;
+			height : 25px;
+		}		
+
+/* ----------------------- CIP4 Menue --------------------------------------- */
+
+/*  Verwendete Farben
+#FFCC66;  hell-orange, wie CIP4 frame background
+#FF9933;  dunkel-orange
+#FFFF66;  hellgelb, background fuer Highlighting
+#FF6600;  dunkelorange fuer Pfeile
+#FF0000;  rot fuer intere Menueeintraege
+white
+black
+*/
+
+.CM_top-title {
+ border: 0px transparent;
+ vertical-align: middle; 
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+ font-weight: bold;
+ text-decoration: none;
+}
+
+.CM_top-title A:link, .CM_top-title A:visited {
+ vertical-align: inherit; 
+ color: #000000;
+ font-family: inherit;
+ font-size : inherit;
+ font-weight: inherit;
+ text-decoration: none;
+ background-color:inherit;
+}
+
+.CM_top-high { /* Hauptmenue�berschrift */
+ border: 0px solid #eeeeee;
+  vertical-align: middle; 
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+ font-weight: bold;
+ text-decoration: none;
+ background-color: #eeeeee;
+}
+
+.CM_top-high A:link, .CM_top-high A:visited, .CM_top-high A:hover, .CM_top-high A:active {
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+ font-weight: bold;
+ text-decoration: none;
+}
+
+.CM_menue {	/* Kasten */
+ position: absolute; visibility: hidden; 
+ top: 52px; left:-100px;
+ text-align: left;
+ z-index: 2;
+}
+
+.CM_item { /* einzelner Eintrag */
+ border: 0px solid #eeeeee;
+ position: relative; 
+ visibility: inherit; 
+ padding-left: 5px; padding-right:5px; padding-top:3px; padding-bottom:3px; 
+ vertical-align: middle;
+ width: inherit;
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+ font-weight: bold;
+ text-decoration: none;
+ background-color: #eeeeee;
+}
+
+.CM_item A:link, .CM_item A:visited { 
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+ font-weight: bold;
+ text-decoration: none;
+}
+
+.CM_item-selected {
+ border: 0px solid #eeeeee;
+ position: relative;
+ visibility: inherit; 
+ padding-left: 5px; padding-right:5px; padding-top:3px; padding-bottom:3px; 
+ vertical-align: middle;
+ width: inherit;
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+ font-weight: bold;
+ text-decoration: none;
+ background-color: #dddddd;
+}
+
+.CM_item-selected a:link, .CM_item-selected a:visited, .CM_item-selected a:hover, .CM_item-selected A:active {
+ color: #000000;
+ font-family: Geneva, Arial, Helvetica, sans-serif;
+ font-size : 12px;		/* old value: 3mm (changed to compensate for display settings > 96 dpi), 12.09.2008/SD */
+ font-weight: bold;
+ text-decoration: none;
+}
+
+
+.CM_item img, .CM_intern-item img {
+ width: 14px;
+ height: 12px;
+ /* float: right;*/
+ border: 0px solid #eeeeee;
+}
+
+.CM_item-selected img, .CM_intern-item-selected img {
+ width: 14px;
+ height: 12px;
+ /* float: right; */
+ border: 0px solid #eeeeee;
+}
+
+
+.CM_pfeilr {
+ width: 14px;
+ height: 12px;
+ /* float: right; */
+ border-style: none;
+ background-color: transparent;
+}
+
+.CM_pfeilb {
+ width: 14px;
+ height: 12px;
+ /* float: right; */
+ visibility: hidden;
+ border-style: none;
+ vertical-align: middle;
+ background-color: transparent;
+}
+
+
+
+.wide_list {
+ padding-bottom: 8px
+}
+
+.redarrowlist {
+ list-style-image: url(/gif/arrow_right.gif);
+ margin-left: 23px;
+ padding-left: 0px;
+ list-style-position: outside
+}
+
+.disabled_option {
+ color: #999999;
+}
+.grayheader { font-size : 3.5mm; font-family: Geneva, Arial, Helvetica, sans-serif; background-color: #CCCCCC; font-weight: bold; }
+
+
+.TH_schedule_header {
+			font-size : 3.5mm;
+			font-family: Geneva, Arial, Helvetica, sans-serif;
+			font-weight: bold;
+			background-color: #aaaaaa;
+			text-align: center;
+			vertical-align: middle;
+		}
+
+.TH_schedule_cell {
+			font-size : 3.5mm;
+			font-family: Geneva, Arial, Helvetica, sans-serif;
+			text-align: center;
+			vertical-align: middle;
+		}
