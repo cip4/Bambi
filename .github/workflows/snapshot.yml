@@ -22,7 +22,7 @@ jobs:
         run: docker build -t docker.pkg.github.com/cip4/bambi:latest .
 
       - name: Push docker container
-        run: docker docker.pkg.github.com/cip4/bambi:latest
+        run: docker push docker.pkg.github.com/cip4/bambi:latest
 
   macosx-snapshot:
     runs-on: macos-latest
