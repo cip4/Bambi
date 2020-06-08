@@ -60,7 +60,7 @@ macAppBundle {
 
 
 dependencies {
-    compile 'org.cip4.tools.jdfutility:JDFUtility:1.6-SNAPSHOT'
+    compile 'org.cip4.tools.jdfutility:JDFUtility:1.x-SNAPSHOT'
     compile 'log4j:log4j:1.2.17'
     compile 'xerces:xercesImpl:2.9.1'
     compile 'commons-logging:commons-logging-api:1.1'
