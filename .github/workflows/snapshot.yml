@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  macosx-snapshot:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Setup JDK 8
