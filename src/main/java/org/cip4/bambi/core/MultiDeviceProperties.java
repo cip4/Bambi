@@ -1002,7 +1002,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	public String getCSS()
 	{
-		return root.getAttribute("CSS", null, "/legacy");
+		return root.getAttribute("CSS", null, "/webapp");
 	}
 
 	/**

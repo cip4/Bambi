@@ -5,9 +5,8 @@
 	<xsl:template name="topnavigation">
 		<div class="top-navigation">
 			<img height="70" alt="logo">
-				<xsl:attribute name="src"><xsl:value-of select="/@Context" />/legacy/logo.gif</xsl:attribute>
+				<xsl:attribute name="src"><xsl:value-of select="/@Context" />/webapp/logo.gif</xsl:attribute>
 			</img>
-			<a href="/bambi-ngui" target="_blank" style="float: right;">Open Bambi-NGUI (new window)</a>
 		</div>
 	</xsl:template>
 </xsl:stylesheet>

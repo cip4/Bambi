@@ -73,7 +73,6 @@ public class BambiFrame extends JettyFrame
 	private JButton baseDirButton;
 	private JButton extractXsltButton;
 	private JTextField baseDirText;
-	private JCheckBox cbLegacy;
 
 	public BambiFrame(final JettyServer server)
 	{
@@ -157,11 +156,6 @@ public class BambiFrame extends JettyFrame
 		panel.add(baseDirText);
 		setBaseDirText(getProp().getBaseDir());
 
-		cbLegacy = new JCheckBox("Legacy style");
-		cbLegacy.setSelected("/legacy".equals(getProp().getCSS()));
-		cbLegacy.addActionListener(this);
-		panel.add(cbLegacy);
-
 		return panel;
 	}
 
@@ -181,17 +175,6 @@ public class BambiFrame extends JettyFrame
 		if (baseDirButton.equals(event.getSource()))
 		{
 			browse();
-		}
-		else if (cbLegacy.equals(event.getSource()))
-		{
-			getProp().setCSS(cbLegacy.isSelected() ? "/legacy" : "/webapp");
-			getProp().serialize();
-			if (BambiContainer.getInstance() != null)
-			{
-				BambiContainer.getInstance().getProps().setCSS(cbLegacy.isSelected() ? "/legacy" : "/webapp");
-				BambiContainer.getInstance().getProps().serialize();
-			}
-
 		}
 		else if (extractXsltButton.equals(event.getSource()))
 		{

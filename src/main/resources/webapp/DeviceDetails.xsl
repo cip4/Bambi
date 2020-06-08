@@ -1,11 +1,10 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no" ?><!-- DWXMLSource="http://almserver:8080/SimWorker" -->
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!-- (C) 2001-2014 CIP4 -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:strip-space elements="*" />
 	<xsl:output method="html" />
-
-
 
 	<xsl:template name="devicedetails">
 		<xsl:variable name="deviceID" select="@DeviceID" />
@@ -15,15 +14,15 @@
 		<xsl:variable name="context" select="@Context" />
 		<xsl:variable name="modify" select="@modify" />
 
-		<!-- <div class="column-white modifyable">  for second, white column next to grey one -->
-        <div>
-        <form>
-
+		<div style="margin-left: 20px">
+			<form style="margin-left: 20px">
+				<table>
 					<xsl:attribute name="action">.</xsl:attribute>
-					
-					<!-- <div class="headline-wrapper">  separator for headline if second white column is used -->
-                    <!--<div class="box"><h3>Details of the Bambi device</h3></div>-->
-					<!-- </div> -->
+					<tr>
+						<td colspan="3">
+							<h3>Details of the Bambi device</h3>
+						</td>
+					</tr>
 
 					<xsl:call-template name="modifyString">
 						<xsl:with-param name="attLabel" select="'ID: '" />
@@ -48,10 +47,18 @@
 						<xsl:with-param name="attVal" select="$deviceType" />
 						<xsl:with-param name="modify" select="$modify" />
 						<xsl:with-param name="desc"
+							select="'Short, machine readable description of the device'" />
+					</xsl:call-template>
+					<xsl:call-template name="modifyString">
+						<xsl:with-param name="attLabel" select="'Device Description '" />
+						<xsl:with-param name="attName" select="'Description'" />
+						<xsl:with-param name="attVal" select="@Description" />
+						<xsl:with-param name="modify" select="$modify" />
+						<xsl:with-param name="desc"
 							select="'Short, human readable description of the device'" />
 					</xsl:call-template>
 
-				<xsl:call-template name="modifyString">
+					<xsl:call-template name="modifyString">
 						<xsl:with-param name="attLabel" select="'Entries Processed '" />
 						<xsl:with-param name="attName" select="'EntriesProcessed'" />
 						<xsl:with-param name="attVal" select="@EntriesProcessed" />
@@ -116,9 +123,11 @@
 					</xsl:call-template>
 
 					<xsl:if test="@SlaveURL">
-
-								<div class="box"><h3>Details of the Slave(3rd Party) device</h3></div>
-
+						<tr>
+							<td colspan="3">
+								<h3>Details of the Slave(3rd Party) device</h3>
+							</td>
+						</tr>
 						<xsl:call-template name="modifyString">
 							<xsl:with-param name="attLabel" select="'Proxy URL for Slave: '" />
 							<xsl:with-param name="attName" select="'DeviceURLForSlave'" />
@@ -178,16 +187,16 @@
 						</xsl:call-template>
 					</xsl:if>
 					<xsl:if test="$modify='true'">
-						
-                        <div class="box">
-                            <h3>Save</h3>
-                            <input type="submit" value="Modify" class="button"/>
-                        </div>
-
+						<tr>
+							<input type="submit" value="Modify" />
+						</tr>
 					</xsl:if>
-
+				</table>
 			</form>
 		</div>
 	</xsl:template>
+
+	<xsl:include href="modifyString.xsl" />
+
 
 </xsl:stylesheet>

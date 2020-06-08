@@ -1,5 +1,5 @@
 .idea
-Bambi.iml
+*.iml
 target/
 .project
 .classpath
