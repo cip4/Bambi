@@ -21,6 +21,9 @@ jobs:
       - name: Build docker container
         run: docker build -t docker.pkg.github.com/cip4/bambi/bambi:latest .
 
+      - name: Login to docker.pkg.github.com
+        run: docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+
       - name: Push docker container
         run: docker push docker.pkg.github.com/cip4/bambi/bambi:latest
 
