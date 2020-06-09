@@ -68,7 +68,6 @@ public class BambiFrame extends JettyFrame
 	private static final long serialVersionUID = 1L;
 
 	private static final String BASE_DIR = new UserDir(BambiServer.BAMBI).getToolPath();
-	private static final String FILENAME = File.separator + "config" + File.separator + "bambi-buildtime.properties";
 
 	private JButton baseDirButton;
 	private JButton extractXsltButton;
@@ -112,26 +111,20 @@ public class BambiFrame extends JettyFrame
 		return "Bambi, version: " + RuntimeProperties.productVersion + ", date: " + RuntimeProperties.productBuildTimestamp;
 	}
 
-	private void retrieveVersion()
-	{
-		final Properties releaseProp = new Properties();
-		InputStream input = null;
-		try
-		{
-			input = new FileInputStream(BASE_DIR + FILENAME);
-			releaseProp.load(input);
-			input.close();
-		}
-		catch (final IOException e)
-		{
-			log.error("Error: " + e.getMessage(), e);
+	/**
+	 * Read applications version details.
+	 */
+	private void retrieveVersion() {
+		Properties propsVersion = new Properties();
+
+		try {
+			propsVersion.load(BambiFrame.class.getResourceAsStream("/bambi-buildtime.properties"));
+		} catch (final IOException e) {
+			log.error("Error reading bambi-buildtime.properties: " + e.getMessage(), e);
 		}
 
-		final String releaseVersion = releaseProp.getProperty("release.version");
-		RuntimeProperties.setProductVersion(releaseVersion);
-
-		final String releaseBuildTimestamp = releaseProp.getProperty("release.build.timestamp");
-		RuntimeProperties.setProductBuildTimestamp(releaseBuildTimestamp);
+		RuntimeProperties.setProductVersion(propsVersion.getProperty("release.version"));
+		RuntimeProperties.setProductBuildTimestamp(propsVersion.getProperty("release.build.timestamp"));
 	}
 
 	/**

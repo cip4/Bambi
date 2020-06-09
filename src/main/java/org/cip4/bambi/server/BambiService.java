@@ -1,43 +1,43 @@
 /**
  * The CIP4 Software License, Version 1.0
- *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * <p>
+ * Copyright (c) 2001-2015 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
- *
+ * <p>
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
+ * notice, this list of conditions and the following disclaimer.
+ * <p>
  * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
+ * notice, this list of conditions and the following disclaimer in
+ * the documentation and/or other materials provided with the
+ * distribution.
+ * <p>
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
- *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
- *    Processes in  Prepress, Press and Postpress" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact info@cip4.org.
- *
+ * if any, must include the following acknowledgment:
+ * "This product includes software developed by the
+ * The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (www.cip4.org)"
+ * Alternately, this acknowledgment may appear in the software itself,
+ * if and wherever such third-party acknowledgments normally appear.
+ * <p>
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress" must
+ * not be used to endorse or promote products derived from this
+ * software without prior written permission. For written
+ * permission, please contact info@cip4.org.
+ * <p>
  * 5. Products derived from this software may not be called "CIP4",
- *    nor may "CIP4" appear in their name, without prior written
- *    permission of the CIP4 organization
- *
+ * nor may "CIP4" appear in their name, without prior written
+ * permission of the CIP4 organization
+ * <p>
  * Usage of this software in commercial products is subject to restrictions. For
  * details please consult info@cip4.org.
- *
+ * <p>
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -52,19 +52,17 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  * ====================================================================
- *
+ * <p>
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ * <p>
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
  */
 package org.cip4.bambi.server;
 
@@ -73,41 +71,57 @@ import org.cip4.jdflib.util.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
 import org.cip4.jdfutility.server.JettyService;
 
+import java.io.IOException;
+import java.util.Properties;
+
 /**
- * standard bambi windows service wrapper
+ * Standard bambi windows service wrapper
  * @author rainer prosi
  * @date Oct 26, 2011
  */
-public class BambiService extends JettyService
-{
-	/**
-	 * 
-	 */
-	public BambiService()
-	{
-		super();
-		log.info("creating bambi service instance");
-	}
+public class BambiService extends JettyService {
+    /**
+     * Default constructor.
+     */
+    public BambiService() {
+        super();
+        retrieveVersion();
+        log.info("Creating bambi service instance.");
+    }
 
-	/**
-	 * 
-	 * main ...
-	 * @param args
-	 */
-	public static void main(String[] args)
-	{
-		LogConfigurator.configureLog(new UserDir("bambi").getLogPath(), "bambi.log");
-		if (theService == null)
-			theService = new BambiService();
-		theService.doMain(args);
-	}
+    /**
+     * The applications main entrance point.
+     * @param args Command line arguments as string array.
+     */
+    public static void main(String[] args) {
 
-	/**
-	 * @see org.cip4.jdfutility.server.JettyService#getServer(java.lang.String[])
-	 */
-	@Override
-	public JettyServer getServer(String[] args)
-	{
-		return BambiServer.getBambiServer();
-	}
+        LogConfigurator.configureLog(new UserDir("bambi").getLogPath(), "bambi.log");
+        if (theService == null)
+            theService = new BambiService();
+        theService.doMain(args);
+    }
+
+    /**
+     * Read applications version details.
+     */
+    private void retrieveVersion() {
+        Properties propsVersion = new Properties();
+
+        try {
+            propsVersion.load(BambiFrame.class.getResourceAsStream("/bambi-buildtime.properties"));
+        } catch (final IOException e) {
+            log.error("Error reading bambi-buildtime.properties: " + e.getMessage(), e);
+        }
+
+        RuntimeProperties.setProductVersion(propsVersion.getProperty("release.version"));
+        RuntimeProperties.setProductBuildTimestamp(propsVersion.getProperty("release.build.timestamp"));
+    }
+
+    /**
+     * @see org.cip4.jdfutility.server.JettyService#getServer(java.lang.String[])
+     */
+    @Override
+    public JettyServer getServer(String[] args) {
+        return BambiServer.getBambiServer();
+    }
 }
