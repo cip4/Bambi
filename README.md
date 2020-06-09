@@ -3,8 +3,24 @@
 
 CIP4 Bambi Device Simulator
 
+
+
 ## Issue Tracking
 Don't write issues, provide Pull-Requests!
+
+
+
+## Bambi in Docker
+Bambi is also available as Docker image on GitHub Packages: https://github.com/orgs/cip4/packages. Here is the CLI command to launch the image locally on your machine:
+
+```bash
+$ echo [GITHUB_TOKEN] | docker login https://docker.pkg.github.com -u [GITHUB USER]
+$ docker run -p 8080:8080 docker.pkg.github.com/cip4/bambi/bambi:latest
+```
+
+**NOTE:** The GITHUB_TOKEN can be generated in 'Settings' -> 'Developer Settings' -> 'Personal access tokens' -> 'Generate New Token'. The required token's privilege is 'read:packages'.  
+
+
 
 ## Development Notes
 ### Release a new Version
