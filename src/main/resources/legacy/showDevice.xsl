@@ -17,11 +17,11 @@
 			<head>
 				<link rel="stylesheet" type="text/css">
 					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/webapp/css/styles_pc.css</xsl:attribute>
+						select="$context" />/legacy/css/styles_pc.css</xsl:attribute>
 				</link>
 				<link rel="icon" type="image/x-icon">
 					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/webapp/favicon.ico</xsl:attribute>
+						select="$context" />/legacy/favicon.ico</xsl:attribute>
 				</link>
 				<title>
 					<xsl:value-of select="$deviceType" />
@@ -80,7 +80,7 @@
 							<td>
 								<img height="70" hspace="10" alt="logo">
 									<xsl:attribute name="src"><xsl:value-of
-										select="$context" />/webapp/logo.gif</xsl:attribute>
+										select="$context" />/legacy/logo.gif</xsl:attribute>
 								</img>
 							</td>
 							<td>

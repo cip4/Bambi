@@ -10,11 +10,11 @@
 			<head>
 				<link rel="stylesheet" type="text/css">
 					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/webapp/css/styles_pc.css</xsl:attribute>
+						select="$context" />/legacy/css/styles_pc.css</xsl:attribute>
 				</link>
 				<link rel="stylesheet" type="text/css">
 					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/webapp/css/styles_pc.css</xsl:attribute>
+						select="$context" />/legacy/css/styles_pc.css</xsl:attribute>
 				</link>
 				<xsl:if test="@refresh">
 					<meta http-equiv="refresh">

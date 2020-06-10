@@ -7,8 +7,8 @@
 		<html>
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
-				<link rel="stylesheet" type="text/css" href="/webapp/css/styles_pc.css" />
-				<link rel="icon" href="/webapp/favicon.ico" type="image/x-icon" />
+				<link rel="stylesheet" type="text/css" href="/legacy/css/styles_pc.css" />
+				<link rel="icon" href="/legacy/favicon.ico" type="image/x-icon" />
 				<title>
 					JDF Job Ticket Summary
 					<xsl:value-of select="@JobID" />

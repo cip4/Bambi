@@ -12,8 +12,8 @@
 		<html>
 			<head>
 				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
-				<link rel="stylesheet" type="text/css" href="/webapp/css/styles_pc.css" />
-				<link rel="icon" href="/webapp/favicon.ico" type="image/x-icon" />
+				<link rel="stylesheet" type="text/css" href="/legacy/css/styles_pc.css" />
+				<link rel="icon" href="/legacy/favicon.ico" type="image/x-icon" />
 				<title>
 					Device
 					<xsl:value-of select="@DeviceID" />
@@ -21,7 +21,7 @@
 				</title>
 			</head>
 			<body>
-				<img src="/webapp/logo.gif" height="70" alt="logo" />
+				<img src="/legacy/logo.gif" height="70" alt="logo" />
 				<h1>
 					Device
 					<xsl:value-of select="@DeviceID" />

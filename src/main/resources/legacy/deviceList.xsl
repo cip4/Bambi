@@ -14,11 +14,11 @@
 					content="text/html; charset=UTF-8" />
 				<link rel="stylesheet" type="text/css">
 					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/webapp/css/styles_pc.css</xsl:attribute>
+						select="$context" />/legacy/css/styles_pc.css</xsl:attribute>
 				</link>
 				<link rel="icon" type="image/x-icon">
 					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/webapp/favicon.ico</xsl:attribute>
+						select="$context" />/legacy/favicon.ico</xsl:attribute>
 				</link>
 				<title>
 					<xsl:value-of select="@DeviceType" />
