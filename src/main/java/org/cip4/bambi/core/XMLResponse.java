@@ -78,7 +78,7 @@ public class XMLResponse extends BambiLogFactory
 	}
 
 	private KElement theXML;
-	private ByteArrayIOStream theBuffer;
+	protected ByteArrayIOStream theBuffer;
 	private String contentType;
 	int httpRC;
 	private String notification;
@@ -164,19 +164,22 @@ public class XMLResponse extends BambiLogFactory
 	 */
 	public InputStream getInputStream()
 	{
-		final XMLDoc d = getXMLDoc();
-		if (d != null)
+		if (theBuffer == null)
 		{
-			theBuffer = new ByteArrayIOStream();
-			try
+			final XMLDoc d = getXMLDoc();
+			if (d != null)
 			{
-				d.write2Stream(theBuffer, 2, false);
+				theBuffer = new ByteArrayIOStream();
+				try
+				{
+					d.write2Stream(theBuffer, 2, false);
+				}
+				catch (final IOException x)
+				{
+					theBuffer = null;
+				}
+				theXML = null;
 			}
-			catch (final IOException x)
-			{
-				theBuffer = null;
-			}
-			theXML = null;
 		}
 		return theBuffer == null ? null : theBuffer.getInputStream();
 	}
@@ -199,7 +202,7 @@ public class XMLResponse extends BambiLogFactory
 
 	/**
 	 * format currentTimeMillis() to mmm dd -HHH:mm:ss
-	 * 
+	 *
 	 * @param milliSeconds
 	 * @return A String that formats a milliseconds (currentTimeMillis()) to a date
 	 */
@@ -211,7 +214,7 @@ public class XMLResponse extends BambiLogFactory
 
 	/**
 	 * add a set of options to an xml file
-	 * 
+	 *
 	 * @param e the default enum
 	 * @param l the list of all enums
 	 * @param parent the parent element to add the list to
