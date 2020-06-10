@@ -2,7 +2,7 @@ BODY  {
 	margin-top: 0px;
 	background-color : white;
 	font-family : Geneva, Arial, Helvetica, sans-serif;
-	background-image: url(/webapp/css/v3_bg_white.jpg);
+	background-image: url(/legacy/css/v3_bg_white.jpg);
 	background-repeat: no-repeat;
 	/* Hier werden die Hintergrundfarbe  und die Schriftart des gesamten Dokumentes definiert */ 
 }
