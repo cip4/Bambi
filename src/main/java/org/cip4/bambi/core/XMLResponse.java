@@ -75,6 +75,24 @@ public class XMLResponse extends BambiLogFactory
 		{
 			setContentType(UrlUtil.TEXT_XML);
 		}
+		this.errorRC = true;
+	}
+
+	/**
+	 *
+	 * @param r
+	 * @param contentType
+	 */
+	public XMLResponse(final XMLResponse r, final String contentType)
+	{
+		super();
+		httpRC = r.httpRC;
+		this.theXML = r.theXML;
+		theBuffer = null;
+		notification = r.notification;
+		this.contentType = contentType;
+		this.errorRC = r.errorRC;
+
 	}
 
 	private KElement theXML;
@@ -82,6 +100,25 @@ public class XMLResponse extends BambiLogFactory
 	private String contentType;
 	int httpRC;
 	private String notification;
+	boolean errorRC;
+
+	/**
+	 * @return the errorRC
+	 */
+	boolean isErrorRC()
+	{
+		return errorRC;
+	}
+
+	/**
+	 * if true (the default) e aspecific error message is sent for error rcs, else the standard message is sent
+	 *
+	 * @param errorRC the errorRC to set
+	 */
+	void setErrorRC(final boolean errorRC)
+	{
+		this.errorRC = errorRC;
+	}
 
 	/**
 	 * @return
@@ -147,16 +184,6 @@ public class XMLResponse extends BambiLogFactory
 	public void setContentType(final String contentType)
 	{
 		this.contentType = contentType;
-	}
-
-	/**
-	 * @see java.lang.Object#toString()
-	 * @return
-	 */
-	@Override
-	public String toString()
-	{
-		return "XMLResponse ContentType=" + contentType + "\n" + theXML;
 	}
 
 	/**
@@ -247,7 +274,7 @@ public class XMLResponse extends BambiLogFactory
 	{
 		try
 		{
-			if (!UrlUtil.isReturnCodeOK(httpRC))
+			if (errorRC && !UrlUtil.isReturnCodeOK(httpRC))
 			{
 				sr.sendError(httpRC, notification);
 				log.warn("sending rc: " + httpRC + " " + notification);
@@ -291,5 +318,23 @@ public class XMLResponse extends BambiLogFactory
 	{
 		this.httpRC = httpRC;
 		this.notification = notification;
+	}
+
+	/**
+	 * @return the notification
+	 */
+	String getNotification()
+	{
+		return notification;
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		return getClass().getSimpleName() + " [" + (theBuffer != null ? "theBuffer=" + theBuffer + ", " : "") + (contentType != null ? "contentType=" + contentType + ", " : "") + "httpRC=" + httpRC
+				+ ", " + (notification != null ? "notification=" + notification + ", " : "") + "errorRC=" + errorRC + "]";
 	}
 }
