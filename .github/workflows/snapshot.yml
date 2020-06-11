@@ -25,7 +25,7 @@ jobs:
       - name: Push docker container
         run: docker push docker.pkg.github.com/cip4/bambi/bambi:latest
 
-  macosx-build:
+  macos-build:
     runs-on: macos-latest
     steps:
       - name: Setup JDK 8
@@ -39,7 +39,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew createDmg
 
-      - name: Upload MacOSX App
+      - name: Upload MacOS App
         uses: actions/upload-artifact@v1
         with:
           name: macosx app file
