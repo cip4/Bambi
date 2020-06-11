@@ -69,4 +69,4 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: exe file
-          path: build/launch4j/Bambi.exe
+          path: build/launch4j/Bambi-development.exe
