@@ -18,13 +18,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build docker container
-        run: docker build -t docker.pkg.github.com/cip4/bambi/bambi:%GITHUB_REF:*Bambi-=% --build-arg VERSION=%GITHUB_REF:*Bambi-=% .
+        run: docker build -t docker.pkg.github.com/cip4/bambi/bambi:${GITHUB_REF##*Bambi-} --build-arg VERSION=${GITHUB_REF##*Bambi-} .
 
       - name: Login to docker.pkg.github.com
         run: docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push docker container
-        run: docker push docker.pkg.github.com/cip4/bambi/bambi:%GITHUB_REF:*Bambi-=%
+        run: docker push docker.pkg.github.com/cip4/bambi/bambi:${GITHUB_REF##*Bambi-}
 
   windows-build:
     runs-on: windows-latest
@@ -64,10 +64,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Debug
-        run: echo %GITHUB_REF:*Bambi-=%
+        run: echo${GITHUB_REF##*Bambi-}
 
       - name: Build with Gradle
-        run: ./gradlew createDmg -PprojectVersion=%GITHUB_REF:*Bambi-=%
+        run: ./gradlew createDmg -PprojectVersion=${GITHUB_REF##*Bambi-}
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
