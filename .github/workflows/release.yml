@@ -51,3 +51,29 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
+
+  macos-build:
+    runs-on: macos-latest
+    steps:
+      - name: Set up JDK 8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+
+      - name: Check out sources...
+        uses: actions/checkout@v2
+
+      - name: Debug
+        run: echo %GITHUB_REF:*Bambi-=%
+
+      - name: Build with Gradle
+        run: ./gradlew createDmg -PprojectVersion=%GITHUB_REF:*Bambi-=%
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/distributions/*.dmg
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
