@@ -50,6 +50,7 @@ application {
 launch4j {
     mainClassName = 'org.cip4.bambi.server.BambiServer'
     icon = "${projectDir}/src/main/dist/bambi.ico"
+    outfile = project.name + '-' + version + '.exe'
 }
 
 macAppBundle {
@@ -57,7 +58,6 @@ macAppBundle {
     icon = "${projectDir}/src/main/dist/bambi.icns"
     javaProperties.put("apple.laf.useScreenMenuBar", "true")
 }
-
 
 dependencies {
     compile 'org.cip4.tools.jdfutility:JDFUtility:1.x-SNAPSHOT'
