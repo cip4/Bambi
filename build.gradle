@@ -50,7 +50,7 @@ application {
 launch4j {
     mainClassName = 'org.cip4.bambi.server.BambiServer'
     icon = "${projectDir}/src/main/dist/bambi.ico"
-    outfile = project.name + '-' + version + '.exe'
+    outfile = project.name + '-' + project.version + '.exe'
 }
 
 macAppBundle {
