@@ -65,6 +65,9 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew createExe
 
+      - name: Debug
+        run: ls -l build/launch4j
+
       - name: Upload EXE
         uses: actions/upload-artifact@v1
         with:
