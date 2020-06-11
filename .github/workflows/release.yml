@@ -63,9 +63,6 @@ jobs:
       - name: Check out sources...
         uses: actions/checkout@v2
 
-      - name: Debug
-        run: echo${GITHUB_REF##*Bambi-}
-
       - name: Build with Gradle
         run: ./gradlew createDmg -PprojectVersion=${GITHUB_REF##*Bambi-}
 
