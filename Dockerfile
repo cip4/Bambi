@@ -1,7 +1,7 @@
-ARG  VERSION=development
-
 # compile and test bambi
 FROM openjdk:8-jdk-slim-buster as java-builder
+
+ARG VERSION=development
 
 RUN apt-get -qq update >/dev/null \
   && apt-get -qq install git >/dev/null
