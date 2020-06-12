@@ -1,6 +1,8 @@
 # compile and test bambi
 FROM openjdk:8-jdk-slim-buster as java-builder
 
+ARG VERSION=development
+
 RUN apt-get -qq update >/dev/null \
   && apt-get -qq install git >/dev/null
 
@@ -11,7 +13,7 @@ COPY ["build.gradle", "settings.gradle", "gradlew", "/work/"]
 
 WORKDIR /work
 
-RUN ./gradlew -i build --no-daemon
+RUN ./gradlew -i build -PprojectVersion=${VERSION} --no-daemon
 
 # create final image
 FROM openjdk:8-jre-slim-buster

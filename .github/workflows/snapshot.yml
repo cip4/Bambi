@@ -1,13 +1,11 @@
-name: Bambi Snapshot
+name: Snapshot
 
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 
 jobs:
-  docker-snapshot:
+  docker-build:
     runs-on: ubuntu-latest
     steps:
       - name: Setup JDK 8
@@ -27,7 +25,7 @@ jobs:
       - name: Push docker container
         run: docker push docker.pkg.github.com/cip4/bambi/bambi:latest
 
-  macosx-snapshot:
+  macos-build:
     runs-on: macos-latest
     steps:
       - name: Setup JDK 8
@@ -41,7 +39,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew createDmg
 
-      - name: Upload MacOSX App
+      - name: Upload MacOS App
         uses: actions/upload-artifact@v1
         with:
           name: macosx app file
@@ -53,7 +51,7 @@ jobs:
           name: jar file
           path: build/libs/Bambi-development.jar
 
-  windows-snapshot:
+  windows-build:
     runs-on: windows-latest
     steps:
       - name: Setup JDK 8
@@ -67,8 +65,11 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew createExe
 
+      - name: Debug
+        run: ls -l build/launch4j
+
       - name: Upload EXE
         uses: actions/upload-artifact@v1
         with:
           name: exe file
-          path: build/launch4j/Bambi.exe
+          path: build/launch4j/Bambi-development.exe
