@@ -115,7 +115,7 @@ public class XMLResponse extends BambiLogFactory
 	 *
 	 * @param errorRC the errorRC to set
 	 */
-	void setErrorRC(final boolean errorRC)
+	public void setErrorRC(final boolean errorRC)
 	{
 		this.errorRC = errorRC;
 	}
