@@ -1,7 +1,8 @@
 name: Snapshot
 
 on:
-  repository_dispatch:
+  schedule:
+    - cron:  '0 3 * * *'
   push:
     branches: [ master ]
 
