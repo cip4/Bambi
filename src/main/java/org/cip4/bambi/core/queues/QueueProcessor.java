@@ -2811,7 +2811,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			else
 			{
-				log.warn("No return URL, No HF, No Nothing  specified, bailing out");
+				final KElement jdfRoot = docJDF.getRoot();
+				final String jobID = jdfRoot == null ? "null" : jdfRoot.getAttribute(AttributeName.JOBID);
+				log.warn("No return URL, No HF, No Nothing specified, bailing out: " + jobID);
 			}
 			return bOK;
 		}
@@ -2825,7 +2827,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				log.info("JDF Document for " + queueEntryID + " is being been sent to " + returnURL);
 				final JDFDoc d = docJDF.write2URL(returnURL);
-				// TODO error handling
+				if (d == null)
+				{
+					log.warn("JDF Document for " + queueEntryID + " has not been sent to " + returnURL);
+				}
 				bOK = d != null;
 			}
 			catch (final Throwable e)
@@ -2924,7 +2929,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 * @param docJDF
 		 * @param finishedNodes
 		 */
-		private void setNodesAborted(final JDFDoc docJDF, final VString finishedNodes)
+		protected void setNodesAborted(final JDFDoc docJDF, final VString finishedNodes)
 		{
 			final JDFNode root = docJDF == null ? null : docJDF.getJDFRoot();
 			if (root == null)
@@ -2935,7 +2940,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			final JDFNotification not = root.getCreateAuditPool().addNotification(EnumClass.Warning, null, qe.getPartMapVector());
 			final JDFComment notificationComment = not.appendComment();
 			notificationComment.setLanguage("en");
-			notificationComment.setText("Node aborted in queue entry: " + qe.getQueueEntryID() + " JobID=" + root.getJobID(true));
+			notificationComment.setText("process aborted; types: " + root.getTypesString());
 			log.warn("Node aborted in queue entry: " + qe.getQueueEntryID() + " JobID=" + root.getJobID(true));
 		}
 
