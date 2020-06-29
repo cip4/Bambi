@@ -9,6 +9,7 @@
 /config/job_platesetter.xml
 /config/job_sim001.xml
 /config/job_sim002.xml
+/config/job_sim003.xml
 /config/job_simIDP.xml
 /config/job_simWF.xml
 /config/resinfo_simIDP.xml
