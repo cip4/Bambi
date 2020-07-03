@@ -5,6 +5,13 @@ Bambi is a CIP4 Tool for the simulation of JDF Devices and JDF Controllers. Orig
 
 Another use case of Bambi is the simulation of production processes within a printing house. When configuring the Bambi Devices with the original characteristics of production devices, the affects of scenarios within a printing house can be simulated. This is useful especially for highly standardized production lines.
 
+## Usage
+### Job Submission
+Bambi provides multiple ways to submit jobs. Here a listed a few of them:
+
+```bash
+curl -X POST -H "Content-Type: application/vnd.cip4-jdf+xml" -d @sample.jdf http://localhost:8080/SimWorker/jmf/sim003
+```
 
 
 ## Issue Tracking
