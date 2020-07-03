@@ -5,11 +5,11 @@ Bambi is a CIP4 Tool for the simulation of JDF Devices and JDF Controllers. Orig
 
 Another use case of Bambi is the simulation of production processes within a printing house. When configuring the Bambi Devices with the original characteristics of production devices, the affects of scenarios within a printing house can be simulated. This is useful especially for highly standardized production lines.
 
-<br /><br />
+<br />
 
 ## Usage
 ### Job Submission
-There are multiple ways to submit jobs to Bambi. Besides the standardized JMF approach, Bambi also provides multiple simplifed ways to submit jobs. In the following is a list of the job submission methods. Sample JDF Jobs can be found in the project's "sample-jdfs" folder:
+There are multiple ways to submit jobs to Bambi. Besides the standardized JMF approach, Bambi also provides multiple simplifed ways to submit jobs. In the following is a list of the job submission methods. Sample JDF Jobs can be found in the project's [sample-jdfs](./sample-jdfs) folder:
 
 #### Using the Command Line:
 ```bash
@@ -19,12 +19,12 @@ $ curl -X POST -H "Content-Type: application/vnd.cip4-jdf+xml" -d @sim003-sample
 #### Alces
 CIP4 Alces can be used to submit jobs to Bambi using JMF SubmitQueueEntry messages. Here is the link to Alces: https://github.com/cip4/Alces
 
-<br /><br />
+<br />
 
 ## Issue Tracking
 Don't write issues, provide Pull-Requests!
 
-<br /><br />
+<br />
 
 ## Bambi Docker
 Bambi is also available as Docker image on GitHub Packages: https://github.com/orgs/cip4/packages. Here is the CLI commands to launch the image locally on your machine:
@@ -34,7 +34,7 @@ $ docker pull docker.pkg.github.com/cip4/bambi/bambi:latest
 $ docker run -p 8080:8080 docker.pkg.github.com/cip4/bambi/bambi:latest
 ```
 
-<br /><br />
+<br />
 
 ## Development Notes
 ### Release a new Version
