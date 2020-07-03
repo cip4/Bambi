@@ -9,9 +9,11 @@ Another use case of Bambi is the simulation of production processes within a pri
 ### Job Submission
 Bambi provides multiple ways to submit jobs. Here a listed a few of them:
 
+* Using the Command Line:
 ```bash
-curl -X POST -H "Content-Type: application/vnd.cip4-jdf+xml" -d @sample.jdf http://localhost:8080/SimWorker/jmf/sim003
+$ curl -X POST -H "Content-Type: application/vnd.cip4-jdf+xml" -d @sample.jdf http://localhost:8080/SimWorker/jmf/sim003
 ```
+* Alces: see https://github.com/cip4/Alces
 
 
 ## Issue Tracking
@@ -19,8 +21,8 @@ Don't write issues, provide Pull-Requests!
 
 
 
-## Bambi in Docker
-Bambi is also available as Docker image on GitHub Packages: https://github.com/orgs/cip4/packages. Here is the CLI command to launch the image locally on your machine:
+## Bambi Docker
+Bambi is also available as Docker image on GitHub Packages: https://github.com/orgs/cip4/packages. Here is the CLI commands to launch the image locally on your machine:
 
 ```bash
 $ docker pull docker.pkg.github.com/cip4/bambi/bambi:latest
