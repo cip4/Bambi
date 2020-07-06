@@ -82,7 +82,7 @@ import javax.mail.Multipart;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.messaging.JMFFactory;
-import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
+import org.cip4.bambi.core.messaging.CallURL;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;

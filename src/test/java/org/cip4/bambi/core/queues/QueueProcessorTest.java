@@ -177,6 +177,7 @@ public class QueueProcessorTest extends BambiTestCase
 	 *
 	 */
 	@Test
+	@Ignore
 	public void testAddEntryMany()
 	{
 		QueueProcessor qp = new QueueProcessor(getDevice());
