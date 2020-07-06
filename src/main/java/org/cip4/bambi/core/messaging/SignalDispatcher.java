@@ -239,7 +239,7 @@ public class SignalDispatcher extends BambiLogFactory
 			{
 				for (final MessageSender messageSender : v)
 				{
-					messageSender.shutDown(true);
+					messageSender.shutDown();
 				}
 			}
 		}
@@ -462,7 +462,7 @@ public class SignalDispatcher extends BambiLogFactory
 				final JDFJMF signalJMF = sub.getSignal();
 				if (signalJMF != null)
 				{
-					final boolean ok = device.getJMFFactory().send2URL(signalJMF, url, null, sub.getCallback(), device.getDeviceID());
+					final boolean ok = device.getJMFFactory().send2URL(signalJMF, url, null, sub.getConverterCallback(), device.getDeviceID());
 					if (!ok)
 					{
 						checkStaleSubscription(sub);
@@ -470,7 +470,7 @@ public class SignalDispatcher extends BambiLogFactory
 					final MsgSubscription realSubSubscription = subscriptionMap.get(sub.channelID);
 					if (realSubSubscription != null)
 					{
-						realSubSubscription.lastTime = System.currentTimeMillis() / 1000;
+						realSubSubscription.timeLastSubmission = System.currentTimeMillis() / 1000;
 						realSubSubscription.lastSentJMF.push(signalJMF);
 						realSubSubscription.sentMessages++;
 					}
@@ -581,13 +581,13 @@ public class SignalDispatcher extends BambiLogFactory
 					MsgSubscription sub = next.getValue();
 					if (sub.repeatTime > 0)
 					{
-						if (now - sub.lastTry >= sub.repeatTime)
+						if (now - sub.timeLastSubmissionTry >= sub.repeatTime)
 						{
-							sub.lastTry += sub.repeatTime;
+							sub.timeLastSubmissionTry += sub.repeatTime;
 							// we had a snafu with a long break or are in setup - synchronize to now
-							if (sub.lastTry < now)
+							if (sub.timeLastSubmissionTry < now)
 							{
-								sub.lastTry = now;
+								sub.timeLastSubmissionTry = now;
 							}
 							sub = sub.clone();
 							sub.trigger = null;
@@ -811,7 +811,7 @@ public class SignalDispatcher extends BambiLogFactory
 		}
 		else
 		{
-			final Vector<MessageSender> vMesSend = JMFFactory.getJMFFactory().getMessageSenders(url);
+			final Vector<MessageSender> vMesSend = JMFFactory.getInstance().getMessageSenders(url);
 			if (vMesSend != null)
 			{
 				for (final MessageSender m : vMesSend)
@@ -820,7 +820,7 @@ public class SignalDispatcher extends BambiLogFactory
 					{
 						removeSubScription(sub.channelID);
 						m.flushMessages();
-						JMFFactory.getJMFFactory().shutDown(m.getCallURL(), true);
+						JMFFactory.getInstance().shutDown(m.getCallURL(), true);
 						log.error("removed stale subscription " + sub.channelID + " " + sub.getMessageType() + " url=" + sub.getURL());
 						zapped = true;
 					}
@@ -955,7 +955,7 @@ public class SignalDispatcher extends BambiLogFactory
 		}
 		sub.trigger.queueEntryID = queueEntryID;
 		storage.persist();
-		sub.setCallback(device.getCallback(url, sub));
+		sub.setConverterCallback(device.getCallback(url, sub));
 		return sub.channelID;
 	}
 

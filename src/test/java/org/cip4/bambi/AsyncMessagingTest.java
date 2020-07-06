@@ -81,7 +81,7 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	 */
 	public void testSendQueueStatus() throws InterruptedException
 	{
-		final MessageSender messageSender = JMFFactory.getJMFFactory().getCreateMessageSender(getWorkerURL());
+		final MessageSender messageSender = JMFFactory.getInstance().getCreateMessageSender(getWorkerURL());
 		for (int i = 0; i < 10; i++)
 		{
 			final JDFJMF stat = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);

@@ -128,7 +128,7 @@ public abstract class DispatchHandler extends JMFHandler.AbstractHandler
 		for (AbstractDevice dev : devs)
 		{
 			IJMFHandler jmfHandler = dev.getJMFHandler(null);
-			final IMessageHandler mh = jmfHandler.getHandler(inputMessage.getType(), inputMessage.getFamily());
+			final IMessageHandler mh = jmfHandler.getMessageHandler(inputMessage.getType(), inputMessage.getFamily());
 			if (mh != null)
 			{
 				response.setReturnCode(0);

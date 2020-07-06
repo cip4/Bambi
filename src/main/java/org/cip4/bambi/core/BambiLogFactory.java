@@ -75,104 +75,107 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.util.CPUTimer;
 
 /**
- * class that automatically generates a logger for its sub-classes
- *
- * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
- * July 30, 2009
+ * Automatic generation of a logger for its sub-classes.
+ * The getLog(class) method can be used to setup loging without sub-classing.
  */
-public class BambiLogFactory
-{
-	final protected Log log;
-	static long countPlus = 0;
-	static long countMinus = 0;
+public class BambiLogFactory {
+    final protected Log log;
+    static long countPlus = 0;
+    static long countMinus = 0;
 
-	/**
-	 *
-	 */
-	public BambiLogFactory()
-	{
-		super();
-		incrementCount();
-		log = LogFactory.getLog(this.getClass());
-	}
+    /**
+     * Default constructor.
+     */
+    public BambiLogFactory() {
+        super();
+        incrementCount();
+        log = LogFactory.getLog(this.getClass());
+    }
 
-	/**
-	 *
-	 */
-	static void incrementCount()
-	{
-		countPlus++;
-	}
+    /**
+     * Custom constructor. Accepting a class for initializing.
+     * @param clazz The class type for initializing.
+     */
+    public BambiLogFactory(final Class<?> clazz) {
+        super();
+        log = getLog(clazz);
+    }
 
-	/**
-	 * @param clazz the class
-	 *
-	 */
-	public BambiLogFactory(final Class<?> clazz)
-	{
-		super();
-		incrementCount();
-		log = LogFactory.getLog(clazz);
-	}
+    /**
+     * Increment the log counter by one.
+     */
+    static void incrementCount() {
+        countPlus++;
+    }
 
-	/**
-	 * @return total # of created log objects
-	 */
-	public long getCreated()
-	{
-		return countPlus;
-	}
+    /**
+     * Returns the total number of created log objects.
+     * @return Total number of created log objects.
+     */
+    public long getCreated() {
+        return countPlus;
+    }
 
-	/**
-	 * @return total # of deleted (garbage collected) log objects
-	 */
-	public long getDeleted()
-	{
-		return countMinus;
-	}
+    /**
+     * Returns the total number of deleted (garbage collected) log objects.
+     * @return Total number of deleted log objects.
+     */
+    public long getDeleted() {
+        return countMinus;
+    }
 
-	/**
-	 * @return the name for a given timer
-	 */
-	protected String getTimerName()
-	{
-		return getClass().getName();
-	}
+    /**
+     * @return the name for a given timer
+     */
+    protected String getTimerName() {
+        return getClass().getName();
+    }
 
-	/**
-	 * @return
-	 */
-	protected CPUTimer getGlobalTimer()
-	{
-		return CPUTimer.getFactory().getGlobalTimer(getTimerName());
-	}
+    /**
+     * Returns a global CPUTimer object.
+     * @return The global CPUTimer object.
+     */
+    protected CPUTimer getGlobalTimer() {
+        return CPUTimer.getFactory().getGlobalTimer(getTimerName());
+    }
 
-	/**
-	 * @return
-	 */
-	protected CPUTimer getLocalTimer()
-	{
-		return CPUTimer.getFactory().getCreateCurrentTimer(getTimerName());
-	}
+    /**
+     * Returns a local CPUTimer object.
+     * @return The local CPUTimer object.
+     */
+    protected CPUTimer getLocalTimer() {
+        return CPUTimer.getFactory().getCreateCurrentTimer(getTimerName());
+    }
 
-	/**
-	 * @return
-	 */
-	public Log getLog()
-	{
-		return log;
-	}
+    /**
+     * Returns the initialized log object for a class.
+     * @return The initialized log object for a class.
+     */
+    public Log getLog() {
+        return log;
+    }
 
-	/**
-	 * @see java.lang.Object#finalize()
-	 */
-	@Override
-	protected void finalize() throws Throwable
-	{
-		countMinus++;
-		if (countMinus % 1000 == 0)
-			log.debug("destroying: " + this.getClass().getName() + " + " + countPlus + " - " + countMinus + " = " + (countPlus - countMinus));
-		super.finalize();
-	}
+    /**
+     * Create and return a Log object for a class.
+     *
+     * @param clazz The class which the logger is applying to.
+     * @return The class specific logger object.
+     */
+    public static Log getLog(final Class clazz) {
+        incrementCount();
+        return LogFactory.getLog(clazz);
+    }
+
+    /**
+     * This method is called before the garbage collection of this object. The method counts the
+     * number of destroyed log objects.
+     * @see java.lang.Object#finalize()
+     */
+    @Override
+    protected void finalize() throws Throwable {
+        countMinus++;
+        if (countMinus % 1000 == 0)
+            log.debug("destroying: " + this.getClass().getName() + " + " + countPlus + " - " + countMinus + " = " + (countPlus - countMinus));
+        super.finalize();
+    }
 }

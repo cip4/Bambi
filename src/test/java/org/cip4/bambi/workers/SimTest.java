@@ -270,7 +270,7 @@ public class SimTest extends BambiTestCase
 
 		int loops = 0;
 		boolean hasRunningQE = false;
-		final JMFFactory factory = JMFFactory.getJMFFactory();
+		final JMFFactory factory = JMFFactory.getInstance();
 		while (loops < 10 && !hasRunningQE)
 		{
 			loops++;

@@ -103,7 +103,7 @@ public class MessageSenderTest extends BambiTestCase
 	public void setUp() throws Exception
 	{
 		super.setUp();
-		s = JMFFactory.getJMFFactory().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
 	}
 
 	/**
@@ -138,11 +138,11 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void isRC()
 	{
-		JMFFactory.getJMFFactory().setZapp500(false);
-		assertFalse(s.isRemoveRC(200));
-		assertTrue(s.isRemoveRC(400));
-		assertFalse(s.isRemoveRC(500));
-		assertFalse(s.isRemoveRC(404));
+		JMFFactory.getInstance().setZapp500(false);
+		assertFalse(s.isRemoveResponseCode(200));
+		assertTrue(s.isRemoveResponseCode(400));
+		assertFalse(s.isRemoveResponseCode(500));
+		assertFalse(s.isRemoveResponseCode(404));
 
 	}
 
@@ -153,11 +153,11 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void isRC500()
 	{
-		JMFFactory.getJMFFactory().setZapp500(true);
-		assertFalse(s.isRemoveRC(200));
-		assertTrue(s.isRemoveRC(400));
-		assertTrue(s.isRemoveRC(500));
-		assertFalse(s.isRemoveRC(507));
+		JMFFactory.getInstance().setZapp500(true);
+		assertFalse(s.isRemoveResponseCode(200));
+		assertTrue(s.isRemoveResponseCode(400));
+		assertTrue(s.isRemoveResponseCode(500));
+		assertFalse(s.isRemoveResponseCode(507));
 
 	}
 

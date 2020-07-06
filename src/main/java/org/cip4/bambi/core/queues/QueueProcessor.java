@@ -2869,7 +2869,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				final HTTPDetails hDet = new HTTPDetails();
 				hDet.setChunkSize(properties.getControllerHTTPChunk());
 
-				response = JMFFactory.getJMFFactory().send2URLSynch(jmf, returnJMF, _parentDevice.getCallback(null), _parentDevice.getDeviceID(), 10000);
+				response = JMFFactory.getInstance().send2URLSynch(jmf, returnJMF, _parentDevice.getCallback(null), _parentDevice.getDeviceID(), 10000);
 			}
 			boolean bOK = false;
 

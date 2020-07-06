@@ -68,7 +68,7 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
 		jmf.setMaxVersion(EnumVersion.Version_2_0);
 		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
-		assertEquals(EnumVersion.Version_2_0, s.version);
+		assertEquals(EnumVersion.Version_2_0, s.jdfVersion);
 	}
 
 	/**
@@ -181,7 +181,7 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
 		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
-		assertNotNull(s.getVersion());
+		assertNotNull(s.getJdfVersion());
 	}
 
 }

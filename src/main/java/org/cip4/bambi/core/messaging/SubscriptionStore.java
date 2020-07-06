@@ -91,7 +91,7 @@ public class SubscriptionStore
 				{
 					final MsgSubscription sub = new MsgSubscription(this.signalDispatcher, subElem);
 					final IConverterCallback callback = signalDispatcher.device.getCallback(sub.url, sub);
-					sub.setCallback(callback);
+					sub.setConverterCallback(callback);
 
 					synchronized (signalDispatcher.subscriptionMap)
 					{
@@ -99,7 +99,7 @@ public class SubscriptionStore
 						{
 							signalDispatcher.subscriptionMap.put(sub.channelID, sub);
 							log.info("reloading " + sub.getMessageType() + " subscription for channelID=" + sub.channelID + " to: " + sub.url);
-							JMFFactory.getJMFFactory().getCreateMessageSender(sub.url);
+							JMFFactory.getInstance().getCreateMessageSender(sub.url);
 						}
 						else
 						{

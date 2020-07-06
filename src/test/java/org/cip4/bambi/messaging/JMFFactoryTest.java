@@ -230,7 +230,7 @@ public class JMFFactoryTest extends BambiTestCase
 	public void testAbortAll() throws Exception
 	{
 		final long t = System.currentTimeMillis();
-		final JMFFactory factory = JMFFactory.getJMFFactory();
+		final JMFFactory factory = JMFFactory.getInstance();
 		JDFJMF jmf = new JMFBuilder().buildQueueStatus();
 		JDFResponse resp = sendToURL(jmf, getWorkerURL());
 		JDFQueue q = resp.getQueue(0);

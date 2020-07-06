@@ -322,7 +322,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 */
 	protected void abortRemoveAll(final String url)
 	{
-		final JMFFactory factory = JMFFactory.getJMFFactory();
+		final JMFFactory factory = JMFFactory.getInstance();
 		JDFJMF jmf = new JMFBuilder().buildQueueStatus();
 		final JDFResponse resp = factory.send2URLSynchResp(jmf, url, null, "testcase", 2000);
 		if (resp == null)

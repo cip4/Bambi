@@ -153,7 +153,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
 		final SubscriptionStore ss2 = new SubscriptionStore(d2, new File(sm_dirTestDataTemp + "subs"));
 		ss2.load();
-		assertEquals(EnumVersion.Version_2_0, d2.getSubscription("q").getVersion());
+		assertEquals(EnumVersion.Version_2_0, d2.getSubscription("q").getJdfVersion());
 
 	}
 
@@ -184,7 +184,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final SubscriptionStore ss2 = new SubscriptionStore(d2, new File(sm_dirTestDataTemp + "subs2"));
 		ss2.load();
 		final MsgSubscription sloaded = d2.getSubscription("q");
-		assertEquals(XJDFHelper.defaultVersion(), sloaded.getVersion());
+		assertEquals(XJDFHelper.defaultVersion(), sloaded.getJdfVersion());
 		assertNull(sloaded.jmfDeviceID);
 	}
 

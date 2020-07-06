@@ -95,7 +95,7 @@ public class WebAppTest extends TestCase
 	 */
 	public void testDeviceStatus()
 	{
-		final JMFFactory factory = JMFFactory.getJMFFactory();
+		final JMFFactory factory = JMFFactory.getInstance();
 		final JDFJMF jmfStatus = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
 		final VString urls = new VString();
 		//		urls.add(getWorkerURL());

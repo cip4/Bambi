@@ -107,7 +107,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 
 	private JDFQueue getQueue()
 	{
-		final JMFFactory factory = JMFFactory.getJMFFactory();
+		final JMFFactory factory = JMFFactory.getInstance();
 		final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
 		final JDFResponse resp = factory.send2URLSynchResp(jmf, getWorkerURL(), null, null, 2000);
 		assertNotNull(resp);
@@ -212,7 +212,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 		assertNotNull(runningQE);
 		final String qeID = runningQE.getQueueEntryID();
 
-		final JMFFactory factory = JMFFactory.getJMFFactory();
+		final JMFFactory factory = JMFFactory.getInstance();
 		JDFJMF jmf = new JMFBuilder().buildSuspendQueueEntry(qeID);
 		JDFResponse resp = factory.send2URLSynchResp(jmf, getWorkerURL(), null, null, 2000);
 		assertEquals(0, resp.getReturnCode());
@@ -289,7 +289,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 		final String qeID = runningQE.getQueueEntryID();
 
 		JDFJMF jmf = new JMFBuilder().buildAbortQueueEntry(qeID);
-		final JMFFactory factory = JMFFactory.getJMFFactory();
+		final JMFFactory factory = JMFFactory.getInstance();
 		JDFResponse resp = factory.send2URLSynchResp(jmf, getWorkerURL(), null, null, 2000);
 		assertEquals(0, resp.getReturnCode());
 		// give the device some time to abort the QE
@@ -329,7 +329,7 @@ public class QueueEntryStatusTest extends BambiTestCase
 		assertNotNull(runningQE);
 		final String qeID = runningQE.getQueueEntryID();
 
-		final JMFFactory factory = JMFFactory.getJMFFactory();
+		final JMFFactory factory = JMFFactory.getInstance();
 		JDFJMF jmf = new JMFBuilder().buildSuspendQueueEntry(qeID);
 		JDFResponse resp = factory.send2URLSynchResp(jmf, getWorkerURL(), null, null, 2000);
 		assertEquals(0, resp.getReturnCode());

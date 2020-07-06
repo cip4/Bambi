@@ -434,7 +434,7 @@ public class RootDevice extends AbstractDevice
 		public QueueDispatchHandler(final EnumType _type, final EnumFamily[] _families)
 		{
 			super(_type, _families);
-			superHandler = getJMFHandler(null).getHandler(_type.getName(), _families[0]);
+			superHandler = getJMFHandler(null).getMessageHandler(_type.getName(), _families[0]);
 		}
 
 		/**
@@ -444,7 +444,7 @@ public class RootDevice extends AbstractDevice
 		public QueueDispatchHandler(final String _type, final EnumFamily[] _families)
 		{
 			super(_type, _families);
-			superHandler = getJMFHandler(null).getHandler(_type, _families[0]);
+			superHandler = getJMFHandler(null).getMessageHandler(_type, _families[0]);
 		}
 
 		/**

@@ -1847,7 +1847,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public JMFFactory getJMFFactory()
 	{
-		return JMFFactory.getJMFFactory();
+		return JMFFactory.getInstance();
 	}
 
 	/**
@@ -1873,7 +1873,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public IMessageHandler getHandler(final String typ, final EnumFamily family, final String url)
 	{
-		return getJMFHandler(url).getHandler(typ, family);
+		return getJMFHandler(url).getMessageHandler(typ, family);
 	}
 
 	/**

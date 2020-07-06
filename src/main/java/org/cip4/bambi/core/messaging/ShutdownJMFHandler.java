@@ -68,8 +68,10 @@
  */
 package org.cip4.bambi.core.messaging;
 
+import org.apache.commons.logging.Log;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiContainer;
+import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoShutDownCmdParams.EnumShutDownType;
@@ -86,6 +88,8 @@ import org.cip4.jdflib.util.ThreadUtil;
  * @date June 5, 2012
  */
 public class ShutdownJMFHandler extends AbstractHandler {
+
+	private final Log log = BambiLogFactory.getLog(ShutdownJMFHandler.class);
 
 	private final AbstractDevice device;
 	private boolean killContainer;

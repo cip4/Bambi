@@ -43,6 +43,7 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Vector;
 
+import org.apache.commons.logging.Log;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.jdflib.core.JDFDoc;
@@ -60,545 +61,515 @@ import org.cip4.jdflib.util.net.HTTPDetails;
 import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
- * factory for sending JMF messages
- *
- * @author boegerni
- *
+ * Factory class for sending JMF Messages.
  */
-public class JMFFactory extends BambiLogFactory
-{
-	/**
-	 * @author Rainer Prosi, Heidelberger Druckmaschinen
-	 *
-	 */
-	public static class CallURL implements Comparable<CallURL>
-	{
-		String url;
+public class JMFFactory {
 
-		/**
-		 * get the base url that is used to define equal senders
-		 *
-		 * @return the base url
-		 */
-		public String getBaseURL()
-		{
-			if (url == null)
-			{
-				return null;
-			}
-			final VString v = StringUtil.tokenize(url, "/?", true);
-			int len = v.size();
-			if (len > 6)
-			{
-				len = 6; // 6= host / / root </?> last
-			}
-			final StringBuffer b = new StringBuffer();
-			for (int i = 0; i < len; i++)
-			{
-				b.append(v.get(i));
-			}
-			return b.toString();
-		}
+    private final Log log = BambiLogFactory.getLog(JMFFactory.class);
 
-		/**
-		 * @param _url the url
-		 *
-		 */
-		public CallURL(final String _url)
-		{
-			url = _url;
-			url = getBaseURL();
-		}
+    /**
+     * @author Rainer Prosi, Heidelberger Druckmaschinen
+     */
+    public static class CallURL implements Comparable<CallURL> {
+        String url;
 
-		/**
-		 * @see java.lang.Object#hashCode()
-		 */
-		@Override
-		public int hashCode()
-		{
-			final String baseUrl = getBaseURL();
-			return (baseUrl == null ? 0 : baseUrl.hashCode());
-		}
+        /**
+         * Returns the base url that is used to define equal senders.
+         *
+         * @return The base url
+         */
+        public String getBaseURL() {
+            if (url == null) {
+                return null;
+            }
+            final VString tokenizedUrl = StringUtil.tokenize(url, "/?", true);
+            int len = tokenizedUrl.size();
 
-		/**
-		 * @see java.lang.Object#toString()
-		 */
-		@Override
-		public String toString()
-		{
-			return "[CallURL: " + getBaseURL() + "]";
-		}
+            if (len > 6) {
+                len = 6; // 6= host / / root </?> last
+            }
 
-		/**
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
-		@Override
-		public boolean equals(final Object obj)
-		{
-			if (!(obj instanceof CallURL))
-			{
-				return false;
-			}
-			final CallURL other = (CallURL) obj;
-			return ContainerUtil.equals(getBaseURL(), other.getBaseURL());
-		}
+            final StringBuffer stringBuffer = new StringBuffer();
 
-		/**
-		 * compares based on url values
-		 *
-		 * @param o the other callURL to compare to
-		 * @return -1 if this is smaller
-		 */
-		@Override
-		public int compareTo(final CallURL o)
-		{
-			return ContainerUtil.compare(url, o == null ? null : o.url);
-		}
-	}
+            for (int i = 0; i < len; i++) {
+                stringBuffer.append(tokenizedUrl.get(i));
+            }
 
-	// end of inner class CallURL
+            return stringBuffer.toString();
+        }
 
-	private static JMFFactory theFactory = null;
-	private static MyMutex factoryMutex = new MyMutex();
-	final HashMap<CallURL, MessageSender> senders = new HashMap<>();
-	private int nThreads = 0;
-	private final boolean shutdown = false;
-	private final HashMap<EnumType, IMessageOptimizer> optimizers;
-	private final long startTime;
-	private boolean zapp500;
-	private boolean logLots;
+        /**
+         * Custom constructor. Accepting an url for initializing.
+         *
+         * @param url The call url
+         */
+        public CallURL(final String url) {
+            this.url = url;
+            this.url = getBaseURL();
+        }
 
-	/**
-	 * @return the logLots
-	 */
-	public boolean isLogLots()
-	{
-		return logLots;
-	}
+        /**
+         * @see java.lang.Object#hashCode()
+         */
+        @Override
+        public int hashCode() {
+            final String baseUrl = getBaseURL();
+            return (baseUrl == null ? 0 : baseUrl.hashCode());
+        }
 
-	/**
-	 * @param logLots the logLots to set
-	 */
-	public void setLogLots(final boolean logLots)
-	{
-		this.logLots = logLots;
-	}
+        /**
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+            return "[CallURL: " + getBaseURL() + "]";
+        }
 
-	/**
-	 *
-	 */
-	private JMFFactory() // all static
-	{
-		super();
-		optimizers = new HashMap<>();
-		startTime = System.currentTimeMillis();
-		zapp500 = false;
-		logLots = false;
-	}
+        /**
+         * @see java.lang.Object#equals(java.lang.Object)
+         */
+        @Override
+        public boolean equals(final Object obj) {
+            if (!(obj instanceof CallURL)) {
+                return false;
+            }
+            final CallURL other = (CallURL) obj;
+            return ContainerUtil.equals(getBaseURL(), other.getBaseURL());
+        }
 
-	/**
-	 * @return the zapp500
-	 */
-	public boolean isZapp500()
-	{
-		return zapp500;
-	}
+        /**
+         * compares based on url values
+         *
+         * @param o the other callURL to compare to
+         * @return -1 if this is smaller
+         */
+        @Override
+        public int compareTo(final CallURL o) {
+            return ContainerUtil.compare(url, o == null ? null : o.url);
+        }
+    }
 
-	/**
-	 * @param zapp500 the zapp500 to set
-	 */
-	public void setZapp500(final boolean zapp500)
-	{
-		this.zapp500 = zapp500;
-	}
+    // end of inner class CallURL
 
-	/**
-	 * @return
-	 */
-	public static JMFFactory getJMFFactory()
-	{
-		synchronized (factoryMutex)
-		{
-			if (theFactory == null)
-			{
-				theFactory = new JMFFactory();
-			}
-		}
-		return theFactory;
-	}
+    private static JMFFactory INSTANCE = null;
+    private static MyMutex factoryMutex = new MyMutex();
 
-	/**
-	 *
-	 */
-	public static void shutdown()
-	{
-		if (theFactory != null)
-		{
-			theFactory.shutDown(null, true);
-			if (theFactory.senders.size() > 0)
-			{
-				ThreadUtil.sleep(1234);
-				theFactory.shutDown(null, false);
-			}
-			theFactory = null;
-		}
-	}
+    final HashMap<CallURL, MessageSender> senders = new HashMap<>();
+    private int numberOfThreads = 0;
+    private final boolean shutdown = false;
+    private final HashMap<EnumType, IMessageOptimizer> messageOptimizers;
+    private final long startTime;
+    private boolean zapp500;
+    private boolean logLots;
 
-	/**
-	 * sends a mime or zip multipart message to a given URL
-	 *
-	 * @param jmf
-	 * @param jdf
-	 * @param url the URL to send the JMF to
-	 * @param handler
-	 * @param callback
-	 * @param md
-	 * @param deviceID
-	 * @return
-	 */
-	public boolean send2URL(final JDFJMF jmf, final JDFNode jdf, final String url, final IResponseHandler handler, final IConverterCallback callback, final MIMEDetails md, final String deviceID)
-	{
-		if (shutdown)
-		{
-			return false;
-		}
+    /**
+     * @return the logLots
+     */
+    public boolean isLogLots() {
+        return logLots;
+    }
 
-		boolean ok = true;
-		if (jmf == null)
-		{
-			log.error("failed to send JDFMessage, jmf is null");
-			ok = false;
-		}
-		else if (jdf == null)
-		{
-			log.error("failed to send JDFMessage, jdf is null");
-			ok = false;
-		}
-		else if (url == null)
-		{
-			log.error("failed to send JDFMessage, URL is null");
-			ok = false;
-		}
-		if (!ok)
-			return false;
+    /**
+     * @param logLots the logLots to set
+     */
+    public void setLogLots(final boolean logLots) {
+        this.logLots = logLots;
+    }
 
-		if (deviceID != null)
-		{
-			jmf.setSenderID(deviceID);
-		}
+    /**
+     * Private default constructor. This class cannot be instantiated form outside.
+     */
+    private JMFFactory() // all static
+    {
+        super();
+        messageOptimizers = new HashMap<>();
+        startTime = System.currentTimeMillis();
+        zapp500 = false;
+        logLots = false;
+    }
 
-		final MessageSender ms = getCreateMessageSender(url);
-		return ms.queueMessage(jmf, jdf, handler, url, callback, md);
-	}
+    /**
+     * @return the zapp500
+     */
+    public boolean isZapp500() {
+        return zapp500;
+    }
 
-	/**
-	 * POSTS a empty url message to a given URL
-	 *
-	 * @param url the URL to send the JMF to
-	 * @param handler
-	 * @param callback
-	 * @return
-	 */
-	public boolean send2URL(final String url, final IResponseHandler handler, final IConverterCallback callback)
-	{
-		if (shutdown)
-		{
-			return false;
-		}
+    /**
+     * @param zapp500 the zapp500 to set
+     */
+    public void setZapp500(final boolean zapp500) {
+        this.zapp500 = zapp500;
+    }
 
-		if (url == null)
-		{
-			log.error("failed to send empty post, URL is null");
-			return false;
-		}
+    /**
+     * Returns the only instance of JMFFactory.
+     *
+     * @return The only JMFFactory instance.
+     */
+    public static JMFFactory getInstance() {
+        synchronized (factoryMutex) {
+            if (INSTANCE == null) {
+                INSTANCE = new JMFFactory();
+            }
+        }
+        return INSTANCE;
+    }
 
-		final MessageSender ms = getCreateMessageSender(url);
-		return ms.queuePost(handler, url, callback);
-	}
+    /**
+     *
+     */
+    public static void shutdown() {
+        if (INSTANCE != null) {
+            INSTANCE.shutDown(null, true);
+            if (INSTANCE.senders.size() > 0) {
+                ThreadUtil.sleep(1234);
+                INSTANCE.shutDown(null, false);
+            }
+            INSTANCE = null;
+        }
+    }
 
-	/**
-	 * sends a JMF message to a given URL
-	 *
-	 * @param jmf the message to send
-	 * @param url the URL to send the JMF to
-	 * @param handler
-	 * @param callback
-	 * @param senderID the senderID of the caller
-	 * @return true if successfully queued
-	 */
-	public boolean send2URL(final JDFJMF jmf, final String url, final IResponseHandler handler, final IConverterCallback callback, final String senderID)
-	{
-		return send2URL(jmf, url, handler, callback, senderID, null);
-	}
+    /**
+     * sends a mime or zip multipart message to a given URL
+     *
+     * @param jmf
+     * @param jdf
+     * @param url      the URL to send the JMF to
+     * @param handler
+     * @param callback
+     * @param md
+     * @param deviceID
+     * @return
+     */
+    public boolean send2URL(final JDFJMF jmf, final JDFNode jdf, final String url, final IResponseHandler handler, final IConverterCallback callback, final MIMEDetails md, final String deviceID) {
+        if (shutdown) {
+            return false;
+        }
 
-	/**
-	 * sends a JMF message to a given URL synchronously
-	 *
-	 * @param jmf the message to send
-	 * @param url the URL to send the JMF to
-	 * @param callback
-	 * @param senderID the senderID of the caller
-	 * @param milliSeconds timeout to wait
-	 * @return the response if successful, otherwise null
-	 */
-	public HttpURLConnection send2URLSynch(final JDFJMF jmf, final String url, final IConverterCallback callback, final String senderID, final int milliSeconds)
-	{
-		final MessageResponseHandler handler = new MessageResponseHandler((String) null);
-		send2URL(jmf, url, handler, callback, senderID);
-		handler.waitHandled(milliSeconds, 10000, true);
-		return handler.getConnection();
-	}
+        boolean ok = true;
+        if (jmf == null) {
+            log.error("failed to send JDFMessage, jmf is null");
+            ok = false;
+        } else if (jdf == null) {
+            log.error("failed to send JDFMessage, jdf is null");
+            ok = false;
+        } else if (url == null) {
+            log.error("failed to send JDFMessage, URL is null");
+            ok = false;
+        }
+        if (!ok)
+            return false;
 
-	/**
-	 * sends a JMF message to a given URL sychronusly
-	 *
-	 * @param jmf the message to send
-	 * @param url the URL to send the JMF to
-	 * @param callback
-	 * @param senderID the senderID of the caller
-	 * @param milliSeconds timeout to wait
-	 * @return the response if successful, otherwise null
-	 */
-	public JDFResponse send2URLSynchResp(final JDFJMF jmf, final String url, final IConverterCallback callback, final String senderID, final int milliSeconds)
-	{
-		final MessageResponseHandler handler = new MessageResponseHandler((String) null);
-		send2URL(jmf, url, handler, callback, senderID);
-		handler.waitHandled(milliSeconds, 10000, true);
-		final HttpURLConnection uc = handler.getConnection();
-		if (uc != null)
-		{
-			final JDFDoc d = JDFDoc.parseStream(handler.getBufferedStream());
-			if (d != null)
-			{
-				final JDFJMF root = d.getJMFRoot();
-				return root == null ? null : root.getResponse(0);
-			}
-		}
-		return null;
-	}
+        if (deviceID != null) {
+            jmf.setSenderID(deviceID);
+        }
 
-	/**
-	 * sends a mime multipart package to a given URL synchronously
-	 *
-	 * @param mp the mime multipart to send
-	 * @param url the URL to send the JMF to
-	 * @param callback
-	 * @param md
-	 * @param senderID
-	 * @param milliSeconds
-	 *
-	 * @return the response if successful, otherwise null
-	 */
-	public HttpURLConnection send2URLSynch(final JDFJMF jmf, final JDFNode jdf, final String url, final IConverterCallback callback, final MIMEDetails md, final String senderID,
-			final int milliSeconds)
-	{
-		final MessageResponseHandler handler = new MessageResponseHandler((String) null);
-		send2URL(jmf, jdf, url, handler, callback, md, senderID);
-		handler.waitHandled(milliSeconds, 10000, true);
-		return handler.getConnection();
-	}
+        final MessageSender messageSender = getCreateMessageSender(url);
+        return messageSender.queueMessage(jmf, jdf, handler, url, callback, md);
+    }
 
-	/**
-	 *
-	 * @param cu the callURL to shut down, if null all of them
-	 * @param graceFully
-	 */
-	public void shutDown(final CallURL cu, final boolean graceFully)
-	{
-		if (cu == null) // null = all
-		{
-			log.info("shutting down all senders ");
-			final Vector<CallURL> keySet = ContainerUtil.getKeyVector(senders);
-			if (keySet != null)
-			{
-				for (final CallURL s : keySet)
-				{
-					shutDown(s, graceFully);
-				}
-			}
-			log.info("completed shutting down all senders ");
-		}
-		else
-		// individual url
-		{
-			final MessageSender ms = senders.get(cu);
-			if (ms != null)
-			{
-				log.info("shutting down sender " + cu.getBaseURL() + (graceFully ? " gracefully" : " forced"));
-				ms.shutDown(graceFully);
-			}
-			else
-			{
-				log.warn("no sender to shut down: " + cu.getBaseURL() + (graceFully ? " gracefully" : " forced"));
-			}
-			senders.remove(cu);
-		}
-	}
+    /**
+     * POSTS a empty url message to a given URL
+     *
+     * @param url      the URL to send the JMF to
+     * @param handler  The message repsonse handler.
+     * @param callback The calback converter.
+     * @return
+     */
+    public boolean send2URL(final String url, final IResponseHandler handler, final IConverterCallback callback) {
+        if (shutdown) {
+            return false;
+        }
 
-	/**
-	 * @param typ message type
-	 * @param opt the optimizer to call
-	 */
-	public void addOptimizer(final EnumType typ, final IMessageOptimizer opt)
-	{
-		if (typ != null && opt != null)
-		{
-			optimizers.put(typ, opt);
-		}
-	}
+        if (url == null) {
+            log.error("failed to send empty post, URL is null");
+            return false;
+        }
 
-	/**
-	 * @param typ
-	 * @return
-	 */
-	public IMessageOptimizer getOptimizer(final EnumType typ)
-	{
-		return typ == null ? null : optimizers.get(typ);
-	}
+        final MessageSender messageSender = getCreateMessageSender(url);
+        return messageSender.queuePost(handler, url, callback);
+    }
 
-	/**
-	 * @return Vector of all known message senders matching url; null if none match
-	 * @param url the url to match, if null all
-	 */
-	public Vector<MessageSender> getMessageSenders(String url)
-	{
-		url = UrlUtil.normalize(url);
-		Vector<MessageSender> v = ContainerUtil.toValueVector(senders, true);
-		if (StringUtil.getNonEmpty(url) == null)
-		{
-			return v;
-		}
+    /**
+     * Sends a JMF message to a given URL
+     *
+     * @param jmf      the message to send
+     * @param url      the URL to send the JMF to
+     * @param handler  The response handler.
+     * @param callback The callback converter.
+     * @param senderID The senderID of the caller
+     * @return True, in case message has been successfully queued
+     */
+    public boolean send2URL(final JDFJMF jmf, final String url, final IResponseHandler handler, final IConverterCallback callback, final String senderID) {
+        return send2URL(jmf, url, handler, callback, senderID, null);
+    }
 
-		if (v != null)
-		{
-			for (int i = v.size() - 1; i >= 0; i--)
-			{
-				final MessageSender messageSender = v.get(i);
-				if (!messageSender.matchesURL(url))
-				{
-					v.remove(i);
-				}
-			}
-			if (v.size() == 0)
-			{
-				v = null;
-			}
-		}
-		return v;
-	}
+    /**
+     * Sends a JMF message to a given URL synchronously
+     *
+     * @param jmf          The message to send
+     * @param url          The URL to send the JMF to
+     * @param callback     The callback converter
+     * @param senderID     The senderID of the caller
+     * @param milliSeconds Timeout to wait
+     * @return The response if successful, otherwise null
+     */
+    public HttpURLConnection send2URLSynch(final JDFJMF jmf, final String url, final IConverterCallback callback, final String senderID, final int milliSeconds) {
+        final MessageResponseHandler messageResponseHandler = new MessageResponseHandler((String) null);
+        send2URL(jmf, url, messageResponseHandler, callback, senderID);
+        messageResponseHandler.waitHandled(milliSeconds, 10000, true);
+        return messageResponseHandler.getConnection();
+    }
 
-	/**
-	 * get an existing MessageSender or create it if it does not exist for a given url or callback
-	 *
-	 * @param url the URL to send a message to, if null use the fire&forget sender
-	 *
-	 * @return the MessageSender that will queue and dispatch the message
-	 *
-	 */
-	public MessageSender getCreateMessageSender(final String url)
-	{
-		if (url == null)
-		{
-			log.warn("attempting to retrieve MessageSender for null");
-			return null;
-		}
-		if (shutdown)
-		{
-			log.warn("attempting to retrieve MessageSender after shutdown for " + url);
-			return null;
-		}
-		final CallURL cu = new CallURL(url);
+    /**
+     * Sends a JMF message to a given URL sychronusly
+     *
+     * @param jmf          The JMF Message to send
+     * @param url          The target URL to send the JMF to
+     * @param callback     The callback converter.
+     * @param senderID     The senderID of the caller
+     * @param milliSeconds timeout to wait
+     * @return the response if successful, otherwise null
+     */
+    public JDFResponse send2URLSynchResp(final JDFJMF jmf, final String url, final IConverterCallback callback, final String senderID, final int milliSeconds) {
+        final MessageResponseHandler messageResponseHandler = new MessageResponseHandler((String) null);
+        send2URL(jmf, url, messageResponseHandler, callback, senderID);
+        messageResponseHandler.waitHandled(milliSeconds, 10000, true);
+        final HttpURLConnection connection = messageResponseHandler.getConnection();
 
-		synchronized (senders)
-		{
-			MessageSender ms = senders.get(cu);
-			if (ms != null && !ms.isRunning())
-			{
-				shutDown(cu, false);
-				log.info("removed idle message sender " + cu.url);
-				ms = null;
-			}
-			if (ms == null)
-			{
-				cleanIdleSenders();
-				ms = new MessageSender(cu);
-				ms.setStartTime(startTime);
-				ms.setJMFFactory(this);
-				senders.put(cu, ms);
-				final String name = "MessageSender_" + nThreads++ + "_" + cu.getBaseURL();
-				final Thread thread = new Thread(ms, name);
-				log.info("creating new message sender: " + name);
-				thread.setDaemon(false);
-				thread.start();
-			}
-			return ms;
-		}
-	}
+        if (connection != null) {
+            final JDFDoc jdfDoc = JDFDoc.parseStream(messageResponseHandler.getBufferedStream());
 
-	/**
-	 * cleanup idle threads
-	 */
-	private void cleanIdleSenders()
-	{
-		synchronized (senders)
-		{
-			final Vector<MessageSender> vRemove = new Vector<>();
-			for (final MessageSender ms : senders.values())
-			{
-				if (!ms.isRunning())
-				{
-					vRemove.add(ms);
-				}
-			}
-			for (final MessageSender ms : vRemove)
-			{
-				ms.shutDown(false);
-				log.info("removing idle message sender " + ms.getCallURL().getBaseURL());
-			}
-		}
-	}
+            if (jdfDoc != null) {
+                final JDFJMF jmfRoot = jdfDoc.getJMFRoot();
+                return jmfRoot == null ? null : jmfRoot.getResponse(0);
+            }
+        }
+        return null;
+    }
 
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString()
-	{
-		return "JMFFactory : threads=" + nThreads + " zapp500=" + zapp500 + " logLots=" + logLots + " Senders: " + senders;
-	}
+    /**
+     * Sends a mime multipart package to a given URL synchronously
+     *
+     * @return the response if successful, otherwise null
+     */
+    public HttpURLConnection send2URLSynch(final JDFJMF jmf, final JDFNode jdf, final String url, final IConverterCallback callback, final MIMEDetails md, final String senderID,
+                                           final int milliSeconds) {
+        final MessageResponseHandler messageResponseHandler = new MessageResponseHandler((String) null);
+        send2URL(jmf, jdf, url, messageResponseHandler, callback, md, senderID);
+        messageResponseHandler.waitHandled(milliSeconds, 10000, true);
+        return messageResponseHandler.getConnection();
+    }
 
-	/**
-	 * sends a JMF message to a given URL
-	 *
-	 * @param jmf the message to send
-	 * @param url the URL to send the JMF to
-	 * @param handler
-	 * @param callback
-	 * @param senderID the senderID of the caller
-	 * @return true if successfully queued
-	 */
-	public boolean send2URL(final JDFJMF jmf, final String url, final IResponseHandler handler, final IConverterCallback callback, final String senderID, final HTTPDetails det)
-	{
-		if (shutdown)
-		{
-			return false;
-		}
-		if (jmf == null)
-		{
-			log.error("failed to send JDFMessage, message is null");
-			return false;
-		}
-		else if (url == null)
-		{
-			log.error("failed to send JDFMessage, target URL is null");
-			return false;
-		}
+    /**
+     * Shut down all message senders.
+     *
+     * @param graceFully True, in case the message sender should be shut down gracefully. Otherwise false.
+     */
+    public void shutDown(final boolean graceFully) {
+        shutDown(null, graceFully);
+    }
 
-		final MessageSender ms = getCreateMessageSender(url);
-		if (senderID != null)
-		{
-			jmf.setSenderID(senderID);
-		}
-		return ms.queueMessage(jmf, handler, url, callback, det);
-	}
+    /**
+     * Shut down one or multiple message sender.
+     *
+     * @param callURL    The callURL to shut down, if null all of them
+     * @param graceFully True, in case the message sender should be shut down gracefully. Otherwise false.
+     */
+    public void shutDown(final CallURL callURL, final boolean graceFully) {
+        if (callURL == null) {
+            // shutdown all (callURL = null)
+            log.info("shutting down all senders ");
+            final Vector<CallURL> callURLs = ContainerUtil.getKeyVector(senders);
+
+            if (callURLs != null) {
+                for (final CallURL s : callURLs) {
+                    shutDown(s, graceFully);
+                }
+            }
+
+            log.info("completed shutting down all senders ");
+        } else {
+            // shut down an message sender for a specific url
+            final MessageSender messageSender = senders.get(callURL);
+
+            if (messageSender != null) {
+                log.info("shutting down sender " + callURL.getBaseURL() + (graceFully ? " gracefully" : " forced"));
+                messageSender.shutDown();
+            } else {
+                log.warn("no sender to shut down: " + callURL.getBaseURL() + (graceFully ? " gracefully" : " forced"));
+            }
+
+            senders.remove(callURL);
+        }
+    }
+
+    /**
+     * Add and message optimizer object.
+     *
+     * @param type             message type
+     * @param messageOptimizer The actual optimizer object to add
+     */
+    public void addOptimizer(final EnumType type, final IMessageOptimizer messageOptimizer) {
+        if (type != null && messageOptimizer != null) {
+            messageOptimizers.put(type, messageOptimizer);
+        }
+    }
+
+    /**
+     * Returns the message optimizer object.
+     *
+     * @param type The type of the optimizer object.
+     * @return The Message optimizer of a defined type.
+     */
+    public IMessageOptimizer getOptimizer(final EnumType type) {
+        return type == null ? null : messageOptimizers.get(type);
+    }
+
+    /**
+     * Returns a vector of all known message senders matching a specific url - null if none matches.
+     *
+     * @param url the url to match, if null all
+     * @return Vector of all known message senders matching url; null if none match
+     */
+    public Vector<MessageSender> getMessageSenders(String url) {
+        url = UrlUtil.normalize(url);
+
+        Vector<MessageSender> result = ContainerUtil.toValueVector(senders, true);
+
+        if (StringUtil.getNonEmpty(url) == null) {
+            return result;
+        }
+
+        if (result != null) {
+            for (int i = result.size() - 1; i >= 0; i--) {
+                final MessageSender messageSender = result.get(i);
+                if (!messageSender.matchesURL(url)) {
+                    result.remove(i);
+                }
+            }
+            if (result.size() == 0) {
+                result = null;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns an existing MessageSender or create it if it does not exist for a given url or callback.
+     *
+     * @param url The URL to send a message to, if null use the fire&forget sender
+     * @return The MessageSender that will queue and dispatch the message
+     */
+    public MessageSender getCreateMessageSender(final String url) {
+        if (url == null) {
+            log.warn("attempting to retrieve MessageSender for null");
+            return null;
+        }
+
+        if (shutdown) {
+            log.warn("attempting to retrieve MessageSender after shutdown for " + url);
+            return null;
+        }
+
+        final CallURL callURL = new CallURL(url);
+
+        synchronized (senders) {
+            MessageSender messageSender = senders.get(callURL);
+
+            if (messageSender != null && !messageSender.isRunning()) {
+                shutDown(callURL, false);
+                log.info("removed idle message sender " + callURL.url);
+                messageSender = null;
+            }
+
+            if (messageSender == null) {
+
+                // clean up senders
+                cleanIdleSenders();
+
+                // create new message sender for callUrl
+                messageSender = new MessageSender(callURL);
+                messageSender.setStartTime(startTime);
+                messageSender.setJMFFactory(this);
+                senders.put(callURL, messageSender);
+
+                // increment number of threads
+                numberOfThreads++;
+
+                // set up new message sender thread
+                final String threadName = "MessageSender_" + numberOfThreads + "_" + callURL.getBaseURL();
+                final Thread thread = new Thread(messageSender, threadName);
+                log.info("creating new message sender: " + threadName);
+                thread.setDaemon(false);
+                thread.start();
+            }
+
+            return messageSender;
+        }
+    }
+
+    /**
+     * Cleanup idle message senders.
+     */
+    private void cleanIdleSenders() {
+        synchronized (senders) {
+            final Vector<MessageSender> idleMessageSenders = new Vector<>();
+
+            // find idle message senders
+            for (final MessageSender messageSender : senders.values()) {
+                if (!messageSender.isRunning()) {
+                    idleMessageSenders.add(messageSender);
+                }
+            }
+
+            // clean up idle message senders
+            for (final MessageSender messageSender : idleMessageSenders) {
+                messageSender.shutDown();
+                log.info("removing idle message sender " + messageSender.getCallURL().getBaseURL());
+            }
+        }
+    }
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "JMFFactory : threads=" + numberOfThreads + " zapp500=" + zapp500 + " logLots=" + logLots + " Senders: " + senders;
+    }
+
+    /**
+     * Sends a JMF message to a given URL.
+     *
+     * @param jmf      The message to send
+     * @param url      The URL to send the JMF to
+     * @param handler  The response handler.
+     * @param callback The callback converter.
+     * @param senderID The senderID of the caller
+     * @return true if message has been successfully queued
+     */
+    public boolean send2URL(final JDFJMF jmf, final String url, final IResponseHandler handler, final IConverterCallback callback, final String senderID, final HTTPDetails det) {
+        if (shutdown) {
+            return false;
+        }
+
+        if (jmf == null) {
+            log.error("Failed to send JDFMessage, message is null");
+            return false;
+        } else if (url == null) {
+            log.error("Failed to send JDFMessage, target URL is null");
+            return false;
+        }
+
+        final MessageSender messageSender = getCreateMessageSender(url);
+
+        if (senderID != null) {
+            jmf.setSenderID(senderID);
+        }
+
+        // return the return value of queueMessage method (true / false)
+        return messageSender.queueMessage(jmf, handler, url, callback, det);
+    }
 }
