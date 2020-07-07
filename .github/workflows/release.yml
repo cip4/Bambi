@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build docker container
-        run: docker build -t docker.pkg.github.com/cip4/bambi/bambi:${GITHUB_REF##*Bambi-} --build-arg VERSION=${GITHUB_REF##*Bambi-} .
+        run: docker build -t docker.pkg.github.com/cip4/bambi/bambi:${GITHUB_REF##*Bambi-} --build-arg VERSION=${GITHUB_REF##*Bambi-} --build-arg BUILD_NUMBER=${GITHUB_RUN_NUMBER} --build-arg GIT_REV=${GITHUB_SHA} .
 
       - name: Login to docker.pkg.github.com
         run: docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
