@@ -105,8 +105,10 @@ import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlPart;
 import org.cip4.jdflib.util.UrlUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class DeviceServletTest extends BambiTestCase
 {
 

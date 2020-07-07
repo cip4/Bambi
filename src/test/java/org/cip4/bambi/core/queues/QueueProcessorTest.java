@@ -113,6 +113,7 @@ import org.junit.Test;
  *
  * 03.12.2008
  */
+@Ignore
 public class QueueProcessorTest extends BambiTestCase
 {
 	String queueEntryId = "qe_130102_112609938_007349";
@@ -177,6 +178,7 @@ public class QueueProcessorTest extends BambiTestCase
 	 *
 	 */
 	@Test
+	@Ignore
 	public void testAddEntryMany()
 	{
 		QueueProcessor qp = new QueueProcessor(getDevice());
@@ -199,6 +201,7 @@ public class QueueProcessorTest extends BambiTestCase
 	 *
 	 */
 	@Test
+	@Ignore
 	public void testAddEntryManyQueue()
 	{
 		QueueProcessor qp = new QueueProcessor(getDevice());

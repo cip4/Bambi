@@ -86,6 +86,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFSubscriptionInfo;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -93,6 +94,7 @@ import org.junit.Test;
  * 
  * May 17, 2009
  */
+@Ignore
 public class DispatcherTest extends BambiTestCase
 {
 

@@ -99,6 +99,7 @@ import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.mime.MimeWriter;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -335,6 +336,7 @@ public class BambiContainerTest extends BambiTestCase
 	 * 
 	 */
 	@Test
+	@Ignore
 	public void testSubmitMany() throws IOException
 	{
 		final CPUTimer ct = new CPUTimer(false);

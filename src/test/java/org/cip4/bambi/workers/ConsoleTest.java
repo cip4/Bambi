@@ -68,11 +68,14 @@
  */
 package org.cip4.bambi.workers;
 
+import org.junit.Ignore;
+
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  * 
  * October 1, 2009
  */
+@Ignore
 public class ConsoleTest extends SimTest
 {
 

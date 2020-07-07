@@ -83,6 +83,7 @@ import org.apache.commons.io.IOUtils;
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.UrlUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -98,6 +99,7 @@ public class BambiServletTest extends BambiTestCase
 	 * 
 	 */
     @Test
+	@Ignore
 	public void testUnknownContentType() throws IOException
 	{
 		final XMLDoc d = new XMLDoc("test", null);

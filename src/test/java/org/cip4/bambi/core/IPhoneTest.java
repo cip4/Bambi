@@ -85,6 +85,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -100,6 +101,7 @@ public class IPhoneTest extends BambiTestCase
 	 * 
 	 */
     @Test
+	@Ignore
 	public void testStatus() throws IOException
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);

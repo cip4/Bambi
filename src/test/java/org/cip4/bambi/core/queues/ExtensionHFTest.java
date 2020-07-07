@@ -84,6 +84,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -114,6 +115,7 @@ public class ExtensionHFTest extends BambiContainerTest
 	 * @throws MessagingException
 	 */
     @Test
+	@Ignore
 	public void testSubmitXJDF_HF() throws IOException, MessagingException
 	{
 		for (int i = 0; i < 1; i++)

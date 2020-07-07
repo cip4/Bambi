@@ -95,6 +95,7 @@ import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.MimeUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -102,6 +103,7 @@ import org.junit.Test;
  * 
  * Aug 9, 2009
  */
+@Ignore
 public class QueueEntryStatusTest extends BambiTestCase
 {
 

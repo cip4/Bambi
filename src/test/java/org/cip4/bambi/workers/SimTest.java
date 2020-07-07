@@ -103,6 +103,7 @@ import org.junit.Test;
  * @author Rainer Prosi, Heidelberger Druckmaschinen
  * 
  */
+@Ignore
 public class SimTest extends BambiTestCase
 {
 

@@ -77,6 +77,7 @@ import org.cip4.jdflib.goldenticket.IDPGoldenTicket;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumType;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -84,6 +85,7 @@ import org.junit.Test;
  * @author rainerprosi
  * @date Nov 7, 2011
  */
+@Ignore
 public class DigitalProxyTest extends ProxyTest
 {
 	@Override

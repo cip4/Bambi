@@ -78,6 +78,7 @@ import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.FileUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -108,6 +109,7 @@ public class DataRequestHandlerTest extends BambiTestCase
 	 * @throws Exception its a test!
 	 */
     @Test
+	@Ignore
 	public void testHandle() throws Exception
 	{
 		extern = false;
@@ -137,6 +139,7 @@ public class DataRequestHandlerTest extends BambiTestCase
 	* @throws Exception its a test!
 	*/
     @Test
+	@Ignore
 	public void testHandleExtern() throws Exception
 	{
 		extern = true;

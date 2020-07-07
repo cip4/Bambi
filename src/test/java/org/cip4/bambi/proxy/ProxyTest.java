@@ -95,11 +95,13 @@ import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
   * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
+@Ignore
 public class ProxyTest extends BambiTestCase
 {
 

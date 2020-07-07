@@ -39,10 +39,6 @@ processResources {
     }
 }
 
-test {
-    exclude '**/**'
-}
-
 application {
     mainClass = 'org.cip4.bambi.server.BambiServer'
 }
@@ -60,13 +56,14 @@ macAppBundle {
 }
 
 dependencies {
-    compile 'org.cip4.tools.jdfutility:JDFUtility:1.x-SNAPSHOT'
-    compile 'log4j:log4j:1.2.17'
-    compile 'xerces:xercesImpl:2.9.1'
-    compile 'commons-logging:commons-logging-api:1.1'
-    compile 'commons-lang:commons-lang:2.6'
-    compile 'commons-io:commons-io:2.4'
-    compile 'javax.mail:mail:1.4.1'
+    implementation 'org.cip4.tools.jdfutility:JDFUtility:1.x-SNAPSHOT'
+    implementation 'log4j:log4j:1.2.17'
+    implementation 'xerces:xercesImpl:2.9.1'
+    implementation 'commons-logging:commons-logging-api:1.1'
+    implementation 'commons-lang:commons-lang:2.6'
+    implementation 'commons-io:commons-io:2.4'
+    implementation 'javax.mail:mail:1.4.1'
 
-    testCompile 'junit:junit:4.11'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.mockito:mockito-core:3.3.3'
 }

@@ -77,6 +77,7 @@ import static org.junit.Assert.assertTrue;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -91,6 +92,7 @@ public class JMFQuery_ResponderTest extends BambiTestCase
 	 * 
 	 */
     @Test
+	@Ignore
 	public void testStatus()
 	{
 		final JDFDoc doc = new JDFDoc("JMF");
@@ -106,6 +108,7 @@ public class JMFQuery_ResponderTest extends BambiTestCase
 	 * 
 	 */
     @Test
+	@Ignore
 	public void testKnownDevices()
 	{
 		final JDFDoc doc = new JDFDoc("JMF");
