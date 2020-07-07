@@ -1,7 +1,8 @@
 # compile and test bambi
 FROM amazoncorretto:8 as java-builder
 
-ARG VERSION=development
+ARG VERSION=dev
+ARG BUILD_NUMBER=na
 
 COPY [".git", "/work/.git"]
 COPY ["src", "/work/src"]
@@ -10,15 +11,15 @@ COPY ["build.gradle", "settings.gradle", "gradlew", "/work/"]
 
 WORKDIR /work
 
-RUN ./gradlew -i build -PprojectVersion=${VERSION} --no-daemon
+RUN ./gradlew -i build -PprojectVersion=${VERSION} --no-daemon >/dev/null
 
 # create final image
 FROM alpine:latest
 
-RUN wget -c -O amazon-corretto-8-jre-8.252.09.1-r0.apk https://d3pxv6yz143wms.cloudfront.net/ea/8.252.09.1/amazon-corretto-8-jre-8.252.09.1-r0.apk && \
-    wget -c -O /etc/apk/keys/amazoncorretto.rsa.pub https://d3pxv6yz143wms.cloudfront.net/ea/8.252.09.1/amazoncorretto.rsa.pub && \
-    apk add amazon-corretto-8-jre-8.252.09.1-r0.apk && \
-    rm -rf amazon-corretto-8-jre-8.252.09.1-r0.apk
+RUN wget -c -O amazon-corretto-8-jre-8.252.09.1-r0.apk https://d3pxv6yz143wms.cloudfront.net/ea/8.252.09.1/amazon-corretto-8-jre-8.252.09.1-r0.apk  >/dev/null && \
+    wget -c -O /etc/apk/keys/amazoncorretto.rsa.pub https://d3pxv6yz143wms.cloudfront.net/ea/8.252.09.1/amazoncorretto.rsa.pub  >/dev/null && \
+    apk add amazon-corretto-8-jre-8.252.09.1-r0.apk  >/dev/null && \
+    rm -rf amazon-corretto-8-jre-8.252.09.1-r0.apk  >/dev/null
 
 ENV LANG C.UTF-8
 ENV JAVA_HOME=/usr/lib/jvm/default-jvm/jre
