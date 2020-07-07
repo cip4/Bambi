@@ -135,6 +135,12 @@
 								</td>
 							</tr>
 						</xsl:if>
+						<xsl:if test="@ReleaseBuildNumberString">
+							<tr>
+								<td>Bambi Build Number: </td>
+								<td><xsl:value-of select="@ReleaseBuildNumberString" /></td>
+							</tr>
+						</xsl:if>
 						<xsl:if test="@JavaVersion">
 							<tr>
 								<td>Java runtime Version:</td>

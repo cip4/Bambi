@@ -34,7 +34,8 @@ processResources {
         filter(ReplaceTokens, tokens:  [
                 'name': project.properties['name'],
                 'version': project.properties['version'],
-                'timestamp': new Date().format('yyyy-MM-dd HH:mm:ss')
+                'timestamp': new Date().format('yyyy-MM-dd HH:mm:ss'),
+                'buildNumber': project.properties['buildNumber'] == null ? 'n. a.' : project.properties['buildNumber']
         ])
     }
 }

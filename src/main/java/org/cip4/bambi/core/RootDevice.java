@@ -84,6 +84,7 @@ public class RootDevice extends AbstractDevice
 {
 	public static final String RELEASE_VERSION_STRING = "ReleaseVersionString";
 	public static final String RELEASE_TIMESTAMP_STRING = "ReleaseTimestampString";
+	public static final String RELEASE_BUILD_NUMBER_STRING = "ReleaseBuildNumberString";
 	/**
 	 *
 	 */
@@ -699,6 +700,7 @@ public class RootDevice extends AbstractDevice
 		listRoot.setAttribute("MemCurrent", memorySpy.getHeapUsed(MemScope.current), null);
 		listRoot.setAttribute(RELEASE_VERSION_STRING, RuntimeProperties.getProductVersion(), null);
 		listRoot.setAttribute(RELEASE_TIMESTAMP_STRING, RuntimeProperties.getProductBuildTimestamp(), null);
+		listRoot.setAttribute(RELEASE_BUILD_NUMBER_STRING, RuntimeProperties.getProductBuildNumber(), null);
 		listRoot.setAttribute("JdfLibVersion", getAgentVersion(), null);
 		return listRoot;
 	}

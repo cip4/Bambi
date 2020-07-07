@@ -98,6 +98,7 @@ public class XMLDevice extends XMLDoc
 		deviceRoot.setAttribute("EntriesProcessed", parentDevice.getEntriesProcessed(), null);
 		deviceRoot.setAttribute(RootDevice.RELEASE_VERSION_STRING, RuntimeProperties.getProductVersion(), null);
 		deviceRoot.setAttribute(RootDevice.RELEASE_TIMESTAMP_STRING, RuntimeProperties.getProductBuildTimestamp(), null);
+		deviceRoot.setAttribute(RootDevice.RELEASE_BUILD_NUMBER_STRING, RuntimeProperties.getProductBuildNumber(), null);
 		deviceRoot.setAttribute("JdfLibVersion", parentDevice.getAgentVersion(), null);
 		deviceRoot.copyElement(parentDevice.getDeviceTimer(true).toXML(), null);
 		deviceRoot.setAttribute(AttributeName.DEVICEID, parentDevice.getDeviceID());

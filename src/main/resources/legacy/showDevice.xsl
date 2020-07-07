@@ -232,6 +232,12 @@
 								<td><xsl:value-of select="@ReleaseTimestampString" /></td>
 							</tr>
 						</xsl:if>
+						<xsl:if test="@ReleaseBuildNumberString">
+							<tr>
+								<td>Bambi Build Number: </td>
+								<td><xsl:value-of select="@ReleaseBuildNumberString" /></td>
+							</tr>
+						</xsl:if>
 						<tr>
 							<td>JDFLib Build:</td>
 							<td><xsl:value-of select="@JdfLibVersion" />

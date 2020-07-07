@@ -115,6 +115,7 @@ public class BambiService extends JettyService {
 
         RuntimeProperties.setProductVersion(propsVersion.getProperty("release.version"));
         RuntimeProperties.setProductBuildTimestamp(propsVersion.getProperty("release.build.timestamp"));
+        RuntimeProperties.setProductBuildNumber(propsVersion.getProperty("release.build.number"));
     }
 
     /**
