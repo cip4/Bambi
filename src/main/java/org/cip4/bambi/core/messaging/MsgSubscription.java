@@ -66,6 +66,7 @@ import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FastFiFo;
+import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
 
 /**
@@ -195,6 +196,7 @@ public class MsgSubscription implements Cloneable
 				response = jmfResponse.getResponse(i);
 				signal.convertResponse(response, jmfQuery);
 				signal.setSenderID(this.signalDispatcher.device.getDeviceID());
+				signal.setTime(new JDFDate());
 			}
 			for (int i = 0; i < numberOfSignals; i++)
 			{
