@@ -91,7 +91,7 @@ class XMLSimDevice extends XMLWorkerDevice
 		final JobPhase currentJobPhase = getParentDevice().getCurrentJobPhase();
 		if (currentJobPhase != null)
 		{
-			currentJobPhase.writeToParent(getRoot());
+			currentJobPhase.appendToXml(getRoot());
 		}
 	}
 

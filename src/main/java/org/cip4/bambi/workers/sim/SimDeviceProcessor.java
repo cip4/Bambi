@@ -193,7 +193,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			log.warn("Aborted Job " + getJobID() + " geID= " + qeid);
 			return EnumQueueEntryStatus.Aborted;
 		}
-		if (lastPhase.getTimeToGo() <= 0 && EnumQueueEntryStatus.Running.equals(qes)) // final phase was active
+		if (lastPhase.getDurationMillis() <= 0 && EnumQueueEntryStatus.Running.equals(qes)) // final phase was active
 		{
 			qes = EnumQueueEntryStatus.Completed;
 			log.info("Completed Job " + getJobID() + " geID= " + qeid);
@@ -233,18 +233,18 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		log.info("processing new job phase: " + getJobID() + " / " + getQueueEntryID() + phase.shortString());
 		_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(), false);
 		long deltaT = 1000;
-		while (phase.getTimeToGo() > 0)
+		while (phase.getDurationMillis() > 0)
 		{
 			final long t0 = System.currentTimeMillis();
-			final VString names = phase.getAmountResourceNames();
+			final VString names = phase.getPhaseAmountResourceNames();
 			boolean reachedEnd = EnumNodeStatus.isCompleted(phase.getNodeStatus()) || EnumNodeStatus.Suspended.equals(phase.getNodeStatus());
 			for (String name : names)
 			{
-				final PhaseAmount pa = phase.getPhaseAmount(name);
+				final PhaseAmount pa = phase.findPhaseAmount(name);
 				if (pa != null)
 				{
-					final double phaseGood = phase.getOutput_Good(pa.getResource(), (int) deltaT);
-					if ("percent".equalsIgnoreCase(pa.getResource()))
+					final double phaseGood = phase.getOutputGood(pa.getResourceName(), (int) deltaT);
+					if ("percent".equalsIgnoreCase(pa.getResourceName()))
 					{
 						if (todoAmount <= 0)
 						{
@@ -254,15 +254,15 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 					}
 					else
 					{
-						final double phaseWaste = phase.getOutput_Waste(pa.getResource(), (int) deltaT);
-						_statusListener.updateAmount(pa.getResource(), phaseGood, phaseWaste);
+						final double phaseWaste = phase.getOutputWasteAfterTime(pa.getResourceName(), (int) deltaT);
+						_statusListener.updateAmount(pa.getResourceName(), phaseGood, phaseWaste);
 					}
-					if (namedRes != null && pa.matchesRes(namedRes))
+					if (namedRes != null && pa.matchesResource(namedRes))
 					{
 						all += phaseGood;
 						if (all > todoAmount && todoAmount > 0)
 						{
-							phase.setTimeToGo(0);
+							phase.setDurationMillis(0);
 							log.info("phase " + getJobID() + " / " + getQueueEntryID() + " end for resource: " + namedRes + " done=" + all + " planned=" + todoAmount);
 							reachedEnd = true;
 						}
@@ -276,10 +276,10 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			}
 			if (reachedEnd)
 			{
-				phase.setTimeToGo(0);
+				phase.setDurationMillis(0);
 			}
 			_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(), reachedEnd);
-			if (phase.getTimeToGo() > 0 && !_doShutdown)
+			if (phase.getDurationMillis() > 0 && !_doShutdown)
 			{
 				randomErrors(phase);
 				if (!ThreadUtil.sleep(123))
@@ -289,7 +289,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 				}
 				final long t1 = System.currentTimeMillis();
 				deltaT = t1 - t0;
-				phase.setTimeToGo(phase.getTimeToGo() - deltaT);
+				phase.setDurationMillis(phase.getDurationMillis() - deltaT);
 			}
 		}
 	}
@@ -304,7 +304,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		if (v != null)
 		{
 			final JobPhase currentJobPhase = getCurrentJobPhase();
-			VString vs = currentJobPhase == null ? new VString() : currentJobPhase.getAmountResourceNames();
+			VString vs = currentJobPhase == null ? new VString() : currentJobPhase.getPhaseAmountResourceNames();
 			for (KElement e : v)
 			{
 				final JDFResourceLink rl = (JDFResourceLink) e;
@@ -434,7 +434,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			JobPhase p = getCurrentJobPhase();
 			if (p != null)
 			{
-				p.setTimeToGo(0);
+				p.setDurationMillis(0);
 			}
 			_jobPhases.clear();
 			p = new JobPhase();
@@ -474,7 +474,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		int pos = 0;
 		if (lastPhase != null)
 		{
-			lastPhase.setTimeToGo(0);
+			lastPhase.setDurationMillis(0);
 			pos = 1;
 		}
 		_jobPhases.add(pos, nextPhase);
@@ -493,7 +493,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		firstPhase.setDeviceStatusDetails("Setup");
 		firstPhase.setNodeStatus(EnumNodeStatus.Setup);
 		firstPhase.setNodeStatusDetails("Setup");
-		firstPhase.setTimeToGo(Integer.MAX_VALUE / 2);
+		firstPhase.setDurationMillis(Integer.MAX_VALUE / 2);
 		if (node != null)
 		{
 			final VElement v = node.getResourceLinks(null);
@@ -505,15 +505,15 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 					final JDFResource linkRoot = rl.getLinkRoot();
 					if (linkRoot != null && ((WorkerDevice) _parent).isAmountResource(rl))
 					{
-						final PhaseAmount pa = firstPhase.setAmount(rl.getNamedProcessUsage(), 0, false);
-						pa.setResource(linkRoot.getID());
+						final PhaseAmount pa = firstPhase.addPhaseAmount(rl.getNamedProcessUsage(), 0, false);
+						pa.setResourceName(linkRoot.getID());
 					}
 				}
 			}
 		}
 		else
 		{
-			firstPhase.setAmount(_trackResource, 0, false);
+			firstPhase.addPhaseAmount(_trackResource, 0, false);
 		}
 		return firstPhase;
 	}

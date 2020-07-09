@@ -133,7 +133,7 @@ class JobLoader
 		}
 		else
 		{
-			VString resNames = phase.getAmountResourceNames();
+			VString resNames = phase.getPhaseAmountResourceNames();
 			String master = phase.getMasterAmountResourceName();
 			if (master != null)
 			{
@@ -239,7 +239,7 @@ class JobLoader
 				{
 					varyBy *= -1.0;
 				}
-				phase.setTimeToGo(phase.getTimeToGo() + (long) (phase.getTimeToGo() * varyBy));
+				phase.setDurationMillis(phase.getDurationMillis() + (long) (phase.getDurationMillis() * varyBy));
 			}
 		}
 	}

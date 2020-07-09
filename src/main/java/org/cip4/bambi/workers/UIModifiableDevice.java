@@ -82,7 +82,7 @@ public abstract class UIModifiableDevice extends WorkerDevice
 	{
 		final JobPhase current = getCurrentJobPhase();
 		final JobPhase newPhase = (current == null ? new JobPhase() : current.clone());
-		newPhase.setTimeToGo(Integer.MAX_VALUE); // until modified...
+		newPhase.setDurationMillis(Integer.MAX_VALUE); // until modified...
 
 		String status = request.getParameter("DeviceStatus");
 		if (status != null)
@@ -97,7 +97,7 @@ public abstract class UIModifiableDevice extends WorkerDevice
 			newPhase.setNodeStatus(EnumNodeStatus.getEnum(status));
 			if (EnumNodeStatus.Aborted.equals(newPhase.getNodeStatus()) || EnumNodeStatus.Completed.equals(newPhase.getNodeStatus()) || EnumNodeStatus.Suspended.equals(newPhase.getNodeStatus()))
 			{
-				newPhase.setTimeToGo(0);
+				newPhase.setDurationMillis(0);
 			}
 		}
 		newPhase.setNodeStatusDetails(request.getParameter("NodeStatusDetails"));
@@ -109,15 +109,15 @@ public abstract class UIModifiableDevice extends WorkerDevice
 			{
 				break;
 			}
-			newPhase.setAmount(parameter, request.getDoubleParam("Speed" + i), !request.getBooleanParam("Waste" + i));
+			newPhase.addPhaseAmount(parameter, request.getDoubleParam("Speed" + i), !request.getBooleanParam("Waste" + i));
 		}
 		if (!KElement.isWildCard(request.getParameter(AttributeName.DURATION)))
 		{
-			newPhase.setTimeToGo(1000l * (long) request.getDoubleParam(AttributeName.DURATION));
+			newPhase.setDurationMillis(1000l * (long) request.getDoubleParam(AttributeName.DURATION));
 		}
 		else if (current != null)
 		{
-			newPhase.setTimeToGo(current.getTimeToGo());
+			newPhase.setDurationMillis(current.getDurationMillis());
 		}
 
 		return newPhase;
