@@ -36,6 +36,7 @@ package org.cip4.bambi.workers;
 
 import java.util.Vector;
 
+import org.apache.commons.logging.Log;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
@@ -53,7 +54,10 @@ import org.cip4.jdflib.util.StringUtil;
 /**
  * Implementation of a single JobPhase simulation.
  */
-public class JobPhase extends BambiLogFactory implements Cloneable {
+public class JobPhase implements Cloneable {
+
+    private final Log log = BambiLogFactory.getLog(JobPhase.class);
+
     protected Vector<PhaseAmount> phaseAmounts = new Vector<>();
     protected EnumDeviceStatus deviceStatus = EnumDeviceStatus.Idle;
     protected EnumNodeStatus nodeStatus = EnumNodeStatus.Waiting;
@@ -438,7 +442,7 @@ public class JobPhase extends BambiLogFactory implements Cloneable {
             XMLResponse.addOptionList(deviceStatus, EnumDeviceStatus.getEnumList(), xmlPhase, "DeviceStatus");
             XMLResponse.addOptionList(nodeStatus, EnumNodeStatus.getEnumList(), xmlPhase, "NodeStatus");
         } else {
-            getLog().error("null status - bailing out");
+            log.error("null status - bailing out");
         }
     }
 
