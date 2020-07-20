@@ -100,7 +100,7 @@ public class MsgSubscription implements Cloneable
 	MsgSubscription(final SignalDispatcher signalDispatcher, final IJMFSubscribable m, final String queueEntryId)
 	{
 		this(signalDispatcher);
-		
+
 		final JDFSubscription jmfSubscription = m.getSubscription();
 		if (jmfSubscription == null)
 		{
@@ -108,7 +108,7 @@ public class MsgSubscription implements Cloneable
 			channelID = null;
 			return;
 		}
-		
+
 		final KElement root = jmfSubscription.getDocRoot();
 		jdfVersion = EnumVersion.getEnum(root.getNonEmpty(AttributeName.MAXVERSION));
 		if (jdfVersion == null)
@@ -145,6 +145,19 @@ public class MsgSubscription implements Cloneable
 
 	/**
 	 * Returns the JDF Version.
+	 * 
+	 * @return The JDF Version
+	 * @deprecated
+	 */
+	@Deprecated
+	public EnumVersion getVersion()
+	{
+		return getJdfVersion();
+	}
+
+	/**
+	 * Returns the JDF Version.
+	 * 
 	 * @return The JDF Version
 	 */
 	public EnumVersion getJdfVersion()
@@ -610,7 +623,7 @@ public class MsgSubscription implements Cloneable
 	public String toString()
 	{
 		return "MsgSubscription [" + getMessageType() + (channelID != null ? "channelID=" + channelID + ", " : "") + (queueEntry != null ? "queueEntry=" + queueEntry + ", " : "")
-				+ (url != null ? "url=" + url + ", " : "") + (jdfVersion != null ? "version=" + jdfVersion + ", " : "") + "lastTime=" + timeLastSubmission + ", lastTry=" + timeLastSubmissionTry + ", repeatTime=" + repeatTime
-				+ ", " + (jmfDeviceID != null ? "jmfDeviceID=" + jmfDeviceID : "") + "]";
+				+ (url != null ? "url=" + url + ", " : "") + (jdfVersion != null ? "version=" + jdfVersion + ", " : "") + "lastTime=" + timeLastSubmission + ", lastTry=" + timeLastSubmissionTry
+				+ ", repeatTime=" + repeatTime + ", " + (jmfDeviceID != null ? "jmfDeviceID=" + jmfDeviceID : "") + "]";
 	}
 }

@@ -45,9 +45,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
 import org.cip4.bambi.core.AbstractDevice;
-import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.bambi.proxy.AbstractProxyDevice;
@@ -84,9 +82,6 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 {
-
-	private final Log log = BambiLogFactory.getLog(JMFBufferHandler.class);
-
 
 	/**
 	 * class that identifies messages. if equal, messages are integrated, else they are retained independently
