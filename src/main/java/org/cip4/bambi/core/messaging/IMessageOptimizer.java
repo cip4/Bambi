@@ -86,7 +86,7 @@ public interface IMessageOptimizer
 	 * enum that describes the result of "optimize"<br/>
 	 * August 3, 2009
 	 */
-	public enum OptimizeResult
+	public enum optimizeResult
 	{
 		/**
 		 * oldMessage must be removed
@@ -107,5 +107,5 @@ public interface IMessageOptimizer
 	 * @param oldMessage the old message to check
 	 * @return
 	 */
-	public OptimizeResult optimize(JDFMessage newMessage, JDFMessage oldMessage);
+	public optimizeResult optimize(JDFMessage newMessage, JDFMessage oldMessage);
 }

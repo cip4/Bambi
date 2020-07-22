@@ -96,23 +96,23 @@ public class StatusOptimizer extends BambiLogFactory implements IMessageOptimize
 	 * @see org.cip4.bambi.core.messaging.IMessageOptimizer#optimize(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFMessage)
 	 */
 	@Override
-	public OptimizeResult optimize(final JDFMessage newMessage, final JDFMessage oldMessage)
+	public optimizeResult optimize(final JDFMessage newMessage, final JDFMessage oldMessage)
 	{
 		if (newMessage == null || oldMessage == null)
 		{
-			return OptimizeResult.noCheck;
+			return optimizeResult.noCheck;
 		}
 		if (!EnumType.Status.equals(oldMessage.getEnumType()))
 		{
-			return OptimizeResult.noCheck;
+			return optimizeResult.noCheck;
 		}
 		if (!ContainerUtil.equals(newMessage.getSenderID(), oldMessage.getSenderID()))
 		{
-			return OptimizeResult.noCheck;
+			return optimizeResult.noCheck;
 		}
 		if (!ContainerUtil.equals(newMessage.getFamily(), oldMessage.getFamily()))
 		{
-			return OptimizeResult.noCheck;
+			return optimizeResult.noCheck;
 		}
 		final StatusSignalComparator ssc = getComparator();
 		if (ssc.isSameStatusSignal((JDFSignal) newMessage, (JDFSignal) oldMessage))
@@ -120,9 +120,9 @@ public class StatusOptimizer extends BambiLogFactory implements IMessageOptimize
 			if (log.isDebugEnabled())
 				log.debug("removing redundant status signal: " + oldMessage.getID());
 			ssc.mergeStatusSignal((JDFSignal) newMessage, (JDFSignal) oldMessage);
-			return OptimizeResult.remove;
+			return optimizeResult.remove;
 		}
-		return OptimizeResult.cont;
+		return optimizeResult.cont;
 	}
 
 	protected StatusSignalComparator getComparator()

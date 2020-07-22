@@ -53,7 +53,7 @@ import org.cip4.bambi.core.BambiContainer;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.XMLResponse;
-import org.cip4.bambi.core.messaging.IMessageOptimizer.OptimizeResult;
+import org.cip4.bambi.core.messaging.IMessageOptimizer.optimizeResult;
 import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -235,10 +235,10 @@ public class MessageSender implements Runnable, IPersistable {
                     for (int n = messages.size() - 1; n >= 0; n--) {
                         final JDFMessage oldMessage = (JDFMessage) messages.get(n);
                         if (oldMessage instanceof JDFSignal) {
-                            final OptimizeResult optimizeResult = messageOptimizer.optimize(message, oldMessage);
-                            if (optimizeResult == OptimizeResult.remove) {
+                            final optimizeResult optimizeResult = messageOptimizer.optimize(message, oldMessage);
+                            if (optimizeResult == optimizeResult.remove) {
                                 removeMessage(oldMessage, messageDetails);
-                            } else if (optimizeResult == OptimizeResult.cont) {
+                            } else if (optimizeResult == optimizeResult.cont) {
                                 return; // we found a non matching message and must stop optimizing
                             }
                         }
