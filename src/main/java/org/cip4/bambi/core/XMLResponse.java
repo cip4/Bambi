@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -43,6 +43,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -51,8 +52,10 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.enums.ValuedEnum;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.JDFDate;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.eclipse.jetty.io.EofException;
 
@@ -68,6 +71,7 @@ public class XMLResponse extends BambiLogFactory
 	{
 		super();
 		httpRC = 200;
+		headers = new JDFAttributeMap();
 		this.theXML = theXML;
 		theBuffer = null;
 		notification = null;
@@ -92,6 +96,7 @@ public class XMLResponse extends BambiLogFactory
 		notification = r.notification;
 		this.contentType = contentType;
 		this.errorRC = r.errorRC;
+		headers = r.headers.clone();
 
 	}
 
@@ -101,6 +106,7 @@ public class XMLResponse extends BambiLogFactory
 	int httpRC;
 	private String notification;
 	boolean errorRC;
+	private final JDFAttributeMap headers;
 
 	/**
 	 * @return the errorRC
@@ -111,7 +117,7 @@ public class XMLResponse extends BambiLogFactory
 	}
 
 	/**
-	 * if true (the default) e aspecific error message is sent for error rcs, else the standard message is sent
+	 * if true (the default) e a specific error message is sent for error rcs, else the standard message is sent
 	 *
 	 * @param errorRC the errorRC to set
 	 */
@@ -184,6 +190,20 @@ public class XMLResponse extends BambiLogFactory
 	public void setContentType(final String contentType)
 	{
 		this.contentType = contentType;
+	}
+
+	/**
+	 * add an http header for the response stream
+	 *
+	 * @param key
+	 * @param value
+	 */
+	public void setHeader(final String key, final String value)
+	{
+		if (StringUtil.isEmpty(value))
+			headers.remove(key);
+		else
+			headers.put(key, value);
 	}
 
 	/**
@@ -281,6 +301,10 @@ public class XMLResponse extends BambiLogFactory
 			}
 			else
 			{
+				for (final Entry<String, String> e : headers.entrySet())
+				{
+					sr.setHeader(e.getKey(), e.getValue());
+				}
 				sr.setContentType(getContentType());
 				final ServletOutputStream outputStream = sr.getOutputStream();
 				final InputStream inputStream = getInputStream(); // note that getInputStream optionally serializes the XMLResponse xml document
