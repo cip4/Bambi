@@ -60,6 +60,7 @@ public class XMLResponse extends HTTPResponse
 		super();
 		if (theXML != null)
 		{
+			this.theXML = theXML;
 			setContentType(UrlUtil.TEXT_XML);
 		}
 		this.errorRC = true;
