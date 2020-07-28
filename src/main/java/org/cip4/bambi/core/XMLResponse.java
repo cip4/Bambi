@@ -41,28 +41,16 @@ package org.cip4.bambi.core;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.enums.ValuedEnum;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
-import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.ByteArrayIOStream;
-import org.cip4.jdflib.util.JDFDate;
-import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
-import org.eclipse.jetty.io.EofException;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
-public class XMLResponse extends BambiLogFactory
+public class XMLResponse extends HTTPResponse
 {
 	/**
 	 * @param theXML the xml to write - may be null
@@ -70,11 +58,6 @@ public class XMLResponse extends BambiLogFactory
 	public XMLResponse(final KElement theXML)
 	{
 		super();
-		httpRC = 200;
-		headers = new JDFAttributeMap();
-		this.theXML = theXML;
-		theBuffer = null;
-		notification = null;
 		if (theXML != null)
 		{
 			setContentType(UrlUtil.TEXT_XML);
@@ -89,42 +72,13 @@ public class XMLResponse extends BambiLogFactory
 	 */
 	public XMLResponse(final XMLResponse r, final String contentType)
 	{
-		super();
-		httpRC = r.httpRC;
+		super(r);
 		this.theXML = r.theXML;
-		theBuffer = null;
-		notification = r.notification;
-		this.contentType = contentType;
-		this.errorRC = r.errorRC;
-		headers = r.headers.clone();
+		setContentType(getContentType());
 
 	}
 
 	private KElement theXML;
-	protected ByteArrayIOStream theBuffer;
-	private String contentType;
-	int httpRC;
-	private String notification;
-	boolean errorRC;
-	private final JDFAttributeMap headers;
-
-	/**
-	 * @return the errorRC
-	 */
-	boolean isErrorRC()
-	{
-		return errorRC;
-	}
-
-	/**
-	 * if true (the default) e a specific error message is sent for error rcs, else the standard message is sent
-	 *
-	 * @param errorRC the errorRC to set
-	 */
-	public void setErrorRC(final boolean errorRC)
-	{
-		this.errorRC = errorRC;
-	}
 
 	/**
 	 * @return
@@ -139,6 +93,7 @@ public class XMLResponse extends BambiLogFactory
 	 *
 	 * @return an OutputStream to write to, if xml==null, else null
 	 */
+	@Override
 	public OutputStream getOutputStream()
 	{
 		if (theXML != null)
@@ -168,47 +123,9 @@ public class XMLResponse extends BambiLogFactory
 	}
 
 	/**
-	 * @return the contentType
-	 */
-	public String getContentType()
-	{
-		return contentType;
-	}
-
-	/**
-	 * @return the content Length
-	 */
-	public int getContentLength()
-	{
-		getInputStream(); // ensure that we have a valid stream length
-		return theBuffer == null ? 0 : theBuffer.size();
-	}
-
-	/**
-	 * @param contentType the contentType to set
-	 */
-	public void setContentType(final String contentType)
-	{
-		this.contentType = contentType;
-	}
-
-	/**
-	 * add an http header for the response stream
-	 *
-	 * @param key
-	 * @param value
-	 */
-	public void setHeader(final String key, final String value)
-	{
-		if (StringUtil.isEmpty(value))
-			headers.remove(key);
-		else
-			headers.put(key, value);
-	}
-
-	/**
 	 * @return
 	 */
+	@Override
 	public InputStream getInputStream()
 	{
 		if (theBuffer == null)
@@ -231,134 +148,22 @@ public class XMLResponse extends BambiLogFactory
 		return theBuffer == null ? null : theBuffer.getInputStream();
 	}
 
-	/**
-	 * @return
-	 */
-	public boolean hasContent()
-	{
-		final InputStream is = getInputStream();
-		try
-		{
-			return is != null && is.read() >= 0;
-		}
-		catch (final IOException x)
-		{
-			return false;
-		}
-	}
-
-	/**
-	 * format currentTimeMillis() to mmm dd -HHH:mm:ss
-	 *
-	 * @param milliSeconds
-	 * @return A String that formats a milliseconds (currentTimeMillis()) to a date
-	 */
-	public static String formatLong(final long milliSeconds)
-	{
-
-		return milliSeconds <= 0 ? " - " : new JDFDate(milliSeconds).getFormattedDateTime("MMM dd - HH:mm:ss");
-	}
-
-	/**
-	 * add a set of options to an xml file
-	 *
-	 * @param e the default enum
-	 * @param l the list of all enums
-	 * @param parent the parent element to add the list to
-	 * @param name the name of the option list form
-	 */
-	public static void addOptionList(final ValuedEnum e, final List<? extends ValuedEnum> l, final KElement parent, final String name)
-	{
-		if (e == null || parent == null)
-		{
-			return;
-		}
-		final KElement list = parent.appendElement(BambiNSExtension.MY_NS_PREFIX + "OptionList", BambiNSExtension.MY_NS);
-		list.setAttribute("name", name);
-		list.setAttribute("default", e.getName());
-		final Iterator<? extends ValuedEnum> it = l.iterator();
-		while (it.hasNext())
-		{
-			final ValuedEnum ve = it.next();
-			final KElement option = list.appendElement(BambiNSExtension.MY_NS_PREFIX + "Option", BambiNSExtension.MY_NS);
-			option.setAttribute("name", ve.getName());
-			option.setAttribute("selected", ve.equals(e) ? "selected" : null, null);
-		}
-	}
-
-	/**
-	 *
-	 * @param sr the servlet response to serialize into
-	 */
-	public void writeResponse(final HttpServletResponse sr)
-	{
-		try
-		{
-			if (errorRC && !UrlUtil.isReturnCodeOK(httpRC))
-			{
-				sr.sendError(httpRC, notification);
-				log.warn("sending rc: " + httpRC + " " + notification);
-			}
-			else
-			{
-				for (final Entry<String, String> e : headers.entrySet())
-				{
-					sr.setHeader(e.getKey(), e.getValue());
-				}
-				sr.setContentType(getContentType());
-				final ServletOutputStream outputStream = sr.getOutputStream();
-				final InputStream inputStream = getInputStream(); // note that getInputStream optionally serializes the XMLResponse xml document
-				sr.setContentLength(getContentLength());
-				if (inputStream != null)
-				{
-					IOUtils.copy(inputStream, outputStream);
-				}
-				outputStream.flush();
-				outputStream.close();
-			}
-		}
-		catch (final EofException e)
-		{
-			log.warn("EOF writing to stream: ");
-		}
-		catch (final IOException e)
-		{
-			log.error("cannot write to stream: ", e);
-		}
-	}
-
-	/**
-	 * @return the httpRC
-	 */
-	public int getHttpRC()
-	{
-		return httpRC;
-	}
-
-	/**
-	 * @param httpRC the httpRC to set
-	 */
-	public void setHttpRC(final int httpRC, final String notification)
-	{
-		this.httpRC = httpRC;
-		this.notification = notification;
-	}
-
-	/**
-	 * @return the notification
-	 */
-	String getNotification()
-	{
-		return notification;
-	}
-
-	/**
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
-	public String toString()
+	protected void fillbuffer()
 	{
-		return getClass().getSimpleName() + " [" + (theBuffer != null ? "theBuffer=" + theBuffer + ", " : "") + (contentType != null ? "contentType=" + contentType + ", " : "") + "httpRC=" + httpRC
-				+ ", " + (notification != null ? "notification=" + notification + ", " : "") + "errorRC=" + errorRC + "]";
+		final XMLDoc d = getXMLDoc();
+		if (d != null)
+		{
+			theBuffer = new ByteArrayIOStream();
+			try
+			{
+				d.write2Stream(theBuffer, 2, false);
+			}
+			catch (final IOException x)
+			{
+				theBuffer = null;
+			}
+			theXML = null;
+		}
 	}
 }

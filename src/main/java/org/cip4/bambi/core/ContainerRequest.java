@@ -38,12 +38,19 @@
  */
 package org.cip4.bambi.core;
 
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.UrlUtil.HttpMethod;
 import org.cip4.jdflib.util.net.HTTPDetails;
 
 /**
@@ -65,6 +72,72 @@ public class ContainerRequest extends BambiLogFactory
 		remoteHost = null;
 		name = null;
 		setPost(true);
+	}
+
+	protected void apply(final HttpServletRequest request)
+	{
+		final String contentType = request.getContentType();
+		setContentType(contentType);
+		setRequestURI(request.getRequestURL().toString());
+		setHeaderMap(getHeaderMap(request));
+		setParameterMap(new JDFAttributeMap(getParameterMap(request)));
+		setRemoteHost(request.getRemoteHost());
+		setMethod(request.getMethod());
+
+	}
+
+	/**
+	 *
+	 */
+	private Map<String, String> getParameterMap(final HttpServletRequest request)
+	{
+		final Map<String, String[]> pm = request.getParameterMap();
+		final Map<String, String> retMap = new JDFAttributeMap();
+		final Set<String> keyset = pm.keySet();
+		for (final String key : keyset)
+		{
+			final String[] strings = pm.get(key);
+			if (strings != null && strings.length > 0)
+			{
+				String s = strings[0];
+				for (int i = 1; i < strings.length; i++)
+				{
+					s += JDFConstants.COMMA + strings[i];
+				}
+				s = StringUtil.getNonEmpty(s);
+				if (s != null)
+				{
+					retMap.put(key, s);
+				}
+			}
+		}
+		return retMap.size() == 0 ? null : retMap;
+	}
+
+	/**
+	 * returns the headers as an attributemap
+	 *
+	 * @return map of headers, null if no headers exist
+	 */
+	protected JDFAttributeMap getHeaderMap(final HttpServletRequest request)
+	{
+		final Enumeration<String> headers = request.getHeaderNames();
+		if (!headers.hasMoreElements())
+		{
+			return null;
+		}
+		final JDFAttributeMap map = new JDFAttributeMap();
+		while (headers.hasMoreElements())
+		{
+			final String header = headers.nextElement();
+			final Enumeration<String> e = request.getHeaders(header);
+			final VString v = new VString(e);
+			if (v.size() > 0)
+			{
+				map.put(header, StringUtil.setvString(v, JDFConstants.COMMA, null, null));
+			}
+		}
+		return map.size() == 0 ? null : map;
 	}
 
 	/**
@@ -101,7 +174,7 @@ public class ContainerRequest extends BambiLogFactory
 		this.remoteHost = remoteHost;
 	}
 
-	private boolean bPost;
+	private UrlUtil.HttpMethod method;
 	private JDFAttributeMap headerMap;
 	private JDFAttributeMap parameterMap;
 
@@ -273,7 +346,15 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public String getMethod()
 	{
-		return bPost ? UrlUtil.POST : UrlUtil.GET;
+		return method.name();
+	}
+
+	/**
+	 * @return the method
+	 */
+	public HttpMethod getMethodEnum()
+	{
+		return method;
 	}
 
 	/**
@@ -281,7 +362,7 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public void setPost(final boolean bPost)
 	{
-		this.bPost = bPost;
+		this.method = bPost ? HttpMethod.POST : HttpMethod.GET;
 	}
 
 	/**
@@ -289,7 +370,7 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public boolean isPost()
 	{
-		return bPost;
+		return HttpMethod.POST.equals(method);
 	}
 
 	/**
@@ -330,7 +411,22 @@ public class ContainerRequest extends BambiLogFactory
 	 */
 	public void setMethod(final String method)
 	{
-		this.bPost = UrlUtil.POST.equalsIgnoreCase(method.trim());
+		try
+		{
+			this.method = HttpMethod.valueOf(method.toUpperCase().trim());
+		}
+		catch (final Exception x)
+		{
+			log.error("invalid method type: " + method);
+		}
+	}
+
+	/**
+	 * @param method the method string
+	 */
+	public void setMethod(final HttpMethod method)
+	{
+		this.method = method;
 	}
 
 	/**

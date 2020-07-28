@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2020 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.core;
 
@@ -74,24 +74,17 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.cip4.jdflib.core.JDFConstants;
-import org.cip4.jdflib.core.VString;
-import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.ByteArrayIOFileStream;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.FileUtil;
-import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * class to package an input stream together with the context information of the request
- * 
+ *
  * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class StreamRequest extends ContainerRequest
@@ -104,29 +97,24 @@ public class StreamRequest extends ContainerRequest
 	 */
 	public static StreamRequest createStreamRequest(final HttpServletRequest request) throws IOException
 	{
-		StreamRequest sr = new StreamRequest(request.getInputStream());
-		final String contentType = request.getContentType();
-		sr.setContentType(contentType);
-		sr.setRequestURI(request.getRequestURL().toString());
-		sr.setHeaderMap(sr.getHeaderMap(request));
-		sr.setParameterMap(new JDFAttributeMap(sr.getParameterMap(request)));
-		sr.setRemoteHost(request.getRemoteHost());
+		final StreamRequest sr = new StreamRequest(request.getInputStream());
+		sr.apply(request);
 		return sr;
 	}
 
 	/**
 	 * @param file
 	 * @return
-	 *  
+	 *
 	 */
 	public static StreamRequest createStreamRequest(final File file)
 	{
-		BufferedInputStream fileStream = FileUtil.getBufferedInputStream(file);
+		final BufferedInputStream fileStream = FileUtil.getBufferedInputStream(file);
 		if (fileStream == null)
 		{
 			return null;
 		}
-		StreamRequest sr = new StreamRequest(fileStream);
+		final StreamRequest sr = new StreamRequest(fileStream);
 		final String contentType = UrlUtil.getMimeTypeFromURL(file.getName());
 		sr.setContentType(contentType);
 		sr.setRequestURI(file.getAbsolutePath());
@@ -134,71 +122,19 @@ public class StreamRequest extends ContainerRequest
 	}
 
 	/**
-	 *  
-	 */
-	private Map<String, String> getParameterMap(HttpServletRequest request)
-	{
-		Map<String, String[]> pm = request.getParameterMap();
-		Map<String, String> retMap = new JDFAttributeMap();
-		Set<String> keyset = pm.keySet();
-		for (String key : keyset)
-		{
-			String[] strings = pm.get(key);
-			if (strings != null && strings.length > 0)
-			{
-				String s = strings[0];
-				for (int i = 1; i < strings.length; i++)
-				{
-					s += JDFConstants.COMMA + strings[i];
-				}
-				s = StringUtil.getNonEmpty(s);
-				if (s != null)
-				{
-					retMap.put(key, s);
-				}
-			}
-		}
-		return retMap.size() == 0 ? null : retMap;
-	}
-
-	/**
-	 * returns the headers as an attributemap
-	 * @return map of headers, null if no headers exist
-	 */
-	private JDFAttributeMap getHeaderMap(HttpServletRequest request)
-	{
-		Enumeration<String> headers = request.getHeaderNames();
-		if (!headers.hasMoreElements())
-		{
-			return null;
-		}
-		final JDFAttributeMap map = new JDFAttributeMap();
-		while (headers.hasMoreElements())
-		{
-			String header = headers.nextElement();
-			Enumeration<String> e = request.getHeaders(header);
-			VString v = new VString(e);
-			if (v.size() > 0)
-			{
-				map.put(header, StringUtil.setvString(v, JDFConstants.COMMA, null, null));
-			}
-		}
-		return map.size() == 0 ? null : map;
-	}
-
-	/**
 	 * @param theStream
 	 */
-	public StreamRequest(InputStream theStream)
+	public StreamRequest(final InputStream theStream)
 	{
 		super();
+
 		this.theStream = new ByteArrayIOFileStream(theStream, 10000000);
 	}
 
 	/**
 	 * @param theStream
 	 */
-	public StreamRequest(ByteArrayIOStream theStream)
+	public StreamRequest(final ByteArrayIOStream theStream)
 	{
 		super();
 		this.theStream = theStream;
@@ -211,17 +147,18 @@ public class StreamRequest extends ContainerRequest
 	 */
 	public InputStream getInputStream()
 	{
-		return theStream.getInputStream();
+		return theStream == null ? null : theStream.getInputStream();
 	}
 
 	/**
 	 * @see java.lang.Object#toString()
 	 * @return
-	*/
+	 */
 	@Override
 	public String toString()
 	{
-		return super.toString() + " stream size: " + theStream.size();
+		int s = (theStream == null) ? 0 : theStream.size();
+		return super.toString() + " stream size: " + s;
 	}
 
 	@Override
