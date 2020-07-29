@@ -43,12 +43,12 @@ $ docker run -p 8080:8080 docker.pkg.github.com/cip4/bambi/bambi:latest
 Creation and publishing of a new version to GitHub Release.
 
 ```bash
-$ git tag -a Bambi-[VERSION] -m "[TITLE]"
-$ git push origin Bambi-[VERSION]
+$ git tag -a [VERSION] -m "[TITLE]"
+$ git push origin [VERSION]
 ```
 
 In case a build has been failed, a tag can be deleted using the following command:
 ```bash
-$ git tag -d Bambi-[VERSION]
-$ git push origin :refs/tags/Bambi-[VERSION]
+$ git tag -d [VERSION]
+$ git push origin :refs/tags/[VERSION]
 ```
