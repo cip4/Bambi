@@ -71,7 +71,7 @@
 package org.cip4.bambi.core;
 
 /**
- * interface that handles doGet()
+ * interface that handles doGet() and also additional methods
  *
  * @author prosirai
  *
@@ -93,7 +93,7 @@ public interface IGetHandler
 	 * @param request the url and potentially body of the request
 	 * @return
 	 */
-	default public HTTPResponse handleHTTP(final ContainerRequest request)
+	default public HTTPResponse handleHTTP(final StreamRequest request)
 	{
 		return null;
 	}
