@@ -38,19 +38,15 @@
  */
 package org.cip4.bambi.core;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 
 import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
-import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -87,15 +83,6 @@ public class ContainerRequest extends BambiLogFactory
 		setParameterMap(new JDFAttributeMap(getParameterMap(request)));
 		setRemoteHost(request.getRemoteHost());
 		setMethod(request.getMethod());
-		try
-		{
-			final ServletInputStream inputStream = request.getInputStream();
-			bodyStream = inputStream == null ? null : new ByteArrayIOStream(inputStream);
-		}
-		catch (final IOException e)
-		{
-			bodyStream = null;
-		}
 	}
 
 	/**
@@ -177,7 +164,6 @@ public class ContainerRequest extends BambiLogFactory
 	private String contentType;
 	private String remoteHost;
 	protected String name;
-	private ByteArrayIOStream bodyStream;
 
 	/**
 	 * @param remoteHost the remoteHost to set
@@ -352,7 +338,6 @@ public class ContainerRequest extends BambiLogFactory
 		setParameterMap(map);
 		if (request.getName() != null)
 			setName(request.getName());
-		setBodyStream(request.getBodyStream());
 	}
 
 	/**
@@ -543,19 +528,4 @@ public class ContainerRequest extends BambiLogFactory
 		return getParameter("access_token");
 	}
 
-	/**
-	 * @return the stream
-	 */
-	public InputStream getBodyStream()
-	{
-		return bodyStream == null ? null : bodyStream.getInputStream();
-	}
-
-	/**
-	 * @param stream the stream to set
-	 */
-	public void setBodyStream(final InputStream stream)
-	{
-		this.bodyStream = stream == null ? null : new ByteArrayIOStream(stream);
-	}
 }
