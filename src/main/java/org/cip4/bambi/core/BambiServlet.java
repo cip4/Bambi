@@ -222,11 +222,12 @@ public final class BambiServlet extends HttpServlet
 	/**
 	 * @param request
 	 * @param response
-	 * @param bPost
+	 * @param bPost only used for dumping
 	 * @throws IOException
 	 */
-	public void doGetPost(final HttpServletRequest request, final HttpServletResponse response, final boolean bPost) throws IOException
+	public boolean doGetPost(final HttpServletRequest request, final HttpServletResponse response, final boolean bPost) throws IOException
 	{
+		boolean processed = false;
 		try
 		{
 			final BambiContainer theContainer = BambiContainer.getInstance();
@@ -238,30 +239,29 @@ public final class BambiServlet extends HttpServlet
 			{
 				final AbstractDevice rootDev = theContainer.getRootDev();
 				rootDev.startWork();
-				final String getPost = bPost ? "post" : "get";
-				log.debug("Processing " + getPost + " request for: " + request.getPathInfo());
+				log.debug("Processing " + request.getMethod() + " request for: " + request.getPathInfo());
 
 				final StreamRequest sr = StreamRequest.createStreamRequest(request);
-				sr.setPost(bPost);
 
-				XMLResponse xr = null;
+				HTTPResponse httpResp = null;
 				try
 				{
-					xr = theContainer.processStream(sr);
-					if (xr != null)
+					httpResp = theContainer.processRestStream(sr);
+					if (httpResp != null)
 					{
-						xr.writeResponse(response);
+						httpResp.writeResponse(response);
+						processed = true;
 					}
 				}
 				catch (final Throwable x)
 				{
-					log.error("Snafu processing " + getPost + " request for: " + request.getPathInfo(), x);
+					log.error("Snafu processing " + request.getMethod() + " request for: " + request.getPathInfo(), x);
 				}
 				final boolean bBuf = theContainer.wantDump() && (dumpGet || bPost) && bambiDumpIn != null;
 				if (bBuf)
 				{
 					dumpIncoming(request, bBuf, sr);
-					dumpOutGoing(getPost, sr, xr);
+					dumpOutGoing(request.getMethod(), sr, httpResp);
 				}
 				request.getInputStream().close(); // avoid mem leaks
 				rootDev.endWork();
@@ -271,6 +271,7 @@ public final class BambiServlet extends HttpServlet
 		{
 			log.warn("whazzap???", x);
 		}
+		return processed;
 	}
 
 	/**
@@ -280,7 +281,7 @@ public final class BambiServlet extends HttpServlet
 	 * @param sr
 	 * @param xr
 	 */
-	protected void dumpOutGoing(final String getPost, final StreamRequest sr, final XMLResponse xr)
+	protected void dumpOutGoing(final String getPost, final StreamRequest sr, final HTTPResponse xr)
 	{
 		if (bambiDumpOut != null && (dumpEmpty || (xr != null && xr.hasContent())))
 		{
@@ -344,4 +345,55 @@ public final class BambiServlet extends HttpServlet
 	{
 		doGetPost(request, response, false);
 	}
+
+	/**
+	 * @see javax.servlet.http.HttpServlet#doHead(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected void doHead(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+	{
+		if (!doGetPost(request, response, false))
+			super.doHead(request, response);
+	}
+
+	/**
+	 * @see javax.servlet.http.HttpServlet#doHead(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+	{
+		if (!doGetPost(request, response, false))
+			super.doPut(request, response);
+	}
+
+	/**
+	 * @see javax.servlet.http.HttpServlet#doHead(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+	{
+		if (!doGetPost(request, response, false))
+			super.doDelete(request, response);
+	}
+
+	/**
+	 * @see javax.servlet.http.HttpServlet#doHead(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected void doOptions(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+	{
+		if (!doGetPost(request, response, false))
+			super.doOptions(request, response);
+	}
+
+	/**
+	 * @see javax.servlet.http.HttpServlet#doHead(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected void doTrace(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+	{
+		if (!doGetPost(request, response, false))
+			super.doTrace(request, response);
+	}
+
 }

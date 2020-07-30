@@ -126,9 +126,17 @@ public class StreamRequest extends ContainerRequest
 	 */
 	public StreamRequest(final InputStream theStream)
 	{
+		this(theStream, 10000000);
+	}
+
+	/**
+	 * @param theStream
+	 */
+	public StreamRequest(final InputStream theStream, final int maxLen)
+	{
 		super();
 
-		this.theStream = new ByteArrayIOFileStream(theStream, 10000000);
+		this.theStream = new ByteArrayIOFileStream(theStream, maxLen);
 	}
 
 	/**
@@ -157,7 +165,7 @@ public class StreamRequest extends ContainerRequest
 	@Override
 	public String toString()
 	{
-		int s = (theStream == null) ? 0 : theStream.size();
+		final int s = (theStream == null) ? 0 : theStream.size();
 		return super.toString() + " stream size: " + s;
 	}
 

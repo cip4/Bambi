@@ -93,7 +93,7 @@ public class StreamRedirectListener implements HotFolderListener
 	 *
 	 * @param abstractDevice
 	 */
-	public StreamRedirectListener(AbstractDevice abstractDevice)
+	public StreamRedirectListener(final AbstractDevice abstractDevice)
 	{
 		deviceID = abstractDevice.getDeviceID();
 		log = LogFactory.getLog(getClass());
@@ -104,9 +104,9 @@ public class StreamRedirectListener implements HotFolderListener
 	 * @see org.cip4.jdflib.util.hotfolder.HotFolderListener#hotFile(java.io.File)
 	 */
 	@Override
-	public boolean hotFile(File hotFile)
+	public boolean hotFile(final File hotFile)
 	{
-		StreamRequest req = StreamRequest.createStreamRequest(hotFile);
+		final StreamRequest req = StreamRequest.createStreamRequest(hotFile);
 		if (req == null)
 		{
 			return false;
@@ -116,19 +116,20 @@ public class StreamRedirectListener implements HotFolderListener
 		try
 		{
 			log.info("redirecting hot file to " + deviceID + " " + hotFile);
-			XMLResponse xr = BambiContainer.getInstance().processStream(req);
-			if (xr == null)
+			final HTTPResponse hr = BambiContainer.getInstance().processStream(req);
+			if (!(hr instanceof XMLResponse))
 				return false;
-			KElement root = xr.getXML();
+			final XMLResponse xr = (XMLResponse) hr;
+			final KElement root = xr.getXML();
 			if (root instanceof JDFJMF)
 			{
-				JDFResponse resp = ((JDFJMF) root).getResponse(0);
+				final JDFResponse resp = ((JDFJMF) root).getResponse(0);
 				return resp != null && resp.getReturnCode() == 0;
 			}
 			else if (XJDFConstants.XJMF.equals(root.getLocalName()))
 			{
-				XJMFHelper h = new XJMFHelper(root);
-				MessageHelper mh = h.getMessageHelper(0);
+				final XJMFHelper h = new XJMFHelper(root);
+				final MessageHelper mh = h.getMessageHelper(0);
 				return mh == null ? false : mh.getReturnCode() == 0;
 			}
 			else
@@ -136,7 +137,7 @@ public class StreamRedirectListener implements HotFolderListener
 				return false;
 			}
 		}
-		catch (IOException e)
+		catch (final IOException e)
 		{
 			log.error("Snafu processing file " + hotFile, e);
 			return false;

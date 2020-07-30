@@ -45,6 +45,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
+import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.ByteArrayIOStream.ByteArrayIOInputStream;
 import org.cip4.jdflib.util.UrlUtil;
 import org.junit.Test;
 
@@ -74,6 +76,18 @@ public class ContainerRequestTest extends BambiTestCaseBase
 		final JDFAttributeMap m1 = new JDFAttributeMap(UrlUtil.AUTHORIZATION, "Bearer a");
 		req.setHeaderMap(m1);
 		assertEquals("a", req.getBearerToken());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testBodyStream()
+	{
+		final ContainerRequest req = new ContainerRequest();
+		req.setBodyStream(new ByteArrayIOStream("aaa".getBytes()).getInputStream());
+		assertEquals("aaa", new String(((ByteArrayIOInputStream) req.getBodyStream()).getBuf()));
+		assertEquals("aaa", new String(((ByteArrayIOInputStream) req.getBodyStream()).getBuf()));
 	}
 
 	/**

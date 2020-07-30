@@ -2360,4 +2360,15 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		// default nop
 
 	}
+
+	/**
+	 * hook for rest interfaces
+	 *
+	 * @param sr
+	 * @return a response if the request was brocessed, else null
+	 */
+	public HTTPResponse processRestStream(final StreamRequest sr)
+	{
+		return null;
+	}
 }

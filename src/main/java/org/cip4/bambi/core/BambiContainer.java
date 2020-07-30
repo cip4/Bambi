@@ -678,4 +678,24 @@ public final class BambiContainer extends ServletContainer
 		}
 		return super.processStream(request);
 	}
+
+	/**
+	 * @see org.cip4.bambi.core.ServletContainer#processRestStream(org.cip4.bambi.core.StreamRequest)
+	 */
+	@Override
+	public HTTPResponse processRestStream(final StreamRequest sr) throws IOException
+	{
+		final RootDevice rootDevice = getRootDevice();
+		if (rootDevice != null)
+		{
+			final HTTPResponse resp = rootDevice.processRestStream(sr);
+			if (resp != null)
+			{
+				return resp;
+			}
+		}
+
+		return processStream(sr);
+	}
+
 }

@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2016 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 
 package org.cip4.bambi.core;
@@ -75,6 +75,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -94,6 +95,7 @@ import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.CPUTimer;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -104,14 +106,14 @@ import org.junit.Test;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- * 
- * 16.11.2009
+ *
+ *         16.11.2009
  */
 public class BambiContainerTest extends BambiTestCase
 {
 
 	/**
-	 * 
+	 *
 	 */
 	public BambiContainerTest()
 	{
@@ -120,7 +122,7 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testConstruct()
@@ -133,7 +135,7 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testGetTimer()
@@ -142,21 +144,21 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testStartStopTimer()
 	{
 		bambiContainer.startTimer(null);
 		ThreadUtil.sleep(50);
-		CPUTimer t = bambiContainer.getTimer(null);
+		final CPUTimer t = bambiContainer.getTimer(null);
 		assertTrue(t.getCurrentRealTime() > 10);
 		bambiContainer.stopTimer(null);
 		assertTrue(t.getTotalRealTime() > 10);
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testHandleJMF()
@@ -168,7 +170,21 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 * @throws IOException
+	 *
+	 */
+	@Test
+	public void testHandleZip() throws IOException
+	{
+		final StreamRequest r = new StreamRequest(FileUtil.getBufferedInputStream(new File(sm_dirTestData + "testZip2.zip")), 10);
+		r.setContentType(UrlUtil.APPLICATION_ZIP);
+		final XMLResponse resp = bambiContainer.processStream(r);
+		assertNotNull(resp);
+		assertTrue(((JDFElement) resp.getXML()).isValid(EnumValidationLevel.Complete));
+	}
+
+	/**
+	 *
 	 */
 	@Test
 	public void testHandleJunkXML()
@@ -182,7 +198,7 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testSubmitRawJDF()
@@ -195,7 +211,7 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testSubmitRawXJDF()
@@ -208,8 +224,8 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * @throws IOException 
-	 * 
+	 * @throws IOException
+	 *
 	 */
 	@Test
 	public void testHandleStreamXML() throws IOException
@@ -226,8 +242,8 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * @throws IOException 
-	 * 
+	 * @throws IOException
+	 *
 	 */
 	@Test
 	public void testHandleStreamError() throws IOException
@@ -244,8 +260,8 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * @throws Exception 
-	 * 
+	 * @throws Exception
+	 *
 	 */
 	@Override
 	public void setUp() throws Exception
@@ -256,7 +272,7 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testHandleJMFSubscription()
@@ -272,7 +288,7 @@ public class BambiContainerTest extends BambiTestCase
 
 	/**
 	 * @throws IOException if bad things happen
-	 * 
+	 *
 	 */
 	@Test
 	public void testHandleGet() throws IOException
@@ -289,7 +305,7 @@ public class BambiContainerTest extends BambiTestCase
 
 	/**
 	 * @throws IOException if bad things happen
-	 * 
+	 *
 	 */
 	@Test
 	public void testSubmit() throws IOException
@@ -309,8 +325,8 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * @throws IOException 
-	 * 
+	 * @throws IOException
+	 *
 	 */
 	@Test
 	public void testSubmitCrap() throws IOException
@@ -332,8 +348,8 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
-	 * @throws IOException 
-	 * 
+	 * @throws IOException
+	 *
 	 */
 	@Test
 	@Ignore
