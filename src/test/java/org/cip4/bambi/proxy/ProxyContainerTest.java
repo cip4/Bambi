@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2014 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,29 +56,30 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.proxy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
 
+import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestHelper;
-import org.cip4.bambi.core.BambiContainerTest;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.XMLResponse;
@@ -86,6 +87,9 @@ import org.cip4.bambi.proxy.ProxyProperties.ProxyDeviceProperties;
 import org.cip4.jdflib.auto.JDFAutoRequestQueueEntryParams.EnumSubmitPolicy;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -99,20 +103,27 @@ import org.cip4.jdflib.util.ThreadUtil;
 import org.junit.Test;
 
 /**
- * 
- *  
+ *
+ *
  * @author rainer prosi
  * @date Oct 29, 2010
  */
-public class ProxyContainerTest extends BambiContainerTest
+public class ProxyContainerTest extends BambiTestCase
 {
 
+	public ProxyContainerTest()
+	{
+		super();
+		wantContainer = true;
+	}
+
 	/**
-	 * 
+	 *
 	 * test of generic command proxy
+	 *
 	 * @throws IOException
 	 */
-    @Test
+	@Test
 	public void testNewJDF() throws IOException
 	{
 		final BambiTestHelper helper = getHelper();
@@ -123,14 +134,15 @@ public class ProxyContainerTest extends BambiContainerTest
 	}
 
 	/**
-	 * 
+	 *
 	 * test rqe to a proxy device
-	 * @throws IOException 
+	 *
+	 * @throws IOException
 	 */
-    @Test
+	@Test
 	public void testRequestQueueEntry() throws IOException
 	{
-		testSubmit();
+		presubmit();
 		final JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
 		assertEquals(queue.numEntries(null), 1);
 		JDFQueueEntry qe = queue.getNextExecutableQueueEntry();
@@ -150,15 +162,16 @@ public class ProxyContainerTest extends BambiContainerTest
 	}
 
 	/**
-	 * 
+	 *
 	 * test rqe to a proxy device
+	 *
 	 * @throws IOException ex
 	 */
-    @Test
+	@Test
 	public void testRequestQueueEntryInformative() throws IOException
 	{
 		deviceID = "sim001";
-		testSubmit();
+		presubmit();
 		final JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
 		assertEquals(queue.numEntries(null), 1);
 		JDFQueueEntry qe = queue.getNextExecutableQueueEntry();
@@ -180,27 +193,28 @@ public class ProxyContainerTest extends BambiContainerTest
 		{
 			dresp3 = submitJMFtoURL(pull, getProxyURLForSlave());
 			if (dresp3.getJMFRoot().getResponse(0).getReturnCode() != 0)
-            {
-                fail("" + i);
-            }
-            else
-            {
-                System.out.print(i + "\n");
-            }
+			{
+				fail("" + i);
+			}
+			else
+			{
+				System.out.print(i + "\n");
+			}
 		}
 		assertNotNull(dresp3);
 
 	}
 
 	/**
-	 * 
+	 *
 	 * test rqe to a proxy device
+	 *
 	 * @throws IOException ex
 	 */
-    @Test
+	@Test
 	public void testRequestQueueEntryInformativeThenReal() throws IOException
 	{
-		testSubmit();
+		presubmit();
 		final JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
 		assertEquals(queue.numEntries(null), 1);
 		JDFQueueEntry qe = queue.getNextExecutableQueueEntry();
@@ -219,22 +233,43 @@ public class ProxyContainerTest extends BambiContainerTest
 		pull.getCommand(0).getRequestQueueEntryParams(0).setAttribute(AttributeName.ACTIVATION, EnumActivation.Active.getName());
 		final JDFDoc dresp3 = submitJMFtoURL(pull, getProxyURLForSlave());
 		if (dresp3.getJMFRoot().getResponse(0).getReturnCode() != 0)
-        {
-            fail();
-        }
+		{
+			fail();
+		}
 		assertNotNull(dresp3);
 
 	}
 
 	/**
-	* 
-	* test rqe to a proxy device
-	* @throws IOException ex
-	*/
-    @Test
+	 * @throws IOException if bad things happen
+	 *
+	 */
+	public void presubmit() throws IOException
+	{
+
+		final JDFDoc docJDF = _theGT.getNode().getOwnerDocument_JDFElement();
+
+		final BambiTestHelper helper = getHelper();
+		final XMLResponse resp = helper.submitMimetoContainer(docJDF, getWorkerURL() + deviceID);
+		assertNotNull(resp);
+		final KElement htmlResp = resp.getXML();
+		assertNotNull(htmlResp);
+		assertTrue(htmlResp instanceof JDFJMF);
+		final JDFQueue queue = helper.getQueueStatus(getWorkerURL());
+		assertTrue(queue.numEntries(null) > 0);
+
+	}
+
+	/**
+	 *
+	 * test rqe to a proxy device
+	 *
+	 * @throws IOException ex
+	 */
+	@Test
 	public void testRequestQueueEntryForce() throws IOException
 	{
-		testSubmit();
+		presubmit();
 		final JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
 		assertEquals(queue.numEntries(null), 1);
 		JDFQueueEntry qe = queue.getNextExecutableQueueEntry();
@@ -255,25 +290,37 @@ public class ProxyContainerTest extends BambiContainerTest
 		{
 			dresp3 = submitJMFtoURL(pull, getProxyURLForSlave());
 			if (dresp3.getJMFRoot().getResponse(0).getReturnCode() != 0)
-            {
-                ThreadUtil.sleep(1000);
-            }
-            else
-            {
-                break;
-            }
+			{
+				ThreadUtil.sleep(1000);
+			}
+			else
+			{
+				break;
+			}
 		}
 		assertNotNull(dresp3);
 
 	}
 
 	/**
-	 * @return 
-	 * 
+	 * @return
+	 *
 	 */
 	protected String getProxyURLForSlave()
 	{
 		return StringUtil.replaceString(getWorkerURL(), "/jmf/", "/slavejmf/");
+	}
+
+	/**
+	 * @throws Exception
+	 *
+	 */
+	@Override
+	public void setUp() throws Exception
+	{
+		super.setUp();
+		JDFElement.setDefaultJDFVersion(EnumVersion.Version_1_4);
+		startContainer();
 	}
 
 	/**
