@@ -398,6 +398,28 @@ public class RootDevice extends AbstractDevice
 	public class RootGetDispatchHandler extends BambiLogFactory implements IGetHandler
 	{
 		/**
+		 * @see org.cip4.bambi.core.IGetHandler#handleHTTP(org.cip4.bambi.core.StreamRequest)
+		 */
+		@Override
+		public HTTPResponse handleHTTP(final StreamRequest request)
+		{
+			final AbstractDevice[] devs = getDeviceArray();
+			if (devs != null)
+			{
+				HTTPResponse r = null;
+				for (final AbstractDevice dev : devs)
+				{
+					r = dev.handleHTTP(request);
+					if (r != null)
+					{
+						return r;
+					}
+				}
+			}
+			return RootDevice.this.handleHTTP(request);
+		}
+
+		/**
 		 * @param request
 		 * @return the response if handled
 		 */
@@ -893,6 +915,15 @@ public class RootDevice extends AbstractDevice
 	{
 		// nop - hook for subclasses
 
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.AbstractDevice#processRestStream(org.cip4.bambi.core.StreamRequest)
+	 */
+	@Override
+	public HTTPResponse processRestStream(final StreamRequest sr)
+	{
+		return new RootGetDispatchHandler().handleHTTP(sr);
 	}
 
 }
