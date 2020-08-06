@@ -194,7 +194,7 @@ public abstract class ServletContainer extends BambiLogFactory
 
 	/**
 	 * should be called instaead of processStream if rest calls are supported
-	 * 
+	 *
 	 * @param sr
 	 * @return
 	 * @throws IOException
@@ -202,7 +202,7 @@ public abstract class ServletContainer extends BambiLogFactory
 	public HTTPResponse processRestStream(final StreamRequest sr) throws IOException
 	{
 		// hook for overrides
-		return processStream(sr);
+		return null;
 	}
 
 	XMLResponse handlePost(final StreamRequest request) throws IOException

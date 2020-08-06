@@ -234,7 +234,10 @@ public class ContainerRequest extends BambiLogFactory
 		{
 			parameterMap = new JDFAttributeMap();
 		}
-		parameterMap.putNotNull(key, value);
+		if (StringUtil.isEmpty(value))
+			parameterMap.remove(key);
+		else
+			parameterMap.put(key, value);
 	}
 
 	/**

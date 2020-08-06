@@ -216,7 +216,14 @@ public final class BambiServlet extends HttpServlet
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws IOException
 	{
-		doGetPost(request, response, true);
+		try
+		{
+			doGetPost(request, response, true);
+		}
+		catch (final Exception x)
+		{
+			log.error("snafu", x);
+		}
 	}
 
 	/**
@@ -343,7 +350,15 @@ public final class BambiServlet extends HttpServlet
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException
 	{
-		doGetPost(request, response, false);
+		try
+		{
+			doGetPost(request, response, false);
+		}
+		catch (final Exception x)
+		{
+			log.error("snafu", x);
+		}
+
 	}
 
 	/**
@@ -352,8 +367,15 @@ public final class BambiServlet extends HttpServlet
 	@Override
 	protected void doHead(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
 	{
-		if (!doGetPost(request, response, false))
-			super.doHead(request, response);
+		try
+		{
+			if (!doGetPost(request, response, false))
+				super.doHead(request, response);
+		}
+		catch (final Exception x)
+		{
+			log.error("snafu", x);
+		}
 	}
 
 	/**
@@ -362,8 +384,15 @@ public final class BambiServlet extends HttpServlet
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
 	{
-		if (!doGetPost(request, response, false))
-			super.doPut(request, response);
+		try
+		{
+			if (!doGetPost(request, response, false))
+				super.doPut(request, response);
+		}
+		catch (final Exception x)
+		{
+			log.error("snafu", x);
+		}
 	}
 
 	/**
@@ -372,8 +401,15 @@ public final class BambiServlet extends HttpServlet
 	@Override
 	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
 	{
-		if (!doGetPost(request, response, false))
-			super.doDelete(request, response);
+		try
+		{
+			if (!doGetPost(request, response, false))
+				super.doDelete(request, response);
+		}
+		catch (final Exception x)
+		{
+			log.error("snafu", x);
+		}
 	}
 
 	/**
@@ -382,8 +418,15 @@ public final class BambiServlet extends HttpServlet
 	@Override
 	protected void doOptions(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
 	{
-		if (!doGetPost(request, response, false))
-			super.doOptions(request, response);
+		try
+		{
+			if (!doGetPost(request, response, false))
+				super.doOptions(request, response);
+		}
+		catch (final Exception x)
+		{
+			log.error("snafu", x);
+		}
 	}
 
 	/**
@@ -392,8 +435,15 @@ public final class BambiServlet extends HttpServlet
 	@Override
 	protected void doTrace(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
 	{
-		if (!doGetPost(request, response, false))
-			super.doTrace(request, response);
+		try
+		{
+			if (!doGetPost(request, response, false))
+				super.doTrace(request, response);
+		}
+		catch (final Exception x)
+		{
+			log.error("snafu", x);
+		}
 	}
 
 }
