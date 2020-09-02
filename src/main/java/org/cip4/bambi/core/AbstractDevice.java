@@ -2186,10 +2186,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		if (EnumType.Status.equals(typ))
 		{
 			final List<JDFDeviceInfo> devInfos = s.getChildArrayByClass(JDFDeviceInfo.class, false, -1);
-			if (devInfos == null || devInfos.size() == 0)
+			if (ContainerUtil.isEmpty(devInfos))
 			{
-				if ((numRequests < 1000) || (numRequests % 1000 == 0))
-					log.warn("removing status signal with no DeviceInfo; " + numRequests);
 				return true;
 			}
 
