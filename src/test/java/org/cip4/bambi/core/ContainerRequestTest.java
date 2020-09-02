@@ -170,4 +170,17 @@ public class ContainerRequestTest extends BambiTestCaseBase
 		assertEquals("B", req.getParameter("A"));
 	}
 
+	/**
+	*
+	*/
+	@Test
+	public void testgetLongParameter()
+	{
+		final ContainerRequest req = new ContainerRequest();
+		req.setRequestURI("http://host/foo/bar/dev");
+		final long currentTimeMillis = System.currentTimeMillis();
+		req.setParameterMap(new JDFAttributeMap("A", "" + currentTimeMillis));
+		assertEquals(currentTimeMillis, req.getLongParam("a"));
+	}
+
 }

@@ -497,6 +497,18 @@ public class ContainerRequest extends BambiLogFactory
 	}
 
 	/**
+	 * extract a long attribute from a given request
+	 *
+	 * @param param
+	 * @return the long parameter
+	 */
+	public long getLongParam(final String param)
+	{
+		final String val = getParameter(param);
+		return StringUtil.parseLong(val, 0);
+	}
+
+	/**
 	 * extract a double attribute from a given request
 	 *
 	 * @param param
