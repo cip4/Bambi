@@ -256,6 +256,7 @@ public abstract class HTTPResponse extends BambiLogFactory
 				{
 					sr.setHeader(e.getKey(), e.getValue());
 				}
+				sr.setStatus(httpRC);
 				sr.setContentType(getContentType());
 				final ServletOutputStream outputStream = sr.getOutputStream();
 				final InputStream inputStream = getInputStream(); // note that getInputStream optionally serializes the XMLResponse xml document
