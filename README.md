@@ -36,7 +36,9 @@ $ docker pull docker.pkg.github.com/cip4/bambi/bambi:latest
 $ docker run -p 8080:8080 docker.pkg.github.com/cip4/bambi/bambi:latest
 ```
 
-<br />
+**Note:** The public GitHub Package Registry [requires authentication](https://github.community/t/docker-pull-from-public-github-package-registry-fail-with-no-basic-auth-credentials-error/16358).
+
+Log in using `docker login docker.pgk.github.com` first. You can also use a [personal access token](https://github.com/settings/tokens) to authenticate with in lieu of your password (requires the `read:packages` scope).
 
 ## Development Notes
 ### Release a new Version
