@@ -1477,7 +1477,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				final Collection<JDFQueueEntry> v = root.getAllQueueEntry();
 				for (final KElement e : v)
 				{
-					if (StringUtil.matchesIgnoreCase(e.toDisplayXML(0), filter) == invert)
+					if (StringUtil.matchesIgnoreCase(e.toValueString((char) 1), filter) == invert)
 					{
 						e.deleteNode();
 					}
