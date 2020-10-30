@@ -457,7 +457,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			final JDFQueueSubmissionParams qsp = m.getQueueSubmissionParams(0);
 			JDFDoc doc = qsp == null ? null : qsp.getURLDoc();
-			if (doc == null)
+			if (doc == null && qsp != null)
 			{
 				final String url = qsp.getURL();
 				final ZipReader zipReader = qsp.getOwnerDocument_KElement().getZipReader();
