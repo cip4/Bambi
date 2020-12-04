@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -30,9 +30,9 @@
  *
  * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
  * originally based on software copyright (c) 1999-2006, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
- * 
+ *
  * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
- * 
+ *
  *
  */
 package org.cip4.bambi.core;
@@ -96,17 +96,20 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 	 */
 	public boolean flush(final String msgType)
 	{
-		final Trigger[] t = dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
-		dispatcher.flush();
-		if (rootDispatcher != null)
+		if (dispatcher != null)
 		{
-			final Trigger[] t2 = rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
-			rootDispatcher.flush();
-			if (!Trigger.waitQueued(t2, 12000))
-				return false;
+			final Trigger[] t = dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
+			dispatcher.flush();
+			if (rootDispatcher != null)
+			{
+				final Trigger[] t2 = rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
+				rootDispatcher.flush();
+				if (!Trigger.waitQueued(t2, 12000))
+					return false;
+			}
+			return Trigger.waitQueued(t, 12000);
 		}
-		return Trigger.waitQueued(t, 12000);
-
+		return false;
 	}
 
 	/**
@@ -188,7 +191,7 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 
 	/**
 	 * set the total amount of a given resource by the value specified
-	 * 
+	 *
 	 * @param percent the percent completed
 	 *
 	 *
@@ -205,7 +208,7 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 
 	/**
 	 * incrementally update the total amount of a given resource by the value specified
-	 * 
+	 *
 	 * @param percent the percent completed
 	 *
 	 *

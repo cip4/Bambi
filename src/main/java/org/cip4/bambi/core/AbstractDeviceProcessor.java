@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -267,6 +267,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	{
 		super();
 		entriesProcessed = 0;
+		_statusListener = new StatusListener(null, null, null);
 	}
 
 	/**
@@ -291,8 +292,10 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 					}
 					idleProcess();
 					nWait++;
-					if (!ThreadUtil.wait(_myListener, 10000)) // 10000 is just in case
+					if (!ThreadUtil.wait(_myListener, 10000))
+					{
 						break;
+					}
 				}
 				else
 				{
@@ -589,13 +592,16 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		_statusListener.flush("Status");
 		_statusListener.setNode(null, null, null, null);
 		final JDFQueueEntry qe = currentQE.getQueueEntry();
-		if (bReturn)
+		if (bReturn && _queueProcessor != null)
 		{
 			_queueProcessor.returnQueueEntry(qe, null, getCurrentJDF(), qes);
 		}
 		qe.removeAttribute(AttributeName.DEVICEID);
 		log.info("finalized processing JDF: " + getJobID() + " " + ((qes == null) ? "??? null ???" : qes.getName()));
-		_queueProcessor.updateEntry(qe, qes, null, null, null);
+		if (_queueProcessor != null)
+		{
+			_queueProcessor.updateEntry(qe, qes, null, null, null);
+		}
 		currentQE = null;
 		return bReturn;
 	}
@@ -639,7 +645,10 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		log.info("received shutdown event");
 		_doShutdown = true;
 		ThreadUtil.notifyAll(_myListener);
-		_parent.removeProcessor(this);
+		if (_parent != null)
+		{
+			_parent.removeProcessor(this);
+		}
 	}
 
 	/**
