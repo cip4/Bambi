@@ -1,5 +1,5 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi">
-	<xsl:template name="cputimer">
+	<xsl:template name="cpu-timer">
 		<div class="card-columns">
 			<xsl:for-each select="//CPUTimer">
 				<div class="card">

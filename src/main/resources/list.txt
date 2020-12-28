@@ -14,8 +14,15 @@
 /config/job_simWF.xml
 /config/resinfo_simIDP.xml
 
+/legacy/modules/cpu-timer.module.xsl
+/legacy/modules/head-content.module.xsl
+/legacy/modules/version.module.xsl
+/legacy/modules/modify-string.module.xsl
+
+/legacy/styles/style.js
+/legacy/styles/style.css
+
 /legacy/CPUTimer.xsl
-/legacy/CPUTimer-Bootstrap.xsl
 /legacy/DeviceDetails.xsl
 /legacy/DeviceExtension.xsl
 /legacy/deviceList.xsl
@@ -24,8 +31,6 @@
 /legacy/exception.jsp
 /legacy/favicon.ico
 /legacy/index.jsp
-/legacy/index.js
-/legacy/index.css
 /legacy/jdf.xsl
 /legacy/log4j.properties
 /legacy/login.xsl

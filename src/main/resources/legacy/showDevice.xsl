@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<!-- Copyright 2009-2019 CIP4 -->
-<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
-	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:strip-space elements="*" />
 	<xsl:output method="html" />
 	<xsl:template match="/XMLDevice">
@@ -14,261 +11,334 @@
 			<xsl:variable name="context" select="@Context" />
 			<xsl:variable name="modify" select="@modify" />
 			<xsl:variable name="mutable" select="@mutable" />
+
 			<head>
-				<link rel="stylesheet" type="text/css">
-					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/legacy/css/styles_pc.css</xsl:attribute>
-				</link>
-				<link rel="icon" type="image/x-icon">
-					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/legacy/favicon.ico</xsl:attribute>
-				</link>
-				<title>
-					<xsl:value-of select="$deviceType" />
-					:
-					<xsl:value-of select="$deviceID" />
-				</title>
+				<xsl:call-template name="head-content" />
+
 				<xsl:if test="@refresh='true'">
 					<meta http-equiv="refresh">
-						<xsl:attribute name="content">15; URL=<xsl:value-of
-							select="$context" />/showDevice/<xsl:value-of
-							select="$deviceID" />?refresh=true</xsl:attribute>
+						<xsl:attribute name="content">
+							15; URL=<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="$deviceID" />?refresh=true
+						</xsl:attribute>
 					</meta>
 				</xsl:if>
 			</head>
 
 			<!-- Body only -->
-			<body>
-				<xsl:call-template name="topnavigation" />
-				<h1>
-					<xsl:value-of select="$deviceType" />
-					- Device :
-					<xsl:value-of select="$deviceID" />
-				</h1>
-				<p align="center">
-					<table>
-						<tr valign="bottom">
-							<xsl:choose>
-								<xsl:when test="@refresh='true'">
-									<a>
-										<xsl:attribute name="href"><xsl:value-of
-											select="$context" />/showDevice/<xsl:value-of
-											select="$deviceID" />?refresh=false</xsl:attribute>
-										modify page
+			<body data-spy="scroll" data-target=".navbar" data-offset="150">
+				<!-- navigation -->
+				<nav class="navbar navbar-expand-sm fixed-top">
+					<a class="navbar-brand" href="#">
+						<img class="nav-logo" src="http://assets.cip4.org/logo/cip4-organization.png" />
+						<span class="cip">CIP4</span> Organization
+					</a>
+
+					<!-- left -->
+					<ul class="navbar-nav mr-auto"></ul>
+
+					<!-- right -->
+					<ul class="navbar-nav"></ul>
+				</nav>
+
+
+				<div class="container">
+
+					<!-- device title -->
+					<div class="row pt-5">
+						<div class="col-12">
+							<h1>Device: <xsl:value-of select="$deviceID" /></h1>
+							<p><xsl:value-of select="$deviceType" /></p>
+						</div>
+					</div>
+
+					<!-- control buttons -->
+					<div class="row">
+						<div class="col-12">
+							<ul class="list-inline mb-2 mt-2">
+								<li class="list-inline-item">
+									<form class="mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="hidden" name="refresh" value="false" />
+										<input type="hidden" name="setup" value="true" />
+										<input type="submit" class="btn btn-outline-secondary" value="Refresh" />
+									</form>
+								</li>
+
+								<xsl:if test="$mutable='true'">
+									<li class="list-inline-item">
+										<form class="mb-0">
+											<xsl:attribute name="action">
+												<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
+											</xsl:attribute>
+											<input type="hidden" name="shutdown" value="true" />
+											<input type="hidden" name="setup" value="true" />
+											<input type="submit" class="btn btn-outline-secondary" value="Shutdown" />
+										</form>
+									</li>
+									<li class="list-inline-item">
+										<form class="mb-0">
+											<xsl:attribute name="action">
+												<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
+											</xsl:attribute>
+											<input type="hidden" name="setup" value="true" />
+											<input type="hidden" name="restart" value="true" />
+											<input type="submit" class="btn btn-outline-secondary" value="Restart" />
+										</form>
+									</li>
+									<li class="list-inline-item">
+										<form class="mb-0">
+											<xsl:attribute name="action">
+												<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
+											</xsl:attribute>
+											<input type="hidden" name="setup" value="true" />
+											<input type="hidden" name="reset" value="true" />
+											<input type="submit" class="btn btn-outline-secondary" value="Reset" />
+										</form>
+									</li>
+								</xsl:if>
+
+								<xsl:if test="$modify!='true'">
+									<li class="list-inline-item">
+										<form class="mb-0">
+											<xsl:attribute name="action">
+												<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
+											</xsl:attribute>
+											<input type="hidden" name="modify" value="true" />
+											<input type="hidden" name="setup" value="true" />
+											<input type="hidden" name="refresh" value="false" />
+											<input type="submit" class="btn btn-outline-secondary" value="Modify" />
+										</form>
+									</li>
+								</xsl:if>
+
+								<xsl:if test="@login='true'">
+									<li class="list-inline-item">
+										<form class="mb-0">
+											<xsl:attribute name="action">
+												<xsl:value-of select="$context" />/login/<xsl:value-of select="@DeviceID" />
+											</xsl:attribute>
+											<input type="submit" class="btn btn-outline-secondary" value="Login" />
+										</form>
+									</li>
+								</xsl:if>
+
+								<li class="list-inline-item">
+									<form class="mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="submit" class="btn btn-outline-secondary" value="Show Queue" />
+									</form>
+								</li>
+								<li class="list-inline-item">
+									<form class="mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showSubscriptions/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="submit" class="btn btn-outline-secondary" value="Show Subscriptions" />
+									</form>
+								</li>
+							</ul>
+						</div>
+					</div>
+
+					<!-- links buttons -->
+					<div class="row">
+						<div class="col-12">
+							<ul class="list-inline">
+								<xsl:choose>
+									<xsl:when test="@refresh='true'">
+										<li class="list-inline-item">
+											<a class="btn btn-link pl-0" role="button">
+												<xsl:attribute name="href">
+													<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="$deviceID" />?refresh=false
+												</xsl:attribute>
+												Modify page
+											</a>
+										</li>
+									</xsl:when>
+									<xsl:otherwise>
+										<li class="list-inline-item">
+											<a class="btn btn-link pl-0" role="button">
+												<xsl:attribute name="href">
+													<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="$deviceID" />?refresh=false
+												</xsl:attribute>
+												Reload Once
+											</a>
+										</li>
+										<li class="list-inline-item">
+											<a class="btn btn-link" role="button">
+												<xsl:attribute name="href">
+													<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="$deviceID" />?refresh=true
+												</xsl:attribute>
+												Reload Continually
+											</a>
+										</li>
+									</xsl:otherwise>
+								</xsl:choose>
+
+								<li class="list-inline-item">
+									<a class="btn btn-link" role="button">
+										<xsl:attribute name="href">
+											<xsl:value-of select="$context" />/overview
+										</xsl:attribute>
+										Go to DeviceList
 									</a>
-								</xsl:when>
-								<xsl:otherwise>
-									<td>
-										<a>
-											<xsl:attribute name="href"><xsl:value-of
-												select="$context" />/showDevice/<xsl:value-of
-												select="$deviceID" />?refresh=false</xsl:attribute>
-											reload once
-										</a>
-									</td>
-									<td width="15" />
-									<td>
-										<a>
-											<xsl:attribute name="href"><xsl:value-of
-												select="$context" />/showDevice/<xsl:value-of
-												select="$deviceID" />?refresh=true</xsl:attribute>
-											reload continually
-										</a>
-									</td>
-								</xsl:otherwise>
-							</xsl:choose>
-							<td>
-								<img height="70" hspace="10" alt="logo">
-									<xsl:attribute name="src"><xsl:value-of
-										select="$context" />/legacy/logo.gif</xsl:attribute>
-								</img>
-							</td>
-							<td>
-								Go to
-								<a>
-									<xsl:attribute name="href"><xsl:value-of
-										select="$context" />/overview</xsl:attribute>
-									DeviceList
-								</a>
-							</td>
-						</tr>
-					</table>
-				</p>
+								</li>
+							</ul>
+						</div>
+					</div>
 
-				<!-- device info section -->
-				<hr />
-				<table>
-					<tr>
-						<td>
-							<form style="margin-left: 20px">
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showDevice/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="hidden" name="refresh" value="false" />
-								<input type="hidden" name="setup" value="true" />
-								<input type="submit" value="refresh page" />
-							</form>
-						</td>
-				        <xsl:if test="$mutable='true'">
-						<td>
-							<form style="margin-left: 20px">
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showDevice/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="hidden" name="shutdown" value="true" />
-								<input type="hidden" name="setup" value="true" />
-								<input type="submit" value="shutdown"
-									title="attention this removes the device - adding a new device is not yet implemented!" />
-							</form>
-						</td>
-						<td>
-							<form style="margin-left: 20px">
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showDevice/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="submit" value="restart" />
-								<input type="hidden" name="setup" value="true" />
-								<input type="hidden" name="restart" value="true" />
-							</form>
-						</td>
-						<td>
-							<form style="margin-left: 20px">
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showDevice/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="submit" value="reset"
-									title="attention this is a hard reset!" />
-								<input type="hidden" name="setup" value="true" />
-								<input type="hidden" name="reset" value="true" />
-							</form>
-						</td>
-						</xsl:if>
-						<xsl:if test="$modify!='true'">
-							<td>
-								<form style="margin-left: 20px">
-									<xsl:attribute name="action"><xsl:value-of
-										select="$context" />/showDevice/<xsl:value-of
-										select="@DeviceID" /></xsl:attribute>
-									<input type="submit" value="modify"
-										title="update / review device details" />
-									<input type="hidden" name="modify" value="true" />
-									<input type="hidden" name="setup" value="true" />
-									<input type="hidden" name="refresh" value="false" />
-								</form>
-							</td>
-						</xsl:if>
-						<xsl:if test="@login='true'">
-							<td>
-								<form style="margin-left: 20px">
-									<xsl:attribute name="action"><xsl:value-of
-										select="$context" />/login/<xsl:value-of select="@DeviceID" /></xsl:attribute>
-									<input type="submit" value="login" title="open operator login screen" />
-								</form>
-							</td>
-						</xsl:if>
-						<td>
-							<form style="margin-left: 20px">
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showQueue/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="submit" value="show queue" />
-							</form>
-						</td>
-						<td>
-							<form style="margin-left: 20px">
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showSubscriptions/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="submit" value="show subscriptions" />
-							</form>
-						</td>
-					</tr>
-				</table>
-				<hr />
-				<xsl:if test="$modify='true'">
-					<xsl:call-template name="devicedetails" />
-					<hr />
-				</xsl:if>
-				<xsl:if test="$modify!='true'">
-					<xsl:call-template name="devicedetails" />
-					<hr />
-				</xsl:if>
+					<!-- device details -->
+					<div class="row mt-5">
+						<div class="col-12">
+							<h2>Device Details</h2>
+							<table class="table table-borderless table-hover">
+								<tbody>
+									<tr class="d-flex">
+										<th class="col-2 pl-0">ID:</th>
+										<td class="col-5"><xsl:value-of select="@DeviceID" /></td>
+										<td class="col-5">Unique device Identifier.</td>
+									</tr>
+									<tr class="d-flex">
+										<th class="col-2 pl-0">Device URL:</th>
+										<td class="col-5"><xsl:value-of select="@DeviceURL" /></td>
+										<td class="col-5">Base URL of the device.</td>
+									</tr>
+									<tr class="d-flex">
+										<th class="col-2 pl-0">Device Type:</th>
+										<td class="col-5"><xsl:value-of select="@DeviceType" /></td>
+										<td class="col-5">Short, <b>machine</b>-readable description of the device.</td>
+									</tr>
+									<tr class="d-flex">
+										<th class="col-2 pl-0">Descriptive Name:</th>
+										<td class="col-5"><xsl:value-of select="@Description" /></td>
+										<td class="col-5">Short, <b>human</b>-readable description of the device.</td>
+									</tr>
+									<tr class="d-flex">
+										<th class="col-2 pl-0">Entries Processed:</th>
+										<td class="col-5"><xsl:value-of select="@EntriesProcessed" /></td>
+										<td class="col-5">Number of entries processed since startup.</td>
+									</tr>
+									<tr class="d-flex">
+										<th class="col-2 pl-0">Watch URL:</th>
+										<td class="col-5"><xsl:value-of select="@WatchURL" /></td>
+										<td class="col-5">Single URL that receives messages (Status, Resource, Notification) from the device. If empty, no non-subscribed messages are sent.</td>
+									</tr>
+									<tr class="d-flex">
+										<th class="col-2 pl-0">JDF Type Expression:</th>
+										<td class="col-5"><xsl:value-of select="@TypeExpression" /></td>
+										<td class="col-5">Regular expression of types that are accepted by this device.</td>
+									</tr>
+									<xsl:if test="@Dump">
+										<tr class="d-flex">
+											<th class="col-2 pl-0">Dump:</th>
+											<td class="col-5"><xsl:value-of select="@Dump" /></td>
+											<td class="col-5">Toggles the dump behavior of the entire application.</td>
+										</tr>
+									</xsl:if>
+									<tr class="d-flex">
+										<th class="col-2 pl-0">Input Folder:</th>
+										<td class="col-5"><xsl:value-of select="@InputHF" /></td>
+										<td class="col-5">Input hot folder for the proxy. Drop JDF Files in here. This is for testing only.</td>
+									</tr>
+									<tr class="d-flex">
+										<th class="col-2 pl-0">Output Folder:</th>
+										<td class="col-5"><xsl:value-of select="@OutputHF" /></td>
+										<td class="col-5">Output folder for the proxy. Completed jdf files will be dropped here. This is for testing only.</td>
+									</tr>
+									<tr class="d-flex">
+										<th class="col-2 pl-0">Error Folder:</th>
+										<td class="col-5"><xsl:value-of select="@ErrorHF" /></td>
+										<td class="col-5">Output error folder for the proxy. Aborted jdf files will be dropped here. This is for testing only.</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
 
-				<xsl:if test="jdf:Employee">
-					<h3>Employess currently logged into this device</h3>
-					<table>
-						<tbody>
-							<tr>
-								<th>Employee ID</th>
-								<th>Name</th>
-								<th>Roles</th>
-							</tr>
-							<xsl:for-each select="jdf:Employee">
-								<xsl:call-template name="showEmployee" />
-							</xsl:for-each>
-						</tbody>
-					</table>
-					<hr />
-				</xsl:if>
-				<xsl:apply-templates />
-				<hr />
-				<xsl:call-template name="cputimer" />
+					<!-- employee details -->
+					<div class="row mt-5">
+						<div class="col-12">
+							<h2>Employee Details</h2>
+							<p>Employess currently logged into this device:</p>
+							<table class="table table-borderless table-sm table-hover">
+								<thead class="thead-light">
+									<tr>
+										<th>Employee ID</th>
+										<th>Name</th>
+										<th>Roles</th>
+									</tr>
+								</thead>
+								<tbody>
+									<xsl:for-each select="jdf:Employee">
+										<tr>
+											<td>
+												<xsl:value-of select="@ProductID" />
+											</td>
+											<td>
+												<xsl:value-of select="jdf:Person/@DescriptiveName" />
+											</td>
+											<td>
+												<xsl:value-of select="@Roles" />
+											</td>
+										</tr>
+									</xsl:for-each>
+								</tbody>
+							</table>
 
-				<hr />
+							<xsl:if test="not(jdf:Employee)">
+								<p><i>No Employees are logged in into this device.</i></p>
+							</xsl:if>
 
-				<font size="-1" color="#b0c4de">
-					<table>
-						<xsl:if test="@ReleaseVersionString">
-							<tr>
-								<td>Bambi Product Version:</td>
-								<td>
-									<xsl:value-of select="@ReleaseVersionString" />
-								</td>
-							</tr>
-						</xsl:if>
-						<xsl:if test="@ReleaseTimestampString">
-							<tr>
-								<td>Bambi Release date/time: </td>
-								<td><xsl:value-of select="@ReleaseTimestampString" /></td>
-							</tr>
-						</xsl:if>
-						<xsl:if test="@ReleaseBuildNumberString">
-							<tr>
-								<td>Bambi Build Number: </td>
-								<td><xsl:value-of select="@ReleaseBuildNumberString" /></td>
-							</tr>
-						</xsl:if>
-						<tr>
-							<td>JDFLib Build:</td>
-							<td><xsl:value-of select="@JdfLibVersion" />
-							</td>
-						</tr>
-					</table>
-				</font>
+							<form class="mb-0">
+								<xsl:attribute name="action">
+									<xsl:value-of select="$context" />/login/<xsl:value-of select="@DeviceID" />
+								</xsl:attribute>
+								<input type="submit" class="btn btn-outline-secondary" value="Login / Logout Employee" />
+							</form>
+						</div>
+					</div>
+
+					<!-- metrics -->
+					<div class="row mt-5">
+						<div class="col-12">
+							<h2>Metrics</h2>
+							<xsl:call-template name="cpu-timer" />
+						</div>
+					</div>
+
+					<!-- further stuff -->
+					<div class="row mt-5">
+						<div class="col-12">
+							<xsl:apply-templates />
+						</div>
+					</div>
+
+					<!-- version details -->
+					<div class="row mt-5">
+						<div class="col-12">
+							<xsl:call-template name="version" />
+						</div>
+					</div>
+				</div>
 			</body>
 		</html>
 	</xsl:template>
 
+	<xsl:include href="modules/cpu-timer.module.xsl" />
+	<xsl:include href="modules/version.module.xsl" />
+
 	<!-- ============================================================ -->
 
+	<xsl:include href="CPUTimer.xsl" />
 	<xsl:include href="processor.xsl" />
 	<xsl:include href="DeviceExtension.xsl" />
-	<xsl:include href="CPUTimer.xsl" />
+	<xsl:include href="optionlist.xsl" />
+	<xsl:include href="DeviceDetails.xsl" />
 
-	<!-- modifiable Employee -->
-	<xsl:template name="showEmployee">
-		<tr>
-			<td>
-				<xsl:value-of select="@ProductID" />
-			</td>
-			<td>
-				<xsl:value-of select="jdf:Person/@DescriptiveName" />
-			</td>
-			<td>
-				<xsl:value-of select="@Roles" />
-			</td>
-		</tr>
-	</xsl:template>
 
 
 	<!-- modifiable phase -->
@@ -325,8 +395,7 @@
 			<xsl:apply-templates select="ResourceAmount" />
 		</form>
 	</xsl:template>
-	<xsl:include href="optionlist.xsl" />
-	<xsl:include href="DeviceDetails.xsl" />
+
 
 	<!-- resource amount setup -->
 	<xsl:template match="ResourceAmount">
@@ -363,7 +432,7 @@
 		<!-- nop here -->
 	</xsl:template>
 
-	<xsl:include href="topnavigation.xsl" />
+	<xsl:include href="modules/head-content.module.xsl" />
 
 	<!-- add more templates -->
 	<!-- the catchall -->

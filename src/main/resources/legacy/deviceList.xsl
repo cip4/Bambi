@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:strip-space elements="*" />
 	<xsl:output method="html" />
@@ -8,26 +7,7 @@
 			<xsl:variable name="context" select="@Context" />
 
 			<head>
-				<meta charset="UTF-8" />
-				<title>CIP4 Bambi</title>
-
-				<!-- bootstrap 4 -->
-				<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"></link>
-				<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-				<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
-
-				<!-- google fonts -->
-				<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather:400,400i,700%7CRoboto:300,300i,400,400i,500,500i,700,700i"></link>
-
-				<!-- bambi style -->
-				<link rel="stylesheet">
-					<xsl:attribute name="href"><xsl:value-of select="$context" />/legacy/index.css</xsl:attribute>
-				</link>
-				<link rel="icon" type="image/x-icon">
-					<xsl:attribute name="href"><xsl:value-of select="$context" />/legacy/favicon.ico</xsl:attribute>
-				</link>
-				<script src="{$context}/legacy/index.js"/>
+				<xsl:call-template name="head-content" />
 			</head>
 
 			<body data-spy="scroll" data-target=".navbar" data-offset="150">
@@ -127,12 +107,12 @@
 					<div id="metrics" class="row">
 						<div class="col-12">
 							<h1>Metrics</h1>
-							<xsl:call-template name="cputimer" />
+							<xsl:call-template name="cpu-timer" />
 						</div>
 					</div>
 					<div class="row">
 						<div class="col-4">
-							<table class="table table-borderless table-sm table-hover">
+							<table class="table table-bordered table-sm table-hover">
 								<tbody>
 									<tr>
 										<th>Requests Handled:</th>
@@ -158,7 +138,7 @@
 					<!-- Version Details -->
 					<div id="version" class="row">
 						<div class="col-12">
-							<small><b>Bambi <xsl:value-of select="@ReleaseVersionString" /></b> build <xsl:value-of select="@ReleaseBuildNumberString" /> (<xsl:value-of select="@ReleaseTimestampString" />) <i>based on JDFLibJ <xsl:value-of select="@JdfLibVersion" /></i></small>
+							<xsl:call-template name="version" />
 						</div>
 					</div>
 				</div>
@@ -287,5 +267,7 @@
 		</tr>
 	</xsl:template>
 
-	<xsl:include href="CPUTimer-Bootstrap.xsl" />
+	<xsl:include href="modules/head-content.module.xsl" />
+	<xsl:include href="modules/cpu-timer.module.xsl" />
+	<xsl:include href="modules/version.module.xsl" />
 </xsl:stylesheet>

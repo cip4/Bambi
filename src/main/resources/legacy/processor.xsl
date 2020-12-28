@@ -3,7 +3,6 @@
 
   <!--  device processor -->
   <xsl:template match="bambi:Processor">
-    <hr/>
     <h2>Processor Status</h2>
     Processor Status:
     <xsl:value-of select="@DeviceStatus"/>
