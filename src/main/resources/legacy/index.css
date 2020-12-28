@@ -1,0 +1,92 @@
+body {
+    font: 62.5% 'Roboto', 'Open Sans', Verdana, Arial, Helvetica, sans-serif;
+    font-size: 100%;
+    position: relative;
+    background-color: #eeeeee;
+    color: #3C3C3C;
+}
+
+h1 {
+    font-size: 2.35em;
+    font-weight: 300;
+}
+
+h2 {
+    font-size: 1.6em;
+    font-weight: 300;
+}
+
+h3 {
+    font-size: 1.4em;
+    font-weight: 500;
+}
+
+h4 {
+    font-size: 1.2em;
+    font-weight: 500;
+}
+
+.cip {
+    margin-left: 15px;
+    font-weight: 700;
+    font-size: 24px;
+}
+
+.nav-logo {
+    height: 75px;
+    background-color: #ffffff;
+    padding: 3px 20px;
+}
+
+.navbar {
+    padding: 0px;
+    height: 75px;
+    background-color: #3C3C3C;
+    border-left: 6px solid #BE1E00;
+
+    text-decoration: none;
+    text-transform: uppercase;
+    font-weight: 300;
+    font-size: 0.88em;
+    line-height: 55px;
+
+}
+
+.navbar-brand {
+    color: #ffffff; 
+}
+
+.navbar-brand:hover {
+    color: #ffffff; 
+}
+
+.nav-item {
+    margin-right: 30px;
+}
+
+.nav-link {
+    color: #ffffff; 
+}
+
+.active {
+    color: #ffffff; 
+    font-weight: 700;
+}
+
+.nav-link:hover {
+    color: #ffffff; 
+    font-weight: 500;
+}
+
+.navbar-brand {
+    padding: 0px;
+}
+
+.container {
+    background-color: #ffffff;
+    padding-bottom: 20px;
+}
+
+#root-controller, #known-devices, #device-templates, #metrics, #version  {
+    padding-top: 100px;
+}

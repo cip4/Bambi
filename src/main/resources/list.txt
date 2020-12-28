@@ -15,6 +15,7 @@
 /config/resinfo_simIDP.xml
 
 /legacy/CPUTimer.xsl
+/legacy/CPUTimer-Bootstrap.xsl
 /legacy/DeviceDetails.xsl
 /legacy/DeviceExtension.xsl
 /legacy/deviceList.xsl
@@ -23,6 +24,8 @@
 /legacy/exception.jsp
 /legacy/favicon.ico
 /legacy/index.jsp
+/legacy/index.js
+/legacy/index.css
 /legacy/jdf.xsl
 /legacy/log4j.properties
 /legacy/login.xsl
