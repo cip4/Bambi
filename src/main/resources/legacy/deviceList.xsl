@@ -7,8 +7,6 @@
 		<html>
 			<xsl:variable name="context" select="@Context" />
 
-
-
 			<head>
 				<meta charset="UTF-8" />
 				<title>CIP4 Bambi</title>
@@ -32,7 +30,6 @@
 				<script src="{$context}/legacy/index.js"/>
 			</head>
 
-
 			<body data-spy="scroll" data-target=".navbar" data-offset="150">
 				<!-- navigation -->
 				<nav class="navbar navbar-expand-sm fixed-top">
@@ -42,11 +39,9 @@
 					</a>
 
 					<!-- left -->
-					<ul class="navbar-nav mr-auto">
+					<ul class="navbar-nav mr-auto"></ul>
 
-					</ul>
-
-					<!-- left -->
+					<!-- right -->
 					<ul class="navbar-nav">
 						<li class="nav-item">
 							<a class="nav-link active" href="#root-controller">Root Controller</a>
@@ -177,7 +172,7 @@
 		<tr>
 			<td>
 				<p><xsl:value-of select="@DeviceID" /></p>
-				<small>(<xsl:value-of select="@DeviceType" />)</small>
+				<small><xsl:value-of select="@DeviceType" /></small>
 			</td>
 			<td>
 				<b><xsl:value-of select="@DeviceStatus" /></b>
@@ -228,12 +223,12 @@
 		<tr>
 			<td>
 				<p>
-				<a>
-					<xsl:attribute name="href">
-						<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
-					</xsl:attribute>
-					<xsl:value-of select="@DeviceID" />
-				</a>
+					<a>
+						<xsl:attribute name="href">
+							<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
+						</xsl:attribute>
+						<xsl:value-of select="@DeviceID" />
+					</a>
 				</p>
 				<small><xsl:value-of select="@DeviceType" /></small>
 			</td>
@@ -292,7 +287,5 @@
 		</tr>
 	</xsl:template>
 
-	<xsl:include href="topnavigation.xsl" />
 	<xsl:include href="CPUTimer-Bootstrap.xsl" />
-
 </xsl:stylesheet>
