@@ -6,22 +6,36 @@
 					<div class="card-body">
 						<h4 class="card-title"><xsl:value-of select="@Name" /></h4>
 
-						<small>
-							<p><b>Start: </b> <xsl:value-of select="@CreationTime" /></p>
-							<p><b>Innvocations: </b> <xsl:value-of select="@StartStop" /></p>
 
-							<p>
-								<b>Real Time (sec.): </b>
-								<a href="#" data-toggle="tooltip" title="Current"><xsl:value-of select="@CurrentRealTime" /></a> /
-								<a href="#" data-toggle="tooltip" title="Total"><xsl:value-of select="@TotalRealTime" /></a> /
-								<a href="#" data-toggle="tooltip" title="Average"><xsl:value-of select="@AverageRealTime" /></a>
-							</p>
-							<p><b>CPU Time (sec.): </b>
-								<a href="#" data-toggle="tooltip" title="Current"><xsl:value-of select="@CurrentCPUTime" /></a> /
-								<a href="#" data-toggle="tooltip" title="Total"><xsl:value-of select="@TotalCPUTime" /></a> /
-								<a href="#" data-toggle="tooltip" title="Average"><xsl:value-of select="@AverageCPUTime" /></a>
-							</p>
-						</small>
+							<table class="table table-borderless table-sm table-hover small">
+								<tbody>
+									<tr>
+										<th>Start:</th>
+										<td><xsl:value-of select="@CreationTime" /></td>
+									</tr>
+									<tr>
+										<th>Innvocations:</th>
+										<td><xsl:value-of select="@StartStop" /></td>
+									</tr>
+
+									<tr>
+										<th>Real Time (sec.):</th>
+										<td>
+											<a href="#" data-toggle="tooltip" title="Current"><xsl:value-of select="format-number(@CurrentRealTime, '#0.00')" /></a> /
+											<a href="#" data-toggle="tooltip" title="Total"><xsl:value-of select="format-number(@TotalRealTime, '#0.00')" /></a> /
+											<a href="#" data-toggle="tooltip" title="Average"><xsl:value-of select="format-number(@AverageRealTime, '#0.00')" /></a>
+										</td>
+									</tr>
+									<tr>
+										<th>CPU Time (sec.):</th>
+										<td>
+											<a href="#" data-toggle="tooltip" title="Current"><xsl:value-of select="format-number(@CurrentCPUTime, '#0.00')" /></a> /
+											<a href="#" data-toggle="tooltip" title="Total"><xsl:value-of select="format-number(@TotalCPUTime, '#0.00')" /></a> /
+											<a href="#" data-toggle="tooltip" title="Average"><xsl:value-of select="format-number(@AverageCPUTime, '#0.00')" /></a>
+										</td>
+									</tr>
+								</tbody>
+							</table>
 					</div>
 				</div>
 			</xsl:for-each>

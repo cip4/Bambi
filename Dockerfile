@@ -1,6 +1,6 @@
 ARG VERSION=dev
-ARG BUILD_NUMBER=na
-ARG GIT_REV=na
+ARG BUILD_NUMBER=n.a.
+ARG GIT_REV=n.a.
 
 # compile and test bambi
 FROM amazoncorretto:8-alpine-jdk as java-builder
