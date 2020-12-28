@@ -1,173 +1,177 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<!-- (C) 2001-2015 CIP4 -->
-<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1">
+<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1">
 	<xsl:strip-space elements="*" />
 	<xsl:output method="html" />
 	<xsl:template match="/XMLDevice">
 		<html>
 			<xsl:variable name="deviceID" select="@DeviceID" />
-			<xsl:variable name="deviceType" select="@DeviceType" />
-			<xsl:variable name="deviceURL" select="@DeviceURL" />
-			<xsl:variable name="deviceStatus" select="@DeviceStatus" />
 			<xsl:variable name="context" select="@Context" />
-			<xsl:variable name="modify" select="@modify" />
+
 			<head>
-				<link rel="stylesheet" type="text/css">
-					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/css/styles_pc.css</xsl:attribute>
-				</link>
-				<link rel="icon" type="image/x-icon">
-					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/favicon.ico</xsl:attribute>
-				</link>
-				<title>
-					<xsl:value-of select="$deviceType" />
-					- Operator Login for device:
-					<xsl:value-of select="$deviceID" />
-				</title>
+				<xsl:call-template name="head-content" />
 			</head>
 
-			<!-- Body only -->
 			<body>
-				<xsl:call-template name="topnavigation" />
-				<h1>
-					<xsl:value-of select="$deviceType" />
-					- Operator Login for device:
-					<xsl:value-of select="$deviceID" />
-				</h1>
+				<!-- navigation -->
+				<nav class="navbar navbar-expand-sm fixed-top">
+					<a class="navbar-brand" href="#">
+						<img class="nav-logo" src="http://assets.cip4.org/logo/cip4-organization.png" />
+						<span class="cip">CIP4</span> Organization
+					</a>
 
-				<h2>Currently logged into this device</h2>
-				<table>
-					<tbody>
-						<tr>
-							<th>Employee ID</th>
-							<th>Name</th>
-							<th>Roles</th>
-						</tr>
-						<xsl:for-each select="jdf:Employee">
-							<xsl:call-template name="modifyEmployee" />
-						</xsl:for-each>
-					</tbody>
-				</table>
+					<!-- left -->
+					<ul class="navbar-nav mr-auto"></ul>
 
-				<xsl:apply-templates select="KnownEmployees" />
+					<!-- right -->
+					<ul class="navbar-nav"></ul>
+				</nav>
 
-				<hr />
 
-				<h3>Device</h3>
-				<table>
-					<tr>
-						<td>
-							<form style="margin-left: 20px">
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showDevice/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="hidden" name="refresh" value="false" />
-								<input type="submit" value="refresh page" />
-							</form>
-						</td>
-						<td>
-							<form style="margin-left: 20px">
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showQueue/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="submit" value="show queue" />
-							</form>
-						</td>
-						<td>
-							<form style="margin-left: 20px">
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showSubscriptions/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="submit" value="show subscriptions" />
-							</form>
-						</td>
-						<td>
-							<form style="margin-left: 20px">
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showDevice/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="hidden" name="setup" value="true" />
-								<input type="submit" value="device setup" />
-							</form>
-						</td>
-						<xsl:if test="@login='true'">
-							<td>
-								<form style="margin-left: 20px">
-									<xsl:attribute name="action"><xsl:value-of
-										select="$context" />/showDevice/<xsl:value-of
-										select="@DeviceID" /></xsl:attribute>
-									<input type="hidden" name="setup" value="false" />
-									<input type="submit" value="show console" />
-								</form>
-							</td>
-						</xsl:if>
-					</tr>
-				</table>
+				<div class="container">
 
+					<!-- login title -->
+					<div class="row pt-5">
+						<div class="col-12">
+							<h1>Operator Login <xsl:value-of select="$deviceID" /></h1>
+						</div>
+					</div>
+
+					<!-- control buttons -->
+					<div class="row">
+						<div class="col-12">
+							<ul class="list-inline mb-2 mt-2">
+								<li class="list-inline-item">
+									<form class="mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="hidden" name="refresh" value="false" />
+										<input type="submit" class="btn btn-outline-secondary" value="Refresh Page" />
+									</form>
+								</li>
+								<li class="list-inline-item">
+									<form class="mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="submit" class="btn btn-outline-secondary" value="Show Queue" />
+									</form>
+								</li>
+								<li class="list-inline-item">
+									<form class="mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showSubscriptions/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="submit" class="btn btn-outline-secondary" value="Show Subscriptions" />
+									</form>
+								</li>
+								<li class="list-inline-item">
+									<form class="mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="hidden" name="setup" value="true" />
+										<input type="submit" class="btn btn-outline-secondary" value="Device Setup" />
+									</form>
+								</li>
+
+								<xsl:if test="@login='true'">
+									<li class="list-inline-item">
+										<form class="mb-0">
+											<xsl:attribute name="action">
+												<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
+											</xsl:attribute>
+											<input type="hidden" name="setup" value="false" />
+											<input type="submit" class="btn btn-outline-secondary" value="Show Console" />
+										</form>
+									</li>
+								</xsl:if>
+							</ul>
+						</div>
+					</div>
+
+					<!-- logged in operators -->
+					<div class="row mt-5">
+						<div class="col-8">
+							<h2>Logged in Operators</h2>
+							<table class="table table-hover">
+								<thead class="thead-light">
+									<tr class="d-flex">
+										<th class="col-3">Employee ID</th>
+										<th class="col-3">Name</th>
+										<th class="col-3">Roles</th>
+										<th class="col-3"></th>
+									</tr>
+								</thead>
+								<tbody>
+									<xsl:for-each select="jdf:Employee">
+										<tr class="d-flex">
+											<td class="col-3 pt-3">
+												<xsl:value-of select="@ProductID" />
+											</td>
+											<td class="col-3 pt-3">
+												<xsl:value-of select="jdf:Person/@DescriptiveName" />
+											</td>
+											<td class="col-3 pt-3">
+												<xsl:value-of select="@Roles" />
+											</td>
+											<td class="col-3">
+												<form class="mb-0">
+													<xsl:attribute name="action">
+														<xsl:value-of select="$context" />/login/<xsl:value-of select="$deviceID" />
+													</xsl:attribute>
+													<input type="hidden" name="PersonalID">
+														<xsl:attribute name="value"><xsl:value-of select="@ProductID" /></xsl:attribute>
+													</input>
+													<input type="hidden" name="inout" value="logout" />
+													<input type="submit" class="btn btn-outline-secondary form-control" value="Log Out" />
+												</form>
+											</td>
+										</tr>
+									</xsl:for-each>
+								</tbody>
+							</table>
+							<xsl:if test="not(jdf:Employee)">
+								<p><i>No operators are logged in into this device.</i></p>
+							</xsl:if>
+						</div>
+					</div>
+
+					<!-- login operators -->
+					<div class="row mt-5">
+						<div class="col-12">
+							<h2>Login Operator</h2>
+							<xsl:apply-templates select="KnownEmployees" />
+						</div>
+					</div>
+
+					<!-- version details -->
+					<div class="row mt-5">
+						<div class="col-12">
+							<xsl:call-template name="version" />
+						</div>
+					</div>
+				</div>
 			</body>
 		</html>
 	</xsl:template>
-	<!-- modifiable Employee -->
+
+
+	<!-- known employees -->
 	<xsl:template match="KnownEmployees">
-		<h2>Login Operator</h2>
-		<form>
-			<table>
-				<tr>
-					<td>
-						<select name="PersonalID">
-							<xsl:for-each select="jdf:Employee">
-								<xsl:call-template name="loginEmployee" />
-							</xsl:for-each>
-						</select>
-					</td>
-					<td>
-						<input type="submit" value="login" title="login operator" />
-						<input type="hidden" name="inout" value="login" />
-					</td>
-				</tr>
-			</table>
+		<form class="form-inline">
+			<select name="PersonalID" class="form-control mr-2">
+				<xsl:for-each select="jdf:Employee">
+					<option>
+						<xsl:value-of select="@ProductID" /> - <xsl:value-of select="jdf:Person/@DescriptiveName" />
+					</option>
+				</xsl:for-each>
+			</select>
+			<input type="hidden" name="inout" value="login" />
+			<input type="submit" class="btn btn-outline-secondary form-control" value="Login" />
 		</form>
 	</xsl:template>
 
-	<!-- modifiable Employee -->
-	<xsl:template name="loginEmployee">
-		<option>
-			<xsl:value-of select="@ProductID" />
-			-
-			<xsl:value-of select="jdf:Person/@DescriptiveName" />
-		</option>
-	</xsl:template>
-
-	<!-- modifiable Employee -->
-	<xsl:template name="modifyEmployee">
-		<xsl:variable name="context" select="/XMLDevice/@Context" />
-		<xsl:variable name="deviceID" select="/XMLDevice/@DeviceID" />
-		<tr>
-			<td>
-				<form>
-					<xsl:attribute name="action"><xsl:value-of
-						select="$context" />/login/<xsl:value-of select="$deviceID" /></xsl:attribute>
-					<input type="hidden" name="PersonalID">
-						<xsl:attribute name="value"><xsl:value-of
-							select="@ProductID" /></xsl:attribute>
-					</input>
-					<input type="hidden" name="inout" value="logout" />
-					<input type="submit" title="log off operator">
-						<xsl:attribute name="value">log off <xsl:value-of
-							select="@ProductID" /></xsl:attribute>
-					</input>
-				</form>
-			</td>
-			<td>
-				<xsl:value-of select="jdf:Person/@DescriptiveName" />
-			</td>
-			<td>
-				<xsl:value-of select="@Roles" />
-			</td>
-		</tr>
-	</xsl:template>
-	<xsl:include href="topnavigation.xsl" />
+	<xsl:include href="modules/head-content.module.xsl" />
+	<xsl:include href="modules/version.module.xsl" />
 </xsl:stylesheet>
