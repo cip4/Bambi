@@ -40,6 +40,17 @@
 
 				<div class="container">
 
+					<!-- breadcrumb -->
+					<div class="row pt-2">
+						<div class="col-12">
+							<ul class="breadcrumb">
+								<li>
+									DeviceList
+								</li>
+							</ul>
+						</div>
+					</div>
+
 					<!-- root controller -->
 					<div id="root-controller" class="row">
 						<div class="col-12">

@@ -43,6 +43,23 @@
 
 				<div class="container">
 
+					<!-- breadcrumb -->
+					<div class="row pt-2">
+						<div class="col-12">
+							<ul class="breadcrumb">
+								<li>
+									<a>
+										<xsl:attribute name="href"><xsl:value-of select="$context" />/overview</xsl:attribute>
+										DeviceList
+									</a>
+								</li>
+								<li>
+									Device: <xsl:value-of select="$deviceID" />
+								</li>
+							</ul>
+						</div>
+					</div>
+
 					<!-- device title -->
 					<div class="row pt-5">
 						<div class="col-12">

@@ -29,6 +29,29 @@
 
 				<div class="container">
 
+					<!-- breadcrumb -->
+					<div class="row pt-2">
+						<div class="col-12">
+							<ul class="breadcrumb">
+								<li>
+									<a>
+										<xsl:attribute name="href"><xsl:value-of select="$context" />/overview</xsl:attribute>
+										DeviceList
+									</a>
+								</li>
+								<li>
+									<a>
+										<xsl:attribute name="href"><xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" /></xsl:attribute>
+										Device: <xsl:value-of select="$deviceID" />
+									</a>
+								</li>
+								<li>
+									Login / Logout
+								</li>
+							</ul>
+						</div>
+					</div>
+
 					<!-- login title -->
 					<div class="row pt-5">
 						<div class="col-12">

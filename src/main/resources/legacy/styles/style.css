@@ -88,6 +88,30 @@ h4 {
     padding-bottom: 20px;
 }
 
+/* Style the list */
+ul.breadcrumb {
+    padding: 10px 0px;
+    list-style: none;
+    background-color: #ffffff;
+}
+
+/* Display list items side by side */
+ul.breadcrumb li {
+    display: inline;
+}
+
+/* Add a slash symbol (/) before/behind each list item */
+ul.breadcrumb li+li:before {
+    padding: 8px;
+    color: black;
+    content: "\00a0\003E";
+}
+
+ul.breadcrumb li:first-child:before {
+    font-weight: bold;
+    content: 'Location:\00a0\00a0'
+}
+
 #root-controller, #known-devices, #device-templates, #metrics, #version  {
     padding-top: 100px;
 }
