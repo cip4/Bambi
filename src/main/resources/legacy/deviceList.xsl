@@ -10,7 +10,7 @@
 				<xsl:call-template name="head-content" />
 			</head>
 
-			<body data-spy="scroll" data-target=".navbar" data-offset="150">
+			<body>
 				<!-- navigation -->
 				<nav class="navbar navbar-expand-sm fixed-top">
 					<a class="navbar-brand" href="#">
@@ -22,19 +22,7 @@
 					<ul class="navbar-nav mr-auto"></ul>
 
 					<!-- right -->
-					<ul class="navbar-nav">
-						<li class="nav-item">
-							<a class="nav-link active" href="#root-controller">Root Controller</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="#known-devices">Known Devices</a>
-						</li>
-						<xsl:if test="Template">
-							<li class="nav-item">
-								<a class="nav-link" href="#device-templates">Device Templates</a>
-							</li>
-						</xsl:if>
-					</ul>
+					<ul class="navbar-nav"></ul>
 				</nav>
 
 
@@ -45,16 +33,24 @@
 						<div class="col-12">
 							<ul class="breadcrumb">
 								<li>
-									DeviceList
+									Device List
 								</li>
 							</ul>
 						</div>
 					</div>
 
-					<!-- root controller -->
-					<div id="root-controller" class="row">
+					<!-- device list title -->
+					<div class="row pt-2">
 						<div class="col-12">
-							<h1>Root Controller</h1>
+							<h1>Device List</h1>
+							<p>List of all Devices and Controllers simulated by this CIP4 Bambi instance.</p>
+						</div>
+					</div>
+
+					<!-- root controller -->
+					<div class="row mt-4">
+						<div class="col-12">
+							<h2>Root Controller</h2>
 							<table class="table table-bordered">
 								<thead class="thead-light">
 									<tr>
@@ -74,9 +70,9 @@
 
 
 					<!-- known devices -->
-					<div id="known-devices" class="row">
+					<div class="row mt-4">
 						<div class="col-12">
-							<h1>Known Devices</h1>
+							<h2>Known Devices</h2>
 							<table class="table table-bordered">
 								<thead class="thead-light">
 									<tr>
@@ -96,9 +92,9 @@
 
 					<!-- device templates devices -->
 	`				<xsl:if test="Template">
-						<div id="device-templates" class="row">
+						<div class="row">
 							<div class="col-12">
-								<h1>Device Templates</h1>
+								<h2>Device Templates</h2>
 								<table class="table table-bordered">
 									<thead class="thead-light">
 										<tr>
@@ -115,9 +111,9 @@
 					</xsl:if>
 
 					<!-- Metrics -->
-					<div id="metrics" class="row">
+					<div class="row mt-4">
 						<div class="col-12">
-							<h1>Metrics</h1>
+							<h2>Metrics</h2>
 							<xsl:call-template name="cpu-timer" />
 						</div>
 					</div>
@@ -147,7 +143,7 @@
 					</div>
 
 					<!-- Version Details -->
-					<div id="version" class="row">
+					<div class="row mt-4">
 						<div class="col-12">
 							<xsl:call-template name="version" />
 						</div>
@@ -184,7 +180,7 @@
 						</label>
 					</div>
 					<input type="hidden" name="UpdateDump" value="true" />
-					<input type="submit" value="Modify" class="btn btn-secondary" />
+					<input type="submit" value="Modify" class="btn btn-outline-secondary" />
 				</form>
 			</td>
 			<td>
@@ -272,7 +268,7 @@
 						<xsl:attribute name="value"><xsl:value-of select="@DeviceID" /></xsl:attribute>
 					</input>
 
-					<input type="submit" class="btn btn-secondary" value="Add Device" />
+					<input type="submit" class="btn btn-outline-secondary" value="Add Device" />
 				</form>
 			</td>
 		</tr>

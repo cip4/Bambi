@@ -6,10 +6,7 @@
 		<html>
 			<xsl:variable name="deviceID" select="@DeviceID" />
 			<xsl:variable name="deviceType" select="@DeviceType" />
-			<xsl:variable name="deviceURL" select="@DeviceURL" />
-			<xsl:variable name="deviceStatus" select="@DeviceStatus" />
 			<xsl:variable name="context" select="@Context" />
-			<xsl:variable name="modify" select="@modify" />
 			<xsl:variable name="mutable" select="@mutable" />
 
 			<head>
@@ -48,10 +45,7 @@
 						<div class="col-12">
 							<ul class="breadcrumb">
 								<li>
-									<a>
-										<xsl:attribute name="href"><xsl:value-of select="$context" />/overview</xsl:attribute>
-										DeviceList
-									</a>
+									<a><xsl:attribute name="href"><xsl:value-of select="$context" />/overview</xsl:attribute>Device List</a>
 								</li>
 								<li>
 									Device: <xsl:value-of select="$deviceID" />
@@ -61,7 +55,7 @@
 					</div>
 
 					<!-- device title -->
-					<div class="row pt-5">
+					<div class="row pt-2">
 						<div class="col-12">
 							<h1>Device: <xsl:value-of select="$deviceID" /></h1>
 							<p><xsl:value-of select="$deviceType" /></p>
@@ -89,16 +83,6 @@
 											<xsl:attribute name="action">
 												<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
 											</xsl:attribute>
-											<input type="hidden" name="shutdown" value="true" />
-											<input type="hidden" name="setup" value="true" />
-											<input type="submit" class="btn btn-outline-secondary" value="Shutdown" />
-										</form>
-									</li>
-									<li class="list-inline-item">
-										<form class="mb-0">
-											<xsl:attribute name="action">
-												<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
-											</xsl:attribute>
 											<input type="hidden" name="setup" value="true" />
 											<input type="hidden" name="restart" value="true" />
 											<input type="submit" class="btn btn-outline-secondary" value="Restart" />
@@ -112,20 +96,6 @@
 											<input type="hidden" name="setup" value="true" />
 											<input type="hidden" name="reset" value="true" />
 											<input type="submit" class="btn btn-outline-secondary" value="Reset" />
-										</form>
-									</li>
-								</xsl:if>
-
-								<xsl:if test="$modify!='true'">
-									<li class="list-inline-item">
-										<form class="mb-0">
-											<xsl:attribute name="action">
-												<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
-											</xsl:attribute>
-											<input type="hidden" name="modify" value="true" />
-											<input type="hidden" name="setup" value="true" />
-											<input type="hidden" name="refresh" value="false" />
-											<input type="submit" class="btn btn-outline-secondary" value="Modify" />
 										</form>
 									</li>
 								</xsl:if>
@@ -195,21 +165,12 @@
 										</li>
 									</xsl:otherwise>
 								</xsl:choose>
-
-								<li class="list-inline-item">
-									<a class="btn btn-link" role="button">
-										<xsl:attribute name="href">
-											<xsl:value-of select="$context" />/overview
-										</xsl:attribute>
-										Go to DeviceList
-									</a>
-								</li>
 							</ul>
 						</div>
 					</div>
 
 					<!-- device details -->
-					<div class="row mt-5">
+					<div class="row mt-4">
 						<div class="col-12">
 							<h2>Device Details</h2>
 							<table class="table table-borderless table-hover">
@@ -277,7 +238,7 @@
 					</div>
 
 					<!-- employee details -->
-					<div class="row mt-5">
+					<div class="row mt-4">
 						<div class="col-12">
 							<h2>Employee Details</h2>
 							<p>Employess currently logged into this device:</p>
@@ -320,7 +281,7 @@
 					</div>
 
 					<!-- metrics -->
-					<div class="row mt-5">
+					<div class="row mt-4">
 						<div class="col-12">
 							<h2>Metrics</h2>
 							<xsl:call-template name="cpu-timer" />
@@ -328,14 +289,14 @@
 					</div>
 
 					<!-- further stuff -->
-					<div class="row mt-5">
+					<div class="row mt-4">
 						<div class="col-12">
 							<xsl:apply-templates />
 						</div>
 					</div>
 
 					<!-- version details -->
-					<div class="row mt-5">
+					<div class="row mt-4">
 						<div class="col-12">
 							<xsl:call-template name="version" />
 						</div>
@@ -345,6 +306,7 @@
 		</html>
 	</xsl:template>
 
+	<xsl:include href="modules/head-content.module.xsl" />
 	<xsl:include href="modules/cpu-timer.module.xsl" />
 	<xsl:include href="modules/version.module.xsl" />
 
@@ -449,7 +411,7 @@
 		<!-- nop here -->
 	</xsl:template>
 
-	<xsl:include href="modules/head-content.module.xsl" />
+
 
 	<!-- add more templates -->
 	<!-- the catchall -->

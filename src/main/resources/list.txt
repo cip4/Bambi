@@ -15,12 +15,14 @@
 /config/resinfo_simIDP.xml
 
 /legacy/modules/cpu-timer.module.xsl
+/legacy/modules/formatting.module.xsl
 /legacy/modules/head-content.module.xsl
+/legacy/modules/option-list.module.xsl
 /legacy/modules/version.module.xsl
-/legacy/modules/modify-string.module.xsl
 
 /legacy/styles/style.js
 /legacy/styles/style.css
+/legacy/styles/bambi-logo.png
 
 /legacy/CPUTimer.xsl
 /legacy/DeviceDetails.xsl

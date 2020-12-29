@@ -1,21 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2009-2015 CIP4 -->
-<xsl:stylesheet version="1.0"
-	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1"
-	xmlns:bambi="www.cip4.org/Bambi">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi">
 	<xsl:output method="html" />
 	<xsl:template match="jdf:Queue">
 		<xsl:variable name="context" select="@Context" />
+
 		<html>
 			<head>
-				<link rel="stylesheet" type="text/css">
-					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/legacy/css/styles_pc.css</xsl:attribute>
-				</link>
-				<link rel="stylesheet" type="text/css">
-					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/legacy/css/styles_pc.css</xsl:attribute>
-				</link>
+				<xsl:call-template name="head-content" />
+
 				<xsl:if test="@refresh">
 					<meta http-equiv="refresh">
 						<xsl:attribute name="content">15; URL=<xsl:value-of
@@ -24,543 +16,438 @@
 				</xsl:if>
 			</head>
 			<body>
-				<xsl:call-template name="topnavigation" />
-				<h1>
-					Queue - DeviceID:
-					<xsl:value-of select="@DeviceID" />
-					- Queue Status:
-					<xsl:value-of select="@Status" />
-				</h1>
-				<h2>
-					<xsl:value-of select="@DescriptiveName" />
-				</h2>
-				<hr />
-				<table cellspacing="22" border="0">
-					<tr>
-						<td>
-							Show Device:
-							<a>
-								<xsl:attribute name="href"><xsl:value-of
-									select="$context" />/showDevice/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								Device:
-								<xsl:value-of select="@DeviceID" />
-							</a>
-						</td>
-						<td>
-							Back to
-							<a>
-								<xsl:attribute name="href"><xsl:value-of
-									select="$context" />/overview</xsl:attribute>
-								Device List
-							</a>
-						</td>
-					</tr>
-				</table>
-				<hr />
+				<!-- navigation -->
+				<nav class="navbar navbar-expand-sm fixed-top">
+					<a class="navbar-brand" href="#">
+						<img class="nav-logo" src="http://assets.cip4.org/logo/cip4-organization.png" />
+						<span class="cip">CIP4</span> Organization
+					</a>
 
-				<!-- queue summary table -->
-				<h2>Queue Summary</h2>
-				<table cellspacing="2" border="1">
-					<xsl:choose>
-						<xsl:when test="@Status='Waiting'">
-							<tr bgcolor="#aaffaa">
-								<th align="left">Status</th>
-								<th align="center">
-									<xsl:value-of select="@Status" />
-								</th>
-							</tr>
-						</xsl:when>
-						<xsl:when test="@Status='Running'">
-							<tr bgcolor="#aaaaff">
-								<th align="left">Status</th>
-								<th align="center">
-									<xsl:value-of select="@Status" />
-								</th>
-							</tr>
-						</xsl:when>
-						<xsl:otherwise>
-							<tr bgcolor="#ffaaaa">
-								<td align="left">Status</td>
-								<td align="center">
-									<xsl:value-of select="@Status" />
-								</td>
-							</tr>
-						</xsl:otherwise>
-					</xsl:choose>
-					<tr bgcolor="#bbbbbb">
-						<th align="left">Queue Entry Status</th>
-						<th align="center"># of Entries</th>
-					</tr>
-					<tr>
-						<td align="left" title="total size of queue">All</td>
-						<td align="center">
-							<xsl:value-of select="@TotalQueueSize" />
-						</td>
-					</tr>
-					<tr>
-						<td align="left" title="number of displayed entries">Shown</td>
-						<td align="center">
-							<xsl:value-of select="count(jdf:QueueEntry)" />
-						</td>
-					</tr>
-					<xsl:if test="count(jdf:QueueEntry[@Status='Waiting'])>0">
-						<tr bgcolor="#aaaaff">
-							<td align="left">Waiting</td>
-							<td align="center">
-								<xsl:value-of select="count(jdf:QueueEntry[@Status='Waiting'])" />
-							</td>
-						</tr>
-					</xsl:if>
-					<xsl:if test="count(jdf:QueueEntry[@Status='Running'])>0">
-						<tr bgcolor="#aaffaa">
-							<td align="left">Running</td>
-							<td align="center">
-								<xsl:value-of select="count(jdf:QueueEntry[@Status='Running'])" />
-							</td>
-						</tr>
-					</xsl:if>
-					<xsl:if test="count(jdf:QueueEntry[@Status='Held'])>0">
-						<tr bgcolor="#ffffaa">
-							<td align="left">Held</td>
-							<td align="center">
-								<xsl:value-of select="count(jdf:QueueEntry[@Status='Held'])" />
-							</td>
-						</tr>
-					</xsl:if>
-					<xsl:if test="count(jdf:QueueEntry[@Status='Suspended'])>0">
-						<tr bgcolor="#ffffaa">
-							<td align="left">Suspended</td>
-							<td align="center">
-								<xsl:value-of select="count(jdf:QueueEntry[@Status='Suspended'])" />
-							</td>
-						</tr>
-					</xsl:if>
-					<xsl:if test="count(jdf:QueueEntry[@Status='Completed'])>0">
-						<tr bgcolor="#dddddd">
-							<td align="left">Completed</td>
-							<td align="center">
-								<xsl:value-of select="count(jdf:QueueEntry[@Status='Completed'])" />
-							</td>
-						</tr>
-					</xsl:if>
-					<xsl:if test="count(jdf:QueueEntry[@Status='Aborted'])>0">
-						<tr bgcolor="#ffaaaa">
-							<td align="left">Aborted</td>
-							<td align="center">
-								<xsl:value-of select="count(jdf:QueueEntry[@Status='Aborted'])" />
-							</td>
-						</tr>
-					</xsl:if>
-				</table>
-				<br />
-				<hr />
-				<!-- global queue buttons -->
-				<table cellspacing="2" border="0">
-					<tr>
-						<td align="center" colspan="2">Incoming Entries</td>
-						<td />
-						<td align="center" colspan="2">Outgoing Entries</td>
-						<td />
+					<!-- left -->
+					<ul class="navbar-nav mr-auto"></ul>
 
-						<td align="center" colspan="10">
-							refresh Queue
-						</td>
-						<td align="center" colspan="2">
-							Filter Queue
-						</td>
-						<td align="center" colspan="2">
-							<em>Danger flushes entire Queue!</em>
-						</td>
-					</tr>
-					<tr>
-						<td align="left">
-							<form>
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showQueue/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="hidden" name="open" value="true" />
-								<input type="submit" value="open queue" />
-							</form>
-						</td>
-						<td align="left">
-							<form>
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showQueue/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="hidden" name="close" value="true" />
-								<input type="submit" value="close queue" />
-							</form>
-						</td>
-						<td width="5" />
-						<td align="left">
-							<form>
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showQueue/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="hidden" name="resume" value="true" />
-								<input type="submit" value="resume queue" />
-							</form>
-						</td>
-						<td align="left">
-							<form>
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showQueue/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="hidden" name="hold" value="true" />
-								<input type="submit" value="hold queue" />
-							</form>
-						</td>
-						<td width="10" />
-						<xsl:if test="@pos&gt;0">
-							<td align="center">
-								<form>
-									<xsl:attribute name="action"><xsl:value-of
-										select="$context" />/showQueue/<xsl:value-of
-										select="@DeviceID" /></xsl:attribute>
-									<input type="hidden" name="pos" value="0" />
-									<input type="submit" value="&lt;&lt; first" title="show first frame" />
-									<input type="hidden" name="SortBy">
-										<xsl:attribute name="value"><xsl:value-of
-											select="@sortby" /></xsl:attribute>
-									</input>
-									<input type="hidden" name="filter">
-										<xsl:attribute name="value"><xsl:value-of
-											select="@filter" /></xsl:attribute>
-									</input>
-								</form>
-							</td>
-							<td width="5" />
-							<td align="center">
-								<form>
-									<xsl:attribute name="action"><xsl:value-of
-										select="$context" />/showQueue/<xsl:value-of
-										select="@DeviceID" /></xsl:attribute>
-									<input type="hidden" name="pos">
-										<xsl:attribute name="value"><xsl:value-of
-											select="number(@pos)-1" /></xsl:attribute>
-									</input>
-									<input type="submit" value="&lt; previous" title="show previous frame" />
-									<input type="hidden" name="filter">
-										<xsl:attribute name="value"><xsl:value-of
-											select="@filter" /></xsl:attribute>
-									</input>
-									<input type="hidden" name="SortBy">
-										<xsl:attribute name="value"><xsl:value-of
-											select="@sortby" /></xsl:attribute>
-									</input>
-								</form>
-							</td>
-							<td width="5" />
-						</xsl:if>
-						<xsl:if test="not(@pos&gt;0)">
-							<td />
-							<td />
-							<td />
-							<td />
-						</xsl:if>
+					<!-- right -->
+					<ul class="navbar-nav"></ul>
+				</nav>
 
-						<td align="center">
-							<form>
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showQueue/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="submit" value="refresh queue" />
-								<input type="hidden" name="pos">
-									<xsl:attribute name="value"><xsl:value-of
-										select="number(@pos)" /></xsl:attribute>
-								</input>
-								<input type="hidden" name="filter">
-									<xsl:attribute name="value"><xsl:value-of
-										select="@filter" /></xsl:attribute>
-								</input>
-								<input type="hidden" name="SortBy">
-									<xsl:attribute name="value"><xsl:value-of
-										select="@sortby" /></xsl:attribute>
-								</input>
-								<input type="hidden" name="refresh" value="true" />
-							</form>
-						</td>
+				<div class="container">
 
-						<xsl:if test="@hasNext">
-							<td width="5" />
-							<td align="center">
-								<form>
-									<xsl:attribute name="action"><xsl:value-of
-										select="$context" />/showQueue/<xsl:value-of
-										select="@DeviceID" /></xsl:attribute>
-									<input type="hidden" name="pos">
-										<xsl:attribute name="value"><xsl:value-of
-											select="number(@pos)+1" /></xsl:attribute>
-									</input>
-									<input type="submit" value="next &gt;" title="show next frame" />
-									<input type="hidden" name="SortBy">
-										<xsl:attribute name="value"><xsl:value-of
-											select="@sortby" /></xsl:attribute>
-									</input>
-								</form>
-							</td>
-							<td align="center">
-								<form>
-									<xsl:attribute name="action"><xsl:value-of
-										select="$context" />/showQueue/<xsl:value-of
-										select="@DeviceID" /></xsl:attribute>
-									<input type="hidden" name="pos" value="-1" />
-									<input type="submit" value="last &gt;&gt;" title="show last frame" />
-									<input type="hidden" name="filter">
-										<xsl:attribute name="value"><xsl:value-of
-											select="@filter" /></xsl:attribute>
-									</input>
-									<input type="hidden" name="SortBy">
-										<xsl:attribute name="value"><xsl:value-of
-											select="@sortby" /></xsl:attribute>
-									</input>
-								</form>
-							</td>
-							<td width="5" />
-						</xsl:if>
-						<xsl:if test="not(@hasNext)">
-							<td />
-							<td />
-							<td />
-							<td />
-						</xsl:if>
-						<td width="10" />
+					<!-- breadcrumb -->
+					<div class="row pt-2">
+						<div class="col-12">
+							<ul class="breadcrumb">
+								<li>
+									<a><xsl:attribute name="href"><xsl:value-of select="$context" />/overview</xsl:attribute>Device List</a>
+								</li>
+								<li>
+									<a><xsl:attribute name="href"><xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" /></xsl:attribute>Device: <xsl:value-of select="@DeviceID" /></a>
+								</li>
+								<li>
+									Queue
+								</li>
+							</ul>
+						</div>
+					</div>
 
-						<td align="center">
-							<form>
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showQueue/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="text" name="filter">
-									<xsl:attribute name="value"><xsl:value-of
-										select="@filter" /></xsl:attribute>
-								</input>
-								<input type="submit" value="filter queue" />
-							</form>
-						</td>
-						<td width="10" />
-						<td align="center">
-							<form>
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/showQueue/<xsl:value-of
-									select="@DeviceID" /></xsl:attribute>
-								<input type="hidden" name="flush" value="true" />
-								<input type="submit" value="flush queue" />
-							</form>
-						</td>
-					</tr>
-				</table>
-				<h2>Queue Entry Details</h2>
-				<!-- queueentry table description -->
-				<table cellspacing="1" border="1">
-					<tr bgcolor="#bbbbbb">
-						<th align="center">#</th>
-						<xsl:call-template name="qeHeader">
-							<xsl:with-param name="display" select="'QueueEntryID'" />
-							<xsl:with-param name="attName" select="'QueueEntryID'" />
-						</xsl:call-template>
-						<xsl:call-template name="qeHeader">
-							<xsl:with-param name="display" select="'Priority'" />
-							<xsl:with-param name="attName" select="'Priority'" />
-						</xsl:call-template>
-						<xsl:call-template name="qeHeader">
-							<xsl:with-param name="display" select="'Submission Date / Time'" />
-							<xsl:with-param name="attName" select="'SubmissionTime'" />
-						</xsl:call-template>
-						<xsl:call-template name="qeHeader">
-							<xsl:with-param name="display" select="'Start Date / Time'" />
-							<xsl:with-param name="attName" select="'StartTime'" />
-						</xsl:call-template>
-						<xsl:call-template name="qeHeader">
-							<xsl:with-param name="display" select="'End Date / Time'" />
-							<xsl:with-param name="attName" select="'EndTime'" />
-						</xsl:call-template>
-						<xsl:call-template name="qeHeader">
-							<xsl:with-param name="display" select="'Description'" />
-							<xsl:with-param name="attName" select="'DescriptiveName'" />
-						</xsl:call-template>
-						<xsl:call-template name="qeHeader">
-							<xsl:with-param name="display" select="'Job ID'" />
-							<xsl:with-param name="attName" select="'JobID'" />
-						</xsl:call-template>
-						<xsl:call-template name="qeHeader">
-							<xsl:with-param name="display" select="'JobPartID'" />
-							<xsl:with-param name="attName" select="'JobPartID'" />
-						</xsl:call-template>
-						<xsl:call-template name="qeHeader">
-							<xsl:with-param name="display" select="'Activation'" />
-							<xsl:with-param name="attName" select="'Activation'" />
-						</xsl:call-template>
-						<xsl:call-template name="qeHeader">
-							<xsl:with-param name="display" select="'Status Details'" />
-							<xsl:with-param name="attName" select="'StatusDetails'" />
-						</xsl:call-template>
-						<xsl:if test="@bambi:SlaveURL='true'">
-							<xsl:call-template name="qeHeader">
-								<xsl:with-param name="display" select="'Slave QueueEntryID'" />
-								<xsl:with-param name="attName" select="'bambi:SlaveQueueEntryID'" />
-							</xsl:call-template>
-						</xsl:if>
-						<th align="center">Device</th>
-						<xsl:call-template name="qeHeader">
-							<xsl:with-param name="display" select="'Status'" />
-							<xsl:with-param name="attName" select="''" />
-						</xsl:call-template>
-					</tr>
-					<xsl:apply-templates />
-				</table>
-				<hr />
+					<!-- queue title -->
+					<div class="row pt-2">
+						<div class="col-12">
+							<h1>Queue Device <xsl:value-of select="@DeviceID" /></h1>
+							<p>Visualization and management of jobs in the devices' queue.</p>
+						</div>
+					</div>
 
-				<form>
-					<xsl:attribute name="action"><xsl:value-of
-						select="$context" />/showQueue/<xsl:value-of select="@DeviceID" /></xsl:attribute>
-					<input type="submit" value="refresh queue" />
-					<input type="hidden" name="pos">
-						<xsl:attribute name="value"><xsl:value-of
-							select="number(@pos)-1" /></xsl:attribute>
-					</input>
-				</form>
+					<!-- control buttons -->
+					<div class="row">
+						<div class="col-9">
+							<ul class="list-inline mb-2 mt-2">
+								<li class="list-inline-item">
+									<form class="mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="hidden" name="open" value="true" />
+										<input type="submit" class="btn btn-outline-secondary" value="Open Queue" />
+									</form>
+								</li>
+								<li class="list-inline-item">
+									<form class="mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="hidden" name="close" value="true" />
+										<input type="submit" class="btn btn-outline-secondary" value="Close Queue" />
+									</form>
+								</li>
+
+								<li class="list-inline-item ml-4">
+									<form class="mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="hidden" name="resume" value="true" />
+										<input type="submit" class="btn btn-outline-secondary" value="Resume Queue" />
+									</form>
+								</li>
+								<li class="list-inline-item">
+									<form class="mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="hidden" name="hold" value="true" />
+										<input type="submit" class="btn btn-outline-secondary" value="Hold Queue" />
+									</form>
+								</li>
+
+								<li class="list-inline-item ml-4">
+									<form class="mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="hidden" name="pos">
+											<xsl:attribute name="value"><xsl:value-of select="number(@pos)" /></xsl:attribute>
+										</input>
+										<input type="hidden" name="filter">
+											<xsl:attribute name="value"><xsl:value-of select="@filter" /></xsl:attribute>
+										</input>
+										<input type="hidden" name="SortBy">
+											<xsl:attribute name="value"><xsl:value-of select="@sortby" /></xsl:attribute>
+										</input>
+										<input type="hidden" name="refresh" value="true" />
+										<input type="submit" class="btn btn-outline-secondary" value="Refresh Queue" />
+									</form>
+								</li>
+							</ul>
+						</div>
+						<div class="col d-flex justify-content-end">
+							<ul class="list-inline mb-2 mt-2">
+								<li class="list-inline-item">
+									<form class="mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="hidden" name="flush" value="true" />
+										<input type="submit" class="btn btn-outline-danger" value="Flush Queue" />
+									</form>
+								</li>
+							</ul>
+						</div>
+					</div>
+
+					<!-- queue summary -->
+					<div class="row pt-4">
+						<div class="col-4">
+							<p><b>Status: <xsl:value-of select="@Status" /></b></p>
+							<table class="table table-bordered table-sm">
+								<thead class="thead-light">
+									<tr>
+										<th>Queue Entry Status</th>
+										<th>Number of Entries</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td title="Total Size of Queue">All</td>
+										<td><xsl:value-of select="@TotalQueueSize" /></td>
+									</tr>
+									<tr>
+										<td title="Number of Displayed Entries">Shown</td>
+										<td><xsl:value-of select="count(jdf:QueueEntry)" /></td>
+									</tr>
+									<xsl:if test="count(jdf:QueueEntry[@Status='Waiting'])>0">
+										<tr>
+											<td>Waiting</td>
+											<td><xsl:value-of select="count(jdf:QueueEntry[@Status='Waiting'])" /></td>
+										</tr>
+									</xsl:if>
+									<xsl:if test="count(jdf:QueueEntry[@Status='Running'])>0">
+										<tr>
+											<td>Running</td>
+											<td><xsl:value-of select="count(jdf:QueueEntry[@Status='Running'])" /></td>
+										</tr>
+									</xsl:if>
+									<xsl:if test="count(jdf:QueueEntry[@Status='Held'])>0">
+										<tr>
+											<td>Held</td>
+											<td><xsl:value-of select="count(jdf:QueueEntry[@Status='Held'])" /></td>
+										</tr>
+									</xsl:if>
+									<xsl:if test="count(jdf:QueueEntry[@Status='Suspended'])>0">
+										<tr>
+											<td>Suspended</td>
+											<td><xsl:value-of select="count(jdf:QueueEntry[@Status='Suspended'])" /></td>
+										</tr>
+									</xsl:if>
+									<xsl:if test="count(jdf:QueueEntry[@Status='Completed'])>0">
+										<tr>
+											<td>Completed</td>
+											<td><xsl:value-of select="count(jdf:QueueEntry[@Status='Completed'])" /></td>
+										</tr>
+									</xsl:if>
+									<xsl:if test="count(jdf:QueueEntry[@Status='Aborted'])>0">
+										<tr>
+											<td>Aborted</td>
+											<td><xsl:value-of select="count(jdf:QueueEntry[@Status='Aborted'])" /></td>
+										</tr>
+									</xsl:if>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<!-- queue entries -->
+					<div class="row mt-4">
+						<div class="col-12">
+							<h2>Queue Entries</h2>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-4">
+							<ul class="list-inline mb-2 mt-2">
+								<li class="list-inline-item">
+									<form class="form-inline mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="text" class="form-control" name="filter" autocomplete="off">
+											<xsl:attribute name="value"><xsl:value-of select="@filter" /></xsl:attribute>
+										</input>
+										<input type="submit" class="btn btn-outline-secondary ml-2" value="Filter" />
+									</form>
+								</li>
+							</ul>
+						</div>
+						<div class="col d-flex justify-content-end">
+							<ul class="list-inline mb-2 mt-2">
+								<xsl:if test="@pos&gt;0">
+									<li class="list-inline-item">
+										<form class="mb-0">
+											<xsl:attribute name="action">
+												<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+											</xsl:attribute>
+											<input type="hidden" name="pos" value="0" />
+											<input type="hidden" name="SortBy">
+												<xsl:attribute name="value"><xsl:value-of select="@sortby" /></xsl:attribute>
+											</input>
+											<input type="hidden" name="filter">
+												<xsl:attribute name="value"><xsl:value-of select="@filter" /></xsl:attribute>
+											</input>
+											<input type="submit" class="btn btn-outline-secondary" value="&lt;&lt; First" title="show first frame" />
+										</form>
+									</li>
+									<li class="list-inline-item">
+										<form class="mb-0">
+											<xsl:attribute name="action">
+												<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+											</xsl:attribute>
+											<input type="hidden" name="pos">
+												<xsl:attribute name="value"><xsl:value-of select="number(@pos)-1" /></xsl:attribute>
+											</input>
+											<input type="hidden" name="filter">
+												<xsl:attribute name="value"><xsl:value-of select="@filter" /></xsl:attribute>
+											</input>
+											<input type="hidden" name="SortBy">
+												<xsl:attribute name="value"><xsl:value-of select="@sortby" /></xsl:attribute>
+											</input>
+											<input type="submit" class="btn btn-outline-secondary" value="&lt; Previous" title="show previous frame" />
+										</form>
+									</li>
+								</xsl:if>
+
+								<xsl:if test="@hasNext">
+									<li class="list-inline-item">
+										<form class="mb-0">
+											<xsl:attribute name="action">
+												<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+											</xsl:attribute>
+											<input type="hidden" name="pos">
+												<xsl:attribute name="value"><xsl:value-of select="number(@pos)+1" /></xsl:attribute>
+											</input>
+											<input type="hidden" name="SortBy">
+												<xsl:attribute name="value"><xsl:value-of select="@sortby" /></xsl:attribute>
+											</input>
+											<input type="submit" class="btn btn-outline-secondary" value="Next &gt;" title="show next frame" />
+										</form>
+									</li>
+									<li class="list-inline-item">
+										<form class="mb-0">
+											<xsl:attribute name="action">
+												<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+											</xsl:attribute>
+											<input type="hidden" name="pos" value="-1" />
+
+											<input type="hidden" name="filter">
+												<xsl:attribute name="value"><xsl:value-of select="@filter" /></xsl:attribute>
+											</input>
+											<input type="hidden" name="SortBy">
+												<xsl:attribute name="value"><xsl:value-of select="@sortby" /></xsl:attribute>
+											</input>
+											<input type="submit" class="btn btn-outline-secondary" value="Last &gt;&gt;" title="Show last frame" />
+										</form>
+									</li>
+								</xsl:if>
+							</ul>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-12">
+							<table class="table table-hover table-sm">
+								<thead class="thead-light">
+									<tr>
+										<th>#</th>
+										<th>
+											<xsl:call-template name="columnTitle">
+												<xsl:with-param name="display" select="'QueueEntryID'" />
+												<xsl:with-param name="attName" select="'QueueEntryID'" />
+											</xsl:call-template>
+										</th>
+										<th>
+											<xsl:call-template name="columnTitle">
+												<xsl:with-param name="display" select="'Priority'" />
+												<xsl:with-param name="attName" select="'Priority'" />
+											</xsl:call-template>
+										</th>
+										<th>
+											<xsl:call-template name="columnTitle">
+												<xsl:with-param name="display" select="'Submission'" />
+												<xsl:with-param name="attName" select="'SubmissionTime'" />
+											</xsl:call-template>
+										</th>
+										<th>
+											<xsl:call-template name="columnTitle">
+												<xsl:with-param name="display" select="'Start'" />
+												<xsl:with-param name="attName" select="'StartTime'" />
+											</xsl:call-template>
+										</th>
+										<th>
+											<xsl:call-template name="columnTitle">
+												<xsl:with-param name="display" select="'End'" />
+												<xsl:with-param name="attName" select="'EndTime'" />
+											</xsl:call-template>
+										</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									<xsl:for-each select="jdf:QueueEntry">
+										<tr>
+											<td class="pt-2">
+												<xsl:variable name="c1" select="500*number(../@pos)" />
+												<xsl:variable name="c2"><xsl:number count="jdf:QueueEntry" /></xsl:variable>
+												<xsl:value-of select="$c1 + $c2" />
+												<!-- submission button for pulling jobs -->
+												<xsl:if test="../@Pull='true'">
+													<xsl:if test="@Status='Waiting'">
+														<xsl:if test="count(../jdf:QueueEntry[@Status='Running'])=0">
+															<form>
+																<xsl:attribute name="action">
+																	<xsl:value-of select="$context" />/modifyQE/<xsl:value-of select="../@DeviceID" />
+																</xsl:attribute>
+																<input type="hidden" name="qeID">
+																	<xsl:attribute name="value"><xsl:value-of select="@QueueEntryID" /></xsl:attribute>
+																</input>
+																<input type="hidden" name="submit" value="true" />
+																<input type="submit" value="submit" />
+															</form>
+														</xsl:if>
+													</xsl:if>
+												</xsl:if>
+											</td>
+											<td class="pt-2">
+												<a data-toggle="tooltip" data-html="true">
+													<xsl:attribute name="href">
+														<xsl:value-of select="$context" />/showJDF/<xsl:value-of select="../@DeviceID" />?qeID=<xsl:value-of select="@bambi:QueueEntryURL" />
+													</xsl:attribute>
+													<xsl:attribute name="title">
+														JobID: <xsl:value-of select="@JobID" />&lt;br/&gt;
+														JobPartID: <xsl:value-of select="@JobPartID" />&lt;br/&gt;
+														Description: <xsl:value-of select="@DescriptiveName" />&lt;br/&gt;
+														Activation: <xsl:value-of select="@Activation" />&lt;br/&gt;
+														StatusDetails: <xsl:value-of select="@StatusDetails" />&lt;br/&gt;
+														Device: <xsl:value-of select="@DeviceID" />&lt;br/&gt;
+													</xsl:attribute>
+													<xsl:value-of select="@QueueEntryID" />
+												</a>
+											</td>
+											<td class="pt-2">
+												<xsl:value-of select="@Priority" />
+											</td>
+											<td class="pt-2">
+												<xsl:call-template name="dateTime">
+													<xsl:with-param name="val" select="@SubmissionTime" />
+												</xsl:call-template>
+											</td>
+											<td class="pt-2">
+												<xsl:call-template name="dateTime">
+													<xsl:with-param name="val" select="@StartTime" />
+												</xsl:call-template>
+											</td>
+											<td class="pt-2">
+												<xsl:call-template name="dateTime">
+													<xsl:with-param name="val" select="@EndTime" />
+												</xsl:call-template>
+											</td>
+											<td class="p-0">
+												<form class="form-inline m-0 float-right">
+													<xsl:attribute name="action">
+														<xsl:value-of select="$context" />/modifyQE/<xsl:value-of select="../@DeviceID" />
+													</xsl:attribute>
+													<xsl:apply-templates select="bambi:OptionList" />
+													<input type="hidden" name="qeID">
+														<xsl:attribute name="value"><xsl:value-of select="@QueueEntryID" /></xsl:attribute>
+													</input>
+													<input type="submit" class="btn btn-outline-secondary btn-sm ml-2" value="Update" />
+												</form>
+											</td>
+										</tr>
+									</xsl:for-each>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-4">
+							<ul class="list-inline mb-2 mt-2">
+								<li class="list-inline-item">
+									<form class="form-inline mb-0">
+										<xsl:attribute name="action">
+											<xsl:value-of select="$context" />/showQueue/<xsl:value-of select="@DeviceID" />
+										</xsl:attribute>
+										<input type="hidden" name="pos">
+											<xsl:attribute name="value"><xsl:value-of select="number(@pos)" /></xsl:attribute>
+										</input>
+										<input type="hidden" name="filter">
+											<xsl:attribute name="value"><xsl:value-of select="@filter" /></xsl:attribute>
+										</input>
+										<input type="hidden" name="SortBy">
+											<xsl:attribute name="value"><xsl:value-of select="@sortby" /></xsl:attribute>
+										</input>
+										<input type="hidden" name="refresh" value="true" />
+										<input type="submit" class="btn btn-outline-secondary" value="Refresh Queue" />
+									</form>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
 			</body>
 		</html>
 	</xsl:template>
 
-	<xsl:template name="qeHeader">
+	<!-- the tables column title -->
+	<xsl:template name="columnTitle">
 		<xsl:param name="display" />
 		<xsl:param name="attName" />
-		<th align="center">
-			<a>
-				<xsl:attribute name="href">
-                 <xsl:value-of select="@Context" />/showQueue/<xsl:value-of
-					select="@DeviceID" />?SortBy=<xsl:value-of select="$attName" /><xsl:if
-					test="@filter">&amp;filter=<xsl:value-of select="@filter" /></xsl:if>
-        </xsl:attribute>
-				<xsl:value-of select="$display" />
-			</a>
-		</th>
+		<a>
+			<xsl:attribute name="href">
+				<xsl:value-of select="@Context" />/showQueue/<xsl:value-of select="@DeviceID" />?SortBy=<xsl:value-of select="$attName" /><xsl:if test="@filter">&amp;filter=<xsl:value-of select="@filter" /></xsl:if>
+			</xsl:attribute>
+			<xsl:value-of select="$display" />
+		</a>
 	</xsl:template>
 
-	<!-- QueueEntry template -->
-	<xsl:template match="jdf:QueueEntry">
-		<xsl:variable name="context" select="../@Context" />
-		<tr>
-			<xsl:if test="@Status='Running'">
-				<xsl:attribute name="bgcolor">#aaffaa</xsl:attribute>
-			</xsl:if>
-			<xsl:if test="@Status='Waiting'">
-				<xsl:attribute name="bgcolor">#aaaaff</xsl:attribute>
-			</xsl:if>
-			<xsl:if test="@Status='Suspended'">
-				<xsl:attribute name="bgcolor">#ffffaa</xsl:attribute>
-			</xsl:if>
-			<xsl:if test="@Status='Held'">
-				<xsl:attribute name="bgcolor">#ffffaa</xsl:attribute>
-			</xsl:if>
-			<xsl:if test="@Status='Aborted'">
-				<xsl:attribute name="bgcolor">#ffaaaa</xsl:attribute>
-			</xsl:if>
-			<xsl:if test="@Status='Completed'">
-				<xsl:attribute name="bgcolor">#dddddd</xsl:attribute>
-			</xsl:if>
-			<xsl:if test="@Activation='Inactive'">
-				<xsl:attribute name="bgcolor">#bbbbbb</xsl:attribute>
-			</xsl:if>
-			<td align="left">
-				<xsl:variable name="c1" select="500*number(../@pos)" />
-				<xsl:variable name="c2">
-					<xsl:number count="jdf:QueueEntry" />
-				</xsl:variable>
-				<xsl:value-of select="$c1 + $c2" />
-				<!-- submission button for pulling jobs -->
-				<xsl:if test="../@Pull='true'">
-					<xsl:if test="@Status='Waiting'">
-						<xsl:if test="count(../jdf:QueueEntry[@Status='Running'])=0">
-							<form>
-								<xsl:attribute name="action"><xsl:value-of
-									select="$context" />/modifyQE/<xsl:value-of
-									select="../@DeviceID" /></xsl:attribute>
-								<input type="hidden" name="qeID">
-									<xsl:attribute name="value"><xsl:value-of
-										select="@QueueEntryID" /></xsl:attribute>
-								</input>
-								<input type="hidden" name="submit" value="true" />
-								<input type="submit" value="submit" />
-							</form>
-						</xsl:if>
-					</xsl:if>
-				</xsl:if>
-			</td>
-			<td align="left">
-				<a>
-					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/showJDF/<xsl:value-of select="../@DeviceID" />?qeID=<xsl:value-of
-						select="@bambi:QueueEntryURL" /></xsl:attribute>
-					<xsl:value-of select="@QueueEntryID" />
-				</a>
-			</td>
-			<td align="left">
-				<xsl:value-of select="@Priority" />
-			</td>
-			<td align="left">
-				<xsl:call-template name="dateTime">
-					<xsl:with-param name="val" select="@SubmissionTime" />
-				</xsl:call-template>
-			</td>
-			<td align="left">
-				<xsl:call-template name="dateTime">
-					<xsl:with-param name="val" select="@StartTime" />
-				</xsl:call-template>
-			</td>
-			<td align="left">
-				<xsl:call-template name="dateTime">
-					<xsl:with-param name="val" select="@EndTime" />
-				</xsl:call-template>
-			</td>
-			<td align="left">
-				<xsl:value-of select="@DescriptiveName" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@JobID" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@JobPartID" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@Activation" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@StatusDetails" />
-			</td>
-			<xsl:if test="../@bambi:SlaveURL='true'">
-				<td align="left">
-					<xsl:value-of select="@bambi:SlaveQueueEntryID" />
-				</td>
-			</xsl:if>
-			<td>
-				<a>
-					<xsl:attribute name="href"><xsl:value-of
-						select="$context" />/showDevice/<xsl:value-of select="@DeviceID" /></xsl:attribute>
-					Device:
-					<xsl:value-of select="@DeviceID" />
-				</a>
-			</td>
-			<td nowrap="true">
-				<!-- calls the optionList -->
-				<form>
-					<xsl:attribute name="action"><xsl:value-of
-						select="$context" />/modifyQE/<xsl:value-of select="../@DeviceID" /></xsl:attribute>
-					<xsl:apply-templates select="bambi:OptionList" />
-					<input type="hidden" name="qeID">
-						<xsl:attribute name="value"><xsl:value-of
-							select="@QueueEntryID" /></xsl:attribute>
-					</input>
-					<input type="submit" value="modify entry" />
-				</form>
-			</td>
-		</tr>
-	</xsl:template>
-	<xsl:include href="optionlist.xsl" />
-	<xsl:include href="topnavigation.xsl" />
-	<xsl:include href="StandardXML.xsl" />
-
+	<xsl:include href="modules/formatting.module.xsl" />
+	<xsl:include href="modules/option-list.module.xsl" />
+	<xsl:include href="modules/head-content.module.xsl" />
 </xsl:stylesheet>

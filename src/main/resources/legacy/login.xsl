@@ -34,28 +34,23 @@
 						<div class="col-12">
 							<ul class="breadcrumb">
 								<li>
-									<a>
-										<xsl:attribute name="href"><xsl:value-of select="$context" />/overview</xsl:attribute>
-										DeviceList
-									</a>
+									<a><xsl:attribute name="href"><xsl:value-of select="$context" />/overview</xsl:attribute>Device List</a>
 								</li>
 								<li>
-									<a>
-										<xsl:attribute name="href"><xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" /></xsl:attribute>
-										Device: <xsl:value-of select="$deviceID" />
-									</a>
+									<a><xsl:attribute name="href"><xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" /></xsl:attribute>Device: <xsl:value-of select="$deviceID" /></a>
 								</li>
 								<li>
-									Login / Logout
+									Login/Logout
 								</li>
 							</ul>
 						</div>
 					</div>
 
 					<!-- login title -->
-					<div class="row pt-5">
+					<div class="row pt-2">
 						<div class="col-12">
-							<h1>Operator Login <xsl:value-of select="$deviceID" /></h1>
+							<h1>Operator Login/Logout</h1>
+							<p>Login/Logout of operators into the simulated bambi device '<xsl:value-of select="$deviceID" />'.</p>
 						</div>
 					</div>
 
@@ -114,10 +109,10 @@
 					</div>
 
 					<!-- logged in operators -->
-					<div class="row mt-5">
+					<div class="row mt-4">
 						<div class="col-8">
 							<h2>Logged in Operators</h2>
-							<table class="table table-hover">
+							<table class="table table-hover table-sm">
 								<thead class="thead-light">
 									<tr class="d-flex">
 										<th class="col-3">Employee ID</th>
@@ -129,17 +124,17 @@
 								<tbody>
 									<xsl:for-each select="jdf:Employee">
 										<tr class="d-flex">
-											<td class="col-3 pt-3">
+											<td class="col-3 pt-2">
 												<xsl:value-of select="@ProductID" />
 											</td>
-											<td class="col-3 pt-3">
+											<td class="col-3 pt-2">
 												<xsl:value-of select="jdf:Person/@DescriptiveName" />
 											</td>
-											<td class="col-3 pt-3">
+											<td class="col-3 pt-2">
 												<xsl:value-of select="@Roles" />
 											</td>
 											<td class="col-3">
-												<form class="mb-0">
+												<form class="mb-0 float-right">
 													<xsl:attribute name="action">
 														<xsl:value-of select="$context" />/login/<xsl:value-of select="$deviceID" />
 													</xsl:attribute>
@@ -147,7 +142,7 @@
 														<xsl:attribute name="value"><xsl:value-of select="@ProductID" /></xsl:attribute>
 													</input>
 													<input type="hidden" name="inout" value="logout" />
-													<input type="submit" class="btn btn-outline-secondary form-control" value="Log Out" />
+													<input type="submit" class="btn btn-outline-secondary btn-sm" value="Log Out" />
 												</form>
 											</td>
 										</tr>
@@ -161,7 +156,7 @@
 					</div>
 
 					<!-- login operators -->
-					<div class="row mt-5">
+					<div class="row mt-4">
 						<div class="col-12">
 							<h2>Login Operator</h2>
 							<xsl:apply-templates select="KnownEmployees" />
@@ -169,7 +164,7 @@
 					</div>
 
 					<!-- version details -->
-					<div class="row mt-5">
+					<div class="row mt-4">
 						<div class="col-12">
 							<xsl:call-template name="version" />
 						</div>
