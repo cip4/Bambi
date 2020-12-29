@@ -2479,9 +2479,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	public JDFQueue updateEntry(JDFQueueEntry qe, final EnumQueueEntryStatus status, final JDFMessage mess, final JDFResponse resp, String statusDetails)
 	{
-		if (qe == null || StringUtil.getNonEmpty(qe.getQueueEntryID()) == null)
+		if (qe == null || StringUtil.isEmpty(qe.getQueueEntryID()))
 		{
-			log.error("cannot update qe: " + qe);
+			log.error("cannot update qe with no qeID");
 			return _theQueue;
 		}
 		statusDetails = StringUtil.getNonEmpty(statusDetails);
