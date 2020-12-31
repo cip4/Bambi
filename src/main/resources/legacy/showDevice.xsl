@@ -21,8 +21,7 @@
 				</xsl:if>
 			</head>
 
-			<!-- Body only -->
-			<body data-spy="scroll" data-target=".navbar" data-offset="150">
+			<body>
 				<!-- navigation -->
 				<nav class="navbar navbar-expand-sm fixed-top">
 					<a class="navbar-brand" href="#">
@@ -48,7 +47,7 @@
 									<a><xsl:attribute name="href"><xsl:value-of select="$context" />/overview</xsl:attribute>Device List</a>
 								</li>
 								<li>
-									Device: <xsl:value-of select="$deviceID" />
+									Device <xsl:value-of select="$deviceID" />
 								</li>
 							</ul>
 						</div>
@@ -57,14 +56,14 @@
 					<!-- device title -->
 					<div class="row pt-2">
 						<div class="col-12">
-							<h1>Device: <xsl:value-of select="$deviceID" /></h1>
+							<h1>Device <xsl:value-of select="$deviceID" /></h1>
 							<p><xsl:value-of select="$deviceType" /></p>
 						</div>
 					</div>
 
 					<!-- control buttons -->
 					<div class="row">
-						<div class="col-12">
+						<div class="col-8">
 							<ul class="list-inline mb-2 mt-2">
 								<li class="list-inline-item">
 									<form class="mb-0">
@@ -76,29 +75,6 @@
 										<input type="submit" class="btn btn-outline-secondary" value="Refresh" />
 									</form>
 								</li>
-
-								<xsl:if test="$mutable='true'">
-									<li class="list-inline-item">
-										<form class="mb-0">
-											<xsl:attribute name="action">
-												<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
-											</xsl:attribute>
-											<input type="hidden" name="setup" value="true" />
-											<input type="hidden" name="restart" value="true" />
-											<input type="submit" class="btn btn-outline-secondary" value="Restart" />
-										</form>
-									</li>
-									<li class="list-inline-item">
-										<form class="mb-0">
-											<xsl:attribute name="action">
-												<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
-											</xsl:attribute>
-											<input type="hidden" name="setup" value="true" />
-											<input type="hidden" name="reset" value="true" />
-											<input type="submit" class="btn btn-outline-secondary" value="Reset" />
-										</form>
-									</li>
-								</xsl:if>
 
 								<xsl:if test="@login='true'">
 									<li class="list-inline-item">
@@ -127,6 +103,32 @@
 										<input type="submit" class="btn btn-outline-secondary" value="Show Subscriptions" />
 									</form>
 								</li>
+							</ul>
+						</div>
+						<div class="col d-flex justify-content-end">
+							<ul class="list-inline mb-2 mt-2">
+								<xsl:if test="$mutable='true'">
+									<li class="list-inline-item">
+										<form class="mb-0">
+											<xsl:attribute name="action">
+												<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
+											</xsl:attribute>
+											<input type="hidden" name="setup" value="true" />
+											<input type="hidden" name="restart" value="true" />
+											<input type="submit" class="btn btn-outline-danger" value="Restart" />
+										</form>
+									</li>
+									<li class="list-inline-item">
+										<form class="mb-0">
+											<xsl:attribute name="action">
+												<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" />
+											</xsl:attribute>
+											<input type="hidden" name="setup" value="true" />
+											<input type="hidden" name="reset" value="true" />
+											<input type="submit" class="btn btn-outline-danger" value="Reset" />
+										</form>
+									</li>
+								</xsl:if>
 							</ul>
 						</div>
 					</div>

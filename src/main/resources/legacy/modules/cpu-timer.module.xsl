@@ -8,15 +8,15 @@
 						<table class="table table-borderless table-sm table-hover small">
 							<tbody>
 								<tr>
-									<th>Start:</th>
+									<th class="pl-0">Start:</th>
 									<td><xsl:value-of select="@CreationTime" /></td>
 								</tr>
 								<tr>
-									<th>Innvocations:</th>
+									<th class="pl-0">Innvocations:</th>
 									<td><xsl:value-of select="@StartStop" /></td>
 								</tr>
 								<tr>
-									<th>Real Time (sec.):</th>
+									<th class="pl-0">Real Time (sec.):</th>
 									<td>
 										<a href="#" data-toggle="tooltip" title="Current"><xsl:value-of select="format-number(@CurrentRealTime, '#0.00')" /></a> /
 										<a href="#" data-toggle="tooltip" title="Total"><xsl:value-of select="format-number(@TotalRealTime, '#0.00')" /></a> /
@@ -24,7 +24,7 @@
 									</td>
 								</tr>
 								<tr>
-									<th>CPU Time (sec.):</th>
+									<th class="pl-0">CPU Time (sec.):</th>
 									<td>
 										<a href="#" data-toggle="tooltip" title="Current"><xsl:value-of select="format-number(@CurrentCPUTime, '#0.00')" /></a> /
 										<a href="#" data-toggle="tooltip" title="Total"><xsl:value-of select="format-number(@TotalCPUTime, '#0.00')" /></a> /

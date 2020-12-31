@@ -215,5 +215,4 @@
 	</xsl:template>
 	<!-- end of template RemovedChannel -->
 	<xsl:include href="SubscriptionExtension.xsl" />
-	<xsl:include href="topnavigation.xsl" />
 </xsl:stylesheet>

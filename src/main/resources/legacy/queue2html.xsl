@@ -331,6 +331,29 @@
 								<tbody>
 									<xsl:for-each select="jdf:QueueEntry">
 										<tr>
+											<xsl:choose>
+												<xsl:when test="@Status='Running'">
+													<xsl:attribute name="class">table-success</xsl:attribute>
+												</xsl:when>
+												<xsl:when test="@Status='Waiting'">
+													<xsl:attribute name="class"></xsl:attribute>
+												</xsl:when>
+												<xsl:when test="@Status='Suspended'">
+													<xsl:attribute name="class">table-warning</xsl:attribute>
+												</xsl:when>
+												<xsl:when test="@Status='Held'">
+													<xsl:attribute name="class">table-warning</xsl:attribute>
+												</xsl:when>
+												<xsl:when test="@Status='Aborted'">
+													<xsl:attribute name="class">table-danger</xsl:attribute>
+												</xsl:when>
+												<xsl:when test="@Status='Completed'">
+													<xsl:attribute name="class">table-light text-muted</xsl:attribute>
+												</xsl:when>
+												<xsl:when test="@Activation='Inactive'">
+													<xsl:attribute name="class">table-light text-muted</xsl:attribute>
+												</xsl:when>
+											</xsl:choose>
 											<td class="pt-2">
 												<xsl:variable name="c1" select="500*number(../@pos)" />
 												<xsl:variable name="c2"><xsl:number count="jdf:QueueEntry" /></xsl:variable>
