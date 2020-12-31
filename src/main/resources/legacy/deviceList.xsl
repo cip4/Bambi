@@ -180,7 +180,7 @@
 						</label>
 					</div>
 					<input type="hidden" name="UpdateDump" value="true" />
-					<input type="submit" value="Modify" class="btn btn-outline-secondary" />
+					<input type="submit" value="Update" class="btn btn-outline-secondary" />
 				</form>
 			</td>
 			<td>
