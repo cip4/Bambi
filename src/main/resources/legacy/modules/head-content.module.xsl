@@ -19,7 +19,7 @@
             <xsl:attribute name="href"><xsl:value-of select="$context" />/legacy/styles/style.css</xsl:attribute>
         </link>
         <link rel="icon" type="image/x-icon">
-            <xsl:attribute name="href"><xsl:value-of select="$context" />/legacy/favicon.ico</xsl:attribute>
+            <xsl:attribute name="href"><xsl:value-of select="$context" />/legacy/styles/favicon.ico</xsl:attribute>
         </link>
         <script src="{$context}/legacy/styles/style.js"/>
     </xsl:template>
