@@ -1,169 +1,106 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<!-- (C) 2001-2017 CIP4 -->
-<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
-	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-
+<xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:strip-space elements="*" />
 	<xsl:output method="html" cdata-section-elements="jdf:JMF jdf:Query" />
-
 	<xsl:template match="/SubscriptionList">
 		<xsl:variable name="context" select="@Context" />
 		<html>
 			<head>
-				<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
-				<link rel="stylesheet" type="text/css" href="/legacy/css/styles_pc.css" />
-				<link rel="icon" href="/legacy/favicon.ico" type="image/x-icon" />
-				<title>
-					Device
-					<xsl:value-of select="@DeviceID" />
-					- Subscription
-				</title>
+				<xsl:call-template name="head-content" />
 			</head>
+
 			<body>
-				<img src="/legacy/logo.gif" height="70" alt="logo" />
-				<h1>
-					Device
-					<xsl:value-of select="@DeviceID" />
-					- Subscription ChannelID=
-					<xsl:value-of select="MsgSubscription/@ChannelID" />
-				</h1>
-				<xsl:if test="MsgSubscription">
-					<h2>Subscriptions</h2>
-					<table cellspacing="2" border="1">
-						<tr>
-							<th align="left"> Channel ID</th>
-							<th align="left"> Device ID</th>
-							<th align="left"> QueueEntry ID</th>
-							<th align="left"> Signal Type</th>
-							<th align="left"> Subscription URL</th>
-							<th align="left"> Channel Mode</th>
-							<th align="left"> Repeat Time</th>
-							<th align="left"> Repeat Step</th>
-							<th align="left"> Messages Queued</th>
-							<th align="left"> Last time Queued</th>
-							<th align="left"> Remove Subscription</th>
-						</tr>
-						<xsl:apply-templates select="MsgSubscription" />
-					</table>
-				</xsl:if>
-				<table>
-					<tr>
-						<td>
-							<a>
-								<xsl:attribute name="href"><xsl:value-of
-									select="@Context" />/showSubscriptions/<xsl:value-of
-									select="@DeviceID" />
-          </xsl:attribute>
-								Back to Subscription List
-							</a>
-						</td>
-						<td>
-							-
-						</td>
-						<td>
-							<a>
-								<xsl:attribute name="href"><xsl:value-of
-									select="@Context" />/showDevice/<xsl:value-of
-									select="@DeviceID" />
-          </xsl:attribute>
-								Back to Device
-							</a>
-						</td>
-					</tr>
-				</table>
-				<hr />
+				<!-- navigation -->
+				<nav class="navbar navbar-expand-sm fixed-top">
+					<a class="navbar-brand" href="#">
+						<img class="nav-logo" src="http://assets.cip4.org/logo/cip4-organization.png" />
+						<span class="cip">CIP4</span> Organization
+					</a>
 
-				<xsl:if test="MsgSubscription/Sub">
-					<xsl:apply-templates select="MsgSubscription/Sub" />
-					<hr />
-				</xsl:if>
-				<xsl:apply-templates select="MessageSender/Message" />
-				<xsl:if test="MsgSubscription/Message">
-					<hr />
-					<h2>Previously Queued Messages</h2>
-					<table>
-						<tr>
-							<th>Position</th>
-							<th>Time Sent</th>
-							<th>Message</th>
-						</tr>
-						<xsl:apply-templates select="MsgSubscription/Message" />
-					</table>
-				</xsl:if>
+					<!-- left -->
+					<ul class="navbar-nav mr-auto"></ul>
+
+					<!-- right -->
+					<ul class="navbar-nav"></ul>
+				</nav>
 
 
+				<div class="container">
+
+					<!-- breadcrumb -->
+					<div class="row pt-2">
+						<div class="col-12">
+							<ul class="breadcrumb">
+								<li>
+									<a><xsl:attribute name="href"><xsl:value-of select="$context" />/overview</xsl:attribute>Device List</a>
+								</li>
+								<li>
+									<a><xsl:attribute name="href"><xsl:value-of select="$context" />/showDevice/<xsl:value-of select="@DeviceID" /></xsl:attribute>Device: <xsl:value-of select="@DeviceID" /></a>
+								</li>
+								<li>
+									<a><xsl:attribute name="href"><xsl:value-of select="@Context" />/showSubscriptions/<xsl:value-of select="@DeviceID" /></xsl:attribute>Subscriptions</a>
+								</li>
+								<li>
+									Channel: <xsl:value-of select="MsgSubscription/@ChannelID" />
+								</li>
+							</ul>
+						</div>
+					</div>
+
+					<!-- channel title -->
+					<div class="row pt-2">
+						<div class="col-12">
+							<h1>Channel: <xsl:value-of select="MsgSubscription/@ChannelID" /></h1>
+							<p>Channel details of the selected channel of device <xsl:value-of select="@DeviceID" />.</p>
+						</div>
+					</div>
+
+					<!-- message subscription details -->
+					<div class="row mt-4">
+						<div class="col-12">
+							<h2>Message Subscriptions</h2>
+							<p>List of message subscriptions.</p>
+
+							<xsl:call-template name="msg-subscriptions-table" />
+						</div>
+					</div>
+
+
+
+					<xsl:if test="MsgSubscription/Sub">
+						<div class="row mt-4">
+							<div class="col-12">
+								<h2>Subscription Details</h2>
+								<xsl:for-each select="MsgSubscription/Sub">
+									<xsl:apply-templates select="jdf:Query" />
+								</xsl:for-each>
+							</div>
+						</div>
+					</xsl:if>
+
+					<xsl:apply-templates select="MessageSender/Message" />
+					<xsl:if test="MsgSubscription/Message">
+						<hr />
+						<h2>Previously Queued Messages</h2>
+						<table>
+							<tr>
+								<th>Position</th>
+								<th>Time Sent</th>
+								<th>Message</th>
+							</tr>
+							<xsl:apply-templates select="MsgSubscription/Message" />
+						</table>
+					</xsl:if>
+
+				</div>
 			</body>
 		</html>
 	</xsl:template>
 
-	<!-- end of template SubscriptionList -->
-	<xsl:template match="MsgSubscription">
-		<tr>
-			<td align="left">
-				<a>
-					<xsl:attribute name="href"><xsl:value-of
-						select="../@Context" />/showSubscriptions/<xsl:value-of
-						select="../@DeviceID" />?DetailID=<xsl:value-of
-						select="@ChannelID" />
-                  </xsl:attribute>
-					<xsl:value-of select="@ChannelID" />
-				</a>
-			</td>
-			<td align="left">
-				<xsl:value-of select="@DeviceID" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@QueueEntryID" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@Type" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@URL" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="*/jdf:Query/jdf:Subscription/@ChannelMode" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@RepeatTime" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@RepeatStep" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@Sent" />
-			</td>
-			<td align="left">
-				<xsl:value-of select="@LastTime" />
-			</td>
-			<td align="center">
-				<form>
-					<xsl:attribute name="action"><xsl:value-of
-						select="../@Context" />/showSubscriptions/<xsl:value-of
-						select="../@DeviceID" /></xsl:attribute>
-					<input type="hidden" name="StopChannel" value="true" />
-					<input type="hidden" name="ChannelID">
-						<xsl:attribute name="value"><xsl:value-of
-							select="@ChannelID" /></xsl:attribute>
-					</input>
-					<input type="submit" value="remove" />
-				</form>
-			</td>
-		</tr>
-	</xsl:template>
-	<!-- end of template MsgSubscription -->
 
-	<xsl:include href="xjdf.xsl" />
 
-	<!-- end of template MessageSender -->
-	<xsl:template match="Sub">
-		<h2>Subscription Details</h2>
-		<xsl:apply-templates select="jdf:Query" />
-	</xsl:template>
-	<!-- end of template MessageSender -->
 
-	
+
 
 
 	<xsl:template match="MessageSender/Message">
@@ -213,6 +150,8 @@
 			</td>
 		</tr>
 	</xsl:template>
-	<!-- end of template RemovedChannel -->
-	<xsl:include href="SubscriptionExtension.xsl" />
+
+	<xsl:include href="xjdf.xsl" />
+	<xsl:include href="modules/msg-subscriptions-table.module.xsl" />
+
 </xsl:stylesheet>

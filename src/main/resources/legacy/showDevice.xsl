@@ -314,7 +314,6 @@
 
 	<!-- ============================================================ -->
 
-	<xsl:include href="CPUTimer.xsl" />
 	<xsl:include href="processor.xsl" />
 	<xsl:include href="DeviceExtension.xsl" />
 	<xsl:include href="optionlist.xsl" />
