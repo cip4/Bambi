@@ -24,6 +24,7 @@
 /legacy/styles/style.js
 /legacy/styles/style.css
 /legacy/styles/bambi-logo.png
+/legacy/styles/favicon.ico
 
 /legacy/CPUTimer.xsl
 /legacy/DeviceDetails.xsl
@@ -32,7 +33,6 @@
 /legacy/error.jsp
 /legacy/error.xsl
 /legacy/exception.jsp
-/legacy/favicon.ico
 /legacy/index.jsp
 /legacy/jdf.xsl
 /legacy/log4j.properties
@@ -50,14 +50,6 @@
 /legacy/topnavigation.xsl
 /legacy/xjdf.xsl
 
-/legacy/bambi.jpg
-/legacy/logo.gif
-
-/legacy/css/arrow_right.gif
-/legacy/css/frame_background.gif
-/legacy/css/styles_pc.css
-/legacy/css/transparent8.gif
-/legacy/css/v3_bg_white.jpg
 
 /META-INF/MANIFEST.MF
 /WEB-INF/web.xml
