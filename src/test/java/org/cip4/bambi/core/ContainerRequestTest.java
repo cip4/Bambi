@@ -220,4 +220,17 @@ public class ContainerRequestTest extends BambiTestCaseBase
 		assertTrue(req.toString().contains("}"));
 	}
 
+	/**
+	 *
+	 */
+	@Test
+	public void testGetCompleteURI()
+	{
+		final ContainerRequest req = new ContainerRequest();
+		final String requestURI = "http://host/foo/bar/dev";
+		req.setParameter("a", "b");
+		req.setRequestURI(requestURI);
+		assertEquals("http://host/foo/bar/dev?a=b", req.getCompleteURI());
+	}
+
 }

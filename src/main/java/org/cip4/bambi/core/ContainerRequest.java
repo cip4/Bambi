@@ -40,6 +40,7 @@ package org.cip4.bambi.core;
 
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -298,6 +299,24 @@ public class ContainerRequest extends BambiLogFactory
 		return getClass().getSimpleName() + ((name != null) ? " Name=" + name : JDFConstants.EMPTYSTRING) + " URL=" + requestURI
 				+ ((contentType != null) ? " Content Type=" + contentType : JDFConstants.EMPTYSTRING) + " Method=" + getMethod()
 				+ ((parameterMap == null || parameterMap.size() == 0) ? "" : " Parameters: {" + parameterMap.showKeys(JDFConstants.BLANK) + "}");
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 * @return
+	 */
+	public String getCompleteURI()
+	{
+		String ret = requestURI;
+
+		if (parameterMap != null)
+		{
+			for (final Entry<String, String> e : parameterMap.entrySet())
+			{
+				ret = UrlUtil.addParameter(ret, e.getKey(), e.getValue());
+			}
+		}
+		return ret;
 	}
 
 	/**
