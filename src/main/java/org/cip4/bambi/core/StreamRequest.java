@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2020 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -166,7 +166,14 @@ public class StreamRequest extends ContainerRequest
 	public String toString()
 	{
 		final int s = (theStream == null) ? 0 : theStream.size();
-		return super.toString() + " stream size: " + s;
+		if (s > 0)
+		{
+			return super.toString() + " stream size: " + s;
+		}
+		else
+		{
+			return super.toString();
+		}
 	}
 
 	@Override
