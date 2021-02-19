@@ -3,9 +3,12 @@ import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
     id 'java'
     id 'application'
-    id 'edu.sc.seis.launch4j' version '2.4.6'
+    id 'edu.sc.seis.launch4j' version '2.4.9'
     id 'edu.sc.seis.macAppBundle' version '2.3.0'
 }
+
+sourceCompatibility = 11
+targetCompatibility = 11
 
 if (project.hasProperty('projectVersion')) {
     version = project.projectVersion
