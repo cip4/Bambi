@@ -60,6 +60,36 @@ jobs:
             --platform "managed" \
             --allow-unauthenticated
 
+  linux-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Check out sources...
+        uses: actions/checkout@v2
+
+      - name: Build with Gradle
+        run: ./gradlew assembleDist
+
+      - name: Rename .ZIP
+        run: mv build/distributions/Bambi-development.zip build/distributions/Bambi-SNAPSHOT-${{ github.run_number }}.zip
+
+      - name: Rename .TAR
+        run: mv build/distributions/Bambi-development.tar build/distributions/Bambi-SNAPSHOT-${{ github.run_number }}.tar
+
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: build/distributions
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: binaries
+          path: build/distributions/Bambi-SNAPSHOT-*.*
+
   macos-build:
     runs-on: macos-latest
     steps:
@@ -74,17 +104,14 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew createDmg
 
-      - name: Upload MacOS App
-        uses: actions/upload-artifact@v1
-        with:
-          name: macosx app file
-          path: build/distributions/Bambi-development.dmg
+      - name: Rename .DMG
+        run: mv build/distributions/Bambi-development.dmg build/distributions/Bambi-SNAPSHOT-${{ github.run_number }}.dmg
 
-      - name: Upload JAR
-        uses: actions/upload-artifact@v1
+      - name: Upload Binaries
+        uses: actions/upload-artifact@v2
         with:
-          name: jar file
-          path: build/libs/Bambi-development.jar
+          name: binaries
+          path: build/distributions/Bambi-SNAPSHOT-*.*
 
   windows-build:
     runs-on: windows-latest
@@ -100,11 +127,39 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew createExe
 
+      - name: Rename binaries
+        run: mv build/launch4j/Bambi-development.exe build/launch4j/Bambi-SNAPSHOT-${{ github.run_number }}.exe
+
       - name: Debug
         run: ls -l build/launch4j
 
       - name: Upload EXE
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
-          name: exe file
-          path: build/launch4j/Bambi-development.exe
+          name: binaries
+          path: build/launch4j/Bambi-SNAPSHOT-*.exe
+
+  publish-snapshot:
+    needs:
+      - linux-build
+      - macos-build
+      - windows-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: binaries
+          path: binaries
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: binaries
+      - name: Confluence Upload
+        uses: cip4/action-confluence-upload@master
+        with:
+          url: 'https://confluence.cip4.org'
+          username: ${{ secrets.CONFLUENCE_USER }}
+          password: ${{ secrets.CONFLUENCE_PASSWORD }}
+          contentId: 5309049
+          label: 'bambi-snapshot,snapshot'
+          filePattern: 'binaries/**/Bambi-SNAPSHOT-*.*'
