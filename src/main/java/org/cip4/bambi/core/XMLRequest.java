@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.core;
 
@@ -84,7 +84,7 @@ import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * class to package an XML document together with the context information of the request
- * 
+ *
  * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class XMLRequest extends ContainerRequest
@@ -92,7 +92,7 @@ public class XMLRequest extends ContainerRequest
 	/**
 	 * @param theXML
 	 */
-	public XMLRequest(KElement theXML)
+	public XMLRequest(final KElement theXML)
 	{
 		super();
 		this.theXML = theXML;
@@ -107,7 +107,7 @@ public class XMLRequest extends ContainerRequest
 	/**
 	 * @param theDoc
 	 */
-	public XMLRequest(XMLDoc theDoc)
+	public XMLRequest(final XMLDoc theDoc)
 	{
 		this(theDoc == null ? null : theDoc.getRoot());
 		if (theDoc == null)
@@ -117,7 +117,7 @@ public class XMLRequest extends ContainerRequest
 	/**
 	 * @param xml
 	 */
-	public void setContentType(KElement xml)
+	public void setContentType(final KElement xml)
 	{
 		if (xml instanceof JDFJMF)
 		{
@@ -129,7 +129,7 @@ public class XMLRequest extends ContainerRequest
 		}
 		else if (xml != null)
 		{
-			String name = xml.getLocalName();
+			final String name = xml.getLocalName();
 			if (XJDFConstants.XJMF.equals(name))
 			{
 				setContentType(UrlUtil.VND_XJMF);
@@ -148,10 +148,10 @@ public class XMLRequest extends ContainerRequest
 	/**
 	 * @param request
 	 */
-	public XMLRequest(StreamRequest request)
+	public XMLRequest(final StreamRequest request)
 	{
 		super();
-		InputStream inStream = request.getInputStream();
+		final InputStream inStream = request.getInputStream();
 		setContainer(request);
 		final JDFDoc xmlDoc = JDFDoc.parseStream(inStream);
 		if (xmlDoc == null)
@@ -168,15 +168,15 @@ public class XMLRequest extends ContainerRequest
 	}
 
 	/**
-	 * 
-	 * update name based on data type of the xml 
+	 *
+	 * update name based on data type of the xml
 	 */
 	private void updateName()
 	{
 		if (theXML instanceof JDFJMF)
 		{
-			JDFJMF jmf = (JDFJMF) theXML;
-			JDFMessage m = jmf.getMessageElement(null, null, 0);
+			final JDFJMF jmf = (JDFJMF) theXML;
+			final JDFMessage m = jmf.getMessageElement(null, null, 0);
 			if (m != null)
 			{
 				setName(m.getType());

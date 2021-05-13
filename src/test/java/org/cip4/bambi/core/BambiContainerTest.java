@@ -90,7 +90,10 @@ import org.cip4.jdflib.core.JDFElement.EnumValidationLevel;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.extensions.XJMFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.ByteArrayIOStream;
@@ -101,6 +104,7 @@ import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.mime.MimeWriter;
+import org.cip4.lib.jdf.jsonutil.JSONWriter;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -238,6 +242,26 @@ public class BambiContainerTest extends BambiTestCase
 		final XMLResponse resp = bambiContainer.processStream(r);
 		assertNotNull(resp);
 		resp.getXMLDoc().write2File(sm_dirTestDataTemp + "handleStream.resp.jmf", 2, false);
+		assertTrue(((JDFElement) resp.getXML()).isValid(EnumValidationLevel.Complete));
+	}
+
+	/**
+	 * @throws IOException
+	 *
+	 */
+	@Test
+	public void testHandleStreamJSON() throws IOException
+	{
+		final XJMFHelper jmf = new XJMFHelper();
+		jmf.appendMessage(EnumFamily.Query, EnumType.KnownMessages);
+		final JSONWriter w = ServletContainer.getJSONWriter();
+		w.convert(jmf.getRoot());
+
+		final StreamRequest r = new StreamRequest(w.getInputStream());
+		r.setContentType(UrlUtil.TEXT_JSON);
+		final XMLResponse resp = bambiContainer.processStream(r);
+		assertNotNull(resp);
+		resp.getXMLDoc().write2File(sm_dirTestDataTemp + "handleStream.resp.json.jmf", 2, false);
 		assertTrue(((JDFElement) resp.getXML()).isValid(EnumValidationLevel.Complete));
 	}
 

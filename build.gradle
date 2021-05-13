@@ -61,6 +61,8 @@ macAppBundle {
 
 dependencies {
     implementation 'org.cip4.tools.jdfutility:JDFUtility:1.x-SNAPSHOT'
+    implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:+'
+    implementation 'com.googlecode.json-simple:json-simple:1.1'
     implementation 'log4j:log4j:1.2.17'
     implementation 'xerces:xercesImpl:2.9.1'
     implementation 'commons-logging:commons-logging-api:1.1'
