@@ -17,14 +17,14 @@ jobs:
       - name: Check out sources...
         uses: actions/checkout@v2
 
-      - name: Build docker container
-        run: docker build -t docker.pkg.github.com/cip4/bambi/bambi:${GITHUB_REF##*/} --build-arg VERSION=${GITHUB_REF##*/} --build-arg BUILD_NUMBER=${GITHUB_RUN_NUMBER} --build-arg GIT_REV=${GITHUB_SHA} .
+      - name: Build Docker Container
+        run: docker build -t cip4/bambi:${GITHUB_REF##*/} --build-arg VERSION=${GITHUB_REF##*/} --build-arg BUILD_NUMBER=${GITHUB_RUN_NUMBER} --build-arg GIT_REV=${GITHUB_SHA} .
 
-      - name: Login to docker.pkg.github.com
-        run: docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-      - name: Push docker container
-        run: docker push docker.pkg.github.com/cip4/bambi/bambi:${GITHUB_REF##*/}
+      - name: Push Docker Container
+        run: docker push cip4/bambi:${GITHUB_REF##*/}
 
   windows-build:
     runs-on: windows-latest
