@@ -42,6 +42,13 @@ jobs:
 
       - name: Login to Docker Hub
         run: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
+        
+      - name: Push README to Docker Hub
+        uses: peter-evans/dockerhub-description@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          repository: cip4/bambi
 
       - name: Push docker container to pkg.github.om
         run: docker push cip4/bambi:latest
