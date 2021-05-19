@@ -29,28 +29,9 @@ Don't write issues, provide Pull-Requests!
 <br />
 
 ## Bambi Docker
-Bambi is also available as Docker image on GitHub Packages: https://github.com/orgs/cip4/packages. Here is the CLI commands to launch the image locally on your machine:
+Bambi is also available as Docker image on Docker Hub: https://hub.docker.com/r/cip4/bambi. Here is the CLI commands to launch the image locally on your machine:
 
 ```bash
-$ docker pull docker.pkg.github.com/cip4/bambi/bambi:latest
-$ docker run -p 8080:8080 docker.pkg.github.com/cip4/bambi/bambi:latest
-```
-
-**Note:** The public GitHub Package Registry [requires authentication](https://github.community/t/docker-pull-from-public-github-package-registry-fail-with-no-basic-auth-credentials-error/16358).
-
-Log in using `docker login docker.pgk.github.com` first. You can also use a [personal access token](https://github.com/settings/tokens) to authenticate with in lieu of your password (requires the `read:packages` scope).
-
-## Development Notes
-### Release a new Version
-Creation and publishing of a new version to GitHub Release.
-
-```bash
-$ git tag -a [VERSION] -m "[TITLE]"
-$ git push origin [VERSION]
-```
-
-In case a build has been failed, a tag can be deleted using the following command:
-```bash
-$ git tag -d [VERSION]
-$ git push origin :refs/tags/[VERSION]
+$ docker pull cip4/bambi:latest
+$ docker run -p 8080:8080 cip4/bambi:latest
 ```
