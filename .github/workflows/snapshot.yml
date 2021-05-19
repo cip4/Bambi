@@ -16,11 +16,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup GCloud CLI
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@master
         with:
-          version: '298.0.0'
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
+          export_default_credentials: true
 
       - name: Setup JDK 11
         uses: actions/setup-java@v1
@@ -33,18 +33,18 @@ jobs:
       - name: Build docker container
         run: |-
           docker build \
-            -t "docker.pkg.github.com/cip4/bambi/bambi:latest" \
+            -t cip4/bambi:latest \
             -t "gcr.io/$PROJECT_ID/$SERVICE_NAME:latest" \
             --build-arg VERSION=dev \
             --build-arg BUILD_NUMBER=${GITHUB_RUN_NUMBER} \
             --build-arg GIT_REV=${GITHUB_SHA} \
             .
 
-      - name: Login to docker.pkg.github.com
-        run: docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
 
       - name: Push docker container to pkg.github.om
-        run: docker push docker.pkg.github.com/cip4/bambi/bambi:latest
+        run: docker push cip4/bambi:latest
 
       - name: Docker Auth GCloud
         run: gcloud auth configure-docker
