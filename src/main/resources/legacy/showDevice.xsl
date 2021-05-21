@@ -137,18 +137,16 @@
 					<div class="row">
 						<div class="col-12">
 							<ul class="list-inline">
+								<li class="list-inline-item">
+									<a class="btn btn-link pl-0" role="button">
+										<xsl:attribute name="href">
+											<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="$deviceID" />?refresh=false
+										</xsl:attribute>
+										Modify page
+									</a>
+								</li>
 								<xsl:choose>
 									<xsl:when test="@refresh='true'">
-										<li class="list-inline-item">
-											<a class="btn btn-link pl-0" role="button">
-												<xsl:attribute name="href">
-													<xsl:value-of select="$context" />/showDevice/<xsl:value-of select="$deviceID" />?refresh=false
-												</xsl:attribute>
-												Modify page
-											</a>
-										</li>
-									</xsl:when>
-									<xsl:otherwise>
 										<li class="list-inline-item">
 											<a class="btn btn-link pl-0" role="button">
 												<xsl:attribute name="href">
@@ -157,6 +155,8 @@
 												Reload Once
 											</a>
 										</li>
+									</xsl:when>
+									<xsl:otherwise>
 										<li class="list-inline-item">
 											<a class="btn btn-link" role="button">
 												<xsl:attribute name="href">
