@@ -54,6 +54,7 @@ import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.extensions.XJDFConstants;
+import org.cip4.jdflib.extensions.XJMFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -62,6 +63,7 @@ import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.mime.BodyPartHelper;
 import org.cip4.jdflib.util.mime.MimeReader;
 
 /**
@@ -495,20 +497,76 @@ public final class BambiContainer extends ServletContainer
 	 */
 	protected XMLResponse processMultipleGood(final MimeRequest request, final BodyPart[] bp)
 	{
+		final BodyPartHelper bph = new BodyPartHelper(bp[0]);
 		final XMLResponse r;
-		final JDFDoc docJDF[] = MimeUtil.getJMFSubmission(bp[0].getParent());
+		final JDFDoc[] docJDF;
+		if (MimeUtil.isJSONType(bph.getContentType()))
+		{
+			docJDF = getJSONDocs(bp);
+		}
+		else
+		{
+			docJDF = MimeUtil.getJMFSubmission(bp[0].getParent());
+		}
 		if (docJDF == null || docJDF.length == 0)
 		{
 			r = processError(request.getRequestURI(), EnumType.Notification, 2, "proccessMultipleDocuments- no body parts, bailing out!");
 		}
 		else
 		{
-			final XMLRequest r2 = new XMLRequest(docJDF[0].getJMFRoot());
+			final XMLRequest r2 = new XMLRequest(docJDF[0].getRoot());
 			r2.setContainer(request);
 			r = processXMLDoc(r2);
 			request.setName(r2.getName());
 		}
+		if (MimeUtil.isJSONType(bph.getContentType()))
+		{
+			final NetResponse nr = new NetResponse(r, bph.getContentType());
+			nr.setJSON(true);
+			return nr;
+		}
 		return r;
+	}
+
+	JDFDoc[] getJSONDocs(final BodyPart[] bp)
+	{
+		if (bp == null || bp.length < 1)
+		{
+			return null;
+		}
+		final BodyPartHelper bodyPartHelper0 = new BodyPartHelper(bp[0]);
+		final JDFDoc jmf = getDocFromJSONStream(bodyPartHelper0.getInputStream());
+		final XJMFHelper h = XJMFHelper.getHelper(jmf);
+		if (h == null)
+		{
+			return null;
+		}
+		jmf.setBodyPart(bp[0]);
+		String subURL = h.getXPathValue("CommandSubmitQueueEntry/QueueSubmissionParams/@URL");
+		if (subURL == null)
+			subURL = h.getXPathValue("CommandResubmitQueueEntry/ResubmissionParams/@URL");
+		if (subURL == null)
+			subURL = h.getXPathValue("CommandReturnQueueEntry/ReturnQueueEntryParams/@URL");
+
+		if (subURL == null)
+		{
+			log.warn("No URL in mime packaged - process raw");
+			return new JDFDoc[] { jmf };
+		}
+		final MimeReader r = new MimeReader(bp[0].getParent());
+
+		final BodyPartHelper bpJDF = r.getPartHelperByLocalName(subURL);
+		final JDFDoc jdf = bpJDF == null ? null : getDocFromJSONStream(bpJDF.getInputStream());
+
+		if (jdf == null)
+		{
+			return new JDFDoc[] { jmf };
+		}
+		else
+		{
+			jdf.setBodyPart(bpJDF.getBodyPart());
+			return new JDFDoc[] { jmf, jdf };
+		}
 	}
 
 	/**

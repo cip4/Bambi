@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -177,6 +177,15 @@ public class NetResponse extends XMLResponse
 			theJW.addStringArray(AttributeName.VALUELIST);
 		}
 		return theJW;
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.HTTPResponse#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		return super.toString() + " json=" + isJSON();
 	}
 
 }

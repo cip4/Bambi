@@ -62,6 +62,7 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.zip.ZipReader;
+import org.cip4.lib.jdf.jsonutil.JSONPrepWalker;
 import org.cip4.lib.jdf.jsonutil.JSONReader;
 import org.cip4.lib.jdf.jsonutil.JSONWriter;
 
@@ -231,7 +232,7 @@ public abstract class ServletContainer extends BambiLogFactory
 		}
 		else
 		{
-			final boolean isMultipart = MimeUtil.isMimeMultiPart(contentType);
+			final boolean isMultipart = MimeUtil.isMimeMultiPart(contentType) || MimeUtil.isMimeType(contentType, MimeUtil.MULTIPART_FORMDATA);
 			if (isMultipart)
 			{
 				log.info("Processing multipart request... (ContentType: " + contentType + ")");
@@ -379,12 +380,11 @@ public abstract class ServletContainer extends BambiLogFactory
 	public XMLResponse processJSON(final StreamRequest request)
 	{
 		log.info("Processing json document: content type=" + request.getContentType(true));
-		final JSONReader r = new JSONReader();
-		final KElement e = r.getElement(request.getInputStream());
-		if (e != null)
+		final JDFDoc d = getDocFromJSONStream(request.getInputStream());
+		if (d != null)
 		{
-			final XMLRequest xr = new XMLRequest(e.getOwnerDocument_KElement().getRoot());
-			xr.setContentType(e);
+			final XMLRequest xr = new XMLRequest(d.getRoot());
+			xr.setContentType(d.getRoot());
 			final XMLResponse xresp = processXMLDoc(xr);
 			final NetResponse jResp = new NetResponse(xresp, UrlUtil.APPLICATION_JSON);
 			jResp.setJSON(true);
@@ -392,6 +392,13 @@ public abstract class ServletContainer extends BambiLogFactory
 		}
 		final String notification = "cannot process JSON; Content-Type: " + request.getContentType(false);
 		return processError(request.getRequestURI(), EnumType.Notification, 3, notification);
+	}
+
+	JDFDoc getDocFromJSONStream(final InputStream is)
+	{
+		final JSONReader r = new JSONReader();
+		final KElement e = r.getElement(is);
+		return e == null ? null : new JDFDoc(e.getOwnerDocument());
 	}
 
 	protected abstract XMLRequest convertToJMF(XMLRequest request);
@@ -496,6 +503,7 @@ public abstract class ServletContainer extends BambiLogFactory
 			final InputStream is = ServletContainer.class.getResourceAsStream(RES_SCHEMA);
 			final KElement e = KElement.parseStream(is);
 			w.fillTypesFromSchema(e);
+			w.setPrepWalker(new JSONPrepWalker());
 			jsonWriter = w;
 		}
 		return jsonWriter;

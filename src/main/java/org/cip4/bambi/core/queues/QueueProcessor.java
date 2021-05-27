@@ -48,6 +48,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
 
+import javax.mail.MessagingException;
+
 import org.apache.commons.lang.StringUtils;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiLogFactory;
@@ -114,6 +116,7 @@ import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.cip4.jdflib.util.URLReader;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.net.HTTPDetails;
 import org.cip4.jdflib.util.thread.DelayedPersist;
@@ -123,6 +126,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
 import org.cip4.jdflib.util.thread.RegularJanitor;
 import org.cip4.jdflib.util.thread.TimeSweeper;
 import org.cip4.jdflib.util.zip.ZipReader;
+import org.cip4.lib.jdf.jsonutil.JSONReader;
 
 /**
  *
@@ -460,8 +464,29 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			if (doc == null && qsp != null)
 			{
 				final String url = qsp.getURL();
-				final ZipReader zipReader = qsp.getOwnerDocument_KElement().getZipReader();
-				doc = getDocFromXJDFZip(url, zipReader);
+				if (!StringUtil.isEmpty(url))
+				{
+					final ZipReader zipReader = qsp.getOwnerDocument_KElement().getZipReader();
+					doc = getDocFromXJDFZip(url, zipReader);
+					if (doc == null)
+					{
+						final URLReader r = new URLReader(url);
+						try
+						{
+							r.setBodyPart(m.getOwnerDocument_JDFElement().getMultiPart().getBodyPart(0));
+						}
+						catch (final MessagingException e1)
+						{
+							// nop
+						}
+						final JSONReader jr = new JSONReader();
+						final KElement e = jr.getElement(r.getURLInputStream());
+						if (e != null)
+						{
+							doc = new JDFDoc(e.getOwnerDocument());
+						}
+					}
+				}
 			}
 			final IConverterCallback callback = doc == null ? null : _parentDevice.getCallback(null);
 			if (callback != null)
@@ -901,8 +926,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				abortSingleEntry(m, resp, qe); // abort before removing
 			}
 			status = qe.getQueueEntryStatus();
-			if (EnumQueueEntryStatus.Held.equals(status) || EnumQueueEntryStatus.Waiting.equals(status) || EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status)
-					|| EnumQueueEntryStatus.Suspended.equals(status))
+			if (EnumQueueEntryStatus.Held.equals(status) || EnumQueueEntryStatus.Waiting.equals(status) || EnumQueueEntryStatus.Completed.equals(status)
+					|| EnumQueueEntryStatus.Aborted.equals(status) || EnumQueueEntryStatus.Suspended.equals(status))
 			{
 				final String queueEntryID = qe.getQueueEntryID();
 				JDFQueueEntry returnQE = _parentDevice.stopProcessing(queueEntryID, null, null); // use null to flag a removal
@@ -2303,8 +2328,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		newQEReal.copyInto(newQE, false);
 		slaveQueueMap.addEntry(newQEReal, true);
-		BambiNotifyDef.getInstance().notifyDeviceJobAdded(_theQueue.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(),
-				newQEReal.getSubmissionTime().getTimeInMillis());
+		BambiNotifyDef.getInstance().notifyDeviceJobAdded(_theQueue.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(), newQEReal.getSubmissionTime().getTimeInMillis());
 		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
 
 		final boolean ok = storeJDF(theJDF, newQEID);
