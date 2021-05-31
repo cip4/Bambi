@@ -384,6 +384,7 @@ public abstract class ServletContainer extends BambiLogFactory
 		if (d != null)
 		{
 			final XMLRequest xr = new XMLRequest(d.getRoot());
+			xr.setContainer(request);
 			xr.setContentType(d.getRoot());
 			final XMLResponse xresp = processXMLDoc(xr);
 			final NetResponse jResp = new NetResponse(xresp, UrlUtil.APPLICATION_JSON);
