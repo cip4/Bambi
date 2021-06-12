@@ -2341,6 +2341,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			if (m != null && EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, m.getMaxVersion(true)))
 			{
 				newCallback.setFixToExtern(EnumVersion.Version_2_0);
+				newCallback.setJSON(sub.isJSON());
 			}
 			return newCallback;
 		}
@@ -2358,8 +2359,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public void updateFromRequest(final JDFJMF jmf, final ContainerRequest request)
 	{
-		// default nop
-
+		if (UrlUtil.isJSONType(request.getOriginalContentType()))
+		{
+			BambiNSExtension.setContentType(jmf, request.getOriginalContentType());
+		}
 	}
 
 	/**

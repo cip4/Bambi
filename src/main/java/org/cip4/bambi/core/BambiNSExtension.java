@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 
 package org.cip4.bambi.core;
@@ -85,13 +85,14 @@ import org.cip4.jdflib.util.StringUtil;
 /**
  * provides Bambi specific XML extensions for JDF and JMF
  * @author prosirai
- * 
+ *
  */
 public class BambiNSExtension
 {
 
+	private static final String CONTENT_TYPE = "ContentType";
 	/**
-	 * 
+	 *
 	 */
 	private static final String STATUS_CONTAINER = "StatusContainer";
 	private static String slaveInputHF = "SlaveInputHF";
@@ -99,7 +100,7 @@ public class BambiNSExtension
 	private static String slaveErrorHF = "SlaveErrorHF";
 	private static String slaveSubmissionTime = "SlaveSubmissionTime";
 	/**
-	 * 
+	 *
 	 */
 	public static final String GOOD_DEVICES = "goodDevices";
 
@@ -117,7 +118,7 @@ public class BambiNSExtension
 	public static final String MY_NS_PREFIX = "bambi:";
 
 	/**
-	 * 
+	 *
 	 * @param e the element to work on
 	 * @param attName the local attribute name to set
 	 * @param attVal the attribute value to set
@@ -132,7 +133,7 @@ public class BambiNSExtension
 	}
 
 	/**
-	 * 
+	 *
 	 * @param e the element to work on
 	 * @param attName the local attribute name to set
 	 * @param attVal the attribute value to add to attName
@@ -152,7 +153,7 @@ public class BambiNSExtension
 	 * @param elmName the local element name to get
 	 * @param iSkip get the nth element
 	 * @return the element
-	 * 
+	 *
 	 */
 	public static KElement getCreateMyNSElement(final KElement e, final String elmName, final int iSkip)
 	{
@@ -164,7 +165,7 @@ public class BambiNSExtension
 	 * @param elmName the local element name to get
 	 * @param iSkip get the nth element
 	 * @return the element
-	 * 
+	 *
 	 */
 	public static KElement getMyNSElement(final KElement e, final String elmName, final int iSkip)
 	{
@@ -176,7 +177,7 @@ public class BambiNSExtension
 	 * @param elmName the local element name to get
 	 * @param iSkip get the nth element
 	 * @return the element
-	 * 
+	 *
 	 */
 	public static KElement removeMyNSElement(final KElement e, final String elmName, final int iSkip)
 	{
@@ -187,7 +188,7 @@ public class BambiNSExtension
 	 * @param e the element to work on
 	 * @param attName the local attribute name to set
 	 * @return the attribute value, null if none exists
-	 * 
+	 *
 	 */
 	public static String getMyNSAttribute(final KElement e, final String attName)
 	{
@@ -197,7 +198,7 @@ public class BambiNSExtension
 	/**
 	 * @param attName the local attribute name to set
 	 * @return the fully qualified name
-	 * 
+	 *
 	 */
 	public static String getMyNSString(final String attName)
 	{
@@ -205,7 +206,7 @@ public class BambiNSExtension
 	}
 
 	/**
-	 * 
+	 *
 	 * @param e the element to work on
 	 * @param attName the local attribute name to remove
 	 */
@@ -221,7 +222,7 @@ public class BambiNSExtension
 	/**
 	 * @param qe
 	 * @return
-	 * 
+	 *
 	 */
 	public static KElement getStatusContainer(final JDFQueueEntry qe)
 	{
@@ -231,7 +232,7 @@ public class BambiNSExtension
 	/**
 	 * @param qe
 	 * @return
-	 * 
+	 *
 	 */
 	public static KElement getCreateStatusContainer(final JDFQueueEntry qe)
 	{
@@ -282,6 +283,26 @@ public class BambiNSExtension
 	public static String getDocURL(final KElement ke)
 	{
 		return getMyNSAttribute(ke, docURL);
+	}
+
+	/**
+	 * set the ContentType of the JDF
+	 * @param ke the KElement to work on
+	 * @param ct the ContentType of the JDF / XJDF / JSON JDF
+	 */
+	public static void setContentType(final KElement ke, final String ct)
+	{
+		setMyNSAttribute(ke, CONTENT_TYPE, ct);
+	}
+
+	/**
+	 * get the ContentType of the JDF
+	 * @param ke the KElement to work on
+	 * @return the ContentType of the JDF / XJDF / JSON JDF
+	 */
+	public static String getContentType(final KElement ke)
+	{
+		return getMyNSAttribute(ke, CONTENT_TYPE);
 	}
 
 	/**

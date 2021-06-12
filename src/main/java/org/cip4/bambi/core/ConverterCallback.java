@@ -63,6 +63,7 @@ import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.EnumUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.lib.jdf.jsonutil.JSONWriter;
 
 /**
  * mother of all converters
@@ -82,6 +83,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	private EnumVersion fixToBambi = null;
 	private Vector<IConverterCallback> postConversionList;
 	private boolean removeJobIDFromSubs;
+	private boolean isJSON;
 
 	/**
 	 * copy ctor
@@ -97,6 +99,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			fixToExtern = other.fixToExtern;
 			postConversionList = other.postConversionList;
 			removeJobIDFromSubs = other.removeJobIDFromSubs;
+			isJSON = other.isJSON;
 		}
 	}
 
@@ -162,6 +165,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		super();
 		postConversionList = new Vector<>();
 		setRemoveJobIDFromSubs(false);
+		isJSON = false;
 	}
 
 	/**
@@ -341,6 +345,17 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
+	 *
+	 * get the exporter for JSON - may be overwritten to set parameters
+	 *
+	 * @return
+	 */
+	protected JSONWriter getJSONWriter()
+	{
+		return ServletContainer.getJSONWriter();
+	}
+
+	/**
 	 * make sure that all jobID attributes match the root jobID in any subscriptions
 	 *
 	 * @param n
@@ -464,7 +479,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 */
 	boolean isXJDF()
 	{
-		final boolean bXJDF = fixToExtern == null ? false : fixToExtern.equals(EnumVersion.Version_2_0);
+		final boolean bXJDF = fixToExtern == null ? false : EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, fixToExtern);
 		return bXJDF;
 	}
 
@@ -506,6 +521,10 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	public InputStream getJMFExternStream(final JDFDoc doc)
 	{
 		final JDFDoc doc2 = updateJMFForExtern(doc);
+		if (isJSON)
+		{
+			return getJSONWriter().getStream(doc2.getRoot());
+		}
 		return writeToStream(doc2);
 	}
 
@@ -555,7 +574,10 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	@Override
 	public String getJMFContentType()
 	{
-		return isXJDF() ? UrlUtil.VND_XJMF : UrlUtil.VND_JMF;
+		if (isXJDF())
+			return isJSON() ? UrlUtil.VND_XJMF_J : UrlUtil.VND_XJMF;
+		else
+			return UrlUtil.VND_JMF;
 	}
 
 	@Override
@@ -570,6 +592,22 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	{
 		// nop
 
+	}
+
+	/**
+	 * @return the isJSON
+	 */
+	public boolean isJSON()
+	{
+		return isJSON;
+	}
+
+	/**
+	 * @param isJSON the isJSON to set
+	 */
+	public void setJSON(final boolean isJSON)
+	{
+		this.isJSON = isJSON;
 	}
 
 }

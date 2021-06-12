@@ -51,6 +51,7 @@ import java.util.Vector;
 
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiLogFactory;
+import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.core.XMLResponse;
@@ -212,9 +213,8 @@ public class SignalDispatcher extends BambiLogFactory
 			final boolean pause = request.getBooleanParam("pause");
 			if (v != null)
 			{
-				for (int i = 0; i < v.size(); i++)
+				for (final MessageSender messageSender : v)
 				{
-					final MessageSender messageSender = v.get(i);
 					if (pause)
 					{
 						messageSender.pause();
@@ -480,8 +480,8 @@ public class SignalDispatcher extends BambiLogFactory
 						final MemorySpy memorySpy = new MemorySpy();
 						memorySpy.setWantMega(true);
 						final Map<String, Long> memMap = memorySpy.getSummaryMap();
-						log.info("Sent message# " + sentMessages + " to URL: " + url + JDFConstants.BLANK + timer.getSingleSummary() + JDFConstants.BLANK + "mem used (MB): " + memMap.get("Current")
-								+ JDFConstants.SLASH + memMap.get("Total"));
+						log.info("Sent message# " + sentMessages + " to URL: " + url + JDFConstants.BLANK + timer.getSingleSummary() + JDFConstants.BLANK + "mem used (MB): "
+								+ memMap.get("Current") + JDFConstants.SLASH + memMap.get("Total"));
 					}
 				}
 			}
@@ -926,6 +926,14 @@ public class SignalDispatcher extends BambiLogFactory
 			queueEntryID = null;
 		}
 		final MsgSubscription sub = new MsgSubscription(this, subMess, queueEntryID);
+		if (subMess instanceof KElement)
+		{
+			final KElement subMess2 = (KElement) subMess;
+			if (UrlUtil.isJSONType(BambiNSExtension.getContentType(subMess2.getDocRoot())))
+			{
+				sub.setJSON(true);
+			}
+		}
 		final String url = sub.getURL();
 		if (!UrlUtil.isHttp(url) && !UrlUtil.isHttps(url))
 		{

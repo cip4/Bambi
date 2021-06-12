@@ -68,6 +68,7 @@ public class ContainerRequest extends BambiLogFactory
 		super();
 		requestURI = null;
 		contentType = null;
+		originalContentType = null;
 		headerMap = null;
 		parameterMap = null;
 		remoteHost = null;
@@ -79,6 +80,7 @@ public class ContainerRequest extends BambiLogFactory
 	{
 		final String contentType = request.getContentType();
 		setContentType(contentType);
+		setOriginalContentType(contentType);
 		setRequestURI(request.getRequestURL().toString());
 		setHeaderMap(getHeaderMap(request));
 		setParameterMap(new JDFAttributeMap(getParameterMap(request)));
@@ -162,6 +164,24 @@ public class ContainerRequest extends BambiLogFactory
 	}
 
 	private String requestURI;
+	private String originalContentType;
+
+	/**
+	 * @return the originalContentType
+	 */
+	public String getOriginalContentType()
+	{
+		return originalContentType == null ? getContentType(true) : originalContentType;
+	}
+
+	/**
+	 * @param originalContentType the originalContentType to set
+	 */
+	public void setOriginalContentType(final String originalContentType)
+	{
+		this.originalContentType = StringUtil.token(originalContentType, 0, ";");
+	}
+
 	private String contentType;
 	private String remoteHost;
 	protected String name;
@@ -350,6 +370,7 @@ public class ContainerRequest extends BambiLogFactory
 	{
 		setRequestURI(request.getRequestURI());
 		setContentType(request.getContentType(false));
+		setOriginalContentType(request.getOriginalContentType());
 		setMethod(request.getMethod());
 		setRemoteHost(request.getRemoteHost());
 

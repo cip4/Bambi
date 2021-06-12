@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -74,6 +74,7 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public class MsgSubscription implements Cloneable
 {
+	private static final String IS_JSON = "isJSON";
 	private final Log log = BambiLogFactory.getLog(MessageSender.class);
 	private final SignalDispatcher signalDispatcher;
 	protected static final String SUBSCRIPTION_ELEMENT = "MsgSubscription";
@@ -82,6 +83,7 @@ public class MsgSubscription implements Cloneable
 	protected String url;
 	protected int repeatAmount, lastAmount;
 	EnumVersion jdfVersion;
+	boolean isJSON;
 	protected long timeLastSubmission;
 	protected long timeLastSubmissionTry;
 	protected long repeatTime;
@@ -145,7 +147,7 @@ public class MsgSubscription implements Cloneable
 
 	/**
 	 * Returns the JDF Version.
-	 * 
+	 *
 	 * @return The JDF Version
 	 * @deprecated
 	 */
@@ -157,7 +159,7 @@ public class MsgSubscription implements Cloneable
 
 	/**
 	 * Returns the JDF Version.
-	 * 
+	 *
 	 * @return The JDF Version
 	 */
 	public EnumVersion getJdfVersion()
@@ -343,6 +345,7 @@ public class MsgSubscription implements Cloneable
 		setSubscription(sub);
 		sub.setAttribute(AttributeName.TYPE, theMessage.getType());
 		sub.setAttribute("Sent", sentMessages, null);
+		sub.setAttribute(IS_JSON, isJSON, null);
 		if (jdfVersion != null)
 		{
 			sub.setAttribute(AttributeName.VERSION, jdfVersion.getName(), null);
@@ -428,6 +431,7 @@ public class MsgSubscription implements Cloneable
 		lastSentJMF = new FastFiFo<>(10);
 		converterCallback = null;
 		jdfVersion = null;
+		isJSON = false;
 	}
 
 	/**
@@ -449,6 +453,7 @@ public class MsgSubscription implements Cloneable
 		repeatAmount = sub.getIntAttribute(AttributeName.REPEATSTEP, null, 0);
 		sentMessages = sub.getIntAttribute("Sent", null, 0);
 		jdfVersion = EnumVersion.getEnum(sub.getNonEmpty(AttributeName.VERSION));
+		isJSON = sub.getBoolAttribute(IS_JSON, null, false);
 		final KElement subsub = sub.getElement("Sub");
 		if (subsub != null)
 		{
@@ -602,7 +607,9 @@ public class MsgSubscription implements Cloneable
 		this.converterCallback = converterCallback;
 		if (converterCallback instanceof ConverterCallback)
 		{
-			((ConverterCallback) this.converterCallback).setFixToExtern(jdfVersion);
+			final ConverterCallback cb = (ConverterCallback) this.converterCallback;
+			cb.setFixToExtern(jdfVersion);
+			cb.setJSON(isJSON);
 		}
 	}
 
@@ -623,7 +630,27 @@ public class MsgSubscription implements Cloneable
 	public String toString()
 	{
 		return "MsgSubscription [" + getMessageType() + (channelID != null ? "channelID=" + channelID + ", " : "") + (queueEntry != null ? "queueEntry=" + queueEntry + ", " : "")
-				+ (url != null ? "url=" + url + ", " : "") + (jdfVersion != null ? "version=" + jdfVersion + ", " : "") + "lastTime=" + timeLastSubmission + ", lastTry=" + timeLastSubmissionTry
-				+ ", repeatTime=" + repeatTime + ", " + (jmfDeviceID != null ? "jmfDeviceID=" + jmfDeviceID : "") + "]";
+				+ (url != null ? "url=" + url + ", " : "") + (jdfVersion != null ? "version=" + jdfVersion + ", " : "") + "lastTime=" + timeLastSubmission + ", lastTry="
+				+ timeLastSubmissionTry + ", repeatTime=" + repeatTime + ", " + (jmfDeviceID != null ? "jmfDeviceID=" + jmfDeviceID : "") + "]";
+	}
+
+	/**
+	 * @return the isJSON
+	 */
+	public boolean isJSON()
+	{
+		return isJSON;
+	}
+
+	/**
+	 * @param isJSON the isJSON to set
+	 */
+	void setJSON(final boolean isJSON)
+	{
+		this.isJSON = isJSON;
+		if (converterCallback instanceof ConverterCallback)
+		{
+			((ConverterCallback) converterCallback).setJSON(isJSON());
+		}
 	}
 }

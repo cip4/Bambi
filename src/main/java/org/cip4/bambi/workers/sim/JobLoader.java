@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.workers.sim;
 
@@ -89,21 +89,21 @@ import org.cip4.jdflib.util.FileUtil;
 
 /**
  * class to load .job files for simulation
- * 
+ *
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- * 
+ *
  * Sep 29, 2009
  */
 class JobLoader
 {
 	/**
-	 * 
+	 *
 	 */
 	private final SimDeviceProcessor simDeviceProcessor;
 	private JDFNode node;
 	private final Log log;
 
-	protected JobLoader(SimDeviceProcessor simDeviceProcessor)
+	protected JobLoader(final SimDeviceProcessor simDeviceProcessor)
 	{
 		super();
 		this.simDeviceProcessor = simDeviceProcessor;
@@ -112,10 +112,10 @@ class JobLoader
 	}
 
 	/**
-	 * set the node for amount calculations 
+	 * set the node for amount calculations
 	 * @param node
 	 */
-	public void setNode(JDFNode node)
+	public void setNode(final JDFNode node)
 	{
 		this.node = node;
 	}
@@ -125,7 +125,7 @@ class JobLoader
 	 * @param phase the jobphase to update the amounts for
 	 * @param node the node to extract update data from. this implementation assumes a one to one match of input to output
 	 */
-	private void updateAmountsFromNode(JobPhase phase, JDFNode node)
+	private void updateAmountsFromNode(final JobPhase phase, final JDFNode node)
 	{
 		if (node == null)
 		{
@@ -133,15 +133,15 @@ class JobLoader
 		}
 		else
 		{
-			VString resNames = phase.getPhaseAmountResourceNames();
-			String master = phase.getMasterAmountResourceName();
+			final VString resNames = phase.getPhaseAmountResourceNames();
+			final String master = phase.getMasterAmountResourceName();
 			if (master != null)
 			{
 				resNames.remove(master);
 				resNames.add(master); // move master to the very end so that we don't continue with a modified master amount
-				for (String res : resNames)
+				for (final String res : resNames)
 				{
-					double amountFactor = simDeviceProcessor.getAmountFactor(res, master, node);
+					final double amountFactor = simDeviceProcessor.getAmountFactor(res, master, node);
 					phase.scaleAmount(res, master, amountFactor);
 				}
 			}
@@ -151,7 +151,7 @@ class JobLoader
 	/**
 	 * load Bambi job definition from file. <br>
 	 * The list of job phases is emptied when an error occurs during parsing fileName
-	 * 
+	 *
 	 * @param configdir the configuration directory
 	 * @param fileName the file to load
 	 * @return true, if successful
@@ -174,11 +174,12 @@ class JobLoader
 		final List<JobPhase> phaseList = new Vector<JobPhase>();
 		final KElement simJob = doc.getRoot();
 		final VElement v = simJob.getXPathElementVector("JobPhase", -1);
-		for (KElement phaseElement : v)
+		for (final KElement phaseElement : v)
 		{
 			final JobPhase phase = new JobPhase(phaseElement);
 			updateAmountsFromNode(phase, node);
 			phaseList.add(phase);
+			phase.ensureMasterAmount();
 		}
 
 		if (phaseList.size() == 0)
@@ -186,17 +187,16 @@ class JobLoader
 			log.warn("no job phases were added from " + fileName);
 			return null;
 		}
-		else
+
+		simDeviceProcessor.idlePhase = null;
+		final JobPhase tmpPhase = phaseList.get(phaseList.size() - 1);
+		if (EnumDeviceStatus.Idle.equals(tmpPhase.getDeviceStatus()))
 		{
-			simDeviceProcessor.idlePhase = null;
-			final JobPhase tmpPhase = phaseList.get(phaseList.size() - 1);
-			if (EnumDeviceStatus.Idle.equals(tmpPhase.getDeviceStatus()))
-			{
-				simDeviceProcessor.idlePhase = tmpPhase;
-				phaseList.remove(simDeviceProcessor.idlePhase);
-				log.info("defined an idle phase");
-			}
+			simDeviceProcessor.idlePhase = tmpPhase;
+			phaseList.remove(simDeviceProcessor.idlePhase);
+			log.info("defined an idle phase");
 		}
+
 		log.info("created new job from " + fileName + " with " + phaseList.size() + " job phases.");
 		randomizeJobPhases(phaseList, simJob.getRealAttribute("RandomFactor", null, 0.0));
 
@@ -205,12 +205,12 @@ class JobLoader
 
 	/**
 	 * load a job from the cached directory
-	 * @return 
+	 * @return
 	 */
 	protected List<JobPhase> loadJob()
 	{
 		final AbstractDevice parent = simDeviceProcessor.getParent();
-		File cacheDir = parent.getCachedConfigDir();
+		final File cacheDir = parent.getCachedConfigDir();
 		final String deviceFile = "job_" + parent.getDeviceID() + ".xml";
 
 		log.info("loading job: " + deviceFile);
@@ -232,7 +232,7 @@ class JobLoader
 	{
 		if (randomTime > 0.0 && phases != null)
 		{
-			for (JobPhase phase : phases)
+			for (final JobPhase phase : phases)
 			{
 				double varyBy = Math.random() * randomTime / 100.0;
 				if (Math.random() < 0.5)
