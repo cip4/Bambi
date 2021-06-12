@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -70,6 +70,11 @@ import org.cip4.lib.jdf.jsonutil.JSONWriter;
  */
 public class ConverterCallback extends BambiLogFactory implements IConverterCallback, Cloneable
 {
+	private static final String REMOVE_JOB_ID = "RemoveJobID";
+	private static final String FIX_TO_BAMBI = "FixToBambi";
+	static final String FIX_TO_EXTERN = "FixToExtern";
+	static final String IS_JSON = "isJSON";
+
 	/**
 	 * @see java.lang.Object#clone()
 	 */
@@ -583,15 +588,24 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	@Override
 	public JDFAttributeMap getCallbackDetails()
 	{
-		// nop
-		return null;
+		final JDFAttributeMap m = new JDFAttributeMap();
+		m.put(IS_JSON, isJSON);
+		m.putNotNull(FIX_TO_EXTERN, fixToExtern);
+		m.putNotNull(FIX_TO_BAMBI, fixToBambi);
+		m.put(REMOVE_JOB_ID, removeJobIDFromSubs);
+		return m;
 	}
 
 	@Override
 	public void setCallbackDetails(final JDFAttributeMap map)
 	{
-		// nop
-
+		if (map != null)
+		{
+			setJSON(StringUtil.parseBoolean(map.get(IS_JSON), false));
+			fixToBambi = EnumVersion.getEnum(map.get(FIX_TO_BAMBI));
+			fixToExtern = EnumVersion.getEnum(map.get(FIX_TO_EXTERN));
+			removeJobIDFromSubs = StringUtil.parseBoolean(map.get(REMOVE_JOB_ID), true);
+		}
 	}
 
 	/**

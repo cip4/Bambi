@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -40,6 +40,7 @@ package org.cip4.bambi.core;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
 
@@ -98,6 +99,31 @@ public class ConverterCallbackTest extends BambiTestCaseBase
 	 *
 	 */
 	@Test
+	public void testCloneJSON()
+	{
+		final ConverterCallback cb = new ConverterCallback();
+		cb.setFixToBambi(EnumVersion.Version_2_0);
+		cb.setJSON(true);
+		final ConverterCallback cb2 = cb.clone();
+		assertEquals(cb.isJSON(), cb2.isJSON());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testGetCallbackDetails()
+	{
+		final ConverterCallback cb = new ConverterCallback();
+		cb.setFixToBambi(EnumVersion.Version_2_0);
+		cb.setJSON(true);
+		assertTrue(cb.getCallbackDetails().getBool(ConverterCallback.IS_JSON, false));
+	}
+
+	/**
+	 *
+	 */
+	@Test
 	public void testCloneNull()
 	{
 		final ConverterCallback cb = new ConverterCallback(null);
@@ -126,6 +152,10 @@ public class ConverterCallbackTest extends BambiTestCaseBase
 		assertEquals(cb.getJMFContentType(), UrlUtil.VND_JMF);
 		cb.setFixToExtern(EnumVersion.Version_2_0);
 		assertEquals(cb.getJMFContentType(), UrlUtil.VND_XJMF);
+		cb.setFixToExtern(EnumVersion.Version_2_1);
+		assertEquals(cb.getJMFContentType(), UrlUtil.VND_XJMF);
+		cb.setJSON(true);
+		assertEquals(cb.getJMFContentType(), UrlUtil.VND_XJMF_J);
 	}
 
 	/**

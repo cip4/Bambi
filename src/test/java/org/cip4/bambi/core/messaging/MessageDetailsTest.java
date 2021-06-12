@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -55,6 +55,7 @@ import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -95,6 +96,37 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://foo");
 		assertEquals(UrlUtil.VND_JMF, md.getContentType());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testGetContentTypeJSON()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final ConverterCallback cb = new ConverterCallback();
+		cb.setJSON(true);
+		cb.setFixToExtern(EnumVersion.Version_2_1);
+		final MessageDetails md = new MessageDetails(jmf, null, cb, null, "http://foo");
+		assertEquals(UrlUtil.VND_XJMF_J, md.getContentType());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testGetXML()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final ConverterCallback cb = new ConverterCallback();
+		cb.setJSON(true);
+		cb.setFixToExtern(EnumVersion.Version_2_1);
+		final MessageDetails md = new MessageDetails(jmf, null, cb, null, "http://foo");
+		final KElement list = JDFElement.createRoot("L");
+		md.appendToXML(list, 0, false);
+		final MessageDetails md2 = new MessageDetails(list.getElement(null));
+		assertEquals(md.callback.getCallbackDetails(), md2.callback.getCallbackDetails());
 	}
 
 	/**
