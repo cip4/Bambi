@@ -57,7 +57,7 @@ import org.cip4.jdflib.util.StringUtil;
 public class JobPhase implements Cloneable
 {
 
-	private final Log log = BambiLogFactory.getLog(JobPhase.class);
+	private static final Log log = BambiLogFactory.getLog(JobPhase.class);
 
 	protected Vector<PhaseAmount> phaseAmounts = new Vector<>();
 	protected EnumDeviceStatus deviceStatus = EnumDeviceStatus.Idle;
@@ -436,7 +436,7 @@ public class JobPhase implements Cloneable
 
 		for (final PhaseAmount phaseAmount : phaseAmounts)
 		{
-			if (jdfResourceLink.matchesString(phaseAmount.getResourceName()))
+			if (phaseAmount.matchesResourceLink(jdfResourceLink))
 			{
 				phaseAmount.setResourceName(jdfResourceLink.getrRef());
 			}
@@ -490,7 +490,10 @@ public class JobPhase implements Cloneable
 				for (final String resourceNmae : phaseAmountResourceNames)
 				{
 					final PhaseAmount phaseAmount = findPhaseAmount(resourceNmae);
-					phaseAmount.appendToXml(xmlPhase);
+					if (phaseAmount != null)
+					{
+						phaseAmount.appendToXml(xmlPhase);
+					}
 				}
 			}
 
@@ -605,6 +608,13 @@ public class JobPhase implements Cloneable
 			this.masterAmount = false;
 		}
 
+		public boolean matchesResourceLink(final JDFResourceLink jdfResourceLink)
+		{
+			boolean b = jdfResourceLink.matchesString(getResourceName());
+			b = b || jdfResourceLink.matchesString(StringUtil.replaceString(getResourceName(), ElementName.MEDIA, ElementName.COMPONENT));
+			return b;
+		}
+
 		public boolean isAmountIsGood()
 		{
 			return this.amountIsGood;
@@ -667,7 +677,7 @@ public class JobPhase implements Cloneable
 		/**
 		 * Check if a resource applies to an others resource name.
 		 *
-		 * @param resourceName The resource nae of the other.
+		 * @param resourceName The resource name of the other.
 		 * @return true if this PhaseAmount object matches the given resource name
 		 */
 		public boolean matchesResource(final String resourceName)
@@ -700,7 +710,10 @@ public class JobPhase implements Cloneable
 		for (final PhaseAmount pa : phaseAmounts)
 		{
 			if (pa.isMasterAmount())
+			{
 				master = true;
+				break;
+			}
 		}
 		if (!master)
 		{
@@ -712,8 +725,17 @@ public class JobPhase implements Cloneable
 					break;
 				}
 			}
-
+			if (!master)
+			{
+				for (final PhaseAmount pa : phaseAmounts)
+				{
+					if (pa.getSpeed() > 0)
+					{
+						master = true;
+						break;
+					}
+				}
+			}
 		}
-
 	}
 }

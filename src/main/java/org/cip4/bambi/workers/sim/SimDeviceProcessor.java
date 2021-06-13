@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -95,6 +95,7 @@ import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFResource;
 import org.cip4.jdflib.resource.process.JDFEmployee;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 
@@ -157,11 +158,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	@Override
 	public JobPhase getCurrentJobPhase()
 	{
-		if (_jobPhases.size() > 0)
-		{
-			return _jobPhases.get(0);
-		}
-		return null;
+		return ContainerUtil.get(_jobPhases, 0);
 	}
 
 	/**
@@ -174,7 +171,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	@Override
 	public EnumQueueEntryStatus processDoc(final JDFNode n, final JDFQueueEntry qe)
 	{
-		String qeid = getQueueEntryID();
+		final String qeid = getQueueEntryID();
 		if (!bActive)
 		{
 			log.info("removing inactive JDF: " + qeid);
@@ -182,7 +179,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		}
 		log.info("processing JDF: " + getJobID() + " qeID=" + qeid);
 		JobPhase lastPhase = null;
-		while (_jobPhases.size() > 0)
+		while (!_jobPhases.isEmpty())
 		{
 			processPhase(n);
 			lastPhase = _jobPhases.remove(0); // phase(0) is always the active phase
@@ -238,7 +235,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			final long t0 = System.currentTimeMillis();
 			final VString names = phase.getPhaseAmountResourceNames();
 			boolean reachedEnd = EnumNodeStatus.isCompleted(phase.getNodeStatus()) || EnumNodeStatus.Suspended.equals(phase.getNodeStatus());
-			for (String name : names)
+			for (final String name : names)
 			{
 				final PhaseAmount pa = phase.findPhaseAmount(name);
 				if (pa != null)
@@ -304,11 +301,11 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		if (v != null)
 		{
 			final JobPhase currentJobPhase = getCurrentJobPhase();
-			VString vs = currentJobPhase == null ? new VString() : currentJobPhase.getPhaseAmountResourceNames();
-			for (KElement e : v)
+			final VString vs = currentJobPhase == null ? new VString() : currentJobPhase.getPhaseAmountResourceNames();
+			for (final KElement e : v)
 			{
 				final JDFResourceLink rl = (JDFResourceLink) e;
-				if (vs.contains(rl.getLinkedResourceName()) || vs.contains(rl.getNamedProcessUsage()))
+				if (vs.contains(rl.getLinkedResourceName()) || vs.contains(rl.getNamedProcessUsage()) || vs.contains(rl.getrRef()))
 				{
 					return rl;
 				}
@@ -382,9 +379,9 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 */
 	protected void loadJob(final JDFNode node)
 	{
-		JobLoader jobLoader = new JobLoader(this);
+		final JobLoader jobLoader = new JobLoader(this);
 		jobLoader.setNode(node);
-		List<JobPhase> jobPhases = jobLoader.loadJob();
+		final List<JobPhase> jobPhases = jobLoader.loadJob();
 		// we want at least one setup dummy
 		if (jobPhases == null)
 		{
@@ -411,7 +408,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			for (int i = 0; i < vSiz; i++)
 			{
 				final JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
-				for (JobPhase jp : _jobPhases)
+				for (final JobPhase jp : _jobPhases)
 				{
 					jp.updateAmountLinks(rl);
 				}
@@ -457,7 +454,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 * @param node the jdf node with details to evaluate
 	 * @return
 	 */
-	protected double getAmountFactor(String res, String master, JDFNode node)
+	protected double getAmountFactor(final String res, final String master, final JDFNode node)
 	{
 		return 1.0;
 	}
@@ -499,7 +496,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			final VElement v = node.getResourceLinks(null);
 			if (v != null)
 			{
-				for (KElement e : v)
+				for (final KElement e : v)
 				{
 					final JDFResourceLink rl = (JDFResourceLink) e;
 					final JDFResource linkRoot = rl.getLinkRoot();
