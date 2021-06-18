@@ -602,9 +602,13 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		if (map != null)
 		{
 			setJSON(StringUtil.parseBoolean(map.get(IS_JSON), false));
-			fixToBambi = EnumVersion.getEnum(map.get(FIX_TO_BAMBI));
-			fixToExtern = EnumVersion.getEnum(map.get(FIX_TO_EXTERN));
 			removeJobIDFromSubs = StringUtil.parseBoolean(map.get(REMOVE_JOB_ID), true);
+			final String f2b = map.get(FIX_TO_BAMBI);
+			if (!StringUtil.isEmpty(f2b))
+				fixToBambi = EnumVersion.getEnum(f2b);
+			final String f2e = map.get(FIX_TO_EXTERN);
+			if (!StringUtil.isEmpty(f2e))
+				fixToExtern = EnumVersion.getEnum(map.get(FIX_TO_EXTERN));
 		}
 	}
 
