@@ -591,25 +591,28 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		_statusListener.flush("Resource");
 		_statusListener.flush("Status");
 		_statusListener.setNode(null, null, null, null);
-		try
+		if (currentQE != null)
 		{
-			final JDFQueueEntry qe = currentQE.getQueueEntry();
-			if (bReturn && _queueProcessor != null)
+			try
 			{
-				_queueProcessor.returnQueueEntry(qe, null, getCurrentJDF(), qes);
+				final JDFQueueEntry qe = currentQE.getQueueEntry();
+				if (bReturn && _queueProcessor != null)
+				{
+					_queueProcessor.returnQueueEntry(qe, null, getCurrentJDF(), qes);
+				}
+				qe.removeAttribute(AttributeName.DEVICEID);
+				log.info("finalized processing JDF: " + getJobID() + " " + ((qes == null) ? "??? null ???" : qes.getName()));
+				if (_queueProcessor != null)
+				{
+					_queueProcessor.updateEntry(qe, qes, null, null, null);
+				}
 			}
-			qe.removeAttribute(AttributeName.DEVICEID);
-			log.info("finalized processing JDF: " + getJobID() + " " + ((qes == null) ? "??? null ???" : qes.getName()));
-			if (_queueProcessor != null)
+			catch (final Exception x)
 			{
-				_queueProcessor.updateEntry(qe, qes, null, null, null);
+				log.error("problems finalizing", x);
 			}
+			currentQE = null;
 		}
-		catch (final Exception x)
-		{
-			log.error("problems finalizing", x);
-		}
-		currentQE = null;
 		return bReturn;
 	}
 
