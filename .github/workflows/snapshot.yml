@@ -164,7 +164,7 @@ jobs:
       - name: Confluence Upload
         uses: cip4/action-confluence-upload@master
         with:
-          url: 'https://confluence.cip4.org'
+          url: 'https://cip4.atlassian.net/wiki'
           username: ${{ secrets.ATLASSIAN_USER }}
           password: ${{ secrets.ATLASSIAN_TOKEN }}
           contentId: 1457553964
