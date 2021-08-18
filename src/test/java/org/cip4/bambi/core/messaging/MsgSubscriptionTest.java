@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -153,6 +153,36 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 		assertEquals(s, s2);
 		final MsgSubscription s3 = new MsgSubscription(null, jmf.getQuery(0), "q1");
 		assertNotEquals(s, s3);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testEqualsUrl()
+	{
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc/A", 0, 0, null);
+		final JDFJMF jmf2 = new JMFBuilder().buildStatusSubscription("abc/a", 0, 0, null);
+		jmf.setDeviceID("d1");
+		jmf2.setDeviceID("d1");
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), "q");
+		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0), "q");
+		assertEquals(s, s2);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testHashUrl()
+	{
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc/A", 0, 0, null);
+		final JDFJMF jmf2 = new JMFBuilder().buildStatusSubscription("abc/a", 0, 0, null);
+		jmf.setDeviceID("d1");
+		jmf2.setDeviceID("d1");
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), "q");
+		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0), "q");
+		assertEquals(s.hashCode(), s2.hashCode());
 	}
 
 	/**

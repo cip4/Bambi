@@ -512,7 +512,8 @@ public class MsgSubscription implements Cloneable
 				return false;
 			}
 		}
-		if (!ContainerUtil.equals(url, msg.url))
+
+		if (url != null && !url.equalsIgnoreCase(msg.url))
 		{
 			return false;
 		}
@@ -560,7 +561,7 @@ public class MsgSubscription implements Cloneable
 			hc += repeatAmount + 100000 * (int) repeatTime;
 			hc += queueEntry == null ? 0 : queueEntry.hashCode();
 		}
-		hc += url == null ? 0 : hc * 42 + url.hashCode();
+		hc += url == null ? 0 : hc * 42 + url.toLowerCase().hashCode();
 		hc += jdfVersion == null ? 0 : hc * 42 + jdfVersion.hashCode();
 		final String messageType = getMessageType();
 		hc += messageType == null ? 0 : hc * 4 + messageType.hashCode();
