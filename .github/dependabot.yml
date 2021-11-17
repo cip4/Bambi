@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - directory: /
+    schedule:
+      interval: daily
+    package-ecosystem: gradle
+    assignees:
+      - MichelHartmann
+    ignore:
+      - dependency-name: org.mockito:mockito-core
+        versions: [ "4.x" ]
+      - dependency-name: com.github.johnrengelman.shadow
+        versions: [ "7.x" ]
