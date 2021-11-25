@@ -36,7 +36,7 @@ RUN addgroup -S cip4 && adduser -S cip4 -G cip4 && \
     mkdir /bambidata && chown cip4:cip4 /bambidata && \
     mkdir /BambiHF && chown cip4:cip4 /BambiHF
 
-COPY --chown=cip4:cip4 --from=java-builder ["/work/build/libs/*.jar", "/app/bambi.jar"]
+COPY --chown=cip4:cip4 --from=java-builder ["/work/build/libs/*-all.jar", "/app/bambi.jar"]
 
 USER cip4
 
