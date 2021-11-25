@@ -19,7 +19,7 @@ jobs:
       APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
       ATLASSIAN_USER: ${{ secrets.ATLASSIAN_USER }}
       ATLASSIAN_TOKEN: ${{ secrets.ATLASSIAN_TOKEN }}
-      GCP_SA_KEY:  ${{ secrets.GCP_SA_KEY }}
-      GCP_PROJECT_ID:  ${{ secrets.GCP_PROJECT_ID }}
-      DOCKER_HUB_USERNAME:  ${{ secrets.DOCKER_HUB_USERNAME }}
-      DOCKER_HUB_PASSWORD:  ${{ secrets.DOCKER_HUB_PASSWORD }}
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
