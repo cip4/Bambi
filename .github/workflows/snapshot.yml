@@ -3,7 +3,7 @@ name: Snapshot
 on:
   workflow_dispatch:
   push:
-    branches: [ main, IN-400 ]
+    branches: [ main ]
 jobs:
   call-tool-snapshot:
     name: 🏭
