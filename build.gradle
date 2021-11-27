@@ -3,9 +3,11 @@ import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
     id 'java'
     id 'application'
-    id 'edu.sc.seis.launch4j' version '2.4.9'
-    id 'edu.sc.seis.macAppBundle' version '2.3.0'
+    id 'org.beryx.runtime' version '1.12.7'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
+
+mainClassName = 'org.cip4.bambi.server.BambiServer'
 
 sourceCompatibility = 11
 targetCompatibility = 11
@@ -20,15 +22,6 @@ repositories {
     mavenCentral()
     maven {
         url "https://oss.sonatype.org/content/repositories/snapshots"
-    }
-}
-
-jar {
-    manifest {
-        attributes 'Main-Class': 'org.cip4.bambi.server.BambiServer'
-    }
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
@@ -47,18 +40,6 @@ application {
     mainClass = 'org.cip4.bambi.server.BambiServer'
 }
 
-launch4j {
-    mainClassName = 'org.cip4.bambi.server.BambiServer'
-    icon = "${projectDir}/src/main/dist/bambi.ico"
-    outfile = project.name + '-' + project.version + '.exe'
-}
-
-macAppBundle {
-    mainClassName = 'org.cip4.bambi.server.BambiServer'
-    icon = "${projectDir}/src/main/dist/bambi.icns"
-    javaProperties.put("apple.laf.useScreenMenuBar", "true")
-}
-
 dependencies {
     implementation  'org.cip4.lib.jdf:JDFLibJ:2.1.7.+'
     implementation 'org.cip4.tools.jdfutility:JDFUtility:1.x-SNAPSHOT'
@@ -73,4 +54,33 @@ dependencies {
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:3.3.3'
+}
+
+runtime {
+    jpackage {
+        imageOptions = [
+                "--copyright", "CIP4 Organization",
+                "--vendor", "CIP4 Organization"
+        ]
+        def currentOs = org.gradle.internal.os.OperatingSystem.current()
+        def icon = "src/main/dist/bambi.ico"
+        if (currentOs.macOsX) {
+            imageOptions += [
+                    "--mac-sign",
+                    "--mac-signing-key-user-name", "CIP4 Organization (4DL5XX9SG8)",
+                    "--mac-package-identifier", "org.cip4.bambi"
+            ]
+            icon = "src/main/dist/bambi.icns"
+        }
+        if (currentOs.windows) {
+            installerOptions += [
+                    "--win-dir-chooser",
+                    "--win-menu",
+                    "--win-upgrade-uuid", "6278b5c0-f8f8-487a-9b0e-71326583a798",
+                    "--vendor", "CIP4 Organization"
+            ]
+        }
+        imageOptions += ["--icon", icon]
+        appVersion = project.version == "development" ? "1.0.0" : project.version
+    }
 }

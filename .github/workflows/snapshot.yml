@@ -1,172 +1,25 @@
 name: Snapshot
 
 on:
-  schedule:
-    - cron:  '0 3 * * *'
+  workflow_dispatch:
   push:
     branches: [ main ]
-
-env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  RUN_REGION: europe-west1
-  SERVICE_NAME: bambi-cip4-org
-
 jobs:
-  docker-build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup GCloud CLI
-        uses: google-github-actions/setup-gcloud@master
-        with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          export_default_credentials: true
-
-      - name: Setup JDK 11
-        uses: actions/setup-java@v1
-        with:
-          java-version: 11
-
-      - name: Check out sources...
-        uses: actions/checkout@v2
-
-      - name: Build docker container
-        run: |-
-          docker build \
-            -t cip4/bambi:latest \
-            -t "gcr.io/$PROJECT_ID/$SERVICE_NAME:latest" \
-            --build-arg VERSION=dev \
-            --build-arg BUILD_NUMBER=${GITHUB_RUN_NUMBER} \
-            --build-arg GIT_REV=${GITHUB_SHA} \
-            .
-
-      - name: Login to Docker Hub
-        run: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
-        
-      - name: Push README to Docker Hub
-        uses: peter-evans/dockerhub-description@v2
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          repository: cip4/bambi
-
-      - name: Push docker container to pkg.github.om
-        run: docker push cip4/bambi:latest
-
-      - name: Docker Auth GCloud
-        run: gcloud auth configure-docker
-
-      - name: Push Image to Google Container Registry
-        run: docker push "gcr.io/$PROJECT_ID/$SERVICE_NAME:latest"
-
-      - name: Deploy to Cloud Run
-        run: |-
-          gcloud run deploy "$SERVICE_NAME" \
-            --region "$RUN_REGION" \
-            --image "gcr.io/$PROJECT_ID/$SERVICE_NAME:latest" \
-            --platform "managed" \
-            --allow-unauthenticated
-
-  linux-build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup JDK 11
-        uses: actions/setup-java@v1
-        with:
-          java-version: 11
-
-      - name: Check out sources...
-        uses: actions/checkout@v2
-
-      - name: Build with Gradle
-        run: ./gradlew assembleDist
-
-      - name: Rename .ZIP
-        run: mv build/distributions/Bambi-development.zip build/distributions/Bambi-SNAPSHOT-${{ github.run_number }}.zip
-
-      - name: Rename .TAR
-        run: mv build/distributions/Bambi-development.tar build/distributions/Bambi-SNAPSHOT-${{ github.run_number }}.tar
-
-      - name: Display structure of downloaded files
-        run: ls -R
-        working-directory: build/distributions
-
-      - name: Upload binaries
-        uses: actions/upload-artifact@v2
-        with:
-          name: binaries
-          path: build/distributions/Bambi-SNAPSHOT-*.*
-
-  macos-build:
-    runs-on: macos-latest
-    steps:
-      - name: Setup JDK 11
-        uses: actions/setup-java@v1
-        with:
-          java-version: 11
-
-      - name: Check out sources...
-        uses: actions/checkout@v2
-
-      - name: Build with Gradle
-        run: ./gradlew createDmg
-
-      - name: Rename .DMG
-        run: mv build/distributions/Bambi-development.dmg build/distributions/Bambi-SNAPSHOT-${{ github.run_number }}.dmg
-
-      - name: Upload Binaries
-        uses: actions/upload-artifact@v2
-        with:
-          name: binaries
-          path: build/distributions/Bambi-SNAPSHOT-*.*
-
-  windows-build:
-    runs-on: windows-latest
-    steps:
-      - name: Setup JDK 11
-        uses: actions/setup-java@v1
-        with:
-          java-version: 11
-
-      - name: Check out sources...
-        uses: actions/checkout@v2
-
-      - name: Build with Gradle
-        run: ./gradlew createExe
-
-      - name: Rename binaries
-        run: mv build/launch4j/Bambi-development.exe build/launch4j/Bambi-SNAPSHOT-${{ github.run_number }}.exe
-
-      - name: Debug
-        run: ls -l build/launch4j
-
-      - name: Upload EXE
-        uses: actions/upload-artifact@v2
-        with:
-          name: binaries
-          path: build/launch4j/Bambi-SNAPSHOT-*.exe
-
-  publish-snapshot:
-    needs:
-      - linux-build
-      - macos-build
-      - windows-build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: binaries
-          path: binaries
-      - name: Display structure of downloaded files
-        run: ls -R
-        working-directory: binaries
-      - name: Confluence Upload
-        uses: cip4/action-confluence-upload@master
-        with:
-          url: 'https://cip4.atlassian.net/wiki'
-          username: ${{ secrets.ATLASSIAN_USER }}
-          password: ${{ secrets.ATLASSIAN_TOKEN }}
-          contentId: 1457553964
-          label: 'bambi-snapshot,snapshot'
-          filePattern: 'binaries/**/Bambi-SNAPSHOT-*.*'
+  call-tool-snapshot:
+    name: 🏭
+    uses: cip4/.github/.github/workflows/tool-snapshot.yml@docker
+    with:
+      confluence-label: bambi
+      confluence-content-id: 1457553964
+      apple-bundle-id: org.cip4.bambi
+      docker-build: true
+    secrets:
+      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      ATLASSIAN_USER: ${{ secrets.ATLASSIAN_USER }}
+      ATLASSIAN_TOKEN: ${{ secrets.ATLASSIAN_TOKEN }}
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
