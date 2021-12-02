@@ -8,7 +8,7 @@ on:
 jobs:
   call-tool-snapshot:
     name: 🏭
-    uses: cip4/.github/.github/workflows/tool-release.yml@v1
+    uses: cip4/.github/.github/workflows/tool-release.yml@v2
     with:
       confluence-label: bambi
       confluence-content-id: 1181122565
@@ -20,5 +20,8 @@ jobs:
       APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
       ATLASSIAN_USER: ${{ secrets.ATLASSIAN_USER }}
       ATLASSIAN_TOKEN: ${{ secrets.ATLASSIAN_TOKEN }}
+      CODE_SIGN_CERTIFICATE: ${{ secrets.CODE_SIGN_CERTIFICATE }}
+      CODE_SIGN_PASSWORD: ${{ secrets.CODE_SIGN_PASSWORD }}
+      CODE_SIGN_SHA1: ${{ secrets.CODE_SIGN_SHA1 }}
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
