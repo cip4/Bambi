@@ -117,7 +117,8 @@ import org.cip4.jdflib.util.thread.MyMutex;
 /**
  * basis for JDF devices. <br>
  * Devices are defined in /WebContent/config/devices.xml<br>
- * Derived classes should be final: if they were ever subclassed, the DeviceProcessor thread would be started before the constructor from the subclass has a chance to fire.
+ * Derived classes should be final: if they were ever subclassed, the DeviceProcessor thread would be started before the constructor from the
+ * subclass has a chance to fire.
  *
  * @author boegerni
  */
@@ -133,7 +134,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @author Rainer Prosi, Heidelberger Druckmaschinen *
 	 */
 	private class QueueEntryRequester
@@ -222,7 +222,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		/**
 		 * @return
 		 */
-		private IQueueEntry getQEFromQueue()
+		IQueueEntry getQEFromQueue()
 		{
 			IQueueEntry currentQE;
 			if (_theQueueProcessor == null)
@@ -231,19 +231,16 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				return null;
 			}
 
-			synchronized (_theQueueProcessor.getQueue())
+			final QERetrieval canPush = getProperties().getQERetrieval();
+			currentQE = _theQueueProcessor.getNextEntry(null, canPush);
+			if (currentQE == null && _rootDevice != null)
 			{
-				final QERetrieval canPush = getProperties().getQERetrieval();
-				currentQE = _theQueueProcessor.getNextEntry(null, canPush);
-				if (currentQE == null && _rootDevice != null)
-				{
-					currentQE = _rootDevice._theQueueProcessor.getNextEntry(getDeviceID(), canPush);
-					importQEFromRoot(currentQE);
-				}
-				if (currentQE != null)
-				{
-					currentQE.getQueueEntry().setDeviceID(getDeviceID());
-				}
+				currentQE = _rootDevice._theQueueProcessor.getNextEntry(getDeviceID(), canPush);
+				importQEFromRoot(currentQE);
+			}
+			if (currentQE != null)
+			{
+				currentQE.getQueueEntry().setDeviceID(getDeviceID());
 			}
 			return currentQE;
 		}
@@ -306,7 +303,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
+		 *      org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
@@ -323,7 +321,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 
 		/**
-		 *
 		 * check whether we have a global or job context
 		 *
 		 * @param inputMessage
@@ -338,7 +335,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 
 		/**
-		 *
 		 * @param inputMessage
 		 * @param response
 		 * @return
@@ -409,7 +405,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
+		 *      org.cip4.jdflib.jmf.JDFResponse)
 		 * @param inputMessage
 		 * @param response
 		 * @return true if handled
@@ -544,7 +541,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * create the signal dispatcher and link it to the jmf handler
 	 *
 	 * @return
@@ -559,7 +555,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @return the signaldispatcher for this
 	 */
 	protected SignalDispatcher createSignalDispatcher()
@@ -572,7 +567,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected void preSetup()
 	{
-		// ensure a null builder that will be used to clone all other builders has correct agentname etc.
+		// ensure a null builder that will be used to clone all other builders has
+		// correct agentname etc.
 		final JMFBuilder b0 = JMFBuilderFactory.getJMFBuilder(null);
 		b0.setAgentName(getAgentName());
 		b0.setAgentVersion(getAgentVersion());
@@ -580,7 +576,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	protected String getAgentVersion()
@@ -589,7 +584,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	protected String getAgentName()
@@ -639,7 +633,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * vector of directories that need to be copied to cache
 	 *
 	 * @return
@@ -677,7 +670,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * create a new independent processor
 	 */
 	protected void createNewProcessor()
@@ -696,7 +688,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * get the input hot folder path. If null, we won't create a hot folder
 	 *
 	 * @return
@@ -707,8 +698,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
-	 *
 	 * @return
 	 */
 	protected QueueEntryRequester getQueueEntryRequester()
@@ -717,8 +706,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
-	 *
 	 * @return
 	 */
 	protected IConverterCallback getCallBackClass()
@@ -727,7 +714,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * get the approriate statusoptimizer<br/>
 	 * may be overwritten for additional optimizers
 	 *
@@ -770,7 +756,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public JMFBuilder getJMFBuilder()
@@ -946,7 +931,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @param doc
 	 * @param url
 	 * @return the doc representing the response
@@ -1233,9 +1217,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * reset the signal dispatcher, hot folder and device processor; also restart from factory settings
-	 *
-	 * this is a hard reset that removes any and all data!
+	 * reset the signal dispatcher, hot folder and device processor; also restart from factory settings this is a hard reset that removes any and
+	 * all data!
 	 */
 	public void reset()
 	{
@@ -1325,7 +1308,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @param qethe queueEntry to extract from
 	 * @param root the root JDFD
 	 */
@@ -1504,7 +1486,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @param description
 	 */
 	private void updateDescription(final String description)
@@ -1520,7 +1501,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @param dumpSwitch
 	 */
 	protected void updateDump(final boolean dumpSwitch)
@@ -1579,7 +1559,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * @param newHF
-	 *
 	 */
 	private void updateInputHF(String newHF)
 	{
@@ -1599,7 +1578,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * @param newHF
-	 *
 	 */
 	private void updateOutputHF(String newHF)
 	{
@@ -1616,7 +1594,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * @param newHF
-	 *
 	 */
 	private void updateErrorHF(String newHF)
 	{
@@ -1633,7 +1610,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * @param newDeviceType
-	 *
 	 */
 	private void updateDeviceType(final String newDeviceType)
 	{
@@ -1699,7 +1675,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * @param jmf the jmf to send
 	 * @param url the url to send to
 	 * @param responseHandler the response handler - may be null
-	 *
 	 * @return true if successfully queued
 	 */
 	public boolean sendJMF(final JDFJMF jmf, final String url, final IResponseHandler responseHandler)
@@ -1868,7 +1843,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @param typ
 	 * @param family
 	 * @param url
@@ -2096,7 +2070,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @param e
 	 * @param request
 	 * @return
@@ -2142,7 +2115,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @param request
 	 * @return
 	 */
@@ -2175,7 +2147,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * all dispatched signals are checked here and may be modified / removed by a callback by default, we skip all idle status signals except 1 of 10
+	 * all dispatched signals are checked here and may be modified / removed by a callback by default, we skip all idle status signals except 1 of
+	 * 10
 	 *
 	 * @param s
 	 * @return true if s should be deleted
@@ -2286,7 +2259,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public int getEntriesProcessed()
@@ -2295,7 +2267,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public StatusListener getStatusListener()
@@ -2304,7 +2275,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 *
 	 * @param jdfRoot
 	 * @param qeID
 	 * @return

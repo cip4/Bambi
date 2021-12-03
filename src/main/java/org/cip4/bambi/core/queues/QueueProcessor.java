@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -129,27 +129,23 @@ import org.cip4.jdflib.util.zip.ZipReader;
 import org.cip4.lib.jdf.jsonutil.JSONReader;
 
 /**
- *
  * @author rainer prosi
- *
- *
  */
 public class QueueProcessor extends BambiLogFactory implements IPersistable
 {
 
+	private static final int PERSIST_MS = 420000;
+
 	/**
 	 * class that handles queue differences
 	 *
-	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 *
-	 *         July 6, 2009
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG July 6, 2009
 	 */
 	protected class QueueDelta implements Runnable
 	{
 		protected final JDFQueue lastQueue;
 
 		/**
-		 *
 		 * @return
 		 */
 		protected JDFQueue getLastQueue()
@@ -173,7 +169,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
 		 * @return
 		 */
 		protected JDFQueue createLastQueue()
@@ -209,7 +204,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
 		 * @see java.lang.Object#toString()
 		 */
 		@Override
@@ -219,7 +213,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
 		 * @see java.lang.Runnable#run()
 		 */
 		@Override
@@ -293,8 +286,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
-		 *
 		 * @param ni
 		 * @return
 		 */
@@ -325,7 +316,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
 		 * @param slaveqeID the qeID in the slave system
 		 * @return the local queueentry
 		 */
@@ -359,7 +349,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
 		 * @return
 		 */
 		protected int size()
@@ -368,7 +357,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
 		 * @see java.lang.Object#toString()
 		 */
 		@Override
@@ -379,16 +367,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
-	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 *
-	 *         July 6, 2009
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG July 6, 2009
 	 */
 	protected class CanExecuteCallBack extends ExecuteCallback
 	{
 
 		/**
-		 *
 		 * @param _deviceID
 		 * @param _proxy
 		 */
@@ -437,8 +421,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
-	 *
 	 * @author rainer prosi
 	 * @date before Feb 20, 2013
 	 */
@@ -453,7 +435,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
 		 * @param m
 		 * @return
 		 */
@@ -497,8 +478,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
+		 *      org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -515,7 +496,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
 		 * @param m
 		 * @param resp
 		 * @param doc
@@ -590,8 +570,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
+		 *      org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -632,7 +612,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
 		 * @param m
 		 * @return
 		 */
@@ -696,9 +675,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 *
-	 *         July 10, 2009
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG July 10, 2009
 	 */
 	public class NewJDFQueryHandler extends AbstractHandler
 	{
@@ -711,7 +688,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
+		 *      org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -769,9 +747,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	/**
 	 * public in order to enable reference from updating devices
 	 *
-	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 *
-	 *         03.12.2008
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG 03.12.2008
 	 */
 	public class QueueStatusHandler extends AbstractHandler
 	{
@@ -784,7 +760,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
+		 *      org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -808,9 +785,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * @author rainerprosi
-	 *
 	 */
 	abstract class AbortRemoveHandler extends AbstractHandler
 	{
@@ -954,8 +929,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
+		 *      org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -1000,7 +975,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				}
 				else if (EnumQueueEntryStatus.Completed.equals(status) || EnumQueueEntryStatus.Aborted.equals(status))
 				{
-					JMFHandler.errorResponse(resp, "cannot hold QueueEntry with ID=" + qeid + ", current Status already=" + status.getName(), 114, EnumClass.Error);
+					JMFHandler.errorResponse(resp, "cannot hold QueueEntry with ID=" + qeid + ", current Status already=" + status.getName(), 114,
+							EnumClass.Error);
 				}
 				else
 				{
@@ -1070,9 +1046,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 *
-	 *         03.12.2008
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG 03.12.2008
 	 */
 	protected abstract class ModifyQueueStatusHandler extends AbstractHandler
 	{
@@ -1087,7 +1061,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
+		 *      org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -1161,8 +1136,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
+		 *      org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -1220,8 +1195,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
+		 *      org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -1265,7 +1240,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		/**
 		 * @param request
 		 * @return the xmlresponse to the get request
-		 *
 		 */
 		@Override
 		public XMLResponse handleGet(final ContainerRequest request)
@@ -1313,7 +1287,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			final XMLResponse response = new XMLResponse(root);
 			if (modified)
 			{
-				persist(300000);
+				persist(PERSIST_MS);
 			}
 			return response;
 		}
@@ -1591,7 +1565,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		/**
 		 * @param q
-		 *
 		 */
 		protected void addOptions(final JDFQueue q)
 		{
@@ -1622,8 +1595,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
+		 *      org.cip4.jdflib.jmf.JDFResponse)
 		 * @param m
 		 * @param resp
 		 * @return true if handled
@@ -1850,7 +1823,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * @param deviceID
 	 * @return
 	 */
@@ -1860,7 +1832,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public int getMaxRunning()
@@ -1869,7 +1840,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public int getMaxWaiting()
@@ -1878,7 +1848,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public int getMaxCompleted()
@@ -2009,7 +1978,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			for (int i = 0; i < siz; i++)
 			{
 				final JDFQueueEntry qe = (JDFQueueEntry) vQE.get(i);
-				final boolean waiting = EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) || EnumQueueEntryStatus.Suspended.equals(qe.getQueueEntryStatus());
+				final boolean waiting = EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus())
+						|| EnumQueueEntryStatus.Suspended.equals(qe.getQueueEntryStatus());
 				if (waiting && KElement.isWildCard(BambiNSExtension.getDeviceURL(qe)))
 				{
 					return getIQueueEntry(qe);
@@ -2035,9 +2005,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			cb = cb.clone();
 			cb.deviceID = deviceID;
 		}
+		JDFQueueEntry theEntry;
 		synchronized (_theQueue)
 		{
-			JDFQueueEntry theEntry;
 			if (nextPush != null && (cb == null || cb.canExecute(nextPush))) // we have an explicit selection
 			{
 				log.info("retrieving push qe: " + nextPush.getQueueEntryID());
@@ -2060,10 +2030,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				{
 					theEntry.setAttribute(proxyFlag, "true");
 				}
-				log.debug("new qe: " + theEntry.getQueueEntryID());
+				log.info("new qe: " + theEntry.getQueueEntryID());
 			}
-			return getIQueueEntry(theEntry);
 		}
+		return getIQueueEntry(theEntry);
 	}
 
 	/**
@@ -2142,8 +2112,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
-	 *
 	 * @param qe
 	 * @return
 	 */
@@ -2154,8 +2122,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
-	 *
 	 * @param queueEntryID
 	 * @return
 	 */
@@ -2224,62 +2190,63 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		final VString canAccept = canAccept(theJDF.getJDFRoot(), null);
 		if (canAccept == null)
 		{
-			JMFHandler.errorResponse(newResponse, "unable to queue request: No matching nodes found. Check Types and DeviceID - Error code = 101", 101, EnumClass.Error);
+			JMFHandler.errorResponse(newResponse, "unable to queue request: No matching nodes found. Check Types and DeviceID - Error code = 101", 101,
+					EnumClass.Error);
 			return null;
 		}
 
 		JDFQueueEntry newQE;
 		final JDFQueueSubmissionParams qsp = submitQueueEntry.getQueueSubmissionParams(0);
+		if (qsp == null)
+		{
+			log.error("error submitting new queueentry");
+			return null;
+		}
+
+		final JDFResponse r2;
 		synchronized (_theQueue)
 		{
-			if (qsp == null)
-			{
-				log.error("error submitting new queueentry");
-				return null;
-			}
-
-			final JDFResponse r2 = qsp.addEntry(_theQueue, null, submitQueueEntry.getQueueFilter(0));
-			if (newResponse != null)
-			{
-				newResponse.copyInto(r2, false);
-			}
-			else
-			{
-				newResponse = r2;
-			}
-			if (newResponse.getReturnCode() != 0)
-			{
-				log.warn("invalid response while adding queue entry: rc=" + newResponse.getReturnCode() + " queue status=" + _theQueue.getStatus());
-				return null;
-			}
-
-			newQE = newResponse.getQueueEntry(0);
-			if (newResponse.getReturnCode() != 0 || newQE == null)
-			{
-				log.warn("error submitting queueentry: " + newResponse.getReturnCode());
-				return null;
-			}
-
-			BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
-			_parentDevice.fixEntry(newQE, theJDF);
+			r2 = qsp.addEntry(_theQueue, null, submitQueueEntry.getQueueFilter(0));
 		}
+
+		if (newResponse != null)
+		{
+			newResponse.copyInto(r2, false);
+		}
+		else
+		{
+			newResponse = r2;
+		}
+		if (newResponse.getReturnCode() != 0)
+		{
+			log.warn("invalid response while adding queue entry: rc=" + newResponse.getReturnCode() + " queue status=" + _theQueue.getStatus());
+			return null;
+		}
+
+		newQE = newResponse.getQueueEntry(0);
+		if (newResponse.getReturnCode() != 0 || newQE == null)
+		{
+			log.warn("error submitting queueentry: " + newResponse.getReturnCode());
+			return null;
+		}
+
+		BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
+		_parentDevice.fixEntry(newQE, theJDF);
 
 		extractToJob(theJDF, newQE);
 
-		synchronized (_theQueue)
+		if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
 		{
-			if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
-			{
-				newResponse.setReturnCode(120);
-				log.error("error storing queueentry: " + QE_ID + " " + newResponse.getReturnCode());
-				return null;
-			}
-			persist(300000);
-			final String qeID = newQE.getQueueEntryID();
-			notifyListeners(qeID);
-			log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID + " / " + theJDF.getJDFRoot().getJobID(true));
-			newQE = getQueueEntry(qeID);
+			newResponse.setReturnCode(120);
+			log.error("error storing queueentry: " + QE_ID + " " + newResponse.getReturnCode());
+			return null;
 		}
+		persist(PERSIST_MS);
+		final String qeID = newQE.getQueueEntryID();
+		notifyListeners(qeID);
+		log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID + " / " + theJDF.getJDFRoot().getJobID(true));
+		newQE = getQueueEntry(qeID);
+
 		prepareSubmit(newQE);
 		// wait a very short moment to allow any potential processing of the newly created entry to commence, prior to returning the entry
 		ThreadUtil.sleep(123);
@@ -2328,7 +2295,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		newQEReal.copyInto(newQE, false);
 		slaveQueueMap.addEntry(newQEReal, true);
-		BambiNotifyDef.getInstance().notifyDeviceJobAdded(_theQueue.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(), newQEReal.getSubmissionTime().getTimeInMillis());
+		BambiNotifyDef.getInstance().notifyDeviceJobAdded(_theQueue.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(),
+				newQEReal.getSubmissionTime().getTimeInMillis());
 		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
 
 		final boolean ok = storeJDF(theJDF, newQEID);
@@ -2350,7 +2318,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * store the JDF again
 	 *
 	 * @param theJDF
@@ -2428,7 +2395,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * asynchronous make the memory queue persistent
 	 *
 	 * @param milliseconds length of time wait until persist, if 0 force persist
-	 *
 	 */
 	public void persist(final long milliseconds)
 	{
@@ -2480,7 +2446,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * @param status the updated QueueEntry status
 	 * @param mess the message that triggers the update - may be null
 	 * @param resp the message response to be filled - may be null
-	 *
 	 * @return JDFQueue the updated queue in its new status
 	 * @deprecated use 5 parameter version
 	 */
@@ -2498,7 +2463,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * @param mess the message that triggers the update - may be null
 	 * @param resp the message response to be filled - may be null
 	 * @param statusDetails
-	 *
 	 * @return JDFQueue the updated queue in its new status
 	 */
 	public JDFQueue updateEntry(JDFQueueEntry qe, final EnumQueueEntryStatus status, final JDFMessage mess, final JDFResponse resp, String statusDetails)
@@ -2560,7 +2524,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 						qe.setStatusDetails(statusDetails);
 					}
 
-					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
+					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(),
+							qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
 					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
 				}
 				else if (status.equals(EnumQueueEntryStatus.Waiting))
@@ -2571,17 +2536,20 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					qe.setQueueEntryStatus(status);
 					qe.setStatusDetails(statusDetails);
 
-					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), 0, 0);
+					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(),
+							qe.getQueueEntryStatus().getName(), 0, 0);
 					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
 				}
-				else if (status.equals(EnumQueueEntryStatus.Aborted) || status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Suspended))
+				else if (status.equals(EnumQueueEntryStatus.Aborted) || status.equals(EnumQueueEntryStatus.Completed)
+						|| status.equals(EnumQueueEntryStatus.Suspended))
 				{
 					qe.removeAttribute(AttributeName.DEVICEID);
 					BambiNSExtension.setDeviceURL(qe, null);
 					qe.setQueueEntryStatus(status);
 					qe.setStatusDetails(statusDetails);
 
-					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
+					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(),
+							qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
 					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
 				}
 				else if (!ContainerUtil.equals(oldStatus, status))
@@ -2589,13 +2557,14 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					qe.setQueueEntryStatus(status);
 					qe.setStatusDetails(statusDetails);
 
-					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
+					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(),
+							qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
 					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
 				}
 
 				if (!ContainerUtil.equals(oldStatus, status))
 				{
-					persist(300000);
+					persist(PERSIST_MS);
 					notifyListeners(qe.getQueueEntryID());
 				}
 			}
@@ -2606,7 +2575,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * @param mess
 	 * @param resp
 	 * @return
@@ -2673,7 +2641,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	protected QueueDelta getQueueDelta()
@@ -2694,7 +2661,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * @param qe
 	 * @param finishedNodes
 	 * @param docJDF
@@ -2715,7 +2681,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		/**
 		 * @param newStatus
-		 *
 		 */
 		QueueEntryReturn(final JDFQueueEntry qe, final EnumQueueEntryStatus newStatus)
 		{
@@ -2728,7 +2693,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 *
 		 * @param finishedNodes
 		 * @param docJDF
 		 */
@@ -3065,7 +3029,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * remove all Bambi namespace extensions from a given queue
 	 *
 	 * @param queue the queue to filter
-	 *
 	 */
 	public static void removeBambiNSExtensions(final JDFQueue queue)
 	{
@@ -3125,7 +3088,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public QueueGetHandler getQueueGetHandler()
@@ -3214,7 +3176,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public QueueStatistic getQueueStatistic2()
@@ -3223,7 +3184,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	protected synchronized String getQueueStatistic()
@@ -3258,7 +3218,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * @param qeNew
 	 * @return
 	 */
@@ -3268,7 +3227,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 *
 	 * @param url
 	 * @param zipReader
 	 * @return
