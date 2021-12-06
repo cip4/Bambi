@@ -2745,7 +2745,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			_parentDevice.flush();
 
 			final String returnJMF = BambiNSExtension.getReturnJMF(qe);
-			if (returnJMF != null)
+			if (UrlUtil.isHttp(returnJMF) || UrlUtil.isHttps(returnJMF))
 			{
 				bOK = returnJMF(docJDF, jmf);
 			}

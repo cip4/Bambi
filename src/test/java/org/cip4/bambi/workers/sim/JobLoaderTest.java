@@ -68,53 +68,44 @@
  *  
  * 
  */
-package org.cip4.bambi;
+package org.cip4.bambi.workers.sim;
 
-import org.cip4.bambi.workers.WorkerDevice;
+import static org.junit.Assert.assertEquals;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.commons.io.FileUtils;
+import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.bambi.BambiTestDevice;
 import org.cip4.bambi.workers.WorkerDeviceProcessor;
-import org.cip4.bambi.workers.sim.SimDeviceProcessor;
-import org.cip4.jdflib.util.ContainerUtil;
+import org.junit.Test;
 
-public class BambiTestDevice extends WorkerDevice
+public class JobLoaderTest extends BambiTestCaseBase
 {
 
-	private boolean sim;
-
-	public void setSim(boolean isSim)
+	@Test
+	public void testConstruct()
 	{
-		this.sim = isSim;
+		final BambiTestDevice rootDev = new BambiTestDevice();
+		rootDev.setSim(true);
+		WorkerDeviceProcessor p = rootDev.getNewProcessor();
+		JobLoader l = new JobLoader((SimDeviceProcessor) p);
+
 	}
 
-	/**
-	 * 
-	 */
-	public BambiTestDevice()
+	@Test
+	public void testLoad() throws IOException
 	{
-		super(new BambiTestProp());
-		sim = false;
-		getQueueProcessor().getQueue().resumeQueue();
-		getQueueProcessor().getQueue().openQueue();
-	}
+		final BambiTestDevice rootDev = new BambiTestDevice();
+		rootDev.setSim(true);
+		WorkerDeviceProcessor p = rootDev.getNewProcessor();
+		JobLoader l = new JobLoader((SimDeviceProcessor) p);
+		File destDir = new File(sm_dirTestDataTemp, "config");
+		if (!destDir.exists())
+			FileUtils.copyDirectory(new File(sm_dirTestData, "config"), destDir);
+		assertEquals(4, l.loadJob().size());
 
-	public WorkerDeviceProcessor getNewProcessor()
-	{
-		super.createNewProcessor();
-		return (WorkerDeviceProcessor) ContainerUtil.get(_deviceProcessors, -1);
-	}
-
-	@Override
-	protected WorkerDeviceProcessor buildDeviceProcessor()
-	{
-		return sim ? new SimDeviceProcessor() : new BambiTestProcessor();
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#copyToCache()
-	 */
-	@Override
-	protected void copyToCache()
-	{
-		// nop
 	}
 
 }

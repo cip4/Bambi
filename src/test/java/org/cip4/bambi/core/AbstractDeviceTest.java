@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -39,8 +39,12 @@
 
 package org.cip4.bambi.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.io.File;
+
+import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -53,12 +57,10 @@ import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
 import org.junit.Test;
 
-public class AbstractDeviceTest
+public class AbstractDeviceTest extends BambiTestCaseBase
 {
 
 	/**
-	 *
-	 *
 	 * @throws Exception
 	 */
 	@Test
@@ -75,6 +77,18 @@ public class AbstractDeviceTest
 		final String s = device.fixEntry(qe, n.getOwnerDocument_JDFElement());
 		assertNull(ni.getNonEmpty(AttributeName.JOBPRIORITY));
 		assertNull(qe.getNonEmpty(AttributeName.PRIORITY));
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testConfig() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		device.setSim(true);
+		File dir = device.getCachedConfigDir();
+		assertEquals(new File(sm_dirTestDataTemp, "config"), dir);
 	}
 
 }

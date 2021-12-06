@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -54,7 +54,7 @@ import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.MsgSubscription;
 import org.cip4.bambi.core.messaging.SignalDispatcher;
 import org.cip4.bambi.core.messaging.Trigger;
-import org.cip4.bambi.proxy.ProxyDevice;
+import org.cip4.bambi.workers.WorkerDevice;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -66,9 +66,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
- *         10.12.2008
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG 10.12.2008
  */
 public class SignalDispatcherTest extends BambiTestCase
 {
@@ -83,7 +81,7 @@ public class SignalDispatcherTest extends BambiTestCase
 	public void setUp()
 	{
 		MsgSubscription.setSpecific(true);
-		final ProxyDevice rootDev = new BambiTestDevice();
+		final WorkerDevice rootDev = new BambiTestDevice();
 		final JMFHandler h = new JMFHandler(rootDev);
 		dispatcher = new SignalDispatcher(rootDev);
 		dispatcher.addHandlers(h);

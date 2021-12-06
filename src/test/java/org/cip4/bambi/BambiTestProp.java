@@ -77,8 +77,10 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.proxy.IProxyProperties;
 import org.cip4.jdflib.core.VString;
 
-public class BambiTestProp implements IProxyProperties
+public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 {
+
+	private String devID;
 
 	/**
 	 * @param bambiTestCase
@@ -86,10 +88,12 @@ public class BambiTestProp implements IProxyProperties
 	public BambiTestProp()
 	{
 		super();
+		this.devID = "ID_42";
 	}
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getAppDir()
 	 */
 	@Override
@@ -100,16 +104,18 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getBaseDir()
 	 */
 	@Override
 	public File getBaseDir()
 	{
-		return null;
+		return new File(sm_dirTestDataTemp);
 	}
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getCallBackClass()
 	 */
 	@Override
@@ -120,16 +126,18 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceID()
 	 */
 	@Override
 	public String getDeviceID()
 	{
-		return "ID_42";
+		return devID;
 	}
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceType()
 	 */
 	@Override
@@ -140,6 +148,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
 	 */
 	@Override
@@ -150,6 +159,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getErrorHF()
 	 */
 	@Override
@@ -160,6 +170,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getInputHF()
 	 */
 	@Override
@@ -170,6 +181,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getJDFDir()
 	 */
 	public File getJDFDir()
@@ -179,6 +191,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getMaxPush()
 	 */
 	@Override
@@ -189,6 +202,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getOutputHF()
 	 */
 	@Override
@@ -199,6 +213,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getProxyControllerURL()
 	 */
 	@Override
@@ -209,6 +224,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
 	 */
 	@Override
@@ -220,6 +236,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveErrorHF()
 	 */
 	@Override
@@ -231,6 +248,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveInputHF()
 	 */
 	@Override
@@ -242,6 +260,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveOutputHF()
 	 */
 	@Override
@@ -253,6 +272,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveURL()
 	 */
 	@Override
@@ -264,6 +284,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getTrackResource()
 	 */
 	@Override
@@ -275,6 +296,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
 	 */
 	@Override
@@ -286,6 +308,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getAmountResources()
 	 */
 	@Override
@@ -297,6 +320,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
 	 */
 	@Override
@@ -308,6 +332,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
 	 */
 	@Override
@@ -319,6 +344,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getContextURL()
 	 */
 	@Override
@@ -330,6 +356,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceAttribute(java.lang.String)
 	 */
 	@Override
@@ -341,6 +368,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceClass()
 	 */
 	@Override
@@ -352,6 +380,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getWatchURL()
 	 */
 	@Override
@@ -363,6 +392,7 @@ public class BambiTestProp implements IProxyProperties
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEExpansion()
 	 */
 	@Override
@@ -454,7 +484,7 @@ public class BambiTestProp implements IProxyProperties
 	public QERetrieval getQERetrieval()
 	{
 
-		return null;
+		return QERetrieval.BOTH;
 	}
 
 	/**

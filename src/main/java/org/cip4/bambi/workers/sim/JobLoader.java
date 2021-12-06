@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -90,9 +90,7 @@ import org.cip4.jdflib.util.FileUtil;
 /**
  * class to load .job files for simulation
  *
- * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
- * Sep 29, 2009
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG Sep 29, 2009
  */
 class JobLoader
 {
@@ -113,6 +111,7 @@ class JobLoader
 
 	/**
 	 * set the node for amount calculations
+	 * 
 	 * @param node
 	 */
 	public void setNode(final JDFNode node)
@@ -122,6 +121,7 @@ class JobLoader
 
 	/**
 	 * update amounts of all resources with no speed
+	 * 
 	 * @param phase the jobphase to update the amounts for
 	 * @param node the node to extract update data from. this implementation assumes a one to one match of input to output
 	 */
@@ -156,7 +156,7 @@ class JobLoader
 	 * @param fileName the file to load
 	 * @return true, if successful
 	 */
-	private List<JobPhase> loadJobFromFile(final File configdir, final String fileName)
+	List<JobPhase> loadJobFromFile(final File configdir, final String fileName)
 	{
 		final File f = FileUtil.getFileInDirectory(configdir, new File(fileName));
 		if (!f.canRead())
@@ -205,6 +205,7 @@ class JobLoader
 
 	/**
 	 * load a job from the cached directory
+	 * 
 	 * @return
 	 */
 	protected List<JobPhase> loadJob()
@@ -225,6 +226,7 @@ class JobLoader
 
 	/**
 	 * randomize phase durations and add random error phases
+	 * 
 	 * @param phases the phases to randomize
 	 * @param randomTime the given time in seconds of each job phase is to vary by +/- 100 percent
 	 */

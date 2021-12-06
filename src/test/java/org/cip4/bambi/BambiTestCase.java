@@ -107,9 +107,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * @author Rainer Prosi, Heidelberger Druckmaschinen
- *
- * abstract test case for all bambi tests note that this has some site specific details that must be modified
+ * @author Rainer Prosi, Heidelberger Druckmaschinen abstract test case for all bambi tests note that this has some site specific details that
+ *         must be modified
  */
 public class BambiTestCase extends BambiGoldenTicketTest
 {
@@ -286,7 +285,6 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	/**
 	 * @return
-	 *
 	 */
 	protected String getWorkerURL()
 	{
@@ -299,17 +297,17 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	protected AbstractDevice getDevice()
 	{
-		return new BambiTestDevice();
+		BambiTestDevice bambiTestDevice = new BambiTestDevice();
+		bambiTestDevice.getQueueProcessor().reset();
+		return bambiTestDevice;
 	}
 
 	/**
 	 * @return
-	 *
 	 */
 	protected String getDumpURL()
 	{
@@ -318,6 +316,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	/**
 	 * cleaning up, brute-force-sytle: send a AbortQueueEntry and a RemoveQueueEntry message to every QueueEntry in the Queue
+	 * 
 	 * @param url the URL of the device to send the command to
 	 */
 	protected void abortRemoveAll(final String url)
@@ -372,6 +371,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	/**
 	 * requires assigned node...
+	 * 
 	 * @param url the url to send to
 	 * @return
 	 * @throws MalformedURLException
@@ -384,6 +384,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	/**
 	 * requires assigned node...
+	 * 
 	 * @param qeID
 	 * @param url the url to send to
 	 * @return
@@ -397,6 +398,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	/**
 	 * requires assigned node...
+	 * 
 	 * @param url the url to send to
 	 * @throws MalformedURLException
 	 */

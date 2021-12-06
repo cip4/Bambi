@@ -82,6 +82,7 @@ import javax.mail.MessagingException;
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.StreamRequest;
 import org.cip4.bambi.core.XMLResponse;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFAbortQueueEntryParams;
@@ -109,11 +110,9 @@ import org.junit.Test;
 
 /**
  * test for the various queue processor functions
- * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
- * 03.12.2008
+ * 
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG 03.12.2008
  */
-@Ignore
 public class QueueProcessorTest extends BambiTestCase
 {
 	String queueEntryId = "qe_130102_112609938_007349";
@@ -169,7 +168,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testConstruct()
 	{
-		QueueProcessor qp = new QueueProcessor(getDevice());
+		QueueProcessor qp = getDevice().getQueueProcessor();
 		assertNotNull(qp);
 	}
 
@@ -178,10 +177,9 @@ public class QueueProcessorTest extends BambiTestCase
 	 *
 	 */
 	@Test
-	@Ignore
 	public void testAddEntryMany()
 	{
-		QueueProcessor qp = new QueueProcessor(getDevice());
+		QueueProcessor qp = getDevice().getQueueProcessor();
 		JMFBuilder jmfBuilder = new JMFBuilder();
 		for (int i = 0; i < 100; i++)
 		{
@@ -193,7 +191,9 @@ public class QueueProcessorTest extends BambiTestCase
 			JDFQueueEntry qe = qp.addEntry(c, r, doc);
 			assertNotNull(qe);
 		}
-		assertEquals(100, qp.getQueue().getQueueSize());
+		for (Object o : EnumQueueEntryStatus.getEnumList())
+			log.info(o.toString() + " " + qp.getQueue().numEntries((EnumQueueEntryStatus) o));
+		assertEquals(100, qp.getQueue().getQueueSize(), 1);
 	}
 
 	/**
@@ -204,7 +204,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Ignore
 	public void testAddEntryManyQueue()
 	{
-		QueueProcessor qp = new QueueProcessor(getDevice());
+		QueueProcessor qp = getDevice().getQueueProcessor();
 		JMFBuilder jmfBuilder = new JMFBuilder();
 		for (int i = 0; i < 100; i++)
 		{
@@ -227,7 +227,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testAddEntry()
 	{
-		QueueProcessor qp = new QueueProcessor(getDevice());
+		QueueProcessor qp = getDevice().getQueueProcessor();
 		JMFBuilder jmfBuilder = new JMFBuilder();
 		JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
 		JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
@@ -243,7 +243,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testMessageQEAbort()
 	{
-		QueueProcessor qp = new QueueProcessor(getDevice());
+		QueueProcessor qp = getDevice().getQueueProcessor();
 		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q1");
 		JMFBuilder jmfBuilder = new JMFBuilder();
@@ -281,7 +281,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testMessageQEResume()
 	{
-		QueueProcessor qp = new QueueProcessor(getDevice());
+		QueueProcessor qp = getDevice().getQueueProcessor();
 		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q1");
 		JMFBuilder jmfBuilder = new JMFBuilder();
@@ -299,7 +299,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testMessageQEEmpty()
 	{
-		QueueProcessor qp = new QueueProcessor(getDevice());
+		QueueProcessor qp = getDevice().getQueueProcessor();
 		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q1");
 		JMFBuilder jmfBuilder = new JMFBuilder();

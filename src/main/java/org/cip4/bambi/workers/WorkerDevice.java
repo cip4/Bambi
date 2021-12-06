@@ -175,15 +175,6 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 		// also check for executable nodes
 		final EnumNodeStatus ns = n2.getPartStatus(null, -1);
 		final boolean isExecutable = EnumNodeStatus.Waiting.equals(ns) || EnumNodeStatus.Ready.equals(ns) || EnumNodeStatus.Suspended.equals(ns);
-		if (!isExecutable)
-		{
-			log.debug("node found with non-executable status: " + ns);
-		}
-		else
-		{
-			log.debug("executable node found: JobPartID=" + n2.getJobPartID(false));
-
-		}
 		return isExecutable;
 	}
 
@@ -224,10 +215,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	}
 
 	/**
-	 *
-	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 *
-	 *         Sep 29, 2009
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG Sep 29, 2009
 	 */
 	protected class EmployeeLoader
 	{
@@ -374,7 +362,6 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#getXSLT(org.cip4.bambi.core.ContainerRequest)
 	 */
 	@Override

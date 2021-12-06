@@ -70,51 +70,34 @@
  */
 package org.cip4.bambi;
 
-import org.cip4.bambi.workers.WorkerDevice;
 import org.cip4.bambi.workers.WorkerDeviceProcessor;
-import org.cip4.bambi.workers.sim.SimDeviceProcessor;
-import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.ThreadUtil;
 
-public class BambiTestDevice extends WorkerDevice
+public class BambiTestProcessor extends WorkerDeviceProcessor
 {
 
-	private boolean sim;
-
-	public void setSim(boolean isSim)
+	public BambiTestProcessor()
 	{
-		this.sim = isSim;
+		super();
 	}
 
-	/**
-	 * 
-	 */
-	public BambiTestDevice()
-	{
-		super(new BambiTestProp());
-		sim = false;
-		getQueueProcessor().getQueue().resumeQueue();
-		getQueueProcessor().getQueue().openQueue();
-	}
+	static int wait = 42;
 
-	public WorkerDeviceProcessor getNewProcessor()
+	@Override
+	public EnumQueueEntryStatus processDoc(JDFNode n, JDFQueueEntry qe)
 	{
-		super.createNewProcessor();
-		return (WorkerDeviceProcessor) ContainerUtil.get(_deviceProcessors, -1);
+		ThreadUtil.sleep(wait);
+		return EnumQueueEntryStatus.Completed;
 	}
 
 	@Override
-	protected WorkerDeviceProcessor buildDeviceProcessor()
+	public EnumNodeStatus stopProcessing(EnumNodeStatus newStatus)
 	{
-		return sim ? new SimDeviceProcessor() : new BambiTestProcessor();
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#copyToCache()
-	 */
-	@Override
-	protected void copyToCache()
-	{
-		// nop
+		return newStatus;
 	}
 
 }
