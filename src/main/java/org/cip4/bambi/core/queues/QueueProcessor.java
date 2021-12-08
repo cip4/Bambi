@@ -3186,7 +3186,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	/**
 	 * @return
 	 */
-	protected synchronized String getQueueStatistic()
+	protected String getQueueStatistic()
 	{
 		String result = "${W}/${R}/${C}/${ALL}";
 

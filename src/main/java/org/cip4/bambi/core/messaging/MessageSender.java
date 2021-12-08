@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -130,8 +130,7 @@ public class MessageSender implements Runnable, IPersistable
 	}
 
 	/**
-	 * Package private constructor. Please use the static {@link JMFFactory#getCreateMessageSender(String)}
-	 * method for initializing.
+	 * Package private constructor. Please use the static {@link JMFFactory#getCreateMessageSender(String)} method for initializing.
 	 *
 	 * @param callURL the URL to send the message to
 	 */
@@ -284,8 +283,8 @@ public class MessageSender implements Runnable, IPersistable
 
 				if (jmfFactory.isLogLots() || removedHeartbeat < 10 || removedHeartbeat % 1000 == 0)
 				{
-					log.info("removed redundant " + oldJmfMessage.getType() + " " + oldJmfMessage.getLocalName() + " Message ID= " + oldJmfMessage.getID() + " Sender= "
-							+ oldJmfMessage.getSenderID() + "# " + removedHeartbeat + " / " + checked);
+					log.info("removed redundant " + oldJmfMessage.getType() + " " + oldJmfMessage.getLocalName() + " Message ID= " + oldJmfMessage.getID()
+							+ " Sender= " + oldJmfMessage.getSenderID() + "# " + removedHeartbeat + " / " + checked);
 				}
 
 				final VElement messages = jmf.getMessageVector(null, null);
@@ -630,7 +629,8 @@ public class MessageSender implements Runnable, IPersistable
 			isMime = "Empty";
 
 		boolean logsRequired;
-		String textWarning = "Sender: " + messageDetails.senderID + " Error sending " + isMime + " message to: " + messageDetails.url + " return code=" + sendReturn;
+		String textWarning = "Sender: " + messageDetails.senderID + " Error sending " + isMime + " message to: " + messageDetails.url + " return code="
+				+ sendReturn;
 
 		if (messageDetails.isFireForget())
 		{
@@ -654,7 +654,8 @@ public class MessageSender implements Runnable, IPersistable
 			}
 			else
 			{
-				textWarning += " - retaining " + messageDetails.getName() + " message for resend; messages pending: " + messageFiFo.size() + " times delayed: " + idle;
+				textWarning += " - retaining " + messageDetails.getName() + " message for resend; messages pending: " + messageFiFo.size() + " times delayed: "
+						+ idle;
 				logsRequired = (idle < 10) || (idle % 100) == 0;
 			}
 		}
@@ -740,7 +741,8 @@ public class MessageSender implements Runnable, IPersistable
 			duration = (durationWait / (3600000L * 24L)) + " days";
 		}
 
-		log.info("successfully reactivated message sender " + mesDetails.getName() + " to: " + mesDetails.url + " after " + duration + " messages pending: " + messageFiFo.size());
+		log.info("successfully reactivated message sender " + mesDetails.getName() + " to: " + mesDetails.url + " after " + duration + " messages pending: "
+				+ messageFiFo.size());
 	}
 
 	/**
@@ -994,8 +996,8 @@ public class MessageSender implements Runnable, IPersistable
 	/**
 	 * Add debug dump directories for a given senderID
 	 *
-	 * @param senderID      The senders ID.
-	 * @param inputDumpDir  The input dump directory.
+	 * @param senderID The senders ID.
+	 * @param inputDumpDir The input dump directory.
 	 * @param outputDumpDir The output dump directory.
 	 */
 	public static void addDumps(final String senderID, final DumpDir inputDumpDir, final DumpDir outputDumpDir)
@@ -1007,11 +1009,17 @@ public class MessageSender implements Runnable, IPersistable
 	/**
 	 * Queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required.
 	 */
-	public boolean queueMessage(final JDFJMF jmf, final IResponseHandler responseHandler, final String url, final IConverterCallback converterCallback, final HTTPDetails httpDetails)
+	public boolean queueMessage(final JDFJMF jmf, final IResponseHandler responseHandler, final String url, final IConverterCallback converterCallback,
+			final HTTPDetails httpDetails)
 	{
 		if (isShutdown)
 		{
 			log.warn("cannot queue message during shutdown!");
+			return false;
+		}
+		else if (jmf == null)
+		{
+			log.warn("cannot queue null message!");
 			return false;
 		}
 
@@ -1022,7 +1030,8 @@ public class MessageSender implements Runnable, IPersistable
 	/**
 	 * Queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required
 	 */
-	public boolean queueMessage(final JDFJMF jmf, final JDFNode jdfNode, final IResponseHandler responseHandler, final String url, final IConverterCallback converterCallback, final MIMEDetails mimeDetails)
+	public boolean queueMessage(final JDFJMF jmf, final JDFNode jdfNode, final IResponseHandler responseHandler, final String url,
+			final IConverterCallback converterCallback, final MIMEDetails mimeDetails)
 	{
 		if (isShutdown)
 		{
@@ -1109,8 +1118,8 @@ public class MessageSender implements Runnable, IPersistable
 	@Override
 	public String toString()
 	{
-		return "MessageSender - URL: " + callURL.url + " size: " + messageFiFo.size() + " total: " + sent + " last queued at " + XMLResponse.formatLong(timeLastQueued)
-				+ " last sent at " + XMLResponse.formatLong(timeLastSent);
+		return "MessageSender - URL: " + callURL.url + " size: " + messageFiFo.size() + " total: " + sent + " last queued at "
+				+ XMLResponse.formatLong(timeLastQueued) + " last sent at " + XMLResponse.formatLong(timeLastSent);
 	}
 
 	/**
@@ -1118,7 +1127,8 @@ public class MessageSender implements Runnable, IPersistable
 	 */
 	public KElement appendToXML(final KElement messageSenderXmlRoot, final int posQueuedMessages, final boolean bXJDF)
 	{
-		final KElement messageSenderXml = messageSenderXmlRoot == null ? new XMLDoc("MessageSender", null).getRoot() : messageSenderXmlRoot.appendElement("MessageSender");
+		final KElement messageSenderXml = messageSenderXmlRoot == null ? new XMLDoc("MessageSender", null).getRoot()
+				: messageSenderXmlRoot.appendElement("MessageSender");
 
 		synchronized (messageFiFo)
 		{

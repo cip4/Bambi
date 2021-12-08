@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -87,7 +87,6 @@ import org.junit.Test;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
- *
  */
 public class MessageSenderTest extends BambiTestCase
 {
@@ -158,6 +157,18 @@ public class MessageSenderTest extends BambiTestCase
 		assertTrue(s.isRemoveResponseCode(400));
 		assertTrue(s.isRemoveResponseCode(500));
 		assertFalse(s.isRemoveResponseCode(507));
+
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testQueue()
+	{
+
+		assertFalse(s.queueMessage(null, null, null, null, null));
 
 	}
 
