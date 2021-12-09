@@ -262,10 +262,10 @@ public class QueueProcessorTest extends BambiTestCase
 	{
 		QueueProcessor qp = new QueueProcessor(getDevice());
 		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
-		qe.setQueueEntryID("q1");
+		qe.setQueueEntryID("q1a");
 		qe.setJobID("j1");
 		qe = qp.getQueue().appendQueueEntry();
-		qe.setQueueEntryID("q2");
+		qe.setQueueEntryID("q2a");
 		qe.setJobID("j2");
 		JMFBuilder jmfBuilder = new JMFBuilder();
 		JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.AbortQueueEntry).getCommand(0);
@@ -283,11 +283,11 @@ public class QueueProcessorTest extends BambiTestCase
 	{
 		QueueProcessor qp = getDevice().getQueueProcessor();
 		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
-		qe.setQueueEntryID("q1");
+		qe.setQueueEntryID("q1res");
 		JMFBuilder jmfBuilder = new JMFBuilder();
 		JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry).getCommand(0);
 		JDFResumeQueueEntryParams aqp = (JDFResumeQueueEntryParams) c.appendElement(ElementName.RESUMEQUEUEENTRYPARAMS);
-		aqp.getCreateQueueFilter(0).appendQueueEntryDef("q1");
+		aqp.getCreateQueueFilter(0).appendQueueEntryDef("q1res");
 		assertEquals(qe.getQueueEntryID(), qp.getMessageQueueEntry(c, null).getQueueEntryID());
 		assertEquals(qe.getQueueEntryID(), qp.getMessageQueueEntry(c, null).getQueueEntryID());
 	}
@@ -301,7 +301,7 @@ public class QueueProcessorTest extends BambiTestCase
 	{
 		QueueProcessor qp = getDevice().getQueueProcessor();
 		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
-		qe.setQueueEntryID("q1");
+		qe.setQueueEntryID("q1empty");
 		JMFBuilder jmfBuilder = new JMFBuilder();
 		JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry).getCommand(0);
 		JDFResumeQueueEntryParams aqp = (JDFResumeQueueEntryParams) c.appendElement(ElementName.RESUMEQUEUEENTRYPARAMS);
