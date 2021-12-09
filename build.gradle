@@ -27,10 +27,10 @@ repositories {
 
 processResources {
     filesMatching('**/*.properties') {
-        filter(ReplaceTokens, tokens:  [
-                'name': project.properties['name'],
-                'version': project.properties['version'],
-                'timestamp': new Date().format('yyyy-MM-dd HH:mm:ss'),
+        filter(ReplaceTokens, tokens: [
+                'name'       : project.properties['name'],
+                'version'    : project.properties['version'],
+                'timestamp'  : new Date().format('yyyy-MM-dd HH:mm:ss'),
                 'buildNumber': project.properties['buildNumber'] == null ? 'n. a.' : project.properties['buildNumber']
         ])
     }
@@ -41,7 +41,7 @@ application {
 }
 
 dependencies {
-    implementation  'org.cip4.lib.jdf:JDFLibJ:2.1.7.+'
+    implementation 'org.cip4.lib.jdf:JDFLibJ:2.1.7.+'
     implementation 'org.cip4.tools.jdfutility:JDFUtility:1.x-SNAPSHOT'
     implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:+'
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
