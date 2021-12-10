@@ -8,7 +8,7 @@ on:
 jobs:
   call-tool-snapshot:
     name: 🏭
-    uses: cip4/.github/.github/workflows/tool-release.yml@v2
+    uses: cip4/.github/.github/workflows/tool-release.yml@master
     with:
       confluence-label: bambi
       confluence-content-id: 1181122565

@@ -7,7 +7,7 @@ on:
 jobs:
   call-tool-snapshot:
     name: 🏭
-    uses: cip4/.github/.github/workflows/tool-snapshot.yml@v2
+    uses: cip4/.github/.github/workflows/tool-snapshot.yml@master
     with:
       confluence-label: bambi
       confluence-content-id: 1457553964
