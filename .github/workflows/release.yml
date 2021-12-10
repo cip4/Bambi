@@ -14,6 +14,7 @@ jobs:
       confluence-content-id: 1181122565
       apple-bundle-id: org.cip4.bambi
       docker-build: true
+      java-version: 15
     secrets:
       APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
       APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
