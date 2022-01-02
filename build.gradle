@@ -45,7 +45,7 @@ dependencies {
     implementation  'org.apache.logging.log4j:log4j-core:2.17.0'
     implementation 'org.cip4.lib.jdf:JDFLibJ:2.1.7.+'
     implementation 'org.cip4.tools.jdfutility:JDFUtility:1.1.7.x-SNAPSHOT'
-    implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:+'
+    implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:1.1.+'
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
     implementation 'xerces:xercesImpl:2.12.1'
     implementation 'commons-logging:commons-logging-api:1.1'

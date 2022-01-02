@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2020 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2021 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -301,7 +301,7 @@ public class BambiServer extends JettyServer
 		final Log log = LogFactory.getLog(BambiServer.class);
 		log.info("BambiServer");
 		final BambiServer bambiServer = new BambiServer();
-		bambiServer.getProp().setBaseDir(new File(new UserDir(BAMBI).toString()));
+		bambiServer.getProp().setBaseDir(new File(new UserDir(BAMBI).getToolPath()));
 		LogConfigurator.configureLog(bambiServer.getProp().getBaseDir().getAbsolutePath(), "bambi.log");
 		final MyArgs myArgs = new MyArgs(args, "c", "ps", "");
 		if (myArgs.boolParameter('c'))
