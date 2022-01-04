@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -77,7 +77,6 @@ import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 
-import org.apache.log4j.BasicConfigurator;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiContainer;
 import org.cip4.bambi.core.MultiDeviceProperties;
@@ -102,6 +101,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.logging.LogConfigurator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -278,7 +278,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 */
 	public BambiTestCase()
 	{
-		BasicConfigurator.configure();
+		LogConfigurator.configureLog(null, null);
 		JDFJMF.setTheSenderID("BambiTest");
 		wantContainer = false;
 	}
@@ -301,7 +301,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 */
 	protected AbstractDevice getDevice()
 	{
-		BambiTestDevice bambiTestDevice = new BambiTestDevice();
+		final BambiTestDevice bambiTestDevice = new BambiTestDevice();
 		bambiTestDevice.getQueueProcessor().reset();
 		return bambiTestDevice;
 	}
@@ -316,7 +316,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	/**
 	 * cleaning up, brute-force-sytle: send a AbortQueueEntry and a RemoveQueueEntry message to every QueueEntry in the Queue
-	 * 
+	 *
 	 * @param url the URL of the device to send the command to
 	 */
 	protected void abortRemoveAll(final String url)
@@ -371,7 +371,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	/**
 	 * requires assigned node...
-	 * 
+	 *
 	 * @param url the url to send to
 	 * @return
 	 * @throws MalformedURLException
@@ -384,7 +384,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	/**
 	 * requires assigned node...
-	 * 
+	 *
 	 * @param qeID
 	 * @param url the url to send to
 	 * @return
@@ -398,7 +398,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	/**
 	 * requires assigned node...
-	 * 
+	 *
 	 * @param url the url to send to
 	 * @throws MalformedURLException
 	 */
