@@ -64,9 +64,6 @@ import org.cip4.jdfutility.server.ui.JettyFrame;
 public class BambiFrame extends JettyFrame
 {
 	private static final long serialVersionUID = 1L;
-
-	private static final String BASE_DIR = new UserDir(BambiServer.BAMBI).getToolPath();
-
 	private JButton baseDirButton;
 	private JButton extractXsltButton;
 	private JTextField baseDirText;
@@ -114,7 +111,7 @@ public class BambiFrame extends JettyFrame
 	 */
 	static void retrieveVersion()
 	{
-		Properties propsVersion = new Properties();
+		final Properties propsVersion = new Properties();
 
 		try
 		{

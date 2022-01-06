@@ -94,7 +94,7 @@ public class BambiService extends JettyService
 	 * 
 	 * @param args Command line arguments as string array.
 	 */
-	public static void main(String[] args)
+	public static void main(final String[] args)
 	{
 
 		LogConfigurator.configureLog(new UserDir("bambi").getLogPath(), "bambi.log");
@@ -107,7 +107,7 @@ public class BambiService extends JettyService
 	 * @see org.cip4.jdfutility.server.JettyService#getServer(java.lang.String[])
 	 */
 	@Override
-	public JettyServer getServer(String[] args)
+	public JettyServer getServer(final String[] args)
 	{
 		return BambiServer.getBambiServer();
 	}
