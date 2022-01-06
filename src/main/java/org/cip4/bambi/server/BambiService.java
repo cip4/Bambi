@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  * <p>
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  * <p>
@@ -67,62 +67,48 @@
 package org.cip4.bambi.server;
 
 import org.cip4.jdflib.util.file.UserDir;
-import org.cip4.jdflib.util.logging.LogConfigurator;
+import org.cip4.jdfutility.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
 import org.cip4.jdfutility.server.JettyService;
 
-import java.io.IOException;
-import java.util.Properties;
-
 /**
  * Standard bambi windows service wrapper
+ * 
  * @author rainer prosi
  * @date Oct 26, 2011
  */
-public class BambiService extends JettyService {
-    /**
-     * Default constructor.
-     */
-    public BambiService() {
-        super();
-        retrieveVersion();
-        log.info("Creating bambi service instance.");
-    }
+public class BambiService extends JettyService
+{
+	/**
+	 * Default constructor.
+	 */
+	public BambiService()
+	{
+		super();
+		BambiFrame.retrieveVersion();
+		log.info("Creating bambi service instance.");
+	}
 
-    /**
-     * The applications main entrance point.
-     * @param args Command line arguments as string array.
-     */
-    public static void main(String[] args) {
+	/**
+	 * The applications main entrance point.
+	 * 
+	 * @param args Command line arguments as string array.
+	 */
+	public static void main(String[] args)
+	{
 
-        LogConfigurator.configureLog(new UserDir("bambi").getLogPath(), "bambi.log");
-        if (theService == null)
-            theService = new BambiService();
-        theService.doMain(args);
-    }
+		LogConfigurator.configureLog(new UserDir("bambi").getLogPath(), "bambi.log");
+		if (theService == null)
+			theService = new BambiService();
+		theService.doMain(args);
+	}
 
-    /**
-     * Read applications version details.
-     */
-    private void retrieveVersion() {
-        Properties propsVersion = new Properties();
-
-        try {
-            propsVersion.load(BambiFrame.class.getResourceAsStream("/bambi-buildtime.properties"));
-        } catch (final IOException e) {
-            log.error("Error reading bambi-buildtime.properties: " + e.getMessage(), e);
-        }
-
-        RuntimeProperties.setProductVersion(propsVersion.getProperty("release.version"));
-        RuntimeProperties.setProductBuildTimestamp(propsVersion.getProperty("release.build.timestamp"));
-        RuntimeProperties.setProductBuildNumber(propsVersion.getProperty("release.build.number"));
-    }
-
-    /**
-     * @see org.cip4.jdfutility.server.JettyService#getServer(java.lang.String[])
-     */
-    @Override
-    public JettyServer getServer(String[] args) {
-        return BambiServer.getBambiServer();
-    }
+	/**
+	 * @see org.cip4.jdfutility.server.JettyService#getServer(java.lang.String[])
+	 */
+	@Override
+	public JettyServer getServer(String[] args)
+	{
+		return BambiServer.getBambiServer();
+	}
 }

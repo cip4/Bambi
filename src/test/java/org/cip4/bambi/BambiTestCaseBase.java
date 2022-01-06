@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2016 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -95,7 +95,7 @@ import org.cip4.jdflib.resource.process.JDFMedia;
 import org.cip4.jdflib.resource.process.JDFPerson;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
-import org.cip4.jdflib.util.logging.LogConfigurator;
+import org.cip4.jdfutility.logging.LogConfigurator;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -104,7 +104,6 @@ import org.junit.Before;
  * base class for JDFLib test case classes
  *
  * @author prosirai
- *
  */
 public abstract class BambiTestCaseBase
 {
@@ -121,7 +120,6 @@ public abstract class BambiTestCaseBase
 	}
 
 	/**
-	 *
 	 * @param name
 	 */
 	public BambiTestCaseBase(final String name)
@@ -223,7 +221,6 @@ public abstract class BambiTestCaseBase
 
 	// //////////////////////////////////////////////////////////////////////////
 	/**
-	 *
 	 * @see junit.framework.TestCase#setUp()
 	 */
 	@Before
@@ -244,6 +241,7 @@ public abstract class BambiTestCaseBase
 
 	/**
 	 * get the currently used memory
+	 * 
 	 * @return the used memory
 	 */
 	protected long getCurrentMem()
@@ -254,7 +252,6 @@ public abstract class BambiTestCaseBase
 	}
 
 	/**
-	 *
 	 * @see junit.framework.TestCase#tearDown()
 	 */
 	@After
@@ -270,8 +267,8 @@ public abstract class BambiTestCaseBase
 	}
 
 	/**
-	 *
 	 * write an element to the standard test directory sm_dirTestDataTemp
+	 * 
 	 * @param e
 	 * @param filename
 	 */
@@ -282,6 +279,7 @@ public abstract class BambiTestCaseBase
 
 	/**
 	 * create a standard customerInfo
+	 * 
 	 * @param doc the doc to preparein
 	 * @return the new customerInfo
 	 */
@@ -321,13 +319,17 @@ public abstract class BambiTestCaseBase
 	 * @return
 	 */
 	@Override
+	@Override
+	@Override
 	public String toString()
 	{
-		return "[" + StringUtil.token(this.getClass().getName(), -1, ".") + " Version:  " + defaultVersion + " " + new File(sm_dirTestData).getAbsolutePath() + " ]\n";
+		return "[" + StringUtil.token(this.getClass().getName(), -1, ".") + " Version:  " + defaultVersion + " " + new File(sm_dirTestData).getAbsolutePath()
+				+ " ]\n";
 	}
 
 	/**
 	 * Setter for bTestNetwork attribute.
+	 * 
 	 * @param bTestNetwork the bTestNetwork to set
 	 */
 	public void setTestNetwork(final boolean bTestNetwork)
@@ -337,6 +339,7 @@ public abstract class BambiTestCaseBase
 
 	/**
 	 * Getter for bTestNetwork attribute.
+	 * 
 	 * @return the bTestNetwork
 	 */
 	public boolean isTestNetwork()

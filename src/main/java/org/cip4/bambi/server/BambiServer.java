@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -83,14 +83,16 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MyArgs;
 import org.cip4.jdflib.util.file.UserDir;
-import org.cip4.jdflib.util.logging.LogConfigurator;
+import org.cip4.jdfutility.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
+import org.cip4.jdfutility.server.JettyServer.MyResourceHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
 /**
  * standalone app for bambi using an embedded jetty server
+ * 
  * @author rainer prosi
  * @date Dec 9, 2010
  */
@@ -193,8 +195,6 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 *
-	 *
 	 * @return
 	 */
 	public String getToolPath()
@@ -204,7 +204,6 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	protected UserDir getUserDir()
@@ -214,6 +213,7 @@ public class BambiServer extends JettyServer
 
 	/**
 	 * grab list of resources from self
+	 * 
 	 * @param userDir
 	 */
 	protected void unpackResourceList(final UserDir userDir)
@@ -280,7 +280,6 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	@Override
@@ -290,8 +289,6 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 *
-	 *
 	 * @param args
 	 * @throws Exception
 	 */
@@ -316,7 +313,6 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 *
 	 * @see org.cip4.jdfutility.server.JettyServer#createServletHandler()
 	 */
 	@Override
@@ -333,8 +329,8 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 *
 	 * overwrite this to set some more params
+	 * 
 	 * @param servletHolder
 	 */
 	protected void setInitParams(final ServletHolder servletHolder)
@@ -352,7 +348,6 @@ public class BambiServer extends JettyServer
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public MultiDeviceProperties getProp()

@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -39,23 +39,21 @@ package org.cip4.bambi.server;
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Properties;
 
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import org.cip4.bambi.core.BambiContainer;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.file.UserDir;
-import org.cip4.jdflib.util.logging.LogConfigurator;
+import org.cip4.jdfutility.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
 import org.cip4.jdfutility.server.ui.JettyFrame;
 
@@ -114,13 +112,17 @@ public class BambiFrame extends JettyFrame
 	/**
 	 * Read applications version details.
 	 */
-	private void retrieveVersion() {
+	static void retrieveVersion()
+	{
 		Properties propsVersion = new Properties();
 
-		try {
+		try
+		{
 			propsVersion.load(BambiFrame.class.getResourceAsStream("/bambi-buildtime.properties"));
-		} catch (final IOException e) {
-			log.error("Error reading bambi-buildtime.properties: " + e.getMessage(), e);
+		}
+		catch (final IOException e)
+		{
+			LogFactory.getLog(BambiFrame.class).error("Error reading bambi-buildtime.properties: " + e.getMessage(), e);
 		}
 
 		RuntimeProperties.setProductVersion(propsVersion.getProperty("release.version"));
@@ -129,7 +131,6 @@ public class BambiFrame extends JettyFrame
 	}
 
 	/**
-	 *
 	 * @see org.cip4.jdfutility.server.ui.JettyFrame#createPanel()
 	 */
 	@Override
@@ -154,7 +155,6 @@ public class BambiFrame extends JettyFrame
 	}
 
 	/**
-	 *
 	 * @param baseDir
 	 */
 	private void setBaseDirText(final File baseDir)
@@ -231,7 +231,6 @@ public class BambiFrame extends JettyFrame
 	}
 
 	/**
-	 *
 	 * @see org.cip4.jdfutility.server.ui.JettyFrame#started()
 	 */
 	@Override
@@ -243,7 +242,6 @@ public class BambiFrame extends JettyFrame
 	}
 
 	/**
-	 *
 	 * @see org.cip4.jdfutility.server.ui.JettyFrame#stopped()
 	 */
 	@Override

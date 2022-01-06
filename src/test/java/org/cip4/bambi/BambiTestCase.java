@@ -101,7 +101,6 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.UrlUtil;
-import org.cip4.jdflib.util.logging.LogConfigurator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
