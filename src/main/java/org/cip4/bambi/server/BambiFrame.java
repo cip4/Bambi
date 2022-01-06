@@ -117,9 +117,12 @@ public class BambiFrame extends JettyFrame
 		{
 			propsVersion.load(BambiFrame.class.getResourceAsStream("/bambi-buildtime.properties"));
 		}
-		catch (final IOException e)
+		catch (final Exception e)
 		{
 			LogFactory.getLog(BambiFrame.class).error("Error reading bambi-buildtime.properties: " + e.getMessage(), e);
+			propsVersion.put("release.version", "BambiVersion");
+			propsVersion.put("release.build.timestamp", "Time");
+			propsVersion.put("release.build.number", "Build");
 		}
 
 		RuntimeProperties.setProductVersion(propsVersion.getProperty("release.version"));
