@@ -277,7 +277,6 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 */
 	public BambiTestCase()
 	{
-		LogConfigurator.configureLog(null, null);
 		JDFJMF.setTheSenderID("BambiTest");
 		wantContainer = false;
 	}
