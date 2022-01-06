@@ -39,19 +39,17 @@ package org.cip4.bambi.server;
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Properties;
 
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import org.cip4.bambi.core.BambiContainer;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.file.UserDir;
@@ -114,13 +112,17 @@ public class BambiFrame extends JettyFrame
 	/**
 	 * Read applications version details.
 	 */
-	private void retrieveVersion() {
-		Properties propsVersion = new Properties();
+	static void retrieveVersion()
+	{
+		final Properties propsVersion = new Properties();
 
-		try {
+		try
+		{
 			propsVersion.load(BambiFrame.class.getResourceAsStream("/bambi-buildtime.properties"));
-		} catch (final IOException e) {
-			log.error("Error reading bambi-buildtime.properties: " + e.getMessage(), e);
+		}
+		catch (final IOException e)
+		{
+			LogFactory.getLog(BambiFrame.class).error("Error reading bambi-buildtime.properties: " + e.getMessage(), e);
 		}
 
 		RuntimeProperties.setProductVersion(propsVersion.getProperty("release.version"));
