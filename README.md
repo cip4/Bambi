@@ -1,5 +1,5 @@
 # CIP4 Bambi - JDF Device Simulator
-[![License (CIP4 Software License)](https://img.shields.io/badge/license-CIP4%20Software%20License-blue)](https://github.com/cip4/xJdfLib/blob/master/LICENSE.md)   ![Bambi Snapshot](https://github.com/cip4/Bambi/workflows/Bambi%20Snapshot/badge.svg)  
+[![License (CIP4 Software License)](https://img.shields.io/badge/license-CIP4%20Software%20License-blue)](https://github.com/cip4/xJdfLib/blob/master/LICENSE.md)   [![Bambi Snapshot](https://github.com/cip4/Bambi/actions/workflows/snapshot.yml/badge.svg)](https://github.com/cip4/Bambi/actions/workflows/snapshot.yml)
 
 Bambi is a CIP4 Tool for the simulation of JDF Devices and JDF Controllers. Originally, it was designed in order to provide a test framework for the development of Management Information Systems. Using configuration files, a set of individual JDF Devices can be defined and simulated such as presses, post press devices etc.  
 
