@@ -1718,7 +1718,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	static final String SHOW_XJDF = "showXJDF";
 	static final String MODIFY_QE = "modifyQE";
 
-	protected JDFQueue _theQueue;
+	protected volatile JDFQueue _theQueue;
 	private final List<MyMutex> _listeners;
 	protected AbstractDevice _parentDevice = null;
 	protected long lastSort = 0;
@@ -2222,11 +2222,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		newQE = newResponse.getQueueEntry(0);
-		if (newResponse.getReturnCode() != 0 || newQE == null)
+		if (newQE == null)
 		{
 			log.warn("error submitting queueentry: " + newResponse.getReturnCode());
 			return null;
 		}
+		final String qeID = newQE.getQueueEntryID();
 
 		BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
 		_parentDevice.fixEntry(newQE, theJDF);
@@ -2236,19 +2237,38 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
 		{
 			newResponse.setReturnCode(120);
-			log.error("error storing queueentry: " + QE_ID + " " + newResponse.getReturnCode());
+			log.error("error storing queueentry: " + qeID + " " + newResponse.getReturnCode());
 			return null;
 		}
-		persist(PERSIST_MS);
-		final String qeID = newQE.getQueueEntryID();
 		notifyListeners(qeID);
-		log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID + " / " + theJDF.getJDFRoot().getJobID(true));
-		newQE = getQueueEntry(qeID);
+		JDFQueueEntry ret = null;
+		for (int i = 0; i < 42; i++)
+		{
+			JDFQueueEntry newQE2 = getQueueEntry(qeID);
+			if (newQE2 == null)
+			{
+				ThreadUtil.sleep(42);
+				newQE2 = getQueueEntry(qeID);
+			}
+			else
+			{
+				ret = newQE2;
+				log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID + " / " + theJDF.getJDFRoot().getJobID(true));
+				persist(PERSIST_MS);
+				break;
+			}
+		}
+		if (ret == null)
+		{
+			newResponse.setReturnCode(120);
+			log.error("error creating queueentry: " + qeID + " " + newResponse.getReturnCode());
+			return null;
 
-		prepareSubmit(newQE);
+		}
+		prepareSubmit(ret);
 		// wait a very short moment to allow any potential processing of the newly created entry to commence, prior to returning the entry
 		ThreadUtil.sleep(123);
-		return newQE;
+		return ret;
 	}
 
 	protected void extractToJob(final JDFDoc theJDF, final JDFQueueEntry newQE)
