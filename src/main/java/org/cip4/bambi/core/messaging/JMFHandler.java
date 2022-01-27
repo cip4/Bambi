@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -44,7 +44,6 @@ import java.util.Vector;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.jdflib.auto.JDFAutoMessageService.EnumJMFRole;
@@ -73,8 +72,7 @@ import org.cip4.jdflib.util.EnumUtil;
 public class JMFHandler implements IMessageHandler, IJMFHandler
 {
 
-	protected final Log log;
-
+	protected final static Log log = BambiLogFactory.getLog(JMFHandler.class);
 	/**
 	 * Attribute to ignore warnings for unhandled messages
 	 */
@@ -340,7 +338,6 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	public JMFHandler(final AbstractDevice device)
 	{
 		super();
-		log = BambiLogFactory.getLog(getClass());
 		messageMap = new HashMap<>();
 		signalDispatcher = null;
 		this.device = device;
@@ -488,7 +485,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 */
 	private void unhandledMessage(final JDFMessage jmfMessage, final JDFResponse jmfResponse)
 	{
-		errorResponse(jmfResponse, "Message not handled: " + jmfMessage.getType() + "; Family: " + jmfMessage.getFamily().getName() + " id=" + jmfMessage.getID(), 5, EnumClass.Warning);
+		errorResponse(jmfResponse, "Message not handled: " + jmfMessage.getType() + "; Family: " + jmfMessage.getFamily().getName() + " id="
+				+ jmfMessage.getID(), 5, EnumClass.Warning);
 	}
 
 	/**
@@ -509,11 +507,11 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 
 		if (EnumClass.Error.equals(errorClass))
 		{
-			LogFactory.getLog(JMFHandler.class).error("JMF error: returnCode=" + returnCode + " " + errorText);
+			log.error("JMF error: returnCode=" + returnCode + " " + errorText);
 		}
 		else
 		{
-			LogFactory.getLog(JMFHandler.class).warn("JMF warning: returnCode=" + returnCode + " " + errorText);
+			log.warn("JMF warning: returnCode=" + returnCode + " " + errorText);
 		}
 	}
 
@@ -566,16 +564,16 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			}
 			final IMessageHandler messageHandler = getMessageHandler(messageType, messageFamily);
 			boolean messageIsHandled = messageHandler != null;
+			final String stringBuffer = messageCount + "; family= " + jmfMessage.getLocalName() + " type=" + jmfMessage.getType() + " Sender= " + jmfMessage.getSenderID();
 
 			if (messageHandler != null)
 			{
-				if (log.isDebugEnabled())
-				{
-					final String stringBuffer = "handling message #" + messageCount + "; family= " + jmfMessage.getLocalName() + " type=" + jmfMessage.getType() + " Sender= "
-							+ jmfMessage.getSenderID() + " id= " + jmfMessage.getID();
-					log.debug(stringBuffer);
-				}
+				log.info("handling message #" + stringBuffer);
 				messageIsHandled = messageHandler.handleMessage(jmfMessage, jmfResponse);
+			}
+			else
+			{
+
 			}
 			if (!jmfMessage.hasAttribute(subscribed) && !messageIsHandled)
 			{
