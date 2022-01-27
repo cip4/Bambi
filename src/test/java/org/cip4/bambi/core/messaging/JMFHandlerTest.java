@@ -41,6 +41,7 @@ package org.cip4.bambi.core.messaging;
 import static org.junit.Assert.assertEquals;
 
 import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.bambi.BambiTestDevice;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -57,5 +58,14 @@ public class JMFHandlerTest extends BambiTestCaseBase
 		final JDFResponse r = new JDFDoc("JMF").getJMFRoot().appendResponse(EnumType.FlushQueue);
 		JMFHandler.errorResponse(r, "foo", 42, EnumClass.Warning);
 		assertEquals(42, r.getReturnCode());
+	}
+
+	@Test
+	public void testUnhandled()
+	{
+		final JMFHandler h = new JMFHandler(new BambiTestDevice());
+		final JDFResponse r = new JDFDoc("JMF").getJMFRoot().appendResponse(EnumType.FlushQueue);
+		h.unhandledMessage(r, r);
+		assertEquals(5, r.getReturnCode());
 	}
 }

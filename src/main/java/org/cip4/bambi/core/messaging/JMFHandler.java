@@ -483,7 +483,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	/**
 	 * Standard handler for unimplemented messages.
 	 */
-	private void unhandledMessage(final JDFMessage jmfMessage, final JDFResponse jmfResponse)
+	protected void unhandledMessage(final JDFMessage jmfMessage, final JDFResponse jmfResponse)
 	{
 		errorResponse(jmfResponse, "Message not handled: " + jmfMessage.getType() + "; Family: " + jmfMessage.getFamily().getName() + " id="
 				+ jmfMessage.getID(), 5, EnumClass.Warning);
