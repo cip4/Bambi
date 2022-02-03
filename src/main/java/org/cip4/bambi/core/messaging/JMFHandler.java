@@ -564,17 +564,13 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			}
 			final IMessageHandler messageHandler = getMessageHandler(messageType, messageFamily);
 			boolean messageIsHandled = messageHandler != null;
-			final String stringBuffer = messageCount + "; family= " + jmfMessage.getLocalName() + " type=" + jmfMessage.getType() + " Sender= " + jmfMessage.getSenderID();
 
-			if (messageHandler != null)
+			if (messageHandler != null && ((messageCount < 10) || (messageCount % 100 == 0)))
 			{
+				final String stringBuffer = messageCount + "; family= " + jmfMessage.getLocalName() + " type=" + jmfMessage.getType() + " Sender= " + jmfMessage.getSenderID();
 				log.info("handling message #" + stringBuffer);
-				messageIsHandled = messageHandler.handleMessage(jmfMessage, jmfResponse);
 			}
-			else
-			{
-
-			}
+			messageIsHandled = messageHandler.handleMessage(jmfMessage, jmfResponse);
 			if (!jmfMessage.hasAttribute(subscribed) && !messageIsHandled)
 			{
 				unhandledMessage(jmfMessage, jmfResponse);
