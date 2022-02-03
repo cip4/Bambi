@@ -565,13 +565,16 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			final IMessageHandler messageHandler = getMessageHandler(messageType, messageFamily);
 			boolean messageIsHandled = messageHandler != null;
 
-			if (messageHandler != null && ((messageCount < 10) || (messageCount % 100 == 0)))
+			if (messageIsHandled)
 			{
-				final String stringBuffer = messageCount + "; family= " + jmfMessage.getLocalName() + " type=" + jmfMessage.getType() + " Sender= " + jmfMessage.getSenderID();
-				log.info("handling message #" + stringBuffer);
+				if (messageCount < 10 || messageCount % 100 == 0)
+				{
+					final String stringBuffer = messageCount + "; family= " + jmfMessage.getLocalName() + " type=" + jmfMessage.getType() + " Sender= " + jmfMessage.getSenderID();
+					log.info("handling message #" + stringBuffer);
+				}
+				messageIsHandled = messageHandler.handleMessage(jmfMessage, jmfResponse);
 			}
-			messageIsHandled = messageHandler.handleMessage(jmfMessage, jmfResponse);
-			if (!jmfMessage.hasAttribute(subscribed) && !messageIsHandled)
+			else
 			{
 				unhandledMessage(jmfMessage, jmfResponse);
 			}
@@ -583,7 +586,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 						&& EnumUtil.aLessEqualsThanB(EnumVersion.Version_1_4, jmfResponse.getMaxVersion(true)))
 				{
 					final VString responseICSVersions = jmfResponse.getICSVersions();
-					if (responseICSVersions != null && responseICSVersions.size() > 0)
+					if (!ContainerUtil.isEmpty(responseICSVersions))
 					{
 						responseICSVersions.appendUnique(icsVersions);
 						jmfResponse.setICSVersions(responseICSVersions);
