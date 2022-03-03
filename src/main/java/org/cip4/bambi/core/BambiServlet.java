@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -202,7 +202,7 @@ public final class BambiServlet extends HttpServlet
 			LogFactory.getLog(BambiServlet.class).warn("could not evaluate environment variable, keeping literal : " + env);
 			return dump.substring(1);
 		}
-		LogFactory.getLog(BambiServlet.class).info("evaluated environment variable " + env + " to: " + newBase);
+		LogFactory.getLog(BambiServlet.class).debug("evaluated environment variable " + env + " to: " + newBase);
 		return newBase + dump.substring(posS);
 	}
 
