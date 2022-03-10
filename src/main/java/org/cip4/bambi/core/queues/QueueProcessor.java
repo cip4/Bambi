@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.mail.MessagingException;
 
@@ -241,7 +242,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			slaveQeIDMap = new HashMap<>();
 			niMap = new HashMap<>();
 			niNull = new HashSet<>();
-			fill(_theQueue);
+			fill(_theQueue.get());
 		}
 
 		/**
@@ -302,7 +303,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				{
 					return null;
 				}
-				qe = _theQueue.getQueueEntry(ni, 0);
+				qe = getQueue().getQueueEntry(ni, 0);
 				if (qe != null)
 				{
 					niMap.put(ni, qe);
@@ -714,11 +715,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			final NodeIdentifier identifier = nqParams.getIdentifier();
 			if (qe == null)
 			{
-				qe = _theQueue.getQueueEntry(identifier, 0);
+				qe = getQueue().getQueueEntry(identifier, 0);
 			}
 			if (qe == null && nqParams.hasAttribute(AttributeName.JOBPARTID))
 			{
-				qe = _theQueue.getQueueEntry(new NodeIdentifier(nqParams.getJobID(), null, null), 0);
+				qe = getQueue().getQueueEntry(new NodeIdentifier(nqParams.getJobID(), null, null), 0);
 			}
 			if (qe == null)
 			{
@@ -992,7 +993,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		@Override
 		protected EnumQueueStatus getNewStatus()
 		{
-			return _theQueue.holdQueue();
+			return getQueue().holdQueue();
 		}
 
 		public HoldQueueHandler()
@@ -1006,7 +1007,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		@Override
 		protected EnumQueueStatus getNewStatus()
 		{
-			return _theQueue.closeQueue();
+			return getQueue().closeQueue();
 		}
 
 		public CloseQueueHandler()
@@ -1021,7 +1022,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		@Override
 		protected EnumQueueStatus getNewStatus()
 		{
-			return _theQueue.openQueue();
+			return getQueue().openQueue();
 		}
 
 		public OpenQueueHandler()
@@ -1036,7 +1037,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		@Override
 		protected EnumQueueStatus getNewStatus()
 		{
-			return _theQueue.resumeQueue();
+			return getQueue().resumeQueue();
 		}
 
 		public ResumeQueueHandler()
@@ -1075,9 +1076,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 			synchronized (_theQueue)
 			{
-				if (!ContainerUtil.equals(newStatus, _theQueue.getQueueStatus()))
+				if (!ContainerUtil.equals(newStatus, getQueue().getQueueStatus()))
 				{
-					_theQueue.setQueueStatus(newStatus);
+					getQueue().setQueueStatus(newStatus);
 				}
 				updateEntry(null, null, m, resp, null);
 			}
@@ -1209,8 +1210,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			final JDFFlushQueueParams fqp = m.getFlushQueueParams(0);
 			final JDFQueueFilter qf = fqp == null ? null : fqp.getQueueFilter();
 			final JDFQueueFilter qfo = m.getQueueFilter(0);
-			final VElement zapped = _theQueue.flushQueue(qf);
-			_theQueue.copyToResponse(resp, qfo, null);
+			final VElement zapped = getQueue().flushQueue(qf);
+			getQueue().copyToResponse(resp, qfo, null);
 			final JDFFlushQueueInfo flushQueueInfo = resp.appendFlushQueueInfo();
 			flushQueueInfo.setQueueEntryDefsFromQE(zapped);
 			persist(0);
@@ -1271,7 +1272,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				root.setAttribute(AttributeName.CONTEXT, _parentDevice.getContext(request));
 				final QERetrieval qer = _parentDevice.getProperties().getQERetrieval();
 				root.setAttribute("Pull", qer == QERetrieval.PULL || qer == QERetrieval.BOTH, null);
-				if (_theQueue.numChildElements(ElementName.QUEUEENTRY, null) < 500)
+				if (getQueue().numChildElements(ElementName.QUEUEENTRY, null) < 500)
 				{
 					root.setAttribute("Refresh", true, null);
 				}
@@ -1299,7 +1300,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 */
 		protected boolean applyModification(final ContainerRequest request, boolean modified)
 		{
-			final EnumQueueStatus queueStatusCurrent = _theQueue.getQueueStatus();
+			final EnumQueueStatus queueStatusCurrent = getQueue().getQueueStatus();
 			EnumQueueStatus queueStatusNew = null;
 			final boolean bHold = request.getBooleanParam("hold");
 			if (bHold)
@@ -1334,7 +1335,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 			if (modified && queueStatusNew != null)
 			{
-				BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), queueStatusNew.getName(), getQueueStatistic());
+				BambiNotifyDef.getInstance().notifyDeviceQueueStatus(getQueue().getDeviceID(), queueStatusNew.getName(), getQueueStatistic());
 			}
 
 			return modified;
@@ -1342,35 +1343,35 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		protected VElement applyFlush()
 		{
-			final VElement v = _theQueue.flushQueue(null);
+			final VElement v = getQueue().flushQueue(null);
 			return v;
 		}
 
 		public EnumQueueStatus applyOpen()
 		{
-			final EnumQueueStatus qStatusNew = _theQueue.openQueue();
-			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), qStatusNew.getName(), getQueueStatistic());
+			final EnumQueueStatus qStatusNew = getQueue().openQueue();
+			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(getQueue().getDeviceID(), qStatusNew.getName(), getQueueStatistic());
 			return qStatusNew;
 		}
 
 		public EnumQueueStatus applyResume()
 		{
-			final EnumQueueStatus qStatusNew = _theQueue.resumeQueue();
-			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), qStatusNew.getName(), getQueueStatistic());
+			final EnumQueueStatus qStatusNew = getQueue().resumeQueue();
+			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(getQueue().getDeviceID(), qStatusNew.getName(), getQueueStatistic());
 			return qStatusNew;
 		}
 
 		public EnumQueueStatus applyClose()
 		{
-			final EnumQueueStatus qStatusNew = _theQueue.closeQueue();
-			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), qStatusNew.getName(), getQueueStatistic());
+			final EnumQueueStatus qStatusNew = getQueue().closeQueue();
+			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(getQueue().getDeviceID(), qStatusNew.getName(), getQueueStatistic());
 			return qStatusNew;
 		}
 
 		public EnumQueueStatus applyHold()
 		{
-			final EnumQueueStatus qStatusNew = _theQueue.holdQueue();
-			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), qStatusNew.getName(), getQueueStatistic());
+			final EnumQueueStatus qStatusNew = getQueue().holdQueue();
+			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(getQueue().getDeviceID(), qStatusNew.getName(), getQueueStatistic());
 			return qStatusNew;
 		}
 
@@ -1449,7 +1450,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				{
 					final JDFQueueFilter f = (JDFQueueFilter) new JDFDoc(ElementName.QUEUEFILTER).getRoot();
 					f.setUpdateGranularity(EnumUpdateGranularity.ChangesOnly);
-					root = f.copy(_theQueue, lastQueue, null);
+					root = f.copy(getQueue(), lastQueue, null);
 				}
 				else
 				{
@@ -1512,7 +1513,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				return;
 			}
 
-			JDFQueueEntry qe = _theQueue.getQueueEntry(qeID);
+			JDFQueueEntry qe = getQueue().getQueueEntry(qeID);
 			if (qe == null)
 			{
 				getLog().warn("invalid queuentryID in get request: qeid= null");
@@ -1718,7 +1719,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	static final String SHOW_XJDF = "showXJDF";
 	static final String MODIFY_QE = "modifyQE";
 
-	protected volatile JDFQueue _theQueue;
+	private final AtomicReference<JDFQueue> _theQueue;
 	private final List<MyMutex> _listeners;
 	protected AbstractDevice _parentDevice = null;
 	protected long lastSort = 0;
@@ -1745,6 +1746,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	{
 		super();
 		log.info("Creating queueProcessor");
+		_theQueue = new AtomicReference<>();
 		nextPush = null;
 		_parentDevice = theParentDevice;
 		_listeners = new ArrayList<>();
@@ -1810,16 +1812,17 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	protected void setQueueProperties(final String deviceID)
 	{
-		_theQueue.setAutomated(true);
-		_theQueue.setDeviceID(deviceID);
-		_theQueue.setMaxCompletedEntries(getMaxCompleted());
-		_theQueue.setMaxWaitingEntries(getMaxWaiting());
-		_theQueue.setMaxRunningEntries(getMaxRunning());
-		_theQueue.setDescriptiveName("Queue for " + _parentDevice.getDeviceType());
-		_theQueue.setCleanupCallback(_parentDevice.getQECleanup()); // zapps any attached files when removing qe
+		final JDFQueue q = getQueue();
+		q.setAutomated(true);
+		q.setDeviceID(deviceID);
+		q.setMaxCompletedEntries(getMaxCompleted());
+		q.setMaxWaitingEntries(getMaxWaiting());
+		q.setMaxRunningEntries(getMaxRunning());
+		q.setDescriptiveName("Queue for " + _parentDevice.getDeviceType());
+		q.setCleanupCallback(_parentDevice.getQECleanup()); // zapps any attached files when removing qe
 		_cbCanExecute = getCanExecuteCallback(deviceID);
-		_theQueue.setExecuteCallback(_cbCanExecute);
-		BambiNSExtension.setMyNSAttribute(_theQueue, "EnsureNS", "Dummy"); // ensure that some bambi ns exists
+		q.setExecuteCallback(_cbCanExecute);
+		BambiNSExtension.setMyNSAttribute(q, "EnsureNS", "Dummy"); // ensure that some bambi ns exists
 	}
 
 	/**
@@ -1863,10 +1866,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		JDFDoc d = readQueueFile();
 		if (d != null)
 		{
+			final JDFQueue q = (JDFQueue) d.getRoot();
 			log.info("refreshing queue");
-			_theQueue = (JDFQueue) d.getRoot();
+			_theQueue.set(q);
 			boolean bHold = false;
-			final VElement qev = _theQueue.getQueueEntryVector();
+			final VElement qev = q.getQueueEntryVector();
 			if (qev != null)
 			{
 				final int qSize = qev.size();
@@ -1883,16 +1887,17 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			if (bHold)
 			{
-				_theQueue.holdQueue();
+				q.holdQueue();
 			}
 			setQueueProperties(deviceID);
 		}
 		else
 		{
 			d = new JDFDoc(ElementName.QUEUE);
+			final JDFQueue q = (JDFQueue) d.getRoot();
 			log.info("creating new queue");
-			_theQueue = (JDFQueue) d.getRoot();
-			_theQueue.setQueueStatus(EnumQueueStatus.Waiting);
+			_theQueue.set(q);
+			q.setQueueStatus(EnumQueueStatus.Waiting);
 			setQueueProperties(deviceID);
 		}
 		removeOrphanJDFs();
@@ -1971,7 +1976,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	public IQueueEntry getWaitingQueueEntry(final NodeIdentifier nodeID)
 	{
 
-		final VElement vQE = _theQueue.getQueueEntryVector(nodeID);
+		final VElement vQE = getQueue().getQueueEntryVector(nodeID);
 		if (vQE != null)
 		{
 			final int siz = vQE.size();
@@ -2015,7 +2020,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			else if (canPush == QERetrieval.PUSH || canPush == QERetrieval.BOTH)
 			{
-				theEntry = _theQueue.getNextExecutableQueueEntry(cb);
+				theEntry = getQueue().getNextExecutableQueueEntry(cb);
 			}
 			else
 			{
@@ -2204,7 +2209,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		final JDFResponse r2;
 		synchronized (_theQueue)
 		{
-			r2 = qsp.addEntry(_theQueue, null, submitQueueEntry.getQueueFilter(0));
+			r2 = qsp.addEntry(getQueue(), null, submitQueueEntry.getQueueFilter(0));
 		}
 
 		if (newResponse != null)
@@ -2217,7 +2222,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		if (newResponse.getReturnCode() != 0)
 		{
-			log.warn("invalid response while adding queue entry: rc=" + newResponse.getReturnCode() + " queue status=" + _theQueue.getStatus());
+			log.warn("invalid response while adding queue entry: rc=" + newResponse.getReturnCode() + " queue status=" + getQueue().getStatus());
 			return null;
 		}
 
@@ -2313,8 +2318,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		newQEReal.copyInto(newQE, false);
 		slaveQueueMap.addEntry(newQEReal, true);
-		BambiNotifyDef.getInstance().notifyDeviceJobAdded(_theQueue.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(), newQEReal.getSubmissionTime().getTimeInMillis());
-		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
+		final JDFQueue q = getQueue();
+		BambiNotifyDef.getInstance().notifyDeviceJobAdded(q.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(), newQEReal.getSubmissionTime().getTimeInMillis());
+		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
 
 		final boolean ok = storeJDF(theJDF, newQEID);
 		if (!KElement.isWildCard(returnJMF))
@@ -2331,7 +2337,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	public JDFQueueEntry getQueueEntry(final String newQEID)
 	{
-		return _theQueue.getQueueEntry(newQEID);
+		return getQueue().getQueueEntry(newQEID);
 	}
 
 	/**
@@ -2371,7 +2377,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			crap = FileUtil.listFilesWithExtension(_parentDevice.getJDFDir(), "jdf");
 			hs = new HashSet<>();
-			final VElement v = _theQueue.getQueueEntryVector();
+			final VElement v = getQueue().getQueueEntryVector();
 			for (int i = 0; i < v.size(); i++)
 			{
 				final JDFQueueEntry qe = (JDFQueueEntry) v.get(i);
@@ -2428,15 +2434,15 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	{
 		synchronized (_theQueue)
 		{
-			log.info("persisting queue to " + _queueFile.getPath() + " size: " + _theQueue.numEntries(null));
+			log.info("persisting queue to " + _queueFile.getPath() + " size: " + getQueue().numEntries(null));
 			final long t = System.currentTimeMillis();
 			if (t - lastSort > 900000) // every 15 minutes is fine
 			{
-				_theQueue.sortChildren();
+				getQueue().sortChildren();
 				lastSort = t;
 			}
 			_queueFile.getNewFile();
-			return _theQueue.getOwnerDocument_KElement().write2File(_queueFile, 0, true);
+			return getQueue().getOwnerDocument_KElement().write2File(_queueFile, 0, true);
 		}
 	}
 
@@ -2445,7 +2451,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	public JDFQueue getQueue()
 	{
-		return _theQueue;
+		return _theQueue.get();
 	}
 
 	/**
@@ -2484,10 +2490,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	public JDFQueue updateEntry(JDFQueueEntry qe, final EnumQueueEntryStatus status, final JDFMessage mess, final JDFResponse resp, String statusDetails)
 	{
+		final JDFQueue q = getQueue();
 		if (qe == null || StringUtil.isEmpty(qe.getQueueEntryID()))
 		{
 			log.error("cannot update qe with no qeID");
-			return _theQueue;
+			return q;
 		}
 		statusDetails = StringUtil.getNonEmpty(statusDetails);
 		synchronized (_theQueue)
@@ -2498,7 +2505,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				if (qe2 == null)
 				{
 					log.error("no such queueentry: " + qe.getQueueEntryID());
-					return _theQueue;
+					return q;
 				}
 				else
 				{
@@ -2515,8 +2522,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					qe.setQueueEntryStatus(status);
 					slaveQueueMap.removeEntry(qe);
 
-					BambiNotifyDef.getInstance().notifyDeviceJobRemoved(_theQueue.getDeviceID(), qe.getQueueEntryID());
-					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
+					BambiNotifyDef.getInstance().notifyDeviceJobRemoved(q.getDeviceID(), qe.getQueueEntryID());
+					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
 
 					final String docURL = BambiNSExtension.getDocURL(qe);
 					if (docURL != null)
@@ -2529,9 +2536,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				{
 					if (!qe.hasAttribute(AttributeName.STARTTIME) || qe.hasAttribute(AttributeName.ENDTIME))
 					{
-						_theQueue.setAutomated(false);
+						q.setAutomated(false);
 						qe.setQueueEntryStatus(EnumQueueEntryStatus.Suspended);
-						_theQueue.setAutomated(true);
+						q.setAutomated(true);
 						qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
 						qe.setStatusDetails(statusDetails);
 					}
@@ -2541,8 +2548,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 						qe.setStatusDetails(statusDetails);
 					}
 
-					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
-					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
+					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(q.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
+					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
 				}
 				else if (status.equals(EnumQueueEntryStatus.Waiting))
 				{
@@ -2552,8 +2559,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					qe.setQueueEntryStatus(status);
 					qe.setStatusDetails(statusDetails);
 
-					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), 0, 0);
-					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
+					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(q.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), 0, 0);
+					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
 				}
 				else if (status.equals(EnumQueueEntryStatus.Aborted) || status.equals(EnumQueueEntryStatus.Completed) || status.equals(EnumQueueEntryStatus.Suspended))
 				{
@@ -2562,16 +2569,16 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					qe.setQueueEntryStatus(status);
 					qe.setStatusDetails(statusDetails);
 
-					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
-					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
+					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(q.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
+					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
 				}
 				else if (!ContainerUtil.equals(oldStatus, status))
 				{
 					qe.setQueueEntryStatus(status);
 					qe.setStatusDetails(statusDetails);
 
-					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(_theQueue.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
-					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(_theQueue.getDeviceID(), _theQueue.getQueueStatus().getName(), getQueueStatistic());
+					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(q.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
+					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
 				}
 
 				if (!ContainerUtil.equals(oldStatus, status))
@@ -2581,8 +2588,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				}
 			}
 
-			final JDFQueue q = resp == null ? null : copyToMessage(mess, resp);
-			return q;
+			final JDFQueue q2 = resp == null ? null : copyToMessage(mess, resp);
+			return q2;
 		}
 	}
 
@@ -2594,7 +2601,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	protected JDFQueue copyToMessage(final JDFMessage mess, final JDFResponse resp)
 	{
 		final JDFQueueFilter qf = mess == null ? null : mess.getQueueFilter(0);
-		JDFQueue q = _theQueue.copyToResponse(resp, qf, getLastQueue(resp, qf));
+		JDFQueue q = getQueue().copyToResponse(resp, qf, getLastQueue(resp, qf));
 		if (q != null)
 		{
 			q.setQueueSize(slaveQueueMap.size());
@@ -2667,7 +2674,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	@Override
 	public String toString()
 	{
-		String s = "[QueueProcessor: ] Status= " + _theQueue.getQueueStatus().getName() + " Num Entries: " + _theQueue.numEntries(null) + "\n Queue:\n";
+		String s = "[QueueProcessor: ] Status= " + getQueue().getQueueStatus().getName() + " Num Entries: " + getQueue().numEntries(null) + "\n Queue:\n";
 		s += _theQueue.toString();
 		return s;
 	}
@@ -2977,7 +2984,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				final int maxEnt = qf.getMaxEntries();
 				qf.setMaxEntries(Integer.MAX_VALUE);
-				final JDFQueue q = qf.copy(_theQueue, null, resp);
+				final JDFQueue q = qf.copy(getQueue(), null, resp);
 				qf.setMaxEntries(maxEnt);
 				if (q == null || q.numEntries(null) == 0)
 				{
@@ -3121,8 +3128,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	public void reset()
 	{
-		_theQueue.flushQueue(null);
-		_theQueue.setQueueStatus(EnumQueueStatus.Waiting);
+		getQueue().flushQueue(null);
+		getQueue().setQueueStatus(EnumQueueStatus.Waiting);
 		removeOrphanJDFs();
 		_queueFile.clearAll();
 		slaveQueueMap.reset();
@@ -3152,7 +3159,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	protected JDFQueue cloneQueue()
 	{
-		return (JDFQueue) _theQueue.cloneNewDoc();
+		return (JDFQueue) getQueue().cloneNewDoc();
 	}
 
 	public class QueueStatistic
@@ -3169,10 +3176,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			synchronized (_theQueue)
 			{
-				waiting = _theQueue.numEntries(EnumQueueEntryStatus.Waiting);
-				running = _theQueue.numEntries(EnumQueueEntryStatus.Running);
-				completed = _theQueue.numEntries(EnumQueueEntryStatus.Completed);
-				all = _theQueue.numEntries(null);
+				final JDFQueue queue = getQueue();
+				waiting = queue.numEntries(EnumQueueEntryStatus.Waiting);
+				running = queue.numEntries(EnumQueueEntryStatus.Running);
+				completed = queue.numEntries(EnumQueueEntryStatus.Completed);
+				all = queue.numEntries(null);
 			}
 
 		}
