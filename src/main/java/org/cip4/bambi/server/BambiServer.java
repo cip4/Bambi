@@ -85,14 +85,13 @@ import org.cip4.jdflib.util.MyArgs;
 import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdfutility.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
-import org.cip4.jdfutility.server.JettyServer.MyResourceHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
 /**
  * standalone app for bambi using an embedded jetty server
- * 
+ *
  * @author rainer prosi
  * @date Dec 9, 2010
  */
@@ -213,7 +212,7 @@ public class BambiServer extends JettyServer
 
 	/**
 	 * grab list of resources from self
-	 * 
+	 *
 	 * @param userDir
 	 */
 	protected void unpackResourceList(final UserDir userDir)
@@ -300,7 +299,7 @@ public class BambiServer extends JettyServer
 		final BambiServer bambiServer = new BambiServer();
 		bambiServer.getProp().setBaseDir(new File(new UserDir(BAMBI).getToolPath()));
 		LogConfigurator.configureLog(bambiServer.getProp().getBaseDir().getAbsolutePath(), "bambi.log");
-		final MyArgs myArgs = new MyArgs(args, "c", "ps", "");
+		final MyArgs myArgs = new MyArgs(args, "ac", "ps", "");
 		if (myArgs.boolParameter('c'))
 		{
 			BambiService.main(args);
@@ -308,6 +307,11 @@ public class BambiServer extends JettyServer
 		else
 		{
 			final BambiFrame frame = new BambiFrame(bambiServer);
+			if (myArgs.boolParameter('a'))
+			{
+				bambiServer.runServer();
+				frame.started();
+			}
 			System.exit(frame.waitCompleted());
 		}
 	}
@@ -330,7 +334,7 @@ public class BambiServer extends JettyServer
 
 	/**
 	 * overwrite this to set some more params
-	 * 
+	 *
 	 * @param servletHolder
 	 */
 	protected void setInitParams(final ServletHolder servletHolder)
