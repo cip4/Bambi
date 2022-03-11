@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -110,7 +110,7 @@ import org.junit.Test;
 
 /**
  * test for the various queue processor functions
- * 
+ *
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG 03.12.2008
  */
 public class QueueProcessorTest extends BambiTestCase
@@ -168,8 +168,21 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testConstruct()
 	{
-		QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice().getQueueProcessor();
 		assertNotNull(qp);
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testGetQueue()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		assertNotNull(qp.getQueue());
+		qp.setQueue(null);
+		assertNull(qp.getQueue());
 	}
 
 	/**
@@ -179,19 +192,19 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testAddEntryMany()
 	{
-		QueueProcessor qp = getDevice().getQueueProcessor();
-		JMFBuilder jmfBuilder = new JMFBuilder();
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
 		for (int i = 0; i < 100; i++)
 		{
-			JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
-			JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
-			JDFNode jdf = JDFNode.createRoot();
+			final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+			final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+			final JDFNode jdf = JDFNode.createRoot();
 			jdf.setJobID("J" + i);
-			JDFDoc doc = jdf.getOwnerDocument_JDFElement();
-			JDFQueueEntry qe = qp.addEntry(c, r, doc);
+			final JDFDoc doc = jdf.getOwnerDocument_JDFElement();
+			final JDFQueueEntry qe = qp.addEntry(c, r, doc);
 			assertNotNull(qe);
 		}
-		for (Object o : EnumQueueEntryStatus.getEnumList())
+		for (final Object o : EnumQueueEntryStatus.getEnumList())
 			log.info(o.toString() + " " + qp.getQueue().numEntries((EnumQueueEntryStatus) o));
 		assertEquals(100, qp.getQueue().getQueueSize(), 1);
 	}
@@ -204,17 +217,17 @@ public class QueueProcessorTest extends BambiTestCase
 	@Ignore
 	public void testAddEntryManyQueue()
 	{
-		QueueProcessor qp = getDevice().getQueueProcessor();
-		JMFBuilder jmfBuilder = new JMFBuilder();
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
 		for (int i = 0; i < 100; i++)
 		{
-			JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
-			JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
-			JDFNode jdf = JDFNode.createRoot();
+			final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+			final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+			final JDFNode jdf = JDFNode.createRoot();
 			jdf.setJobID("J" + i);
-			JDFDoc doc = jdf.getOwnerDocument_JDFElement();
+			final JDFDoc doc = jdf.getOwnerDocument_JDFElement();
 			qp.addEntry(c, r, doc);
-			JDFQueue queue = r.getQueue(0);
+			final JDFQueue queue = r.getQueue(0);
 			assertNull(queue.getQueueEntry(0));
 			assertEquals(i + 1, queue.getQueueSize());
 		}
@@ -227,12 +240,12 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testAddEntry()
 	{
-		QueueProcessor qp = getDevice().getQueueProcessor();
-		JMFBuilder jmfBuilder = new JMFBuilder();
-		JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
-		JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
-		JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
-		JDFQueueEntry qe = qp.addEntry(c, r, doc);
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		final JDFQueueEntry qe = qp.addEntry(c, r, doc);
 		assertNotNull(qe);
 	}
 
@@ -243,12 +256,12 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testMessageQEAbort()
 	{
-		QueueProcessor qp = getDevice().getQueueProcessor();
-		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q1");
-		JMFBuilder jmfBuilder = new JMFBuilder();
-		JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.AbortQueueEntry).getCommand(0);
-		JDFAbortQueueEntryParams aqp = (JDFAbortQueueEntryParams) c.appendElement(ElementName.ABORTQUEUEENTRYPARAMS);
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.AbortQueueEntry).getCommand(0);
+		final JDFAbortQueueEntryParams aqp = (JDFAbortQueueEntryParams) c.appendElement(ElementName.ABORTQUEUEENTRYPARAMS);
 		aqp.getCreateQueueFilter().appendQueueEntryDef("q1");
 		assertEquals(qe, qp.getMessageQueueEntry(c, null));
 	}
@@ -260,16 +273,16 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testMessageQEAbortJobID()
 	{
-		QueueProcessor qp = new QueueProcessor(getDevice());
+		final QueueProcessor qp = new QueueProcessor(getDevice());
 		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q1a");
 		qe.setJobID("j1");
 		qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q2a");
 		qe.setJobID("j2");
-		JMFBuilder jmfBuilder = new JMFBuilder();
-		JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.AbortQueueEntry).getCommand(0);
-		JDFAbortQueueEntryParams aqp = (JDFAbortQueueEntryParams) c.appendElement(ElementName.ABORTQUEUEENTRYPARAMS);
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.AbortQueueEntry).getCommand(0);
+		final JDFAbortQueueEntryParams aqp = (JDFAbortQueueEntryParams) c.appendElement(ElementName.ABORTQUEUEENTRYPARAMS);
 		aqp.getCreateQueueFilter().setJobID("j2");
 		assertEquals(qe, qp.getMessageQueueEntry(c, null));
 	}
@@ -281,12 +294,12 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testMessageQEResume()
 	{
-		QueueProcessor qp = getDevice().getQueueProcessor();
-		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q1res");
-		JMFBuilder jmfBuilder = new JMFBuilder();
-		JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry).getCommand(0);
-		JDFResumeQueueEntryParams aqp = (JDFResumeQueueEntryParams) c.appendElement(ElementName.RESUMEQUEUEENTRYPARAMS);
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry).getCommand(0);
+		final JDFResumeQueueEntryParams aqp = (JDFResumeQueueEntryParams) c.appendElement(ElementName.RESUMEQUEUEENTRYPARAMS);
 		aqp.getCreateQueueFilter(0).appendQueueEntryDef("q1res");
 		assertEquals(qe.getQueueEntryID(), qp.getMessageQueueEntry(c, null).getQueueEntryID());
 		assertEquals(qe.getQueueEntryID(), qp.getMessageQueueEntry(c, null).getQueueEntryID());
@@ -299,12 +312,12 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testMessageQEEmpty()
 	{
-		QueueProcessor qp = getDevice().getQueueProcessor();
-		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q1empty");
-		JMFBuilder jmfBuilder = new JMFBuilder();
-		JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry).getCommand(0);
-		JDFResumeQueueEntryParams aqp = (JDFResumeQueueEntryParams) c.appendElement(ElementName.RESUMEQUEUEENTRYPARAMS);
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry).getCommand(0);
+		final JDFResumeQueueEntryParams aqp = (JDFResumeQueueEntryParams) c.appendElement(ElementName.RESUMEQUEUEENTRYPARAMS);
 		aqp.getCreateQueueFilter(0);
 		assertNull(qp.getMessageQueueEntry(c, null));
 	}

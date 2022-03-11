@@ -2455,6 +2455,14 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
+	 * @return the queue element
+	 */
+	public void setQueue(final JDFQueue queue)
+	{
+		_theQueue.set(queue);
+	}
+
+	/**
 	 * @return the parent device
 	 */
 	protected AbstractDevice getParent()
