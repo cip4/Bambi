@@ -4,7 +4,6 @@ plugins {
     id 'java'
     id 'application'
     id 'org.beryx.runtime' version '1.12.7'
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
 mainClassName = 'org.cip4.bambi.server.BambiServer'
@@ -41,8 +40,8 @@ application {
 }
 
 dependencies {
-    implementation  'org.apache.logging.log4j:log4j-jcl:2.17.2'
-    implementation  'org.apache.logging.log4j:log4j-core:2.17.2'
+    implementation 'org.apache.logging.log4j:log4j-jcl:2.17.2'
+    implementation 'org.apache.logging.log4j:log4j-core:2.17.2'
     implementation 'org.cip4.tools.jdfutility:JDFUtility:1.1.7.x-SNAPSHOT'
     implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:1.1.+'
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
@@ -57,6 +56,14 @@ dependencies {
 
 runtime {
     jpackage {
+        modules = [
+                'jdk.xml.dom',
+                'java.logging',
+                'java.naming',
+                'java.desktop',
+                'java.management',
+                'jdk.unsupported'
+        ]
         imageOptions = [
                 "--copyright", "CIP4 Organization",
                 "--vendor", "CIP4 Organization"
@@ -82,4 +89,9 @@ runtime {
         imageOptions += ["--icon", icon]
         appVersion = project.version == "development" ? "1.0.0" : project.version
     }
+}
+
+test {
+    dependsOn(jre)
+    executable = jre.getJreDir().dir("bin").file("java").getAsFile().getAbsolutePath()
 }
