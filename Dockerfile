@@ -13,13 +13,14 @@ COPY [".git", "/work/.git"]
 COPY ["src", "/work/src"]
 COPY ["gradle", "/work/gradle"]
 COPY ["build.gradle", "settings.gradle", "gradlew", "/work/"]
+RUN sed -i "s/rootProject.name = 'CIP4 /rootProject.name = '/" /work/settings.gradle
 
 RUN apk add --no-cache dos2unix
 
 WORKDIR /work
 
 RUN dos2unix gradlew
-RUN ./gradlew -i build -PprojectVersion=${VERSION} -PbuildNumber=${BUILD_NUMBER} --no-daemon >/dev/null
+RUN ./gradlew -i startScriptsHeadless installDist -PprojectVersion=${VERSION} -PbuildNumber=${BUILD_NUMBER} --no-daemon >/dev/null
 
 # create final image
 FROM amazoncorretto:11-alpine
@@ -36,12 +37,12 @@ RUN addgroup -S cip4 && adduser -S cip4 -G cip4 && \
     mkdir /bambidata && chown cip4:cip4 /bambidata && \
     mkdir /BambiHF && chown cip4:cip4 /BambiHF
 
-COPY --chown=cip4:cip4 --from=java-builder ["/work/build/libs/*-all.jar", "/app/bambi.jar"]
+COPY --chown=cip4:cip4 --from=java-builder ["/work/build/install/Bambi", "/app"]
 
 USER cip4
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-cp","/app/bambi.jar", "org.cip4.bambi.server.BambiService"]
+ENTRYPOINT ["/app/bin/bambi-headless"]
 
 

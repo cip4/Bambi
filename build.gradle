@@ -1,10 +1,12 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
+import java.time.Instant
+
 plugins {
     id 'java'
     id 'application'
     id 'org.beryx.runtime' version '1.12.7'
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id 'distribution'
 }
 
 mainClassName = 'org.cip4.bambi.server.BambiServer'
@@ -38,6 +40,13 @@ processResources {
 
 application {
     mainClass = 'org.cip4.bambi.server.BambiServer'
+}
+
+task startScriptsHeadless(type: CreateStartScripts) {
+    outputDir = file('build/scripts')
+    mainClass = 'org.cip4.bambi.server.BambiService'
+    applicationName = 'bambi-headless'
+    classpath = project.tasks[JavaPlugin.JAR_TASK_NAME].outputs.files + project.configurations.runtimeClasspath
 }
 
 dependencies {
@@ -90,11 +99,17 @@ runtime {
             ]
         }
         imageOptions += ["--icon", icon]
-        appVersion = project.version == "development" ? "1.0.0" : project.version
+        int ts = (int) (Instant.now().toEpochMilli() / 100_000) % 65_535
+        appVersion = project.version == "development" ? "1.0." + ts : project.version
     }
 }
 
 test {
+    dependsOn(jre)
+    executable = jre.getJreDir().dir("bin").file("java").getAsFile().getAbsolutePath()
+}
+
+run {
     dependsOn(jre)
     executable = jre.getJreDir().dir("bin").file("java").getAsFile().getAbsolutePath()
 }
