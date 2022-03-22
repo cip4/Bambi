@@ -49,6 +49,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.jdflib.util.FileUtil;
@@ -87,7 +88,10 @@ public class BambiFrame extends JettyFrame
 			final File f = fc.getSelectedFile();
 			getProp().setBaseDir(f);
 			setBaseDirText(f);
-			LogConfigurator.configureLog(getProp().getBaseDir().getAbsolutePath(), "bambi.log");
+			LogConfigurator.configureLog(
+					FilenameUtils.concat(getProp().getBaseDir().getAbsolutePath(), "logs"),
+					"bambi.log"
+			);
 		}
 	}
 

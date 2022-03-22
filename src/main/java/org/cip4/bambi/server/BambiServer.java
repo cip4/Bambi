@@ -298,7 +298,6 @@ public class BambiServer extends JettyServer
 		log.info("BambiServer");
 		final BambiServer bambiServer = new BambiServer();
 		bambiServer.getProp().setBaseDir(new File(new UserDir(BAMBI).getToolPath()));
-		LogConfigurator.configureLog(bambiServer.getProp().getBaseDir().getAbsolutePath(), "bambi.log");
 		final MyArgs myArgs = new MyArgs(args, "ac", "ps", "");
 		if (myArgs.boolParameter('c'))
 		{
