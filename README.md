@@ -15,7 +15,13 @@ Bambi is also available as Docker image on Docker Hub: https://hub.docker.com/r/
 $ docker pull cip4/bambi:latest
 $ docker run -p 8080:8080 cip4/bambi:latest
 ```
-  
+
+### Environment Variables
+| ENV      | Description                                             |
+|----------|---------------------------------------------------------|
+| BASE_URL | The instance's base url used in DeviceUrl, JMF URL etc. |
+
+
 ## Usage
 ### Job Submission
 There are multiple ways to submit jobs to Bambi. Besides the standardized JMF approach, Bambi also provides multiple simplifed ways to submit jobs. In the following is a list of the job submission methods. Sample JDF Jobs can be found in the project's [sample-jdfs](./sample-jdfs) folder:

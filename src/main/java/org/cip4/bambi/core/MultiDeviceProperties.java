@@ -952,7 +952,13 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	public String getContextURL()
 	{
-		return "http://" + getHostName() + ":" + getPort() + "/" + context;
+		String baseUrl = System.getenv("BASE_URL");
+
+		if(baseUrl == null) {
+			baseUrl = "http://" + getHostName() + ":" + getPort();
+		}
+
+		return baseUrl + "/" + context;
 	}
 
 	/**

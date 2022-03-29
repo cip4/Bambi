@@ -33,6 +33,8 @@ ENV VERSION=${VERSION}
 ENV BUILD_NUMBER=${BUILD_NUMBER}
 ENV GIT_REV=${GIT_REV}
 
+ENV BASE_URL=http://localhost:8080
+
 RUN addgroup -S cip4 && adduser -S cip4 -G cip4 && \
     mkdir /bambidata && chown cip4:cip4 /bambidata && \
     mkdir /BambiHF && chown cip4:cip4 /BambiHF
