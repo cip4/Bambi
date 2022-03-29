@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -56,6 +56,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.PlatformUtil;
 import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
@@ -952,9 +953,10 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	public String getContextURL()
 	{
-		String baseUrl = System.getenv("BASE_URL");
+		String baseUrl = PlatformUtil.getProperty("BASE_URL");
 
-		if(baseUrl == null) {
+		if (baseUrl == null)
+		{
 			baseUrl = "http://" + getHostName() + ":" + getPort();
 		}
 

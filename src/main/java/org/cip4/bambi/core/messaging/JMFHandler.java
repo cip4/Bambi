@@ -455,7 +455,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			}
 
 			final boolean hasSubscription = signalDispatcher != null && signalDispatcher.findSubscription(message, response);
-			if (!hasSubscription)
+			final EnumVersion v = message.getVersion(true);
+			if (EnumUtil.aLessThanB(v, EnumVersion.Version_1_5) || !hasSubscription)
 			{
 				handleMessage(message, response);
 			}
