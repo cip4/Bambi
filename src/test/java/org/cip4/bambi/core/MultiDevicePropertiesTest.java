@@ -85,9 +85,9 @@ public class MultiDevicePropertiesTest extends BambiTestCaseBase
 		final XMLDoc d = new XMLDoc("application", null);
 		d.setOriginalFileName("foo");
 		final MultiDeviceProperties p = new MultiDeviceProperties(d);
-		System.setProperty("BASE_URL", "foo");
+		System.setProperty("CIP4_BAMBI_BASE_URL", "foo");
 		assertEquals("foo/null", p.getContextURL());
-		System.getProperties().remove("BASE_URL");
+		System.getProperties().remove("CIP4_BAMBI_BASE_URL");
 		assertFalse("Foo/null".equals(p.getContextURL()));
 
 	}

@@ -6,7 +6,12 @@ Bambi is a CIP4 Tool for the simulation of JDF Devices and JDF Controllers. Orig
 Another use case of Bambi is the simulation of production processes within a printing house. When configuring the Bambi Devices with the original characteristics of production devices, the affects of scenarios within a printing house can be simulated. This is useful especially for highly standardized production lines.  
 
 Here is an online version of CIP4 Bambi: **https://bambi.cip4.org**  
-  
+
+## Environment Variables
+| ENV                  | Description                                                   |
+|--------------------|---------------------------------------------------------------|
+| CIP4_BAMBI_BASE_URL  | The Bambi instance's base url used in DeviceUrl, JMF URL etc. |
+
   
 ## Bambi Docker
 Bambi is also available as Docker image on Docker Hub: https://hub.docker.com/r/cip4/bambi. Here are the CLI commands to launch the image locally on your machine:
@@ -15,11 +20,6 @@ Bambi is also available as Docker image on Docker Hub: https://hub.docker.com/r/
 $ docker pull cip4/bambi:latest
 $ docker run -p 8080:8080 cip4/bambi:latest
 ```
-
-### Environment Variables
-| ENV      | Description                                             |
-|----------|---------------------------------------------------------|
-| BASE_URL | The instance's base url used in DeviceUrl, JMF URL etc. |
 
 
 ## Usage

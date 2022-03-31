@@ -953,7 +953,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	public String getContextURL()
 	{
-		String baseUrl = PlatformUtil.getProperty("BASE_URL");
+		String baseUrl = PlatformUtil.getProperty("CIP4_BAMBI_BASE_URL");
 
 		if (baseUrl == null)
 		{
