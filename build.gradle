@@ -10,6 +10,7 @@ plugins {
 }
 
 mainClassName = 'org.cip4.bambi.server.BambiServer'
+def simpleProjectName = "Bambi"
 
 sourceCompatibility = 11
 targetCompatibility = 11
@@ -112,4 +113,11 @@ test {
 run {
     dependsOn(jre)
     executable = jre.getJreDir().dir("bin").file("java").getAsFile().getAbsolutePath()
+}
+
+java {
+    archivesBaseName = simpleProjectName
+}
+startScripts {
+    applicationName = simpleProjectName
 }
