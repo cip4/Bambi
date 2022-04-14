@@ -38,94 +38,147 @@
  */
 package org.cip4.bambi.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.PlatformUtil;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.runners.Enclosed;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-public class MultiDevicePropertiesTest extends BambiTestCaseBase
-{
+@RunWith(Enclosed.class)
+public class MultiDevicePropertiesTest extends BambiTestCaseBase {
+    @RunWith(Parameterized.class)
+    public static class PathTests {
 
-	@Test
-	public void testgetBaseDir()
-	{
-		final XMLDoc d = new XMLDoc("application", null);
-		d.setOriginalFileName("foo");
-		final KElement r = d.getRoot();
-		final MultiDeviceProperties p = new MultiDeviceProperties(d);
-		if (!PlatformUtil.isWindows())
-		{
-			r.setAttribute("BaseDir", "/a/b");
-			r.setAttribute("AppDir", "/foo");
-			assertEquals(new File("/a/b"), p.getBaseDir());
-			r.setAttribute("BaseDir", "a/b");
-			r.setAttribute("AppDir", "/foo");
-			assertTrue(p.getBaseDir().getAbsolutePath().endsWith("/CIP4Tools/bambi/a/b"));
-		}
-		else
-		{
-			r.setAttribute("BaseDir", "C:\\a\\b");
-			r.setAttribute("AppDir", "C:\\d");
-			assertEquals(new File("C:\\a\\b"), p.getBaseDir());
-			r.setAttribute("BaseDir", "a\\b");
-			assertTrue(p.getBaseDir().getAbsolutePath().endsWith("\\CIP4Tools\\bambi\\a\\b"));
-		}
-	}
+        private final String toolPath;
+        private final String appDir;
+        private final String configuredDir;
+        private final String expectedPath;
+        private MultiDeviceProperties properties;
 
-	@Test
-	public void testContextURL()
-	{
-		final XMLDoc d = new XMLDoc("application", null);
-		d.setOriginalFileName("foo");
-		final MultiDeviceProperties p = new MultiDeviceProperties(d);
-		System.setProperty("CIP4_BAMBI_BASE_URL", "foo");
-		assertEquals("foo/null", p.getContextURL());
-		System.getProperties().remove("CIP4_BAMBI_BASE_URL");
-		assertFalse("Foo/null".equals(p.getContextURL()));
+        public PathTests(String toolPath, String appDir, String configuredDir, String expectedPath) {
+            this.toolPath = toolPath;
+            this.appDir = appDir;
+            this.configuredDir = configuredDir;
+            this.expectedPath = expectedPath;
+        }
 
-	}
+        @Parameterized.Parameters
+        public static Collection<String[]> data() {
+            if (PlatformUtil.isWindows()) {
+                return Arrays.asList(
+                        // AppDir, BaseDir, Expected path
+                        new String[]{"C:\\t", "C:\\a", "", "C:\\t"},
+                        new String[]{"C:\\t", "C:\\a", "C:\\b\\c", "C:\\b\\c"},
+                        new String[]{"C:\\t", "C:\\a", "b\\c", "C:\\t\\b\\c"},
+                        new String[]{"C:\\t", "C:\\a", "b/c", "C:\\t\\b\\c"},
+                        new String[]{"C:\\t", "/a", "b/c", "C:\\t\\b\\c"},
+                        new String[]{"C:\\t", "a", "b/c", "C:\\t\\b\\c"},
+                        new String[]{"/t", "a", "b/c", "\\t\\b\\c"},
+                        new String[]{"t", "C:\\a", "b\\c", "C:\\a\\t\\b\\c"}
+                );
+            } else {
+                return Arrays.asList(
+                        // AppDir, BaseDir, Expected path
+                        new String[]{"/t", "/a", "", "/t"},
+                        new String[]{"/t", "/a", "/b/c", "/b/c"},
+                        new String[]{"/t", "/a", "b/c", "/a/b/c"},
+                        new String[]{"/t", "/a", "b/c", "/a/b/c"}
+                );
+            }
+        }
 
-	@Test
-	public void testPersist()
-	{
-		final XMLDoc d = new XMLDoc("application", null);
-		d.setOriginalFileName(sm_dirTestDataTemp + "foo.ini");
-		final MultiDeviceProperties p = new MultiDeviceProperties(d);
-		p.persist();
-		p.persist();
-		assertTrue(new File(sm_dirTestDataTemp + "foo.1.ini").exists());
-	}
+        @Before
+        public void init()
+        {
+            final XMLDoc doc = new XMLDoc("application", null);
+            doc.setOriginalFileName("foo");
+            final KElement root = doc.getRoot();
+            root.setAttribute("BaseDir", configuredDir);
+            root.setAttribute("AppDir", appDir);
+            root.setAttribute("InputHF", configuredDir);
+            root.setAttribute("OutputHF", configuredDir);
+            root.setAttribute("ErrorHF", configuredDir);
+            properties = new MultiDeviceProperties(doc, Paths.get(this.toolPath));
+        }
 
-	@Test
-	public void testIsCompatible()
-	{
-		final XMLDoc d = new XMLDoc("application", null);
-		d.setOriginalFileName(sm_dirTestDataTemp + "foo.ini");
-		final MultiDeviceProperties p = new MultiDeviceProperties(d);
-		assertTrue(p.isCompatible(p));
-	}
+        @Test
+        public void getBaseDir() {
+            assertEquals(new File(expectedPath), properties.getBaseDir());
+        }
 
-	@Test
-	public void testIsCompatibleNot()
-	{
-		final XMLDoc d = new XMLDoc("application", null);
-		d.setOriginalFileName(sm_dirTestDataTemp + "foo.ini");
-		final MultiDeviceProperties p = new MultiDeviceProperties(d);
-		final XMLDoc d2 = d.clone();
-		d2.getRoot().setAttribute(MultiDeviceProperties.CONFIG_VERSION, "v1");
-		final MultiDeviceProperties p2 = new MultiDeviceProperties(d2);
-		assertFalse(p.isCompatible(p2));
-		d.getRoot().setAttribute(MultiDeviceProperties.CONFIG_VERSION, "v2");
-		assertFalse(p.isCompatible(p2));
-		d.getRoot().setAttribute(MultiDeviceProperties.CONFIG_VERSION, "v1");
-		assertTrue(p.isCompatible(p2));
-	}
+        @Test
+        public void getErrorHF() {
+            assertEquals(new File(expectedPath), properties.createDeviceProps(null).getErrorHF());
+        }
 
+        @Test
+        public void getOutputHF() {
+            assertEquals(new File(expectedPath), properties.createDeviceProps(null).getOutputHF());
+        }
+
+        @Test
+        public void getInputHF() {
+            assertEquals(new File(expectedPath), properties.createDeviceProps(null).getInputHF());
+        }
+    }
+
+    public static class NormalTests
+    {
+
+        @Test
+        public void testContextURL() {
+            final XMLDoc d = new XMLDoc("application", null);
+            d.setOriginalFileName("foo");
+            final MultiDeviceProperties p = new MultiDeviceProperties(d);
+            System.setProperty("CIP4_BAMBI_BASE_URL", "foo");
+            assertEquals("foo/null", p.getContextURL());
+            System.getProperties().remove("CIP4_BAMBI_BASE_URL");
+            assertNotEquals("Foo/null", p.getContextURL());
+
+        }
+
+        @Test
+        public void testPersist() {
+            final XMLDoc d = new XMLDoc("application", null);
+            d.setOriginalFileName(sm_dirTestDataTemp + "foo.ini");
+            final MultiDeviceProperties p = new MultiDeviceProperties(d);
+            p.persist();
+            p.persist();
+            assertTrue(new File(sm_dirTestDataTemp + "foo.1.ini").exists());
+        }
+
+        @Test
+        public void testIsCompatible() {
+            final XMLDoc d = new XMLDoc("application", null);
+            d.setOriginalFileName(sm_dirTestDataTemp + "foo.ini");
+            final MultiDeviceProperties p = new MultiDeviceProperties(d);
+            assertTrue(p.isCompatible(p));
+        }
+
+        @Test
+        public void testIsCompatibleNot() {
+            final XMLDoc d = new XMLDoc("application", null);
+            d.setOriginalFileName(sm_dirTestDataTemp + "foo.ini");
+            final MultiDeviceProperties p = new MultiDeviceProperties(d);
+            final XMLDoc d2 = d.clone();
+            d2.getRoot().setAttribute(MultiDeviceProperties.CONFIG_VERSION, "v1");
+            final MultiDeviceProperties p2 = new MultiDeviceProperties(d2);
+            assertFalse(p.isCompatible(p2));
+            d.getRoot().setAttribute(MultiDeviceProperties.CONFIG_VERSION, "v2");
+            assertFalse(p.isCompatible(p2));
+            d.getRoot().setAttribute(MultiDeviceProperties.CONFIG_VERSION, "v1");
+            assertTrue(p.isCompatible(p2));
+        }
+    }
 }
