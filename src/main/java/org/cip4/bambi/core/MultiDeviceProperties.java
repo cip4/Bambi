@@ -1144,7 +1144,8 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	private File resolvePath(final File path)
 	{
 		Path pathInToolPath = getToolPath().resolve(path.toPath());
-		return getAppDir().toPath().resolve(pathInToolPath).toFile();
+		File appDir = getAppDir();
+		return (appDir == null ? pathInToolPath : appDir.toPath().resolve(pathInToolPath)).toFile();
 	}
 
 	private Path getToolPath()
