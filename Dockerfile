@@ -13,7 +13,6 @@ COPY [".git", "/work/.git"]
 COPY ["src", "/work/src"]
 COPY ["gradle", "/work/gradle"]
 COPY ["build.gradle", "settings.gradle", "gradlew", "/work/"]
-RUN sed -i "s/rootProject.name = 'CIP4 /rootProject.name = '/" /work/settings.gradle
 
 RUN apk add --no-cache dos2unix
 
@@ -39,7 +38,7 @@ RUN addgroup -S cip4 && adduser -S cip4 -G cip4 && \
     mkdir /bambidata && chown cip4:cip4 /bambidata && \
     mkdir /BambiHF && chown cip4:cip4 /BambiHF
 
-COPY --chown=cip4:cip4 --from=java-builder ["/work/build/install/Bambi", "/app"]
+COPY --chown=cip4:cip4 --from=java-builder ["/work/build/install/CIP4 Bambi", "/app"]
 
 USER cip4
 
