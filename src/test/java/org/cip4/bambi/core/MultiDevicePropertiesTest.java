@@ -77,7 +77,7 @@ public class MultiDevicePropertiesTest extends BambiTestCaseBase {
         public static Collection<String[]> data() {
             if (PlatformUtil.isWindows()) {
                 return Arrays.asList(
-                        // AppDir, BaseDir, Expected path
+                        // ToolPath, AppDir, BaseDir, Expected path
                         new String[]{"C:\\t", "C:\\a", "", "C:\\t"},
                         new String[]{"C:\\t", "C:\\a", "C:\\b\\c", "C:\\b\\c"},
                         new String[]{"C:\\t", "C:\\a", "b\\c", "C:\\t\\b\\c"},
@@ -89,11 +89,11 @@ public class MultiDevicePropertiesTest extends BambiTestCaseBase {
                 );
             } else {
                 return Arrays.asList(
-                        // AppDir, BaseDir, Expected path
+                        // ToolPath, AppDir, BaseDir, Expected path
                         new String[]{"/t", "/a", "", "/t"},
                         new String[]{"/t", "/a", "/b/c", "/b/c"},
-                        new String[]{"/t", "/a", "b/c", "/a/b/c"},
-                        new String[]{"/t", "/a", "b/c", "/a/b/c"}
+                        new String[]{"/t", "/a", "b/c", "/t/b/c"},
+                        new String[]{"/t", "a", "b/c", "/t/b/c"}
                 );
             }
         }
