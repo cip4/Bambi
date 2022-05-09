@@ -79,6 +79,16 @@
 		TypeExpression="(.)*DigitalPrinting(.)*"
 		MIMEExpansion="true"/>
 
+	<Device DeviceID="simPress"
+		DeviceType="Bambi Push Simulation Conventional press"
+		PushPull="Push"
+		TrackResource="Component:Output"
+		InputHF="simPress/Input"
+		OutputHF="simPress/Output"
+		ErrorHF="simPress/Error"
+		AmountResources="Media:Input,Component:Output"
+		TypeExpression="(.)*ConventionalPrinting(.)*"/>
+
 	<!--
 <Device DeviceID="platesetter"
 		DeviceType="Bambi Simulation Platesetter"
