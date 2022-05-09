@@ -75,7 +75,8 @@ runtime {
                 'java.naming',
                 'java.desktop',
                 'java.management',
-                'jdk.unsupported'
+                'jdk.unsupported',
+                'jdk.accessibility'
         ]
         imageOptions = [
                 "--copyright", "CIP4 Organization",
