@@ -131,4 +131,18 @@ public class NetResponseTest
 		assertEquals("{\"a\":{\"b\":1}}", actual);
 	}
 
+	@Test
+	public void testJSonRC2()
+	{
+		final KElement e = KElement.createRoot("a", null);
+		e.setAttribute("b", 1, null);
+		final NetResponse r = new NetResponse(null);
+		r.setJSON(true);
+		r.setErrorRC(false);
+		r.setHttpRC(400, "evil");
+		final ByteArrayIOInputStream is = ByteArrayIOStream.getBufferedInputStream(r.getInputStream());
+		final String actual = new String(is.getBuf());
+		assertEquals("{\"rc\":400,\"error\":\"evil\"}", actual);
+	}
+
 }

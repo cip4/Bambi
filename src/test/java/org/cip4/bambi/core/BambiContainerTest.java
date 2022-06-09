@@ -80,6 +80,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 
+import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 
 import org.cip4.bambi.BambiTestCase;
@@ -90,6 +91,7 @@ import org.cip4.jdflib.core.JDFElement.EnumValidationLevel;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.extensions.XJMFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -102,9 +104,11 @@ import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.mime.BodyPartHelper;
 import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.mime.MimeWriter;
 import org.cip4.lib.jdf.jsonutil.JSONWriter;
+import org.json.simple.JSONObject;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -224,6 +228,65 @@ public class BambiContainerTest extends BambiTestCase
 
 		final XMLRequest request = new XMLRequest(junk);
 		final XMLResponse resp = bambiContainer.processXMLDoc(request);
+		assertNotNull(resp);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testSubmitRawXJDFJSON()
+	{
+		XJDFHelper h = new XJDFHelper("j1", null);
+		JSONWriter wr = new JSONWriter();
+		JSONObject parent = new JSONObject();
+		wr.walk(h.getRoot(), parent);
+		wr.setRoot(parent);
+		final StreamRequest request = new StreamRequest(wr.getInputStream());
+		final XMLResponse resp = bambiContainer.processJSON(request);
+		assertNotNull(resp);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testGetJSONDocs()
+	{
+		JSONWriter wr = new JSONWriter();
+
+		XJMFHelper jh = new XJMFHelper();
+		JSONObject parent = new JSONObject();
+		wr.walk(jh.getRoot(), parent);
+		wr.setRoot(parent);
+		MimeWriter w = new MimeWriter();
+		BodyPartHelper p1 = w.getCreatePartByLocalName("p1");
+		p1.setContent(wr.getInputStream(), UrlUtil.APPLICATION_JSON);
+
+		bambiContainer.getJSONDocs(new BodyPart[] { p1.getBodyPart() });
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testSubmitMultiXJDFJSON()
+	{
+		XJDFHelper h = new XJDFHelper("j1", null);
+		JSONWriter wr = new JSONWriter();
+		JSONObject parent = new JSONObject();
+		wr.walk(h.getRoot(), parent);
+		wr.setRoot(parent);
+		MimeWriter w = new MimeWriter();
+		BodyPartHelper p1 = w.getCreatePartByLocalName("p1");
+		p1.setContent(wr.getInputStream(), UrlUtil.APPLICATION_JSON);
+		w.addBodyPart(p1);
+		BodyPartHelper p2 = w.getCreatePartByLocalName("p2");
+		p2.setContent(wr.getInputStream(), UrlUtil.APPLICATION_JSON);
+		w.addBodyPart(p2);
+		MimeReader mread = new MimeReader(w);
+		MimeRequest mr = new MimeRequest(mread);
+		final XMLResponse resp = bambiContainer.processMultipleDocuments(mr);
 		assertNotNull(resp);
 	}
 

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -77,6 +77,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestHelper;
+import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
+import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
@@ -169,6 +171,19 @@ public class MessageSenderTest extends BambiTestCase
 	{
 
 		assertFalse(s.queueMessage(null, null, null, null, null));
+
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testQueueMany()
+	{
+		JDFJMF jmf = new JMFBuilder().buildStatusSignal(EnumDeviceDetails.Details, EnumJobDetails.Full);
+		for (int i = 0; i < 420; i++)
+			s.queueMessage(jmf, null, null, null, null);
 
 	}
 
