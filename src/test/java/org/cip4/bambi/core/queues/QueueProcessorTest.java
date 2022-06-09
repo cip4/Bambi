@@ -76,6 +76,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.mail.MessagingException;
 
@@ -116,6 +118,7 @@ import org.junit.Test;
 public class QueueProcessorTest extends BambiTestCase
 {
 	String queueEntryId = "qe_130102_112609938_007349";
+	Lock sequential = new ReentrantLock();
 
 	/**
 	 * @throws IOException
@@ -359,6 +362,15 @@ public class QueueProcessorTest extends BambiTestCase
 		super.setUp();
 		workerURLBase = "http://localhost:44482/SimWorker/jmf/simIDP";
 		deviceID = "simIDP";
+		sequential.lock();
+
+	}
+
+	@Override
+	public void tearDown() throws Exception
+	{
+		sequential.unlock();
+		super.tearDown();
 	}
 
 }
