@@ -441,7 +441,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 */
 		protected JDFDoc getDocFromMessage(final JDFMessage m)
 		{
-			final JDFQueueSubmissionParams qsp = m.getQueueSubmissionParams(0);
+			final JDFQueueSubmissionParams qsp = m == null ? null : m.getQueueSubmissionParams(0);
 			JDFDoc doc = qsp == null ? null : qsp.getURLDoc();
 			if (doc == null && qsp != null)
 			{
@@ -480,8 +480,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
-		 *      org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -572,8 +571,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
-		 *      org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -690,8 +688,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
-		 *      org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -762,8 +759,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
-		 *      org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -931,8 +927,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
-		 *      org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -1062,8 +1057,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
-		 *      org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -1137,8 +1131,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
-		 *      org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -1196,8 +1189,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
-		 *      org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage m, final JDFResponse resp)
@@ -1596,8 +1588,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
-		 *      org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 * @param m
 		 * @param resp
 		 * @return true if handled
@@ -2319,7 +2310,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		newQEReal.copyInto(newQE, false);
 		slaveQueueMap.addEntry(newQEReal, true);
 		final JDFQueue q = getQueue();
-		BambiNotifyDef.getInstance().notifyDeviceJobAdded(q.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(), newQEReal.getSubmissionTime().getTimeInMillis());
+		BambiNotifyDef.getInstance().notifyDeviceJobAdded(q.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(),
+				newQEReal.getSubmissionTime().getTimeInMillis());
 		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
 
 		final boolean ok = storeJDF(theJDF, newQEID);
@@ -2556,7 +2548,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 						qe.setStatusDetails(statusDetails);
 					}
 
-					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(q.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
+					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(q.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe),
+							getEndTime(qe));
 					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
 				}
 				else if (status.equals(EnumQueueEntryStatus.Waiting))
@@ -2577,7 +2570,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					qe.setQueueEntryStatus(status);
 					qe.setStatusDetails(statusDetails);
 
-					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(q.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
+					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(q.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe),
+							getEndTime(qe));
 					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
 				}
 				else if (!ContainerUtil.equals(oldStatus, status))
@@ -2585,7 +2579,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					qe.setQueueEntryStatus(status);
 					qe.setStatusDetails(statusDetails);
 
-					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(q.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe), getEndTime(qe));
+					BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(q.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(), getStartTime(qe),
+							getEndTime(qe));
 					BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
 				}
 

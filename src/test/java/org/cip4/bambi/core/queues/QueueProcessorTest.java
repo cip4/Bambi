@@ -84,6 +84,7 @@ import javax.mail.MessagingException;
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.StreamRequest;
 import org.cip4.bambi.core.XMLResponse;
+import org.cip4.bambi.core.queues.QueueProcessor.SubmitQueueEntryHandler;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -103,7 +104,6 @@ import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
-import org.cip4.jdflib.util.UrlPart;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeWriter;
 import org.junit.Before;
@@ -156,12 +156,11 @@ public class QueueProcessorTest extends BambiTestCase
 	 *
 	 */
 	@Test
-	@Ignore
 	public void testRemoveQE()
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildRemoveQueueEntry(queueEntryId);
-		final UrlPart p = jmf.getOwnerDocument_JDFElement().write2HttpURL(UrlUtil.stringToURL(getWorkerURL()), null);
-		p.buffer();
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		qp.new RemoveQueueEntryHandler().handleMessage(jmf.getMessageElement(null, null, 0), null);
 	}
 
 	/**
@@ -186,6 +185,21 @@ public class QueueProcessorTest extends BambiTestCase
 		assertNotNull(qp.getQueue());
 		qp.setQueue(null);
 		assertNull(qp.getQueue());
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testGetDocFromMessageBad()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		SubmitQueueEntryHandler submitQueueEntryHandler = qp.new SubmitQueueEntryHandler();
+		submitQueueEntryHandler.getDocFromMessage(null);
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null, null);
+		submitQueueEntryHandler.getDocFromMessage(jmf.getMessageElement(null, null, 0));
+
 	}
 
 	/**
@@ -330,12 +344,11 @@ public class QueueProcessorTest extends BambiTestCase
 	 *
 	 */
 	@Test
-	@Ignore
 	public void testSuspendQE()
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSuspendQueueEntry(queueEntryId);
-		final UrlPart p = jmf.getOwnerDocument_JDFElement().write2HttpURL(UrlUtil.stringToURL(getWorkerURL()), null);
-		p.buffer();
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		qp.new SuspendQueueEntryHandler().handleMessage(jmf.getMessageElement(null, null, 0), null);
 	}
 
 	/**
@@ -343,12 +356,23 @@ public class QueueProcessorTest extends BambiTestCase
 	 *
 	 */
 	@Test
-	@Ignore
+	public void testHoldQueueEntry()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildHoldQueueEntry(queueEntryId);
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		qp.new HoldQueueEntryHandler().handleMessage(jmf.getMessageElement(null, null, 0), null);
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
 	public void testResumeQE()
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildResumeQueueEntry(queueEntryId);
-		final UrlPart p = jmf.getOwnerDocument_JDFElement().write2HttpURL(UrlUtil.stringToURL(getWorkerURL()), null);
-		p.buffer();
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		qp.new ResumeQueueEntryHandler().handleMessage(jmf.getMessageElement(null, null, 0), null);
 	}
 
 	/**

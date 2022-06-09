@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -94,6 +94,15 @@ public class NetResponseTest
 		final ByteArrayIOInputStream is = ByteArrayIOStream.getBufferedInputStream(r.getInputStream());
 		final String actual = new String(is.getBuf());
 		assertEquals("{\"a\":{\"b\":1}}", actual);
+	}
+
+	@Test
+	public void testToString()
+	{
+		final KElement e = KElement.createRoot("a", null);
+		e.setAttribute("b", 1, null);
+		final NetResponse r = new NetResponse(e);
+		r.toString();
 	}
 
 	@Test
