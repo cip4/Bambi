@@ -73,6 +73,7 @@ import org.cip4.jdflib.util.thread.IPersistable;
  */
 public class MultiDeviceProperties extends BambiLogFactory implements IPersistable
 {
+	private static final String BASE_DIR = "BaseDir";
 	static final String CONFIG_VERSION = "ConfigVersion";
 	/**
 	 * properties for a single device
@@ -307,7 +308,8 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		protected File getFile(final String attribute)
 		{
 			final String file = devRoot.getAttribute(attribute, null, null);
-			if (file != null) {
+			if (file != null)
+			{
 				return resolvePath(new File(file));
 			}
 			final File rootFile = getRootFile(attribute);
@@ -747,7 +749,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		this.context = "test";
 		root = new XMLDoc("application", null).getRoot();
 		root.setAttribute("AppDir", baseDir.getAbsolutePath());
-		root.setAttribute("BaseDir", baseDir.getAbsolutePath());
+		root.setAttribute(BASE_DIR, baseDir.getAbsolutePath());
 	}
 
 	/**
@@ -1028,7 +1030,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	public File getBaseDir()
 	{
-		return resolvePath(getRootFile("BaseDir"));
+		return resolvePath(getRootFile(BASE_DIR));
 	}
 
 	/**
@@ -1037,10 +1039,10 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	public void setBaseDir(final File newBase)
 	{
-		if (newBase != null && !newBase.getAbsolutePath().equals(root.getAttribute("BaseDir")))
+		if (newBase != null && !newBase.getAbsolutePath().equals(root.getAttribute(BASE_DIR)))
 		{
 			log.info("Setting base directory to: " + newBase.getAbsolutePath());
-			root.setAttribute("BaseDir", newBase.getAbsolutePath());
+			root.setAttribute(BASE_DIR, newBase.getAbsolutePath());
 			serialize();
 		}
 	}
@@ -1141,14 +1143,17 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		return multiDeviceProperties.getSubClass();
 	}
 
-	private File resolvePath(final File path)
+	protected File resolvePath(File path)
 	{
-		Path pathInToolPath = getToolPath().resolve(path.toPath());
+		Path tp = getToolPath();
+		if (path == null)
+			path = new File(".");
+		Path pathInToolPath = tp.resolve(path.toPath());
 		File appDir = getAppDir();
 		return (appDir == null ? pathInToolPath : appDir.toPath().resolve(pathInToolPath)).toFile();
 	}
 
-	private Path getToolPath()
+	protected Path getToolPath()
 	{
 		return toolPath == null ? Paths.get(new UserDir(BambiServer.BAMBI).getToolPath()) : toolPath;
 	}
