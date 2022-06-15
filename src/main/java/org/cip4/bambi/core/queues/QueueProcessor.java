@@ -2237,7 +2237,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			return null;
 		}
 		notifyListeners(qeID);
-		JDFQueueEntry ret = waitForEntry(theJDF, qeID);
+		JDFQueueEntry ret = waitForEntry(theJDF, qeID, newQE);
 		if (ret == null)
 		{
 			newResponse.setReturnCode(120);
@@ -2251,7 +2251,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		return ret;
 	}
 
-	protected JDFQueueEntry waitForEntry(final JDFDoc theJDF, final String qeID)
+	protected JDFQueueEntry waitForEntry(final JDFDoc theJDF, final String qeID, JDFQueueEntry newQE)
 	{
 		JDFQueueEntry ret = null;
 		for (int i = 0; i < 42; i++)
