@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -84,12 +84,14 @@ import org.cip4.jdflib.util.StringUtil;
 
 /**
  * provides Bambi specific XML extensions for JDF and JMF
+ * 
  * @author prosirai
  *
  */
 public class BambiNSExtension
 {
 
+	public static final String TOTAL_ENTRY_COUNT = "TotalEntryCount";
 	private static final String CONTENT_TYPE = "ContentType";
 	/**
 	 *
@@ -241,6 +243,7 @@ public class BambiNSExtension
 
 	/**
 	 * remove all Bambi specific elements and attributes from the given KElement
+	 * 
 	 * @param ke the KElement to clean up
 	 */
 	public static void removeBambiExtensions(final KElement ke)
@@ -267,6 +270,7 @@ public class BambiNSExtension
 
 	/**
 	 * set the location of the JDF
+	 * 
 	 * @param ke the KElement to work on
 	 * @param _docURL the location of the JDF
 	 */
@@ -277,6 +281,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the location of the JDF
+	 * 
 	 * @param ke the KElement to work on
 	 * @return docURL the location of the JDF
 	 */
@@ -287,6 +292,7 @@ public class BambiNSExtension
 
 	/**
 	 * set the ContentType of the JDF
+	 * 
 	 * @param ke the KElement to work on
 	 * @param ct the ContentType of the JDF / XJDF / JSON JDF
 	 */
@@ -297,6 +303,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the ContentType of the JDF
+	 * 
 	 * @param ke the KElement to work on
 	 * @return the ContentType of the JDF / XJDF / JSON JDF
 	 */
@@ -307,6 +314,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the associated JDF
+	 * 
 	 * @param ke the KElement to work on
 	 * @return docURL the location of the JDF
 	 */
@@ -324,6 +332,7 @@ public class BambiNSExtension
 
 	/**
 	 * set the location to send the ReturnQueueEntry to
+	 * 
 	 * @param ke the KElement to work on
 	 * @param theReturnURL the location to send the ReturnQueueEntry to
 	 */
@@ -334,6 +343,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the location to send the ReturnQueueEntry to
+	 * 
 	 * @param ke the KElement to work on
 	 * @return the location to send the ReturnQueueEntry to
 	 */
@@ -350,6 +360,7 @@ public class BambiNSExtension
 
 	/**
 	 * set the location to send the ReturnJMF to
+	 * 
 	 * @param ke the KElement to work on
 	 * @param theReturnJMF the location to send the ReturnJMF to
 	 */
@@ -360,6 +371,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the location to send the ReturnJMF to
+	 * 
 	 * @param ke the KElement to work on
 	 * @return the location to send the ReturnJMF to
 	 */
@@ -376,6 +388,7 @@ public class BambiNSExtension
 
 	/**
 	 * set the ID of the device processing the QueueEntry
+	 * 
 	 * @param ke the KElement to work on
 	 * @param theDeviceID the ID of the device processing the QueueEntry
 	 */
@@ -386,6 +399,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the ID of the device processing the QueueEntry
+	 * 
 	 * @param ke the KElement to work on
 	 * @return the ID of the device processing the QueueEntry
 	 */
@@ -402,6 +416,7 @@ public class BambiNSExtension
 
 	/**
 	 * set the URL of the device processing the QueueEntry
+	 * 
 	 * @param ke the KElement to work on
 	 * @param theDeviceURL the URL of the device processing the QueueEntry
 	 */
@@ -412,6 +427,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the URL of the device processing the QueueEntry
+	 * 
 	 * @param ke the KElement to work on
 	 * @return the URL of the device processing the QueueEntry
 	 */
@@ -545,6 +561,21 @@ public class BambiNSExtension
 	public static long getDocModified(final KElement newQE)
 	{
 		return StringUtil.parseLong(getMyNSAttribute(newQE, docMod), -1);
+	}
+
+	public static int incrmentTotal(JDFQueue jdfQueue)
+	{
+		int current = getTotal(jdfQueue);
+		setMyNSAttribute(jdfQueue, TOTAL_ENTRY_COUNT, Integer.toString(++current));
+		return current;
+	}
+
+	public static int getTotal(JDFQueue jdfQueue)
+	{
+		if (jdfQueue == null)
+			return 0;
+		int current = StringUtil.parseInt(getMyNSAttribute(jdfQueue, TOTAL_ENTRY_COUNT), jdfQueue.getEntryCount());
+		return current;
 	}
 
 }

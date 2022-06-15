@@ -74,6 +74,7 @@ package org.cip4.bambi.core.queues;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.concurrent.locks.Lock;
@@ -82,6 +83,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.mail.MessagingException;
 
 import org.cip4.bambi.BambiTestCase;
+import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.StreamRequest;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.queues.QueueProcessor.SubmitQueueEntryHandler;
@@ -211,7 +213,7 @@ public class QueueProcessorTest extends BambiTestCase
 	{
 		final QueueProcessor qp = getDevice().getQueueProcessor();
 		final JMFBuilder jmfBuilder = new JMFBuilder();
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 10; i++)
 		{
 			final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
 			final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
@@ -223,7 +225,7 @@ public class QueueProcessorTest extends BambiTestCase
 		}
 		for (final Object o : EnumQueueEntryStatus.getEnumList())
 			log.info(o.toString() + " " + qp.getQueue().numEntries((EnumQueueEntryStatus) o));
-		assertEquals(100, qp.getQueue().getQueueSize(), 1);
+		assertEquals(10, qp.getQueue().getQueueSize(), 1);
 	}
 
 	/**
@@ -231,12 +233,11 @@ public class QueueProcessorTest extends BambiTestCase
 	 *
 	 */
 	@Test
-	@Ignore
 	public void testAddEntryManyQueue()
 	{
 		final QueueProcessor qp = getDevice().getQueueProcessor();
 		final JMFBuilder jmfBuilder = new JMFBuilder();
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 10; i++)
 		{
 			final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
 			final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
@@ -247,6 +248,8 @@ public class QueueProcessorTest extends BambiTestCase
 			final JDFQueue queue = r.getQueue(0);
 			assertNull(queue.getQueueEntry(0));
 			assertEquals(i + 1, queue.getQueueSize());
+			assertTrue(BambiNSExtension.getTotal(qp.getQueue()) > i);
+
 		}
 	}
 
@@ -264,6 +267,7 @@ public class QueueProcessorTest extends BambiTestCase
 		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
 		final JDFQueueEntry qe = qp.addEntry(c, r, doc);
 		assertNotNull(qe);
+		assertTrue(BambiNSExtension.getTotal(qp.getQueue()) > 0);
 	}
 
 	/**

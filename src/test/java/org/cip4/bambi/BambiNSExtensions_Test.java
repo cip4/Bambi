@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -75,10 +75,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import org.cip4.bambi.core.BambiNSExtension;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResponse;
+import org.junit.Test;
 
 public class BambiNSExtensions_Test extends BambiTestCase
 {
@@ -99,6 +102,7 @@ public class BambiNSExtensions_Test extends BambiTestCase
 		return qe;
 	}
 
+	@Test
 	public void testAddBambiExtensions()
 	{
 		final JDFQueueEntry qe = buildQueueEntry();
@@ -109,6 +113,29 @@ public class BambiNSExtensions_Test extends BambiTestCase
 		assertEquals("someReturnURL", BambiNSExtension.getReturnURL(qe));
 	}
 
+	@Test
+	public void testQueue()
+	{
+		JDFQueue q = (JDFQueue) JDFQueue.createRoot(ElementName.QUEUE);
+		assertEquals(1, BambiNSExtension.incrmentTotal(q));
+		assertEquals(2, BambiNSExtension.incrmentTotal(q));
+	}
+
+	@Test
+	public void testQueue2()
+	{
+		JDFQueue q = (JDFQueue) JDFQueue.createRoot(ElementName.QUEUE);
+		q.appendQueueEntry();
+		assertEquals(2, BambiNSExtension.incrmentTotal(q));
+	}
+
+	@Test
+	public void testQueue3()
+	{
+		assertEquals(3, BambiNSExtension.incrmentTotal(null));
+	}
+
+	@Test
 	public void testRemoveBambiExtensions()
 	{
 		final JDFQueueEntry qe = buildQueueEntry();

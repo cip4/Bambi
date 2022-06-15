@@ -2248,7 +2248,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		prepareSubmit(ret);
 		// wait a very short moment to allow any potential processing of the newly created entry to commence, prior to returning the entry
 		ThreadUtil.sleep(123);
+		incrmentTotal();
 		return ret;
+	}
+
+	void incrmentTotal()
+	{
+		BambiNSExtension.incrmentTotal(_theQueue.get());
 	}
 
 	protected JDFQueueEntry waitForEntry(final JDFDoc theJDF, final String qeID, JDFQueueEntry newQE)
