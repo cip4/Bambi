@@ -566,7 +566,8 @@ public class BambiNSExtension
 	public static int incrmentTotal(JDFQueue jdfQueue)
 	{
 		int current = getTotal(jdfQueue);
-		setMyNSAttribute(jdfQueue, TOTAL_ENTRY_COUNT, Integer.toString(++current));
+		if (current > 0)
+			setMyNSAttribute(jdfQueue, TOTAL_ENTRY_COUNT, Integer.toString(++current));
 		return current;
 	}
 

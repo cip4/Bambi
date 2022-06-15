@@ -132,7 +132,7 @@ public class BambiNSExtensions_Test extends BambiTestCase
 	@Test
 	public void testQueue3()
 	{
-		assertEquals(3, BambiNSExtension.incrmentTotal(null));
+		assertEquals(0, BambiNSExtension.incrmentTotal(null));
 	}
 
 	@Test
