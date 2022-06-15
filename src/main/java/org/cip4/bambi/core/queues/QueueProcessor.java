@@ -2237,6 +2237,22 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			return null;
 		}
 		notifyListeners(qeID);
+		JDFQueueEntry ret = waitForEntry(theJDF, qeID);
+		if (ret == null)
+		{
+			newResponse.setReturnCode(120);
+			log.error("error creating queueentry: " + qeID + " " + newResponse.getReturnCode());
+			return null;
+
+		}
+		prepareSubmit(ret);
+		// wait a very short moment to allow any potential processing of the newly created entry to commence, prior to returning the entry
+		ThreadUtil.sleep(123);
+		return ret;
+	}
+
+	protected JDFQueueEntry waitForEntry(final JDFDoc theJDF, final String qeID)
+	{
 		JDFQueueEntry ret = null;
 		for (int i = 0; i < 42; i++)
 		{
@@ -2254,16 +2270,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				break;
 			}
 		}
-		if (ret == null)
-		{
-			newResponse.setReturnCode(120);
-			log.error("error creating queueentry: " + qeID + " " + newResponse.getReturnCode());
-			return null;
-
-		}
-		prepareSubmit(ret);
-		// wait a very short moment to allow any potential processing of the newly created entry to commence, prior to returning the entry
-		ThreadUtil.sleep(123);
 		return ret;
 	}
 
