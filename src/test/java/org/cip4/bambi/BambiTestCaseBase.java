@@ -70,6 +70,8 @@
 package org.cip4.bambi;
 
 import java.io.File;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -219,7 +221,8 @@ public abstract class BambiTestCaseBase
 	protected Log log;
 	private boolean bTestNetwork;
 
-	// //////////////////////////////////////////////////////////////////////////
+	private static Lock sequential = new ReentrantLock();
+
 	/**
 	 * @see junit.framework.TestCase#setUp()
 	 */
@@ -237,6 +240,7 @@ public abstract class BambiTestCaseBase
 		mem = getCurrentMem();
 		log = LogFactory.getLog(getClass());
 		new File(sm_dirTestDataTemp).mkdirs();
+		sequential.lock();
 	}
 
 	/**
@@ -264,6 +268,7 @@ public abstract class BambiTestCaseBase
 		JDFAudit.setStaticAuthor(author);
 		JDFNodeInfo.setDefaultWorkStepID(false);
 		DocumentJDFImpl.setStaticStrictNSCheck(true);
+		sequential.unlock();
 	}
 
 	/**
@@ -321,8 +326,7 @@ public abstract class BambiTestCaseBase
 	@Override
 	public String toString()
 	{
-		return "[" + StringUtil.token(this.getClass().getName(), -1, ".") + " Version:  " + defaultVersion + " " + new File(sm_dirTestData).getAbsolutePath()
-				+ " ]\n";
+		return "[" + StringUtil.token(this.getClass().getName(), -1, ".") + " Version:  " + defaultVersion + " " + new File(sm_dirTestData).getAbsolutePath() + " ]\n";
 	}
 
 	/**
