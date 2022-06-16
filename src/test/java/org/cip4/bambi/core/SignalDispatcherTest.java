@@ -74,11 +74,12 @@ public class SignalDispatcherTest extends BambiTestCase
 	SignalDispatcher dispatcher;
 
 	/**
+	 * @throws Exception
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
 	 */
 	@Override
 	@Before
-	public void setUp()
+	public void setUp() throws Exception
 	{
 		MsgSubscription.setSpecific(true);
 		final WorkerDevice rootDev = new BambiTestDevice();
