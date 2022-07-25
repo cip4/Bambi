@@ -177,16 +177,18 @@ public class QueueProcessorTest extends BambiTestCase
 	}
 
 	/**
-	 *
-	 *
-	 */
+	*
+	*
+	*/
 	@Test
 	public void testGetQueue()
 	{
 		final QueueProcessor qp = getDevice().getQueueProcessor();
-		assertNotNull(qp.getQueue());
+		final JDFQueue queue = qp.getQueue();
+		assertNotNull(queue);
 		qp.setQueue(null);
 		assertNull(qp.getQueue());
+		qp.setQueue(queue);
 	}
 
 	/**
