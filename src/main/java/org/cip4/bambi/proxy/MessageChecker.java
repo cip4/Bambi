@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -92,9 +92,9 @@ class MessageChecker
 	private final AbstractProxyDevice abstractProxyDevice;
 
 	/**
-	 * @param abstractProxyDevice 
+	 * @param abstractProxyDevice
 	 * 
-	 *  
+	 * 
 	 */
 	public MessageChecker(AbstractProxyDevice abstractProxyDevice)
 	{
@@ -104,20 +104,24 @@ class MessageChecker
 	}
 
 	/**
-	 * update the knownmessages list 
+	 * update the knownmessages list
 	 */
 	public void updateKnownMessages()
 	{
 		final JMFBuilder builder = abstractProxyDevice.getBuilderForSlave();
 		final JDFJMF knownMessages = builder.buildKnownMessagesQuery();
 		KnownMessagesResponseHandler handler = abstractProxyDevice.new KnownMessagesResponseHandler(knownMessages);
-		abstractProxyDevice.sendJMFToSlave(knownMessages, handler);
-		handler.waitHandled(20000, 30000, true);
-		setMessages(handler.completeHandling());
+		boolean sent = abstractProxyDevice.sendJMFToSlave(knownMessages, handler);
+		if (sent)
+		{
+			handler.waitHandled(20000, 30000, true);
+			setMessages(handler.completeHandling());
+		}
 	}
 
 	/**
 	 * Setter for theMessages attribute.
+	 * 
 	 * @param messages the {@link KnownMessageDetails} to set
 	 */
 	private void setMessages(Collection<KnownMessageDetails> messages)
@@ -171,6 +175,7 @@ class MessageChecker
 		/**
 		 * 
 		 * get the message type attribute
+		 * 
 		 * @return the message type attribute
 		 */
 		public String getType()
@@ -182,6 +187,7 @@ class MessageChecker
 
 	/**
 	 * do I know this message type?
+	 * 
 	 * @param type
 	 * @return true if known OR KnownMessages is unknown
 	 */
@@ -193,6 +199,7 @@ class MessageChecker
 	/**
 	 * 
 	 * return true if we are initialized
+	 * 
 	 * @return
 	 */
 	public boolean isInitialized()
@@ -202,6 +209,7 @@ class MessageChecker
 
 	/**
 	 * do I know this message
+	 * 
 	 * @param name
 	 * @return true if known OR KnownMessages is unknown
 	 */

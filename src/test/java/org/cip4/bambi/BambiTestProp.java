@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -71,6 +71,7 @@
 package org.cip4.bambi;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IConverterCallback;
@@ -81,6 +82,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 {
 
 	private String devID;
+	private static AtomicInteger n = new AtomicInteger();
 
 	/**
 	 * @param bambiTestCase
@@ -410,7 +412,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	public File getConfigDir()
 	{
 
-		return null;
+		return new File(sm_dirTestDataTemp + "Bambi" + n.incrementAndGet());
 	}
 
 	/**

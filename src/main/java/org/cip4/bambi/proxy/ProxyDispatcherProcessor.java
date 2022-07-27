@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2014 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -112,6 +112,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	{
 		super(parent);
 		cleaner = new OrphanCleaner();
+		lastbad = 0;
 	}
 
 	/**
@@ -128,6 +129,39 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 
 	}
 
+	int lastbad;
+
+	/**
+	 *
+	 * @return
+	 */
+	@Override
+	protected IQueueEntry fillCurrentQE()
+	{
+		boolean canProcess = canProcess();
+		if (canProcess)
+		{
+			lastbad = 0;
+			return super.fillCurrentQE();
+		}
+		else
+		{
+			if (lastbad++ % 100 == 0)
+			{
+				log.warn("Not filling QueueEntry for unavailable Slave ");
+			}
+		}
+		return null;
+	}
+
+	protected boolean canProcess()
+	{
+		IProxyProperties properties = getParent().getProperties();
+		String slaveURL = getParent().getSlaveURL();
+		boolean canProcess = _parent.activeProcessors() < 1 + properties.getMaxPush() && isQueueAvailable(slaveURL);
+		return canProcess;
+	}
+
 	/**
 	 * do whatever needs to be done on idle by default, just tell the StatusListner that we are bored
 	 */
@@ -139,7 +173,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 
 	/**
 	 * 
-	 *  
+	 * 
 	 * @author rainer prosi
 	 * @date Jul 13, 2012
 	 */
@@ -155,7 +189,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 
 		/**
 		 * @see org.cip4.bambi.core.messaging.MessageResponseHandler#finalizeHandling()
-		*/
+		 */
 		@Override
 		protected void finalizeHandling()
 		{
@@ -313,10 +347,11 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 		currentQE = null;
 		IProxyProperties properties = getParent().getProperties();
 		String slaveURL = getParent().getSlaveURL();
-		if (_parent.activeProcessors() >= 1 + properties.getMaxPush() || !isQueueAvailable(slaveURL))
+		if (!canProcess())
 		{
 			BambiNSExtension.setDeviceURL(qe, null);
 			cleaner.cleanOrphans();
+			log.warn("Not processing QueueEntry for unavailable Slave " + (qe == null ? null : qe.getQueueEntryID()));
 			return false; // no more push
 		}
 		qe.setDeviceID(properties.getSlaveDeviceID());
@@ -331,6 +366,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 
 	/**
 	 * ensure that the queue is alive and accepting entries prior to submitting
+	 * 
 	 * @param slaveURL
 	 * @return
 	 */
@@ -362,15 +398,22 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 		qf.setMaxEntries(0);
 		qf.setQueueEntryDetails(EnumQueueEntryDetails.None);
 		QueueStatusResponseHandler qrh = new QueueStatusResponseHandler(queueStatusQuery);
-		getParent().sendJMFToSlave(queueStatusQuery, qrh);
-		qrh.waitHandled(5000, 20000, true);
-		return qrh.isOpen();
+		boolean sent = getParent().sendJMFToSlave(queueStatusQuery, qrh);
+		if (sent)
+		{
+			qrh.waitHandled(5000, 20000, true);
+			return qrh.isOpen();
+		}
+		else
+		{
+			return true;
+		}
 	}
 
 	/**
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#getCurrentQE()
 	 * @return
-	*/
+	 */
 	@Override
 	public IQueueEntry getCurrentQE()
 	{
@@ -381,7 +424,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	/**
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#isActive()
 	 * @return
-	*/
+	 */
 	@Override
 	public boolean isActive()
 	{
@@ -477,6 +520,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	/**
 	 * 
 	 * repair calculated status
+	 * 
 	 * @param queueEntryID
 	 * @param finalStatus
 	 * @return
