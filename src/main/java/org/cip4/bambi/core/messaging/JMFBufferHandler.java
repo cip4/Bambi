@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -90,7 +90,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 */
 	protected static class MessageIdentifier implements Cloneable
 	{
-		protected String misChannelID = null;
+		protected String misChannelID;
 
 		/**
 		 * Getter for misChannelID attribute.
@@ -102,9 +102,9 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			return misChannelID;
 		}
 
-		protected String slaveChannelID = null;
-		protected String msgType = null;
-		protected String senderID = null;
+		protected String slaveChannelID;
+		protected String msgType;
+		protected String deviceID;
 
 		/**
 		 * @param m the message
@@ -125,15 +125,11 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			misChannelID = slaveChannelID == null ? m.getID() : null;
 			if (!KElement.isWildCard(jmfSenderID))
 			{
-				senderID = jmfSenderID;
+				deviceID = jmfSenderID;
 			}
 			else
 			{
-				senderID = m.getSenderID();
-				if (KElement.isWildCard(senderID))
-				{
-					senderID = null;
-				}
+				deviceID = null;
 			}
 		}
 
@@ -154,7 +150,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			int n = 0;
 			while (it.hasNext())
 			{
-				ret[n] = (MessageIdentifier) clone();
+				ret[n] = clone();
 				ret[n].misChannelID = it.next();
 				n++;
 			}
@@ -165,22 +161,15 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		 * @see java.lang.Object#clone()
 		 */
 		@Override
-		public Object clone()
+		public MessageIdentifier clone()
 		{
-			MessageIdentifier c;
-			try
-			{
-				c = (MessageIdentifier) super.clone();
-			}
-			catch (final CloneNotSupportedException x)
-			{
-				c = new MessageIdentifier(null, null);
-			}
-			c.misChannelID = misChannelID;
-			c.slaveChannelID = slaveChannelID;
-			c.msgType = msgType;
-			c.senderID = senderID;
-			return c;
+			final MessageIdentifier clone = new MessageIdentifier(null, null);
+
+			clone.misChannelID = misChannelID;
+			clone.slaveChannelID = slaveChannelID;
+			clone.msgType = msgType;
+			clone.deviceID = deviceID;
+			return clone;
 		}
 
 		/**
@@ -195,7 +184,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			}
 			final MessageIdentifier msg = (MessageIdentifier) obj;
 
-			if (!ContainerUtil.equals(senderID, msg.senderID))
+			if (!ContainerUtil.equals(deviceID, msg.deviceID))
 			{
 				return false;
 			}
@@ -222,7 +211,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		 */
 		public boolean matches(final MessageIdentifier msg)
 		{
-			if (msg.senderID != null && !ContainerUtil.equals(senderID, msg.senderID))
+			if (msg.deviceID != null && !ContainerUtil.equals(deviceID, msg.deviceID))
 			{
 				return false;
 			}
@@ -247,7 +236,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		@Override
 		public int hashCode()
 		{
-			int hc = senderID == null ? 0 : senderID.hashCode();
+			int hc = deviceID == null ? 0 : deviceID.hashCode();
 			hc += msgType == null ? 0 : msgType.hashCode();
 			hc += slaveChannelID == null ? 0 : slaveChannelID.hashCode();
 			hc += misChannelID == null ? 0 : misChannelID.hashCode();
@@ -257,7 +246,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		@Override
 		public String toString()
 		{
-			return "MessageIdentifier [misChannelID=" + misChannelID + ", slaveChannelID=" + slaveChannelID + ", msgType=" + msgType + ", senderID=" + senderID + "]";
+			return "MessageIdentifier [misChannelID=" + misChannelID + ", slaveChannelID=" + slaveChannelID + ", msgType=" + msgType + ", senderID=" + deviceID + "]";
 		}
 	}
 
