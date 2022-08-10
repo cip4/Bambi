@@ -40,6 +40,7 @@ package org.cip4.bambi.core.messaging;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -70,7 +71,7 @@ public class MessageIdentifierTest
 		JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
 		jmf.getMessageElement(null, null, 0).setSenderID("s3");
 		MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
-		assertNull(mi.toString());
+		assertNotNull(mi.toString());
 	}
 
 	@Test
