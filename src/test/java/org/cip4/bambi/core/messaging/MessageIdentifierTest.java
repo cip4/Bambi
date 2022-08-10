@@ -43,11 +43,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.junit.Test;
 
-public class JMFBufferHandlerTest
+public class MessageIdentifierTest
 {
 
 	@Test
@@ -90,6 +91,21 @@ public class JMFBufferHandlerTest
 		assertTrue(mi.matches(mi2));
 		assertEquals(mi, mi2);
 		assertEquals(mi.hashCode(), mi2.hashCode());
+
+	}
+
+	@Test
+	public void testCloneChannel()
+	{
+		JMFBuilder jmfBuilder = new JMFBuilder();
+		jmfBuilder.setSenderID("sender");
+		JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
+		jmf.getMessageElement(null, null, 0).setSenderID("s3");
+		MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
+		assertNull(mi.cloneChannels(null));
+		MessageIdentifier[] mi2 = mi.cloneChannels(new VString("a b c"));
+		assertEquals("a", mi2[0].getMisChannelID());
+		assertEquals("b", mi2[1].getMisChannelID());
 
 	}
 
