@@ -1,6 +1,7 @@
 package org.cip4.bambi.core.messaging;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -95,37 +96,6 @@ public class MessageIdentifier implements Cloneable
 	}
 
 	/**
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(final Object obj)
-	{
-		if (!(obj instanceof MessageIdentifier))
-		{
-			return false;
-		}
-		final MessageIdentifier msg = (MessageIdentifier) obj;
-
-		if (!ContainerUtil.equals(deviceID, msg.deviceID))
-		{
-			return false;
-		}
-		if (!ContainerUtil.equals(slaveChannelID, msg.slaveChannelID))
-		{
-			return false;
-		}
-		if (!ContainerUtil.equals(misChannelID, msg.misChannelID))
-		{
-			return false;
-		}
-		if (!ContainerUtil.equals(msgType, msg.msgType))
-		{
-			return false;
-		}
-		return true;
-	}
-
-	/**
 	 * if obj matches, i.e. any null element of object is also considered matching
 	 *
 	 * @param msg
@@ -152,22 +122,29 @@ public class MessageIdentifier implements Cloneable
 		return true;
 	}
 
-	/**
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode()
-	{
-		int hc = deviceID == null ? 0 : deviceID.hashCode();
-		hc += msgType == null ? 0 : msgType.hashCode();
-		hc += slaveChannelID == null ? 0 : slaveChannelID.hashCode();
-		hc += misChannelID == null ? 0 : misChannelID.hashCode();
-		return hc;
-	}
-
 	@Override
 	public String toString()
 	{
 		return "MessageIdentifier [misChannelID=" + misChannelID + ", slaveChannelID=" + slaveChannelID + ", msgType=" + msgType + ", senderID=" + deviceID + "]";
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Objects.hash(deviceID, misChannelID, msgType, slaveChannelID);
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		MessageIdentifier other = (MessageIdentifier) obj;
+		return Objects.equals(deviceID, other.deviceID) && Objects.equals(misChannelID, other.misChannelID) && Objects.equals(msgType, other.msgType)
+				&& Objects.equals(slaveChannelID, other.slaveChannelID);
 	}
 }

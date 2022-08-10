@@ -63,6 +63,17 @@ public class MessageIdentifierTest
 	}
 
 	@Test
+	public void testToString()
+	{
+		JMFBuilder jmfBuilder = new JMFBuilder();
+		jmfBuilder.setSenderID("sender");
+		JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
+		jmf.getMessageElement(null, null, 0).setSenderID("s3");
+		MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
+		assertNull(mi.toString());
+	}
+
+	@Test
 	public void testMatches()
 	{
 		JMFBuilder jmfBuilder = new JMFBuilder();
@@ -76,6 +87,7 @@ public class MessageIdentifierTest
 		mi3.msgType = "foo";
 		assertFalse(mi.matches(mi3));
 		assertFalse(mi.equals(mi3));
+		assertFalse(mi.hashCode() == mi3.hashCode());
 
 	}
 
