@@ -281,7 +281,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	public String getSlaveURL()
 	{
 
-		return null;
+		return "http://slave";
 	}
 
 	/*

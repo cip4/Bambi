@@ -70,8 +70,8 @@
  */
 package org.cip4.bambi.proxy;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import org.cip4.bambi.BambiTestProp;
 import org.junit.Test;
@@ -90,7 +90,8 @@ public class ProxyDispatcherProcessorTest
 	public void testCanProcess()
 	{
 		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
-		assertTrue(proc.canProcess());
+
+		assertFalse(proc.canProcess());
 	}
 
 }
