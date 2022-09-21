@@ -95,6 +95,7 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 
 /**
@@ -372,6 +373,11 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	 */
 	protected boolean isQueueAvailable(String slaveURL)
 	{
+		if (StringUtil.isEmpty(slaveURL))
+		{
+			return false;
+		}
+
 		MessageChecker knownSlaveMessages = getParent().knownSlaveMessages;
 		knownSlaveMessages.updateKnownMessages();
 		boolean ret = false;
