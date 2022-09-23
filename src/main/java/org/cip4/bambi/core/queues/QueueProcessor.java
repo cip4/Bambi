@@ -2072,7 +2072,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		final String docURL = BambiNSExtension.getDocURL(qe);
 		JDFDoc theDoc = null;
-		for (int i = 1; i < 10; i++)
+		for (int i = 1; i < 42; i++)
 		{
 			synchronized (getMutexForQE(qe))
 			{
@@ -2080,7 +2080,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			if (theDoc == null)
 			{
-				if (i == 3 || !ThreadUtil.sleep(10 * i))
+				log.warn("waiting for get: " + qe.getQueueEntryID());
+
+				if (!ThreadUtil.sleep(10 * i))
 				{
 					break;
 				}
@@ -2267,6 +2269,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			if (ret == null)
 			{
 				ThreadUtil.sleep(i * 10);
+				log.warn("waiting for " + qeID);
 			}
 			else
 			{
