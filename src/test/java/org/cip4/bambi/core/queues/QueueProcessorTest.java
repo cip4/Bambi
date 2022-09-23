@@ -192,6 +192,17 @@ public class QueueProcessorTest extends BambiTestCase
 	}
 
 	/**
+	*
+	*
+	*/
+	@Test
+	public void testWaitForEntryNull()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		assertNull(qp.waitForEntry(null, null, null));
+	}
+
+	/**
 	 *
 	 *
 	 */
