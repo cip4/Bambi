@@ -64,7 +64,7 @@ dependencies {
     implementation 'javax.mail:mail:1.4.7'
 
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.mockito:mockito-core:4.6.0'
+    testImplementation 'org.mockito:mockito-core:4.8.1'
 }
 
 runtime {
