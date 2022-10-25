@@ -2069,8 +2069,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			return null;
 		}
-
 		final String docURL = BambiNSExtension.getDocURL(qe);
+		if (docURL == null)
+		{
+			log.error("QueueProcessor in thread '" + Thread.currentThread().getName() + " has null doc", new NullPointerException());
+			return null;
+		}
+
 		JDFDoc theDoc = null;
 		for (int i = 1; i < 42; i++)
 		{
@@ -2357,17 +2362,16 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	{
 		boolean ok;
 		final JDFQueueEntry newQEReal = getQueueEntry(newQEID); // the "actual" entry in the queue
+		final String theDocFile = _parentDevice.getJDFStorage(newQEID);
+		BambiNSExtension.setDocURL(newQEReal, theDocFile);
 		synchronized (getMutexForQeID(newQEID))
 		{
-			final String theDocFile = _parentDevice.getJDFStorage(newQEID);
 			ok = theJDF.write2File(theDocFile, 0, true);
 			if (!ok)
 			{
-				log.error("error writing to: " + theDocFile);
+				log.error("error writing to: " + theDocFile, new IOException());
 			}
 		}
-		final String theDocFile = _parentDevice.getJDFStorage(newQEID);
-		BambiNSExtension.setDocURL(newQEReal, theDocFile);
 		BambiNSExtension.setDocModified(newQEReal, System.currentTimeMillis());
 		return ok;
 	}

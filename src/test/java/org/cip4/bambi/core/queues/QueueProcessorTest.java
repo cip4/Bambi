@@ -84,6 +84,7 @@ import javax.mail.MessagingException;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.BambiNSExtension;
+import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.StreamRequest;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.queues.QueueProcessor.SubmitQueueEntryHandler;
@@ -414,4 +415,74 @@ public class QueueProcessorTest extends BambiTestCase
 		super.tearDown();
 	}
 
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testGetNextEntry()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		final JDFQueueEntry qe = qp.addEntry(c, r, doc);
+		assertNotNull(qe);
+		assertNull(qp.getNextEntry(queueEntryId, QERetrieval.BOTH));
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testGetIQEntry()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		final JDFQueueEntry qe = qp.addEntry(c, r, doc);
+		assertNotNull(qe);
+		final JDFQueue q = qp.getQueue();
+		final JDFQueueEntry qe2 = q.getQueueEntry(0);
+		qe2.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+		assertNotNull(qp.getIQueueEntry(qe2));
+	}
+
+	@Test
+	public void testGetIQEntryNull()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		final JDFQueueEntry qe = qp.addEntry(c, r, doc);
+		assertNotNull(qe);
+		final JDFQueue q = qp.getQueue();
+		final JDFQueueEntry qe2 = q.getQueueEntry(0);
+		qe2.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+		BambiNSExtension.setDocURL(qe2, null);
+		assertNull(qp.getIQueueEntry(qe2));
+	}
+
+	@Test
+	public void testGetIQEntryBadFile()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		final JDFQueueEntry qe = qp.addEntry(c, r, doc);
+		assertNotNull(qe);
+		final JDFQueue q = qp.getQueue();
+		final JDFQueueEntry qe2 = q.getQueueEntry(0);
+		qe2.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+		BambiNSExtension.setDocURL(qe2, "notthere");
+		assertNull(qp.getIQueueEntry(qe2));
+	}
 }
