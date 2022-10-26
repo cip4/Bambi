@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -83,19 +83,22 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.node.JDFActivity;
 import org.cip4.jdflib.resource.JDFDevice;
+import org.cip4.jdflib.resource.JDFEvent;
+import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.JDFDate;
 import org.junit.Test;
 
 /**
-  * @author Rainer Prosi, Heidelberger Druckmaschinen *
+ * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class StatusSignalComparatorTest extends BambiTestCase
 {
 	/**
 	 * 
 	 */
-    @Test
+	@Test
 	public void testIsSameStatusSignal()
 	{
 		final JMFBuilder b = new JMFBuilder();
@@ -120,7 +123,88 @@ public class StatusSignalComparatorTest extends BambiTestCase
 	/**
 	 * 
 	 */
-    @Test
+	@Test
+	public void testIsSameStatusSignalActivity()
+	{
+		final JMFBuilder b = new JMFBuilder();
+		final JDFJMF jmf = b.createJMF(EnumFamily.Signal, EnumType.Status);
+		final JDFSignal signal = jmf.getSignal(0);
+		final JDFDeviceInfo di = signal.getCreateDeviceInfo(0);
+		di.setDeviceID("d1");
+		final JDFJMF jmf2 = (JDFJMF) jmf.clone();
+		final JDFSignal signal2 = jmf2.getSignal(0);
+		final JDFDeviceInfo di2 = signal2.getCreateDeviceInfo(0);
+		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		final JDFJobPhase jp = di.appendJobPhase();
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		final JDFJobPhase jp2 = di2.appendJobPhase();
+		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		JDFActivity a = jp.appendActivity();
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		jp2.appendActivity();
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		a.deleteNode();
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void testIsSameStatusSignalNotification()
+	{
+		final JMFBuilder b = new JMFBuilder();
+		final JDFJMF jmf = b.createJMF(EnumFamily.Signal, EnumType.Status);
+		final JDFSignal signal = jmf.getSignal(0);
+		final JDFDeviceInfo di = signal.getCreateDeviceInfo(0);
+		di.setDeviceID("d1");
+		final JDFJMF jmf2 = (JDFJMF) jmf.clone();
+		final JDFSignal signal2 = jmf2.getSignal(0);
+		final JDFDeviceInfo di2 = signal2.getCreateDeviceInfo(0);
+		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		final JDFJobPhase jp = di.appendJobPhase();
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		final JDFJobPhase jp2 = di2.appendJobPhase();
+		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		JDFNotification a = signal.appendNotification();
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		signal2.appendNotification();
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		a.deleteNode();
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void testIsSameStatusSignalEvent()
+	{
+		final JMFBuilder b = new JMFBuilder();
+		final JDFJMF jmf = b.createJMF(EnumFamily.Signal, EnumType.Status);
+		final JDFSignal signal = jmf.getSignal(0);
+		final JDFDeviceInfo di = signal.getCreateDeviceInfo(0);
+		di.setDeviceID("d1");
+		final JDFJMF jmf2 = (JDFJMF) jmf.clone();
+		final JDFSignal signal2 = jmf2.getSignal(0);
+		final JDFDeviceInfo di2 = signal2.getCreateDeviceInfo(0);
+		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		final JDFJobPhase jp = di.appendJobPhase();
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		final JDFJobPhase jp2 = di2.appendJobPhase();
+		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		JDFEvent e = di.appendEvent();
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		di2.appendEvent();
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+		e.deleteNode();
+		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
+	}
+
+	/**
+	 * 
+	 */
+	@Test
 	public void testIsSameStatusSignalIdle()
 	{
 		final JMFBuilder b = new JMFBuilder();

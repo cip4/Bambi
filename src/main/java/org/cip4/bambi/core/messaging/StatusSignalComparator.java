@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2022 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -73,11 +73,14 @@ package org.cip4.bambi.core.messaging;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFSignal;
+import org.cip4.jdflib.node.JDFActivity;
+import org.cip4.jdflib.resource.JDFEvent;
+import org.cip4.jdflib.resource.JDFNotification;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  * 
- * August 9, 2009
+ *         August 9, 2009
  */
 public class StatusSignalComparator
 {
@@ -131,13 +134,38 @@ public class StatusSignalComparator
 	/**
 	 * 
 	 * check for any events that make this signal unique
+	 * 
 	 * @param inSignal
-	 * @param last 
+	 * @param last
 	 * @return
 	 */
 	protected boolean sameNotifications(final JDFSignal inSignal, final JDFSignal last)
 	{
-		return inSignal.getNotification() == null && last.getNotification() == null;
+		if (inSignal.getElementByClass(JDFNotification.class, 0, true) != null)
+		{
+			return false;
+		}
+		if (inSignal.getElementByClass(JDFEvent.class, 0, true) != null)
+		{
+			return false;
+		}
+		if (inSignal.getElementByClass(JDFActivity.class, 0, true) != null)
+		{
+			return false;
+		}
+		if (last.getElementByClass(JDFNotification.class, 0, true) != null)
+		{
+			return false;
+		}
+		if (last.getElementByClass(JDFEvent.class, 0, true) != null)
+		{
+			return false;
+		}
+		if (last.getElementByClass(JDFActivity.class, 0, true) != null)
+		{
+			return false;
+		}
+		return true;
 	}
 
 	/**
