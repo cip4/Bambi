@@ -96,6 +96,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	public void testExtend()
 	{
 		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		d.reset();
 		final SubscriptionStore ss = new SubscriptionStore(d, new File(sm_dirTestDataTemp + "subs"));
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://abc.com", 0, 0, null);
 		final JDFQuery q = jmf.getQuery(0);
@@ -141,6 +142,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	public void testLoadVersion()
 	{
 		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		d.reset();
 		final SubscriptionStore ss = new SubscriptionStore(d, new File(sm_dirTestDataTemp + "subs"));
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://abc.com", 0, 0, null);
 		final JDFQuery q = jmf.getQuery(0);
@@ -164,6 +166,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	public void testSenderID()
 	{
 		final SignalDispatcher dis = new SignalDispatcher(new BambiTestDevice());
+		dis.reset();
 		final SubscriptionStore ss = new SubscriptionStore(dis, new File(sm_dirTestDataTemp + "subs2"));
 
 		final XJMFHelper h = new XJMFHelper();
