@@ -86,6 +86,7 @@ public class SignalDispatcherTest extends BambiTestCase
 		final JMFHandler h = new JMFHandler(rootDev);
 		dispatcher = new SignalDispatcher(rootDev);
 		dispatcher.addHandlers(h);
+		dispatcher.reset();
 		super.setUp();
 	}
 
