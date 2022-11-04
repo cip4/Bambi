@@ -72,6 +72,7 @@
 package org.cip4.bambi.core.queues;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -105,6 +106,7 @@ import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlUtil;
@@ -152,6 +154,26 @@ public class QueueProcessorTest extends BambiTestCase
 		final XMLResponse resp = bambiContainer.processStream(req);
 
 		assertNotNull(resp.getXML());
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testStoreDoc()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		final JDFQueue q = qp.getQueue();
+		final JDFQueueEntry qe = q.appendQueueEntry();
+		qe.setQueueEntryID("q12345");
+		qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+		qe.setSubmissionTime(new JDFDate());
+		assertTrue(qp.storeDoc(qe, doc, null, null));
+		qe.deleteNode();
+		assertFalse(qp.storeDoc(qe, doc, null, null));
+
 	}
 
 	/**

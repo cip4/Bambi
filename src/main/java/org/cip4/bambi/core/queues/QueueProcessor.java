@@ -2320,11 +2320,21 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			return false;
 		}
 		final String newQEID = newQE.getQueueEntryID();
-		final JDFQueueEntry newQEReal = getQueueEntry(newQEID); // the "actual" entry in the queue
-		if (newQEReal == null)
+		JDFQueueEntry newQEReal = getQueueEntry(newQEID); // the "actual" entry in the queue
+		int n = 0;
+		while (newQEReal == null)
 		{
-			log.error("error fetching queueentry: QueueEntryID=" + newQEID);
-			return false;
+			if (n >= 3)
+			{
+				log.error("error fetching queueentry: QueueEntryID=" + newQEID);
+				return false;
+			}
+			else
+			{
+				ThreadUtil.sleep(++n * 42);
+				log.warn(n + " delay fetching queueentry: QueueEntryID=" + newQEID);
+			}
+			newQEReal = getQueueEntry(newQEID);
 		}
 		newQEReal.copyInto(newQE, false);
 		slaveQueueMap.addEntry(newQEReal, true);
