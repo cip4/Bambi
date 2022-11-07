@@ -129,7 +129,7 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 				JDFDoc d = MimeUtil.getJDFDoc(bufferedInput.getInputStream(), 0);
 				if (callBack != null && d != null)
 				{
-					log.info("preparing jmf response");
+					log.debug("preparing jmf response");
 					d = callBack.prepareJMFForBambi(d);
 				}
 				if (d != null)

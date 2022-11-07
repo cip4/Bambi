@@ -195,7 +195,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 		protected void finalizeHandling()
 		{
 			super.finalizeHandling();
-			getLog().info("Finalized handling of QueueStatus Query");
+			getLog().debug("Finalized handling of QueueStatus Query");
 		}
 
 		/**
