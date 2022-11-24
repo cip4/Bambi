@@ -72,9 +72,9 @@
 		DeviceType="Bambi Push Simulation Wide Format Device"
 		PushPull="Push"
 		TrackResource="Component:Output"
-		InputHF="simIDP/Input"
-		OutputHF="simIDP/Output"
-		ErrorHF="simIDP/Error"
+		InputHF="simWF/Input"
+		OutputHF="simWF/Output"
+		ErrorHF="simWF/Error"
 		AmountResources="Media:Input,UsageCounter"
 		TypeExpression="(.)*DigitalPrinting(.)*"
 		MIMEExpansion="true"/>
