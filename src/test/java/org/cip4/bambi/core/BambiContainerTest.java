@@ -239,9 +239,8 @@ public class BambiContainerTest extends BambiTestCase
 	{
 		XJDFHelper h = new XJDFHelper("j1", null);
 		JSONWriter wr = new JSONWriter();
-		JSONObject parent = new JSONObject();
-		wr.walk(h.getRoot(), parent);
-		wr.setRoot(parent);
+		wr.setRoot(new JSONObject());
+		wr.convert(h.getRoot());
 		final StreamRequest request = new StreamRequest(wr.getInputStream());
 		final XMLResponse resp = bambiContainer.processJSON(request);
 		assertNotNull(resp);
@@ -256,9 +255,8 @@ public class BambiContainerTest extends BambiTestCase
 		JSONWriter wr = new JSONWriter();
 
 		XJMFHelper jh = new XJMFHelper();
-		JSONObject parent = new JSONObject();
-		wr.walk(jh.getRoot(), parent);
-		wr.setRoot(parent);
+		wr.setRoot(new JSONObject());
+		wr.convert(jh.getRoot());
 		MimeWriter w = new MimeWriter();
 		BodyPartHelper p1 = w.getCreatePartByLocalName("p1");
 		p1.setContent(wr.getInputStream(), UrlUtil.APPLICATION_JSON);
@@ -274,9 +272,8 @@ public class BambiContainerTest extends BambiTestCase
 	{
 		XJDFHelper h = new XJDFHelper("j1", null);
 		JSONWriter wr = new JSONWriter();
-		JSONObject parent = new JSONObject();
-		wr.walk(h.getRoot(), parent);
-		wr.setRoot(parent);
+		wr.setRoot(new JSONObject());
+		wr.convert(h.getRoot());
 		MimeWriter w = new MimeWriter();
 		BodyPartHelper p1 = w.getCreatePartByLocalName("p1");
 		p1.setContent(wr.getInputStream(), UrlUtil.APPLICATION_JSON);
