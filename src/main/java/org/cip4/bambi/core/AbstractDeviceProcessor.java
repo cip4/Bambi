@@ -739,13 +739,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		_queueProcessor = device.getQueueProcessor();
 	}
 
-	@Override
-	protected void finalize() throws Throwable
-	{
-		shutdown();
-		super.finalize();
-	}
-
 	/**
 	 * @return the _parent
 	 */
