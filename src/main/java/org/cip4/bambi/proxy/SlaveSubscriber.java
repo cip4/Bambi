@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -85,12 +85,13 @@ import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * class to asynchronously subscribe to messages at the slaves
+ * 
  * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class SlaveSubscriber extends Thread
 {
 	protected final AbstractProxyDevice abstractProxyDevice;
-	protected final Log log;
+	protected final static Log log = LogFactory.getLog(SlaveSubscriber.class);
 
 	/**
 	 * @param b
@@ -98,6 +99,18 @@ public class SlaveSubscriber extends Thread
 	public void setReset(final boolean b)
 	{
 		reset = b;
+	}
+
+	int repeatTime;
+
+	public int getRepeatTime()
+	{
+		return repeatTime;
+	}
+
+	public void setRepeatTime(int repeatTime)
+	{
+		this.repeatTime = repeatTime;
 	}
 
 	/**
@@ -111,10 +124,10 @@ public class SlaveSubscriber extends Thread
 		this.abstractProxyDevice = abstractProxyDevice;
 		this.waitBefore = waitBefore;
 		this.slaveQEID = slaveQEID;
-		log = LogFactory.getLog(getClass());
 		log.info("creating slave subscriber for slave qeid=" + slaveQEID);
 		reset = false;
 		abstractProxyDevice.waitingSubscribers.put(abstractProxyDevice.getKey(slaveQEID), this);
+		repeatTime = 10;
 	}
 
 	private final int waitBefore;
@@ -239,7 +252,7 @@ public class SlaveSubscriber extends Thread
 	protected Vector<JDFJMF> createSubscriptions(final String deviceURL)
 	{
 		final JMFBuilder builder = abstractProxyDevice.getBuilderForSlave();
-		final JDFJMF[] createSubscriptions = builder.createSubscriptions(deviceURL, slaveQEID, 10, 0);
+		final JDFJMF[] createSubscriptions = builder.createSubscriptions(deviceURL, slaveQEID, repeatTime, 0);
 		Vector<JDFJMF> vRet = ContainerUtil.toVector(createSubscriptions);
 		vRet = removeUnknown(vRet);
 
@@ -304,7 +317,7 @@ public class SlaveSubscriber extends Thread
 	@Override
 	public String toString()
 	{
-		return "SlaveSubscriber: qeid=" + slaveQEID + " " + abstractProxyDevice.knownSlaveMessages;
+		return "SlaveSubscriber: repeatTime=" + repeatTime + " " + abstractProxyDevice.knownSlaveMessages;
 	}
 
 	/**

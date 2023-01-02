@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -489,6 +489,21 @@ public class QueueProcessorTest extends BambiTestCase
 		qe2.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
 		BambiNSExtension.setDocURL(qe2, null);
 		assertNull(qp.getIQueueEntry(qe2));
+	}
+
+	@Test
+	public void testHasWaiting()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		qp.getQueue().flush();
+		assertFalse(qp.hasWaiting());
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		final JDFQueueEntry qe = qp.addEntry(c, r, doc);
+		assertNotNull(qe);
+		assertTrue(qp.hasWaiting());
 	}
 
 	@Test
