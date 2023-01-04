@@ -87,6 +87,9 @@ import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.XMLDevice;
 import org.cip4.bambi.core.messaging.CommandProxyHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler;
+import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationBufferHandler;
+import org.cip4.bambi.core.messaging.JMFBufferHandler.ResourceBufferHandler;
+import org.cip4.bambi.core.messaging.JMFBufferHandler.StatusBufferHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.MessageResponseHandler;
 import org.cip4.bambi.core.queues.QueueProcessor;
@@ -897,8 +900,18 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	{
 		super.addHandlers();
 		_slaveJmfHandler = new JMFHandler(this);
-		addHandler(new JMFBufferHandler(AbstractProxyDevice.this, null, new EnumFamily[] { EnumFamily.Signal }, this), getDeviceURLForSlave());
+
+		addBufferHandler(new NotificationBufferHandler(this));
+		addBufferHandler(new StatusBufferHandler(this));
+		addBufferHandler(new ResourceBufferHandler(this));
+
 		addHandler(new CommandProxyHandler(AbstractProxyDevice.this, "*"), null);
+	}
+
+	protected void addBufferHandler(JMFBufferHandler bh)
+	{
+		addHandler(bh, getDeviceURLForSlave());
+		addHandler(bh, null);
 	}
 
 	@Override

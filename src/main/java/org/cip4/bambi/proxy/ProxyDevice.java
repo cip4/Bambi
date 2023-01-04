@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -47,10 +47,6 @@ import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.DataExtractor;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
-import org.cip4.bambi.core.messaging.JMFBufferHandler;
-import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationBufferHandler;
-import org.cip4.bambi.core.messaging.JMFBufferHandler.ResourceBufferHandler;
-import org.cip4.bambi.core.messaging.JMFBufferHandler.StatusBufferHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.messaging.SignalHandler;
@@ -868,16 +864,6 @@ public class ProxyDevice extends AbstractProxyDevice
 		getJMFHandler(deviceURLForSlave).addHandler(new ReturnQueueEntryHandler());
 		getJMFHandler(deviceURLForSlave).addHandler(new QueueStatusSignalHandler());
 
-		addBufferHandler(new NotificationBufferHandler(this));
-		addBufferHandler(new StatusBufferHandler(this));
-		addBufferHandler(new ResourceBufferHandler(this));
-
-	}
-
-	protected void addBufferHandler(JMFBufferHandler bh)
-	{
-		addHandler(bh, getDeviceURLForSlave());
-		addHandler(bh, null);
 	}
 
 	/**
