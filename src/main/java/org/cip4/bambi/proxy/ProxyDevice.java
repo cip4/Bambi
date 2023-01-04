@@ -47,6 +47,10 @@ import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.DataExtractor;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
+import org.cip4.bambi.core.messaging.JMFBufferHandler;
+import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationBufferHandler;
+import org.cip4.bambi.core.messaging.JMFBufferHandler.ResourceBufferHandler;
+import org.cip4.bambi.core.messaging.JMFBufferHandler.StatusBufferHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.messaging.SignalHandler;
@@ -863,13 +867,17 @@ public class ProxyDevice extends AbstractProxyDevice
 		getJMFHandler(deviceURLForSlave).addHandler(new RequestQueueEntryHandler());
 		getJMFHandler(deviceURLForSlave).addHandler(new ReturnQueueEntryHandler());
 		getJMFHandler(deviceURLForSlave).addHandler(new QueueStatusSignalHandler());
-		getJMFHandler(deviceURLForSlave).addHandler(new StatusSignalHandler());
-		getJMFHandler(deviceURLForSlave).addHandler(new ResourceSignalHandler());
-		getJMFHandler(deviceURLForSlave).addHandler(new NotificationSignalHandler());
 
-		getJMFHandler(null).addHandler(new StatusQueryHandler());
-		getJMFHandler(null).addHandler(new ResourceQueryHandler());
-		getJMFHandler(null).addHandler(new NotificationQueryHandler());
+		addBufferHandler(new NotificationBufferHandler(this));
+		addBufferHandler(new StatusBufferHandler(this));
+		addBufferHandler(new ResourceBufferHandler(this));
+
+	}
+
+	protected void addBufferHandler(JMFBufferHandler bh)
+	{
+		addHandler(bh, getDeviceURLForSlave());
+		addHandler(bh, null);
 	}
 
 	/**

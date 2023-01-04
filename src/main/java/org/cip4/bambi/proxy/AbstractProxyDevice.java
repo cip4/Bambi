@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -146,14 +146,14 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected QueueHotFolder slaveJDFError;
 
 	/**
-	 * the list of pending subscriptions that have been sent  to the slave device
+	 * the list of pending subscriptions that have been sent to the slave device
 	 */
 	protected SubscriptionMap mySubscriptions;
 
 	/**
 	 * @author Rainer Prosi, Heidelberger Druckmaschinen
 	 *
-	 * enumeration how to set up synchronization of status with the slave
+	 *         enumeration how to set up synchronization of status with the slave
 	 */
 	public enum EnumSlaveStatus
 	{
@@ -199,7 +199,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 		/**
 		 * @see org.cip4.bambi.core.messaging.MessageResponseHandler#finalizeHandling()
-		*/
+		 */
 		@Override
 		protected void finalizeHandling()
 		{
@@ -235,7 +235,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 		/**
 		 * @see org.cip4.bambi.core.messaging.MessageResponseHandler#finalizeHandling()
-		*/
+		 */
 		@Override
 		protected void finalizeHandling()
 		{
@@ -267,6 +267,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 		/**
 		 * process an individual existing messageservice and update the cache appropriately
+		 * 
 		 * @param ms
 		 * @return
 		 */
@@ -298,7 +299,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 		/**
 		 * @see org.cip4.bambi.core.messaging.MessageResponseHandler#finalizeHandling()
-		*/
+		 */
 		@Override
 		protected void finalizeHandling()
 		{
@@ -331,6 +332,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 		/**
 		 * process an individual existing subscription and update the cache appropriately
+		 * 
 		 * @param si
 		 */
 		private void processSubscription(final JDFSubscriptionInfo si)
@@ -401,7 +403,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			super.handleMessage();
 			if (resp != null)
 			{
-				//TODO System.out.print(resp);
+				// TODO System.out.print(resp);
 			}
 			// TODO actually handle the queue updates in here, rather than downstream
 			return true;
@@ -426,7 +428,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 *
-	  * @author Rainer Prosi, Heidelberger Druckmaschinen *
+	 * @author Rainer Prosi, Heidelberger Druckmaschinen *
 	 */
 	protected class QueueSynchronizeHandler extends MessageResponseHandler
 	{
@@ -508,6 +510,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 * prepare output and error hot folders if they are specified
+	 * 
 	 * @param proxyProperties
 	 */
 	private void prepareSlaveHotfolders(final IProxyProperties proxyProperties)
@@ -713,7 +716,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 * @see org.cip4.bambi.core.AbstractDevice#shutdown()
-	*/
+	 */
 	@Override
 	public void shutdown()
 	{
@@ -726,6 +729,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 * sends messages to the slave to stop processing
+	 * 
 	 * @param newStatus
 	 * @param slaveQE
 	 * @return
@@ -754,6 +758,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 * send a message to the slave device
+	 * 
 	 * @param jmf the jmf to send
 	 * @param mh the message response handler, may be null
 	 * @return true if successfully queues @see sendJMF
@@ -781,6 +786,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	/**
 	 *
 	 * get the slave URL
+	 * 
 	 * @return the slave URL
 	 */
 	public String getSlaveURL()
@@ -790,6 +796,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 * get the JMF Builder for messages to the slave device; also allow for asynch submission handling
+	 * 
 	 * @return
 	 */
 	public JMFBuilder getBuilderForSlave()
@@ -830,6 +837,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 * get the correct callback assuming that all slave urls contain the string "/slavejmf"
+	 * 
 	 * @see org.cip4.bambi.core.AbstractDevice#getCallback(java.lang.String)
 	 */
 	@Override
@@ -903,7 +911,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @see org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core.JDFDoc)
 	 * @param doc
 	 * @return
-	*/
+	 */
 	@Override
 	public JDFNode getNodeFromDoc(final JDFDoc doc)
 	{
@@ -1143,8 +1151,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 * reset the device, including removing and renewing all known subscriptions
+	 * 
 	 * @see org.cip4.bambi.core.AbstractDevice#reset()
-	*/
+	 */
 	@Override
 	public void reset()
 	{
@@ -1178,7 +1187,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	}
 
 	/**
-	 * 	@Override
+	 * @Override
 	 * @see org.cip4.bambi.core.AbstractDevice#getDataURL(JDFQueueEntry, boolean)
 	 */
 	@Override
@@ -1213,6 +1222,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 * prepare submission in proxies by setting status details to submitting
+	 * 
 	 * @param newQE
 	 */
 	@Override
@@ -1234,13 +1244,14 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	/**
 	 * get all jmf handlers
+	 * 
 	 * @return the _jmfHandler
 	 */
 	@Override
 	public Vector<JMFHandler> getJMFHandlers()
 	{
 		final Vector<JMFHandler> v = super.getJMFHandlers();
-		v.add(_slaveJmfHandler);
+		v.insertElementAt(_slaveJmfHandler, 0);
 		return v;
 	}
 

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -171,7 +171,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		private boolean handleKnownMessages(final JDFMessage jmfMessage, final JDFMessage jmfResponse)
 		{
 			/*
-			  Helper class to collect data for filling into message service elements
+			 * Helper class to collect data for filling into message service elements
 			 */
 			class MessageStuff
 			{
@@ -383,11 +383,11 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		if (previousMessageHandler != null)
 		{
 			log.info(device.getDeviceID() + ": removing old IMessageHandler: " + previousMessageHandler.getClass().getSimpleName());
-			log.info(device.getDeviceID() + ": replacing with new IMessageHandler: " + messageHandler.getClass().getSimpleName());
+			log.info(device.getDeviceID() + "size: " + messageMap.size() + ": replacing with new IMessageHandler: " + messageHandler.getClass().getSimpleName());
 		}
 		else
 		{
-			log.info(device.getDeviceID() + ": adding new IMessageHandler: " + messageHandler.getClass().getSimpleName());
+			log.info(device.getDeviceID() + "size: " + messageMap.size() + ": adding new IMessageHandler: " + messageHandler.getClass().getSimpleName());
 		}
 	}
 
@@ -486,8 +486,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 */
 	protected void unhandledMessage(final JDFMessage jmfMessage, final JDFResponse jmfResponse)
 	{
-		errorResponse(jmfResponse, "Message not handled: " + jmfMessage.getType() + "; Family: " + jmfMessage.getFamily().getName() + " id="
-				+ jmfMessage.getID(), 5, EnumClass.Warning);
+		errorResponse(jmfResponse, "Message not handled: " + jmfMessage.getType() + "; Family: " + jmfMessage.getFamily().getName() + " id=" + jmfMessage.getID(), 5,
+				EnumClass.Warning);
 	}
 
 	/**
