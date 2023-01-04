@@ -96,6 +96,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	}
 
 	protected AbstractDevice _theDevice; // required for mapping to queueentries
+	IMessageHandler fallBack;
 
 	/**
 	 * @param dev
@@ -107,6 +108,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	{
 		super(dev, _type, _families);
 		_theDevice = device;
+		fallBack = null;
 	}
 
 	/**
@@ -160,8 +162,21 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 */
 	protected boolean handleQuery(final JDFMessage inputMessage, final JDFResponse response)
 	{
-		getSignals(inputMessage, response);
-		if (!response.getSubscribed())
+		final boolean isSubscription = response.getSubscribed();
+		final boolean isSubscribed = inputMessage.getBoolAttribute(JMFHandler.subscribed, null, false);
+		if (!isSubscription)
+		{
+			if (isSubscribed)
+			{
+				getSignals(inputMessage, response);
+			}
+			else if (fallBack != null)
+			{
+				return fallBack.handleMessage(inputMessage, response);
+			}
+		}
+
+		if (!isSubscription)
 		{
 			response.deleteNode();// always zapp the dummy response except in a subscription
 		}
@@ -272,7 +287,8 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 					}
 				}
 			}
-			return cleanup(jmf, messageIdentifiers, nSig);
+			JDFJMF cleanup = cleanup(jmf, messageIdentifiers, nSig);
+			return cleanup;
 		}
 	}
 
@@ -526,10 +542,18 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		protected boolean handleQuery(final JDFMessage inputMessage, final JDFResponse response)
 		{
 			final boolean isSubscription = response.getSubscribed();
+			final boolean isSubscribed = inputMessage.getBoolAttribute(JMFHandler.subscribed, null, false);
 			boolean deleteResponse = !isSubscription;
 			if (!isSubscription)
 			{
-				getSignals(inputMessage, response);
+				if (isSubscribed)
+				{
+					getSignals(inputMessage, response);
+				}
+				else if (fallBack != null)
+				{
+					return fallBack.handleMessage(inputMessage, response);
+				}
 			}
 			final JDFStatusQuParams sqp = inputMessage.getStatusQuParams();
 			if (sqp != null && sqp.getQueueInfo())
@@ -937,6 +961,18 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				}
 			}
 			return super.handleMessage(inputMessage, response);
+		}
+	}
+
+	public void setFallbackHandler(IMessageHandler previousQueryHandler)
+	{
+		if (previousQueryHandler != null)
+		{
+			if (previousQueryHandler instanceof JMFBufferHandler)
+			{
+				previousQueryHandler = ((JMFBufferHandler) previousQueryHandler).fallBack;
+			}
+			this.fallBack = previousQueryHandler;
 		}
 	}
 }

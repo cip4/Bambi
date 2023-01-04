@@ -86,6 +86,7 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.XMLDevice;
 import org.cip4.bambi.core.messaging.CommandProxyHandler;
+import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationBufferHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler.ResourceBufferHandler;
@@ -910,6 +911,10 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 
 	protected void addBufferHandler(JMFBufferHandler bh)
 	{
+		final String messageType = bh.getMessageType();
+		final IMessageHandler previousQueryHandler = getJMFHandler(null).getMessageHandler(messageType, EnumFamily.Query);
+		bh.setFallbackHandler(previousQueryHandler);
+
 		addHandler(bh, getDeviceURLForSlave());
 		addHandler(bh, null);
 	}
