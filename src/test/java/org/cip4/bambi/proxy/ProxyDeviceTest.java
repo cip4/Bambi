@@ -149,7 +149,33 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 		ProxyDevice device = new ProxyDevice(new BambiTestProp());
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
 		final JDFDoc respDoc = jmfHandler.processJMF(jmf.getOwnerDocument_JDFElement());
-		assertNull(respDoc);
+		final JDFResponse resp = respDoc.getJMFRoot().getResponse(0);
+		assertNotNull(resp);
+		assertEquals(0, resp.getReturnCode());
+	}
+
+	/**
+	*
+	*/
+	@Test
+	public void testStatusSignal()
+	{
+		ProxyDevice device = new ProxyDevice(new BambiTestProp());
+		device.getSignalDispatcher().removeSubScriptions(null, null, null);
+		final JMFHandler jmfHandler = device.getJMFHandler(null);
+
+		final JDFJMF status = new JMFBuilder().buildStatusSignal(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
+		final JDFDoc respStatus = jmfHandler.processJMF(status.getOwnerDocument_JDFElement());
+
+		for (int i = 0; i < 3; i++)
+		{
+			final JDFJMF jmf = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
+
+			final JDFDoc respDoc = jmfHandler.processJMF(jmf.getOwnerDocument_JDFElement());
+			final JDFResponse resp = respDoc.getJMFRoot().getResponse(0);
+			assertNotNull(resp);
+			assertEquals(0, resp.getReturnCode());
+		}
 	}
 
 }

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -80,24 +80,24 @@ import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
 
 /**
-  * @author Rainer Prosi, Heidelberger Druckmaschinen *
+ * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class SignalHandler extends AbstractHandler
 {
 	/**
 	 * 
 	 */
-	private final AbstractDevice abstractDevice;
+	protected final AbstractDevice _theDevice;
 
 	/**
 	 * @param _type
 	 * @param abstractDevice TODO
-	 * @param families 
+	 * @param families
 	 */
 	public SignalHandler(AbstractDevice abstractDevice, EnumType _type, EnumFamily[] families)
 	{
 		super(_type, families);
-		this.abstractDevice = abstractDevice;
+		this._theDevice = abstractDevice;
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class SignalHandler extends AbstractHandler
 	 * @param inputMessage
 	 * @param response
 	 * @return
-	*/
+	 */
 	@Override
 	public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
 	{
@@ -130,6 +130,6 @@ public class SignalHandler extends AbstractHandler
 	 */
 	private AbstractProxyDevice getAbstractProxyDevice()
 	{
-		return (abstractDevice instanceof AbstractProxyDevice) ? (AbstractProxyDevice) abstractDevice : null;
+		return (_theDevice instanceof AbstractProxyDevice) ? (AbstractProxyDevice) _theDevice : null;
 	}
 }
