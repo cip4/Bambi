@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -43,6 +43,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import org.cip4.bambi.core.AbstractDevice.StatusHandler;
+import org.cip4.bambi.core.messaging.JMFBufferHandler.StatusBufferHandler;
+import org.cip4.bambi.proxy.ProxyDevice;
+import org.cip4.bambi.proxy.ProxyDeviceTest;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.junit.Test;
@@ -91,6 +95,41 @@ public class JMFBufferHandlerTest
 		assertEquals(mi, mi2);
 		assertEquals(mi.hashCode(), mi2.hashCode());
 
+	}
+
+	@Test
+	public void testFallBack()
+	{
+		ProxyDevice dev = ProxyDeviceTest.getDevice();
+		StatusBufferHandler bh = new StatusBufferHandler(dev);
+		StatusHandler previousQueryHandler = dev.new StatusHandler();
+		bh.setFallbackHandler(previousQueryHandler);
+		assertEquals(previousQueryHandler, bh.fallBack);
+		bh.setFallbackHandler(bh);
+		assertEquals(previousQueryHandler, bh.fallBack);
+	}
+
+	@Test
+	public void testSignalsFromMap()
+	{
+		ProxyDevice dev = ProxyDeviceTest.getDevice();
+		StatusBufferHandler bh = new StatusBufferHandler(dev);
+		assertNull(bh.getSignalsFromMap(new MessageIdentifier(null, null)));
+	}
+
+	@Test
+	public void testNoConsumer()
+	{
+		ProxyDevice dev = ProxyDeviceTest.getDevice();
+		StatusBufferHandler bh = new StatusBufferHandler(dev);
+		JMFBuilder jmfBuilder = new JMFBuilder();
+		jmfBuilder.setSenderID("sender");
+		JDFJMF jmf = jmfBuilder.buildStatusSignal(null, null);
+		for (int i = 0; i < 200; i++)
+		{
+			bh.handleSignal(jmf.getSignal(0), null);
+			bh.noConsumer(jmf.getSignal(0));
+		}
 	}
 
 }

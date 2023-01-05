@@ -617,7 +617,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 					noConsumer(theSignal);
 				}
 			}
-
+			logCounter++;
 			return true;
 		}
 

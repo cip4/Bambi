@@ -82,12 +82,18 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 	public void testResourceQuery()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildResourceQuery(true);
-		ProxyDevice device = new ProxyDevice(new BambiTestProp());
+		ProxyDevice device = getDevice();
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
 		final JDFDoc respDoc = jmfHandler.processJMF(jmf.getOwnerDocument_JDFElement());
 		final JDFResponse resp = respDoc.getJMFRoot().getResponse(0);
 		assertNotNull(resp);
 		assertEquals(0, resp.getReturnCode());
+	}
+
+	public static ProxyDevice getDevice()
+	{
+		ProxyDevice device = new ProxyDevice(new BambiTestProp());
+		return device;
 	}
 
 	/**
@@ -111,7 +117,7 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 	public void testStatus()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
-		ProxyDevice device = new ProxyDevice(new BambiTestProp());
+		ProxyDevice device = getDevice();
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
 		final JDFDoc respDoc = jmfHandler.processJMF(jmf.getOwnerDocument_JDFElement());
 		final JDFResponse resp = respDoc.getJMFRoot().getResponse(0);
@@ -128,7 +134,7 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 	public void testStatusSubScription()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://url", 20, 30, null);
-		ProxyDevice device = new ProxyDevice(new BambiTestProp());
+		ProxyDevice device = getDevice();
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
 		device.getSignalDispatcher().removeSubScriptions(null, null, null);
 		final JDFDoc respDoc = jmfHandler.processJMF(jmf.getOwnerDocument_JDFElement());
