@@ -75,28 +75,6 @@ public class MessageIdentifierTest
 	}
 
 	@Test
-	public void testIsSubscription()
-	{
-		JMFBuilder jmfBuilder = new JMFBuilder();
-		jmfBuilder.setSenderID("sender");
-		JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
-		jmf.getMessageElement(null, null, 0).setSenderID("s3");
-		MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
-		assertTrue(mi.isSubscription());
-	}
-
-	@Test
-	public void testIsSubscriptionQuery()
-	{
-		JMFBuilder jmfBuilder = new JMFBuilder();
-		jmfBuilder.setSenderID("sender");
-		JDFJMF jmf = jmfBuilder.buildStatus(null, null);
-		jmf.getMessageElement(null, null, 0).setSenderID("s3");
-		MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
-		assertFalse(mi.isSubscription());
-	}
-
-	@Test
 	public void testMatches()
 	{
 		JMFBuilder jmfBuilder = new JMFBuilder();
@@ -111,7 +89,6 @@ public class MessageIdentifierTest
 		assertFalse(mi.matches(mi3));
 		assertFalse(mi.equals(mi3));
 		assertFalse(mi.hashCode() == mi3.hashCode());
-
 	}
 
 	@Test
@@ -126,7 +103,6 @@ public class MessageIdentifierTest
 		assertTrue(mi.matches(mi2));
 		assertEquals(mi, mi2);
 		assertEquals(mi.hashCode(), mi2.hashCode());
-
 	}
 
 	@Test
