@@ -117,8 +117,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
 /**
  * basis for JDF devices. <br>
  * Devices are defined in /WebContent/config/devices.xml<br>
- * Derived classes should be final: if they were ever subclassed, the DeviceProcessor thread would be started before the constructor from the
- * subclass has a chance to fire.
+ * Derived classes should be final: if they were ever subclassed, the DeviceProcessor thread would be started before the constructor from the subclass has a chance to fire.
  *
  * @author boegerni
  */
@@ -303,8 +302,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
-		 *      org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
 		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
@@ -405,8 +403,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 
 		/**
-		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage,
-		 *      org.cip4.jdflib.jmf.JDFResponse)
+		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 * @param inputMessage
 		 * @param response
 		 * @return true if handled
@@ -797,7 +794,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 
 		log.info("enabling input hot folder: " + hfURL + " for Device: " + getDeviceID());
-		final File hfStorage = new File(getDeviceDir() + File.separator + "HFTmpStorage");
+		final File hfStorage = new File(getDeviceDir(), "HFTmpStorage");
 		if (!hfStorage.mkdirs())
 		{
 			log.warn("problems creating " + hfStorage);
@@ -810,6 +807,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 			_submitHotFolder = new QueueHotFolder(hfURL, hfStorage, "jdf,xjdf,xml", new DeviceHFListener(this), jmf);
 			_submitHotFolder.setRetry(3);
+			_submitHotFolder.setSynchronous(true);
 			final StreamRedirectListener streamRedirectListener = new StreamRedirectListener(this);
 			_submitHotFolder.addListener(streamRedirectListener, "zip");
 			_submitHotFolder.addListener(streamRedirectListener, "mjm");
@@ -1217,8 +1215,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * reset the signal dispatcher, hot folder and device processor; also restart from factory settings this is a hard reset that removes any and
-	 * all data!
+	 * reset the signal dispatcher, hot folder and device processor; also restart from factory settings this is a hard reset that removes any and all data!
 	 */
 	public void reset()
 	{
@@ -2147,8 +2144,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * all dispatched signals are checked here and may be modified / removed by a callback by default, we skip all idle status signals except 1 of
-	 * 10
+	 * all dispatched signals are checked here and may be modified / removed by a callback by default, we skip all idle status signals except 1 of 10
 	 *
 	 * @param s
 	 * @return true if s should be deleted

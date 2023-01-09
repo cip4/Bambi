@@ -517,7 +517,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * 
 	 * @param proxyProperties
 	 */
-	private void prepareSlaveHotfolders(final IProxyProperties proxyProperties)
+	protected void prepareSlaveHotfolders(final IProxyProperties proxyProperties)
 	{
 		final File fDeviceJDFOutput = proxyProperties.getSlaveOutputHF();
 		if (fDeviceJDFOutput != null)
@@ -535,7 +535,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	/**
 	 * @param deviceErrorOutput
 	 */
-	private void reloadSlaveErrorHF(final File deviceErrorOutput)
+	protected void reloadSlaveErrorHF(final File deviceErrorOutput)
 	{
 		if (slaveJDFError != null)
 		{
@@ -548,13 +548,14 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			log.info("Device error output HF:" + deviceErrorOutput.getPath() + " device ID= " + getSlaveDeviceID());
 			final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
 			slaveJDFError = new QueueHotFolder(deviceErrorOutput, hfStorage, null, new ReturnHFListner(this, EnumQueueEntryStatus.Aborted), rqCommand);
+			slaveJDFError.setSynchronous(true);
 		}
 	}
 
 	/**
 	 * @param deviceJDFOutput
 	 */
-	private void reloadSlaveOutputHF(final File deviceJDFOutput)
+	protected void reloadSlaveOutputHF(final File deviceJDFOutput)
 	{
 		if (slaveJDFOutput != null)
 		{
@@ -567,6 +568,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			log.info("Device output HF:" + deviceJDFOutput.getPath() + " device ID= " + getSlaveDeviceID());
 			final JDFJMF rqCommand = JDFJMF.createJMF(EnumFamily.Command, EnumType.ReturnQueueEntry);
 			slaveJDFOutput = new QueueHotFolder(deviceJDFOutput, hfStorage, null, new ReturnHFListner(this, EnumQueueEntryStatus.Completed), rqCommand);
+			slaveJDFOutput.setSynchronous(true);
 		}
 	}
 
@@ -992,7 +994,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @param newHF
 	 *
 	 */
-	private void updateSlaveErrorHF(String newHF)
+	protected void updateSlaveErrorHF(String newHF)
 	{
 		newHF = StringUtil.getNonEmpty(newHF);
 		final IProxyProperties properties = getProperties();
@@ -1010,7 +1012,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @param newHF
 	 *
 	 */
-	private void updateSlaveOutputHF(String newHF)
+	protected void updateSlaveOutputHF(String newHF)
 	{
 		newHF = StringUtil.getNonEmpty(newHF);
 		final IProxyProperties properties = getProperties();
@@ -1028,7 +1030,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @param newHF
 	 *
 	 */
-	private void updateSlaveInputHF(String newHF)
+	protected void updateSlaveInputHF(String newHF)
 	{
 		newHF = StringUtil.getNonEmpty(newHF);
 		final IProxyProperties properties = getProperties();
@@ -1046,7 +1048,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @param bExtendMime
 	 *
 	 */
-	private void updateSlaveMIMEExpansion(final boolean bExtendMime)
+	protected void updateSlaveMIMEExpansion(final boolean bExtendMime)
 	{
 		final IProxyProperties properties = getProperties();
 		final boolean extend = properties.getSlaveMIMEExpansion();
@@ -1085,7 +1087,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @param push
 	 *
 	 */
-	private void updateMaxPush(final String push)
+	protected void updateMaxPush(final String push)
 	{
 		final int iPush = StringUtil.parseInt(push, -1);
 		if (iPush < 0)
@@ -1106,7 +1108,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 * @param newSlave
 	 *
 	 */
-	private void updateSlaveDeviceID(final String newSlave)
+	protected void updateSlaveDeviceID(final String newSlave)
 	{
 		if (newSlave == null)
 		{
