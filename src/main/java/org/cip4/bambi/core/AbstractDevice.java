@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -597,32 +597,37 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		final File baseDir = getBaseDir();
 		for (final File configDir : dirs)
 		{
-			final File cacheDir = FileUtil.getFileInDirectory(baseDir, new File(configDir.getName()));
+			final File cacheDir = new File(baseDir, configDir.getName());
+			log.info("Copying from " + configDir + " to cache: " + cacheDir);
 			final File[] configFiles = configDir.listFiles();
-			if (configFiles == null)
+			final boolean b = configDir.mkdirs();
+			if (b || configDir.isDirectory())
 			{
-				final boolean b = configDir.mkdirs();
-				if (b || configDir.isDirectory())
-				{
-					log.info("ensured empty directory exists: " + configDir.getAbsolutePath());
-				}
-				else
-				{
-					log.warn("problems creating empty directory exists: " + configDir.getAbsolutePath());
-				}
+				log.info("ensured empty directory exists: " + configDir.getAbsolutePath());
 			}
 			else
 			{
+				log.warn("problems creating empty directory: " + configDir.getAbsolutePath());
+			}
+			if (configFiles != null)
+			{
 				for (final File f : configFiles)
 				{
-					final File configFile = FileUtil.getFileInDirectory(configDir, new File(f.getName()));
-					if (configFile.isFile())
+					if (f.isFile())
 					{
-						final File newFile = FileUtil.ensureFileInDir(configFile, cacheDir);
+						final File newFile = FileUtil.ensureFileInDir(f, cacheDir);
 						if (newFile == null)
 						{
-							log.warn("cannot copy " + configFile + " to " + cacheDir);
+							log.warn("cannot copy " + f + " to " + cacheDir);
 						}
+						else
+						{
+							log.info("copied " + f + " to " + cacheDir);
+						}
+					}
+					else
+					{
+						log.warn("cannot copy missing " + f + " to " + cacheDir);
 					}
 				}
 			}

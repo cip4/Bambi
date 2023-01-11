@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -87,6 +87,19 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice();
 		device.setSim(true);
+		File dir = device.getCachedConfigDir();
+		assertEquals(new File(sm_dirTestDataTemp, "config"), dir);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testCopyToCache() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		device.setSim(true);
+		device.copyToCache();
 		File dir = device.getCachedConfigDir();
 		assertEquals(new File(sm_dirTestDataTemp, "config"), dir);
 	}

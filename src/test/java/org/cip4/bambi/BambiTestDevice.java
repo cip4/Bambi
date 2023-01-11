@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -106,15 +106,6 @@ public class BambiTestDevice extends WorkerDevice
 	protected WorkerDeviceProcessor buildDeviceProcessor()
 	{
 		return sim ? new SimDeviceProcessor() : new BambiTestProcessor();
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.AbstractDevice#copyToCache()
-	 */
-	@Override
-	protected void copyToCache()
-	{
-		// nop
 	}
 
 }
