@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -71,17 +71,23 @@
 
 package org.cip4.bambi.core.messaging;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestHelper;
+import org.cip4.bambi.core.messaging.MessageSender.SendReturn;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -133,6 +139,51 @@ public class MessageSenderTest extends BambiTestCase
 	}
 
 	/**
+	 * @throws IOException
+	 * @throws IllegalArgumentException
+	 *
+	 *
+	 */
+	@Test
+	public void testSendDetails() throws IllegalArgumentException, IOException
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
+		assertNull(s.sendDetails(md));
+	}
+
+	/**
+	 * @throws IOException
+	 * @throws IllegalArgumentException
+	 *
+	 *
+	 */
+	@Test
+	public void testSendHTTP() throws IllegalArgumentException, IOException
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
+		assertEquals(SendReturn.error, s.sendHTTP(md));
+	}
+
+	/**
+	 * @throws IOException
+	 * @throws IllegalArgumentException
+	 *
+	 *
+	 */
+	@Test
+	public void testProblemError() throws IllegalArgumentException, IOException
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
+		md.setFireForget(true);
+		assertEquals(SendReturn.removed, s.processProblem(md, SendReturn.error));
+		md.setFireForget(false);
+		assertEquals(SendReturn.error, s.processProblem(md, SendReturn.error));
+	}
+
+	/**
 	 *
 	 *
 	 */
@@ -169,9 +220,7 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void testQueue()
 	{
-
 		assertFalse(s.queueMessage(null, null, null, null, null));
-
 	}
 
 	/**

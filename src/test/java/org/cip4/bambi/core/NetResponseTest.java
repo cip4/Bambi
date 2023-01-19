@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -74,11 +74,14 @@
 package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.ByteArrayIOStream.ByteArrayIOInputStream;
+import org.cip4.lib.jdf.jsonutil.JSONWriter;
 import org.junit.Test;
 
 public class NetResponseTest
@@ -143,6 +146,21 @@ public class NetResponseTest
 		final ByteArrayIOInputStream is = ByteArrayIOStream.getBufferedInputStream(r.getInputStream());
 		final String actual = new String(is.getBuf());
 		assertEquals("{\"rc\":400,\"error\":\"evil\"}", actual);
+	}
+
+	@Test
+	public void testJSonWriter()
+	{
+		final KElement e = KElement.createRoot("a", null);
+		e.setAttribute("b", 1, null);
+		final NetResponse r = new NetResponse(e);
+		JSONWriter jw1 = r.setJSON(true);
+		final KElement e2 = KElement.createRoot("a2", null);
+		final NetResponse r2 = new NetResponse(e2);
+		JSONWriter jw2 = r2.setJSON(true);
+		jw2.addArray("foo");
+		assertFalse(jw1.equals(jw2));
+		assertNull(r2.setJSON(false));
 	}
 
 }

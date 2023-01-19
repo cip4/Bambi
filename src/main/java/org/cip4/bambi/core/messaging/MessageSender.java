@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -38,7 +38,6 @@
  */
 package org.cip4.bambi.core.messaging;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -46,7 +45,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiContainer;
@@ -112,6 +110,7 @@ public class MessageSender implements Runnable, IPersistable
 	protected int removedFireForget;
 	protected int removedError;
 	private int idle;
+	private int bad;
 	private boolean isShutdown = false;
 	private boolean isPaused;
 	private int trySend;
@@ -141,6 +140,7 @@ public class MessageSender implements Runnable, IPersistable
 		this.timeFirstProblem = 0;
 		this.trySend = 0;
 		this.sent = 0;
+		bad = 0;
 		this.timeLastQueued = 0;
 		this.timeLastSent = 0;
 		this.isPaused = false;
@@ -283,8 +283,8 @@ public class MessageSender implements Runnable, IPersistable
 
 				if (jmfFactory.isLogLots() || removedHeartbeat < 10 || removedHeartbeat % 1000 == 0)
 				{
-					log.info("removed redundant " + oldJmfMessage.getType() + " " + oldJmfMessage.getLocalName() + " Message ID= " + oldJmfMessage.getID()
-							+ " Sender= " + oldJmfMessage.getSenderID() + "# " + removedHeartbeat + " / " + checked);
+					log.info("removed redundant " + oldJmfMessage.getType() + " " + oldJmfMessage.getLocalName() + " Message ID= " + oldJmfMessage.getID() + " Sender= "
+							+ oldJmfMessage.getSenderID() + "# " + removedHeartbeat + " / " + checked);
 				}
 
 				final VElement messages = jmf.getMessageVector(null, null);
@@ -565,7 +565,7 @@ public class MessageSender implements Runnable, IPersistable
 	 *
 	 * @return boolean true if the message is assumed sent false if an error was detected and the Message must remain in the queue
 	 */
-	private SendReturn sendFirstMessage()
+	SendReturn sendFirstMessage()
 	{
 		MessageDetails messageDetails;
 		SendReturn sendReturn;
@@ -594,7 +594,7 @@ public class MessageSender implements Runnable, IPersistable
 		return sendReturn;
 	}
 
-	public SendReturn processMessageResponse(final MessageDetails messageDetails, SendReturn sendReturn)
+	SendReturn processMessageResponse(final MessageDetails messageDetails, SendReturn sendReturn)
 	{
 		if (SendReturn.sent == sendReturn)
 		{
@@ -615,7 +615,8 @@ public class MessageSender implements Runnable, IPersistable
 
 	public SendReturn processProblem(final MessageDetails messageDetails, SendReturn sendReturn)
 	{
-		timeFirstProblem = System.currentTimeMillis();
+		if (timeFirstProblem == 0)
+			timeFirstProblem = System.currentTimeMillis();
 
 		String isMime = "";
 
@@ -629,8 +630,7 @@ public class MessageSender implements Runnable, IPersistable
 			isMime = "Empty";
 
 		boolean logsRequired;
-		String textWarning = "Sender: " + messageDetails.senderID + " Error sending " + isMime + " message to: " + messageDetails.url + " return code="
-				+ sendReturn;
+		String textWarning = "Sender: " + messageDetails.senderID + " Error sending " + isMime + " message to: " + messageDetails.url + " return code=" + sendReturn;
 
 		if (messageDetails.isFireForget())
 		{
@@ -654,9 +654,8 @@ public class MessageSender implements Runnable, IPersistable
 			}
 			else
 			{
-				textWarning += " - retaining " + messageDetails.getName() + " message for resend; messages pending: " + messageFiFo.size() + " times delayed: "
-						+ idle;
-				logsRequired = (idle < 10) || (idle % 100) == 0;
+				textWarning += " - retaining " + messageDetails.getName() + " message for resend; messages pending: " + messageFiFo.size() + " times delayed: " + bad;
+				logsRequired = (bad < 10) || ((bad % 100) == 0);
 			}
 		}
 		if (logsRequired)
@@ -673,6 +672,7 @@ public class MessageSender implements Runnable, IPersistable
 			reactivate(messageDetails);
 		}
 		timeFirstProblem = 0;
+		bad = 0;
 		messageFiFo.remove(0);
 		fastFiFoMessageDetails.push(messageDetails);
 
@@ -741,8 +741,7 @@ public class MessageSender implements Runnable, IPersistable
 			duration = (durationWait / (3600000L * 24L)) + " days";
 		}
 
-		log.info("successfully reactivated message sender " + mesDetails.getName() + " to: " + mesDetails.url + " after " + duration + " messages pending: "
-				+ messageFiFo.size());
+		log.info("successfully reactivated message sender " + mesDetails.getName() + " to: " + mesDetails.url + " after " + duration + " messages pending: " + messageFiFo.size());
 	}
 
 	/**
@@ -751,7 +750,7 @@ public class MessageSender implements Runnable, IPersistable
 	 * @param messageDetails the messagedetails
 	 * @return the success as a SendReturn enum
 	 */
-	private SendReturn sendHTTP(final MessageDetails messageDetails)
+	SendReturn sendHTTP(final MessageDetails messageDetails)
 	{
 		SendReturn sendReturn;
 
@@ -865,7 +864,7 @@ public class MessageSender implements Runnable, IPersistable
 			else
 			{
 				sendReturn = SendReturn.error;
-				if (idle == 0 || (idle % 100 == 0))
+				if (bad == 0 || (bad % 100 == 0))
 				{
 					log.warn("error sending message " + messageDetails.getName() + " to " + messageDetails.url + " rc= " + responseCode);
 				}
@@ -902,10 +901,9 @@ public class MessageSender implements Runnable, IPersistable
 		return is400 || is500;
 	}
 
-	private HttpURLConnection sendDetails(final MessageDetails messageDetails) throws IOException, IllegalArgumentException
+	HttpURLConnection sendDetails(final MessageDetails messageDetails) throws IOException, IllegalArgumentException
 	{
 		trySend++;
-
 		if (messageDetails == null)
 			return null;
 
@@ -924,14 +922,8 @@ public class MessageSender implements Runnable, IPersistable
 
 		final DumpDir outputDumpDir = getOuputDumpDir(messageDetails.senderID);
 		final File outputDumpDirFile = outputDumpDir == null ? null : outputDumpDir.newFile(textHeader, messageDetails.getName());
-		if (outputDumpDirFile != null)
-		{
-			final BufferedOutputStream fos = FileUtil.getBufferedOutputStream(outputDumpDirFile, true);
-			IOUtils.copy(ByteArrayIOStream.getBufferedInputStream(is), fos);
-			fos.close();
-		}
+		FileUtil.streamToFile(ByteArrayIOStream.getBufferedInputStream(is), outputDumpDirFile);
 		final UrlPart p = UrlUtil.writeToURL(url, ByteArrayIOStream.getBufferedInputStream(is), UrlUtil.POST, contentType, httpDetails);
-
 		return (HttpURLConnection) (p == null ? null : p.getConnection());
 	}
 
@@ -1009,8 +1001,7 @@ public class MessageSender implements Runnable, IPersistable
 	/**
 	 * Queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required.
 	 */
-	public boolean queueMessage(final JDFJMF jmf, final IResponseHandler responseHandler, final String url, final IConverterCallback converterCallback,
-			final HTTPDetails httpDetails)
+	public boolean queueMessage(final JDFJMF jmf, final IResponseHandler responseHandler, final String url, final IConverterCallback converterCallback, final HTTPDetails httpDetails)
 	{
 		if (isShutdown)
 		{
@@ -1030,8 +1021,7 @@ public class MessageSender implements Runnable, IPersistable
 	/**
 	 * Queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required
 	 */
-	public boolean queueMessage(final JDFJMF jmf, final JDFNode jdfNode, final IResponseHandler responseHandler, final String url,
-			final IConverterCallback converterCallback, final MIMEDetails mimeDetails)
+	public boolean queueMessage(final JDFJMF jmf, final JDFNode jdfNode, final IResponseHandler responseHandler, final String url, final IConverterCallback converterCallback, final MIMEDetails mimeDetails)
 	{
 		if (isShutdown)
 		{
@@ -1118,8 +1108,8 @@ public class MessageSender implements Runnable, IPersistable
 	@Override
 	public String toString()
 	{
-		return "MessageSender - URL: " + callURL.url + " size: " + messageFiFo.size() + " total: " + sent + " last queued at "
-				+ XMLResponse.formatLong(timeLastQueued) + " last sent at " + XMLResponse.formatLong(timeLastSent);
+		return "MessageSender - URL: " + callURL.url + " size: " + messageFiFo.size() + " total: " + sent + " last queued at " + XMLResponse.formatLong(timeLastQueued)
+				+ " last sent at " + XMLResponse.formatLong(timeLastSent);
 	}
 
 	/**
@@ -1127,8 +1117,7 @@ public class MessageSender implements Runnable, IPersistable
 	 */
 	public KElement appendToXML(final KElement messageSenderXmlRoot, final int posQueuedMessages, final boolean bXJDF)
 	{
-		final KElement messageSenderXml = messageSenderXmlRoot == null ? new XMLDoc("MessageSender", null).getRoot()
-				: messageSenderXmlRoot.appendElement("MessageSender");
+		final KElement messageSenderXml = messageSenderXmlRoot == null ? new XMLDoc("MessageSender", null).getRoot() : messageSenderXmlRoot.appendElement("MessageSender");
 
 		synchronized (messageFiFo)
 		{
@@ -1147,6 +1136,8 @@ public class MessageSender implements Runnable, IPersistable
 
 			messageSenderXml.setAttribute("pause", isPaused, null);
 			messageSenderXml.setAttribute("idle", idle, null);
+			messageSenderXml.setAttribute("bad", bad, null);
+			messageSenderXml.setAttribute("firstProblem", timeFirstProblem, null);
 			messageSenderXml.setAttribute("Active", !isShutdown, null);
 			final boolean problems = timeLastQueued - timeLastSent > 60000;
 			messageSenderXml.setAttribute("Problems", problems, null);

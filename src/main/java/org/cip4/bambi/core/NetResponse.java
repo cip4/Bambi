@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -74,8 +74,11 @@
 package org.cip4.bambi.core;
 
 import java.io.InputStream;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.UrlUtil;
@@ -85,7 +88,8 @@ import org.json.simple.JSONObject;
 
 public class NetResponse extends XMLResponse
 {
-	private static JSONWriter theJW;
+	// we have a self learning set of copies for each subtype
+	private static final Map<String, JSONWriter> theJWs = new ConcurrentHashMap<>();
 	private JSONWriter jw;
 
 	NetResponse(final KElement theXML)
@@ -100,7 +104,7 @@ public class NetResponse extends XMLResponse
 	public NetResponse(final XMLResponse r, final String contentType)
 	{
 		super(r, contentType);
-		jw = null;
+		setJSON(UrlUtil.isJSONType(contentType));
 	}
 
 	/**
@@ -115,9 +119,19 @@ public class NetResponse extends XMLResponse
 	 * @param isJSON
 	 * @param jwIn a pre configured writer
 	 */
-	public void setJSON(final boolean isJSON)
+	public JSONWriter setJSON(final boolean isJSON)
 	{
-		jw = isJSON ? getJW() : null;
+		if (isJSON)
+		{
+			KElement xml = getXML();
+			String localName = xml == null ? null : xml.getLocalName();
+			jw = getJW(localName);
+		}
+		else
+		{
+			jw = null;
+		}
+		return jw;
 	}
 
 	/**
@@ -168,13 +182,24 @@ public class NetResponse extends XMLResponse
 
 	public static JSONWriter getJW()
 	{
+		return getJW(null);
+	}
+
+	public static JSONWriter getJW(String nodeName)
+	{
+		if (nodeName == null)
+			nodeName = JDFConstants.EMPTYSTRING;
+		nodeName = nodeName.toLowerCase();
+		JSONWriter theJW = theJWs.get(nodeName);
 		if (theJW == null)
 		{
 			theJW = new JSONWriter();
+			theJWs.put(nodeName, theJW);
 			theJW.setTypeSafe(true);
 			theJW.setWantArray(false);
 			theJW.addStringArray(AttributeName.TYPES);
 			theJW.addStringArray(AttributeName.VALUELIST);
+
 		}
 		return theJW;
 	}
