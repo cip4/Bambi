@@ -159,6 +159,22 @@ public class MessageSenderTest extends BambiTestCase
 	 *
 	 */
 	@Test
+	public void testReactivate() throws IllegalArgumentException, IOException
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
+		s.reactivate(md);
+		s.reactivate(md);
+		// no boom
+	}
+
+	/**
+	 * @throws IOException
+	 * @throws IllegalArgumentException
+	 *
+	 *
+	 */
+	@Test
 	public void testSendHTTP() throws IllegalArgumentException, IOException
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
