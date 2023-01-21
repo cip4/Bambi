@@ -752,8 +752,6 @@ public class MessageSender implements Runnable, IPersistable
 	 */
 	SendReturn sendHTTP(final MessageDetails messageDetails)
 	{
-		SendReturn sendReturn;
-
 		if (messageDetails.url == null || (!UrlUtil.isHttp(messageDetails.url) && !UrlUtil.isHttps(messageDetails.url)))
 		{
 			log.error("Invalid url: " + messageDetails.url + " removing message " + messageDetails.getName());
@@ -763,27 +761,22 @@ public class MessageSender implements Runnable, IPersistable
 		try
 		{
 			final HttpURLConnection connection = sendDetails(messageDetails);
-			sendReturn = processResponse(messageDetails, connection);
+			return processResponse(messageDetails, connection);
 		}
 		catch (final IllegalArgumentException e)
 		{
 			log.warn("Invalid stream " + e.getMessage());
 			return SendReturn.removed;
-
 		}
 		catch (final Throwable ex)
 		{
 			log.error("Exception in sendHTTP: " + ex.getClass().getSimpleName() + " Message= " + ex.getMessage(), ex);
-
 			if (messageDetails.respHandler != null)
 			{
 				messageDetails.respHandler.handleMessage(); // make sure we tell anyone who is waiting that the wait is over...
 			}
-
-			sendReturn = SendReturn.error;
+			return SendReturn.error;
 		}
-
-		return sendReturn;
 	}
 
 	private SendReturn processResponse(final MessageDetails messageDetails, HttpURLConnection connection) throws IOException
@@ -905,12 +898,13 @@ public class MessageSender implements Runnable, IPersistable
 	{
 		trySend++;
 		if (messageDetails == null)
-			return null;
+		{
+			throw new IllegalArgumentException("sending null message");
+		}
 
 		final String url = messageDetails.url;
 		final InputStream is = messageDetails.getInputStream();
-
-		if (is == null)
+		if (is == null || StringUtil.isEmpty(url))
 		{
 			throw new IllegalArgumentException("sending null stream to " + url);
 		}
@@ -921,9 +915,10 @@ public class MessageSender implements Runnable, IPersistable
 		final String textHeader = "URL: " + url;
 
 		final DumpDir outputDumpDir = getOuputDumpDir(messageDetails.senderID);
-		final File outputDumpDirFile = outputDumpDir == null ? null : outputDumpDir.newFile(textHeader, messageDetails.getName());
-		FileUtil.streamToFile(ByteArrayIOStream.getBufferedInputStream(is), outputDumpDirFile);
 		final UrlPart p = UrlUtil.writeToURL(url, ByteArrayIOStream.getBufferedInputStream(is), UrlUtil.POST, contentType, httpDetails);
+		int rc = UrlPart.getReturnCode(p);
+		final File outputDumpDirFile = outputDumpDir == null ? null : outputDumpDir.newFile(textHeader, messageDetails.getName() + "." + rc);
+		FileUtil.streamToFile(ByteArrayIOStream.getBufferedInputStream(is), outputDumpDirFile);
 		return (HttpURLConnection) (p == null ? null : p.getConnection());
 	}
 
@@ -962,27 +957,19 @@ public class MessageSender implements Runnable, IPersistable
 	/**
 	 * Get the input dump directory for this message sender.
 	 */
-	private DumpDir getInputDumpDir(final String senderID)
+	DumpDir getInputDumpDir(final String senderID)
 	{
 		final BambiContainer c = BambiContainer.getInstance();
-
-		if (c == null || !c.wantDump())
-			return null;
-
-		return dumpDirsMap.getOne(senderID, 0);
+		return (c != null && !c.wantDump()) ? null : dumpDirsMap.getOne(senderID, 0);
 	}
 
 	/**
 	 * Get the output dump directory for this message sender.
 	 */
-	private DumpDir getOuputDumpDir(final String senderID)
+	DumpDir getOuputDumpDir(final String senderID)
 	{
 		final BambiContainer c = BambiContainer.getInstance();
-
-		if (c == null || !c.wantDump())
-			return null;
-
-		return dumpDirsMap.getOne(senderID, 1);
+		return (c != null && !c.wantDump()) ? null : dumpDirsMap.getOne(senderID, 1);
 	}
 
 	/**

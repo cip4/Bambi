@@ -77,6 +77,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.cip4.bambi.BambiTestCase;
@@ -88,7 +89,7 @@ import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
-import org.cip4.jdflib.util.ThreadUtil;
+import org.cip4.jdflib.util.DumpDir;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -126,16 +127,21 @@ public class MessageSenderTest extends BambiTestCase
 	}
 
 	/**
+	 * @throws Exception
+	 * @throws IllegalArgumentException
 	 *
 	 *
 	 */
 	@Test
-	@Ignore
-	public void testSendToDump()
+	public void testSendDetailsDump() throws IllegalArgumentException, Exception
 	{
-		s.queuePost(null, "http://localhost:8080/httpdump/messagesendertest", null);
-		new Thread(s).start();
-		ThreadUtil.sleep(12345);
+		DumpDir outputDumpDir = new DumpDir(new File(sm_dirTestDataTemp + "bambiOut"));
+		DumpDir inputDumpDir = new DumpDir(new File(sm_dirTestDataTemp + "bambiIn"));
+		MessageSender.addDumps("TestSender", inputDumpDir, outputDumpDir);
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
+		assertNull(s.sendDetails(md));
 	}
 
 	/**
@@ -150,6 +156,35 @@ public class MessageSenderTest extends BambiTestCase
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
 		assertNull(s.sendDetails(md));
+
+	}
+
+	/**
+	 * @throws IOException
+	 * @throws IllegalArgumentException
+	 *
+	 *
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testSendDetailsNull() throws IllegalArgumentException, IOException
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		s.sendDetails(null);
+
+	}
+
+	/**
+	 * @throws IOException
+	 * @throws IllegalArgumentException
+	 *
+	 *
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testSendDetailsEmpty() throws IllegalArgumentException, IOException
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "");
+		s.sendDetails(md);
 	}
 
 	/**
@@ -180,6 +215,24 @@ public class MessageSenderTest extends BambiTestCase
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
 		assertEquals(SendReturn.error, s.sendHTTP(md));
+	}
+
+	/**
+	 * @throws IOException
+	 * @throws IllegalArgumentException
+	 *
+	 *
+	 */
+	@Test
+	public void testDumpDir() throws IllegalArgumentException, IOException
+	{
+		assertNull(s.getOuputDumpDir("foo"));
+		assertNull(s.getInputDumpDir("foo"));
+		DumpDir outputDumpDir = new DumpDir(new File(sm_dirTestDataTemp + "bambiOut"));
+		DumpDir inputDumpDir = new DumpDir(new File(sm_dirTestDataTemp + "bambiIn"));
+		MessageSender.addDumps("foo", inputDumpDir, outputDumpDir);
+		assertEquals(outputDumpDir, s.getOuputDumpDir("foo"));
+		assertEquals(inputDumpDir, s.getInputDumpDir("foo"));
 	}
 
 	/**
