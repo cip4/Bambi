@@ -940,7 +940,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public JDFDoc processJMF(final JDFDoc doc, final String url)
 	{
-		log.info("JMF processed by " + _devProperties.getDeviceID());
 		return getJMFHandler(url).processJMF(doc);
 	}
 
