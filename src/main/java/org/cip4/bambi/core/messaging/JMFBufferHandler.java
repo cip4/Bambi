@@ -568,7 +568,8 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 							lastSignal = null;
 						return true;
 					}
-					return fallBack.handleMessage(inputMessage, response);
+					if (fallBack != null)
+						return fallBack.handleMessage(inputMessage, response);
 				}
 
 			}
