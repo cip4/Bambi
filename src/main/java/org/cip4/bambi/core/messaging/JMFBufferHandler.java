@@ -993,13 +993,10 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 
 	public void setFallbackHandler(IMessageHandler previousQueryHandler)
 	{
-		if (previousQueryHandler != null)
+		if (previousQueryHandler instanceof JMFBufferHandler)
 		{
-			if (previousQueryHandler instanceof JMFBufferHandler)
-			{
-				previousQueryHandler = ((JMFBufferHandler) previousQueryHandler).fallBack;
-			}
-			this.fallBack = previousQueryHandler;
+			previousQueryHandler = ((JMFBufferHandler) previousQueryHandler).fallBack;
 		}
+		this.fallBack = previousQueryHandler;
 	}
 }

@@ -915,7 +915,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	{
 		final String messageType = bh.getMessageType();
 		final IMessageHandler previousQueryHandler = getJMFHandler(null).getMessageHandler(messageType, EnumFamily.Query);
-		bh.setFallbackHandler(previousQueryHandler);
+		if (previousQueryHandler != null)
+			bh.setFallbackHandler(previousQueryHandler);
 
 		addHandler(bh, getDeviceURLForSlave());
 		addHandler(bh, null);

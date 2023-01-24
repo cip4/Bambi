@@ -107,6 +107,8 @@ public class JMFBufferHandlerTest
 		assertEquals(previousQueryHandler, bh.fallBack);
 		bh.setFallbackHandler(bh);
 		assertEquals(previousQueryHandler, bh.fallBack);
+		bh.setFallbackHandler(null);
+		assertNull(bh.fallBack);
 	}
 
 	@Test
