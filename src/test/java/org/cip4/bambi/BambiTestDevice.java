@@ -84,6 +84,7 @@ public class BambiTestDevice extends WorkerDevice
 	public void setSim(boolean isSim)
 	{
 		this.sim = isSim;
+		_deviceProcessors.clear();
 	}
 
 	private EnumQueueEntryStatus finalStatus;
