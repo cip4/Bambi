@@ -40,6 +40,7 @@
 package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.File;
@@ -89,6 +90,16 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		device.setSim(true);
 		File dir = device.getCachedConfigDir();
 		assertEquals(new File(sm_dirTestDataTemp, "config"), dir);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testToString() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		assertNotNull(device.toString());
 	}
 
 	/**

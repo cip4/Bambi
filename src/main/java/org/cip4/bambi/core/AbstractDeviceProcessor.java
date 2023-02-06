@@ -552,6 +552,15 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 	/**
 	 *
+	 * abort the currently executed job!
+	 */
+	protected void reset()
+	{
+		_statusListener.signalStatus(EnumDeviceStatus.Idle, "JoIncomplete", EnumNodeStatus.Waiting, "job partially completed", true);
+	}
+
+	/**
+	 *
 	 * complete the currently executed job!
 	 */
 	protected void complete()
@@ -587,6 +596,16 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		{
 			abort();
 			bReturn = true;
+		}
+		else if (EnumQueueEntryStatus.Waiting.equals(qes))
+		{
+			reset();
+			bReturn = true;
+		}
+		else
+		{
+			reset();
+			log.error("No final status for return: " + qes);
 		}
 		_statusListener.flush("Resource");
 		_statusListener.flush("Status");

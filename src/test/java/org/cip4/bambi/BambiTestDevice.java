@@ -73,6 +73,7 @@ package org.cip4.bambi;
 import org.cip4.bambi.workers.WorkerDevice;
 import org.cip4.bambi.workers.WorkerDeviceProcessor;
 import org.cip4.bambi.workers.sim.SimDeviceProcessor;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.util.ContainerUtil;
 
 public class BambiTestDevice extends WorkerDevice
@@ -85,6 +86,8 @@ public class BambiTestDevice extends WorkerDevice
 		this.sim = isSim;
 	}
 
+	private EnumQueueEntryStatus finalStatus;
+
 	/**
 	 * 
 	 */
@@ -94,18 +97,40 @@ public class BambiTestDevice extends WorkerDevice
 		sim = false;
 		getQueueProcessor().getQueue().resumeQueue();
 		getQueueProcessor().getQueue().openQueue();
+		finalStatus = EnumQueueEntryStatus.Completed;
+
 	}
 
 	public WorkerDeviceProcessor getNewProcessor()
 	{
-		super.createNewProcessor();
+		if (_deviceProcessors.isEmpty())
+			super.createNewProcessor();
 		return (WorkerDeviceProcessor) ContainerUtil.get(_deviceProcessors, -1);
 	}
 
 	@Override
-	protected WorkerDeviceProcessor buildDeviceProcessor()
+	public WorkerDeviceProcessor buildDeviceProcessor()
 	{
-		return sim ? new SimDeviceProcessor() : new BambiTestProcessor();
+		WorkerDeviceProcessor workerDeviceProcessor = sim ? new SimDeviceProcessor() : new BambiTestProcessor(finalStatus);
+		workerDeviceProcessor.setParent(this);
+		return workerDeviceProcessor;
+	}
+
+	public EnumQueueEntryStatus getFinalStatus()
+	{
+		return finalStatus;
+	}
+
+	public void setFinalStatus(EnumQueueEntryStatus finalStatus)
+	{
+		this.finalStatus = finalStatus;
+		_deviceProcessors.clear();
+	}
+
+	@Override
+	public String toString()
+	{
+		return super.toString() + " finalStatus=" + finalStatus;
 	}
 
 }

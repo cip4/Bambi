@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -70,9 +70,13 @@
  */
 package org.cip4.bambi;
 
+import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.bambi.workers.WorkerDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.ThreadUtil;
@@ -80,9 +84,16 @@ import org.cip4.jdflib.util.ThreadUtil;
 public class BambiTestProcessor extends WorkerDeviceProcessor
 {
 
-	public BambiTestProcessor()
+	private EnumQueueEntryStatus finalStatus;
+
+	public BambiTestProcessor(EnumQueueEntryStatus finalStatus)
 	{
 		super();
+		_doShutdown = true; // avoid start of proc loop
+		this.finalStatus = finalStatus;
+		JDFNode n = JDFNode.createRoot();
+		JDFQueueEntry qe = ((JDFQueue) JDFElement.createRoot(ElementName.QUEUE)).appendQueueEntry();
+		currentQE = new QueueEntry(n, qe);
 	}
 
 	static int wait = 42;
@@ -91,7 +102,7 @@ public class BambiTestProcessor extends WorkerDeviceProcessor
 	public EnumQueueEntryStatus processDoc(JDFNode n, JDFQueueEntry qe)
 	{
 		ThreadUtil.sleep(wait);
-		return EnumQueueEntryStatus.Completed;
+		return finalStatus;
 	}
 
 	@Override
