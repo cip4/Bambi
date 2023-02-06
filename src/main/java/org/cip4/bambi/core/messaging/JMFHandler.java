@@ -383,11 +383,11 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		if (previousMessageHandler != null)
 		{
 			log.info(device.getDeviceID() + ": removing old IMessageHandler: " + previousMessageHandler.getClass().getSimpleName());
-			log.info(device.getDeviceID() + "size: " + messageMap.size() + ": replacing with new IMessageHandler: " + messageHandler.getClass().getSimpleName());
+			log.info(device.getDeviceID() + ": size: " + messageMap.size() + ": replacing with new IMessageHandler: " + messageHandler.getClass().getSimpleName());
 		}
 		else
 		{
-			log.info(device.getDeviceID() + "size: " + messageMap.size() + ": adding new IMessageHandler: " + messageHandler.getClass().getSimpleName());
+			log.info(device.getDeviceID() + ": size: " + messageMap.size() + ": adding new IMessageHandler: " + messageHandler.getClass().getSimpleName());
 		}
 	}
 

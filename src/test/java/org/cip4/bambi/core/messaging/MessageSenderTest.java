@@ -112,6 +112,9 @@ public class MessageSenderTest extends BambiTestCase
 	{
 		super.setUp();
 		s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		DumpDir outputDumpDir = new DumpDir(new File(sm_dirTestDataTemp + "bambiOut"));
+		DumpDir inputDumpDir = new DumpDir(new File(sm_dirTestDataTemp + "bambiIn"));
+		MessageSender.addDumps("TestSender", inputDumpDir, outputDumpDir);
 	}
 
 	/**
@@ -201,6 +204,33 @@ public class MessageSenderTest extends BambiTestCase
 		s.reactivate(md);
 		s.reactivate(md);
 		// no boom
+	}
+
+	/**
+	 * @throws IOException
+	 * @throws IllegalArgumentException
+	 *
+	 *
+	 */
+	@Test
+	public void testProcessResponse() throws IllegalArgumentException, IOException
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
+		for (int i = 0; i < 42; i++)
+			assertEquals(SendReturn.error, s.processResponse(md, null));
+	}
+
+	/**
+	 * @throws IOException
+	 * @throws IllegalArgumentException
+	 *
+	 *
+	 */
+	@Test
+	public void testToString()
+	{
+		assertNotNull(s.toString());
 	}
 
 	/**

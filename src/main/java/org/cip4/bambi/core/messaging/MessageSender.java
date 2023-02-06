@@ -89,7 +89,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
 public class MessageSender implements Runnable, IPersistable
 {
 
-	private final Log log = BambiLogFactory.getLog(MessageSender.class);
+	private static final Log log = BambiLogFactory.getLog(MessageSender.class);
 
 	private static final ListMap<String, DumpDir> dumpDirsMap = new ListMap<>();
 	private static File baseLocation;
@@ -779,7 +779,7 @@ public class MessageSender implements Runnable, IPersistable
 		}
 	}
 
-	private SendReturn processResponse(final MessageDetails messageDetails, HttpURLConnection connection) throws IOException
+	SendReturn processResponse(final MessageDetails messageDetails, HttpURLConnection connection) throws IOException
 	{
 		SendReturn sendReturn = SendReturn.sent;
 		final String url = messageDetails.url;
@@ -839,7 +839,7 @@ public class MessageSender implements Runnable, IPersistable
 		if (connection == null)
 		{
 			sendReturn = SendReturn.error;
-			if (idle == 0 || (idle % 100 == 0))
+			if (idle < 10 || (idle % 100 == 0))
 			{
 				log.warn("could not send message to unavailable " + messageDetails.url + " no return; rc= " + responseCode);
 			}
@@ -878,7 +878,7 @@ public class MessageSender implements Runnable, IPersistable
 		final DumpDir inputDumpDir = getInputDumpDir(messageDetails.senderID);
 		if (inputDumpDir != null)
 		{
-			inputDumpDir.newFileFromStream(textHeader, bis, messageDetails.getName());
+			inputDumpDir.newFileFromStream(textHeader, bis, messageDetails.getName() + "." + responseCode);
 		}
 		return sendReturn;
 	}
@@ -911,12 +911,20 @@ public class MessageSender implements Runnable, IPersistable
 
 		final String contentType = messageDetails.getContentType();
 		final HTTPDetails httpDetails = messageDetails.mimeDet == null ? null : messageDetails.mimeDet.httpDetails;
-
-		final String textHeader = "URL: " + url;
-
-		final DumpDir outputDumpDir = getOuputDumpDir(messageDetails.senderID);
+		long t0 = System.currentTimeMillis();
 		final UrlPart p = UrlUtil.writeToURL(url, ByteArrayIOStream.getBufferedInputStream(is), UrlUtil.POST, contentType, httpDetails);
 		int rc = UrlPart.getReturnCode(p);
+		long t1 = System.currentTimeMillis();
+		if (!UrlPart.isReturnCodeOK(p))
+		{
+			log.warn("Flaky RC " + rc + " in JMF response to " + url);
+		}
+		if ((t1 - t0) > 1234)
+		{
+			log.warn("long processing of jmf " + (t1 - t0) + " mS for JMF response to " + url);
+		}
+		final DumpDir outputDumpDir = getOuputDumpDir(messageDetails.senderID);
+		final String textHeader = "URL: " + url + "\nDeltaT: " + (t1 - t0);
 		final File outputDumpDirFile = outputDumpDir == null ? null : outputDumpDir.newFile(textHeader, messageDetails.getName() + "." + rc);
 		FileUtil.streamToFile(ByteArrayIOStream.getBufferedInputStream(is), outputDumpDirFile);
 		return (HttpURLConnection) (p == null ? null : p.getConnection());
