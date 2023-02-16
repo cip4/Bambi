@@ -3000,7 +3000,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	/**
 	 *
 	 */
-	protected List<JDFQueueEntry> getMessageQueueEntries(final JDFMessage m, final JDFResponse resp)
+	public List<JDFQueueEntry> getMessageQueueEntries(final JDFMessage m, final JDFResponse resp)
 	{
 		final JDFQueueEntryDef def = m.getQueueEntryDef(0);
 		if (def == null)
@@ -3069,14 +3069,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	/**
 	 *
 	 */
-	protected JDFQueueEntry getMessageQueueEntry(final JDFMessage m, final JDFResponse resp)
+	public JDFQueueEntry getMessageQueueEntry(final JDFMessage m, final JDFResponse resp)
 	{
 		final List<JDFQueueEntry> v = getMessageQueueEntries(m, resp);
-		if (ContainerUtil.isEmpty(v))
-		{
-			return null;
-		}
-		return v.get(0);
+		return ContainerUtil.get(v, 0);
 
 	}
 
