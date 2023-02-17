@@ -464,19 +464,19 @@ public class QueueProcessorTest extends BambiTestCase
 	@Before
 	public void setUp() throws Exception
 	{
+
+		sequential.lock();
 		wantContainer = false;
 		super.setUp();
 		workerURLBase = "http://localhost:44482/SimWorker/jmf/simIDP";
 		deviceID = "simIDP";
-		sequential.lock();
-
 	}
 
 	@Override
 	public void tearDown() throws Exception
 	{
-		sequential.unlock();
 		super.tearDown();
+		sequential.unlock();
 	}
 
 	/**

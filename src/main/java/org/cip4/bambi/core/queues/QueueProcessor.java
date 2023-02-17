@@ -2261,26 +2261,26 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	protected JDFQueueEntry waitForEntry(final JDFDoc theJDF, final String qeID, JDFQueueEntry newQE)
 	{
-		JDFQueueEntry ret = null;
-		for (int i = 1; i < 42; i++)
+		if (!StringUtil.isEmpty(qeID))
 		{
-			synchronized (getMutexForQE(newQE))
+			JDFQueueEntry ret = null;
+			for (int i = 1; i < 42; i++)
 			{
-				ret = getQueueEntry(qeID);
-			}
-			if (ret == null)
-			{
-				ThreadUtil.sleep(i * 10);
-				log.warn("waiting for " + qeID);
-			}
-			else
-			{
-				log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID + " / " + theJDF.getJDFRoot().getJobID(true));
-				persist(PERSIST_MS);
-				break;
+				synchronized (getMutexForQE(newQE))
+				{
+					JDFQueueEntry qe = getQueueEntry(qeID);
+					if (qe != null)
+					{
+						log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID + " / " + theJDF.getJDFRoot().getJobID(true));
+						persist(PERSIST_MS);
+						return qe;
+					}
+					ThreadUtil.sleep(i * 10);
+					log.warn("waiting for " + qeID);
+				}
 			}
 		}
-		return ret;
+		return null;
 	}
 
 	protected void extractToJob(final JDFDoc theJDF, final JDFQueueEntry newQE)
