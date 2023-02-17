@@ -61,13 +61,11 @@ import org.cip4.bambi.core.DataExtractor;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
-import org.cip4.bambi.core.IDeviceProperties.QEReturn;
 import org.cip4.bambi.core.IGetHandler;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.messaging.AcknowledgeThread;
 import org.cip4.bambi.core.messaging.IJMFHandler;
-import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.messaging.SignalDispatcher;
@@ -119,7 +117,6 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.URLReader;
 import org.cip4.jdflib.util.UrlUtil;
-import org.cip4.jdflib.util.net.HTTPDetails;
 import org.cip4.jdflib.util.thread.DelayedPersist;
 import org.cip4.jdflib.util.thread.IPersistable;
 import org.cip4.jdflib.util.thread.MutexMap;
@@ -2883,64 +2880,49 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			return bOK;
 		}
 
-		private boolean returnJMF(final JDFDoc docJDF, final JDFJMF jmf)
+		boolean returnJMF(final JDFDoc docJDF, final JDFJMF jmf)
 		{
+			final JDFNode jdfRoot = docJDF == null ? null : docJDF.getJDFRoot();
+			if (jdfRoot == null || jmf == null)
+			{
+				log.error("No JDF root; root=" + ((docJDF == null) ? "null" : docJDF.getRoot().getNodeName()));
+				return false;
+			}
 			final String returnJMF = BambiNSExtension.getReturnJMF(qe);
-			log.info("ReturnQueueEntry for " + queueEntryID + " is being been sent to " + returnJMF);
-			final QEReturn qr = properties.getReturnMIME();
-			HttpURLConnection response = null;
 			final JDFReturnQueueEntryParams returnQEParams = jmf.getCommand(0).getReturnQueueEntryParams(0);
-			if (QEReturn.MIME.equals(qr))
-			{
-				returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
-				final MIMEDetails mimeDetails = new MIMEDetails();
-				final String devID = _parentDevice.getDeviceID();
-				mimeDetails.httpDetails.setChunkSize(properties.getControllerHTTPChunk());
-				mimeDetails.transferEncoding = properties.getControllerMIMEEncoding();
-				mimeDetails.modifyBoundarySemicolon = StringUtil.parseBoolean(properties.getDeviceAttribute("FixMIMEBoundarySemicolon"), false);
-				final JDFNode jdfRoot = docJDF == null ? null : docJDF.getJDFRoot();
-				if (jdfRoot == null)
-				{
-					log.error("No JDF root; root=" + ((docJDF == null) ? "null" : docJDF.getRoot().getNodeName()));
-				}
-				response = _parentDevice.getJMFFactory().send2URLSynch(jmf, jdfRoot, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
-			}
-			else
-			// http
-			{
-				returnQEParams.setURL(properties.getContextURL() + "/jmb/JDFDir/" + queueEntryID + ".jdf"); // will be overwritten by buildMimePackage
-				final HTTPDetails hDet = new HTTPDetails();
-				hDet.setChunkSize(properties.getControllerHTTPChunk());
-
-				response = JMFFactory.getInstance().send2URLSynch(jmf, returnJMF, _parentDevice.getCallback(null), _parentDevice.getDeviceID(), 10000);
-			}
-			boolean bOK = false;
-
+			log.info("MIME/ZIP ReturnQueueEntry for " + queueEntryID + " is being been sent to " + returnJMF);
+			returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
+			final MIMEDetails mimeDetails = new MIMEDetails();
+			final String devID = _parentDevice.getDeviceID();
+			mimeDetails.httpDetails.setChunkSize(properties.getControllerHTTPChunk());
+			mimeDetails.transferEncoding = properties.getControllerMIMEEncoding();
+			mimeDetails.modifyBoundarySemicolon = StringUtil.parseBoolean(properties.getDeviceAttribute("FixMIMEBoundarySemicolon"), false);
+			HttpURLConnection response = _parentDevice.getJMFFactory().send2URLSynch(jmf, jdfRoot, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 10000);
 			if (response != null)
 			{
-				int responseCode;
-
 				try
 				{
-					responseCode = response.getResponseCode();
+					int responseCode = response.getResponseCode();
+					if (UrlUtil.isReturnCodeOK(responseCode))
+					{
+						log.info("ReturnQueueEntry for " + queueEntryID + " has been sent to " + returnJMF);
+						return true;
+					}
+					else
+					{
+						log.error("failed to send ReturnQueueEntry " + queueEntryID + " Response: " + responseCode);
+					}
 				}
 				catch (final IOException x)
 				{
-					log.error("cannot read returnqe response: " + x);
-					responseCode = 0;
-				}
-				if (UrlUtil.isReturnCodeOK(responseCode))
-				{
-					log.info("ReturnQueueEntry for " + queueEntryID + " has been sent to " + returnJMF);
-					bOK = true;
-				}
-				else
-				{
-					log.error("failed to send ReturnQueueEntry. Response: " + response.toString());
-					bOK = false;
+					log.error("cannot read ReturnQueueEntry response: " + x);
 				}
 			}
-			return bOK;
+			else
+			{
+				log.error("failed to send ReturnQueueEntry" + queueEntryID + " Response: null");
+			}
+			return false;
 		}
 
 		/**

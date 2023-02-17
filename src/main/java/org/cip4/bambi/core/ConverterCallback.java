@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -569,7 +569,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	@Override
 	public String getJDFContentType()
 	{
-		return isXJDF() ? UrlUtil.VND_XJDF : UrlUtil.VND_JDF;
+		return isXJDF() ? (isJSON() ? UrlUtil.VND_XJDF_J : UrlUtil.VND_XJDF) : UrlUtil.VND_JDF;
 	}
 
 	/**
@@ -579,10 +579,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	@Override
 	public String getJMFContentType()
 	{
-		if (isXJDF())
-			return isJSON() ? UrlUtil.VND_XJMF_J : UrlUtil.VND_XJMF;
-		else
-			return UrlUtil.VND_JMF;
+		return isXJDF() ? (isJSON() ? UrlUtil.VND_XJMF_J : UrlUtil.VND_XJMF) : UrlUtil.VND_JMF;
 	}
 
 	@Override

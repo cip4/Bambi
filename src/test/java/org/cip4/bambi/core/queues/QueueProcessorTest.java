@@ -88,10 +88,12 @@ import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.StreamRequest;
 import org.cip4.bambi.core.XMLResponse;
+import org.cip4.bambi.core.queues.QueueProcessor.QueueEntryReturn;
 import org.cip4.bambi.core.queues.QueueProcessor.SubmitQueueEntryHandler;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFAbortQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -154,6 +156,46 @@ public class QueueProcessorTest extends BambiTestCase
 		final XMLResponse resp = bambiContainer.processStream(req);
 
 		assertNotNull(resp.getXML());
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testQEReturn1()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		final JDFQueue q = qp.getQueue();
+		final JDFQueueEntry qe = q.appendQueueEntry();
+		qe.setQueueEntryID("q12345");
+		qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+		qe.setSubmissionTime(new JDFDate());
+		QueueEntryReturn r = qp.new QueueEntryReturn(qe, EnumQueueEntryStatus.Completed);
+		assertFalse(r.returnJMF(null, null));
+		assertFalse(r.returnJMF(doc, null));
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testReturnQE2()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		final JDFQueue q = qp.getQueue();
+		final JDFQueueEntry qe = q.appendQueueEntry();
+		qe.setQueueEntryID("q12345");
+		qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+		qe.setSubmissionTime(new JDFDate());
+		BambiNSExtension.setReturnJMF(qe, "http://foo");
+		QueueEntryReturn r = qp.new QueueEntryReturn(qe, EnumQueueEntryStatus.Completed);
+		assertFalse(r.returnQueueEntry(null, null));
+		assertFalse(r.returnQueueEntry(null, doc));
+		assertFalse(r.returnQueueEntry(new VString(), doc));
 	}
 
 	/**

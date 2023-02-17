@@ -561,7 +561,7 @@ public class MessageDetails
 		final ByteArrayIOStream bos = new ByteArrayIOStream();
 		final ZipOutputStream zos = new ZipOutputStream(bos);
 		final VElement v = jmf.getChildrenByTagName(null, null, new JDFAttributeMap(AttributeName.URL, "*"), false, false, 0);
-		final String jobID = "Job_" + jdf.getJobID(true) + ".jdf";
+		final String jobID = "Job_" + jdf.getJobID(true) + ".xjdf";
 		if (v != null)
 		{
 			for (final KElement e : v)
@@ -583,7 +583,7 @@ public class MessageDetails
 			xmlJDF = jdf;
 			xmlJMF = jmf;
 		}
-		writeXML(xmlJMF, name + ".jmf", zos);
+		writeXML(xmlJMF, name + ".xjmf", zos);
 		writeXML(xmlJDF, jobID, zos);
 
 		// TODO add extended

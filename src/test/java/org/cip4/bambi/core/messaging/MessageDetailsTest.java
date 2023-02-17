@@ -45,6 +45,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Vector;
+import java.util.zip.ZipEntry;
 
 import javax.mail.BodyPart;
 
@@ -58,6 +60,9 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.extensions.MessageHelper;
+import org.cip4.jdflib.extensions.XJMFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
@@ -303,6 +308,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	public void testStreamZip() throws IOException
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		jmf.getCommand(0).getQueueSubmissionParams(0).setURL("dummy");
 		final JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
 		final ConverterCallback cb = new ConverterCallback();
 		cb.setFixToExtern(EnumVersion.Version_2_0);
@@ -311,7 +317,16 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		final ZipReader zr = ZipReader.getZipReader(is);
 		zr.buffer();
 		assertNotNull(zr);
-		assertEquals(zr.getEntries().size(), 2);
+		Vector<ZipEntry> entries = zr.getEntries();
+		assertEquals(entries.size(), 2);
+		assertNotNull(zr.getMatchingEntry("*.xjmf", 0));
+		XMLDoc xjmf = zr.getXMLDoc();
+		XJMFHelper h = XJMFHelper.getHelper(xjmf);
+		assertNotNull(h);
+
+		MessageHelper mh = h.getMessageHelper(0);
+		assertEquals("Job_2893.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
+		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
 		assertEquals('P', is.read());
 
 	}
