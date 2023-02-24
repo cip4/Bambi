@@ -1272,7 +1272,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	public Vector<JMFHandler> getJMFHandlers()
 	{
 		final Vector<JMFHandler> v = super.getJMFHandlers();
-		v.insertElementAt(_slaveJmfHandler, 0);
+		v.add(_slaveJmfHandler);
 		return v;
 	}
 
