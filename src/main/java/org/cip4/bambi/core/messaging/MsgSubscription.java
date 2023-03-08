@@ -458,6 +458,8 @@ public class MsgSubscription implements Cloneable
 		if (subsub != null)
 		{
 			final JDFJMF jmf = new JDFDoc(ElementName.JMF).getJMFRoot();
+			jmf.setVersion(jdfVersion);
+			jmf.setMaxVersion(jdfVersion);
 			theMessage = (JDFMessage) jmf.copyElement(subsub.getFirstChildElement(), null);
 		}
 		else

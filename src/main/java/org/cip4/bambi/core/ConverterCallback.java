@@ -237,24 +237,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		if (XJDFConstants.XJDF.equals(root.getLocalName()))
 		{
 			log.info("importing xjdf to Bambi");
-			final XJDFToJDFConverter xc = getXJDFImporter();
-			if (xc != null)
-			{
-				doc = xc.convert(root);
-				if (doc != null)
-				{
-					final FixVersion fv = new FixVersion((EnumVersion) null);
-					fv.walkTree(doc.getRoot(), null);
-				}
-				else
-				{
-					log.error("null converted document returned, bailing out");
-				}
-			}
-			else
-			{
-				log.error("null converter returned, bailing out");
-			}
+			return importXJxF(root);
 		}
 		return doc;
 	}
@@ -269,26 +252,35 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		if (XJDFConstants.XJMF.equals(root.getLocalName()))
 		{
 			log.info("importing XJMF to Bambi");
-			final XJDFToJDFConverter xc = getXJDFImporter();
-			if (xc != null)
+			return importXJxF(root);
+		}
+		return doc;
+	}
+
+	protected JDFDoc importXJxF(final KElement root)
+	{
+		final XJDFToJDFConverter xc = getXJDFImporter();
+		if (xc != null)
+		{
+			JDFDoc newdoc = xc.convert(root);
+			if (newdoc != null)
 			{
-				doc = xc.convert(root);
-				if (doc != null)
-				{
-					final FixVersion fv = new FixVersion((EnumVersion) null);
-					fv.walkTree(doc.getRoot(), null);
-				}
-				else
-				{
-					log.error("null converted document returned, bailing out");
-				}
+				final FixVersion fv = new FixVersion((EnumVersion) null);
+				KElement newRoot = newdoc.getRoot();
+				fv.walkTree(newRoot, null);
+				newRoot.setAttribute(AttributeName.MAXVERSION, XJDF20.getDefaultVersion().getName());
+				return newdoc;
 			}
 			else
 			{
-				log.error("null converter returned, bailing out");
+				log.error("null converted document returned, bailing out");
 			}
 		}
-		return doc;
+		else
+		{
+			log.error("null converter returned, bailing out");
+		}
+		return null;
 	}
 
 	/**

@@ -46,13 +46,13 @@ import java.io.File;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
+import org.cip4.bambi.core.ConverterCallback;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.extensions.MessageHelper;
 import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.extensions.XJMFHelper;
-import org.cip4.jdflib.extensions.xjdfwalker.XJDFToJDFConverter;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
@@ -181,8 +181,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final XJMFHelper h = new XJMFHelper();
 		final MessageHelper mh = h.appendMessage(EnumFamily.Query, EnumType.Status);
 		mh.appendElement(ElementName.SUBSCRIPTION).setAttribute("URL", "http://u2/abc");
-		final XJDFToJDFConverter xc = new XJDFToJDFConverter(null);
-		final JDFDoc d = xc.convert(h.getRoot());
+		final JDFDoc d = new ConverterCallback().prepareJMFForBambi(new JDFDoc(h.getRoot().getOwnerDocument()));
 		final JDFJMF jmf = d.getJMFRoot();
 		final JDFQuery query = jmf.getQuery(0);
 		query.setID("q");
@@ -198,6 +197,37 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final MsgSubscription sloaded = d2.getSubscription("q");
 		assertEquals(XJDFHelper.defaultVersion(), sloaded.getJdfVersion());
 		assertNull(sloaded.jmfDeviceID);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testXJMFCallback()
+	{
+		final SignalDispatcher dis = new SignalDispatcher(new BambiTestDevice());
+		dis.reset();
+		File dir = new File(sm_dirTestDataTemp + "subs5");
+		FileUtil.deleteAll(dir);
+		final SubscriptionStore ss = new SubscriptionStore(dis, dir);
+
+		final XJMFHelper h = new XJMFHelper();
+		final MessageHelper mh = h.appendMessage(EnumFamily.Query, EnumType.Status);
+		mh.appendElement(ElementName.SUBSCRIPTION).setAttribute("URL", "http://u2/abc");
+		final JDFDoc d = new ConverterCallback().prepareJMFForBambi(new JDFDoc(h.getRoot().getOwnerDocument()));
+		final JDFJMF jmf = d.getJMFRoot();
+		final JDFQuery query = jmf.getQuery(0);
+		query.setID("q");
+		final MsgSubscription s = new MsgSubscription(null, query, null);
+		assertEquals(XJDFHelper.defaultVersion(), s.getQuery().getMaxVersion(true));
+		dis.addSubscription(query, null, null);
+		ss.persist();
+
+		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
+		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
+		ss2.load();
+		final MsgSubscription sloaded = d2.getSubscription("q");
+		assertEquals(XJDFHelper.defaultVersion(), sloaded.getQuery().getMaxVersion(true));
 	}
 
 }
