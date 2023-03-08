@@ -75,6 +75,7 @@ package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.cip4.jdflib.core.AttributeName;
@@ -161,6 +162,16 @@ public class NetResponseTest
 		jw2.addArray("foo");
 		assertFalse(jw1.equals(jw2));
 		assertNull(r2.setJSON(false));
+	}
+
+	@Test
+	public void testGetJSonWriter()
+	{
+		assertNotNull(NetResponse.getJW("XJDF"));
+		assertNotNull(NetResponse.getJW("XJMF"));
+		assertNotNull(NetResponse.getJW("PrintTalk"));
+		assertNotNull(NetResponse.getJW("Fuu"));
+		assertNotNull(NetResponse.getJW(null));
 	}
 
 }

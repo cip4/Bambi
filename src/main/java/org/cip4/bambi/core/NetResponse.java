@@ -199,7 +199,10 @@ public class NetResponse extends XMLResponse
 			theJW.setWantArray(false);
 			theJW.addStringArray(AttributeName.TYPES);
 			theJW.addStringArray(AttributeName.VALUELIST);
-
+			if ("xjdf".equals(nodeName) || "xjmf".equals(nodeName) || "printalk".equals(nodeName))
+			{
+				theJW.setXJDF();
+			}
 		}
 		return theJW;
 	}
