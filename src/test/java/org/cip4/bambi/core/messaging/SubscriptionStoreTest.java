@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2020 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -58,6 +58,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.util.FileUtil;
 import org.junit.Test;
 
 /**
@@ -97,7 +98,9 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	{
 		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
 		d.reset();
-		final SubscriptionStore ss = new SubscriptionStore(d, new File(sm_dirTestDataTemp + "subs"));
+		File dir = new File(sm_dirTestDataTemp + "subs1");
+		FileUtil.deleteAll(dir);
+		final SubscriptionStore ss = new SubscriptionStore(d, dir);
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://abc.com", 0, 0, null);
 		final JDFQuery q = jmf.getQuery(0);
 		q.setID("q");
@@ -107,7 +110,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		ss.persist();
 
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
-		final SubscriptionStore ss2 = new SubscriptionStore(d2, new File(sm_dirTestDataTemp + "subs"));
+		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
 		ss2.load();
 		assertEquals("Bar", ((JDFQuery) d2.getSubscriptionMessage("q")).getSubscription().getAttribute("Foo"));
 
@@ -120,7 +123,9 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	public void testLoad()
 	{
 		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
-		final SubscriptionStore ss = new SubscriptionStore(d, new File(sm_dirTestDataTemp + "subs"));
+		File dir = new File(sm_dirTestDataTemp + "subs2");
+		FileUtil.deleteAll(dir);
+		final SubscriptionStore ss = new SubscriptionStore(d, dir);
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://abc.com", 0, 0, null);
 		final JDFQuery q = jmf.getQuery(0);
 		q.setID("q");
@@ -129,7 +134,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		ss.persist();
 
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
-		final SubscriptionStore ss2 = new SubscriptionStore(d2, new File(sm_dirTestDataTemp + "subs"));
+		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
 		ss2.load();
 		assertEquals("q", d2.getChannels(null, null, null).iterator().next());
 
@@ -143,7 +148,9 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	{
 		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
 		d.reset();
-		final SubscriptionStore ss = new SubscriptionStore(d, new File(sm_dirTestDataTemp + "subs"));
+		File dir = new File(sm_dirTestDataTemp + "subs3");
+		FileUtil.deleteAll(dir);
+		final SubscriptionStore ss = new SubscriptionStore(d, dir);
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://abc.com", 0, 0, null);
 		final JDFQuery q = jmf.getQuery(0);
 		q.setID("q");
@@ -153,7 +160,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		ss.persist();
 
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
-		final SubscriptionStore ss2 = new SubscriptionStore(d2, new File(sm_dirTestDataTemp + "subs"));
+		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
 		ss2.load();
 		assertEquals(EnumVersion.Version_2_0, d2.getSubscription("q").getJdfVersion());
 
@@ -167,7 +174,9 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	{
 		final SignalDispatcher dis = new SignalDispatcher(new BambiTestDevice());
 		dis.reset();
-		final SubscriptionStore ss = new SubscriptionStore(dis, new File(sm_dirTestDataTemp + "subs2"));
+		File dir = new File(sm_dirTestDataTemp + "subs4");
+		FileUtil.deleteAll(dir);
+		final SubscriptionStore ss = new SubscriptionStore(dis, dir);
 
 		final XJMFHelper h = new XJMFHelper();
 		final MessageHelper mh = h.appendMessage(EnumFamily.Query, EnumType.Status);
@@ -184,7 +193,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		ss.persist();
 
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
-		final SubscriptionStore ss2 = new SubscriptionStore(d2, new File(sm_dirTestDataTemp + "subs2"));
+		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
 		ss2.load();
 		final MsgSubscription sloaded = d2.getSubscription("q");
 		assertEquals(XJDFHelper.defaultVersion(), sloaded.getJdfVersion());
