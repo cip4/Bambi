@@ -741,7 +741,7 @@ public class SignalDispatcher extends BambiLogFactory
 			final String senderID = sf == null ? null : StringUtil.getNonEmpty(sf.getDeviceID());
 			final String qeID = sf == null ? null : StringUtil.getNonEmpty(sf.getQueueEntryID());
 
-			final Set<String> ss = getChannels(null, senderID, qeID);
+			final Set<String> ss = getAllChannels(null, senderID, qeID);
 			final Collection<MsgSubscription> v = ContainerUtil.toArrayList(subscriptionMap);
 			if (v != null)
 			{
@@ -895,10 +895,19 @@ public class SignalDispatcher extends BambiLogFactory
 	 * @param subMess
 	 * @param queueEntryID
 	 * @return
-	 * @deprecated
 	 */
-	@Deprecated
-	public synchronized String addSubscription(final IJMFSubscribable subMess, final String queueEntryID)
+	public String addSubscription(final IJMFSubscribable subMess)
+	{
+		return addSubscription(subMess, null, null);
+	}
+
+	/**
+	 *
+	 * @param subMess
+	 * @param queueEntryID
+	 * @return
+	 */
+	public String addSubscription(final IJMFSubscribable subMess, final String queueEntryID)
 	{
 		return addSubscription(subMess, queueEntryID, null);
 	}
@@ -1390,26 +1399,63 @@ public class SignalDispatcher extends BambiLogFactory
 	 */
 	public Set<String> getChannels(final EnumType typ, final String senderID, final String queueEntryID)
 	{
+		final String typNam = typ == null ? null : typ.getName();
+		return getAllChannels(typNam, senderID, queueEntryID);
+	}
+
+	/**
+	 * return all subscription channels for a given message type and device id
+	 *
+	 * @param typ the message type filter
+	 * @param senderID the senderid filter
+	 * @param queueEntryID
+	 * @return set of channelID values that match the filters
+	 */
+	public Set<String> getAllChannels(final String typNam, final String senderID, final String queueEntryID)
+	{
 		final Set<String> knownKeys = new HashSet<>();
-		if (!subscriptionMap.isEmpty())
+		synchronized (subscriptionMap)
 		{
-			final String typNam = typ == null ? null : typ.getName();
-			synchronized (subscriptionMap)
+			final Set<Entry<String, MsgSubscription>> entries = subscriptionMap.entrySet();
+			for (Entry<String, MsgSubscription> entry : entries)
 			{
-				final Set<String> keySet = subscriptionMap.keySet();
-				for (final String key : keySet)
+				final MsgSubscription sub = entry.getValue();
+				boolean bMatch = sub.matchesQueueEntry(queueEntryID);
+				bMatch = bMatch && (typNam == null || typNam.equals(sub.getMessageType()));
+				bMatch = bMatch && (senderID == null || sub.jmfDeviceID == null || sub.jmfDeviceID.equals(senderID));
+				if (bMatch)
 				{
-					final MsgSubscription sub = subscriptionMap.get(key);
-					boolean bMatch = sub.matchesQueueEntry(queueEntryID);
-					bMatch = bMatch && (typNam == null || typNam.equals(sub.getMessageType()));
-					bMatch = bMatch && (senderID == null || sub.jmfDeviceID == null || sub.jmfDeviceID.equals(senderID));
-					if (bMatch)
-					{
-						knownKeys.add(key);
-					}
+					knownKeys.add(entry.getKey());
 				}
 			}
 		}
+
+		return knownKeys;
+	}
+
+	/**
+	 * return all subscription channels for a given message type and device id
+	 *
+	 * @param messageTypeName the message type filter
+	 * @return set of channelID values that match the filters
+	 */
+	public Set<String> getChannels(final String messageTypeName)
+	{
+		final Set<String> knownKeys = new HashSet<>();
+		synchronized (subscriptionMap)
+		{
+			final Set<Entry<String, MsgSubscription>> entries = subscriptionMap.entrySet();
+			for (Entry<String, MsgSubscription> entry : entries)
+			{
+				final MsgSubscription sub = entry.getValue();
+				boolean bMatch = messageTypeName == null || messageTypeName.equals(sub.getMessageType());
+				if (bMatch)
+				{
+					knownKeys.add(entry.getKey());
+				}
+			}
+		}
+
 		return knownKeys;
 	}
 

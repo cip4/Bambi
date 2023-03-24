@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -113,6 +113,26 @@ public class SignalDispatcherTest extends BambiTestCase
 	 *
 	 */
 	@Test
+	public void testAddSubscriptionNonJDF()
+	{
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
+		jmf.getMessageElement(EnumFamily.Query, null, 0).setType("foobar");
+		final JDFQuery q = jmf.getQuery(0);
+		final JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(1.0);
+		s.setURL("http://localhost:8080/httpdump/");
+		assertNotNull(dispatcher.addSubscription(q, null, null));
+		assertNull(dispatcher.addSubscription(q, null, null));
+		s.setRepeatTime(5.0);
+		q.setID("1234");
+		assertNotNull(dispatcher.addSubscription(q, null, null));
+		dispatcher.shutdown();
+	}
+
+	/**
+	 *
+	 */
+	@Test
 	public void testAddSubscriptionDevID()
 	{
 		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
@@ -146,15 +166,15 @@ public class SignalDispatcherTest extends BambiTestCase
 		s.setRepeatTime(1.0);
 		s.setURL("http://localhost:8080/httpdump/");
 
-		assertNotNull(dispatcher.addSubscription(q, null));
-		assertNull(dispatcher.addSubscription(q, null));
+		assertNotNull(dispatcher.addSubscription(q, null, null));
+		assertNull(dispatcher.addSubscription(q, null, null));
 		MsgSubscription.setSpecific(false);
 		s.setRepeatTime(5.0);
 		for (int i = 0; i < 42; i++)
 		{
 			q.setID("q" + i);
 			sqp.setQueueEntryID("q" + i);
-			assertNull(dispatcher.addSubscription(q, "q" + i));
+			assertNull(dispatcher.addSubscription(q, "q" + i, null));
 		}
 		dispatcher.shutdown();
 	}
@@ -172,14 +192,14 @@ public class SignalDispatcherTest extends BambiTestCase
 		s.setRepeatTime(1.0);
 		s.setURL("http://localhost:8080/httpdump/");
 
-		assertNotNull(dispatcher.addSubscription(q, null));
-		assertNull(dispatcher.addSubscription(q, null));
+		assertNotNull(dispatcher.addSubscription(q));
+		assertNull(dispatcher.addSubscription(q));
 		MsgSubscription.setSpecific(true);
 		for (int i = 0; i < 42; i++)
 		{
 			sqp.setQueueEntryID("q" + i);
 			q.setID("q" + i);
-			assertNotNull(dispatcher.addSubscription(q, "q" + i));
+			assertNotNull(dispatcher.addSubscription(q, "q" + i, null));
 		}
 		dispatcher.shutdown();
 	}
@@ -196,9 +216,11 @@ public class SignalDispatcherTest extends BambiTestCase
 		s.setRepeatTime(1.0);
 		s.setURL("http://localhost:8080/httpdump/");
 		assertEquals(0, dispatcher.getChannels(EnumType.KnownMessages, null, null).size());
-		dispatcher.addSubscription(q, null);
+		dispatcher.addSubscription(q, null, null);
 		assertEquals(1, dispatcher.getChannels(EnumType.KnownMessages, null, null).size());
 		assertEquals(0, dispatcher.getChannels(EnumType.Resource, null, null).size());
+		assertEquals(1, dispatcher.getAllChannels(EnumType.KnownMessages.getName(), null, null).size());
+		assertEquals(0, dispatcher.getAllChannels(EnumType.Resource.getName(), null, null).size());
 	}
 
 	/**
@@ -247,7 +269,7 @@ public class SignalDispatcherTest extends BambiTestCase
 		s.setURL("http://localhost:8080/httpdump/");
 		assertFalse(dispatcher.hasSubscription(EnumType.KnownMessages));
 		assertFalse(dispatcher.hasSubscription(null));
-		dispatcher.addSubscription(q, null);
+		dispatcher.addSubscription(q, null, null);
 		assertTrue(dispatcher.hasSubscription(null));
 		assertTrue(dispatcher.hasSubscription(EnumType.KnownMessages));
 	}

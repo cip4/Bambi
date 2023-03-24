@@ -136,7 +136,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
 		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
 		ss2.load();
-		assertEquals("q", d2.getChannels(null, null, null).iterator().next());
+		assertEquals("q", d2.getAllChannels(null, null, null).iterator().next());
 
 	}
 

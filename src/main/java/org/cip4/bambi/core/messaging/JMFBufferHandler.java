@@ -388,7 +388,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	{
 		final String qeID = getQueueEntryIDForSignal(inSignal);
 		final SignalDispatcher dispatcher = getDispatcher();
-		final Set<String> requests = dispatcher == null ? null : dispatcher.getChannels(inSignal.getEnumType(), inSignal.getSenderID(), qeID);
+		final Set<String> requests = dispatcher == null ? null : dispatcher.getAllChannels(inSignal.getType(), inSignal.getSenderID(), qeID);
 		final MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
 
 		if (mi != null)
@@ -604,7 +604,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			{
 				JDFSignal inSignal = (JDFSignal) e;
 				final String qeID = getQueueEntryIDForSignal(inSignal);
-				final Set<String> requests = getDispatcher().getChannels(theSignal.getEnumType(), inSignal.getSenderID(), qeID);
+				final Set<String> requests = getDispatcher().getAllChannels(theSignal.getType(), inSignal.getSenderID(), qeID);
 				final MessageIdentifier[] messageIdentifiers = new MessageIdentifier(inSignal, null).cloneChannels(requests);
 				if (messageIdentifiers != null)
 				{
