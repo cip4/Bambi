@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -73,47 +73,50 @@ package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 
-import org.apache.commons.io.IOUtils;
-import org.cip4.bambi.BambiTestCase;
-import org.cip4.jdflib.core.XMLDoc;
-import org.cip4.jdflib.util.UrlUtil;
-import org.junit.Ignore;
+import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.bambi.server.BambiServer;
 import org.junit.Test;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  * 
- * 16.02.2009
+ *         16.02.2009
  */
-public class BambiServletTest extends BambiTestCase
+public class BambiServletTest extends BambiTestCaseBase
 {
 
 	/**
+	 * @throws Exception
 	 * @throws IOException
+	 * @throws Exception
 	 * 
 	 */
-    @Test
-	@Ignore
-	public void testUnknownContentType() throws IOException
+	@Test
+	public void testCreate() throws Exception
 	{
-		final XMLDoc d = new XMLDoc("test", null);
-		d.getRoot().setText("Some odd message");
-		final HttpURLConnection uc = d.write2HTTPURL(UrlUtil.stringToURL(getWorkerURL()), UrlUtil.TEXT_HTML, null);
-		assertNotNull(uc);
-		final InputStream is = uc.getInputStream();
-		assertNotNull(is);
-		final int n = IOUtils.copy(is, System.out);
-		assertTrue("easily more than 100 chars", n > 100);
+		BambiServer s = new BambiServer();
+		assertNotNull(new BambiServlet(s));
 	}
 
 	/**
-	 * @throws BambiException 
+	 * @throws Exception
+	 * @throws IOException
+	 * @throws Exception
+	 * 
+	 */
+	@Test
+	public void testCreateContainer() throws Exception
+	{
+		BambiServer s = new BambiServer();
+		assertNotNull(new BambiServlet(s));
+		assertNotNull(BambiContainer.getInstance());
+	}
+
+	/**
+	 * @throws BambiException
 	 * 
 	 * 
 	 */
@@ -122,5 +125,7 @@ public class BambiServletTest extends BambiTestCase
 	{
 		System.setProperty("foo", "/a/b/c");
 		assertEquals(BambiServlet.parseEnv("%foo/bar"), "/a/b/c/bar");
+		assertEquals("/bar", BambiServlet.parseEnv("/bar"));
+		assertEquals(null, BambiServlet.parseEnv(null));
 	}
 }

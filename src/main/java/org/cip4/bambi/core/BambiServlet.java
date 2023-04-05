@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -55,6 +55,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.server.BambiServer;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.PlatformUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
@@ -66,6 +67,7 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public final class BambiServlet extends HttpServlet
 {
+	public static final String BAMBI_DUMP = "bambiDump";
 	/**
 	 *
 	 */
@@ -78,12 +80,12 @@ public final class BambiServlet extends HttpServlet
 	public BambiServlet(final BambiServer bambiServer)
 	{
 		super();
-		log = LogFactory.getLog(getClass());
 		BambiContainer.getCreateInstance();
 		theServer = bambiServer;
 	}
 
-	final Log log;
+	final static Log log = LogFactory.getLog(BambiServlet.class);
+
 	private boolean dumpGet = false;
 	private boolean dumpEmpty = false;
 	private DumpDir bambiDumpIn = null;
@@ -134,12 +136,12 @@ public final class BambiServlet extends HttpServlet
 		return baseURL;
 	}
 
-	private String initializeDumps(final ServletConfig config, final File baseDir)
+	String initializeDumps(final ServletConfig config, final File baseDir)
 	{
-		String dump = System.getProperty("bambiDump");
+		String dump = PlatformUtil.getProperty(BAMBI_DUMP);
 		if (dump == null)
 		{
-			dump = config.getInitParameter("bambiDump");
+			dump = config.getInitParameter(BAMBI_DUMP);
 			log.info("retrieving bambidump from servlet config: " + dump);
 		}
 		else
@@ -194,15 +196,13 @@ public final class BambiServlet extends HttpServlet
 		if (posS == 999999)
 			return dump;
 		final String env = dump.substring(1, posS);
-		String newBase = System.getProperty(env);
-		if (newBase == null)
-			newBase = System.getenv(env);
+		String newBase = PlatformUtil.getProperty(env);
 		if (newBase == null)
 		{
-			LogFactory.getLog(BambiServlet.class).warn("could not evaluate environment variable, keeping literal : " + env);
+			log.warn("could not evaluate environment variable, keeping literal : " + env);
 			return dump.substring(1);
 		}
-		LogFactory.getLog(BambiServlet.class).debug("evaluated environment variable " + env + " to: " + newBase);
+
 		return newBase + dump.substring(posS);
 	}
 
@@ -214,7 +214,7 @@ public final class BambiServlet extends HttpServlet
 	 * @throws IOException
 	 */
 	@Override
-	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws IOException
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response)
 	{
 		try
 		{
@@ -232,7 +232,7 @@ public final class BambiServlet extends HttpServlet
 	 * @param bPost only used for dumping
 	 * @throws IOException
 	 */
-	public boolean doGetPost(final HttpServletRequest request, final HttpServletResponse response, final boolean bPost) throws IOException
+	public boolean doGetPost(final HttpServletRequest request, final HttpServletResponse response, final boolean bPost)
 	{
 		boolean processed = false;
 		try
@@ -348,7 +348,7 @@ public final class BambiServlet extends HttpServlet
 	 * @throws IOException
 	 */
 	@Override
-	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
 	{
 		try
 		{
@@ -365,7 +365,7 @@ public final class BambiServlet extends HttpServlet
 	 * @see javax.servlet.http.HttpServlet#doHead(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void doHead(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+	protected void doHead(final HttpServletRequest request, final HttpServletResponse response)
 	{
 		try
 		{
@@ -382,7 +382,7 @@ public final class BambiServlet extends HttpServlet
 	 * @see javax.servlet.http.HttpServlet#doHead(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+	protected void doPut(final HttpServletRequest request, final HttpServletResponse response)
 	{
 		try
 		{
@@ -399,7 +399,7 @@ public final class BambiServlet extends HttpServlet
 	 * @see javax.servlet.http.HttpServlet#doHead(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response)
 	{
 		try
 		{
@@ -416,7 +416,7 @@ public final class BambiServlet extends HttpServlet
 	 * @see javax.servlet.http.HttpServlet#doHead(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void doOptions(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+	protected void doOptions(final HttpServletRequest request, final HttpServletResponse response)
 	{
 		try
 		{
@@ -433,7 +433,7 @@ public final class BambiServlet extends HttpServlet
 	 * @see javax.servlet.http.HttpServlet#doHead(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void doTrace(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+	protected void doTrace(final HttpServletRequest request, final HttpServletResponse response)
 	{
 		try
 		{

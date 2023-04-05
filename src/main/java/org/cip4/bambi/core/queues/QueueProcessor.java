@@ -49,8 +49,6 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.mail.MessagingException;
-
 import org.apache.commons.lang.StringUtils;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiLogFactory;
@@ -85,6 +83,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.extensions.XJDFZipReader;
+import org.cip4.jdflib.ifaces.IURLSetter;
 import org.cip4.jdflib.jmf.JDFAbortQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFFlushQueueInfo;
@@ -439,41 +438,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		protected JDFDoc getDocFromMessage(final JDFMessage m)
 		{
 			final JDFQueueSubmissionParams qsp = m == null ? null : m.getQueueSubmissionParams(0);
-			JDFDoc doc = qsp == null ? null : qsp.getURLDoc();
-			if (doc == null && qsp != null)
-			{
-				final String url = qsp.getURL();
-				if (!StringUtil.isEmpty(url))
-				{
-					final ZipReader zipReader = qsp.getOwnerDocument_KElement().getZipReader();
-					doc = getDocFromXJDFZip(url, zipReader);
-					if (doc == null)
-					{
-						final URLReader r = new URLReader(url);
-						try
-						{
-							r.setBodyPart(m.getOwnerDocument_JDFElement().getMultiPart().getBodyPart(0));
-						}
-						catch (final MessagingException e1)
-						{
-							// nop
-						}
-						final JSONReader jr = new JSONReader();
-						jr.setXJDF();
-						final KElement e = jr.getElement(r.getURLInputStream());
-						if (e != null)
-						{
-							doc = new JDFDoc(e.getOwnerDocument());
-						}
-					}
-				}
-			}
-			final IConverterCallback callback = doc == null ? null : _parentDevice.getCallback(null);
-			if (callback != null)
-			{
-				doc = callback.prepareJDFForBambi(doc);
-			}
-			return doc;
+			JDFDoc doc = getRawDocFromMessage(m, qsp);
+			return updateDoc(doc, m);
 		}
 
 		/**
@@ -615,19 +581,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		protected JDFDoc getDocFromMessage(final JDFMessage m)
 		{
 			final JDFResubmissionParams rsp = m.getResubmissionParams(0);
-			JDFDoc doc = rsp == null ? null : rsp.getURLDoc();
-			if (doc == null && rsp != null)
-			{
-				final String url = rsp.getURL();
-				final ZipReader zipReader = rsp.getOwnerDocument_KElement().getZipReader();
-				doc = getDocFromXJDFZip(url, zipReader);
-			}
-			final IConverterCallback callback = doc == null ? null : _parentDevice.getCallback(null);
-			if (callback != null)
-			{
-				doc = callback.prepareJDFForBambi(doc);
-			}
-			return doc;
+			JDFDoc doc = getRawDocFromMessage(m, rsp);
+			return updateDoc(doc, m);
 		}
 
 		/**
@@ -2977,6 +2932,43 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			return "QueueEntryReturn [status=" + qe.getQueueEntryStatus() + ", queueEntryID=" + queueEntryID + "]";
 		}
+	}
+
+	protected JDFDoc getRawDocFromMessage(final JDFMessage m, final IURLSetter qsp)
+	{
+		String url = qsp == null ? null : qsp.getURL();
+		if (!StringUtil.isEmpty(url))
+		{
+			final URLReader r = new URLReader(url, m.getOwnerDocument_JDFElement());
+			JDFDoc doc = r.getJDFDoc();
+			if (doc == null)
+			{
+				final ZipReader zipReader = m.getOwnerDocument_KElement().getZipReader();
+				doc = getDocFromXJDFZip(url, zipReader);
+				if (doc == null)
+				{
+					final JSONReader jr = new JSONReader();
+					jr.setXJDF();
+					final KElement e = jr.getElement(r.getURLInputStream());
+					if (e != null)
+					{
+						doc = new JDFDoc(e.getOwnerDocument());
+					}
+				}
+			}
+			return doc;
+		}
+		return null;
+	}
+
+	protected JDFDoc updateDoc(JDFDoc doc, JDFMessage m)
+	{
+		final IConverterCallback callback = doc == null ? null : _parentDevice.getCallback(null);
+		if (callback != null)
+		{
+			doc = callback.prepareJDFForBambi(doc);
+		}
+		return doc;
 	}
 
 	/**

@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -41,19 +41,21 @@ import static org.junit.Assert.assertNotNull;
 import org.cip4.bambi.BambiTestCaseBase;
 import org.junit.Test;
 
-public class BambiServiceTest extends BambiTestCaseBase
+public class BambiServerTest extends BambiTestCaseBase
 {
 
 	@Test
-	public void testCreate()
+	public void testCreate() throws Exception
 	{
-		assertNotNull(new BambiService());
+		BambiServer s = new BambiServer();
+		assertNotNull(s);
 	}
 
 	@Test
-	public void testToString()
+	public void testToString() throws Exception
 	{
-		assertNotNull(new BambiService().toString());
+		BambiServer s = new BambiServer();
+		assertNotNull(s.toString());
 	}
 
 }

@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -82,6 +82,7 @@ import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MyArgs;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdfutility.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
@@ -139,11 +140,10 @@ public class BambiServer extends JettyServer
 		final UserDir userDir = getUserDir();
 		final String toolPath = getToolPath();
 		final File toolDir = new File(toolPath);
-		final MultiDeviceProperties mpTmp;
 		if (MultiDeviceProperties.getXMLDoc(toolDir) != null)
 		{
 			log.info("loading local file from: " + toolDir.getAbsolutePath());
-			mpTmp = MultiDeviceProperties.getProperties(toolDir, null);
+			mp = MultiDeviceProperties.getProperties(toolDir, null);
 		}
 		else
 		{
@@ -153,9 +153,8 @@ public class BambiServer extends JettyServer
 			{
 				log.fatal("invalid resource stream ");
 			}
-			mpTmp = MultiDeviceProperties.getProperties(resourceAsStream);
+			mp = MultiDeviceProperties.getProperties(resourceAsStream);
 		}
-		mp = mpTmp;
 
 		unpackResourceList(userDir);
 
@@ -184,7 +183,7 @@ public class BambiServer extends JettyServer
 		}
 
 		setContext(root.getAttribute("Context", null, null));
-		if (context == null || "".equals(context))
+		if (StringUtil.isEmpty(context))
 		{
 			final String logString = "no context specified for servlet, bailing out";
 			log.fatal(logString);
