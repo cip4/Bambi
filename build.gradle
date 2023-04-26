@@ -57,7 +57,7 @@ dependencies {
     implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:1.1.+'
     implementation 'org.cip4.lib.jdf:JDFLibJ:2.1.7.+'
     implementation 'org.eclipse.jetty:jetty-servlet:10.0.14'
-    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    implementation ('com.googlecode.json-simple:json-simple:1.1.1'){transitive=false}
     implementation 'commons-logging:commons-logging-api:1.1'
     implementation 'commons-lang:commons-lang:2.6'
     implementation 'commons-io:commons-io:2.11.0'

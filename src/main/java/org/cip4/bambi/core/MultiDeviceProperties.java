@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -716,9 +716,9 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 *
 	 * @return the subclass instance, this if @PropertiesName is not set
 	 */
-	private MultiDeviceProperties getSubClass()
+	MultiDeviceProperties getSubClass()
 	{
-		final String propName = root.getAttribute("PropertiesName", null, null);
+		final String propName = root == null ? null : root.getAttribute("PropertiesName", null, null);
 		if (propName == null)
 		{
 			return this;
