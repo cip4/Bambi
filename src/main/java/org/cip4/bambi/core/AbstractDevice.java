@@ -1339,11 +1339,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public StatusListener getStatusListener(final int i)
 	{
-		if (_deviceProcessors == null || i >= _deviceProcessors.size())
-		{
-			return null;
-		}
-		return _deviceProcessors.get(i).getStatusListener();
+		AbstractDeviceProcessor dev = ContainerUtil.get(_deviceProcessors, i);
+		return dev == null ? null : dev.getStatusListener();
 	}
 
 	/**
