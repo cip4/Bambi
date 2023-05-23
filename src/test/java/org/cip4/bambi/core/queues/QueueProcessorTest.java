@@ -91,6 +91,7 @@ import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.queues.QueueProcessor.QueueEntryReturn;
 import org.cip4.bambi.core.queues.QueueProcessor.SubmitQueueEntryHandler;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VString;
@@ -171,6 +172,26 @@ public class QueueProcessorTest extends BambiTestCase
 		final JDFQueueEntry qe = q.appendQueueEntry();
 		qe.setQueueEntryID("q12345");
 		qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+		qe.setSubmissionTime(new JDFDate());
+		QueueEntryReturn r = qp.new QueueEntryReturn(qe, EnumQueueEntryStatus.Completed);
+		assertFalse(r.returnJMF(null, null));
+		assertFalse(r.returnJMF(doc, null));
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testQEReturnBadNS()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		final JDFQueue q = qp.getQueue();
+		final JDFQueueEntry qe = q.appendQueueEntry();
+		qe.setQueueEntryID("q12346");
+		qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+		qe.setAttributeRaw(AttributeName.XMLNS, "foo");
 		qe.setSubmissionTime(new JDFDate());
 		QueueEntryReturn r = qp.new QueueEntryReturn(qe, EnumQueueEntryStatus.Completed);
 		assertFalse(r.returnJMF(null, null));
