@@ -2174,9 +2174,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		final JDFResponse r2;
 		synchronized (_theQueue)
 		{
-			r2 = qsp.addEntry(getQueue(), null, submitQueueEntry.getQueueFilter(0));
+			JDFQueue queue = getQueue();
+			r2 = qsp.addEntry(queue, null, submitQueueEntry.getQueueFilter(0));
+			setQueue(queue);
 		}
-
 		if (newResponse != null)
 		{
 			newResponse.copyInto(r2, false);
@@ -2233,7 +2234,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	{
 		if (!StringUtil.isEmpty(qeID))
 		{
-			JDFQueueEntry ret = null;
 			for (int i = 1; i < 42; i++)
 			{
 				synchronized (getMutexForQE(newQE))
