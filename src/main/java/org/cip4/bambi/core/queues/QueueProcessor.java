@@ -1985,7 +1985,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				log.debug("no pull entry waiting");
 				theEntry = null;
 			}
-			if (theEntry != null)
+		}
+		if (theEntry != null)
+		{
+			IQueueEntry iQueueEntry = getIQueueEntry(theEntry);
+			if (iQueueEntry != null)
 			{
 				final String proxyFlag = BambiNSExtension.getMyNSString(BambiNSExtension.deviceURL);
 				if (proxyFlag != null)
@@ -1993,9 +1997,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					theEntry.setAttribute(proxyFlag, "true");
 				}
 				log.info("new qe: " + theEntry.getQueueEntryID());
+				return iQueueEntry;
 			}
 		}
-		return getIQueueEntry(theEntry);
+		return null;
 	}
 
 	/**
