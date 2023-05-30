@@ -1645,6 +1645,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	private RollingBackupFile _queueFile = null;
+
+	protected RollingBackupFile getQueueFile()
+	{
+		return _queueFile;
+	}
+
 	boolean lastinvert = false;
 	String lastSortBy = null;
 	int lastPos = 0;
