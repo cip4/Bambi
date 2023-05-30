@@ -345,7 +345,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	@Override
 	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
 	{
-		currentQE = null;
+		setCurrentQE(null);
 		IProxyProperties properties = getParent().getProperties();
 		String slaveURL = getParent().getSlaveURL();
 		if (!canProcess())

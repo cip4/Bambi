@@ -118,9 +118,10 @@ import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * also used for resubmitqueueentry
+ * 
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  *
- * before 13.02.2009
+ *         before 13.02.2009
  */
 public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 {
@@ -145,6 +146,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 	/**
 	 * get the currently set activation
+	 * 
 	 * @return the currently set activation
 	 */
 	public EnumActivation getActivation()
@@ -154,6 +156,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 	/**
 	 * get the currently set activation
+	 * 
 	 * @return true if this is a "live" submission rather than informative
 	 */
 	public boolean isLive()
@@ -164,6 +167,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	/**
 	 *
 	 * set the activation for submission,
+	 * 
 	 * @param activation the activation to set - if null assume Active
 	 */
 	public void setActivation(EnumActivation activation)
@@ -189,6 +193,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 	/**
 	 * get the JMF Builder for messages to the slave device
+	 * 
 	 * @return the JMF Builder for messages to the slave device
 	 */
 	protected JMFBuilder getBuilderForSlave()
@@ -237,7 +242,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 		log.info("Submitted to slave " + slaveDeviceID + " qe: " + slaveQEID);
 		getParent().addSlaveSubscriptions(0, slaveQEID, false);
-		final JDFQueueEntry qe = currentQE.getQueueEntry();
+		final JDFQueueEntry qe = getQueueEntry();
 		BambiNSExtension.setSlaveSubmissionTime(qe, new JDFDate());
 		BambiNSExtension.setDeviceURL(qe, slaveURL);
 		qe.setStatusDetails(AbstractProxyDevice.SUBMITTED);
@@ -396,7 +401,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 		/**
 		 * @param url
-		*/
+		 */
 		public QueueSubmitter(String url)
 		{
 			this.qurl = UrlUtil.stringToURL(url);
@@ -415,7 +420,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		 */
 		public IQueueEntry submitToQueue()
 		{
-			log.info("Submitting " + (isMime ? "mime" : "jdf") + " qe " + currentQE.getQueueEntryID() + " " + (qurl == null ? "null url" : qurl.toExternalForm()));
+			log.info("Submitting " + (isMime ? "mime" : "jdf") + " qe " + getQueueEntryID() + " " + (qurl == null ? "null url" : qurl.toExternalForm()));
 			final AbstractProxyDevice proxyParent = getParent();
 			final String deviceURLForSlave = proxyParent.getDeviceURLForSlave();
 			final JDFJMF jmf = getBuilderForSlave().buildSubmitQueueEntry(deviceURLForSlave);
@@ -431,7 +436,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			final JDFNode node = getCloneJDFForSlave(); // the retained internal node
 
 			setJDFURL(isMime, queueSubParams, node);
-			final JDFQueueEntry qe = currentQE.getQueueEntry();
+			final JDFQueueEntry qe = getQueueEntry();
 			if (qe != null)
 			{
 				if (node != null)
@@ -478,6 +483,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		/**
 		 *
 		 * copy details from queueentry to queuesubmissionparams
+		 * 
 		 * @param qsp the queuesubmissionparams to fill
 		 * @param deviceOutputHF the device output hot folder, if any
 		 */
@@ -487,7 +493,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			{
 				qsp.setReturnURL(deviceOutputHF.getPath());
 			}
-			final JDFQueueEntry qe = currentQE.getQueueEntry();
+			final JDFQueueEntry qe = getQueueEntry();
 			if (qe != null)
 			{
 				qsp.copyAttribute(AttributeName.PRIORITY, qe);
@@ -641,7 +647,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			String jdfURL = proxyParent.getDeviceURL();
 			jdfURL = StringUtil.replaceString(jdfURL, "/jmf/", "/showJDF/");
 			modNode.getOwnerDocument_KElement().write2File((String) null, 0, true);
-			jdfURL += "?Callback=true&raw=true&activation=" + activation.getName() + "&qeID=" + currentQE.getQueueEntryID();
+			jdfURL += "?Callback=true&raw=true&activation=" + activation.getName() + "&qeID=" + getQueueEntryID();
 			qsp.setURL(jdfURL);
 		}
 	}
@@ -651,10 +657,10 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 */
 	protected JDFNode getCloneJDFForSlave()
 	{
-		final JDFNode nod = currentQE.getJDF();
+		final JDFNode nod = getCurrentJDFNode();
 		if (nod == null)
 		{
-			log.error("no jdf to clone: qe=" + currentQE.getQueueEntryID());
+			log.error("no jdf to clone: qe=" + getQueueEntryID());
 			return null;
 		}
 		final JDFDoc docClone = nod.getOwnerDocument_JDFElement().clone();
@@ -663,7 +669,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		if (nodClone == null)
 		{
 			nodClone = rootClone;
-			log.warn("no matching part - using root: qe=" + currentQE.getQueueEntryID());
+			log.warn("no matching part - using root: qe=" + getQueueEntryID());
 		}
 		updateNISubscriptions(nodClone);
 		if (activation != null)
@@ -675,6 +681,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 	/**
 	 * removes all direct nodeinfo subscriptions and adds new ones to the proxy if required
+	 * 
 	 * @param root the node to update subscriptions in
 	 */
 	void updateNISubscriptions(final JDFNode root)
@@ -711,7 +718,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		final JDFReturnQueueEntryParams retQEParams = m == null ? null : m.getReturnQueueEntryParams(0);
 		if (retQEParams == null)
 		{
-			final String errorMsg = "Missing ReturnQueueEntryParams for QueueEntryID=" + currentQE.getQueueEntryID();
+			final String errorMsg = "Missing ReturnQueueEntryParams for QueueEntryID=" + getQueueEntryID();
 			JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
 			return false;
 		}
@@ -719,14 +726,14 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		JDFNode root = doc == null ? null : doc.getJDFRoot();
 		if (root == null)
 		{
-			final String errorMsg = "failed to parse the JDFDoc from the incoming ReturnQueueEntry with QueueEntryID=" + currentQE.getQueueEntryID();
+			final String errorMsg = "failed to parse the JDFDoc from the incoming ReturnQueueEntry with QueueEntryID=" + getQueueEntryID();
 			JMFHandler.errorResponse(resp, errorMsg, 2, EnumClass.Error);
 		}
-		else if (currentQE != null)
+		else if (getCurrentQE() != null)
 		{
 			// brutally overwrite the current node with this
-			currentQE.setJDF(root);
-			final String docFile = getParent().getJDFStorage(currentQE.getQueueEntryID());
+			getCurrentQE().setJDF(root);
+			final String docFile = getParent().getJDFStorage(getQueueEntryID());
 			if (docFile != null)
 				root.getOwnerDocument_JDFElement().write2File(docFile, 2, true);
 			_statusListener.replaceNode(root);
@@ -803,6 +810,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 */
 	public String getSlaveQEID()
 	{
-		return currentQE == null ? null : BambiNSExtension.getSlaveQueueEntryID(currentQE.getQueueEntry());
+		return BambiNSExtension.getSlaveQueueEntryID(getQueueEntry());
 	}
 }

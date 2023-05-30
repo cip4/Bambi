@@ -93,7 +93,7 @@ public class BambiTestProcessor extends WorkerDeviceProcessor
 		this.finalStatus = finalStatus;
 		JDFNode n = JDFNode.createRoot();
 		JDFQueueEntry qe = ((JDFQueue) JDFElement.createRoot(ElementName.QUEUE)).appendQueueEntry();
-		currentQE = new QueueEntry(n, qe);
+		setCurrentQE(new QueueEntry(n, qe));
 	}
 
 	static int wait = 42;

@@ -141,7 +141,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 */
 	protected void persistRemainingPhases()
 	{
-		if (currentQE == null)
+		if (getCurrentQE() == null)
 		{
 			return;
 		}
@@ -201,6 +201,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * process one phase for a given JDF node
+	 * 
 	 * @param n the currently processed node
 	 */
 	protected void processPhase(final JDFNode n)
@@ -316,6 +317,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * generate random errors
+	 * 
 	 * @param phase the phase element with the appropriate error chance
 	 */
 	protected void randomErrors(final JobPhase phase)
@@ -446,8 +448,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	}
 
 	/**
-	 * get the amount factor for this node, e.g. by evaluating a layout or runlist
-	 * defaults to 1 but may be overwritten for specific processors
+	 * get the amount factor for this node, e.g. by evaluating a layout or runlist defaults to 1 but may be overwritten for specific processors
 	 *
 	 * @param res the resource to calculate the amount for
 	 * @param master the master resource that defines the amount=1
@@ -463,7 +464,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 * proceed to the next job phase
 	 *
 	 * @param nextPhase the next job phase to process.<br>
-	 * Phase timeToGo is ignored in this class, it is advancing to the next phase solely by doNextPhase().
+	 *        Phase timeToGo is ignored in this class, it is advancing to the next phase solely by doNextPhase().
 	 */
 	public void doNextPhase(final JobPhase nextPhase)
 	{
@@ -542,6 +543,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * same as super but also randomize some errors
+	 * 
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#idleProcess()
 	 */
 	@Override

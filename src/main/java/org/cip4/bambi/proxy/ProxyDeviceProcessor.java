@@ -118,7 +118,7 @@ import org.cip4.jdflib.util.UrlUtil;
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  *
- * 16.10.2008
+ *         16.10.2008
  */
 public class ProxyDeviceProcessor extends AbstractProxyProcessor
 {
@@ -227,13 +227,14 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 		/**
 		 * updates the current status based on the data in the input status signal or response
+		 * 
 		 * @param jobPhase the jobphase containing the status information
 		 * @return true if handled
 		 */
 		private boolean handleStatusUpdate(final JDFJobPhase jobPhase)
 		{
 			String phaseQEID = StringUtil.getNonEmpty(jobPhase.getQueueEntryID());
-			if (phaseQEID != null && !phaseQEID.equals(BambiNSExtension.getSlaveQueueEntryID(currentQE.getQueueEntry())))
+			if (phaseQEID != null && !phaseQEID.equals(BambiNSExtension.getSlaveQueueEntryID(getQueueEntry())))
 			{
 				return false;
 			}
@@ -308,6 +309,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * buffered notification handler that distributes notifications
+	 * 
 	 * @author Rainer Prosi, Heidelberger Druckmaschinen
 	 */
 	protected class NotificationQueryHandler extends NotificationHandler
@@ -399,28 +401,31 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * return true if this processor is responsible for processing a given queuentry as specified by qe
+	 * 
 	 * @param _qe the queuentry
 	 * @return true if we are processing qe
 	 */
 	public boolean matchesQueueEntry(final JDFQueueEntry _qe)
 	{
-		final JDFQueueEntry qe = currentQE == null ? null : currentQE.getQueueEntry();
+		final JDFQueueEntry qe = getQueueEntry();
 		return _qe != null && qe != null && qe.getQueueEntryID().equals(_qe.getQueueEntryID());
 	}
 
 	/**
 	 * return true if this processor is responsible for processing a given node as specified by ni
+	 * 
 	 * @param ni the NodeIdentifier to match against
 	 * @return true if ni matches this
 	 */
 	public boolean matchesNode(final NodeIdentifier ni)
 	{
-		final JDFQueueEntry qe = currentQE == null ? null : currentQE.getQueueEntry();
+		final JDFQueueEntry qe = getQueueEntry();
 		return qe == null ? false : qe.matchesNodeIdentifier(ni);
 	}
 
 	/**
 	 * apply the phase as described by jobPhase and burn it into our listener
+	 * 
 	 * @param jobPhase
 	 */
 	protected void applyPhase(final JDFJobPhase jobPhase)
@@ -441,6 +446,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * constructor
+	 * 
 	 * @param device the parent device that this processor does processing for
 	 * @param qProc the devices queueprocessor
 	 * @param qeToProcess the queueentry that this processor will be working for
@@ -454,6 +460,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * constructor
+	 * 
 	 * @param device the parent device that this processor does processing for
 	 * @param qeToProcess the queueentry that this processor will be working for
 	 */
@@ -463,8 +470,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		stopTime = 0;
 		_statusListener = new StatusListener(device.getSignalDispatcher(), device.getDeviceID(), device.getICSVersions());
 		notificationQueryHandler = new NotificationQueryHandler();
-		currentQE = qeToProcess;
-
+		setCurrentQE(qeToProcess);
 		init(device.getQueueProcessor(), _statusListener, _parent.getProperties());
 	}
 
@@ -491,11 +497,11 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			// TODO handle errors
 			if (isLive())
 			{
-				log.error("submitting queueentry unsuccessful: " + currentQE.getQueueEntryID());
+				log.error("submitting queueentry unsuccessful: " + getQueueEntryID());
 			}
 			else
 			{
-				log.info("informative submitting queueentry completed: " + currentQE.getQueueEntryID());
+				log.info("informative submitting queueentry completed: " + getQueueEntryID());
 			}
 			shutdown();
 		}
@@ -514,7 +520,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			return null;
 		}
 		log.info("submitting to hot folder: " + fHF.getAbsolutePath());
-		final JDFQueueEntry qe = currentQE.getQueueEntry();
+		final JDFQueueEntry qe = getQueueEntry();
 		final JDFNode node = getCloneJDFForSlave();
 		KElement modNode = node;
 		if (node == null)
@@ -573,7 +579,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		super.submitted(devQEID, newStatus, slaveURL, slaveDeviceID);
 		if (isLive() && StringUtil.getNonEmpty(slaveDeviceID) != null)
 		{
-			setupStatusListener(currentQE.getJDF(), currentQE.getQueueEntry());
+			setupStatusListener(getCurrentJDFNode(), getQueueEntry());
 			if (EnumQueueEntryStatus.Waiting.equals(newStatus))
 			{
 				_statusListener.signalStatus(EnumDeviceStatus.Idle, AbstractProxyDevice.SUBMITTED, EnumNodeStatus.Waiting, AbstractProxyDevice.SUBMITTED, false);
@@ -583,16 +589,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 				_statusListener.signalStatus(EnumDeviceStatus.Running, AbstractProxyDevice.SUBMITTED, EnumNodeStatus.InProgress, AbstractProxyDevice.SUBMITTED, false);
 			}
 			// this cast is safe - see constructor which guarantees that the parent is a ProxyParent
-			((ProxyDevice) getParent()).cleanupMultipleRunning(currentQE.getQueueEntryID(), slaveDeviceID);
+			((ProxyDevice) getParent()).cleanupMultipleRunning(getQueueEntryID(), slaveDeviceID);
 		}
-	}
-
-	/**
-	 * @return
-	 */
-	protected JDFQueueEntry getQueueEntry()
-	{
-		return currentQE == null ? null : currentQE.getQueueEntry();
 	}
 
 	/**
@@ -600,7 +598,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	 * @param queueProcessor
 	 * @param statusListener
 	 * @param devProperties
-	*/
+	 */
 	@Override
 	public void init(final QueueProcessor queueProcessor, final StatusListener statusListener, final IDeviceProperties devProperties)
 	{
@@ -619,7 +617,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#shutdown()
-	*/
+	 */
 	@Override
 	public void shutdown()
 	{
@@ -646,7 +644,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	@Override
 	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{
-		JDFQueueEntry qe = currentQE.getQueueEntry();
+		JDFQueueEntry qe = getQueueEntry();
 		BambiNSExtension.setDeviceURL(qe, null);
 		// remove slave qeid from map
 		_queueProcessor.updateCache(qe, null);
@@ -690,7 +688,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	 */
 	String getSlaveDeviceID()
 	{
-		return currentQE.getQueueEntry().getDeviceID();
+		JDFQueueEntry queueEntry = getQueueEntry();
+		return queueEntry == null ? null : queueEntry.getDeviceID();
 	}
 
 	/**
@@ -709,6 +708,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * removes all direct nodeinfo subscriptions and adds new ones to the proxy if required
+	 * 
 	 * @param root the node to update subscriptions in
 	 */
 	@Override
