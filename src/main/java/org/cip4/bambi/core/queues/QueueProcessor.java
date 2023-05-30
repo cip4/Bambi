@@ -1851,27 +1851,36 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	protected JDFDoc readQueueFile()
 	{
-		final boolean exist = _queueFile.exists();
-		JDFDoc d = exist ? JDFDoc.parseFile(_queueFile.getAbsolutePath()) : null;
-		if (d == null)
+		try
 		{
-			for (int i = 1; true; i++)
+			final boolean exist = _queueFile.exists();
+			JDFDoc d = exist ? JDFDoc.parseFile(_queueFile.getAbsolutePath()) : null;
+			if (d == null)
 			{
-				final File f = _queueFile.getOldFile(i);
-				if (f == null)
+				for (int i = 1; true; i++)
 				{
-					log.info("Could not read queue file - starting from scratch");
-					break;
-				}
-				d = JDFDoc.parseFile(f.getAbsolutePath());
-				if (d != null)
-				{
-					log.warn("problems reading queue file - using backup# " + i);
-					break;
+					final File f = _queueFile.getOldFile(i);
+					if (f == null)
+					{
+						log.info("Could not read queue file - starting from scratch");
+						break;
+					}
+					d = JDFDoc.parseFile(f.getAbsolutePath());
+					if (d != null)
+					{
+						log.warn("problems reading queue file - using backup# " + i);
+						break;
+					}
 				}
 			}
+			return d;
 		}
-		return d;
+		catch (Throwable t)
+		{
+			log.error("exception reading queue", t);
+			FileUtil.forceDelete(_queueFile);
+		}
+		return null;
 	}
 
 	/**

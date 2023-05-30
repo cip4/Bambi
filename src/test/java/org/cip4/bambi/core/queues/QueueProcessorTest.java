@@ -84,6 +84,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.mail.MessagingException;
 
 import org.cip4.bambi.BambiTestCase;
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.StreamRequest;
@@ -414,7 +415,8 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testMessageQEResume()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		AbstractDevice dev = getDevice();
+		final QueueProcessor qp = dev.getQueueProcessor();
 		final JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q1res");
 		final JMFBuilder jmfBuilder = new JMFBuilder();
@@ -422,6 +424,7 @@ public class QueueProcessorTest extends BambiTestCase
 		final JDFResumeQueueEntryParams aqp = (JDFResumeQueueEntryParams) c.appendElement(ElementName.RESUMEQUEUEENTRYPARAMS);
 		aqp.getCreateQueueFilter(0).appendQueueEntryDef("q1res");
 		assertEquals(qe.getQueueEntryID(), qp.getMessageQueueEntry(c, null).getQueueEntryID());
+
 		assertEquals(qe.getQueueEntryID(), qp.getMessageQueueEntry(c, null).getQueueEntryID());
 	}
 
