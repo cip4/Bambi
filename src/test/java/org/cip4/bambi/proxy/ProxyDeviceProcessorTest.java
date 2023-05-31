@@ -77,43 +77,28 @@ import static org.junit.Assert.assertNull;
 import org.cip4.bambi.BambiTestProp;
 import org.junit.Test;
 
-public class ProxyDispatcherProcessorTest
+public class ProxyDeviceProcessorTest
 {
 
 	@Test
 	public void testConstruct()
 	{
-		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
+		ProxyDeviceProcessor proc = new ProxyDeviceProcessor(new ProxyDevice(new BambiTestProp()), null);
 		assertNotNull(proc);
 	}
 
 	@Test
-	public void testgetSlaveQEID()
+	public void testMatchesNode()
 	{
-		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
-		assertNull(proc.getSlaveQEID());
+		ProxyDeviceProcessor proc = new ProxyDeviceProcessor(new ProxyDevice(new BambiTestProp()), null);
+		assertFalse(proc.matchesNode(null));
 	}
 
 	@Test
-	public void testReturnFromSlave()
+	public void testGetSlaveDevID()
 	{
-		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
-		assertFalse(proc.returnFromSlave(null, null, null));
-	}
-
-	@Test
-	public void testgetClone()
-	{
-		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
-		assertNull(proc.getCloneJDFForSlave());
-	}
-
-	@Test
-	public void testCanProcess()
-	{
-		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
-
-		assertFalse(proc.canProcess());
+		ProxyDeviceProcessor proc = new ProxyDeviceProcessor(new ProxyDevice(new BambiTestProp()), null);
+		assertNull(proc.getSlaveDeviceID());
 	}
 
 }
