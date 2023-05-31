@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -262,7 +262,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 				{
 					proc.shutdown();
 				}
-				else
+				else if (!proc.isIdle())
 				{
 					IQueueEntry iqe = proc.getCurrentQE();
 					if (iqe != null)
@@ -417,24 +417,24 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	}
 
 	/**
-	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#getCurrentQE()
-	 * @return
-	 */
-	@Override
-	public IQueueEntry getCurrentQE()
-	{
-		// we never have a qe of our own
-		return null;
-	}
-
-	/**
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#isActive()
 	 * @return
 	 */
 	@Override
 	public boolean isActive()
 	{
-		// dispatchers are never active
+		// dispatchers are always active
+		return true;
+	}
+
+	/**
+	 * 
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#isIdle()
+	 */
+	@Override
+	public boolean isIdle()
+	{
+		// dispatchers are always idle
 		return true;
 	}
 

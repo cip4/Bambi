@@ -351,6 +351,15 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	}
 
 	/**
+	 *
+	 * @return true if this processor is active
+	 */
+	public boolean isIdle()
+	{
+		return !isActive();
+	}
+
+	/**
 	 * initialize the IDeviceProcessor
 	 *
 	 * @param queueProcessor

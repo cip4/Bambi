@@ -73,6 +73,7 @@ package org.cip4.bambi.proxy;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.cip4.bambi.BambiTestProp;
 import org.junit.Test;
@@ -99,6 +100,14 @@ public class ProxyDispatcherProcessorTest
 	{
 		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
 		assertFalse(proc.returnFromSlave(null, null, null));
+	}
+
+	@Test
+	public void testIsIdle()
+	{
+		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
+		assertTrue(proc.isIdle());
+		assertTrue(proc.isActive());
 	}
 
 	@Test

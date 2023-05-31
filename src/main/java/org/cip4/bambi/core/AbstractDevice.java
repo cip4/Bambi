@@ -1136,8 +1136,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return null;
 		}
 		deviceProcessor.stopProcessing(status, statusDetails);
-		final IQueueEntry currentQE = deviceProcessor.getCurrentQE();
-		return currentQE == null ? null : currentQE.getQueueEntry();
+		return deviceProcessor.isIdle() ? null : deviceProcessor.getQueueEntry();
 	}
 
 	/**
@@ -1153,7 +1152,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		int nn = 0;
 		for (final AbstractDeviceProcessor theDeviceProcessor : allProcs)
 		{
-			final IQueueEntry iqe = theDeviceProcessor.getCurrentQE();
+			final IQueueEntry iqe = theDeviceProcessor.isIdle() ? null : theDeviceProcessor.getCurrentQE();
 			if (iqe == null) // we have an idle proc
 			{
 				if (queueEntryID == null) // we are not searching by qeID
