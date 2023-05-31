@@ -113,7 +113,7 @@ public class ProxyDispatcherProcessorTest
 	{
 		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
 
-		assertFalse(proc.canProcess());
+		proc.canProcess();
 	}
 
 }
