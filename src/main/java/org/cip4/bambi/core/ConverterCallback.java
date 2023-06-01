@@ -477,7 +477,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 * @param myFix
 	 * @return
 	 */
-	boolean isXJDF(EnumVersion myFix)
+	protected boolean isXJDF(EnumVersion myFix)
 	{
 		final boolean bXJDF = myFix == null ? false : EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, myFix);
 		final boolean bXJDF2 = fixToExtern == null ? false : EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, fixToExtern);
