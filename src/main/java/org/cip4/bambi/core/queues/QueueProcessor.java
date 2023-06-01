@@ -393,10 +393,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				return false;
 			}
-			if (deviceID != null && !KElement.isWildCard(qe.getDeviceID()) && !deviceID.equals(qe.getDeviceID()))
-			{
-				return false;
-			}
+			if (!qe.hasAttribute(proxy, deviceID, lastinvert))
+				if (deviceID != null && !KElement.isWildCard(qe.getDeviceID()) && !deviceID.equals(qe.getDeviceID()))
+				{
+					return false;
+				}
 			final String badDevices = BambiNSExtension.getMyNSAttribute(qe, BambiNSExtension.GOOD_DEVICES);
 			if (!StringUtil.hasToken(badDevices, deviceID, " ", 0))
 			{
@@ -1982,10 +1983,14 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			else
 			{
-				log.debug("no pull entry waiting");
 				theEntry = null;
 			}
 		}
+		return updateNextEntry(theEntry);
+	}
+
+	protected IQueueEntry updateNextEntry(JDFQueueEntry theEntry)
+	{
 		if (theEntry != null)
 		{
 			IQueueEntry iQueueEntry = getIQueueEntry(theEntry);
@@ -2311,11 +2316,18 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		newQEReal.copyInto(newQE, false);
 		slaveQueueMap.addEntry(newQEReal, true);
 		final JDFQueue q = getQueue();
-		BambiNotifyDef.getInstance().notifyDeviceJobAdded(q.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(),
-				newQEReal.getSubmissionTime().getTimeInMillis());
-		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
-
+		try
+		{
+			BambiNotifyDef.getInstance().notifyDeviceJobAdded(q.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(),
+					newQEReal.getSubmissionTime().getTimeInMillis());
+			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
+		}
+		catch (Exception x)
+		{
+			// nop
+		}
 		final boolean ok = storeJDF(theJDF, newQEID);
+
 		if (!KElement.isWildCard(returnJMF))
 		{
 			BambiNSExtension.setReturnJMF(newQEReal, returnJMF);

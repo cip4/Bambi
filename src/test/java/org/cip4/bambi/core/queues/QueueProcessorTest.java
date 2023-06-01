@@ -264,6 +264,35 @@ public class QueueProcessorTest extends BambiTestCase
 	}
 
 	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testReadQueueFile()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		assertNull(qp.readQueueFile());
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testUpdateNextEntry()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		assertNull(qp.updateNextEntry(null));
+		final JDFQueue q = qp.getQueue();
+		final JDFQueueEntry qe = q.appendQueueEntry();
+		qe.setQueueEntryID("q1234u");
+		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		assertTrue(qp.storeDoc(qe, doc, null, null));
+
+		assertNotNull(qp.updateNextEntry(qe));
+	}
+
+	/**
 	*
 	*
 	*/
