@@ -251,6 +251,7 @@ public class BambiNSExtension
 		if (ke != null)
 		{
 			ke.removeExtensions(MY_NS);
+			ke.removeAttribute("xmlns:bambi");
 		}
 	}
 
@@ -262,6 +263,8 @@ public class BambiNSExtension
 	 * the URL where the JDFDoc can be grabbed
 	 */
 	public static final String docURL = "DocURL";
+
+	public static final String JSON = "json";
 
 	/**
 	 * the URL where the JDFDoc can be grabbed
@@ -577,6 +580,24 @@ public class BambiNSExtension
 			return 0;
 		int current = StringUtil.parseInt(getMyNSAttribute(jdfQueue, TOTAL_ENTRY_COUNT), jdfQueue.getEntryCount());
 		return current;
+	}
+
+	public static void setJSON(KElement e, boolean b)
+	{
+		setMyNSAttribute(e, JSON, Boolean.toString(b));
+	}
+
+	public static boolean isJSON(KElement e)
+	{
+		return StringUtil.parseBoolean(getMyNSAttribute(e, JSON), false);
+	}
+
+	public static void removeBambiExtensions(JDFDoc doc)
+	{
+		if (doc != null)
+		{
+			removeBambiExtensions(doc.getRoot());
+		}
 	}
 
 }

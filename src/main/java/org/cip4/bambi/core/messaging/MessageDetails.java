@@ -48,12 +48,14 @@ import javax.mail.Multipart;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.MessageSender.SendReturn;
 import org.cip4.jdflib.auto.JDFAutoSignal.EnumChannelMode;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -461,7 +463,9 @@ public class MessageDetails
 	{
 		if (jdf != null)
 		{
-			if (callback != null && UrlUtil.VND_XJDF.equals(callback.getJDFContentType()) && UrlUtil.VND_XJMF.equals(callback.getJMFContentType()))
+			EnumVersion maxVersion = jdf.getMaxVersion(true);
+			if (callback != null && UrlUtil.VND_XJDF.equals(callback.getJDFContentType(maxVersion, callback.isJSON() || BambiNSExtension.isJSON(jdf)))
+					&& UrlUtil.VND_XJMF.equals(callback.getJMFContentType(maxVersion, false)))
 			{
 				return UrlUtil.APPLICATION_ZIP;
 			}
@@ -472,7 +476,7 @@ public class MessageDetails
 		}
 		else if (jmf != null)
 		{
-			return callback == null ? UrlUtil.VND_JMF : callback.getJMFContentType();
+			return callback == null ? UrlUtil.VND_JMF : callback.getJMFContentType(jmf.getMaxVersion(), callback.isJSON() || BambiNSExtension.isJSON(jmf));
 		}
 		else
 		{

@@ -49,6 +49,7 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.extensions.XJDFConstants;
+import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.util.UrlUtil;
 import org.junit.Test;
@@ -231,6 +232,21 @@ public class ConverterCallbackTest extends BambiTestCaseBase
 		cb.setFixToExtern(EnumVersion.Version_2_0);
 		assertNull(cb.exportXJMF(null));
 		assertNull(cb.exportXJMF(new JDFDoc(ElementName.JMF)));
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testRoundTripXJDF()
+	{
+		final ConverterCallback cb = new ConverterCallback();
+		XJDFHelper h = new XJDFHelper("j1", "j2");
+		JDFDoc d = new JDFDoc(h.getRoot().getOwnerDocument_KElement());
+		JDFDoc d2 = cb.prepareJDFForBambi(d);
+		assertEquals("j1", d2.getJDFRoot().getJobID(true));
+		JDFDoc d3 = cb.updateJDFForExtern(d2);
+		assertEquals("j1", XJDFHelper.getHelper(d3).getJobID());
 	}
 
 	/**

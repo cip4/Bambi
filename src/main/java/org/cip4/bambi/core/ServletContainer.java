@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -67,7 +67,8 @@ import org.cip4.lib.jdf.jsonutil.JSONReader;
 import org.cip4.lib.jdf.jsonutil.JSONWriter;
 
 /**
- * class that handles all bambi JDF/JMF requests - regardless of the servlet context previously part of {@link BambiServlet} it is implemented as a Singleton so that you always have static access
+ * class that handles all bambi JDF/JMF requests - regardless of the servlet context previously part of {@link BambiServlet} it is implemented as a Singleton so that you always
+ * have static access
  *
  * note that the get handling routines still assume a servlet context - only the actual JDF / JMF post does not
  *
@@ -398,8 +399,14 @@ public abstract class ServletContainer extends BambiLogFactory
 	JDFDoc getDocFromJSONStream(final InputStream is)
 	{
 		final JSONReader r = new JSONReader();
+		r.setXJDF();
 		final KElement e = r.getElement(is);
-		return e == null ? null : new JDFDoc(e.getOwnerDocument());
+		if (e != null)
+		{
+			BambiNSExtension.setJSON(e, true);
+			return new JDFDoc(e.getOwnerDocument());
+		}
+		return null;
 	}
 
 	protected abstract XMLRequest convertToJMF(XMLRequest request);

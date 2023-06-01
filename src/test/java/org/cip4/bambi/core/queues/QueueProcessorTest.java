@@ -95,7 +95,9 @@ import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.extensions.XJDFConstants;
 import org.cip4.jdflib.jmf.JDFAbortQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFCommand;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -177,6 +179,26 @@ public class QueueProcessorTest extends BambiTestCase
 		QueueEntryReturn r = qp.new QueueEntryReturn(qe, EnumQueueEntryStatus.Completed);
 		assertFalse(r.returnJMF(null, null));
 		assertFalse(r.returnJMF(doc, null));
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testReallyReturnXJDF()
+	{
+		AbstractDevice device = getDevice();
+		final QueueProcessor qp = device.getQueueProcessor();
+		JDFDoc doc = JDFElement.createRoot(XJDFConstants.XJDF).getOwnerDocument_JDFElement();
+		doc = device.getCallback(null).prepareJDFForBambi(doc);
+		final JDFQueue q = qp.getQueue();
+		final JDFQueueEntry qe = q.appendQueueEntry();
+		qe.setQueueEntryID("q12345");
+		qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+		qe.setSubmissionTime(new JDFDate());
+		QueueEntryReturn r = qp.new QueueEntryReturn(qe, EnumQueueEntryStatus.Completed);
+		r.returnQueueEntry(new VString(), doc);
 	}
 
 	/**
@@ -452,8 +474,6 @@ public class QueueProcessorTest extends BambiTestCase
 		final JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry).getCommand(0);
 		final JDFResumeQueueEntryParams aqp = (JDFResumeQueueEntryParams) c.appendElement(ElementName.RESUMEQUEUEENTRYPARAMS);
 		aqp.getCreateQueueFilter(0).appendQueueEntryDef("q1res");
-		assertEquals(qe.getQueueEntryID(), qp.getMessageQueueEntry(c, null).getQueueEntryID());
-
 		assertEquals(qe.getQueueEntryID(), qp.getMessageQueueEntry(c, null).getQueueEntryID());
 	}
 

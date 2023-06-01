@@ -53,7 +53,7 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.elementwalker.FixVersion;
 import org.cip4.jdflib.extensions.XJDF20;
-import org.cip4.jdflib.extensions.XJDFConstants;
+import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.extensions.xjdfwalker.XJDFToJDFConverter;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -234,7 +234,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	protected JDFDoc importXJDF(JDFDoc doc)
 	{
 		final KElement root = doc.getRoot();
-		if (XJDFConstants.XJDF.equals(root.getLocalName()))
+		if (XJDFHelper.isXJDF(root))
 		{
 			log.info("importing xjdf to Bambi");
 			return importXJxF(root);
@@ -249,7 +249,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	protected JDFDoc importXJMF(JDFDoc doc)
 	{
 		final KElement root = doc.getRoot();
-		if (XJDFConstants.XJMF.equals(root.getLocalName()))
+		if (XJDFHelper.isXJMF(root))
 		{
 			log.info("importing XJMF to Bambi");
 			return importXJxF(root);
@@ -453,9 +453,10 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		{
 			return null;
 		}
-		if (fixToExtern != null)
+		EnumVersion myFix = fixToExtern == null ? n.getMaxVersion(true) : fixToExtern;
+		if (myFix != null)
 		{
-			final boolean bXJDF = isXJDF();
+			final boolean bXJDF = isXJDF(myFix);
 			final EnumVersion fixVersion = bXJDF ? JDFAudit.getDefaultJDFVersion() : fixToExtern;
 			n.fixVersion(fixVersion);
 			if (bXJDF)
@@ -467,17 +468,20 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		{
 			doc = cb.updateJDFForExtern(doc);
 		}
+		BambiNSExtension.removeBambiExtensions(doc);
 		return doc;
 	}
 
 	/**
 	 *
+	 * @param myFix
 	 * @return
 	 */
-	boolean isXJDF()
+	boolean isXJDF(EnumVersion myFix)
 	{
-		final boolean bXJDF = fixToExtern == null ? false : EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, fixToExtern);
-		return bXJDF;
+		final boolean bXJDF = myFix == null ? false : EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, myFix);
+		final boolean bXJDF2 = fixToExtern == null ? false : EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, fixToExtern);
+		return bXJDF || bXJDF2;
 	}
 
 	/**
@@ -507,6 +511,8 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		{
 			doc = cb.updateJMFForExtern(doc);
 		}
+		BambiNSExtension.removeBambiExtensions(doc);
+
 		return doc;
 	}
 
@@ -517,8 +523,9 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	@Override
 	public InputStream getJMFExternStream(final JDFDoc doc)
 	{
+		boolean json = BambiNSExtension.isJSON(doc.getRoot());
 		final JDFDoc doc2 = updateJMFForExtern(doc);
-		if (isJSON)
+		if (isJSON || json)
 		{
 			return getJSONWriter().getStream(doc2.getRoot());
 		}
@@ -550,7 +557,12 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	@Override
 	public InputStream getJDFExternStream(final JDFDoc doc)
 	{
+		boolean json = BambiNSExtension.isJSON(doc.getRoot());
 		final JDFDoc doc2 = updateJDFForExtern(doc);
+		if (isJSON || json)
+		{
+			return getJSONWriter().getStream(doc2.getRoot());
+		}
 		return writeToStream(doc2);
 	}
 
@@ -559,9 +571,19 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 * @see org.cip4.bambi.core.IConverterCallback#getJDFContentType()
 	 */
 	@Override
-	public String getJDFContentType()
+	public String getJDFContentType(EnumVersion v, boolean json)
 	{
-		return isXJDF() ? (isJSON() ? UrlUtil.VND_XJDF_J : UrlUtil.VND_XJDF) : UrlUtil.VND_JDF;
+		return isXJDF(v) ? (json ? UrlUtil.VND_XJDF_J : UrlUtil.VND_XJDF) : UrlUtil.VND_JDF;
+	}
+
+	/**
+	 *
+	 * @see org.cip4.bambi.core.IConverterCallback#getJDFContentType()
+	 */
+	@Override
+	public String getJMFContentType(EnumVersion v, boolean json)
+	{
+		return isXJDF(v) ? (json ? UrlUtil.VND_XJMF_J : UrlUtil.VND_XJMF) : UrlUtil.VND_JMF;
 	}
 
 	/**
@@ -571,7 +593,17 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	@Override
 	public String getJMFContentType()
 	{
-		return isXJDF() ? (isJSON() ? UrlUtil.VND_XJMF_J : UrlUtil.VND_XJMF) : UrlUtil.VND_JMF;
+		return getJMFContentType(fixToExtern, isJSON());
+	}
+
+	/**
+	 *
+	 * @see org.cip4.bambi.core.IConverterCallback#getJMFContentType()
+	 */
+	@Override
+	public String getJDFContentType()
+	{
+		return getJDFContentType(fixToExtern, isJSON());
 	}
 
 	@Override
@@ -604,6 +636,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	/**
 	 * @return the isJSON
 	 */
+	@Override
 	public boolean isJSON()
 	{
 		return isJSON;

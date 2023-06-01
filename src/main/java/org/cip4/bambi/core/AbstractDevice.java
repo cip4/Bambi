@@ -2087,6 +2087,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			sqe.setMaxVersion(EnumVersion.Version_2_0);
 		}
+		else
+		{
+			sqe.copyAttribute(AttributeName.MAXVERSION, e);
+		}
 		return sqe;
 	}
 

@@ -74,6 +74,7 @@ import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.ConverterCallback;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.proxy.IProxyProperties;
 import org.cip4.jdflib.core.VString;
@@ -123,7 +124,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	@Override
 	public IConverterCallback getCallBackClass()
 	{
-		return null;
+		return new ConverterCallback();
 	}
 
 	/*

@@ -51,6 +51,7 @@ import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFNodeInfo;
+import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -90,6 +91,32 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		device.setSim(true);
 		File dir = device.getCachedConfigDir();
 		assertEquals(new File(sm_dirTestDataTemp, "config"), dir);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testCreateSubmissionJMF() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		device.setSim(true);
+		XJDFHelper h = new XJDFHelper("j1", "p1");
+		JDFJMF jmf = device.createSubmissionJMF(h.getRoot(), null);
+		assertEquals(2, jmf.getMaxVersion().getMajorVersion());
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testCreateSubmitFromJDF() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		device.setSim(true);
+		XJDFHelper h = new XJDFHelper("j1", "p1");
+		XMLRequest xml = device.createSubmitFromJDF(h.getRoot(), new XMLRequest(h.getRoot()));
+		assertEquals(2, ((JDFJMF) xml.getXML()).getMaxVersion().getMajorVersion());
 	}
 
 	/**

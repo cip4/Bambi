@@ -1,6 +1,7 @@
 package org.cip4.bambi.core.messaging;
 
 import org.cip4.bambi.core.ConverterCallback;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.UrlUtil;
 
@@ -38,6 +39,12 @@ public class MyTestCallback extends ConverterCallback
 	public void setCallbackDetails(final JDFAttributeMap map)
 	{
 		m = map;
+	}
+
+	@Override
+	public String getJMFContentType(EnumVersion v, boolean json)
+	{
+		return UrlUtil.VND_JMF;
 	}
 
 }

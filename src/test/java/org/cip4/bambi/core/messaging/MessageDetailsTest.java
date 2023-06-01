@@ -41,6 +41,7 @@ package org.cip4.bambi.core.messaging;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -51,6 +52,7 @@ import java.util.zip.ZipEntry;
 import javax.mail.BodyPart;
 
 import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.ConverterCallback;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
@@ -71,6 +73,7 @@ import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.net.HTTPDetails;
 import org.cip4.jdflib.util.zip.ZipReader;
+import org.cip4.lib.jdf.jsonutil.JSONObjHelper;
 import org.junit.Test;
 
 public class MessageDetailsTest extends BambiTestCaseBase
@@ -301,6 +304,51 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	}
 
 	/**
+	 *
+	 */
+	@Test
+	public void testContentTypeXJMFMax()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		jmf.setMaxVersion(EnumVersion.Version_2_1);
+		final ConverterCallback cb = new ConverterCallback();
+		final MessageDetails md = new MessageDetails(jmf, null, cb, null, "http://foo");
+		assertEquals(UrlUtil.VND_XJMF, md.getContentType());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testContentTypeXJMFJSON()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		jmf.setMaxVersion(EnumVersion.Version_2_1);
+		BambiNSExtension.setJSON(jmf, true);
+		final ConverterCallback cb = new ConverterCallback();
+		final MessageDetails md = new MessageDetails(jmf, null, cb, null, "http://foo");
+		assertEquals(UrlUtil.VND_XJMF_J, md.getContentType());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testGetStreamJSON()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final ConverterCallback cb = new ConverterCallback();
+		jmf.setMaxVersion(EnumVersion.Version_2_1);
+		BambiNSExtension.setJSON(jmf, true);
+		final MessageDetails md = new MessageDetails(jmf, null, cb, null, "http://foo");
+		assertEquals(UrlUtil.VND_XJMF_J, md.getContentType());
+		JSONObjHelper h = new JSONObjHelper(md.getInputStream());
+		assertNotNull(h.getRoot());
+		assertNull(h.getString("XJMF/bambi:json"));
+		assertEquals(-1, h.toJSONString().indexOf("bambi"));
+	}
+
+	/**
 	 * @throws IOException
 	 *
 	 */
@@ -312,6 +360,38 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		final JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
 		final ConverterCallback cb = new ConverterCallback();
 		cb.setFixToExtern(EnumVersion.Version_2_0);
+		final MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
+		final InputStream is = md.getInputStream();
+		final ZipReader zr = ZipReader.getZipReader(is);
+		zr.buffer();
+		assertNotNull(zr);
+		Vector<ZipEntry> entries = zr.getEntries();
+		assertEquals(entries.size(), 2);
+		assertNotNull(zr.getMatchingEntry("*.xjmf", 0));
+		XMLDoc xjmf = zr.getXMLDoc();
+		XJMFHelper h = XJMFHelper.getHelper(xjmf);
+		assertNotNull(h);
+
+		MessageHelper mh = h.getMessageHelper(0);
+		assertEquals("Job_2893.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
+		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
+		assertEquals('P', is.read());
+
+	}
+
+	/**
+	 * @throws IOException
+	 *
+	 */
+	@Test
+	public void testStreamZip2() throws IOException
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		jmf.getCommand(0).getQueueSubmissionParams(0).setURL("dummy");
+		final JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
+		jdf.setMaxVersion(EnumVersion.Version_2_1);
+		jmf.setMaxVersion(EnumVersion.Version_2_1);
+		final ConverterCallback cb = new ConverterCallback();
 		final MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
 		final InputStream is = md.getInputStream();
 		final ZipReader zr = ZipReader.getZipReader(is);

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -73,10 +73,14 @@ package org.cip4.bambi;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFException;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
@@ -127,6 +131,25 @@ public class BambiNSExtensions_Test extends BambiTestCase
 		JDFQueue q = (JDFQueue) JDFQueue.createRoot(ElementName.QUEUE);
 		q.appendQueueEntry();
 		assertEquals(2, BambiNSExtension.incrmentTotal(q));
+	}
+
+	@Test
+	public void testJSON()
+	{
+		KElement e = KElement.createRoot("a", null);
+		assertFalse(BambiNSExtension.isJSON(e));
+		assertFalse(BambiNSExtension.isJSON(null));
+		BambiNSExtension.setJSON(e, true);
+		assertTrue(BambiNSExtension.isJSON(e));
+		try
+		{
+			BambiNSExtension.setJSON(null, true);
+		}
+		catch (JDFException b)
+		{
+			return;
+		}
+		fail("no exception");
 	}
 
 	@Test

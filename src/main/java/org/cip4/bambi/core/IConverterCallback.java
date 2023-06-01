@@ -73,6 +73,7 @@ package org.cip4.bambi.core;
 import java.io.InputStream;
 
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 
 /**
@@ -134,8 +135,20 @@ public interface IConverterCallback
 	/**
 	 *
 	 * @return the external content type for JDF
+	 * @deprecated use the EnumVersion method
 	 */
+	@Deprecated
 	public String getJDFContentType();
+
+	public default String getJDFContentType(EnumVersion v, boolean isJSON)
+	{
+		return getJDFContentType();
+	}
+
+	default boolean isJSON()
+	{
+		return false;
+	}
 
 	/**
 	 * for serialization
@@ -152,9 +165,21 @@ public interface IConverterCallback
 	public void setCallbackDetails(final JDFAttributeMap map);
 
 	/**
+	 * 
+	 * @param v
+	 * @return
+	 */
+	public default String getJMFContentType(EnumVersion v, boolean isJSON)
+	{
+		return getJMFContentType();
+	}
+
+	/**
 	 *
 	 * @return the external content type for JMF
+	 * @deprecated use the defaulted version
 	 */
+	@Deprecated
 	public String getJMFContentType();
 
 }

@@ -268,6 +268,23 @@ public class BambiContainerTest extends BambiTestCase
 	 *
 	 */
 	@Test
+	public void testGetDocFromJSONStream()
+	{
+		JSONWriter wr = new JSONWriter();
+
+		XJMFHelper jh = new XJMFHelper();
+		wr.setRoot(new JSONObject());
+		wr.convert(jh.getRoot());
+		InputStream is = wr.getInputStream();
+
+		JDFDoc d = bambiContainer.getDocFromJSONStream(is);
+		assertTrue(d.getRoot().getBoolAttribute(BambiNSExtension.JSON, BambiNSExtension.MY_NS, false));
+	}
+
+	/**
+	 *
+	 */
+	@Test
 	public void testSubmitMultiXJDFJSON()
 	{
 		XJDFHelper h = new XJDFHelper("j1", null);
