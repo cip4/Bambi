@@ -453,11 +453,12 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		{
 			return null;
 		}
-		EnumVersion myFix = fixToExtern == null ? n.getMaxVersion(true) : fixToExtern;
-		if (myFix != null)
+		EnumVersion myFix = n.getMaxVersion(true);
+		EnumVersion max = (EnumVersion) EnumUtil.max(myFix, fixToExtern);
+		if (max != null)
 		{
 			final boolean bXJDF = isXJDF(myFix);
-			final EnumVersion fixVersion = bXJDF ? JDFAudit.getDefaultJDFVersion() : fixToExtern;
+			final EnumVersion fixVersion = bXJDF ? JDFAudit.getDefaultJDFVersion() : max;
 			n.fixVersion(fixVersion);
 			if (bXJDF)
 			{
@@ -496,11 +497,12 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			return null;
 		}
 		final JDFJMF jmf = doc.getJMFRoot();
-		boolean bXJDF = EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, jmf.getMaxVersion());
-		if (fixToExtern != null || bXJDF)
+		EnumVersion myFix = jmf.getMaxVersion(true);
+		EnumVersion max = (EnumVersion) EnumUtil.max(myFix, fixToExtern);
+		if (max != null)
 		{
-			bXJDF = bXJDF || EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, fixToExtern);
-			final EnumVersion fixVersion = bXJDF ? JDFAudit.getDefaultJDFVersion() : fixToExtern;
+			boolean bXJDF = isXJDF(jmf.getMaxVersion());
+			final EnumVersion fixVersion = bXJDF ? JDFAudit.getDefaultJDFVersion() : max;
 			jmf.fixVersion(fixVersion);
 			if (bXJDF)
 			{
