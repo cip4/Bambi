@@ -393,11 +393,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				return false;
 			}
-			if (!qe.hasAttribute(proxy, deviceID, lastinvert))
-				if (deviceID != null && !KElement.isWildCard(qe.getDeviceID()) && !deviceID.equals(qe.getDeviceID()))
-				{
-					return false;
-				}
+			if (deviceID != null && !KElement.isWildCard(qe.getDeviceID()) && !deviceID.equals(qe.getDeviceID()))
+			{
+				return false;
+			}
 			final String badDevices = BambiNSExtension.getMyNSAttribute(qe, BambiNSExtension.GOOD_DEVICES);
 			if (!StringUtil.hasToken(badDevices, deviceID, " ", 0))
 			{
