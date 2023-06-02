@@ -38,6 +38,7 @@
 package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -45,6 +46,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.InputStream;
 
 import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.bambi.MyTestCallback;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
@@ -82,6 +84,18 @@ public class ConverterCallbackTest extends BambiTestCaseBase
 		cb.setFixToBambi(EnumVersion.Version_2_0);
 		final ConverterCallback cb2 = new ConverterCallback(cb);
 		assertEquals(cb.getFixToBambi(), cb2.getFixToBambi());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testIsJsonTest()
+	{
+		final IConverterCallback cb = new MyTestCallback();
+		assertFalse(cb.isJSON());
+		assertEquals(UrlUtil.VND_JMF, cb.getJMFContentType(null, true));
+		assertEquals(UrlUtil.VND_JDF, cb.getJDFContentType(null, true));
 	}
 
 	/**

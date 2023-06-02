@@ -95,6 +95,13 @@ public class ProxyDeviceProcessorTest
 	}
 
 	@Test
+	public void testMatchesQE()
+	{
+		ProxyDeviceProcessor proc = new ProxyDeviceProcessor(new ProxyDevice(new BambiTestProp()), null);
+		assertFalse(proc.matchesQueueEntry(null));
+	}
+
+	@Test
 	public void testGetSlaveDevID()
 	{
 		ProxyDeviceProcessor proc = new ProxyDeviceProcessor(new ProxyDevice(new BambiTestProp()), null);

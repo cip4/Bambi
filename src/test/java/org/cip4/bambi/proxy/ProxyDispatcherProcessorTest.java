@@ -76,6 +76,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.cip4.bambi.BambiTestProp;
+import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFElement;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.node.JDFNode;
 import org.junit.Test;
 
 public class ProxyDispatcherProcessorTest
@@ -108,6 +112,15 @@ public class ProxyDispatcherProcessorTest
 		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
 		assertTrue(proc.isIdle());
 		assertTrue(proc.isActive());
+	}
+
+	@Test
+	public void testInitialize()
+	{
+		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
+		JDFNode n = JDFNode.createRoot();
+		JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
+		assertFalse(proc.initializeProcessDoc(n, qe));
 	}
 
 	@Test
