@@ -147,9 +147,9 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 		}
 		else
 		{
-			if (lastbad++ % 100 == 0)
+			if ((lastbad++ % 1000) == 0)
 			{
-				log.warn("Not filling QueueEntry for unavailable Slave ");
+				log.warn("Not filling QueueEntry for unavailable Slave #" + lastbad);
 			}
 		}
 		return null;

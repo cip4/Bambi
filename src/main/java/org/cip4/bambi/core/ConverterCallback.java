@@ -480,8 +480,8 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	 */
 	protected boolean isXJDF(EnumVersion myFix)
 	{
-		final boolean bXJDF = myFix == null ? false : EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, myFix);
-		final boolean bXJDF2 = fixToExtern == null ? false : EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, fixToExtern);
+		final boolean bXJDF = EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, myFix);
+		final boolean bXJDF2 = EnumUtil.aLessEqualsThanB(EnumVersion.Version_2_0, fixToExtern);
 		return bXJDF || bXJDF2;
 	}
 

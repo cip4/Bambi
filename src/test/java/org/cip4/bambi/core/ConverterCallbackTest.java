@@ -102,6 +102,20 @@ public class ConverterCallbackTest extends BambiTestCaseBase
 	 *
 	 */
 	@Test
+	public void testIsXJDF()
+	{
+		final ConverterCallback cb = new ConverterCallback();
+		assertFalse(cb.isXJDF(null));
+		assertTrue(cb.isXJDF(EnumVersion.Version_2_0));
+		cb.setFixToExtern(EnumVersion.Version_2_0);
+		assertTrue(cb.isXJDF(null));
+		assertTrue(cb.isXJDF(EnumVersion.Version_1_0));
+	}
+
+	/**
+	 *
+	 */
+	@Test
 	public void testClone()
 	{
 		final ConverterCallback cb = new ConverterCallback();

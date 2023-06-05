@@ -138,4 +138,16 @@ public class ProxyDispatcherProcessorTest
 		proc.canProcess();
 	}
 
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testFillCurrent() throws Exception
+	{
+		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
+		for (int i = 0; i < 3; i++)
+			assertNull(proc.fillCurrentQE());
+
+	}
+
 }

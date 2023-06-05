@@ -41,6 +41,7 @@ package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
@@ -60,6 +61,20 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 		final BambiTestDevice device = new BambiTestDevice();
 		WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
 		assertNotNull(devProc.toString());
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testFillCurrent() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		device.setFinalStatus(EnumQueueEntryStatus.Aborted);
+		WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
+		for (int i = 0; i < 111; i++)
+			assertNull(devProc.fillCurrentQE());
+
 	}
 
 	/**
