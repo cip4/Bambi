@@ -177,10 +177,7 @@ public class BambiServer extends JettyServer
 		final int iport = mp.getPort();
 		setPort(iport);
 		final int sslPort = mp.getSSLPort();
-		if (sslPort > 0)
-		{
-			setSSLPort(sslPort, null);
-		}
+		setSSLPort(sslPort);
 
 		setContext(root.getAttribute("Context", null, null));
 		if (StringUtil.isEmpty(context))
@@ -189,7 +186,7 @@ public class BambiServer extends JettyServer
 			log.fatal(logString);
 			throw new BambiException(logString);
 		}
-		log.info("starting BambiServer at context: " + context + " port: " + getPort());
+		log.info("starting " + toString());
 	}
 
 	/**
@@ -371,6 +368,14 @@ public class BambiServer extends JettyServer
 		super.setPort(port);
 		if (mp != null)
 			mp.setPort(port);
+	}
+
+	@Override
+	public void setSSLPort(int port)
+	{
+		if (mp != null)
+			mp.setSSLPort(port);
+		super.setSSLPort(port);
 	}
 
 }

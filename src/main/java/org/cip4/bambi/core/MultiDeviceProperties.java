@@ -917,6 +917,19 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 *
 	 * @param port
 	 */
+	public void setSSLPort(final int port)
+	{
+		if (getSSLPort() != port && port > 0)
+		{
+			root.setAttribute("SSLPort", port, null);
+			serialize();
+		}
+	}
+
+	/**
+	 *
+	 * @param port
+	 */
 	public void setPort(final int port)
 	{
 		if (getPort() != port && port > 0)

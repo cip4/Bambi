@@ -38,7 +38,10 @@ package org.cip4.bambi.server;
 
 import static org.junit.Assert.assertNotNull;
 
+import java.io.File;
+
 import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.jdflib.util.FileUtil;
 import org.junit.Test;
 
 public class BambiServerTest extends BambiTestCaseBase
@@ -49,6 +52,9 @@ public class BambiServerTest extends BambiTestCaseBase
 	{
 		BambiServer s = new BambiServer();
 		assertNotNull(s);
+		FileUtil.forceDelete(new File(s.getUserDir().getToolPath()));
+		BambiServer s2 = new BambiServer();
+		assertNotNull(s2);
 	}
 
 	@Test
