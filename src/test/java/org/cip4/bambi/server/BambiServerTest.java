@@ -38,6 +38,7 @@ package org.cip4.bambi.server;
 
 import static org.junit.Assert.assertNotNull;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 
 import org.cip4.bambi.BambiTestCaseBase;
@@ -55,6 +56,15 @@ public class BambiServerTest extends BambiTestCaseBase
 		FileUtil.forceDelete(new File(s.getUserDir().getToolPath()));
 		BambiServer s2 = new BambiServer();
 		assertNotNull(s2);
+	}
+
+	@Test
+	public void testUnpack() throws Exception
+	{
+		BambiServer s = new BambiServer();
+		assertNotNull(s);
+		FileUtil.forceDelete(new File(s.getUserDir().getToolPath()));
+		BambiServer.unpackLines(s.getClass(), new File(sm_dirTestDataTemp + "out"), new ByteArrayInputStream("abc\n/data/test.icc\n".getBytes()));
 	}
 
 	@Test

@@ -37,11 +37,8 @@
 package org.cip4.bambi.server;
 
 import java.awt.event.ActionEvent;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Properties;
 
 import javax.swing.JButton;
@@ -52,7 +49,6 @@ import javax.swing.JTextField;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.MultiDeviceProperties;
-import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdfutility.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
@@ -88,10 +84,7 @@ public class BambiFrame extends JettyFrame
 			final File f = fc.getSelectedFile();
 			getProp().setBaseDir(f);
 			setBaseDirText(f);
-			LogConfigurator.configureLog(
-					FilenameUtils.concat(getProp().getBaseDir().getAbsolutePath(), "logs"),
-					"bambi.log"
-			);
+			LogConfigurator.configureLog(FilenameUtils.concat(getProp().getBaseDir().getAbsolutePath(), "logs"), "bambi.log");
 		}
 	}
 
@@ -191,46 +184,9 @@ public class BambiFrame extends JettyFrame
 	{
 		final Class<? extends BambiFrame> myClass = getClass();
 		final InputStream listStream = myClass.getResourceAsStream(BambiServer.RESOURCES_FILE);
-		final BufferedReader r = new BufferedReader(new InputStreamReader(listStream));
-		String line = null;
-
 		final UserDir userDir = new UserDir(BambiServer.BAMBI);
 		final File toolDir = new File(userDir.getToolPath());
-
-		try
-		{
-			while ((line = r.readLine()) != null)
-			{
-				if (line.isEmpty())
-					continue;
-
-				final InputStream nextStream = myClass.getResourceAsStream(line);
-				if (nextStream != null)
-				{
-					File toFile = new File(line.substring(1));
-					toFile = FileUtil.getFileInDirectory(toolDir, toFile);
-					log.info("Streaming resource file " + toFile.getAbsolutePath());
-					final File newFile = FileUtil.streamToFile(nextStream, toFile);
-					if (newFile != null)
-					{
-						log.info("Streamed resource file " + newFile.getAbsolutePath());
-					}
-					else
-					{
-						log.warn("Cannot stream resource file " + toFile.getAbsolutePath());
-					}
-				}
-				else
-				{
-					log.warn("no stream for resource file " + line);
-				}
-			}
-		}
-		catch (final IOException e)
-		{
-			log.error("Error: " + e.getMessage(), e);
-		}
-
+		BambiServer.unpackLines(myClass, toolDir, listStream);
 		setTitle(getFrameName()); // set title as release info can be changed after extracting
 	}
 

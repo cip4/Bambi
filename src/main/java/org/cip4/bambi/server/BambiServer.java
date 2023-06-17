@@ -231,46 +231,52 @@ public class BambiServer extends JettyServer
 			}
 			else
 			{
-				final BufferedReader r = new BufferedReader(new InputStreamReader(listStream));
-				String line = null;
-				try
-				{
-					while ((line = r.readLine()) != null)
-					{
-						if (line.isEmpty())
-							continue;
-
-						final InputStream nextStream = myClass.getResourceAsStream(line);
-						if (nextStream != null)
-						{
-							File toFile = new File(line.substring(1));
-							toFile = FileUtil.getFileInDirectory(toolDir, toFile);
-							log.info("Streaming resource file " + toFile.getAbsolutePath());
-							final File newFile = FileUtil.streamToFile(nextStream, toFile);
-							if (newFile != null)
-							{
-								log.info("Streamed resource file " + newFile.getAbsolutePath());
-							}
-							else
-							{
-								log.warn("Cannot stream resource file " + toFile.getAbsolutePath());
-							}
-						}
-						else
-						{
-							log.warn("no stream for resource file " + line);
-						}
-					}
-				}
-				catch (final IOException e)
-				{
-					line = null;
-				}
+				unpackLines(myClass, toolDir, listStream);
 			}
 		}
 		else
 		{
 			log.info("list.txt already extracted at: " + userDir.getToolPath());
+		}
+	}
+
+	static void unpackLines(final Class<? extends Object> myClass, final File toolDir, final InputStream listStream)
+	{
+		final BufferedReader r = new BufferedReader(new InputStreamReader(listStream));
+		String line = null;
+		Log log = LogFactory.getLog(myClass);
+		try
+		{
+			while ((line = r.readLine()) != null)
+			{
+				if (line.isEmpty())
+					continue;
+
+				final InputStream nextStream = myClass.getResourceAsStream(line);
+				if (nextStream != null)
+				{
+					File toFile = new File(line.substring(1));
+					toFile = FileUtil.getFileInDirectory(toolDir, toFile);
+					log.info("Streaming resource file " + toFile.getAbsolutePath());
+					final File newFile = FileUtil.streamToFile(nextStream, toFile);
+					if (newFile != null)
+					{
+						log.info("Streamed resource file " + newFile.getAbsolutePath());
+					}
+					else
+					{
+						log.warn("Cannot stream resource file " + toFile.getAbsolutePath());
+					}
+				}
+				else
+				{
+					log.warn("no stream for resource file " + line);
+				}
+			}
+		}
+		catch (final IOException e)
+		{
+			line = null;
 		}
 	}
 
