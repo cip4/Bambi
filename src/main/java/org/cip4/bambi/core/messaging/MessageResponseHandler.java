@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -41,6 +41,7 @@ package org.cip4.bambi.core.messaging;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.IConverterCallback;
@@ -69,7 +70,7 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 	protected JDFMessage finalMessage;
 	private HttpURLConnection connect;
 	protected ByteArrayIOStream bufferedInput;
-	private MyMutex mutex = new MyMutex();
+	private final AtomicReference<MyMutex> mutex;
 	private int abort = 0; // 0 no abort handling, 1= abort on timeout, 2= has been aborted
 	protected String refID;
 	private IConverterCallback callBack = null;
@@ -105,6 +106,7 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 		connect = null;
 		bufferedInput = null;
 		startTime = System.currentTimeMillis();
+		mutex = new AtomicReference<>(new MyMutex());
 	}
 
 	/**
@@ -207,13 +209,14 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 	 */
 	protected void finalizeHandling()
 	{
-		if (mutex == null)
+		MyMutex myMutex = mutex.get();
+		if (myMutex == null)
 		{
 			return;
 		}
 		abort = 0;
-		ThreadUtil.notifyAll(mutex);
-		mutex = null;
+		ThreadUtil.notifyAll(myMutex);
+		mutex.set(null);
 		if (resp != null)
 		{
 			String rID = resp.getAttribute(AttributeName.REFID, null, null);
@@ -309,15 +312,16 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 	@Override
 	public void waitHandled(final int wait1, final int wait2, final boolean bAbort)
 	{
-		if (mutex == null)
+		MyMutex myMutex = mutex.get();
+		if (myMutex == null)
 		{
 			return;
 		}
 		abort = bAbort ? 1 : 0;
-		ThreadUtil.wait(mutex, wait1);
-		if (mutex != null && connect != null && wait2 >= 0) // we have established a connection but have not yet read anything
+		ThreadUtil.wait(myMutex, wait1);
+		if (mutex.get() != null && connect != null && wait2 >= 0) // we have established a connection but have not yet read anything
 		{
-			ThreadUtil.wait(mutex, wait2);
+			ThreadUtil.wait(myMutex, wait2);
 		}
 		if (abort == 1)
 		{
@@ -337,7 +341,7 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 			log.error("aborted handler after " + ((t - startTime) * 0.001) + " seconds");
 			return true;
 		}
-		return mutex == null ? false : abort == 2;
+		return mutex.get() == null ? false : abort == 2;
 	}
 
 	/**

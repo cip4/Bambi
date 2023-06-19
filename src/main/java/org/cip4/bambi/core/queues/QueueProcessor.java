@@ -2250,7 +2250,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					JDFQueueEntry qe = getQueueEntry(qeID);
 					if (qe != null)
 					{
-						log.info("Successfully queued new QueueEntry: QueueEntryID=" + qeID + " / " + theJDF.getJDFRoot().getJobID(true));
+						log.info("Successfully queued new QueueEntry: " + qeID + " / " + theJDF.getJDFRoot().getJobID(true) + " new size=" + getQueue().numEntries(null));
 						persist(PERSIST_MS);
 						return qe;
 					}

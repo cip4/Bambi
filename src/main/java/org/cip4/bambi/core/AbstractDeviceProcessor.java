@@ -644,11 +644,13 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 					_queueProcessor.returnQueueEntry(qe, null, getCurrentJDF(), qes);
 				}
 				qe.removeAttribute(AttributeName.DEVICEID);
-				log.info("finalized processing JDF: " + getJobID() + " " + ((qes == null) ? "??? null ???" : qes.getName()));
+				String size = "";
 				if (_queueProcessor != null)
 				{
 					_queueProcessor.updateEntry(qe, qes, null, null, null);
+					size = " Waiting=" + _queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting);
 				}
+				log.info("finalized processing JDF: " + getJobID() + " " + ((qes == null) ? "??? null ???" : qes.getName()) + size);
 			}
 			catch (final Exception x)
 			{
