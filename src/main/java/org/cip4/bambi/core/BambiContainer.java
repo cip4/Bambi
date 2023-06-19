@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -59,6 +59,7 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.util.CPUTimer;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
@@ -67,7 +68,8 @@ import org.cip4.jdflib.util.mime.BodyPartHelper;
 import org.cip4.jdflib.util.mime.MimeReader;
 
 /**
- * class that handles all bambi JDF/JMF requests - regardless of the servlet context previously part of {@link BambiServlet} it is implemented as a Singleton so that you always have static access
+ * class that handles all bambi JDF/JMF requests - regardless of the servlet context previously part of {@link BambiServlet} it is implemented as a Singleton so that you always
+ * have static access
  *
  * note that the get handling routines still assume a servlet context - only the actual JDF / JMF post does not
  *
@@ -635,7 +637,7 @@ public final class BambiContainer extends ServletContainer
 	{
 		final XMLResponse response;
 		VElement v = jmf.getMessageVector(null, null);
-		final int nMess = v == null ? 0 : v.size();
+		final int nMess = ContainerUtil.size(v);
 		v = jmf.getMessageVector(EnumFamily.Signal, null);
 		int nSigs = v.size();
 		v = jmf.getMessageVector(EnumFamily.Acknowledge, null);
@@ -646,7 +648,7 @@ public final class BambiContainer extends ServletContainer
 		}
 		else
 		{
-			response = null;
+			response = new XMLResponse(null);
 		}
 		return response;
 	}
