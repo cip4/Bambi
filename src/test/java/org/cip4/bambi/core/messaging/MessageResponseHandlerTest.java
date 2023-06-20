@@ -77,6 +77,14 @@ public class MessageResponseHandlerTest
 	}
 
 	@Test
+	public void testFinalizeHandling()
+	{
+		MessageResponseHandler mrh = new MessageResponseHandler("32");
+		mrh.finalizeHandling();
+		mrh.finalizeHandling();
+	}
+
+	@Test
 	public void testWaitHandledAbort()
 	{
 		MessageResponseHandler mrh = new MessageResponseHandler("32");

@@ -2189,20 +2189,22 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			pair = qsp.addQueueEntry(queue, null, submitQueueEntry.getQueueFilter(0));
 			setQueue(queue);
 		}
+		JDFResponse directResp = pair.getA();
+		int rc = directResp == null ? 1 : directResp.getReturnCode();
+		if (rc != 0)
+		{
+			log.warn("invalid response while adding queue entry: rc=" + rc + " queue status=" + getQueue().getStatus());
+			return null;
+		}
 		if (newResponse != null)
 		{
-			newResponse.copyInto(pair.getA(), false);
-			if (newResponse.getReturnCode() != 0)
-			{
-				log.warn("invalid response while adding queue entry: rc=" + newResponse.getReturnCode() + " queue status=" + getQueue().getStatus());
-				return null;
-			}
+			newResponse.copyInto(directResp, false);
 		}
 
 		newQE = pair.getB();
 		if (newQE == null)
 		{
-			log.warn("error submitting queueentry: " + newResponse.getReturnCode());
+			log.warn("error submitting queueentry: " + directResp.getReturnCode());
 			return null;
 		}
 		String qeID = newQE.getQueueEntryID();
@@ -2213,7 +2215,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
 		{
-			newResponse.setReturnCode(120);
+			if (newResponse != null)
+				newResponse.setReturnCode(120);
 			log.error("error storing queueentry: " + qeID + " " + newResponse.getReturnCode());
 			return null;
 		}

@@ -415,6 +415,8 @@ public class QueueProcessorTest extends BambiTestCase
 		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
 		final JDFQueueEntry qe = qp.addEntry(c, r, doc);
 		assertNotNull(qe);
+		final JDFQueueEntry qe2 = qp.addEntry(c, null, doc);
+		assertNotNull(qe2);
 		assertTrue(BambiNSExtension.getTotal(qp.getQueue()) > 0);
 	}
 
