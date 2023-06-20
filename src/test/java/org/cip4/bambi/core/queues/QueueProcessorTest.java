@@ -257,9 +257,6 @@ public class QueueProcessorTest extends BambiTestCase
 		qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
 		qe.setSubmissionTime(new JDFDate());
 		assertTrue(qp.storeDoc(qe, doc, null, null));
-		qe.deleteNode();
-		assertFalse(qp.storeDoc(qe, doc, null, null));
-
 	}
 
 	/**
@@ -396,8 +393,8 @@ public class QueueProcessorTest extends BambiTestCase
 			jdf.setJobID("J" + i);
 			final JDFDoc doc = jdf.getOwnerDocument_JDFElement();
 			qp.addEntry(c, r, doc);
-			final JDFQueue queue = r.getQueue(0);
-			assertNull(queue.getQueueEntry(0));
+			final JDFQueue queue = qp.getQueue();
+			assertNull(r.getQueue(0));
 			assertEquals(i + 1, queue.getQueueSize());
 			assertTrue(BambiNSExtension.getTotal(qp.getQueue()) > i);
 

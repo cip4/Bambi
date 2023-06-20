@@ -109,8 +109,10 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.EnumUtil;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.MyPair;
 import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
@@ -2061,7 +2063,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			if (theDoc == null)
 			{
-				log.warn("waiting for get: " + qe.getQueueEntryID());
+				log.warn("waiting for get jdfdoc: " + qe.getQueueEntryID());
 
 				if (!ThreadUtil.sleep(10 * i))
 				{
@@ -2180,35 +2182,30 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			return null;
 		}
 
-		final JDFResponse r2;
+		final MyPair<JDFResponse, JDFQueueEntry> pair;
 		synchronized (_theQueue)
 		{
 			JDFQueue queue = getQueue();
-			r2 = qsp.addEntry(queue, null, submitQueueEntry.getQueueFilter(0));
+			pair = qsp.addQueueEntry(queue, null, submitQueueEntry.getQueueFilter(0));
 			setQueue(queue);
 		}
 		if (newResponse != null)
 		{
-			newResponse.copyInto(r2, false);
-		}
-		else
-		{
-			newResponse = r2;
-		}
-		if (newResponse.getReturnCode() != 0)
-		{
-			log.warn("invalid response while adding queue entry: rc=" + newResponse.getReturnCode() + " queue status=" + getQueue().getStatus());
-			return null;
+			newResponse.copyInto(pair.getA(), false);
+			if (newResponse.getReturnCode() != 0)
+			{
+				log.warn("invalid response while adding queue entry: rc=" + newResponse.getReturnCode() + " queue status=" + getQueue().getStatus());
+				return null;
+			}
 		}
 
-		newQE = newResponse.getQueueEntry(0);
+		newQE = pair.getB();
 		if (newQE == null)
 		{
 			log.warn("error submitting queueentry: " + newResponse.getReturnCode());
 			return null;
 		}
-		final String qeID = newQE.getQueueEntryID();
-
+		String qeID = newQE.getQueueEntryID();
 		BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
 		_parentDevice.fixEntry(newQE, theJDF);
 
@@ -2221,17 +2218,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			return null;
 		}
 		notifyListeners(qeID);
-		JDFQueueEntry ret = waitForEntry(theJDF, qeID, newQE);
-		if (ret == null)
-		{
-			newResponse.setReturnCode(120);
-			log.error("error creating queueentry: " + qeID + " " + newResponse.getReturnCode());
-			return null;
-
-		}
-		prepareSubmit(ret);
+		prepareSubmit(newQE);
 		incrmentTotal();
-		return ret;
+		return newQE;
 	}
 
 	void incrmentTotal()
@@ -2239,27 +2228,19 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		BambiNSExtension.incrmentTotal(_theQueue.get());
 	}
 
+	/**
+	 * 
+	 * @param theJDF
+	 * @param qeID
+	 * @param newQE
+	 * @return
+	 * @deprecated
+	 */
+	@Deprecated
 	protected JDFQueueEntry waitForEntry(final JDFDoc theJDF, final String qeID, JDFQueueEntry newQE)
 	{
-		if (!StringUtil.isEmpty(qeID))
-		{
-			for (int i = 1; i < 42; i++)
-			{
-				synchronized (getMutexForQE(newQE))
-				{
-					JDFQueueEntry qe = getQueueEntry(qeID);
-					if (qe != null)
-					{
-						log.info("Successfully queued new QueueEntry: " + qeID + " / " + theJDF.getJDFRoot().getJobID(true) + " new size=" + getQueue().numEntries(null));
-						persist(PERSIST_MS);
-						return qe;
-					}
-					ThreadUtil.sleep(i * 10);
-					log.warn("waiting for " + qeID);
-				}
-			}
-		}
-		return null;
+		// nop
+		return newQE;
 	}
 
 	protected void extractToJob(final JDFDoc theJDF, final JDFQueueEntry newQE)
@@ -2295,45 +2276,27 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			log.info("error storing queueentry");
 			return false;
 		}
-		final String newQEID = newQE.getQueueEntryID();
-		JDFQueueEntry newQEReal = getQueueEntry(newQEID); // the "actual" entry in the queue
-		int n = 0;
-		while (newQEReal == null)
-		{
-			if (n >= 3)
-			{
-				log.error("error fetching queueentry: QueueEntryID=" + newQEID);
-				return false;
-			}
-			else
-			{
-				ThreadUtil.sleep(++n * 42);
-				log.warn(n + " delay fetching queueentry: QueueEntryID=" + newQEID);
-			}
-			newQEReal = getQueueEntry(newQEID);
-		}
-		newQEReal.copyInto(newQE, false);
-		slaveQueueMap.addEntry(newQEReal, true);
+		slaveQueueMap.addEntry(newQE, true);
 		final JDFQueue q = getQueue();
 		try
 		{
-			BambiNotifyDef.getInstance().notifyDeviceJobAdded(q.getDeviceID(), newQEReal.getQueueEntryID(), newQEReal.getQueueEntryStatus().getName(),
-					newQEReal.getSubmissionTime().getTimeInMillis());
-			BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
+			BambiNotifyDef i = BambiNotifyDef.getInstance();
+			i.notifyDeviceJobAdded(q.getDeviceID(), newQE.getQueueEntryID(), EnumUtil.getName(newQE.getQueueEntryStatus()), newQE.getSubmissionTime().getTimeInMillis());
+			i.notifyDeviceQueueStatus(q.getDeviceID(), EnumUtil.getName(q.getQueueStatus()), getQueueStatistic());
 		}
 		catch (Exception x)
 		{
 			// nop
 		}
-		final boolean ok = storeJDF(theJDF, newQEID);
+		final boolean ok = storeJDF(theJDF, newQE);
 
 		if (!KElement.isWildCard(returnJMF))
 		{
-			BambiNSExtension.setReturnJMF(newQEReal, returnJMF);
+			BambiNSExtension.setReturnJMF(newQE, returnJMF);
 		}
 		else if (!KElement.isWildCard(returnURL))
 		{
-			BambiNSExtension.setReturnURL(newQEReal, returnURL);
+			BambiNSExtension.setReturnURL(newQE, returnURL);
 		}
 
 		return ok;
@@ -2350,11 +2313,25 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 * @param theJDF
 	 * @param newQEID
 	 * @return
+	 * @deprecated
 	 */
+	@Deprecated
 	public boolean storeJDF(final JDFDoc theJDF, final String newQEID)
 	{
-		boolean ok;
 		final JDFQueueEntry newQEReal = getQueueEntry(newQEID); // the "actual" entry in the queue
+		return storeJDF(theJDF, newQEReal);
+	}
+
+	/**
+	 * 
+	 * @param theJDF
+	 * @param newQEReal
+	 * @return
+	 */
+	protected boolean storeJDF(final JDFDoc theJDF, final JDFQueueEntry newQEReal)
+	{
+		boolean ok;
+		String newQEID = newQEReal.getQueueEntryID();
 		final String theDocFile = _parentDevice.getJDFStorage(newQEID);
 		BambiNSExtension.setDocURL(newQEReal, theDocFile);
 		synchronized (getMutexForQeID(newQEID))
