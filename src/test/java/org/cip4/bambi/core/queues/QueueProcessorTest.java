@@ -91,6 +91,7 @@ import org.cip4.bambi.core.StreamRequest;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.queues.QueueProcessor.QueueEntryReturn;
 import org.cip4.bambi.core.queues.QueueProcessor.SubmitQueueEntryHandler;
+import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -115,6 +116,7 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeWriter;
 import org.junit.Before;
@@ -421,6 +423,34 @@ public class QueueProcessorTest extends BambiTestCase
 	}
 
 	/**
+	*
+	*
+	*/
+	@Test
+	public void testAddEntryBad()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		qp.getQueue().setQueueStatus(EnumQueueStatus.Closed);
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		JDFQueueEntry qe = qp.addEntry(c, r, doc);
+		assertNull(qe);
+		assertEquals(112, r.getReturnCode());
+		qe = qp.addEntry(c, null, doc);
+		assertNull(qe);
+		r.setReturnCode(0);
+		qe = qp.addEntry(null, r, doc);
+		assertNull(qe);
+		assertEquals(7, r.getReturnCode());
+		r.setReturnCode(0);
+		qe = qp.addEntry(c, r, null);
+		assertNull(qe);
+		assertEquals(7, r.getReturnCode());
+	}
+
+	/**
 	 *
 	 *
 	 */
@@ -469,6 +499,7 @@ public class QueueProcessorTest extends BambiTestCase
 		final QueueProcessor qp = dev.getQueueProcessor();
 		final JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q1res");
+		ThreadUtil.sleep(2);
 		final JMFBuilder jmfBuilder = new JMFBuilder();
 		final JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.ResumeQueueEntry).getCommand(0);
 		final JDFResumeQueueEntryParams aqp = (JDFResumeQueueEntryParams) c.appendElement(ElementName.RESUMEQUEUEENTRYPARAMS);

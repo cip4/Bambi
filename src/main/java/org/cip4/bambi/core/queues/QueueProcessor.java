@@ -2161,9 +2161,14 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	public JDFQueueEntry addEntry(final JDFCommand submitQueueEntry, JDFResponse newResponse, final JDFDoc theJDF)
 	{
-		if (submitQueueEntry == null || theJDF == null)
+		if (submitQueueEntry == null)
 		{
-			log.error("error submitting new queueentry");
+			JMFHandler.errorResponse(newResponse, "unable to queue request: Missing submission params", 7, EnumClass.Error);
+			return null;
+		}
+		if (theJDF == null)
+		{
+			JMFHandler.errorResponse(newResponse, "unable to queue request: Missing JDF", 7, EnumClass.Error);
 			return null;
 		}
 
@@ -2186,43 +2191,42 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		synchronized (_theQueue)
 		{
 			JDFQueue queue = getQueue();
+			EnumQueueStatus qs = queue.getQueueStatus();
 			pair = qsp.addQueueEntry(queue, null, submitQueueEntry.getQueueFilter(0));
-			setQueue(queue);
+			queue.setQueueStatus(qs);
 		}
 		JDFResponse directResp = pair.getA();
-		int rc = directResp == null ? 1 : directResp.getReturnCode();
-		if (rc != 0)
-		{
-			log.warn("invalid response while adding queue entry: rc=" + rc + " queue status=" + getQueue().getStatus());
-			return null;
-		}
+		int rc = directResp.getReturnCode();
 		if (newResponse != null)
 		{
 			newResponse.copyInto(directResp, false);
 		}
-
 		newQE = pair.getB();
-		if (newQE == null)
+		if (newQE == null || rc != 0)
 		{
-			log.warn("error submitting queueentry: " + directResp.getReturnCode());
-			return null;
+			log.warn("error submitting queueentry: rc=" + rc + " queue status=" + getQueue().getQueueStatus());
 		}
-		String qeID = newQE.getQueueEntryID();
-		BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
-		_parentDevice.fixEntry(newQE, theJDF);
-
-		extractToJob(theJDF, newQE);
-
-		if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
+		else
 		{
-			if (newResponse != null)
-				newResponse.setReturnCode(120);
-			log.error("error storing queueentry: " + qeID + " " + newResponse.getReturnCode());
-			return null;
+			String qeID = newQE.getQueueEntryID();
+			BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
+			_parentDevice.fixEntry(newQE, theJDF);
+
+			extractToJob(theJDF, newQE);
+
+			if (!storeDoc(newQE, theJDF, qsp.getReturnURL(), qsp.getReturnJMF()))
+			{
+				if (newResponse != null)
+				{
+					newResponse.setReturnCode(120);
+				}
+				log.error("error storing queueentry: " + qeID + JDFConstants.BLANK + rc);
+				return null;
+			}
+			notifyListeners(qeID);
+			prepareSubmit(newQE);
+			incrmentTotal();
 		}
-		notifyListeners(qeID);
-		prepareSubmit(newQE);
-		incrmentTotal();
 		return newQE;
 	}
 
