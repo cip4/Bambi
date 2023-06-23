@@ -799,7 +799,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 
 		log.info("enabling input hot folder: " + hfURL + " for Device: " + getDeviceID());
-		final File hfStorage = new File(getDeviceDir(), "HFTmpStorage");
+		final File hfStorage = new File(hfURL, "temp");
 		if (!hfStorage.mkdirs())
 		{
 			log.warn("problems creating " + hfStorage);
@@ -817,6 +817,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			_submitHotFolder.addListener(streamRedirectListener, "zip");
 			_submitHotFolder.addListener(streamRedirectListener, "mjm");
 			_submitHotFolder.addListener(streamRedirectListener, "mjd");
+			_submitHotFolder.setErrorStorage(new File("error"));
+			_submitHotFolder.setOKStorage(new File("ok"));
 		}
 		else
 		{
