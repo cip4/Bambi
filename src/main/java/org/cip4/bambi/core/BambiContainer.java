@@ -477,7 +477,6 @@ public final class BambiContainer extends ServletContainer
 		final XMLResponse r;
 		final MimeReader reader = request.getReader();
 		final BodyPart[] bp = reader == null ? null : reader.getBodyParts();
-		log.info("processMultipleDocuments- parts: " + (bp == null ? 0 : bp.length));
 		if (bp == null || bp.length == 0)
 		{
 			r = processError(request.getRequestURI(), EnumType.Notification, 2, "processMultipleDocuments- not enough parts, bailing out");

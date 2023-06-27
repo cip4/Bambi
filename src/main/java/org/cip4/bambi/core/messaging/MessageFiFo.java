@@ -66,7 +66,6 @@ class MessageFiFo
 	MessageFiFo(final File dumpDir)
 	{
 		super();
-		log = LogFactory.getLog(getClass());
 		this.dumpDir = dumpDir;
 		dumps = readDump();
 		head = readFirstDump();
@@ -171,7 +170,8 @@ class MessageFiFo
 		return vDumps;
 	}
 
-	final Log log;
+	final private static Log log = LogFactory.getLog(MessageFiFo.class);
+
 	List<MessageDetails> head;
 	List<MessageDetails> tail;
 	final List<File> dumps;
