@@ -2992,7 +2992,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	public List<JDFQueueEntry> getMessageQueueEntries(final JDFMessage m, final JDFResponse resp)
 	{
-		final JDFQueueEntryDef def = m.getQueueEntryDef(0);
+		JDFQueueEntryDef def = m.getQueueEntryDef(0);
+		if (def == null)
+		{
+			def = (JDFQueueEntryDef) m.getXPathElement("*/QueueFilter/QueueEntryDef");
+		}
 		if (def == null)
 		{
 			final JDFQueueFilter qf = (JDFQueueFilter) m.getXPathElement("*/QueueFilter");

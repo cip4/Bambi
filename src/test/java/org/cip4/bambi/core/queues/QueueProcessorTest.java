@@ -455,6 +455,22 @@ public class QueueProcessorTest extends BambiTestCase
 	 *
 	 */
 	@Test
+	public void testMessageQEAbortOld()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
+		qe.setQueueEntryID("q1old");
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.AbortQueueEntry).getCommand(0);
+		c.appendQueueEntryDef().setQueueEntryID("q1old");
+		assertEquals(qe, qp.getMessageQueueEntry(c, null));
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
 	public void testMessageQEAbort()
 	{
 		final QueueProcessor qp = getDevice().getQueueProcessor();

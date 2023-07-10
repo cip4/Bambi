@@ -88,13 +88,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		shutdown();
 		final JDFQueue q = (JDFQueue) new JDFDoc(ElementName.QUEUE).getRoot();
 		final JDFQueueEntry qeDummy = q.appendQueueEntry();
-		setQueueEntry(new QueueEntry(node, qeDummy));
-	}
-
-	protected void setQueueEntry(QueueEntry queueEntry)
-	{
-		theCurrentQE.set(queueEntry);
-		// currentQE = queueEntry;
+		setCurrentQE(new QueueEntry(node, qeDummy));
 	}
 
 	/**
