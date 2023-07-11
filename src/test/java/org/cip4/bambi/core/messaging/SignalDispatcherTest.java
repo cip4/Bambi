@@ -37,7 +37,7 @@
  *
  */
 
-package org.cip4.bambi.core;
+package org.cip4.bambi.core.messaging;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -50,10 +50,6 @@ import java.util.Vector;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestDevice;
-import org.cip4.bambi.core.messaging.JMFHandler;
-import org.cip4.bambi.core.messaging.MsgSubscription;
-import org.cip4.bambi.core.messaging.SignalDispatcher;
-import org.cip4.bambi.core.messaging.Trigger;
 import org.cip4.bambi.workers.WorkerDevice;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
