@@ -72,9 +72,20 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 {
 
 	private final SignalDispatcher dispatcher;
-	private SignalDispatcher rootDispatcher = null;
+	private SignalDispatcher rootDispatcher;
 	protected StatusCounter theCounter;
-	private JDFNode currentNode = null;
+	private JDFNode currentNode;
+	private boolean wantPersist;
+
+	public boolean isWantPersist()
+	{
+		return wantPersist;
+	}
+
+	public void setWantPersist(boolean wantPersist)
+	{
+		this.wantPersist = wantPersist;
+	}
 
 	/**
 	 *
@@ -88,6 +99,9 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 		theCounter = new StatusCounter(null, null, null);
 		theCounter.setDeviceID(deviceID);
 		theCounter.setIcsVersions(icsVersions);
+		rootDispatcher = null;
+		currentNode = null;
+		wantPersist = true;
 	}
 
 	/**
@@ -113,7 +127,8 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 	}
 
 	/**
-	 * update the status information by starting a new phase all amounts that have been accumulated are linked to the prior phase should be called after all amounts have been appropriately set
+	 * update the status information by starting a new phase all amounts that have been accumulated are linked to the prior phase should be called after all amounts have been
+	 * appropriately set
 	 *
 	 * @param deviceStatus
 	 * @param deviceStatusDetails
@@ -309,7 +324,7 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 	@Override
 	public boolean persist()
 	{
-		if (currentNode == null)
+		if (currentNode == null || !wantPersist)
 		{
 			return false;
 		}
