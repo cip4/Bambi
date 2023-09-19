@@ -175,6 +175,12 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			 */
 			class MessageStuff
 			{
+				@Override
+				public String toString()
+				{
+					return "MessageStuff [families=" + families + ", subscribe=" + subscribe + ", acknowledge=" + acknowledge + "]";
+				}
+
 				protected final Vector<EnumFamily> families;
 				protected boolean subscribe;
 				protected boolean acknowledge;
