@@ -525,9 +525,9 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	@Override
 	public InputStream getJMFExternStream(final JDFDoc doc)
 	{
-		boolean json = BambiNSExtension.isJSON(doc.getRoot());
+		boolean json = doc == null ? false : BambiNSExtension.isJSON(doc.getRoot());
 		final JDFDoc doc2 = updateJMFForExtern(doc);
-		if (isJSON || json)
+		if (doc2 != null && (isJSON || json))
 		{
 			return getJSONWriter().getStream(doc2.getRoot());
 		}
@@ -559,9 +559,9 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	@Override
 	public InputStream getJDFExternStream(final JDFDoc doc)
 	{
-		boolean json = BambiNSExtension.isJSON(doc.getRoot());
+		boolean json = doc == null ? false : BambiNSExtension.isJSON(doc.getRoot());
 		final JDFDoc doc2 = updateJDFForExtern(doc);
-		if (isJSON || json)
+		if (doc2 != null && (isJSON || json))
 		{
 			return getJSONWriter().getStream(doc2.getRoot());
 		}

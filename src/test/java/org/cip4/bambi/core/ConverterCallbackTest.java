@@ -232,6 +232,8 @@ public class ConverterCallbackTest extends BambiTestCaseBase
 		final JDFDoc d = JMFBuilderFactory.getJMFBuilder(null).buildAbortQueueEntry("q").getOwnerDocument_JDFElement();
 		final InputStream is = cb.getJMFExternStream(d);
 		assertNotNull(is);
+		final InputStream is2 = cb.getJMFExternStream(null);
+		assertNull(is2);
 		final JDFDoc d2 = JDFDoc.parseStream(is);
 		assertNotNull(d2);
 		assertEquals(XJDFConstants.XJMF, d2.getRoot().getLocalName());
@@ -245,6 +247,52 @@ public class ConverterCallbackTest extends BambiTestCaseBase
 	{
 		final ConverterCallback cb = new ConverterCallback();
 		cb.setFixToExtern(EnumVersion.Version_2_0);
+		final JDFDoc d = new JDFDoc(ElementName.JMF);
+		final InputStream is = cb.getJMFExternStream(null);
+		assertNull(is);
+		final InputStream is2 = cb.getJMFExternStream(d);
+		assertNull(is2);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testGetJSONXJMFInputStreamNull()
+	{
+		final ConverterCallback cb = new ConverterCallback();
+		cb.setFixToExtern(EnumVersion.Version_2_0);
+		cb.setJSON(true);
+		final JDFDoc d = new JDFDoc(ElementName.JMF);
+		final InputStream is = cb.getJMFExternStream(d);
+		assertNull(is);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testGetJSONXJDFInputStreamNull()
+	{
+		final ConverterCallback cb = new ConverterCallback();
+		cb.setFixToExtern(EnumVersion.Version_2_0);
+		cb.setJSON(true);
+		final JDFDoc d = new JDFDoc(ElementName.JDF);
+		final InputStream is = cb.getJDFExternStream(null);
+		assertNull(is);
+		final InputStream is2 = cb.getJDFExternStream(d);
+		assertNotNull(is2);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testGetJSONInputStreamNull()
+	{
+		final ConverterCallback cb = new ConverterCallback();
+		cb.setFixToExtern(EnumVersion.Version_2_0);
+		cb.setJSON(true);
 		final JDFDoc d = new JDFDoc(ElementName.JMF);
 		final InputStream is = cb.getJMFExternStream(d);
 		assertNull(is);

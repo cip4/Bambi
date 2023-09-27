@@ -38,7 +38,8 @@
  */
 package org.cip4.bambi.core.queues;
 
-import org.cip4.bambi.core.BambiLogFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
 
@@ -48,11 +49,12 @@ import org.cip4.jdflib.node.JDFNode;
  * @author Rainer Prosi
  *
  */
-public class QueueEntry extends BambiLogFactory implements IQueueEntry
+public class QueueEntry implements IQueueEntry
 {
 
 	private JDFNode _theNode;
 	private JDFQueueEntry _theQueueEntry;
+	private final static Log log = LogFactory.getLog(QueueEntry.class);
 
 	/**
 	 * @param node

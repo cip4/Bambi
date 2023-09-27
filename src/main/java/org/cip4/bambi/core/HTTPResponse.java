@@ -310,7 +310,7 @@ public abstract class HTTPResponse extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		return getClass().getSimpleName() + " [" + (theBuffer != null ? "theBuffer=" + theBuffer + ", " : "") + (contentType != null ? "contentType=" + contentType + ", " : "") + "httpRC=" + httpRC
-				+ ", " + (notification != null ? "notification=" + notification + ", " : "") + "errorRC=" + errorRC + "]";
+		return getClass().getSimpleName() + " [" + (theBuffer != null ? "theBuffer=" + theBuffer + ", " : "") + (contentType != null ? "contentType=" + contentType + ", " : "")
+				+ "httpRC=" + httpRC + ", " + (notification != null ? "notification=" + notification + ", " : "") + "errorRC=" + errorRC + "]";
 	}
 }

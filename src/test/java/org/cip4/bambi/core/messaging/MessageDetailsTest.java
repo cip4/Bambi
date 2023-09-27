@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -135,6 +135,25 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		md.appendToXML(list, 0, false);
 		final MessageDetails md2 = new MessageDetails(list.getElement(null));
 		assertEquals(md.callback.getCallbackDetails(), md2.callback.getCallbackDetails());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testGetJSON()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final ConverterCallback cb = new ConverterCallback();
+		cb.setJSON(true);
+		cb.setFixToExtern(EnumVersion.Version_2_1);
+		final MessageDetails md = new MessageDetails(jmf, null, cb, null, "http://foo");
+		final KElement list = JDFElement.createRoot("L");
+		md.appendToXML(list, 0, false);
+		final MessageDetails md2 = new MessageDetails(list.getElement(null));
+		InputStream is = md2.getInputStream();
+		JSONObjHelper oh = new JSONObjHelper(is);
+		assertNotNull(oh.getRootObject());
 	}
 
 	/**

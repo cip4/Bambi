@@ -574,7 +574,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 
 			if (messageIsHandled)
 			{
-				if (messageCount < 10 || messageCount % 100 == 0)
+				if (messageCount < 10 || messageCount % 1000 == 0)
 				{
 					final String stringBuffer = messageCount + "; family= " + jmfMessage.getLocalName() + " type=" + jmfMessage.getType() + " Sender= " + jmfMessage.getSenderID();
 					log.info("handling message #" + stringBuffer);

@@ -75,7 +75,7 @@ import org.cip4.jdflib.util.StringUtil;
 public class MsgSubscription implements Cloneable
 {
 	private static final String IS_JSON = "isJSON";
-	private final Log log = BambiLogFactory.getLog(MessageSender.class);
+	private static final Log log = BambiLogFactory.getLog(MsgSubscription.class);
 	private final SignalDispatcher signalDispatcher;
 	protected static final String SUBSCRIPTION_ELEMENT = "MsgSubscription";
 	protected String channelID;
