@@ -27,7 +27,7 @@
 	Port="8080" 
 	JettyPort="44482"
 	Context="/SimWorker"
-	CallBackName="org.cip4.bambi.extensions.ExtensionCallback">
+	CallBackName="org.cip4.bambi.core.ConverterCallback">
 	
 	<Device DeviceID="SimWorkerRoot" 
 		DeviceType="Bambi Sim Device Root" />

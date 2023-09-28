@@ -70,6 +70,7 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.resource.JDFMilestone;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.EnumUtil;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
@@ -464,6 +465,8 @@ public class MessageDetails
 		if (jdf != null)
 		{
 			EnumVersion maxVersion = jdf.getMaxVersion(true);
+			EnumVersion maxVersion2 = EnumVersion.getEnum(BambiNSExtension.getMyNSAttribute(jdf, AttributeName.MAXVERSION));
+			maxVersion = (EnumVersion) EnumUtil.max(maxVersion, maxVersion2);
 			if (callback != null && UrlUtil.VND_XJDF.equals(callback.getJDFContentType(maxVersion, callback.isJSON() || BambiNSExtension.isJSON(jdf)))
 					&& UrlUtil.VND_XJMF.equals(callback.getJMFContentType(maxVersion, false)))
 			{
@@ -523,7 +526,7 @@ public class MessageDetails
 		}
 		else
 		{
-			return callback.getJMFExternStream(jmf.getOwnerDocument_JDFElement());
+			return callback.getJMFExternStream(jmf.getOwnerDocument_JDFElement().clone());
 		}
 	}
 
@@ -538,8 +541,8 @@ public class MessageDetails
 		final JDFDoc docJDF;
 		if (callback != null)
 		{
-			docJMF = callback.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
-			docJDF = callback.updateJDFForExtern(jdf.getOwnerDocument_JDFElement());
+			docJMF = callback.updateJMFForExtern(jmf.getOwnerDocument_JDFElement().clone());
+			docJDF = callback.updateJDFForExtern(jdf.getOwnerDocument_JDFElement().clone());
 		}
 		else
 		{
@@ -577,9 +580,9 @@ public class MessageDetails
 		final KElement xmlJDF;
 		if (callback != null)
 		{
-			final XMLDoc d2 = callback.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+			final XMLDoc d2 = callback.updateJMFForExtern(jmf.getOwnerDocument_JDFElement().clone());
 			xmlJMF = d2.getRoot();
-			final XMLDoc d3 = callback.updateJDFForExtern(jdf.getOwnerDocument_JDFElement());
+			final XMLDoc d3 = callback.updateJDFForExtern(jdf.getOwnerDocument_JDFElement().clone());
 			xmlJDF = d3.getRoot();
 		}
 		else

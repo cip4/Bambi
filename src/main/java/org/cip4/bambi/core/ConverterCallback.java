@@ -269,6 +269,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 				KElement newRoot = newdoc.getRoot();
 				fv.walkTree(newRoot, null);
 				newRoot.setAttribute(AttributeName.MAXVERSION, XJDF20.getDefaultVersion().getName());
+				BambiNSExtension.setMyNSAttribute(newRoot, AttributeName.MAXVERSION, XJDF20.getDefaultVersion().getName());
 				return newdoc;
 			}
 			else

@@ -2859,6 +2859,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				log.error("No JDF root; root=" + ((docJDF == null) ? "null" : docJDF.getRoot().getNodeName()));
 				return false;
 			}
+			jmf.copyAttribute(AttributeName.MAXVERSION, jdfRoot);
 			final String returnJMF = BambiNSExtension.getReturnJMF(qe);
 			final JDFReturnQueueEntryParams returnQEParams = jmf.getCommand(0).getReturnQueueEntryParams(0);
 			log.info("MIME/ZIP ReturnQueueEntry for " + queueEntryID + " is being been sent to " + returnJMF);

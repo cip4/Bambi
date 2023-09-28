@@ -903,13 +903,13 @@ public class MessageSender implements Runnable, IPersistable
 		}
 
 		final String url = messageDetails.url;
+		final String contentType = messageDetails.getContentType();
 		final InputStream is = messageDetails.getInputStream();
 		if (is == null || StringUtil.isEmpty(url))
 		{
 			throw new IllegalArgumentException("sending null stream to " + url);
 		}
 
-		final String contentType = messageDetails.getContentType();
 		final HTTPDetails httpDetails = messageDetails.mimeDet == null ? null : messageDetails.mimeDet.httpDetails;
 		long t0 = System.currentTimeMillis();
 		final UrlPart p = UrlUtil.writeToURL(url, ByteArrayIOStream.getBufferedInputStream(is), UrlUtil.POST, contentType, httpDetails);
