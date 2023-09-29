@@ -45,6 +45,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.Vector;
 
+import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.AcknowledgeMap;
@@ -76,6 +77,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
+import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.extensions.XJDFConstants;
 import org.cip4.jdflib.jmf.JDFDeviceFilter;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
@@ -742,6 +744,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			log.info("no watch subscriptions are specified");
 			return;
 		}
+		log.info("watch subscriptions are specified for " + watchURL);
 
 		final JMFBuilder jmfBuilder = getJMFBuilder();
 		final JDFJMF[] jmfs = jmfBuilder.createSubscriptions(watchURL, null, 30., 0);
@@ -752,6 +755,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		for (final JDFJMF jmf : jmfs)
 		{
 			final JDFQuery query = jmf.getQuery(0);
+			query.setID("Watch_" + query.getType());
 			updateWatchSubscription(query);
 			_theSignalDispatcher.addSubscription(query, null, null);
 		}
@@ -772,7 +776,22 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected void updateWatchSubscription(final JDFQuery query)
 	{
-		// nop
+		EWatchFormat format = getProperties().getWatchFormat();
+		if (EWatchFormat.XJMF.equals(format))
+		{
+			log.info("Setting watch subscription to xjmf");
+			query.getJMFRoot().setMaxVersion(XJDF20.getDefaultVersion());
+		}
+		else if (EWatchFormat.JSON.equals(format))
+		{
+			query.getJMFRoot().setMaxVersion(XJDF20.getDefaultVersion());
+			BambiNSExtension.setContentType(query.getJMFRoot(), UrlUtil.APPLICATION_JSON);
+			log.info("Setting watch subscription to json");
+		}
+		else
+		{
+			log.info("Setting watch subscription to jmf");
+		}
 	}
 
 	/**
@@ -1449,7 +1468,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		final String watchURL = request.getParameter("WatchURL");
 		if (watchURL != null && stringSet.contains("WatchURL"))
 		{
-			updateWatchURL(watchURL);
+			final String watchFormat = request.getParameter("WatchFormat");
+			updateWatchURL(watchURL, watchFormat);
 		}
 		if (stringSet.contains("InputHF"))
 		{
@@ -1527,18 +1547,26 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 *
 	 * @param newWatchURL
 	 */
-	private void updateWatchURL(String newWatchURL)
+	protected void updateWatchURL(String newWatchURL, String newWatchFormat)
 	{
 		if ("-".equals(newWatchURL))
 		{
 			newWatchURL = null;
 			log.info("explicitly removing watchUrl");
 		}
+
 		final IDeviceProperties properties = getProperties();
+		EWatchFormat oldFormat = properties.getWatchFormat();
+		EWatchFormat format = StringUtil.isEmpty(newWatchFormat) ? oldFormat : EWatchFormat.getEnum(newWatchFormat);
 		final String oldWatchURL = properties.getWatchURL();
-		if (!ContainerUtil.equals(oldWatchURL, newWatchURL))
+		if (!ContainerUtil.equals(oldWatchURL, newWatchURL) || !format.equals(oldFormat))
 		{
+			if (StringUtil.isEmpty(newWatchURL))
+			{
+				newWatchURL = oldWatchURL;
+			}
 			newWatchURL = StringUtil.getNonEmpty(newWatchURL);
+
 			// explicit empty strings must be handled
 			if (newWatchURL != null && !UrlUtil.isHttp(newWatchURL) && !UrlUtil.isHttps(newWatchURL))
 			{
@@ -1546,6 +1574,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				return;
 			}
 			properties.setWatchURL(newWatchURL);
+			properties.setWatchFormat(format);
 			if (StringUtil.getNonEmpty(oldWatchURL) != null)
 			{
 				log.info("removing watch subscriptions to: " + oldWatchURL);

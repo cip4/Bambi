@@ -50,6 +50,8 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.PlatformUtil;
@@ -163,6 +165,22 @@ public class MultiDevicePropertiesTest extends BambiTestCaseBase
 			d.setOriginalFileName("foo");
 			final MultiDeviceProperties p = new MultiDeviceProperties(d);
 			assertNotNull(p.getSubClass());
+
+		}
+
+		@Test
+		public void testWatchFormat()
+		{
+			final XMLDoc d = new XMLDoc("application", null);
+			d.setOriginalFileName("foo");
+			KElement root = d.getRoot();
+			final MultiDeviceProperties p = new MultiDeviceProperties(d);
+			DeviceProperties dp = p.createDeviceProps(root.appendElement("dev"));
+			assertEquals(EWatchFormat.JMF, dp.getWatchFormat());
+			dp.setWatchFormat(null);
+			assertEquals(EWatchFormat.JMF, dp.getWatchFormat());
+			dp.setWatchFormat(EWatchFormat.JSON);
+			assertEquals(EWatchFormat.JSON, dp.getWatchFormat());
 
 		}
 

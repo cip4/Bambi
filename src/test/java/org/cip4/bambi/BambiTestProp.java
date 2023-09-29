@@ -76,7 +76,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.ConverterCallback;
 import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.bambi.core.MultiDeviceProperties;
+import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.proxy.IProxyProperties;
+import org.cip4.bambi.proxy.ProxyProperties;
+import org.cip4.bambi.proxy.ProxyProperties.ProxyDeviceProperties;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VString;
 
 public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
@@ -84,6 +89,8 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 
 	private String devID;
 	private static AtomicInteger n = new AtomicInteger();
+	private final ProxyProperties delegate = new ProxyProperties(new File(sm_dirTestDataTemp + "testprops"));
+	private final ProxyDeviceProperties devdelegate = delegate.createDeviceProps(null);
 
 	/**
 	 * @param bambiTestCase
@@ -138,273 +145,6 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 		return devID;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceType()
-	 */
-	@Override
-	public String getDeviceType()
-	{
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
-	 */
-	@Override
-	public String getDeviceURL()
-	{
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getErrorHF()
-	 */
-	@Override
-	public File getErrorHF()
-	{
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getInputHF()
-	 */
-	@Override
-	public File getInputHF()
-	{
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getJDFDir()
-	 */
-	public File getJDFDir()
-	{
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getMaxPush()
-	 */
-	@Override
-	public int getMaxPush()
-	{
-		return 0;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getOutputHF()
-	 */
-	@Override
-	public File getOutputHF()
-	{
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getProxyControllerURL()
-	 */
-	@Override
-	public String getProxyControllerURL()
-	{
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveDeviceID()
-	 */
-	@Override
-	public String getSlaveDeviceID()
-	{
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveErrorHF()
-	 */
-	@Override
-	public File getSlaveErrorHF()
-	{
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveInputHF()
-	 */
-	@Override
-	public File getSlaveInputHF()
-	{
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveOutputHF()
-	 */
-	@Override
-	public File getSlaveOutputHF()
-	{
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getSlaveURL()
-	 */
-	@Override
-	public String getSlaveURL()
-	{
-
-		return "http://slave";
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getTrackResource()
-	 */
-	@Override
-	public String getTrackResource()
-	{
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getTypeExpression()
-	 */
-	@Override
-	public String getTypeExpression()
-	{
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getAmountResources()
-	 */
-	@Override
-	public VString getAmountResources()
-	{
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceHTTPChunk()
-	 */
-	@Override
-	public int getControllerHTTPChunk()
-	{
-
-		return 0;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceMIMEEncoding()
-	 */
-	@Override
-	public String getControllerMIMEEncoding()
-	{
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getContextURL()
-	 */
-	@Override
-	public String getContextURL()
-	{
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceAttribute(java.lang.String)
-	 */
-	@Override
-	public String getDeviceAttribute(final String key)
-	{
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceClass()
-	 */
-	@Override
-	public AbstractDevice getDeviceInstance()
-	{
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getWatchURL()
-	 */
-	@Override
-	public String getWatchURL()
-	{
-
-		return null;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cip4.bambi.core.IDeviceProperties#getControllerMIMEExpansion()
-	 */
-	@Override
-	public boolean getControllerMIMEExpansion()
-	{
-
-		return false;
-	}
-
 	/**
 	 * @see org.cip4.bambi.core.IDeviceProperties#getConfigDir()
 	 * @return
@@ -426,206 +166,424 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 		return false;
 	}
 
-	/**
-	 * @see org.cip4.bambi.core.IDeviceProperties#setDeviceType(java.lang.String)
-	 */
 	@Override
-	public void setDeviceType(final String deviceType)
+	public int hashCode()
 	{
-
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.IDeviceProperties#setWatchURL(java.lang.String)
-	 */
-	@Override
-	public void setWatchURL(final String WatchURL)
-	{
-
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.IDeviceProperties#setErrorHF(java.io.File)
-	 */
-	@Override
-	public void setErrorHF(final File hf)
-	{
-
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.IDeviceProperties#setInputHF(java.io.File)
-	 */
-	@Override
-	public void setInputHF(final File hf)
-	{
-
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.IDeviceProperties#setOutputHF(java.io.File)
-	 */
-	@Override
-	public void setOutputHF(final File hf)
-	{
-
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.IDeviceProperties#setTypeExpression(java.lang.String)
-	 */
-	@Override
-	public void setTypeExpression(final String exp)
-	{
-
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.IDeviceProperties#getQERetrieval()
-	 */
-	@Override
-	public QERetrieval getQERetrieval()
-	{
-
-		return QERetrieval.BOTH;
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.IDeviceProperties#setQERetrieval(org.cip4.bambi.core.IDeviceProperties.QERetrieval)
-	 */
-	@Override
-	public void setQERetrieval(final QERetrieval qer)
-	{
-
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.IDeviceProperties#getAcceptAll()
-	 */
-	@Override
-	public boolean getAcceptAll()
-	{
-		return false;
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.IDeviceProperties#getDescription()
-	 */
-	@Override
-	public String getDescription()
-	{
-		return null;
-	}
-
-	/**
-	 * @see org.cip4.bambi.core.IDeviceProperties#setDescription(java.lang.String)
-	 */
-	@Override
-	public void setDescription(String description)
-	{
-
+		return devdelegate.hashCode();
 	}
 
 	@Override
-	public boolean getAutoStart()
+	public boolean equals(Object obj)
 	{
-		return true;
-	}
-
-	@Override
-	public void setSlaveErrorHF(File hf)
-	{
-
-	}
-
-	@Override
-	public void setSlaveInputHF(File hf)
-	{
-
-	}
-
-	@Override
-	public void setSlaveOutputHF(File hf)
-	{
-
-	}
-
-	@Override
-	public void setSlaveURL(String newSlaveURL)
-	{
-
-	}
-
-	@Override
-	public void setSlaveDeviceID(String newSlaveID)
-	{
-
-	}
-
-	@Override
-	public String getDeviceURLForSlave()
-	{
-		return "http://slave";
-	}
-
-	@Override
-	public int getMaxSlaveRunning()
-	{
-		return 99;
-	}
-
-	@Override
-	public void setMaxPush(int push)
-	{
-
-	}
-
-	@Override
-	public int getSlaveHTTPChunk()
-	{
-		return 0;
-	}
-
-	@Override
-	public String getSlaveMIMEEncoding()
-	{
-		return null;
-	}
-
-	@Override
-	public boolean isSlaveMimePackaging()
-	{
-		return false;
-	}
-
-	@Override
-	public boolean getSlaveMIMEExpansion()
-	{
-		return false;
-	}
-
-	@Override
-	public boolean getSlaveMIMESemicolon()
-	{
-		return false;
+		return devdelegate.equals(obj);
 	}
 
 	@Override
 	public IConverterCallback getSlaveCallBackClass()
 	{
-		return null;
+		return devdelegate.getSlaveCallBackClass();
+	}
+
+	public String getSlaveCallBackClassName()
+	{
+		return devdelegate.getSlaveCallBackClassName();
+	}
+
+	public KElement getDevRoot()
+	{
+		return devdelegate.getDevRoot();
+	}
+
+	@Override
+	public String getSlaveDeviceID()
+	{
+		return devdelegate.getSlaveDeviceID();
+	}
+
+	public KElement getRoot()
+	{
+		return devdelegate.getRoot();
+	}
+
+	@Override
+	public String getDeviceURL()
+	{
+		return devdelegate.getDeviceURL();
+	}
+
+	@Override
+	public File getSlaveErrorHF()
+	{
+		return devdelegate.getSlaveErrorHF();
+	}
+
+	@Override
+	public String getDeviceURLForSlave()
+	{
+		return devdelegate.getDeviceURLForSlave();
+	}
+
+	public String getCallBackClassName()
+	{
+		return devdelegate.getCallBackClassName();
+	}
+
+	@Override
+	public File getSlaveInputHF()
+	{
+		return devdelegate.getSlaveInputHF();
+	}
+
+	@Override
+	public File getSlaveOutputHF()
+	{
+		return devdelegate.getSlaveOutputHF();
+	}
+
+	@Override
+	public void setSlaveInputHF(File hf)
+	{
+		devdelegate.setSlaveInputHF(hf);
+	}
+
+	@Override
+	public void setSlaveOutputHF(File hf)
+	{
+		devdelegate.setSlaveOutputHF(hf);
+	}
+
+	public void setCallBackClassName(String callbackName)
+	{
+		devdelegate.setCallBackClassName(callbackName);
+	}
+
+	@Override
+	public void setSlaveErrorHF(File hf)
+	{
+		devdelegate.setSlaveErrorHF(hf);
+	}
+
+	@Override
+	public AbstractDevice getDeviceInstance()
+	{
+		return devdelegate.getDeviceInstance();
+	}
+
+	@Override
+	public String getSlaveURL()
+	{
+		return devdelegate.getSlaveURL();
+	}
+
+	@Override
+	public void setSlaveURL(String slaveURL)
+	{
+		devdelegate.setSlaveURL(slaveURL);
+	}
+
+	@Override
+	public int getMaxPush()
+	{
+		return devdelegate.getMaxPush();
+	}
+
+	@Override
+	public int getMaxSlaveRunning()
+	{
+		return devdelegate.getMaxSlaveRunning();
+	}
+
+	public void setDeviceClassName(String deviceClass)
+	{
+		devdelegate.setDeviceClassName(deviceClass);
+	}
+
+	public String getDeviceClassName()
+	{
+		return devdelegate.getDeviceClassName();
+	}
+
+	@Override
+	public void setMaxPush(int push)
+	{
+		devdelegate.setMaxPush(push);
+	}
+
+	@Override
+	public int getSlaveHTTPChunk()
+	{
+		return devdelegate.getSlaveHTTPChunk();
+	}
+
+	public void setDeviceID(String deviceID)
+	{
+		devdelegate.setDeviceID(deviceID);
+	}
+
+	@Override
+	public String getProxyControllerURL()
+	{
+		return devdelegate.getProxyControllerURL();
+	}
+
+	@Override
+	public String getSlaveMIMEEncoding()
+	{
+		return devdelegate.getSlaveMIMEEncoding();
+	}
+
+	@Override
+	public String getDeviceType()
+	{
+		return devdelegate.getDeviceType();
+	}
+
+	@Override
+	public boolean getSlaveMIMEExpansion()
+	{
+		return devdelegate.getSlaveMIMEExpansion();
+	}
+
+	@Override
+	public void setDeviceType(String deviceType)
+	{
+		devdelegate.setDeviceType(deviceType);
 	}
 
 	@Override
 	public void setSlaveMIMEExpansion(boolean extendMime)
 	{
+		devdelegate.setSlaveMIMEExpansion(extendMime);
+	}
 
+	@Override
+	public String getDescription()
+	{
+		return devdelegate.getDescription();
+	}
+
+	@Override
+	public boolean getSlaveMIMESemicolon()
+	{
+		return devdelegate.getSlaveMIMESemicolon();
+	}
+
+	@Override
+	public void setDescription(String description)
+	{
+		devdelegate.setDescription(description);
+	}
+
+	@Override
+	public boolean isSlaveMimePackaging()
+	{
+		return devdelegate.isSlaveMimePackaging();
+	}
+
+	@Override
+	public String toString()
+	{
+		return devdelegate.toString();
+	}
+
+	@Override
+	public void setSlaveDeviceID(String newSlaveID)
+	{
+		devdelegate.setSlaveDeviceID(newSlaveID);
+	}
+
+	@Override
+	public File getErrorHF()
+	{
+		return devdelegate.getErrorHF();
+	}
+
+	@Override
+	public void setErrorHF(File hf)
+	{
+		devdelegate.setErrorHF(hf);
+	}
+
+	@Override
+	public File getOutputHF()
+	{
+		return devdelegate.getOutputHF();
+	}
+
+	@Override
+	public void setOutputHF(File hf)
+	{
+		devdelegate.setOutputHF(hf);
+	}
+
+	public VString getICSVersions()
+	{
+		return devdelegate.getICSVersions();
+	}
+
+	@Override
+	public File getInputHF()
+	{
+		return devdelegate.getInputHF();
+	}
+
+	@Override
+	public void setInputHF(File hf)
+	{
+		devdelegate.setInputHF(hf);
+	}
+
+	@Override
+	public String getTrackResource()
+	{
+		return devdelegate.getTrackResource();
+	}
+
+	@Override
+	public String getDeviceAttribute(String key)
+	{
+		return devdelegate.getDeviceAttribute(key);
+	}
+
+	public boolean hasDeviceOption(String key, boolean ifNotSet)
+	{
+		return devdelegate.hasDeviceOption(key, ifNotSet);
+	}
+
+	public String getDeviceAttribute(String key, String ns, String def)
+	{
+		return devdelegate.getDeviceAttribute(key, ns, def);
+	}
+
+	public void setDeviceAttribute(String key, String val)
+	{
+		devdelegate.setDeviceAttribute(key, val);
+	}
+
+	public KElement getDeviceElement(String xpath)
+	{
+		return devdelegate.getDeviceElement(xpath);
+	}
+
+	@Override
+	public String getTypeExpression()
+	{
+		return devdelegate.getTypeExpression();
+	}
+
+	@Override
+	public void setTypeExpression(String exp)
+	{
+		devdelegate.setTypeExpression(exp);
+	}
+
+	@Override
+	public VString getAmountResources()
+	{
+		return devdelegate.getAmountResources();
+	}
+
+	@Override
+	public int getControllerHTTPChunk()
+	{
+		return devdelegate.getControllerHTTPChunk();
+	}
+
+	@Override
+	public boolean getAcceptAll()
+	{
+		return devdelegate.getAcceptAll();
+	}
+
+	@Override
+	public String getControllerMIMEEncoding()
+	{
+		return devdelegate.getControllerMIMEEncoding();
+	}
+
+	@Override
+	public boolean getControllerMIMEExpansion()
+	{
+		return devdelegate.getControllerMIMEExpansion();
 	}
 
 	@Override
 	public org.cip4.bambi.core.IDeviceProperties.QEReturn getReturnMIME()
 	{
-		return null;
+		return devdelegate.getReturnMIME();
+	}
+
+	@Override
+	public String getContextURL()
+	{
+		return devdelegate.getContextURL();
+	}
+
+	@Override
+	public String getWatchURL()
+	{
+		return devdelegate.getWatchURL();
+	}
+
+	@Override
+	public void setWatchURL(String watchURL)
+	{
+		devdelegate.setWatchURL(watchURL);
+	}
+
+	@Override
+	public QERetrieval getQERetrieval()
+	{
+		return devdelegate.getQERetrieval();
+	}
+
+	@Override
+	public void setQERetrieval(QERetrieval qer)
+	{
+		devdelegate.setQERetrieval(qer);
+	}
+
+	public boolean persist()
+	{
+		return devdelegate.persist();
+	}
+
+	@Override
+	public boolean getAutoStart()
+	{
+		return devdelegate.getAutoStart();
+	}
+
+	public boolean isTemplate()
+	{
+		return devdelegate.isTemplate();
+	}
+
+	public void setAutoStart(boolean bAutoStart)
+	{
+		devdelegate.setAutoStart(bAutoStart);
+	}
+
+	public DeviceProperties activateDeviceProps(String deviceID)
+	{
+		return devdelegate.activateDeviceProps(deviceID);
+	}
+
+	public MultiDeviceProperties getParent()
+	{
+		return devdelegate.getParent();
+	}
+
+	@Override
+	public EWatchFormat getWatchFormat()
+	{
+		return devdelegate.getWatchFormat();
+	}
+
+	@Override
+	public void setWatchFormat(EWatchFormat f)
+	{
+		devdelegate.setWatchFormat(f);
 	}
 
 }

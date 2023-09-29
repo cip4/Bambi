@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<!-- (C) 2001-2014 CIP4 -->
+<!-- (C) 2001-2023 CIP4 -->
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -74,6 +74,15 @@
 						<xsl:with-param name="modify" select="$modify" />
 						<xsl:with-param name="desc"
 							select="'Single URL that receives messages (Status, Resource, Notification) from the device. If empty, no non-subscribed messages are sent.'" />
+					</xsl:call-template>
+					
+					<xsl:call-template name="modifyString">
+						<xsl:with-param name="attLabel" select="'Watch URL Message Format: '" />
+						<xsl:with-param name="attName" select="'WatchFormat'" />
+						<xsl:with-param name="attVal" select="@WatchFormat" />
+						<xsl:with-param name="modify" select="$modify" />
+						<xsl:with-param name="desc"
+							select="'Format of the subscribed messages to WatchURL. One of JMF (the default), XJMF or JSON'" />
 					</xsl:call-template>
 
 					<xsl:call-template name="modifyString">

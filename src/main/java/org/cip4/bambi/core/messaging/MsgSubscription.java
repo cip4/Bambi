@@ -44,6 +44,7 @@ import org.apache.commons.logging.Log;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.ConverterCallback;
 import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -65,6 +66,7 @@ import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.EnumUtil;
 import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
@@ -346,6 +348,7 @@ public class MsgSubscription implements Cloneable
 		sub.setAttribute(AttributeName.TYPE, theMessage.getType());
 		sub.setAttribute("Sent", sentMessages, null);
 		sub.setAttribute(IS_JSON, isJSON, null);
+		sub.setAttribute("MessageFormat", getWatchFormat().name());
 		if (jdfVersion != null)
 		{
 			sub.setAttribute(AttributeName.VERSION, jdfVersion.getName(), null);
@@ -375,6 +378,15 @@ public class MsgSubscription implements Cloneable
 		}
 	}
 
+	EWatchFormat getWatchFormat()
+	{
+		if (isJSON)
+			return EWatchFormat.JSON;
+		if (!EnumUtil.aLessThanB(jdfVersion, EnumVersion.Version_2_0))
+			return EWatchFormat.XJMF;
+		return EWatchFormat.JMF;
+	}
+
 	/**
 	 * @param sub
 	 */
@@ -393,7 +405,7 @@ public class MsgSubscription implements Cloneable
 		sub.setAttribute(AttributeName.CHANNELID, channelID);
 		sub.setAttribute(AttributeName.DEVICEID, jmfDeviceID);
 		sub.setAttribute(AttributeName.QUEUEENTRYID, queueEntry);
-		sub.setAttribute(AttributeName.SENDERID, this.signalDispatcher.device == null ? "test" : this.signalDispatcher.device.getDeviceID());
+		sub.setAttribute(AttributeName.SENDERID, signalDispatcher.device == null ? "test" : this.signalDispatcher.device.getDeviceID());
 
 		if (theMessage != null)
 		{

@@ -44,9 +44,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.extensions.MessageHelper;
 import org.cip4.jdflib.extensions.XJMFHelper;
 import org.cip4.jdflib.extensions.xjdfwalker.XJDFToJDFConverter;
@@ -55,6 +57,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class MsgSubscriptionTest extends BambiTestCaseBase
 {
@@ -69,6 +72,38 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 		jmf.setMaxVersion(EnumVersion.Version_2_0);
 		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
 		assertEquals(EnumVersion.Version_2_0, s.jdfVersion);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testWatchFormat()
+	{
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
+		final MsgSubscription s0 = new MsgSubscription(null, jmf.getQuery(0), null);
+		assertEquals(EWatchFormat.JMF, s0.getWatchFormat());
+		jmf.setMaxVersion(EnumVersion.Version_2_0);
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		assertEquals(EWatchFormat.XJMF, s.getWatchFormat());
+		final MsgSubscription sj = new MsgSubscription(null, jmf.getQuery(0), null);
+		sj.setJSON(true);
+		assertEquals(EWatchFormat.JSON, sj.getWatchFormat());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testWatchFormatXML()
+	{
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
+		final MsgSubscription sj = new MsgSubscription(Mockito.mock(SignalDispatcher.class), jmf.getQuery(0), null);
+		sj.setJSON(true);
+		assertEquals(EWatchFormat.JSON, sj.getWatchFormat());
+		KElement e = KElement.createRoot("e", null);
+		sj.setXML(e, null, 0);
+		assertEquals(EWatchFormat.JSON.name(), e.getAttribute("MessageFormat"));
 	}
 
 	/**

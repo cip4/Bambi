@@ -73,17 +73,19 @@ package org.cip4.bambi.core;
 import java.io.File;
 
 import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.util.StringUtil;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  * 
- * 09.02.2009
+ *         09.02.2009
  */
 public interface IDeviceProperties
 {
 
 	/**
 	 * generic catchall
+	 * 
 	 * @param key
 	 * @return
 	 */
@@ -108,6 +110,39 @@ public interface IDeviceProperties
 		MIME
 	}
 
+	public enum EWatchFormat
+	{
+		JSON, JMF, XJMF;
+
+		/**
+		 * default is jmf
+		 * 
+		 * @param val
+		 * @return
+		 */
+		public static EWatchFormat getEnum(final String val)
+		{
+			if (!StringUtil.isEmpty(val))
+			{
+				try
+				{
+					return EWatchFormat.valueOf(val);
+				}
+				catch (Exception x)
+				{
+					for (final EWatchFormat n : values())
+					{
+						if (n.name().equalsIgnoreCase(val))
+						{
+							return n;
+						}
+					}
+				}
+			}
+			return JMF;
+		}
+	}
+
 	/**
 	 * queueentry retrieval type - push or pull
 	 */
@@ -129,18 +164,21 @@ public interface IDeviceProperties
 
 	/**
 	 * get the URL to communicate with this device
+	 * 
 	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device.
 	 */
 	public String getDeviceURL();
 
 	/**
 	 * get the URL to communicate with the root of this device
+	 * 
 	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device.
 	 */
 	public String getContextURL();
 
 	/**
 	 * get the URL of the device hotfolder, if null the device does not support a JDF input hot folder
+	 * 
 	 * @return the device hotfolder URL. Drop JDFs to this URL, if you want to submit to the device without JMF.
 	 */
 	public File getInputHF();
@@ -152,90 +190,103 @@ public interface IDeviceProperties
 
 	/**
 	 * get the DeviceID of this device
+	 * 
 	 * @return the deviceID
 	 */
 	public String getDeviceID();
 
 	/**
 	 * get the Name, ProcessUsage or Usage of the major resource to track
+	 * 
 	 * @return the deviceID
 	 */
 	public String getTrackResource();
 
 	/**
 	 * get the URL of the proxy this device is requesting JDFs from.
+	 * 
 	 * @return the proxy URL
 	 */
 	public String getProxyControllerURL();
 
 	/**
 	 * get the DeviceType of this device
+	 * 
 	 * @return the DeviceType of this device
 	 */
 	public String getDeviceType();
 
 	/**
 	 * get the human readable description of this device
+	 * 
 	 * @return the description of this device
 	 */
 	public String getDescription();
 
 	/**
 	 * set the DeviceType of this device
+	 * 
 	 * @param deviceType the DeviceType of this device
 	 */
 	public void setDeviceType(String deviceType);
 
 	/**
 	 * set the description of this device
+	 * 
 	 * @param description the description of this device
 	 */
 	public void setDescription(String description);
 
 	/**
 	 * get the application context dir of the web application
+	 * 
 	 * @return the base dir of the web application
 	 */
 	public File getAppDir();
 
 	/**
 	 * @return true if all jdfs should be accepted (ignore canAccept)
-	*
+	 *
 	 */
 	public boolean getAcceptAll();
 
 	/**
 	 * @return true if this device should automatically start
-	*
+	 *
 	 */
 	public boolean getAutoStart();
 
 	/**
 	 * get the application configuration dir of the web application
+	 * 
 	 * @return the configuration dir of the Device
 	 */
 	public File getConfigDir();
 
 	/**
 	 * get the base dir of the web application
+	 * 
 	 * @return the base dir of the web application
 	 */
 	public File getBaseDir();
 
 	/**
 	 * returns the name of the IDevice that specifies the converter name
+	 * 
 	 * @return {@link IConverterCallback} the callback to use, null if none is specified
 	 */
 	public AbstractDevice getDeviceInstance();
 
 	/**
 	 * returns the name of the IConverterCallback that specifies the converter name
+	 * 
 	 * @return {@link IConverterCallback} the callback to use, null if none is specified
 	 */
 	public IConverterCallback getCallBackClass();
 
 	/**
 	 * get a String representation of this DeviceProperty
+	 * 
 	 * @return this representation of this DeviceProperty
 	 */
 	@Override
@@ -278,12 +329,24 @@ public interface IDeviceProperties
 
 	/**
 	 * get the URL to send generic subscriptions to
+	 * 
 	 * @return the device URL. Status, Resource signals will be sent here regardless of any other subscriptions
 	 */
 	public String getWatchURL();
 
+	public default EWatchFormat getWatchFormat()
+	{
+		return EWatchFormat.JMF;
+	}
+
+	public default void setWatchFormat(EWatchFormat f)
+	{
+		// nop
+	}
+
 	/**
 	 * set the URL to send generic subscriptions to
+	 * 
 	 * @param watchURL
 	 */
 	public void setWatchURL(String watchURL);
@@ -305,6 +368,7 @@ public interface IDeviceProperties
 
 	/**
 	 * get the HTTP chunking to communicate with this device
+	 * 
 	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device.
 	 */
 	public int getControllerHTTPChunk();
@@ -321,6 +385,7 @@ public interface IDeviceProperties
 
 	/**
 	 * serialize this (write)
+	 * 
 	 * @return true if successful
 	 */
 	public boolean serialize();

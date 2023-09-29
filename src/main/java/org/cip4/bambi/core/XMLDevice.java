@@ -111,6 +111,7 @@ public class XMLDevice extends XMLDoc
 		deviceRoot.setAttribute("DeviceURL", parentDevice.getDeviceURL());
 		final IDeviceProperties properties = parentDevice.getProperties();
 		deviceRoot.setAttribute("WatchURL", properties.getWatchURL());
+		deviceRoot.setAttribute("WatchFormat", properties.getWatchFormat().name());
 		deviceRoot.setAttribute("JavaVersion", PlatformUtil.getProperty("java.version"));
 		deviceRoot.setAttribute(AttributeName.DEVICESTATUS, parentDevice.getDeviceStatus().getName());
 		if (parentDevice._rootDevice == null && BambiContainer.getInstance() != null)

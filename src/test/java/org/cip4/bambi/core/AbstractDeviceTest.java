@@ -47,6 +47,7 @@ import java.io.File;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
+import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -91,6 +92,42 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		device.setSim(true);
 		File dir = device.getCachedConfigDir();
 		assertEquals(new File(sm_dirTestDataTemp, "config"), dir);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testUpdateWatchURL() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		device.setSim(true);
+		device.getSignalDispatcher().removeSubScriptions(null, null, null);
+		device.updateWatchURL(null, null);
+
+		assertEquals(EWatchFormat.JMF, device.getProperties().getWatchFormat());
+		device.updateWatchURL("http://dummy.com", EWatchFormat.JSON.name());
+		assertEquals(EWatchFormat.JSON, device.getProperties().getWatchFormat());
+		assertEquals("http://dummy.com", device.getProperties().getWatchURL());
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testUpdateWatchURLXML() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		device.setSim(true);
+		device.getSignalDispatcher().removeSubScriptions(null, null, null);
+		device.updateWatchURL(null, null);
+
+		assertEquals(EWatchFormat.JMF, device.getProperties().getWatchFormat());
+		device.updateWatchURL("http://dummy.com", EWatchFormat.JSON.name());
+		assertEquals(EWatchFormat.JSON, device.getProperties().getWatchFormat());
+		assertEquals("http://dummy.com", device.getProperties().getWatchURL());
+		XMLDevice xd = device.getXMLDevice(false, new ContainerRequest());
+		assertEquals(EWatchFormat.JSON.name(), xd.getRoot().getAttribute("WatchFormat"));
 	}
 
 	/**

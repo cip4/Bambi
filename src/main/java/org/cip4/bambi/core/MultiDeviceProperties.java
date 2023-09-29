@@ -709,6 +709,18 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		{
 			return MultiDeviceProperties.this;
 		}
+
+		@Override
+		public EWatchFormat getWatchFormat()
+		{
+			return EWatchFormat.getEnum(getDeviceAttribute("WatchFormat"));
+		}
+
+		@Override
+		public void setWatchFormat(EWatchFormat f)
+		{
+			setDeviceAttribute("WatchFormat", f == null ? EWatchFormat.JMF.name() : f.name());
+		}
 	}
 
 	/**

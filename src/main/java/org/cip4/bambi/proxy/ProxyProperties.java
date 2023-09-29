@@ -81,12 +81,14 @@ import org.cip4.jdflib.util.StringUtil;
 
 /**
  * container for the properties of several Bambi devices
+ * 
  * @author boegerni
  */
 public class ProxyProperties extends MultiDeviceProperties
 {
 	/**
 	 * properties for a single device
+	 * 
 	 * @author boegerni
 	 */
 
@@ -111,15 +113,16 @@ public class ProxyProperties extends MultiDeviceProperties
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
 	 * 
-	 * 11.02.2009
+	 *         11.02.2009
 	 */
 	public class ProxyDeviceProperties extends DeviceProperties implements IProxyProperties
 	{
 		/**
 		 * constructor
-		 * @param elem 
+		 * 
+		 * @param elem
 		 */
-		protected ProxyDeviceProperties(final KElement elem)
+		public ProxyDeviceProperties(final KElement elem)
 		{
 			super(elem);
 		}
@@ -181,6 +184,7 @@ public class ProxyProperties extends MultiDeviceProperties
 
 		/**
 		 * get the URL of this proxy for the slave - includes last '/'
+		 * 
 		 * @return the url
 		 */
 		@Override
@@ -311,7 +315,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		/**
 		 * @see org.cip4.bambi.proxy.IProxyProperties#setSlaveMIMEExpansion(boolean)
 		 * @param extendMime
-		*/
+		 */
 		@Override
 		public void setSlaveMIMEExpansion(boolean extendMime)
 		{
