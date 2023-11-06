@@ -41,8 +41,6 @@ package org.cip4.bambi.core.messaging;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.DataFormatException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import javax.mail.Multipart;
 
@@ -62,6 +60,9 @@ import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.extensions.XJDF20;
+import org.cip4.jdflib.extensions.XJDFHelper;
+import org.cip4.jdflib.extensions.XJDFZipWriter;
+import org.cip4.jdflib.extensions.XJMFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFResourceInfo;
@@ -566,7 +567,6 @@ public class MessageDetails
 	InputStream getZipStream() throws IOException
 	{
 		final ByteArrayIOStream bos = new ByteArrayIOStream();
-		final ZipOutputStream zos = new ZipOutputStream(bos);
 		final VElement v = jmf.getChildrenByTagName(null, null, new JDFAttributeMap(AttributeName.URL, "*"), false, false, 0);
 		final String jobID = "Job_" + jdf.getJobID(true) + ".xjdf";
 		if (v != null)
@@ -590,35 +590,12 @@ public class MessageDetails
 			xmlJDF = jdf;
 			xmlJMF = jmf;
 		}
-		writeXML(xmlJMF, name + ".xjmf", zos);
-		writeXML(xmlJDF, jobID, zos);
-
-		// TODO add extended
-		zos.close();
+		XJDFZipWriter zw = new XJDFZipWriter();
+		zw.setXjmf(new XJMFHelper(xmlJMF));
+		zw.addXJDF(new XJDFHelper(xmlJDF));
+		zw.writeStream(bos);
 
 		return bos.getInputStream();
 	}
 
-	/**
-	 * @param xjmf
-	 * @param zos
-	 * @throws IOException
-	 */
-	private void writeXML(final KElement xml, final String name, final ZipOutputStream zos)
-	{
-		if (xml != null)
-		{
-			try
-			{
-				final ZipEntry ze = new ZipEntry(name);
-				zos.putNextEntry(ze);
-				xml.write2Stream(zos);
-				zos.closeEntry();
-			}
-			catch (final Exception x)
-			{
-				log.error("oops: ", x);
-			}
-		}
-	}
 }

@@ -386,7 +386,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		assertNotNull(zr);
 		Vector<ZipEntry> entries = zr.getEntries();
 		assertEquals(entries.size(), 2);
-		assertNotNull(zr.getMatchingEntry("*.xjmf", 0));
+		assertNotNull(zr.getMatchingEntry("root.xjmf", 0));
 		XMLDoc xjmf = zr.getXMLDoc();
 		XJMFHelper h = XJMFHelper.getHelper(xjmf);
 		assertNotNull(h);
