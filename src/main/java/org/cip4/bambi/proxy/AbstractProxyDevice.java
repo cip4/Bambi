@@ -784,7 +784,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		}
 		else
 		{
-			log.info("Sending jmf to: " + slaveURL);
 			return sendJMF(jmf, slaveURL, mh);
 		}
 	}
