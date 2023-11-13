@@ -540,18 +540,21 @@ public class MessageDetails
 		final ByteArrayIOStream bos = new ByteArrayIOStream();
 		final JDFDoc docJMF;
 		final JDFDoc docJDF;
+		final boolean extendReferenced;
 		if (callback != null)
 		{
 			docJMF = callback.updateJMFForExtern(jmf.getOwnerDocument_JDFElement().clone());
 			docJDF = callback.updateJDFForExtern(jdf.getOwnerDocument_JDFElement().clone());
+			extendReferenced = callback.isExtendReferenced();
 		}
 		else
 		{
 			docJDF = jdf.getOwnerDocument_JDFElement();
 			docJMF = jmf.getOwnerDocument_JDFElement();
+			extendReferenced = false;
 		}
 
-		final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, false);
+		final Multipart mp = MimeUtil.buildMimePackage(docJMF, docJDF, extendReferenced);
 		try
 		{
 			MimeUtil.writeToStream(mp, bos, mimeDet);

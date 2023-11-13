@@ -150,6 +150,11 @@ public interface IConverterCallback
 		return false;
 	}
 
+	default boolean isExtendReferenced()
+	{
+		return false;
+	}
+
 	/**
 	 * for serialization
 	 *
