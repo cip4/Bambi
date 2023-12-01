@@ -16,7 +16,7 @@ sourceCompatibility = 11
 targetCompatibility = 11
 
 if (project.hasProperty('projectVersion')) {
-    version = project.projectVersion
+version = project.projectVersion
 } else {
     version = 'development'
 }
@@ -25,18 +25,19 @@ repositories {
     mavenCentral()
     maven {
         url "https://oss.sonatype.org/content/repositories/snapshots"
-    }
+	}
+	mavenLocal()
 }
 
 processResources {
     filesMatching('**/*.properties') {
         filter(ReplaceTokens, tokens: [
-                'name'       : project.properties['name'],
-                'version'    : project.properties['version'],
-                'timestamp'  : new Date().format('yyyy-MM-dd HH:mm:ss'),
-                'buildNumber': project.properties['buildNumber'] == null ? 'n. a.' : project.properties['buildNumber']
+		'name'       : project.properties['name'],
+		'version'    : project.properties['version'],
+		'timestamp'  : new Date().format('yyyy-MM-dd HH:mm:ss'),
+		'buildNumber': project.properties['buildNumber'] == null ? 'n. a.' : project.properties['buildNumber']
         ])
-    }
+	}
 }
 
 application {
@@ -55,14 +56,18 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
     implementation 'org.cip4.tools.jdfutility:JDFUtility:1.7.+'
     implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:1.1.+'
-    implementation 'org.cip4.lib.jdf:JDFLibJ:2.1.7.+'
-    implementation 'org.eclipse.jetty:jetty-servlet:10.0.15'
+	implementation ('org.cip4.lib.jdf:JDFLibJ:2.1.7.+'){
+		exclude group: 'xml-apis'
+	}
+	implementation ('xerces:xercesImpl:2.12.2'){transitive=false}
+	
+	implementation 'org.eclipse.jetty:jetty-servlet:10.0.15'
     implementation ('com.googlecode.json-simple:json-simple:1.1.1'){transitive=false}
     implementation 'commons-logging:commons-logging-api:1.1'
     implementation 'commons-lang:commons-lang:2.6'
     implementation 'commons-io:commons-io:2.13.0'
     implementation 'javax.mail:mail:1.4.7'
-
+	
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:4.11.0'
 }
@@ -70,40 +75,40 @@ dependencies {
 runtime {
     jpackage {
         modules = [
-                'jdk.xml.dom',
-                'java.logging',
-                'java.naming',
-                'java.desktop',
-                'java.management',
-                'jdk.unsupported',
-                'jdk.accessibility'
+		'jdk.xml.dom',
+		'java.logging',
+		'java.naming',
+		'java.desktop',
+		'java.management',
+		'jdk.unsupported',
+		'jdk.accessibility'
         ]
         imageOptions = [
-                "--copyright", "CIP4 Organization",
-                "--vendor", "CIP4 Organization"
+		"--copyright", "CIP4 Organization",
+		"--vendor", "CIP4 Organization"
         ]
         def currentOs = org.gradle.internal.os.OperatingSystem.current()
         def icon = "src/main/dist/bambi.ico"
         if (currentOs.macOsX) {
             imageOptions += [
-                    "--mac-sign",
-                    "--mac-signing-key-user-name", "CIP4 Organization (4DL5XX9SG8)",
-                    "--mac-package-identifier", "org.cip4.bambi"
+			"--mac-sign",
+			"--mac-signing-key-user-name", "CIP4 Organization (4DL5XX9SG8)",
+			"--mac-package-identifier", "org.cip4.bambi"
             ]
             icon = "src/main/dist/bambi.icns"
-        }
+		}
         if (currentOs.windows) {
             installerOptions += [
-                    "--win-dir-chooser",
-                    "--win-menu",
-                    "--win-upgrade-uuid", "6278b5c0-f8f8-487a-9b0e-71326583a798",
-                    "--vendor", "CIP4 Organization"
+			"--win-dir-chooser",
+			"--win-menu",
+			"--win-upgrade-uuid", "6278b5c0-f8f8-487a-9b0e-71326583a798",
+			"--vendor", "CIP4 Organization"
             ]
-        }
+		}
         imageOptions += ["--icon", icon]
         int ts = (int) (Instant.now().toEpochMilli() / 100_000) % 65_535
         appVersion = project.version == "development" ? "1.0." + ts : project.version
-    }
+	}
 }
 
 test {

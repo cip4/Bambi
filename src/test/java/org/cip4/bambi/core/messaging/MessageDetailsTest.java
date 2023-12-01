@@ -463,4 +463,33 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		assertNotNull(bp);
 		assertEquals(bp.length, 2);
 	}
+
+	class ExtendCallback extends ConverterCallback
+	{
+
+		@Override
+		public boolean isExtendReferenced()
+		{
+			return true;
+		}
+
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testStreamMimeExtend()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		final JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
+		final ConverterCallback cb = new ExtendCallback();
+
+		final MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
+		final InputStream is = md.getInputStream();
+		final BodyPart[] bp = MimeUtil.extractMultipartMime(is);
+
+		assertNotNull(bp);
+		assertEquals(bp.length, 2);
+	}
 }
