@@ -68,6 +68,8 @@ import org.cip4.jdflib.extensions.XJMFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.UrlUtil;
@@ -392,7 +394,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		assertNotNull(h);
 
 		MessageHelper mh = h.getMessageHelper(0);
-		assertEquals("Job_2893.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
+		assertEquals("xjdf/2893.00.1.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
 		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
 		assertEquals('P', is.read());
 
@@ -424,7 +426,43 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		assertNotNull(h);
 
 		MessageHelper mh = h.getMessageHelper(0);
-		assertEquals("Job_2893.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
+		assertEquals("xjdf/2893.00.1.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
+		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
+		assertEquals('P', is.read());
+
+	}
+
+	/**
+	 * @throws IOException
+	 *
+	 */
+	@Test
+	public void testStreamZipReturn() throws IOException
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildReturnQueueEntry("q1");
+		jmf.getCommand(0).getReturnQueueEntryParams(0).setURL("dummy");
+		final JDFNode jdf = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf").getJDFRoot();
+		jdf.setMaxVersion(EnumVersion.Version_2_1);
+		jmf.setMaxVersion(EnumVersion.Version_2_1);
+		final ConverterCallback cb = new ConverterCallback();
+		final MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
+		final InputStream is = md.getInputStream();
+		ByteArrayIOStream bos = new ByteArrayIOStream(is);
+
+		final ZipReader zr = ZipReader.getZipReader(bos.getInputStream());
+		zr.buffer();
+		assertNotNull(zr);
+		FileUtil.streamToFile(bos.getInputStream(), sm_dirTestDataTemp + "ret.zip");
+		zr.buffer();
+		Vector<ZipEntry> entries = zr.getEntries();
+		assertEquals(entries.size(), 2);
+		assertNotNull(zr.getMatchingEntry("*.xjmf", 0));
+		XMLDoc xjmf = zr.getXMLDoc();
+		XJMFHelper h = XJMFHelper.getHelper(xjmf);
+		assertNotNull(h);
+
+		MessageHelper mh = h.getMessageHelper(0);
+		assertEquals("xjdf/2893.00.1.xjdf", mh.getXPathValue("ReturnQueueEntryParams/@URL"));
 		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
 		assertEquals('P', is.read());
 

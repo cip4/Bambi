@@ -55,7 +55,6 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
@@ -570,15 +569,6 @@ public class MessageDetails
 	InputStream getZipStream() throws IOException
 	{
 		final ByteArrayIOStream bos = new ByteArrayIOStream();
-		final VElement v = jmf.getChildrenByTagName(null, null, new JDFAttributeMap(AttributeName.URL, "*"), false, false, 0);
-		final String jobID = "Job_" + jdf.getJobID(true) + ".xjdf";
-		if (v != null)
-		{
-			for (final KElement e : v)
-			{
-				e.setAttribute(AttributeName.URL, jobID);
-			}
-		}
 		final KElement xmlJMF;
 		final KElement xmlJDF;
 		if (callback != null)
@@ -593,7 +583,9 @@ public class MessageDetails
 			xmlJDF = jdf;
 			xmlJMF = jmf;
 		}
+		JDFMessage msg = jmf.getMessage(0);
 		XJDFZipWriter zw = new XJDFZipWriter();
+		zw.setCommandType(msg == null ? null : msg.getEnumType());
 		zw.setXjmf(new XJMFHelper(xmlJMF));
 		zw.addXJDF(new XJDFHelper(xmlJDF));
 		zw.writeStream(bos);
