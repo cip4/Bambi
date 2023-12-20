@@ -2209,9 +2209,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 		else
 		{
-			String qeID = newQE.getQueueEntryID();
 			BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
 			_parentDevice.fixEntry(newQE, theJDF);
+			String qeID = newQE.getQueueEntryID();
 
 			extractToJob(theJDF, newQE);
 

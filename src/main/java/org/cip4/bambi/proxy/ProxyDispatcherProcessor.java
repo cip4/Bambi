@@ -113,7 +113,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	{
 		super(parent);
 		cleaner = new OrphanCleaner();
-		lastbad = 0;
+		lastbad = -1;
 	}
 
 	/**
@@ -142,15 +142,16 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 		boolean canProcess = canProcess();
 		if (canProcess)
 		{
-			lastbad = 0;
+			lastbad = -1;
 			return super.fillCurrentQE();
 		}
 		else
 		{
-			if ((lastbad++ % 1000) == 0)
+			if ((++lastbad % 1000) == 0)
 			{
 				log.warn("Not filling QueueEntry for unavailable Slave #" + lastbad);
 			}
+
 		}
 		return null;
 	}
