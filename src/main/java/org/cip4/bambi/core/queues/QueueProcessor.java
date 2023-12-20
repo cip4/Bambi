@@ -1846,9 +1846,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			d = new JDFDoc(ElementName.QUEUE);
 			final JDFQueue q = (JDFQueue) d.getRoot();
-			log.info("creating new queue");
+			log.info("creating new empty queue");
 			_theQueue.set(q);
 			q.setQueueStatus(EnumQueueStatus.Waiting);
+			BambiNSExtension.setMyNSAttribute(q, BambiNSExtension.TOTAL_ENTRY_COUNT, "0");
 			setQueueProperties(deviceID);
 		}
 		removeOrphanJDFs();
