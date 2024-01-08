@@ -51,6 +51,7 @@ import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -109,6 +110,46 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		device.updateWatchURL("http://dummy.com", EWatchFormat.JSON.name());
 		assertEquals(EWatchFormat.JSON, device.getProperties().getWatchFormat());
 		assertEquals("http://dummy.com", device.getProperties().getWatchURL());
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testExtractURL() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		device.setSim(true);
+		JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
+		qe.setQueueEntryID("a");
+		File dir = device.getExtractDirectory(qe, true);
+		assertEquals("a", dir.getName());
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testExtractURLBad1() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		device.setSim(true);
+		JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
+		qe.setQueueEntryID("..");
+		device.getExtractDirectory(qe, true);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testExtractURLBad2() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		device.setSim(true);
+		JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
+		qe.setQueueEntryID("a/..");
+		device.getExtractDirectory(qe, true);
 	}
 
 	/**

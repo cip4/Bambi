@@ -82,7 +82,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- *  
+ * 
  * @author rainer prosi
  * @date November 4, 2010
  */
@@ -97,18 +97,18 @@ public class DataRequestHandlerTest extends BambiTestCase
 	protected void moreSetup(final DeviceProperties devProp)
 	{
 		if (extern)
-        {
-            devProp.setDeviceClassName("org.cip4.bambi.core.HandlerDevice");
-        }
+		{
+			devProp.setDeviceClassName("org.cip4.bambi.core.HandlerDevice");
+		}
 
 	}
 
 	/**
 	 * 
-	 *  
+	 * 
 	 * @throws Exception its a test!
 	 */
-    @Test
+	@Test
 	@Ignore
 	public void testHandle() throws Exception
 	{
@@ -134,11 +134,115 @@ public class DataRequestHandlerTest extends BambiTestCase
 	}
 
 	/**
-	* 
-	*  
-	* @throws Exception its a test!
-	*/
-    @Test
+	 * 
+	 * 
+	 * @throws Exception its a test!
+	 */
+	@Test
+	public void testHandleGood() throws Exception
+	{
+
+		DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://dev/blub/data/a.pdf");
+
+		rh.handleGet(request);
+
+	}
+
+	/**
+	 * 
+	 * 
+	 * @throws Exception its a test!
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testHandleEvil() throws Exception
+	{
+
+		DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://dev/blub/data/../a.pdf");
+
+		rh.handleGet(request);
+
+	}
+
+	/**
+	 * 
+	 * 
+	 * @throws Exception its a test!
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testHandleEvil2() throws Exception
+	{
+
+		DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://dev/blub/data//a.pdf");
+
+		rh.handleGet(request);
+
+	}
+
+	/**
+	 * 
+	 * 
+	 * @throws Exception its a test!
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testHandleEvil3() throws Exception
+	{
+		DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://dev/blub/data/c:/foo/a.pdf");
+
+		rh.handleGet(request);
+
+	}
+
+	/**
+	 * 
+	 * 
+	 * @throws Exception its a test!
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testHandleEvil4() throws Exception
+	{
+		DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://dev/blub/data/\\\\host\\share\\a.pdf");
+
+		rh.handleGet(request);
+	}
+
+	/**
+	 * 
+	 * 
+	 * @throws Exception its a test!
+	 */
+	@Test
+	public void testRelativePath() throws Exception
+	{
+
+		DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://dev/blub/data/a.pdf");
+
+		assertEquals("a.pdf", rh.getRelativePath(request.getRequestURI()));
+		request.setRequestURI("http://dev/blub/data/../a.pdf");
+
+		assertEquals("../a.pdf", rh.getRelativePath(request.getRequestURI()));
+		request.setRequestURI("http://dev/blub/data//a.pdf");
+
+		assertEquals("/a.pdf", rh.getRelativePath(request.getRequestURI()));
+	}
+
+	/**
+	 * 
+	 * 
+	 * @throws Exception its a test!
+	 */
+	@Test
 	@Ignore
 	public void testHandleExtern() throws Exception
 	{

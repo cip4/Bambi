@@ -93,10 +93,10 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 		}
 
 		log.info("serving file data for: " + path);
-		File file = FileUtil.getFileInDirectory(dataDir, new File(last));
+		File file = FileUtil.addSecure(dataDir, new File(last));
 		if (!file.canRead())
 		{
-			file = FileUtil.getFileInDirectory(dataDir, UrlUtil.urlToFile(last));
+			file = FileUtil.addSecure(dataDir, UrlUtil.urlToFile(last));
 		}
 
 		final XMLResponse response = new XMLResponse(null);
@@ -134,12 +134,7 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 	protected String getRelativePath(final String path)
 	{
 		final int posData = path.indexOf(dataToken);
-		String last = path.substring(posData + dataToken.length() + 2);
-		final int posToken = last == null ? -1 : last.indexOf("/");
-		if (posToken > 0 && last != null)
-		{
-			last = last.substring(posToken);
-		}
+		String last = path.substring(posData + dataToken.length());
 		if (posData < 0)
 		{
 			last = null;
