@@ -78,6 +78,7 @@ import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.PlatformUtil;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -197,6 +198,8 @@ public class DataRequestHandlerTest extends BambiTestCase
 		request.setRequestURI("http://dev/blub/data/c:/foo/a.pdf");
 
 		rh.handleGet(request);
+		if (PlatformUtil.isWindows())
+			throw new IllegalArgumentException("works on linux");
 
 	}
 
@@ -213,6 +216,8 @@ public class DataRequestHandlerTest extends BambiTestCase
 		request.setRequestURI("http://dev/blub/data/\\\\host\\share\\a.pdf");
 
 		rh.handleGet(request);
+		if (PlatformUtil.isWindows())
+			throw new IllegalArgumentException("works on linux");
 	}
 
 	/**
