@@ -40,10 +40,13 @@
 package org.cip4.bambi.workers;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Set;
 import java.util.Vector;
 
 import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
@@ -374,6 +377,24 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 			return getXSLTBaseFromContext(contextPath) + "/login.xsl";
 		}
 		return super.getXSLT(request);
+	}
+
+	@Override
+	public void ensureProcessor(final JDFQueueEntry newQE, final JDFDoc theJDF)
+	{
+		final Collection<AbstractDeviceProcessor> currentPocs = ContainerUtil.addAll(new ArrayList<AbstractDeviceProcessor>(), getAllProcessors());
+		for (final AbstractDeviceProcessor proc : currentPocs)
+		{
+			if (proc.isShutdown())
+			{
+				_deviceProcessors.remove(proc);
+			}
+			if (_deviceProcessors.isEmpty())
+			{
+				final AbstractDeviceProcessor np = createNewProcessor();
+				log.info("creating new device processor " + np);
+			}
+		}
 	}
 
 }

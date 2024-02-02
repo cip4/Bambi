@@ -131,7 +131,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	{
 		if (stopTime == 0)
 		{
-			return !_doShutdown && super.isActive();
+			return super.isActive();
 		}
 		// TODO clean up orphans
 		return false;
@@ -233,7 +233,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		 */
 		private boolean handleStatusUpdate(final JDFJobPhase jobPhase)
 		{
-			String phaseQEID = StringUtil.getNonEmpty(jobPhase.getQueueEntryID());
+			final String phaseQEID = StringUtil.getNonEmpty(jobPhase.getQueueEntryID());
 			if (phaseQEID != null && !phaseQEID.equals(BambiNSExtension.getSlaveQueueEntryID(getQueueEntry())))
 			{
 				return false;
@@ -483,7 +483,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		EnumQueueEntryStatus qes = null;
 		if (slaveURL != null)
 		{
-			QueueSubmitter queueSubmitter = new QueueSubmitter(slaveURL);
+			final QueueSubmitter queueSubmitter = new QueueSubmitter(slaveURL);
 			final IQueueEntry iqe = queueSubmitter.submitToQueue();
 			qes = iqe == null ? null : iqe.getQueueEntry().getQueueEntryStatus();
 		}
@@ -644,7 +644,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	@Override
 	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{
-		JDFQueueEntry qe = getQueueEntry();
+		final JDFQueueEntry qe = getQueueEntry();
 		BambiNSExtension.setDeviceURL(qe, null);
 		// remove slave qeid from map
 		_queueProcessor.updateCache(qe, null);
@@ -688,7 +688,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	 */
 	String getSlaveDeviceID()
 	{
-		JDFQueueEntry queueEntry = getQueueEntry();
+		final JDFQueueEntry queueEntry = getQueueEntry();
 		return queueEntry == null ? null : queueEntry.getDeviceID();
 	}
 
@@ -727,10 +727,10 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		}
 
 		final AbstractProxyDevice p = getParent();
-		JMFBuilder jmfBuilder = p.getJMFBuilder();
+		final JMFBuilder jmfBuilder = p.getJMFBuilder();
 		final JDFJMF jmfs[] = jmfBuilder.createSubscriptions(p.getDeviceURLForSlave(), null, 10., 0);
 		final JDFNodeInfo ni = root.getCreateNodeInfo();
-		for (JDFJMF jmf : jmfs)
+		for (final JDFJMF jmf : jmfs)
 		{
 			ni.copyElement(jmf, null);
 		}

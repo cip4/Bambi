@@ -40,12 +40,19 @@
 package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
+import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.bambi.workers.WorkerDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFElement;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.node.JDFNode;
 import org.junit.Test;
 
 public class AbstractDeviceProcessorTest extends BambiTestCaseBase
@@ -58,8 +65,25 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 	public void testToString() throws Exception
 	{
 		final BambiTestDevice device = new BambiTestDevice();
-		WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
+		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
 		assertNotNull(devProc.toString());
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testActive() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
+		devProc._doShutdown = false;
+		devProc.setCurrentQE(null);
+		assertFalse(devProc.isActive());
+		devProc.setCurrentQE(new QueueEntry(JDFNode.createRoot(), (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY)));
+		assertTrue(devProc.isActive());
+		devProc.shutdown();
+		assertFalse(devProc.isActive());
 	}
 
 	/**
@@ -70,7 +94,7 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice();
 		device.setFinalStatus(EnumQueueEntryStatus.Aborted);
-		WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
+		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
 		for (int i = 0; i < 111; i++)
 			devProc.fillCurrentQE();
 
@@ -84,7 +108,7 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice();
 		device.setFinalStatus(EnumQueueEntryStatus.Aborted);
-		WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
+		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
 		assertNotNull(devProc.processDoc(null, null));
 
 	}
@@ -97,11 +121,11 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice();
 		int n = 0;
-		for (Object o : EnumQueueEntryStatus.getEnumList())
+		for (final Object o : EnumQueueEntryStatus.getEnumList())
 		{
-			EnumQueueEntryStatus qes = (EnumQueueEntryStatus) o;
+			final EnumQueueEntryStatus qes = (EnumQueueEntryStatus) o;
 			device.setFinalStatus(qes);
-			WorkerDeviceProcessor devProc = device.getNewProcessor();
+			final WorkerDeviceProcessor devProc = device.getNewProcessor();
 			if (devProc.processExistingQueueEntry())
 				n++;
 		}

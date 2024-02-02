@@ -676,7 +676,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	/**
 	 * create a new independent processor
 	 */
-	protected void createNewProcessor()
+	protected AbstractDeviceProcessor createNewProcessor()
 	{
 		final AbstractDeviceProcessor newDevProc = buildDeviceProcessor();
 		if (newDevProc != null)
@@ -689,6 +689,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			log.info("device processor thread started: " + threadName);
 			_deviceProcessors.add(newDevProc);
 		}
+		return newDevProc;
 	}
 
 	/**
@@ -776,7 +777,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected void updateWatchSubscription(final JDFQuery query)
 	{
-		EWatchFormat format = getProperties().getWatchFormat();
+		final EWatchFormat format = getProperties().getWatchFormat();
 		if (EWatchFormat.XJMF.equals(format))
 		{
 			log.info("Setting watch subscription to xjmf");
@@ -1196,7 +1197,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		return null; // none here
 	}
 
-	private List<AbstractDeviceProcessor> getAllProcessors()
+	protected List<AbstractDeviceProcessor> getAllProcessors()
 	{
 		return _deviceProcessors;
 	}
@@ -1359,7 +1360,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public StatusListener getStatusListener(final int i)
 	{
-		AbstractDeviceProcessor dev = ContainerUtil.get(_deviceProcessors, i);
+		final AbstractDeviceProcessor dev = ContainerUtil.get(_deviceProcessors, i);
 		return dev == null ? null : dev.getStatusListener();
 	}
 
@@ -1547,7 +1548,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 *
 	 * @param newWatchURL
 	 */
-	protected void updateWatchURL(String newWatchURL, String newWatchFormat)
+	protected void updateWatchURL(String newWatchURL, final String newWatchFormat)
 	{
 		if ("-".equals(newWatchURL))
 		{
@@ -1556,8 +1557,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		}
 
 		final IDeviceProperties properties = getProperties();
-		EWatchFormat oldFormat = properties.getWatchFormat();
-		EWatchFormat format = StringUtil.isEmpty(newWatchFormat) ? oldFormat : EWatchFormat.getEnum(newWatchFormat);
+		final EWatchFormat oldFormat = properties.getWatchFormat();
+		final EWatchFormat format = StringUtil.isEmpty(newWatchFormat) ? oldFormat : EWatchFormat.getEnum(newWatchFormat);
 		final String oldWatchURL = properties.getWatchURL();
 		if (!ContainerUtil.equals(oldWatchURL, newWatchURL) || !format.equals(oldFormat))
 		{
@@ -2375,5 +2376,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public HTTPResponse processRestStream(final StreamRequest sr)
 	{
 		return null;
+	}
+
+	public void ensureProcessor(final JDFQueueEntry newQE, final JDFDoc theJDF)
+	{
+		// nop - hook for worker or similar devices
+
 	}
 }

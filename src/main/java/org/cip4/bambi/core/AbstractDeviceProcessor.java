@@ -97,7 +97,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	protected QueueProcessor _queueProcessor;
 	protected StatusListener _statusListener;
 	protected MyMutex _myListener; // the mutex for waiting and reawakening
-	protected boolean _doShutdown = false;
+	protected boolean _doShutdown;
 	@Deprecated
 	// use theCurrentQE
 	protected IQueueEntry currentQE;
@@ -271,6 +271,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	public AbstractDeviceProcessor()
 	{
 		super();
+		_doShutdown = false;
 		entriesProcessed = 0;
 		_statusListener = new StatusListener(null, null, null);
 		theCurrentQE = new AtomicReference<>();
@@ -321,7 +322,8 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		{
 			_queueProcessor.removeListener(_myListener);
 		}
-		log.info("end processor thread loop");
+		getParent().removeProcessor(this);
+		log.info(this + " end processor thread loop");
 	}
 
 	/**
@@ -341,7 +343,12 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 */
 	public boolean isActive()
 	{
-		return getCurrentQE() != null;
+		return !_doShutdown && getCurrentQE() != null;
+	}
+
+	public boolean isShutdown()
+	{
+		return _doShutdown;
 	}
 
 	/**
@@ -391,7 +398,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 */
 	final protected boolean processQueueEntry()
 	{
-		IQueueEntry qe = fillCurrentQE();
+		final IQueueEntry qe = fillCurrentQE();
 		if (qe == null)
 		{
 			return false;
@@ -594,7 +601,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{
 		boolean bReturn = false;
-		IQueueEntry iqe = getCurrentQE();
+		final IQueueEntry iqe = getCurrentQE();
 		if (iqe == null)
 		{
 			log.error("cannot finalize null entry!");
@@ -661,7 +668,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		return bReturn;
 	}
 
-	protected void setCurrentQE(IQueueEntry qe)
+	protected void setCurrentQE(final IQueueEntry qe)
 	{
 		theCurrentQE.set(qe);
 		currentQE = qe;
@@ -669,7 +676,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 	public JDFNode getCurrentJDFNode()
 	{
-		IQueueEntry qe = getCurrentQE();
+		final IQueueEntry qe = getCurrentQE();
 		return qe == null ? null : qe.getJDF();
 	}
 
@@ -743,7 +750,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 */
 	public String getQueueEntryID()
 	{
-		IQueueEntry qe = getCurrentQE();
+		final IQueueEntry qe = getCurrentQE();
 		return qe == null ? null : qe.getQueueEntryID();
 	}
 
@@ -754,7 +761,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 */
 	public JDFQueueEntry getQueueEntry()
 	{
-		IQueueEntry qe = getCurrentQE();
+		final IQueueEntry qe = getCurrentQE();
 		return qe == null ? null : qe.getQueueEntry();
 	}
 
@@ -796,7 +803,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	@Override
 	public String toString()
 	{
-		return "Abstract Device Processor: Current Entry: " + (getCurrentQE() != null ? getQueueEntryID() : "no current entry") + "]";
+		return getClass().getSimpleName() + "active " + isActive() + " Current: " + (getCurrentQE() != null ? getQueueEntryID() : "none") + "]";
 	}
 
 	/**
