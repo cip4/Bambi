@@ -40,6 +40,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
+import java.net.HttpURLConnection;
 
 import org.cip4.jdflib.util.ThreadUtil;
 import org.junit.Test;
@@ -82,6 +85,16 @@ public class MessageResponseHandlerTest
 	{
 		final MessageResponseHandler mrh = new MessageResponseHandler("32");
 		assertNotNull(mrh.toString());
+	}
+
+	@Test
+	public void testSetConnect()
+	{
+		final MessageResponseHandler mrh = new MessageResponseHandler("32");
+		assertEquals(null, mrh.getConnection());
+		final HttpURLConnection c = mock(HttpURLConnection.class);
+		mrh.setConnection(c);
+		assertEquals(c, mrh.getConnection());
 	}
 
 	@Test

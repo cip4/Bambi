@@ -105,7 +105,7 @@ public class MessageResponseHandler implements IResponseHandler
 		refID = _refID;
 		resp = null;
 		finalMessage = null;
-		connect = null;
+		connect = new AtomicReference<>();
 		bufferedInput = null;
 		startTime = System.currentTimeMillis();
 		mutex = new AtomicReference<>(new MyMutex());
@@ -320,7 +320,7 @@ public class MessageResponseHandler implements IResponseHandler
 			return;
 		}
 		abort = bAbort ? 1 : 0;
-		if (mutex.get() != null && connect.get() != null && wait2 >= 0) // we have established a connection but have not yet read anything
+		if (myMutex != null && connect.get() != null && wait2 >= 0) // we have established a connection but have not yet read anything
 		{
 			ThreadUtil.wait(myMutex, wait2);
 		}
