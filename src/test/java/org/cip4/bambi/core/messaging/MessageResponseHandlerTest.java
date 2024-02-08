@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -38,6 +38,7 @@ package org.cip4.bambi.core.messaging;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.cip4.jdflib.util.ThreadUtil;
@@ -49,10 +50,10 @@ public class MessageResponseHandlerTest
 	class WaitThread implements Runnable
 	{
 
-		private int w;
-		private MessageResponseHandler mrh;
+		private final int w;
+		private final MessageResponseHandler mrh;
 
-		WaitThread(int w, MessageResponseHandler mrh)
+		WaitThread(final int w, final MessageResponseHandler mrh)
 		{
 			this.w = w;
 			this.mrh = mrh;
@@ -71,15 +72,22 @@ public class MessageResponseHandlerTest
 	@Test
 	public void testWaitHandled()
 	{
-		MessageResponseHandler mrh = new MessageResponseHandler("32");
+		final MessageResponseHandler mrh = new MessageResponseHandler("32");
 		mrh.waitHandled(3, 3, false);
 		assertFalse(mrh.isAborted());
 	}
 
 	@Test
+	public void testToString()
+	{
+		final MessageResponseHandler mrh = new MessageResponseHandler("32");
+		assertNotNull(mrh.toString());
+	}
+
+	@Test
 	public void testFinalizeHandling()
 	{
-		MessageResponseHandler mrh = new MessageResponseHandler("32");
+		final MessageResponseHandler mrh = new MessageResponseHandler("32");
 		mrh.finalizeHandling();
 		mrh.finalizeHandling();
 	}
@@ -87,7 +95,7 @@ public class MessageResponseHandlerTest
 	@Test
 	public void testWaitHandledAbort()
 	{
-		MessageResponseHandler mrh = new MessageResponseHandler("32");
+		final MessageResponseHandler mrh = new MessageResponseHandler("32");
 		mrh.waitHandled(3, 3, true);
 		assertTrue(mrh.isAborted());
 	}
@@ -95,8 +103,8 @@ public class MessageResponseHandlerTest
 	@Test
 	public void testWaitHandled2()
 	{
-		MessageResponseHandler mrh = new MessageResponseHandler("32");
-		long t = System.currentTimeMillis();
+		final MessageResponseHandler mrh = new MessageResponseHandler("32");
+		final long t = System.currentTimeMillis();
 		new Thread(new WaitThread(42, mrh)).start();
 		assertFalse(mrh.isAborted());
 		mrh.waitHandled(3000, 3000, false);

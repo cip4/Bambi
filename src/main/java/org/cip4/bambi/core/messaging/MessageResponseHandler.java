@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -43,7 +43,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.cip4.bambi.core.BambiLogFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -64,17 +65,18 @@ import org.cip4.jdflib.util.thread.MyMutex;
  * @author Rainer Prosi
  *
  */
-public class MessageResponseHandler extends BambiLogFactory implements IResponseHandler
+public class MessageResponseHandler implements IResponseHandler
 {
 	protected JDFResponse resp;
 	protected JDFMessage finalMessage;
-	private HttpURLConnection connect;
+	private final AtomicReference<HttpURLConnection> connect;
 	protected ByteArrayIOStream bufferedInput;
 	private final AtomicReference<MyMutex> mutex;
 	private int abort = 0; // 0 no abort handling, 1= abort on timeout, 2= has been aborted
 	protected String refID;
 	private IConverterCallback callBack = null;
 	private final long startTime;
+	private static Log log = LogFactory.getLog(MessageResponseHandler.class);
 
 	/**
 	 * @return the callBack
@@ -209,7 +211,7 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 	 */
 	protected void finalizeHandling()
 	{
-		MyMutex myMutex = mutex.get();
+		final MyMutex myMutex = mutex.get();
 		if (myMutex == null)
 		{
 			return;
@@ -256,7 +258,7 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 	@Override
 	public HttpURLConnection getConnection()
 	{
-		return connect;
+		return connect.get();
 	}
 
 	/**
@@ -265,7 +267,7 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 	@Override
 	public void setConnection(final HttpURLConnection uc)
 	{
-		connect = uc;
+		connect.set(uc);
 	}
 
 	/**
@@ -292,7 +294,7 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 		}
 		try
 		{
-			final InputStream inputStream = connect.getInputStream();
+			final InputStream inputStream = connect.get().getInputStream();
 			bufferedInput = new ByteArrayIOStream(inputStream);
 			inputStream.close();
 		}
@@ -312,14 +314,13 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 	@Override
 	public void waitHandled(final int wait1, final int wait2, final boolean bAbort)
 	{
-		MyMutex myMutex = mutex.get();
+		final MyMutex myMutex = mutex.get();
 		if (myMutex == null)
 		{
 			return;
 		}
 		abort = bAbort ? 1 : 0;
-		ThreadUtil.wait(myMutex, wait1);
-		if (mutex.get() != null && connect != null && wait2 >= 0) // we have established a connection but have not yet read anything
+		if (mutex.get() != null && connect.get() != null && wait2 >= 0) // we have established a connection but have not yet read anything
 		{
 			ThreadUtil.wait(myMutex, wait2);
 		}
@@ -341,7 +342,7 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 			log.error("aborted handler after " + ((t - startTime) * 0.001) + " seconds");
 			return true;
 		}
-		return mutex.get() == null ? false : abort == 2;
+		return mutex.get() == null ? false : abort >= 2;
 	}
 
 	/**
@@ -361,5 +362,11 @@ public class MessageResponseHandler extends BambiLogFactory implements IResponse
 	public int getJMFReturnCode()
 	{
 		return finalMessage == null ? -1 : finalMessage.getReturnCode();
+	}
+
+	@Override
+	public String toString()
+	{
+		return "MessageResponseHandler refID=" + refID + ", startTime=" + startTime + "]";
 	}
 }

@@ -370,7 +370,7 @@ public class JMFFactory
 	}
 
 	/**
-	 * Sends a JMF message to a given URL sychronusly
+	 * Sends a JMF message to a given URL synchronously
 	 *
 	 * @param jmf The JMF Message to send
 	 * @param url The target URL to send the JMF to
@@ -404,12 +404,11 @@ public class JMFFactory
 	 *
 	 * @return the response if successful, otherwise null
 	 */
-	public HttpURLConnection send2URLSynch(final JDFJMF jmf, final JDFNode jdf, final String url, final IConverterCallback callback, final MIMEDetails md, final String senderID,
-			final int milliSeconds)
+	public HttpURLConnection send2URLSynch(final JDFJMF jmf, final JDFNode jdf, final String url, final IConverterCallback callback, final MIMEDetails md, final String senderID, final int milliSeconds)
 	{
 		final MessageResponseHandler messageResponseHandler = new MessageResponseHandler((String) null);
 		send2URL(jmf, jdf, url, messageResponseHandler, callback, md, senderID);
-		messageResponseHandler.waitHandled(milliSeconds, 10000, true);
+		messageResponseHandler.waitHandled(milliSeconds, milliSeconds, true);
 		return messageResponseHandler.getConnection();
 	}
 
