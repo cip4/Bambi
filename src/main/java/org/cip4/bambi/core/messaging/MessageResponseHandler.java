@@ -319,6 +319,7 @@ public class MessageResponseHandler implements IResponseHandler
 		{
 			return;
 		}
+		ThreadUtil.wait(myMutex, wait1);
 		abort = bAbort ? 1 : 0;
 		if (myMutex != null && connect.get() != null && wait2 >= 0) // we have established a connection but have not yet read anything
 		{
