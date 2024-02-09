@@ -53,6 +53,7 @@ import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
+import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -63,6 +64,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFMessageService;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
+import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.EnumUtil;
 
@@ -509,7 +511,9 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		if (jmfResponse != null)
 		{
 			jmfResponse.setReturnCode(returnCode);
-			jmfResponse.setErrorText(errorText, errorClass);
+			final JDFNotification notification = jmfResponse.setErrorText(errorText + "\nStack Trace:\n" + BambiLogFactory.printStackTrace(new JDFException(errorText), 10),
+					errorClass);
+			notification.getComment(0).setName("DeviceText");
 		}
 
 		if (EnumClass.Error.equals(errorClass))

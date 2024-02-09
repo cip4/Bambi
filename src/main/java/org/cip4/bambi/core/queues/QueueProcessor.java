@@ -547,7 +547,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				return false;
 			}
-			qLog.debug("Handling  ResubmitQueueEntry");
 			final JDFResubmissionParams qsp = m.getResubmissionParams(0);
 			if (qsp != null)
 			{
@@ -573,7 +572,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			else
 			{
 				JMFHandler.errorResponse(resp, "ResubmissionParams are missing or invalid", 9, EnumClass.Error);
-				qLog.error("ResubmissionParams are missing or invalid");
 			}
 			return true;
 		}
@@ -836,6 +834,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			final List<JDFQueueEntry> v = getMessageQueueEntries(m, resp);
 			if (v == null)
 			{
+				JMFHandler.errorResponse(resp, "No QueueEntry to remove", 105, EnumClass.Warning);
 				return true;
 			}
 			for (final JDFQueueEntry qe : v)
@@ -892,7 +891,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				return false;
 			}
-			qLog.debug("Handling " + m.getType());
 			final List<JDFQueueEntry> v = getMessageQueueEntries(m, resp);
 			if (v == null)
 			{
@@ -1154,7 +1152,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				return false;
 			}
-			qLog.debug("Handling " + m.getType());
 			final JDFFlushQueueParams fqp = m.getFlushQueueParams(0);
 			final JDFQueueFilter qf = fqp == null ? null : fqp.getQueueFilter();
 			final JDFQueueFilter qfo = m.getQueueFilter(0);
@@ -1628,7 +1625,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				return false;
 			}
-			qLog.debug("Handling " + m.getType());
 			final EnumType typ = m.getEnumType();
 			if (EnumType.SubmissionMethods.equals(typ))
 			{

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -39,6 +39,7 @@
 package org.cip4.bambi.core.messaging;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
@@ -58,6 +59,15 @@ public class JMFHandlerTest extends BambiTestCaseBase
 		final JDFResponse r = new JDFDoc("JMF").getJMFRoot().appendResponse(EnumType.FlushQueue);
 		JMFHandler.errorResponse(r, "foo", 42, EnumClass.Warning);
 		assertEquals(42, r.getReturnCode());
+	}
+
+	@Test
+	public void testErrorResponseNotification()
+	{
+		JMFHandler.errorResponse(null, "foo", 42, EnumClass.Error);
+		final JDFResponse r = new JDFDoc("JMF").getJMFRoot().appendResponse(EnumType.FlushQueue);
+		JMFHandler.errorResponse(r, "foo", 42, EnumClass.Warning);
+		assertNotNull(r.getNotification().getCommentText());
 	}
 
 	@Test
