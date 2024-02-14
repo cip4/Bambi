@@ -55,6 +55,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.StreamUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.thread.MyMutex;
@@ -296,7 +297,7 @@ public class MessageResponseHandler implements IResponseHandler
 		{
 			final InputStream inputStream = connect.get().getInputStream();
 			bufferedInput = new ByteArrayIOStream(inputStream);
-			inputStream.close();
+			StreamUtil.close(inputStream);
 		}
 		catch (final IOException x)
 		{
@@ -320,7 +321,7 @@ public class MessageResponseHandler implements IResponseHandler
 			return;
 		}
 		final int ww1 = Math.min(wait1, 42);
-		final int loop1 = ((wait1 > 0) ? 1 + 42 / wait1 : 0);
+		final int loop1 = ((wait1 > 0) ? 1 + wait1 / 42 : 0);
 		for (int i = 0; i < loop1; i++)
 		{
 			ThreadUtil.wait(myMutex, ww1);
@@ -329,11 +330,11 @@ public class MessageResponseHandler implements IResponseHandler
 				break;
 		}
 		abort = bAbort ? 1 : 0;
-		final int ww2 = Math.min(wait2, 42);
-		final int loop2 = ((wait2 > 0) ? 1 + 42 / wait2 : 0);
 
 		if (myMutex != null && connect.get() != null && wait2 >= 0) // we have established a connection but have not yet read anything
 		{
+			final int ww2 = Math.min(wait2, 42);
+			final int loop2 = ((wait2 > 0) ? 1 + wait2 / 42 : 0);
 			for (int i = 0; i < loop2; i++)
 			{
 				ThreadUtil.wait(myMutex, ww2);

@@ -39,6 +39,7 @@ package org.cip4.bambi.core.messaging;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -76,6 +77,24 @@ public class MessageResponseHandlerTest
 	public void testWaitHandled()
 	{
 		final MessageResponseHandler mrh = new MessageResponseHandler("32");
+		mrh.waitHandled(3, 3, false);
+		assertFalse(mrh.isAborted());
+	}
+
+	@Test
+	public void testGetBuffered()
+	{
+		final MessageResponseHandler mrh = new MessageResponseHandler("32");
+		assertNull(mrh.getBufferedStream());
+		mrh.setConnection(mock(HttpURLConnection.class));
+		assertNotNull(mrh.getBufferedStream());
+	}
+
+	@Test
+	public void testWaitHandledC()
+	{
+		final MessageResponseHandler mrh = new MessageResponseHandler("32");
+		mrh.setConnection(mock(HttpURLConnection.class));
 		mrh.waitHandled(3, 3, false);
 		assertFalse(mrh.isAborted());
 	}
