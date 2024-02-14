@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -98,7 +98,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	{
 		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
 		d.reset();
-		File dir = new File(sm_dirTestDataTemp + "subs1");
+		final File dir = new File(sm_dirTestDataTemp + "subs1");
 		FileUtil.deleteAll(dir);
 		final SubscriptionStore ss = new SubscriptionStore(d, dir);
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://abc.com", 0, 0, null);
@@ -123,20 +123,21 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	public void testLoad()
 	{
 		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
-		File dir = new File(sm_dirTestDataTemp + "subs2");
+		final File dir = new File(sm_dirTestDataTemp + "subs2");
 		FileUtil.deleteAll(dir);
 		final SubscriptionStore ss = new SubscriptionStore(d, dir);
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://abc.com", 0, 0, null);
 		final JDFQuery q = jmf.getQuery(0);
-		q.setID("q");
+		q.setID("qqq");
 
+		d.removeSubScriptions(null, null, null);
 		d.addSubscription(q, null, null);
 		ss.persist();
 
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
 		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
 		ss2.load();
-		assertEquals("q", d2.getAllChannels(null, null, null).iterator().next());
+		assertEquals("qqq", d2.getAllChannels(null, null, null).iterator().next());
 
 	}
 
@@ -148,7 +149,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	{
 		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
 		d.reset();
-		File dir = new File(sm_dirTestDataTemp + "subs3");
+		final File dir = new File(sm_dirTestDataTemp + "subs3");
 		FileUtil.deleteAll(dir);
 		final SubscriptionStore ss = new SubscriptionStore(d, dir);
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://abc.com", 0, 0, null);
@@ -156,6 +157,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		q.setID("q");
 		jmf.setMaxVersion(EnumVersion.Version_2_0);
 
+		d.removeSubScriptions(null, null, null);
 		d.addSubscription(q, null, null);
 		ss.persist();
 
@@ -174,7 +176,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	{
 		final SignalDispatcher dis = new SignalDispatcher(new BambiTestDevice());
 		dis.reset();
-		File dir = new File(sm_dirTestDataTemp + "subs4");
+		final File dir = new File(sm_dirTestDataTemp + "subs4");
 		FileUtil.deleteAll(dir);
 		final SubscriptionStore ss = new SubscriptionStore(dis, dir);
 
@@ -187,6 +189,8 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		query.setID("q");
 		final MsgSubscription s = new MsgSubscription(null, query, null);
 		assertNull(s.jmfDeviceID);
+
+		dis.removeSubScriptions(null, null, null);
 
 		dis.addSubscription(query, null, null);
 		ss.persist();
@@ -207,7 +211,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	{
 		final SignalDispatcher dis = new SignalDispatcher(new BambiTestDevice());
 		dis.reset();
-		File dir = new File(sm_dirTestDataTemp + "subs5");
+		final File dir = new File(sm_dirTestDataTemp + "subs5");
 		FileUtil.deleteAll(dir);
 		final SubscriptionStore ss = new SubscriptionStore(dis, dir);
 
@@ -220,6 +224,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		query.setID("q");
 		final MsgSubscription s = new MsgSubscription(null, query, null);
 		assertEquals(XJDFHelper.defaultVersion(), s.getQuery().getMaxVersion(true));
+		dis.removeSubScriptions(null, null, null);
 		dis.addSubscription(query, null, null);
 		ss.persist();
 
