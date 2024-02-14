@@ -288,7 +288,7 @@ public class MessageResponseHandler implements IResponseHandler
 		{
 			return bufferedInput.getInputStream();
 		}
-		if (connect == null)
+		if (connect.get() == null)
 		{
 			return null;
 		}
@@ -314,16 +314,33 @@ public class MessageResponseHandler implements IResponseHandler
 	@Override
 	public void waitHandled(final int wait1, final int wait2, final boolean bAbort)
 	{
-		final MyMutex myMutex = mutex.get();
+		MyMutex myMutex = mutex.get();
 		if (myMutex == null)
 		{
 			return;
 		}
-		ThreadUtil.wait(myMutex, wait1);
+		final int ww1 = Math.min(wait1, 42);
+		final int loop1 = ((wait1 > 0) ? 1 + 42 / wait1 : 0);
+		for (int i = 0; i < loop1; i++)
+		{
+			ThreadUtil.wait(myMutex, ww1);
+			myMutex = mutex.get();
+			if (myMutex == null)
+				break;
+		}
 		abort = bAbort ? 1 : 0;
+		final int ww2 = Math.min(wait2, 42);
+		final int loop2 = ((wait2 > 0) ? 1 + 42 / wait2 : 0);
+
 		if (myMutex != null && connect.get() != null && wait2 >= 0) // we have established a connection but have not yet read anything
 		{
-			ThreadUtil.wait(myMutex, wait2);
+			for (int i = 0; i < loop2; i++)
+			{
+				ThreadUtil.wait(myMutex, ww2);
+				myMutex = mutex.get();
+				if (myMutex == null)
+					break;
+			}
 		}
 		if (abort == 1)
 		{

@@ -142,7 +142,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 				v.remove(n2);
 			}
 		}
-		return v.size() == 0 ? null : v;
+		return v.isEmpty() ? null : v;
 	}
 
 	/**

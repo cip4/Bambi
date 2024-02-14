@@ -81,6 +81,14 @@ public class MessageResponseHandlerTest
 	}
 
 	@Test
+	public void testWaitHandled0()
+	{
+		final MessageResponseHandler mrh = new MessageResponseHandler("32");
+		mrh.waitHandled(0, 0, false);
+		assertFalse(mrh.isAborted());
+	}
+
+	@Test
 	public void testToString()
 	{
 		final MessageResponseHandler mrh = new MessageResponseHandler("32");
