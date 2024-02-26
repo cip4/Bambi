@@ -439,7 +439,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			timer.stop();
 			return bOK;
 		}
-		log.info("processing: " + node.getJobID(true) + " qeID=" + queueEntryID);
 
 		EnumQueueEntryStatus qes;
 		try

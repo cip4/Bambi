@@ -76,6 +76,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.concurrent.locks.Lock;
@@ -638,7 +641,23 @@ public class QueueProcessorTest extends BambiTestCase
 		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
 		final JDFQueueEntry qe = qp.addEntry(c, r, doc);
 		assertNotNull(qe);
-		assertNull(qp.getNextEntry(queueEntryId, QERetrieval.BOTH));
+		assertNotNull(qp.getNextEntry(qp.getParent().getDeviceID(), QERetrieval.BOTH));
+		final QueueProcessor qp2 = spy(qp);
+		when(qp2.getCanExecuteCallback(any())).thenReturn(null);
+		qp2.addEntry(c, r, doc);
+		assertNotNull(qp2.getNextEntry(qp.getParent().getDeviceID(), QERetrieval.BOTH));
+		assertNull(qp2.getNextEntry(qp.getParent().getDeviceID(), QERetrieval.BOTH));
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testCanExecute()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		assertNotNull(qp.getCanExecuteCallback("33").toString());
 	}
 
 	/**

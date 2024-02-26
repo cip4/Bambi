@@ -373,6 +373,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	protected class CanExecuteCallBack extends ExecuteCallback
 	{
 
+		@Override
+		public String toString()
+		{
+			return "CanExecuteCallBack [deviceID=" + deviceID + ", proxy=" + proxy + "]";
+		}
+
 		/**
 		 * @param _deviceID
 		 * @param _proxy
@@ -1674,7 +1680,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	protected final HashMap<String, QueueDelta> deltaMap;
 
 	protected JDFQueueEntry nextPush = null;
-	private CanExecuteCallBack _cbCanExecute = null;
+	private CanExecuteCallBack cbCanExecute;
 	private final AtomicReference<SlaveQueueMap> slaveQueueMap;
 	private boolean searchByJobPartID = true;
 	protected final MutexMap<String> _mutexMap;
@@ -1701,6 +1707,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		deltaMap = new HashMap<>();
 		slaveQueueMap = new AtomicReference<>(new SlaveQueueMap());
 		_mutexMap = new MutexMap<>();
+		cbCanExecute = null;
 		init();
 	}
 
@@ -1768,8 +1775,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		q.setMaxRunningEntries(getMaxRunning());
 		q.setDescriptiveName("Queue for " + _parentDevice.getDeviceType());
 		q.setCleanupCallback(_parentDevice.getQECleanup()); // zapps any attached files when removing qe
-		_cbCanExecute = getCanExecuteCallback(deviceID);
-		q.setExecuteCallback(_cbCanExecute);
+		cbCanExecute = getCanExecuteCallback(deviceID);
+		q.setExecuteCallback(cbCanExecute);
 		BambiNSExtension.setMyNSAttribute(q, "EnsureNS", "Dummy"); // ensure that some bambi ns exists
 	}
 
@@ -1962,8 +1969,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	public IQueueEntry getNextEntry(final String deviceID, final QERetrieval canPush)
 	{
-		CanExecuteCallBack cb = _cbCanExecute;
-		if (deviceID != null)
+		CanExecuteCallBack cb = cbCanExecute;
+		if (cb != null && deviceID != null)
 		{
 			cb = cb.clone();
 			cb.deviceID = deviceID;
@@ -2001,7 +2008,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				{
 					theEntry.setAttribute(proxyFlag, "true");
 				}
-				qLog.info("new qe: " + theEntry.getQueueEntryID());
 				return iQueueEntry;
 			}
 		}
@@ -2178,7 +2184,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			return null;
 		}
 
-		JDFQueueEntry newQE;
 		final JDFQueueSubmissionParams qsp = submitQueueEntry.getQueueSubmissionParams(0);
 		if (qsp == null)
 		{
@@ -2200,7 +2205,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			newResponse.copyInto(directResp, false);
 		}
-		newQE = pair.getB();
+
+		final JDFQueueEntry newQE = pair.getB();
 		if (newQE == null || rc != 0)
 		{
 			qLog.warn("error submitting queueentry: rc=" + rc + " queue status=" + getQueue().getQueueStatus());
