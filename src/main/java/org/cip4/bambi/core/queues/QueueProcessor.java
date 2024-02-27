@@ -371,7 +371,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG July 6, 2009
 	 */
-	protected class CanExecuteCallBack extends ExecuteCallback
+	public class CanExecuteCallBack extends ExecuteCallback
 	{
 
 		boolean checkSubmitted;
