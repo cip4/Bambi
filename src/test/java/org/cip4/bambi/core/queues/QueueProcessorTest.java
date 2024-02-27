@@ -663,6 +663,17 @@ public class QueueProcessorTest extends BambiTestCase
 	}
 
 	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testCanExecuteClone()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		assertNotNull(qp.getCanExecuteCallback("33").clone().toString());
+	}
+
+	/**
 	*
 	*
 	*/

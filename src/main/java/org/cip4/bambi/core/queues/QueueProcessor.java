@@ -391,7 +391,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 * @param _deviceID
 		 * @param _proxy
 		 */
-		protected CanExecuteCallBack(final String _deviceID, final String _proxy)
+		public CanExecuteCallBack(final String _deviceID, final String _proxy)
 		{
 			super();
 			this.deviceID = _deviceID;
@@ -437,9 +437,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		 * @return my clone...
 		 */
 		@Override
-		protected CanExecuteCallBack clone()
+		public CanExecuteCallBack clone()
 		{
 			final CanExecuteCallBack cb = new CanExecuteCallBack(deviceID, proxy);
+			cb.setCheckSubmitted(checkSubmitted);
 			return cb;
 		}
 	}
