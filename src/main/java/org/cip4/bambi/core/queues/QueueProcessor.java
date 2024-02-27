@@ -412,8 +412,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				return false;
 			}
-			if (checkSubmitted && EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus())
-					&& (AbstractProxyDevice.SUBMITTING.equals(qe.getStatusDetails()) || AbstractProxyDevice.SUBMITTED.equals(qe.getStatusDetails())))
+			if (checkSubmitted && EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus()) && AbstractProxyDevice.SUBMITTED.equals(qe.getStatusDetails()))
 			{
 				return false;
 			}
