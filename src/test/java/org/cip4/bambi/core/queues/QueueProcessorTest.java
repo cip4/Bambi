@@ -213,6 +213,18 @@ public class QueueProcessorTest extends BambiTestCase
 	 *
 	 */
 	@Test
+	public void testQueueDelta()
+	{
+		final AbstractDevice device = getDevice();
+		final QueueProcessor qp = device.getQueueProcessor();
+		assertNotNull(qp.getQueueDelta().toString());
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
 	public void testQEReturnBadNS()
 	{
 		final QueueProcessor qp = getDevice().getQueueProcessor();

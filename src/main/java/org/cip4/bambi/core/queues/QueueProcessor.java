@@ -211,7 +211,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		@Override
 		public String toString()
 		{
-			return "QueueDelta [lastQueue.size=" + (lastQueue == null ? 0 : lastQueue.numEntries(null)) + ", creationTime=" + creationTime + "]";
+			return "QueueDelta [lastQueue.size=" + (lastQueue == null ? 0 : lastQueue.numEntries(null)) + ", creationTime=" + creationTime;
 		}
 
 		/**
