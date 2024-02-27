@@ -92,8 +92,10 @@ import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.StreamRequest;
 import org.cip4.bambi.core.XMLResponse;
+import org.cip4.bambi.core.queues.QueueProcessor.CanExecuteCallBack;
 import org.cip4.bambi.core.queues.QueueProcessor.QueueEntryReturn;
 import org.cip4.bambi.core.queues.QueueProcessor.SubmitQueueEntryHandler;
+import org.cip4.bambi.proxy.ProxyDevice;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
@@ -658,6 +660,30 @@ public class QueueProcessorTest extends BambiTestCase
 	{
 		final QueueProcessor qp = getDevice().getQueueProcessor();
 		assertNotNull(qp.getCanExecuteCallback("33").toString());
+	}
+
+	/**
+	*
+	*
+	*/
+	@Test
+	public void testCanExecute2()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final CanExecuteCallBack canExecuteCallback = qp.new CanExecuteCallBack("a", "b");
+		assertFalse(canExecuteCallback.canExecute(null));
+		final CanExecuteCallBack c2 = qp.new CanExecuteCallBack(null, "b");
+		final JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
+
+		assertTrue(c2.canExecute(qe));
+		c2.setCheckSubmitted(true);
+		qe.setStatusDetails(ProxyDevice.SUBMITTED);
+		qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+		assertFalse(c2.canExecute(qe));
+		c2.setCheckSubmitted(false);
+		assertTrue(c2.canExecute(qe));
+		qe.setAttribute("b", "c");
+		assertFalse(c2.canExecute(qe));
 	}
 
 	/**

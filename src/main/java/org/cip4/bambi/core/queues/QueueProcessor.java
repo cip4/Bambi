@@ -69,6 +69,7 @@ import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.bambi.core.messaging.SignalDispatcher;
+import org.cip4.bambi.proxy.AbstractProxyDevice;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -373,6 +374,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	protected class CanExecuteCallBack extends ExecuteCallback
 	{
 
+		boolean checkSubmitted;
+
+		public void setCheckSubmitted(final boolean checkSubmitted)
+		{
+			this.checkSubmitted = checkSubmitted;
+		}
+
 		@Override
 		public String toString()
 		{
@@ -388,6 +396,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			super();
 			this.deviceID = _deviceID;
 			this.proxy = _proxy;
+			checkSubmitted = false;
 		}
 
 		String deviceID;
@@ -399,18 +408,26 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		@Override
 		public boolean canExecute(final JDFQueueEntry qe)
 		{
-			if (proxy != null && qe.hasAttribute(proxy))
+			if (qe == null || proxy != null && qe.hasAttribute(proxy))
 			{
 				return false;
 			}
-			if (deviceID != null && !KElement.isWildCard(qe.getDeviceID()) && !deviceID.equals(qe.getDeviceID()))
+			if (checkSubmitted && EnumQueueEntryStatus.Waiting.equals(qe.getQueueEntryStatus())
+					&& (AbstractProxyDevice.SUBMITTING.equals(qe.getStatusDetails()) || AbstractProxyDevice.SUBMITTED.equals(qe.getStatusDetails())))
 			{
 				return false;
 			}
-			final String badDevices = BambiNSExtension.getMyNSAttribute(qe, BambiNSExtension.GOOD_DEVICES);
-			if (!StringUtil.hasToken(badDevices, deviceID, " ", 0))
+			if (deviceID != null)
 			{
-				return false;
+				if (!KElement.isWildCard(qe.getDeviceID()) && !deviceID.equals(qe.getDeviceID()))
+				{
+					return false;
+				}
+				final String badDevices = BambiNSExtension.getMyNSAttribute(qe, BambiNSExtension.GOOD_DEVICES);
+				if (!StringUtil.hasToken(badDevices, deviceID, " ", 0))
+				{
+					return false;
+				}
 			}
 			return true;
 		}

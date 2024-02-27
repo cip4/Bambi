@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -88,28 +88,28 @@ public class ProxyDispatcherProcessorTest
 	@Test
 	public void testConstruct()
 	{
-		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
+		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
 		assertNotNull(proc);
 	}
 
 	@Test
 	public void testgetSlaveQEID()
 	{
-		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
+		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
 		assertNull(proc.getSlaveQEID());
 	}
 
 	@Test
 	public void testReturnFromSlave()
 	{
-		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
+		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
 		assertFalse(proc.returnFromSlave(null, null, null));
 	}
 
 	@Test
 	public void testIsIdle()
 	{
-		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
+		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
 		assertTrue(proc.isIdle());
 		assertTrue(proc.isActive());
 	}
@@ -117,23 +117,23 @@ public class ProxyDispatcherProcessorTest
 	@Test
 	public void testInitialize()
 	{
-		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
-		JDFNode n = JDFNode.createRoot();
-		JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
+		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
+		final JDFNode n = JDFNode.createRoot();
+		final JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
 		assertFalse(proc.initializeProcessDoc(n, qe));
 	}
 
 	@Test
 	public void testgetClone()
 	{
-		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
+		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
 		assertNull(proc.getCloneJDFForSlave());
 	}
 
 	@Test
 	public void testCanProcess()
 	{
-		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
+		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
 
 		proc.canProcess();
 	}
@@ -144,7 +144,7 @@ public class ProxyDispatcherProcessorTest
 	@Test
 	public void testFillCurrent() throws Exception
 	{
-		ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
+		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
 		for (int i = 0; i < 3; i++)
 			assertNull(proc.fillCurrentQE());
 
