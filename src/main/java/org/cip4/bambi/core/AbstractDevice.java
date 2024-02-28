@@ -615,25 +615,36 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			{
 				for (final File f : configFiles)
 				{
-					if (f.isFile())
-					{
-						final File newFile = FileUtil.ensureFileInDir(f, cacheDir);
-						if (newFile == null)
-						{
-							log.warn("cannot copy " + f + " to " + cacheDir);
-						}
-						else
-						{
-							log.info("copied " + f + " to " + cacheDir);
-						}
-					}
-					else
-					{
-						log.warn("cannot copy missing " + f + " to " + cacheDir);
-					}
+					copySingleToCache(cacheDir, f);
 				}
 			}
 		}
+	}
+
+	protected void copySingleToCache(final File cacheDir, final File f)
+	{
+		if (f.isFile())
+		{
+			final File newFile = forceCopy(f) ? FileUtil.copyFileToDir(f, cacheDir) : FileUtil.ensureFileInDir(f, cacheDir);
+			if (newFile == null)
+			{
+				log.warn("cannot copy " + f + " to " + cacheDir);
+			}
+			else
+			{
+				log.info("copied " + f + " to " + cacheDir);
+			}
+		}
+		else
+		{
+			log.warn("cannot copy missing " + f + " to " + cacheDir);
+		}
+	}
+
+	protected boolean forceCopy(final File f)
+	{
+		final String extension = FileUtil.getExtension(f);
+		return "xsl".equalsIgnoreCase(extension) || "xsd".equalsIgnoreCase(extension);
 	}
 
 	/**

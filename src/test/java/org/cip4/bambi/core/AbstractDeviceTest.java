@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -40,8 +40,10 @@
 package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
@@ -91,7 +93,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice();
 		device.setSim(true);
-		File dir = device.getCachedConfigDir();
+		final File dir = device.getCachedConfigDir();
 		assertEquals(new File(sm_dirTestDataTemp, "config"), dir);
 	}
 
@@ -120,9 +122,9 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice();
 		device.setSim(true);
-		JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
+		final JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
 		qe.setQueueEntryID("a");
-		File dir = device.getExtractDirectory(qe, true);
+		final File dir = device.getExtractDirectory(qe, true);
 		assertEquals("a", dir.getName());
 	}
 
@@ -134,7 +136,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice();
 		device.setSim(true);
-		JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
+		final JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
 		qe.setQueueEntryID("..");
 		device.getExtractDirectory(qe, true);
 	}
@@ -147,7 +149,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice();
 		device.setSim(true);
-		JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
+		final JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
 		qe.setQueueEntryID("a/..");
 		device.getExtractDirectory(qe, true);
 	}
@@ -167,7 +169,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		device.updateWatchURL("http://dummy.com", EWatchFormat.JSON.name());
 		assertEquals(EWatchFormat.JSON, device.getProperties().getWatchFormat());
 		assertEquals("http://dummy.com", device.getProperties().getWatchURL());
-		XMLDevice xd = device.getXMLDevice(false, new ContainerRequest());
+		final XMLDevice xd = device.getXMLDevice(false, new ContainerRequest());
 		assertEquals(EWatchFormat.JSON.name(), xd.getRoot().getAttribute("WatchFormat"));
 	}
 
@@ -179,8 +181,8 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice();
 		device.setSim(true);
-		XJDFHelper h = new XJDFHelper("j1", "p1");
-		JDFJMF jmf = device.createSubmissionJMF(h.getRoot(), null);
+		final XJDFHelper h = new XJDFHelper("j1", "p1");
+		final JDFJMF jmf = device.createSubmissionJMF(h.getRoot(), null);
 		assertEquals(2, jmf.getMaxVersion().getMajorVersion());
 	}
 
@@ -192,8 +194,8 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice();
 		device.setSim(true);
-		XJDFHelper h = new XJDFHelper("j1", "p1");
-		XMLRequest xml = device.createSubmitFromJDF(h.getRoot(), new XMLRequest(h.getRoot()));
+		final XJDFHelper h = new XJDFHelper("j1", "p1");
+		final XMLRequest xml = device.createSubmitFromJDF(h.getRoot(), new XMLRequest(h.getRoot()));
 		assertEquals(2, ((JDFJMF) xml.getXML()).getMaxVersion().getMajorVersion());
 	}
 
@@ -216,8 +218,21 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		final BambiTestDevice device = new BambiTestDevice();
 		device.setSim(true);
 		device.copyToCache();
-		File dir = device.getCachedConfigDir();
+		final File dir = device.getCachedConfigDir();
 		assertEquals(new File(sm_dirTestDataTemp, "config"), dir);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testForceFile() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		assertFalse(device.forceCopy(null));
+		assertFalse(device.forceCopy(new File("foo.xml")));
+		assertTrue(device.forceCopy(new File("foo.xsl")));
+		assertTrue(device.forceCopy(new File("foo.xsd")));
 	}
 
 }
