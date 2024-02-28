@@ -40,6 +40,8 @@ package org.cip4.bambi.core;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
@@ -78,6 +80,8 @@ import org.cip4.jdflib.util.thread.MyMutex;
  */
 public abstract class AbstractDeviceProcessor extends BambiLogFactory implements IDeviceProcessor
 {
+	private final static Log log = LogFactory.getLog(AbstractDeviceProcessor.class);
+
 	/**
 	 * for unit tests
 	 *

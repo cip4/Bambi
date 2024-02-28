@@ -45,6 +45,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
@@ -125,6 +127,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
  */
 public abstract class AbstractDevice extends BambiLogFactory implements IGetHandler
 {
+	private final static Log log = LogFactory.getLog(AbstractDevice.class);
 
 	/**
 	 * @return the queueprocessor of this device

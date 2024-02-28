@@ -45,6 +45,8 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.ContainerRequest;
@@ -79,6 +81,8 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 {
+	private final static Log log = LogFactory.getLog(WorkerDevice.class);
+
 	protected String _trackResource; // the "major" resource to track
 	protected VString amountResources;
 	protected String _typeExpression; // the regexp that defines the valid types

@@ -75,6 +75,8 @@ import java.io.File;
 import java.util.Vector;
 import java.util.zip.DataFormatException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IDeviceProperties;
@@ -95,10 +97,13 @@ import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * a simple data input terminal/console JDF device . <br>
+ * 
  * @author Rainer Prosi
  */
 public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 {
+	private final static Log log = LogFactory.getLog(ConsoleDevice.class);
+
 	/**
 	 *
 	 */
@@ -109,7 +114,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 	 *
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
 	 *
-	 * Sep 29, 2009
+	 *         Sep 29, 2009
 	 */
 	protected class ActionLoader
 	{
@@ -225,7 +230,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 	 *
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
 	 *
-	 * Sep 29, 2009
+	 *         Sep 29, 2009
 	 */
 	protected class PhaseAction
 	{
@@ -288,6 +293,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 
 	/**
 	 * there is no processor for the terminal
+	 * 
 	 * @see org.cip4.bambi.core.AbstractDevice#buildDeviceProcessor()
 	 */
 	@Override
@@ -305,12 +311,12 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 	@Override
 	public String getXSLT(final ContainerRequest request)
 	{
-		//		final String contextPath = request.getContextPath();
-		//		final String command = request.getCommand();
-		//		if (("showDevice".equalsIgnoreCase(command) || "processNextPhase".equalsIgnoreCase(command)) && !request.getBooleanParam("setup"))
-		//		{
-		//			return getXSLTBaseFromContext(contextPath) + "/showConsole.xsl";
-		//		}
+		// final String contextPath = request.getContextPath();
+		// final String command = request.getCommand();
+		// if (("showDevice".equalsIgnoreCase(command) || "processNextPhase".equalsIgnoreCase(command)) && !request.getBooleanParam("setup"))
+		// {
+		// return getXSLTBaseFromContext(contextPath) + "/showConsole.xsl";
+		// }
 		return super.getXSLT(request);
 	}
 

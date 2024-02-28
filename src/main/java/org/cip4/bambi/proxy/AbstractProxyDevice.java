@@ -78,6 +78,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
@@ -124,6 +126,7 @@ import org.cip4.jdflib.util.hotfolder.QueueHotFolder;
  */
 public abstract class AbstractProxyDevice extends AbstractDevice
 {
+	private final static Log log = LogFactory.getLog(AbstractProxyDevice.class);
 
 	protected static int slaveThreadCount = 0;
 	protected HashMap<String, SlaveSubscriber> waitingSubscribers;
@@ -910,7 +913,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		addHandler(new CommandProxyHandler(AbstractProxyDevice.this, "*"), null);
 	}
 
-	protected void addBufferHandler(JMFBufferHandler bh)
+	protected void addBufferHandler(final JMFBufferHandler bh)
 	{
 		final String messageType = bh.getMessageType();
 		final IMessageHandler previousQueryHandler = getJMFHandler(null).getMessageHandler(messageType, EnumFamily.Query);

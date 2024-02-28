@@ -76,6 +76,8 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IConverterCallback;
@@ -125,6 +127,8 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 {
+	private final static Log log = LogFactory.getLog(AbstractProxyProcessor.class);
+
 	protected class SubmitQueueEntryResponseHandler extends MessageResponseHandler
 	{
 
@@ -368,27 +372,27 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			}
 		}
 
-		public void setQurl(URL qurl)
+		public void setQurl(final URL qurl)
 		{
 			this.qurl = qurl;
 		}
 
-		public void setMime(boolean isMime)
+		public void setMime(final boolean isMime)
 		{
 			this.isMime = isMime;
 		}
 
-		public void setExpandMime(boolean expandMime)
+		public void setExpandMime(final boolean expandMime)
 		{
 			this.expandMime = expandMime;
 		}
 
-		public void setUd(MIMEDetails ud)
+		public void setUd(final MIMEDetails ud)
 		{
 			this.ud = ud;
 		}
 
-		public void setDeviceOutputHF(File deviceOutputHF)
+		public void setDeviceOutputHF(final File deviceOutputHF)
 		{
 			this.deviceOutputHF = deviceOutputHF;
 		}
@@ -402,7 +406,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		/**
 		 * @param url
 		 */
-		public QueueSubmitter(String url)
+		public QueueSubmitter(final String url)
 		{
 			this.qurl = UrlUtil.stringToURL(url);
 			final IProxyProperties proxyProperties = getParent().getProperties();
@@ -475,7 +479,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		 */
 		private void prepareQueueFilterforSubmit(final JDFCommand com)
 		{
-			JDFQueueFilter qf = com.getCreateQueueFilter(0);
+			final JDFQueueFilter qf = com.getCreateQueueFilter(0);
 			qf.setMaxEntries(999);
 			qf.setQueueEntryDetails(EnumQueueEntryDetails.Brief);
 		}
@@ -487,7 +491,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		 * @param qsp the queuesubmissionparams to fill
 		 * @param deviceOutputHF the device output hot folder, if any
 		 */
-		protected void prepareQSP(final JDFQueueSubmissionParams qsp, File deviceOutputHF)
+		protected void prepareQSP(final JDFQueueSubmissionParams qsp, final File deviceOutputHF)
 		{
 			if (deviceOutputHF != null)
 			{
@@ -589,13 +593,13 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		/**
 		 * @param r
 		 */
-		private void evaluateResponseQueue(JDFMessage r)
+		private void evaluateResponseQueue(final JDFMessage r)
 		{
-			JDFQueue q = r == null ? null : r.getQueue(0);
+			final JDFQueue q = r == null ? null : r.getQueue(0);
 			Map<String, JDFQueueEntry> hm = q == null ? null : q.getQueueEntryIDMap();
 
-			JDFQueueEntry qe = r == null ? null : r.getQueueEntry(0);
-			String newQEID = qe == null ? null : StringUtil.getNonEmpty(qe.getQueueEntryID());
+			final JDFQueueEntry qe = r == null ? null : r.getQueueEntry(0);
+			final String newQEID = qe == null ? null : StringUtil.getNonEmpty(qe.getQueueEntryID());
 			if (newQEID != null)
 			{
 				if (hm == null)
@@ -610,19 +614,19 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 				log.warn("no queueentry in submitqueueentry response");
 				return;
 			}
-			JDFAttributeMap map = new JDFAttributeMap(AttributeName.DEVICEID, r.getSenderID());
-			QueueProcessor queueProcessor = _parent.getQueueProcessor();
-			VElement myQueueEntries = queueProcessor.getQueue().getQueueEntryVector(map, null);
+			final JDFAttributeMap map = new JDFAttributeMap(AttributeName.DEVICEID, r.getSenderID());
+			final QueueProcessor queueProcessor = _parent.getQueueProcessor();
+			final VElement myQueueEntries = queueProcessor.getQueue().getQueueEntryVector(map, null);
 			if (myQueueEntries == null || myQueueEntries.size() == 0)
 				return;
 
 			// find any running entries and revert them to waiting if they are not provided in the queue
-			for (KElement myElm : myQueueEntries)
+			for (final KElement myElm : myQueueEntries)
 			{
-				JDFQueueEntry myQE = (JDFQueueEntry) myElm;
+				final JDFQueueEntry myQE = (JDFQueueEntry) myElm;
 
-				String slaveQEID = BambiNSExtension.getSlaveQueueEntryID(myQE);
-				JDFQueueEntry deviceEntry = hm.get(slaveQEID);
+				final String slaveQEID = BambiNSExtension.getSlaveQueueEntryID(myQE);
+				final JDFQueueEntry deviceEntry = hm.get(slaveQEID);
 				if (deviceEntry == null)
 				{
 					log.warn("reverting missing queue entry: " + myQE.getQueueEntryID());
@@ -633,7 +637,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 	}
 
-	private void setJDFURL(final boolean isMime, final JDFQueueSubmissionParams qsp, KElement modNode)
+	private void setJDFURL(final boolean isMime, final JDFQueueSubmissionParams qsp, final KElement modNode)
 	{
 		final AbstractProxyDevice proxyParent = getParent();
 
@@ -699,7 +703,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			final VElement vJMF = ni == null ? null : ni.getChildrenByTagName(ElementName.JMF, null, null, false, false, -1, false);
 			if (vJMF != null)
 			{
-				for (KElement jmf : vJMF)
+				for (final KElement jmf : vJMF)
 				{
 					jmf.deleteNode();
 				}
@@ -713,7 +717,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	 * @param doc
 	 * @return true if all went well
 	 */
-	protected boolean returnFromSlave(final JDFMessage m, final JDFResponse resp, JDFDoc doc)
+	protected boolean returnFromSlave(final JDFMessage m, final JDFResponse resp, final JDFDoc doc)
 	{
 		final JDFReturnQueueEntryParams retQEParams = m == null ? null : m.getReturnQueueEntryParams(0);
 		if (retQEParams == null)
@@ -723,7 +727,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			return false;
 		}
 		// get the returned JDFDoc from the incoming ReturnQE command and pack it in the outgoing
-		JDFNode root = doc == null ? null : doc.getJDFRoot();
+		final JDFNode root = doc == null ? null : doc.getJDFRoot();
 		if (root == null)
 		{
 			final String errorMsg = "failed to parse the JDFDoc from the incoming ReturnQueueEntry with QueueEntryID=" + getQueueEntryID();
@@ -792,7 +796,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			log.warn("no matching queueentryID");
 			return null;
 		}
-		int iRet = new QueueSubmitter(getParent().getProperties().getSlaveURL()).new QueueResubmitter(jdf, slaveID, queueEntryID).resubmit();
+		final int iRet = new QueueSubmitter(getParent().getProperties().getSlaveURL()).new QueueResubmitter(jdf, slaveID, queueEntryID).resubmit();
 		return iRet == 0 ? new VString(getParent().getDeviceID(), null) : null;
 	}
 

@@ -45,6 +45,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.bambi.core.messaging.DispatchHandler;
@@ -82,6 +84,8 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public class RootDevice extends AbstractDevice
 {
+	private final static Log log = LogFactory.getLog(RootDevice.class);
+
 	public static final String RELEASE_VERSION_STRING = "ReleaseVersionString";
 	public static final String RELEASE_TIMESTAMP_STRING = "ReleaseTimestampString";
 	public static final String RELEASE_BUILD_NUMBER_STRING = "ReleaseBuildNumberString";

@@ -73,6 +73,8 @@ package org.cip4.bambi.workers.sim;
 import java.util.List;
 import java.util.Vector;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.queues.QueueProcessor;
@@ -108,6 +110,8 @@ import org.cip4.jdflib.util.ThreadUtil;
  */
 public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 {
+	private final static Log log = LogFactory.getLog(SimDeviceProcessor.class);
+
 	final protected Vector<JobPhase> _jobPhases;
 	protected JobPhase idlePhase;
 	boolean bActive;

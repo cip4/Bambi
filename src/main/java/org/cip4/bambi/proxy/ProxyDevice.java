@@ -42,6 +42,8 @@ package org.cip4.bambi.proxy;
 import java.util.HashMap;
 import java.util.Vector;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.DataExtractor;
@@ -92,6 +94,8 @@ import org.cip4.jdflib.util.UrlUtil.URLProtocol;
  */
 public class ProxyDevice extends AbstractProxyDevice
 {
+	private final static Log log = LogFactory.getLog(ProxyDevice.class);
+
 	/**
 	 * class that handles merging of messages
 	 */

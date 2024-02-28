@@ -74,6 +74,8 @@ package org.cip4.bambi.proxy;
 import java.io.File;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.StatusListener;
@@ -122,6 +124,8 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public class ProxyDeviceProcessor extends AbstractProxyProcessor
 {
+	private final static Log log = LogFactory.getLog(ProxyDeviceProcessor.class);
+
 	/**
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#isActive()
 	 * @return true if this processor has not yet received a stop message

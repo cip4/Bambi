@@ -73,6 +73,8 @@ package org.cip4.bambi.proxy;
 
 import java.util.HashSet;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDeviceProcessor;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.messaging.MessageResponseHandler;
@@ -104,6 +106,8 @@ import org.cip4.jdflib.util.ThreadUtil;
  */
 public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 {
+	private final static Log log = LogFactory.getLog(ProxyDispatcherProcessor.class);
+
 	private final OrphanCleaner cleaner;
 
 	/**
@@ -139,7 +143,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	@Override
 	protected IQueueEntry fillCurrentQE()
 	{
-		boolean canProcess = canProcess();
+		final boolean canProcess = canProcess();
 		if (canProcess)
 		{
 			lastbad = -1;
@@ -158,9 +162,9 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 
 	protected boolean canProcess()
 	{
-		IProxyProperties properties = getParent().getProperties();
-		String slaveURL = getParent().getSlaveURL();
-		boolean canProcess = _parent.activeProcessors() < 1 + properties.getMaxPush() && isQueueAvailable(slaveURL);
+		final IProxyProperties properties = getParent().getProperties();
+		final String slaveURL = getParent().getSlaveURL();
+		final boolean canProcess = _parent.activeProcessors() < 1 + properties.getMaxPush() && isQueueAvailable(slaveURL);
 		return canProcess;
 	}
 
@@ -184,7 +188,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 		/**
 		 * @param jmf
 		 */
-		public QueueStatusResponseHandler(JDFJMF jmf)
+		public QueueStatusResponseHandler(final JDFJMF jmf)
 		{
 			super(jmf);
 		}
@@ -205,19 +209,19 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 		 */
 		public boolean isOpen()
 		{
-			JDFMessage m = getFinalMessage();
+			final JDFMessage m = getFinalMessage();
 			if (m == null)
 			{
 				log.warn("No QueueStatus response to handle at " + getParent().getSlaveURL());
 				return false;
 			}
-			JDFQueue q = m.getQueue(0);
+			final JDFQueue q = m.getQueue(0);
 			if (q == null)
 			{
 				log.warn("No Queue in QueueStatus response to handle at " + getParent().getSlaveURL());
 				return false;
 			}
-			boolean canAccept = q.canAccept();
+			final boolean canAccept = q.canAccept();
 			if (!canAccept)
 			{
 				log.warn("queue Status=" + q.getQueueStatus() + " at " + getParent().getSlaveURL());
@@ -246,17 +250,17 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 		 */
 		protected void cleanOrphans()
 		{
-			long t = System.currentTimeMillis();
+			final long t = System.currentTimeMillis();
 			if (t - lastClean < 30000)
 				return;
 			lastClean = t;
 			/**
 			 * clean up orphaned or duplicate processors
 			 */
-			HashSet<String> setQE = new HashSet<String>();
+			final HashSet<String> setQE = new HashSet<String>();
 			for (int i = 0; true; i++)
 			{
-				AbstractDeviceProcessor proc = getParent().getProcessor(null, i);
+				final AbstractDeviceProcessor proc = getParent().getProcessor(null, i);
 				if (proc == null)
 					break;
 				if (!proc.isActive())
@@ -265,10 +269,10 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 				}
 				else if (!proc.isIdle())
 				{
-					IQueueEntry iqe = proc.getCurrentQE();
+					final IQueueEntry iqe = proc.getCurrentQE();
 					if (iqe != null)
 					{
-						String qe = iqe.getQueueEntryID();
+						final String qe = iqe.getQueueEntryID();
 						if (setQE.contains(qe)) // remove duplicates
 						{
 							getLog().warn("removing duplicate processor ");
@@ -278,14 +282,14 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 						{
 							setQE.add(qe);
 						}
-						JDFQueueEntry qentry = iqe.getQueueEntry();
+						final JDFQueueEntry qentry = iqe.getQueueEntry();
 						if (qentry == null)
 						{
 							proc.shutdown();
 						}
 						else
 						{
-							EnumQueueEntryStatus qes = qentry.getQueueEntryStatus();
+							final EnumQueueEntryStatus qes = qentry.getQueueEntryStatus();
 							if (EnumQueueEntryStatus.Aborted.equals(qes) || EnumQueueEntryStatus.Completed.equals(qes))
 							{
 								if (waitProc == null || waitProc != proc)
@@ -334,7 +338,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	@Override
 	protected boolean finalizeProcessDoc(final EnumQueueEntryStatus qes)
 	{
-		int maxPush = getParent().getProperties().getMaxPush();
+		final int maxPush = getParent().getProperties().getMaxPush();
 		// if we can't push, there is no need to constantly check the queue
 		if (_parent.activeProcessors() > 1 + maxPush)
 		{
@@ -347,8 +351,8 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
 	{
 		setCurrentQE(null);
-		IProxyProperties properties = getParent().getProperties();
-		String slaveURL = getParent().getSlaveURL();
+		final IProxyProperties properties = getParent().getProperties();
+		final String slaveURL = getParent().getSlaveURL();
 		if (!canProcess())
 		{
 			BambiNSExtension.setDeviceURL(qe, null);
@@ -372,14 +376,14 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	 * @param slaveURL
 	 * @return
 	 */
-	protected boolean isQueueAvailable(String slaveURL)
+	protected boolean isQueueAvailable(final String slaveURL)
 	{
 		if (StringUtil.isEmpty(slaveURL))
 		{
 			return false;
 		}
 
-		MessageChecker knownSlaveMessages = getParent().knownSlaveMessages;
+		final MessageChecker knownSlaveMessages = getParent().knownSlaveMessages;
 		knownSlaveMessages.updateKnownMessages();
 		boolean ret = false;
 		if (!knownSlaveMessages.knows(EnumType.KnownMessages))
@@ -400,12 +404,12 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 
 	protected boolean checkSlaveQueueStatus()
 	{
-		JDFJMF queueStatusQuery = getParent().getBuilderForSlave().buildQueueStatus();
-		JDFQueueFilter qf = queueStatusQuery.getQuery(0).getCreateQueueFilter(0);
+		final JDFJMF queueStatusQuery = getParent().getBuilderForSlave().buildQueueStatus();
+		final JDFQueueFilter qf = queueStatusQuery.getQuery(0).getCreateQueueFilter(0);
 		qf.setMaxEntries(0);
 		qf.setQueueEntryDetails(EnumQueueEntryDetails.None);
-		QueueStatusResponseHandler qrh = new QueueStatusResponseHandler(queueStatusQuery);
-		boolean sent = getParent().sendJMFToSlave(queueStatusQuery, qrh);
+		final QueueStatusResponseHandler qrh = new QueueStatusResponseHandler(queueStatusQuery);
+		final boolean sent = getParent().sendJMFToSlave(queueStatusQuery, qrh);
 		if (sent)
 		{
 			qrh.waitHandled(5000, 20000, true);
@@ -443,14 +447,14 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	 * @see org.cip4.bambi.proxy.AbstractProxyProcessor#returnFromSlave(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse, org.cip4.jdflib.core.JDFDoc)
 	 */
 	@Override
-	protected boolean returnFromSlave(JDFMessage m, JDFResponse resp, JDFDoc doc)
+	protected boolean returnFromSlave(final JDFMessage m, final JDFResponse resp, final JDFDoc doc)
 	{
-		boolean b = super.returnFromSlave(m, resp, doc);
+		final boolean b = super.returnFromSlave(m, resp, doc);
 
 		if (b)
 		{
 			final JDFReturnQueueEntryParams retQEParams = m == null ? null : m.getReturnQueueEntryParams(0);
-			String queueEntryID = retQEParams == null ? null : retQEParams.getQueueEntryID();
+			final String queueEntryID = retQEParams == null ? null : retQEParams.getQueueEntryID();
 			JDFQueueEntry qeBambi = queueEntryID == null ? null : getParent().getQueueProcessor().getQueueEntry(queueEntryID, null);
 			if (queueEntryID == null)
 			{
@@ -499,7 +503,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	 * @param retQEParams
 	 * @return
 	 */
-	protected EnumQueueEntryStatus calculateFinalStatus(JDFDoc doc, final JDFReturnQueueEntryParams retQEParams)
+	protected EnumQueueEntryStatus calculateFinalStatus(final JDFDoc doc, final JDFReturnQueueEntryParams retQEParams)
 	{
 		final VString aborted = retQEParams.getAborted();
 		final VString completed = retQEParams.getCompleted();
@@ -514,7 +518,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 		}
 		else
 		{
-			JDFNode root = doc == null ? null : doc.getJDFRoot();
+			final JDFNode root = doc == null ? null : doc.getJDFRoot();
 			finalStatus = root == null ? EnumQueueEntryStatus.Aborted : EnumNodeStatus.getQueueEntryStatus(root.getPartStatus(null, -1));
 			if (finalStatus == null)
 			{
@@ -532,7 +536,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	 * @param finalStatus
 	 * @return
 	 */
-	protected EnumQueueEntryStatus fixFinalStatus(String queueEntryID, EnumQueueEntryStatus finalStatus)
+	protected EnumQueueEntryStatus fixFinalStatus(final String queueEntryID, EnumQueueEntryStatus finalStatus)
 	{
 		if (EnumQueueEntryStatus.Suspended.equals(finalStatus))
 		{

@@ -44,6 +44,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IGetHandler;
@@ -65,14 +67,16 @@ import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * a simple JDF device with a fixed list of job phases. <br>
- * Job phases are defined in <code>/WebContend/config/devices.xml</code> and loaded in the constructor. They can be randomized, and random error phases can be added. An example job phase is provided
- * in <code>example_job.xml</code>.<br>
+ * Job phases are defined in <code>/WebContend/config/devices.xml</code> and loaded in the constructor. They can be randomized, and random error phases can be added. An example job
+ * phase is provided in <code>example_job.xml</code>.<br>
  * This class should remain final: if it is ever subclassed, the DeviceProcessor thread would be started before the constructor from the subclass has a chance to fire.
  *
  * @author boegerni
  */
 public class SimDevice extends UIModifiableDevice implements IGetHandler
 {
+	private final static Log log = LogFactory.getLog(SimDevice.class);
+
 	/**
 	 *
 	 * resource query catalog

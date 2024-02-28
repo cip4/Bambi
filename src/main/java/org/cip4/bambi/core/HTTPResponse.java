@@ -50,6 +50,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.enums.ValuedEnum;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.ByteArrayIOStream;
@@ -63,6 +65,7 @@ import org.eclipse.jetty.io.EofException;
  */
 public abstract class HTTPResponse extends BambiLogFactory
 {
+	private final static Log log = LogFactory.getLog(HTTPResponse.class);
 
 	/**
 	 * @param theXML the xml to write - may be null
