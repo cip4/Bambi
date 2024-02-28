@@ -45,6 +45,8 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
@@ -60,8 +62,11 @@ import org.cip4.jdflib.util.net.HTTPDetails;
  *
  * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
-public class ContainerRequest extends BambiLogFactory
+public class ContainerRequest
 {
+
+	private final static Log log = LogFactory.getLog(ContainerRequest.class);
+
 	/**
 	 */
 	public ContainerRequest()
@@ -326,17 +331,17 @@ public class ContainerRequest extends BambiLogFactory
 	 * @see java.lang.Object#toString()
 	 * @return
 	 */
-	public String getCompleteURI(String firstKey)
+	public String getCompleteURI(final String firstKey)
 	{
 		String ret = requestURI;
 
-		List<String> keys = ContainerUtil.getKeyList(parameterMap);
+		final List<String> keys = ContainerUtil.getKeyList(parameterMap);
 		if (keys != null)
 		{
 			keys.sort(null);
 			if (firstKey != null)
 			{
-				boolean hasKey = keys.remove(firstKey);
+				final boolean hasKey = keys.remove(firstKey);
 				if (hasKey)
 					keys.add(0, firstKey);
 			}

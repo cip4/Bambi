@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -79,6 +79,10 @@ import org.cip4.jdflib.util.CPUTimer;
  */
 public class BambiLogFactory
 {
+	@Deprecated
+	/**
+	 * @deprecated logs should be static final in their respective class because they otherwise lead to incorrect stack traces when using standard java logging
+	 */
 	final protected Log log;
 	static long countPlus = 0;
 	static long countMinus = 0;

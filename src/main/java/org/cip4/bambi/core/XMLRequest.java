@@ -72,6 +72,8 @@ package org.cip4.bambi.core;
 
 import java.io.InputStream;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
@@ -89,6 +91,8 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public class XMLRequest extends ContainerRequest
 {
+	private final static Log log = LogFactory.getLog(XMLRequest.class);
+
 	/**
 	 * @param theXML
 	 */
@@ -205,7 +209,7 @@ public class XMLRequest extends ContainerRequest
 	/**
 	 * @see java.lang.Object#toString()
 	 * @return
-	*/
+	 */
 	@Override
 	public String toString()
 	{

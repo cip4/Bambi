@@ -45,6 +45,8 @@ import java.util.zip.ZipEntry;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.JDFDoc;
@@ -76,6 +78,7 @@ import org.cip4.lib.jdf.jsonutil.JSONWriter;
  */
 public abstract class ServletContainer extends BambiLogFactory
 {
+	private final static Log log = LogFactory.getLog(ServletContainer.class);
 
 	/**
 	 * use getCreateInstance from outside
