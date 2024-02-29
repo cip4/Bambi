@@ -135,7 +135,36 @@ public class ProxyDispatcherProcessorTest
 	{
 		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
 
-		proc.canProcess();
+		assertFalse(proc.canProcess());
+	}
+
+	@Test
+	public void testCanProcessurl()
+	{
+		final ProxyDevice parent = new ProxyDevice(new BambiTestProp());
+		parent.updateSlaveURL("http:foo/bar");
+		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(parent);
+
+		assertFalse(proc.canProcess());
+	}
+
+	@Test
+	public void testQA()
+	{
+		final ProxyDevice parent = new ProxyDevice(new BambiTestProp());
+		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(parent);
+
+		assertFalse(proc.isQueueAvailable(null));
+		assertFalse(proc.isQueueAvailable("http:foo/bar"));
+	}
+
+	@Test
+	public void testCheckQueueStatus()
+	{
+		final ProxyDevice parent = new ProxyDevice(new BambiTestProp());
+		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(parent);
+
+		assertFalse(proc.checkSlaveQueueStatus());
 	}
 
 	/**

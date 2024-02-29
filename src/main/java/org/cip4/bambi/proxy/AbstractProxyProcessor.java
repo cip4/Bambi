@@ -113,6 +113,7 @@ import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.resource.JDFNotification;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.StringUtil;
@@ -593,12 +594,12 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		/**
 		 * @param r
 		 */
-		private void evaluateResponseQueue(final JDFMessage r)
+		void evaluateResponseQueue(final JDFMessage r)
 		{
 			final JDFQueue q = r == null ? null : r.getQueue(0);
 			Map<String, JDFQueueEntry> hm = q == null ? null : q.getQueueEntryIDMap();
 
-			final JDFQueueEntry qe = r == null ? null : r.getQueueEntry(0);
+			final JDFQueueEntry qe = q == null ? null : q.getQueueEntry(0);
 			final String newQEID = qe == null ? null : StringUtil.getNonEmpty(qe.getQueueEntryID());
 			if (newQEID != null)
 			{
@@ -617,23 +618,27 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			final JDFAttributeMap map = new JDFAttributeMap(AttributeName.DEVICEID, r.getSenderID());
 			final QueueProcessor queueProcessor = _parent.getQueueProcessor();
 			final VElement myQueueEntries = queueProcessor.getQueue().getQueueEntryVector(map, null);
-			if (myQueueEntries == null || myQueueEntries.size() == 0)
-				return;
+			updateQueueEntries(hm, queueProcessor, myQueueEntries);
+		}
 
-			// find any running entries and revert them to waiting if they are not provided in the queue
-			for (final KElement myElm : myQueueEntries)
+		void updateQueueEntries(final Map<String, JDFQueueEntry> hm, final QueueProcessor queueProcessor, final VElement myQueueEntries)
+		{
+			if (!ContainerUtil.isEmpty(myQueueEntries))
 			{
-				final JDFQueueEntry myQE = (JDFQueueEntry) myElm;
-
-				final String slaveQEID = BambiNSExtension.getSlaveQueueEntryID(myQE);
-				final JDFQueueEntry deviceEntry = hm.get(slaveQEID);
-				if (deviceEntry == null)
+				// find any running entries and revert them to waiting if they are not provided in the queue
+				for (final KElement myElm : myQueueEntries)
 				{
-					log.warn("reverting missing queue entry: " + myQE.getQueueEntryID());
-					queueProcessor.updateEntry(myQE, EnumQueueEntryStatus.Waiting, null, null, null);
+					final JDFQueueEntry myQE = (JDFQueueEntry) myElm;
+
+					final String slaveQEID = BambiNSExtension.getSlaveQueueEntryID(myQE);
+					final JDFQueueEntry deviceEntry = hm.get(slaveQEID);
+					if (deviceEntry == null)
+					{
+						log.warn("reverting missing queue entry: " + myQE.getQueueEntryID());
+						queueProcessor.updateEntry(myQE, EnumQueueEntryStatus.Waiting, null, null, null);
+					}
 				}
 			}
-
 		}
 	}
 
@@ -796,7 +801,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			log.warn("no matching queueentryID");
 			return null;
 		}
-		final int iRet = new QueueSubmitter(getParent().getProperties().getSlaveURL()).new QueueResubmitter(jdf, slaveID, queueEntryID).resubmit();
+		final int iRet = new QueueSubmitter(getParent().getSlaveURL()).new QueueResubmitter(jdf, slaveID, queueEntryID).resubmit();
 		return iRet == 0 ? new VString(getParent().getDeviceID(), null) : null;
 	}
 

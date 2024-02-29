@@ -164,8 +164,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	{
 		final IProxyProperties properties = getParent().getProperties();
 		final String slaveURL = getParent().getSlaveURL();
-		final boolean canProcess = _parent.activeProcessors() < 1 + properties.getMaxPush() && isQueueAvailable(slaveURL);
-		return canProcess;
+		return (_parent.activeProcessors() < (1 + properties.getMaxPush())) && isQueueAvailable(slaveURL);
 	}
 
 	/**
