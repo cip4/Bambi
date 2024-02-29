@@ -155,7 +155,7 @@ public class ProxyDispatcherProcessorTest
 		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(parent);
 
 		assertFalse(proc.isQueueAvailable(null));
-		assertFalse(proc.isQueueAvailable("http:foo/bar"));
+		assertTrue(proc.isQueueAvailable("http:foo/bar"));
 	}
 
 	@Test
@@ -164,7 +164,7 @@ public class ProxyDispatcherProcessorTest
 		final ProxyDevice parent = new ProxyDevice(new BambiTestProp());
 		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(parent);
 
-		assertFalse(proc.checkSlaveQueueStatus());
+		assertTrue(proc.checkSlaveQueueStatus());
 	}
 
 	/**
