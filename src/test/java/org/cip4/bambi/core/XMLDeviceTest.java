@@ -94,6 +94,7 @@ public class XMLDeviceTest extends BambiTestCaseBase
 		final BambiTestDevice d = new BambiTestDevice();
 		final XMLDevice xd = d.getXMLDevice(true, new ContainerRequest());
 		xd.addQueueInfo(KElement.createRoot("foo"));
+		assertNotNull(xd.getRoot());
 	}
 
 }
