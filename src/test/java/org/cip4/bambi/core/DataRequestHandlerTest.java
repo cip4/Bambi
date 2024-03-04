@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -143,8 +143,8 @@ public class DataRequestHandlerTest extends BambiTestCase
 	public void testHandleGood() throws Exception
 	{
 
-		DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
-		ContainerRequest request = new ContainerRequest();
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data/a.pdf");
 
 		rh.handleGet(request);
@@ -156,12 +156,45 @@ public class DataRequestHandlerTest extends BambiTestCase
 	 * 
 	 * @throws Exception its a test!
 	 */
+	@Test
+	public void testHandleEscapeDir()
+	{
+
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data dir");
+		final ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://dev/blub/data%20dir/a.pdf");
+
+		assertNotNull(rh.handleGet(request));
+	}
+
+	/**
+	 * 
+	 * 
+	 * @throws Exception its a test!
+	 */
+	@Test
+	public void testHandleEscape() throws Exception
+	{
+
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://dev/blub/data/a%20b.pdf");
+
+		new File(sm_dirTestDataTemp + "ID_42/JDF/a b.pdf").createNewFile();
+		assertNotNull(rh.handleGet(request));
+	}
+
+	/**
+	 * 
+	 * 
+	 * @throws Exception its a test!
+	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void testHandleEvil() throws Exception
 	{
 
-		DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
-		ContainerRequest request = new ContainerRequest();
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data/../a.pdf");
 
 		rh.handleGet(request);
@@ -177,8 +210,8 @@ public class DataRequestHandlerTest extends BambiTestCase
 	public void testHandleEvil2() throws Exception
 	{
 
-		DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
-		ContainerRequest request = new ContainerRequest();
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data//a.pdf");
 
 		rh.handleGet(request);
@@ -193,8 +226,8 @@ public class DataRequestHandlerTest extends BambiTestCase
 	@Test(expected = IllegalArgumentException.class)
 	public void testHandleEvil3() throws Exception
 	{
-		DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
-		ContainerRequest request = new ContainerRequest();
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data/c:/foo/a.pdf");
 
 		rh.handleGet(request);
@@ -211,8 +244,8 @@ public class DataRequestHandlerTest extends BambiTestCase
 	@Test(expected = IllegalArgumentException.class)
 	public void testHandleEvil4() throws Exception
 	{
-		DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
-		ContainerRequest request = new ContainerRequest();
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data/\\\\host\\share\\a.pdf");
 
 		rh.handleGet(request);
@@ -229,8 +262,8 @@ public class DataRequestHandlerTest extends BambiTestCase
 	public void testRelativePath() throws Exception
 	{
 
-		DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
-		ContainerRequest request = new ContainerRequest();
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data/a.pdf");
 
 		assertEquals("a.pdf", rh.getRelativePath(request.getRequestURI()));

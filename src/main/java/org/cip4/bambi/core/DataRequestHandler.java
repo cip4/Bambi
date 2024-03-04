@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -42,6 +42,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.StreamUtil;
@@ -58,6 +60,7 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 {
 	protected final AbstractDevice dev;
 	protected final String dataToken;
+	private static final Log log = LogFactory.getLog(DataRequestHandler.class);
 
 	/**
 	 * @param dev the parent device
@@ -93,10 +96,10 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 		}
 
 		log.info("serving file data for: " + path);
-		File file = FileUtil.addSecure(dataDir, new File(last));
+		File file = FileUtil.addSecure(dataDir, UrlUtil.urlToFile(last));
 		if (!file.canRead())
 		{
-			file = FileUtil.addSecure(dataDir, UrlUtil.urlToFile(last));
+			file = FileUtil.addSecure(dataDir, new File(last));
 		}
 
 		final XMLResponse response = new XMLResponse(null);
@@ -133,13 +136,21 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 
 	protected String getRelativePath(final String path)
 	{
-		final int posData = path.indexOf(dataToken);
-		String last = path.substring(posData + dataToken.length());
+		int posData = path.indexOf(dataToken);
+		int len = dataToken.length();
 		if (posData < 0)
 		{
-			last = null;
+			final String escape = UrlUtil.escape(dataToken, false);
+			posData = path.indexOf(escape);
+			len = escape.length();
+			if (posData < 0)
+			{
+				posData = path.indexOf(UrlUtil.escape(dataToken, true));
+				len = escape.length();
+			}
 		}
-		return last;
+		final String last = path.substring(posData + len);
+		return (posData < 0) ? null : last;
 	}
 
 	/**
@@ -153,5 +164,11 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 	{
 		final File dataDir = dev.getExtractDirectory(null, true);
 		return dataDir;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "DataRequestHandler [dataToken=" + dataToken + "]";
 	}
 }
