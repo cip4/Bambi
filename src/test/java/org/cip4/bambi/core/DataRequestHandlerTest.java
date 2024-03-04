@@ -70,6 +70,7 @@ package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.File;
 import java.io.InputStream;
@@ -165,6 +166,22 @@ public class DataRequestHandlerTest extends BambiTestCase
 		request.setRequestURI("http://dev/blub/data%20dir/a.pdf");
 
 		assertNotNull(rh.handleGet(request));
+	}
+
+	/**
+	 * 
+	 * 
+	 * @throws Exception its a test!
+	 */
+	@Test
+	public void testHandleEscapeDir2()
+	{
+
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data dir");
+		final ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://dev/blub/datadir/a.pdf");
+
+		assertNull(rh.handleGet(request));
 	}
 
 	/**
