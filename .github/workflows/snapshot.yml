@@ -15,16 +15,4 @@ jobs:
       docker-build: true
       java-version: 15
       java-distribution: 'adopt'
-    secrets:
-      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      ATLASSIAN_USER: ${{ secrets.ATLASSIAN_USER }}
-      ATLASSIAN_TOKEN: ${{ secrets.ATLASSIAN_TOKEN }}
-      CODE_SIGN_CERTIFICATE: ${{ secrets.CODE_SIGN_CERTIFICATE }}
-      CODE_SIGN_PASSWORD: ${{ secrets.CODE_SIGN_PASSWORD }}
-      CODE_SIGN_SHA1: ${{ secrets.CODE_SIGN_SHA1 }}
-      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+    secrets: inherit
