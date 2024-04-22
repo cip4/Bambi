@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -43,6 +43,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.cip4.bambi.BambiTestCaseBase;
@@ -52,6 +53,10 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.extensions.XJDFConstants;
 import org.cip4.jdflib.extensions.XJDFHelper;
+import org.cip4.jdflib.extensions.XJMFHelper;
+import org.cip4.jdflib.jmf.JDFCommand;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.util.UrlUtil;
 import org.junit.Test;
@@ -171,6 +176,38 @@ public class ConverterCallbackTest extends BambiTestCaseBase
 		assertEquals(cb.getJDFContentType(), UrlUtil.VND_XJDF);
 		cb.setJSON(true);
 		assertEquals(cb.getJDFContentType(), UrlUtil.VND_XJDF_J);
+	}
+
+	/**
+	 * @throws Throwable
+	 * @throws IOException
+	 * @throws IllegalArgumentException
+	 */
+	@Test
+	public void testAbortQE() throws IllegalArgumentException, IOException, Throwable
+	{
+		final ConverterCallback cb = new ConverterCallback();
+		cb.setFixToExtern(EnumVersion.Version_1_4);
+		final JDFJMF jmf = new JMFBuilder().buildAbortQueueEntry("q2");
+		final JDFDoc converted = cb.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+		final JDFCommand command = converted.getJMFRoot().getCommand();
+		assertNotNull(command);
+		assertEquals("q2", command.getQueueEntryDef(0).getQueueEntryID());
+	}
+
+	/**
+	 * @throws Throwable
+	 * @throws IOException
+	 * @throws IllegalArgumentException
+	 */
+	@Test
+	public void testAbortQE2() throws IllegalArgumentException, IOException, Throwable
+	{
+		final ConverterCallback cb = new ConverterCallback();
+		cb.setFixToExtern(EnumVersion.Version_2_1);
+		final JDFJMF jmf = new JMFBuilder().buildAbortQueueEntry("q2");
+		final JDFDoc converted = cb.updateJMFForExtern(jmf.getOwnerDocument_JDFElement());
+		assertNotNull(XJMFHelper.getHelper(converted));
 	}
 
 	/**
@@ -317,11 +354,11 @@ public class ConverterCallbackTest extends BambiTestCaseBase
 	public void testRoundTripXJDF()
 	{
 		final ConverterCallback cb = new ConverterCallback();
-		XJDFHelper h = new XJDFHelper("j1", "j2");
-		JDFDoc d = new JDFDoc(h.getRoot().getOwnerDocument_KElement());
-		JDFDoc d2 = cb.prepareJDFForBambi(d);
+		final XJDFHelper h = new XJDFHelper("j1", "j2");
+		final JDFDoc d = new JDFDoc(h.getRoot().getOwnerDocument_KElement());
+		final JDFDoc d2 = cb.prepareJDFForBambi(d);
 		assertEquals("j1", d2.getJDFRoot().getJobID(true));
-		JDFDoc d3 = cb.updateJDFForExtern(d2);
+		final JDFDoc d3 = cb.updateJDFForExtern(d2);
 		assertEquals("j1", XJDFHelper.getHelper(d3).getJobID());
 	}
 
