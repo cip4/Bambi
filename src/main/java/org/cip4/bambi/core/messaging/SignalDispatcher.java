@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -49,6 +49,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
@@ -106,6 +108,7 @@ public class SignalDispatcher extends BambiLogFactory
 	private int lastCalled;
 	protected final Dispatcher theDispatcher;
 	private String ignoreURL;
+	Log log = LogFactory.getLog(SignalDispatcher.class);
 
 	/**
 	 * set the case insensitive url pattern to be ignored for subscriptions
@@ -1417,7 +1420,7 @@ public class SignalDispatcher extends BambiLogFactory
 		synchronized (subscriptionMap)
 		{
 			final Set<Entry<String, MsgSubscription>> entries = subscriptionMap.entrySet();
-			for (Entry<String, MsgSubscription> entry : entries)
+			for (final Entry<String, MsgSubscription> entry : entries)
 			{
 				final MsgSubscription sub = entry.getValue();
 				boolean bMatch = sub.matchesQueueEntry(queueEntryID);
@@ -1445,10 +1448,10 @@ public class SignalDispatcher extends BambiLogFactory
 		synchronized (subscriptionMap)
 		{
 			final Set<Entry<String, MsgSubscription>> entries = subscriptionMap.entrySet();
-			for (Entry<String, MsgSubscription> entry : entries)
+			for (final Entry<String, MsgSubscription> entry : entries)
 			{
 				final MsgSubscription sub = entry.getValue();
-				boolean bMatch = messageTypeName == null || messageTypeName.equals(sub.getMessageType());
+				final boolean bMatch = messageTypeName == null || messageTypeName.equals(sub.getMessageType());
 				if (bMatch)
 				{
 					knownKeys.add(entry.getKey());
@@ -1488,7 +1491,8 @@ public class SignalDispatcher extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		return "SubscriptionMap; device= " + device.getDeviceID() + " : " + subscriptionMap;
+		final String deviceID = device == null ? "" : device.getDeviceID();
+		return "SubscriptionMap; device= " + deviceID + " : " + subscriptionMap;
 	}
 
 	/**

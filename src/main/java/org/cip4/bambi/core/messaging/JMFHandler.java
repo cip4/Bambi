@@ -74,7 +74,7 @@ import org.cip4.jdflib.util.EnumUtil;
 public class JMFHandler implements IMessageHandler, IJMFHandler
 {
 
-	protected final static Log log = BambiLogFactory.getLog(JMFHandler.class);
+	private final static Log log = BambiLogFactory.getLog(JMFHandler.class);
 	/**
 	 * Attribute to ignore warnings for unhandled messages
 	 */
