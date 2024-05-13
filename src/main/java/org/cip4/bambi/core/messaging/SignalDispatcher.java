@@ -308,7 +308,7 @@ public class SignalDispatcher
 				}
 				else
 				{
-					SignalDispatcher.this.log.warn("No MessageSender for URL: " + url);
+					log.warn("No MessageSender for URL: " + url);
 				}
 			}
 		}
