@@ -52,7 +52,6 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.AbstractDevice;
-import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.IGetHandler;
@@ -97,7 +96,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
  *
  * @author rainer prosi
  */
-public class SignalDispatcher extends BambiLogFactory
+public class SignalDispatcher
 {
 	protected final HashMap<String, MsgSubscription> subscriptionMap; // map of slaveChannelID / Subscription
 	protected final SubscriptionStore storage;
@@ -108,7 +107,7 @@ public class SignalDispatcher extends BambiLogFactory
 	private int lastCalled;
 	protected final Dispatcher theDispatcher;
 	private String ignoreURL;
-	Log log = LogFactory.getLog(SignalDispatcher.class);
+	private static final Log log = LogFactory.getLog(SignalDispatcher.class);
 
 	/**
 	 * set the case insensitive url pattern to be ignored for subscriptions

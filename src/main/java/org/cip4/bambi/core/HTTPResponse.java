@@ -58,7 +58,6 @@ import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
-import org.eclipse.jetty.io.EofException;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen *
@@ -271,10 +270,6 @@ public abstract class HTTPResponse extends BambiLogFactory
 				outputStream.flush();
 				outputStream.close();
 			}
-		}
-		catch (final EofException e)
-		{
-			log.warn("EOF writing to stream: ");
 		}
 		catch (final IOException e)
 		{
