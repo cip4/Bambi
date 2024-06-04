@@ -9,5 +9,5 @@ jobs:
     name: 🏭
     uses: cip4/.github/.github/workflows/pull-request.yml@master
     with:
-      java-version: 15
-      java-distribution: 'adopt'
+      java-version: 17
+      java-distribution: 'temurin'
