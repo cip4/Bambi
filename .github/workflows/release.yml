@@ -14,6 +14,6 @@ jobs:
       confluence-content-id: 1181122565
       apple-bundle-id: org.cip4.bambi
       docker-build: true
-      java-version: 15
-      java-distribution: 'adopt'
+      java-version: 17
+      java-distribution: 'temurin'
     secrets: inherit
