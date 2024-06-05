@@ -3,7 +3,7 @@ ARG BUILD_NUMBER=n.a.
 ARG GIT_REV=n.a.
 
 # compile and test bambi
-FROM amazoncorretto:11-alpine-jdk as java-builder
+FROM amazoncorretto:17-alpine-jdk as java-builder
 
 ARG VERSION
 ARG BUILD_NUMBER
@@ -22,7 +22,7 @@ RUN dos2unix gradlew
 RUN ./gradlew -i startScriptsHeadless installDist -PprojectVersion=${VERSION} -PbuildNumber=${BUILD_NUMBER} --no-daemon >/dev/null
 
 # create final image
-FROM amazoncorretto:11-alpine
+FROM amazoncorretto:17-alpine
 
 ARG VERSION
 ARG BUILD_NUMBER
