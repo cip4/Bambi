@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -86,6 +86,7 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdfutility.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
+import org.cip4.jdfutility.server.MyResourceHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -100,6 +101,7 @@ public class BambiServer extends JettyServer
 {
 	public static final String BAMBI = "bambi";
 	public static final String RESOURCES_FILE = "/list.txt";
+	final static Log log = LogFactory.getLog(BambiServer.class);
 
 	final MultiDeviceProperties mp;
 	protected BambiServlet myServlet;
@@ -244,7 +246,6 @@ public class BambiServer extends JettyServer
 	{
 		final BufferedReader r = new BufferedReader(new InputStreamReader(listStream));
 		String line = null;
-		Log log = LogFactory.getLog(myClass);
 		try
 		{
 			while ((line = r.readLine()) != null)
@@ -363,7 +364,7 @@ public class BambiServer extends JettyServer
 	@Override
 	protected ResourceHandler createResourceHandler()
 	{
-		final ResourceHandler resourceHandler = new MyResourceHandler(context);
+		final ResourceHandler resourceHandler = new MyResourceHandler(context, getHome());
 		resourceHandler.setResourceBase(getToolPath());
 		return resourceHandler;
 	}
@@ -377,7 +378,7 @@ public class BambiServer extends JettyServer
 	}
 
 	@Override
-	public void setSSLPort(int port)
+	public void setSSLPort(final int port)
 	{
 		if (mp != null)
 			mp.setSSLPort(port);
