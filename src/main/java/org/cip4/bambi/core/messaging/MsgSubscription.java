@@ -68,6 +68,7 @@ import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.EnumUtil;
 import org.cip4.jdflib.util.FastFiFo;
+import org.cip4.jdflib.util.HashUtil;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
 
@@ -539,6 +540,10 @@ public class MsgSubscription implements Cloneable
 		{
 			return false;
 		}
+		if (isJSON ^ msg.isJSON)
+		{
+			return false;
+		}
 
 		if (!ContainerUtil.equals(getMessageType(), msg.getMessageType()))
 		{
@@ -569,17 +574,17 @@ public class MsgSubscription implements Cloneable
 	@Override
 	public int hashCode()
 	{
-		int hc = 0;
+		int hc = 42;
 		if (isSpecific())
 		{
 			hc += repeatAmount + 100000 * (int) repeatTime;
 			hc += queueEntry == null ? 0 : queueEntry.hashCode();
 		}
 		hc += url == null ? 0 : hc * 42 + url.toLowerCase().hashCode();
-		hc += jdfVersion == null ? 0 : hc * 42 + jdfVersion.hashCode();
 		final String messageType = getMessageType();
-		hc += messageType == null ? 0 : hc * 4 + messageType.hashCode();
-		return hc;
+		hc = HashUtil.hashCode(hc, messageType);
+		hc = HashUtil.hashCode(hc, jdfVersion);
+		return HashUtil.hashCode(hc, isJSON);
 	}
 
 	/**
@@ -644,9 +649,15 @@ public class MsgSubscription implements Cloneable
 	@Override
 	public String toString()
 	{
-		return "MsgSubscription [" + getMessageType() + (channelID != null ? " channelID=" + channelID + ", " : "") + (queueEntry != null ? "queueEntry=" + queueEntry + ", " : "")
+		return "MsgSubscription [" + getMessageType() + (channelID != null ? " channelID=" + channelID + ", " : "") + "isJson=" + isJSON + ", "
 				+ (url != null ? "url=" + url + ", " : "") + (jdfVersion != null ? "version=" + jdfVersion + ", " : "") + "lastTime=" + timeLastSubmission + ", lastTry="
 				+ timeLastSubmissionTry + ", repeatTime=" + repeatTime + ", " + (jmfDeviceID != null ? "jmfDeviceID=" + jmfDeviceID : "") + "]";
+	}
+
+	public String shortString()
+	{
+		return "MsgSubscription [" + getMessageType() + (channelID != null ? " channelID=" + channelID + ", " : "") + "isJson=" + isJSON + ", "
+				+ (url != null ? "url=" + url + ", " : "") + (jdfVersion != null ? "version=" + jdfVersion + ", " : "") + "]";
 	}
 
 	/**

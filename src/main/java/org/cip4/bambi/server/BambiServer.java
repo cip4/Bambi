@@ -86,7 +86,6 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdfutility.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
-import org.cip4.jdfutility.server.MyResourceHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -364,7 +363,7 @@ public class BambiServer extends JettyServer
 	@Override
 	protected ResourceHandler createResourceHandler()
 	{
-		final ResourceHandler resourceHandler = new MyResourceHandler(context, getHome());
+		final ResourceHandler resourceHandler = super.createResourceHandler();
 		resourceHandler.setResourceBase(getToolPath());
 		return resourceHandler;
 	}

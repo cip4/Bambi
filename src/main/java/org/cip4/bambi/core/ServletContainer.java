@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -64,7 +64,6 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.zip.ZipReader;
-import org.cip4.lib.jdf.jsonutil.JSONPrepWalker;
 import org.cip4.lib.jdf.jsonutil.JSONReader;
 import org.cip4.lib.jdf.jsonutil.JSONWriter;
 
@@ -497,8 +496,6 @@ public abstract class ServletContainer extends BambiLogFactory
 		return r;
 	}
 
-	private static final String RES_SCHEMA = "/schema/xjdf.xsd";
-
 	private static JSONWriter jsonWriter;
 
 	/**
@@ -512,10 +509,6 @@ public abstract class ServletContainer extends BambiLogFactory
 			final JSONWriter w = new JSONWriter();
 			w.setTypeSafe(true);
 			w.setXJDF();
-			final InputStream is = ServletContainer.class.getResourceAsStream(RES_SCHEMA);
-			final KElement e = KElement.parseStream(is);
-			w.fillTypesFromSchema(e);
-			w.setPrepWalker(new JSONPrepWalker());
 			jsonWriter = w;
 		}
 		return jsonWriter;

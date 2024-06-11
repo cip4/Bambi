@@ -98,7 +98,7 @@ public class SubscriptionStore
 						if (sub.channelID != null)
 						{
 							signalDispatcher.subscriptionMap.put(sub.channelID, sub);
-							log.info("reloading " + sub.getMessageType() + " subscription for channelID=" + sub.channelID + " to: " + sub.url);
+							log.info("reloading " + sub.shortString());
 							JMFFactory.getInstance().getCreateMessageSender(sub.url);
 						}
 						else
