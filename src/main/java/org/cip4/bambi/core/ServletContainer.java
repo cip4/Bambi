@@ -247,6 +247,8 @@ public abstract class ServletContainer extends BambiLogFactory
 				log.error(ctWarn);
 				ctWarn += "\nFor JMF , please use: " + UrlUtil.VND_JMF;
 				ctWarn += "\nFor JDF , please use: " + UrlUtil.VND_JDF;
+				ctWarn += "\nFor XJMF , please use: " + UrlUtil.VND_XJMF;
+				ctWarn += "\nFor XJDF , please use: " + UrlUtil.VND_XJDF;
 				ctWarn += "\nFor MIME, please use: " + MimeUtil.MULTIPART_RELATED;
 				ctWarn += "\n\n Input Message:\n\n";
 				r = processError(request.getRequestURI(), EnumType.Notification, 9, ctWarn);
