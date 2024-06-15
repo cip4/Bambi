@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -99,6 +99,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.ByteArrayIOStream.ByteArrayIOInputStream;
 import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MimeUtil;
@@ -241,13 +242,28 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
+	 * @throws IOException
+	 *
+	 */
+	@Test
+	public void testHandlePostNastyContent() throws IOException
+	{
+		ByteArrayIOStream byteArrayIOStream = new ByteArrayIOStream("".getBytes());
+		ByteArrayIOInputStream inputStream = byteArrayIOStream.getInputStream();
+		final StreamRequest request = new StreamRequest(inputStream);
+		request.setContentType("txt/foobar");
+		final XMLResponse resp = bambiContainer.handlePost(request);
+		assertNotNull(resp);
+	}
+
+	/**
 	 *
 	 */
 	@Test
 	public void testSubmitRawXJDFJSON()
 	{
-		XJDFHelper h = new XJDFHelper("j1", null);
-		JSONWriter wr = new JSONWriter();
+		final XJDFHelper h = new XJDFHelper("j1", null);
+		final JSONWriter wr = new JSONWriter();
 		wr.setRoot(new JSONObject());
 		wr.convert(h.getRoot());
 		final StreamRequest request = new StreamRequest(wr.getInputStream());
@@ -261,13 +277,13 @@ public class BambiContainerTest extends BambiTestCase
 	@Test
 	public void testGetJSONDocs()
 	{
-		JSONWriter wr = new JSONWriter();
+		final JSONWriter wr = new JSONWriter();
 
-		XJMFHelper jh = new XJMFHelper();
+		final XJMFHelper jh = new XJMFHelper();
 		wr.setRoot(new JSONObject());
 		wr.convert(jh.getRoot());
-		MimeWriter w = new MimeWriter();
-		BodyPartHelper p1 = w.getCreatePartByLocalName("p1");
+		final MimeWriter w = new MimeWriter();
+		final BodyPartHelper p1 = w.getCreatePartByLocalName("p1");
 		p1.setContent(wr.getInputStream(), UrlUtil.APPLICATION_JSON);
 
 		bambiContainer.getJSONDocs(new BodyPart[] { p1.getBodyPart() });
@@ -279,14 +295,14 @@ public class BambiContainerTest extends BambiTestCase
 	@Test
 	public void testGetDocFromJSONStream()
 	{
-		JSONWriter wr = new JSONWriter();
+		final JSONWriter wr = new JSONWriter();
 
-		XJMFHelper jh = new XJMFHelper();
+		final XJMFHelper jh = new XJMFHelper();
 		wr.setRoot(new JSONObject());
 		wr.convert(jh.getRoot());
-		InputStream is = wr.getInputStream();
+		final InputStream is = wr.getInputStream();
 
-		JDFDoc d = bambiContainer.getDocFromJSONStream(is);
+		final JDFDoc d = bambiContainer.getDocFromJSONStream(is);
 		assertTrue(d.getRoot().getBoolAttribute(BambiNSExtension.JSON, BambiNSExtension.MY_NS, false));
 	}
 
@@ -296,19 +312,19 @@ public class BambiContainerTest extends BambiTestCase
 	@Test
 	public void testSubmitMultiXJDFJSON()
 	{
-		XJDFHelper h = new XJDFHelper("j1", null);
-		JSONWriter wr = new JSONWriter();
+		final XJDFHelper h = new XJDFHelper("j1", null);
+		final JSONWriter wr = new JSONWriter();
 		wr.setRoot(new JSONObject());
 		wr.convert(h.getRoot());
-		MimeWriter w = new MimeWriter();
-		BodyPartHelper p1 = w.getCreatePartByLocalName("p1");
+		final MimeWriter w = new MimeWriter();
+		final BodyPartHelper p1 = w.getCreatePartByLocalName("p1");
 		p1.setContent(wr.getInputStream(), UrlUtil.APPLICATION_JSON);
 		w.addBodyPart(p1);
-		BodyPartHelper p2 = w.getCreatePartByLocalName("p2");
+		final BodyPartHelper p2 = w.getCreatePartByLocalName("p2");
 		p2.setContent(wr.getInputStream(), UrlUtil.APPLICATION_JSON);
 		w.addBodyPart(p2);
-		MimeReader mread = new MimeReader(w);
-		MimeRequest mr = new MimeRequest(mread);
+		final MimeReader mread = new MimeReader(w);
+		final MimeRequest mr = new MimeRequest(mread);
 		final XMLResponse resp = bambiContainer.processMultipleDocuments(mr);
 		assertNotNull(resp);
 	}
@@ -377,7 +393,7 @@ public class BambiContainerTest extends BambiTestCase
 	public void setUp() throws Exception
 	{
 		super.setUp();
-		JDFElement.setDefaultJDFVersion(EnumVersion.Version_1_4);
+		JDFElement.setDefaultJDFVersion(EnumVersion.Version_1_7);
 		startContainer();
 	}
 
