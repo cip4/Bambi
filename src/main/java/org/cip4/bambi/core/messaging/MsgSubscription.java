@@ -440,7 +440,6 @@ public class MsgSubscription implements Cloneable
 		sentMessages = 0;
 		lastAmount = 0;
 		timeLastSubmission = 0;
-		timeLastSubmission = 0;
 		lastSentJMF = new FastFiFo<>(10);
 		converterCallback = null;
 		jdfVersion = null;
@@ -607,6 +606,16 @@ public class MsgSubscription implements Cloneable
 	public JDFMessage getQuery()
 	{
 		return theMessage;
+	}
+
+	public void incrementMessage(final JDFJMF jmf)
+	{
+		if (jmf != null)
+		{
+			timeLastSubmission = System.currentTimeMillis() / 1000;
+			lastSentJMF.push(jmf);
+			sentMessages++;
+		}
 	}
 
 	/**

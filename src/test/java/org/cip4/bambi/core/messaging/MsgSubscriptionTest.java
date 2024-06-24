@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -72,6 +72,21 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 		jmf.setMaxVersion(EnumVersion.Version_2_0);
 		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
 		assertEquals(EnumVersion.Version_2_0, s.jdfVersion);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testIncrement()
+	{
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
+		jmf.setMaxVersion(EnumVersion.Version_2_0);
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		s.incrementMessage(null);
+		assertEquals(0, s.sentMessages);
+		s.incrementMessage(jmf);
+		assertEquals(1, s.sentMessages);
 	}
 
 	/**
