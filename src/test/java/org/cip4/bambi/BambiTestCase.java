@@ -106,8 +106,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * @author Rainer Prosi, Heidelberger Druckmaschinen abstract test case for all bambi tests note that this has some site specific details that
- *         must be modified
+ * @author Rainer Prosi, Heidelberger Druckmaschinen abstract test case for all bambi tests note that this has some site specific details that must be modified
  */
 public class BambiTestCase extends BambiGoldenTicketTest
 {
@@ -224,7 +223,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 */
 	protected void createMISPreGT()
 	{
-		_theGT = new MISPreGoldenTicket(2, EnumVersion.Version_1_5, 1, 2, null);
+		_theGT = new MISPreGoldenTicket(2, null, 1, 2, null);
 	}
 
 	/**

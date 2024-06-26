@@ -463,8 +463,6 @@ public class ProxyDevice extends AbstractProxyDevice
 			{
 				return false;
 			}
-			if (log.isDebugEnabled())
-				log.debug("Handling " + m.getType());
 			final JDFReturnQueueEntryParams retQEParams = m.getReturnQueueEntryParams(0);
 			if (retQEParams == null)
 			{

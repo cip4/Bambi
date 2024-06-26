@@ -41,13 +41,13 @@ package org.cip4.bambi.core.messaging;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -98,7 +98,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
  */
 public class SignalDispatcher
 {
-	protected final HashMap<String, MsgSubscription> subscriptionMap; // map of slaveChannelID / Subscription
+	protected final Map<String, MsgSubscription> subscriptionMap; // map of slaveChannelID / Subscription
 	protected final SubscriptionStore storage;
 	protected final Vector<Trigger> triggers;
 	protected final MyMutex mutex;
@@ -472,9 +472,7 @@ public class SignalDispatcher
 					final MsgSubscription realSubSubscription = subscriptionMap.get(sub.channelID);
 					if (realSubSubscription != null)
 					{
-						realSubSubscription.timeLastSubmission = System.currentTimeMillis() / 1000;
-						realSubSubscription.lastSentJMF.push(signalJMF);
-						realSubSubscription.sentMessages++;
+						realSubSubscription.incrementMessage(signalJMF);
 					}
 					sentMessages++;
 					if ((sentMessages < 10) || ((sentMessages % 1000) == 0))
@@ -777,7 +775,7 @@ public class SignalDispatcher
 		{
 			log.error("Creating SignalDispatcher for null device");
 		}
-		subscriptionMap = new HashMap<>();
+		subscriptionMap = new ConcurrentHashMap<String, MsgSubscription>();
 		storage = new SubscriptionStore(this, dev == null ? null : dev.getDeviceDir());
 		triggers = new Vector<>();
 		mutex = new MyMutex();

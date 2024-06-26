@@ -56,7 +56,7 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-core:2.23.1'
     implementation 'org.cip4.tools.jdfutility:JDFUtility:1.8.+'
     implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:1.1.+'
-	implementation ('org.cip4.lib.jdf:JDFLibJ:2.1.7.+'){
+	implementation ('org.cip4.lib.jdf:JDFLibJ:2.1.8.+'){
 		exclude group: 'xml-apis'
 	}
 	implementation ('xerces:xercesImpl:2.12.2'){transitive=false}

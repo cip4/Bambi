@@ -87,7 +87,7 @@ public class StreamRedirectListener implements HotFolderListener
 {
 
 	private final String deviceID;
-	private final Log log;
+	private final static Log log = LogFactory.getLog(StreamRedirectListener.class);
 
 	/**
 	 *
@@ -96,7 +96,6 @@ public class StreamRedirectListener implements HotFolderListener
 	public StreamRedirectListener(final AbstractDevice abstractDevice)
 	{
 		deviceID = abstractDevice.getDeviceID();
-		log = LogFactory.getLog(getClass());
 	}
 
 	/**
@@ -109,7 +108,7 @@ public class StreamRedirectListener implements HotFolderListener
 		final StreamRequest req = StreamRequest.createStreamRequest(hotFile);
 		if (req == null)
 		{
-			return false;
+			throw new RuntimeException();
 		}
 		req.setRequestURI("/localhost/hotfolder/" + deviceID);
 		req.setPost(true);
