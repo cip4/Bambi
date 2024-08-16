@@ -2059,12 +2059,13 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			log.error("request with null XML root - bailing out");
 			return null;
 		}
-		if (e instanceof JDFJMF || XJDFConstants.XJMF.equals(e.getLocalName()))
+		String localName = e.getLocalName();
+		if (ElementName.JMF.equals(localName) || XJDFConstants.XJMF.equals(localName))
 		{
 			return request;
 		}
 
-		if (!(e instanceof JDFNode) && !XJDFConstants.XJDF.equals(e.getLocalName()))
+		if (!(ElementName.JDF.equals(localName)) && !XJDFConstants.XJDF.equals(localName))
 		{
 			KElement e2 = e.getChildByTagName(ElementName.JDF, null, 0, null, false, false);
 			if (e2 == null)
@@ -2074,14 +2075,14 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			if (e2 != null)
 			{
 				e = e2.cloneNewDoc();
+				localName = e.getLocalName();
 			}
 		}
 
-		if (e instanceof JDFNode || XJDFConstants.XJDF.equals(e.getLocalName()))
+		if (ElementName.JDF.equals(localName) || XJDFConstants.XJDF.equals(localName))
 		{
 			return createSubmitFromJDF(e, request);
 		}
-
 		return null;
 	}
 

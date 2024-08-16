@@ -671,7 +671,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		return bReturn;
 	}
 
-	protected void setCurrentQE(final IQueueEntry qe)
+	public void setCurrentQE(final IQueueEntry qe)
 	{
 		theCurrentQE.set(qe);
 		currentQE = qe;

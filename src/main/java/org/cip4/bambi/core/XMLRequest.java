@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -75,7 +75,6 @@ import java.io.InputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.ElementName;
-import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.extensions.XJDFConstants;
@@ -157,7 +156,7 @@ public class XMLRequest extends ContainerRequest
 		super();
 		final InputStream inStream = request.getInputStream();
 		setContainer(request);
-		final JDFDoc xmlDoc = JDFDoc.parseStream(inStream);
+		final XMLDoc xmlDoc = XMLDoc.parseStream(inStream);
 		if (xmlDoc == null)
 		{
 			log.error("cannot parse stream: " + super.toString());

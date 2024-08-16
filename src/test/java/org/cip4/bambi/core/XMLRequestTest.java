@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -72,6 +72,8 @@ package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.ByteArrayInputStream;
+
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -80,7 +82,7 @@ import org.cip4.jdflib.util.UrlUtil;
 import org.junit.Test;
 
 /**
-  * @author Rainer Prosi, Heidelberger Druckmaschinen *
+ * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class XMLRequestTest extends BambiTestCase
 {
@@ -94,6 +96,17 @@ public class XMLRequestTest extends BambiTestCase
 		final XMLRequest req = new XMLRequest(jmf);
 		assertEquals(jmf, req.getXML());
 		assertEquals(UrlUtil.VND_JMF, req.getContentType(true));
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testConstructStream()
+	{
+		final XMLRequest req = new XMLRequest(new StreamRequest(new ByteArrayInputStream("<a/>".getBytes())));
+		assertEquals("a", req.getXML().getLocalName());
+		assertEquals(UrlUtil.TEXT_XML, req.getContentType(true));
 	}
 
 	/**
