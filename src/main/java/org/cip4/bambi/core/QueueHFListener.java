@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -41,6 +41,8 @@
  */
 package org.cip4.bambi.core;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.core.JDFDoc;
@@ -55,13 +57,14 @@ import org.cip4.jdflib.util.hotfolder.QueueHotFolderListener;
  * @author Rainer Prosi, Heidelberger Druckmaschinen
  *
  */
-public class QueueHFListener extends BambiLogFactory implements QueueHotFolderListener
+public class QueueHFListener implements QueueHotFolderListener
 {
 	/**
 	 *
 	 */
 	private IConverterCallback _callBack = null;
 	private final QueueProcessor queueProc;
+	private final static Log log = LogFactory.getLog(QueueHFListener.class);
 
 	/**
 	 * @param qProc

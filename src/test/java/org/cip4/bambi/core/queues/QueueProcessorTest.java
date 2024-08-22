@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -395,6 +395,62 @@ public class QueueProcessorTest extends BambiTestCase
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null, null);
 		submitQueueEntryHandler.getDocFromMessage(jmf.getMessageElement(null, null, 0));
 
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testSynchBad()
+	{
+		final AbstractDevice device = getDevice();
+		device.setSynchronous(true);
+		final QueueProcessor qp = device.getQueueProcessor();
+		final SubmitQueueEntryHandler submitQueueEntryHandler = qp.new SubmitQueueEntryHandler();
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null, null);
+
+		assertFalse(submitQueueEntryHandler.doSynchronous(jmf.getMessage(0), null, null));
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testSynch()
+	{
+		final AbstractDevice device = getDevice();
+		device.setSynchronous(true);
+		final QueueProcessor qp = device.getQueueProcessor();
+		final SubmitQueueEntryHandler submitQueueEntryHandler = qp.new SubmitQueueEntryHandler();
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null, null);
+
+		final JDFNode n = JDFNode.createRoot();
+		n.setJobID("j1");
+		assertTrue(submitQueueEntryHandler.doSynchronous(jmf.getMessage(0), null, n.getOwnerDocument_JDFElement()));
+
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testSynchMany()
+	{
+		final AbstractDevice device = getDevice();
+		device.setSynchronous(true);
+		final QueueProcessor qp = device.getQueueProcessor();
+		final SubmitQueueEntryHandler submitQueueEntryHandler = qp.new SubmitQueueEntryHandler();
+		for (int i = 0; i < 100; i++)
+		{
+			final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null, null);
+
+			final JDFNode n = JDFNode.createRoot();
+			n.setJobID("j" + i);
+			assertTrue(submitQueueEntryHandler.doSynchronous(jmf.getMessage(0), null, n.getOwnerDocument_JDFElement()));
+		}
 	}
 
 	/**

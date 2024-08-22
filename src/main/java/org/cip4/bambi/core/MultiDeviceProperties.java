@@ -83,6 +83,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 	private static final File DEVICES_CONFIG_FILE = new File("config/devices.xml");
 	private Path toolPath;
+	static private final Log log = LogFactory.getLog(MultiDeviceProperties.class);
 
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -717,9 +718,15 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		}
 
 		@Override
-		public void setWatchFormat(EWatchFormat f)
+		public void setWatchFormat(final EWatchFormat f)
 		{
 			setDeviceAttribute("WatchFormat", f == null ? EWatchFormat.JMF.name() : f.name());
+		}
+
+		@Override
+		public boolean isSynch()
+		{
+			return StringUtil.parseBoolean(getDeviceAttribute("Synchronous"), IDeviceProperties.super.isSynch());
 		}
 	}
 
@@ -1170,11 +1177,11 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 	protected File resolvePath(File path)
 	{
-		Path tp = getToolPath();
+		final Path tp = getToolPath();
 		if (path == null)
 			path = new File(".");
-		Path pathInToolPath = tp.resolve(path.toPath());
-		File appDir = getAppDir();
+		final Path pathInToolPath = tp.resolve(path.toPath());
+		final File appDir = getAppDir();
 		return (appDir == null ? pathInToolPath : appDir.toPath().resolve(pathInToolPath)).toFile();
 	}
 

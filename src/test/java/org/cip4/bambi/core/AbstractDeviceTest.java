@@ -50,6 +50,7 @@ import java.io.File;
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
 import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
+import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -220,6 +221,18 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		device.copyToCache();
 		final File dir = device.getCachedConfigDir();
 		assertEquals(new File(sm_dirTestDataTemp, "config"), dir);
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testDoSynch() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		device.setSynchronous(true);
+		final QueueEntry qe = new QueueEntry(JDFNode.createRoot(), device.getQueueProcessor().getQueue().appendQueueEntry());
+		assertTrue(device.doSynchronous(qe));
 	}
 
 	/**

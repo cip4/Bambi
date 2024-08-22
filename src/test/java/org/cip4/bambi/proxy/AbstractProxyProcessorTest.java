@@ -68,70 +68,50 @@
  *  
  * 
  */
-package org.cip4.bambi;
+package org.cip4.bambi.proxy;
 
-import org.cip4.bambi.workers.WorkerDevice;
-import org.cip4.bambi.workers.WorkerDeviceProcessor;
-import org.cip4.bambi.workers.sim.SimDeviceProcessor;
-import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.util.ContainerUtil;
+import static org.junit.Assert.assertNotNull;
 
-public class BambiTestDevice extends WorkerDevice
+import java.util.HashMap;
+
+import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.bambi.BambiTestProp;
+import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.jmf.JMFBuilderFactory;
+import org.junit.Test;
+
+public class AbstractProxyProcessorTest extends BambiTestCaseBase
 {
 
-	private boolean sim;
-
-	public void setSim(final boolean isSim)
+	@Test
+	public void testEvaluateResponse()
 	{
-		this.sim = isSim;
-		_deviceProcessors.clear();
+		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(new ProxyDevice(new BambiTestProp()));
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).createJMF(EnumFamily.Response, EnumType.ResubmitQueueEntry);
+		final JDFResponse response = jmf.getResponse();
+		response.appendQueue().appendQueueEntry().setQueueEntryID("qe1");
+		proc.new QueueSubmitter("http://foo/bar").evaluateResponseQueue(response);
+		assertNotNull(response);
 	}
 
-	private EnumQueueEntryStatus finalStatus;
-
-	/**
-	 * 
-	 */
-	public BambiTestDevice()
+	@Test
+	public void testUpdateResponse()
 	{
-		super(new BambiTestProp());
-		sim = false;
-		getQueueProcessor().getQueue().resumeQueue();
-		getQueueProcessor().getQueue().openQueue();
-		finalStatus = EnumQueueEntryStatus.Completed;
-
-	}
-
-	public WorkerDeviceProcessor getNewProcessor()
-	{
-		if (_deviceProcessors.isEmpty())
-			super.createNewProcessor();
-		return (WorkerDeviceProcessor) ContainerUtil.get(_deviceProcessors, -1);
-	}
-
-	@Override
-	public WorkerDeviceProcessor buildDeviceProcessor()
-	{
-		final WorkerDeviceProcessor workerDeviceProcessor = sim ? new SimDeviceProcessor() : new BambiTestProcessor(finalStatus);
-		workerDeviceProcessor.setParent(this);
-		return workerDeviceProcessor;
-	}
-
-	public EnumQueueEntryStatus getFinalStatus()
-	{
-		return finalStatus;
-	}
-
-	public void setFinalStatus(final EnumQueueEntryStatus finalStatus)
-	{
-		this.finalStatus = finalStatus;
-		_deviceProcessors.clear();
-	}
-
-	@Override
-	public String toString()
-	{
-		return super.toString() + " finalStatus=" + finalStatus;
+		final ProxyDevice parent = new ProxyDevice(new BambiTestProp());
+		final ProxyDispatcherProcessor proc = new ProxyDispatcherProcessor(parent);
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).createJMF(EnumFamily.Response, EnumType.ResubmitQueueEntry);
+		final JDFResponse response = jmf.getResponse();
+		final JDFQueueEntry qe = response.appendQueue().appendQueueEntry();
+		qe.setQueueEntryID("qe1");
+		final VElement myQueueEntries = new VElement();
+		myQueueEntries.add(qe);
+		proc.new QueueSubmitter("http://foo/bar").updateQueueEntries(new HashMap<String, JDFQueueEntry>(), parent.getQueueProcessor(), myQueueEntries);
+		assertNotNull(response);
 	}
 
 }

@@ -509,38 +509,54 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				JMFHandler.errorResponse(resp, errorMsg, 9, EnumClass.Error);
 				bRet = false;
 			}
+			else if (_parentDevice.isSynchronous())
+			{
+				bRet = doSynchronous(m, resp, doc);
+			}
 			else
 			{
-				final JDFQueueEntry qe = addEntry((JDFCommand) m, resp, doc);
-				int rc = resp.getReturnCode();
-				if (qe == null && rc == 0)
-				{
-					qLog.warn("whazzup: rc=0 but no queue entry");
-					rc = 112;
-				}
-
-				if (rc == 0)
-				{
-					resp.removeChild(ElementName.QUEUEENTRY, null, 0);
-					final JDFQueueEntry qeNew = (JDFQueueEntry) resp.copyElement(qe, null);
-					BambiNSExtension.removeBambiExtensions(qeNew);
-					updateEntry(qe, null, m, resp, null);
-				}
-				else if (rc == 112)
-				{
-					JMFHandler.errorResponse(resp, "Submission failed - queue is not accepting new submissions", rc, EnumClass.Error);
-				}
-				else if (rc == 116)
-				{
-					JMFHandler.errorResponse(resp, "Submission failed - identical queue entry exists", rc, EnumClass.Error);
-				}
-				else
-				{
-					JMFHandler.errorResponse(resp, "failed to add entry: invalid or missing message parameters", rc, EnumClass.Error);
-				}
-				bRet = rc == 0;
+				bRet = doAsynchronous(m, resp, doc);
 			}
 			return bRet;
+		}
+
+		boolean doAsynchronous(final JDFMessage m, final JDFResponse resp, final JDFDoc doc)
+		{
+			final JDFQueueEntry qe = addEntry((JDFCommand) m, resp, doc);
+			int rc = resp.getReturnCode();
+			if (qe == null && rc == 0)
+			{
+				qLog.warn("whazzup: rc=0 but no queue entry");
+				rc = 112;
+			}
+
+			if (rc == 0)
+			{
+				resp.removeChild(ElementName.QUEUEENTRY, null, 0);
+				final JDFQueueEntry qeNew = (JDFQueueEntry) resp.copyElement(qe, null);
+				BambiNSExtension.removeBambiExtensions(qeNew);
+				updateEntry(qe, null, m, resp, null);
+			}
+			else if (rc == 112)
+			{
+				JMFHandler.errorResponse(resp, "Submission failed - queue is not accepting new submissions", rc, EnumClass.Error);
+			}
+			else if (rc == 116)
+			{
+				JMFHandler.errorResponse(resp, "Submission failed - identical queue entry exists", rc, EnumClass.Error);
+			}
+			else
+			{
+				JMFHandler.errorResponse(resp, "failed to add entry: invalid or missing message parameters", rc, EnumClass.Error);
+			}
+			return rc == 0;
+		}
+
+		boolean doSynchronous(final JDFMessage m, final JDFResponse resp, final JDFDoc doc)
+		{
+			final JDFQueueEntry qe = addEntry((JDFCommand) m, resp, doc);
+
+			return qe != null && _parentDevice.doSynchronous(new QueueEntry(doc.getJDFRoot(), qe));
 		}
 	}
 
@@ -1692,7 +1708,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	private final AtomicReference<JDFQueue> _theQueue;
 	private final List<MyMutex> _listeners;
-	protected AbstractDevice _parentDevice = null;
+	protected AbstractDevice _parentDevice;
 	protected long lastSort = 0;
 	protected final HashMap<String, QueueDelta> deltaMap;
 
@@ -2396,7 +2412,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				final String docURL = BambiNSExtension.getDocURL(qe);
 				if (docURL != null)
 				{
-					hs.add(new File(StringUtil.token(docURL, getMaxWaiting(), File.separator)));
+					hs.add(new File(StringUtil.token(docURL, -1, File.separator)));
 				}
 			}
 		}
@@ -2423,7 +2439,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			ThreadUtil.notifyAll(mutex);
 		}
 		final SignalDispatcher signalDispatcher = _parentDevice.getSignalDispatcher();
-		signalDispatcher.triggerQueueEntry(qeID, null, getMaxWaiting(), EnumType.QueueStatus.getName());
+		signalDispatcher.triggerQueueEntry(qeID, null, -1, EnumType.QueueStatus.getName());
 	}
 
 	/**

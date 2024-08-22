@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -74,7 +74,7 @@ public class MultiDevicePropertiesTest extends BambiTestCaseBase
 		private final String expectedPath;
 		private MultiDeviceProperties properties;
 
-		public PathTests(String toolPath, String appDir, String configuredDir, String expectedPath)
+		public PathTests(final String toolPath, final String appDir, final String configuredDir, final String expectedPath)
 		{
 			this.toolPath = toolPath;
 			this.appDir = appDir;
@@ -173,15 +173,27 @@ public class MultiDevicePropertiesTest extends BambiTestCaseBase
 		{
 			final XMLDoc d = new XMLDoc("application", null);
 			d.setOriginalFileName("foo");
-			KElement root = d.getRoot();
+			final KElement root = d.getRoot();
 			final MultiDeviceProperties p = new MultiDeviceProperties(d);
-			DeviceProperties dp = p.createDeviceProps(root.appendElement("dev"));
+			final DeviceProperties dp = p.createDeviceProps(root.appendElement("dev"));
 			assertEquals(EWatchFormat.JMF, dp.getWatchFormat());
 			dp.setWatchFormat(null);
 			assertEquals(EWatchFormat.JMF, dp.getWatchFormat());
 			dp.setWatchFormat(EWatchFormat.JSON);
 			assertEquals(EWatchFormat.JSON, dp.getWatchFormat());
+		}
 
+		@Test
+		public void testIsSynch()
+		{
+			final XMLDoc d = new XMLDoc("application", null);
+			d.setOriginalFileName("foo");
+			final KElement root = d.getRoot();
+			final MultiDeviceProperties p = new MultiDeviceProperties(d);
+			final DeviceProperties dp = p.createDeviceProps(root.appendElement("dev"));
+			assertFalse(dp.isSynch());
+			dp.devRoot.setAttribute("Synchronous", "true");
+			assertTrue(dp.isSynch());
 		}
 
 		@Test

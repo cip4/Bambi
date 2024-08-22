@@ -386,19 +386,21 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	@Override
 	public void ensureProcessor(final JDFQueueEntry newQE, final JDFDoc theJDF)
 	{
-		final Collection<AbstractDeviceProcessor> currentPocs = ContainerUtil.addAll(new ArrayList<AbstractDeviceProcessor>(), getAllProcessors());
-		for (final AbstractDeviceProcessor proc : currentPocs)
+		if (!isSynchronous())
 		{
-			if (proc.isShutdown())
+			final Collection<AbstractDeviceProcessor> currentPocs = ContainerUtil.addAll(new ArrayList<AbstractDeviceProcessor>(), getAllProcessors());
+			for (final AbstractDeviceProcessor proc : currentPocs)
 			{
-				_deviceProcessors.remove(proc);
-			}
-			if (_deviceProcessors.isEmpty())
-			{
-				final AbstractDeviceProcessor np = createNewProcessor();
-				log.info("creating new device processor " + np);
+				if (proc.isShutdown())
+				{
+					_deviceProcessors.remove(proc);
+				}
+				if (_deviceProcessors.isEmpty())
+				{
+					final AbstractDeviceProcessor np = createNewProcessor();
+					log.info("creating new device processor " + np);
+				}
 			}
 		}
 	}
-
 }

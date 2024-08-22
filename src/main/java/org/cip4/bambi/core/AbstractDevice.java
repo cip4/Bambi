@@ -498,7 +498,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	private final IDeviceProperties _devProperties;
 	protected QueueHotFolder _submitHotFolder;
 	protected final IConverterCallback _callback;
-	protected RootDevice _rootDevice = null;
+	protected RootDevice _rootDevice;
 	private final StatusListener _theStatusListener;
 	protected long numRequests;
 	protected boolean acceptAll;
@@ -506,6 +506,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	private int entriesProcessed;
 	protected int skipIdle;
 	protected int idleCount;
+	boolean isSynchronous;
 
 	/**
 	 * creates a new device instance
@@ -516,6 +517,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 		super();
 		_devProperties = prop;
+		_rootDevice = null;
+		isSynchronous = prop.isSynch();
 		log.info("creating " + this);
 		entriesProcessed = idleCount = 0;
 		skipIdle = 10;
@@ -692,7 +695,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected AbstractDeviceProcessor createNewProcessor()
 	{
-		final AbstractDeviceProcessor newDevProc = buildDeviceProcessor();
+		final AbstractDeviceProcessor newDevProc = isSynchronous ? null : buildDeviceProcessor();
 		if (newDevProc != null)
 		{
 			newDevProc.setParent(this);
@@ -986,7 +989,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public String toString()
 	{
 		final String propName = (_devProperties == null) ? "null" : _devProperties.getClass().getSimpleName();
-		return (getClass().getName() + " Properties=" + propName);
+		return (getClass().getName() + (isSynchronous ? " synchronous" : " asynchronous") + " Properties=" + propName);
 	}
 
 	/**
@@ -2397,5 +2400,22 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 		// nop - hook for worker or similar devices
 
+	}
+
+	public boolean doSynchronous(final IQueueEntry iqe)
+	{
+		final AbstractDeviceProcessor p = buildDeviceProcessor();
+		p.setCurrentQE(iqe);
+		return p.processExistingQueueEntry();
+	}
+
+	public boolean isSynchronous()
+	{
+		return isSynchronous;
+	}
+
+	public void setSynchronous(final boolean isSynchronous)
+	{
+		this.isSynchronous = isSynchronous;
 	}
 }

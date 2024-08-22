@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -45,6 +45,7 @@ import java.util.Vector;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.BambiException;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.jdflib.auto.JDFAutoMessageService.EnumJMFRole;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
@@ -53,7 +54,6 @@ import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
-import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
@@ -508,21 +508,34 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 */
 	public static void errorResponse(final JDFResponse jmfResponse, final String errorText, final int returnCode, final EnumClass errorClass)
 	{
+		errorResponse(jmfResponse, errorText, returnCode, errorClass, null);
+	}
+
+	/**
+	 * Standard error message creator.
+	 *
+	 * @param jmfResponse the response to make an error
+	 * @param errorText the explicit error text
+	 * @param returnCode the jmf response returncode
+	 * @param errorClass the error class of the message
+	 */
+	public static void errorResponse(final JDFResponse jmfResponse, final String errorText, final int returnCode, final EnumClass errorClass, final Throwable t)
+	{
 		if (jmfResponse != null)
 		{
 			jmfResponse.setReturnCode(returnCode);
-			final JDFNotification notification = jmfResponse.setErrorText(errorText + "\nStack Trace:\n" + BambiLogFactory.printStackTrace(new JDFException(errorText), 10),
-					errorClass);
+			final String stackTrace = BambiLogFactory.printStackTrace(t == null ? new BambiException(errorText) : t, 10);
+			final JDFNotification notification = jmfResponse.setErrorText(errorText + "\nStack Trace:\n" + stackTrace, errorClass);
 			notification.getComment(0).setName("DeviceText");
 		}
 
 		if (EnumClass.Error.equals(errorClass))
 		{
-			log.error("JMF error: returnCode=" + returnCode + " " + errorText);
+			log.error("JMF error: returnCode=" + returnCode + " " + errorText, t);
 		}
 		else
 		{
-			log.warn("JMF warning: returnCode=" + returnCode + " " + errorText);
+			log.warn("JMF warning: returnCode=" + returnCode + " " + errorText, t);
 		}
 	}
 

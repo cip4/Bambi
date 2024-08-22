@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -128,7 +128,7 @@ public interface IDeviceProperties
 				{
 					return EWatchFormat.valueOf(val);
 				}
-				catch (Exception x)
+				catch (final Exception x)
 				{
 					for (final EWatchFormat n : values())
 					{
@@ -339,7 +339,7 @@ public interface IDeviceProperties
 		return EWatchFormat.JMF;
 	}
 
-	public default void setWatchFormat(EWatchFormat f)
+	public default void setWatchFormat(final EWatchFormat f)
 	{
 		// nop
 	}
@@ -389,5 +389,15 @@ public interface IDeviceProperties
 	 * @return true if successful
 	 */
 	public boolean serialize();
+
+	/**
+	 * is the processor synchronous or does it run in its own thread?
+	 * 
+	 * @return
+	 */
+	public default boolean isSynch()
+	{
+		return false;
+	}
 
 }

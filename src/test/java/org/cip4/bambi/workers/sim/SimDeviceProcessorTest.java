@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -85,7 +85,7 @@ public class SimDeviceProcessorTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice rootDev = new BambiTestDevice();
 		rootDev.setSim(true);
-		SimDeviceProcessor p = (SimDeviceProcessor) rootDev.getNewProcessor();
+		final SimDeviceProcessor p = (SimDeviceProcessor) rootDev.getNewProcessor();
 		assertNotNull(p);
 	}
 
@@ -94,8 +94,8 @@ public class SimDeviceProcessorTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice rootDev = new BambiTestDevice();
 		rootDev.setSim(true);
-		SimDeviceProcessor p = (SimDeviceProcessor) rootDev.getNewProcessor();
-		JDFNode n = JDFNode.createRoot();
+		final SimDeviceProcessor p = (SimDeviceProcessor) rootDev.getNewProcessor();
+		final JDFNode n = JDFNode.createRoot();
 		p.processDoc(n, null);
 	}
 
