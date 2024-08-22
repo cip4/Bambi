@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BambiJob Error="3">
+	<JobPhase Duration="3"
+		DeviceStatus="Setup" DeviceStatusDetails="JobIncoming" 
+		NodeStatus="Ready" NodeStatusDetails="JobHeld">
+	</JobPhase>
+	<JobPhase Duration="5"
+		DeviceStatus="Running" DeviceStatusDetails="Processing" 
+		NodeStatus="InProgress" NodeStatusDetails="Processing">
+	</JobPhase>
+</BambiJob>

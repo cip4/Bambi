@@ -2406,6 +2406,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 		final AbstractDeviceProcessor p = buildDeviceProcessor();
 		p.setCurrentQE(iqe);
+		p.setParent(this);
 		return p.processExistingQueueEntry();
 	}
 
