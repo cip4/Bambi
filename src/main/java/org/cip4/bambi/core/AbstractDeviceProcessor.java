@@ -816,7 +816,9 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	{
 		_parent = device;
 		_queueProcessor = device.getQueueProcessor();
-		_statusListener = device.getStatusListener();
+		_statusListener.setDispatcher(device.getSignalDispatcher());
+		_statusListener.setDeviceID(device.getDeviceID());
+		_statusListener.setIcsVersions(device.getICSVersions());
 	}
 
 	/**

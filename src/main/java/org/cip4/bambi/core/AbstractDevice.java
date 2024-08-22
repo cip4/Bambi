@@ -1171,7 +1171,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		final AbstractDeviceProcessor deviceProcessor = getProcessor(queueEntryID, 0);
 		if (deviceProcessor == null)
 		{
-			log.warn("cannot find processor to stop for qe=" + queueEntryID);
 			return null;
 		}
 		deviceProcessor.stopProcessing(status, statusDetails);
@@ -2407,7 +2406,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		final AbstractDeviceProcessor p = buildDeviceProcessor();
 		p.setCurrentQE(iqe);
 		p.setParent(this);
-		return p.processExistingQueueEntry();
+		p.getStatusListener().setWantPersist(false);
+		final boolean result = p.processExistingQueueEntry();
+		p.stopProcessing(result ? EnumNodeStatus.Completed : EnumNodeStatus.Aborted);
+		return result;
 	}
 
 	public boolean isSynchronous()

@@ -71,7 +71,7 @@ import org.cip4.jdflib.util.thread.IPersistable;
 public class StatusListener extends BambiLogFactory implements IPersistable
 {
 
-	private final SignalDispatcher dispatcher;
+	private SignalDispatcher dispatcher;
 	private SignalDispatcher rootDispatcher;
 	protected StatusCounter theCounter;
 	private JDFNode currentNode;
@@ -82,7 +82,7 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 		return wantPersist;
 	}
 
-	public void setWantPersist(boolean wantPersist)
+	public void setWantPersist(final boolean wantPersist)
 	{
 		this.wantPersist = wantPersist;
 	}
@@ -441,6 +441,14 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 	}
 
 	/**
+	 * @param dispatcher
+	 */
+	public void setDispatcher(final SignalDispatcher dispatcher)
+	{
+		this.dispatcher = dispatcher;
+	}
+
+	/**
 	 * @param _rootDispatcher
 	 */
 	public void setRootDispatcher(final SignalDispatcher _rootDispatcher)
@@ -519,5 +527,15 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 			return;
 		}
 		theCounter.replaceEmployees(employees);
+	}
+
+	public void setDeviceID(final String deviceid)
+	{
+		theCounter.setDeviceID(deviceid);
+	}
+
+	public void setIcsVersions(final VString icsVersions)
+	{
+		theCounter.setIcsVersions(icsVersions);
 	}
 }
