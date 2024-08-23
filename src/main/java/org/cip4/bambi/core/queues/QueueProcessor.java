@@ -1868,14 +1868,25 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					final EnumQueueEntryStatus status = qe.getQueueEntryStatus();
 					if (EnumQueueEntryStatus.Running.equals(status) || EnumQueueEntryStatus.Waiting.equals(status))
 					{
-						bHold = true;
-						break;
+						if (_parentDevice.isSynchronous())
+						{
+							qe.deleteNode();
+						}
+						else
+						{
+							bHold = true;
+							break;
+						}
 					}
 				}
 			}
 			if (bHold)
 			{
 				q.holdQueue();
+			}
+			else
+			{
+				q.resumeQueue();
 			}
 			setQueueProperties(deviceID);
 		}
