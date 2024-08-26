@@ -188,6 +188,19 @@ public class BambiContainerTest extends BambiTestCase
 	}
 
 	/**
+	 *
+	 */
+	@Test
+	public void testHandleJMFKElement()
+	{
+		final JDFJMF jmf = new JMFBuilder().buildKnownMessagesQuery();
+		final KElement e = KElement.parseString(jmf.toDisplayXML(0));
+		final XMLResponse resp = bambiContainer.processJMFDoc(new XMLRequest(e));
+		assertNotNull(resp);
+		assertTrue(((JDFElement) resp.getXML()).isValid(EnumValidationLevel.Complete));
+	}
+
+	/**
 	 * @throws IOException
 	 *
 	 */
@@ -248,8 +261,8 @@ public class BambiContainerTest extends BambiTestCase
 	@Test
 	public void testHandlePostNastyContent() throws IOException
 	{
-		ByteArrayIOStream byteArrayIOStream = new ByteArrayIOStream("".getBytes());
-		ByteArrayIOInputStream inputStream = byteArrayIOStream.getInputStream();
+		final ByteArrayIOStream byteArrayIOStream = new ByteArrayIOStream("".getBytes());
+		final ByteArrayIOInputStream inputStream = byteArrayIOStream.getInputStream();
 		final StreamRequest request = new StreamRequest(inputStream);
 		request.setContentType("txt/foobar");
 		final XMLResponse resp = bambiContainer.handlePost(request);

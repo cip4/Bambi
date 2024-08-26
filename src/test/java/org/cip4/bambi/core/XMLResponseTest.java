@@ -38,143 +38,37 @@
  */
 package org.cip4.bambi.core;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
+import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.XMLDoc;
-import org.cip4.jdflib.util.ByteArrayIOStream;
-import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.junit.Test;
 
-/**
- * @author Rainer Prosi, Heidelberger Druckmaschinen *
- */
-public class XMLResponse extends HTTPResponse
+public class XMLResponseTest extends BambiTestCaseBase
 {
-	/**
-	 * @param theXML the xml to write - may be null
-	 */
-	public XMLResponse(final KElement theXML)
+
+	@Test
+	public void testensureNull()
 	{
-		super();
-		if (theXML != null)
-		{
-			this.theXML = theXML;
-			setContentType(UrlUtil.TEXT_XML);
-		}
-		this.errorRC = true;
+		final XMLResponse r = new XMLResponse((KElement) null);
+		r.ensureJDF();
+		assertNull(r.getXML());
+		assertNull(r.getXMLDoc());
 	}
 
-	/**
-	 *
-	 * @param r
-	 * @param contentType
-	 */
-	public XMLResponse(final XMLResponse r, final String contentType)
+	@Test
+	public void testensureX()
 	{
-		super(r);
-		this.theXML = r.theXML;
-		setContentType(getContentType());
-
+		final XMLResponse r = new XMLResponse(KElement.createRoot("JMF"));
+		assertFalse(r.getXML() instanceof JDFJMF);
+		assertFalse(r.getXMLDoc() instanceof JDFDoc);
+		r.ensureJDF();
+		assertTrue(r.getXML() instanceof JDFJMF);
+		assertTrue(r.getXMLDoc() instanceof JDFDoc);
 	}
 
-	private KElement theXML;
-
-	/**
-	 * @return
-	 */
-	public KElement getXML()
-	{
-		return theXML;
-	}
-
-	public void ensureJDF()
-	{
-		if (theXML != null && !(theXML instanceof JDFElement))
-		{
-			theXML = new JDFDoc(theXML.getOwnerDocument()).getRoot();
-		}
-	}
-
-	/**
-	 * returns the OutputStream for this if theXML==null
-	 *
-	 * @return an OutputStream to write to, if xml==null, else null
-	 */
-	@Override
-	public OutputStream getOutputStream()
-	{
-		if (theXML != null)
-			return null;
-		if (theBuffer == null)
-			theBuffer = new ByteArrayIOStream();
-		return theBuffer;
-	}
-
-	/**
-	 * @return
-	 */
-	public XMLDoc getXMLDoc()
-	{
-		return theXML == null ? null : (theXML instanceof JDFElement) ? ((JDFElement) theXML).getOwnerDocument_JDFElement() : theXML.getOwnerDocument_KElement();
-	}
-
-	/**
-	 * sets this xml to e, also removes any output stream that may be associated to this
-	 *
-	 * @param e the xml to set
-	 */
-	public void setXML(final KElement e)
-	{
-		theXML = e;
-		theBuffer = null;
-	}
-
-	/**
-	 * @return
-	 */
-	@Override
-	public InputStream getInputStream()
-	{
-		if (theBuffer == null)
-		{
-			final XMLDoc d = getXMLDoc();
-			if (d != null)
-			{
-				theBuffer = new ByteArrayIOStream();
-				try
-				{
-					d.write2Stream(theBuffer, 2, false);
-				}
-				catch (final IOException x)
-				{
-					theBuffer = null;
-				}
-				theXML = null;
-			}
-		}
-		return theBuffer == null ? null : theBuffer.getInputStream();
-	}
-
-	@Override
-	protected void fillbuffer()
-	{
-		final XMLDoc d = getXMLDoc();
-		if (d != null)
-		{
-			theBuffer = new ByteArrayIOStream();
-			try
-			{
-				d.write2Stream(theBuffer, 2, false);
-			}
-			catch (final IOException x)
-			{
-				theBuffer = null;
-			}
-			theXML = null;
-		}
-	}
 }

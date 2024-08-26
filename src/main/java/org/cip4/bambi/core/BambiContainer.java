@@ -584,7 +584,7 @@ public final class BambiContainer extends ServletContainer
 	public XMLResponse processJMFDoc(final XMLRequest request)
 	{
 		startTimer(request);
-		final JDFElement requestRoot = (JDFElement) request.getXML();
+		final KElement requestRoot = request.getXML();
 		final XMLResponse response;
 		if (requestRoot == null)
 		{
@@ -592,7 +592,8 @@ public final class BambiContainer extends ServletContainer
 		}
 		else
 		{
-			JDFDoc jmfDoc = requestRoot.getOwnerDocument_JDFElement();
+			request.ensureJDF();
+			JDFDoc jmfDoc = (JDFDoc) request.getXMLDoc();
 			final String deviceID = request.getDeviceID();
 			final String requestURI = request.getLocalURL();
 			final IConverterCallback _callBack = rootDev.getCallback(requestURI);

@@ -267,7 +267,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	protected BaseGoldenTicket _theGT = null;
 	protected BambiContainer bambiContainer = null;
 	protected String deviceID = "device";
-	protected String workerURLBase = "http://localhost:44482/SimWorker/jmf/";
+	protected String workerURLBase = "http://localhost:8800/SimWorker/jmf/";
 
 	protected boolean wantContainer;
 

@@ -75,6 +75,8 @@ import java.io.InputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.ElementName;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.extensions.XJDFConstants;
@@ -115,6 +117,14 @@ public class XMLRequest extends ContainerRequest
 		this(theDoc == null ? null : theDoc.getRoot());
 		if (theDoc == null)
 			log.error("constructor for null xml document " + super.toString());
+	}
+
+	public void ensureJDF()
+	{
+		if (theXML != null && !(theXML instanceof JDFElement))
+		{
+			theXML = new JDFDoc(theXML.getOwnerDocument()).getRoot();
+		}
 	}
 
 	/**
@@ -195,7 +205,15 @@ public class XMLRequest extends ContainerRequest
 		}
 	}
 
-	private final KElement theXML;
+	private KElement theXML;
+
+	/**
+	 * @return
+	 */
+	public XMLDoc getXMLDoc()
+	{
+		return theXML == null ? null : (theXML instanceof JDFElement) ? ((JDFElement) theXML).getOwnerDocument_JDFElement() : theXML.getOwnerDocument_KElement();
+	}
 
 	/**
 	 * @return

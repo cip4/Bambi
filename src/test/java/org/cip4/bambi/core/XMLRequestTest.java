@@ -71,10 +71,13 @@
 package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 
 import org.cip4.bambi.BambiTestCase;
+import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
@@ -119,5 +122,19 @@ public class XMLRequestTest extends BambiTestCase
 		final XMLRequest req = new XMLRequest(h.getRoot());
 		assertEquals(h.getRoot(), req.getXML());
 		assertEquals(UrlUtil.VND_XJDF, req.getContentType(true));
+	}
+
+	/**
+	*
+	*/
+	@Test
+	public void testEnsureJDF()
+	{
+		final KElement x = KElement.createRoot("XJDF");
+		final XMLRequest req = new XMLRequest(x);
+		assertEquals(x, req.getXML());
+		assertEquals(UrlUtil.VND_XJDF, req.getContentType(true));
+		req.ensureJDF();
+		assertTrue(req.getXMLDoc() instanceof JDFDoc);
 	}
 }
