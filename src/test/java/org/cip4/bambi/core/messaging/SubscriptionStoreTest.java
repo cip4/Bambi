@@ -149,6 +149,44 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	*
 	*/
 	@Test
+	public void testLoad3()
+	{
+		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		final File dir = new File(sm_dirTestData + "sub3");
+		final SubscriptionStore ss = new SubscriptionStore(d, dir);
+		ss.load();
+		assertEquals(1, d.subscriptionMap.size());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testLoadIdentical()
+	{
+		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		final File dir = new File(sm_dirTestData + "subs2");
+		FileUtil.deleteAll(dir);
+		final SubscriptionStore ss = new SubscriptionStore(d, dir);
+		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://abc.com", 0, 0, null);
+		final JDFQuery q = jmf.getQuery(0);
+		q.setID("qqq");
+
+		d.removeSubScriptions(null, null, null);
+		d.addSubscription(q, null, null);
+		ss.persist();
+
+		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
+		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
+		ss2.load();
+		assertEquals("qqq", d2.getAllChannels(null, null, null).iterator().next());
+
+	}
+
+	/**
+	*
+	*/
+	@Test
 	public void testLoadVersion()
 	{
 		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());

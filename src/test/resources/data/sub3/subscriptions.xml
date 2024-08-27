@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SubscriptionList DeviceID="ICSPortal">
+  <MsgSubscription ChannelID="m.7531._220103_144216691_000007"
+    Family="Query" LastTime=" - " MessageFormat="JMF"
+    MessageType="Notification" RepeatStep="0" RepeatTime="0"
+    SenderID="ICSPortal" Sent="0" Type="Notification"
+    URL="http://KIE-HEILOAD:6090/w2pc/w2pmilestone" Version="1.6" isJSON="false">
+    <Sub>
+      <Query ID="m.7531._220103_144216691_000007" Type="Notification"
+        xmlns="http://www.CIP4.org/JDFSchema_1_1"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="QueryNotification">
+        <Subscription ChannelMode="Reliable" URL="http://KIE-HEILOAD:6090/w2pc/w2pmilestone">
+          <ObservationTarget ObservationPath="*"/>
+        </Subscription>
+      </Query>
+    </Sub>
+  </MsgSubscription>
+  <MsgSubscription ChannelID="m.7531._240227_121459483_000006"
+    Family="Query" LastTime=" - " MessageFormat="JMF"
+    MessageType="Notification" RepeatStep="0" RepeatTime="0"
+    SenderID="ICSPortal" Sent="0" Type="Notification"
+    URL="http://KIE-HEILOAD:6090/w2pc/w2pmilestone" Version="1.7" isJSON="false">
+    <Sub>
+      <Query AgentName="W2PConnect"
+        AgentVersion="W2PConnect 21.10.1001.0"
+        ID="m.7531._240227_121459483_000006"
+        SenderID="Heidelberg.W2PInterface" Type="Notification"
+        xmlns="http://www.CIP4.org/JDFSchema_1_1"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="QueryNotification">
+        <Subscription ChannelMode="Reliable" URL="http://KIE-HEILOAD:6090/w2pc/w2pmilestone">
+          <ObservationTarget ObservationPath="*"/>
+        </Subscription>
+      </Query>
+    </Sub>
+  </MsgSubscription>
+  <MsgSubscription ChannelID="m.7531._240702_105629984_000012"
+    Family="Query" LastTime=" - " MessageFormat="JMF"
+    MessageType="Notification" RepeatStep="0" RepeatTime="0"
+    SenderID="ICSPortal" Sent="0" Type="Notification"
+    URL="http://KIE-HEILOAD:6090/w2pc/w2pmilestone" Version="1.8" isJSON="false">
+    <Sub>
+      <Query xmlns="http://www.CIP4.org/JDFSchema_1_1"
+        AgentName="W2PConnect" AgentVersion="W2PConnect 21.10.1100.0"
+        ID="m.7531._240702_105629984_000012"
+        SenderID="Heidelberg.W2PInterface" Type="Notification"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="QueryNotification">
+        <Subscription ChannelMode="Reliable" URL="http://KIE-HEILOAD:6090/w2pc/w2pmilestone">
+          <ObservationTarget ObservationPath="*"/>
+        </Subscription>
+      </Query>
+    </Sub>
+  </MsgSubscription>
+</SubscriptionList>
