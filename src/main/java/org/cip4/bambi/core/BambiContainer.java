@@ -50,6 +50,7 @@ import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.core.AttributeName;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
@@ -457,7 +458,7 @@ public final class BambiContainer extends ServletContainer
 		{
 			final KElement e = newRequest.getXML();
 			// jmf with incorrect mime type or something that the device could translate to jmf
-			if (e instanceof JDFJMF || XJDFConstants.XJMF.equals(e.getLocalName()))
+			if (XJDFConstants.XJMF.equals(e.getLocalName()) || ElementName.JMF.equals(e.getLocalName()))
 			{
 				return processJMFDoc(newRequest);
 			}
