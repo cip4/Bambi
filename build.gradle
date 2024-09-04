@@ -61,7 +61,7 @@ dependencies {
 	}
 	implementation ('xerces:xercesImpl:2.12.2'){transitive=false}
 	
-	implementation 'org.eclipse.jetty:jetty-servlet:10.0.23'
+	implementation 'org.eclipse.jetty:jetty-servlet:10.0.24'
     implementation ('com.googlecode.json-simple:json-simple:1.1.1'){transitive=false}
     implementation 'commons-logging:commons-logging-api:1.1'
     implementation 'commons-lang:commons-lang:2.6'
