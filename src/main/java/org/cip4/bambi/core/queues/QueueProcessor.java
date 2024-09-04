@@ -2622,7 +2622,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		}
 	}
 
-	private void updateOther(final JDFQueueEntry qe, final EnumQueueEntryStatus status, final String statusDetails, final JDFQueue q)
+	void updateOther(final JDFQueueEntry qe, final EnumQueueEntryStatus status, final String statusDetails, final JDFQueue q)
 	{
 		qe.setQueueEntryStatus(status);
 		qe.setStatusDetails(statusDetails);
@@ -2631,14 +2631,14 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
 	}
 
-	private void updateDone(final JDFQueueEntry qe, final EnumQueueEntryStatus status, final String statusDetails, final JDFQueue q)
+	void updateDone(final JDFQueueEntry qe, final EnumQueueEntryStatus status, final String statusDetails, final JDFQueue q)
 	{
 		qe.removeAttribute(AttributeName.DEVICEID);
 		BambiNSExtension.setDeviceURL(qe, null);
 		updateOther(qe, status, statusDetails, q);
 	}
 
-	private void updateWaiting(final JDFQueueEntry qe, final EnumQueueEntryStatus status, final String statusDetails, final JDFQueue q)
+	void updateWaiting(final JDFQueueEntry qe, final EnumQueueEntryStatus status, final String statusDetails, final JDFQueue q)
 	{
 		qe.removeAttribute(AttributeName.STARTTIME);
 		qe.removeAttribute(AttributeName.ENDTIME);
@@ -2650,7 +2650,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
 	}
 
-	private void updateRemoved(final JDFQueueEntry qe, final EnumQueueEntryStatus status, final JDFQueue q, final String queueEntryID)
+	void updateRemoved(final JDFQueueEntry qe, final EnumQueueEntryStatus status, final JDFQueue q, final String queueEntryID)
 	{
 		qe.setQueueEntryStatus(status);
 		slaveQueueMap.get().removeEntry(qe);

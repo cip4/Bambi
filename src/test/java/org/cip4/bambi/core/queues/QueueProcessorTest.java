@@ -357,6 +357,44 @@ public class QueueProcessorTest extends BambiTestCase
 	}
 
 	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testUpdateWaiting()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		assertNull(qp.updateNextEntry(null));
+		final JDFQueue q = qp.getQueue();
+		final JDFQueueEntry qe = q.appendQueueEntry();
+		qe.setQueueEntryID("q1234u");
+
+		qp.updateWaiting(qe, EnumQueueEntryStatus.Waiting, "foo", q);
+		assertEquals("foo", qe.getStatusDetails());
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testUpdateSynch()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		assertNull(qp.updateNextEntry(null));
+		final JDFQueue q = qp.getQueue();
+		final JDFQueueEntry qe = q.appendQueueEntry();
+		qe.setQueueEntryID("q1234u");
+		for (final Object o : EnumQueueEntryStatus.getEnumList())
+		{
+			final EnumQueueEntryStatus s = (EnumQueueEntryStatus) o;
+			qp.updateWaiting(qe, s, "foo", q);
+			assertEquals("foo", qe.getStatusDetails());
+			assertEquals(s, qe.getQueueEntryStatus());
+		}
+	}
+
+	/**
 	*
 	*
 	*/
