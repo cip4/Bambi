@@ -1776,7 +1776,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		if (_queueFile == null)
 		{
-			_queueFile = new RollingBackupFile(_parentDevice.getDeviceDir() + File.separator + "theQueue.xml", 8);
+			_queueFile = new RollingBackupFile(_parentDevice.getDeviceDir() + File.separator + "theQueue.xml", 3);
 		}
 		if (_queueFile != null && _queueFile.getParentFile() != null && !_queueFile.getParentFile().exists())
 		{ // will be null in unit tests
@@ -2687,6 +2687,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			else if (!ContainerUtil.equals(oldStatus, status))
 			{
 				updateOther(qe, status, statusDetails, q);
+			}
+
+			if (!ContainerUtil.equals(oldStatus, status))
+			{
+				persist(PERSIST_MS);
+				notifyListeners(qe.getQueueEntryID());
 			}
 
 		}
