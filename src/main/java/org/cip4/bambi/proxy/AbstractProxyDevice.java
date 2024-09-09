@@ -904,7 +904,6 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected void addHandlers()
 	{
 		super.addHandlers();
-		_slaveJmfHandler = new JMFHandler(this);
 
 		addBufferHandler(new NotificationBufferHandler(this));
 		addBufferHandler(new StatusBufferHandler(this));
@@ -1286,6 +1285,8 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	protected void preSetup()
 	{
 		super.preSetup();
+		_slaveJmfHandler = new JMFHandler(this);
+
 		if (getDeviceURLForSlave() != null)
 		{
 			getBuilderForSlave().setAcknowledgeURL(getDeviceURLForSlave());

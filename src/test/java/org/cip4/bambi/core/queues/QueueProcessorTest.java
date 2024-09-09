@@ -413,6 +413,7 @@ public class QueueProcessorTest extends BambiTestCase
 	*
 	*
 	*/
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testWaitForEntryNull()
 	{
