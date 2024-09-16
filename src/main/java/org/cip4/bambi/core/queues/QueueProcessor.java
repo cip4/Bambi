@@ -2253,11 +2253,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		final JDFQueueEntry newQE = pair.getB();
 		if (newQE == null || rc != 0)
 		{
-			qLog.warn("error submitting queueentry: rc=" + rc + " queue status=" + getQueue().getQueueStatus());
+			qLog.warn("error submitting queueentry: rc=" + rc + " queue status=" + EnumUtil.getName(getQueue().getQueueStatus()));
 		}
 		else
 		{
-			qLog.info("process submitting queueentry: rc=" + rc + " queue status=" + getQueue().getQueueStatus());
+			qLog.info("process submitting queueentry: rc=" + rc + " queue status=" + EnumUtil.getName(getQueue().getQueueStatus()));
 			BambiNSExtension.appendMyNSAttribute(newQE, BambiNSExtension.GOOD_DEVICES, StringUtil.setvString(canAccept));
 			_parentDevice.ensureProcessor(newQE, theJDF);
 			_parentDevice.fixEntry(newQE, theJDF);

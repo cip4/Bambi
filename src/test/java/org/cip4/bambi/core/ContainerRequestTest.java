@@ -243,11 +243,11 @@ public class ContainerRequestTest extends BambiTestCaseBase
 		final String requestURI = "http://host/foo/bar/dev";
 		req.setRequestURI(requestURI);
 		assertEquals("http://host/foo/bar/dev", req.getCompleteURI("d"));
-		req.setParameter("c", "c0");
+		req.setParameter("C", "c0");
 		req.setParameter("f", "g");
 		req.setParameter("a", "b");
 		req.setParameter("d", "e");
-		assertEquals("http://host/foo/bar/dev?d=e&a=b&c=c0&f=g", req.getCompleteURI("d"));
+		assertEquals("http://host/foo/bar/dev?d=e&a=b&C=c0&f=g", req.getCompleteURI("d"));
 	}
 
 }

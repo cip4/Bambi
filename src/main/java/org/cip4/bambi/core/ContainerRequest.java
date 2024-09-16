@@ -338,7 +338,7 @@ public class ContainerRequest
 		final List<String> keys = ContainerUtil.getKeyList(parameterMap);
 		if (keys != null)
 		{
-			keys.sort(null);
+			keys.sort(String.CASE_INSENSITIVE_ORDER);
 			if (firstKey != null)
 			{
 				final boolean hasKey = keys.remove(firstKey);
