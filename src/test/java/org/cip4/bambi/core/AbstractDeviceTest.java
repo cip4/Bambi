@@ -119,6 +119,16 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	 * @throws Exception
 	 */
 	@Test
+	public void testEWatchFormart() throws Exception
+	{
+		assertEquals(EWatchFormat.JMF, EWatchFormat.getEnum(null));
+		assertEquals(EWatchFormat.XJMF, EWatchFormat.getEnum("xJmF"));
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
 	public void testExtractURL() throws Exception
 	{
 		final BambiTestDevice device = new BambiTestDevice();

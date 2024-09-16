@@ -73,7 +73,7 @@ package org.cip4.bambi.core;
 import java.io.File;
 
 import org.cip4.jdflib.core.VString;
-import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.EnumUtil;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -122,24 +122,8 @@ public interface IDeviceProperties
 		 */
 		public static EWatchFormat getEnum(final String val)
 		{
-			if (!StringUtil.isEmpty(val))
-			{
-				try
-				{
-					return EWatchFormat.valueOf(val);
-				}
-				catch (final Exception x)
-				{
-					for (final EWatchFormat n : values())
-					{
-						if (n.name().equalsIgnoreCase(val))
-						{
-							return n;
-						}
-					}
-				}
-			}
-			return JMF;
+			final EWatchFormat ret = EnumUtil.getJavaEnumIgnoreCase(EWatchFormat.class, val);
+			return ret == null ? JMF : ret;
 		}
 	}
 
