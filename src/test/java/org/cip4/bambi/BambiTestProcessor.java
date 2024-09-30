@@ -84,30 +84,32 @@ import org.cip4.jdflib.util.ThreadUtil;
 public class BambiTestProcessor extends WorkerDeviceProcessor
 {
 
-	private EnumQueueEntryStatus finalStatus;
+	private final EnumQueueEntryStatus finalStatus;
 
-	public BambiTestProcessor(EnumQueueEntryStatus finalStatus)
+	public BambiTestProcessor(final EnumQueueEntryStatus finalStatus)
 	{
 		super();
 		_doShutdown = true; // avoid start of proc loop
 		this.finalStatus = finalStatus;
-		JDFNode n = JDFNode.createRoot();
-		JDFQueueEntry qe = ((JDFQueue) JDFElement.createRoot(ElementName.QUEUE)).appendQueueEntry();
+		final JDFNode n = JDFNode.createRoot();
+		final JDFQueueEntry qe = ((JDFQueue) JDFElement.createRoot(ElementName.QUEUE)).appendQueueEntry();
+		qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
 		setCurrentQE(new QueueEntry(n, qe));
 	}
 
 	static int wait = 42;
 
 	@Override
-	public EnumQueueEntryStatus processDoc(JDFNode n, JDFQueueEntry qe)
+	public EnumQueueEntryStatus processDoc(final JDFNode n, final JDFQueueEntry qe)
 	{
 		ThreadUtil.sleep(wait);
 		return finalStatus;
 	}
 
 	@Override
-	public EnumNodeStatus stopProcessing(EnumNodeStatus newStatus)
+	public EnumNodeStatus stopProcessing(final EnumNodeStatus newStatus)
 	{
+		getCurrentQE().getQueueEntry().setStatus(newStatus);
 		return newStatus;
 	}
 

@@ -116,6 +116,7 @@ import org.cip4.jdflib.util.hotfolder.QueueHotFolder;
 import org.cip4.jdflib.util.mime.BodyPartHelper;
 import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.mime.MimeWriter;
+import org.cip4.jdflib.util.thread.MultiJobTaskQueue;
 import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
@@ -2401,15 +2402,57 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	}
 
+	protected int getParallelSynch()
+	{
+		return 0;
+	}
+
+	class SingleProcess implements Runnable
+	{
+
+		private final AbstractDeviceProcessor p;
+
+		public SingleProcess(final AbstractDeviceProcessor p)
+		{
+			super();
+			this.p = p;
+		}
+
+		@Override
+		public void run()
+		{
+			final boolean result = p.processExistingQueueEntry();
+			p.stopProcessing(result ? EnumNodeStatus.Completed : EnumNodeStatus.Aborted);
+			log.info("completed processing " + getQueueProcessor().getTotalEntryCount());
+			for (final Object o : EnumQueueEntryStatus.getEnumList())
+			{
+				final EnumQueueEntryStatus s = (EnumQueueEntryStatus) o;
+				final int numEntries = getQueueProcessor().getQueue().numEntries(s);
+				if (numEntries > 0)
+				{
+					log.info("completed processing " + s.getName() + " " + numEntries);
+				}
+			}
+		}
+	}
+
 	public boolean doSynchronous(final IQueueEntry iqe)
 	{
 		final AbstractDeviceProcessor p = buildDeviceProcessor();
 		p.setCurrentQE(iqe);
 		p.setParent(this);
 		p.getStatusListener().setWantPersist(false);
-		final boolean result = p.processExistingQueueEntry();
-		p.stopProcessing(result ? EnumNodeStatus.Completed : EnumNodeStatus.Aborted);
-		return result;
+		if (getParallelSynch() > 0)
+		{
+			MultiJobTaskQueue.getCreateJobQueue(getClass().getSimpleName(), getParallelSynch()).queue(new SingleProcess(p), p.getJobID());
+			return true;
+		}
+		else
+		{
+			final boolean result = p.processExistingQueueEntry();
+			p.stopProcessing(result ? EnumNodeStatus.Completed : EnumNodeStatus.Aborted);
+			return result;
+		}
 	}
 
 	public boolean isSynchronous()

@@ -118,10 +118,10 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 			{
 				final Trigger[] t2 = rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
 				rootDispatcher.flush();
-				if (!Trigger.waitQueued(t2, 12000))
+				if (!Trigger.waitQueued(t2, 420))
 					return false;
 			}
-			return Trigger.waitQueued(t, 12000);
+			return Trigger.waitQueued(t, 420);
 		}
 		return false;
 	}

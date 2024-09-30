@@ -41,9 +41,11 @@ package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 
@@ -51,6 +53,7 @@ import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
 import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
 import org.cip4.bambi.core.queues.QueueEntry;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -62,7 +65,9 @@ import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.util.ThreadUtil;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class AbstractDeviceTest extends BambiTestCaseBase
 {
@@ -119,7 +124,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	 * @throws Exception
 	 */
 	@Test
-	public void testEWatchFormart() throws Exception
+	public void testEWatchFormat() throws Exception
 	{
 		assertEquals(EWatchFormat.JMF, EWatchFormat.getEnum(null));
 		assertEquals(EWatchFormat.XJMF, EWatchFormat.getEnum("xJmF"));
@@ -243,6 +248,66 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		device.setSynchronous(true);
 		final QueueEntry qe = new QueueEntry(JDFNode.createRoot(), device.getQueueProcessor().getQueue().appendQueueEntry());
 		assertTrue(device.doSynchronous(qe));
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testDoSynchMulti() throws Exception
+	{
+		final BambiTestDevice device = Mockito.spy(new BambiTestDevice());
+		device.setSynchronous(true);
+		when(device.getParallelSynch()).thenReturn(4);
+		for (int i = 0; i < 420; i++)
+		{
+			final JDFQueueEntry qe = device.getQueueProcessor().getQueue().appendQueueEntry();
+			qe.setQueueEntryID("qe" + i);
+			qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+			final JDFNode root = JDFNode.createRoot();
+			root.setJobID("J" + i % 7);
+			final QueueEntry qee = new QueueEntry(root, qe);
+			assertTrue(device.doSynchronous(qee));
+		}
+		for (int i = 0; i < 1234; i++)
+		{
+			if (device.getQueueProcessor().getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
+			{
+				ThreadUtil.sleep(123);
+			}
+		}
+		assertEquals(0, device.getQueueProcessor().getQueue().numEntries(EnumQueueEntryStatus.Waiting));
+		assertNotEquals(0, device.getQueueProcessor().getQueue().numEntries(EnumQueueEntryStatus.Completed));
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testDoAsynchMulti() throws Exception
+	{
+		final BambiTestDevice device = Mockito.spy(new BambiTestDevice());
+		device.setSynchronous(false);
+		when(device.getParallelSynch()).thenReturn(4);
+		for (int i = 0; i < 420; i++)
+		{
+			final JDFQueueEntry qe = device.getQueueProcessor().getQueue().appendQueueEntry();
+			qe.setQueueEntryID("qe" + i);
+			qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+			final JDFNode root = JDFNode.createRoot();
+			root.setJobID("J" + i % 7);
+			final QueueEntry qee = new QueueEntry(root, qe);
+			assertTrue(device.doSynchronous(qee));
+		}
+		for (int i = 0; i < 1234; i++)
+		{
+			if (device.getQueueProcessor().getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
+			{
+				ThreadUtil.sleep(123);
+			}
+		}
+		assertEquals(0, device.getQueueProcessor().getQueue().numEntries(EnumQueueEntryStatus.Waiting));
+		assertNotEquals(0, device.getQueueProcessor().getQueue().numEntries(EnumQueueEntryStatus.Completed));
 	}
 
 	/**

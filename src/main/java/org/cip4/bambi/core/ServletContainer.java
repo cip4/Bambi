@@ -133,7 +133,7 @@ public abstract class ServletContainer extends BambiLogFactory
 	 */
 	public XMLResponse processError(final String requestURI, final EnumType messageType, final int returnCode, final String notification)
 	{
-		log.warn("processError- rc: " + returnCode + " " + ((notification == null) ? JDFConstants.EMPTYSTRING : notification));
+		log.warn("processError- rc: " + returnCode + " " + ((notification == null) ? JDFConstants.EMPTYSTRING : notification), new BambiException());
 		final JDFJMF error = JDFJMF.createJMF(EnumFamily.Response, messageType);
 		final JDFResponse r = error.getResponse(0);
 		r.setReturnCode(returnCode);

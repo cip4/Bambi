@@ -620,6 +620,10 @@ public final class BambiContainer extends ServletContainer
 				{
 					responseDoc = handler.processJMF(jmfDoc);
 				}
+				else
+				{
+					log.warn("No handler for " + requestURI);
+				}
 
 				if (responseDoc != null)
 				{

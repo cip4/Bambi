@@ -2956,6 +2956,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		boolean returnJMF(final JDFDoc docJDF, final JDFJMF jmf)
 		{
+			return returnJMF(docJDF, jmf, 0);
+		}
+
+		boolean returnJMF(final JDFDoc docJDF, final JDFJMF jmf, int retry)
+		{
 			final JDFNode jdfRoot = docJDF == null ? null : docJDF.getJDFRoot();
 			if (jdfRoot == null || jmf == null)
 			{
@@ -2968,7 +2973,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			final String returnJMF = BambiNSExtension.getReturnJMF(qe);
 			final JDFReturnQueueEntryParams returnQEParams = jmf.getCommand(0).getReturnQueueEntryParams(0);
 
-			qLog.info("MIME/ZIP ReturnQueueEntry for " + queueEntryID + " is being been sent to " + returnJMF);
+			qLog.info("MIME/ZIP ReturnQueueEntry for " + queueEntryID + " is being been sent to " + returnJMF + " retry=" + retry);
 			returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
 
 			final MIMEDetails mimeDetails = new MIMEDetails();
@@ -3001,6 +3006,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			else
 			{
 				qLog.error("failed to send ReturnQueueEntry for " + queueEntryID + " to " + returnJMF);
+			}
+			if (retry < 2)
+			{
+				++retry;
+				ThreadUtil.sleep(1234 * retry);
+				qLog.warn("retry ReturnQueueEntry for " + queueEntryID + " to " + returnJMF + " # " + retry);
+				return returnJMF(docJDF, jmf, retry);
 			}
 			return false;
 		}
@@ -3398,5 +3410,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			doc = node == null ? null : node.getOwnerDocument_JDFElement();
 		}
 		return doc;
+	}
+
+	public int getTotalEntryCount()
+	{
+		return BambiNSExtension.getTotal(getQueue());
 	}
 }

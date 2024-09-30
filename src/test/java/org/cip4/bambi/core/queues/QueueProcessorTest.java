@@ -185,6 +185,7 @@ public class QueueProcessorTest extends BambiTestCase
 		qe.setSubmissionTime(new JDFDate());
 		final QueueEntryReturn r = qp.new QueueEntryReturn(qe, EnumQueueEntryStatus.Completed);
 		assertFalse(r.returnJMF(null, null));
+		assertFalse(r.returnJMF(null, null, 4));
 		assertFalse(r.returnJMF(doc, null));
 	}
 
@@ -288,6 +289,17 @@ public class QueueProcessorTest extends BambiTestCase
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildRemoveQueueEntry(queueEntryId);
 		final QueueProcessor qp = getDevice().getQueueProcessor();
 		qp.new RemoveQueueEntryHandler().handleMessage(jmf.getMessageElement(null, null, 0), JDFJMF.createJMF(EnumFamily.Response, EnumType.RemoveQueueEntry).getResponse());
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testTotalCount()
+	{
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		assertTrue(qp.getTotalEntryCount() >= 0);
 	}
 
 	/**
