@@ -2421,18 +2421,12 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		@Override
 		public void run()
 		{
+			incNumRequests();
 			final boolean result = p.processExistingQueueEntry();
-			p.stopProcessing(result ? EnumNodeStatus.Completed : EnumNodeStatus.Aborted);
-			log.info("completed processing " + getQueueProcessor().getTotalEntryCount());
-			for (final Object o : EnumQueueEntryStatus.getEnumList())
-			{
-				final EnumQueueEntryStatus s = (EnumQueueEntryStatus) o;
-				final int numEntries = getQueueProcessor().getQueue().numEntries(s);
-				if (numEntries > 0)
-				{
-					log.info("completed processing " + s.getName() + " " + numEntries);
-				}
-			}
+			final EnumNodeStatus newStatus = result ? EnumNodeStatus.Completed : EnumNodeStatus.Aborted;
+			p.stopProcessing(newStatus);
+			final JDFQueue queue = getQueueProcessor().getQueue();
+			log.info(newStatus.getName() + " processing " + queue.numEntries(EnumQueueEntryStatus.getEnum(newStatus.getName())) + " / " + getQueueProcessor().getTotalEntryCount());
 		}
 	}
 

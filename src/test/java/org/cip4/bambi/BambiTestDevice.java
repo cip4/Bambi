@@ -74,6 +74,7 @@ import org.cip4.bambi.workers.WorkerDevice;
 import org.cip4.bambi.workers.WorkerDeviceProcessor;
 import org.cip4.bambi.workers.sim.SimDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.util.ContainerUtil;
 
 public class BambiTestDevice extends WorkerDevice
@@ -96,8 +97,10 @@ public class BambiTestDevice extends WorkerDevice
 	{
 		super(new BambiTestProp());
 		sim = false;
-		getQueueProcessor().getQueue().resumeQueue();
-		getQueueProcessor().getQueue().openQueue();
+		JDFQueue queue = getQueueProcessor().getQueue();
+		queue.resumeQueue();
+		queue.openQueue();
+		queue.flush();
 		finalStatus = EnumQueueEntryStatus.Completed;
 
 	}
