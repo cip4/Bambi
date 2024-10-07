@@ -288,31 +288,19 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	@Override
 	final public void run()
 	{
-		long nWait = 0;
-		long tWait = System.currentTimeMillis();
 		ThreadUtil.sleep(5555); // wait a few seconds before we start processing
 		log.info("starting new processor thread loop");
-		while (!_doShutdown)
+		while (!isShutdown() && !getParent().isSynchronous())
 		{
 			try
 			{
 				if (!processQueueEntry())
 				{
-					if ((nWait % 42) == 0)
-					{
-						log.debug("waiting since: " + new JDFDate(tWait).getFormattedDateTime("hh:mm") + " (" + ((System.currentTimeMillis() - tWait) / 1000) + " seconds)");
-					}
 					idleProcess();
-					nWait++;
 					if (!ThreadUtil.wait(_myListener, 10000))
 					{
 						break;
 					}
-				}
-				else
-				{
-					tWait = System.currentTimeMillis();
-					nWait = 0;
 				}
 				setCurrentQE(null);
 			}
