@@ -465,7 +465,7 @@ public class MessageDetails
 		if (jdf != null)
 		{
 			EnumVersion maxVersion = jdf.getMaxVersion(true);
-			EnumVersion maxVersion2 = EnumVersion.getEnum(BambiNSExtension.getMyNSAttribute(jdf, AttributeName.MAXVERSION));
+			final EnumVersion maxVersion2 = EnumVersion.getEnum(BambiNSExtension.getMyNSAttribute(jdf, AttributeName.MAXVERSION));
 			maxVersion = (EnumVersion) EnumUtil.max(maxVersion, maxVersion2);
 			if (callback != null && UrlUtil.VND_XJDF.equals(callback.getJDFContentType(maxVersion, callback.isJSON() || BambiNSExtension.isJSON(jdf)))
 					&& UrlUtil.VND_XJMF.equals(callback.getJMFContentType(maxVersion, false)))
@@ -506,6 +506,7 @@ public class MessageDetails
 			}
 			else
 			{
+				log.warn("Unknown content type for null jmf " + contentType + (jdf == null ? " no jdf " : jdf.getNodeName()));
 				return null;
 			}
 		}
@@ -583,8 +584,8 @@ public class MessageDetails
 			xmlJDF = jdf;
 			xmlJMF = jmf;
 		}
-		JDFMessage msg = jmf.getMessage(0);
-		XJDFZipWriter zw = new XJDFZipWriter();
+		final JDFMessage msg = jmf.getMessage(0);
+		final XJDFZipWriter zw = new XJDFZipWriter();
 		zw.setCommandType(msg == null ? null : msg.getEnumType());
 		zw.setXjmf(new XJMFHelper(xmlJMF));
 		zw.addXJDF(new XJDFHelper(xmlJDF));

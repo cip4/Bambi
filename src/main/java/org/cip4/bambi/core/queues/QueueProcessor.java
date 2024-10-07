@@ -2982,7 +2982,8 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			mimeDetails.transferEncoding = properties.getControllerMIMEEncoding();
 			mimeDetails.modifyBoundarySemicolon = StringUtil.parseBoolean(properties.getDeviceAttribute("FixMIMEBoundarySemicolon"), false);
 
-			final HttpURLConnection response = _parentDevice.getJMFFactory().send2URLSynch(jmf, jdfRoot, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 4200);
+			final HttpURLConnection response = _parentDevice.getJMFFactory().send2URLSynch(jmf, jdfRoot, returnJMF, _parentDevice.getCallback(null), mimeDetails, devID, 42000);
+			final long t1 = System.currentTimeMillis() - t0;
 			if (response != null)
 			{
 				try
@@ -2990,12 +2991,12 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					final int responseCode = response.getResponseCode();
 					if (UrlUtil.isReturnCodeOK(responseCode))
 					{
-						qLog.info("ReturnQueueEntry for " + queueEntryID + " has been sent to " + returnJMF + " time(ms)=" + (System.currentTimeMillis() - t0));
+						qLog.info("ReturnQueueEntry for " + queueEntryID + " has been sent to " + returnJMF + " time(ms)=" + t1);
 						return true;
 					}
 					else
 					{
-						qLog.error("failed to send ReturnQueueEntry for " + queueEntryID + " to " + returnJMF + " Response: " + responseCode);
+						qLog.error("failed to send ReturnQueueEntry for " + queueEntryID + " to " + returnJMF + " Response: " + responseCode + " time(ms)=" + t1);
 					}
 				}
 				catch (final IOException x)
@@ -3005,7 +3006,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			else
 			{
-				qLog.error("failed to send ReturnQueueEntry for " + queueEntryID + " to " + returnJMF);
+				qLog.error("failed to send ReturnQueueEntry for " + queueEntryID + " to " + returnJMF + " time(ms)=" + t1);
 			}
 			if (retry < 2)
 			{
