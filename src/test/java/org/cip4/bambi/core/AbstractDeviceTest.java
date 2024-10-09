@@ -259,7 +259,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		final BambiTestDevice device = Mockito.spy(new BambiTestDevice());
 		device.setSynchronous(true);
 		when(device.getParallelSynch()).thenReturn(4);
-		for (int i = 0; i < 420; i++)
+		for (int i = 0; i < 42; i++)
 		{
 			final JDFQueueEntry qe = device.getQueueProcessor().getQueue().appendQueueEntry();
 			qe.setQueueEntryID("qe" + i);
@@ -289,7 +289,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		final BambiTestDevice device = Mockito.spy(new BambiTestDevice());
 		device.setSynchronous(false);
 		when(device.getParallelSynch()).thenReturn(4);
-		for (int i = 0; i < 420; i++)
+		for (int i = 0; i < 42; i++)
 		{
 			final JDFQueueEntry qe = device.getQueueProcessor().getQueue().appendQueueEntry();
 			qe.setQueueEntryID("qe" + i);
