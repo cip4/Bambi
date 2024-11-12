@@ -39,6 +39,8 @@ package org.cip4.bambi.core;
 
 import java.util.Vector;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.SignalDispatcher;
 import org.cip4.bambi.core.messaging.Trigger;
 import org.cip4.bambi.core.queues.QueueEntry;
@@ -59,6 +61,7 @@ import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.NodeIdentifier;
 import org.cip4.jdflib.resource.process.JDFEmployee;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.cip4.jdflib.util.MultiModuleStatusCounter;
 import org.cip4.jdflib.util.StatusCounter;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.thread.DelayedPersist;
@@ -68,14 +71,16 @@ import org.cip4.jdflib.util.thread.IPersistable;
  * @author Rainer Prosi
  *
  */
-public class StatusListener extends BambiLogFactory implements IPersistable
+public class StatusListener implements IPersistable
 {
 
 	private SignalDispatcher dispatcher;
 	private SignalDispatcher rootDispatcher;
 	protected StatusCounter theCounter;
+	final MultiModuleStatusCounter multiCounter;
 	private JDFNode currentNode;
 	private boolean wantPersist;
+	private static Log log = LogFactory.getLog(StatusListener.class);
 
 	public boolean isWantPersist()
 	{
@@ -99,6 +104,8 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 		theCounter = new StatusCounter(null, null, null);
 		theCounter.setDeviceID(deviceID);
 		theCounter.setIcsVersions(icsVersions);
+		multiCounter = new MultiModuleStatusCounter();
+		multiCounter.addModule(theCounter);
 		rootDispatcher = null;
 		currentNode = null;
 		wantPersist = true;
@@ -287,7 +294,7 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 	 * @param trackResourceID the id of the "major" resource to be counted for phasetimes
 	 * @param node the jdf node that will be processed. this may be a group node with additional sub nodes if node==null the queueentryid is removed from the map
 	 */
-	public void setNode(final String queueEntryID, JDFNode node, final VJDFAttributeMap vPartMap, final String trackResourceID)
+	public synchronized void setNode(final String queueEntryID, JDFNode node, final VJDFAttributeMap vPartMap, final String trackResourceID)
 	{
 		final String oldQEID = theCounter.getQueueEntryID();
 		theCounter.writeAll(); // write all stuff in the counter to the node
@@ -537,5 +544,20 @@ public class StatusListener extends BambiLogFactory implements IPersistable
 	public void setIcsVersions(final VString icsVersions)
 	{
 		theCounter.setIcsVersions(icsVersions);
+	}
+
+	public JDFDoc getDocJMFPhaseTime()
+	{
+		return multiCounter.getStatusResponse();
+	}
+
+	public void removeListener(final StatusListener statusListener)
+	{
+		multiCounter.removeModule(statusListener.getStatusCounter());
+	}
+
+	public void addListener(final StatusListener statusListener)
+	{
+		multiCounter.addModule(statusListener.getStatusCounter());
 	}
 }

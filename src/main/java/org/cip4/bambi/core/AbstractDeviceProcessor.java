@@ -625,6 +625,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		}
 		_statusListener.flush("Resource");
 		_statusListener.flush("Status");
+		ThreadUtil.sleep(42);
 		_statusListener.setNode(null, null, null, null);
 		if (isActive())
 		{
@@ -804,9 +805,10 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	{
 		_parent = device;
 		_queueProcessor = device.getQueueProcessor();
-		_statusListener.setDispatcher(device.getSignalDispatcher());
-		_statusListener.setDeviceID(device.getDeviceID());
-		_statusListener.setIcsVersions(device.getICSVersions());
+		_statusListener = device.getStatusListener();
+		// _statusListener.setDispatcher(device.getSignalDispatcher());
+		// _statusListener.setDeviceID(device.getDeviceID());
+		// _statusListener.setIcsVersions(device.getICSVersions());
 	}
 
 	/**

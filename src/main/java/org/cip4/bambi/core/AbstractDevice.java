@@ -422,7 +422,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				return false;
 			}
 
-			final JDFDoc docJMF = getStatusListener().getStatusCounter().getDocJMFPhaseTime();
+			final JDFDoc docJMF = getStatusListener().getDocJMFPhaseTime();
 			if (docJMF == null)
 			{
 				return false;
@@ -500,7 +500,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	protected QueueHotFolder _submitHotFolder;
 	protected final IConverterCallback _callback;
 	protected RootDevice _rootDevice;
-	private final StatusListener _theStatusListener;
+	final StatusListener _theStatusListener;
 	protected long numRequests;
 	protected boolean acceptAll;
 	protected final MyMutex mutex;
@@ -2411,22 +2411,30 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 
 		private final AbstractDeviceProcessor p;
+		private boolean result;
 
 		public SingleProcess(final AbstractDeviceProcessor p)
 		{
 			super();
 			this.p = p;
+			result = false;
+		}
+
+		public boolean getResult()
+		{
+			return result;
 		}
 
 		@Override
 		public void run()
 		{
 			incNumRequests();
-			final boolean result = p.processExistingQueueEntry();
+			result = p.processExistingQueueEntry();
 			final EnumNodeStatus newStatus = result ? EnumNodeStatus.Completed : EnumNodeStatus.Aborted;
 			p.stopProcessing(newStatus);
 			final JDFQueue queue = getQueueProcessor().getQueue();
 			log.info(newStatus.getName() + " processing " + queue.numEntries(EnumQueueEntryStatus.getEnum(newStatus.getName())) + " / " + getQueueProcessor().getTotalEntryCount());
+			p.getParent().removeListener(p.getStatusListener());
 		}
 	}
 
@@ -2436,17 +2444,24 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		p.setCurrentQE(iqe);
 		p.setParent(this);
 		p.getStatusListener().setWantPersist(false);
+		_theStatusListener.addListener(p.getStatusListener());
+		final SingleProcess task = new SingleProcess(p);
 		if (getParallelSynch() > 0)
 		{
-			MultiJobTaskQueue.getCreateJobQueue(getClass().getSimpleName(), getParallelSynch()).queue(new SingleProcess(p), p.getJobID());
+			MultiJobTaskQueue.getCreateJobQueue(getClass().getSimpleName(), getParallelSynch()).queue(task, p.getJobID());
 			return true;
 		}
 		else
 		{
-			final boolean result = p.processExistingQueueEntry();
-			p.stopProcessing(result ? EnumNodeStatus.Completed : EnumNodeStatus.Aborted);
-			return result;
+			task.run();
+			return task.getResult();
 		}
+	}
+
+	public void removeListener(final StatusListener statusListener)
+	{
+		_theStatusListener.removeListener(statusListener);
+
 	}
 
 	public boolean isSynchronous()

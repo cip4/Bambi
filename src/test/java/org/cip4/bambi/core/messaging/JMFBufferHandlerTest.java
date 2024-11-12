@@ -47,6 +47,8 @@ import org.cip4.bambi.core.AbstractDevice.StatusHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler.StatusBufferHandler;
 import org.cip4.bambi.proxy.ProxyDevice;
 import org.cip4.bambi.proxy.ProxyDeviceTest;
+import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
+import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.junit.Test;
@@ -57,25 +59,25 @@ public class JMFBufferHandlerTest
 	@Test
 	public void testMessageIdentifier()
 	{
-		JMFBuilder jmfBuilder = new JMFBuilder();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
 		jmfBuilder.setSenderID("sender");
-		JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
+		final JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
 		jmf.getMessageElement(null, null, 0).setSenderID("s3");
-		MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
+		final MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
 		assertNull(mi.deviceID);
 	}
 
 	@Test
 	public void testMatches()
 	{
-		JMFBuilder jmfBuilder = new JMFBuilder();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
 		jmfBuilder.setSenderID("sender");
-		JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
+		final JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
 		jmf.getMessageElement(null, null, 0).setSenderID("s3");
-		MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
-		MessageIdentifier mi2 = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
+		final MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
+		final MessageIdentifier mi2 = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
 		assertTrue(mi.matches(mi2));
-		MessageIdentifier mi3 = mi.clone();
+		final MessageIdentifier mi3 = mi.clone();
 		mi3.msgType = "foo";
 		assertFalse(mi.matches(mi3));
 		assertFalse(mi.equals(mi3));
@@ -85,12 +87,12 @@ public class JMFBufferHandlerTest
 	@Test
 	public void testClone()
 	{
-		JMFBuilder jmfBuilder = new JMFBuilder();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
 		jmfBuilder.setSenderID("sender");
-		JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
+		final JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
 		jmf.getMessageElement(null, null, 0).setSenderID("s3");
-		MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
-		MessageIdentifier mi2 = mi.clone();
+		final MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
+		final MessageIdentifier mi2 = mi.clone();
 		assertTrue(mi.matches(mi2));
 		assertEquals(mi, mi2);
 		assertEquals(mi.hashCode(), mi2.hashCode());
@@ -100,9 +102,9 @@ public class JMFBufferHandlerTest
 	@Test
 	public void testFallBack()
 	{
-		ProxyDevice dev = ProxyDeviceTest.getDevice();
-		StatusBufferHandler bh = new StatusBufferHandler(dev);
-		StatusHandler previousQueryHandler = dev.new StatusHandler();
+		final ProxyDevice dev = ProxyDeviceTest.getDevice();
+		final StatusBufferHandler bh = new StatusBufferHandler(dev);
+		final StatusHandler previousQueryHandler = dev.new StatusHandler();
 		bh.setFallbackHandler(previousQueryHandler);
 		assertEquals(previousQueryHandler, bh.fallBack);
 		bh.setFallbackHandler(bh);
@@ -114,23 +116,25 @@ public class JMFBufferHandlerTest
 	@Test
 	public void testSignalsFromMap()
 	{
-		ProxyDevice dev = ProxyDeviceTest.getDevice();
-		StatusBufferHandler bh = new StatusBufferHandler(dev);
+		final ProxyDevice dev = ProxyDeviceTest.getDevice();
+		final StatusBufferHandler bh = new StatusBufferHandler(dev);
 		assertNull(bh.getSignalsFromMap(new MessageIdentifier(null, null)));
 	}
 
 	@Test
 	public void testNoConsumer()
 	{
-		ProxyDevice dev = ProxyDeviceTest.getDevice();
-		StatusBufferHandler bh = new StatusBufferHandler(dev);
-		JMFBuilder jmfBuilder = new JMFBuilder();
+		final ProxyDevice dev = ProxyDeviceTest.getDevice();
+		final StatusBufferHandler bh = new StatusBufferHandler(dev);
+		final JMFBuilder jmfBuilder = new JMFBuilder();
 		jmfBuilder.setSenderID("sender");
-		JDFJMF jmf = jmfBuilder.buildStatusSignal(null, null);
+		final JDFJMF jmf = jmfBuilder.buildStatusSignal(null, null);
+
 		for (int i = 0; i < 200; i++)
 		{
+			final JDFJMF jmf2 = jmfBuilder.buildStatus(EnumDeviceDetails.Full, EnumJobDetails.Full);
 			bh.handleSignal(jmf.getSignal(0), null);
-			bh.noConsumer(jmf.getSignal(0));
+			assertTrue(bh.handleQuery(jmf2.getQuery(0), jmf2.createResponse().getResponse()));
 		}
 	}
 

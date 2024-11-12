@@ -42,6 +42,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Vector;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -73,6 +75,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	private static final String FIX_TO_BAMBI = "FixToBambi";
 	static final String FIX_TO_EXTERN = "FixToExtern";
 	static final String IS_JSON = "isJSON";
+	private static final Log sLog = LogFactory.getLog(ConverterCallback.class);
 
 	/**
 	 * @see java.lang.Object#clone()
@@ -205,12 +208,12 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		final JDFNode n = doc.getJDFRoot();
 		if (n == null)
 		{
-			log.warn("No JDF Node in document - do nothing");
+			sLog.warn("No JDF Node in document - do nothing");
 			return doc;
 		}
 		if (!n.hasAttribute(AttributeName.JOBPARTID))
 		{
-			log.warn("adding default root JobPartID='root'");
+			sLog.warn("adding default root JobPartID='root'");
 			n.setJobPartID("root");
 		}
 		if (fixToBambi != null)
@@ -235,7 +238,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		final KElement root = doc.getRoot();
 		if (XJDFHelper.isXJDF(root))
 		{
-			log.info("importing xjdf to Bambi");
+			sLog.info("importing xjdf to Bambi");
 			return importXJxF(root);
 		}
 		return doc;
@@ -250,7 +253,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		final KElement root = doc.getRoot();
 		if (XJDFHelper.isXJMF(root))
 		{
-			log.info("importing XJMF to Bambi");
+			sLog.info("importing XJMF to Bambi");
 			return importXJxF(root);
 		}
 		return doc;
@@ -264,8 +267,8 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			final JDFDoc newdoc = xc.convert(root);
 			if (newdoc != null)
 			{
-				final FixVersion fv = new FixVersion((EnumVersion) null);
 				final KElement newRoot = newdoc.getRoot();
+				final FixVersion fv = getFixVersion(newRoot);
 				fv.walkTree(newRoot, null);
 				newRoot.setAttribute(AttributeName.MAXVERSION, XJDF20.getDefaultVersion().getName());
 				BambiNSExtension.setMyNSAttribute(newRoot, AttributeName.MAXVERSION, XJDF20.getDefaultVersion().getName());
@@ -273,14 +276,20 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			}
 			else
 			{
-				log.error("null converted document returned, bailing out");
+				sLog.error("null converted document returned, bailing out");
 			}
 		}
 		else
 		{
-			log.error("null converter returned, bailing out");
+			sLog.error("null converter returned, bailing out");
 		}
 		return null;
+	}
+
+	protected FixVersion getFixVersion(final KElement newRoot)
+	{
+		final FixVersion fv = new FixVersion((EnumVersion) null);
+		return fv;
 	}
 
 	/**
@@ -305,7 +314,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		final JDFNode root = doc == null ? null : doc.getJDFRoot();
 		if (root == null)
 			return doc;
-		log.info("exporting XJDF");
+		sLog.info("exporting XJDF");
 		final XJDF20 xjdf = getXJDFExporter();
 		final KElement newRoot = xjdf.makeNewJDF(root, null);
 		return newRoot == null ? null : new JDFDoc(newRoot.getOwnerDocument());
@@ -323,7 +332,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		final XJDF20 xjdf = getXJDFExporter();
 		if (xjdf.isAbstractMessage())
 		{
-			log.info("exporting XJMF");
+			sLog.info("exporting XJMF");
 		}
 		final KElement newJMF = xjdf.makeNewJMF(jmf);
 		return newJMF == null ? null : new JDFDoc(newJMF.getOwnerDocument());
@@ -376,7 +385,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	{
 		if (jobID == null && !removeJobIDFromSubs)
 		{
-			log.warn("root subscription with no JobID: ");
+			sLog.warn("root subscription with no JobID: ");
 			return;
 		}
 		final List<JDFSubscription> vSubs = n.getChildArrayByClass(JDFSubscription.class, true, 0);
@@ -454,14 +463,11 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			return null;
 		}
 		final EnumVersion myFix = fixToExtern == null ? n.getMaxVersion(true) : fixToExtern;
-		if (myFix != null)
+		final boolean bXJDF = isXJDF(myFix);
+		n.fixVersion(myFix);
+		if (bXJDF)
 		{
-			final boolean bXJDF = isXJDF(myFix);
-			n.fixVersion(myFix);
-			if (bXJDF)
-			{
-				doc = exportXJDF(doc);
-			}
+			doc = exportXJDF(doc);
 		}
 		for (final IConverterCallback cb : postConversionList)
 		{
