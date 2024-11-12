@@ -57,6 +57,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -334,6 +335,14 @@ public class SignalDispatcherTest extends BambiTestCase
 		final long t1 = System.currentTimeMillis();
 		assertTrue(t1 - t0 < 3000);
 		dispatcher.shutdown();
+	}
+
+	@Override
+	@After
+	public void tearDown() throws Exception
+	{
+		dispatcher.shutdown();
+		super.tearDown();
 	}
 
 }

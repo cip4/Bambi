@@ -83,28 +83,28 @@ public class ProxyDeviceProcessorTest
 	@Test
 	public void testConstruct()
 	{
-		ProxyDeviceProcessor proc = new ProxyDeviceProcessor(new ProxyDevice(new BambiTestProp()), null);
+		final ProxyDeviceProcessor proc = new ProxyDeviceProcessor(new ProxyDevice(new BambiTestProp()), null);
 		assertNotNull(proc);
 	}
 
 	@Test
 	public void testMatchesNode()
 	{
-		ProxyDeviceProcessor proc = new ProxyDeviceProcessor(new ProxyDevice(new BambiTestProp()), null);
+		final ProxyDeviceProcessor proc = new ProxyDeviceProcessor(new ProxyDevice(new BambiTestProp()), null);
 		assertFalse(proc.matchesNode(null));
 	}
 
 	@Test
 	public void testMatchesQE()
 	{
-		ProxyDeviceProcessor proc = new ProxyDeviceProcessor(new ProxyDevice(new BambiTestProp()), null);
+		final ProxyDeviceProcessor proc = new ProxyDeviceProcessor(new ProxyDevice(new BambiTestProp()), null);
 		assertFalse(proc.matchesQueueEntry(null));
 	}
 
 	@Test
 	public void testGetSlaveDevID()
 	{
-		ProxyDeviceProcessor proc = new ProxyDeviceProcessor(new ProxyDevice(new BambiTestProp()), null);
+		final ProxyDeviceProcessor proc = new ProxyDeviceProcessor(new ProxyDevice(new BambiTestProp()), null);
 		assertNull(proc.getSlaveDeviceID());
 	}
 

@@ -70,12 +70,14 @@
  */
 package org.cip4.bambi;
 
+import org.cip4.bambi.core.messaging.SignalDispatcher;
 import org.cip4.bambi.workers.WorkerDevice;
 import org.cip4.bambi.workers.WorkerDeviceProcessor;
 import org.cip4.bambi.workers.sim.SimDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.util.ContainerUtil;
+import org.mockito.Mockito;
 
 public class BambiTestDevice extends WorkerDevice
 {
@@ -97,12 +99,12 @@ public class BambiTestDevice extends WorkerDevice
 	{
 		super(new BambiTestProp());
 		sim = false;
-		JDFQueue queue = getQueueProcessor().getQueue();
+		final JDFQueue queue = getQueueProcessor().getQueue();
 		queue.resumeQueue();
 		queue.openQueue();
 		queue.flush();
 		finalStatus = EnumQueueEntryStatus.Completed;
-
+		_theSignalDispatcher.shutdown();
 	}
 
 	public WorkerDeviceProcessor getNewProcessor()
@@ -135,6 +137,18 @@ public class BambiTestDevice extends WorkerDevice
 	public String toString()
 	{
 		return super.toString() + " finalStatus=" + finalStatus;
+	}
+
+	@Override
+	public SignalDispatcher getSignalDispatcher()
+	{
+		return Mockito.mock(SignalDispatcher.class);
+	}
+
+	@Override
+	public SignalDispatcher createSignalDispatcher()
+	{
+		return Mockito.mock(SignalDispatcher.class);
 	}
 
 }
