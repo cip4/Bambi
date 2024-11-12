@@ -259,8 +259,8 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = Mockito.spy(new BambiTestDevice());
 		device.setSynchronous(true);
-		when(device.getParallelSynch()).thenReturn(4);
-		QueueProcessor queueProcessor = device.getQueueProcessor();
+		when(device.getParallelSynch()).thenReturn(1);
+		final QueueProcessor queueProcessor = device.getQueueProcessor();
 		for (int i = 0; i < 42; i++)
 		{
 			final JDFQueueEntry qe = queueProcessor.getQueue().appendQueueEntry();
@@ -278,8 +278,39 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 				ThreadUtil.sleep(123);
 			}
 		}
-		assertEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting));
 		assertNotEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Completed));
+		assertEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting));
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testDoSynchMulti4() throws Exception
+	{
+		final BambiTestDevice device = Mockito.spy(new BambiTestDevice());
+		device.setSynchronous(true);
+		when(device.getParallelSynch()).thenReturn(4);
+		final QueueProcessor queueProcessor = device.getQueueProcessor();
+		for (int i = 0; i < 42; i++)
+		{
+			final JDFQueueEntry qe = queueProcessor.getQueue().appendQueueEntry();
+			qe.setQueueEntryID("qe" + i);
+			qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+			final JDFNode root = JDFNode.createRoot();
+			root.setJobID("J" + i % 7);
+			final QueueEntry qee = new QueueEntry(root, qe);
+			assertTrue(device.doSynchronous(qee));
+		}
+		for (int i = 0; i < 1234; i++)
+		{
+			if (queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
+			{
+				ThreadUtil.sleep(123);
+			}
+		}
+		assertNotEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Completed));
+		assertEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting));
 	}
 
 	/**
@@ -291,7 +322,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		final BambiTestDevice device = Mockito.spy(new BambiTestDevice());
 		device.setSynchronous(false);
 		when(device.getParallelSynch()).thenReturn(4);
-		QueueProcessor queueProcessor = device.getQueueProcessor();
+		final QueueProcessor queueProcessor = device.getQueueProcessor();
 		for (int i = 0; i < 42; i++)
 		{
 			final JDFQueueEntry qe = queueProcessor.getQueue().appendQueueEntry();
@@ -309,8 +340,8 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 				ThreadUtil.sleep(123);
 			}
 		}
-		assertEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting));
 		assertNotEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Completed));
+		assertEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting));
 	}
 
 	/**

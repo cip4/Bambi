@@ -2410,13 +2410,13 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	class SingleProcess implements Runnable
 	{
 
-		private final AbstractDeviceProcessor p;
+		private final AbstractDeviceProcessor tmpProcessor;
 		private boolean result;
 
 		public SingleProcess(final AbstractDeviceProcessor p)
 		{
 			super();
-			this.p = p;
+			this.tmpProcessor = p;
 			result = false;
 		}
 
@@ -2429,12 +2429,12 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		public void run()
 		{
 			incNumRequests();
-			result = p.processExistingQueueEntry();
+			result = tmpProcessor.processExistingQueueEntry();
 			final EnumNodeStatus newStatus = result ? EnumNodeStatus.Completed : EnumNodeStatus.Aborted;
-			p.stopProcessing(newStatus);
+			tmpProcessor.stopProcessing(newStatus);
 			final JDFQueue queue = getQueueProcessor().getQueue();
 			log.info(newStatus.getName() + " processing " + queue.numEntries(EnumQueueEntryStatus.getEnum(newStatus.getName())) + " / " + getQueueProcessor().getTotalEntryCount());
-			p.getParent().removeListener(p.getStatusListener());
+			tmpProcessor.getParent().removeListener(tmpProcessor.getStatusListener());
 		}
 	}
 
