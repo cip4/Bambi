@@ -53,6 +53,7 @@ import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
 import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
 import org.cip4.bambi.core.queues.QueueEntry;
+import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -259,9 +260,10 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		final BambiTestDevice device = Mockito.spy(new BambiTestDevice());
 		device.setSynchronous(true);
 		when(device.getParallelSynch()).thenReturn(4);
+		QueueProcessor queueProcessor = device.getQueueProcessor();
 		for (int i = 0; i < 42; i++)
 		{
-			final JDFQueueEntry qe = device.getQueueProcessor().getQueue().appendQueueEntry();
+			final JDFQueueEntry qe = queueProcessor.getQueue().appendQueueEntry();
 			qe.setQueueEntryID("qe" + i);
 			qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
 			final JDFNode root = JDFNode.createRoot();
@@ -271,13 +273,13 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		}
 		for (int i = 0; i < 1234; i++)
 		{
-			if (device.getQueueProcessor().getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
+			if (queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
 			{
 				ThreadUtil.sleep(123);
 			}
 		}
-		assertEquals(0, device.getQueueProcessor().getQueue().numEntries(EnumQueueEntryStatus.Waiting));
-		assertNotEquals(0, device.getQueueProcessor().getQueue().numEntries(EnumQueueEntryStatus.Completed));
+		assertEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting));
+		assertNotEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Completed));
 	}
 
 	/**
@@ -289,9 +291,10 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		final BambiTestDevice device = Mockito.spy(new BambiTestDevice());
 		device.setSynchronous(false);
 		when(device.getParallelSynch()).thenReturn(4);
+		QueueProcessor queueProcessor = device.getQueueProcessor();
 		for (int i = 0; i < 42; i++)
 		{
-			final JDFQueueEntry qe = device.getQueueProcessor().getQueue().appendQueueEntry();
+			final JDFQueueEntry qe = queueProcessor.getQueue().appendQueueEntry();
 			qe.setQueueEntryID("qe" + i);
 			qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
 			final JDFNode root = JDFNode.createRoot();
@@ -301,13 +304,13 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		}
 		for (int i = 0; i < 1234; i++)
 		{
-			if (device.getQueueProcessor().getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
+			if (queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
 			{
 				ThreadUtil.sleep(123);
 			}
 		}
-		assertEquals(0, device.getQueueProcessor().getQueue().numEntries(EnumQueueEntryStatus.Waiting));
-		assertNotEquals(0, device.getQueueProcessor().getQueue().numEntries(EnumQueueEntryStatus.Completed));
+		assertEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting));
+		assertNotEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Completed));
 	}
 
 	/**
