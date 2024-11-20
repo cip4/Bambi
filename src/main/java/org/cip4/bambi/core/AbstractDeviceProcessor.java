@@ -571,7 +571,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 */
 	protected void reset()
 	{
-		_statusListener.signalStatus(EnumDeviceStatus.Idle, "JoIncomplete", EnumNodeStatus.Waiting, "job partially completed", true);
+		_statusListener.signalStatus(EnumDeviceStatus.Idle, "JobIncomplete", EnumNodeStatus.Waiting, "job partially completed", true);
 	}
 
 	/**
@@ -580,6 +580,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 */
 	protected void complete()
 	{
+		_statusListener.setPercentComplete(100);
 		_statusListener.signalStatus(EnumDeviceStatus.Idle, "JobCompleted", EnumNodeStatus.Completed, "job completed successfully", true);
 	}
 

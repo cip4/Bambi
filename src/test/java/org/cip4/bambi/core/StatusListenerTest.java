@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -86,7 +86,7 @@ public class StatusListenerTest extends BambiTestCaseBase
 	@Test
 	public void testCreate()
 	{
-		StatusListener sl = new StatusListener(null, null, null);
+		final StatusListener sl = new StatusListener(null, null, null);
 		assertNotNull(sl);
 		assertNotNull(sl.toString());
 	}
@@ -94,12 +94,12 @@ public class StatusListenerTest extends BambiTestCaseBase
 	@Test
 	public void testPersist()
 	{
-		SignalDispatcher disp = Mockito.mock(SignalDispatcher.class);
-		StatusListener sl = new StatusListener(disp, null, null);
+		final SignalDispatcher disp = Mockito.mock(SignalDispatcher.class);
+		final StatusListener sl = new StatusListener(disp, null, null);
 		sl.setWantPersist(false);
 		assertFalse(sl.isWantPersist());
 		assertFalse(sl.persist());
-		JDFNode createRoot = JDFNode.createRoot();
+		final JDFNode createRoot = JDFNode.createRoot();
 		sl.setNode("a", createRoot, null, agentName);
 		assertFalse(sl.persist());
 		sl.setWantPersist(true);

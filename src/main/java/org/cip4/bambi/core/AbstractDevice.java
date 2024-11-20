@@ -40,6 +40,7 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -1950,18 +1951,16 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final JDFResponse r = root.getResponse(i);
 			final JDFResponse rResp = respRoot.getCreateResponse(i);
 			final String id = rResp.getID();
-			rResp.setrefID(refID);
 			rResp.setAttributes(r);
+			rResp.setrefID(refID);
 			rResp.setID(id);
-			final VElement v = r.getChildElementVector(null, null);
-			if (v != null)
+			final Collection<KElement> v = r.getChildArray(null, null);
+			for (final KElement e : v)
 			{
-				for (final KElement e : v)
-				{
-					rResp.copyElement(e, null);
-				}
+				rResp.copyElement(e, null);
 			}
 		}
+
 		return true;
 	}
 
@@ -2220,7 +2219,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			for (final JDFDeviceInfo di : devInfos)
 			{
 				final EnumDeviceStatus stat = di.getDeviceStatus();
-				if (!EnumDeviceStatus.Idle.equals(stat) && !EnumDeviceStatus.Down.equals(stat))
+				if (!EnumDeviceStatus.Idle.equals(stat) && !EnumDeviceStatus.Down.equals(stat) || di.getJobPhase() != null)
 				{
 					idleCount = 0;
 					return false; // we have something that is a bit active

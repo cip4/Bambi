@@ -49,13 +49,12 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
-import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFResourceQuParams;
-import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.NodeIdentifier;
@@ -75,6 +74,7 @@ public class StatusListener implements IPersistable
 {
 
 	private SignalDispatcher dispatcher;
+
 	private SignalDispatcher rootDispatcher;
 	protected StatusCounter theCounter;
 	final MultiModuleStatusCounter multiCounter;
@@ -206,6 +206,7 @@ public class StatusListener implements IPersistable
 		theCounter.addPhase(resID, good, waste, true);
 		if (good + waste > 0)
 		{
+			theCounter.setPhase(null, null, null, null);
 			dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int) (good + waste), null);
 		}
 		DelayedPersist.getDelayedPersist().queue(this, 123456);
@@ -225,6 +226,7 @@ public class StatusListener implements IPersistable
 			return;
 		}
 		theCounter.setPercentComplete(percent);
+		theCounter.setPhase(null, null, null, null);
 		DelayedPersist.getDelayedPersist().queue(this, 123456);
 	}
 
@@ -262,6 +264,7 @@ public class StatusListener implements IPersistable
 		theCounter.setTotal(resID, amount, waste);
 		if (amount > 0)
 		{
+			theCounter.setPhase(null, null, null, null);
 			dispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), (int) amount, null);
 		}
 		DelayedPersist.getDelayedPersist().queue(this, 123456);
@@ -316,6 +319,12 @@ public class StatusListener implements IPersistable
 		theCounter.setTrackWaste("*", true); // always track waste
 		theCounter.setFirstRefID(trackResourceID);
 		theCounter.setQueueEntryID(queueEntryID);
+		if (node != null)
+		{
+			final VJDFAttributeMap partMapVector = node.getNodeInfoPartMapVector();
+			final JDFAttributeMap partMap = partMapVector == null ? null : partMapVector.getCommonMap();
+			theCounter.setPhase(node.getPartStatus(partMap, 1), node.getPartStatusDetails(partMap), EnumDeviceStatus.Running, node.getPartStatusDetails(partMap));
+		}
 		while (node != null)
 		{
 			dispatcher.addSubscriptions(node, queueEntryID);
@@ -326,7 +335,6 @@ public class StatusListener implements IPersistable
 	/**
 	 * save the currently active jdf
 	 *
-	 * @param timeSinceLast milliseconds time to leave between saves
 	 */
 	@Override
 	public boolean persist()
@@ -352,15 +360,7 @@ public class StatusListener implements IPersistable
 	 */
 	public EnumDeviceStatus getDeviceStatus()
 	{
-		if (theCounter == null)
-		{
-			return EnumDeviceStatus.Idle;
-		}
-
-		final JDFDoc docJMF = theCounter.getDocJMFPhaseTime();
-		final JDFResponse r = docJMF == null ? null : docJMF.getJMFRoot().getResponse(-1);
-		final JDFDeviceInfo di = r == null ? null : r.getDeviceInfo(0);
-		return di == null ? EnumDeviceStatus.Idle : di.getDeviceStatus();
+		return multiCounter.getDeviceStatus();
 	}
 
 	/**
@@ -500,6 +500,7 @@ public class StatusListener implements IPersistable
 		final boolean b = theCounter.removeEmployee(employee);
 		if (b)
 		{
+			theCounter.setPhase(null, null, null, null);
 			DelayedPersist.getDelayedPersist().queue(this, -1);
 		}
 		return b;
@@ -519,6 +520,7 @@ public class StatusListener implements IPersistable
 		final int n1 = theCounter.addEmployee(employee);
 		if (n1 != n0)
 		{
+			theCounter.setPhase(null, null, null, null);
 			DelayedPersist.getDelayedPersist().queue(this, -1);
 		}
 		return n1;
@@ -554,10 +556,15 @@ public class StatusListener implements IPersistable
 	public void removeListener(final StatusListener statusListener)
 	{
 		multiCounter.removeModule(statusListener.getStatusCounter());
+		if (EnumDeviceStatus.Idle.equals(multiCounter.getDeviceStatus()))
+		{
+			theCounter.setActiveNode(null, null, null);
+		}
 	}
 
 	public void addListener(final StatusListener statusListener)
 	{
 		multiCounter.addModule(statusListener.getStatusCounter());
 	}
+
 }

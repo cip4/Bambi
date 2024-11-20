@@ -911,10 +911,10 @@ public class MessageSender implements Runnable, IPersistable
 		}
 
 		final HTTPDetails httpDetails = messageDetails.mimeDet == null ? null : messageDetails.mimeDet.httpDetails;
-		long t0 = System.currentTimeMillis();
+		final long t0 = System.currentTimeMillis();
 		final UrlPart p = UrlUtil.writeToURL(url, ByteArrayIOStream.getBufferedInputStream(is), UrlUtil.POST, contentType, httpDetails);
-		int rc = UrlPart.getReturnCode(p);
-		long t1 = System.currentTimeMillis();
+		final int rc = UrlPart.getReturnCode(p);
+		final long t1 = System.currentTimeMillis();
 		if (!UrlPart.isReturnCodeOK(p))
 		{
 			log.warn("Flaky RC " + rc + " in JMF response to " + url);
@@ -1043,7 +1043,7 @@ public class MessageSender implements Runnable, IPersistable
 		return queueMessageDetails(messageDetails);
 	}
 
-	private boolean queueMessageDetails(final MessageDetails messageDetails)
+	boolean queueMessageDetails(final MessageDetails messageDetails)
 	{
 		if (waitKaputt && messageDetails.isFireForget())
 		{
@@ -1065,28 +1065,27 @@ public class MessageSender implements Runnable, IPersistable
 			senderQueueOptimizer.optimize(messageDetails.jmf);
 		}
 
-		synchronized (messageFiFo)
+		if (jmfFactory.isLogLots())
 		{
-			if (jmfFactory.isLogLots())
+			String textInfo = "queued " + messageDetails.getName() + " #" + sent + " to " + messageDetails.url;
+			if (messageFiFo.size() > 0)
 			{
-				String textInfo = "queued " + messageDetails.getName() + " #" + sent + " to " + messageDetails.url;
-				if (messageFiFo.size() > 0)
-				{
-					textInfo += " size=" + messageFiFo.size();
-				}
-				log.info(textInfo);
+				textInfo += " size=" + messageFiFo.size();
 			}
-			messageFiFo.add(messageDetails);
-			if (messageFiFo.size() >= 1000)
+			log.info(textInfo);
+		}
+
+		messageFiFo.add(messageDetails);
+
+		if (messageFiFo.size() >= 1000)
+		{
+			if ((messageFiFo.size() % 100) == 0)
 			{
-				if ((messageFiFo.size() % 100) == 0)
-				{
-					log.warn("queueing message into blocked sender to " + callURL + " size=" + messageFiFo.size());
-				}
-				else if (jmfFactory.isLogLots())
-				{
-					log.info("queueing message into blocked sender to " + callURL + " size=" + messageFiFo.size());
-				}
+				log.warn("queueing message into blocked sender to " + callURL + " size=" + messageFiFo.size());
+			}
+			else if (jmfFactory.isLogLots())
+			{
+				log.info("queueing message into blocked sender to " + callURL + " size=" + messageFiFo.size());
 			}
 		}
 		if (!isPaused)

@@ -263,12 +263,12 @@ public class MsgSubscription implements Cloneable
 			return null;
 		}
 		final VElement v = jmfOut.getMessageVector(EnumFamily.Signal, null);
-		final int siz = v == null ? 0 : v.size();
-		if (siz == 0 || v == null)
+		final int siz = ContainerUtil.size(v);
+		if (siz == 0)
 		{
 			return null;
 		}
-		for (int i = siz - 1; i >= 0; i--)
+		for (int i = 0; i < siz; i++)
 		{
 			final JDFSignal s = (JDFSignal) v.get(i);
 			if (!StringUtil.matchesSimple(s.getSenderID(), jmfDeviceID) || signalDispatcher.device.deleteSignal(s))

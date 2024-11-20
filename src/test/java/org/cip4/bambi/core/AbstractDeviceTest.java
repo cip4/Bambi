@@ -270,8 +270,9 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 			root.setJobID("J" + i % 7);
 			final QueueEntry qee = new QueueEntry(root, qe);
 			assertTrue(device.doSynchronous(qee));
+			ThreadUtil.sleep(1);
 		}
-		for (int i = 0; i < 1234; i++)
+		for (int i = 0; i < 4234; i++)
 		{
 			if (queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
 			{
@@ -301,8 +302,9 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 			root.setJobID("J" + i % 7);
 			final QueueEntry qee = new QueueEntry(root, qe);
 			assertTrue(device.doSynchronous(qee));
+			ThreadUtil.sleep(1);
 		}
-		for (int i = 0; i < 1234; i++)
+		for (int i = 0; i < 4234; i++)
 		{
 			if (queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
 			{
@@ -332,8 +334,9 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 			root.setJobID("J" + i % 7);
 			final QueueEntry qee = new QueueEntry(root, qe);
 			assertTrue(device.doSynchronous(qee));
+			ThreadUtil.sleep(1);
 		}
-		for (int i = 0; i < 1234; i++)
+		for (int i = 0; i < 4234; i++)
 		{
 			if (queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
 			{
