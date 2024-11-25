@@ -280,7 +280,7 @@ public class MsgSubscription implements Cloneable
 				v.remove(i);
 			}
 		}
-		return v.size() == 0 ? null : jmfOut;
+		return v.isEmpty() ? null : jmfOut;
 	}
 
 	/**
