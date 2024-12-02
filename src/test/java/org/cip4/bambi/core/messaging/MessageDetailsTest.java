@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -50,6 +50,7 @@ import java.util.Vector;
 import java.util.zip.ZipEntry;
 
 import javax.mail.BodyPart;
+import javax.mail.MessagingException;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.core.BambiNSExtension;
@@ -153,8 +154,8 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		final KElement list = JDFElement.createRoot("L");
 		md.appendToXML(list, 0, false);
 		final MessageDetails md2 = new MessageDetails(list.getElement(null));
-		InputStream is = md2.getInputStream();
-		JSONObjHelper oh = new JSONObjHelper(is);
+		final InputStream is = md2.getInputStream();
+		final JSONObjHelper oh = new JSONObjHelper(is);
 		assertNotNull(oh.getRootObject());
 	}
 
@@ -363,7 +364,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		BambiNSExtension.setJSON(jmf, true);
 		final MessageDetails md = new MessageDetails(jmf, null, cb, null, "http://foo");
 		assertEquals(UrlUtil.VND_XJMF_J, md.getContentType());
-		JSONObjHelper h = new JSONObjHelper(md.getInputStream());
+		final JSONObjHelper h = new JSONObjHelper(md.getInputStream());
 		assertNotNull(h.getRoot());
 		assertNull(h.getString("XJMF/bambi:json"));
 		assertEquals(-1, h.toJSONString().indexOf("bambi"));
@@ -386,14 +387,14 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		final ZipReader zr = ZipReader.getZipReader(is);
 		zr.buffer();
 		assertNotNull(zr);
-		Vector<ZipEntry> entries = zr.getEntries();
+		final Vector<ZipEntry> entries = zr.getEntries();
 		assertEquals(entries.size(), 2);
 		assertNotNull(zr.getMatchingEntry("root.xjmf", 0));
-		XMLDoc xjmf = zr.getXMLDoc();
-		XJMFHelper h = XJMFHelper.getHelper(xjmf);
+		final XMLDoc xjmf = zr.getXMLDoc();
+		final XJMFHelper h = XJMFHelper.getHelper(xjmf);
 		assertNotNull(h);
 
-		MessageHelper mh = h.getMessageHelper(0);
+		final MessageHelper mh = h.getMessageHelper(0);
 		assertEquals("xjdf/2893.00.1.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
 		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
 		assertEquals('P', is.read());
@@ -418,14 +419,14 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		final ZipReader zr = ZipReader.getZipReader(is);
 		zr.buffer();
 		assertNotNull(zr);
-		Vector<ZipEntry> entries = zr.getEntries();
+		final Vector<ZipEntry> entries = zr.getEntries();
 		assertEquals(entries.size(), 2);
 		assertNotNull(zr.getMatchingEntry("*.xjmf", 0));
-		XMLDoc xjmf = zr.getXMLDoc();
-		XJMFHelper h = XJMFHelper.getHelper(xjmf);
+		final XMLDoc xjmf = zr.getXMLDoc();
+		final XJMFHelper h = XJMFHelper.getHelper(xjmf);
 		assertNotNull(h);
 
-		MessageHelper mh = h.getMessageHelper(0);
+		final MessageHelper mh = h.getMessageHelper(0);
 		assertEquals("xjdf/2893.00.1.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
 		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
 		assertEquals('P', is.read());
@@ -447,21 +448,21 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		final ConverterCallback cb = new ConverterCallback();
 		final MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
 		final InputStream is = md.getInputStream();
-		ByteArrayIOStream bos = new ByteArrayIOStream(is);
+		final ByteArrayIOStream bos = new ByteArrayIOStream(is);
 
 		final ZipReader zr = ZipReader.getZipReader(bos.getInputStream());
 		zr.buffer();
 		assertNotNull(zr);
 		FileUtil.streamToFile(bos.getInputStream(), sm_dirTestDataTemp + "ret.zip");
 		zr.buffer();
-		Vector<ZipEntry> entries = zr.getEntries();
+		final Vector<ZipEntry> entries = zr.getEntries();
 		assertEquals(entries.size(), 2);
 		assertNotNull(zr.getMatchingEntry("*.xjmf", 0));
-		XMLDoc xjmf = zr.getXMLDoc();
-		XJMFHelper h = XJMFHelper.getHelper(xjmf);
+		final XMLDoc xjmf = zr.getXMLDoc();
+		final XJMFHelper h = XJMFHelper.getHelper(xjmf);
 		assertNotNull(h);
 
-		MessageHelper mh = h.getMessageHelper(0);
+		final MessageHelper mh = h.getMessageHelper(0);
 		assertEquals("xjdf/2893.00.1.xjdf", mh.getXPathValue("ReturnQueueEntryParams/@URL"));
 		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
 		assertEquals('P', is.read());
@@ -500,6 +501,30 @@ public class MessageDetailsTest extends BambiTestCaseBase
 
 		assertNotNull(bp);
 		assertEquals(bp.length, 2);
+	}
+
+	/**
+	 * @throws MessagingException
+	 *
+	 */
+	@Test
+	public void testStreamMimeNastyName() throws MessagingException
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
+		final JDFDoc doc = JDFDoc.parseFile(sm_dirTestData + "Elk_ConventionalPrinting.jdf");
+		doc.setOriginalFileName("\\\\/%#@123€");
+		final JDFNode jdf = doc.getJDFRoot();
+
+		final ConverterCallback cb = new ConverterCallback();
+		final MessageDetails md = new MessageDetails(jmf, jdf, null, cb, null, "http://foo");
+		final InputStream is = md.getInputStream();
+		final BodyPart[] bp = MimeUtil.extractMultipartMime(is);
+
+		assertNotNull(bp);
+		assertEquals(bp.length, 2);
+		final BodyPart bpJDF = bp[1];
+		assertEquals("<TheJDF.jdf>", bpJDF.getHeader("Content-ID")[0]);
+		assertEquals("attachment; filename=TheJDF.jdf", bpJDF.getHeader("Content-Disposition")[0]);
 	}
 
 	class ExtendCallback extends ConverterCallback
