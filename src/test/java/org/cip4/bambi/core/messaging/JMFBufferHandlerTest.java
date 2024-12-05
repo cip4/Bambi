@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -40,6 +40,7 @@ package org.cip4.bambi.core.messaging;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -47,9 +48,17 @@ import org.cip4.bambi.core.AbstractDevice.StatusHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler.StatusBufferHandler;
 import org.cip4.bambi.proxy.ProxyDevice;
 import org.cip4.bambi.proxy.ProxyDeviceTest;
+import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
+import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFJobPhase;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFQuery;
+import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.junit.Test;
 
@@ -135,6 +144,85 @@ public class JMFBufferHandlerTest
 			final JDFJMF jmf2 = jmfBuilder.buildStatus(EnumDeviceDetails.Full, EnumJobDetails.Full);
 			bh.handleSignal(jmf.getSignal(0), null);
 			assertTrue(bh.handleQuery(jmf2.getQuery(0), jmf2.createResponse().getResponse()));
+		}
+	}
+
+	@Test
+	public void testIdleJobPhase()
+	{
+		final ProxyDevice dev = ProxyDeviceTest.getDevice();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFJMF jmfs = jmfBuilder.buildStatusSubscription("http://url.com", 0, 0, null);
+		final JDFQuery subscription = jmfs.getQuery();
+		subscription.setID("channel");
+		dev.getSignalDispatcher().addSubscription(subscription);
+
+		final StatusBufferHandler bh = new StatusBufferHandler(dev);
+
+		jmfBuilder.setSenderID("sender");
+		final JDFJMF jmf = jmfBuilder.buildStatusSignal(null, null);
+		final JDFDeviceInfo deviceInfo = jmf.getSignal().getDeviceInfo(0);
+		deviceInfo.setDeviceStatus(EnumDeviceStatus.Idle);
+		final JDFJobPhase jp = deviceInfo.getJobPhase();
+		jp.setStatus(EnumNodeStatus.InProgress);
+		bh.handleSignal(jmf.getSignal(0), null);
+
+		for (int i = 0; i < 3; i++)
+		{
+			final JDFJMF jmf2 = jmfBuilder.buildStatus(EnumDeviceDetails.Full, EnumJobDetails.Full);
+			final JDFQuery q0 = jmf2.getQuery(0);
+			q0.setID("channel");
+			final JDFJMF jmf3 = JDFJMF.createJMF(EnumFamily.Response, EnumType.Status);
+			final JDFResponse r3 = jmf3.getResponse();
+
+			assertTrue(bh.handleQuery(q0, r3));
+			final JDFDeviceInfo di = jmf3.getSignal().getDeviceInfo(0);
+			assertNotNull(di);
+			if (i == 0)
+			{
+				assertNotNull(di.getJobPhase());
+			}
+			else
+			{
+				assertNull(di.getJobPhase());
+			}
+		}
+	}
+
+	@Test
+	public void testgetSignals()
+	{
+		final ProxyDevice dev = ProxyDeviceTest.getDevice();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFJMF jmfs = jmfBuilder.buildStatusSubscription("http://url.com", 0, 0, null);
+		final JDFQuery subscription = jmfs.getQuery();
+		subscription.setID("channel");
+		dev.getSignalDispatcher().addSubscription(subscription);
+
+		final StatusBufferHandler bh = new StatusBufferHandler(dev);
+		jmfBuilder.setSenderID("sender");
+		final JDFJMF jmf = jmfBuilder.buildStatusSignal(null, null);
+		final JDFDeviceInfo deviceInfo = jmf.getSignal().getDeviceInfo(0);
+		deviceInfo.setDeviceStatus(EnumDeviceStatus.Idle);
+		final JDFJobPhase jp = deviceInfo.getJobPhase();
+		jp.setStatus(EnumNodeStatus.InProgress);
+		bh.handleSignal(jmf.getSignal(0), null);
+		for (int i = 0; i < 4; i++)
+		{
+			final JDFJMF jmf2 = jmfBuilder.buildStatus(EnumDeviceDetails.Full, EnumJobDetails.Full);
+			final JDFResponse r2 = JDFJMF.createJMF(EnumFamily.Response, EnumType.Status).getResponse();
+			final JDFQuery q2 = jmf2.getQuery();
+			q2.setID("channel");
+			final JDFJMF jmf3 = bh.getSignals(q2, r2);
+			final JDFDeviceInfo di = jmf3.getSignal().getDeviceInfo(0);
+			if (i == 0)
+			{
+				assertNotNull(di.getJobPhase());
+			}
+			else
+			{
+				assertNull(di.getJobPhase());
+			}
 		}
 	}
 

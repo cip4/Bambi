@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -63,15 +63,15 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testToString()
 	{
-		ProxyDevice dev = new ProxyDevice(new BambiTestProp());
+		final ProxyDevice dev = new ProxyDevice(new BambiTestProp());
 		assertNotNull(dev.toString());
 	}
 
 	@Test
 	public void testGetHandlers()
 	{
-		ProxyDevice dev = new ProxyDevice(new BambiTestProp());
-		Vector<JMFHandler> handlers = dev.getJMFHandlers();
+		final ProxyDevice dev = new ProxyDevice(new BambiTestProp());
+		final Vector<JMFHandler> handlers = dev.getJMFHandlers();
 		assertNotNull(handlers);
 	}
 
@@ -82,7 +82,7 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 	public void testResourceQuery()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildResourceQuery(true);
-		ProxyDevice device = getDevice();
+		final ProxyDevice device = getDevice();
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
 		final JDFDoc respDoc = jmfHandler.processJMF(jmf.getOwnerDocument_JDFElement());
 		final JDFResponse resp = respDoc.getJMFRoot().getResponse(0);
@@ -92,7 +92,10 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 
 	public static ProxyDevice getDevice()
 	{
-		ProxyDevice device = new ProxyDevice(new BambiTestProp());
+		final ProxyDevice device = new ProxyDevice(new BambiTestProp());
+		device.getSignalDispatcher().reset();
+		device.getSignalDispatcher().shutdown();
+
 		return device;
 	}
 
@@ -104,7 +107,7 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 	{
 		final JDFJMF jmf = new JMFBuilder().buildResourceQuery(true);
 		jmf.getQuery(0).setAttribute(JMFHandler.subscribed, true, null);
-		ProxyDevice device = new ProxyDevice(new BambiTestProp());
+		final ProxyDevice device = new ProxyDevice(new BambiTestProp());
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
 		final JDFDoc respDoc = jmfHandler.processJMF(jmf.getOwnerDocument_JDFElement());
 		assertNull(respDoc);
@@ -117,7 +120,7 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 	public void testStatus()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
-		ProxyDevice device = getDevice();
+		final ProxyDevice device = getDevice();
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
 		final JDFDoc respDoc = jmfHandler.processJMF(jmf.getOwnerDocument_JDFElement());
 		final JDFResponse resp = respDoc.getJMFRoot().getResponse(0);
@@ -134,7 +137,7 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 	public void testStatusSubScription()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://url", 20, 30, null);
-		ProxyDevice device = getDevice();
+		final ProxyDevice device = getDevice();
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
 		device.getSignalDispatcher().removeSubScriptions(null, null, null);
 		final JDFDoc respDoc = jmfHandler.processJMF(jmf.getOwnerDocument_JDFElement());
@@ -152,7 +155,7 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
 		jmf.getQuery(0).setAttribute(JMFHandler.subscribed, true, null);
-		ProxyDevice device = new ProxyDevice(new BambiTestProp());
+		final ProxyDevice device = new ProxyDevice(new BambiTestProp());
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
 		final JDFDoc respDoc = jmfHandler.processJMF(jmf.getOwnerDocument_JDFElement());
 		final JDFResponse resp = respDoc.getJMFRoot().getResponse(0);
@@ -166,7 +169,7 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testStatusSignal()
 	{
-		ProxyDevice device = new ProxyDevice(new BambiTestProp());
+		final ProxyDevice device = new ProxyDevice(new BambiTestProp());
 		device.getSignalDispatcher().removeSubScriptions(null, null, null);
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
 

@@ -67,7 +67,10 @@ import org.cip4.jdflib.jmf.JDFResourceQuParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.jmf.JDFStatusQuParams;
+import org.cip4.jdflib.node.JDFActivity;
 import org.cip4.jdflib.node.NodeIdentifier;
+import org.cip4.jdflib.resource.JDFEvent;
+import org.cip4.jdflib.resource.JDFModuleStatus;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FastFiFo;
@@ -733,7 +736,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			return ContainerUtil.isEmpty(sis) ? null : sis;
 		}
 
-		boolean updateOld(final JDFSignal lastSig)
+		protected boolean updateOld(final JDFSignal lastSig)
 		{
 			final int n = lastSig.numChildElements(ElementName.DEVICEINFO, null);
 			boolean bIdle = n > 0;
@@ -744,7 +747,16 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				if (!EnumDeviceStatus.Idle.equals(st) && !EnumDeviceStatus.Unknown.equals(st))
 				{
 					bIdle = false;
-					break;
+				}
+				else
+				{
+					di.removeChildrenByClass(JDFJobPhase.class);
+					di.removeChildrenByClass(JDFEvent.class);
+					di.removeChildrenByClass(JDFNotification.class);
+					di.removeChildrenByClass(JDFModuleStatus.class);
+					di.removeChildrenByClass(JDFActivity.class);
+					di.setStatusDetails(null);
+					di.setDescriptiveName("heartbeat idle");
 				}
 			}
 			if (bIdle)
