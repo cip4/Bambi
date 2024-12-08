@@ -468,7 +468,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			}
 		}
 
-		protected HashMap<MessageIdentifier, JDFSignal> lastSent;
+		final protected HashMap<MessageIdentifier, JDFSignal> lastSent;
 
 		/**
 		 * return true if the signal corresponds to the input query
@@ -554,7 +554,12 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		public StatusBufferHandler(final AbstractProxyDevice dev)
 		{
 			super(dev, EnumType.Status, new EnumFamily[] { EnumFamily.Signal, EnumFamily.Query }, dev);
-			lastSent = new HashMap<>();
+			lastSent = createLastSent();
+		}
+
+		protected HashMap<MessageIdentifier, JDFSignal> createLastSent()
+		{
+			return new HashMap<>();
 		}
 
 		/**
