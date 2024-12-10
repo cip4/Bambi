@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -323,7 +323,6 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	}
 
 	/**
-	 *
 	 * @param jmf
 	 * @param messageIdentifiers
 	 * @param nSig
@@ -571,19 +570,24 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		protected boolean handleQuery(final JDFMessage inputMessage, final JDFResponse response)
 		{
 			final boolean isSubscription = response.getSubscribed();
+			final boolean isSubscribed = inputMessage.getBoolAttribute(JMFHandler.subscribed, null, false);
+
 			boolean deleteResponse = !isSubscription;
 			if (!isSubscription)
 			{
 				final JDFJMF jmf = getSignals(inputMessage, response);
 				if (jmf == null)
 				{
-					if (lastSignals.getFill() > 0)
+					if (!isSubscribed && lastSignals.getFill() > 0)
 					{
 						updateResponse(lastSignals.pop(), response);
 						return true;
 					}
+
 					if (fallBack != null)
+					{
 						return fallBack.handleMessage(inputMessage, response);
+					}
 				}
 
 			}
@@ -712,7 +716,6 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 
 		/**
 		 * @param mi
-		 *
 		 * @return
 		 */
 		@Override
@@ -868,9 +871,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	// //////////////////////////////////////////////////////////////////////////////////
 
 	/**
-	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 *
-	 *         04.12.2008
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG 04.12.2008
 	 */
 	public static class NotificationBufferHandler extends JMFBufferHandler
 	{
@@ -902,9 +903,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	}
 
 	/**
-	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 *
-	 *         04.12.2008
+	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG 04.12.2008
 	 */
 	public static class ResourceBufferHandler extends JMFBufferHandler
 	{
