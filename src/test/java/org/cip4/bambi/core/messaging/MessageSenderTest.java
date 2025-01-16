@@ -78,6 +78,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
@@ -87,6 +89,7 @@ import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.MessageSender.SendReturn;
 import org.cip4.bambi.core.messaging.MessageSender.SenderQueueOptimizer;
+import org.cip4.jdflib.auto.JDFAutoSignal.EnumChannelMode;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -136,7 +139,7 @@ public class MessageSenderTest extends BambiTestCase
 		final DumpDir inputDumpDir = new DumpDir(new File(sm_dirTestDataTemp + "bambiIn"));
 		MessageSender.addDumps("TestSender", inputDumpDir, outputDumpDir);
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
 		assertNull(s.sendDetails(md));
@@ -153,7 +156,7 @@ public class MessageSenderTest extends BambiTestCase
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		assertNull(s.sendDetails(md));
 		s.getJMFFactory().setLogLots(true);
 		assertNull(s.sendDetails(md));
@@ -169,7 +172,7 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void testSendDetailsNull() throws IllegalArgumentException, IOException
 	{
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		assertThrows(IllegalArgumentException.class, () -> s.sendDetails(null));
 		s.getJMFFactory().setLogLots(true);
 		assertThrows(IllegalArgumentException.class, () -> s.sendDetails(null));
@@ -186,7 +189,7 @@ public class MessageSenderTest extends BambiTestCase
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "");
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		assertThrows(IllegalArgumentException.class, () -> s.sendDetails(md));
 	}
 
@@ -201,7 +204,7 @@ public class MessageSenderTest extends BambiTestCase
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		s.reactivate(md);
 		s.getJMFFactory().setLogLots(true);
 		s.reactivate(md);
@@ -220,7 +223,7 @@ public class MessageSenderTest extends BambiTestCase
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
 		final MessageDetails md2 = new MessageDetails(jmf, mock(IResponseHandler.class), mock(IConverterCallback.class), new HTTPDetails(), "http://nosuchurl");
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		for (int i = 0; i < 42; i++)
 		{
 			assertEquals(SendReturn.error, s.processResponse(md, null));
@@ -240,8 +243,16 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void testToString()
 	{
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		assertNotNull(s.toString());
+	}
+
+	@Test
+	public void testMatches()
+	{
+		final MessageSender s = getTestSender();
+		assertTrue(s.matchesURL(null));
+		assertFalse(s.matchesURL("foo"));
 	}
 
 	/**
@@ -255,10 +266,18 @@ public class MessageSenderTest extends BambiTestCase
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageDetails mdn = new MessageDetails(jmf, null, null, null, null);
+		final MessageSender s = getTestSender();
 		assertEquals(SendReturn.error, s.sendHTTP(md));
 		s.getJMFFactory().setLogLots(true);
 		assertEquals(SendReturn.error, s.sendHTTP(md));
+		assertEquals(SendReturn.removed, s.sendHTTP(mdn));
+		final MessageSender sspy = spy(s);
+		when(sspy.sendDetails(md)).thenThrow(IllegalArgumentException.class);
+		assertEquals(SendReturn.removed, sspy.sendHTTP(md));
+		final MessageSender sspy2 = spy(s);
+		when(sspy2.sendDetails(md)).thenThrow(NullPointerException.class);
+		assertEquals(SendReturn.error, sspy2.sendHTTP(md));
 	}
 
 	/**
@@ -270,7 +289,7 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void testDumpDir() throws IllegalArgumentException, IOException
 	{
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		assertNull(s.getOuputDumpDir("foo"));
 		assertNull(s.getInputDumpDir("foo"));
 		final DumpDir outputDumpDir = new DumpDir(new File(sm_dirTestDataTemp + "bambiOut"));
@@ -289,7 +308,7 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void testProblemError() throws IllegalArgumentException, IOException
 	{
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
 		md.setFireForget(true);
@@ -307,7 +326,7 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void testProcessSuccess() throws IllegalArgumentException, IOException
 	{
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
 		md.setFireForget(true);
@@ -329,7 +348,7 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void testProcessMsgResponse() throws IllegalArgumentException, IOException
 	{
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
 		md.setFireForget(true);
@@ -357,7 +376,7 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void testCheckDetails() throws IllegalArgumentException, IOException
 	{
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
 		md.setFireForget(true);
@@ -374,7 +393,7 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void isRC()
 	{
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		JMFFactory.getInstance().setZapp500(false);
 		assertFalse(s.isRemoveResponseCode(200));
 		assertTrue(s.isRemoveResponseCode(400));
@@ -391,7 +410,7 @@ public class MessageSenderTest extends BambiTestCase
 	public void testGetTimeLast()
 	{
 		long t0 = System.currentTimeMillis();
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		for (long l = 1; l < 1090; l++)
 		{
 			t0 -= l * 100000;
@@ -407,7 +426,7 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void isRC500()
 	{
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		JMFFactory.getInstance().setZapp500(true);
 		assertFalse(s.isRemoveResponseCode(200));
 		assertTrue(s.isRemoveResponseCode(400));
@@ -423,12 +442,51 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void testQueue()
 	{
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		assertTrue(s.queueMessage(null, null, null, null, null, null));
 		assertFalse(s.queueMessage(null, null, null, null, null));
+		s.queuePost(null, "foo", null);
 		s.shutDown();
 		assertFalse(s.queueMessage(null, null, null, null, null, null));
 		assertFalse(s.queueMessage(null, null, null, null, null));
+		s.queuePost(null, "foo", null);
+	}
+
+	protected MessageSender getTestSender()
+	{
+		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		s.flushMessages();
+		return s;
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testQueueDetails()
+	{
+		final MessageSender s = getTestSender();
+		s.pause();
+		int n = 0;
+		for (int i = 0; i < 2222; i++)
+		{
+			final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+			if (i % 2 == 0)
+				jmf.getSignal().setChannelMode(EnumChannelMode.FireAndForget);
+			else
+			{
+				jmf.getSignal().setChannelMode(EnumChannelMode.Reliable);
+			}
+			if (i == 2000)
+				s.getJMFFactory().setLogLots(true);
+			if (i == 2100)
+				s.waitKaputt = true;
+			final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
+			if (s.queueMessageDetails(md))
+				n++;
+		}
+		assertTrue(n > 0);
 	}
 
 	/**
@@ -440,6 +498,29 @@ public class MessageSenderTest extends BambiTestCase
 	{
 		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://");
 		assertNull(s.getPersistLocation(false));
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testFlush()
+	{
+		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://");
+		s.flushMessages();
+		assertNotNull(s);
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testLoc()
+	{
+		MessageSender.setBaseLocation(null);
+		assertTrue(true);
 	}
 
 	/**
@@ -493,7 +574,7 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void testPause()
 	{
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		s.pause();
 		assertNotNull(s.toString());
 		s.resume();
@@ -507,7 +588,7 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void testQueueMany()
 	{
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
+		final MessageSender s = getTestSender();
 		final JDFJMF jmf = new JMFBuilder().buildStatusSignal(EnumDeviceDetails.Details, EnumJobDetails.Full);
 		for (int i = 0; i < 420; i++)
 			s.queueMessage(jmf, null, null, null, null);

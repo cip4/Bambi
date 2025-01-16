@@ -48,7 +48,6 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiContainer;
-import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.messaging.IMessageOptimizer.optimizeResult;
@@ -89,7 +88,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
 public class MessageSender implements Runnable, IPersistable
 {
 
-	private static final Log sLog = BambiLogFactory.getLog(MessageSender.class);
+	private static final Log sLog = LogFactory.getLog(MessageSender.class);
 
 	private static final ListMap<String, DumpDir> dumpDirsMap = new ListMap<>();
 	private static File baseLocation;
@@ -121,7 +120,7 @@ public class MessageSender implements Runnable, IPersistable
 	private int trySend;
 	private int sent;
 	private long timeFirstProblem;
-	private boolean waitKaputt;
+	boolean waitKaputt;
 	private long timeCreated;
 	private long timeLastQueued;
 	long timeLastSent;
@@ -176,7 +175,7 @@ public class MessageSender implements Runnable, IPersistable
 		return callURL;
 	}
 
-	protected class SenderQueueOptimizer extends BambiLogFactory
+	protected class SenderQueueOptimizer
 	{
 		/**
 		 * Default constructor.
@@ -1180,7 +1179,7 @@ public class MessageSender implements Runnable, IPersistable
 	public static void setBaseLocation(final File baseLocation)
 	{
 		MessageSender.baseLocation = FileUtil.getFileInDirectory(baseLocation, new File("JMFStore"));
-		LogFactory.getLog(MessageSender.class).info("setting JMF Base dir to: " + baseLocation);
+		sLog.info("setting JMF Base dir to: " + baseLocation);
 	}
 
 	/**
