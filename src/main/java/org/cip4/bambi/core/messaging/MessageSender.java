@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -89,7 +89,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
 public class MessageSender implements Runnable, IPersistable
 {
 
-	private static final Log log = BambiLogFactory.getLog(MessageSender.class);
+	private static final Log sLog = BambiLogFactory.getLog(MessageSender.class);
 
 	private static final ListMap<String, DumpDir> dumpDirsMap = new ListMap<>();
 	private static File baseLocation;
@@ -100,6 +100,11 @@ public class MessageSender implements Runnable, IPersistable
 	private final MyMutex mutexPause = new MyMutex();
 	private final CPUTimer cpuTimer;
 	private final SenderQueueOptimizer senderQueueOptimizer;
+
+	SenderQueueOptimizer getSenderQueueOptimizer()
+	{
+		return senderQueueOptimizer;
+	}
 
 	protected FastFiFo<MessageDetails> fastFiFoMessageDetails;
 	protected JMFFactory jmfFactory;
@@ -119,7 +124,7 @@ public class MessageSender implements Runnable, IPersistable
 	private boolean waitKaputt;
 	private long timeCreated;
 	private long timeLastQueued;
-	private long timeLastSent;
+	long timeLastSent;
 	private long timeStart;
 	private boolean zappFirst;
 
@@ -205,7 +210,7 @@ public class MessageSender implements Runnable, IPersistable
 		 *
 		 * @param message The message to be optimized.
 		 */
-		private void optimizeMessage(final JDFMessage message)
+		void optimizeMessage(final JDFMessage message)
 		{
 			if (!(message instanceof JDFSignal))
 			{
@@ -224,8 +229,12 @@ public class MessageSender implements Runnable, IPersistable
 				return;
 			}
 
-			checked++;
+			optimizeSingle(message, messageOptimizer);
+		}
 
+		void optimizeSingle(final JDFMessage message, final IMessageOptimizer messageOptimizer)
+		{
+			checked++;
 			final List<MessageDetails> messagesTail = messageFiFo.getTailClone();
 			if (messagesTail != null)
 			{
@@ -234,16 +243,16 @@ public class MessageSender implements Runnable, IPersistable
 					final MessageDetails messageDetails = messagesTail.get(i);
 					if (messageDetails == null)
 					{
-						log.warn("empty message in tail...");
+						sLog.warn("empty message in tail...");
 						break;
 					}
-					final JDFJMF jmfDoc = messageDetails.jmf;
-					if (jmfDoc == null)
+					final JDFJMF jmf = messageDetails.jmf;
+					if (jmf == null)
 					{
 						continue; // don't optimize mime packages
 					}
 
-					final VElement messages = jmfDoc.getMessageVector(null, null);
+					final VElement messages = jmf.getMessageVector(null, null);
 					if (messages == null)
 					{
 						continue;
@@ -254,14 +263,14 @@ public class MessageSender implements Runnable, IPersistable
 						final JDFMessage oldMessage = (JDFMessage) messages.get(n);
 						if (oldMessage instanceof JDFSignal)
 						{
-							final optimizeResult optimizeResult = messageOptimizer.optimize(message, oldMessage);
-							if (optimizeResult == optimizeResult.remove)
+							final optimizeResult optimization = messageOptimizer.optimize(message, oldMessage);
+							if (optimization == optimizeResult.remove)
 							{
 								removeMessage(oldMessage, messageDetails);
 							}
-							else if (optimizeResult == optimizeResult.cont)
+							else if (optimization == optimizeResult.cont)
 							{
-								return; // we found a non matching message and must stop optimizing
+								break; // we found a non matching message and must stop optimizing
 							}
 						}
 					}
@@ -272,7 +281,7 @@ public class MessageSender implements Runnable, IPersistable
 		/**
 		 * Remove a JMF Message.
 		 */
-		private void removeMessage(final JDFMessage oldJmfMessage, final MessageDetails messageDetails)
+		void removeMessage(final JDFMessage oldJmfMessage, final MessageDetails messageDetails)
 		{
 			synchronized (messageFiFo)
 			{
@@ -283,25 +292,18 @@ public class MessageSender implements Runnable, IPersistable
 
 				if (jmfFactory.isLogLots() || removedHeartbeat < 10 || removedHeartbeat % 1000 == 0)
 				{
-					log.info("removed redundant " + oldJmfMessage.getType() + " " + oldJmfMessage.getLocalName() + " Message ID= " + oldJmfMessage.getID() + " Sender= "
+					sLog.info("removed redundant " + oldJmfMessage.getType() + " " + oldJmfMessage.getLocalName() + " Message ID= " + oldJmfMessage.getID() + " Sender= "
 							+ oldJmfMessage.getSenderID() + "# " + removedHeartbeat + " / " + checked);
 				}
 
 				final VElement messages = jmf.getMessageVector(null, null);
 				if (messages == null || messages.size() == 0)
 				{
-					final boolean zapped = messageFiFo.remove(messageDetails);
-					if (zapped)
+					messageFiFo.remove(messageDetails);
+					removedHeartbeatJMF++;
+					if (jmfFactory.isLogLots() || removedHeartbeatJMF < 10 || removedHeartbeatJMF % 1000 == 0)
 					{
-						removedHeartbeatJMF++;
-						if (jmfFactory.isLogLots() || removedHeartbeatJMF < 10 || removedHeartbeatJMF % 1000 == 0)
-						{
-							log.info("removed redundant jmf # " + removedHeartbeatJMF + " ID: " + jmf.getID() + " total checked: " + checkedJMF);
-						}
-					}
-					else
-					{
-						log.warn("could not remove redundant jmf # " + removedHeartbeatJMF + " ID: " + jmf.getID() + " total checked: " + checkedJMF);
+						sLog.info("removed redundant jmf # " + removedHeartbeatJMF + " ID: " + jmf.getID() + " total checked: " + checkedJMF);
 					}
 				}
 			}
@@ -316,9 +318,9 @@ public class MessageSender implements Runnable, IPersistable
 	public void run()
 	{
 		waitStartup();
-		log.info("starting message sender loop " + this);
+		sLog.info("starting message sender loop " + this);
 		senderLoop();
-		log.info("stopped message sender loop " + this);
+		sLog.info("stopped message sender loop " + this);
 		write2Base(true);
 	}
 
@@ -333,13 +335,13 @@ public class MessageSender implements Runnable, IPersistable
 		{
 			if (isPaused)
 			{
-				log.info("senderloop to " + callURL.getBaseURL() + " is paused");
+				sLog.info("senderloop to " + callURL.getBaseURL() + " is paused");
 				if (!ThreadUtil.wait(mutexPause, 0) || isShutdown)
 				{
 					break;
 				}
 
-				log.info("senderloop to " + callURL.getBaseURL() + " is resumed");
+				sLog.info("senderloop to " + callURL.getBaseURL() + " is resumed");
 			}
 
 			SendReturn sendReturn;
@@ -351,7 +353,7 @@ public class MessageSender implements Runnable, IPersistable
 			catch (final Throwable x)
 			{
 				sendReturn = SendReturn.error;
-				log.error("Error sending message: ", x);
+				sLog.error("Error sending message: ", x);
 				cpuTimer.stop();
 			}
 
@@ -362,10 +364,10 @@ public class MessageSender implements Runnable, IPersistable
 				sent++;
 				timeLastSent = currentTime_0;
 				idle = 0;
-
+				waitKaputt = false;
 				if (jmfFactory.isLogLots() || sent < 10 || (sent % 1000) == 0)
 				{
-					log.info("successfully sent JMF # " + sent + " to " + callURL);
+					sLog.info("successfully sent JMF # " + sent + " to " + callURL);
 				}
 			}
 			else
@@ -377,7 +379,7 @@ public class MessageSender implements Runnable, IPersistable
 					if (idle > 3333)
 					{
 						// no success or idle for an hour...
-						log.info("Shutting down idle and empty thread for base url: " + callURL.getBaseURL());
+						sLog.info("Shutting down idle and empty thread for base url: " + callURL.getBaseURL());
 						shutDown();
 						break;
 					}
@@ -394,22 +396,8 @@ public class MessageSender implements Runnable, IPersistable
 							wait = 424242;
 							if (messageFiFo.size() > 0 && (currentTime_0 - lastLog) > 60000L)
 							{
-								final long t0 = timeLastSent == 0 ? timeStart : timeLastSent;
-								final long t = (currentTime_0 - t0) / 60000L;
-								final String tmp;
-								if (t < 60)
-								{
-									tmp = t + " minutes; size=";
-								}
-								else if (t < 60 * 24)
-								{
-									tmp = (t / 60) + " hours; size=";
-								}
-								else
-								{
-									tmp = (t / (60 * 24)) + " days; size=";
-								}
-								log.warn("Waiting in blocked message thread: " + callURL.getBaseURL() + " unsuccessful for " + tmp + messageFiFo.size());
+								final String tmp = getReadableTime();
+								sLog.warn("Waiting in blocked message thread: " + callURL.getBaseURL() + " unsuccessful for " + tmp + messageFiFo.size());
 								lastLog = currentTime_0;
 							}
 						}
@@ -427,6 +415,27 @@ public class MessageSender implements Runnable, IPersistable
 			}
 		}
 
+	}
+
+	String getReadableTime()
+	{
+		final long currentTime_0 = System.currentTimeMillis();
+		final long t0 = timeLastSent == 0 ? timeStart : timeLastSent;
+		final long t = (currentTime_0 - t0) / 60000L;
+		final String tmp;
+		if (t < 60)
+		{
+			tmp = t + " minutes; size=";
+		}
+		else if (t < 60 * 24)
+		{
+			tmp = (t / 60) + " hours; size=";
+		}
+		else
+		{
+			tmp = (t / (60 * 24)) + " days; size=";
+		}
+		return tmp;
 	}
 
 	/**
@@ -447,28 +456,30 @@ public class MessageSender implements Runnable, IPersistable
 	 *
 	 * @param clearMessages if true flush me
 	 */
-	private void write2Base(final boolean clearMessages)
+	void write2Base(final boolean clearMessages)
 	{
 		final File persistLocation = getPersistLocation(false);
 		if (persistLocation == null)
 		{
-			log.error("no persistant message file location - possible loss of pending messages");
-			return;
+			sLog.error("no persistant message file location - possible loss of pending messages");
 		}
-		synchronized (messageFiFo)
+		else
 		{
-			if (messageFiFo.size() > 0)
+			synchronized (messageFiFo)
 			{
-				log.info("writing " + messageFiFo.size() + " pending messages to: " + persistLocation.getAbsolutePath());
-			}
+				if (messageFiFo.size() > 0)
+				{
+					sLog.info("writing " + messageFiFo.size() + " pending messages to: " + persistLocation.getAbsolutePath());
+				}
 
-			messageFiFo.dumpHeadTail();
+				messageFiFo.dumpHeadTail();
 
-			final KElement messageSenderXml = appendToXML(null, -1, false);
-			messageSenderXml.getOwnerDocument_KElement().write2File(persistLocation, 2, false);
-			if (clearMessages)
-			{
-				messageFiFo.clear();
+				final KElement messageSenderXml = appendToXML(null, -1, false);
+				messageSenderXml.getOwnerDocument_KElement().write2File(persistLocation, 2, false);
+				if (clearMessages)
+				{
+					messageFiFo.clear();
+				}
 			}
 		}
 	}
@@ -495,17 +506,17 @@ public class MessageSender implements Runnable, IPersistable
 	/**
 	 * Read all queued messages from storage, normally called at startup.
 	 */
-	private void readFromBase()
+	void readFromBase()
 	{
 		final File persistLocation = getPersistLocation(false);
 		if (persistLocation == null)
 		{
-			log.error("cannot read persistant message file, bailing out");
+			sLog.error("cannot read persistant message file, bailing out");
 			return;
 		}
 		if (!persistLocation.exists()) // nothing queued ,ciao
 		{
-			log.info("no persistant message file exists to read, bailing out! " + persistLocation);
+			sLog.info("no persistant message file exists to read, bailing out! " + persistLocation);
 			return;
 		}
 
@@ -531,7 +542,7 @@ public class MessageSender implements Runnable, IPersistable
 		}
 		else
 		{
-			log.warn("could not parse jmf message sender base file" + persistLocation.getAbsolutePath());
+			sLog.warn("could not parse jmf message sender base file" + persistLocation.getAbsolutePath());
 		}
 	}
 
@@ -547,7 +558,7 @@ public class MessageSender implements Runnable, IPersistable
 		filename = StringUtil.replaceString(filename, "//", "/");
 		if (filename == null)
 		{
-			log.error("cannot persist jmf to location; " + callURL.getBaseURL());
+			sLog.error("cannot persist jmf to location; " + callURL.getBaseURL());
 			return null;
 		}
 
@@ -660,7 +671,7 @@ public class MessageSender implements Runnable, IPersistable
 		}
 		if (logsRequired)
 		{
-			log.warn(textWarning);
+			sLog.warn(textWarning);
 		}
 		return sendReturn;
 	}
@@ -683,7 +694,7 @@ public class MessageSender implements Runnable, IPersistable
 			{
 				textInfo += " waiting: " + messageFiFo.size();
 			}
-			log.info(textInfo);
+			sLog.info(textInfo);
 		}
 	}
 
@@ -692,7 +703,7 @@ public class MessageSender implements Runnable, IPersistable
 		if (messageDetails == null)
 		{
 			messageFiFo.remove(0);
-			log.warn("removed null message in message queue ");
+			sLog.warn("removed null message in message queue ");
 			return SendReturn.removed;
 		}
 		else if (zappFirst || KElement.isWildCard(messageDetails.url))
@@ -700,7 +711,7 @@ public class MessageSender implements Runnable, IPersistable
 			messageFiFo.remove(0);
 			removedError++;
 			zappFirst = false;
-			log.warn("removed first " + messageDetails.getName() + " message in message queue to: " + messageDetails.url);
+			sLog.warn("removed first " + messageDetails.getName() + " message in message queue to: " + messageDetails.url);
 			messageDetails.setReturn(SendReturn.removed);
 			fastFiFoMessageDetails.push(messageDetails);
 			return SendReturn.removed;
@@ -709,7 +720,7 @@ public class MessageSender implements Runnable, IPersistable
 		{
 			messageFiFo.remove(0);
 			removedError++;
-			log.warn("removed timed out " + messageDetails.getName() + " message to: " + messageDetails.url);
+			sLog.warn("removed timed out " + messageDetails.getName() + " message to: " + messageDetails.url);
 			messageDetails.setReturn(SendReturn.removed);
 			fastFiFoMessageDetails.push(messageDetails);
 			return SendReturn.removed;
@@ -741,7 +752,7 @@ public class MessageSender implements Runnable, IPersistable
 			duration = (durationWait / (3600000L * 24L)) + " days";
 		}
 
-		log.info("successfully reactivated message sender " + mesDetails.getName() + " to: " + mesDetails.url + " after " + duration + " messages pending: " + messageFiFo.size());
+		sLog.info("successfully reactivated message sender " + mesDetails.getName() + " to: " + mesDetails.url + " after " + duration + " messages pending: " + messageFiFo.size());
 	}
 
 	/**
@@ -754,7 +765,7 @@ public class MessageSender implements Runnable, IPersistable
 	{
 		if (messageDetails.url == null || (!UrlUtil.isHttp(messageDetails.url) && !UrlUtil.isHttps(messageDetails.url)))
 		{
-			log.error("Invalid url: " + messageDetails.url + " removing message " + messageDetails.getName());
+			sLog.error("Invalid url: " + messageDetails.url + " removing message " + messageDetails.getName());
 			return SendReturn.removed;
 		}
 
@@ -765,12 +776,12 @@ public class MessageSender implements Runnable, IPersistable
 		}
 		catch (final IllegalArgumentException e)
 		{
-			log.warn("Invalid stream " + e.getMessage());
+			sLog.warn("Invalid stream " + e.getMessage());
 			return SendReturn.removed;
 		}
 		catch (final Throwable ex)
 		{
-			log.error("Exception in sendHTTP: " + ex.getClass().getSimpleName() + " Message= " + ex.getMessage(), ex);
+			sLog.error("Exception in sendHTTP: " + ex.getClass().getSimpleName() + " Message= " + ex.getMessage(), ex);
 			if (messageDetails.respHandler != null)
 			{
 				messageDetails.respHandler.handleMessage(); // make sure we tell anyone who is waiting that the wait is over...
@@ -807,7 +818,7 @@ public class MessageSender implements Runnable, IPersistable
 			catch (final FileNotFoundException fx)
 			{
 				// this happens when a server is at the url but the war is not loaded
-				log.warn("Error reading response: " + fx.getMessage());
+				sLog.warn("Error reading response: " + fx.getMessage());
 				connection = null;
 				responseCode = 404;
 			}
@@ -841,7 +852,7 @@ public class MessageSender implements Runnable, IPersistable
 			sendReturn = SendReturn.error;
 			if (idle < 10 || (idle % 100 == 0))
 			{
-				log.warn("could not send message to unavailable " + messageDetails.url + " no return; rc= " + responseCode);
+				sLog.warn("could not send message to unavailable " + messageDetails.url + " no return; rc= " + responseCode);
 			}
 		}
 		else if (!UrlUtil.isReturnCodeOK(responseCode))
@@ -851,7 +862,7 @@ public class MessageSender implements Runnable, IPersistable
 				sendReturn = SendReturn.removed;
 				if (idle == 0)
 				{
-					log.error("removing message that causes server error at " + messageDetails.url + " rc= " + responseCode);
+					sLog.error("removing message that causes server error at " + messageDetails.url + " rc= " + responseCode);
 				}
 			}
 			else
@@ -859,7 +870,7 @@ public class MessageSender implements Runnable, IPersistable
 				sendReturn = SendReturn.error;
 				if (bad == 0 || (bad % 100 == 0))
 				{
-					log.warn("error sending message " + messageDetails.getName() + " to " + messageDetails.url + " rc= " + responseCode);
+					sLog.warn("error sending message " + messageDetails.getName() + " to " + messageDetails.url + " rc= " + responseCode);
 				}
 			}
 		}
@@ -917,11 +928,11 @@ public class MessageSender implements Runnable, IPersistable
 		final long t1 = System.currentTimeMillis();
 		if (!UrlPart.isReturnCodeOK(p))
 		{
-			log.warn("Flaky RC " + rc + " in JMF response to " + url);
+			sLog.warn("Flaky RC " + rc + " in JMF response to " + url);
 		}
 		if ((t1 - t0) > 1234)
 		{
-			log.warn("long processing of jmf " + (t1 - t0) + " mS for JMF response to " + url);
+			sLog.warn("long processing of jmf " + (t1 - t0) + " mS for JMF response to " + url);
 		}
 		final DumpDir outputDumpDir = getOuputDumpDir(messageDetails.senderID);
 		final String textHeader = "URL: " + url + "\nDeltaT: " + (t1 - t0);
@@ -1000,12 +1011,12 @@ public class MessageSender implements Runnable, IPersistable
 	{
 		if (isShutdown)
 		{
-			log.warn("cannot queue message during shutdown!");
+			sLog.warn("cannot queue message during shutdown!");
 			return false;
 		}
 		else if (jmf == null)
 		{
-			log.warn("cannot queue null message!");
+			sLog.warn("cannot queue null message!");
 			return false;
 		}
 
@@ -1020,7 +1031,7 @@ public class MessageSender implements Runnable, IPersistable
 	{
 		if (isShutdown)
 		{
-			log.warn("cannot queue message during shutdown!");
+			sLog.warn("cannot queue message during shutdown!");
 			return false;
 		}
 
@@ -1035,7 +1046,7 @@ public class MessageSender implements Runnable, IPersistable
 	{
 		if (isShutdown)
 		{
-			log.warn("cannot queue message during shutdown!");
+			sLog.warn("cannot queue message during shutdown!");
 			return false;
 		}
 
@@ -1054,7 +1065,7 @@ public class MessageSender implements Runnable, IPersistable
 				String textWarning = " not queueing fire&forget to " + callURL.url + "; message #";
 				textWarning += removedFireForget;
 				textWarning += " currently waiting: " + messageFiFo.size();
-				log.warn(textWarning);
+				sLog.warn(textWarning);
 			}
 			trySend++;
 			return false;
@@ -1072,7 +1083,7 @@ public class MessageSender implements Runnable, IPersistable
 			{
 				textInfo += " size=" + messageFiFo.size();
 			}
-			log.info(textInfo);
+			sLog.info(textInfo);
 		}
 
 		messageFiFo.add(messageDetails);
@@ -1081,11 +1092,11 @@ public class MessageSender implements Runnable, IPersistable
 		{
 			if ((messageFiFo.size() % 100) == 0)
 			{
-				log.warn("queueing message into blocked sender to " + callURL + " size=" + messageFiFo.size());
+				sLog.warn("queueing message into blocked sender to " + callURL + " size=" + messageFiFo.size());
 			}
 			else if (jmfFactory.isLogLots())
 			{
-				log.info("queueing message into blocked sender to " + callURL + " size=" + messageFiFo.size());
+				sLog.info("queueing message into blocked sender to " + callURL + " size=" + messageFiFo.size());
 			}
 		}
 		if (!isPaused)
@@ -1179,15 +1190,15 @@ public class MessageSender implements Runnable, IPersistable
 	{
 		synchronized (messageFiFo)
 		{
-			log.warn("Flushing " + messageFiFo.size() + " Messages from " + toString());
+			sLog.warn("Flushing " + messageFiFo.size() + " Messages from " + toString());
 			messageFiFo.clear();
 			final File persistLocation = getPersistLocation(true);
-			log.warn("Deleting message directory Messages from " + (persistLocation == null ? "null" : persistLocation.getAbsolutePath()));
+			sLog.warn("Deleting message directory Messages from " + (persistLocation == null ? "null" : persistLocation.getAbsolutePath()));
 
 			final boolean ok = FileUtil.deleteAll(persistLocation);
 			if (!ok)
 			{
-				log.error("Problems deleting message directory Messages from " + (persistLocation == null ? "null" : persistLocation.getAbsolutePath()));
+				sLog.error("Problems deleting message directory Messages from " + (persistLocation == null ? "null" : persistLocation.getAbsolutePath()));
 			}
 		}
 	}
