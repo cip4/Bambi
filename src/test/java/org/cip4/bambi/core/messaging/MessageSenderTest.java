@@ -226,6 +226,7 @@ public class MessageSenderTest extends BambiTestCase
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
 		final MessageDetails md2 = new MessageDetails(jmf, mock(IResponseHandler.class), mock(IConverterCallback.class), new HTTPDetails(), "http://nosuchurl");
 		final MessageSender s = getTestSender();
+		s.resume();
 		for (int i = 0; i < 42; i++)
 		{
 			assertEquals(SendReturn.error, s.processResponse(md, null));
