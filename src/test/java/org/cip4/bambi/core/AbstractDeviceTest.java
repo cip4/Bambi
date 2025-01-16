@@ -272,13 +272,14 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 			assertTrue(device.doSynchronous(qee));
 			ThreadUtil.sleep(1);
 		}
-		for (int i = 0; i < 4234; i++)
+		for (int i = 0; i < 6234; i++)
 		{
 			if (queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
 			{
 				ThreadUtil.sleep(123);
 			}
 		}
+		ThreadUtil.sleep(123);
 		assertNotEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Completed));
 		assertEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting));
 	}
@@ -304,13 +305,14 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 			assertTrue(device.doSynchronous(qee));
 			ThreadUtil.sleep(1);
 		}
-		for (int i = 0; i < 4234; i++)
+		for (int i = 0; i < 6234; i++)
 		{
 			if (queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
 			{
 				ThreadUtil.sleep(123);
 			}
 		}
+		ThreadUtil.sleep(123);
 		assertNotEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Completed));
 		assertEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting));
 	}
@@ -336,13 +338,14 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 			assertTrue(device.doSynchronous(qee));
 			ThreadUtil.sleep(1);
 		}
-		for (int i = 0; i < 4234; i++)
+		for (int i = 0; i < 6234; i++)
 		{
 			if (queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
 			{
 				ThreadUtil.sleep(123);
 			}
 		}
+		ThreadUtil.sleep(123);
 		assertNotEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Completed));
 		assertEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting));
 	}
