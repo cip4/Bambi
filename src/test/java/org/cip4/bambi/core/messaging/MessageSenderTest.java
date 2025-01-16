@@ -92,6 +92,8 @@ import org.cip4.bambi.core.messaging.MessageSender.SenderQueueOptimizer;
 import org.cip4.jdflib.auto.JDFAutoSignal.EnumChannelMode;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
+import org.cip4.jdflib.core.JDFElement;
+import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
@@ -469,9 +471,12 @@ public class MessageSenderTest extends BambiTestCase
 		final MessageSender s = getTestSender();
 		s.pause();
 		int n = 0;
-		for (int i = 0; i < 2222; i++)
+		final JDFResourceLink rl = (JDFResourceLink) JDFElement.createRoot("MediaLink");
+		for (int i = 0; i < 4444; i++)
 		{
+			rl.setActualAmount(i);
 			final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+			final JDFJMF jmfr = JMFBuilderFactory.getJMFBuilder(null).buildResourceSignal(false, rl);
 			if (i % 2 == 0)
 				jmf.getSignal().setChannelMode(EnumChannelMode.FireAndForget);
 			else
@@ -480,11 +485,13 @@ public class MessageSenderTest extends BambiTestCase
 			}
 			if (i == 2000)
 				s.getJMFFactory().setLogLots(true);
-			if (i == 2100)
+			if (i == 3100)
 				s.waitKaputt = true;
 			final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
 			if (s.queueMessageDetails(md))
 				n++;
+			final MessageDetails mdr = new MessageDetails(jmfr, null, null, null, "http://nosuchurl");
+			s.queueMessageDetails(mdr);
 		}
 		assertTrue(n > 0);
 	}
