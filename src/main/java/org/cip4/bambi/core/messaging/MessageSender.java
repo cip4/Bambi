@@ -88,6 +88,8 @@ import org.cip4.jdflib.util.thread.MyMutex;
 public class MessageSender implements Runnable, IPersistable
 {
 
+	private static final int MAX_LOOP_WAIT = 424242;
+
 	private static final Log sLog = LogFactory.getLog(MessageSender.class);
 
 	private static final ListMap<String, DumpDir> dumpDirsMap = new ListMap<>();
@@ -343,77 +345,108 @@ public class MessageSender implements Runnable, IPersistable
 				sLog.info("senderloop to " + callURL.getBaseURL() + " is resumed");
 			}
 
-			SendReturn sendReturn;
-			try
-			{
-				sendReturn = sendFirstMessage();
-				cpuTimer.stop();
-			}
-			catch (final Throwable x)
-			{
-				sendReturn = SendReturn.error;
-				sLog.error("Error sending message: ", x);
-				cpuTimer.stop();
-			}
-
-			final long currentTime_0 = System.currentTimeMillis();
-
-			if (sendReturn == SendReturn.sent)
-			{
-				sent++;
-				timeLastSent = currentTime_0;
-				idle = 0;
-				waitKaputt = false;
-				if (jmfFactory.isLogLots() || sent < 10 || (sent % 1000) == 0)
-				{
-					sLog.info("successfully sent JMF # " + sent + " to " + callURL);
-				}
-			}
-			else
-			{
-				idle++;
-				int wait = 1000;
-				if (messageFiFo.size() == 0)
-				{
-					if (idle > 3333)
-					{
-						// no success or idle for an hour...
-						sLog.info("Shutting down idle and empty thread for base url: " + callURL.getBaseURL());
-						shutDown();
-						break;
-					}
-				}
-				else
-				{ // stepwise increment - try every second 10 times, then every 15 seconds, then every 5 minutes
-					final int minIdle = 10;
-					wait = 15000;
-					if (idle > minIdle)
-					{
-						wait *= (idle / minIdle);
-						if (wait > 424242)
-						{
-							wait = 424242;
-							if (messageFiFo.size() > 0 && (currentTime_0 - lastLog) > 60000L)
-							{
-								final String tmp = getReadableTime();
-								sLog.warn("Waiting in blocked message thread: " + callURL.getBaseURL() + " unsuccessful for " + tmp + messageFiFo.size());
-								lastLog = currentTime_0;
-							}
-						}
-						waitKaputt = true;
-					}
-					else
-					{
-						waitKaputt = false;
-					}
-				}
-				if (!ThreadUtil.wait(mutexDispatch, wait))
-				{
-					shutDown();
-				}
-			}
+			lastLog = trySingle(lastLog);
 		}
 
+	}
+
+	protected long trySingle(long lastLog)
+	{
+		final SendReturn sendReturn = trySendSingle();
+
+		if (SendReturn.sent.equals(sendReturn))
+		{
+			postSent();
+		}
+		else
+		{
+			lastLog = postSendReturn(lastLog, sendReturn);
+		}
+		return lastLog;
+	}
+
+	final private static int MIN_IDLE = 10;
+
+	protected long postSendReturn(long lastLog, final SendReturn sendReturn)
+	{
+		if (SendReturn.removed.equals(sendReturn))
+		{
+			idle = 0;
+			waitKaputt = false;
+		}
+		else
+		{
+			idle++;
+		}
+		final int wait;
+		checkShutdownIdle();
+
+		// stepwise increment - try every second 10 times, then gradually increase
+		if (idle > MIN_IDLE)
+		{
+			wait = Math.min(MAX_LOOP_WAIT, (15000 * idle / MIN_IDLE));
+			if (wait == MAX_LOOP_WAIT)
+			{
+				final long currentTime_0 = System.currentTimeMillis();
+				if (messageFiFo.size() > 0 && (currentTime_0 - lastLog) > 60000L)
+				{
+					final String tmp = getReadableTime();
+					sLog.warn("Waiting in blocked message thread: " + callURL.getBaseURL() + " unsuccessful for " + tmp + messageFiFo.size());
+					lastLog = currentTime_0;
+				}
+			}
+			waitKaputt = messageFiFo.size() > 420;
+		}
+		else
+		{
+			waitKaputt = false;
+			wait = 1000;
+		}
+
+		if (!ThreadUtil.wait(mutexDispatch, wait))
+		{
+			shutDown();
+		}
+		return lastLog;
+	}
+
+	protected void checkShutdownIdle()
+	{
+		if ((idle > 3333) && messageFiFo.isEmpty())
+		{
+			// no success or idle for an hour...
+			sLog.info("Shutting down idle and empty thread for base url: " + callURL.getBaseURL());
+			shutDown();
+		}
+	}
+
+	protected void postSent()
+	{
+		sent++;
+		timeLastSent = System.currentTimeMillis();
+		idle = 0;
+		waitKaputt = false;
+		if (jmfFactory.isLogLots() || sent < 10 || (sent % 1000) == 0)
+		{
+			sLog.info("successfully sent JMF #" + sent + " to " + callURL + " pending: " + messageFiFo.size());
+		}
+	}
+
+	protected SendReturn trySendSingle()
+	{
+		SendReturn sendReturn;
+		try
+		{
+			sendReturn = sendFirstMessage();
+			cpuTimer.stop();
+		}
+		catch (final Throwable x)
+		{
+			sendReturn = SendReturn.error;
+			sLog.error("Error sending message: ", x);
+			cpuTimer.stop();
+		}
+		return sendReturn;
 	}
 
 	String getReadableTime()
@@ -775,7 +808,7 @@ public class MessageSender implements Runnable, IPersistable
 		}
 		catch (final IllegalArgumentException e)
 		{
-			sLog.warn("Invalid stream " + e.getMessage());
+			sLog.warn("Cannot process " + messageDetails.getName() + " Error=" + e.getMessage());
 			return SendReturn.removed;
 		}
 		catch (final Throwable ex)
@@ -917,7 +950,7 @@ public class MessageSender implements Runnable, IPersistable
 		final InputStream is = messageDetails.getInputStream();
 		if (is == null || StringUtil.isEmpty(url))
 		{
-			throw new IllegalArgumentException("sending null stream to " + url);
+			throw new IllegalArgumentException("sending null input message stream to " + url);
 		}
 
 		final HTTPDetails httpDetails = messageDetails.mimeDet == null ? null : messageDetails.mimeDet.httpDetails;
@@ -927,11 +960,11 @@ public class MessageSender implements Runnable, IPersistable
 		final long t1 = System.currentTimeMillis();
 		if (!UrlPart.isReturnCodeOK(p))
 		{
-			sLog.warn("Flaky RC " + rc + " in JMF response to " + url);
+			sLog.warn("Flaky RC " + rc + " in JMF " + messageDetails.getName() + " response to " + url);
 		}
 		if ((t1 - t0) > 1234)
 		{
-			sLog.warn("long processing of jmf " + (t1 - t0) + " mS for JMF response to " + url);
+			sLog.warn("long processing of " + messageDetails.getName() + " JMF " + (t1 - t0) + " mS for JMF response to " + url);
 		}
 		final DumpDir outputDumpDir = getOuputDumpDir(messageDetails.senderID);
 		final String textHeader = "URL: " + url + "\nDeltaT: " + (t1 - t0);

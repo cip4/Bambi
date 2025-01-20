@@ -386,6 +386,9 @@ public class MessageSenderTest extends BambiTestCase
 		s.checkDetails(md);
 		s.checkDetails(null);
 		s.zappFirstMessage();
+		s.pause();
+		s.checkDetails(md);
+		s.resume();
 		s.checkDetails(md);
 	}
 
@@ -459,6 +462,8 @@ public class MessageSenderTest extends BambiTestCase
 	{
 		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://localhost:8080/httpdump/messagesendertest");
 		s.flushMessages();
+		s.resume();
+
 		return s;
 	}
 
@@ -587,6 +592,33 @@ public class MessageSenderTest extends BambiTestCase
 		assertNotNull(s.toString());
 		s.resume();
 		assertNotNull(s.toString());
+		assertFalse(s.waitKaputt);
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testPostSent()
+	{
+		final MessageSender s = getTestSender();
+		s.postSent();
+		assertFalse(s.waitKaputt);
+		s.persist();
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testIsBlocked()
+	{
+		final MessageSender s = getTestSender();
+		s.postSent();
+		assertFalse(s.isBlocked(40000, 400));
+		assertTrue(s.isBlocked(-1l * System.currentTimeMillis(), -1));
 	}
 
 	/**
