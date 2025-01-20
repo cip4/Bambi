@@ -95,6 +95,8 @@ import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.util.DumpDir;
@@ -613,6 +615,43 @@ public class MessageSenderTest extends BambiTestCase
 	 *
 	 */
 	@Test
+	public void testIdle()
+	{
+		final MessageSender s = getTestSender();
+		s.pause();
+		assertFalse(s.checkShutdownIdle());
+		s.idle = 4444;
+		s.postSendReturn(0, SendReturn.empty);
+		assertTrue(s.checkShutdownIdle());
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testMaxWait()
+	{
+		final MessageSender s = getTestSender();
+		s.pause();
+		s.maxWait(-1, 42);
+		s.maxWait(-1, MessageSender.MAX_LOOP_WAIT);
+		s.maxWait(System.currentTimeMillis(), 42);
+		s.maxWait(System.currentTimeMillis(), MessageSender.MAX_LOOP_WAIT);
+		for (int i = 0; i < 1000; i++)
+		{
+			s.queueMessageDetails(new MessageDetails(JDFJMF.createJMF(EnumFamily.Signal, EnumType.Resource)));
+		}
+		s.maxWait(-1, MessageSender.MAX_LOOP_WAIT);
+		s.maxWait(-1, MessageSender.MAX_LOOP_WAIT);
+		assertTrue(s.waitKaputt);
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
 	public void testIsBlocked()
 	{
 		final MessageSender s = getTestSender();
@@ -629,6 +668,7 @@ public class MessageSenderTest extends BambiTestCase
 	public void testQueueMany()
 	{
 		final MessageSender s = getTestSender();
+		s.resume();
 		final JDFJMF jmf = new JMFBuilder().buildStatusSignal(EnumDeviceDetails.Details, EnumJobDetails.Full);
 		for (int i = 0; i < 420; i++)
 			s.queueMessage(jmf, null, null, null, null);

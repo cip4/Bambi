@@ -88,7 +88,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
 public class MessageSender implements Runnable, IPersistable
 {
 
-	private static final int MAX_LOOP_WAIT = 424242;
+	static final int MAX_LOOP_WAIT = 424242;
 
 	private static final Log sLog = LogFactory.getLog(MessageSender.class);
 
@@ -115,7 +115,7 @@ public class MessageSender implements Runnable, IPersistable
 	protected int removedHeartbeatJMF;
 	protected int removedFireForget;
 	protected int removedError;
-	private int idle;
+	int idle;
 	private int bad;
 	private boolean isShutdown = false;
 	private boolean isPaused;
@@ -385,17 +385,7 @@ public class MessageSender implements Runnable, IPersistable
 		if (idle > MIN_IDLE)
 		{
 			wait = Math.min(MAX_LOOP_WAIT, (15000 * idle / MIN_IDLE));
-			if (wait == MAX_LOOP_WAIT)
-			{
-				final long currentTime_0 = System.currentTimeMillis();
-				if (messageFiFo.size() > 0 && (currentTime_0 - lastLog) > 60000L)
-				{
-					final String tmp = getReadableTime();
-					sLog.warn("Waiting in blocked message thread: " + callURL.getBaseURL() + " unsuccessful for " + tmp + messageFiFo.size());
-					lastLog = currentTime_0;
-				}
-			}
-			waitKaputt = messageFiFo.size() > 420;
+			lastLog = maxWait(lastLog, wait);
 		}
 		else
 		{
@@ -410,14 +400,32 @@ public class MessageSender implements Runnable, IPersistable
 		return lastLog;
 	}
 
-	protected void checkShutdownIdle()
+	protected long maxWait(long lastLog, final int wait)
+	{
+		if (wait == MAX_LOOP_WAIT)
+		{
+			final long currentTime_0 = System.currentTimeMillis();
+			if (messageFiFo.size() > 0 && (currentTime_0 - lastLog) > 60000L)
+			{
+				final String tmp = getReadableTime();
+				sLog.warn("Waiting in blocked message thread: " + callURL.getBaseURL() + " unsuccessful for " + tmp + messageFiFo.size());
+				lastLog = currentTime_0;
+			}
+		}
+		waitKaputt = messageFiFo.size() > 420;
+		return lastLog;
+	}
+
+	protected boolean checkShutdownIdle()
 	{
 		if ((idle > 3333) && messageFiFo.isEmpty())
 		{
 			// no success or idle for an hour...
 			sLog.info("Shutting down idle and empty thread for base url: " + callURL.getBaseURL());
 			shutDown();
+			return true;
 		}
+		return false;
 	}
 
 	protected void postSent()
