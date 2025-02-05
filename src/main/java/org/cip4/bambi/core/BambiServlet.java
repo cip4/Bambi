@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -56,6 +56,7 @@ import org.cip4.bambi.server.BambiServer;
 import org.cip4.jdflib.util.DumpDir;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.PlatformUtil;
+import org.cip4.jdflib.util.StreamUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 
@@ -196,7 +197,7 @@ public final class BambiServlet extends HttpServlet
 		if (posS == 999999)
 			return dump;
 		final String env = dump.substring(1, posS);
-		String newBase = PlatformUtil.getProperty(env);
+		final String newBase = PlatformUtil.getProperty(env);
 		if (newBase == null)
 		{
 			log.warn("could not evaluate environment variable, keeping literal : " + env);
@@ -246,7 +247,7 @@ public final class BambiServlet extends HttpServlet
 			{
 				final AbstractDevice rootDev = theContainer.getRootDev();
 				rootDev.startWork();
-				log.debug("Processing " + request.getMethod() + " request for: " + request.getPathInfo());
+				log.info("Processing " + request.getMethod() + " request for URL: " + request.getRequestURL().toString() + "(" + request.getPathInfo() + ")");
 
 				final StreamRequest sr = StreamRequest.createStreamRequest(request);
 
@@ -270,7 +271,7 @@ public final class BambiServlet extends HttpServlet
 					dumpIncoming(request, bBuf, sr);
 					dumpOutGoing(request.getMethod(), sr, httpResp);
 				}
-				request.getInputStream().close(); // avoid mem leaks
+				StreamUtil.close(request.getInputStream()); // avoid mem leaks
 				rootDev.endWork();
 			}
 		}

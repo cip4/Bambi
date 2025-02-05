@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -72,11 +72,18 @@
 package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.Enumeration;
 
-import org.cip4.bambi.BambiTestCaseBase;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.server.BambiServer;
 import org.junit.Test;
 
@@ -85,8 +92,14 @@ import org.junit.Test;
  * 
  *         16.02.2009
  */
-public class BambiServletTest extends BambiTestCaseBase
+public class BambiServletTest extends BambiTestCase
 {
+
+	public BambiServletTest()
+	{
+		super();
+		wantContainer = true;
+	}
 
 	/**
 	 * @throws Exception
@@ -97,8 +110,81 @@ public class BambiServletTest extends BambiTestCaseBase
 	@Test
 	public void testCreate() throws Exception
 	{
-		BambiServer s = new BambiServer();
+		final BambiServer s = new BambiServer();
 		assertNotNull(new BambiServlet(s));
+	}
+
+	class Enus implements Enumeration<String>
+	{
+
+		@Override
+		public boolean hasMoreElements()
+		{
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public String nextElement()
+		{
+			// TODO Auto-generated method stub
+			return "";
+		}
+
+	}
+
+	/**
+	 * @throws Exception
+	 * @throws IOException
+	 * @throws Exception
+	 * 
+	 */
+	@Test
+	public void testDoGetPost() throws Exception
+	{
+		startContainer();
+		final BambiServer s = new BambiServer();
+		final BambiServlet bs = new BambiServlet(s);
+		final HttpServletRequest req = mock(HttpServletRequest.class);
+		when(req.getRequestURL()).thenReturn(new StringBuffer(""));
+		when(req.getHeaderNames()).thenReturn(new Enus());
+		assertFalse(bs.doGetPost(req, mock(HttpServletResponse.class), true));
+	}
+
+	/**
+	 * @throws Exception
+	 * @throws IOException
+	 * @throws Exception
+	 * 
+	 */
+	@Test
+	public void testDoGet() throws Exception
+	{
+		startContainer();
+		final BambiServer s = new BambiServer();
+		final BambiServlet bs = new BambiServlet(s);
+		final HttpServletRequest req = mock(HttpServletRequest.class);
+		when(req.getRequestURL()).thenReturn(new StringBuffer("https"));
+		when(req.getHeaderNames()).thenReturn(new Enus());
+		bs.doGet(req, mock(HttpServletResponse.class));
+	}
+
+	/**
+	 * @throws Exception
+	 * @throws IOException
+	 * @throws Exception
+	 * 
+	 */
+	@Test
+	public void testDoPost() throws Exception
+	{
+		startContainer();
+		final BambiServer s = new BambiServer();
+		final BambiServlet bs = new BambiServlet(s);
+		final HttpServletRequest req = mock(HttpServletRequest.class);
+		when(req.getRequestURL()).thenReturn(new StringBuffer("http"));
+		when(req.getHeaderNames()).thenReturn(new Enus());
+		bs.doPost(req, mock(HttpServletResponse.class));
 	}
 
 	/**
@@ -110,7 +196,7 @@ public class BambiServletTest extends BambiTestCaseBase
 	@Test
 	public void testCreateContainer() throws Exception
 	{
-		BambiServer s = new BambiServer();
+		final BambiServer s = new BambiServer();
 		assertNotNull(new BambiServlet(s));
 		assertNotNull(BambiContainer.getInstance());
 	}
