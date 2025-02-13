@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -125,6 +125,15 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		public String getDeviceURL()
 		{
 			return getContextURL() + "/jmf/" + getDeviceID();
+		}
+
+		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getDeviceURL()
+		 */
+		@Override
+		public String getDeviceSSLURL()
+		{
+			return getContextSSLURL() + "/jmf/" + getDeviceID();
 		}
 
 		/**
@@ -580,6 +589,15 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		}
 
 		/**
+		 * @see org.cip4.bambi.core.IDeviceProperties#getContextSSLURL()
+		 */
+		@Override
+		public String getContextSSLURL()
+		{
+			return MultiDeviceProperties.this.getContextSSLURL();
+		}
+
+		/**
 		 * @see org.cip4.bambi.core.IDeviceProperties#getWatchURL()
 		 */
 		@Override
@@ -998,6 +1016,20 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		}
 
 		return baseUrl + "/" + context;
+	}
+
+	/**
+	 * @return
+	 * @see org.cip4.bambi.core.IDeviceProperties#getContextURL()
+	 */
+	public String getContextSSLURL()
+	{
+		if (getSSLPort() > 0)
+		{
+			final String httpUrl = getContextURL();
+			return StringUtil.replaceToken(StringUtil.replaceToken(httpUrl, 0, ":/", "https"), 2, ":/", Integer.toString(getSSLPort()));
+		}
+		return null;
 	}
 
 	/**

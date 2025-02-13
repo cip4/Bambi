@@ -2411,11 +2411,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	protected void removeOrphanJDFs()
 	{
 		final File[] crap;
-		final HashSet<File> hs;
+		final HashSet<File> hs = new HashSet<>();
 		synchronized (_theQueue)
 		{
 			crap = FileUtil.listFilesWithExtension(_parentDevice.getJDFDir(), "jdf");
-			hs = new HashSet<>();
 			final VElement v = getQueue().getQueueEntryVector();
 			for (int i = 0; i < v.size(); i++)
 			{

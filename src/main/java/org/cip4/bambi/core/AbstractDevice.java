@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -777,7 +777,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final JDFQuery query = jmf.getQuery(0);
 			query.setID("Watch_" + query.getType());
 			updateWatchSubscription(query);
-			_theSignalDispatcher.addSubscription(query, null, null);
+			_theSignalDispatcher.addSubscription(query, null);
 		}
 	}
 
@@ -1826,6 +1826,14 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public String getDeviceURL()
 	{
 		return _devProperties.getDeviceURL();
+	}
+
+	/**
+	 * @return the url of this device
+	 */
+	public String getDeviceSSLURL()
+	{
+		return _devProperties.getDeviceSSLURL();
 	}
 
 	/**

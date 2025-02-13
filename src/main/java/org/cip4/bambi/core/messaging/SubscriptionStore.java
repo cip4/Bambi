@@ -89,7 +89,7 @@ public class SubscriptionStore
 				final VElement v = root.getChildElementVector(MsgSubscription.SUBSCRIPTION_ELEMENT, null);
 				for (final KElement subElem : v)
 				{
-					final MsgSubscription sub = new MsgSubscription(this.signalDispatcher, subElem);
+					final MsgSubscription sub = new MsgSubscription(subElem, this.signalDispatcher);
 					final IConverterCallback callback = signalDispatcher.device.getCallback(sub.url, sub);
 					sub.setConverterCallback(callback);
 

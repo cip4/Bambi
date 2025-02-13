@@ -297,7 +297,7 @@ public class StatusListener implements IPersistable
 	 * @param trackResourceID the id of the "major" resource to be counted for phasetimes
 	 * @param node the jdf node that will be processed. this may be a group node with additional sub nodes if node==null the queueentryid is removed from the map
 	 */
-	public synchronized void setNode(final String queueEntryID, JDFNode node, final VJDFAttributeMap vPartMap, final String trackResourceID)
+	public synchronized void setNode(final String queueEntryID, final JDFNode node, final VJDFAttributeMap vPartMap, final String trackResourceID)
 	{
 		final String oldQEID = theCounter.getQueueEntryID();
 		theCounter.writeAll(); // write all stuff in the counter to the node
@@ -324,11 +324,6 @@ public class StatusListener implements IPersistable
 			final VJDFAttributeMap partMapVector = node.getNodeInfoPartMapVector();
 			final JDFAttributeMap partMap = partMapVector == null ? null : partMapVector.getCommonMap();
 			theCounter.setPhase(node.getPartStatus(partMap, 1), node.getPartStatusDetails(partMap), EnumDeviceStatus.Running, node.getPartStatusDetails(partMap));
-		}
-		while (node != null)
-		{
-			dispatcher.addSubscriptions(node, queueEntryID);
-			node = node.getParentJDF();
 		}
 	}
 

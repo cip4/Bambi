@@ -70,7 +70,7 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
 		jmf.setMaxVersion(EnumVersion.Version_2_0);
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
 		assertEquals(EnumVersion.Version_2_0, s.jdfVersion);
 	}
 
@@ -82,7 +82,7 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
 		jmf.setMaxVersion(EnumVersion.Version_2_0);
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
 		s.incrementMessage(null);
 		assertEquals(0, s.sentMessages);
 		s.incrementMessage(jmf);
@@ -97,7 +97,7 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
 		jmf.setMaxVersion(EnumVersion.Version_2_0);
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
 		assertNotNull(s.toString());
 		assertNotNull(s.shortString());
 	}
@@ -109,12 +109,12 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	public void testWatchFormat()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
-		final MsgSubscription s0 = new MsgSubscription(null, jmf.getQuery(0), null);
+		final MsgSubscription s0 = new MsgSubscription(null, jmf.getQuery(0));
 		assertEquals(EWatchFormat.JMF, s0.getWatchFormat());
 		jmf.setMaxVersion(EnumVersion.Version_2_0);
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
 		assertEquals(EWatchFormat.XJMF, s.getWatchFormat());
-		final MsgSubscription sj = new MsgSubscription(null, jmf.getQuery(0), null);
+		final MsgSubscription sj = new MsgSubscription(null, jmf.getQuery(0));
 		sj.setJSON(true);
 		assertEquals(EWatchFormat.JSON, sj.getWatchFormat());
 	}
@@ -126,7 +126,7 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	public void testWatchFormatXML()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
-		final MsgSubscription sj = new MsgSubscription(Mockito.mock(SignalDispatcher.class), jmf.getQuery(0), null);
+		final MsgSubscription sj = new MsgSubscription(Mockito.mock(SignalDispatcher.class), jmf.getQuery(0));
 		sj.setJSON(true);
 		assertEquals(EWatchFormat.JSON, sj.getWatchFormat());
 		final KElement e = KElement.createRoot("e", null);
@@ -146,7 +146,7 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 		final XJDFToJDFConverter xc = new XJDFToJDFConverter(null);
 		final JDFDoc d = xc.convert(h.getRoot());
 		final JDFJMF jmf = d.getJMFRoot();
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
 		assertNull(s.jmfDeviceID);
 	}
 
@@ -157,7 +157,7 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	public void testGetType()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
 		assertEquals("Status", s.getMessageType());
 	}
 
@@ -169,7 +169,7 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
 		jmf.setDeviceID("d1");
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
 		assertEquals("d1", s.jmfDeviceID);
 	}
 
@@ -181,26 +181,14 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
 		jmf.setDeviceID("d1");
-		final MsgSubscription s1 = new MsgSubscription(null, jmf.getQuery(0), null);
+		final MsgSubscription s1 = new MsgSubscription(null, jmf.getQuery(0));
 		final JDFJMF jmf2 = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
 		jmf2.setDeviceID("d1");
-		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0), null);
+		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0));
 		assertEquals(s1, s2);
 		jmf2.setDeviceID("d2");
-		final MsgSubscription s3 = new MsgSubscription(null, jmf2.getQuery(0), null);
+		final MsgSubscription s3 = new MsgSubscription(null, jmf2.getQuery(0));
 		assertNotEquals(s1, s3);
-	}
-
-	/**
-	 *
-	 */
-	@Test
-	public void testQEID()
-	{
-		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
-		jmf.setDeviceID("d1");
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), "q");
-		assertEquals("q", s.queueEntry);
 	}
 
 	/**
@@ -210,11 +198,12 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	public void testEquals()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
+		final JDFJMF jmf2 = new JMFBuilder().buildStatusSubscription("abcd", 0, 0, null);
 		jmf.setDeviceID("d1");
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), "q");
-		final MsgSubscription s2 = new MsgSubscription(null, jmf.getQuery(0), "q");
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
+		final MsgSubscription s2 = new MsgSubscription(null, jmf.getQuery(0));
 		assertEquals(s, s2);
-		final MsgSubscription s3 = new MsgSubscription(null, jmf.getQuery(0), "q1");
+		final MsgSubscription s3 = new MsgSubscription(null, jmf2.getQuery(0));
 		assertNotEquals(s, s3);
 	}
 
@@ -230,12 +219,12 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 		final JDFJMF jmf2 = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
 		jmf2.setDeviceID("d1");
 		jmf2.setVersion(EnumVersion.Version_1_6);
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), "q");
-		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0), "q");
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
+		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0));
 		assertEquals(s, s2);
 
 		jmf2.setMaxVersion(EnumVersion.Version_2_3);
-		final MsgSubscription s3 = new MsgSubscription(null, jmf2.getQuery(0), "q1");
+		final MsgSubscription s3 = new MsgSubscription(null, jmf2.getQuery(0));
 		assertNotEquals(s, s3);
 	}
 
@@ -249,8 +238,8 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 		final JDFJMF jmf2 = new JMFBuilder().buildStatusSubscription("abc/a", 0, 0, null);
 		jmf.setDeviceID("d1");
 		jmf2.setDeviceID("d1");
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), "q");
-		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0), "q");
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
+		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0));
 		assertEquals(s, s2);
 	}
 
@@ -262,8 +251,8 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc/A", 0, 0, null);
 		jmf.setDeviceID("d1");
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), "q");
-		final MsgSubscription s2 = new MsgSubscription(null, jmf.getQuery(0), "q");
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
+		final MsgSubscription s2 = new MsgSubscription(null, jmf.getQuery(0));
 		s2.setJSON(true);
 		assertNotEquals(s, s2);
 		assertNotEquals(s.hashCode(), s2.hashCode());
@@ -279,8 +268,8 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 		final JDFJMF jmf2 = new JMFBuilder().buildStatusSubscription("abc/a", 0, 0, null);
 		jmf.setDeviceID("d1");
 		jmf2.setDeviceID("d1");
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), "q");
-		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0), "q");
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
+		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0));
 		assertEquals(s.hashCode(), s2.hashCode());
 	}
 
@@ -292,13 +281,13 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
 		jmf.setDeviceID("d1");
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
 		final JDFJMF jmf2 = (JDFJMF) jmf.cloneNewDoc();
 		jmf2.setDeviceID("d1");
-		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0), null);
+		final MsgSubscription s2 = new MsgSubscription(null, jmf2.getQuery(0));
 		assertEquals(s, s2);
 		jmf2.setDeviceID("d2");
-		final MsgSubscription s3 = new MsgSubscription(null, jmf2.getQuery(0), null);
+		final MsgSubscription s3 = new MsgSubscription(null, jmf2.getQuery(0));
 		assertNotEquals(s, s3);
 	}
 
@@ -309,7 +298,7 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 	public void testGetVersion()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
-		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0), null);
+		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
 		assertNotNull(s.getJdfVersion());
 	}
 

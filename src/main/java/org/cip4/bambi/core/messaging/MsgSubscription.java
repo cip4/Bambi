@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -63,7 +63,6 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFSignal;
-import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.EnumUtil;
@@ -82,7 +81,6 @@ public class MsgSubscription implements Cloneable
 	private final SignalDispatcher signalDispatcher;
 	protected static final String SUBSCRIPTION_ELEMENT = "MsgSubscription";
 	protected String channelID;
-	protected String queueEntry;
 	protected String url;
 	protected int repeatAmount, lastAmount;
 	EnumVersion jdfVersion;
@@ -96,13 +94,11 @@ public class MsgSubscription implements Cloneable
 	protected int sentMessages = 0;
 	protected String jmfDeviceID = null; // the senderID of the incoming (subscribed) jmf
 	private IConverterCallback converterCallback;
-	// do we want to support job specific subscriptions?
-	private static boolean specific = true;
 
 	/**
 	 * Custom Constructor. Accepting multiple params for initializing.
 	 */
-	MsgSubscription(final SignalDispatcher signalDispatcher, final IJMFSubscribable m, final String queueEntryId)
+	MsgSubscription(final SignalDispatcher signalDispatcher, final IJMFSubscribable m)
 	{
 		this(signalDispatcher);
 
@@ -126,7 +122,6 @@ public class MsgSubscription implements Cloneable
 		}
 		channelID = m.getID();
 		url = StringUtil.trim(jmfSubscription.getURL(), null);
-		queueEntry = isSpecific() ? queueEntryId : null;
 
 		repeatAmount = jmfSubscription.getRepeatStep();
 		repeatTime = (long) jmfSubscription.getRepeatTime();
@@ -310,7 +305,6 @@ public class MsgSubscription implements Cloneable
 		c.theMessage = theMessage; // ref only NOT Cloned (!!!)
 		c.url = url;
 		c.trigger = trigger; // ref only NOT Cloned (!!!)
-		c.queueEntry = queueEntry;
 		c.timeLastSubmission = timeLastSubmission;
 		c.sentMessages = sentMessages;
 		c.converterCallback = converterCallback; // ref only NOT Cloned (!!!)
@@ -405,7 +399,6 @@ public class MsgSubscription implements Cloneable
 	{
 		sub.setAttribute(AttributeName.CHANNELID, channelID);
 		sub.setAttribute(AttributeName.DEVICEID, jmfDeviceID);
-		sub.setAttribute(AttributeName.QUEUEENTRYID, queueEntry);
 		sub.setAttribute(AttributeName.SENDERID, signalDispatcher.device == null ? "test" : this.signalDispatcher.device.getDeviceID());
 
 		if (theMessage != null)
@@ -433,7 +426,6 @@ public class MsgSubscription implements Cloneable
 		this.signalDispatcher = signalDispatcher;
 		channelID = null;
 		jmfDeviceID = null;
-		queueEntry = null;
 		url = null;
 		repeatTime = 0;
 		repeatAmount = 0;
@@ -454,12 +446,24 @@ public class MsgSubscription implements Cloneable
 	 * @param sub
 	 * @param signalDispatcher
 	 */
-	MsgSubscription(final SignalDispatcher signalDispatcher, final KElement sub)
+	MsgSubscription(final SignalDispatcher signalDispatcher, final KElement sub, final boolean dummy)
+	{
+		this(sub, signalDispatcher);
+	}
+
+	/**
+	 * creates a MsgSubscription from an XML element
+	 *
+	 * - must be maintained in synch with @see setXML (duh...)
+	 *
+	 * @param sub
+	 * @param signalDispatcher
+	 */
+	MsgSubscription(final KElement sub, final SignalDispatcher signalDispatcher)
 	{
 		this(signalDispatcher);
 		channelID = sub.getAttribute(AttributeName.CHANNELID, null, null);
 		jmfDeviceID = sub.getNonEmpty(AttributeName.DEVICEID);
-		queueEntry = isSpecific() ? sub.getNonEmpty(AttributeName.QUEUEENTRYID) : null;
 		url = sub.getAttribute(AttributeName.URL, null, null);
 		repeatTime = sub.getLongAttribute(AttributeName.REPEATTIME, null, 0);
 		repeatAmount = sub.getIntAttribute(AttributeName.REPEATSTEP, null, 0);
@@ -480,28 +484,6 @@ public class MsgSubscription implements Cloneable
 		}
 	}
 
-	/**
-	 * @param queueEntryID
-	 */
-	protected void setQueueEntryID(final String queueEntryID)
-	{
-		if (queueEntryID == null)
-		{
-			return;
-		}
-		if (theMessage == null)
-		{
-			return;
-		}
-		final EnumType typ = theMessage.getEnumType();
-		// TODO more message types
-		if (EnumType.Status.equals(typ))
-		{
-			final JDFStatusQuParams sqp = theMessage.getCreateStatusQuParams(0);
-			sqp.setQueueEntryID(queueEntryID);
-		}
-	}
-
 	/*
 	 * (non-Javadoc)
 	 *
@@ -515,16 +497,9 @@ public class MsgSubscription implements Cloneable
 			return false;
 		}
 		final MsgSubscription msg = (MsgSubscription) obj;
-		if (isSpecific())
+		if (repeatAmount != msg.repeatAmount || repeatTime != msg.repeatTime)
 		{
-			if (repeatAmount != msg.repeatAmount || repeatTime != msg.repeatTime)
-			{
-				return false;
-			}
-			if (!ContainerUtil.equals(queueEntry, msg.queueEntry))
-			{
-				return false;
-			}
+			return false;
 		}
 
 		if (url != null && !url.equalsIgnoreCase(msg.url))
@@ -555,11 +530,6 @@ public class MsgSubscription implements Cloneable
 		return true;
 	}
 
-	protected boolean matchesQueueEntry(final String qeID)
-	{
-		return !isSpecific() || queueEntry == null || queueEntry.equals(qeID);
-	}
-
 	/**
 	 * @return
 	 */
@@ -577,11 +547,7 @@ public class MsgSubscription implements Cloneable
 	public int hashCode()
 	{
 		int hc = 42;
-		if (isSpecific())
-		{
-			hc += repeatAmount + 100000 * (int) repeatTime;
-			hc += queueEntry == null ? 0 : queueEntry.hashCode();
-		}
+		hc += repeatAmount + 100000 * (int) repeatTime;
 		hc += url == null ? 0 : hc * 42 + url.toLowerCase().hashCode();
 		final String messageType = getMessageType();
 		hc = HashUtil.hashCode(hc, messageType);
@@ -647,12 +613,12 @@ public class MsgSubscription implements Cloneable
 
 	public static boolean isSpecific()
 	{
-		return specific;
+		return false;
 	}
 
 	public static void setSpecific(final boolean specific)
 	{
-		MsgSubscription.specific = specific;
+		// nop
 	}
 
 	/**

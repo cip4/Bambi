@@ -110,7 +110,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		q.setID("q");
 		q.getSubscription().setAttribute("Foo", "Bar");
 
-		d.addSubscription(q, null, null);
+		d.addSubscription(q, null);
 		ss.persist();
 
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
@@ -135,7 +135,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		q.setID("qqq");
 
 		d.removeSubScriptions(null, null, null);
-		d.addSubscription(q, null, null);
+		d.addSubscription(q, null);
 		ss.persist();
 
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
@@ -173,7 +173,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		q.setID("qqq");
 
 		d.removeSubScriptions(null, null, null);
-		d.addSubscription(q, null, null);
+		d.addSubscription(q, null);
 		ss.persist();
 
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
@@ -200,7 +200,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		jmf.setMaxVersion(EnumVersion.Version_2_2);
 
 		d.removeSubScriptions(null, null, null);
-		d.addSubscription(q, null, null);
+		d.addSubscription(q, null);
 		ss.persist();
 
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
@@ -229,12 +229,12 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final JDFJMF jmf = d.getJMFRoot();
 		final JDFQuery query = jmf.getQuery(0);
 		query.setID("q");
-		final MsgSubscription s = new MsgSubscription(null, query, null);
+		final MsgSubscription s = new MsgSubscription(null, query);
 		assertNull(s.jmfDeviceID);
 
 		dis.removeSubScriptions(null, null, null);
 
-		dis.addSubscription(query, null, null);
+		dis.addSubscription(query, null);
 		ss.persist();
 
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
@@ -264,10 +264,10 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final JDFJMF jmf = d.getJMFRoot();
 		final JDFQuery query = jmf.getQuery(0);
 		query.setID("q");
-		final MsgSubscription s = new MsgSubscription(null, query, null);
+		final MsgSubscription s = new MsgSubscription(null, query);
 		assertEquals(XJDFHelper.defaultVersion(), s.getQuery().getMaxVersion(true));
 		dis.removeSubScriptions(null, null, null);
-		dis.addSubscription(query, null, null);
+		dis.addSubscription(query, null);
 		ss.persist();
 
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
@@ -297,11 +297,11 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final JDFJMF jmf = d.getJMFRoot();
 		final JDFQuery query = jmf.getQuery(0);
 		query.setID("q");
-		final MsgSubscription s = new MsgSubscription(null, query, null);
+		final MsgSubscription s = new MsgSubscription(null, query);
 		assertFalse(s.isJSON);
 		assertEquals(XJDFHelper.defaultVersion(), s.getQuery().getMaxVersion(true));
 		dis.removeSubScriptions(null, null, null);
-		dis.addSubscription(query, null, null);
+		dis.addSubscription(query, null);
 		ss.persist();
 
 		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());

@@ -98,11 +98,11 @@ public class SignalDispatcherTest extends BambiTestCase
 		final JDFSubscription s = q.appendSubscription();
 		s.setRepeatTime(1.0);
 		s.setURL("http://localhost:8080/httpdump/");
-		assertNotNull(dispatcher.addSubscription(q, null, null));
-		assertNull(dispatcher.addSubscription(q, null, null));
+		assertNotNull(dispatcher.addSubscription(q, null));
+		assertNull(dispatcher.addSubscription(q, null));
 		s.setRepeatTime(5.0);
 		q.setID("1234");
-		assertNotNull(dispatcher.addSubscription(q, null, null));
+		assertNotNull(dispatcher.addSubscription(q, null));
 		dispatcher.shutdown();
 	}
 
@@ -118,11 +118,11 @@ public class SignalDispatcherTest extends BambiTestCase
 		final JDFSubscription s = q.appendSubscription();
 		s.setRepeatTime(1.0);
 		s.setURL("http://localhost:8080/httpdump/");
-		assertNotNull(dispatcher.addSubscription(q, null, null));
-		assertNull(dispatcher.addSubscription(q, null, null));
+		assertNotNull(dispatcher.addSubscription(q, null));
+		assertNull(dispatcher.addSubscription(q, null));
 		s.setRepeatTime(5.0);
 		q.setID("1234");
-		assertNotNull(dispatcher.addSubscription(q, null, null));
+		assertNotNull(dispatcher.addSubscription(q, null));
 		dispatcher.shutdown();
 	}
 
@@ -143,10 +143,10 @@ public class SignalDispatcherTest extends BambiTestCase
 		final JDFQuery q2 = jmf2.getQuery(0);
 		q2.setID("newID");
 
-		assertNotNull(dispatcher.addSubscription(q, null, null));
-		assertNotNull(dispatcher.addSubscription(q2, null, null));
+		assertNotNull(dispatcher.addSubscription(q, null));
+		assertNotNull(dispatcher.addSubscription(q2, null));
 		q2.setID("newID2");
-		assertNull(dispatcher.addSubscription(q2, null, null));
+		assertNull(dispatcher.addSubscription(q2, null));
 		dispatcher.shutdown();
 	}
 
@@ -163,40 +163,14 @@ public class SignalDispatcherTest extends BambiTestCase
 		s.setRepeatTime(1.0);
 		s.setURL("http://localhost:8080/httpdump/");
 
-		assertNotNull(dispatcher.addSubscription(q, null, null));
-		assertNull(dispatcher.addSubscription(q, null, null));
+		assertNotNull(dispatcher.addSubscription(q, null));
+		assertNull(dispatcher.addSubscription(q, null));
 		MsgSubscription.setSpecific(false);
-		s.setRepeatTime(5.0);
 		for (int i = 0; i < 42; i++)
 		{
 			q.setID("q" + i);
 			sqp.setQueueEntryID("q" + i);
-			assertNull(dispatcher.addSubscription(q, "q" + i, null));
-		}
-		dispatcher.shutdown();
-	}
-
-	/**
-	 *
-	 */
-	@Test
-	public void testAddSubscriptionQE()
-	{
-		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Status);
-		final JDFQuery q = jmf.getQuery(0);
-		final JDFStatusQuParams sqp = q.getCreateStatusQuParams(0);
-		final JDFSubscription s = q.appendSubscription();
-		s.setRepeatTime(1.0);
-		s.setURL("http://localhost:8080/httpdump/");
-
-		assertNotNull(dispatcher.addSubscription(q));
-		assertNull(dispatcher.addSubscription(q));
-		MsgSubscription.setSpecific(true);
-		for (int i = 0; i < 42; i++)
-		{
-			sqp.setQueueEntryID("q" + i);
-			q.setID("q" + i);
-			assertNotNull(dispatcher.addSubscription(q, "q" + i, null));
+			assertNull(dispatcher.addSubscription(q, null));
 		}
 		dispatcher.shutdown();
 	}
@@ -213,7 +187,7 @@ public class SignalDispatcherTest extends BambiTestCase
 		s.setRepeatTime(1.0);
 		s.setURL("http://localhost:8080/httpdump/");
 		assertEquals(0, dispatcher.getChannels(EnumType.KnownMessages, null, null).size());
-		dispatcher.addSubscription(q, null, null);
+		dispatcher.addSubscription(q, null);
 		assertEquals(1, dispatcher.getChannels(EnumType.KnownMessages, null, null).size());
 		assertEquals(0, dispatcher.getChannels(EnumType.Resource, null, null).size());
 		assertEquals(1, dispatcher.getAllChannels(EnumType.KnownMessages.getName(), null, null).size());
@@ -233,7 +207,7 @@ public class SignalDispatcherTest extends BambiTestCase
 		s.setURL("http://localhost:8080/httpdump/");
 		final Set<String> channels = dispatcher.getChannels(EnumType.KnownMessages, null, null);
 		assertEquals(0, channels.size());
-		final String id = dispatcher.addSubscription(q, null, null);
+		final String id = dispatcher.addSubscription(q, null);
 		assertNotNull(dispatcher.getSubscription(id));
 	}
 
@@ -276,7 +250,7 @@ public class SignalDispatcherTest extends BambiTestCase
 		s.setURL("http://localhost:8080/httpdump/");
 		assertFalse(dispatcher.hasSubscription(EnumType.KnownMessages));
 		assertFalse(dispatcher.hasSubscription(null));
-		dispatcher.addSubscription(q, null, null);
+		dispatcher.addSubscription(q, null);
 		assertTrue(dispatcher.hasSubscription(null));
 		assertTrue(dispatcher.hasSubscription(EnumType.KnownMessages));
 	}

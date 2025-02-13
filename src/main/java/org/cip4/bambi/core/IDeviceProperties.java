@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of 
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of 
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
  * reserved.
  *
@@ -153,12 +153,22 @@ public interface IDeviceProperties
 	 */
 	public String getDeviceURL();
 
+	public default String getDeviceSSLURL()
+	{
+		return null;
+	}
+
 	/**
 	 * get the URL to communicate with the root of this device
 	 * 
 	 * @return the device URL. Send JMFs to this URL, if you want to communicate with this device.
 	 */
 	public String getContextURL();
+
+	public default String getContextSSLURL()
+	{
+		return null;
+	}
 
 	/**
 	 * get the URL of the device hotfolder, if null the device does not support a JDF input hot folder

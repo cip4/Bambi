@@ -620,8 +620,10 @@ public class MessageSenderTest extends BambiTestCase
 		final MessageSender s = getTestSender();
 		s.pause();
 		assertFalse(s.checkShutdownIdle());
-		s.idle = 4444;
+		s.idle = 12;
 		s.postSendReturn(0, SendReturn.empty);
+		assertFalse(s.checkShutdownIdle());
+		s.idle = 44444;
 		assertTrue(s.checkShutdownIdle());
 	}
 

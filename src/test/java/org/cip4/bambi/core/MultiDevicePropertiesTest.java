@@ -42,6 +42,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -215,6 +216,23 @@ public class MultiDevicePropertiesTest extends BambiTestCaseBase
 			p.persist();
 			p.persist();
 			assertTrue(new File(sm_dirTestDataTemp + "foo.1.ini").exists());
+		}
+
+		@Test
+		public void testSSLContext()
+		{
+			final XMLDoc d = new XMLDoc("application", null);
+			d.setOriginalFileName(sm_dirTestDataTemp + "foo.ini");
+			final MultiDeviceProperties p = new MultiDeviceProperties(d);
+			p.setSSLPort(0);
+			final String url = p.getContextURL();
+			assertTrue(url.startsWith("http://"));
+			final String url2 = p.getContextSSLURL();
+			assertNull(url2);
+			p.setSSLPort(42);
+			final String url3 = p.getContextSSLURL();
+			assertNotNull(url3);
+			assertTrue(url3.startsWith("https://"));
 		}
 
 		@Test

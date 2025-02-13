@@ -59,12 +59,9 @@ import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.core.AttributeName;
-import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.JDFException;
-import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.ifaces.IJMFSubscribable;
@@ -80,9 +77,7 @@ import org.cip4.jdflib.jmf.JDFStopPersChParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFSubscriptionFilter;
 import org.cip4.jdflib.jmf.JDFSubscriptionInfo;
-import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.NodeIdentifier;
-import org.cip4.jdflib.pool.JDFAncestorPool;
 import org.cip4.jdflib.util.CPUTimer;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.MemorySpy;
@@ -850,7 +845,7 @@ public class SignalDispatcher
 		{
 			return false;
 		}
-		final String channelID = addSubscription(query, findQueueEntryID(m), resp);
+		final String channelID = addSubscription(query, resp);
 		if (resp != null && channelID != null)
 		{
 			resp.setSubscribed(true);
@@ -898,18 +893,7 @@ public class SignalDispatcher
 	 */
 	public String addSubscription(final IJMFSubscribable subMess)
 	{
-		return addSubscription(subMess, null, null);
-	}
-
-	/**
-	 *
-	 * @param subMess
-	 * @param queueEntryID
-	 * @return
-	 */
-	public String addSubscription(final IJMFSubscribable subMess, final String queueEntryID)
-	{
-		return addSubscription(subMess, queueEntryID, null);
+		return addSubscription(subMess, null);
 	}
 
 	/**
@@ -918,12 +902,25 @@ public class SignalDispatcher
 	 * @param subMess the subscription message - one of query or registration
 	 * @param queueEntryID the associated QueueEntryID, should be null.
 	 * @return the slaveChannelID of the subscription, if successful, else null
+	 * @deprecated Use {@link #addSubscription(IJMFSubscribable,JDFResponse)} instead
 	 */
-	public synchronized String addSubscription(final IJMFSubscribable subMess, String queueEntryID, final JDFResponse resp)
+	@Deprecated
+	public synchronized String addSubscription(final IJMFSubscribable subMess, final String queueEntryID, final JDFResponse resp)
+	{
+		return addSubscription(subMess, resp);
+	}
+
+	/**
+	 * add a subscription - returns the slaveChannelID of the new subscription, null if snafu
+	 *
+	 * @param subMess the subscription message - one of query or registration
+	 * @return the slaveChannelID of the subscription, if successful, else null
+	 */
+	public synchronized String addSubscription(final IJMFSubscribable subMess, final JDFResponse resp)
 	{
 		if (subMess == null)
 		{
-			log.error("adding null subscription" + queueEntryID);
+			log.error("adding null subscription");
 			return null;
 		}
 		if (isIgnoreURL(subMess))
@@ -931,11 +928,7 @@ public class SignalDispatcher
 			return null;
 		}
 
-		if (!MsgSubscription.isSpecific())
-		{
-			queueEntryID = null;
-		}
-		final MsgSubscription sub = new MsgSubscription(this, subMess, queueEntryID);
+		final MsgSubscription sub = new MsgSubscription(this, subMess);
 		if (subMess instanceof KElement)
 		{
 			final KElement subMess2 = (KElement) subMess;
@@ -950,7 +943,6 @@ public class SignalDispatcher
 			JMFHandler.errorResponse(resp, "Attempting to subscribe to invalid URL: " + url, 6, EnumClass.Error);
 			return null;
 		}
-		sub.setQueueEntryID(queueEntryID);
 		if (sub.channelID == null)
 		{
 			JMFHandler.errorResponse(resp, "Null ChannelID while attempting to subscribe to URL: " + url, 6, EnumClass.Error);
@@ -971,7 +963,6 @@ public class SignalDispatcher
 			log.info("adding subscription " + sub);
 			subscriptionMap.put(sub.channelID, sub);
 		}
-		sub.trigger.queueEntryID = queueEntryID;
 		storage.persist();
 		sub.setConverterCallback(device.getCallback(url, sub));
 		return sub.channelID;
@@ -999,75 +990,6 @@ public class SignalDispatcher
 		}
 		return false;
 
-	}
-
-	/**
-	 * add a subscription returns the slaveChannelID of the new subscription, null if snafu
-	 *
-	 * @param node the node to search for inline jmfs
-	 * @param queueEntryID the associated QueueEntryID, may be null.
-	 * @return the channelIDs of the subscriptions, if successful, else null
-	 */
-	public VString addSubscriptions(final JDFNode node, final String queueEntryID)
-	{
-		if (node == null)
-		{
-			return null;
-		}
-		JDFNodeInfo nodeInfo = node.getNodeInfo();
-		VString vs = nodeInfo == null ? null : addSubscriptions(nodeInfo, queueEntryID);
-		if (vs == null)
-		{
-			nodeInfo = (JDFNodeInfo) node.getAncestorElement(ElementName.NODEINFO, null);
-			vs = nodeInfo == null ? null : addSubscriptions(nodeInfo, queueEntryID);
-		}
-		// look in depth
-		if (vs == null)
-		{
-			final JDFAncestorPool ap = node.getRoot().getAncestorPool();
-			if (ap != null)
-			{
-				nodeInfo = (JDFNodeInfo) ap.getAncestorElement(ElementName.NODEINFO, null, "JMF");
-			}
-			vs = nodeInfo == null ? null : addSubscriptions(nodeInfo, queueEntryID);
-		}
-
-		return vs;
-	}
-
-	/**
-	 * @param nodeInfo
-	 * @param queueEntryID
-	 * @return the channelIDs of the subscriptions, if successful, else null
-	 */
-	private VString addSubscriptions(final JDFNodeInfo nodeInfo, final String queueEntryID)
-	{
-		final VElement vJMF = nodeInfo.getChildElementVector(ElementName.JMF, null, null, true, 0, true);
-		final int siz = vJMF == null ? 0 : vJMF.size();
-		if (siz == 0)
-		{
-			return null;
-		}
-		final VString vs = new VString();
-		for (int i = 0; i < siz; i++)
-		{
-			final JDFJMF jmf = nodeInfo.getJMF(i);
-			// TODO registrations
-			final VElement vMess = jmf.getMessageVector(EnumFamily.Query, null);
-			if (vMess != null)
-			{
-				for (final KElement mess : vMess)
-				{
-					final JDFQuery q = (JDFQuery) mess;
-					final String channelID = addSubscription(q, queueEntryID, null);
-					if (channelID != null)
-					{
-						vs.add(channelID);
-					}
-				}
-			}
-		}
-		return vs;
 	}
 
 	/**
@@ -1193,10 +1115,6 @@ public class SignalDispatcher
 				{
 					continue; // non-matching URL
 				}
-				if (!allQE && !queueEntryID.equals(sub.queueEntry))
-				{
-					continue; // non-matching qeid
-				}
 				if (!allType)
 				{
 					final JDFMessage mess = sub.theMessage;
@@ -1321,7 +1239,7 @@ public class SignalDispatcher
 		for (int i = 0; i < size; i++)
 		{
 			final MsgSubscription sub = v.get(i);
-			if (sub.matchesQueueEntry(queueEntryID) && sub.matchesType(msgType))
+			if (sub.matchesType(msgType))
 			{
 				triggers[n++] = triggerChannel(sub.channelID, queueEntryID, nodeID, amount, i + 1 == size, false);
 			}
@@ -1420,8 +1338,7 @@ public class SignalDispatcher
 			for (final Entry<String, MsgSubscription> entry : entries)
 			{
 				final MsgSubscription sub = entry.getValue();
-				boolean bMatch = sub.matchesQueueEntry(queueEntryID);
-				bMatch = bMatch && (typNam == null || typNam.equals(sub.getMessageType()));
+				boolean bMatch = (typNam == null || typNam.equals(sub.getMessageType()));
 				bMatch = bMatch && (senderID == null || sub.jmfDeviceID == null || sub.jmfDeviceID.equals(senderID));
 				if (bMatch)
 				{

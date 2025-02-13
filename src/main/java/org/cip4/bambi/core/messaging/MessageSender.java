@@ -384,7 +384,7 @@ public class MessageSender implements Runnable, IPersistable
 		// stepwise increment - try every second 10 times, then gradually increase
 		if (idle > MIN_IDLE)
 		{
-			wait = Math.min(MAX_LOOP_WAIT, (15000 * idle / MIN_IDLE));
+			wait = (int) Math.min(MAX_LOOP_WAIT, (4200l * idle / MIN_IDLE));
 			lastLog = maxWait(lastLog, wait);
 		}
 		else
@@ -890,7 +890,7 @@ public class MessageSender implements Runnable, IPersistable
 		if (connection == null)
 		{
 			sendReturn = SendReturn.error;
-			if (idle < 10 || (idle % 100 == 0))
+			if (trySend < 10 || (trySend % 100 == 0))
 			{
 				sLog.warn("could not send message to unavailable " + messageDetails.url + " no return; rc= " + responseCode);
 			}
@@ -966,7 +966,7 @@ public class MessageSender implements Runnable, IPersistable
 		final UrlPart p = UrlUtil.writeToURL(url, ByteArrayIOStream.getBufferedInputStream(is), UrlUtil.POST, contentType, httpDetails);
 		final int rc = UrlPart.getReturnCode(p);
 		final long t1 = System.currentTimeMillis();
-		if (!UrlPart.isReturnCodeOK(p))
+		if (!UrlPart.isReturnCodeOK(p) && (trySend % 100 == 0 || trySend < 10))
 		{
 			sLog.warn("Flaky RC " + rc + " in JMF " + messageDetails.getName() + " response to " + url);
 		}
