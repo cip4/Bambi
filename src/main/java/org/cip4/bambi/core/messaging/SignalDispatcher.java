@@ -60,7 +60,6 @@ import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFConstants;
-import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
@@ -70,9 +69,7 @@ import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
-import org.cip4.jdflib.jmf.JDFResourceQuParams;
 import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFStopPersChParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.cip4.jdflib.jmf.JDFSubscriptionFilter;
@@ -851,38 +848,6 @@ public class SignalDispatcher
 			resp.setSubscribed(true);
 		}
 		return true;
-	}
-
-	/**
-	 * @param m
-	 * @return
-	 */
-	private String findQueueEntryID(final JDFMessage m)
-	{
-		if (m == null)
-		{
-			return null;
-		}
-		try
-		{
-			final EnumType messageType = m.getEnumType();
-			if (EnumType.Status.equals(messageType))
-			{
-				final JDFStatusQuParams sqp = m.getStatusQuParams();
-				final String qeid = sqp == null ? null : StringUtil.getNonEmpty(sqp.getQueueEntryID());
-				return qeid;
-			}
-			else if (EnumType.Resource.equals(messageType))
-			{
-				final JDFResourceQuParams rqp = m.getResourceQuParams();
-				final String qeid = rqp == null ? null : StringUtil.getNonEmpty(rqp.getQueueEntryID());
-				return qeid;
-			}
-		}
-		catch (final JDFException x)
-		{ /* nop */
-		}
-		return null;
 	}
 
 	/**
