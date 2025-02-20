@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -61,6 +62,7 @@ import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.StringArray;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.ifaces.IJMFSubscribable;
@@ -656,7 +658,7 @@ public class SignalDispatcher
 				queueEntryID = null;
 			}
 
-			final Vector<MsgSubscription> vSubs = removeSubScriptions(queueEntryID, url, spcp.getMessageType());
+			final Vector<MsgSubscription> vSubs = removeSubScriptions(url, spcp.getMessageType());
 			if (vSubs == null)
 			{
 				JMFHandler.errorResponse(response, "No matching subscriptions found", 111, EnumClass.Error);
@@ -1029,18 +1031,33 @@ public class SignalDispatcher
 	 *
 	 * @param queueEntryID the queueEntryID of the subscriptions to remove
 	 * @param url url of subscriptions to zapp
+	 * @param messageType
+	 * @return the vector of remove subscriptions
+	 * @deprecated Use {@link #removeSubScriptions(String,String)} instead
+	 */
+	@Deprecated
+	public Vector<MsgSubscription> removeSubScriptions(final String queueEntryID, final String url, final String messageType)
+	{
+		return removeSubScriptions(url, messageType);
+	}
+
+	/**
+	 * remove a know subscription by queueEntryID
+	 * 
+	 * @param url url of subscriptions to zapp
 	 * @param messageType TODO
+	 *
 	 * @return the vector of remove subscriptions
 	 */
-	public Vector<MsgSubscription> removeSubScriptions(final String queueEntryID, final String url, final String messageType)
+	public Vector<MsgSubscription> removeSubScriptions(final String url, final String messageType)
 	{
 		final Vector<MsgSubscription> vSubs = new Vector<>();
 		synchronized (subscriptionMap)
 		{
-			final VString v = getSubscriptionKeys(queueEntryID, url, messageType);
-			if (v != null && v.size() > 0)
+			final List<String> v = getSubscriptionKeys(url, messageType);
+			if (!v.isEmpty())
 			{
-				log.info("removing multiple subscriptions for qe=" + queueEntryID + " URL=" + url);
+				log.info("removing multiple subscriptions for URL=" + url);
 				for (final String key : v)
 				{
 					final MsgSubscription mSub = removeSubScription(key);
@@ -1063,40 +1080,29 @@ public class SignalDispatcher
 	 * @param messageType TODO
 	 * @return
 	 */
-	private VString getSubscriptionKeys(final String queueEntryID, final String url, final String messageType)
+	List<String> getSubscriptionKeys(final String url, final String messageType)
 	{
-		final Iterator<String> it = subscriptionMap.keySet().iterator();
+		final Collection<Entry<String, MsgSubscription>> entries = subscriptionMap.entrySet();
 		final boolean allURL = KElement.isWildCard(url);
-		final boolean allQE = KElement.isWildCard(queueEntryID);
 		final boolean allType = KElement.isWildCard(messageType);
-		final VString v = new VString();
-		while (it.hasNext())
+		final List<String> v = new StringArray();
+		for (final Entry<String, MsgSubscription> e : entries)
 		{
-			final String channelID = it.next();
-			if (!allURL || !allQE)
+
+			final MsgSubscription sub = e.getValue();
+			if (!allURL && !url.equals(sub.getURL()))
 			{
-				final MsgSubscription sub = subscriptionMap.get(channelID);
-				if (!allURL && !url.equals(sub.getURL()))
-				{
-					continue; // non-matching URL
-				}
-				if (!allType)
-				{
-					final JDFMessage mess = sub.theMessage;
-					if (mess != null)
-					{
-						final String typ = mess.getType();
-						if (!messageType.equals(typ))
-						{
-							continue; // non-matching type
-						}
-					}
-				}
+				continue; // non-matching URL
 			}
-			// illegal to remove while iterating - must store list
-			v.add(channelID);
+			if (!allType && !messageType.equals(sub.getType()))
+			{
+				continue; // non-matching type
+			}
+
+			v.add(e.getKey());
 		}
 		return v;
+
 	}
 
 	/**
@@ -1380,7 +1386,7 @@ public class SignalDispatcher
 	public void reset()
 	{
 		flush();
-		removeSubScriptions(null, null, null);
+		removeSubScriptions(null, null);
 	}
 
 	/**

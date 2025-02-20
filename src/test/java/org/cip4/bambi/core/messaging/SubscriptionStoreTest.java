@@ -134,7 +134,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final JDFQuery q = jmf.getQuery(0);
 		q.setID("qqq");
 
-		d.removeSubScriptions(null, null, null);
+		d.removeSubScriptions(null, null);
 		d.addSubscription(q, null);
 		ss.persist();
 
@@ -172,7 +172,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final JDFQuery q = jmf.getQuery(0);
 		q.setID("qqq");
 
-		d.removeSubScriptions(null, null, null);
+		d.removeSubScriptions(null, null);
 		d.addSubscription(q, null);
 		ss.persist();
 
@@ -199,7 +199,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		q.setID("q");
 		jmf.setMaxVersion(EnumVersion.Version_2_2);
 
-		d.removeSubScriptions(null, null, null);
+		d.removeSubScriptions(null, null);
 		d.addSubscription(q, null);
 		ss.persist();
 
@@ -232,7 +232,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final MsgSubscription s = new MsgSubscription(null, query);
 		assertNull(s.jmfDeviceID);
 
-		dis.removeSubScriptions(null, null, null);
+		dis.removeSubScriptions(null, null);
 
 		dis.addSubscription(query, null);
 		ss.persist();
@@ -266,7 +266,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		query.setID("q");
 		final MsgSubscription s = new MsgSubscription(null, query);
 		assertEquals(XJDFHelper.defaultVersion(), s.getQuery().getMaxVersion(true));
-		dis.removeSubScriptions(null, null, null);
+		dis.removeSubScriptions(null, null);
 		dis.addSubscription(query, null);
 		ss.persist();
 
@@ -300,7 +300,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final MsgSubscription s = new MsgSubscription(null, query);
 		assertFalse(s.isJSON);
 		assertEquals(XJDFHelper.defaultVersion(), s.getQuery().getMaxVersion(true));
-		dis.removeSubScriptions(null, null, null);
+		dis.removeSubScriptions(null, null);
 		dis.addSubscription(query, null);
 		ss.persist();
 

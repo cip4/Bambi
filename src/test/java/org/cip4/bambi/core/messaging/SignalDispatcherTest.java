@@ -279,7 +279,7 @@ public class SignalDispatcherTest extends BambiTestCase
 
 		assertEquals(3, dispatcher.getChannels(null, null, null).size());
 
-		final Vector<MsgSubscription> vr = dispatcher.removeSubScriptions(null, "http://localhost:8080/httpdump/", "Resource");
+		final Vector<MsgSubscription> vr = dispatcher.removeSubScriptions("http://localhost:8080/httpdump/", "Resource");
 		assertEquals(vr.size(), 1);
 		assertEquals(2, dispatcher.getChannels(null, null, null).size());
 		dispatcher.shutdown();

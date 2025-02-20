@@ -2662,7 +2662,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			new File(docURL).delete();
 		}
-		_parentDevice.getSignalDispatcher().removeSubScriptions(queueEntryID, null, null);
 	}
 
 	JDFQueue updateSynch(final JDFQueueEntry qe, final EnumQueueEntryStatus status, final JDFMessage mess, final JDFResponse resp, final String statusDetails, final JDFQueue q)
@@ -2886,21 +2885,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			{
 				bOK = returnHF(docJDF, bAborted);
 			}
-			removeSubscriptions();
 			return bOK;
-		}
-
-		private void removeSubscriptions()
-		{
-			// remove any subscriptions in case they are still around
-			if (queueEntryID != null)
-			{
-				final SignalDispatcher signalDispatcher = _parentDevice.getSignalDispatcher();
-				if (signalDispatcher != null) // may be null at shutdown
-				{
-					signalDispatcher.removeSubScriptions(queueEntryID, null, null);
-				}
-			}
 		}
 
 		private boolean returnHF(final JDFDoc docJDF, final boolean bAborted)

@@ -47,7 +47,6 @@ import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
-import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.VJDFAttributeMap;
@@ -299,7 +298,6 @@ public class StatusListener implements IPersistable
 	 */
 	public synchronized void setNode(final String queueEntryID, final JDFNode node, final VJDFAttributeMap vPartMap, final String trackResourceID)
 	{
-		final String oldQEID = theCounter.getQueueEntryID();
 		theCounter.writeAll(); // write all stuff in the counter to the node
 		DelayedPersist.getDelayedPersist().queue(this, -1);
 		final boolean bSame = currentNode == node;
@@ -307,11 +305,6 @@ public class StatusListener implements IPersistable
 		if (!bSame)
 		{
 			DelayedPersist.getDelayedPersist().queue(this, -1);
-		}
-
-		if (!KElement.isWildCard(oldQEID))
-		{
-			dispatcher.removeSubScriptions(oldQEID, "*", null);
 		}
 
 		theCounter.setTrackWaste("*", true); // always track waste

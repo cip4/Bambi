@@ -112,7 +112,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice();
 		device.setSim(true);
-		device.getSignalDispatcher().removeSubScriptions(null, null, null);
+		device.getSignalDispatcher().removeSubScriptions(null, null);
 		device.updateWatchURL(null, null);
 
 		assertEquals(EWatchFormat.JMF, device.getProperties().getWatchFormat());
@@ -179,7 +179,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice();
 		device.setSim(true);
-		device.getSignalDispatcher().removeSubScriptions(null, null, null);
+		device.getSignalDispatcher().removeSubScriptions(null, null);
 		device.updateWatchURL(null, null);
 
 		assertEquals(EWatchFormat.JMF, device.getProperties().getWatchFormat());

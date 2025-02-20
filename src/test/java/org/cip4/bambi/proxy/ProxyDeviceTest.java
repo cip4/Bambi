@@ -139,7 +139,7 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("http://url", 20, 30, null);
 		final ProxyDevice device = getDevice();
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
-		device.getSignalDispatcher().removeSubScriptions(null, null, null);
+		device.getSignalDispatcher().removeSubScriptions(null, null);
 		final JDFDoc respDoc = jmfHandler.processJMF(jmf.getOwnerDocument_JDFElement());
 		final JDFResponse resp = respDoc.getJMFRoot().getResponse(0);
 		assertNotNull(resp);
@@ -170,7 +170,7 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 	public void testStatusSignal()
 	{
 		final ProxyDevice device = new ProxyDevice(new BambiTestProp());
-		device.getSignalDispatcher().removeSubScriptions(null, null, null);
+		device.getSignalDispatcher().removeSubScriptions(null, null);
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
 
 		final JDFJMF status = new JMFBuilder().buildStatusSignal(EnumDeviceDetails.Brief, EnumJobDetails.Brief);

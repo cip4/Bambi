@@ -1165,11 +1165,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public JDFQueueEntry stopProcessing(final String queueEntryID, final EnumNodeStatus status, final String statusDetails)
 	{
-		if (status == null && StringUtil.getNonEmpty(queueEntryID) != null)
-		{
-			getSignalDispatcher().removeSubScriptions(queueEntryID, null, null);
-		}
-
 		final AbstractDeviceProcessor deviceProcessor = getProcessor(queueEntryID, 0);
 		if (deviceProcessor == null)
 		{
@@ -1597,7 +1592,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			if (StringUtil.getNonEmpty(oldWatchURL) != null)
 			{
 				log.info("removing watch subscriptions to: " + oldWatchURL);
-				_theSignalDispatcher.removeSubScriptions(null, oldWatchURL, null);
+				_theSignalDispatcher.removeSubScriptions(oldWatchURL, null);
 			}
 			addWatchSubscriptions();
 			properties.serialize();

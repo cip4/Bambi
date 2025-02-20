@@ -611,11 +611,21 @@ public class MsgSubscription implements Cloneable
 		}
 	}
 
+	/**
+	 * @deprecated
+	 * @return
+	 */
+	@Deprecated
 	public static boolean isSpecific()
 	{
 		return false;
 	}
 
+	/**
+	 * @deprecated
+	 * @param specific
+	 */
+	@Deprecated
 	public static void setSpecific(final boolean specific)
 	{
 		// nop
@@ -656,5 +666,10 @@ public class MsgSubscription implements Cloneable
 		{
 			((ConverterCallback) converterCallback).setJSON(isJSON());
 		}
+	}
+
+	public String getType()
+	{
+		return theMessage == null ? null : theMessage.getType();
 	}
 }
