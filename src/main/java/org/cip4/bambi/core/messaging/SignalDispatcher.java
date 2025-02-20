@@ -652,11 +652,6 @@ public class SignalDispatcher
 				JMFHandler.errorResponse(response, "No URL specified", 7, EnumClass.Error);
 				return true;
 			}
-			String queueEntryID = spcp.getQueueEntryID();
-			if (KElement.isWildCard(queueEntryID))
-			{
-				queueEntryID = null;
-			}
 
 			final Vector<MsgSubscription> vSubs = removeSubScriptions(url, spcp.getMessageType());
 			if (vSubs == null)

@@ -2572,10 +2572,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			if (qe != null && status != null)
 			{
 				final EnumQueueEntryStatus oldStatus = qe.getQueueEntryStatus();
-				final String queueEntryID = qe.getQueueEntryID();
 				if (status.equals(EnumQueueEntryStatus.Removed))
 				{
-					updateRemoved(qe, status, q, queueEntryID);
+					updateRemoved(qe, status, q);
 				}
 				else if (status.equals(EnumQueueEntryStatus.Running))
 				{
@@ -2649,7 +2648,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
 	}
 
-	void updateRemoved(final JDFQueueEntry qe, final EnumQueueEntryStatus status, final JDFQueue q, final String queueEntryID)
+	void updateRemoved(final JDFQueueEntry qe, final EnumQueueEntryStatus status, final JDFQueue q)
 	{
 		qe.setQueueEntryStatus(status);
 		slaveQueueMap.get().removeEntry(qe);
@@ -2669,10 +2668,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		if (qe != null && status != null)
 		{
 			final EnumQueueEntryStatus oldStatus = qe.getQueueEntryStatus();
-			final String queueEntryID = qe.getQueueEntryID();
 			if (status.equals(EnumQueueEntryStatus.Removed))
 			{
-				updateRemoved(qe, status, q, queueEntryID);
+				updateRemoved(qe, status, q);
 			}
 			else if (status.equals(EnumQueueEntryStatus.Waiting))
 			{
