@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -1076,7 +1076,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		{
 			return null;
 		}
-		AbstractProxyProcessor pdp = (ProxyDeviceProcessor) getProcessor(iqe.getQueueEntryID(), 0);
+		AbstractProxyProcessor pdp = (AbstractProxyProcessor) getProcessor(iqe.getQueueEntryID(), 0);
 		if (pdp != null)
 			return pdp;
 

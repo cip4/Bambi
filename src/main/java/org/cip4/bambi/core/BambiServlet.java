@@ -83,6 +83,7 @@ public final class BambiServlet extends HttpServlet
 		super();
 		BambiContainer.getCreateInstance();
 		theServer = bambiServer;
+		serviced = 0;
 	}
 
 	final static Log log = LogFactory.getLog(BambiServlet.class);
@@ -92,6 +93,7 @@ public final class BambiServlet extends HttpServlet
 	private DumpDir bambiDumpIn = null;
 	private DumpDir bambiDumpOut = null;
 	private final BambiServer theServer;
+	private int serviced;
 
 	/**
 	 * Initializes the servlet.
@@ -245,9 +247,9 @@ public final class BambiServlet extends HttpServlet
 			}
 			else
 			{
+				final long t0 = System.currentTimeMillis();
 				final AbstractDevice rootDev = theContainer.getRootDev();
 				rootDev.startWork();
-				log.info("Processing " + request.getMethod() + " request for URL: " + request.getRequestURL().toString() + "(" + request.getPathInfo() + ")");
 
 				final StreamRequest sr = StreamRequest.createStreamRequest(request);
 
@@ -273,6 +275,7 @@ public final class BambiServlet extends HttpServlet
 				}
 				StreamUtil.close(request.getInputStream()); // avoid mem leaks
 				rootDev.endWork();
+				log.info("Processed " + request.getMethod() + " for URL: " + request.getRequestURL().toString() + " #" + serviced++ + " dt=" + (System.currentTimeMillis() - t0));
 			}
 		}
 		catch (final IOException x)
