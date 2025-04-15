@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -37,6 +37,7 @@
 package org.cip4.bambi.server;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -51,17 +52,24 @@ public class BambiServerTest extends BambiTestCaseBase
 	@Test
 	public void testCreate() throws Exception
 	{
-		BambiServer s = new BambiServer();
+		final BambiServer s = new BambiServer();
 		assertNotNull(s);
 		FileUtil.forceDelete(new File(s.getUserDir().getToolPath()));
-		BambiServer s2 = new BambiServer();
+		final BambiServer s2 = new BambiServer();
 		assertNotNull(s2);
+	}
+
+	@Test
+	public void testAuth() throws Exception
+	{
+		final BambiServer s = new BambiServer();
+		assertTrue(s.isAuthenticated(null, null));
 	}
 
 	@Test
 	public void testUnpack() throws Exception
 	{
-		BambiServer s = new BambiServer();
+		final BambiServer s = new BambiServer();
 		assertNotNull(s);
 		FileUtil.forceDelete(new File(s.getUserDir().getToolPath()));
 		BambiServer.unpackLines(s.getClass(), new File(sm_dirTestDataTemp + "out"), new ByteArrayInputStream("abc\n/data/test.icc\n".getBytes()));
@@ -70,7 +78,7 @@ public class BambiServerTest extends BambiTestCaseBase
 	@Test
 	public void testToString() throws Exception
 	{
-		BambiServer s = new BambiServer();
+		final BambiServer s = new BambiServer();
 		assertNotNull(s.toString());
 	}
 

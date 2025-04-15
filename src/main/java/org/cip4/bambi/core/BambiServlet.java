@@ -240,6 +240,9 @@ public final class BambiServlet extends HttpServlet
 		boolean processed = false;
 		try
 		{
+			if (!theServer.isAuthenticated(request, response))
+				return true;
+
 			final BambiContainer theContainer = BambiContainer.getInstance();
 			if (theContainer == null)
 			{

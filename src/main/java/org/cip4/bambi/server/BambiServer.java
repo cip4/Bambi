@@ -200,7 +200,7 @@ public class BambiServer extends JettyServer
 	 * @param resp
 	 * @return
 	 */
-	protected boolean isAuthenticated(final HttpServletRequest req, final HttpServletResponse resp)
+	public boolean isAuthenticated(final HttpServletRequest req, final HttpServletResponse resp)
 	{
 		return true;
 	}
