@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -74,6 +74,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiException;
@@ -126,7 +129,7 @@ public class BambiServer extends JettyServer
 			}
 			catch (final BambiException e)
 			{
-				LogFactory.getLog(BambiServer.class).fatal("Cannot create bambi server", e);
+				log.fatal("Cannot create bambi server", e);
 			}
 		}
 		return (BambiServer) theServer;
@@ -188,6 +191,18 @@ public class BambiServer extends JettyServer
 			throw new BambiException(logString);
 		}
 		log.info("starting " + toString());
+	}
+
+	/**
+	 * hook for password protection
+	 * 
+	 * @param req
+	 * @param resp
+	 * @return
+	 */
+	protected boolean isAuthenticated(final HttpServletRequest req, final HttpServletResponse resp)
+	{
+		return true;
 	}
 
 	/**
