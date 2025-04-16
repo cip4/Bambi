@@ -636,11 +636,12 @@ public class QueueProcessorTest extends BambiTestCase
 	{
 		final QueueProcessor qp = getDevice().getQueueProcessor();
 		final JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
-		qe.setQueueEntryID("q1");
+		final String qeid = "q" + System.currentTimeMillis();
+		qe.setQueueEntryID(qeid);
 		final JMFBuilder jmfBuilder = new JMFBuilder();
 		final JDFCommand c = jmfBuilder.createJMF(EnumFamily.Command, EnumType.AbortQueueEntry).getCommand(0);
 		final JDFAbortQueueEntryParams aqp = (JDFAbortQueueEntryParams) c.appendElement(ElementName.ABORTQUEUEENTRYPARAMS);
-		aqp.getCreateQueueFilter().appendQueueEntryDef("q1");
+		aqp.getCreateQueueFilter().appendQueueEntryDef(qeid);
 		assertEquals(qe, qp.getMessageQueueEntry(c, null));
 	}
 
