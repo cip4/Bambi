@@ -966,7 +966,8 @@ public class MessageSender implements Runnable, IPersistable
 		final UrlPart p = UrlUtil.writeToURL(url, ByteArrayIOStream.getBufferedInputStream(is), UrlUtil.POST, contentType, httpDetails);
 		final int rc = UrlPart.getReturnCode(p);
 		final long t1 = System.currentTimeMillis();
-		if (!UrlPart.isReturnCodeOK(p) && (trySend % 100 == 0 || trySend < 10))
+		final boolean write = trySend % 100 == 0 || trySend < 10;
+		if (!UrlPart.isReturnCodeOK(p) && write)
 		{
 			sLog.warn("Flaky RC " + rc + " in JMF " + messageDetails.getName() + " response to " + url);
 		}
@@ -975,9 +976,16 @@ public class MessageSender implements Runnable, IPersistable
 			sLog.warn("long processing of " + messageDetails.getName() + " JMF " + (t1 - t0) + " mS for JMF response to " + url);
 		}
 		final DumpDir outputDumpDir = getOuputDumpDir(messageDetails.senderID);
-		final String textHeader = "URL: " + url + "\nDeltaT: " + (t1 - t0);
-		final File outputDumpDirFile = outputDumpDir == null ? null : outputDumpDir.newFile(textHeader, messageDetails.getName() + "." + rc);
-		FileUtil.streamToFile(ByteArrayIOStream.getBufferedInputStream(is), outputDumpDirFile);
+		if (outputDumpDir != null)
+		{
+			final String textHeader = "URL: " + url + "\nDeltaT: " + (t1 - t0);
+			final File outputDumpDirFile = outputDumpDir.newFile(textHeader, messageDetails.getName() + "." + rc);
+			FileUtil.streamToFile(ByteArrayIOStream.getBufferedInputStream(is), outputDumpDirFile);
+			if (write)
+			{
+				sLog.info("dumping " + outputDumpDirFile);
+			}
+		}
 		return (HttpURLConnection) (p == null ? null : p.getConnection());
 	}
 

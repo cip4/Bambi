@@ -146,7 +146,8 @@ public class MessageSenderTest extends BambiTestCase
 		final MessageSender s = getTestSender();
 
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
-		assertNull(s.sendDetails(md));
+		for (int i = 0; i < 120; i++)
+			assertNull(s.sendDetails(md));
 	}
 
 	/**
