@@ -54,14 +54,16 @@ task startScriptsHeadless(type: CreateStartScripts) {
 dependencies {
     implementation 'org.apache.logging.log4j:log4j-jcl:2.24.3'
     implementation 'org.apache.logging.log4j:log4j-core:2.24.3'
-    implementation 'org.cip4.tools.jdfutility:JDFUtility:1.8.+'
+    implementation 'org.cip4.tools.jdfutility:JDFUtility:2.8.+'
     implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:1.2.+'
-	implementation ('org.cip4.lib.jdf:JDFLibJ:2.1.8.+'){
+	implementation ('org.cip4.lib.jdf:JDFLibJ:2.2.8.+'){
 		exclude group: 'xml-apis'
 	}
 	implementation ('xerces:xercesImpl:2.12.2'){transitive=false}
 	
-	implementation 'org.eclipse.jetty:jetty-servlet:10.0.25'
+   implementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'  
+    implementation 'org.eclipse.jetty:jetty-server:12.0.19'
+implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlet:12.0.19'
     implementation ('com.googlecode.json-simple:json-simple:1.1.1'){transitive=false}
     implementation 'commons-logging:commons-logging-api:1.1'
     implementation 'commons-lang:commons-lang:2.6'

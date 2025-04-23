@@ -74,9 +74,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiException;
@@ -89,9 +86,12 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.file.UserDir;
 import org.cip4.jdfutility.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * standalone app for bambi using an embedded jetty server
@@ -338,7 +338,7 @@ public class BambiServer extends JettyServer
 	@Override
 	protected ServletContextHandler createServletHandler()
 	{
-		final ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		final org.eclipse.jetty.ee10.servlet.ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		contextHandler.setContextPath(context);
 		contextHandler.setWelcomeFiles(new String[] { "index.jsp" });
 		myServlet = new BambiServlet(this);
@@ -379,7 +379,7 @@ public class BambiServer extends JettyServer
 	protected ResourceHandler createResourceHandler()
 	{
 		final ResourceHandler resourceHandler = super.createResourceHandler();
-		resourceHandler.setResourceBase(getToolPath());
+		resourceHandler.setBaseResourceAsString(getToolPath());
 		return resourceHandler;
 	}
 
