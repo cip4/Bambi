@@ -76,7 +76,7 @@ import static org.junit.Assert.assertFalse;
 import java.io.File;
 import java.io.IOException;
 
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 
 import org.cip4.bambi.core.BambiContainerTest;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;

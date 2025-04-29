@@ -75,7 +75,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 
 import org.cip4.bambi.core.BambiContainerTest;
 import org.cip4.bambi.core.StreamRequest;

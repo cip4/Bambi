@@ -80,7 +80,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import javax.mail.Multipart;
+import jakarta.mail.Multipart;
 
 import org.cip4.bambi.core.BambiContainer;
 import org.cip4.bambi.core.MimeRequest;

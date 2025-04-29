@@ -84,7 +84,7 @@ import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.AbstractDevice;

@@ -70,7 +70,7 @@
  */
 package org.cip4.bambi.core;
 
-import javax.mail.Multipart;
+import jakarta.mail.Multipart;
 
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.mime.MimeReader;

@@ -49,8 +49,8 @@ import java.io.InputStream;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
 
-import javax.mail.BodyPart;
-import javax.mail.MessagingException;
+import jakarta.mail.BodyPart;
+import jakarta.mail.MessagingException;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.core.BambiNSExtension;

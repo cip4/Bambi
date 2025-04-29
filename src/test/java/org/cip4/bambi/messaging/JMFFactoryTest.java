@@ -78,7 +78,7 @@ import static org.junit.Assert.fail;
 
 import java.net.HttpURLConnection;
 
-import javax.mail.Multipart;
+import jakarta.mail.Multipart;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.messaging.JMFFactory;

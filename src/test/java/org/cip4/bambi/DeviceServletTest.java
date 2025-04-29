@@ -82,8 +82,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Multipart;
 
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
