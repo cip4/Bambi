@@ -188,17 +188,14 @@ public class ProxyContainerTest extends BambiTestCase
 		assertNotNull(qe);
 		assertNotNull(dresp2);
 		JDFDoc dresp3 = null;
-		ThreadUtil.sleep(4200);
-		for (int i = 0; i < 222; i++)
+		ThreadUtil.sleep(1234);
+		for (int i = 0; i < 3; i++)
 		{
 			dresp3 = submitJMFtoURL(pull, getProxyURLForSlave());
-			if (dresp3.getJMFRoot().getResponse(0).getReturnCode() != 0)
+			final int returnCode = dresp3.getJMFRoot().getResponse(0).getReturnCode();
+			if (returnCode != 0)
 			{
-				fail("" + i);
-			}
-			else
-			{
-				System.out.print(i + "\n");
+				fail(i + ": rc=" + returnCode);
 			}
 		}
 		assertNotNull(dresp3);
