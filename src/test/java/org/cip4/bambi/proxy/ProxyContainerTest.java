@@ -124,7 +124,7 @@ public class ProxyContainerTest extends BambiTestCase
 	 * @throws IOException
 	 */
 	@Test
-	public void testNewJDF() throws IOException
+	public synchronized void testNewJDF() throws IOException
 	{
 		final BambiTestHelper helper = getHelper();
 		helper.container = bambiContainer;
@@ -140,7 +140,7 @@ public class ProxyContainerTest extends BambiTestCase
 	 * @throws IOException
 	 */
 	@Test
-	public void testRequestQueueEntry() throws IOException
+	public synchronized void testRequestQueueEntry() throws IOException
 	{
 		presubmit();
 		final JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
@@ -168,7 +168,7 @@ public class ProxyContainerTest extends BambiTestCase
 	 * @throws IOException ex
 	 */
 	@Test
-	public void testRequestQueueEntryInformative() throws IOException
+	public synchronized void testRequestQueueEntryInformative() throws IOException
 	{
 		deviceID = "sim001";
 		presubmit();
@@ -209,7 +209,7 @@ public class ProxyContainerTest extends BambiTestCase
 	 * @throws IOException ex
 	 */
 	@Test
-	public void testRequestQueueEntryInformativeThenReal() throws IOException
+	public synchronized void testRequestQueueEntryInformativeThenReal() throws IOException
 	{
 		presubmit();
 		final JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
@@ -264,7 +264,7 @@ public class ProxyContainerTest extends BambiTestCase
 	 * @throws IOException ex
 	 */
 	@Test
-	public void testRequestQueueEntryForce() throws IOException
+	public synchronized void testRequestQueueEntryForce() throws IOException
 	{
 		presubmit();
 		final JDFQueue queue = getHelper().getQueueStatus(getWorkerURL());
@@ -316,7 +316,7 @@ public class ProxyContainerTest extends BambiTestCase
 	public void setUp() throws Exception
 	{
 		super.setUp();
-		JDFElement.setDefaultJDFVersion(EnumVersion.Version_1_4);
+		JDFElement.setDefaultJDFVersion(EnumVersion.Version_1_8);
 		startContainer();
 	}
 
@@ -324,7 +324,7 @@ public class ProxyContainerTest extends BambiTestCase
 	 * @param devProp
 	 */
 	@Override
-	protected void moreSetup(final DeviceProperties devProp)
+	protected synchronized void moreSetup(final DeviceProperties devProp)
 	{
 		final ProxyDeviceProperties pdp = (ProxyDeviceProperties) devProp;
 		pdp.setDeviceClassName("org.cip4.bambi.proxy.ProxyDevice");

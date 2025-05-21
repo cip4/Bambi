@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -76,11 +76,13 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 
 import org.cip4.bambi.BambiTestCase;
+import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.util.UrlUtil;
 import org.junit.Test;
 
@@ -110,6 +112,17 @@ public class XMLRequestTest extends BambiTestCase
 		final XMLRequest req = new XMLRequest(new StreamRequest(new ByteArrayInputStream("<a/>".getBytes())));
 		assertEquals("a", req.getXML().getLocalName());
 		assertEquals(UrlUtil.TEXT_XML, req.getContentType(true));
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testConstructStreamTrue()
+	{
+		final XMLRequest req = new XMLRequest(new StreamRequest(new ByteArrayInputStream("<JDF/>".getBytes())), true);
+		assertTrue(req.getXML() instanceof JDFNode);
+		assertEquals(JDFConstants.MIME_JDF, req.getContentType(true));
 	}
 
 	/**

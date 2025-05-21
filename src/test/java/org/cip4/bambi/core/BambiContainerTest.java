@@ -80,9 +80,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 
-import jakarta.mail.BodyPart;
-import jakarta.mail.MessagingException;
-
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestHelper;
 import org.cip4.jdflib.core.JDFDoc;
@@ -110,8 +107,10 @@ import org.cip4.jdflib.util.mime.MimeReader;
 import org.cip4.jdflib.util.mime.MimeWriter;
 import org.cip4.lib.jdf.jsonutil.JSONWriter;
 import org.json.simple.JSONObject;
-import org.junit.Ignore;
 import org.junit.Test;
+
+import jakarta.mail.BodyPart;
+import jakarta.mail.MessagingException;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -484,25 +483,6 @@ public class BambiContainerTest extends BambiTestCase
 		final KElement htmlResp = resp.getXML();
 		assertNotNull(htmlResp);
 		assertTrue(htmlResp instanceof JDFJMF);
-	}
-
-	/**
-	 * @throws IOException
-	 *
-	 */
-	@Test
-	@Ignore
-	public void testSubmitMany() throws IOException
-	{
-		final CPUTimer ct = new CPUTimer(false);
-		for (int i = 0; i < 1000; i++)
-		{
-			ct.start();
-			testSubmit();
-			System.out.println(ct);
-			ct.stop();
-		}
-
 	}
 
 	/**
