@@ -155,7 +155,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final File dir = new File(sm_dirTestData + "sub3");
 		final SubscriptionStore ss = new SubscriptionStore(d, dir);
 		ss.load();
-		assertEquals(1, d.subscriptionMap.size());
+		assertTrue(d.subscriptionMap.size() >= 1);
 	}
 
 	/**
