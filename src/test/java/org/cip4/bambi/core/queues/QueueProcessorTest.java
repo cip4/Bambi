@@ -84,8 +84,6 @@ import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import jakarta.mail.MessagingException;
-
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiNSExtension;
@@ -127,6 +125,8 @@ import org.cip4.jdflib.util.mime.MimeWriter;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import jakarta.mail.MessagingException;
 
 /**
  * test for the various queue processor functions
@@ -774,6 +774,7 @@ public class QueueProcessorTest extends BambiTestCase
 		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
 		final JDFQueueEntry qe = qp.addEntry(c, r, doc);
 		assertNotNull(qe);
+		ThreadUtil.sleep(42);
 		assertNotNull(qp.getNextEntry(qp.getParent().getDeviceID(), QERetrieval.BOTH));
 		final QueueProcessor qp2 = spy(qp);
 		when(qp2.getCanExecuteCallback(any())).thenReturn(null);
