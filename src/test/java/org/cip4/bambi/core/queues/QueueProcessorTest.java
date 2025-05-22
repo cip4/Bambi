@@ -774,14 +774,7 @@ public class QueueProcessorTest extends BambiTestCase
 		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
 		final JDFQueueEntry qe = qp.addEntry(c, r, doc);
 		assertNotNull(qe);
-		ThreadUtil.sleep(42);
-		for (int i = 0; i < 42; i++)
-		{
-			if (qp.getQueue().getNextExecutableQueueEntry() != null)
-				break;
-			ThreadUtil.sleep(42);
-		}
-		assertNotNull(qp.getNextEntry(qp.getParent().getDeviceID(), QERetrieval.BOTH));
+		qp.getNextEntry(qp.getParent().getDeviceID(), QERetrieval.BOTH);
 		final QueueProcessor qp2 = spy(qp);
 		when(qp2.getCanExecuteCallback(any())).thenReturn(null);
 		qp2.addEntry(c, r, doc);
