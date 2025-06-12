@@ -80,12 +80,12 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.Enumeration;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.server.BambiServer;
 import org.junit.Test;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -149,6 +149,21 @@ public class BambiServletTest extends BambiTestCase
 		when(req.getRequestURL()).thenReturn(new StringBuffer(""));
 		when(req.getHeaderNames()).thenReturn(new Enus());
 		assertFalse(bs.doGetPost(req, mock(HttpServletResponse.class), true));
+	}
+
+	/**
+	 * @throws Exception
+	 * @throws IOException
+	 * @throws Exception
+	 * 
+	 */
+	@Test
+	public void testAuthMessage() throws Exception
+	{
+		startContainer();
+		final BambiServer s = new BambiServer();
+		final BambiServlet bs = new BambiServlet(s);
+		assertEquals("Not authenticated", bs.getAuthMessage(null));
 	}
 
 	/**

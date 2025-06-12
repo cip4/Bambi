@@ -43,13 +43,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import jakarta.servlet.ServletConfig;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.server.BambiServer;
@@ -59,6 +52,13 @@ import org.cip4.jdflib.util.PlatformUtil;
 import org.cip4.jdflib.util.StreamUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
+
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Entrance point for Bambi servlets note that most processing has been moved to the servlet independent class @see BambiContainer
@@ -241,8 +241,10 @@ public final class BambiServlet extends HttpServlet
 		try
 		{
 			if (!theServer.isAuthenticated(request, response))
+			{
+				response.sendError(401, getAuthMessage(request));
 				return true;
-
+			}
 			final BambiContainer theContainer = BambiContainer.getInstance();
 			if (theContainer == null)
 			{
@@ -286,6 +288,11 @@ public final class BambiServlet extends HttpServlet
 			log.warn("whazzap???", x);
 		}
 		return processed;
+	}
+
+	String getAuthMessage(final HttpServletRequest request)
+	{
+		return "Not authenticated";
 	}
 
 	/**
