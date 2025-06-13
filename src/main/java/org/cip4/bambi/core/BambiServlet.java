@@ -42,6 +42,8 @@ package org.cip4.bambi.core;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -69,6 +71,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public final class BambiServlet extends HttpServlet
 {
 	public static final String BAMBI_DUMP = "bambiDump";
+	private final static String WWW_AUTHENTICATE = "WWW-Authenticate";
 	/**
 	 *
 	 */
@@ -242,8 +245,7 @@ public final class BambiServlet extends HttpServlet
 		{
 			if (!theServer.isAuthenticated(request, response))
 			{
-				response.sendError(401, getAuthMessage(request));
-				return true;
+				return unAuthenticated(request, response);
 			}
 			final BambiContainer theContainer = BambiContainer.getInstance();
 			if (theContainer == null)
@@ -290,9 +292,47 @@ public final class BambiServlet extends HttpServlet
 		return processed;
 	}
 
-	String getAuthMessage(final HttpServletRequest request)
+	boolean unAuthenticated(final HttpServletRequest request, final HttpServletResponse response) throws IOException
 	{
-		return "Not authenticated";
+		if (UrlUtil.POST.equalsIgnoreCase(request.getMethod()))
+		{
+			response.sendError(401, getAuthMessage(request));
+		}
+		else
+		{
+			response.setHeader(WWW_AUTHENTICATE, getAuthMessage(request));
+
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+		}
+		return true;
+	}
+
+	protected String getAuthMessage(final HttpServletRequest request)
+	{
+		if (UrlUtil.POST.equalsIgnoreCase(request.getMethod()))
+		{
+			final StringBuilder sb = new StringBuilder();
+			sb.append("BASIC realm=\"");
+			sb.append(request.getScheme());
+			sb.append("://");
+			try
+			{
+				sb.append(InetAddress.getLocalHost().getHostName());
+			}
+			catch (final UnknownHostException e)
+			{
+				// nop
+			}
+			sb.append(":");
+			sb.append(request.getLocalPort());
+			sb.append("\"");
+			return sb.toString();
+		}
+		else
+		{
+			return "Not authenticated";
+		}
 	}
 
 	/**

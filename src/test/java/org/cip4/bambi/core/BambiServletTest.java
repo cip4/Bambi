@@ -74,7 +74,10 @@ package org.cip4.bambi.core;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -163,7 +166,48 @@ public class BambiServletTest extends BambiTestCase
 		startContainer();
 		final BambiServer s = new BambiServer();
 		final BambiServlet bs = new BambiServlet(s);
-		assertEquals("Not authenticated", bs.getAuthMessage(null));
+		final HttpServletRequest req = mock(HttpServletRequest.class);
+		assertEquals("Not authenticated", bs.getAuthMessage(req));
+		when(req.getMethod()).thenReturn("Post");
+		assertEquals("BASIC", bs.getAuthMessage(req).substring(0, 5));
+	}
+
+	/**
+	 * @throws Exception
+	 * @throws IOException
+	 * @throws Exception
+	 * 
+	 */
+	@Test
+	public void testUnAuth() throws Exception
+	{
+		startContainer();
+		final BambiServer s = new BambiServer();
+		final BambiServlet bs = new BambiServlet(s);
+		final HttpServletRequest req = mock(HttpServletRequest.class);
+		assertTrue(bs.unAuthenticated(req, mock(HttpServletResponse.class)));
+		when(req.getMethod()).thenReturn("Post");
+		assertTrue(bs.unAuthenticated(req, mock(HttpServletResponse.class)));
+	}
+
+	/**
+	 * @throws Exception
+	 * @throws IOException
+	 * @throws Exception
+	 * 
+	 */
+	@Test
+	public void testAuthResp() throws Exception
+	{
+		startContainer();
+		final BambiServer s = spy(new BambiServer());
+		when(s.isAuthenticated(any(), any())).thenReturn(false);
+		final BambiServlet bs = new BambiServlet(s);
+		final HttpServletRequest req = mock(HttpServletRequest.class);
+		when(req.getRequestURL()).thenReturn(new StringBuffer("https"));
+		when(req.getHeaderNames()).thenReturn(new Enus());
+		assertTrue(bs.doGetPost(req, mock(HttpServletResponse.class), true));
+		assertTrue(bs.doGetPost(req, mock(HttpServletResponse.class), false));
 	}
 
 	/**
