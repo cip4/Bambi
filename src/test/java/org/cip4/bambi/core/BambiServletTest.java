@@ -167,9 +167,9 @@ public class BambiServletTest extends BambiTestCase
 		final BambiServer s = new BambiServer();
 		final BambiServlet bs = new BambiServlet(s);
 		final HttpServletRequest req = mock(HttpServletRequest.class);
-		assertEquals("Not authenticated", bs.getAuthMessage(req));
-		when(req.getMethod()).thenReturn("Post");
 		assertEquals("BASIC", bs.getAuthMessage(req).substring(0, 5));
+		when(req.getMethod()).thenReturn("Post");
+		assertEquals("Not authenticated", bs.getAuthMessage(req));
 	}
 
 	/**

@@ -310,7 +310,7 @@ public final class BambiServlet extends HttpServlet
 
 	protected String getAuthMessage(final HttpServletRequest request)
 	{
-		if (UrlUtil.POST.equalsIgnoreCase(request.getMethod()))
+		if (!UrlUtil.POST.equalsIgnoreCase(request.getMethod()))
 		{
 			final StringBuilder sb = new StringBuilder();
 			sb.append("BASIC realm=\"");
