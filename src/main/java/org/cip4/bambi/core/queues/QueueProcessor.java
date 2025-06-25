@@ -2563,7 +2563,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					qLog.error("no such queueentry: " + qe.getQueueEntryID());
 					return q;
 				}
-				else
+				else if (status != null)
 				{
 					qLog.warn("not updating QE - using original from Queue " + qe2.getQueueEntryID());
 					qe = qe2;

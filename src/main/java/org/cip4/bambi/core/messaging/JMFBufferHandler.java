@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -53,6 +53,7 @@ import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.StringArray;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
@@ -73,7 +74,6 @@ import org.cip4.jdflib.resource.JDFEvent;
 import org.cip4.jdflib.resource.JDFModuleStatus;
 import org.cip4.jdflib.resource.JDFNotification;
 import org.cip4.jdflib.util.ContainerUtil;
-import org.cip4.jdflib.util.FastFiFo;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.ListMap;
 import org.cip4.jdflib.util.StringUtil;
@@ -86,11 +86,10 @@ import org.cip4.jdflib.util.StringUtil;
 public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 {
 
-	protected VString ignoreSenderIDs = null;
-	private static int logCounter = 0;
-	private static int multiCounter = 0;
-	protected ListMap<MessageIdentifier, JDFSignal> messageMap = new ListMap<>();
-	final FastFiFo<JDFSignal> lastSignals;
+	protected final StringArray ignoreSenderIDs;
+	private static int logCounter;
+	private static int multiCounter;
+	protected final ListMap<MessageIdentifier, JDFSignal> messageMap;
 
 	/**
 	 * @return the _theDispatcher
@@ -112,7 +111,9 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	{
 		super(dev, _type, _families);
 		fallBack = null;
-		lastSignals = new FastFiFo<>(42);
+		messageMap = new ListMap<>();
+		ignoreSenderIDs = new StringArray();
+		logCounter = multiCounter = 0;
 	}
 
 	/**
@@ -144,13 +145,23 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		response.appendAnchor(null);
 		for (final KElement e : response.getChildArray(null, null))
 		{
-			if (!response.isValidMessageElement(e.getLocalName(), 0))
+			if (!response.knownElements().contains(e.getLocalName()))
 			{
 				response.removeChild(e.getLocalName(), null, 0);
 			}
 		}
 		response.getJMFRoot().setSenderID(_theDevice.getDeviceID());
+		signal.deleteNode();
 
+	}
+
+	void putOne(final MessageIdentifier mi, final JDFSignal inSignal)
+	{
+		messageMap.putOne(mi, inSignal);
+		if (messageMap.size(mi) > 42)
+		{
+			messageMap.get(mi).remove(0);
+		}
 	}
 
 	/**
@@ -191,27 +202,14 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		final boolean isSubscribed = inputMessage.getBoolAttribute(JMFHandler.subscribed, null, false);
 		if (!isSubscription)
 		{
-			if (isSubscribed)
-			{
-				getSignals(inputMessage, response);
-			}
-			else if (lastSignals.getFill() > 0)
-			{
-				updateResponse(lastSignals.pop(), response);
-				return true;
-			}
-			else if (fallBack != null)
+			final JDFJMF jmf = getSignals(inputMessage, response, !isSubscribed);
+			if (jmf == null && fallBack != null)
 			{
 				return fallBack.handleMessage(inputMessage, response);
 			}
 		}
 
-		if (!isSubscription)
-		{
-			response.deleteNode();// always zapp the dummy response except in a subscription
-		}
-
-		inputMessage.deleteNode(); // also zapp the query
+		inputMessage.deleteNode(); // zapp the query
 		return true;
 	}
 
@@ -221,7 +219,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 */
 	protected boolean ignore(final JDFMessage inputMessage)
 	{
-		if (ignoreSenderIDs == null)
+		if (ignoreSenderIDs.isEmpty())
 		{
 			return false;
 		}
@@ -263,11 +261,11 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	{
 		if (_ignoreSenderIDs == null || _ignoreSenderIDs.size() == 0)
 		{
-			ignoreSenderIDs = null;
+			ignoreSenderIDs.clear();
 		}
 		else
 		{
-			ignoreSenderIDs = _ignoreSenderIDs;
+			ContainerUtil.appendUnique(ignoreSenderIDs, _ignoreSenderIDs);
 		}
 	}
 
@@ -276,7 +274,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 * @param response
 	 * @return
 	 */
-	protected JDFJMF getSignals(final JDFMessage inputMessage, final JDFResponse response)
+	protected JDFJMF getSignals(final JDFMessage inputMessage, final JDFResponse response, final boolean isResponse)
 	{
 		synchronized (messageMap)
 		{
@@ -308,6 +306,12 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 								sNew.setSenderID(signal.getSenderID());
 								sNew.copyAttribute(AttributeName.REFID, inputMessage, AttributeName.ID, null, null);
 								nSig++;
+								if (isResponse)
+								{
+									messageMap.removeOne(mi, signal);
+									updateResponse(sNew, response);
+									return jmf;
+								}
 							}
 							else
 							{
@@ -317,7 +321,8 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 					}
 				}
 			}
-			final JDFJMF cleanup = cleanup(jmf, messageIdentifiers, nSig);
+
+			final JDFJMF cleanup = isResponse ? null : cleanup(jmf, messageIdentifiers, nSig);
 			return cleanup;
 		}
 	}
@@ -345,6 +350,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				log.info("generated " + nSig + " signal jmf #" + multiCounter);
 			}
 		}
+		jmf.removeChildren(ElementName.RESPONSE, null);
 		return jmf;
 	}
 
@@ -412,25 +418,25 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		final String qeID = getQueueEntryIDForSignal(inSignal);
 		final SignalDispatcher dispatcher = getDispatcher();
 		final Set<String> requests = dispatcher == null ? null : dispatcher.getAllChannels(inSignal.getType(), inSignal.getSenderID(), qeID);
-		final MessageIdentifier[] mi = new MessageIdentifier(inSignal, null).cloneChannels(requests);
+		final MessageIdentifier[] mi = new MessageIdentifier(inSignal, inSignal.getSenderID()).cloneChannels(requests);
 
-		if (mi != null)
+		if (logCounter < 10 || logCounter % 1000 == 0)
 		{
-			if (logCounter < 10 || logCounter % 100 == 0)
+			log.info("broadcasting buffered Signal# " + logCounter + " " + inSignal.getType() + " to " + mi.length + " receivers");
+		}
+		synchronized (messageMap)
+		{
+			for (int i = 0; i < mi.length; i++)
 			{
-				log.info("broadcasting buffered Signal# " + logCounter + " " + inSignal.getType() + " to " + mi.length + " receivers");
-			}
-			synchronized (messageMap)
-			{
-				for (int i = 0; i < mi.length; i++)
+				putOne(mi[i], inSignal);
+				final boolean last = i + 1 == mi.length;
+				if (!StringUtil.isEmpty(mi[i].misChannelID))
 				{
-					messageMap.putOne(mi[i], inSignal);
-					final boolean last = i + 1 == mi.length;
 					dispatcher.triggerChannel(mi[i].misChannelID, qeID, null, -1, last, true);
 				}
 			}
 		}
-		lastSignals.push(inSignal);
+
 		logCounter++;
 		return true;
 	}
@@ -561,55 +567,6 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			return new HashMap<>();
 		}
 
-		/**
-		 * @param inputMessage
-		 * @param response
-		 * @return true if handled
-		 */
-		@Override
-		protected boolean handleQuery(final JDFMessage inputMessage, final JDFResponse response)
-		{
-			final boolean isSubscription = response.getSubscribed();
-			final boolean isSubscribed = inputMessage.getBoolAttribute(JMFHandler.subscribed, null, false);
-
-			boolean deleteResponse = !isSubscription;
-			if (!isSubscription)
-			{
-				final JDFJMF jmf = getSignals(inputMessage, response);
-				if (jmf == null)
-				{
-					if (!isSubscribed && lastSignals.getFill() > 0)
-					{
-						updateResponse(lastSignals.pop(), response);
-						return true;
-					}
-
-					if (fallBack != null)
-					{
-						return fallBack.handleMessage(inputMessage, response);
-					}
-				}
-
-			}
-			final JDFStatusQuParams sqp = inputMessage.getStatusQuParams();
-			if (sqp != null && sqp.getQueueInfo())
-			{
-				deleteResponse = false;
-				_theDevice.addQueueToStatusResponse(inputMessage, response);
-			}
-
-			if (deleteResponse)
-			{
-				response.deleteNode();// zapp the dummy response except in a subscription
-			}
-
-			if (isSubscription)
-			{
-				inputMessage.deleteNode(); // also zapp the query
-			}
-			return true;
-		}
-
 		@Override
 		protected boolean handleSignal(final JDFSignal theSignal, final JDFResponse response)
 		{
@@ -623,16 +580,13 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				final JDFSignal inSignal = (JDFSignal) e;
 				final String qeID = getQueueEntryIDForSignal(inSignal);
 				final Set<String> requests = getDispatcher().getAllChannels(theSignal.getType(), inSignal.getSenderID(), qeID);
-				final MessageIdentifier[] messageIdentifiers = new MessageIdentifier(inSignal, null).cloneChannels(requests);
-				if (messageIdentifiers != null)
+				final MessageIdentifier[] messageIdentifiers = new MessageIdentifier(inSignal, theSignal.getSenderID()).cloneChannels(requests);
+				for (final MessageIdentifier mi : messageIdentifiers)
 				{
-					for (final MessageIdentifier mi : messageIdentifiers)
-					{
-						dispatchSingleSignal(inSignal, qeID, mi);
-					}
+					dispatchSingleSignal(inSignal, qeID, mi);
 				}
-				lastSignals.push(inSignal);
 			}
+
 			logCounter++;
 			return true;
 		}
@@ -640,23 +594,21 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		protected void dispatchSingleSignal(final JDFSignal inSignal, final String qeID, final MessageIdentifier mi)
 		{
 			JDFSignal lastSignal = null;
-			if (lastSent != null)
+			synchronized (lastSent) // we don't need any races here
 			{
-				synchronized (lastSent) // we don't need any races here
-				{
-					lastSignal = lastSent.get(mi);
-				}
+				lastSignal = lastSent.get(mi);
 			}
+
 			handleSingleSignal(inSignal, mi);
 			final StatusSignalComparator comparator = lastSignal == null ? null : getComparator();
 			final boolean sameStatusSignal = comparator != null && comparator.isSameStatusSignal(inSignal, lastSignal);
-			getDispatcher().triggerChannel(mi.misChannelID, qeID, null, -1, false, sameStatusSignal);
-			if (lastSent != null)
+			if (!StringUtil.isEmpty(mi.misChannelID))
 			{
-				synchronized (lastSent)
-				{
-					lastSent.put(mi, inSignal);
-				}
+				getDispatcher().triggerChannel(mi.misChannelID, qeID, null, -1, false, sameStatusSignal);
+			}
+			synchronized (lastSent)
+			{
+				lastSent.put(mi, inSignal);
 			}
 		}
 
@@ -668,7 +620,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				if (last == null)
 				{
 					fixIdleTime(inSignal);
-					messageMap.putOne(mi, inSignal);
+					putOne(mi, inSignal);
 				}
 				else
 				{
@@ -682,7 +634,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 					else
 					{
 						fixIdleTime(inSignal);
-						messageMap.putOne(mi, inSignal);
+						putOne(mi, inSignal);
 					}
 				}
 			}

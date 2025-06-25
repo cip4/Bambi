@@ -43,6 +43,8 @@ import java.util.Objects;
 
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFMessage;
+import org.cip4.jdflib.jmf.JDFQuery;
+import org.cip4.jdflib.jmf.JDFSignal;
 import org.cip4.jdflib.util.ContainerUtil;
 
 /**
@@ -84,7 +86,8 @@ public class MessageIdentifier implements Cloneable
 		{
 			slaveChannelID = null;
 		}
-		misChannelID = slaveChannelID == null ? m.getID() : null;
+		final boolean channel = (m instanceof JDFSignal) || ((m instanceof JDFQuery) && ((JDFQuery) m).getSubscription() != null);
+		misChannelID = channel && slaveChannelID == null ? m.getID() : null;
 		if (!KElement.isWildCard(jmfSenderID))
 		{
 			deviceID = jmfSenderID;
@@ -103,17 +106,23 @@ public class MessageIdentifier implements Cloneable
 	 */
 	public MessageIdentifier[] cloneChannels(final Collection<String> misChannels)
 	{
+		final MessageIdentifier[] ret;
 		if (ContainerUtil.isEmpty(misChannels))
 		{
-			return null;
+			ret = new MessageIdentifier[1];
+			ret[0] = clone();
+			ret[0].misChannelID = null;
 		}
-		final MessageIdentifier[] ret = new MessageIdentifier[misChannels.size()];
-		int n = 0;
-		for (String key : misChannels)
+		else
 		{
-			ret[n] = clone();
-			ret[n].misChannelID = key;
-			n++;
+			ret = new MessageIdentifier[misChannels.size()];
+			int n = 0;
+			for (final String key : misChannels)
+			{
+				ret[n] = clone();
+				ret[n].misChannelID = key;
+				n++;
+			}
 		}
 		return ret;
 	}
@@ -173,7 +182,7 @@ public class MessageIdentifier implements Cloneable
 	}
 
 	@Override
-	public boolean equals(Object obj)
+	public boolean equals(final Object obj)
 	{
 		if (this == obj)
 			return true;
@@ -181,7 +190,7 @@ public class MessageIdentifier implements Cloneable
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		MessageIdentifier other = (MessageIdentifier) obj;
+		final MessageIdentifier other = (MessageIdentifier) obj;
 		return Objects.equals(deviceID, other.deviceID) && Objects.equals(misChannelID, other.misChannelID) && Objects.equals(msgType, other.msgType)
 				&& Objects.equals(slaveChannelID, other.slaveChannelID);
 	}

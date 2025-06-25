@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -55,36 +55,36 @@ public class MessageIdentifierTest
 	@Test
 	public void testMessageIdentifier()
 	{
-		JMFBuilder jmfBuilder = new JMFBuilder();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
 		jmfBuilder.setSenderID("sender");
-		JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
+		final JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
 		jmf.getMessageElement(null, null, 0).setSenderID("s3");
-		MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
+		final MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
 		assertNull(mi.deviceID);
 	}
 
 	@Test
 	public void testToString()
 	{
-		JMFBuilder jmfBuilder = new JMFBuilder();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
 		jmfBuilder.setSenderID("sender");
-		JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
+		final JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
 		jmf.getMessageElement(null, null, 0).setSenderID("s3");
-		MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
+		final MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
 		assertNotNull(mi.toString());
 	}
 
 	@Test
 	public void testMatches()
 	{
-		JMFBuilder jmfBuilder = new JMFBuilder();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
 		jmfBuilder.setSenderID("sender");
-		JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
+		final JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
 		jmf.getMessageElement(null, null, 0).setSenderID("s3");
-		MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
-		MessageIdentifier mi2 = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
+		final MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
+		final MessageIdentifier mi2 = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
 		assertTrue(mi.matches(mi2));
-		MessageIdentifier mi3 = mi.clone();
+		final MessageIdentifier mi3 = mi.clone();
 		mi3.msgType = "foo";
 		assertFalse(mi.matches(mi3));
 		assertFalse(mi.equals(mi3));
@@ -94,12 +94,12 @@ public class MessageIdentifierTest
 	@Test
 	public void testClone()
 	{
-		JMFBuilder jmfBuilder = new JMFBuilder();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
 		jmfBuilder.setSenderID("sender");
-		JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
+		final JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
 		jmf.getMessageElement(null, null, 0).setSenderID("s3");
-		MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
-		MessageIdentifier mi2 = mi.clone();
+		final MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
+		final MessageIdentifier mi2 = mi.clone();
 		assertTrue(mi.matches(mi2));
 		assertEquals(mi, mi2);
 		assertEquals(mi.hashCode(), mi2.hashCode());
@@ -108,13 +108,13 @@ public class MessageIdentifierTest
 	@Test
 	public void testCloneChannel()
 	{
-		JMFBuilder jmfBuilder = new JMFBuilder();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
 		jmfBuilder.setSenderID("sender");
-		JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
+		final JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
 		jmf.getMessageElement(null, null, 0).setSenderID("s3");
-		MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
-		assertNull(mi.cloneChannels(null));
-		MessageIdentifier[] mi2 = mi.cloneChannels(new VString("a b c"));
+		final MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
+		assertEquals(mi, mi.cloneChannels(null)[0]);
+		final MessageIdentifier[] mi2 = mi.cloneChannels(new VString("a b c"));
 		assertEquals("a", mi2[0].getMisChannelID());
 		assertEquals("b", mi2[1].getMisChannelID());
 
