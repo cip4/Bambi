@@ -87,8 +87,8 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 {
 
 	protected final StringArray ignoreSenderIDs;
-	private static int logCounter;
-	private static int multiCounter;
+	private int logCounter;
+	private int multiCounter;
 	protected final ListMap<MessageIdentifier, JDFSignal> messageMap;
 
 	/**
