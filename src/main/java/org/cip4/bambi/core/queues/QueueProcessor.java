@@ -1823,6 +1823,15 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	}
 
 	/**
+	 * @param deviceID
+	 * @return
+	 */
+	CanExecuteCallBack getCanExecuteCallback()
+	{
+		return cbCanExecute;
+	}
+
+	/**
 	 * @return
 	 */
 	public int getMaxRunning()
@@ -2013,7 +2022,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	public IQueueEntry getNextEntry(final String deviceID, final QERetrieval canPush)
 	{
-		CanExecuteCallBack cb = cbCanExecute;
+		CanExecuteCallBack cb = getCanExecuteCallback();
 		if (cb != null && deviceID != null)
 		{
 			cb = cb.clone();

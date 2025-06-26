@@ -76,7 +76,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -776,7 +775,7 @@ public class QueueProcessorTest extends BambiTestCase
 		assertNotNull(qe);
 		qp.getNextEntry(qp.getParent().getDeviceID(), QERetrieval.BOTH);
 		final QueueProcessor qp2 = spy(qp);
-		when(qp2.getCanExecuteCallback(any())).thenReturn(null);
+		when(qp2.getCanExecuteCallback()).thenReturn(null);
 		qp2.addEntry(c, r, doc);
 		assertNotNull(qp2.getNextEntry(qp.getParent().getDeviceID(), QERetrieval.BOTH));
 		assertNull(qp2.getNextEntry(qp.getParent().getDeviceID(), QERetrieval.BOTH));
