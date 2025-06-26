@@ -587,7 +587,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				}
 			}
 
-			logCounter++;
+			super.logCounter++;
 			return true;
 		}
 
