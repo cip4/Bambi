@@ -335,6 +335,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 */
 	protected JDFJMF cleanup(final JDFJMF jmf, final List<MessageIdentifier> messageIdentifiers, final int nSig)
 	{
+		jmf.removeChildren(ElementName.RESPONSE, null);
 		for (final MessageIdentifier mi : messageIdentifiers)
 		{
 			messageMap.remove(mi);
@@ -350,7 +351,6 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				log.info("generated " + nSig + " signal jmf #" + multiCounter);
 			}
 		}
-		jmf.removeChildren(ElementName.RESPONSE, null);
 		return jmf;
 	}
 

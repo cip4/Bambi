@@ -44,6 +44,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import org.cip4.jdflib.core.StringArray;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JMFBuilder;
@@ -113,7 +114,8 @@ public class MessageIdentifierTest
 		final JDFJMF jmf = jmfBuilder.buildQueueStatusSubscription("url");
 		jmf.getMessageElement(null, null, 0).setSenderID("s3");
 		final MessageIdentifier mi = new MessageIdentifier(jmf.getMessageElement(null, null, 0), jmf.getDeviceID());
-		assertEquals(mi, mi.cloneChannels(null)[0]);
+		assertEquals(mi, mi.cloneChannels(new StringArray(jmf.getQuery().getID()))[0]);
+		assertEquals(null, mi.cloneChannels(null)[0].misChannelID);
 		final MessageIdentifier[] mi2 = mi.cloneChannels(new VString("a b c"));
 		assertEquals("a", mi2[0].getMisChannelID());
 		assertEquals("b", mi2[1].getMisChannelID());
