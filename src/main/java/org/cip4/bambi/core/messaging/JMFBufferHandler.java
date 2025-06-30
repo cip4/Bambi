@@ -322,7 +322,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				}
 			}
 
-			final JDFJMF cleanup = isResponse ? null : cleanup(jmf, messageIdentifiers, nSig);
+			final JDFJMF cleanup = isResponse && jmf != null ? null : cleanup(jmf, messageIdentifiers, nSig);
 			return cleanup;
 		}
 	}
