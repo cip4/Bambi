@@ -62,6 +62,7 @@ import org.cip4.jdflib.jmf.JDFJobPhase;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFResourceQuParams;
@@ -205,7 +206,12 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			final JDFJMF jmf = getSignals(inputMessage, response, !isSubscribed);
 			if (jmf == null && fallBack != null)
 			{
-				return fallBack.handleMessage(inputMessage, response);
+				final boolean ok = fallBack.handleMessage(inputMessage, response);
+				if (ok && isSubscribed && response.getJMFRoot() != null)
+				{
+					response.getJMFRoot().convertResponses((JDFQuery) inputMessage);
+				}
+				return ok;
 			}
 		}
 
@@ -322,7 +328,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				}
 			}
 
-			final JDFJMF cleanup = isResponse && jmf != null ? null : cleanup(jmf, messageIdentifiers, nSig);
+			final JDFJMF cleanup = (isResponse || jmf == null) ? null : cleanup(jmf, messageIdentifiers, nSig);
 			return cleanup;
 		}
 	}

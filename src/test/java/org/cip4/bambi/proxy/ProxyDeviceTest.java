@@ -110,7 +110,8 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 		final ProxyDevice device = new ProxyDevice(new BambiTestProp());
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
 		final JDFDoc respDoc = jmfHandler.processJMF(jmf.getOwnerDocument_JDFElement());
-		assertNull(respDoc);
+		assertNull(respDoc.getJMFRoot().getResponse());
+		assertNotNull(respDoc.getJMFRoot().getSignal());
 	}
 
 	/**
@@ -158,7 +159,8 @@ public class ProxyDeviceTest extends BambiTestCaseBase
 		final ProxyDevice device = new ProxyDevice(new BambiTestProp());
 		final JMFHandler jmfHandler = device.getJMFHandler(null);
 		final JDFDoc respDoc = jmfHandler.processJMF(jmf.getOwnerDocument_JDFElement());
-		assertNull(respDoc);
+		assertNull(respDoc.getJMFRoot().getResponse());
+		assertNotNull(respDoc.getJMFRoot().getSignal());
 	}
 
 	/**

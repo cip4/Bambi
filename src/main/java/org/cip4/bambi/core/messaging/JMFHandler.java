@@ -451,9 +451,9 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			log.debug("handling jmf from " + jmfMessage.getSenderID() + " id=" + jmfMessage.getID() + " with " + messages.size() + " messages; total=" + messageCount);
 		}
 
-		for (int i = 0; i < messages.size(); i++)
+		for (final KElement m : messages)
 		{
-			final JDFMessage message = (JDFMessage) messages.elementAt(i);
+			final JDFMessage message = (JDFMessage) m;
 			final String id = message.getID();
 
 			final JDFResponse response = (JDFResponse) (id == null ? null : jmfResponse.getChildWithAttribute(ElementName.RESPONSE, AttributeName.REFID, null, id, 0, true));
