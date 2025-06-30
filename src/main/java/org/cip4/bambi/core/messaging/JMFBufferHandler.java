@@ -335,7 +335,10 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 */
 	protected JDFJMF cleanup(final JDFJMF jmf, final List<MessageIdentifier> messageIdentifiers, final int nSig)
 	{
-		jmf.removeChildren(ElementName.RESPONSE, null);
+		if (nSig > 0 || fallBack == null)
+		{
+			jmf.removeChildren(ElementName.RESPONSE, null);
+		}
 		for (final MessageIdentifier mi : messageIdentifiers)
 		{
 			messageMap.remove(mi);
