@@ -282,10 +282,9 @@ public final class BambiServlet extends HttpServlet
 				}
 				StreamUtil.close(request.getInputStream()); // avoid mem leaks
 				rootDev.endWork();
-				if (serviced < 10 || (serviced % 1000) == 0)
+				if (serviced++ < 10 || (serviced % 1000) == 0)
 				{
-					log.info("Processed " + request.getMethod() + " for URL: " + request.getRequestURL().toString() + " #" + serviced++ + " dt="
-							+ (System.currentTimeMillis() - t0));
+					log.info("Processed " + request.getMethod() + " for URL: " + request.getRequestURL().toString() + " #" + serviced + " dt=" + (System.currentTimeMillis() - t0));
 				}
 			}
 		}
