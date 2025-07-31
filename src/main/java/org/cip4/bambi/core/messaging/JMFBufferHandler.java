@@ -603,11 +603,13 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		protected void dispatchSingleSignal(final JDFSignal inSignal, final String qeID, final MessageIdentifier mi)
 		{
 			JDFSignal lastSignal = null;
-			synchronized (lastSent) // we don't need any races here
+			if (lastSent != null)
 			{
-				lastSignal = lastSent.get(mi);
+				synchronized (lastSent) // we don't need any races here
+				{
+					lastSignal = lastSent.get(mi);
+				}
 			}
-
 			handleSingleSignal(inSignal, mi);
 			final StatusSignalComparator comparator = lastSignal == null ? null : getComparator();
 			final boolean sameStatusSignal = comparator != null && comparator.isSameStatusSignal(inSignal, lastSignal);
@@ -615,9 +617,12 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			{
 				getDispatcher().triggerChannel(mi.misChannelID, qeID, null, -1, false, sameStatusSignal);
 			}
-			synchronized (lastSent)
+			if (lastSent != null)
 			{
-				lastSent.put(mi, inSignal);
+				synchronized (lastSent)
+				{
+					lastSent.put(mi, inSignal);
+				}
 			}
 		}
 
