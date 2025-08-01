@@ -45,9 +45,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.enums.ValuedEnum;
 import org.apache.commons.logging.Log;
@@ -58,6 +55,9 @@ import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
+
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen *

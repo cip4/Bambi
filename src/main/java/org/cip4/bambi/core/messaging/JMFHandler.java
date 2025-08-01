@@ -42,7 +42,7 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Vector;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiException;
