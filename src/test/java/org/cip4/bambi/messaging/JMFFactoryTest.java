@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,35 +56,35 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 
 package org.cip4.bambi.messaging;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.net.HttpURLConnection;
 
-import jakarta.mail.Multipart;
-
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
+import org.cip4.bambi.core.messaging.MessageSender;
+import org.cip4.jdflib.auto.JDFAutoDeviceFilter.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
-import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
@@ -103,11 +103,11 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import jakarta.mail.Multipart;
+
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
- * 
  */
-@Ignore
 public class JMFFactoryTest extends BambiTestCase
 {
 
@@ -116,30 +116,76 @@ public class JMFFactoryTest extends BambiTestCase
 	 * @throws Exception
 	 */
 	@Override
-    @Before
+	@Before
 	public void setUp() throws Exception
 	{
 		super.setUp();
 	}
 
 	/**
-	 * 
+	 *
 	 */
-    @Test
+	@Test
 	public void testCallURLGetBaseURL()
 	{
 		CallURL cu = new CallURL("http://foo/bar?abc");
-		assertEquals(cu.getBaseURL(), "http://foo/bar");
+		assertEquals(cu.getURL(), "http://foo/bar");
 		cu = new CallURL("http://foo/bar/abc");
-		assertEquals(cu.getBaseURL(), "http://foo/bar");
+		assertEquals(cu.getURL(), "http://foo/bar");
+		cu = new CallURL("http://foo/bar/");
+		assertEquals(cu.getURL(), "http://foo/bar");
 		cu = new CallURL("http://foo");
-		assertEquals(cu.getBaseURL(), "http://foo");
+		assertEquals(cu.getURL(), "http://foo");
 	}
 
 	/**
-	 * 
+	 *
 	 */
-    @Test
+	@Test
+	public void testToString()
+	{
+		CallURL cu = new CallURL("http://foo/bar?abc");
+		assertNotNull(cu.toString());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public synchronized void testInstance()
+	{
+		JMFFactory f = JMFFactory.getInstance();
+		f.shutDown(false);
+		MessageSender s = f.getCreateMessageSender("http://foo/bar");
+		assertEquals(s, f.getMessageSenders("http://foo/bar").get(0));
+		assertEquals(s, f.getMessageSenders(null).get(0));
+		MessageSender s2 = f.getCreateMessageSender("http://foo/bar?a");
+		assertEquals(s, s2);
+		f.shutDown(false);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testHash()
+	{
+		CallURL cu = new CallURL("http://foo/bar?abc");
+		assertNotNull(cu.toString());
+		CallURL cu2 = new CallURL("http://foo/bar?abc");
+		assertEquals(cu, cu2);
+		assertEquals(cu.hashCode(), cu2.hashCode());
+		CallURL cu3 = new CallURL("http://foo/bar2?abc");
+		assertNotEquals(cu, cu3);
+		CallURL cu4 = new CallURL("http://foo/bar/");
+		assertEquals(cu, cu4);
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	@Ignore
 	public void testStatus()
 	{
 		JDFJMF jmf = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
@@ -158,9 +204,10 @@ public class JMFFactoryTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 *
 	 */
-    @Test
+	@Test
+	@Ignore
 	public void testResumeQueueEntry()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildResumeQueueEntry("12345");
@@ -170,9 +217,10 @@ public class JMFFactoryTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 *
 	 */
-    @Test
+	@Test
+	@Ignore
 	public void testRemoveQueueEntry()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildRemoveQueueEntry("12345");
@@ -182,9 +230,10 @@ public class JMFFactoryTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 *
 	 */
-    @Test
+	@Test
+	@Ignore
 	public void testQueueStatus()
 	{
 		final JDFJMF jmf = new JMFBuilder().buildQueueStatus();
@@ -210,25 +259,8 @@ public class JMFFactoryTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-    @Test
-	public void testMultiStatus() throws Exception
-	{
-		final long t = System.currentTimeMillis();
-		for (int i = 0; i < 100; i++)
-		{
-			final long t1 = System.currentTimeMillis();
-			System.out.println("Pre status," + i);
-			testQueueStatus();
-			final long t2 = System.currentTimeMillis();
-			System.out.println("Post status," + i + " single: " + (t2 - t1) + " total: " + (t2 - t));
-
-		}
-	}
-
-	/**
-	 * @throws Exception
-	 */
-    @Test
+	@Test
+	@Ignore
 	public void testAbortAll() throws Exception
 	{
 		final long t = System.currentTimeMillis();
@@ -295,7 +327,8 @@ public class JMFFactoryTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 */
-    @Test
+	@Test
+	@Ignore
 	public void testSubmitQueueEntry_MIME() throws Exception
 	{
 		// get number of QueueEntries before submitting
