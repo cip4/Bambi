@@ -293,8 +293,8 @@ public class MessageSender implements Runnable, IPersistable
 
 				if (jmfFactory.isLogLots() || removedHeartbeat < 10 || removedHeartbeat % 1000 == 0)
 				{
-					sLog.info("removed redundant " + oldJmfMessage.getType() + " " + oldJmfMessage.getLocalName() + " Message ID= " + oldJmfMessage.getID() + " Sender= "
-							+ oldJmfMessage.getSenderID() + "# " + removedHeartbeat + " / " + checked);
+					sLog.info("removed redundant " + oldJmfMessage.getType() + " " + oldJmfMessage.getLocalName() + " Message ID= " + oldJmfMessage.getID()
+							+ " Sender= " + oldJmfMessage.getSenderID() + "# " + removedHeartbeat + " / " + checked);
 				}
 
 				final VElement messages = jmf.getMessageVector(null, null);
@@ -336,13 +336,13 @@ public class MessageSender implements Runnable, IPersistable
 		{
 			if (isPaused)
 			{
-				sLog.info("senderloop to " + callURL.getBaseURL() + " is paused");
+				sLog.info("senderloop to " + callURL.getURL() + " is paused");
 				if (!ThreadUtil.wait(mutexPause, 0) || isShutdown)
 				{
 					break;
 				}
 
-				sLog.info("senderloop to " + callURL.getBaseURL() + " is resumed");
+				sLog.info("senderloop to " + callURL.getURL() + " is resumed");
 			}
 
 			lastLog = trySingle(lastLog);
@@ -408,7 +408,7 @@ public class MessageSender implements Runnable, IPersistable
 			if (messageFiFo.size() > 0 && (currentTime_0 - lastLog) > 60000L)
 			{
 				final String tmp = getReadableTime();
-				sLog.warn("Waiting in blocked message thread: " + callURL.getBaseURL() + " unsuccessful for " + tmp + messageFiFo.size());
+				sLog.warn("Waiting in blocked message thread: " + callURL.getURL() + " unsuccessful for " + tmp + messageFiFo.size());
 				lastLog = currentTime_0;
 			}
 		}
@@ -421,7 +421,7 @@ public class MessageSender implements Runnable, IPersistable
 		if ((idle > 3333) && messageFiFo.isEmpty())
 		{
 			// no success or idle for an hour...
-			sLog.info("Shutting down idle and empty thread for base url: " + callURL.getBaseURL());
+			sLog.info("Shutting down idle and empty thread for base url: " + callURL.getURL());
 			shutDown();
 			return true;
 		}
@@ -592,13 +592,13 @@ public class MessageSender implements Runnable, IPersistable
 	 */
 	protected File getPersistLocation(final boolean parentDir)
 	{
-		String filename = callURL.getBaseURL();
+		String filename = callURL.getURL();
 		filename = UrlUtil.removeProtocol(filename);
 		filename = StringUtil.replaceCharSet(filename, ":\\", "/", 0);
 		filename = StringUtil.replaceString(filename, "//", "/");
 		if (filename == null)
 		{
-			sLog.error("cannot persist jmf to location; " + callURL.getBaseURL());
+			sLog.error("cannot persist jmf to location; " + callURL.getURL());
 			return null;
 		}
 
@@ -606,7 +606,9 @@ public class MessageSender implements Runnable, IPersistable
 		persistLocation.mkdirs();
 
 		if (!parentDir)
+		{
 			persistLocation = FileUtil.getFileInDirectory(persistLocation, new File("Status.xml"));
+		}
 
 		return persistLocation;
 	}
@@ -667,21 +669,30 @@ public class MessageSender implements Runnable, IPersistable
 	public SendReturn processProblem(final MessageDetails messageDetails, SendReturn sendReturn)
 	{
 		if (timeFirstProblem == 0)
+		{
 			timeFirstProblem = System.currentTimeMillis();
+		}
 
 		String isMime = "";
 
 		if (messageDetails.jmf != null)
+		{
 			isMime = "JMF";
+		}
 
 		if (messageDetails.jdf != null)
+		{
 			isMime += "MIME";
+		}
 
 		if ("".equals(isMime))
+		{
 			isMime = "Empty";
+		}
 
 		boolean logsRequired;
-		String textWarning = "Sender: " + messageDetails.senderID + " Error sending " + isMime + " message to: " + messageDetails.url + " return code=" + sendReturn;
+		String textWarning = "Sender: " + messageDetails.senderID + " Error sending " + isMime + " message to: " + messageDetails.url + " return code="
+				+ sendReturn;
 
 		if (messageDetails.isFireForget())
 		{
@@ -705,7 +716,8 @@ public class MessageSender implements Runnable, IPersistable
 			}
 			else
 			{
-				textWarning += " - retaining " + messageDetails.getName() + " message for resend; messages pending: " + messageFiFo.size() + " times delayed: " + bad;
+				textWarning += " - retaining " + messageDetails.getName() + " message for resend; messages pending: " + messageFiFo.size() + " times delayed: "
+						+ bad;
 				logsRequired = (bad < 10) || ((bad % 100) == 0);
 			}
 		}
@@ -792,7 +804,8 @@ public class MessageSender implements Runnable, IPersistable
 			duration = (durationWait / (3600000L * 24L)) + " days";
 		}
 
-		sLog.info("successfully reactivated message sender " + mesDetails.getName() + " to: " + mesDetails.url + " after " + duration + " messages pending: " + messageFiFo.size());
+		sLog.info("successfully reactivated message sender " + mesDetails.getName() + " to: " + mesDetails.url + " after " + duration + " messages pending: "
+				+ messageFiFo.size());
 	}
 
 	/**
@@ -940,7 +953,9 @@ public class MessageSender implements Runnable, IPersistable
 		boolean is500 = jmfFactory.isZapp500();
 
 		if (is500)
+		{
 			is500 = responseCode >= 500 && responseCode < 600 && responseCode != 503 && responseCode != 504 && responseCode != 507 && responseCode != 509;
+		}
 
 		return is400 || is500;
 	}
@@ -1042,8 +1057,8 @@ public class MessageSender implements Runnable, IPersistable
 	/**
 	 * Add debug dump directories for a given senderID
 	 *
-	 * @param senderID The senders ID.
-	 * @param inputDumpDir The input dump directory.
+	 * @param senderID      The senders ID.
+	 * @param inputDumpDir  The input dump directory.
 	 * @param outputDumpDir The output dump directory.
 	 */
 	public static void addDumps(final String senderID, final DumpDir inputDumpDir, final DumpDir outputDumpDir)
@@ -1055,7 +1070,8 @@ public class MessageSender implements Runnable, IPersistable
 	/**
 	 * Queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required.
 	 */
-	public boolean queueMessage(final JDFJMF jmf, final IResponseHandler responseHandler, final String url, final IConverterCallback converterCallback, final HTTPDetails httpDetails)
+	public boolean queueMessage(final JDFJMF jmf, final IResponseHandler responseHandler, final String url, final IConverterCallback converterCallback,
+			final HTTPDetails httpDetails)
 	{
 		if (isShutdown)
 		{
@@ -1075,7 +1091,8 @@ public class MessageSender implements Runnable, IPersistable
 	/**
 	 * Queues a message for the URL that this MessageSender belongs to also updates the message for a given recipient if required
 	 */
-	public boolean queueMessage(final JDFJMF jmf, final JDFNode jdfNode, final IResponseHandler responseHandler, final String url, final IConverterCallback converterCallback, final MIMEDetails mimeDetails)
+	public boolean queueMessage(final JDFJMF jmf, final JDFNode jdfNode, final IResponseHandler responseHandler, final String url,
+			final IConverterCallback converterCallback, final MIMEDetails mimeDetails)
 	{
 		if (isShutdown)
 		{
@@ -1161,8 +1178,8 @@ public class MessageSender implements Runnable, IPersistable
 	@Override
 	public String toString()
 	{
-		return "MessageSender - URL: " + callURL.url + " size: " + messageFiFo.size() + " total: " + sent + " last queued at " + XMLResponse.formatLong(timeLastQueued)
-				+ " last sent at " + XMLResponse.formatLong(timeLastSent);
+		return "MessageSender - URL: " + callURL.url + " size: " + messageFiFo.size() + " total: " + sent + " last queued at "
+				+ XMLResponse.formatLong(timeLastQueued) + " last sent at " + XMLResponse.formatLong(timeLastSent);
 	}
 
 	/**
@@ -1170,7 +1187,8 @@ public class MessageSender implements Runnable, IPersistable
 	 */
 	public KElement appendToXML(final KElement messageSenderXmlRoot, final int posQueuedMessages, final boolean bXJDF)
 	{
-		final KElement messageSenderXml = messageSenderXmlRoot == null ? new XMLDoc("MessageSender", null).getRoot() : messageSenderXmlRoot.appendElement("MessageSender");
+		final KElement messageSenderXml = messageSenderXmlRoot == null ? new XMLDoc("MessageSender", null).getRoot()
+				: messageSenderXmlRoot.appendElement("MessageSender");
 
 		synchronized (messageFiFo)
 		{

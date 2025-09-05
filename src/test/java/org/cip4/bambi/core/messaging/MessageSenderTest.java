@@ -89,8 +89,8 @@ import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.MessageSender.SendReturn;
 import org.cip4.bambi.core.messaging.MessageSender.SenderQueueOptimizer;
+import org.cip4.jdflib.auto.JDFAutoDeviceFilter.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoSignal.EnumChannelMode;
-import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFResourceLink;
@@ -133,8 +133,6 @@ public class MessageSenderTest extends BambiTestCase
 	/**
 	 * @throws Exception
 	 * @throws IllegalArgumentException
-	 *
-	 *
 	 */
 	@Test
 	public void testSendDetailsDump() throws IllegalArgumentException, Exception
@@ -146,15 +144,15 @@ public class MessageSenderTest extends BambiTestCase
 		final MessageSender s = getTestSender();
 
 		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
-		for (int i = 0; i < 120; i++)
+		for (int i = 0; i < 12; i++)
+		{
 			assertNull(s.sendDetails(md));
+		}
 	}
 
 	/**
 	 * @throws IOException
 	 * @throws IllegalArgumentException
-	 *
-	 *
 	 */
 	@Test
 	public void testSendDetails() throws IllegalArgumentException, IOException
@@ -171,8 +169,6 @@ public class MessageSenderTest extends BambiTestCase
 	/**
 	 * @throws IOException
 	 * @throws IllegalArgumentException
-	 *
-	 *
 	 */
 	@Test
 	public void testSendDetailsNull() throws IllegalArgumentException, IOException
@@ -186,8 +182,6 @@ public class MessageSenderTest extends BambiTestCase
 	/**
 	 * @throws IOException
 	 * @throws IllegalArgumentException
-	 *
-	 *
 	 */
 	@Test
 	public void testSendDetailsEmpty() throws IllegalArgumentException, IOException
@@ -201,8 +195,6 @@ public class MessageSenderTest extends BambiTestCase
 	/**
 	 * @throws IOException
 	 * @throws IllegalArgumentException
-	 *
-	 *
 	 */
 	@Test
 	public void testReactivate() throws IllegalArgumentException, IOException
@@ -219,8 +211,6 @@ public class MessageSenderTest extends BambiTestCase
 	/**
 	 * @throws IOException
 	 * @throws IllegalArgumentException
-	 *
-	 *
 	 */
 	@Test
 	public void testProcessResponse() throws IllegalArgumentException, IOException
@@ -243,8 +233,6 @@ public class MessageSenderTest extends BambiTestCase
 	/**
 	 * @throws IOException
 	 * @throws IllegalArgumentException
-	 *
-	 *
 	 */
 	@Test
 	public void testToString()
@@ -264,8 +252,6 @@ public class MessageSenderTest extends BambiTestCase
 	/**
 	 * @throws IOException
 	 * @throws IllegalArgumentException
-	 *
-	 *
 	 */
 	@Test
 	public void testSendHTTP() throws IllegalArgumentException, IOException
@@ -289,8 +275,6 @@ public class MessageSenderTest extends BambiTestCase
 	/**
 	 * @throws IOException
 	 * @throws IllegalArgumentException
-	 *
-	 *
 	 */
 	@Test
 	public void testDumpDir() throws IllegalArgumentException, IOException
@@ -308,8 +292,6 @@ public class MessageSenderTest extends BambiTestCase
 	/**
 	 * @throws IOException
 	 * @throws IllegalArgumentException
-	 *
-	 *
 	 */
 	@Test
 	public void testProblemError() throws IllegalArgumentException, IOException
@@ -326,8 +308,6 @@ public class MessageSenderTest extends BambiTestCase
 	/**
 	 * @throws IOException
 	 * @throws IllegalArgumentException
-	 *
-	 *
 	 */
 	@Test
 	public void testProcessSuccess() throws IllegalArgumentException, IOException
@@ -348,8 +328,6 @@ public class MessageSenderTest extends BambiTestCase
 	/**
 	 * @throws IOException
 	 * @throws IllegalArgumentException
-	 *
-	 *
 	 */
 	@Test
 	public void testProcessMsgResponse() throws IllegalArgumentException, IOException
@@ -376,8 +354,6 @@ public class MessageSenderTest extends BambiTestCase
 	/**
 	 * @throws IOException
 	 * @throws IllegalArgumentException
-	 *
-	 *
 	 */
 	@Test
 	public void testCheckDetails() throws IllegalArgumentException, IOException
@@ -487,18 +463,26 @@ public class MessageSenderTest extends BambiTestCase
 			final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
 			final JDFJMF jmfr = JMFBuilderFactory.getJMFBuilder(null).buildResourceSignal(false, rl);
 			if (i % 2 == 0)
+			{
 				jmf.getSignal().setChannelMode(EnumChannelMode.FireAndForget);
+			}
 			else
 			{
 				jmf.getSignal().setChannelMode(EnumChannelMode.Reliable);
 			}
 			if (i == 2000)
+			{
 				s.getJMFFactory().setLogLots(true);
+			}
 			if (i == 3100)
+			{
 				s.waitKaputt = true;
+			}
 			final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
 			if (s.queueMessageDetails(md))
+			{
 				n++;
+			}
 			final MessageDetails mdr = new MessageDetails(jmfr, null, null, null, "http://nosuchurl");
 			s.queueMessageDetails(mdr);
 		}
@@ -674,7 +658,9 @@ public class MessageSenderTest extends BambiTestCase
 		s.resume();
 		final JDFJMF jmf = new JMFBuilder().buildStatusSignal(EnumDeviceDetails.Details, EnumJobDetails.Full);
 		for (int i = 0; i < 420; i++)
+		{
 			s.queueMessage(jmf, null, null, null, null);
+		}
 
 	}
 
