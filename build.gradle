@@ -115,9 +115,17 @@ runtime {
 }
 
 test {
+       def currentOs = org.gradle.internal.os.OperatingSystem.current()
     dependsOn(jre)
-    executable = jre.getJreDir().dir("bin").file("java").getAsFile().getAbsolutePath()
+    if (currentOs.windows) {
+		executable = jre.getJreDir().dir("bin").file("java.exe").getAsFile().getAbsolutePath()
+	}
+	else
+	{
+		executable = jre.getJreDir().dir("bin").file("java").getAsFile().getAbsolutePath()
+	}
 }
+
 
 run {
     dependsOn(jre)
