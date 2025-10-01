@@ -496,8 +496,8 @@ public class MessageSenderTest extends BambiTestCase
 	@Test
 	public void testPersistLocation()
 	{
-		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://");
-		assertNull(s.getPersistLocation(false));
+		final MessageSender s = JMFFactory.getInstance().getCreateMessageSender("http://foo/bar");
+		assertNotNull(s.getPersistLocation(false));
 	}
 
 	/**
