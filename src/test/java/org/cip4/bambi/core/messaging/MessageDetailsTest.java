@@ -49,13 +49,10 @@ import java.io.InputStream;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
 
-import jakarta.mail.BodyPart;
-import jakarta.mail.MessagingException;
-
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.ConverterCallback;
-import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
+import org.cip4.jdflib.auto.JDFAutoDeviceFilter.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -79,12 +76,14 @@ import org.cip4.jdflib.util.zip.ZipReader;
 import org.cip4.lib.jdf.jsonutil.JSONObjHelper;
 import org.junit.Test;
 
+import jakarta.mail.BodyPart;
+import jakarta.mail.MessagingException;
+
 public class MessageDetailsTest extends BambiTestCaseBase
 {
 
 	/**
 	 * @throws Throwable
-	 *
 	 */
 	@Test
 	public void testCBDetails() throws Throwable
@@ -372,7 +371,6 @@ public class MessageDetailsTest extends BambiTestCaseBase
 
 	/**
 	 * @throws IOException
-	 *
 	 */
 	@Test
 	public void testStreamZip() throws IOException
@@ -403,7 +401,6 @@ public class MessageDetailsTest extends BambiTestCaseBase
 
 	/**
 	 * @throws IOException
-	 *
 	 */
 	@Test
 	public void testStreamZip2() throws IOException
@@ -435,7 +432,6 @@ public class MessageDetailsTest extends BambiTestCaseBase
 
 	/**
 	 * @throws IOException
-	 *
 	 */
 	@Test
 	public void testStreamZipReturn() throws IOException
@@ -471,7 +467,6 @@ public class MessageDetailsTest extends BambiTestCaseBase
 
 	/**
 	 * @throws Throwable
-	 *
 	 */
 	@Test
 	public void testStreamNoZip() throws Throwable
@@ -505,7 +500,6 @@ public class MessageDetailsTest extends BambiTestCaseBase
 
 	/**
 	 * @throws MessagingException
-	 *
 	 */
 	@Test
 	public void testStreamMimeNastyName() throws MessagingException

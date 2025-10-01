@@ -71,10 +71,8 @@
 
 package org.cip4.bambi;
 
-import junit.framework.TestCase;
-
 import org.cip4.bambi.core.messaging.JMFFactory;
-import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
+import org.cip4.jdflib.auto.JDFAutoDeviceFilter.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
@@ -82,10 +80,11 @@ import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilder;
 
+import junit.framework.TestCase;
+
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- * 
- * 16.02.2009
+ *         16.02.2009
  */
 public class WebAppTest extends TestCase
 {
@@ -98,7 +97,7 @@ public class WebAppTest extends TestCase
 		final JMFFactory factory = JMFFactory.getInstance();
 		final JDFJMF jmfStatus = new JMFBuilder().buildStatus(EnumDeviceDetails.Brief, EnumJobDetails.Brief);
 		final VString urls = new VString();
-		//		urls.add(getWorkerURL());
+		// urls.add(getWorkerURL());
 
 		for (int i = 0; i < urls.size(); i++)
 		{

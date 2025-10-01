@@ -47,7 +47,7 @@ import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.messaging.IResponseHandler;
 import org.cip4.bambi.core.messaging.JMFFactory;
 import org.cip4.bambi.core.messaging.MessageSender;
-import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
+import org.cip4.jdflib.auto.JDFAutoDeviceFilter.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -64,7 +64,6 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	HttpURLConnection c;
 
 	/**
-	 *
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
 	 */
 	@Override
@@ -75,8 +74,6 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	}
 
 	/**
-	 *
-	 * 
 	 * @throws InterruptedException
 	 */
 	public void testSendQueueStatus() throws InterruptedException
@@ -100,7 +97,6 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#handleMessage()
 	 */
 	@Override
@@ -110,8 +106,6 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	}
 
 	/**
-	 * 
-	 *
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#getFamilies()
 	 */
 	public EnumFamily[] getFamilies()
@@ -120,8 +114,6 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	}
 
 	/**
-	 * 
-	 *
 	 * @see org.cip4.bambi.core.messaging.IMessageHandler#getMessageType()
 	 */
 	public EnumType getMessageType()
@@ -131,8 +123,6 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	}
 
 	/**
-	 * 
-	 *
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#getConnection()
 	 */
 	@Override
@@ -142,8 +132,6 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	}
 
 	/**
-	 * 
-	 *
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#setConnection(java.net.HttpURLConnection)
 	 */
 	@Override
@@ -154,7 +142,6 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.messaging.IResponseHandler#setBufferedStream(org.cip4.jdflib.util.ByteArrayIOStream)
 	 */
 	@Override
@@ -165,7 +152,6 @@ public class AsyncMessagingTest extends BambiTestCase implements IResponseHandle
 	}
 
 	/**
-	 *
 	 * TODO Please insert comment!
 	 * 
 	 * @param response

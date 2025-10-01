@@ -48,7 +48,7 @@ import java.util.Vector;
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestProp;
 import org.cip4.bambi.core.messaging.JMFHandler;
-import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
+import org.cip4.jdflib.auto.JDFAutoDeviceFilter.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;

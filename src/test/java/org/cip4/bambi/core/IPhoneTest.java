@@ -76,7 +76,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.IOException;
 
 import org.cip4.bambi.BambiTestCase;
-import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumDeviceDetails;
+import org.cip4.jdflib.auto.JDFAutoDeviceFilter.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -90,17 +90,15 @@ import org.junit.Test;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- * 
- * 12.02.2010
+ *         12.02.2010
  */
 public class IPhoneTest extends BambiTestCase
 {
 
 	/**
 	 * @throws IOException
-	 * 
 	 */
-    @Test
+	@Test
 	@Ignore
 	public void testStatus() throws IOException
 	{
@@ -117,10 +115,10 @@ public class IPhoneTest extends BambiTestCase
 	/**
 	 * @see org.cip4.bambi.BambiTestCase#setUp()
 	 * @throws Exception
-	*/
+	 */
 	@Override
-    @Before
-    public void setUp() throws Exception
+	@Before
+	public void setUp() throws Exception
 	{
 		super.setUp();
 		workerURLBase = "http://kie-wf19prdy:6351/icsportal/jmf/";
