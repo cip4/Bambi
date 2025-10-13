@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2018 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -37,8 +37,11 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.elementwalker.URLExtractor;
 import org.cip4.jdflib.ifaces.IElementConverter;
@@ -51,8 +54,9 @@ import org.cip4.jdflib.util.UrlUtil.URLProtocol;
  * @author rainer prosi
  * @date Nov 24, 2010
  */
-public class DataExtractor extends BambiLogFactory
+public class DataExtractor
 {
+	private static final Log log = LogFactory.getLog(DataExtractor.class);
 
 	/**
 	 * create a data extractor for a given device
@@ -64,7 +68,7 @@ public class DataExtractor extends BambiLogFactory
 	{
 		super();
 		this.parentDevice = parentDevice;
-		protocols = new Vector<>();
+		protocols = new ArrayList<>();
 		// don't do http
 		protocols.add(URLProtocol.cid);
 		protocols.add(URLProtocol.file);
@@ -72,7 +76,6 @@ public class DataExtractor extends BambiLogFactory
 	}
 
 	/**
-	 *
 	 * add a protocol to those that are required
 	 *
 	 * @param protocol the protocol to add
@@ -83,23 +86,27 @@ public class DataExtractor extends BambiLogFactory
 	}
 
 	protected final AbstractDevice parentDevice;
-	protected final Vector<URLProtocol> protocols;
+	protected final List<URLProtocol> protocols;
 	protected final boolean bSubmit;
 
 	/**
 	 * stub that copies url links to local storage if required
 	 *
 	 * @param newQE the queueEntry that files are extracted from
-	 * @param doc the JDF document to modify
+	 * @param doc   the JDF document to modify
 	 */
 	public void extractFiles(final JDFQueueEntry newQE, final JDFDoc doc)
 	{
 		if (doc == null || newQE == null)
 		{
 			if (newQE == null)
+			{
 				log.warn("cannot extract files for newQE=null");
+			}
 			else if (doc == null)
+			{
 				log.warn("cannot extract files for doc=null ; newQE=" + newQE.getQueueEntryID());
+			}
 		}
 		else
 		{
@@ -122,8 +129,6 @@ public class DataExtractor extends BambiLogFactory
 	}
 
 	/**
-	 *
-	 *
 	 * @param newQE
 	 * @return
 	 */
@@ -133,8 +138,6 @@ public class DataExtractor extends BambiLogFactory
 	}
 
 	/**
-	 *
-	 *
 	 * @param jobDirectory
 	 * @param dataURL
 	 * @return
@@ -145,7 +148,9 @@ public class DataExtractor extends BambiLogFactory
 		final String hotfolderPath = hfDirectory == null ? null : hfDirectory.getAbsolutePath();
 		final URLExtractor ex = getURLExtractor(jobDirectory, dataURL, hotfolderPath);
 		for (final URLProtocol protocol : protocols)
+		{
 			ex.addProtocol(protocol);
+		}
 		return ex;
 	}
 
@@ -164,7 +169,6 @@ public class DataExtractor extends BambiLogFactory
 	}
 
 	/**
-	 *
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
