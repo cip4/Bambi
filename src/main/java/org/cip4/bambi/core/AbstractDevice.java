@@ -66,7 +66,7 @@ import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntryCleanup;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
-import org.cip4.jdflib.auto.JDFAutoGeneralID.EnumDataType;
+import org.cip4.jdflib.auto.JDFAutoGeneralID.EDataType;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -197,7 +197,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			}
 			final String queueURL = getDeviceURL();
 			if (log.isDebugEnabled())
+			{
 				log.debug("Sending RequestQueueEntry for " + queueURL + " to: " + proxyURL);
+			}
 			final JMFBuilder jmfBuilder = getJMFBuilder();
 			final JDFJMF jmf = jmfBuilder.buildRequestQueueEntry(queueURL, null);
 			final boolean ok = sendJMF(jmf, proxyURL, null);
@@ -949,7 +951,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 		String description = _devProperties.getDescription();
 		if (description == null)
+		{
 			description = getDeviceType() + " " + getDeviceID() + " " + getVersionString();
+		}
 		return description;
 	}
 
@@ -1128,9 +1132,13 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	private String getCSS()
 	{
 		if (!(_devProperties instanceof DeviceProperties))
+		{
 			return "/legacy";
+		}
 		else
+		{
 			return ((DeviceProperties) _devProperties).getParent().getCSS();
+		}
 	}
 
 	/**
@@ -1158,8 +1166,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	/**
 	 * stop the processing the given QueueEntry
 	 *
-	 * @param queueEntryID the ID of the QueueEntry to stop
-	 * @param status target status of the QueueEntry (Suspended,Aborted,Held)
+	 * @param queueEntryID  the ID of the QueueEntry to stop
+	 * @param status        target status of the QueueEntry (Suspended,Aborted,Held)
 	 * @param statusDetails
 	 * @return the updated QueueEntry
 	 */
@@ -1178,7 +1186,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * gets the device processor for a given queuentry
 	 *
 	 * @param queueEntryID - if null use any
-	 * @param n the index of the respective processor
+	 * @param n            the index of the respective processor
 	 * @return the processor that is processing queueEntryID, null if none matches
 	 */
 	public AbstractDeviceProcessor getProcessor(final String queueEntryID, final int n)
@@ -1321,11 +1329,18 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return null;
 		}
 		qe.setFromJDF(root); // set jobid, jobpartid, partmaps
-		final EnumActivation activation = root.getActivation(false);
-		if (activation != null && !EnumActivation.Active.equals(activation))
+		EnumActivation qeActivation = qe.getActivation();
+		final EnumActivation activation = qeActivation == null ? root.getActivation(false) : qeActivation;
+
+		if (EnumActivation.isActive(activation))
+		{
+			qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+			root.setActivation(EnumActivation.Active);
+		}
+		else if (!EnumActivation.Informative.equals(activation))
 		{
 			qe.setQueueEntryStatus(EnumQueueEntryStatus.Held);
-			root.setActivation(EnumActivation.Active);
+			root.setActivation(EnumActivation.Held);
 		}
 
 		updatePriority(qe, root);
@@ -1335,7 +1350,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final String cid = StringUtil.getNonEmpty(ci.getCustomerID());
 			if (cid != null)
 			{
-				qe.setGeneralID(AttributeName.CUSTOMERID, cid).setDataType(EnumDataType.string);
+				qe.setGeneralID(AttributeName.CUSTOMERID, cid).setDataType(EDataType.string);
 			}
 		}
 		final String qeID = qe.getQueueEntryID();
@@ -1344,7 +1359,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 	/**
 	 * @param qethe queueEntry to extract from
-	 * @param root the root JDFD
+	 * @param root  the root JDFD
 	 */
 	protected void updatePriority(final JDFQueueEntry qe, final JDFNode root)
 	{
@@ -1477,7 +1492,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		final JDFAttributeMap map = request.getParameterMap();
 		final Set<String> stringSet = map == null ? null : map.keySet();
 		if (stringSet == null)
+		{
 			return;
+		}
 		log.info("updating device " + getDeviceID() + " from UI");
 		final String watchURL = request.getParameter("WatchURL");
 		if (watchURL != null && stringSet.contains("WatchURL"))
@@ -1714,8 +1731,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	/**
 	 * send a jmf via the factory, setting all defaults to this device
 	 *
-	 * @param jmf the jmf to send
-	 * @param url the url to send to
+	 * @param jmf             the jmf to send
+	 * @param url             the url to send to
 	 * @param responseHandler the response handler - may be null
 	 * @return true if successfully queued
 	 */
@@ -2024,7 +2041,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			final StatusListener sl = proc.getStatusListener();
 			if (sl != null)
+			{
 				sl.saveJDF(5000); // we don't need the very newest but it shouldn't be older than a few seconds
+			}
 		}
 		final String fil = getJDFStorage(qeID);
 		return fil;
@@ -2034,7 +2053,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 * get the data url, if no data forwarding is defined, return null
 	 *
 	 * @param queueEntry
-	 * @param bSubmit if true, called incoming, else returning
+	 * @param bSubmit    if true, called incoming, else returning
 	 * @return
 	 */
 	public String getDataURL(final JDFQueueEntry queueEntry, final boolean bSubmit)
@@ -2149,7 +2168,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	/**
 	 * get the directory for extracted files defaults to the device's job directory see {@link AbstractDevice#getJobDirectory(String)}
 	 *
-	 * @param qe the queueEntry to get a job directory for
+	 * @param qe      the queueEntry to get a job directory for
 	 * @param bSubmit if true, called incomuing, else outgoing
 	 * @return the directory to dump to
 	 */
@@ -2187,7 +2206,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public boolean isActive(final JDFNode n, final JDFQueueEntry qe)
 	{
 		if (n == null || qe == null)
+		{
 			return false;
+		}
 		return EnumActivation.isActive(n.getActivation(true)) && EnumActivation.isActive(EnumActivation.getEnum(qe.getAttribute(AttributeName.ACTIVATION)));
 	}
 
@@ -2208,7 +2229,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public boolean deleteSignal(final JDFSignal s)
 	{
 		if (s == null)
+		{
 			return true;
+		}
 
 		final EnumType typ = s.getEnumType();
 		if (EnumType.Status.equals(typ))
@@ -2435,7 +2458,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final EnumNodeStatus newStatus = result ? EnumNodeStatus.Completed : EnumNodeStatus.Aborted;
 			tmpProcessor.stopProcessing(newStatus);
 			final JDFQueue queue = getQueueProcessor().getQueue();
-			log.info(newStatus.getName() + " processing " + queue.numEntries(EnumQueueEntryStatus.getEnum(newStatus.getName())) + " / " + getQueueProcessor().getTotalEntryCount());
+			log.info(newStatus.getName() + " processing " + queue.numEntries(EnumQueueEntryStatus.getEnum(newStatus.getName())) + " / "
+					+ getQueueProcessor().getTotalEntryCount());
 			tmpProcessor.getParent().removeListener(tmpProcessor.getStatusListener());
 		}
 	}

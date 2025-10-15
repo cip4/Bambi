@@ -69,6 +69,7 @@ implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.2'
     implementation 'org.apache.commons:commons-lang3:3.19.0'
     implementation 'commons-io:commons-io:2.19.0'
  	implementation 'com.sun.mail:jakarta.mail:2.0.2'
+	implementation 'net.sf.saxon:Saxon-HE:12.9'
 
 	
     testImplementation 'junit:junit:4.13.2'

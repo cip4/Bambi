@@ -85,6 +85,9 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.extensions.AuditHelper;
+import org.cip4.jdflib.extensions.AuditHelper.eAudit;
+import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.extensions.XJDFZipReader;
 import org.cip4.jdflib.ifaces.IURLSetter;
 import org.cip4.jdflib.jmf.JDFAbortQueueEntryParams;
@@ -3076,7 +3079,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		@Override
 		public String toString()
 		{
-			return "QueueEntryReturn [status=" + qe.getQueueEntryStatus() + ", queueEntryID=" + queueEntryID + "]";
+			return "QueueEntryReturn [status=" + qe.getEQueueEntryStatus() + ", queueEntryID=" + queueEntryID + "]";
 		}
 	}
 
@@ -3099,6 +3102,13 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					if (e != null)
 					{
 						doc = new JDFDoc(e.getOwnerDocument());
+						XJDFHelper xh = XJDFHelper.getHelper(e);
+						if (xh != null)
+						{
+							AuditHelper ah = xh.getCreateAuditPool().appendAudit(eAudit.Created);
+							ah.setHeader(AttributeName.DESCRIPTIVENAME, "Converted from JSON");
+							ah.setHeader(AttributeName.AGENTNAME, "CIP4 JSONReader");
+						}
 					}
 				}
 			}

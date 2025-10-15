@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -66,6 +66,7 @@ import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.node.JDFNode.EnumActivation;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -90,6 +91,28 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		final String s = device.fixEntry(qe, n.getOwnerDocument_JDFElement());
 		assertNull(ni.getNonEmpty(AttributeName.JOBPRIORITY));
 		assertNull(qe.getNonEmpty(AttributeName.PRIORITY));
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testUpdateActivation() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice();
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null, "http://foo/bar/*.jdf");
+		final JDFQueue q = (JDFQueue) new JDFDoc(ElementName.QUEUE).getRoot();
+		final JDFQueueEntry qe = q.appendQueueEntry();
+		final JDFNode n = JDFNode.createRoot();
+		n.setJobID("j1");
+		n.setActivation(EnumActivation.Active);
+		device.fixEntry(qe, n.getOwnerDocument_JDFElement());
+		assertEquals(EnumActivation.Active, n.getActivation());
+
+		n.setActivation(EnumActivation.Held);
+		device.fixEntry(qe, n.getOwnerDocument_JDFElement());
+		assertEquals(EnumActivation.Held, n.getActivation());
+		assertEquals(EnumQueueEntryStatus.Held, qe.getQueueEntryStatus());
 	}
 
 	/**
