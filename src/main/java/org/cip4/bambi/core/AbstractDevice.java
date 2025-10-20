@@ -1331,16 +1331,18 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		qe.setFromJDF(root); // set jobid, jobpartid, partmaps
 		EnumActivation qeActivation = qe.getActivation();
 		final EnumActivation activation = qeActivation == null ? root.getActivation(false) : qeActivation;
-
-		if (EnumActivation.isActive(activation))
+		if (activation != null)
 		{
-			qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
-			root.setActivation(EnumActivation.Active);
-		}
-		else if (!EnumActivation.Informative.equals(activation))
-		{
-			qe.setQueueEntryStatus(EnumQueueEntryStatus.Held);
-			root.setActivation(EnumActivation.Held);
+			if (EnumActivation.isActive(activation))
+			{
+				qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
+				root.setActivation(EnumActivation.Active);
+			}
+			else if (!EnumActivation.Informative.equals(activation))
+			{
+				qe.setQueueEntryStatus(EnumQueueEntryStatus.Held);
+				root.setActivation(EnumActivation.Held);
+			}
 		}
 
 		updatePriority(qe, root);
