@@ -63,7 +63,7 @@ dependencies {
 	
    implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'  
     implementation 'org.eclipse.jetty:jetty-server:12.1.2'
-implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.2'
+implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.4'
     implementation ('com.googlecode.json-simple:json-simple:1.1.1'){transitive=false}
     implementation 'commons-logging:commons-logging-api:1.1'
     implementation 'org.apache.commons:commons-lang3:3.19.0'
