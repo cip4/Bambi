@@ -2438,9 +2438,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			crap = FileUtil.listFilesWithExtension(_parentDevice.getJDFDir(), "jdf");
 			final VElement v = getQueue().getQueueEntryVector();
-			for (int i = 0; i < v.size(); i++)
+			for (final Object element : v)
 			{
-				final JDFQueueEntry qe = (JDFQueueEntry) v.get(i);
+				final JDFQueueEntry qe = (JDFQueueEntry) element;
 				final String docURL = BambiNSExtension.getDocURL(qe);
 				if (docURL != null)
 				{
@@ -3102,10 +3102,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					if (e != null)
 					{
 						doc = new JDFDoc(e.getOwnerDocument());
-						XJDFHelper xh = XJDFHelper.getHelper(e);
+						final XJDFHelper xh = XJDFHelper.getHelper(e);
 						if (xh != null)
 						{
-							AuditHelper ah = xh.getCreateAuditPool().appendAudit(eAudit.Created);
+							final AuditHelper ah = xh.getCreateAuditPool().appendAudit(eAudit.Created);
 							ah.setHeader(AttributeName.DESCRIPTIVENAME, "Converted from JSON");
 							ah.setHeader(AttributeName.AGENTNAME, "CIP4 JSONReader");
 						}
@@ -3132,14 +3132,11 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 	 */
 	public List<JDFQueueEntry> getMessageQueueEntries(final JDFMessage m, final JDFResponse resp)
 	{
-		JDFQueueEntryDef def = m.getQueueEntryDef(0);
-		if (def == null)
+		final Collection<JDFQueueEntryDef> defs = m.getChildArrayByClass(JDFQueueEntryDef.class, true, 0);
+		final List<JDFQueueEntry> ret = new ArrayList<>();
+		if (ContainerUtil.isEmpty(defs))
 		{
-			def = (JDFQueueEntryDef) m.getXPathElement("*/QueueFilter/QueueEntryDef");
-		}
-		if (def == null)
-		{
-			final JDFQueueFilter qf = (JDFQueueFilter) m.getXPathElement("*/QueueFilter");
+			final JDFQueueFilter qf = m.getElementByClass(JDFQueueFilter.class, 0, true);
 			if (qf == null)
 			{
 				JMFHandler.errorResponse(resp, "Message contains no QueueFilter", 105, EnumClass.Error);
@@ -3156,48 +3153,46 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				qf.setMaxEntries(Integer.MAX_VALUE);
 				final JDFQueue q = qf.copy(getQueue(), null, resp);
 				qf.setMaxEntries(maxEnt);
-				if (q == null || q.numEntries(null) == 0)
-				{
-					JMFHandler.errorResponse(resp, "found no QueueEntry matching filter ", 105, EnumClass.Error);
-					return null;
-				}
-				else
+				if (q != null && q.numEntries(null) > 0)
 				{
 					final List<JDFQueueEntry> childrenByClass = q.getChildArrayByClass(JDFQueueEntry.class, false, -1);
-					final List<JDFQueueEntry> ret = new ArrayList<>();
 					for (final JDFQueueEntry qe : childrenByClass)
 					{
 						final JDFQueueEntry mine = getQueueEntry(qe.getQueueEntryID());
-						if (mine != null)
-						{
-							ret.add(mine);
-						}
+						ContainerUtil.add(ret, mine);
 					}
-					return ret.isEmpty() ? null : ret;
 				}
 			}
 		}
 		else
 		{
-
-			final String qeid = def.getQueueEntryID();
-			if (KElement.isWildCard(qeid))
+			for (final JDFQueueEntryDef def : defs)
 			{
-				JMFHandler.errorResponse(resp, "QueueEntryDef does not contain any QueueEntryID", 105, EnumClass.Error);
-				return null;
+				final String qeid = def.getQueueEntryID();
+				if (KElement.isWildCard(qeid))
+				{
+					qLog.warn("invalid getMessageQueueEntryID: " + qeid);
+					continue;
+				}
+				final JDFQueueEntry qe = getQueueEntry(qeid);
+				if (qe == null)
+				{
+					qLog.warn("no such getMessageQueueEntryID: " + qeid);
+				}
+				else
+				{
+					qLog.info("processing getMessageQueueEntryID: " + qeid);
+					ContainerUtil.add(ret, qe);
+				}
 			}
-			qLog.info("processing getMessageQueueEntryID for " + qeid);
-			final JDFQueueEntry qe = getQueueEntry(qeid);
-			if (qe == null)
-			{
-				JMFHandler.errorResponse(resp, "found no QueueEntry with QueueEntryID=" + qeid, 105, EnumClass.Error);
-				return null;
-			}
-			final List<JDFQueueEntry> v = new ArrayList<>();
-			v.add(qe);
-			return v;
+		}
+		if (ret.isEmpty())
+		{
+			JMFHandler.errorResponse(resp, "found no QueueEntry matching filter", 105, EnumClass.Error);
+			return null;
 		}
 
+		return ret;
 	}
 
 	/**

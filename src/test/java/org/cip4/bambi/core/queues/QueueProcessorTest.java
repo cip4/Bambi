@@ -109,6 +109,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.jmf.JDFQueueFilter;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFResumeQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
@@ -287,7 +288,26 @@ public class QueueProcessorTest extends BambiTestCase
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildRemoveQueueEntry(queueEntryId);
 		final QueueProcessor qp = getDevice().getQueueProcessor();
-		qp.new RemoveQueueEntryHandler().handleMessage(jmf.getMessageElement(null, null, 0), JDFJMF.createJMF(EnumFamily.Response, EnumType.RemoveQueueEntry).getResponse());
+		qp.new RemoveQueueEntryHandler().handleMessage(jmf.getMessageElement(null, null, 0),
+				JDFJMF.createJMF(EnumFamily.Response, EnumType.RemoveQueueEntry).getResponse());
+	}
+
+	/**
+	 *
+	 *
+	 */
+	@Test
+	public void testRemoveQEMulti()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildRemoveQueueEntry(queueEntryId);
+		final JDFQueueFilter qf = jmf.getElementByClass(JDFQueueFilter.class, 0, true);
+		for (int i = 0; i < 4; i++)
+		{
+			qf.appendQueueEntryDef("q" + i);
+		}
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		qp.new RemoveQueueEntryHandler().handleMessage(jmf.getMessageElement(null, null, 0),
+				JDFJMF.createJMF(EnumFamily.Response, EnumType.RemoveQueueEntry).getResponse());
 	}
 
 	/**
@@ -534,7 +554,9 @@ public class QueueProcessorTest extends BambiTestCase
 			assertNotNull(qe);
 		}
 		for (final Object o : EnumQueueEntryStatus.getEnumList())
+		{
 			log.info(o.toString() + " " + qp.getQueue().numEntries((EnumQueueEntryStatus) o));
+		}
 		assertEquals(10, qp.getQueue().getQueueSize(), 1);
 	}
 
