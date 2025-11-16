@@ -44,12 +44,13 @@ application {
     mainClass = 'org.cip4.bambi.server.BambiServer'
 }
 
-task startScriptsHeadless(type: CreateStartScripts) {
+tasks.register('startScriptsHeadless', CreateStartScripts) {
     outputDir = file('build/scripts')
     mainClass = 'org.cip4.bambi.server.BambiService'
     applicationName = 'bambi-headless'
-    classpath = project.tasks[JavaPlugin.JAR_TASK_NAME].outputs.files + project.configurations.runtimeClasspath
+    classpath = files(tasks.named('jar').map { it.outputs.files }, project.configurations.runtimeClasspath)
 }
+installDist.dependsOn(startScriptsHeadless)
 
 dependencies {
     implementation 'org.apache.logging.log4j:log4j-jcl:2.25.2'
@@ -61,9 +62,9 @@ dependencies {
 	}
 	implementation ('xerces:xercesImpl:2.12.2'){transitive=false}
 	
-   implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'  
+    implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
     implementation 'org.eclipse.jetty:jetty-server:12.1.4'
-implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.4'
+    implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.4'
     implementation ('com.googlecode.json-simple:json-simple:1.1.1'){transitive=false}
     implementation 'commons-logging:commons-logging-api:1.1'
     implementation 'org.apache.commons:commons-lang3:3.19.0'
