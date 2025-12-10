@@ -121,7 +121,6 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
-	 *
 	 * add an additional converter to this it will be called after the internal conversion
 	 *
 	 * @param cb the IConverterCallback to call
@@ -176,7 +175,6 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public boolean isRemoveJobIDFromSubs()
@@ -185,7 +183,6 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
-	 *
 	 * @param removeJobIDFromSubs
 	 */
 	public void setRemoveJobIDFromSubs(final boolean removeJobIDFromSubs)
@@ -201,7 +198,9 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	public JDFDoc prepareJDFForBambi(final JDFDoc docIn)
 	{
 		if (docIn == null)
+		{
 			return docIn;
+		}
 
 		JDFDoc doc = importXJDF(docIn);
 
@@ -293,7 +292,6 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
-	 *
 	 * get the importer for JDFD - may be overwritten to set parameters
 	 *
 	 * @return the xjdf to jdf converter
@@ -313,7 +311,9 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	{
 		final JDFNode root = doc == null ? null : doc.getJDFRoot();
 		if (root == null)
+		{
 			return doc;
+		}
 		sLog.info("exporting XJDF");
 		final XJDF20 xjdf = getXJDFExporter();
 		final KElement newRoot = xjdf.makeNewJDF(root, null);
@@ -328,7 +328,9 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	{
 		final JDFJMF jmf = doc == null ? null : doc.getJMFRoot();
 		if (jmf == null)
+		{
 			return doc;
+		}
 		final XJDF20 xjdf = getXJDFExporter();
 		if (xjdf.isAbstractMessage())
 		{
@@ -339,7 +341,6 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
-	 *
 	 * get the exporter for JDFD - may be overwritten to set parameters
 	 *
 	 * @return
@@ -347,11 +348,14 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	protected XJDF20 getXJDFExporter()
 	{
 		final XJDF20 xjdf = new XJDF20();
+		if (fixToExtern != null)
+		{
+			xjdf.setNewVersion(fixToExtern);
+		}
 		return xjdf;
 	}
 
 	/**
-	 *
 	 * get the exporter for JSON - may be overwritten to set parameters
 	 *
 	 * @return
@@ -377,7 +381,6 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
-	 *
 	 * @param n
 	 * @param jobID
 	 */
@@ -478,7 +481,6 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
-	 *
 	 * @param myFix
 	 * @return
 	 */
@@ -521,7 +523,6 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.IConverterCallback#getJMFExternStream(org.cip4.jdflib.core.JDFDoc)
 	 */
 	@Override
@@ -555,7 +556,6 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.IConverterCallback#getJDFExternStream(org.cip4.jdflib.core.JDFDoc)
 	 */
 	@Override
@@ -571,7 +571,6 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.IConverterCallback#getJDFContentType()
 	 */
 	@Override
@@ -581,7 +580,6 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.IConverterCallback#getJDFContentType()
 	 */
 	@Override
@@ -591,7 +589,6 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.IConverterCallback#getJMFContentType()
 	 */
 	@Override
@@ -601,7 +598,6 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.IConverterCallback#getJMFContentType()
 	 */
 	@Override
@@ -630,10 +626,14 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			removeJobIDFromSubs = StringUtil.parseBoolean(map.get(REMOVE_JOB_ID), true);
 			final String f2b = map.get(FIX_TO_BAMBI);
 			if (!StringUtil.isEmpty(f2b))
+			{
 				fixToBambi = EnumVersion.getEnum(f2b);
+			}
 			final String f2e = map.get(FIX_TO_EXTERN);
 			if (!StringUtil.isEmpty(f2e))
+			{
 				fixToExtern = EnumVersion.getEnum(map.get(FIX_TO_EXTERN));
+			}
 		}
 	}
 

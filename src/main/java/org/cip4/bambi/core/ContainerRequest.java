@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -43,8 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.JDFConstants;
@@ -56,6 +54,8 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.UrlUtil.HttpMethod;
 import org.cip4.jdflib.util.net.HTTPDetails;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * class to package an XML document together with the context information of the request
@@ -159,7 +159,6 @@ public class ContainerRequest
 	}
 
 	/**
-	 *
 	 * set a descriptive name for this
 	 *
 	 * @param name
@@ -231,11 +230,18 @@ public class ContainerRequest
 	public String getDumpHeader()
 	{
 		String header = "Context Path: " + getRequestURI();
-		header += "\nMethod: " + getMethod() + " Content Type: " + getContentType(false) + " time:" + new JDFDate().getFormattedDateTime(JDFDate.DATETIMEISO_MILLI);
+		header += "\nMethod: " + getMethod() + " Content Type: " + getContentType(false) + " time:"
+				+ new JDFDate().getFormattedDateTime(JDFDate.DATETIMEISO_MILLI);
 		header += "\nRemote host: " + getRemoteHost();
 		final JDFAttributeMap map = getHeaderMap();
 		if (map != null)
 		{
+			if (map.containsKey(UrlUtil.AUTHORIZATION))
+			{
+				String s0 = map.get(UrlUtil.AUTHORIZATION);
+				s0 = StringUtil.token(s0, 0, " =") + " **removed**";
+				map.put(UrlUtil.AUTHORIZATION, s0);
+			}
 			final String s = map.showKeys("\n");
 			header += "\n" + s;
 		}
@@ -268,9 +274,13 @@ public class ContainerRequest
 			parameterMap = new JDFAttributeMap();
 		}
 		if (StringUtil.isEmpty(value))
+		{
 			parameterMap.remove(key);
+		}
 		else
+		{
 			parameterMap.put(key, value);
+		}
 	}
 
 	/**
@@ -300,7 +310,6 @@ public class ContainerRequest
 
 	/**
 	 * @return the tokenized request
-	 *
 	 */
 	public VString getContextList()
 	{
@@ -317,7 +326,9 @@ public class ContainerRequest
 		final VString v = getContextList();
 		final VString v2 = new VString();
 		for (int i = 2; i < v.size(); i++)
+		{
 			v2.add(v.get(i));
+		}
 		return StringUtil.setvString(v2, JDFConstants.SLASH, null, null);
 	}
 
@@ -349,7 +360,9 @@ public class ContainerRequest
 			{
 				final boolean hasKey = keys.remove(firstKey);
 				if (hasKey)
+				{
 					keys.add(0, firstKey);
+				}
 			}
 			for (final String key : keys)
 			{
@@ -405,12 +418,16 @@ public class ContainerRequest
 
 		JDFAttributeMap map = request.getHeaderMap();
 		if (map != null)
+		{
 			setHeaderMap(map.clone());
+		}
 
 		map = request.getParameterMap();
 		setParameterMap(map);
 		if (request.getName() != null)
+		{
 			setName(request.getName());
+		}
 	}
 
 	/**
@@ -462,7 +479,6 @@ public class ContainerRequest
 	}
 
 	/**
-	 *
 	 * @param checkContext
 	 * @return
 	 */
@@ -510,10 +526,7 @@ public class ContainerRequest
 	}
 
 	/**
-	 *
-	 *
 	 * @return the war file name portion of the request context, i.e the location where index.html etc are located
-	 *
 	 */
 	public String getContextRoot()
 	{
@@ -599,7 +612,6 @@ public class ContainerRequest
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public String getBearerToken()

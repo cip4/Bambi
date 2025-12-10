@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -41,6 +41,7 @@ package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -51,7 +52,6 @@ import org.junit.Test;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
  *         16.11.2009
  */
 public class ContainerRequestTest extends BambiTestCaseBase
@@ -89,6 +89,20 @@ public class ContainerRequestTest extends BambiTestCaseBase
 		req.setHeaderMap(m1);
 		assertEquals("a", req.getBearerToken());
 		assertNotNull(req.getDumpHeader());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testGetDumpHeaderAuth()
+	{
+		final ContainerRequest req = new ContainerRequest();
+		assertNotNull(req.getDumpHeader());
+		final JDFAttributeMap m1 = new JDFAttributeMap(UrlUtil.AUTHORIZATION, "Bearer a");
+		req.setHeaderMap(m1);
+		assertEquals(-1, req.getDumpHeader().indexOf("Bearer a"));
+		assertNotEquals(-1, req.getDumpHeader().indexOf("Bearer **removed**"));
 	}
 
 	/**
