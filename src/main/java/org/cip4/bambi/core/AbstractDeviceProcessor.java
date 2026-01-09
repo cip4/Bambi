@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -76,7 +76,6 @@ import org.cip4.jdflib.util.thread.MyMutex;
  * The device processor is the actual working part of a device.
  *
  * @author boegerni
- *
  */
 public abstract class AbstractDeviceProcessor extends BambiLogFactory implements IDeviceProcessor
 {
@@ -92,6 +91,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		shutdown();
 		final JDFQueue q = (JDFQueue) new JDFDoc(ElementName.QUEUE).getRoot();
 		final JDFQueueEntry qeDummy = q.appendQueueEntry();
+		qeDummy.setQueueEntryID("QTest" + KElement.uniqueID(0));
 		setCurrentQE(new QueueEntry(node, qeDummy));
 	}
 
@@ -125,7 +125,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 
 		/**
 		 * @return the added processor element
-		 *
 		 */
 		public KElement fill()
 		{
@@ -237,8 +236,8 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 		/**
 		 * add amounts for display
 		 *
-		 * @param jp the element to add to
-		 * @param resID the resource id
+		 * @param jp      the element to add to
+		 * @param resID   the resource id
 		 * @param resName the resource name
 		 */
 		private void addAmount(final KElement jp, final String resID, final String resName)
@@ -330,7 +329,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	}
 
 	/**
-	 *
 	 * @return true if this processor is active
 	 */
 	public boolean isActive()
@@ -344,7 +342,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	}
 
 	/**
-	 *
 	 * @return true if this processor is active
 	 */
 	public boolean isIdle()
@@ -377,7 +374,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	/**
 	 * process a queue entry
 	 *
-	 * @param n the JDF node to process
+	 * @param n  the JDF node to process
 	 * @param qe the JDF queueentry that corresponds to this
 	 * @return EnumQueueEntryStatus the final status of the queuentry
 	 */
@@ -385,7 +382,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	public abstract EnumQueueEntryStatus processDoc(JDFNode n, JDFQueueEntry qe);
 
 	/**
-	 *
 	 * @return
 	 */
 	final protected boolean processQueueEntry()
@@ -400,7 +396,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public boolean processExistingQueueEntry()
@@ -456,7 +451,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	protected IQueueEntry fillCurrentQE()
@@ -468,7 +462,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 * generic setup of processing
 	 *
 	 * @param node the node to process
-	 * @param qe the queueEntryID of the job to process
+	 * @param qe   the queueEntryID of the job to process
 	 * @return true if ok
 	 */
 	protected boolean initializeProcessDoc(final JDFNode node, final JDFQueueEntry qe)
@@ -548,7 +542,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	}
 
 	/**
-	 *
 	 * suspend the currently executed job!
 	 */
 	protected void suspend()
@@ -557,7 +550,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	}
 
 	/**
-	 *
 	 * abort the currently executed job!
 	 */
 	protected void abort()
@@ -566,7 +558,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	}
 
 	/**
-	 *
 	 * abort the currently executed job!
 	 */
 	protected void reset()
@@ -575,7 +566,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	}
 
 	/**
-	 *
 	 * complete the currently executed job!
 	 */
 	protected void complete()
@@ -674,7 +664,6 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public JDFDoc getCurrentJDF()
@@ -694,7 +683,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	/**
 	 * stops the currently processed task, called e.g. from the queueprocessor upon AbortQueueEntry
 	 *
-	 * @param newStatus if null retain status
+	 * @param newStatus     if null retain status
 	 * @param statusDetails - not used in the default implementation
 	 * @return the new status, null in case of snafu
 	 */

@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2025 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -129,9 +129,7 @@ public abstract class BambiTestCaseBase
 	}
 
 	static protected final String sm_dirTestData = getTestDataDir();
-	static protected final String sm_dirTestSchema = sm_dirTestData + "schema" + File.separator + "Version_1_4" + File.separator;
 	static protected final String sm_dirTestDataTemp = sm_dirTestData + "temp" + File.separator;
-	static protected final EnumVersion defaultVersion = EnumVersion.Version_1_4;
 
 	private static String getTestDataDir()
 	{
@@ -225,7 +223,6 @@ public abstract class BambiTestCaseBase
 	@Before
 	public void setUp() throws Exception
 	{
-		JDFElement.setDefaultJDFVersion(defaultVersion);
 		senderID = "TestSender";
 		JDFJMF.setTheSenderID(senderID);
 		KElement.uniqueID(1);
@@ -240,7 +237,7 @@ public abstract class BambiTestCaseBase
 
 	/**
 	 * get the currently used memory
-	 * 
+	 *
 	 * @return the used memory
 	 */
 	protected long getCurrentMem()
@@ -267,7 +264,7 @@ public abstract class BambiTestCaseBase
 
 	/**
 	 * write an element to the standard test directory sm_dirTestDataTemp
-	 * 
+	 *
 	 * @param e
 	 * @param filename
 	 */
@@ -278,7 +275,7 @@ public abstract class BambiTestCaseBase
 
 	/**
 	 * create a standard customerInfo
-	 * 
+	 *
 	 * @param doc the doc to preparein
 	 * @return the new customerInfo
 	 */
@@ -320,12 +317,12 @@ public abstract class BambiTestCaseBase
 	@Override
 	public String toString()
 	{
-		return "[" + StringUtil.token(this.getClass().getName(), -1, ".") + " Version:  " + defaultVersion + " " + new File(sm_dirTestData).getAbsolutePath() + " ]\n";
+		return "[" + StringUtil.token(this.getClass().getName(), -1, ".");
 	}
 
 	/**
 	 * Setter for bTestNetwork attribute.
-	 * 
+	 *
 	 * @param bTestNetwork the bTestNetwork to set
 	 */
 	public void setTestNetwork(final boolean bTestNetwork)
@@ -335,7 +332,7 @@ public abstract class BambiTestCaseBase
 
 	/**
 	 * Getter for bTestNetwork attribute.
-	 * 
+	 *
 	 * @return the bTestNetwork
 	 */
 	public boolean isTestNetwork()
