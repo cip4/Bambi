@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -66,6 +66,7 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice();
 		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
+		devProc.setTestQE(JDFNode.createRoot());
 		assertNotNull(devProc.toString());
 	}
 
@@ -96,7 +97,9 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 		device.setFinalStatus(EnumQueueEntryStatus.Aborted);
 		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
 		for (int i = 0; i < 111; i++)
+		{
 			devProc.fillCurrentQE();
+		}
 
 	}
 
@@ -127,7 +130,9 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 			device.setFinalStatus(qes);
 			final WorkerDeviceProcessor devProc = device.getNewProcessor();
 			if (devProc.processExistingQueueEntry())
+			{
 				n++;
+			}
 		}
 		assertEquals(3, n);
 	}
