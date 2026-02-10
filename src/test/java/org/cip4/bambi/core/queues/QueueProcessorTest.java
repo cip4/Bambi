@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2025 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -110,6 +110,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.jmf.JDFQueueFilter;
+import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFResumeQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
@@ -120,10 +121,11 @@ import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.ThreadUtil;
+import org.cip4.jdflib.util.URLReader;
+import org.cip4.jdflib.util.URLReader.EPackage;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeWriter;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import jakarta.mail.MessagingException;
@@ -143,9 +145,10 @@ public class QueueProcessorTest extends BambiTestCase
 	 * @throws MessagingException
 	 */
 	@Test
-	@Ignore
 	public void testReturnQE() throws IOException, MessagingException
 	{
+		wantContainer = true;
+		startContainer();
 		final JDFDoc docJMF = new JDFDoc("JMF");
 		final JDFJMF jmf = docJMF.getJMFRoot();
 		jmf.setSenderID("DeviceID");
@@ -154,7 +157,7 @@ public class QueueProcessorTest extends BambiTestCase
 
 		final String queueEntryID = "qe1";
 		returnQEParams.setQueueEntryID(queueEntryID);
-		final JDFDoc docJDF = JDFDoc.parseFile("C:\\data\\jdf\\foo.jdf");
+		final JDFDoc docJDF = JDFNode.createRoot().getOwnerDocument_JDFElement();
 		returnQEParams.setURL("cid:dummy"); // will be overwritten by buildMimePackage
 		final MimeWriter mw = new MimeWriter();
 		mw.buildMimePackage(docJMF, docJDF, false);
@@ -167,6 +170,37 @@ public class QueueProcessorTest extends BambiTestCase
 		final XMLResponse resp = bambiContainer.processStream(req);
 
 		assertNotNull(resp.getXML());
+	}
+
+	/**
+	 * @throws IOException
+	 * @throws MessagingException
+	 */
+	@Test
+	public void testGetRawDoc() throws IOException, MessagingException
+	{
+		final JDFDoc docJMF = new JDFDoc("JMF");
+		final JDFJMF jmf = docJMF.getJMFRoot();
+		jmf.setSenderID("DeviceID");
+		final JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
+		final JDFQueueSubmissionParams sqep = com.appendQueueSubmissionParams();
+
+		final JDFDoc docJDF = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		sqep.setURL("cid:dummy"); // will be overwritten by buildMimePackage
+		final MimeWriter mw = new MimeWriter();
+		mw.buildMimePackage(docJMF, docJDF, false);
+		final MIMEDetails mimeDetails = new MIMEDetails();
+		mimeDetails.transferEncoding = UrlUtil.BINARY;
+		mimeDetails.modifyBoundarySemicolon = false;
+		mw.setMIMEDetails(mimeDetails);
+		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final JDFDoc d1 = qp.getRawDocFromMessage(com, sqep);
+		assertNotNull(d1);
+		final EPackage pm = URLReader.getPackMethod();
+		URLReader.setPackMethod(EPackage.NONE);
+		final JDFDoc d2 = qp.getRawDocFromMessage(com, sqep);
+		assertNotNull(d2);
+		URLReader.setPackMethod(pm);
 	}
 
 	/**

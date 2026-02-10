@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -123,6 +123,7 @@ import org.cip4.jdflib.util.RollingBackupFile;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.URLReader;
+import org.cip4.jdflib.util.URLReader.EPackage;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.thread.DelayedPersist;
 import org.cip4.jdflib.util.thread.IPersistable;
@@ -3089,6 +3090,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		if (!StringUtil.isEmpty(url))
 		{
 			final URLReader r = new URLReader(url, m.getOwnerDocument_JDFElement());
+			r.setLocalPackMethod(EPackage.PACKAGE);
 			JDFDoc doc = r.getJDFDoc();
 			if (doc == null)
 			{
