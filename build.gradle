@@ -5,15 +5,11 @@ import java.time.Instant
 plugins {
     id 'java'
     id 'application'
-    id 'org.beryx.runtime' version '2.0.1'
+    id 'org.beryx.runtime' version '2.0.0'
     id 'distribution'
 }
 
-mainClassName = 'org.cip4.bambi.server.BambiServer'
 def simpleProjectName = "Bambi"
-
-sourceCompatibility = 17
-targetCompatibility = 17
 
 if (project.hasProperty('projectVersion')) {
 version = project.projectVersion
@@ -135,7 +131,9 @@ run {
 }
 
 java {
-    archivesBaseName = simpleProjectName
+base.archivesName = simpleProjectName
+sourceCompatibility = 17
+targetCompatibility = 17
 }
 startScripts {
     applicationName = simpleProjectName
