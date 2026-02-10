@@ -5,7 +5,7 @@ import java.time.Instant
 plugins {
     id 'java'
     id 'application'
-    id 'org.beryx.runtime' version '2.0.0'
+    id 'org.beryx.runtime' version '2.0.1'
     id 'distribution'
 }
 
