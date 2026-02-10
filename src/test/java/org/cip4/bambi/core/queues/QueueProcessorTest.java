@@ -806,6 +806,8 @@ public class QueueProcessorTest extends BambiTestCase
 		super.setUp();
 		workerURLBase = "http://localhost:44482/SimWorker/jmf/simIDP";
 		deviceID = "simIDP";
+		URLReader.setPackMethod(EPackage.PACKAGE);
+
 	}
 
 	@Override
