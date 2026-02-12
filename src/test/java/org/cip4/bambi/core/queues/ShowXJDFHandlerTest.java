@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2015 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -70,104 +70,43 @@
  */
 package org.cip4.bambi.core.queues;
 
-import java.io.File;
-import java.io.InputStream;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
-import org.cip4.bambi.core.AbstractDevice;
+import java.io.File;
+
+import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.XMLResponse;
+import org.cip4.bambi.workers.sim.SimDevice;
 import org.cip4.jdflib.core.AttributeName;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.extensions.XJDF20;
-import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.util.FileUtil;
+import org.junit.Test;
 
-/**
- * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *         13.01.2009
- */
-public class ShowXJDFHandler extends ShowHandler
+public class ShowXJDFHandlerTest extends BambiTestCaseBase
 {
-	/**
-	 * @param device
-	 */
-	public ShowXJDFHandler(final AbstractDevice device)
+
+	@Test
+	public void testgetXJDF()
 	{
-		super(device);
+		final ShowXJDFHandler h = new ShowXJDFHandler(mock(SimDevice.class));
+		final File f = new File(sm_dirTestData + "weird.jdf");
+		final ContainerRequest r = new ContainerRequest();
+		r.setParameter(AttributeName.JOBPARTID, "IC_CV__000_ST106745_M900238.C");
+		final XMLResponse xml = h.processFile(r, f);
+		assertNotNull(xml.getXML());
+		xml.getXML().write2File(sm_dirTestDataTemp + "weird.xjdf");
 	}
 
-	/**
-	 * @param request
-	 */
-	@Override
-	protected boolean isMyRequest(final ContainerRequest request)
+	@Test
+	public void testgetXJDFSB0()
 	{
-		boolean b = request.isMyContext("showJDF");
-		if (b)
-		{
-			final String jobPartID = request.getParameter(AttributeName.JOBPARTID);
-			b = jobPartID != null;
-		}
-		return b;
+		final ShowXJDFHandler h = new ShowXJDFHandler(mock(SimDevice.class));
+		final File f = new File(sm_dirTestData + "weird.jdf");
+		final ContainerRequest r = new ContainerRequest();
+		r.setParameter(AttributeName.JOBPARTID, "SB__000");
+		final XMLResponse xml = h.processFile(r, f);
+		assertNotNull(xml.getXML());
+		xml.getXML().write2File(sm_dirTestDataTemp + "weird.sb000.xjdf");
 	}
 
-	/**
-	 * @param request
-	 * @param f
-	 */
-	@Override
-	protected XMLResponse processFile(final ContainerRequest request, final File f)
-	{
-		final String jobPartID = request.getParameter(AttributeName.JOBPARTID);
-		final InputStream is = FileUtil.getBufferedInputStream(f);
-		if (is == null)
-		{
-			log.warn("cannot process file: " + f);
-			return null;
-		}
-		JDFDoc doc = JDFDoc.parseStream(is);
-		if (doc == null)
-		{
-			log.warn("cannot parse file: " + f);
-			return null;
-		}
-		final JDFNode n = doc.getJDFRoot();
-		final JDFNode nPart = n.getJobPart(jobPartID, null);
-		if (nPart == null)
-		{
-			log.warn("no node with jobPartID: " + jobPartID);
-			return null;
-		}
-		final XJDF20 xjdf20 = getViewXJDFConverter(nPart);
-		final KElement xRoot = xjdf20.makeNewJDF(nPart, null);
-		if (xRoot == null)
-		{
-			log.warn("could not convert node with jobPartID: " + jobPartID);
-			return null;
-		}
-		doc = new JDFDoc(xRoot.getOwnerDocument());
-		doc = prepareRoot(doc, request);
-		final XMLResponse r = new XMLResponse(doc.getRoot());
-		return r;
-	}
-
-	/**
-	 * get the converter to display single nodes
-	 *
-	 * @param nPart
-	 * @param node
-	 * @return
-	 */
-	protected XJDF20 getViewXJDFConverter(JDFNode nPart)
-	{
-		final XJDF20 xjdf20 = new XJDF20();
-		xjdf20.setRetainAll(true);
-		xjdf20.setWantProduct(nPart.isProduct());
-		xjdf20.setHTMLColor(!nPart.isProduct());
-		xjdf20.setSingleNode(true);
-		xjdf20.setWantDependent(false);
-
-		return xjdf20;
-	}
 }
