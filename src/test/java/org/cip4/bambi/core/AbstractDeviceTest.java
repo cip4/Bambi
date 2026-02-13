@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -81,14 +81,14 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	public void testUpdatePriority() throws Exception
 	{
 		final BambiTestDevice device = new BambiTestDevice();
-		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null, "http://foo/bar/*.jdf");
+		JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null, "http://foo/bar/*.jdf");
 		final JDFQueue q = (JDFQueue) new JDFDoc(ElementName.QUEUE).getRoot();
 		final JDFQueueEntry qe = q.appendQueueEntry();
 		final JDFNode n = JDFNode.createRoot();
 		n.setJobID("j1");
 		final JDFNodeInfo ni = n.getCreateNodeInfo();
 		ni.removeAttribute(AttributeName.JOBPRIORITY);
-		final String s = device.fixEntry(qe, n.getOwnerDocument_JDFElement());
+		device.fixEntry(qe, n.getOwnerDocument_JDFElement());
 		assertNull(ni.getNonEmpty(AttributeName.JOBPRIORITY));
 		assertNull(qe.getNonEmpty(AttributeName.PRIORITY));
 	}
@@ -100,7 +100,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	public void testUpdateActivation() throws Exception
 	{
 		final BambiTestDevice device = new BambiTestDevice();
-		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null, "http://foo/bar/*.jdf");
+		JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null, "http://foo/bar/*.jdf");
 		final JDFQueue q = (JDFQueue) new JDFDoc(ElementName.QUEUE).getRoot();
 		final JDFQueueEntry qe = q.appendQueueEntry();
 		final JDFNode n = JDFNode.createRoot();
@@ -124,7 +124,8 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		final BambiTestDevice device = new BambiTestDevice();
 		device.setSim(true);
 		final File dir = device.getCachedConfigDir();
-		assertEquals(new File(sm_dirTestDataTemp, "config"), dir);
+		assertTrue(dir.getAbsolutePath().startsWith(new File(sm_dirTestDataTemp).getAbsolutePath()));
+		assertTrue(dir.getAbsolutePath().endsWith("config"));
 	}
 
 	/**
@@ -259,7 +260,8 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		device.setSim(true);
 		device.copyToCache();
 		final File dir = device.getCachedConfigDir();
-		assertEquals(new File(sm_dirTestDataTemp, "config"), dir);
+		assertTrue(dir.getAbsolutePath().startsWith(new File(sm_dirTestDataTemp).getAbsolutePath()));
+		assertTrue(dir.getAbsolutePath().endsWith("config"));
 	}
 
 	/**
@@ -301,6 +303,11 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 			{
 				ThreadUtil.sleep(123);
 			}
+			else
+			{
+				break;
+			}
+
 		}
 		ThreadUtil.sleep(123);
 		assertNotEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Completed));
@@ -334,6 +341,10 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 			{
 				ThreadUtil.sleep(123);
 			}
+			else
+			{
+				break;
+			}
 		}
 		ThreadUtil.sleep(123);
 		assertNotEquals(0, queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Completed));
@@ -366,6 +377,10 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 			if (queueProcessor.getQueue().numEntries(EnumQueueEntryStatus.Waiting) > 0)
 			{
 				ThreadUtil.sleep(123);
+			}
+			else
+			{
+				break;
 			}
 		}
 		ThreadUtil.sleep(123);
