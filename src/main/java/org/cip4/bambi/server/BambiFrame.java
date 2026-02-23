@@ -1,7 +1,7 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -47,6 +47,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.jdflib.util.file.UserDir;
@@ -61,6 +62,7 @@ import org.cip4.jdfutility.server.ui.JettyFrame;
 public class BambiFrame extends JettyFrame
 {
 	private static final long serialVersionUID = 1L;
+	private static Log log = LogFactory.getLog(BambiFrame.class);
 	private JButton baseDirButton;
 	private JButton extractXsltButton;
 	private JTextField baseDirText;
@@ -116,7 +118,7 @@ public class BambiFrame extends JettyFrame
 		}
 		catch (final Exception e)
 		{
-			LogFactory.getLog(BambiFrame.class).error("Error reading bambi-buildtime.properties: " + e.getMessage(), e);
+			log.error("Error reading bambi-buildtime.properties: " + e.getMessage(), e);
 			propsVersion.put("release.version", "BambiVersion");
 			propsVersion.put("release.build.timestamp", "Time");
 			propsVersion.put("release.build.number", "Build");

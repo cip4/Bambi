@@ -106,7 +106,6 @@ import org.cip4.jdflib.util.ThreadUtil;
  * The device processor is the actual working part of a device. The individual job phases of the job are executed here.
  *
  * @author boegerni
- *
  */
 public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 {
@@ -121,7 +120,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 *
 	 * @param queueProcessor points to the QueueProcessor
 	 * @param statusListener points to the StatusListener
-	 * @param devProperties device properties
+	 * @param devProperties  device properties
 	 */
 	public SimDeviceProcessor(final QueueProcessor queueProcessor, final StatusListener statusListener, final IDeviceProperties devProperties)
 	{
@@ -136,7 +135,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	public SimDeviceProcessor()
 	{
 		super();
-		_jobPhases = new Vector<JobPhase>();
+		_jobPhases = new Vector<>();
 		idlePhase = null;
 	}
 
@@ -168,7 +167,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	/**
 	 * process a queue entry
 	 *
-	 * @param n the JDF node to process
+	 * @param n  the JDF node to process
 	 * @param qe the JDF queueentry that corresponds to this
 	 * @return EnumQueueEntryStatus the final status of the queuentry
 	 */
@@ -205,16 +204,16 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * process one phase for a given JDF node
-	 * 
-	 * @param n the currently processed node
+	 *
+	 * @param node the currently processed node
 	 */
-	protected void processPhase(final JDFNode n)
+	protected void processPhase(final JDFNode node)
 	{
-		final JDFResourceLink rlAmount = getAmountLink(n);
+		final JDFResourceLink rlAmount = getAmountLink(node);
 		final String namedRes = rlAmount == null ? null : rlAmount.getrRef();
 		final JobPhase phase = getCurrentJobPhase();
 
-		VJDFAttributeMap nodeInfoPartMapVector = n.getNodeInfoPartMapVector();
+		VJDFAttributeMap nodeInfoPartMapVector = node.getNodeInfoPartMapVector();
 		if (nodeInfoPartMapVector == null)
 		{
 			nodeInfoPartMapVector = new VJDFAttributeMap();
@@ -238,15 +237,15 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		while (phase.getDurationMillis() > 0)
 		{
 			final long t0 = System.currentTimeMillis();
-			final VString names = phase.getPhaseAmountResourceNames();
+			final VString resNames = phase.getPhaseAmountResourceNames();
 			boolean reachedEnd = EnumNodeStatus.isCompleted(phase.getNodeStatus()) || EnumNodeStatus.Suspended.equals(phase.getNodeStatus());
-			for (final String name : names)
+			for (final String resName : resNames)
 			{
-				final PhaseAmount pa = phase.findPhaseAmount(name);
-				if (pa != null)
+				final PhaseAmount phaseAmount = phase.findPhaseAmount(resName);
+				if (phaseAmount != null)
 				{
-					final double phaseGood = phase.getOutputGood(pa.getResourceName(), (int) deltaT);
-					if ("percent".equalsIgnoreCase(pa.getResourceName()))
+					final double phaseGood = phase.getOutputGood(phaseAmount.getResourceName(), (int) deltaT);
+					if ("percent".equalsIgnoreCase(phaseAmount.getResourceName()))
 					{
 						if (todoAmount <= 0)
 						{
@@ -256,16 +255,17 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 					}
 					else
 					{
-						final double phaseWaste = phase.getOutputWasteAfterTime(pa.getResourceName(), (int) deltaT);
-						_statusListener.updateAmount(pa.getResourceName(), phaseGood, phaseWaste);
+						final double phaseWaste = phase.getOutputWasteAfterTime(phaseAmount.getResourceName(), (int) deltaT);
+						_statusListener.updateAmount(phaseAmount.getResourceName(), phaseGood, phaseWaste);
 					}
-					if (namedRes != null && pa.matchesResource(namedRes))
+					if (namedRes != null && phaseAmount.matchesResource(namedRes))
 					{
 						all += phaseGood;
 						if (all > todoAmount && todoAmount > 0)
 						{
 							phase.setDurationMillis(0);
-							log.info("phase " + getJobID() + " / " + getQueueEntryID() + " end for resource: " + namedRes + " done=" + all + " planned=" + todoAmount);
+							log.info("phase " + getJobID() + " / " + getQueueEntryID() + " end for resource: " + namedRes + " done=" + all + " planned="
+									+ todoAmount);
 							reachedEnd = true;
 						}
 					}
@@ -280,7 +280,8 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			{
 				phase.setDurationMillis(0);
 			}
-			_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(), reachedEnd);
+			_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(),
+					reachedEnd);
 			if (phase.getDurationMillis() > 0 && !_doShutdown)
 			{
 				randomErrors(phase);
@@ -321,7 +322,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * generate random errors
-	 * 
+	 *
 	 * @param phase the phase element with the appropriate error chance
 	 */
 	protected void randomErrors(final JobPhase phase)
@@ -348,7 +349,6 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#initializeProcessDoc(org.cip4.jdflib.node.JDFNode, org.cip4.jdflib.jmf.JDFQueueEntry)
 	 * @param node
 	 * @param qe
@@ -379,8 +379,6 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	}
 
 	/**
-	 *
-	 *
 	 * @param node
 	 */
 	protected void loadJob(final JDFNode node)
@@ -401,8 +399,6 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	}
 
 	/**
-	 *
-	 *
 	 * @param node
 	 */
 	protected void prepareAmounts(final JDFNode node)
@@ -454,9 +450,9 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	/**
 	 * get the amount factor for this node, e.g. by evaluating a layout or runlist defaults to 1 but may be overwritten for specific processors
 	 *
-	 * @param res the resource to calculate the amount for
+	 * @param res    the resource to calculate the amount for
 	 * @param master the master resource that defines the amount=1
-	 * @param node the jdf node with details to evaluate
+	 * @param node   the jdf node with details to evaluate
 	 * @return
 	 */
 	protected double getAmountFactor(final String res, final String master, final JDFNode node)
@@ -468,7 +464,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 * proceed to the next job phase
 	 *
 	 * @param nextPhase the next job phase to process.<br>
-	 *        Phase timeToGo is ignored in this class, it is advancing to the next phase solely by doNextPhase().
+	 *                  Phase timeToGo is ignored in this class, it is advancing to the next phase solely by doNextPhase().
 	 */
 	public void doNextPhase(final JobPhase nextPhase)
 	{
@@ -483,7 +479,6 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	}
 
 	/**
-	 *
 	 * @param node
 	 * @return the initial job phase
 	 */
@@ -547,7 +542,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * same as super but also randomize some errors
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#idleProcess()
 	 */
 	@Override

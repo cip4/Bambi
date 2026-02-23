@@ -1030,9 +1030,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		dev.setJDFErrorURL(UrlUtil.fileToUrl(_devProperties.getErrorHF(), false));
 		dev.setJDFVersions(EnumVersion.Version_1_3.getName());
 
-		if (_devProperties instanceof DeviceProperties)
+		if (_devProperties instanceof final DeviceProperties dp)
 		{
-			final DeviceProperties dp = (DeviceProperties) _devProperties;
 			final KElement root = dp.getDevRoot();
 			if (root != null)
 			{
@@ -1090,6 +1089,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public String getXSLT(final ContainerRequest request)
 	{
+		if (!request.getBooleanParam("XSL", true))
+		{
+			return null;
+		}
+
 		final String command = request.getContext();
 		String s = "/showDevice.xsl";
 		if ("showQueue".equalsIgnoreCase(command) || "modifyQE".equalsIgnoreCase(command))
@@ -1126,7 +1130,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public final String getXSLTBaseFromContext(final String contextPath)
 	{
-		return "/" + StringUtil.token(contextPath, 0, "/") + getCSS();
+		return getCSS();
+		// return "/" + StringUtil.token(contextPath, 0, "/") + getCSS();
 	}
 
 	private String getCSS()
@@ -1329,7 +1334,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return null;
 		}
 		qe.setFromJDF(root); // set jobid, jobpartid, partmaps
-		EnumActivation qeActivation = qe.getActivation();
+		final EnumActivation qeActivation = qe.getActivation();
 		final EnumActivation activation = qeActivation == null ? root.getActivation(false) : qeActivation;
 		if (activation != null)
 		{

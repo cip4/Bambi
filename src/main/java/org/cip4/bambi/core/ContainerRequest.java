@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -561,10 +561,21 @@ public class ContainerRequest
 	 * @param param
 	 * @return true if the parameter is"true", else false
 	 */
-	public boolean getBooleanParam(final String param)
+	public boolean getBooleanParam(final String param, boolean def)
 	{
 		final String val = StringUtil.getNonEmpty(getParameter(param));
-		return val != null && StringUtil.parseBoolean(val, true);
+		return StringUtil.parseBoolean(val, def);
+	}
+
+	/**
+	 * extract a boolean attribute from a given request
+	 *
+	 * @param param
+	 * @return true if the parameter is"true", else false
+	 */
+	public boolean getBooleanParam(final String param)
+	{
+		return getBooleanParam(param, false);
 	}
 
 	/**

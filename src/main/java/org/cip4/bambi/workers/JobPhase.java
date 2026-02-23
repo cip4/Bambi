@@ -1,7 +1,7 @@
 /*
   The CIP4 Software License, Version 1.0
 
-  Copyright (c) 2001-2021 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+  Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
 
   Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
@@ -416,7 +416,9 @@ public class JobPhase implements Cloneable
 		for (final PhaseAmount phaseAmount : this.phaseAmounts)
 		{
 			if (phaseAmount.getSpeed() > 0)
+			{
 				return phaseAmount.getResourceName();
+			}
 		}
 
 		return null;
@@ -457,7 +459,8 @@ public class JobPhase implements Cloneable
 
 		if (phaseAmount == null || masterPhaseAmount == null)
 		{
-			log.error("bad phases for scaling, base=" + resourceName + " master=" + masterResourceName + " missing=" + ((phaseAmount == null) ? resourceName : masterResourceName));
+			log.error("bad phases for scaling, base=" + resourceName + " master=" + masterResourceName + " missing="
+					+ ((phaseAmount == null) ? resourceName : masterResourceName));
 		}
 		else if (phaseAmount.speed <= 0)
 		{
@@ -513,8 +516,8 @@ public class JobPhase implements Cloneable
 	 */
 	public String shortString()
 	{
-		return "[JobPhase: Duration=" + durationMillis + ", DeviceStatus=" + deviceStatus.getName() + ", DeviceStatusDetails=" + deviceStatusDetails + ", NodeStatus="
-				+ nodeStatus.getName() + ", NodeStatusDetails=" + nodeStatusDetails;
+		return "[JobPhase: Duration=" + durationMillis + ", DeviceStatus=" + deviceStatus.getName() + ", DeviceStatusDetails=" + deviceStatusDetails
+				+ ", NodeStatus=" + nodeStatus.getName() + ", NodeStatusDetails=" + nodeStatusDetails;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -594,7 +597,7 @@ public class JobPhase implements Cloneable
 		boolean masterAmount;
 
 		/**
-		 * Custom Constructor. Accepting multiple attribute for initializting.
+		 * Custom Constructor. Accepting multiple attribute for initializing.
 		 *
 		 * @param resourceName The name of the resource being consumed.
 		 * @param speed        The speed per hour
@@ -686,7 +689,7 @@ public class JobPhase implements Cloneable
 		}
 
 		@Override
-		protected Object clone()
+		protected PhaseAmount clone()
 		{
 			final PhaseAmount phaseAmount = new PhaseAmount(null, speed, amountIsGood);
 			phaseAmount.resourceName = resourceName;

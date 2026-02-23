@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -99,19 +99,18 @@ class JobLoader
 	 */
 	private final SimDeviceProcessor simDeviceProcessor;
 	private JDFNode node;
-	private final Log log;
+	private final static Log log = LogFactory.getLog(JobLoader.class);
 
 	protected JobLoader(final SimDeviceProcessor simDeviceProcessor)
 	{
 		super();
 		this.simDeviceProcessor = simDeviceProcessor;
 		node = null;
-		log = LogFactory.getLog(getClass());
 	}
 
 	/**
 	 * set the node for amount calculations
-	 * 
+	 *
 	 * @param node
 	 */
 	public void setNode(final JDFNode node)
@@ -121,9 +120,9 @@ class JobLoader
 
 	/**
 	 * update amounts of all resources with no speed
-	 * 
+	 *
 	 * @param phase the jobphase to update the amounts for
-	 * @param node the node to extract update data from. this implementation assumes a one to one match of input to output
+	 * @param node  the node to extract update data from. this implementation assumes a one to one match of input to output
 	 */
 	private void updateAmountsFromNode(final JobPhase phase, final JDFNode node)
 	{
@@ -153,7 +152,7 @@ class JobLoader
 	 * The list of job phases is emptied when an error occurs during parsing fileName
 	 *
 	 * @param configdir the configuration directory
-	 * @param fileName the file to load
+	 * @param fileName  the file to load
 	 * @return true, if successful
 	 */
 	List<JobPhase> loadJobFromFile(final File configdir, final String fileName)
@@ -171,7 +170,7 @@ class JobLoader
 			log.error("Job File " + fileName + " not found, using default");
 			return null;
 		}
-		final List<JobPhase> phaseList = new Vector<JobPhase>();
+		final List<JobPhase> phaseList = new Vector<>();
 		final KElement simJob = doc.getRoot();
 		final VElement v = simJob.getXPathElementVector("JobPhase", -1);
 		for (final KElement phaseElement : v)
@@ -182,7 +181,7 @@ class JobLoader
 			phase.ensureMasterAmount();
 		}
 
-		if (phaseList.size() == 0)
+		if (phaseList.isEmpty())
 		{
 			log.warn("no job phases were added from " + fileName);
 			return null;
@@ -205,7 +204,7 @@ class JobLoader
 
 	/**
 	 * load a job from the cached directory
-	 * 
+	 *
 	 * @return
 	 */
 	protected List<JobPhase> loadJob()
@@ -226,8 +225,8 @@ class JobLoader
 
 	/**
 	 * randomize phase durations and add random error phases
-	 * 
-	 * @param phases the phases to randomize
+	 *
+	 * @param phases     the phases to randomize
 	 * @param randomTime the given time in seconds of each job phase is to vary by +/- 100 percent
 	 */
 	private void randomizeJobPhases(final List<JobPhase> phases, final double randomTime)

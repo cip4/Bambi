@@ -73,30 +73,44 @@ package org.cip4.bambi.workers.sim;
 import static org.junit.Assert.assertNotNull;
 
 import org.cip4.bambi.BambiTestCaseBase;
-import org.cip4.bambi.BambiTestDevice;
-import org.cip4.jdflib.node.JDFNode;
+import org.cip4.bambi.BambiTestProp;
+import org.cip4.bambi.core.messaging.IMessageHandler;
+import org.cip4.jdflib.auto.JDFAutoResourceQuParams;
+import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.junit.Test;
 
-public class SimDeviceProcessorTest extends BambiTestCaseBase
+public class SimDeviceTest extends BambiTestCaseBase
 {
 
 	@Test
-	public void testConstruct()
+	public void testCreate()
 	{
-		final BambiTestDevice rootDev = new BambiTestDevice();
-		rootDev.setSim(true);
-		final SimDeviceProcessor p = (SimDeviceProcessor) rootDev.getNewProcessor();
-		assertNotNull(p);
+		final SimDevice sim = new SimDevice(new BambiTestProp());
+		assertNotNull(sim);
 	}
 
 	@Test
-	public void testProcessDoc()
+	public void testResource()
 	{
-		final BambiTestDevice rootDev = new BambiTestDevice();
-		rootDev.setSim(true);
-		final SimDeviceProcessor p = (SimDeviceProcessor) rootDev.getNewProcessor();
-		final JDFNode n = JDFNode.createRoot();
-		p.processDoc(n, null);
+		final SimDevice sim = new SimDevice(new BambiTestProp());
+		final IMessageHandler qh = sim.getJMFHandler(null).getMessageHandler("Resource", EnumFamily.Query);
+		assertNotNull(qh);
+	}
+
+	@Test
+	public void testResourceNS()
+	{
+		final SimDevice sim = new SimDevice(new BambiTestProp());
+		final JDFJMF jmf = JDFJMF.parseFile(sm_dirTestData + "config/resinfo.xml");
+		final IMessageHandler qh = sim.new ResourceQueryHandler(jmf);
+		final JDFJMF q = JDFJMF.createJMF(EnumFamily.Query, EnumType.Resource);
+		q.getQuery().getCreateResourceQuParams(0).setScope(JDFAutoResourceQuParams.EScope.Allowed);
+		final JDFJMF r = JDFJMF.createJMF(EnumFamily.Query, EnumType.Resource);
+		qh.handleMessage(q.getQuery(), r.getCreateResponse(0));
+		assertNotNull(KElement.parseString(r.toXML()));
 	}
 
 }

@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -39,8 +39,8 @@ package org.cip4.bambi.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -88,7 +88,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 
 	private EnumVersion fixToExtern = null;
 	private EnumVersion fixToBambi = null;
-	private Vector<IConverterCallback> postConversionList;
+	private List<IConverterCallback> postConversionList;
 	private boolean removeJobIDFromSubs;
 	private boolean isJSON;
 
@@ -169,7 +169,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	public ConverterCallback()
 	{
 		super();
-		postConversionList = new Vector<>();
+		postConversionList = new ArrayList<>();
 		setRemoveJobIDFromSubs(false);
 		isJSON = false;
 	}
@@ -568,6 +568,13 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 			return getJSONWriter().getStream(doc2.getRoot());
 		}
 		return writeToStream(doc2);
+	}
+
+	@Override
+	public String toString()
+	{
+		return getClass().getSimpleName() + " [fixToExtern=" + EnumUtil.getName(fixToExtern) + ", fixToBambi=" + EnumUtil.getName(fixToBambi) + " isJSON="
+				+ isJSON + "]";
 	}
 
 	/**

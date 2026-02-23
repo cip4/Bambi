@@ -42,6 +42,7 @@ package org.cip4.bambi.workers.sim;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -55,6 +56,8 @@ import org.cip4.bambi.workers.JobPhase;
 import org.cip4.bambi.workers.UIModifiableDevice;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -78,7 +81,6 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	private final static Log log = LogFactory.getLog(SimDevice.class);
 
 	/**
-	 *
 	 * resource query catalog
 	 *
 	 * @author rainer prosi
@@ -87,14 +89,15 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	public class ResourceQueryHandler extends ResourceHandler
 	{
 		protected List<JDFResourceInfo> vResInfo;
+		private final JDFAttributeMap nsMap;
 
 		/**
-		 *
 		 * @param respCopy
 		 */
 		public ResourceQueryHandler(final JDFJMF respCopy)
 		{
 			super();
+			nsMap = getNSMap(respCopy);
 			final JDFResponse resp = respCopy == null ? null : respCopy.getResponse(0);
 			if (resp == null)
 			{
@@ -117,8 +120,27 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 			}
 		}
 
+		JDFAttributeMap getNSMap(JDFJMF respCopy)
+		{
+			final JDFAttributeMap map = new JDFAttributeMap();
+			final VElement v = respCopy.getChildrenByTagName(null);
+			for (final KElement e : v)
+			{
+				final JDFAttributeMap atts = e.getAttributeMap_KElement();
+				for (final Entry<String, String> entry : atts.entrySet())
+				{
+					final String prefix = KElement.xmlnsPrefix(entry.getKey());
+					if (prefix != null && !map.containsKey(prefix))
+					{
+						final String ns = e.getNamespaceURIFromPrefix(prefix);
+						map.putNotNull(prefix, ns);
+					}
+				}
+			}
+			return map;
+		}
+
 		/**
-		 *
 		 * @see org.cip4.bambi.core.AbstractDevice.ResourceHandler#getResourceList(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
@@ -136,7 +158,17 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 					response.copyElement(ri, null);
 				}
 			}
+			updateNamespaces(response);
 			return true;
+		}
+
+		void updateNamespaces(JDFMessage m)
+		{
+			for (final Entry<String, String> e : nsMap.entrySet())
+			{
+				m.addNameSpace(e.getKey(), e.getValue());
+			}
+
 		}
 	}
 
@@ -178,7 +210,7 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	}
 
 	/**
-	 * @param bProc if true add processors
+	 * @param bProc   if true add processors
 	 * @param request
 	 * @return
 	 */
@@ -190,7 +222,6 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.workers.WorkerDevice#processNextPhase(org.cip4.bambi.core.ContainerRequest)
 	 */
 	@Override
@@ -211,7 +242,6 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#buildDeviceProcessor()
 	 */
 	@Override
@@ -245,7 +275,9 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 		final JDFAttributeMap map = request.getParameterMap();
 		final Set<String> s = map == null ? null : map.keySet();
 		if (s == null)
+		{
 			return;
+		}
 
 		final String exp = request.getParameter(AttributeName.TYPEEXPRESSION);
 		if (exp != null && s.contains(AttributeName.TYPEEXPRESSION))

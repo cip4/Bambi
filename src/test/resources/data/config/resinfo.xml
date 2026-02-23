@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<JMF SenderID="RICOH-ProC901" TimeStamp="2011-10-06T11:01:53+02:00"
+  Version="1.4" xmlns="http://www.CIP4.org/JDFSchema_1_1" xmlns:EFI="http://www.efi.com/efijdf"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="JMFRootMessage">
+  <Response ID="m111006110153_016576" ReturnCode="0" Subscribed="false"
+    Type="Resource" refID="m_111006_105515846_000014" xsi:type="ResponseResource">
+    <ResourceInfo>
+      <Media BackCoatings="Matte" Class="Consumable"
+        DescriptiveName="Color Copy 100 Mondi A4" Dimension="595 842"
+        EFI:EFPaperCatalogID="1" EFI:EngineMID="1"
+        EFI:FeedDirection="LEF" FrontCoatings="Matte" HoleType="None"
+        ID="_8d88f6ad-718b-4e0b-b023-3213ad4e9598"
+        MediaColorName="White" MediaSetCount="0" MediaType="Paper"
+        MediaTypeDetails="Plain" Opacity="Opaque" PrePrinted="false"
+        RecycledPercentage="0" Status="Available" Thickness="100"
+        Weight="250" />
+    </ResourceInfo>
+    <ResourceInfo>
+      <Media BackCoatings="None" Class="Consumable"
+        DescriptiveName="Color Copy 100 Mondi A3" Dimension="842 1191"
+        EFI:EFPaperCatalogID="2" EFI:EngineMID="2"
+        EFI:FeedDirection="SEF" FrontCoatings="None" HoleType="None"
+        ID="_822250c0-9a17-41e0-9bbc-97980e3edf0c"
+        MediaColorName="White" MediaSetCount="0" MediaType="Paper"
+        MediaTypeDetails="Plain" Opacity="Opaque" PrePrinted="false"
+        RecycledPercentage="0" Status="Available" Weight="100" />
+    </ResourceInfo>
+    <ResourceInfo>
+      <Media BackCoatings="Matte" Class="Consumable"
+        DescriptiveName="Color Copy 200 Mondi A4" Dimension="595 842"
+        EFI:EFPaperCatalogID="3" EFI:EngineMID="3"
+        EFI:FeedDirection="LEF" FrontCoatings="Matte" HoleType="None"
+        ID="_8d88f6ad-718b-4e0b-b023-3213ad4e9598"
+        MediaColorName="White" MediaSetCount="0" MediaType="Paper"
+        MediaTypeDetails="Plain" Opacity="Opaque" PrePrinted="false"
+        RecycledPercentage="0" Status="Available" Thickness="100"
+        Weight="250" />
+    </ResourceInfo>
+    <ResourceInfo>
+      <Media BackCoatings="None" Class="Consumable"
+        DescriptiveName="Color Copy 200 Mondi A3" Dimension="842 1191"
+        EFI:EFPaperCatalogID="4" EFI:EngineMID="4"
+        EFI:FeedDirection="SEF" FrontCoatings="None" HoleType="None"
+        ID="_822250c0-9a17-41e0-9bbc-97980e3edf0c"
+        MediaColorName="White" MediaSetCount="0" MediaType="Paper"
+        MediaTypeDetails="Plain" Opacity="Opaque" PrePrinted="false"
+        RecycledPercentage="0" Status="Available" Weight="100" />
+    </ResourceInfo>
+    <ResourceInfo>
+      <Media BackCoatings="None" Class="Consumable"
+        DescriptiveName="Color Copy 160 Mondi SRA3" Dimension="907 1275"
+        EFI:EFPaperCatalogID="5" EFI:EngineMID="5"
+        EFI:FeedDirection="SEF" FrontCoatings="None" HoleType="None"
+        ID="_bebfe6ef-a5f6-4138-a898-b7813b8dcdf9"
+        MediaColorName="White" MediaType="Paper"
+        MediaTypeDetails="Plain" Opacity="Opaque" PrePrinted="false"
+        RecycledPercentage="0" Status="Available" Weight="130" />
+    </ResourceInfo>
+  </Response>
+</JMF>

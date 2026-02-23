@@ -185,9 +185,8 @@ public class RootDevice extends AbstractDevice
 		log.info("creating child from root device " + devID);
 
 		AbstractDevice dev = null;
-		if ((iProp instanceof DeviceProperties) && !deviceTemplates.containsKey(iProp.getDeviceType()))
+		if ((iProp instanceof final DeviceProperties prop) && !deviceTemplates.containsKey(iProp.getDeviceType()))
 		{
-			final DeviceProperties prop = (DeviceProperties) iProp;
 			if (prop.isTemplate())
 			{
 				deviceTemplates.put(iProp.getDeviceType(), prop);
@@ -302,7 +301,6 @@ public class RootDevice extends AbstractDevice
 
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 *
 	 *         Apr 28, 2009
 	 */
 	public class StatusHandler extends RootDispatchHandler
@@ -332,7 +330,6 @@ public class RootDevice extends AbstractDevice
 		}
 
 		/**
-		 *
 		 * @param response
 		 */
 		private void cleanQueues(final JDFResponse response)
@@ -537,10 +534,8 @@ public class RootDevice extends AbstractDevice
 		if (_devices != null)
 		{
 			final Set<String> keys = _devices.keySet();
-			final Iterator<String> it = keys.iterator();
-			while (it.hasNext())
+			for (final String devID : keys)
 			{
-				final String devID = it.next();
 				final AbstractDevice dev = _devices.get(devID);
 				if (dev != null)
 				{
@@ -561,7 +556,9 @@ public class RootDevice extends AbstractDevice
 	public AbstractDevice getDevice(final String deviceID)
 	{
 		if (ContainerUtil.equals(deviceID, getDeviceID()))
+		{
 			return this;
+		}
 		if (_devices == null)
 		{
 			log.warn("list of devices is null - defaulting to root");
@@ -648,7 +645,6 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#showDevice(org.cip4.bambi.core.ContainerRequest, boolean)
 	 */
 	@Override
@@ -689,7 +685,6 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
-	 *
 	 * @param request
 	 * @param listRoot
 	 */
@@ -709,7 +704,6 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
-	 *
 	 * @param request
 	 * @param deviceList
 	 * @return
@@ -755,6 +749,10 @@ public class RootDevice extends AbstractDevice
 	@Override
 	public String getXSLT(final ContainerRequest request)
 	{
+		if (!request.getBooleanParam("XSL", true))
+		{
+			return null;
+		}
 		final String command = request.getContext();
 		String s = null;
 		if ("overview".equalsIgnoreCase(command) || "showDevice".equalsIgnoreCase(command) || command == null)
@@ -816,7 +814,6 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#handleGet(org.cip4.bambi.core.ContainerRequest)
 	 */
 	@Override
@@ -888,7 +885,6 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
-	 *
 	 * @param request
 	 * @return
 	 */
@@ -911,7 +907,6 @@ public class RootDevice extends AbstractDevice
 	}
 
 	/**
-	 *
 	 * @param request
 	 * @param response
 	 */
