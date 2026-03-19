@@ -85,7 +85,6 @@ import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.core.XMLParser;
 import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.util.FileUtil;
 
 /**
  * class to load .job files for simulation
@@ -94,6 +93,7 @@ import org.cip4.jdflib.util.FileUtil;
  */
 class JobLoader
 {
+	private static final String JOB_PHASE = "JobPhase";
 	/**
 	 *
 	 */
@@ -157,7 +157,7 @@ class JobLoader
 	 */
 	List<JobPhase> loadJobFromFile(final File configdir, final String fileName)
 	{
-		final File f = FileUtil.getFileInDirectory(configdir, new File(fileName));
+		final File f = new File(configdir, fileName);
 		if (!f.canRead())
 		{
 			log.info("Could not find preset file :" + fileName + " in " + configdir);
@@ -172,13 +172,13 @@ class JobLoader
 		}
 		final List<JobPhase> phaseList = new Vector<>();
 		final KElement simJob = doc.getRoot();
-		final VElement v = simJob.getXPathElementVector("JobPhase", -1);
+		final VElement v = simJob.getXPathElementVector(JOB_PHASE, -1);
 		for (final KElement phaseElement : v)
 		{
 			final JobPhase phase = new JobPhase(phaseElement);
+			phase.ensureMasterAmount();
 			updateAmountsFromNode(phase, node);
 			phaseList.add(phase);
-			phase.ensureMasterAmount();
 		}
 
 		if (phaseList.isEmpty())
@@ -196,8 +196,8 @@ class JobLoader
 			log.info("defined an idle phase");
 		}
 
-		log.info("created new job from " + fileName + " with " + phaseList.size() + " job phases.");
 		randomizeJobPhases(phaseList, simJob.getRealAttribute("RandomFactor", null, 0.0));
+		log.info("created new job from " + fileName + " with " + phaseList.size() + " job phases.");
 
 		return phaseList;
 	}
@@ -229,9 +229,9 @@ class JobLoader
 	 * @param phases     the phases to randomize
 	 * @param randomTime the given time in seconds of each job phase is to vary by +/- 100 percent
 	 */
-	private void randomizeJobPhases(final List<JobPhase> phases, final double randomTime)
+	void randomizeJobPhases(final List<JobPhase> phases, final double randomTime)
 	{
-		if (randomTime > 0.0 && phases != null)
+		if (randomTime > 0.0)
 		{
 			for (final JobPhase phase : phases)
 			{

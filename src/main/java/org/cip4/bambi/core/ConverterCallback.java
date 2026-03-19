@@ -287,8 +287,7 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 
 	protected FixVersion getFixVersion(final KElement newRoot)
 	{
-		final FixVersion fv = new FixVersion((EnumVersion) null);
-		return fv;
+		return new FixVersion((EnumVersion) null);
 	}
 
 	/**
@@ -537,18 +536,18 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 		return writeToStream(doc2);
 	}
 
-	protected InputStream writeToStream(final JDFDoc doc2)
+	protected InputStream writeToStream(final JDFDoc doc)
 	{
-		if (doc2 != null)
+		if (doc != null)
 		{
 			final ByteArrayIOStream bos = new ByteArrayIOStream();
 			try
 			{
-				doc2.write2Stream(bos, 2, false);
+				doc.write2Stream(bos, 2, false);
 			}
 			catch (final IOException e)
 			{
-				return null;
+				sLog.error("cannot write stream ", e);
 			}
 			return bos.getInputStream();
 		}
@@ -563,9 +562,16 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 	{
 		final boolean json = doc != null && BambiNSExtension.isJSON(doc.getRoot());
 		final JDFDoc doc2 = updateJDFForExtern(doc);
-		if (doc2 != null && (isJSON || json))
+		if (doc2 != null)
 		{
-			return getJSONWriter().getStream(doc2.getRoot());
+			if (isJSON || json)
+			{
+				return getJSONWriter().getStream(doc2.getRoot());
+			}
+		}
+		else
+		{
+			sLog.warn("Cannot extract modified doc");
 		}
 		return writeToStream(doc2);
 	}

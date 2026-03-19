@@ -48,6 +48,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.InputStream;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
@@ -80,7 +81,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testUpdatePriority() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null, "http://foo/bar/*.jdf");
 		final JDFQueue q = (JDFQueue) new JDFDoc(ElementName.QUEUE).getRoot();
 		final JDFQueueEntry qe = q.appendQueueEntry();
@@ -99,7 +100,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testUpdateActivation() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null, "http://foo/bar/*.jdf");
 		final JDFQueue q = (JDFQueue) new JDFDoc(ElementName.QUEUE).getRoot();
 		final JDFQueueEntry qe = q.appendQueueEntry();
@@ -121,7 +122,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testConfig() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		device.setSim(true);
 		final File dir = device.getCachedConfigDir();
 		assertTrue(dir.getAbsolutePath().startsWith(new File(sm_dirTestDataTemp).getAbsolutePath()));
@@ -134,7 +135,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testUpdateWatchURL() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		device.setSim(true);
 		device.getSignalDispatcher().removeSubScriptions(null, null);
 		device.updateWatchURL(null, null);
@@ -161,7 +162,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testExtractURL() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		device.setSim(true);
 		final JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
 		qe.setQueueEntryID("a");
@@ -175,7 +176,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test(expected = IllegalArgumentException.class)
 	public void testExtractURLBad1() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		device.setSim(true);
 		final JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
 		qe.setQueueEntryID("..");
@@ -188,7 +189,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test(expected = IllegalArgumentException.class)
 	public void testExtractURLBad2() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		device.setSim(true);
 		final JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
 		qe.setQueueEntryID("a/..");
@@ -201,7 +202,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testUpdateWatchURLXML() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		device.setSim(true);
 		device.getSignalDispatcher().removeSubScriptions(null, null);
 		device.updateWatchURL(null, null);
@@ -220,7 +221,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testCreateSubmissionJMF() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		device.setSim(true);
 		final XJDFHelper h = new XJDFHelper("j1", "p1");
 		final JDFJMF jmf = device.createSubmissionJMF(h.getRoot(), null);
@@ -233,7 +234,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testCreateSubmitFromJDF() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		device.setSim(true);
 		final XJDFHelper h = new XJDFHelper("j1", "p1");
 		final XMLRequest xml = device.createSubmitFromJDF(h.getRoot(), new XMLRequest(h.getRoot()));
@@ -246,7 +247,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testToString() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		assertNotNull(device.toString());
 	}
 
@@ -256,7 +257,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testCopyToCache() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		device.setSim(true);
 		device.copyToCache();
 		final File dir = device.getCachedConfigDir();
@@ -270,7 +271,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testDoSynch() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		device.setSynchronous(true);
 		final QueueEntry qe = new QueueEntry(JDFNode.createRoot(), device.getQueueProcessor().getQueue().appendQueueEntry());
 		assertTrue(device.doSynchronous(qe));
@@ -282,7 +283,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testDoSynchMulti() throws Exception
 	{
-		final BambiTestDevice device = Mockito.spy(new BambiTestDevice());
+		final BambiTestDevice device = Mockito.spy(new BambiTestDevice(false));
 		device.setSynchronous(true);
 		when(device.getParallelSynch()).thenReturn(1);
 		final QueueProcessor queueProcessor = device.getQueueProcessor();
@@ -320,7 +321,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testDoSynchMulti4() throws Exception
 	{
-		final BambiTestDevice device = Mockito.spy(new BambiTestDevice());
+		final BambiTestDevice device = Mockito.spy(new BambiTestDevice(false));
 		device.setSynchronous(true);
 		when(device.getParallelSynch()).thenReturn(4);
 		final QueueProcessor queueProcessor = device.getQueueProcessor();
@@ -357,7 +358,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testDoAsynchMulti() throws Exception
 	{
-		final BambiTestDevice device = Mockito.spy(new BambiTestDevice());
+		final BambiTestDevice device = Mockito.spy(new BambiTestDevice(false));
 		device.setSynchronous(false);
 		when(device.getParallelSynch()).thenReturn(4);
 		final QueueProcessor queueProcessor = device.getQueueProcessor();
@@ -394,11 +395,62 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testForceFile() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		assertFalse(device.forceCopy(null));
 		assertFalse(device.forceCopy(new File("foo.xml")));
 		assertTrue(device.forceCopy(new File("foo.xsl")));
 		assertTrue(device.forceCopy(new File("foo.xsd")));
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testGet() throws Exception
+	{
+		final AbstractDevice device = getDevice();
+		assertNotNull(device.toString());
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testGetXSL() throws Exception
+	{
+		final AbstractDevice device = getDevice();
+		final ContainerRequest request = new ContainerRequest();
+		assertNotNull(device.getXSLT(request));
+		request.setParameter(RootDevice.XSL, "0");
+		assertNull(device.getXSLT(request));
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testShowDevice() throws Exception
+	{
+		final AbstractDevice device = getDevice();
+		final ContainerRequest request = new ContainerRequest();
+		assertNotNull(device.showDevice(request, false));
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testGetUpdated() throws Exception
+	{
+		final AbstractDevice device = getDevice();
+		assertNotNull(device.getUpdatedFile("abc"));
+	}
+
+	public AbstractDevice getDevice()
+	{
+		final InputStream resourceAsStream = getClass().getResourceAsStream("/config/devices.xml");
+		final MultiDeviceProperties mp = MultiDeviceProperties.getProperties(resourceAsStream);
+		return mp.createDeviceProps(1).getDeviceInstance();
 	}
 
 }

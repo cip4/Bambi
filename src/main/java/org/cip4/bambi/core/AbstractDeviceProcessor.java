@@ -384,7 +384,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	/**
 	 * @return
 	 */
-	final protected boolean processQueueEntry()
+	public final boolean processQueueEntry()
 	{
 		final IQueueEntry qe = fillCurrentQE();
 		if (qe == null)
@@ -491,6 +491,12 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			vPartMap = node.getNodeInfoPartMapVector();
 		}
 
+		final String trackResourceID = getTrackResource(vResLinks);
+		_statusListener.setNode(queueEntryID, node, vPartMap, trackResourceID);
+	}
+
+	protected String getTrackResource(final VElement vResLinks)
+	{
 		String trackResourceID = null;
 		if (vResLinks != null)
 		{
@@ -538,7 +544,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 			}
 			trackResourceID = inConsume != null ? inConsume : outQuantity;
 		}
-		_statusListener.setNode(queueEntryID, node, vPartMap, trackResourceID);
+		return trackResourceID;
 	}
 
 	/**
@@ -786,6 +792,14 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	public String toString()
 	{
 		return getClass().getSimpleName() + "active " + isActive() + " Current: " + (getCurrentQE() != null ? getQueueEntryID() : "none") + "]";
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	public String shortString()
+	{
+		return getClass().getSimpleName() + " Current: " + getQueueEntryID();
 	}
 
 	/**

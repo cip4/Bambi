@@ -109,11 +109,10 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		@Override
 		public boolean equals(final Object arg0)
 		{
-			if (!(arg0 instanceof MessageType))
+			if (!(arg0 instanceof final MessageType messageType))
 			{
 				return false;
 			}
-			final MessageType messageType = (MessageType) arg0;
 			return ContainerUtil.equals(family, messageType.family) && ContainerUtil.equals(type, messageType.type);
 		}
 
@@ -264,7 +263,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		 * Custom constructor. Accepting multiple params for initializing.
 		 *
 		 * @param messageType The message type
-		 * @param families The array of families
+		 * @param families    The array of families
 		 */
 		public AbstractHandler(final EnumType messageType, final EnumFamily[] families)
 		{
@@ -277,7 +276,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		 * Custom constructor. Accepting multiple params for initializing.
 		 *
 		 * @param messageType The message type
-		 * @param families The array of families
+		 * @param families    The array of families
 		 */
 		public AbstractHandler(final String messageType, final EnumFamily[] families)
 		{
@@ -381,8 +380,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 * Add a message handler.
 	 *
 	 * @param messageHandler The message handler to add.
-	 * @param messageType The message type.
-	 * @param messageFamily The message family.
+	 * @param messageType    The message type.
+	 * @param messageFamily  The message family.
 	 */
 	public void addHandler(final IMessageHandler messageHandler, final String messageType, final EnumFamily messageFamily)
 	{
@@ -391,7 +390,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		if (previousMessageHandler != null)
 		{
 			log.info(device.getDeviceID() + ": removing old IMessageHandler: " + previousMessageHandler.getClass().getSimpleName());
-			log.info(device.getDeviceID() + ": size: " + messageMap.size() + ": replacing with new IMessageHandler: " + messageHandler.getClass().getSimpleName());
+			log.info(device.getDeviceID() + ": size: " + messageMap.size() + ": replacing with new IMessageHandler: "
+					+ messageHandler.getClass().getSimpleName());
 		}
 		else
 		{
@@ -400,7 +400,6 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	}
 
 	/**
-	 *
 	 * @param messageType
 	 * @param messageFamily
 	 * @return
@@ -415,7 +414,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	/**
 	 * Return a handler for a given type and family.
 	 *
-	 * @param messageType The message type, "*" is a wildcard that will be called in case no individual handler exists
+	 * @param messageType   The message type, "*" is a wildcard that will be called in case no individual handler exists
 	 * @param messageFamily The message family
 	 * @return The message handler, null if none exist.
 	 */
@@ -448,7 +447,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 
 		if (log.isDebugEnabled())
 		{
-			log.debug("handling jmf from " + jmfMessage.getSenderID() + " id=" + jmfMessage.getID() + " with " + messages.size() + " messages; total=" + messageCount);
+			log.debug("handling jmf from " + jmfMessage.getSenderID() + " id=" + jmfMessage.getID() + " with " + messages.size() + " messages; total="
+					+ messageCount);
 		}
 
 		for (final KElement m : messages)
@@ -456,7 +456,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			final JDFMessage message = (JDFMessage) m;
 			final String id = message.getID();
 
-			final JDFResponse response = (JDFResponse) (id == null ? null : jmfResponse.getChildWithAttribute(ElementName.RESPONSE, AttributeName.REFID, null, id, 0, true));
+			final JDFResponse response = (JDFResponse) (id == null ? null
+					: jmfResponse.getChildWithAttribute(ElementName.RESPONSE, AttributeName.REFID, null, id, 0, true));
 			if (response == null)
 			{
 				log.warn("no response provided ??? " + id + " " + message.getFamily() + " " + message.getType());
@@ -469,14 +470,15 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 				handleMessage(message, response);
 			}
 
-			if ((message instanceof JDFSignal) && response != null && response.getReturnCode() == 0 && !EnumChannelMode.Reliable.equals(((JDFSignal) message).getChannelMode()))
+			if ((message instanceof JDFSignal) && response != null && response.getReturnCode() == 0
+					&& !EnumChannelMode.Reliable.equals(((JDFSignal) message).getChannelMode()))
 			{
 				response.deleteNode();
 			}
 		}
 
 		messages = jmfResponse.getMessageVector(null, null);
-		if (messages != null && messages.size() > 0)
+		if (!ContainerUtil.isEmpty(messages))
 		{
 			jmfResponse.setSenderID(getSenderID());
 			jmfResponse.setICSVersions((device).getICSVersions());
@@ -494,7 +496,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 */
 	protected void unhandledMessage(final JDFMessage jmfMessage, final JDFResponse jmfResponse)
 	{
-		errorResponse(jmfResponse, "Message not handled: " + jmfMessage.getType() + "; Family: " + jmfMessage.getFamily().getName() + " id=" + jmfMessage.getID(), 5,
+		errorResponse(jmfResponse,
+				"Message not handled: " + jmfMessage.getType() + "; Family: " + jmfMessage.getFamily().getName() + " id=" + jmfMessage.getID(), 5,
 				EnumClass.Warning);
 	}
 
@@ -502,9 +505,9 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 * Standard error message creator.
 	 *
 	 * @param jmfResponse the response to make an error
-	 * @param errorText the explicit error text
-	 * @param returnCode the jmf response returncode
-	 * @param errorClass the error class of the message
+	 * @param errorText   the explicit error text
+	 * @param returnCode  the jmf response returncode
+	 * @param errorClass  the error class of the message
 	 */
 	public static void errorResponse(final JDFResponse jmfResponse, final String errorText, final int returnCode, final EnumClass errorClass)
 	{
@@ -515,9 +518,9 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	 * Standard error message creator.
 	 *
 	 * @param jmfResponse the response to make an error
-	 * @param errorText the explicit error text
-	 * @param returnCode the jmf response returncode
-	 * @param errorClass the error class of the message
+	 * @param errorText   the explicit error text
+	 * @param returnCode  the jmf response returncode
+	 * @param errorClass  the error class of the message
 	 */
 	public static void errorResponse(final JDFResponse jmfResponse, final String errorText, final int returnCode, final EnumClass errorClass, final Throwable t)
 	{
@@ -593,7 +596,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			{
 				if (messageCount < 10 || messageCount % 1000 == 0)
 				{
-					final String stringBuffer = messageCount + "; family= " + jmfMessage.getLocalName() + " type=" + jmfMessage.getType() + " Sender= " + jmfMessage.getSenderID();
+					final String stringBuffer = messageCount + "; family= " + jmfMessage.getLocalName() + " type=" + jmfMessage.getType() + " Sender= "
+							+ jmfMessage.getSenderID();
 					log.info("handling message #" + stringBuffer);
 				}
 				messageIsHandled = messageHandler.handleMessage(jmfMessage, jmfResponse);
@@ -604,21 +608,18 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 			}
 			final VString icsVersions = device.getICSVersions();
 
-			if (jmfResponse != null)
+			if ((jmfResponse != null) && (icsVersions != null && EnumUtil.aLessEqualsThanB(EnumVersion.Version_1_4, jmfMessage.getMaxVersion(true))
+					&& EnumUtil.aLessEqualsThanB(EnumVersion.Version_1_4, jmfResponse.getMaxVersion(true))))
 			{
-				if (icsVersions != null && EnumUtil.aLessEqualsThanB(EnumVersion.Version_1_4, jmfMessage.getMaxVersion(true))
-						&& EnumUtil.aLessEqualsThanB(EnumVersion.Version_1_4, jmfResponse.getMaxVersion(true)))
+				final VString responseICSVersions = jmfResponse.getICSVersions();
+				if (!ContainerUtil.isEmpty(responseICSVersions))
 				{
-					final VString responseICSVersions = jmfResponse.getICSVersions();
-					if (!ContainerUtil.isEmpty(responseICSVersions))
-					{
-						responseICSVersions.appendUnique(icsVersions);
-						jmfResponse.setICSVersions(responseICSVersions);
-					}
-					else
-					{
-						jmfResponse.setICSVersions(icsVersions);
-					}
+					responseICSVersions.appendUnique(icsVersions);
+					jmfResponse.setICSVersions(responseICSVersions);
+				}
+				else
+				{
+					jmfResponse.setICSVersions(icsVersions);
 				}
 			}
 			return messageIsHandled;

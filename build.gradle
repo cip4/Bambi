@@ -7,6 +7,8 @@ plugins {
     id 'application'
     id 'org.beryx.runtime' version '2.0.1'
     id 'distribution'
+	id 'eclipse'
+
 }
 
 def simpleProjectName = "Bambi"
@@ -18,11 +20,11 @@ version = project.projectVersion
 }
 
 repositories {
+	mavenLocal()
     mavenCentral()
     maven {
         url "https://oss.sonatype.org/content/repositories/snapshots"
 	}
-	mavenLocal()
 }
 
 processResources {
@@ -51,11 +53,11 @@ installDist.dependsOn(startScriptsHeadless)
 dependencies {
     implementation 'org.apache.logging.log4j:log4j-jcl:2.25.3'
     implementation 'org.apache.logging.log4j:log4j-core:2.25.3'
-    implementation 'org.cip4.tools.jdfutility:JDFUtility:2.8.+'
-    implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:2.0.+'
-	implementation ('org.cip4.lib.jdf:JDFLibJ:2.2.8.+'){
+ 	implementation ('org.cip4.lib.jdf:JDFLibJ:2.2.8.+'){
 		exclude group: 'xml-apis'
 	}
+   implementation 'org.cip4.tools.jdfutility:JDFUtility:2.8.+'
+    implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:2.0.+'
 	implementation ('xerces:xercesImpl:2.12.2'){transitive=false}
 	
     implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'

@@ -1334,8 +1334,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		protected VElement applyFlush()
 		{
-			final VElement v = getQueue().flushQueue(null);
-			return v;
+			return getQueue().flushQueue(null);
 		}
 
 		public EnumQueueStatus applyOpen()
@@ -1791,12 +1790,9 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		{
 			_queueFile = new RollingBackupFile(_parentDevice.getDeviceDir() + File.separator + "theQueue.xml", 3);
 		}
-		if (_queueFile != null && _queueFile.getParentFile() != null && !_queueFile.getParentFile().exists())
+		if ((_queueFile != null && _queueFile.getParentFile() != null && !_queueFile.getParentFile().exists()) && !_queueFile.getParentFile().mkdirs())
 		{ // will be null in unit tests
-			if (!_queueFile.getParentFile().mkdirs())
-			{
-				qLog.error("failed to create base dir at location " + _queueFile.getParentFile());
-			}
+			qLog.error("failed to create base dir at location " + _queueFile.getParentFile());
 		}
 
 		final File jdfDir = _parentDevice.getJDFDir();
@@ -2640,8 +2636,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				}
 			}
 
-			final JDFQueue q2 = resp == null ? null : copyToMessage(mess, resp);
-			return q2;
+			return resp == null ? null : copyToMessage(mess, resp);
 		}
 	}
 
@@ -2650,9 +2645,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		qe.setQueueEntryStatus(status);
 		qe.setStatusDetails(statusDetails);
 
-		BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(q.getDeviceID(), qe.getQueueEntryID(), qe.getQueueEntryStatus().getName(),
+		BambiNotifyDef.getInstance().notifyDeviceJobPropertiesChanged(q.getDeviceID(), qe.getQueueEntryID(), EnumUtil.getName(qe.getQueueEntryStatus()),
 				getStartTime(qe), getEndTime(qe));
-		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), q.getQueueStatus().getName(), getQueueStatistic());
+
+		BambiNotifyDef.getInstance().notifyDeviceQueueStatus(q.getDeviceID(), EnumUtil.getName(q.getQueueStatus()), getQueueStatistic());
 	}
 
 	void updateDone(final JDFQueueEntry qe, final EnumQueueEntryStatus status, final String statusDetails, final JDFQueue q)
@@ -3382,8 +3378,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		result = StringUtils.replaceOnce(result, "${W}", JDFConstants.EMPTYSTRING + stat.waiting);
 		result = StringUtils.replaceOnce(result, "${R}", JDFConstants.EMPTYSTRING + stat.running);
 		result = StringUtils.replaceOnce(result, "${C}", JDFConstants.EMPTYSTRING + stat.completed);
-		result = StringUtils.replaceOnce(result, "${ALL}", JDFConstants.EMPTYSTRING + stat.all);
-		return result;
+		return StringUtils.replaceOnce(result, "${ALL}", JDFConstants.EMPTYSTRING + stat.all);
 	}
 
 	private long getStartTime(final JDFQueueEntry qe)

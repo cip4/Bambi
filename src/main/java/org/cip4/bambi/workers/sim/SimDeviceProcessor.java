@@ -70,6 +70,7 @@
  */
 package org.cip4.bambi.workers.sim;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -210,7 +211,6 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	protected void processPhase(final JDFNode node)
 	{
 		final JDFResourceLink rlAmount = getAmountLink(node);
-		final String namedRes = rlAmount == null ? null : rlAmount.getrRef();
 		final JobPhase phase = getCurrentJobPhase();
 
 		VJDFAttributeMap nodeInfoPartMapVector = node.getNodeInfoPartMapVector();
@@ -230,10 +230,18 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		{
 			_statusListener.setEmployees(employees);
 		}
-		double todoAmount = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.AMOUNT, nodeInfoPartMapVector);
+		final double todoAmount = rlAmount == null ? 0 : rlAmount.getAmountPoolSumDouble(AttributeName.AMOUNT, nodeInfoPartMapVector);
 		log.info("processing new job phase: " + getJobID() + " / " + getQueueEntryID() + phase.shortString());
+		_statusListener.setAmountResource(phase.getMasterAmountResourceName());
 		_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(), false);
+		loopPhase(node, phase, all, todoAmount);
+	}
+
+	void loopPhase(JDFNode node, final JobPhase phase, double all, double todoAmount)
+	{
 		long deltaT = 1000;
+		final JDFResourceLink rlAmount = getAmountLink(node);
+
 		while (phase.getDurationMillis() > 0)
 		{
 			final long t0 = System.currentTimeMillis();
@@ -244,33 +252,53 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 				final PhaseAmount phaseAmount = phase.findPhaseAmount(resName);
 				if (phaseAmount != null)
 				{
-					final double phaseGood = phase.getOutputGood(phaseAmount.getResourceName(), (int) deltaT);
-					if ("percent".equalsIgnoreCase(phaseAmount.getResourceName()))
+					final JDFResourceLink otherlink = getAmountLink(node, resName);
+					VJDFAttributeMap resourceParts = new VJDFAttributeMap();
+					if (otherlink != null && phaseAmount.isSplitPart())
 					{
-						if (todoAmount <= 0)
+						resourceParts = otherlink.getResourcePartMapVector();
+						resourceParts.overlapMap(otherlink.getMatchingParts(resName));
+						final VJDFAttributeMap nodeInfoPartMapVector = node.getNodeInfoPartMapVector();
+						resourceParts.overlapMap(nodeInfoPartMapVector);
+					}
+					if (resourceParts.isEmpty())
+					{
+						resourceParts.add(new JDFAttributeMap());
+					}
+					for (final JDFAttributeMap localPart : resourceParts)
+					{
+						final double phaseGood = phase.getOutputGood(phaseAmount.getResourceName(), (int) deltaT, localPart);
+						if ("percent".equalsIgnoreCase(phaseAmount.getResourceName()))
 						{
-							todoAmount = 100; // percent, duh...
+							if (phaseAmount.isMasterAmount())
+							{
+								if (todoAmount <= 0)
+								{
+									todoAmount = 100; // percent, duh...
+								}
+								_statusListener.updatePercentComplete(phaseGood);
+							}
 						}
-						_statusListener.updatePercentComplete(phaseGood);
-					}
-					else
-					{
-						final double phaseWaste = phase.getOutputWasteAfterTime(phaseAmount.getResourceName(), (int) deltaT);
-						_statusListener.updateAmount(phaseAmount.getResourceName(), phaseGood, phaseWaste);
-					}
-					if (namedRes != null && phaseAmount.matchesResource(namedRes))
-					{
-						all += phaseGood;
-						if (all > todoAmount && todoAmount > 0)
+						else
 						{
-							phase.setDurationMillis(0);
-							log.info("phase " + getJobID() + " / " + getQueueEntryID() + " end for resource: " + namedRes + " done=" + all + " planned="
-									+ todoAmount);
-							reachedEnd = true;
+							final double phaseWaste = phase.getOutputWasteAfterTime(phaseAmount.getResourceName(), (int) deltaT, localPart);
+							_statusListener.updateAmount(phaseAmount.getResourceName(), phaseGood, phaseWaste, localPart);
+						}
+						if (phaseAmount.isMasterAmount())
+						{
+							all += phaseGood;
+							if (all > todoAmount && todoAmount > 0)
+							{
+								phase.setDurationMillis(0);
+								log.info("phase " + getJobID() + " / " + getQueueEntryID() + " end for resource: " + rlAmount.shortString() + " done=" + all
+										+ " planned=" + todoAmount);
+								reachedEnd = true;
+							}
 						}
 					}
 				}
 			}
+
 			if (_doShutdown)
 			{
 				reachedEnd = true;
@@ -307,16 +335,67 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		if (v != null)
 		{
 			final JobPhase currentJobPhase = getCurrentJobPhase();
-			final VString vs = currentJobPhase == null ? new VString() : currentJobPhase.getPhaseAmountResourceNames();
+			final String name = currentJobPhase.getMasterAmountResourceName();
 			for (final KElement e : v)
 			{
 				final JDFResourceLink rl = (JDFResourceLink) e;
-				if (vs.contains(rl.getLinkedResourceName()) || vs.contains(rl.getNamedProcessUsage()) || vs.contains(rl.getrRef()))
+				if (rl.matchesString(name))
 				{
 					return rl;
 				}
 			}
 		}
+		return null;
+	}
+
+	/**
+	 * @param n
+	 * @return all amount link s mentioned in the simulation
+	 */
+	protected List<JDFResourceLink> getAmountLinks(final JDFNode n)
+	{
+		final List<JDFResourceLink> ret = new ArrayList<>();
+		final VElement v = n.getResourceLinks(null);
+		if (v != null)
+		{
+			for (final JobPhase jobphase : _jobPhases)
+			{
+				for (final String name : jobphase.getPhaseAmountResourceNames())
+				{
+					for (final KElement e : v)
+					{
+						final JDFResourceLink rl = (JDFResourceLink) e;
+						if (rl.matchesString(name))
+						{
+							ret.add(rl);
+						}
+					}
+				}
+			}
+		}
+		ContainerUtil.unify(ret);
+		return ret;
+	}
+
+	/**
+	 * @param n
+	 * @return all amount link s mentioned in the simulation
+	 */
+	protected JDFResourceLink getAmountLink(final JDFNode n, String name)
+	{
+		final VElement v = n.getResourceLinks(null);
+		if (v != null)
+		{
+			for (final KElement e : v)
+			{
+				final JDFResourceLink rl = (JDFResourceLink) e;
+				if (rl.matchesString(name))
+				{
+					return rl;
+				}
+			}
+		}
+
 		return null;
 	}
 
@@ -327,11 +406,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 */
 	protected void randomErrors(final JobPhase phase)
 	{
-		if (phase == null || phase.getErrorChance() <= 0)
-		{
-			return;
-		}
-		if (Math.random() > phase.getErrorChance())
+		if (phase == null || phase.getErrorChance() <= 0 || Math.random() > phase.getErrorChance())
 		{
 			return;
 		}
@@ -360,11 +435,15 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		bActive = getParent().isActive(node, qe);
 		if (!bActive)
 		{
-			final boolean bOK = super.initializeProcessDoc(node, qe);
-			return bOK;
+			return super.initializeProcessDoc(node, qe);
 		}
 
 		loadJob(node);
+		final JDFResourceLink rl = getAmountLink(node);
+		if (rl != null)
+		{
+			_trackResource = rl.getrRef();
+		}
 		final boolean bOK = super.initializeProcessDoc(node, qe);
 		if (qe == null || node == null)
 		{
@@ -396,6 +475,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			_jobPhases.clear();
 			_jobPhases.addAll(jobPhases);
 		}
+		log.info("loaded job " + shortString());
 	}
 
 	/**
@@ -403,19 +483,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 */
 	protected void prepareAmounts(final JDFNode node)
 	{
-		final VElement vResLinks = node.getResourceLinks(null);
-		if (vResLinks != null)
-		{
-			final int vSiz = vResLinks.size();
-			for (int i = 0; i < vSiz; i++)
-			{
-				final JDFResourceLink rl = (JDFResourceLink) vResLinks.elementAt(i);
-				for (final JobPhase jp : _jobPhases)
-				{
-					jp.updateAmountLinks(rl);
-				}
-			}
-		}
+		// nop
 	}
 
 	/**
@@ -522,8 +590,8 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	@Override
 	public String toString()
 	{
-		final StringBuffer b = new StringBuffer(1000);
-		final int siz = _jobPhases == null ? 0 : _jobPhases.size();
+		final StringBuilder b = new StringBuilder(1000);
+		final int siz = _jobPhases.size();
 		if (siz == 0)
 		{
 			b.append("no phases");
@@ -538,6 +606,22 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 			}
 		}
 		return "Abstract Worker Device Processor: " + super.toString() + "\nPhases: " + b.toString() + "]";
+	}
+
+	/**
+	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#toString()
+	 * @return the string
+	 */
+	@Override
+	public String shortString()
+	{
+		final JobPhase currentJobPhase = getCurrentJobPhase();
+		String ret = super.shortString() + " " + _jobPhases.size();
+		if (currentJobPhase != null)
+		{
+			ret += " " + currentJobPhase.shortString();
+		}
+		return ret;
 	}
 
 	/**

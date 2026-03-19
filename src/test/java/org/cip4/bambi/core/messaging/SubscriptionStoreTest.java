@@ -79,7 +79,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	@Test
 	public void testCreateDispatcher()
 	{
-		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice(false));
 		assertNotNull(d);
 	}
 
@@ -89,7 +89,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	@Test
 	public void testCreateStore()
 	{
-		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice(false));
 		final SubscriptionStore ss = new SubscriptionStore(d, new File(sm_dirTestDataTemp + "subs"));
 		assertNotNull(ss);
 	}
@@ -100,7 +100,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	@Test
 	public void testExtend()
 	{
-		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice(false));
 		d.reset();
 		final File dir = new File(sm_dirTestDataTemp + "subs1");
 		FileUtil.deleteAll(dir);
@@ -113,7 +113,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		d.addSubscription(q, null);
 		ss.persist();
 
-		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice(false));
 		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
 		ss2.load();
 		assertEquals("Bar", ((JDFQuery) d2.getSubscriptionMessage("q")).getSubscription().getAttribute("Foo"));
@@ -126,7 +126,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	@Test
 	public void testLoad()
 	{
-		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice(false));
 		final File dir = new File(sm_dirTestDataTemp + "subs2");
 		FileUtil.deleteAll(dir);
 		final SubscriptionStore ss = new SubscriptionStore(d, dir);
@@ -138,7 +138,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		d.addSubscription(q, null);
 		ss.persist();
 
-		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice(false));
 		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
 		ss2.load();
 		assertEquals("qqq", d2.getAllChannels(null, null, null).iterator().next());
@@ -151,7 +151,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	@Test
 	public void testLoad3()
 	{
-		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice(false));
 		final File dir = new File(sm_dirTestData + "sub3");
 		final SubscriptionStore ss = new SubscriptionStore(d, dir);
 		ss.load();
@@ -164,7 +164,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	@Test
 	public void testLoadIdentical()
 	{
-		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice(false));
 		final File dir = new File(sm_dirTestData + "subs2");
 		FileUtil.deleteAll(dir);
 		final SubscriptionStore ss = new SubscriptionStore(d, dir);
@@ -176,7 +176,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		d.addSubscription(q, null);
 		ss.persist();
 
-		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice(false));
 		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
 		ss2.load();
 		assertEquals("qqq", d2.getAllChannels(null, null, null).iterator().next());
@@ -189,7 +189,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	@Test
 	public void testLoadVersion()
 	{
-		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d = new SignalDispatcher(new BambiTestDevice(false));
 		d.reset();
 		final File dir = new File(sm_dirTestDataTemp + "subs3");
 		FileUtil.deleteAll(dir);
@@ -203,7 +203,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		d.addSubscription(q, null);
 		ss.persist();
 
-		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice(false));
 		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
 		ss2.load();
 		assertEquals(EnumVersion.Version_2_2, d2.getSubscription("q").getJdfVersion());
@@ -216,7 +216,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	@Test
 	public void testSenderID()
 	{
-		final SignalDispatcher dis = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher dis = new SignalDispatcher(new BambiTestDevice(false));
 		dis.reset();
 		final File dir = new File(sm_dirTestDataTemp + "subs4");
 		FileUtil.deleteAll(dir);
@@ -237,7 +237,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		dis.addSubscription(query, null);
 		ss.persist();
 
-		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice(false));
 		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
 		ss2.load();
 		final MsgSubscription sloaded = d2.getSubscription("q");
@@ -251,7 +251,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	@Test
 	public void testXJMFCallback()
 	{
-		final SignalDispatcher dis = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher dis = new SignalDispatcher(new BambiTestDevice(false));
 		dis.reset();
 		final File dir = new File(sm_dirTestDataTemp + "subs5");
 		FileUtil.deleteAll(dir);
@@ -270,7 +270,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		dis.addSubscription(query, null);
 		ss.persist();
 
-		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice(false));
 		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
 		ss2.load();
 		final MsgSubscription sloaded = d2.getSubscription("q");
@@ -283,7 +283,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 	@Test
 	public void testJSONCallback()
 	{
-		final SignalDispatcher dis = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher dis = new SignalDispatcher(new BambiTestDevice(false));
 		dis.reset();
 		final File dir = new File(sm_dirTestDataTemp + "subs6");
 		FileUtil.deleteAll(dir);
@@ -304,7 +304,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		dis.addSubscription(query, null);
 		ss.persist();
 
-		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice());
+		final SignalDispatcher d2 = new SignalDispatcher(new BambiTestDevice(false));
 		final SubscriptionStore ss2 = new SubscriptionStore(d2, dir);
 		ss2.load();
 		final MsgSubscription sloaded = d2.getSubscription("q");

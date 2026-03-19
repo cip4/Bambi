@@ -64,7 +64,7 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 	@Test
 	public void testToString() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
 		devProc.setTestQE(JDFNode.createRoot());
 		assertNotNull(devProc.toString());
@@ -76,7 +76,7 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 	@Test
 	public void testActive() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
 		devProc._doShutdown = false;
 		devProc.setCurrentQE(null);
@@ -93,7 +93,7 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 	@Test
 	public void testFillCurrent() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		device.setFinalStatus(EnumQueueEntryStatus.Aborted);
 		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
 		for (int i = 0; i < 111; i++)
@@ -109,7 +109,7 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 	@Test
 	public void testfinalizeProcessDocNull() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		device.setFinalStatus(EnumQueueEntryStatus.Aborted);
 		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
 		assertNotNull(devProc.processDoc(null, null));
@@ -122,7 +122,7 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 	@Test
 	public void testProcessExistingQueueEntry() throws Exception
 	{
-		final BambiTestDevice device = new BambiTestDevice();
+		final BambiTestDevice device = new BambiTestDevice(false);
 		int n = 0;
 		for (final Object o : EnumQueueEntryStatus.getEnumList())
 		{

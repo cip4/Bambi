@@ -70,10 +70,17 @@
  */
 package org.cip4.bambi.workers.sim;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import java.io.File;
+import java.util.List;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
+import org.cip4.bambi.workers.JobPhase;
+import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.core.JDFResourceLink;
 import org.cip4.jdflib.node.JDFNode;
 import org.junit.Test;
 
@@ -83,20 +90,83 @@ public class SimDeviceProcessorTest extends BambiTestCaseBase
 	@Test
 	public void testConstruct()
 	{
-		final BambiTestDevice rootDev = new BambiTestDevice();
+		final BambiTestDevice rootDev = new BambiTestDevice(false);
 		rootDev.setSim(true);
 		final SimDeviceProcessor p = (SimDeviceProcessor) rootDev.getNewProcessor();
 		assertNotNull(p);
 	}
 
 	@Test
-	public void testProcessDoc()
+	public void testProcessDocInactive()
 	{
-		final BambiTestDevice rootDev = new BambiTestDevice();
+		final BambiTestDevice rootDev = new BambiTestDevice(false);
 		rootDev.setSim(true);
 		final SimDeviceProcessor p = (SimDeviceProcessor) rootDev.getNewProcessor();
 		final JDFNode n = JDFNode.createRoot();
-		p.processDoc(n, null);
+		final EnumQueueEntryStatus qes = p.processDoc(n, null);
+		assertEquals(EnumQueueEntryStatus.Removed, qes);
+	}
+
+	@Test
+	public void testProcessDocNoSim()
+	{
+		final BambiTestDevice rootDev = new BambiTestDevice(false);
+		rootDev.setSim(true);
+		final SimDeviceProcessor p = (SimDeviceProcessor) rootDev.getNewProcessor();
+		p.bActive = true;
+		final JDFNode n = JDFNode.createRoot();
+		final EnumQueueEntryStatus qes = p.processDoc(n, null);
+		assertEquals(EnumQueueEntryStatus.Aborted, qes);
+	}
+
+	@Test
+	public void testProcessDocDigiSim()
+	{
+		final BambiTestDevice rootDev = new BambiTestDevice(true);
+		rootDev.setSim(true);
+		final SimDeviceProcessor p = (SimDeviceProcessor) rootDev.buildDeviceProcessor();
+		p.bActive = true;
+		final JobLoader l = new JobLoader((SimDeviceProcessor) p);
+		final List<JobPhase> jobFromFile = l.loadJobFromFile(new File(sm_dirTestData), "config/job_digi001.xml");
+		assertEquals(4, jobFromFile.size());
+		p._jobPhases.addAll(jobFromFile);
+		final JDFNode n = JDFNode.parseFile(sm_dirTestData + "IDPSimplex.jdf");
+		final EnumQueueEntryStatus qes = p.processDoc(n, null);
+		assertEquals(EnumQueueEntryStatus.Completed, qes);
+	}
+
+	@Test
+	public void testFinalizeDocDigiSim()
+	{
+		final BambiTestDevice rootDev = new BambiTestDevice(true);
+		rootDev.setSim(true);
+		final SimDeviceProcessor p = (SimDeviceProcessor) rootDev.buildDeviceProcessor();
+		p.bActive = true;
+		final JobLoader l = new JobLoader((SimDeviceProcessor) p);
+		final List<JobPhase> jobFromFile = l.loadJobFromFile(new File(sm_dirTestData), "config/job_digi001.xml");
+		assertEquals(4, jobFromFile.size());
+		p._jobPhases.addAll(jobFromFile);
+		final JDFNode n = JDFNode.parseFile(sm_dirTestData + "IDPSimplex.jdf");
+		final EnumQueueEntryStatus qes = p.processDoc(n, null);
+		assertEquals(EnumQueueEntryStatus.Completed, qes);
+		p.finalizeProcessDoc(qes);
+		assertEquals(EnumQueueEntryStatus.Completed, qes);
+	}
+
+	@Test
+	public void testAmountLinks()
+	{
+		final BambiTestDevice rootDev = new BambiTestDevice(true);
+		rootDev.setSim(true);
+		final SimDeviceProcessor p = (SimDeviceProcessor) rootDev.buildDeviceProcessor();
+		p.bActive = true;
+		final JobLoader l = new JobLoader((SimDeviceProcessor) p);
+		final List<JobPhase> jobFromFile = l.loadJobFromFile(new File(sm_dirTestData), "config/job_digi001.xml");
+		assertEquals(4, jobFromFile.size());
+		p._jobPhases.addAll(jobFromFile);
+		final JDFNode n = JDFNode.parseFile(sm_dirTestData + "IDPSimplex.jdf");
+		final List<JDFResourceLink> links = p.getAmountLinks(n);
+		assertEquals(3, links.size());
 	}
 
 }

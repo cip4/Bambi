@@ -193,7 +193,7 @@ public class QueueProcessorTest extends BambiTestCase
 		mimeDetails.transferEncoding = UrlUtil.BINARY;
 		mimeDetails.modifyBoundarySemicolon = false;
 		mw.setMIMEDetails(mimeDetails);
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JDFDoc d1 = qp.getRawDocFromMessage(com, sqep);
 		assertNotNull(d1);
 		final EPackage pm = URLReader.getPackMethod();
@@ -210,7 +210,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testQEReturn1()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
 		final JDFQueue q = qp.getQueue();
 		final JDFQueueEntry qe = q.appendQueueEntry();
@@ -230,7 +230,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testReallyReturnXJDF()
 	{
-		final AbstractDevice device = getDevice();
+		final AbstractDevice device = getDevice(false, false);
 		final QueueProcessor qp = device.getQueueProcessor();
 		JDFDoc doc = JDFElement.createRoot(XJDFConstants.XJDF).getOwnerDocument_JDFElement();
 		doc = device.getCallback(null).prepareJDFForBambi(doc);
@@ -250,7 +250,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testQueueDelta()
 	{
-		final AbstractDevice device = getDevice();
+		final AbstractDevice device = getDevice(false, false);
 		final QueueProcessor qp = device.getQueueProcessor();
 		assertNotNull(qp.getQueueDelta().toString());
 	}
@@ -262,7 +262,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testQEReturnBadNS()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
 		final JDFQueue q = qp.getQueue();
 		final JDFQueueEntry qe = q.appendQueueEntry();
@@ -282,7 +282,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testReturnQE2()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
 		final JDFQueue q = qp.getQueue();
 		final JDFQueueEntry qe = q.appendQueueEntry();
@@ -303,7 +303,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testStoreDoc()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JDFDoc doc = JDFNode.createRoot().getOwnerDocument_JDFElement();
 		final JDFQueue q = qp.getQueue();
 		final JDFQueueEntry qe = q.appendQueueEntry();
@@ -321,7 +321,7 @@ public class QueueProcessorTest extends BambiTestCase
 	public void testRemoveQE()
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildRemoveQueueEntry(queueEntryId);
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		qp.new RemoveQueueEntryHandler().handleMessage(jmf.getMessageElement(null, null, 0),
 				JDFJMF.createJMF(EnumFamily.Response, EnumType.RemoveQueueEntry).getResponse());
 	}
@@ -339,7 +339,7 @@ public class QueueProcessorTest extends BambiTestCase
 		{
 			qf.appendQueueEntryDef("q" + i);
 		}
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		qp.new RemoveQueueEntryHandler().handleMessage(jmf.getMessageElement(null, null, 0),
 				JDFJMF.createJMF(EnumFamily.Response, EnumType.RemoveQueueEntry).getResponse());
 	}
@@ -351,7 +351,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testTotalCount()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		assertTrue(qp.getTotalEntryCount() >= 0);
 	}
 
@@ -362,7 +362,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testTostring()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		assertNotNull(qp.toString());
 	}
 
@@ -374,7 +374,7 @@ public class QueueProcessorTest extends BambiTestCase
 	public void testResubmit()
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildResubmitQueueEntry(queueEntryId, "http;foo");
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JDFMessage me = jmf.getMessageElement(null, null, 0);
 		qp.new ResubmitQueueEntryHandler().handleMessage(me, JDFJMF.createJMF(EnumFamily.Response, EnumType.ResubmitQueueEntry).getResponse());
 	}
@@ -387,7 +387,7 @@ public class QueueProcessorTest extends BambiTestCase
 	public void testNewJDF()
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildNewJDFQuery("q1", "p1");
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JDFMessage me = jmf.getMessageElement(null, null, 0);
 		qp.new NewJDFQueryHandler().handleMessage(me, JDFJMF.createJMF(EnumFamily.Response, EnumType.NewJDF).getResponse());
 	}
@@ -399,7 +399,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testConstruct()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		assertNotNull(qp);
 	}
 
@@ -410,7 +410,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testReadQueueFile()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		qp.readQueueFile(); // no boom
 	}
 
@@ -421,7 +421,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testUpdateNextEntry()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		assertNull(qp.updateNextEntry(null));
 		final JDFQueue q = qp.getQueue();
 		final JDFQueueEntry qe = q.appendQueueEntry();
@@ -439,7 +439,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testUpdateWaiting()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		assertNull(qp.updateNextEntry(null));
 		final JDFQueue q = qp.getQueue();
 		final JDFQueueEntry qe = q.appendQueueEntry();
@@ -456,7 +456,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testUpdateSynch()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		assertNull(qp.updateNextEntry(null));
 		final JDFQueue q = qp.getQueue();
 		final JDFQueueEntry qe = q.appendQueueEntry();
@@ -477,7 +477,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testGetQueue()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JDFQueue queue = qp.getQueue();
 		assertNotNull(queue);
 		qp.setQueue(null);
@@ -493,7 +493,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testWaitForEntryNull()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		assertNull(qp.waitForEntry(null, null, null));
 	}
 
@@ -504,7 +504,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testGetDocFromMessageBad()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final SubmitQueueEntryHandler submitQueueEntryHandler = qp.new SubmitQueueEntryHandler();
 		submitQueueEntryHandler.getDocFromMessage(null);
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry(null, null);
@@ -519,7 +519,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testSynchBad()
 	{
-		final AbstractDevice device = getDevice();
+		final AbstractDevice device = getDevice(false, false);
 		device.setSynchronous(true);
 		final QueueProcessor qp = device.getQueueProcessor();
 		final SubmitQueueEntryHandler submitQueueEntryHandler = qp.new SubmitQueueEntryHandler();
@@ -535,7 +535,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testSynch()
 	{
-		final AbstractDevice device = getDevice();
+		final AbstractDevice device = getDevice(false, true);
 		device.setSynchronous(true);
 		final QueueProcessor qp = device.getQueueProcessor();
 		final SubmitQueueEntryHandler submitQueueEntryHandler = qp.new SubmitQueueEntryHandler();
@@ -554,7 +554,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testSynchMany()
 	{
-		final AbstractDevice device = getDevice();
+		final AbstractDevice device = getDevice(false, false);
 		device.setSynchronous(true);
 		final QueueProcessor qp = device.getQueueProcessor();
 		final SubmitQueueEntryHandler submitQueueEntryHandler = qp.new SubmitQueueEntryHandler();
@@ -575,7 +575,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testAddEntryMany()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JMFBuilder jmfBuilder = new JMFBuilder();
 		for (int i = 0; i < 10; i++)
 		{
@@ -601,7 +601,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testAddEntryManyQueue()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JMFBuilder jmfBuilder = new JMFBuilder();
 		for (int i = 0; i < 10; i++)
 		{
@@ -626,7 +626,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testAddEntry()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JMFBuilder jmfBuilder = new JMFBuilder();
 		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
 		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
@@ -645,7 +645,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testAddEntryBad()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		qp.getQueue().setQueueStatus(EnumQueueStatus.Closed);
 		final JMFBuilder jmfBuilder = new JMFBuilder();
 		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
@@ -673,7 +673,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testMessageQEAbortOld()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q1old");
 		final JMFBuilder jmfBuilder = new JMFBuilder();
@@ -689,7 +689,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testMessageQEAbort()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		final String qeid = "q" + System.currentTimeMillis();
 		qe.setQueueEntryID(qeid);
@@ -707,7 +707,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testMessageQEAbortJobID()
 	{
-		final QueueProcessor qp = new QueueProcessor(getDevice());
+		final QueueProcessor qp = new QueueProcessor(getDevice(false, false));
 		JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q1a");
 		qe.setJobID("j1");
@@ -728,7 +728,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testMessageQEResume()
 	{
-		final AbstractDevice dev = getDevice();
+		final AbstractDevice dev = getDevice(false, false);
 		final QueueProcessor qp = dev.getQueueProcessor();
 		final JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q1res");
@@ -747,7 +747,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testMessageQEEmpty()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
 		qe.setQueueEntryID("q1empty");
 		final JMFBuilder jmfBuilder = new JMFBuilder();
@@ -765,7 +765,7 @@ public class QueueProcessorTest extends BambiTestCase
 	public void testSuspendQE()
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSuspendQueueEntry(queueEntryId);
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		qp.new SuspendQueueEntryHandler().handleMessage(jmf.getMessageElement(null, null, 0), null);
 	}
 
@@ -777,7 +777,7 @@ public class QueueProcessorTest extends BambiTestCase
 	public void testHoldQueueEntry()
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildHoldQueueEntry(queueEntryId);
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		qp.new HoldQueueEntryHandler().handleMessage(jmf.getMessageElement(null, null, 0), null);
 	}
 
@@ -789,7 +789,7 @@ public class QueueProcessorTest extends BambiTestCase
 	public void testResumeQE()
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildResumeQueueEntry(queueEntryId);
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		qp.new ResumeQueueEntryHandler().handleMessage(jmf.getMessageElement(null, null, 0), null);
 	}
 
@@ -824,7 +824,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testGetNextEntry()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JMFBuilder jmfBuilder = new JMFBuilder();
 		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
 		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
@@ -846,7 +846,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testCanExecute()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		assertNotNull(qp.getCanExecuteCallback("33").toString());
 	}
 
@@ -857,7 +857,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testCanExecuteClone()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		assertNotNull(qp.getCanExecuteCallback("33").clone().toString());
 	}
 
@@ -868,7 +868,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testCanExecute2()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final CanExecuteCallBack canExecuteCallback = qp.new CanExecuteCallBack("a", "b");
 		assertFalse(canExecuteCallback.canExecute(null));
 		final CanExecuteCallBack c2 = qp.new CanExecuteCallBack(null, "b");
@@ -892,7 +892,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testGetIQEntry()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JMFBuilder jmfBuilder = new JMFBuilder();
 		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
 		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
@@ -908,7 +908,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testGetIQEntryNull()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JMFBuilder jmfBuilder = new JMFBuilder();
 		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
 		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
@@ -925,7 +925,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testHasWaiting()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		qp.getQueue().flush();
 		assertFalse(qp.hasWaiting());
 		final JMFBuilder jmfBuilder = new JMFBuilder();
@@ -940,7 +940,7 @@ public class QueueProcessorTest extends BambiTestCase
 	@Test
 	public void testGetIQEntryBadFile()
 	{
-		final QueueProcessor qp = getDevice().getQueueProcessor();
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JMFBuilder jmfBuilder = new JMFBuilder();
 		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
 		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);

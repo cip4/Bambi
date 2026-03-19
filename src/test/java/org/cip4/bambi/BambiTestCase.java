@@ -77,7 +77,6 @@ import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 
-import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.BambiContainer;
 import org.cip4.bambi.core.MultiDeviceProperties;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
@@ -296,16 +295,6 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	/**
 	 * @return
 	 */
-	protected AbstractDevice getDevice()
-	{
-		final BambiTestDevice bambiTestDevice = new BambiTestDevice();
-		bambiTestDevice.getQueueProcessor().reset();
-		return bambiTestDevice;
-	}
-
-	/**
-	 * @return
-	 */
 	protected String getDumpURL()
 	{
 		return "http://localhost:8080/httpdump/BambiDevice/" + deviceID;
@@ -383,7 +372,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 * requires assigned node...
 	 *
 	 * @param qeID
-	 * @param url the url to send to
+	 * @param url  the url to send to
 	 * @return
 	 * @throws MalformedURLException
 	 */
@@ -408,7 +397,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	/**
 	 * @param d
-	 * @param url the url to send to, if null simply grab the default worker url
+	 * @param url             the url to send to, if null simply grab the default worker url
 	 * @param extendReference
 	 * @return
 	 * @throws MalformedURLException
@@ -443,8 +432,8 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	/**
 	 * @param qeid
-	 * @param d the doc of the root node
-	 * @param url the url to send to
+	 * @param d    the doc of the root node
+	 * @param url  the url to send to
 	 * @return
 	 * @throws MalformedURLException
 	 */
@@ -535,8 +524,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 	 */
 	protected MultiDeviceProperties createPropertiesForContainer()
 	{
-		final MultiDeviceProperties props = new MultiDeviceProperties(new File(sm_dirContainer));
-		return props;
+		return new MultiDeviceProperties(new File(sm_dirContainer));
 	}
 
 	/**

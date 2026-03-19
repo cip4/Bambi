@@ -34,6 +34,7 @@
  */
 package org.cip4.bambi.workers;
 
+import java.util.HashMap;
 import java.util.Vector;
 
 import org.apache.commons.logging.Log;
@@ -44,11 +45,13 @@ import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
-import org.cip4.jdflib.core.JDFResourceLink;
+import org.cip4.jdflib.core.JDFResourceLink.EnumUsage;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.resource.process.JDFEmployee;
+import org.cip4.jdflib.util.MyInteger;
 import org.cip4.jdflib.util.StringUtil;
 
 /**
@@ -92,7 +95,6 @@ public class JobPhase implements Cloneable
 		this.nodeStatusDetails = xmlJobPhase.getXPathAttribute("@NodeStatusDetails", "");
 		this.durationMillis = 1000L * StringUtil.parseInt(xmlJobPhase.getXPathAttribute("@Duration", "0"), 0);
 		this.phaseEmployees = new PhaseEmployees(xmlJobPhase);
-
 		if (xmlJobPhase.hasAttribute("Error"))
 		{
 			this.errorChance = StringUtil.parseDouble(xmlJobPhase.getXPathAttribute("@Error", "0"), 0) * 0.001;
@@ -101,7 +103,7 @@ public class JobPhase implements Cloneable
 		{
 			this.errorChance = StringUtil.parseDouble(xmlJobPhase.getXPathAttribute("../@Error", "0"), 0) * 0.001;
 		}
-
+		final String masterAmountName = xmlJobPhase.getInheritedAttribute("MasterAmount");
 		// process amount configurations
 		final VElement xmlAmounts = xmlJobPhase.getChildElementVector("Amount", null);
 		for (final KElement xmlAmount : xmlAmounts)
@@ -116,8 +118,12 @@ public class JobPhase implements Cloneable
 			final String resourceName = xmlAmount.getAttribute("Resource");
 
 			final PhaseAmount pa = addPhaseAmount(resourceName, speed, amountIsGood);
-			pa.masterAmount = xmlAmount.getBoolAttribute("Master", null, false);
+			pa.masterAmount = xmlAmount.getBoolAttribute("Master", null, resourceName.equalsIgnoreCase(masterAmountName));
+			pa.splitPart = xmlAmount.getBoolAttribute("SplitPart", null,
+					StringUtil.token(resourceName, 1, ":") != null && EnumUsage.getEnum(StringUtil.token(resourceName, 1, ":")) == null);
+			pa.randomPercent = xmlAmount.getIntAttribute("RandomPercent", null, 0);
 		}
+
 	}
 
 	/**
@@ -281,12 +287,13 @@ public class JobPhase implements Cloneable
 	 * Returns a phase amounts output speed.
 	 *
 	 * @param resourceName The identifier of the phase amount.
+	 * @param partMap
 	 * @return The output speed.
 	 */
-	public double getOutputSpeed(final String resourceName)
+	public double getOutputSpeed(final String resourceName, JDFAttributeMap partMap)
 	{
 		final PhaseAmount phaseAmount = findPhaseAmount(resourceName);
-		return phaseAmount == null ? 0 : phaseAmount.speed;
+		return phaseAmount == null ? 0 : phaseAmount.getOutputSpeed(partMap);
 	}
 
 	/**
@@ -306,16 +313,17 @@ public class JobPhase implements Cloneable
 	 *
 	 * @param resourceName   The name of the given resource.
 	 * @param durationMillis The given time in milliseconds.
+	 * @param partMap
 	 * @return The number of waste being produced of a given resource after a given time.
 	 */
-	public double getOutputWasteAfterTime(final String resourceName, final int durationMillis)
+	public double getOutputWasteAfterTime(final String resourceName, final int durationMillis, JDFAttributeMap partMap)
 	{
 		if (getOutputAmountIsGood(resourceName))
 		{
 			return 0;
 		}
 
-		return getOutputAfterTime(resourceName, durationMillis);
+		return getOutputAfterTime(resourceName, durationMillis, partMap);
 	}
 
 	/**
@@ -323,16 +331,17 @@ public class JobPhase implements Cloneable
 	 *
 	 * @param resourceName   The name of the given resource.
 	 * @param durationMillis The given time in milliseconds.
+	 * @param partMap
 	 * @return The number of waste being produced of a given resource after a given time.
 	 */
-	public double getOutputGood(final String resourceName, final int durationMillis)
+	public double getOutputGood(final String resourceName, final int durationMillis, JDFAttributeMap partMap)
 	{
 		if (!getOutputAmountIsGood(resourceName))
 		{
 			return 0;
 		}
 
-		return getOutputAfterTime(resourceName, durationMillis);
+		return getOutputAfterTime(resourceName, durationMillis, partMap);
 	}
 
 	/**
@@ -340,16 +349,17 @@ public class JobPhase implements Cloneable
 	 *
 	 * @param resourceName   The name of the given resource.
 	 * @param durationMillis The given time in milliseconds.
+	 * @param partMap
 	 * @return The number of waste being produced of a given resource after a given time.
 	 */
-	private double getOutputAfterTime(final String resourceName, final int durationMillis)
+	double getOutputAfterTime(final String resourceName, final int durationMillis, JDFAttributeMap partMap)
 	{
 		if (durationMillis <= 0)
 		{
 			return 0;
 		}
 
-		final double outputSpeed = getOutputSpeed(resourceName);
+		final double outputSpeed = getOutputSpeed(resourceName, partMap);
 
 		if (outputSpeed <= 0)
 		{
@@ -422,27 +432,6 @@ public class JobPhase implements Cloneable
 		}
 
 		return null;
-	}
-
-	/**
-	 * Update the abstract resource link names with real idref values from the link.
-	 *
-	 * @param jdfResourceLink The JDFResourceLink object to be updated.
-	 */
-	public void updateAmountLinks(final JDFResourceLink jdfResourceLink)
-	{
-		if (jdfResourceLink == null || phaseAmounts == null)
-		{
-			return;
-		}
-
-		for (final PhaseAmount phaseAmount : phaseAmounts)
-		{
-			if (phaseAmount.matchesResourceLink(jdfResourceLink))
-			{
-				phaseAmount.setResourceName(jdfResourceLink.getrRef());
-			}
-		}
 	}
 
 	/**
@@ -591,10 +580,29 @@ public class JobPhase implements Cloneable
 	 */
 	public static class PhaseAmount
 	{
-		protected boolean amountIsGood = true;
-		protected double speed = 0;
-		protected String resourceName;
+		private static final String WASTE = "Waste";
+		private static final String RESOURCE_NAME = "ResourceName";
+		private static final String RESOURCE_AMOUNT = "ResourceAmount";
+		private static final String SPEED = "Speed";
+		private static final String AMOUNT_RANDOM_PERCENT = "RandomPercent";
+		boolean amountIsGood = true;
+		double speed = 0;
+		String resourceName;
 		boolean masterAmount;
+		boolean splitPart;
+
+		public boolean isSplitPart()
+		{
+			return splitPart;
+		}
+
+		void setSplitPart(boolean splitPart)
+		{
+			this.splitPart = splitPart;
+		}
+
+		final HashMap<JDFAttributeMap, MyInteger> currentRandom;
+		int randomPercent;
 
 		/**
 		 * Custom Constructor. Accepting multiple attribute for initializing.
@@ -609,13 +617,37 @@ public class JobPhase implements Cloneable
 			this.amountIsGood = amountIsGood;
 			this.speed = speed;
 			this.masterAmount = false;
+			currentRandom = new HashMap<>();
+			randomPercent = 0;
+			splitPart = false;
 		}
 
-		public boolean matchesResourceLink(final JDFResourceLink jdfResourceLink)
+		public double getOutputSpeed(JDFAttributeMap partMap)
 		{
-			boolean b = jdfResourceLink.matchesString(getResourceName());
-			b = b || jdfResourceLink.matchesString(StringUtil.replaceString(getResourceName(), ElementName.MEDIA, ElementName.COMPONENT));
-			return b;
+			if (randomPercent > 0)
+			{
+
+				return speed * getCurrentFactor(partMap);
+			}
+			else
+			{
+				return speed;
+			}
+		}
+
+		double getCurrentFactor(JDFAttributeMap partMap)
+		{
+			if (partMap == null)
+			{
+				partMap = new JDFAttributeMap();
+			}
+			MyInteger factor = currentRandom.get(partMap);
+			if (factor == null)
+			{
+				factor = new MyInteger((int) (100 * Math.random() * randomPercent / 100));
+				currentRandom.put(partMap, factor);
+			}
+			return factor.i / 100.0;
 		}
 
 		public boolean isAmountIsGood()
@@ -665,11 +697,12 @@ public class JobPhase implements Cloneable
 		 */
 		void appendToXml(final KElement xml)
 		{
-			final KElement xmlResourceAmount = xml.appendElement("ResourceAmount");
+			final KElement xmlResourceAmount = xml.appendElement(RESOURCE_AMOUNT);
 
-			xmlResourceAmount.setAttribute("ResourceName", resourceName);
-			xmlResourceAmount.setAttribute("Waste", amountIsGood, null);
-			xmlResourceAmount.setAttribute("Speed", speed, null);
+			xmlResourceAmount.setAttribute(RESOURCE_NAME, resourceName);
+			xmlResourceAmount.setAttribute(WASTE, !amountIsGood, null);
+			xmlResourceAmount.setAttribute(SPEED, speed, null);
+			xmlResourceAmount.setAttribute(AMOUNT_RANDOM_PERCENT, randomPercent, null);
 
 			if (masterAmount)
 			{
@@ -688,20 +721,32 @@ public class JobPhase implements Cloneable
 			return this.resourceName.equals(resourceName);
 		}
 
-		@Override
-		protected PhaseAmount clone()
+		public String shortString()
 		{
-			final PhaseAmount phaseAmount = new PhaseAmount(null, speed, amountIsGood);
-			phaseAmount.resourceName = resourceName;
-			phaseAmount.masterAmount = masterAmount;
-			return phaseAmount;
+			return "[ " + resourceName + " " + this.resourceName + (amountIsGood ? " G: " : " W: ") + "Speed: " + speed + "]";
+		}
+
+		int getRandomPercent()
+		{
+			return randomPercent;
+		}
+
+		public boolean isRandom()
+		{
+			return randomPercent > 0;
+		}
+
+		void setRandomPercent(int randomPercent)
+		{
+			this.randomPercent = randomPercent;
 		}
 
 		@Override
 		public String toString()
 		{
-			return "[ " + resourceName + " " + this.resourceName + (amountIsGood ? " G: " : " W: ") + "Speed: " + speed + "]";
+			return shortString() + ", masterAmount=" + masterAmount + ", currentRandom=" + currentRandom.size() + ", randomPercent=" + randomPercent;
 		}
+
 	}
 
 	/**
@@ -709,35 +754,27 @@ public class JobPhase implements Cloneable
 	 */
 	public void ensureMasterAmount()
 	{
-		boolean master = false;
 		for (final PhaseAmount pa : phaseAmounts)
 		{
 			if (pa.isMasterAmount())
 			{
-				master = true;
-				break;
+				return;
 			}
 		}
-		if (!master)
+		for (final PhaseAmount pa : phaseAmounts)
 		{
-			for (final PhaseAmount pa : phaseAmounts)
+			if (pa.isAmountIsGood())
 			{
-				if (pa.isAmountIsGood())
-				{
-					master = true;
-					break;
-				}
+				pa.setMasterAmount(true);
+				return;
 			}
-			if (!master)
+		}
+		for (final PhaseAmount pa : phaseAmounts)
+		{
+			if (pa.getSpeed() > 0)
 			{
-				for (final PhaseAmount pa : phaseAmounts)
-				{
-					if (pa.getSpeed() > 0)
-					{
-						master = true;
-						break;
-					}
-				}
+				pa.setMasterAmount(true);
+				break;
 			}
 		}
 	}

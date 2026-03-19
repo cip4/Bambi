@@ -83,7 +83,7 @@ public class XMLDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testGet()
 	{
-		final BambiTestDevice d = new BambiTestDevice();
+		final BambiTestDevice d = new BambiTestDevice(false);
 		final XMLDevice xd = d.getXMLDevice(true, new ContainerRequest());
 		assertNotNull(xd);
 	}
@@ -91,7 +91,7 @@ public class XMLDeviceTest extends BambiTestCaseBase
 	@Test
 	public void testGetQueue()
 	{
-		final BambiTestDevice d = new BambiTestDevice();
+		final BambiTestDevice d = new BambiTestDevice(false);
 		final XMLDevice xd = d.getXMLDevice(true, new ContainerRequest());
 		xd.addQueueInfo(KElement.createRoot("foo"));
 		assertNotNull(xd.getRoot());

@@ -389,10 +389,12 @@ public class MessageDetails
 		{
 			ret += " Message Type=" + m.getType();
 		}
-		if (jdf != null)
+			if (jdf != null)
 		{
 			ret += "Package";
 		}
+			if(callback!=null)
+				ret+=" Callback: "+callback.getClass().getSimpleName();
 
 		return ret;
 	}

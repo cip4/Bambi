@@ -92,8 +92,8 @@ public class MultiDevicePropertiesTest extends BambiTestCaseBase
 						// ToolPath, AppDir, BaseDir, Expected path
 						new String[] { "C:\\t", "C:\\a", "", "C:\\t" }, new String[] { "C:\\t", "C:\\a", "C:\\b\\c", "C:\\b\\c" },
 						new String[] { "C:\\t", "C:\\a", "b\\c", "C:\\t\\b\\c" }, new String[] { "C:\\t", "C:\\a", "b/c", "C:\\t\\b\\c" },
-						new String[] { "C:\\t", "/a", "b/c", "C:\\t\\b\\c" }, new String[] { "C:\\t", "a", "b/c", "C:\\t\\b\\c" }, new String[] { "/t", "a", "b/c", "\\t\\b\\c" },
-						new String[] { "t", "C:\\a", "b\\c", "C:\\a\\t\\b\\c" });
+						new String[] { "C:\\t", "/a", "b/c", "C:\\t\\b\\c" }, new String[] { "C:\\t", "a", "b/c", "C:\\t\\b\\c" },
+						new String[] { "/t", "a", "b/c", "\\t\\b\\c" }, new String[] { "t", "C:\\a", "b\\c", "C:\\a\\t\\b\\c" });
 			}
 			else
 			{
@@ -166,7 +166,23 @@ public class MultiDevicePropertiesTest extends BambiTestCaseBase
 			d.setOriginalFileName("foo");
 			final MultiDeviceProperties p = new MultiDeviceProperties(d);
 			assertNotNull(p.getSubClass());
+			assertTrue(p.isValidSubClass());
+			d.getRoot().setAttribute(MultiDeviceProperties.PROPERTIES_NAME, "org.cip4.bambi.proxy.ProxyProperties");
+			assertNotNull(p.getSubClass());
+			assertTrue(p.isValidSubClass());
 
+		}
+
+		@Test
+		public void testSubClassBad()
+		{
+			final XMLDoc d = new XMLDoc("application", null);
+			d.setOriginalFileName("foo");
+			final MultiDeviceProperties p = new MultiDeviceProperties(d);
+			assertNotNull(p.getSubClass());
+			d.getRoot().setAttribute(MultiDeviceProperties.PROPERTIES_NAME, "org.snafu");
+			assertNotNull(p.getSubClass());
+			assertFalse(p.isValidSubClass());
 		}
 
 		@Test

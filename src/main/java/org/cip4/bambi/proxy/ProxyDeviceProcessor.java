@@ -388,7 +388,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			double amount = info.getAmountPoolSumDouble(AttributeName.ACTUALAMOUNT, map2);
 			if (amount > 0)
 			{
-				getStatusListener().updateTotal(id, amount, true);
+				getStatusListener().updateTotal(id, amount, true, null);
 			}
 
 			map2 = new VJDFAttributeMap(map);
@@ -396,7 +396,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			amount = info.getAmountPoolSumDouble(AttributeName.ACTUALAMOUNT, map2);
 			if (amount > 0)
 			{
-				getStatusListener().updateTotal(id, amount, false);
+				getStatusListener().updateTotal(id, amount, false, null);
 			}
 
 			return true;

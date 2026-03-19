@@ -57,6 +57,7 @@ import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.core.XMLDoc;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.PlatformUtil;
 import org.cip4.jdflib.util.RollingBackupFile;
@@ -73,6 +74,7 @@ import org.cip4.jdflib.util.thread.IPersistable;
  */
 public class MultiDeviceProperties extends BambiLogFactory implements IPersistable
 {
+	static final String PROPERTIES_NAME = "PropertiesName";
 	private static final String BASE_DIR = "BaseDir";
 	static final String CONFIG_VERSION = "ConfigVersion";
 	/**
@@ -87,7 +89,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 *
 	 *         13.02.2009
 	 */
 	public class DeviceProperties implements IDeviceProperties, IPersistable
@@ -245,7 +246,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 		/**
 		 * @param deviceID the deviceID to set
-		 *
 		 */
 		public void setDeviceID(final String deviceID)
 		{
@@ -280,7 +280,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		}
 
 		/**
-		 *
 		 * @see org.cip4.bambi.core.IDeviceProperties#getDescription()
 		 */
 		@Override
@@ -288,12 +287,13 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		{
 			String deviceAttribute = getDeviceAttribute("Description", null, null);
 			if (deviceAttribute == null)
+			{
 				deviceAttribute = getDeviceType() + " " + getDeviceID();
+			}
 			return deviceAttribute;
 		}
 
 		/**
-		 *
 		 * @see org.cip4.bambi.core.IDeviceProperties#setDescription(java.lang.String)
 		 */
 		@Override
@@ -468,7 +468,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		/**
 		 * @param key
 		 * @param val the value to set
-		 *
 		 */
 		public void setDeviceAttribute(final String key, final String val)
 		{
@@ -536,7 +535,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 		/**
 		 * @return true if all jdfs should be accepted (ignore canAccept)
-		 *
 		 */
 		@Override
 		public boolean getAcceptAll()
@@ -684,7 +682,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 		/**
 		 * if true, the we add ourselves to the template list and can create new devices
-		 *
 		 * defaults to true for legacy
 		 *
 		 * @see org.cip4.bambi.core.IDeviceProperties#getAutoStart()
@@ -696,8 +693,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 		/**
 		 * set the autostart property
-		 *
-		 *
 		 */
 		public void setAutoStart(final boolean bAutoStart)
 		{
@@ -721,7 +716,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		}
 
 		/**
-		 *
 		 * @return
 		 */
 		public MultiDeviceProperties getParent()
@@ -755,7 +749,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	MultiDeviceProperties getSubClass()
 	{
-		final String propName = root == null ? null : root.getAttribute("PropertiesName", null, null);
+		final String propName = root == null ? null : root.getNonEmpty(PROPERTIES_NAME);
 		if (propName == null)
 		{
 			return this;
@@ -763,8 +757,8 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 		try
 		{
-			final Class<?> c = Class.forName(propName);
-			final Constructor<?> con = c.getConstructor(new Class[] { XMLDoc.class });
+			final Class<?> clazz = Class.forName(propName);
+			final Constructor<?> con = clazz.getConstructor(new Class[] { XMLDoc.class });
 			final MultiDeviceProperties subClass = (MultiDeviceProperties) con.newInstance(new Object[] { root.getOwnerDocument_KElement() });
 			subClass.context = context;
 			return subClass;
@@ -774,6 +768,25 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 			log.error("Cannot instantiate Device properties: " + propName, x);
 			return this;
 		}
+	}
+
+	boolean isValidSubClass()
+	{
+		final String propName = root == null ? null : root.getNonEmpty(PROPERTIES_NAME);
+		if (propName != null)
+		{
+
+			try
+			{
+				Class.forName(propName);
+			}
+			catch (final Throwable x)
+			{
+				log.error("invalid Device properties: " + propName, x);
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -805,12 +818,13 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		}
 
 		final String appPath = appDir.getAbsolutePath();
-		MultiDeviceProperties installProps = new MultiDeviceProperties(installDoc).getSubClass();
+		final MultiDeviceProperties multiDeviceProperties = new MultiDeviceProperties(installDoc);
+		MultiDeviceProperties installProps = multiDeviceProperties.getSubClass();
 		final File deviceDir = installProps.getBaseDir();
 		final File localConfigFile = getConfigFile(deviceDir);
 		final XMLDoc localDoc = XMLDoc.parseFile(localConfigFile);
 		boolean mustCopy = true;
-		if (localDoc != null) // using config default
+		if (localDoc != null && multiDeviceProperties.isValidSubClass()) // using config default
 		{
 			final MultiDeviceProperties localProps = new MultiDeviceProperties(localDoc).getSubClass();
 			if (installProps.isCompatible(localProps))
@@ -846,7 +860,9 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	protected boolean isCompatible(final MultiDeviceProperties localProps)
 	{
 		if (localProps == null)
+		{
 			return false;
+		}
 		final String configVersion = getConfigVersion();
 		return configVersion.equals(localProps.getConfigVersion());
 	}
@@ -860,17 +876,16 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 *
 	 * @param appDir
 	 * @return
 	 */
 	public static XMLDoc getXMLDoc(final File appDir)
 	{
-		return XMLDoc.parseFile(getConfigFile(appDir));
+		final XMLDoc doc = XMLDoc.parseFile(getConfigFile(appDir));
+		return new MultiDeviceProperties(doc).isValidSubClass() ? doc : null;
 	}
 
 	/**
-	 *
 	 * @param appDir
 	 * @return
 	 */
@@ -890,7 +905,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 *
 	 * @param doc
 	 */
 	protected MultiDeviceProperties(final XMLDoc doc)
@@ -951,7 +965,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 *
 	 * @param port
 	 */
 	public void setSSLPort(final int port)
@@ -964,7 +977,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 *
 	 * @param port
 	 */
 	public void setPort(final int port)
@@ -1074,7 +1086,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public String getCSS()
@@ -1098,7 +1109,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 *
 	 * @param newBase
 	 */
 	public void setBaseDir(final File newBase)
@@ -1168,18 +1178,28 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
+	 * @param pos the device index
+	 * @return a IDeviceProperties parsed from the element
+	 */
+	public DeviceProperties createDeviceProps(int pos)
+	{
+		return createDeviceProps(ContainerUtil.get(getDevices(), pos));
+	}
+
+	/**
 	 * @param element the xml element to parse, if null an empty element is created
 	 * @return a IDeviceProperties parsed from the element
 	 */
 	public DeviceProperties createDeviceProps(KElement element)
 	{
 		if (element == null)
+		{
 			element = root.appendElement(ElementName.DEVICE);
+		}
 		return this.new DeviceProperties(element);
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	@Override
@@ -1197,7 +1217,6 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	}
 
 	/**
-	 *
 	 * @param resourceAsStream
 	 * @return
 	 */
@@ -1211,7 +1230,9 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	{
 		final Path tp = getToolPath();
 		if (path == null)
+		{
 			path = new File(".");
+		}
 		final Path pathInToolPath = tp.resolve(path.toPath());
 		final File appDir = getAppDir();
 		return (appDir == null ? pathInToolPath : appDir.toPath().resolve(pathInToolPath)).toFile();

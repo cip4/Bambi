@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -67,7 +67,6 @@ import org.cip4.jdflib.util.thread.IPersistable;
 
 /**
  * @author Rainer Prosi
- *
  */
 public class StatusListener implements IPersistable
 {
@@ -75,11 +74,11 @@ public class StatusListener implements IPersistable
 	private SignalDispatcher dispatcher;
 
 	private SignalDispatcher rootDispatcher;
-	protected StatusCounter theCounter;
+	protected final StatusCounter theCounter;
 	final MultiModuleStatusCounter multiCounter;
 	private JDFNode currentNode;
 	private boolean wantPersist;
-	private static Log log = LogFactory.getLog(StatusListener.class);
+	private final static Log log = LogFactory.getLog(StatusListener.class);
 
 	public boolean isWantPersist()
 	{
@@ -92,7 +91,6 @@ public class StatusListener implements IPersistable
 	}
 
 	/**
-	 *
 	 * @param dispatch
 	 * @param deviceID
 	 * @param icsVersions the default ics versions
@@ -108,6 +106,7 @@ public class StatusListener implements IPersistable
 		rootDispatcher = null;
 		currentNode = null;
 		wantPersist = true;
+		log.info("creating new " + shortString());
 	}
 
 	/**
@@ -125,7 +124,9 @@ public class StatusListener implements IPersistable
 				final Trigger[] t2 = rootDispatcher.triggerQueueEntry(theCounter.getQueueEntryID(), theCounter.getNodeIDentifier(), -1, msgType);
 				rootDispatcher.flush();
 				if (!Trigger.waitQueued(t2, 420))
+				{
 					return false;
+				}
 			}
 			return Trigger.waitQueued(t, 420);
 		}
@@ -140,15 +141,11 @@ public class StatusListener implements IPersistable
 	 * @param deviceStatusDetails
 	 * @param nodeStatus
 	 * @param nodeStatusDetails
-	 * @param forceOut forces writing by any generator, even if the status remains the same and the trigger would not call for a write
+	 * @param forceOut            forces writing by any generator, even if the status remains the same and the trigger would not call for a write
 	 */
-	public void signalStatus(final EnumDeviceStatus deviceStatus, final String deviceStatusDetails, final EnumNodeStatus nodeStatus, final String nodeStatusDetails, final boolean forceOut)
+	public void signalStatus(final EnumDeviceStatus deviceStatus, final String deviceStatusDetails, final EnumNodeStatus nodeStatus,
+			final String nodeStatusDetails, final boolean forceOut)
 	{
-		if (theCounter == null)
-		{
-			log.error("updating null status tracker");
-			return;
-		}
 		final boolean bMod = theCounter.setPhase(nodeStatus, nodeStatusDetails, deviceStatus, deviceStatusDetails);
 		if (bMod || forceOut)
 		{
@@ -162,7 +159,6 @@ public class StatusListener implements IPersistable
 	}
 
 	/**
-	 *
 	 * @param deltaTime time to wait / collct before really saving
 	 */
 	public void saveJDF(final int deltaTime)
@@ -174,17 +170,12 @@ public class StatusListener implements IPersistable
 	 * set event, append the Event element and optionally the comment<br/>
 	 * overwrites existing values
 	 *
-	 * @param eventID Event/@EventID to set
+	 * @param eventID    Event/@EventID to set
 	 * @param eventValue Event/@EventValue to set
-	 * @param comment the comment text, if null no comment is set
+	 * @param comment    the comment text, if null no comment is set
 	 */
 	public void setEvent(final String eventID, final String eventValue, final String comment)
 	{
-		if (theCounter == null)
-		{
-			log.error("updating null status tracker");
-			return;
-		}
 		theCounter.setEvent(eventID, eventValue, comment);
 		flush("Notification");
 	}
@@ -193,16 +184,27 @@ public class StatusListener implements IPersistable
 	 * updates the amount for a given resource the amounts are collected but not signaled until @see signalStatus() is called
 	 *
 	 * @param resID the resource id of the tracked resource
-	 * @param good the number of good copies
+	 * @param good  the number of good copies
 	 * @param waste the number of waste copies, 0 specifies that waste should be ignored
+	 * @deprecated Use {@link #updateAmount(String,double,double,JDFAttributeMap)} instead
 	 */
+	@Deprecated
 	public void updateAmount(final String resID, final double good, final double waste)
 	{
-		if (theCounter == null)
-		{
-			return;
-		}
-		theCounter.addPhase(resID, good, waste, true);
+		updateAmount(resID, good, waste, null);
+	}
+
+	/**
+	 * updates the amount for a given resource the amounts are collected but not signaled until @see signalStatus() is called
+	 *
+	 * @param resID   the resource id of the tracked resource
+	 * @param good    the number of good copies
+	 * @param waste   the number of waste copies, 0 specifies that waste should be ignored
+	 * @param partMap TODO
+	 */
+	public void updateAmount(final String resID, final double good, final double waste, JDFAttributeMap partMap)
+	{
+		theCounter.addPhase(resID, good, waste, true, partMap);
 		if (good + waste > 0)
 		{
 			theCounter.setPhase(null, null, null, null);
@@ -215,15 +217,9 @@ public class StatusListener implements IPersistable
 	 * set the total amount of a given resource by the value specified
 	 *
 	 * @param percent the percent completed
-	 *
-	 *
 	 */
 	public void setPercentComplete(final double percent)
 	{
-		if (theCounter == null)
-		{
-			return;
-		}
 		theCounter.setPercentComplete(percent);
 		theCounter.setPhase(null, null, null, null);
 		DelayedPersist.getDelayedPersist().queue(this, 123456);
@@ -233,15 +229,9 @@ public class StatusListener implements IPersistable
 	 * incrementally update the total amount of a given resource by the value specified
 	 *
 	 * @param percent the percent completed
-	 *
-	 *
 	 */
 	public void updatePercentComplete(final double percent)
 	{
-		if (theCounter == null)
-		{
-			return;
-		}
 		theCounter.updatePercentComplete(percent);
 		DelayedPersist.getDelayedPersist().queue(this, 123456);
 	}
@@ -249,18 +239,28 @@ public class StatusListener implements IPersistable
 	/**
 	 * update the total amount of a given resource to the value specified
 	 *
-	 * @param resID the resource id
+	 * @param resID  the resource id
 	 * @param amount the total amount top set
-	 * @param waste if true, this is waste, else it is good
-	 *
+	 * @param waste  if true, this is waste, else it is good
+	 * @deprecated Use {@link #updateTotal(String,double,boolean,JDFAttributeMap)} instead
 	 */
+	@Deprecated
 	public void updateTotal(final String resID, final double amount, final boolean waste)
 	{
-		if (theCounter == null)
-		{
-			return;
-		}
-		theCounter.setTotal(resID, amount, waste);
+		updateTotal(resID, amount, waste, null);
+	}
+
+	/**
+	 * update the total amount of a given resource to the value specified
+	 *
+	 * @param resID   the resource id
+	 * @param amount  the total amount top set
+	 * @param waste   if true, this is waste, else it is good
+	 * @param partMap TODO
+	 */
+	public void updateTotal(final String resID, final double amount, final boolean waste, JDFAttributeMap partMap)
+	{
+		theCounter.setTotal(resID, amount, waste, partMap);
 		if (amount > 0)
 		{
 			theCounter.setPhase(null, null, null, null);
@@ -291,10 +291,10 @@ public class StatusListener implements IPersistable
 	/**
 	 * setup the map of queueentryid and node
 	 *
-	 * @param queueEntryID the queueentryid is associated to the node if {@link QueueEntry}==null, the entire list is cleared
-	 * @param vPartMap the vector of partitions that are being tracked
+	 * @param queueEntryID    the queueentryid is associated to the node if {@link QueueEntry}==null, the entire list is cleared
+	 * @param vPartMap        the vector of partitions that are being tracked
 	 * @param trackResourceID the id of the "major" resource to be counted for phasetimes
-	 * @param node the jdf node that will be processed. this may be a group node with additional sub nodes if node==null the queueentryid is removed from the map
+	 * @param node            the jdf node that will be processed. this may be a group node with additional sub nodes if node==null the queueentryid is removed from the map
 	 */
 	public synchronized void setNode(final String queueEntryID, final JDFNode node, final VJDFAttributeMap vPartMap, final String trackResourceID)
 	{
@@ -316,13 +316,13 @@ public class StatusListener implements IPersistable
 		{
 			final VJDFAttributeMap partMapVector = node.getNodeInfoPartMapVector();
 			final JDFAttributeMap partMap = partMapVector == null ? null : partMapVector.getCommonMap();
-			theCounter.setPhase(node.getPartStatus(partMap, 1), node.getPartStatusDetails(partMap), EnumDeviceStatus.Running, node.getPartStatusDetails(partMap));
+			theCounter.setPhase(node.getPartStatus(partMap, 1), node.getPartStatusDetails(partMap), EnumDeviceStatus.Running,
+					node.getPartStatusDetails(partMap));
 		}
 	}
 
 	/**
 	 * save the currently active jdf
-	 *
 	 */
 	@Override
 	public boolean persist()
@@ -379,6 +379,11 @@ public class StatusListener implements IPersistable
 		return "[StatusListner - counter: " + theCounter + "\n Current Node: " + currentNode;
 	}
 
+	public String shortString()
+	{
+		return "[StatusListner - counter: " + theCounter.shortString();
+	}
+
 	/**
 	 * @param inputMessage
 	 * @return return true if inputMessage applies to this Listener
@@ -389,11 +394,10 @@ public class StatusListener implements IPersistable
 		{
 			return false;
 		}
-		if (!(inputMessage instanceof JDFQuery))
+		if (!(inputMessage instanceof final JDFQuery q))
 		{
 			return false;
 		}
-		final JDFQuery q = (JDFQuery) inputMessage;
 		final EnumType type = q.getEnumType();
 		if (EnumType.Status.equals(type))
 		{
@@ -452,18 +456,14 @@ public class StatusListener implements IPersistable
 	}
 
 	/**
-	 * @param resID the resource id of the tracked resource
+	 * @param resID       the resource id of the tracked resource
 	 * @param deltaAmount the number of good copies
-	 * @param deltaWaste the number of waste copies, 0 specifies that waste should be ignored
+	 * @param deltaWaste  the number of waste copies, 0 specifies that waste should be ignored
 	 * @param amount
 	 * @param waste
 	 */
 	public void setAmount(final String resID, final double deltaAmount, final double deltaWaste, final double amount, final double waste)
 	{
-		if (theCounter == null)
-		{
-			return;
-		}
 		theCounter.setPhase(resID, deltaAmount, deltaWaste);
 		if (amount >= deltaAmount)
 		{
@@ -481,10 +481,6 @@ public class StatusListener implements IPersistable
 	 */
 	public boolean removeEmployee(final JDFEmployee employee)
 	{
-		if (theCounter == null)
-		{
-			return false;
-		}
 		final boolean b = theCounter.removeEmployee(employee);
 		if (b)
 		{
@@ -500,10 +496,6 @@ public class StatusListener implements IPersistable
 	 */
 	public int addEmployee(final JDFEmployee employee)
 	{
-		if (theCounter == null)
-		{
-			return 0;
-		}
 		final int n0 = theCounter.addEmployee(null);
 		final int n1 = theCounter.addEmployee(employee);
 		if (n1 != n0)
@@ -519,10 +511,6 @@ public class StatusListener implements IPersistable
 	 */
 	public void setEmployees(final Vector<JDFEmployee> employees)
 	{
-		if (theCounter == null)
-		{
-			return;
-		}
 		theCounter.replaceEmployees(employees);
 	}
 
@@ -553,6 +541,14 @@ public class StatusListener implements IPersistable
 	public void addListener(final StatusListener statusListener)
 	{
 		multiCounter.addModule(statusListener.getStatusCounter());
+	}
+
+	public void setAmountResource(String masterAmountResourceName)
+	{
+		if (!StringUtil.isEmpty(masterAmountResourceName))
+		{
+			theCounter.setFirstRefID(masterAmountResourceName);
+		}
 	}
 
 }

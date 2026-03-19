@@ -78,7 +78,7 @@ public class SignalDispatcherTest extends BambiTestCase
 	@Before
 	public void setUp() throws Exception
 	{
-		final WorkerDevice rootDev = new BambiTestDevice();
+		final WorkerDevice rootDev = new BambiTestDevice(false);
 		final JMFHandler h = new JMFHandler(rootDev);
 		dispatcher = new SignalDispatcher(rootDev);
 		dispatcher.addHandlers(h);

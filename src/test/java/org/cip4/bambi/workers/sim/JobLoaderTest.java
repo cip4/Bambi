@@ -74,11 +74,15 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
+import org.cip4.bambi.workers.JobPhase;
 import org.cip4.bambi.workers.WorkerDeviceProcessor;
+import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.node.JDFNode;
 import org.junit.Test;
 
 public class JobLoaderTest extends BambiTestCaseBase
@@ -87,7 +91,7 @@ public class JobLoaderTest extends BambiTestCaseBase
 	@Test
 	public void testConstruct()
 	{
-		final BambiTestDevice rootDev = new BambiTestDevice();
+		final BambiTestDevice rootDev = new BambiTestDevice(false);
 		rootDev.setSim(true);
 		final WorkerDeviceProcessor p = rootDev.getNewProcessor();
 		new JobLoader((SimDeviceProcessor) p);
@@ -97,7 +101,7 @@ public class JobLoaderTest extends BambiTestCaseBase
 	@Test
 	public void testLoad() throws IOException
 	{
-		final BambiTestDevice rootDev = new BambiTestDevice();
+		final BambiTestDevice rootDev = new BambiTestDevice(false);
 		rootDev.setSim(true);
 		final WorkerDeviceProcessor p = rootDev.getNewProcessor();
 		final JobLoader l = new JobLoader((SimDeviceProcessor) p);
@@ -107,6 +111,48 @@ public class JobLoaderTest extends BambiTestCaseBase
 			FileUtils.copyDirectory(new File(sm_dirTestData, "config"), destDir);
 		}
 		assertEquals(4, l.loadJob().size());
+
+	}
+
+	@Test
+	public void testLoadDigi() throws IOException
+	{
+		final BambiTestDevice rootDev = new BambiTestDevice(false);
+		rootDev.setSim(true);
+		final WorkerDeviceProcessor p = rootDev.getNewProcessor();
+		final JobLoader l = new JobLoader((SimDeviceProcessor) p);
+		final List<JobPhase> jobFromFile = l.loadJobFromFile(new File(sm_dirTestData), "config/job_digi001.xml");
+		assertEquals(4, jobFromFile.size());
+
+	}
+
+	@Test
+	public void testLoadXML() throws IOException
+	{
+		final BambiTestDevice rootDev = new BambiTestDevice(false);
+		rootDev.setSim(true);
+		final WorkerDeviceProcessor p = rootDev.getNewProcessor();
+		final JobLoader l = new JobLoader((SimDeviceProcessor) p);
+		final List<JobPhase> jobFromFile = l.loadJobFromFile(new File(sm_dirTestData), "config/job_digi001.xml");
+		assertEquals(4, jobFromFile.size());
+		final KElement e = KElement.createRoot("foo");
+		for (final JobPhase jp : jobFromFile)
+		{
+			jp.appendToXml(e);
+		}
+	}
+
+	@Test
+	public void testLoadDigiJob() throws IOException
+	{
+		final BambiTestDevice rootDev = (BambiTestDevice) getDevice(true, false);
+		rootDev.setSim(true);
+
+		final WorkerDeviceProcessor p = rootDev.getNewProcessor();
+		final JobLoader l = new JobLoader((SimDeviceProcessor) p);
+		l.setNode(JDFNode.parseFile(sm_dirTestData + "IDPSimplex.jdf"));
+		final List<JobPhase> jobFromFile = l.loadJobFromFile(new File(sm_dirTestData), "config/job_digi001.xml");
+		assertEquals(4, jobFromFile.size());
 
 	}
 

@@ -92,6 +92,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	private final ProxyProperties delegate = new ProxyProperties(new File(sm_dirTestDataTemp + "testprops"));
 	private final ProxyDeviceProperties devdelegate = delegate.createDeviceProps(null);
 	private final int n;
+	private final boolean isSynch;
 
 	/**
 	 * @param bambiTestCase
@@ -101,7 +102,18 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 		super();
 		this.devID = "ID_42";
 		n = nn.incrementAndGet();
+		isSynch = false;
+	}
 
+	/**
+	 * @param bambiTestCase
+	 */
+	public BambiTestProp(boolean synch)
+	{
+		super();
+		this.devID = "ID_42";
+		n = nn.incrementAndGet();
+		isSynch = synch;
 	}
 
 	/*
@@ -113,6 +125,12 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	public File getAppDir()
 	{
 		return null;
+	}
+
+	@Override
+	public boolean isSynch()
+	{
+		return isSynch;
 	}
 
 	/*

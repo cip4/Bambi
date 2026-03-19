@@ -71,15 +71,28 @@
 package org.cip4.bambi.workers.sim;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.commons.io.FileUtils;
 import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.bambi.BambiTestDevice;
 import org.cip4.bambi.BambiTestProp;
+import org.cip4.bambi.core.ContainerRequest;
+import org.cip4.bambi.core.XMLDevice;
 import org.cip4.bambi.core.messaging.IMessageHandler;
+import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.jdflib.auto.JDFAutoResourceQuParams;
+import org.cip4.jdflib.core.JDFAudit.EnumAuditType;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.pool.JDFAuditPool;
 import org.junit.Test;
 
 public class SimDeviceTest extends BambiTestCaseBase
@@ -101,6 +114,16 @@ public class SimDeviceTest extends BambiTestCaseBase
 	}
 
 	@Test
+	public void testXML() throws IOException
+	{
+		final BambiTestDevice sim = (BambiTestDevice) getDevice(false, true);
+		final JDFNode n = JDFNode.parseFile(sm_dirTestData + "IDPSimplex.jdf");
+		final IQueueEntry iqe = sim.setCurrentEntry(n);
+		final XMLDevice xd = sim.getXMLDevice(true, new ContainerRequest());
+		assertNotNull(xd);
+	}
+
+	@Test
 	public void testResourceNS()
 	{
 		final SimDevice sim = new SimDevice(new BambiTestProp());
@@ -111,6 +134,36 @@ public class SimDeviceTest extends BambiTestCaseBase
 		final JDFJMF r = JDFJMF.createJMF(EnumFamily.Query, EnumType.Resource);
 		qh.handleMessage(q.getQuery(), r.getCreateResponse(0));
 		assertNotNull(KElement.parseString(r.toXML()));
+	}
+
+	public static BambiTestDevice getDevice(String devID) throws IOException
+	{
+		final BambiTestDevice rootDev = (BambiTestDevice) getDevice(true, true);
+		rootDev.setSim(true);
+		when(rootDev.getDeviceID()).thenReturn(devID);
+		final File destDir = rootDev.getCachedConfigDir();
+		if (!destDir.exists() || destDir.list().length == 0)
+		{
+			FileUtils.copyDirectory(new File(sm_dirTestData, "config"), destDir);
+		}
+
+		return rootDev;
+	}
+
+	@Test
+	public void testProcessExisting() throws IOException
+	{
+		final BambiTestDevice rootDev = SimDeviceTest.getDevice("digi001");
+		final JDFNode n = JDFNode.parseFile(sm_dirTestData + "IDPSimplex.jdf");
+		final IQueueEntry iqe = rootDev.setCurrentEntry(n);
+
+		final boolean ok = rootDev.doSynchronous(iqe);
+		assertTrue(ok);
+		n.write2File(sm_dirTestDataTemp + "IDPSimplex.done.jdf");
+		final JDFAuditPool auditPool = n.getAuditPool();
+		assertNotNull(auditPool.getAudit(0, EnumAuditType.PhaseTime, null, null));
+		assertNotNull(auditPool.getAudit(0, EnumAuditType.ProcessRun, null, null));
+		assertNotNull(auditPool.getAudit(0, EnumAuditType.ResourceAudit, null, null));
 	}
 
 }

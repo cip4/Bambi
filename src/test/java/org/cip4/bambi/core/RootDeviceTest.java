@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -36,59 +36,81 @@
  *
  *
  */
-package org.cip4.bambi.core.messaging;
+package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.io.InputStream;
 
 import org.cip4.bambi.BambiTestCaseBase;
-import org.cip4.bambi.BambiTestDevice;
-import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
-import org.cip4.jdflib.core.JDFComment;
-import org.cip4.jdflib.core.JDFDoc;
-import org.cip4.jdflib.core.JDFException;
-import org.cip4.jdflib.jmf.JDFMessage.EnumType;
-import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.node.JDFNode;
 import org.junit.Test;
 
-public class JMFHandlerTest extends BambiTestCaseBase
+public class RootDeviceTest extends BambiTestCaseBase
 {
 
 	@Test
-	public void testErrorResponse()
+	public void testToString()
 	{
-		JMFHandler.errorResponse(null, "foo", 42, EnumClass.Error);
-		final JDFResponse r = new JDFDoc("JMF").getJMFRoot().appendResponse(EnumType.FlushQueue);
-		JMFHandler.errorResponse(r, "foo", 42, EnumClass.Warning);
-		assertEquals(42, r.getReturnCode());
+		final InputStream resourceAsStream = getClass().getResourceAsStream("/config/devices.xml");
+		if (resourceAsStream == null)
+		{
+			log.fatal("invalid resource stream ");
+		}
+		final MultiDeviceProperties mp = MultiDeviceProperties.getProperties(resourceAsStream);
+
+		final RootDevice rd = new RootDevice(mp.createDeviceProps(0));
+		assertNotNull(rd.toString());
 	}
 
 	@Test
-	public void testErrorResponseException()
+	public void testXSLT()
 	{
-		JMFHandler.errorResponse(null, "foo", 42, EnumClass.Error);
-		final JDFResponse r = new JDFDoc("JMF").getJMFRoot().appendResponse(EnumType.FlushQueue);
-		JMFHandler.errorResponse(r, "foo", 42, EnumClass.Warning, new JDFException("foo"));
-		assertEquals(42, r.getReturnCode());
-		final JDFComment comment = r.getNotification().getComment("DeviceText", 0);
-		assertNotNull(comment);
+		final RootDevice rd = getRootDevice();
+		final ContainerRequest request = new ContainerRequest();
+		assertNotNull(rd.getXSLT(request));
+		request.setParameter(RootDevice.XSL, "0");
+		assertNull(rd.getXSLT(request));
 	}
 
 	@Test
-	public void testErrorResponseNotification()
+	public void testGetDevice()
 	{
-		JMFHandler.errorResponse(null, "foo", 42, EnumClass.Error);
-		final JDFResponse r = new JDFDoc("JMF").getJMFRoot().appendResponse(EnumType.FlushQueue);
-		JMFHandler.errorResponse(r, "foo", 42, EnumClass.Warning);
-		assertNotNull(r.getNotification().getCommentText());
+		final RootDevice rd = getRootDevice();
+		assertEquals(rd, rd.getDevice(null));
 	}
 
 	@Test
-	public void testUnhandled()
+	public void testReset()
 	{
-		final JMFHandler h = new JMFHandler(new BambiTestDevice(false));
-		final JDFResponse r = new JDFDoc("JMF").getJMFRoot().appendResponse(EnumType.FlushQueue);
-		h.unhandledMessage(r, r);
-		assertEquals(5, r.getReturnCode());
+		final RootDevice rd = getRootDevice();
+		rd.reset();
+		assertEquals(rd, rd.getDevice(null));
 	}
+
+	@Test
+	public void testShutdown()
+	{
+		final RootDevice rd = getRootDevice();
+		rd.shutdown();
+		assertEquals(rd, rd.getDevice(null));
+	}
+
+	@Test
+	public void testNodeFromDoc()
+	{
+		final RootDevice rd = getRootDevice();
+		assertNull(rd.getNodeFromDoc(null));
+		assertNull(rd.getNodeFromDoc(JDFNode.createRoot().getOwnerDocument_JDFElement()));
+	}
+
+	public RootDevice getRootDevice()
+	{
+		final InputStream resourceAsStream = getClass().getResourceAsStream("/config/devices.xml");
+		final MultiDeviceProperties mp = MultiDeviceProperties.getProperties(resourceAsStream);
+		return new RootDevice(mp.createDeviceProps(0));
+	}
+
 }

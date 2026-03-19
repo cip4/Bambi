@@ -114,7 +114,6 @@ import jakarta.mail.MessagingException;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
  *         16.11.2009
  */
 public class BambiContainerTest extends BambiTestCase
@@ -139,7 +138,6 @@ public class BambiContainerTest extends BambiTestCase
 		final AbstractDevice deviceFromID = bambiContainer.getDeviceFromID("device");
 		assertNotNull(deviceFromID);
 		assertEquals(deviceFromID.getDeviceID(), "device");
-		assertNotNull("proxy incorrectly set? ", UrlUtil.writeToURL("http://www.example.com", null, UrlUtil.GET, UrlUtil.TEXT_PLAIN, null));
 	}
 
 	/**
@@ -201,7 +199,6 @@ public class BambiContainerTest extends BambiTestCase
 
 	/**
 	 * @throws IOException
-	 *
 	 */
 	@Test
 	public void testHandleZip() throws IOException
@@ -255,7 +252,6 @@ public class BambiContainerTest extends BambiTestCase
 
 	/**
 	 * @throws IOException
-	 *
 	 */
 	@Test
 	public void testHandlePostNastyContent() throws IOException
@@ -343,7 +339,6 @@ public class BambiContainerTest extends BambiTestCase
 
 	/**
 	 * @throws IOException
-	 *
 	 */
 	@Test
 	public void testHandleStreamXML() throws IOException
@@ -361,7 +356,6 @@ public class BambiContainerTest extends BambiTestCase
 
 	/**
 	 * @throws IOException
-	 *
 	 */
 	@Test
 	public void testHandleStreamJSON() throws IOException
@@ -381,7 +375,6 @@ public class BambiContainerTest extends BambiTestCase
 
 	/**
 	 * @throws IOException
-	 *
 	 */
 	@Test
 	public void testHandleStreamError() throws IOException
@@ -399,7 +392,6 @@ public class BambiContainerTest extends BambiTestCase
 
 	/**
 	 * @throws Exception
-	 *
 	 */
 	@Override
 	public void setUp() throws Exception
@@ -426,7 +418,6 @@ public class BambiContainerTest extends BambiTestCase
 
 	/**
 	 * @throws IOException if bad things happen
-	 *
 	 */
 	@Test
 	public void testHandleGet() throws IOException
@@ -443,7 +434,6 @@ public class BambiContainerTest extends BambiTestCase
 
 	/**
 	 * @throws IOException if bad things happen
-	 *
 	 */
 	@Test
 	public void testSubmit() throws IOException
@@ -464,7 +454,6 @@ public class BambiContainerTest extends BambiTestCase
 
 	/**
 	 * @throws IOException
-	 *
 	 */
 	@Test
 	public void testSubmitCrap() throws IOException

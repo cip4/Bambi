@@ -213,15 +213,12 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		protected IQueueEntry getQEFromParent()
 		{
 			IQueueEntry currentQE = getQEFromQueue();
-			if (currentQE == null)
+			if ((currentQE == null) && sendRequestQueueEntry())
 			{
-				if (sendRequestQueueEntry())
+				currentQE = getQEFromQueue();
+				if (currentQE != null)
 				{
-					currentQE = getQEFromQueue();
-					if (currentQE != null)
-					{
-						log.info("processing requested qe: " + currentQE.getQueueEntryID());
-					}
+					log.info("processing requested qe: " + currentQE.getQueueEntryID());
 				}
 			}
 			return currentQE;
@@ -666,7 +663,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 		final Vector<File> v = new Vector<>();
 		final File configDir = getProperties().getConfigDir();
-		v.add(configDir);
+		ContainerUtil.add(v, configDir);
 		return v;
 	}
 
@@ -1203,21 +1200,15 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			final IQueueEntry iqe = theDeviceProcessor.isIdle() ? null : theDeviceProcessor.getCurrentQE();
 			if (iqe == null) // we have an idle proc
 			{
-				if (queueEntryID == null) // we are not searching by qeID
-				{
-					if (nn++ == n) // we have the right count
-					{
-						return theDeviceProcessor;
-					}
-				}
-				continue;
-			}
-			else if (queueEntryID == null || queueEntryID.equals(iqe.getQueueEntryID()))
-			{
-				if (nn++ == n)
+				if ((queueEntryID == null) && (nn++ == n)) // we have the right count
 				{
 					return theDeviceProcessor;
 				}
+				continue;
+			}
+			else if ((queueEntryID == null || queueEntryID.equals(iqe.getQueueEntryID())) && (nn++ == n))
+			{
+				return theDeviceProcessor;
 			}
 		}
 		return null; // none here
@@ -1360,8 +1351,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				qe.setGeneralID(AttributeName.CUSTOMERID, cid).setDataType(EDataType.string);
 			}
 		}
-		final String qeID = qe.getQueueEntryID();
-		return qeID;
+		return qe.getQueueEntryID();
 	}
 
 	/**
@@ -1718,8 +1708,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	{
 		final CPUTimerFactory factory = CPUTimer.getFactory();
 		final String id = "AbstractDevice_" + getDeviceID();
-		final CPUTimer ct = bGlobal ? factory.getGlobalTimer(id) : factory.getCreateCurrentTimer(id);
-		return ct;
+		return bGlobal ? factory.getGlobalTimer(id) : factory.getCreateCurrentTimer(id);
 	}
 
 	/**
@@ -1804,8 +1793,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public File getCachedConfigDir()
 	{
 		final File baseDir = getBaseDir();
-		final File configDir = FileUtil.getFileInDirectory(baseDir, new File("config"));
-		return configDir;
+		return FileUtil.getFileInDirectory(baseDir, new File("config"));
 	}
 
 	/**
@@ -1880,8 +1868,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			simDevice.getRoot().setAttribute(REFRESH, true, null);
 		}
 
-		final XMLResponse r = new XMLResponse(simDevice.getRoot());
-		return r;
+		return new XMLResponse(simDevice.getRoot());
 	}
 
 	/**
@@ -2052,8 +2039,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				sl.saveJDF(5000); // we don't need the very newest but it shouldn't be older than a few seconds
 			}
 		}
-		final String fil = getJDFStorage(qeID);
-		return fil;
+		return getJDFStorage(qeID);
 	}
 
 	/**
@@ -2199,8 +2185,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	public String getContext(final ContainerRequest request)
 	{
-		final String contextRoot = request.getContextRoot();
-		return contextRoot;
+		return request.getContextRoot();
 	}
 
 	/**

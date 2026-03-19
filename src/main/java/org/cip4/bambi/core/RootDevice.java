@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -40,8 +40,8 @@
 package org.cip4.bambi.core;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
@@ -84,6 +84,8 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public class RootDevice extends AbstractDevice
 {
+	static final String XSL = "XSL";
+
 	private final static Log log = LogFactory.getLog(RootDevice.class);
 
 	public static final String RELEASE_VERSION_STRING = "ReleaseVersionString";
@@ -160,10 +162,8 @@ public class RootDevice extends AbstractDevice
 	@Override
 	public JDFNode getNodeFromDoc(final JDFDoc doc)
 	{
-		final Iterator<String> it = _devices.keySet().iterator();
-		while (it.hasNext())
+		for (final AbstractDevice ad : _devices.values())
 		{
-			final AbstractDevice ad = _devices.get(it.next());
 			final JDFNode n = ad.getNodeFromDoc(doc);
 			if (n != null)
 			{
@@ -185,12 +185,9 @@ public class RootDevice extends AbstractDevice
 		log.info("creating child from root device " + devID);
 
 		AbstractDevice dev = null;
-		if ((iProp instanceof final DeviceProperties prop) && !deviceTemplates.containsKey(iProp.getDeviceType()))
+		if (((iProp instanceof final DeviceProperties prop) && !deviceTemplates.containsKey(iProp.getDeviceType())) && prop.isTemplate())
 		{
-			if (prop.isTemplate())
-			{
-				deviceTemplates.put(iProp.getDeviceType(), prop);
-			}
+			deviceTemplates.put(iProp.getDeviceType(), prop);
 		}
 
 		if (iProp.getAutoStart())
@@ -506,19 +503,17 @@ public class RootDevice extends AbstractDevice
 	public void shutdown()
 	{
 		log.info("shutting down root device: " + getDeviceID());
-		if (_devices != null)
+		final Set<String> keys = _devices.keySet();
+		for (final String devID : keys)
 		{
-			final Set<String> keys = _devices.keySet();
-			for (final String devID : keys)
+			final AbstractDevice dev = _devices.get(devID);
+			if (dev != null)
 			{
-				final AbstractDevice dev = _devices.get(devID);
-				if (dev != null)
-				{
-					dev.shutdown();
-				}
+				dev.shutdown();
 			}
-			_devices.clear();
 		}
+		_devices.clear();
+
 		JMFFactory.shutdown();
 		super.shutdown();
 	}
@@ -531,18 +526,12 @@ public class RootDevice extends AbstractDevice
 	@Override
 	public void reset()
 	{
-		if (_devices != null)
+		final Collection<AbstractDevice> devs = _devices.values();
+		for (final AbstractDevice dev : devs)
 		{
-			final Set<String> keys = _devices.keySet();
-			for (final String devID : keys)
-			{
-				final AbstractDevice dev = _devices.get(devID);
-				if (dev != null)
-				{
-					dev.reset();
-				}
-			}
+			dev.reset();
 		}
+
 		super.reset();
 	}
 
@@ -559,14 +548,9 @@ public class RootDevice extends AbstractDevice
 		{
 			return this;
 		}
-		if (_devices == null)
+		if (deviceID == null)
 		{
-			log.warn("list of devices is null - defaulting to root");
-			return this;
-		}
-		else if (deviceID == null)
-		{
-			log.debug("attempting to retrieve null device - defaulting to root");
+			log.info("attempting to retrieve null device - defaulting to root");
 			return this;
 		}
 		return _devices.get(deviceID);
@@ -665,8 +649,7 @@ public class RootDevice extends AbstractDevice
 		listTemplates(listRoot);
 
 		deviceList.setXSLTURL(getXSLT(request));
-		final XMLResponse r = new XMLResponse(listRoot);
-		return r;
+		return new XMLResponse(listRoot);
 	}
 
 	protected void listTemplates(final KElement listRoot)
@@ -749,7 +732,7 @@ public class RootDevice extends AbstractDevice
 	@Override
 	public String getXSLT(final ContainerRequest request)
 	{
-		if (!request.getBooleanParam("XSL", true))
+		if (!request.getBooleanParam(XSL, true))
 		{
 			return null;
 		}

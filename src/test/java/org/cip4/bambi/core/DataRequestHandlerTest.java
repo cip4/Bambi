@@ -139,7 +139,7 @@ public class DataRequestHandlerTest extends BambiTestCase
 	public void testHandleGood() throws Exception
 	{
 
-		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(false, false), "data");
 		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data/a.pdf");
 
@@ -154,7 +154,7 @@ public class DataRequestHandlerTest extends BambiTestCase
 	public void testHandleEscapeDir()
 	{
 
-		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data dir");
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(false, false), "data dir");
 		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data%20dir/a.pdf");
 
@@ -168,7 +168,7 @@ public class DataRequestHandlerTest extends BambiTestCase
 	public void testHandleEscapeDir2()
 	{
 
-		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data dir");
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(false, false), "data dir");
 		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/datadir/a.pdf");
 
@@ -182,7 +182,7 @@ public class DataRequestHandlerTest extends BambiTestCase
 	public void testHandleEscape() throws Exception
 	{
 
-		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(false, false), "data");
 		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data/a%20b.pdf");
 
@@ -198,7 +198,7 @@ public class DataRequestHandlerTest extends BambiTestCase
 	public void testHandleEvil() throws Exception
 	{
 
-		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(false, false), "data");
 		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data/../a.pdf");
 
@@ -213,7 +213,7 @@ public class DataRequestHandlerTest extends BambiTestCase
 	public void testHandleEvil2() throws Exception
 	{
 
-		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(false, false), "data");
 		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data//a.pdf");
 
@@ -227,7 +227,7 @@ public class DataRequestHandlerTest extends BambiTestCase
 	@Test(expected = IllegalArgumentException.class)
 	public void testHandleEvil3() throws Exception
 	{
-		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(false, false), "data");
 		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data/c:/foo/a.pdf");
 
@@ -245,7 +245,7 @@ public class DataRequestHandlerTest extends BambiTestCase
 	@Test(expected = IllegalArgumentException.class)
 	public void testHandleEvil4() throws Exception
 	{
-		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(false, false), "data");
 		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data/\\\\host\\share\\a.pdf");
 
@@ -263,7 +263,7 @@ public class DataRequestHandlerTest extends BambiTestCase
 	public void testRelativePath() throws Exception
 	{
 
-		final DataRequestHandler rh = new DataRequestHandler(getDevice(), "data");
+		final DataRequestHandler rh = new DataRequestHandler(getDevice(false, false), "data");
 		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://dev/blub/data/a.pdf");
 

@@ -69,10 +69,13 @@
  */
 package org.cip4.bambi;
 
+import static org.mockito.Mockito.spy;
+
 import java.io.File;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.jdflib.auto.JDFAutoComChannel.EnumChannelType;
 import org.cip4.jdflib.core.DocumentJDFImpl;
 import org.cip4.jdflib.core.JDFAudit;
@@ -116,7 +119,20 @@ public abstract class BambiTestCaseBase
 		LogConfigurator.configureLog(null, null);
 		setTestNetwork(false);
 
-		// setTestNetwork(new UrlCheck("http://www.example.com").pingRC(1000) == 200);
+	}
+
+	/**
+	 * @param spy   if true we get a mock spy
+	 * @param synch TODO
+	 * @return
+	 */
+	protected static AbstractDevice getDevice(boolean spy, boolean synch)
+	{
+
+		final BambiTestDevice bambiTestDevice = new BambiTestDevice(synch);
+		bambiTestDevice.getQueueProcessor().reset();
+
+		return spy ? spy(bambiTestDevice) : bambiTestDevice;
 	}
 
 	/**
