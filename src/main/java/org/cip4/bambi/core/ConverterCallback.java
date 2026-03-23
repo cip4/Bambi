@@ -583,6 +583,12 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 				+ isJSON + "]";
 	}
 
+	@Override
+	public String shortString()
+	{
+		return getClass().getSimpleName() + " [toExt=" + EnumUtil.getName(fixToExtern) + ", toBambi=" + EnumUtil.getName(fixToBambi) + " j=" + isJSON;
+	}
+
 	/**
 	 * @see org.cip4.bambi.core.IConverterCallback#getJDFContentType()
 	 */

@@ -973,7 +973,7 @@ public class MessageSender implements Runnable, IPersistable
 		final InputStream is = messageDetails.getInputStream();
 		if (is == null || StringUtil.isEmpty(url))
 		{
-			throw new IllegalArgumentException("sending null input message stream to " + url);
+			throw new IllegalArgumentException(messageDetails + ": sending null input message stream to " + url);
 		}
 
 		final HTTPDetails httpDetails = messageDetails.mimeDet == null ? null : messageDetails.mimeDet.httpDetails;

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2019 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -78,11 +78,9 @@ import org.cip4.jdflib.datatypes.JDFAttributeMap;
 
 /**
  * this interface modifies jdf and jmf that are exchanged between Bambi and 3rd party Controllers or devices
- *
  * Copyright (C) 2007 Heidelberger Druckmaschinen AG. All Rights Reserved.
  *
  * @author Rainer Prosi
- *
  */
 public interface IConverterCallback
 {
@@ -92,7 +90,7 @@ public interface IConverterCallback
 	 * @param doc the Document to modify
 	 * @return the document representing the updated node
 	 */
-	public JDFDoc prepareJDFForBambi(JDFDoc doc);
+	JDFDoc prepareJDFForBambi(JDFDoc doc);
 
 	/**
 	 * update the processed jdf for the external controller/manager
@@ -100,7 +98,7 @@ public interface IConverterCallback
 	 * @param doc the Document to modify
 	 * @return the document representing the updated node
 	 */
-	public JDFDoc updateJDFForExtern(JDFDoc doc);
+	JDFDoc updateJDFForExtern(JDFDoc doc);
 
 	/**
 	 * prepare a jmf for the device prior to submitting
@@ -108,7 +106,7 @@ public interface IConverterCallback
 	 * @param doc the Document to modify
 	 * @return the document representing the updated node
 	 */
-	public JDFDoc prepareJMFForBambi(JDFDoc doc);
+	JDFDoc prepareJMFForBambi(JDFDoc doc);
 
 	/**
 	 * update a jmf from the the external controller/manager
@@ -116,31 +114,30 @@ public interface IConverterCallback
 	 * @param doc the Document to modify
 	 * @return the document representing the updated node
 	 */
-	public JDFDoc updateJMFForExtern(JDFDoc doc);
+	JDFDoc updateJMFForExtern(JDFDoc doc);
 
 	/**
 	 * return the modified JMF as a stream
 	 *
 	 * @return
 	 */
-	public InputStream getJMFExternStream(JDFDoc doc);
+	InputStream getJMFExternStream(JDFDoc doc);
 
 	/**
 	 * return the modified JDF as a stream
 	 *
 	 * @return
 	 */
-	public InputStream getJDFExternStream(JDFDoc doc);
+	InputStream getJDFExternStream(JDFDoc doc);
 
 	/**
-	 *
 	 * @return the external content type for JDF
 	 * @deprecated use the EnumVersion method
 	 */
 	@Deprecated
-	public String getJDFContentType();
+	String getJDFContentType();
 
-	public default String getJDFContentType(EnumVersion v, boolean isJSON)
+	default String getJDFContentType(EnumVersion v, boolean isJSON)
 	{
 		return getJDFContentType();
 	}
@@ -155,36 +152,39 @@ public interface IConverterCallback
 		return false;
 	}
 
+	default String shortString()
+	{
+		return toString();
+	}
+
 	/**
 	 * for serialization
 	 *
 	 * @return
 	 */
-	public JDFAttributeMap getCallbackDetails();
+	JDFAttributeMap getCallbackDetails();
 
 	/**
 	 * for serialization
 	 *
 	 * @param map
 	 */
-	public void setCallbackDetails(final JDFAttributeMap map);
+	void setCallbackDetails(final JDFAttributeMap map);
 
 	/**
-	 * 
 	 * @param v
 	 * @return
 	 */
-	public default String getJMFContentType(EnumVersion v, boolean isJSON)
+	default String getJMFContentType(EnumVersion v, boolean isJSON)
 	{
 		return getJMFContentType();
 	}
 
 	/**
-	 *
 	 * @return the external content type for JMF
 	 * @deprecated use the defaulted version
 	 */
 	@Deprecated
-	public String getJMFContentType();
+	String getJMFContentType();
 
 }

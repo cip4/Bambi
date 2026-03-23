@@ -119,9 +119,9 @@ public class JobPhase implements Cloneable
 
 			final PhaseAmount pa = addPhaseAmount(resourceName, speed, amountIsGood);
 			pa.masterAmount = xmlAmount.getBoolAttribute("Master", null, resourceName.equalsIgnoreCase(masterAmountName));
-			pa.splitPart = xmlAmount.getBoolAttribute("SplitPart", null,
-					StringUtil.token(resourceName, 1, ":") != null && EnumUsage.getEnum(StringUtil.token(resourceName, 1, ":")) == null);
-			pa.randomPercent = xmlAmount.getIntAttribute("RandomPercent", null, 0);
+			final boolean defSplit = StringUtil.token(resourceName, 1, ":") != null && EnumUsage.getEnum(StringUtil.token(resourceName, 1, ":")) == null;
+			pa.setSplitPart(xmlAmount.getBoolAttribute("SplitPart", null, defSplit));
+			pa.setRandomPercent(xmlAmount.getIntAttribute(PhaseAmount.AMOUNT_RANDOM_PERCENT, null, 0));
 		}
 
 	}

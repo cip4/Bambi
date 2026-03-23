@@ -103,7 +103,7 @@ public class BambiServer extends JettyServer
 {
 	public static final String BAMBI = "bambi";
 	public static final String RESOURCES_FILE = "/list.txt";
-	final static Log log = LogFactory.getLog(BambiServer.class);
+	static final Log log = LogFactory.getLog(BambiServer.class);
 
 	final MultiDeviceProperties mp;
 	protected BambiServlet myServlet;
@@ -195,7 +195,7 @@ public class BambiServer extends JettyServer
 
 	/**
 	 * hook for password protection
-	 * 
+	 *
 	 * @param req
 	 * @param resp
 	 * @return
@@ -265,7 +265,9 @@ public class BambiServer extends JettyServer
 			while ((line = r.readLine()) != null)
 			{
 				if (line.isEmpty())
+				{
 					continue;
+				}
 
 				final InputStream nextStream = myClass.getResourceAsStream(line);
 				if (nextStream != null)
@@ -388,14 +390,18 @@ public class BambiServer extends JettyServer
 	{
 		super.setPort(port);
 		if (mp != null)
+		{
 			mp.setPort(port);
+		}
 	}
 
 	@Override
 	public void setSSLPort(final int port)
 	{
 		if (mp != null)
+		{
 			mp.setSSLPort(port);
+		}
 		super.setSSLPort(port);
 	}
 

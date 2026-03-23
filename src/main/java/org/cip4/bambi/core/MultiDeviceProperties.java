@@ -809,11 +809,10 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	{
 		// to evaluate current name and send it back rather than 127.0.0.1
 		final XMLDoc installDoc = getXMLDoc(appDir);
-		final Log sLog = LogFactory.getLog(MultiDeviceProperties.class);
 
 		if (installDoc == null)
 		{
-			sLog.fatal("Failed to parse " + DEVICES_CONFIG_FILE + " at " + getConfigFile(appDir).getAbsolutePath() + ", rootDev is null");
+			log.fatal("Failed to parse " + DEVICES_CONFIG_FILE + " at " + getConfigFile(appDir).getAbsolutePath() + ", rootDev is null");
 			throw new JDFException("Failed to parse " + DEVICES_CONFIG_FILE + " at " + getConfigFile(appDir).getAbsolutePath() + ", rootDev is null");
 		}
 
@@ -830,18 +829,18 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 			if (installProps.isCompatible(localProps))
 			{
 				installProps = localProps;
-				sLog.info("using local device config from: " + localConfigFile.getAbsolutePath());
+				log.info("using local device config from: " + localConfigFile.getAbsolutePath());
 				mustCopy = false;
 			}
 			else
 			{
-				sLog.warn("overwriting incompatible device config in: " + localConfigFile.getAbsolutePath());
+				log.warn("overwriting incompatible device config in: " + localConfigFile.getAbsolutePath());
 			}
 		}
 		if (mustCopy)
 		// using webapp devices
 		{
-			sLog.info("copying to local device config file: " + localConfigFile.getAbsolutePath());
+			log.info("copying to local device config file: " + localConfigFile.getAbsolutePath());
 			deviceDir.mkdirs();
 			installDoc.setOriginalFileName(localConfigFile.getAbsolutePath());
 			installProps.serialize();

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -156,6 +156,21 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		final InputStream is = md2.getInputStream();
 		final JSONObjHelper oh = new JSONObjHelper(is);
 		assertNotNull(oh.getRootObject());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testToString()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final ConverterCallback cb = new ConverterCallback();
+		final MessageDetails md = new MessageDetails(jmf, null, cb, null, "http://foo");
+		assertNotNull(md.toString());
+		final MessageDetails md2 = new MessageDetails(jmf, null, null, null, "http://foo");
+		assertNotNull(md2.toString());
+
 	}
 
 	/**

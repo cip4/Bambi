@@ -42,8 +42,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.DataFormatException;
 
-import jakarta.mail.Multipart;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
@@ -78,11 +76,12 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.net.HTTPDetails;
 
+import jakarta.mail.Multipart;
+
 /**
  * MessageDetails describes one jmf or mime package that is queued for a given url
  *
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
  *         before May 26, 2009
  */
 public class MessageDetails
@@ -110,13 +109,14 @@ public class MessageDetails
 	/**
 	 * constructor for a single jmf message
 	 *
-	 * @param _jmf the jmf to send
+	 * @param _jmf         the jmf to send
 	 * @param _respHandler the response handler to handle the response after the message is queued
-	 * @param _callback the callback to apply to the message prior to sending it
-	 * @param hdet the http details
-	 * @param detailedURL the complete, fully expanded url to send to
+	 * @param _callback    the callback to apply to the message prior to sending it
+	 * @param hdet         the http details
+	 * @param detailedURL  the complete, fully expanded url to send to
 	 */
-	protected MessageDetails(final JDFJMF _jmf, final IResponseHandler _respHandler, final IConverterCallback _callback, final HTTPDetails hdet, final String detailedURL)
+	protected MessageDetails(final JDFJMF _jmf, final IResponseHandler _respHandler, final IConverterCallback _callback, final HTTPDetails hdet,
+			final String detailedURL)
 	{
 		jmf = _jmf;
 		jdf = null;
@@ -145,22 +145,22 @@ public class MessageDetails
 			}
 			else
 			{
-				fireForget = jmf.getChildWithAttribute(ElementName.SIGNAL, AttributeName.CHANNELMODE, null, EnumChannelMode.Reliable.getName(), 0, true) == null;
+				fireForget = jmf.getChildWithAttribute(ElementName.SIGNAL, AttributeName.CHANNELMODE, null, EnumChannelMode.Reliable.getName(), 0,
+						true) == null;
 			}
 		}
 	}
 
 	/**
-	 *
 	 * @param jmf
 	 * @param jdf
 	 * @param _respHandler the response handler to handle the response after the message is queued
-	 * @param _callback the callback to apply to the message prior to sending it
-	 * @param mdet the http and mime details
-	 * @param _url the complete, fully expanded url to send to
+	 * @param _callback    the callback to apply to the message prior to sending it
+	 * @param mdet         the http and mime details
+	 * @param _url         the complete, fully expanded url to send to
 	 */
-	protected MessageDetails(final JDFJMF jmf, final JDFNode jdf, final IResponseHandler _respHandler, final IConverterCallback _callback, final MIMEDetails mdet,
-			final String _url)
+	protected MessageDetails(final JDFJMF jmf, final JDFNode jdf, final IResponseHandler _respHandler, final IConverterCallback _callback,
+			final MIMEDetails mdet, final String _url)
 	{
 		this(jmf, _respHandler, _callback, null, _url);
 		mimeDet = mdet;
@@ -254,7 +254,6 @@ public class MessageDetails
 	}
 
 	/**
-	 *
 	 * @param mess
 	 * @return
 	 */
@@ -372,12 +371,10 @@ public class MessageDetails
 	{
 		final XJDF20 xjdf20 = new XJDF20();
 		xjdf20.setUpdateVersion(false);
-		final KElement makeNewJMF = xjdf20.makeNewJMF(_jmf);
-		return makeNewJMF;
+		return xjdf20.makeNewJMF(_jmf);
 	}
 
 	/**
-	 *
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -389,12 +386,14 @@ public class MessageDetails
 		{
 			ret += " Message Type=" + m.getType();
 		}
-			if (jdf != null)
+		if (jdf != null)
 		{
 			ret += "Package";
 		}
-			if(callback!=null)
-				ret+=" Callback: "+callback.getClass().getSimpleName();
+		if (callback != null)
+		{
+			ret += " Callback: " + callback.getClass().getSimpleName();
+		}
 
 		return ret;
 	}
@@ -410,8 +409,6 @@ public class MessageDetails
 	}
 
 	/**
-	 *
-	 *
 	 * @return
 	 */
 	public boolean isFireForget()
@@ -420,7 +417,6 @@ public class MessageDetails
 	}
 
 	/**
-	 *
 	 * @param fireForget
 	 */
 	public void setFireForget(final boolean fireForget)
@@ -429,7 +425,6 @@ public class MessageDetails
 	}
 
 	/**
-	 *
 	 * @param sendReturn
 	 */
 	public void setReturn(final SendReturn sendReturn)
@@ -439,7 +434,6 @@ public class MessageDetails
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public MessageSender.SendReturn getReturn()
@@ -448,7 +442,6 @@ public class MessageDetails
 	}
 
 	/**
-	 *
 	 * get the name
 	 *
 	 * @return
@@ -459,7 +452,6 @@ public class MessageDetails
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public String getContentType()
@@ -533,7 +525,6 @@ public class MessageDetails
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	InputStream getMimeInputStream()
