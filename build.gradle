@@ -51,8 +51,8 @@ tasks.register('startScriptsHeadless', CreateStartScripts) {
 installDist.dependsOn(startScriptsHeadless)
 
 dependencies {
-    implementation 'org.apache.logging.log4j:log4j-jcl:2.25.3'
-    implementation 'org.apache.logging.log4j:log4j-core:2.25.3'
+    implementation 'org.apache.logging.log4j:log4j-jcl:2.25.4'
+    implementation 'org.apache.logging.log4j:log4j-core:2.25.4'
  	implementation ('org.cip4.lib.jdf:JDFLibJ:2.2.8.+'){
 		exclude group: 'xml-apis'
 	}
