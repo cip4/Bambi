@@ -5,23 +5,27 @@
 		NodeStatus="Setup" NodeStatusDetails="node warmup">
 		<Amount Resource="Component:Output" Speed="0" />
 		<Amount Resource="Media:Input" Speed="0"  />
+		<Amount Resource="Ink:Input" Speed="0" RandomPercent="20" SplitPart="true"  />
 		</JobPhase>
 	<JobPhase Duration="10"
 		DeviceStatus="Setup" DeviceStatusDetails="Waste" 
 		NodeStatus="Setup" NodeStatusDetails="node setup">
 		<Amount Resource="Component:Output" Speed="4000" Waste="true"/>
 		<Amount Resource="Media:Input" Speed="4000" Waste="true" />
+		<Amount Resource="Ink:Input" Speed="2" RandomPercent="20" SplitPart="true"  />
 		</JobPhase>
 	<JobPhase Duration="99999" 
 		DeviceStatus="Running" DeviceStatusDetails="Good" 
 		NodeStatus="InProgress" NodeStatusDetails="producing node">
 		<Amount Resource="Component:Output" Speed="16000" />
 		<Amount Resource="Media:Input" Speed="16000"  />
+		<Amount Resource="Ink:Input" Speed="10" RandomPercent="20" SplitPart="true"  />
 		</JobPhase>
 	<JobPhase Duration="10" 
 		DeviceStatus="Cleanup" DeviceStatusDetails="WashUp" 
 		NodeStatus="Cleanup" NodeStatusDetails="cleaning up">
 		<Amount Resource="Component:Output" Speed="0" />
 		<Amount Resource="Media:Input" Speed="0"  />
+		<Amount Resource="Ink:Input" Speed="10" RandomPercent="20" SplitPart="true"  />
 	</JobPhase>
 </BambiJob>

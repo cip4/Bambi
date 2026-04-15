@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -39,7 +39,7 @@
 package org.cip4.bambi.core.messaging;
 
 import java.util.HashMap;
-import java.util.Map.Entry;
+import java.util.List;
 import java.util.Vector;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -55,6 +55,7 @@ import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.StringArray;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -203,7 +204,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 				return false;
 			}
 
-			final Vector<MessageType> messageTypes = ContainerUtil.getKeyVector(messageMap);
+			final List<MessageType> messageTypes = ContainerUtil.getKeyList(messageMap);
 			final HashMap<String, MessageStuff> familyTypesMap = new HashMap<>();
 
 			for (final MessageType messageType : messageTypes)
@@ -226,25 +227,22 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 					messageStuff.subscribe = messageStuff.subscribe || messageHandler.isSubScribable();
 				}
 			}
+			final StringArray messages = new StringArray(familyTypesMap.keySet());
+			messages.sort(null);
 
-			for (final Entry<String, MessageStuff> stringMessageStuffEntry : familyTypesMap.entrySet())
+			for (final String familyType : messages)
 			{
-				final String familyType = stringMessageStuffEntry.getKey();
-
-				if (KElement.isWildCard(familyType))
+				if (!KElement.isWildCard(familyType))
 				{
-					continue; // skip "*"
+					final JDFMessageService jdfMessageService = jmfResponse.appendMessageService();
+					jdfMessageService.setType(familyType);
+					final MessageStuff messageStuff = familyTypesMap.get(familyType);
+					jdfMessageService.setFamilies(messageStuff.families);
+					jdfMessageService.setJMFRole(EnumJMFRole.Receiver);
+					jdfMessageService.setURLSchemes(new VString("http", null));
+					jdfMessageService.setPersistent(messageStuff.subscribe);
+					jdfMessageService.setAcknowledge(messageStuff.acknowledge);
 				}
-
-				final JDFMessageService jdfMessageService = jmfResponse.appendMessageService();
-				jdfMessageService.setType(familyType);
-
-				final MessageStuff messageStuff = familyTypesMap.get(familyType);
-				jdfMessageService.setFamilies(messageStuff.families);
-				jdfMessageService.setJMFRole(EnumJMFRole.Receiver);
-				jdfMessageService.setURLSchemes(new VString("http", null));
-				jdfMessageService.setPersistent(messageStuff.subscribe);
-				jdfMessageService.setAcknowledge(messageStuff.acknowledge);
 			}
 			return true;
 		}

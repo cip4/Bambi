@@ -1,29 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <BambiJob Error="3">
-<JobPhase Duration="2"
+	<JobPhase Duration="2"
 		DeviceStatus="Setup" DeviceStatusDetails="WarmingUp" 
 		NodeStatus="Setup" NodeStatusDetails="node warmup">
-		<Amount Resource="Component:Output" />
-		<Amount Resource="Media:Input"   />
-		<Amount Resource="UsageCounter:Input" />
+		<Amount Resource="Component:Output" Speed="0" />
+		<Amount Resource="Media:Input" Speed="0"  />
+		<Amount Resource="Ink:Input" Speed="0" RandomPercent="20" SplitPart="true"  />
 		</JobPhase>
 	<JobPhase Duration="10"
 		DeviceStatus="Setup" DeviceStatusDetails="Waste" 
 		NodeStatus="Setup" NodeStatusDetails="node setup">
-		<Amount Resource="Component:Output"  Waste="true"/>
-		<Amount Resource="Media:Input" Speed="4000" Waste="true" Master="true"  />
+		<Amount Resource="Component:Output" Speed="4000" Waste="true"/>
+		<Amount Resource="Media:Input" Speed="4000" Waste="true" />
+		<Amount Resource="Ink:Input" Speed="2" RandomPercent="20" SplitPart="true"  />
 		</JobPhase>
 	<JobPhase Duration="99999" 
 		DeviceStatus="Running" DeviceStatusDetails="Good" 
 		NodeStatus="InProgress" NodeStatusDetails="producing node">
-		<Amount Resource="Component:Output"   />
-		<Amount Resource="Media:Input" Speed="16000" Master="true" />
+		<Amount Resource="Component:Output" Speed="16000" />
+		<Amount Resource="Media:Input" Speed="16000"  />
+		<Amount Resource="Ink:Input" Speed="10" RandomPercent="20" SplitPart="true"  />
 		</JobPhase>
 	<JobPhase Duration="10" 
 		DeviceStatus="Cleanup" DeviceStatusDetails="WashUp" 
 		NodeStatus="Cleanup" NodeStatusDetails="cleaning up">
-		<Amount Resource="Component:Output" />
-		<Amount Resource="Media:Input" />
-		<Amount Resource="UsageCounter:Input" />
+		<Amount Resource="Component:Output" Speed="0" />
+		<Amount Resource="Media:Input" Speed="0"  />
+		<Amount Resource="Ink:Input" Speed="10" RandomPercent="20" SplitPart="true"  />
 	</JobPhase>
 </BambiJob>
