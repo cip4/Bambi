@@ -144,6 +144,13 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		device.updateWatchURL("http://dummy.com", EWatchFormat.JSON.name());
 		assertEquals(EWatchFormat.JSON, device.getProperties().getWatchFormat());
 		assertEquals("http://dummy.com", device.getProperties().getWatchURL());
+		device.updateWatchURL("", EWatchFormat.JSON.name());
+		assertEquals("http://dummy.com", device.getProperties().getWatchURL());
+		device.updateWatchURL("", EWatchFormat.JSON.name());
+		assertEquals("http://dummy.com", device.getProperties().getWatchURL());
+		assertEquals(EWatchFormat.JSON, device.getProperties().getWatchFormat());
+		device.updateWatchURL("http://dummy.com", EWatchFormat.NONE.name());
+		assertEquals(null, device.getProperties().getWatchURL());
 	}
 
 	/**

@@ -1577,11 +1577,6 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected void updateWatchURL(String newWatchURL, final String newWatchFormat)
 	{
-		if ("-".equals(newWatchURL))
-		{
-			newWatchURL = null;
-			log.info("explicitly removing watchUrl");
-		}
 
 		final IDeviceProperties properties = getProperties();
 		final EWatchFormat oldFormat = properties.getWatchFormat();
@@ -1589,6 +1584,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		final String oldWatchURL = properties.getWatchURL();
 		if (!ContainerUtil.equals(oldWatchURL, newWatchURL) || !format.equals(oldFormat))
 		{
+			if (!StringUtil.isEmpty(oldWatchURL))
+			{
+				log.info("removing watch subscriptions to: " + oldWatchURL);
+				_theSignalDispatcher.removeSubScriptions(oldWatchURL, null);
+			}
 			if (StringUtil.isEmpty(newWatchURL))
 			{
 				newWatchURL = oldWatchURL;
@@ -1596,20 +1596,23 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			newWatchURL = StringUtil.getNonEmpty(newWatchURL);
 
 			// explicit empty strings must be handled
-			if (newWatchURL != null && !UrlUtil.isHttp(newWatchURL) && !UrlUtil.isHttps(newWatchURL))
+			if (EWatchFormat.NONE.equals(format))
+			{
+				log.info("removing watch url: (" + oldWatchURL + ")");
+				properties.setWatchURL(null);
+				properties.setWatchFormat(null);
+			}
+			else if (newWatchURL != null && !UrlUtil.isHttp(newWatchURL) && !UrlUtil.isHttps(newWatchURL))
 			{
 				log.warn("attempting to set invalid watch url: (" + newWatchURL + ") ignore");
-				return;
 			}
-			properties.setWatchURL(newWatchURL);
-			properties.setWatchFormat(format);
-			if (StringUtil.getNonEmpty(oldWatchURL) != null)
+			else
 			{
-				log.info("removing watch subscriptions to: " + oldWatchURL);
-				_theSignalDispatcher.removeSubScriptions(oldWatchURL, null);
+				properties.setWatchURL(newWatchURL);
+				properties.setWatchFormat(format);
+				addWatchSubscriptions();
+				properties.serialize();
 			}
-			addWatchSubscriptions();
-			properties.serialize();
 		}
 	}
 
