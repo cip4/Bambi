@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2025 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -148,6 +148,25 @@ public class MessageSenderTest extends BambiTestCase
 		{
 			assertNull(s.sendDetails(md));
 		}
+	}
+
+	/**
+	 * @throws Exception
+	 * @throws IllegalArgumentException
+	 */
+	@Test
+	public void testOldDetails() throws IllegalArgumentException, Exception
+	{
+		final DumpDir outputDumpDir = new DumpDir(new File(sm_dirTestDataTemp + "bambiOut"));
+		final DumpDir inputDumpDir = new DumpDir(new File(sm_dirTestDataTemp + "bambiIn"));
+		MessageSender.addDumps("TestSender", inputDumpDir, outputDumpDir);
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final MessageSender s = getTestSender();
+
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
+		s.queueMessageDetails(md);
+		s.sendFirstMessage();
+		assertNotNull(s.getOldDetails(0));
 	}
 
 	/**
@@ -323,6 +342,26 @@ public class MessageSenderTest extends BambiTestCase
 		s.processSuccess(md);
 
 		assertNotNull(s);
+	}
+
+	/**
+	 * @throws IOException
+	 * @throws IllegalArgumentException
+	 */
+	@Test
+	public void testProcessSuccessFiFo() throws IllegalArgumentException, IOException
+	{
+		final MessageSender s = getTestSender();
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://nosuchurl");
+		md.setFireForget(true);
+		s.processSuccess(md);
+		md.setFireForget(false);
+		s.processSuccess(md);
+		s.getJMFFactory().setLogLots(true);
+		s.processSuccess(md);
+
+		assertNotNull(s.fastFiFoMessageDetails.peek(0));
 	}
 
 	/**

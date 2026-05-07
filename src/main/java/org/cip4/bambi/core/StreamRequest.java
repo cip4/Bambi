@@ -75,12 +75,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import org.cip4.jdflib.util.ByteArrayIOFileStream;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * class to package an input stream together with the context information of the request
@@ -105,7 +106,6 @@ public class StreamRequest extends ContainerRequest
 	/**
 	 * @param file
 	 * @return
-	 *
 	 */
 	public static StreamRequest createStreamRequest(final File file)
 	{
@@ -158,6 +158,15 @@ public class StreamRequest extends ContainerRequest
 		return theStream == null ? null : theStream.getInputStream();
 	}
 
+	public String getStreamString(int pos, int len)
+	{
+		if (pos > 0)
+		{
+			len += pos;
+		}
+		return theStream == null ? null : StringUtil.substring(theStream.getInputStream().asString(len), pos, len);
+	}
+
 	/**
 	 * @see java.lang.Object#toString()
 	 * @return
@@ -165,22 +174,16 @@ public class StreamRequest extends ContainerRequest
 	@Override
 	public String toString()
 	{
-		final int s = (theStream == null) ? 0 : theStream.size();
-		if (s > 0)
-		{
-			return super.toString() + " stream size: " + s;
-		}
-		else
-		{
-			return super.toString();
-		}
+		return super.toString() + " stream: " + getStreamString(0, 42);
 	}
 
 	@Override
 	protected void finalize() throws Throwable
 	{
 		if (theStream != null)
+		{
 			theStream.close();
+		}
 		super.finalize();
 	}
 

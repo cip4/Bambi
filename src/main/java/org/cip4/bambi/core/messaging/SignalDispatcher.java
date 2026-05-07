@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -38,11 +38,11 @@
  */
 package org.cip4.bambi.core.messaging;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -131,7 +131,6 @@ public class SignalDispatcher
 		}
 
 		/**
-		 *
 		 * @param request
 		 * @return
 		 */
@@ -172,14 +171,28 @@ public class SignalDispatcher
 				setXMLRoot(request);
 				if (bListSenders)
 				{
-					listMessageSenders(request, true, pos);
-					if (pos > 0)
+					if (request.getBooleanParam("Raw") && pos > 0)
 					{
-						setXSLTURL(device.getXSLTBaseFromContext(request.getContextRoot()) + "/subscriptionDetails.xsl");
+						final String url = request.getParameter(AttributeName.URL);
+						final MessageSender ms = device.getJMFFactory().getCreateMessageSender(url);
+						final MessageDetails det = (ms != null) ? ms.getOldDetails(pos - 1) : null;
+						final InputStream is = det == null ? null : det.getInputStream();
+						if (is != null)
+						{
+							return new XMLResponse(KElement.parseStream(is));
+						}
 					}
 					else
 					{
-						setXSLTURL(device.getXSLTBaseFromContext(request.getContextRoot()) + "/subscriptionList.xsl");
+						listMessageSenders(request, true, pos);
+						if (pos > 0)
+						{
+							setXSLTURL(device.getXSLTBaseFromContext(request.getContextRoot()) + "/subscriptionDetails.xsl");
+						}
+						else
+						{
+							setXSLTURL(device.getXSLTBaseFromContext(request.getContextRoot()) + "/subscriptionList.xsl");
+						}
 					}
 				}
 				else
@@ -195,8 +208,7 @@ public class SignalDispatcher
 				showDetails(request, details, pos);
 				setXSLTURL(device.getXSLTBaseFromContext(device.getContext(request)) + "/subscriptionDetails.xsl");
 			}
-			final XMLResponse r = new XMLResponse(getRoot());
-			return r;
+			return new XMLResponse(getRoot());
 
 		}
 
@@ -474,8 +486,8 @@ public class SignalDispatcher
 						final MemorySpy memorySpy = new MemorySpy();
 						memorySpy.setWantMega(true);
 						final Map<String, Long> memMap = memorySpy.getSummaryMap();
-						log.info("Sent message# " + sentMessages + " to URL: " + url + JDFConstants.BLANK + timer.getSingleSummary() + JDFConstants.BLANK + "mem used (MB): "
-								+ memMap.get("Current") + JDFConstants.SLASH + memMap.get("Total"));
+						log.info("Sent message# " + sentMessages + " to URL: " + url + JDFConstants.BLANK + timer.getSingleSummary() + JDFConstants.BLANK
+								+ "mem used (MB): " + memMap.get("Current") + JDFConstants.SLASH + memMap.get("Total"));
 					}
 				}
 			}
@@ -504,10 +516,8 @@ public class SignalDispatcher
 			{
 				final Vector<MsgSubscription> v = new Vector<>();
 				final Vector<Trigger> vSnafu = new Vector<>();
-				final Iterator<Trigger> it = triggers.iterator(); // active triggers
-				while (it.hasNext())
+				for (final Trigger t : triggers)
 				{
-					final Trigger t = it.next();
 					final String channelID = t.channelID;
 					final MsgSubscription sub = subscriptionMap.get(channelID);
 					if (sub == null)
@@ -522,17 +532,14 @@ public class SignalDispatcher
 					{
 						v.add(subClone);
 					}
-					else if (t.amount > 0)
+					else if ((t.amount > 0) && (subClone.repeatAmount > 0))
 					{
-						if (subClone.repeatAmount > 0)
+						final int last = subClone.lastAmount;
+						final int next = last + t.amount;
+						if (next / sub.repeatAmount > last / sub.repeatAmount)
 						{
-							final int last = subClone.lastAmount;
-							final int next = last + t.amount;
-							if (next / sub.repeatAmount > last / sub.repeatAmount)
-							{
-								sub.lastAmount = next; // not a typo - modify of the original subscription
-								v.add(subClone);
-							}
+							sub.lastAmount = next; // not a typo - modify of the original subscription
+							v.add(subClone);
 						}
 					}
 				}
@@ -567,26 +574,21 @@ public class SignalDispatcher
 			final Vector<MsgSubscription> subVector = new Vector<>();
 			synchronized (subscriptionMap)
 			{
-				final Iterator<Entry<String, MsgSubscription>> it = subscriptionMap.entrySet().iterator();
 				final long now = System.currentTimeMillis() / 1000;
-				while (it.hasNext())
+				for (final Entry<String, MsgSubscription> next : subscriptionMap.entrySet())
 				{
-					final Entry<String, MsgSubscription> next = it.next();
 					MsgSubscription sub = next.getValue();
-					if (sub.repeatTime > 0)
+					if ((sub.repeatTime > 0) && (now - sub.timeLastSubmissionTry >= sub.repeatTime))
 					{
-						if (now - sub.timeLastSubmissionTry >= sub.repeatTime)
+						sub.timeLastSubmissionTry += sub.repeatTime;
+						// we had a snafu with a long break or are in setup - synchronize to now
+						if (sub.timeLastSubmissionTry < now)
 						{
-							sub.timeLastSubmissionTry += sub.repeatTime;
-							// we had a snafu with a long break or are in setup - synchronize to now
-							if (sub.timeLastSubmissionTry < now)
-							{
-								sub.timeLastSubmissionTry = now;
-							}
-							sub = sub.clone();
-							sub.trigger = null;
-							subVector.add(sub);
+							sub.timeLastSubmissionTry = now;
 						}
+						sub = sub.clone();
+						sub.trigger = null;
+						subVector.add(sub);
 					}
 				}
 			} // end synch map
@@ -764,7 +766,7 @@ public class SignalDispatcher
 		{
 			log.error("Creating SignalDispatcher for null device");
 		}
-		subscriptionMap = new ConcurrentHashMap<String, MsgSubscription>();
+		subscriptionMap = new ConcurrentHashMap<>();
 		storage = new SubscriptionStore(this, dev == null ? null : dev.getDeviceDir());
 		triggers = new Vector<>();
 		mutex = new MyMutex();
@@ -776,7 +778,6 @@ public class SignalDispatcher
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	protected Dispatcher getDispatcher()
@@ -829,11 +830,10 @@ public class SignalDispatcher
 	 */
 	public boolean findSubscription(final JDFMessage m, final JDFResponse resp)
 	{
-		if (!(m instanceof IJMFSubscribable))
+		if (!(m instanceof final IJMFSubscribable query))
 		{
 			return false;
 		}
-		final IJMFSubscribable query = (IJMFSubscribable) m;
 		final JDFSubscription sub = query.getSubscription();
 		if (sub == null)
 		{
@@ -848,7 +848,6 @@ public class SignalDispatcher
 	}
 
 	/**
-	 *
 	 * @param subMess
 	 * @param queueEntryID
 	 * @return
@@ -861,7 +860,7 @@ public class SignalDispatcher
 	/**
 	 * add a subscription - returns the slaveChannelID of the new subscription, null if snafu
 	 *
-	 * @param subMess the subscription message - one of query or registration
+	 * @param subMess      the subscription message - one of query or registration
 	 * @param queueEntryID the associated QueueEntryID, should be null.
 	 * @return the slaveChannelID of the subscription, if successful, else null
 	 * @deprecated Use {@link #addSubscription(IJMFSubscribable,JDFResponse)} instead
@@ -891,13 +890,9 @@ public class SignalDispatcher
 		}
 
 		final MsgSubscription sub = new MsgSubscription(this, subMess);
-		if (subMess instanceof KElement)
+		if ((subMess instanceof final KElement subMess2) && UrlUtil.isJSONType(BambiNSExtension.getContentType(subMess2.getDocRoot())))
 		{
-			final KElement subMess2 = (KElement) subMess;
-			if (UrlUtil.isJSONType(BambiNSExtension.getContentType(subMess2.getDocRoot())))
-			{
-				sub.setJSON(true);
-			}
+			sub.setJSON(true);
 		}
 		final String url = sub.getURL();
 		if (!UrlUtil.isHttp(url) && !UrlUtil.isHttps(url))
@@ -917,7 +912,8 @@ public class SignalDispatcher
 		}
 		if (subscriptionMap.containsValue(sub))
 		{
-			JMFHandler.errorResponse(resp, "identical " + ((JDFMessage) subMess).getType() + " subscription already exists for URL:" + sub.url, 14, EnumClass.Warning);
+			JMFHandler.errorResponse(resp, "identical " + ((JDFMessage) subMess).getType() + " subscription already exists for URL:" + sub.url, 14,
+					EnumClass.Warning);
 			return null;
 		}
 		synchronized (subscriptionMap)
@@ -955,7 +951,6 @@ public class SignalDispatcher
 	}
 
 	/**
-	 *
 	 * get the subscription for a given channelID
 	 *
 	 * @param channelID the channelID of the subscription
@@ -968,14 +963,12 @@ public class SignalDispatcher
 	}
 
 	/**
-	 *
 	 * @param channelID
 	 * @return
 	 */
 	public MsgSubscription getSubscription(final String channelID)
 	{
-		final MsgSubscription msgSubscription = subscriptionMap.get(channelID);
-		return msgSubscription;
+		return subscriptionMap.get(channelID);
 	}
 
 	/**
@@ -1025,7 +1018,7 @@ public class SignalDispatcher
 	 * remove a know subscription by queueEntryID
 	 *
 	 * @param queueEntryID the queueEntryID of the subscriptions to remove
-	 * @param url url of subscriptions to zapp
+	 * @param url          url of subscriptions to zapp
 	 * @param messageType
 	 * @return the vector of remove subscriptions
 	 * @deprecated Use {@link #removeSubScriptions(String,String)} instead
@@ -1038,10 +1031,9 @@ public class SignalDispatcher
 
 	/**
 	 * remove a know subscription by queueEntryID
-	 * 
-	 * @param url url of subscriptions to zapp
-	 * @param messageType TODO
 	 *
+	 * @param url         url of subscriptions to zapp
+	 * @param messageType TODO
 	 * @return the vector of remove subscriptions
 	 */
 	public Vector<MsgSubscription> removeSubScriptions(final String url, final String messageType)
@@ -1067,12 +1059,11 @@ public class SignalDispatcher
 	}
 
 	/**
-	 *
 	 * returns the channelIDs of all matching subscriptions
 	 *
 	 * @param queueEntryID the queueEntryID of the subscriptions to remove
-	 * @param url url of subscriptions to zapp
-	 * @param messageType TODO
+	 * @param url          url of subscriptions to zapp
+	 * @param messageType  TODO
 	 * @return
 	 */
 	List<String> getSubscriptionKeys(final String url, final String messageType)
@@ -1103,50 +1094,48 @@ public class SignalDispatcher
 	/**
 	 * trigger a subscription based on slave ChannelID
 	 *
-	 * @param channelID the channelid of the channel to trigger
-	 * @param queueEntryID the queuentryid of the active queueentry
+	 * @param channelID      the channelid of the channel to trigger
+	 * @param queueEntryID   the queuentryid of the active queueentry
 	 * @param nodeIdentifier the nodeIdentifier of the active task
-	 * @param amount the amount produced since the last call, 0 if unknown, -1 for a global trigger
-	 * @param ignoreIfTime if true, don't trigger if a time subscription exists
-	 * @param last if true this is the last call and we notify the mutex
+	 * @param amount         the amount produced since the last call, 0 if unknown, -1 for a global trigger
+	 * @param ignoreIfTime   if true, don't trigger if a time subscription exists
+	 * @param last           if true this is the last call and we notify the mutex
 	 * @return the Trigger
 	 */
-	public Trigger triggerChannel(final String channelID, final String queueEntryID, final NodeIdentifier nodeIdentifier, final int amount, final boolean last, final boolean ignoreIfTime)
+	public Trigger triggerChannel(final String channelID, final String queueEntryID, final NodeIdentifier nodeIdentifier, final int amount, final boolean last,
+			final boolean ignoreIfTime)
 	{
 		final MsgSubscription subscription = getSubscription(channelID);
 		Trigger tNew = null;
-		if (subscription != null)
+		if ((subscription != null) && (!ignoreIfTime || subscription.repeatTime <= 0))
 		{
-			if (!ignoreIfTime || subscription.repeatTime <= 0)
+			tNew = new Trigger(queueEntryID, nodeIdentifier, channelID, amount);
+			synchronized (triggers)
 			{
-				tNew = new Trigger(queueEntryID, nodeIdentifier, channelID, amount);
-				synchronized (triggers)
-				{
-					final Trigger t = getTrigger(tNew);
+				final Trigger t = getTrigger(tNew);
 
-					if (t == null)
-					{
-						triggers.add(tNew);
-					}
-					else if (amount >= 0 && t.amount >= 0) // -1 always forces a trigger
-					{
-						t.amount += amount;
-						tNew = t;
-					}
-					else if (t.amount > 0 && amount < 0)
-					{
-						t.amount = amount;
-						tNew = t;
-					}
-					else if (t.amount < 0 && amount < 0)// always add a trigger if amount<0
-					{
-						triggers.add(tNew);
-					}
-				}
-				if (amount != 0)
+				if (t == null)
 				{
-					lastCalled++;
+					triggers.add(tNew);
 				}
+				else if (amount >= 0 && t.amount >= 0) // -1 always forces a trigger
+				{
+					t.amount += amount;
+					tNew = t;
+				}
+				else if (t.amount > 0 && amount < 0)
+				{
+					t.amount = amount;
+					tNew = t;
+				}
+				else if (t.amount < 0 && amount < 0)// always add a trigger if amount<0
+				{
+					triggers.add(tNew);
+				}
+			}
+			if (amount != 0)
+			{
+				lastCalled++;
 			}
 		}
 		if (last && lastCalled > 0)
@@ -1186,8 +1175,8 @@ public class SignalDispatcher
 	 * trigger a subscription based on queuentryID
 	 *
 	 * @param queueEntryID the queuentryid of the active queueentry
-	 * @param nodeID the nodeIdentifier of the active task
-	 * @param amount the amount produced since the last call, 0 if unknown, -1 for a global trigger
+	 * @param nodeID       the nodeIdentifier of the active task
+	 * @param amount       the amount produced since the last call, 0 if unknown, -1 for a global trigger
 	 * @param msgType
 	 * @return the list of actual triggers
 	 */
@@ -1276,8 +1265,8 @@ public class SignalDispatcher
 	/**
 	 * return all subscription channels for a given message type and device id
 	 *
-	 * @param typ the message type filter
-	 * @param senderID the senderid filter
+	 * @param typ          the message type filter
+	 * @param senderID     the senderid filter
 	 * @param queueEntryID
 	 * @return set of channelID values that match the filters
 	 */
@@ -1290,8 +1279,8 @@ public class SignalDispatcher
 	/**
 	 * return all subscription channels for a given message type and device id
 	 *
-	 * @param typ the message type filter
-	 * @param senderID the senderid filter
+	 * @param typ          the message type filter
+	 * @param senderID     the senderid filter
 	 * @param queueEntryID
 	 * @return set of channelID values that match the filters
 	 */
@@ -1343,7 +1332,6 @@ public class SignalDispatcher
 	}
 
 	/**
-	 *
 	 * @param typ
 	 * @return
 	 */

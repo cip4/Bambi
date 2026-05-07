@@ -50,6 +50,8 @@ import java.util.Vector;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.BambiTestDevice;
+import org.cip4.bambi.core.ContainerRequest;
+import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.workers.WorkerDevice;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -254,6 +256,45 @@ public class SignalDispatcherTest extends BambiTestCase
 	}
 
 	/**
+	*
+	*/
+	@Test
+	public void testHandleGetList()
+	{
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
+		final JDFQuery q = jmf.getQuery(0);
+		final JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(1.0);
+		s.setURL("http://localhost:8080/httpdump/");
+		dispatcher.addSubscription(q, null);
+		final ContainerRequest req = new ContainerRequest();
+		final XMLResponse resp = dispatcher.handleGet(req);
+		assertNotNull(resp);
+	}
+
+	/**
+	*
+	*/
+	@Test
+	public void testHandleGetDetails()
+	{
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
+		final JDFQuery q = jmf.getQuery(0);
+		final JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(1.0);
+		s.setURL("http://localhost:8080/httpdump/");
+		dispatcher.addSubscription(q, null);
+		final ContainerRequest req = new ContainerRequest();
+		req.setParameter("ListSenders", "true");
+		req.setParameter("pos", "1");
+		final XMLResponse resp = dispatcher.handleGet(req);
+		assertNotNull(resp);
+		req.setParameter("Raw", "true");
+		final XMLResponse raw = dispatcher.handleGet(req);
+		assertNotNull(raw);
+	}
+
+	/**
 	 *
 	 */
 	@Test
@@ -263,9 +304,13 @@ public class SignalDispatcherTest extends BambiTestCase
 		{
 			EnumType status = EnumType.Notification;
 			if (i == 0)
+			{
 				status = EnumType.Status;
+			}
 			else if (i == 1)
+			{
 				status = EnumType.Resource;
+			}
 
 			final JDFJMF jmf1 = JDFJMF.createJMF(EnumFamily.Query, status);
 			final JDFQuery q1 = jmf1.getQuery(0);

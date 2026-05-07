@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -203,6 +203,18 @@ public class ContainerRequestTest extends BambiTestCaseBase
 	*
 	*/
 	@Test
+	public void testgetParameterMap()
+	{
+		final ContainerRequest req = new ContainerRequest();
+		req.setRequestURI("http://host/foo/bar/dev");
+		req.setParameterMap(new JDFAttributeMap("A", "B"));
+		assertEquals("B", req.getParameterMap().get("A"));
+	}
+
+	/**
+	*
+	*/
+	@Test
 	public void testgetLongParameter()
 	{
 		final ContainerRequest req = new ContainerRequest();
@@ -222,6 +234,7 @@ public class ContainerRequestTest extends BambiTestCaseBase
 		final String requestURI = "http://host/foo/bar/dev";
 		req.setRequestURI(requestURI);
 		assertTrue(req.toString().contains(requestURI));
+		assertTrue(req.shortString().contains(requestURI));
 	}
 
 	/**
@@ -247,6 +260,7 @@ public class ContainerRequestTest extends BambiTestCaseBase
 		req.setParameter("a", "b");
 		req.setRequestURI(requestURI);
 		assertTrue(req.toString().contains("}"));
+		assertFalse(req.shortString().contains("}"));
 	}
 
 	/**

@@ -204,6 +204,41 @@ public class QueueProcessorTest extends BambiTestCase
 	}
 
 	/**
+	 * @throws IOException
+	 * @throws MessagingException
+	 */
+	@Test
+	public void testGetRawDoc2() throws IOException, MessagingException
+	{
+		final JDFDoc docJMF = new JDFDoc("JMF");
+		final JDFJMF jmf = docJMF.getJMFRoot();
+		jmf.setSenderID("DeviceID");
+		final JDFCommand com = (JDFCommand) jmf.appendMessageElement(JDFMessage.EnumFamily.Command, JDFMessage.EnumType.SubmitQueueEntry);
+		final JDFQueueSubmissionParams sqep = com.appendQueueSubmissionParams();
+
+		final JDFDoc docJDF = JDFNode.createRoot().getOwnerDocument_JDFElement();
+		sqep.setURL("cid:dummy"); // will be overwritten by buildMimePackage
+		final MimeWriter mw = new MimeWriter();
+		mw.buildMimePackage(docJMF, docJDF, false);
+		final MIMEDetails mimeDetails = new MIMEDetails();
+		mimeDetails.transferEncoding = UrlUtil.BINARY;
+		mimeDetails.modifyBoundarySemicolon = false;
+		mw.setMIMEDetails(mimeDetails);
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
+		final JDFDoc d1 = qp.getRawDocFromMessage(com, sqep);
+		assertNotNull(d1);
+		final JDFDoc d11 = qp.getRawDocFromMessage(com, sqep);
+		assertNotNull(d11);
+		final EPackage pm = URLReader.getPackMethod();
+		URLReader.setPackMethod(EPackage.NONE);
+		final JDFDoc d2 = qp.getRawDocFromMessage(com, sqep);
+		assertNotNull(d2);
+		final JDFDoc d21 = qp.getRawDocFromMessage(com, sqep);
+		assertNotNull(d21);
+		URLReader.setPackMethod(pm);
+	}
+
+	/**
 	 *
 	 *
 	 */

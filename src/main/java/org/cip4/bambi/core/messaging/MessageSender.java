@@ -656,6 +656,7 @@ public class MessageSender implements Runnable, IPersistable
 		else if (SendReturn.removed.equals(sendReturn))
 		{
 			messageFiFo.remove(0);
+			fastFiFoMessageDetails.push(messageDetails);
 			removedError++;
 		}
 		else
@@ -671,6 +672,8 @@ public class MessageSender implements Runnable, IPersistable
 		if (timeFirstProblem == 0)
 		{
 			timeFirstProblem = System.currentTimeMillis();
+			fastFiFoMessageDetails.push(messageDetails);
+
 		}
 
 		String isMime = "";
@@ -1231,7 +1234,10 @@ public class MessageSender implements Runnable, IPersistable
 			else if (posQueuedMessages > 0)
 			{
 				final MessageDetails old = fastFiFoMessageDetails.peek(fastFiFoMessageDetails.getFill() - posQueuedMessages);
-				old.appendToXML(messageSenderXml, posQueuedMessages, bXJDF);
+				if (old != null)
+				{
+					old.appendToXML(messageSenderXml, posQueuedMessages, bXJDF);
+				}
 			}
 		}
 
@@ -1304,6 +1310,15 @@ public class MessageSender implements Runnable, IPersistable
 	public JMFFactory getJMFFactory()
 	{
 		return jmfFactory;
+	}
+
+	/**
+	 * @param pos
+	 * @return
+	 */
+	public MessageDetails getOldDetails(int pos)
+	{
+		return fastFiFoMessageDetails.peek(pos);
 	}
 
 	/**

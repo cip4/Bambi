@@ -46,6 +46,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.JDFConstants;
+import org.cip4.jdflib.core.StringArray;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.ContainerUtil;
@@ -76,7 +77,7 @@ public class ContainerRequest
 		contentType = null;
 		originalContentType = null;
 		headerMap = null;
-		parameterMap = null;
+		parameterMap = new JDFAttributeMap();
 		remoteHost = null;
 		name = null;
 		setPost(true);
@@ -201,7 +202,7 @@ public class ContainerRequest
 
 	private UrlUtil.HttpMethod method;
 	private JDFAttributeMap headerMap;
-	private JDFAttributeMap parameterMap;
+	private final JDFAttributeMap parameterMap;
 
 	/**
 	 * get the map of request headers
@@ -220,7 +221,7 @@ public class ContainerRequest
 	 */
 	public JDFAttributeMap getParameterMap()
 	{
-		return parameterMap == null ? null : parameterMap.clone();
+		return new JDFAttributeMap(parameterMap);
 	}
 
 	/**
@@ -261,7 +262,8 @@ public class ContainerRequest
 	 */
 	public void setParameterMap(final JDFAttributeMap parameterMap)
 	{
-		this.parameterMap = parameterMap == null ? null : parameterMap.clone();
+		this.parameterMap.clear();
+		ContainerUtil.putAll(this.parameterMap, parameterMap);
 	}
 
 	/**
@@ -269,10 +271,6 @@ public class ContainerRequest
 	 */
 	public void setParameter(final String key, final String value)
 	{
-		if (parameterMap == null)
-		{
-			parameterMap = new JDFAttributeMap();
-		}
 		if (StringUtil.isEmpty(value))
 		{
 			parameterMap.remove(key);
@@ -314,8 +312,7 @@ public class ContainerRequest
 	public VString getContextList()
 	{
 		final String s = getRequestURI();
-		final VString v = StringUtil.tokenize(s, "/", false);
-		return v;
+		return StringUtil.tokenize(s, "/", false);
 	}
 
 	/**
@@ -341,7 +338,21 @@ public class ContainerRequest
 	{
 		return getClass().getSimpleName() + ((name != null) ? " Name=" + name : JDFConstants.EMPTYSTRING) + " URL=" + requestURI
 				+ ((contentType != null) ? " Content Type=" + contentType : JDFConstants.EMPTYSTRING) + " Method=" + getMethod()
-				+ ((parameterMap == null || parameterMap.size() == 0) ? "" : " Parameters: {" + parameterMap.showKeys(JDFConstants.BLANK) + "}");
+				+ (parameterMap.isEmpty() ? "" : " Parameters: {" + parameterMap.showKeys(JDFConstants.BLANK) + "}");
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 * @return
+	 */
+	public String shortString()
+	{
+		String ret = getClass().getSimpleName() + " URL=" + requestURI + " Content Type=" + contentType + " Method=" + getMethod();
+		if (!ContainerUtil.isEmpty(parameterMap))
+		{
+			ret += " Params: " + parameterMap.showKeys(JDFConstants.BLANK);
+		}
+		return ret;
 	}
 
 	/**
@@ -352,23 +363,21 @@ public class ContainerRequest
 	{
 		String ret = requestURI;
 
-		final List<String> keys = ContainerUtil.getKeyList(parameterMap);
-		if (keys != null)
+		final List<String> keys = new StringArray(parameterMap.keySet());
+		keys.sort(String.CASE_INSENSITIVE_ORDER);
+		if (firstKey != null)
 		{
-			keys.sort(String.CASE_INSENSITIVE_ORDER);
-			if (firstKey != null)
+			final boolean hasKey = keys.remove(firstKey);
+			if (hasKey)
 			{
-				final boolean hasKey = keys.remove(firstKey);
-				if (hasKey)
-				{
-					keys.add(0, firstKey);
-				}
-			}
-			for (final String key : keys)
-			{
-				ret = UrlUtil.addParameter(ret, key, parameterMap.get(key));
+				keys.add(0, firstKey);
 			}
 		}
+		for (final String key : keys)
+		{
+			ret = UrlUtil.addParameter(ret, key, parameterMap.get(key));
+		}
+
 		return ret;
 	}
 
@@ -552,7 +561,7 @@ public class ContainerRequest
 	 */
 	public String getParameter(final String header)
 	{
-		return parameterMap == null ? null : parameterMap.getIgnoreCase(header);
+		return parameterMap.getIgnoreCase(header);
 	}
 
 	/**

@@ -1611,8 +1611,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				properties.setWatchURL(newWatchURL);
 				properties.setWatchFormat(format);
 				addWatchSubscriptions();
-				properties.serialize();
 			}
+			properties.serialize();
 		}
 	}
 
