@@ -42,9 +42,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipEntry;
 
-import jakarta.mail.BodyPart;
-import jakarta.mail.MessagingException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.JMFFactory;
@@ -67,10 +64,12 @@ import org.cip4.jdflib.util.zip.ZipReader;
 import org.cip4.lib.jdf.jsonutil.JSONReader;
 import org.cip4.lib.jdf.jsonutil.JSONWriter;
 
+import jakarta.mail.BodyPart;
+import jakarta.mail.MessagingException;
+
 /**
  * class that handles all bambi JDF/JMF requests - regardless of the servlet context previously part of {@link BambiServlet} it is implemented as a Singleton so that you always
  * have static access
- *
  * note that the get handling routines still assume a servlet context - only the actual JDF / JMF post does not
  *
  * @author Rainer Prosi, Heidelberger Druckmaschinen
@@ -97,8 +96,7 @@ public abstract class ServletContainer extends BambiLogFactory
 	{
 		String devID = StringUtil.token(url, -1, "/");
 		devID = StringUtil.token(devID, 0, "?&");
-		devID = StringUtil.trim(devID, null);
-		return devID;
+		return StringUtil.trim(devID, null);
 	}
 
 	protected int nLogGet;
@@ -149,7 +147,6 @@ public abstract class ServletContainer extends BambiLogFactory
 	}
 
 	/**
-	 *
 	 * @param requestURI
 	 * @return
 	 */
@@ -267,7 +264,6 @@ public abstract class ServletContainer extends BambiLogFactory
 	}
 
 	/**
-	 *
 	 * @param request
 	 * @param zipReader
 	 * @return
@@ -349,7 +345,6 @@ public abstract class ServletContainer extends BambiLogFactory
 	}
 
 	/**
-	 *
 	 * @param request
 	 * @return
 	 */
@@ -374,7 +369,8 @@ public abstract class ServletContainer extends BambiLogFactory
 		}
 
 		final KElement e = request.getXML();
-		final String notification = "cannot process xml of type root = " + ((e == null) ? "null" : e.getLocalName()) + "; Content-Type: " + request.getContentType(false);
+		final String notification = "cannot process xml of type root = " + ((e == null) ? "null" : e.getLocalName()) + "; Content-Type: "
+				+ request.getContentType(false);
 		return processError(request.getRequestURI(), EnumType.Notification, 3, notification);
 	}
 
@@ -501,7 +497,6 @@ public abstract class ServletContainer extends BambiLogFactory
 	private static JSONWriter jsonWriter;
 
 	/**
-	 *
 	 * @return
 	 */
 	public static JSONWriter getJSONWriter()

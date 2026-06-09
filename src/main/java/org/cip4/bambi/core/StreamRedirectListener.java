@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -90,7 +90,6 @@ public class StreamRedirectListener implements HotFolderListener
 	private final static Log log = LogFactory.getLog(StreamRedirectListener.class);
 
 	/**
-	 *
 	 * @param abstractDevice
 	 */
 	public StreamRedirectListener(final AbstractDevice abstractDevice)
@@ -99,37 +98,35 @@ public class StreamRedirectListener implements HotFolderListener
 	}
 
 	/**
-	 *
 	 * @see org.cip4.jdflib.util.hotfolder.HotFolderListener#hotFile(java.io.File)
 	 */
 	@Override
 	public boolean hotFile(final File hotFile)
 	{
 		final StreamRequest req = StreamRequest.createStreamRequest(hotFile);
-		if (req == null)
-		{
-			throw new RuntimeException();
-		}
-		req.setRequestURI("/localhost/hotfolder/" + deviceID);
-		req.setPost(true);
 		try
 		{
+			if (req == null)
+			{
+				throw new IOException("Could not create stream from " + hotFile);
+			}
 			log.info("redirecting hot file to " + deviceID + " " + hotFile);
 			final HTTPResponse hr = BambiContainer.getInstance().processStream(req);
-			if (!(hr instanceof XMLResponse))
-				return false;
-			final XMLResponse xr = (XMLResponse) hr;
-			final KElement root = xr.getXML();
-			if (root instanceof JDFJMF)
+			if (!(hr instanceof final XMLResponse xr))
 			{
-				final JDFResponse resp = ((JDFJMF) root).getResponse(0);
+				return false;
+			}
+			final KElement root = xr.getXML();
+			if (root instanceof final JDFJMF jmf)
+			{
+				final JDFResponse resp = jmf.getResponse(0);
 				return resp != null && resp.getReturnCode() == 0;
 			}
 			else if (XJDFConstants.XJMF.equals(root.getLocalName()))
 			{
 				final XJMFHelper h = new XJMFHelper(root);
 				final MessageHelper mh = h.getMessageHelper(0);
-				return mh == null ? false : mh.getReturnCode() == 0;
+				return mh != null && mh.getReturnCode() == 0;
 			}
 			else
 			{

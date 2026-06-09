@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -89,7 +89,6 @@ import org.cip4.jdflib.util.UrlUtil.URLProtocol;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
  *         04.12.2008
  */
 public class ProxyDevice extends AbstractProxyDevice
@@ -103,7 +102,6 @@ public class ProxyDevice extends AbstractProxyDevice
 	{
 
 		/**
-		 *
 		 * @param m the message to process
 		 * @return
 		 */
@@ -175,7 +173,7 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 * @param m the query input message
+		 * @param m        the query input message
 		 * @param response
 		 * @return JDFDoc the response message
 		 */
@@ -252,9 +250,9 @@ public class ProxyDevice extends AbstractProxyDevice
 			boolean bRet = false;
 			final JDFJMF jmfm = m.getJMFRoot();
 			// final JDFJMF jmfr = resp.getJMFRoot();
-			for (int i = 0; i < procs.size(); i++)
+			for (final ProxyDeviceProcessor proc : procs)
 			{
-				bRet = procs.get(i).handleNotificationQuery(m, resp) || bRet;
+				bRet = proc.handleNotificationQuery(m, resp) || bRet;
 				// undo handler delete
 				jmfm.moveElement(m, null);
 				jmfm.moveElement(resp, null);
@@ -287,8 +285,8 @@ public class ProxyDevice extends AbstractProxyDevice
 			private final long start;
 
 			/**
-			 * @param iqe the iqe to submit
-			 * @param queueURL the url to submit to
+			 * @param iqe        the iqe to submit
+			 * @param queueURL   the url to submit to
 			 * @param activation the queuentry activation
 			 */
 			public SubmitThread(final IQueueEntry iqe, final String queueURL, final EnumActivation activation)
@@ -323,7 +321,6 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 
 			/**
-			 *
 			 * @see java.lang.Thread#toString()
 			 */
 			@Override
@@ -333,7 +330,6 @@ public class ProxyDevice extends AbstractProxyDevice
 			}
 
 			/**
-			 *
 			 * isAlive and no timeout
 			 *
 			 * @return true if we should be alive
@@ -352,7 +348,6 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 *
 		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 * @param m
 		 * @param resp
@@ -407,7 +402,7 @@ public class ProxyDevice extends AbstractProxyDevice
 					new SubmitThread(iqe, queueURL, activation).start();
 				}
 			}
-			else if (qe == null)
+			else
 			{
 				JMFHandler.errorResponse(resp, "No QueueEntry is available for request: " + nid, 108, EnumClass.Error);
 			}
@@ -415,7 +410,6 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 *
 		 * wait for any previous submissions
 		 *
 		 * @param qeID
@@ -450,9 +444,8 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 *
 		 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
-		 * @param m the message to handle
+		 * @param m    the message to handle
 		 * @param resp the response to fill
 		 * @return true if handled
 		 */
@@ -504,12 +497,13 @@ public class ProxyDevice extends AbstractProxyDevice
 		{
 			final DataExtractor ex = ProxyDevice.this.getDataExtractor(false);
 			ex.addProtocol(URLProtocol.http);
+			ex.addProtocol(URLProtocol.https);
 			return ex;
 		}
 
 		/**
-		 * @param rqp returnqueueentryparams
-		 * @param resp the response to fill
+		 * @param rqp    returnqueueentryparams
+		 * @param resp   the response to fill
 		 * @param theDoc the jdf doc that is returned
 		 * @return the ProxyDeviceProcessor that handles messages from slaveQEID
 		 */
@@ -540,8 +534,6 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
-	 *
-	 *
 	 * @author rainer prosi
 	 * @date Jan 17, 2013
 	 */
@@ -553,7 +545,6 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 *
 		 * @see org.cip4.bambi.core.AbstractDevice.StatusHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
@@ -732,7 +723,6 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 
 		/**
-		 *
 		 * @see org.cip4.bambi.core.messaging.SignalHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 		 */
 		@Override
@@ -765,7 +755,9 @@ public class ProxyDevice extends AbstractProxyDevice
 					{
 						ni = jp.getIdentifier();
 						if (qeid == null)
+						{
 							qeid = jp.getQueueEntryID();
+						}
 					}
 				}
 				if (KElement.isWildCard(qeid) && new NodeIdentifier().equals(ni))
@@ -1013,14 +1005,12 @@ public class ProxyDevice extends AbstractProxyDevice
 		{
 			return null;
 		}
-		for (int i = 0; i < _deviceProcessors.size(); i++)
+		for (final AbstractDeviceProcessor aProc : _deviceProcessors)
 		{
-			final AbstractDeviceProcessor aProc = _deviceProcessors.get(i);
-			if (!(aProc instanceof ProxyDeviceProcessor))
+			if (!(aProc instanceof final ProxyDeviceProcessor proc))
 			{
 				continue;
 			}
-			final ProxyDeviceProcessor proc = (ProxyDeviceProcessor) aProc;
 			final IQueueEntry currentQE = proc.getCurrentQE();
 			final String qeID = currentQE == null ? null : currentQE.getQueueEntryID();
 			if (qeID != null && bambiQEID.equals(qeID))
@@ -1078,7 +1068,9 @@ public class ProxyDevice extends AbstractProxyDevice
 		}
 		AbstractProxyProcessor pdp = (AbstractProxyProcessor) getProcessor(iqe.getQueueEntryID(), 0);
 		if (pdp != null)
+		{
 			return pdp;
+		}
 
 		pdp = createNewDeviceProcessor(iqe);
 		pdp.submitted(BambiNSExtension.getSlaveQueueEntryID(qe), qe.getQueueEntryStatus(), BambiNSExtension.getDeviceURL(qe), qe.getDeviceID());
@@ -1087,8 +1079,6 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
-	 *
-	 *
 	 * @param iqe
 	 * @return
 	 */
@@ -1116,10 +1106,14 @@ public class ProxyDevice extends AbstractProxyDevice
 					final JDFQueueEntry qe = (JDFQueueEntry) e;
 					final String queueEntryID = qe.getQueueEntryID();
 					if (ignoreQEID.equals(queueEntryID))
+					{
 						continue;
+					}
 					ProxyDeviceProcessor pdp = (ProxyDeviceProcessor) getProcessor(queueEntryID, 0);
 					if (pdp == null)
+					{
 						pdp = new ProxyDeviceProcessor(this, new QueueEntry(null, qe));
+					}
 
 					log.warn("cleaning up multiple running entries: " + queueEntryID);
 					pdp.finalizeProcessDoc(EnumQueueEntryStatus.Waiting);
@@ -1138,7 +1132,6 @@ public class ProxyDevice extends AbstractProxyDevice
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#stopProcessing(java.lang.String, org.cip4.jdflib.core.JDFElement.EnumNodeStatus, java.lang.String)
 	 */
 	@Override
@@ -1154,7 +1147,6 @@ public class ProxyDevice extends AbstractProxyDevice
 				sendJMFToSlave(jmf, ah);
 			}
 		}
-		final JDFQueueEntry qe = super.stopProcessing(queueEntryID, status, statusDetails);
-		return qe;
+		return super.stopProcessing(queueEntryID, status, statusDetails);
 	}
 }

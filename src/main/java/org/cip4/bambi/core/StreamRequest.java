@@ -118,6 +118,10 @@ public class StreamRequest extends ContainerRequest
 		final String contentType = UrlUtil.getMimeTypeFromURL(file.getName());
 		sr.setContentType(contentType);
 		sr.setRequestURI(file.getAbsolutePath());
+		sr.setParameter(BambiNSExtension.HOTFOLDER, Boolean.toString(true));
+		sr.setPost(true);
+		sr.setRequestURI(UrlUtil.fileToUrl(file, false));
+
 		return sr;
 	}
 

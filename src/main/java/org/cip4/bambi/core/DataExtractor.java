@@ -46,6 +46,7 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.elementwalker.URLExtractor;
 import org.cip4.jdflib.ifaces.IElementConverter;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.UrlUtil.URLProtocol;
 
 /**
@@ -82,7 +83,7 @@ public class DataExtractor
 	 */
 	public void addProtocol(final URLProtocol protocol)
 	{
-		protocols.add(protocol);
+		ContainerUtil.appendUnique(protocols, protocol);
 	}
 
 	protected final AbstractDevice parentDevice;
@@ -164,8 +165,7 @@ public class DataExtractor
 	 */
 	protected URLExtractor getURLExtractor(final File jobDirectory, final String dataURL, final String hotfolderPath)
 	{
-		final URLExtractor ex = new URLExtractor(jobDirectory, hotfolderPath, dataURL);
-		return ex;
+		return new URLExtractor(jobDirectory, hotfolderPath, dataURL);
 	}
 
 	/**

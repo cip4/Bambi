@@ -48,6 +48,7 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.BambiNSExtension.EPackageType;
 import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
@@ -855,6 +856,8 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			_submitHotFolder.addListener(streamRedirectListener, "zip");
 			_submitHotFolder.addListener(streamRedirectListener, "mjm");
 			_submitHotFolder.addListener(streamRedirectListener, "mjd");
+			_submitHotFolder.addListener(streamRedirectListener, "json");
+
 			_submitHotFolder.setErrorStorage(new File("error"));
 			_submitHotFolder.setOKStorage(new File("ok"));
 		}
@@ -2080,8 +2083,10 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 			return null;
 		}
 		String localName = e.getLocalName();
-		if (ElementName.JMF.equals(localName) || XJDFConstants.XJMF.equals(localName))
+		final boolean isJMF = ElementName.JMF.equals(localName);
+		if (isJMF || XJDFConstants.XJMF.equals(localName))
 		{
+			request.setPackageType(isJMF ? EPackageType.JMF : EPackageType.XJMF);
 			return request;
 		}
 
@@ -2392,17 +2397,17 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	}
 
 	/**
-	 * extract stuff from the request - defaulr do nothing
+	 * extract stuff from the request
 	 *
 	 * @param jmf
 	 * @param request
 	 */
 	public void updateFromRequest(final JDFJMF jmf, final ContainerRequest request)
 	{
-		if (UrlUtil.isJSONType(request.getOriginalContentType()))
-		{
-			BambiNSExtension.setContentType(jmf, request.getOriginalContentType());
-		}
+		BambiNSExtension.setContentType(jmf, request.getOriginalContentType());
+		BambiNSExtension.setPackageType(jmf, request.getPackageType());
+		BambiNSExtension.setProtocolType(jmf, request.getURLProtocol());
+		BambiNSExtension.setHotFolder(jmf, StringUtil.parseBoolean(request.getParameter(BambiNSExtension.HOTFOLDER), false));
 	}
 
 	/**

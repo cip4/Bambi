@@ -120,7 +120,7 @@ public class BambiNSExtensions_Test extends BambiTestCase
 	@Test
 	public void testQueue()
 	{
-		JDFQueue q = (JDFQueue) JDFQueue.createRoot(ElementName.QUEUE);
+		final JDFQueue q = (JDFQueue) JDFQueue.createRoot(ElementName.QUEUE);
 		assertEquals(1, BambiNSExtension.incrmentTotal(q));
 		assertEquals(2, BambiNSExtension.incrmentTotal(q));
 	}
@@ -128,7 +128,7 @@ public class BambiNSExtensions_Test extends BambiTestCase
 	@Test
 	public void testQueue2()
 	{
-		JDFQueue q = (JDFQueue) JDFQueue.createRoot(ElementName.QUEUE);
+		final JDFQueue q = (JDFQueue) JDFQueue.createRoot(ElementName.QUEUE);
 		q.appendQueueEntry();
 		assertEquals(2, BambiNSExtension.incrmentTotal(q));
 	}
@@ -136,7 +136,7 @@ public class BambiNSExtensions_Test extends BambiTestCase
 	@Test
 	public void testJSON()
 	{
-		KElement e = KElement.createRoot("a", null);
+		final KElement e = KElement.createRoot("a", null);
 		assertFalse(BambiNSExtension.isJSON(e));
 		assertFalse(BambiNSExtension.isJSON(null));
 		BambiNSExtension.setJSON(e, true);
@@ -145,7 +145,26 @@ public class BambiNSExtensions_Test extends BambiTestCase
 		{
 			BambiNSExtension.setJSON(null, true);
 		}
-		catch (JDFException b)
+		catch (final JDFException b)
+		{
+			return;
+		}
+		fail("no exception");
+	}
+
+	@Test
+	public void testHF()
+	{
+		final KElement e = KElement.createRoot("a", null);
+		assertFalse(BambiNSExtension.isHotFolder(e));
+		assertFalse(BambiNSExtension.isHotFolder(null));
+		BambiNSExtension.setHotFolder(e, true);
+		assertTrue(BambiNSExtension.isHotFolder(e));
+		try
+		{
+			BambiNSExtension.setHotFolder(null, true);
+		}
+		catch (final JDFException b)
 		{
 			return;
 		}

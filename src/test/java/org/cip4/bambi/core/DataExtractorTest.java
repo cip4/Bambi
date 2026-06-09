@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -38,9 +38,11 @@
  */
 package org.cip4.bambi.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
+import org.cip4.jdflib.util.UrlUtil.URLProtocol;
 import org.junit.Test;
 
 public class DataExtractorTest
@@ -49,8 +51,17 @@ public class DataExtractorTest
 	@Test
 	public void testTostring()
 	{
-		DataExtractor dex = new DataExtractor(mock(AbstractDevice.class), false);
+		final DataExtractor dex = new DataExtractor(mock(AbstractDevice.class), false);
 		assertNotNull(dex.toString());
+	}
+
+	@Test
+	public void testAddProtocol()
+	{
+		final DataExtractor dex = new DataExtractor(mock(AbstractDevice.class), false);
+		dex.addProtocol(URLProtocol.http);
+		dex.addProtocol(URLProtocol.http);
+		assertEquals(3, dex.protocols.size());
 	}
 
 }

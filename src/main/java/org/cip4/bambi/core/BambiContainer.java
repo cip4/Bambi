@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -43,10 +43,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.mail.BodyPart;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.BambiNSExtension.EPackageType;
 import org.cip4.bambi.core.messaging.IJMFHandler;
 import org.cip4.bambi.core.messaging.MessageSender;
 import org.cip4.jdflib.core.AttributeName;
@@ -69,11 +68,13 @@ import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.BodyPartHelper;
 import org.cip4.jdflib.util.mime.MimeReader;
+import org.cip4.jdflib.util.zip.ZipReader;
+
+import jakarta.mail.BodyPart;
 
 /**
  * class that handles all bambi JDF/JMF requests - regardless of the servlet context previously part of {@link BambiServlet} it is implemented as a Singleton so that you always
  * have static access
- *
  * note that the get handling routines still assume a servlet context - only the actual JDF / JMF post does not
  *
  * @author Rainer Prosi, Heidelberger Druckmaschinen
@@ -98,8 +99,6 @@ public final class BambiContainer extends ServletContainer
 	private static BambiContainer theInstance = null;
 
 	/**
-	 *
-	 *
 	 * @return the singleton bambi container instance
 	 */
 	public synchronized static BambiContainer getCreateInstance()
@@ -114,8 +113,6 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 *
-	 *
 	 * @return the singleton bambi container instance
 	 */
 	public synchronized static BambiContainer getInstance()
@@ -127,12 +124,10 @@ public final class BambiContainer extends ServletContainer
 	 * handler for the overview page
 	 *
 	 * @author prosirai
-	 *
 	 */
 	protected class OverviewHandler implements IGetHandler
 	{
 		/**
-		 *
 		 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.ContainerRequest)
 		 * @param request
 		 * @return
@@ -141,7 +136,7 @@ public final class BambiContainer extends ServletContainer
 		public XMLResponse handleGet(final ContainerRequest request)
 		{
 			final String context = request.getContext();
-			if (KElement.isWildCard(context) || context.equalsIgnoreCase("overview"))
+			if (KElement.isWildCard(context) || "overview".equalsIgnoreCase(context))
 			{
 				if (request.getBooleanParam("UpdateDump"))
 				{
@@ -161,7 +156,7 @@ public final class BambiContainer extends ServletContainer
 	 */
 	private RootDevice getRootDevice()
 	{
-		return (rootDev instanceof RootDevice) ? (RootDevice) rootDev : null;
+		return (rootDev instanceof final RootDevice r) ? r : null;
 	}
 
 	/**
@@ -177,7 +172,6 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public List<String> getDevices()
@@ -200,8 +194,8 @@ public final class BambiContainer extends ServletContainer
 	 *
 	 * @param baseDir the initial application directory
 	 * @param context the servlet context information
-	 * @param config the name of the Java config xml file
-	 * @param dump the file where to dump debug requests
+	 * @param config  the name of the Java config xml file
+	 * @param dump    the file where to dump debug requests
 	 * @return
 	 */
 	public boolean loadProperties(final File baseDir, final String context, final String dump)
@@ -212,7 +206,6 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 *
 	 * @param prop
 	 * @param needController
 	 * @return
@@ -269,7 +262,7 @@ public final class BambiContainer extends ServletContainer
 	 * create devices based on the list of devices given in a file
 	 *
 	 * @param props
-	 * @param dump the file where to dump debug requests
+	 * @param dump  the file where to dump debug requests
 	 * @return true if successful, otherwise false
 	 */
 	public boolean createDevices(final MultiDeviceProperties props, final String dump)
@@ -376,7 +369,6 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 *
 	 * @param request
 	 * @return
 	 */
@@ -415,7 +407,6 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 *
 	 * @param request
 	 * @return
 	 */
@@ -427,8 +418,7 @@ public final class BambiContainer extends ServletContainer
 		{
 			dev = getRootDev();
 		}
-		final CPUTimer deviceTimer = dev == null ? null : dev.getDeviceTimer(false);
-		return deviceTimer;
+		return dev == null ? null : dev.getDeviceTimer(false);
 	}
 
 	/**
@@ -453,6 +443,7 @@ public final class BambiContainer extends ServletContainer
 	public XMLResponse processXMLDoc(final XMLRequest request)
 	{
 		log.info("Processing xml document: content type=" + request.getContentType(true));
+		request.setPackageType(EPackageType.RAW);
 		final XMLRequest newRequest = getRootDev().convertToJMF(request);
 		if (newRequest != null)
 		{
@@ -465,7 +456,8 @@ public final class BambiContainer extends ServletContainer
 		}
 
 		final KElement e = request.getXML();
-		final String notification = "cannot process xml of type root = " + ((e == null) ? "null" : e.getLocalName()) + "; Content-Type: " + request.getContentType(false);
+		final String notification = "cannot process xml of type root = " + ((e == null) ? "null" : e.getLocalName()) + "; Content-Type: "
+				+ request.getContentType(false);
 		return processError(request.getRequestURI(), EnumType.Notification, 3, notification);
 	}
 
@@ -496,7 +488,6 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 *
 	 * @param request
 	 * @param bp
 	 * @return
@@ -550,9 +541,13 @@ public final class BambiContainer extends ServletContainer
 		jmf.setBodyPart(bp[0]);
 		String subURL = h.getXPathValue("CommandSubmitQueueEntry/QueueSubmissionParams/@URL");
 		if (subURL == null)
+		{
 			subURL = h.getXPathValue("CommandResubmitQueueEntry/ResubmissionParams/@URL");
+		}
 		if (subURL == null)
+		{
 			subURL = h.getXPathValue("CommandReturnQueueEntry/ReturnQueueEntryParams/@URL");
+		}
 
 		if (subURL == null)
 		{
@@ -638,7 +633,9 @@ public final class BambiContainer extends ServletContainer
 		stopTimer(request);
 		final RootDevice rd = getRootDevice();
 		if (rd != null)
+		{
 			rd.postProcessJMF(request, response);
+		}
 		return response;
 	}
 
@@ -701,7 +698,6 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 *
 	 * @param requestURI
 	 * @return
 	 */
@@ -712,7 +708,6 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	/**
-	 *
 	 * @param request
 	 * @return
 	 */
@@ -755,16 +750,36 @@ public final class BambiContainer extends ServletContainer
 	public HTTPResponse processRestStream(final StreamRequest sr) throws IOException
 	{
 		final RootDevice rootDevice = getRootDevice();
-		if (rootDevice != null)
+		HTTPResponse resp = rootDevice == null ? null : rootDevice.processRestStream(sr);
+		if (resp == null)
 		{
-			final HTTPResponse resp = rootDevice.processRestStream(sr);
-			if (resp != null)
-			{
-				return resp;
-			}
+			resp = processStream(sr);
 		}
 
-		return processStream(sr);
+		return resp;
+	}
+
+	@Override
+	protected XMLResponse processZip(StreamRequest request, ZipReader zipReader)
+	{
+		request.setPackageType(EPackageType.ZIP);
+		return super.processZip(request, zipReader);
+	}
+
+	@Override
+	public XMLResponse processJSON(StreamRequest request)
+	{
+		request.setPackageType(EPackageType.RAW);
+		return super.processJSON(request);
+	}
+
+	@Override
+	public XMLResponse processMultiPart(StreamRequest request) throws IOException
+	{
+		final String contentType = request.getContentType(true);
+		final EPackageType formdata = MimeUtil.isMimeType(contentType, MimeUtil.MULTIPART_FORMDATA) ? EPackageType.MIME_FORM : EPackageType.MIME_MULTIPART;
+		request.setPackageType(formdata);
+		return super.processMultiPart(request);
 	}
 
 }

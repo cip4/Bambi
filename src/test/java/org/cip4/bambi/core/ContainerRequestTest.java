@@ -48,6 +48,7 @@ import static org.junit.Assert.assertTrue;
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.UrlUtil.URLProtocol;
 import org.junit.Test;
 
 /**
@@ -132,7 +133,7 @@ public class ContainerRequestTest extends BambiTestCaseBase
 	 *
 	 */
 	@Test
-	public void tesSetparameter()
+	public void testSetparameter()
 	{
 		final ContainerRequest req = new ContainerRequest();
 		req.setRequestURI("http://host/foo/bar/dev");
@@ -274,6 +275,19 @@ public class ContainerRequestTest extends BambiTestCaseBase
 		req.setParameter("a", "b");
 		req.setRequestURI(requestURI);
 		assertEquals("http://host/foo/bar/dev?a=b", req.getCompleteURI());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testGetProtocol()
+	{
+		final ContainerRequest req = new ContainerRequest();
+		final String requestURI = "http://host/foo/bar/dev";
+		req.setParameter("a", "b");
+		req.setRequestURI(requestURI);
+		assertEquals(URLProtocol.http, req.getURLProtocol());
 	}
 
 	/**

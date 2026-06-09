@@ -45,15 +45,18 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.core.BambiNSExtension.EPackageType;
 import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.StringArray;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.ContainerUtil;
 import org.cip4.jdflib.util.JDFDate;
+import org.cip4.jdflib.util.JavaEnumUtil;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.UrlUtil.HttpMethod;
+import org.cip4.jdflib.util.UrlUtil.URLProtocol;
 import org.cip4.jdflib.util.net.HTTPDetails;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -85,9 +88,9 @@ public class ContainerRequest
 
 	protected void apply(final HttpServletRequest request)
 	{
-		final String contentType = request.getContentType();
-		setContentType(contentType);
-		setOriginalContentType(contentType);
+		final String ct = request.getContentType();
+		setContentType(ct);
+		setOriginalContentType(ct);
 		setRequestURI(request.getRequestURL().toString());
 		setHeaderMap(getHeaderMap(request));
 		setParameterMap(new JDFAttributeMap(getParameterMap(request)));
@@ -185,12 +188,34 @@ public class ContainerRequest
 	 */
 	public void setOriginalContentType(final String originalContentType)
 	{
-		this.originalContentType = StringUtil.token(originalContentType, 0, ";");
+		if (StringUtil.isEmpty(this.originalContentType))
+		{
+			this.originalContentType = StringUtil.token(originalContentType, 0, ";");
+		}
 	}
 
 	private String contentType;
 	private String remoteHost;
 	protected String name;
+	private EPackageType packageType;
+
+	public EPackageType getPackageType()
+	{
+		return packageType;
+	}
+
+	/**
+	 * only set if not previously set
+	 *
+	 * @param packageType
+	 */
+	public void setPackageType(EPackageType packageType)
+	{
+		if (this.packageType == null)
+		{
+			this.packageType = packageType;
+		}
+	}
 
 	/**
 	 * @param remoteHost the remoteHost to set
@@ -424,7 +449,7 @@ public class ContainerRequest
 		setOriginalContentType(request.getOriginalContentType());
 		setMethod(request.getMethod());
 		setRemoteHost(request.getRemoteHost());
-
+		setPackageType(request.getPackageType());
 		JDFAttributeMap map = request.getHeaderMap();
 		if (map != null)
 		{
@@ -444,7 +469,15 @@ public class ContainerRequest
 	 */
 	public String getMethod()
 	{
-		return method.name();
+		return JavaEnumUtil.getName(method);
+	}
+
+	/**
+	 * @return the method
+	 */
+	public URLProtocol getURLProtocol()
+	{
+		return UrlUtil.getProtocol(requestURI);
 	}
 
 	/**

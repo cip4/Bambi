@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -80,17 +80,20 @@ import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.util.JDFDate;
+import org.cip4.jdflib.util.JavaEnumUtil;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.UrlUtil.URLProtocol;
 
 /**
  * provides Bambi specific XML extensions for JDF and JMF
- * 
- * @author prosirai
  *
+ * @author prosirai
  */
 public class BambiNSExtension
 {
 
+	public static final String PROTOCOL = "Protocol";
+	public static final String PACKAGE_TYPE = "PackageType";
 	public static final String TOTAL_ENTRY_COUNT = "TotalEntryCount";
 	private static final String CONTENT_TYPE = "ContentType";
 	/**
@@ -110,6 +113,11 @@ public class BambiNSExtension
 	{/* never construct - static class */
 	}
 
+	public enum EPackageType
+	{
+		RAW, MIME_MULTIPART, MIME_FORM, ZIP, JMF, XJMF
+	}
+
 	/**
 	 * the Bambi namespace uri
 	 */
@@ -120,10 +128,9 @@ public class BambiNSExtension
 	public static final String MY_NS_PREFIX = "bambi:";
 
 	/**
-	 *
-	 * @param e the element to work on
+	 * @param e       the element to work on
 	 * @param attName the local attribute name to set
-	 * @param attVal the attribute value to set
+	 * @param attVal  the attribute value to set
 	 */
 	public static void setMyNSAttribute(final KElement e, final String attName, final String attVal)
 	{
@@ -134,11 +141,19 @@ public class BambiNSExtension
 		e.setAttribute(MY_NS_PREFIX + attName, attVal, MY_NS);
 	}
 
+	public static void copyMyNSAttribute(final KElement e, final String attName, final KElement src)
+	{
+		if (e == null)
+		{
+			throw new JDFException("copyMyNSAttribute: setting on null element");
+		}
+		e.setAttribute(MY_NS_PREFIX + attName, getMyNSAttribute(src, attName), MY_NS);
+	}
+
 	/**
-	 *
-	 * @param e the element to work on
+	 * @param e       the element to work on
 	 * @param attName the local attribute name to set
-	 * @param attVal the attribute value to add to attName
+	 * @param attVal  the attribute value to add to attName
 	 * @return the updated value
 	 */
 	public static String appendMyNSAttribute(final KElement e, final String attName, final String attVal)
@@ -151,11 +166,10 @@ public class BambiNSExtension
 	}
 
 	/**
-	 * @param e the element to work on
+	 * @param e       the element to work on
 	 * @param elmName the local element name to get
-	 * @param iSkip get the nth element
+	 * @param iSkip   get the nth element
 	 * @return the element
-	 *
 	 */
 	public static KElement getCreateMyNSElement(final KElement e, final String elmName, final int iSkip)
 	{
@@ -163,11 +177,10 @@ public class BambiNSExtension
 	}
 
 	/**
-	 * @param e the element to work on
+	 * @param e       the element to work on
 	 * @param elmName the local element name to get
-	 * @param iSkip get the nth element
+	 * @param iSkip   get the nth element
 	 * @return the element
-	 *
 	 */
 	public static KElement getMyNSElement(final KElement e, final String elmName, final int iSkip)
 	{
@@ -175,11 +188,10 @@ public class BambiNSExtension
 	}
 
 	/**
-	 * @param e the element to work on
+	 * @param e       the element to work on
 	 * @param elmName the local element name to get
-	 * @param iSkip get the nth element
+	 * @param iSkip   get the nth element
 	 * @return the element
-	 *
 	 */
 	public static KElement removeMyNSElement(final KElement e, final String elmName, final int iSkip)
 	{
@@ -187,10 +199,9 @@ public class BambiNSExtension
 	}
 
 	/**
-	 * @param e the element to work on
+	 * @param e       the element to work on
 	 * @param attName the local attribute name to set
 	 * @return the attribute value, null if none exists
-	 *
 	 */
 	public static String getMyNSAttribute(final KElement e, final String attName)
 	{
@@ -200,7 +211,6 @@ public class BambiNSExtension
 	/**
 	 * @param attName the local attribute name to set
 	 * @return the fully qualified name
-	 *
 	 */
 	public static String getMyNSString(final String attName)
 	{
@@ -208,8 +218,7 @@ public class BambiNSExtension
 	}
 
 	/**
-	 *
-	 * @param e the element to work on
+	 * @param e       the element to work on
 	 * @param attName the local attribute name to remove
 	 */
 	public static void removeMyNSAttribute(final KElement e, final String attName)
@@ -224,7 +233,6 @@ public class BambiNSExtension
 	/**
 	 * @param qe
 	 * @return
-	 *
 	 */
 	public static KElement getStatusContainer(final JDFQueueEntry qe)
 	{
@@ -234,7 +242,6 @@ public class BambiNSExtension
 	/**
 	 * @param qe
 	 * @return
-	 *
 	 */
 	public static KElement getCreateStatusContainer(final JDFQueueEntry qe)
 	{
@@ -243,7 +250,7 @@ public class BambiNSExtension
 
 	/**
 	 * remove all Bambi specific elements and attributes from the given KElement
-	 * 
+	 *
 	 * @param ke the KElement to clean up
 	 */
 	public static void removeBambiExtensions(final KElement ke)
@@ -265,6 +272,7 @@ public class BambiNSExtension
 	public static final String docURL = "DocURL";
 
 	public static final String JSON = "json";
+	public static final String HOTFOLDER = "hotfolder";
 
 	/**
 	 * the URL where the JDFDoc can be grabbed
@@ -273,8 +281,8 @@ public class BambiNSExtension
 
 	/**
 	 * set the location of the JDF
-	 * 
-	 * @param ke the KElement to work on
+	 *
+	 * @param ke      the KElement to work on
 	 * @param _docURL the location of the JDF
 	 */
 	public static void setDocURL(final KElement ke, final String _docURL)
@@ -284,7 +292,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the location of the JDF
-	 * 
+	 *
 	 * @param ke the KElement to work on
 	 * @return docURL the location of the JDF
 	 */
@@ -295,7 +303,7 @@ public class BambiNSExtension
 
 	/**
 	 * set the ContentType of the JDF
-	 * 
+	 *
 	 * @param ke the KElement to work on
 	 * @param ct the ContentType of the JDF / XJDF / JSON JDF
 	 */
@@ -306,7 +314,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the ContentType of the JDF
-	 * 
+	 *
 	 * @param ke the KElement to work on
 	 * @return the ContentType of the JDF / XJDF / JSON JDF
 	 */
@@ -317,7 +325,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the associated JDF
-	 * 
+	 *
 	 * @param ke the KElement to work on
 	 * @return docURL the location of the JDF
 	 */
@@ -335,8 +343,8 @@ public class BambiNSExtension
 
 	/**
 	 * set the location to send the ReturnQueueEntry to
-	 * 
-	 * @param ke the KElement to work on
+	 *
+	 * @param ke           the KElement to work on
 	 * @param theReturnURL the location to send the ReturnQueueEntry to
 	 */
 	public static void setReturnURL(final KElement ke, final String theReturnURL)
@@ -346,7 +354,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the location to send the ReturnQueueEntry to
-	 * 
+	 *
 	 * @param ke the KElement to work on
 	 * @return the location to send the ReturnQueueEntry to
 	 */
@@ -363,8 +371,8 @@ public class BambiNSExtension
 
 	/**
 	 * set the location to send the ReturnJMF to
-	 * 
-	 * @param ke the KElement to work on
+	 *
+	 * @param ke           the KElement to work on
 	 * @param theReturnJMF the location to send the ReturnJMF to
 	 */
 	public static void setReturnJMF(final KElement ke, final String theReturnJMF)
@@ -374,7 +382,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the location to send the ReturnJMF to
-	 * 
+	 *
 	 * @param ke the KElement to work on
 	 * @return the location to send the ReturnJMF to
 	 */
@@ -391,8 +399,8 @@ public class BambiNSExtension
 
 	/**
 	 * set the ID of the device processing the QueueEntry
-	 * 
-	 * @param ke the KElement to work on
+	 *
+	 * @param ke          the KElement to work on
 	 * @param theDeviceID the ID of the device processing the QueueEntry
 	 */
 	public static void setDeviceID(final KElement ke, final String theDeviceID)
@@ -402,7 +410,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the ID of the device processing the QueueEntry
-	 * 
+	 *
 	 * @param ke the KElement to work on
 	 * @return the ID of the device processing the QueueEntry
 	 */
@@ -419,8 +427,8 @@ public class BambiNSExtension
 
 	/**
 	 * set the URL of the device processing the QueueEntry
-	 * 
-	 * @param ke the KElement to work on
+	 *
+	 * @param ke           the KElement to work on
 	 * @param theDeviceURL the URL of the device processing the QueueEntry
 	 */
 	public static void setDeviceURL(final KElement ke, final String theDeviceURL)
@@ -430,7 +438,7 @@ public class BambiNSExtension
 
 	/**
 	 * get the URL of the device processing the QueueEntry
-	 * 
+	 *
 	 * @param ke the KElement to work on
 	 * @return the URL of the device processing the QueueEntry
 	 */
@@ -570,16 +578,19 @@ public class BambiNSExtension
 	{
 		int current = getTotal(jdfQueue);
 		if (jdfQueue != null)
+		{
 			setMyNSAttribute(jdfQueue, TOTAL_ENTRY_COUNT, Integer.toString(++current));
+		}
 		return current;
 	}
 
 	public static int getTotal(JDFQueue jdfQueue)
 	{
 		if (jdfQueue == null)
+		{
 			return 0;
-		int current = StringUtil.parseInt(getMyNSAttribute(jdfQueue, TOTAL_ENTRY_COUNT), jdfQueue.getEntryCount());
-		return current;
+		}
+		return StringUtil.parseInt(getMyNSAttribute(jdfQueue, TOTAL_ENTRY_COUNT), jdfQueue.getEntryCount());
 	}
 
 	public static void setJSON(KElement e, boolean b)
@@ -592,12 +603,42 @@ public class BambiNSExtension
 		return StringUtil.parseBoolean(getMyNSAttribute(e, JSON), false);
 	}
 
+	public static void setHotFolder(KElement e, boolean b)
+	{
+		setMyNSAttribute(e, HOTFOLDER, Boolean.toString(b));
+	}
+
+	public static boolean isHotFolder(KElement e)
+	{
+		return StringUtil.parseBoolean(getMyNSAttribute(e, HOTFOLDER), false);
+	}
+
 	public static void removeBambiExtensions(JDFDoc doc)
 	{
 		if (doc != null)
 		{
 			removeBambiExtensions(doc.getRoot());
 		}
+	}
+
+	public static void setPackageType(KElement e, EPackageType pt)
+	{
+		setMyNSAttribute(e, PACKAGE_TYPE, JavaEnumUtil.getName(pt));
+	}
+
+	public static EPackageType getPackageType(KElement e)
+	{
+		return JavaEnumUtil.getEnumIgnoreCase(EPackageType.class, getMyNSAttribute(e, PACKAGE_TYPE));
+	}
+
+	public static void setProtocolType(KElement e, URLProtocol p)
+	{
+		setMyNSAttribute(e, PROTOCOL, JavaEnumUtil.getName(p));
+	}
+
+	public static URLProtocol getProtocolType(KElement e)
+	{
+		return JavaEnumUtil.getEnumIgnoreCase(URLProtocol.class, getMyNSAttribute(e, PROTOCOL));
 	}
 
 }
