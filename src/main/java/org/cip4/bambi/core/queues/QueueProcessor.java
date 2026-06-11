@@ -3117,24 +3117,23 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 	protected JDFDoc updateDoc(JDFDoc doc, final JDFMessage m)
 	{
-		if (doc == null)
+		if (doc != null)
 		{
-			return null;
-		}
-		final IConverterCallback callback = doc == null ? null : _parentDevice.getCallback(null);
-		if (callback != null)
-		{
-			doc = callback.prepareJDFForBambi(doc);
-		}
-		if (doc != null && m != null)
-		{
-			final KElement root = doc.getRoot();
-			final JDFJMF jmfRoot = m.getJMFRoot();
-			BambiNSExtension.copyMyNSAttribute(root, BambiNSExtension.HOTFOLDER, jmfRoot);
-			BambiNSExtension.copyMyNSAttribute(root, BambiNSExtension.JSON, jmfRoot);
-			BambiNSExtension.copyMyNSAttribute(root, BambiNSExtension.PACKAGE_TYPE, jmfRoot);
-			BambiNSExtension.copyMyNSAttribute(root, BambiNSExtension.PROTOCOL, jmfRoot);
-			BambiNSExtension.copyMyNSAttribute(root, "ContentType", jmfRoot);
+			final IConverterCallback callback = _parentDevice.getCallback(null);
+			if (callback != null)
+			{
+				doc = callback.prepareJDFForBambi(doc);
+			}
+			if (doc != null && m != null)
+			{
+				final KElement root = doc.getRoot();
+				final JDFJMF jmfRoot = m.getJMFRoot();
+				BambiNSExtension.copyMyNSAttribute(root, BambiNSExtension.HOTFOLDER, jmfRoot);
+				BambiNSExtension.copyMyNSAttribute(root, BambiNSExtension.JSON, jmfRoot);
+				BambiNSExtension.copyMyNSAttribute(root, BambiNSExtension.PACKAGE_TYPE, jmfRoot);
+				BambiNSExtension.copyMyNSAttribute(root, BambiNSExtension.PROTOCOL, jmfRoot);
+				BambiNSExtension.copyMyNSAttribute(root, "ContentType", jmfRoot);
+			}
 		}
 		return doc;
 	}

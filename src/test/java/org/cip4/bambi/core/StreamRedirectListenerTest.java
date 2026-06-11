@@ -70,88 +70,43 @@
  */
 package org.cip4.bambi.core;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+
 import java.io.File;
-import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.cip4.bambi.BambiTestCase;
+import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.extensions.MessageHelper;
-import org.cip4.jdflib.extensions.XJDFConstants;
-import org.cip4.jdflib.extensions.XJMFHelper;
-import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.util.hotfolder.HotFolderListener;
+import org.junit.Test;
 
-public class StreamRedirectListener implements HotFolderListener
+public class StreamRedirectListenerTest extends BambiTestCase
 {
 
-	private final String deviceID;
-	private final static Log log = LogFactory.getLog(StreamRedirectListener.class);
-
-	/**
-	 * @param abstractDevice
-	 */
-	public StreamRedirectListener(final AbstractDevice abstractDevice)
+	@Test
+	public void testHotFile1()
 	{
-		deviceID = abstractDevice.getDeviceID();
+		final StreamRedirectListener srl = new StreamRedirectListener(mock(AbstractDevice.class));
+		assertFalse(srl.hotFile(new File("gibts nicht")));
+		assertFalse(srl.hotFile(null));
 	}
 
-	/**
-	 * @see org.cip4.jdflib.util.hotfolder.HotFolderListener#hotFile(java.io.File)
-	 */
-	@Override
-	public boolean hotFile(final File hotFile)
+	@Test
+	public void testString()
 	{
-		final StreamRequest req = StreamRequest.createStreamRequest(hotFile);
-		try
-		{
-			if (req == null)
-			{
-				throw new IOException("Could not create stream from " + hotFile);
-			}
-			log.info("redirecting hot file to " + deviceID + " " + hotFile);
-			final HTTPResponse hr = BambiContainer.getInstance().processStream(req);
-			return processHotfileResponse(hr);
-		}
-		catch (final IOException e)
-		{
-			log.error("Snafu processing file " + hotFile, e);
-			return false;
-		}
+		final StreamRedirectListener srl = new StreamRedirectListener(mock(AbstractDevice.class));
+		assertNotNull(srl.toString());
 	}
 
-	boolean processHotfileResponse(HTTPResponse hr)
+	@Test
+	public void testProcessResponse()
 	{
-		if (!(hr instanceof final XMLResponse xr))
-		{
-			return false;
-		}
-		final KElement root = xr.getXML();
-		if (root instanceof final JDFJMF jmf)
-		{
-			final JDFResponse resp = jmf.getResponse(0);
-			return resp != null && resp.getReturnCode() == 0;
-		}
-		else if (XJDFConstants.XJMF.equals(root.getLocalName()))
-		{
-			final XJMFHelper h = new XJMFHelper(root);
-			final MessageHelper mh = h.getMessageHelper(0);
-			return mh != null && mh.getReturnCode() == 0;
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString()
-	{
-		return "StreamRedirectListener [deviceID=" + deviceID + "]";
+		final StreamRedirectListener srl = new StreamRedirectListener(mock(AbstractDevice.class));
+		assertFalse(srl.processHotfileResponse(null));
+		assertFalse(srl.processHotfileResponse(new XMLResponse(KElement.createRoot("test"))));
+		assertFalse(srl.processHotfileResponse(new XMLResponse(JDFElement.createRoot("JMF"))));
+		assertFalse(srl.processHotfileResponse(new XMLResponse(JDFElement.createRoot("XJMF"))));
 	}
 
 }

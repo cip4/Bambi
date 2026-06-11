@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2021 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -117,7 +117,6 @@ public class StreamRequest extends ContainerRequest
 		final StreamRequest sr = new StreamRequest(fileStream);
 		final String contentType = UrlUtil.getMimeTypeFromURL(file.getName());
 		sr.setContentType(contentType);
-		sr.setRequestURI(file.getAbsolutePath());
 		sr.setParameter(BambiNSExtension.HOTFOLDER, Boolean.toString(true));
 		sr.setPost(true);
 		sr.setRequestURI(UrlUtil.fileToUrl(file, false));

@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2026 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -70,88 +70,59 @@
  */
 package org.cip4.bambi.core;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.cip4.jdflib.core.KElement;
-import org.cip4.jdflib.extensions.MessageHelper;
-import org.cip4.jdflib.extensions.XJDFConstants;
-import org.cip4.jdflib.extensions.XJMFHelper;
+import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.jdflib.jmf.JDFJMF;
-import org.cip4.jdflib.jmf.JDFResponse;
-import org.cip4.jdflib.util.hotfolder.HotFolderListener;
+import org.cip4.jdflib.jmf.JMFBuilder;
+import org.junit.Test;
 
-public class StreamRedirectListener implements HotFolderListener
+public class StreamRequestTest extends BambiTestCaseBase
 {
 
-	private final String deviceID;
-	private final static Log log = LogFactory.getLog(StreamRedirectListener.class);
-
 	/**
-	 * @param abstractDevice
+	 *
 	 */
-	public StreamRedirectListener(final AbstractDevice abstractDevice)
+	@Test
+	public void testToString()
 	{
-		deviceID = abstractDevice.getDeviceID();
+		final StreamRequest req = new StreamRequest(new ByteArrayInputStream(("abc".getBytes())));
+		final String requestURI = "http://host/foo/bar/dev";
+		req.setRequestURI(requestURI);
+		assertTrue(req.toString().contains(requestURI));
+		assertTrue(req.shortString().contains(requestURI));
 	}
 
 	/**
-	 * @see org.cip4.jdflib.util.hotfolder.HotFolderListener#hotFile(java.io.File)
+	 *
 	 */
-	@Override
-	public boolean hotFile(final File hotFile)
+	@Test
+	public void testStreamString()
 	{
-		final StreamRequest req = StreamRequest.createStreamRequest(hotFile);
-		try
-		{
-			if (req == null)
-			{
-				throw new IOException("Could not create stream from " + hotFile);
-			}
-			log.info("redirecting hot file to " + deviceID + " " + hotFile);
-			final HTTPResponse hr = BambiContainer.getInstance().processStream(req);
-			return processHotfileResponse(hr);
-		}
-		catch (final IOException e)
-		{
-			log.error("Snafu processing file " + hotFile, e);
-			return false;
-		}
-	}
-
-	boolean processHotfileResponse(HTTPResponse hr)
-	{
-		if (!(hr instanceof final XMLResponse xr))
-		{
-			return false;
-		}
-		final KElement root = xr.getXML();
-		if (root instanceof final JDFJMF jmf)
-		{
-			final JDFResponse resp = jmf.getResponse(0);
-			return resp != null && resp.getReturnCode() == 0;
-		}
-		else if (XJDFConstants.XJMF.equals(root.getLocalName()))
-		{
-			final XJMFHelper h = new XJMFHelper(root);
-			final MessageHelper mh = h.getMessageHelper(0);
-			return mh != null && mh.getReturnCode() == 0;
-		}
-		else
-		{
-			return false;
-		}
+		final StreamRequest req = new StreamRequest(new ByteArrayInputStream("abc".getBytes(), 0, 3));
+		assertEquals("c", req.getStreamString(2, 33));
+		assertEquals("ab", req.getStreamString(0, -1));
+		assertEquals(null, req.getStreamString(42, 33));
+		final StreamRequest req2 = new StreamRequest(new ByteArrayInputStream("0123456789".getBytes(), 0, 10));
+		assertEquals("2345", req2.getStreamString(2, 4));
 	}
 
 	/**
-	 * @see java.lang.Object#toString()
+	 *
 	 */
-	@Override
-	public String toString()
+	@Test
+	public void testStreamFile()
 	{
-		return "StreamRedirectListener [deviceID=" + deviceID + "]";
+		final JDFJMF jmf = new JMFBuilder().buildSubmitQueueEntry(null, "foobar");
+		final File testFile = new File(sm_dirTestDataTemp + "streamtest.jmf");
+		jmf.write2File(testFile);
+		final StreamRequest req = StreamRequest.createStreamRequest(testFile);
+		assertNotNull(req);
 	}
 
 }
