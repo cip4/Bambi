@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2017 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -82,7 +82,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class BambiNotifyDef implements BambiNotify
 {
-	protected Log log;
+	private final static Log log = LogFactory.getLog(BambiNotifyDef.class);
 
 	private static BambiNotifyDef theInstance;
 	private static BambiNotify notifier;
@@ -97,7 +97,6 @@ public class BambiNotifyDef implements BambiNotify
 	 */
 	protected BambiNotifyDef()
 	{
-		log = LogFactory.getLog(getClass());
 		log.info("Creating default Bambi Notifier");
 	}
 
