@@ -254,7 +254,7 @@ public abstract class ServletContainer extends BambiLogFactory
 		return r;
 	}
 
-	private XMLResponse processZip(final StreamRequest request)
+	XMLResponse processZip(final StreamRequest request)
 	{
 		log.info("Processing zip request:  " + toString());
 		final InputStream is = request.getInputStream();
@@ -293,6 +293,7 @@ public abstract class ServletContainer extends BambiLogFactory
 				if (rootName.endsWith(JDFConstants.SLASH) && name != null && name.startsWith(rootName))
 				{
 					zipReader.setRootEntry(rootName);
+					log.info("Updating XML root: " + rootName);
 				}
 			}
 		}

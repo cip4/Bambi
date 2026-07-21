@@ -684,7 +684,7 @@ public final class BambiContainer extends ServletContainer
 	@Override
 	public String toString()
 	{
-		return "BambiContainer: \n" + rootDev;
+		return "BambiContainer: " + rootDev;
 	}
 
 	/**

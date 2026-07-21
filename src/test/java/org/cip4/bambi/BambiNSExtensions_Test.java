@@ -73,6 +73,7 @@ package org.cip4.bambi;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -131,6 +132,12 @@ public class BambiNSExtensions_Test extends BambiTestCase
 		final JDFQueue q = (JDFQueue) JDFQueue.createRoot(ElementName.QUEUE);
 		q.appendQueueEntry();
 		assertEquals(2, BambiNSExtension.incrmentTotal(q));
+	}
+
+	@Test
+	public void testCopy()
+	{
+		assertThrows(JDFException.class, () -> BambiNSExtension.copyMyNSAttribute(null, "foo", null));
 	}
 
 	@Test
