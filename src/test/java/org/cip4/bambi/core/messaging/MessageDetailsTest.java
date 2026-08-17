@@ -420,7 +420,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		assertNotNull(h);
 
 		final MessageHelper mh = h.getMessageHelper(0);
-		assertEquals("xjdf/2893.00.8.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
+		assertEquals("xjdf/2893.00.1.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
 		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
 		assertEquals('P', is.read());
 
@@ -451,7 +451,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		assertNotNull(h);
 
 		final MessageHelper mh = h.getMessageHelper(0);
-		assertEquals("xjdf/2893.00.8.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
+		assertEquals("xjdf/2893.00.1.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
 		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
 		assertEquals('P', is.read());
 
@@ -486,7 +486,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		assertNotNull(h);
 
 		final MessageHelper mh = h.getMessageHelper(0);
-		assertEquals("xjdf/2893.00.8.xjdf", mh.getXPathValue("ReturnQueueEntryParams/@URL"));
+		assertEquals("xjdf/2893.00.1.xjdf", mh.getXPathValue("ReturnQueueEntryParams/@URL"));
 		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
 		assertEquals('P', is.read());
 
