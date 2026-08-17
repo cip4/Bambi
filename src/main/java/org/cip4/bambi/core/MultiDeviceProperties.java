@@ -77,6 +77,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	static final String PROPERTIES_NAME = "PropertiesName";
 	private static final String BASE_DIR = "BaseDir";
 	static final String CONFIG_VERSION = "ConfigVersion";
+	static final String FORCE_UPDATE = "ForceUpdate";
 	/**
 	 * properties for a single device
 	 */
@@ -858,7 +859,8 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 */
 	protected boolean isCompatible(final MultiDeviceProperties localProps)
 	{
-		if (localProps == null)
+		final boolean forceUpdate = StringUtil.parseBoolean(root.getAttribute(FORCE_UPDATE), false);
+		if (localProps == null || forceUpdate)
 		{
 			return false;
 		}

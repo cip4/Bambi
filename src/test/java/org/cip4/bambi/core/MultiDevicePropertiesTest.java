@@ -261,6 +261,16 @@ public class MultiDevicePropertiesTest extends BambiTestCaseBase
 		}
 
 		@Test
+		public void testIsCompatible2()
+		{
+			final XMLDoc d = new XMLDoc("application", null);
+			d.setOriginalFileName(sm_dirTestDataTemp + "foo.ini");
+			d.getRoot().setAttribute(MultiDeviceProperties.FORCE_UPDATE, true, null);
+			final MultiDeviceProperties p = new MultiDeviceProperties(d);
+			assertFalse(p.isCompatible(p));
+		}
+
+		@Test
 		public void testIsCompatibleNot()
 		{
 			final XMLDoc d = new XMLDoc("application", null);
