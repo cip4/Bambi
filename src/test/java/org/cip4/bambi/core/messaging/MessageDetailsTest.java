@@ -303,6 +303,18 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	 *
 	 */
 	@Test
+	public void testGetStreamZapp()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final MessageDetails md = new MessageDetails(jmf, null, new ZappCallback(), null, "http://foo");
+		final InputStream is = md.getInputStream();
+		assertNull(is);
+	}
+
+	/**
+	 *
+	 */
+	@Test
 	public void testContentTypeZip()
 	{
 		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildSubmitQueueEntry("http://foo");
@@ -408,7 +420,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		assertNotNull(h);
 
 		final MessageHelper mh = h.getMessageHelper(0);
-		assertEquals("xjdf/2893.00.1.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
+		assertEquals("xjdf/2893.00.8.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
 		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
 		assertEquals('P', is.read());
 
@@ -439,7 +451,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		assertNotNull(h);
 
 		final MessageHelper mh = h.getMessageHelper(0);
-		assertEquals("xjdf/2893.00.1.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
+		assertEquals("xjdf/2893.00.8.xjdf", mh.getXPathValue("QueueSubmissionParams/@URL"));
 		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
 		assertEquals('P', is.read());
 
@@ -474,7 +486,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		assertNotNull(h);
 
 		final MessageHelper mh = h.getMessageHelper(0);
-		assertEquals("xjdf/2893.00.1.xjdf", mh.getXPathValue("ReturnQueueEntryParams/@URL"));
+		assertEquals("xjdf/2893.00.8.xjdf", mh.getXPathValue("ReturnQueueEntryParams/@URL"));
 		assertNotNull(zr.getMatchingEntry("*.xjdf", 0));
 		assertEquals('P', is.read());
 
@@ -543,6 +555,17 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		public boolean isExtendReferenced()
 		{
 			return true;
+		}
+
+	}
+
+	class ZappCallback extends ConverterCallback
+	{
+
+		@Override
+		public JDFDoc updateJMFForExtern(JDFDoc doc)
+		{
+			return null;
 		}
 
 	}

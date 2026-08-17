@@ -485,22 +485,29 @@ public class MessageDetails
 	{
 		try
 		{
-			final String contentType = getContentType();
-			if (UrlUtil.APPLICATION_ZIP.equals(contentType))
+			if (callback != null && getJMFInputStream() == null)
 			{
-				return getZipStream();
-			}
-			else if (MimeUtil.MULTIPART_RELATED.equals(contentType))
-			{
-				return getMimeInputStream();
-			}
-			else if (jmf != null)
-			{
-				return getJMFInputStream();
+				log.info("Skipping unsupported jmf " + getName());
 			}
 			else
 			{
-				log.warn("Unknown content type for null jmf " + contentType + (jdf == null ? " no jdf " : jdf.getNodeName()));
+				final String contentType = getContentType();
+				if (UrlUtil.APPLICATION_ZIP.equals(contentType))
+				{
+					return getZipStream();
+				}
+				else if (MimeUtil.MULTIPART_RELATED.equals(contentType))
+				{
+					return getMimeInputStream();
+				}
+				else if (jmf != null)
+				{
+					return getJMFInputStream();
+				}
+				else
+				{
+					log.warn("Unknown content type for null jmf " + contentType + (jdf == null ? " no jdf " : jdf.getNodeName()));
+				}
 			}
 		}
 		catch (final IOException e)
