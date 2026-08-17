@@ -1423,11 +1423,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 					return handleReset(request);
 				}
 			}
-			else
-			{
-				updateDevice(request);
-			}
-
+			updateDevice(request);
 			return showDevice(request, request.getBooleanParam(REFRESH));
 		}
 		else if (request.isMyContext("jmf") || request.isMyContext("slavejmf"))

@@ -272,7 +272,7 @@ public final class BambiContainer extends ServletContainer
 		final EnumVersion version = props.getJDFVersion();
 		JDFElement.setDefaultJDFVersion(version);
 		final VElement v = props.getDevices();
-		if (v == null || v.size() == 0)
+		if (ContainerUtil.isEmpty(v))
 		{
 			log.fatal("no devices found " + props);
 		}

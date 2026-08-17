@@ -122,7 +122,7 @@ import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.cip4.jdflib.util.URLReader;
-import org.cip4.jdflib.util.URLReader.EPackage;
+import org.cip4.jdflib.util.URLValidator.EPackage;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeWriter;
 import org.junit.Before;

@@ -447,6 +447,28 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	 * @throws Exception
 	 */
 	@Test
+	public void testHandleGet() throws Exception
+	{
+		final AbstractDevice device = getDevice();
+		final ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://localhost:44493/simulator/showDevice/" + device.getDeviceID() + "?modify=true&WatchURL=foobar");
+		assertNotNull(device.handleGet(request));
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testMutable() throws Exception
+	{
+		final AbstractDevice device = getDevice();
+		assertTrue(device.isMutable());
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
 	public void testGetUpdated() throws Exception
 	{
 		final AbstractDevice device = getDevice();
@@ -457,7 +479,8 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	{
 		final InputStream resourceAsStream = getClass().getResourceAsStream("/config/devices.xml");
 		final MultiDeviceProperties mp = MultiDeviceProperties.getProperties(resourceAsStream);
-		return mp.createDeviceProps(1).getDeviceInstance();
+		final RootDevice root = new RootDevice(mp.createDeviceProps(0));
+		return root.createDevice(mp.createDeviceProps(1));
 	}
 
 }
