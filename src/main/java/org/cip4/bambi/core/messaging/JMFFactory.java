@@ -46,6 +46,7 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.IConverterCallback;
+import org.cip4.jdflib.core.JDFConstants;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -99,6 +100,10 @@ public class JMFFactory
 			{
 				inputUrl = StringUtil.removeToken(inputUrl, -1, "/");
 			}
+			if (StringUtil.endsWith(inputUrl, JDFConstants.SLASH))
+			{
+				inputUrl = StringUtil.leftStr(inputUrl, -1);
+			}
 
 			return UrlUtil.normalize(inputUrl);
 		}
@@ -142,11 +147,10 @@ public class JMFFactory
 		@Override
 		public boolean equals(final Object obj)
 		{
-			if (!(obj instanceof CallURL))
+			if (!(obj instanceof final CallURL other))
 			{
 				return false;
 			}
-			final CallURL other = (CallURL) obj;
 			return ContainerUtil.equals(url, other.url);
 		}
 
@@ -510,8 +514,8 @@ public class JMFFactory
 		}
 		else
 		{
-			CallURL cu = new CallURL(url);
-			Vector<MessageSender> v = new Vector<>();
+			final CallURL cu = new CallURL(url);
+			final Vector<MessageSender> v = new Vector<>();
 			ContainerUtil.add(v, senders.get(cu));
 			return v;
 		}
