@@ -1,8 +1,8 @@
 /**
  * The CIP4 Software License, Version 1.0
  *
- * Copyright (c) 2001-2012 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2012 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,17 +18,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -54,17 +54,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.core.messaging;
 
@@ -84,12 +84,14 @@ import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * jmf handler for the shutdown methof
+ *
  * @author rainer prosi
  * @date June 5, 2012
  */
-public class ShutdownJMFHandler extends AbstractHandler {
+public class ShutdownJMFHandler extends AbstractHandler
+{
 
-	private final Log log = BambiLogFactory.getLog(ShutdownJMFHandler.class);
+	private final static Log log = BambiLogFactory.getLog(ShutdownJMFHandler.class);
 
 	private final AbstractDevice device;
 	private boolean killContainer;
@@ -97,16 +99,20 @@ public class ShutdownJMFHandler extends AbstractHandler {
 	private static ServiceKiller theServiceKiller = null;
 
 	/**
-	 * 
 	 * thread to kill mama service
+	 *
 	 * @author rainer prosi
 	 * @date Jun 5, 2012
 	 */
-	private class ServiceKiller extends Thread {
+	private class ServiceKiller extends Thread
+	{
+		boolean exit;
+
 		/**
-		 * 
+		 *
 		 */
-		private ServiceKiller() {
+		private ServiceKiller()
+		{
 			super("ContainerKillerThread");
 		}
 
@@ -114,29 +120,32 @@ public class ShutdownJMFHandler extends AbstractHandler {
 		 * @see java.lang.Thread#run()
 		 */
 		@Override
-		public void run() {
+		public void run()
+		{
 			log.info("Contemplating Harakiri");
 			ThreadUtil.sleep(1000);
 			log.info("Committing Harakiri");
-			long t0 = System.currentTimeMillis();
-			BambiContainer container = BambiContainer.getInstance();
-			if (container == null) {
+			final long t0 = System.currentTimeMillis();
+			final BambiContainer container = BambiContainer.getInstance();
+			if (container == null)
+			{
 				log.error("cannot retrieve container, bailing out");
-			} else {
+			}
+			else
+			{
 				container.shutDown();
 			}
-			// if (JettyService.isJettyEnvironment()) {
-			// JettyService.stop(new String[] {});
-			// }
 			log.info("Digital Nirvana!!! after " + (System.currentTimeMillis() - t0) + " milliseconds");
+			ThreadUtil.sleep(1000);
+			System.exit(0);
 		}
 	}
 
 	/**
-	 * 
 	 * @param device
 	 */
-	public ShutdownJMFHandler(AbstractDevice device) {
+	public ShutdownJMFHandler(AbstractDevice device)
+	{
 		super(EnumType.ShutDown, new EnumFamily[] { EnumFamily.Command });
 		this.device = device;
 		killContainer = false;
@@ -146,28 +155,40 @@ public class ShutdownJMFHandler extends AbstractHandler {
 	 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 	 */
 	@Override
-	public boolean handleMessage(JDFMessage inputMessage, JDFResponse response) {
-		JDFShutDownCmdParams scp = inputMessage.getShutDownCmdParams(0);
-		EnumShutDownType shutDownType = scp == null ? EnumShutDownType.StandBy : scp.getShutDownType();
-		if (EnumShutDownType.Full.equals(shutDownType)) {
+	public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+	{
+		final JDFShutDownCmdParams scp = inputMessage.getShutDownCmdParams(0);
+		final EnumShutDownType shutDownType = scp == null ? EnumShutDownType.StandBy : scp.getShutDownType();
+		if (EnumShutDownType.Full.equals(shutDownType))
+		{
 			log.info("shutting down; " + device.getDeviceType() + " ID=" + device.getDeviceID());
 			device.shutdown();
-			if (killContainer && theServiceKiller == null) {
-				theServiceKiller = new ServiceKiller();
-				theServiceKiller.start();
-			}
+			zappService();
 			return true;
-		} else {
+		}
+		else
+		{
 			JMFHandler.errorResponse(response, "Standby shutdown not handled " + device.getDeviceType() + " ID=" + device.getDeviceID(), 101, EnumClass.Error);
 			return true;
 		}
 	}
 
+	public void zappService()
+	{
+		if (killContainer && theServiceKiller == null)
+		{
+			theServiceKiller = new ServiceKiller();
+			theServiceKiller.start();
+		}
+	}
+
 	/**
 	 * Setter for killContainer
+	 *
 	 * @param bZapp if true; die MF die!
 	 */
-	public void setKillContainer(boolean bZapp) {
+	public void setKillContainer(boolean bZapp)
+	{
 		this.killContainer = bZapp;
 	}
 }

@@ -142,6 +142,10 @@ public final class BambiContainer extends ServletContainer
 				{
 					getRootDev().updateDump(request.getBooleanParam("Dump"));
 				}
+				if (request.getBooleanParam("shutdown"))
+				{
+					getRootDev().getShutdownHandler().zappService();
+				}
 				return getRootDev().showDevice(request, false);
 			}
 			else

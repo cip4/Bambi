@@ -895,7 +895,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 *
 	 * @return
 	 */
-	public IMessageHandler getShutdownHandler()
+	public ShutdownJMFHandler getShutdownHandler()
 	{
 		final ShutdownJMFHandler shutdownJMFHandler = new ShutdownJMFHandler(this);
 		shutdownJMFHandler.setKillContainer(true);
