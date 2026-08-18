@@ -2297,14 +2297,29 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			_parentDevice.ensureProcessor(newQE, theJDF);
 			notifyListeners(qeID);
 			prepareSubmit(newQE);
-			incrmentTotal();
+			incrementTotal();
 		}
 		return newQE;
 	}
 
-	void incrmentTotal()
+	public void incrementTotalProductionCounter(double l)
 	{
-		BambiNSExtension.incrmentTotal(_theQueue.get());
+		if (l > 0)
+		{
+			final double tot = getTotalProductionCounter() + l;
+			BambiNSExtension.setMyNSAttribute(_theQueue.get(), AttributeName.TOTALPRODUCTIONCOUNTER, StringUtil.formatDouble(tot, 0));
+			persist(PERSIST_MS);
+		}
+	}
+
+	public double getTotalProductionCounter()
+	{
+		return StringUtil.parseDouble(BambiNSExtension.getMyNSAttribute(_theQueue.get(), AttributeName.TOTALPRODUCTIONCOUNTER), 0);
+	}
+
+	void incrementTotal()
+	{
+		BambiNSExtension.incrementTotal(_theQueue.get());
 	}
 
 	/**

@@ -574,7 +574,7 @@ public class BambiNSExtension
 		return StringUtil.parseLong(getMyNSAttribute(newQE, docMod), -1);
 	}
 
-	public static int incrmentTotal(JDFQueue jdfQueue)
+	public static int incrementTotal(JDFQueue jdfQueue)
 	{
 		int current = getTotal(jdfQueue);
 		if (jdfQueue != null)

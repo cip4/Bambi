@@ -241,7 +241,6 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	{
 		long deltaT = 1000;
 		final JDFResourceLink rlAmount = getAmountLink(node);
-
 		while (phase.getDurationMillis() > 0)
 		{
 			final long t0 = System.currentTimeMillis();
@@ -268,6 +267,8 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 					for (final JDFAttributeMap localPart : resourceParts)
 					{
 						final double phaseGood = phase.getOutputGood(phaseAmount.getResourceName(), (int) deltaT, localPart);
+						final double phaseWaste = phase.getOutputWasteAfterTime(phaseAmount.getResourceName(), (int) deltaT, localPart);
+
 						if ("percent".equalsIgnoreCase(phaseAmount.getResourceName()))
 						{
 							if (phaseAmount.isMasterAmount())
@@ -281,18 +282,23 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 						}
 						else
 						{
-							final double phaseWaste = phase.getOutputWasteAfterTime(phaseAmount.getResourceName(), (int) deltaT, localPart);
 							_statusListener.updateAmount(phaseAmount.getResourceName(), phaseGood, phaseWaste, localPart);
 						}
 						if (phaseAmount.isMasterAmount())
 						{
+							_statusListener.incrementTotalAmount(phaseGood + phaseWaste);
+							getParent().getQueueProcessor().incrementTotalProductionCounter(phaseGood + phaseWaste);
 							all += phaseGood;
-							if (all > todoAmount && todoAmount > 0)
+							if (todoAmount > 0)
 							{
-								phase.setDurationMillis(0);
-								log.info("phase " + getJobID() + " / " + getQueueEntryID() + " end for resource: " + rlAmount.shortString() + " done=" + all
-										+ " planned=" + todoAmount);
-								reachedEnd = true;
+								_statusListener.updatePercentComplete(100 * phaseGood / todoAmount);
+								if (all > todoAmount)
+								{
+									phase.setDurationMillis(0);
+									log.info("phase " + getJobID() + " / " + getQueueEntryID() + " end for resource: " + rlAmount.shortString() + " done=" + all
+											+ " planned=" + todoAmount);
+									reachedEnd = true;
+								}
 							}
 						}
 					}

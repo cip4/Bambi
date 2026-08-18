@@ -122,8 +122,8 @@ public class BambiNSExtensions_Test extends BambiTestCase
 	public void testQueue()
 	{
 		final JDFQueue q = (JDFQueue) JDFQueue.createRoot(ElementName.QUEUE);
-		assertEquals(1, BambiNSExtension.incrmentTotal(q));
-		assertEquals(2, BambiNSExtension.incrmentTotal(q));
+		assertEquals(1, BambiNSExtension.incrementTotal(q));
+		assertEquals(2, BambiNSExtension.incrementTotal(q));
 	}
 
 	@Test
@@ -131,7 +131,7 @@ public class BambiNSExtensions_Test extends BambiTestCase
 	{
 		final JDFQueue q = (JDFQueue) JDFQueue.createRoot(ElementName.QUEUE);
 		q.appendQueueEntry();
-		assertEquals(2, BambiNSExtension.incrmentTotal(q));
+		assertEquals(2, BambiNSExtension.incrementTotal(q));
 	}
 
 	@Test
@@ -181,7 +181,7 @@ public class BambiNSExtensions_Test extends BambiTestCase
 	@Test
 	public void testQueue3()
 	{
-		assertEquals(0, BambiNSExtension.incrmentTotal(null));
+		assertEquals(0, BambiNSExtension.incrementTotal(null));
 	}
 
 	@Test

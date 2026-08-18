@@ -131,6 +131,8 @@ public class SimDeviceProcessorTest extends BambiTestCaseBase
 		assertEquals(4, jobFromFile.size());
 		p._jobPhases.addAll(jobFromFile);
 		final JDFNode n = JDFNode.parseFile(sm_dirTestData + "IDPSimplex.jdf");
+		p.setTestQE(n);
+		p.initializeProcessDoc(n, p.getQueueEntry());
 		final EnumQueueEntryStatus qes = p.processDoc(n, null);
 		assertEquals(EnumQueueEntryStatus.Completed, qes);
 	}

@@ -541,6 +541,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		_theQueueProcessor.addHandlers(_jmfHandler);
 		_theQueueProcessor.addListener(mutex);
 		_theStatusListener = new StatusListener(_theSignalDispatcher, getDeviceID(), getICSVersions());
+		_theStatusListener.setTotalAmount(_theQueueProcessor.getTotalProductionCounter());
 		log.info("Running Init " + this);
 		init();
 		log.info("Done creating " + this);

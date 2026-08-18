@@ -551,4 +551,21 @@ public class StatusListener implements IPersistable
 		}
 	}
 
+	public void setTotalAmount(double d)
+	{
+		if (d > 0)
+		{
+			theCounter.setTotalCounter(d);
+		}
+	}
+
+	public void incrementTotalAmount(double d)
+	{
+		if (d > 0)
+		{
+			theCounter.setTotalCounter(Math.max(0, theCounter.getTotalCounter()) + d);
+			theCounter.setCurrentCounter(Math.max(0, theCounter.getCurrentCounter()) + d);
+		}
+	}
+
 }
