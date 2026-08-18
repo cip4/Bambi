@@ -70,6 +70,7 @@
  */
 package org.cip4.bambi.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -126,6 +127,15 @@ public class StatusListenerTest extends BambiTestCaseBase
 		sl.updateTotal("a", 3, false, null);
 		sl.updatePercentComplete(42);
 		assertFalse(sl.persist());
+	}
+
+	@Test
+	public void testUpdateTotalProd()
+	{
+		final SignalDispatcher disp = Mockito.mock(SignalDispatcher.class);
+		final StatusListener sl = new StatusListener(disp, null, null);
+		sl.incrementTotalAmount(42);
+		assertEquals(42, sl.getStatusCounter().getTotalCounter(), 0.001);
 	}
 
 }

@@ -53,6 +53,7 @@ import java.io.InputStream;
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
 import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
+import org.cip4.bambi.core.messaging.ShutdownJMFHandler;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
@@ -453,6 +454,19 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		final ContainerRequest request = new ContainerRequest();
 		request.setRequestURI("http://localhost:44493/simulator/showDevice/" + device.getDeviceID() + "?modify=true&WatchURL=foobar");
 		assertNotNull(device.handleGet(request));
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	@Test
+	public void testShutDown() throws Exception
+	{
+		final AbstractDevice device = getDevice();
+		final ShutdownJMFHandler shutdownHandler = device.getShutdownHandler();
+		assertNotNull(shutdownHandler);
+		shutdownHandler.zappService();
+		ThreadUtil.sleep(123);
 	}
 
 	/**
