@@ -106,7 +106,6 @@ public class ShutdownJMFHandler extends AbstractHandler
 	 */
 	private class ServiceKiller extends Thread
 	{
-		boolean exit;
 
 		/**
 		 *
@@ -136,8 +135,6 @@ public class ShutdownJMFHandler extends AbstractHandler
 				container.shutDown();
 			}
 			log.info("Digital Nirvana!!! after " + (System.currentTimeMillis() - t0) + " milliseconds");
-			ThreadUtil.sleep(1000);
-			System.exit(0);
 		}
 	}
 
