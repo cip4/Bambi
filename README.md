@@ -1,26 +1,37 @@
 # CIP4 Bambi - JDF Device Simulator
 [![License (CIP4 Software License)](https://img.shields.io/badge/license-CIP4%20Software%20License-blue)](https://github.com/cip4/xJdfLib/blob/master/LICENSE.md)   [![Bambi Snapshot](https://github.com/cip4/Bambi/actions/workflows/snapshot.yml/badge.svg)](https://github.com/cip4/Bambi/actions/workflows/snapshot.yml)
 
-Bambi is a CIP4 Tool for the simulation of JDF Devices and JDF Controllers. Originally, it was designed in order to provide a test framework for the development of Management Information Systems. Using configuration files, a set of individual JDF Devices can be defined and simulated such as presses, post press devices etc.  
+Bambi is a CIP4 Tool for the simulation of JDF Devices and JDF Controllers. Originally, it was designed in order to provide a test framework for the development of Management Information Systems. Using configuration files, a set of individual JDF Devices can be defined and simulated such as presses, post press devices etc.
 
-Another use case of Bambi is the simulation of production processes within a printing house. When configuring the Bambi Devices with the original characteristics of production devices, the affects of scenarios within a printing house can be simulated. This is useful especially for highly standardized production lines.  
+Another use case of Bambi is the simulation of production processes within a printing house. When configuring the Bambi Devices with the original characteristics of production devices, the affects of scenarios within a printing house can be simulated. This is useful especially for highly standardized production lines.
 
-Here is an online version of CIP4 Bambi: **https://bambi.cip4.org**  
+Here is an online version of CIP4 Bambi: **https://bambi.cip4.org**
 
 ## Environment Variables
 | ENV                  | Description                                                   |
 |--------------------|---------------------------------------------------------------|
 | CIP4_BAMBI_BASE_URL  | The Bambi instance's base url used in DeviceUrl, JMF URL etc. |
 
-  
+
 ## Bambi Docker
 Bambi is also available as Docker image on Docker Hub: https://hub.docker.com/r/cip4/bambi. Here are the CLI commands to launch the image locally on your machine:
-  
+
 ```bash
 $ docker pull cip4/bambi:latest
 $ docker run -p 8080:8080 cip4/bambi:latest
 ```
 
+You can also run it with the GUI by setting an X11 display:
+
+```bash
+$ docker run -e DISPLAY="$DISPLAY" -p 8080:8080 bambi:latest
+```
+
+On some systems, e.g., WSL, you may need to mount the host's X11 Unix socket:
+
+```bash
+$ docker run -e DISPLAY="$DISPLAY" -v /tmp/.X11-unix:/tmp/.X11-unix -p 8080:8080 bambi:latest
+```
 
 ## Usage
 ### Job Submission
@@ -30,13 +41,10 @@ There are multiple ways to submit jobs to Bambi. Besides the standardized JMF ap
 ```bash
 $ curl -X POST -H "Content-Type: application/vnd.cip4-jdf+xml" -d @sim003-sample.jdf http://localhost:8080/SimWorker/jmf/sim003
 ```
-  
-  
+
 #### Alces
-CIP4 Alces can be used to submit jobs to Bambi using JMF SubmitQueueEntry messages. Here is the link to Alces: https://github.com/cip4/Alces  
-  
-  
+CIP4 Alces can be used to submit jobs to Bambi using JMF SubmitQueueEntry messages. Here is the link to Alces: https://github.com/cip4/Alces
+
 ## Issue Tracking
-Don't write issues. Please provide Pull-Requests!  
-https://github.com/cip4/Bambi  
-  
+Don't write issues. Please provide Pull-Requests!
+https://github.com/cip4/Bambi

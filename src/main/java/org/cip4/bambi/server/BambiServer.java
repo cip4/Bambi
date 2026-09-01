@@ -314,6 +314,14 @@ public class BambiServer extends JettyServer
 	{
 		LogConfigurator.configureLog(new UserDir(BAMBI).getLogPath(), "bambi.log");
 		final Log log = LogFactory.getLog(BambiServer.class);
+
+		if (java.awt.GraphicsEnvironment.isHeadless())
+		{
+			log.info("Headless mode detected. Delegating to BambiService.");
+			BambiService.main(args);
+			return;
+		}
+
 		log.info("BambiServer");
 		final BambiServer bambiServer = new BambiServer();
 		bambiServer.getProp().setBaseDir(new File(new UserDir(BAMBI).getToolPath()));

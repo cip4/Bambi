@@ -1,123 +1,125 @@
 import org.apache.tools.ant.filters.ReplaceTokens
-
 import java.time.Instant
 
 plugins {
-    id 'java'
-    id 'application'
-    id 'org.beryx.runtime' version '2.0.1'
-    id 'distribution'
+	id 'java'
+	id 'application'
+	id 'org.beryx.runtime' version '2.0.1'
+	id 'distribution'
 	id 'eclipse'
-
 }
 
 def simpleProjectName = "Bambi"
 
 if (project.hasProperty('projectVersion')) {
-version = project.projectVersion
-} else {
-    version = 'development'
+	version = project.projectVersion
+	} else {
+		version = 'development'
 }
 
 repositories {
 	mavenLocal()
-    mavenCentral()
-    maven {
-        url "https://oss.sonatype.org/content/repositories/snapshots"
+	mavenCentral()
+	maven {
+		url = "https://oss.sonatype.org/content/repositories/snapshots"
 	}
 }
 
+def projectInfo = [
+	name       : project.name,
+	version    : project.version,
+	buildNumber: project.findProperty('buildNumber')
+]
+
 processResources {
-    filesMatching('**/*.properties') {
-        filter(ReplaceTokens, tokens: [
-		'name'       : project.properties['name'],
-		'version'    : project.properties['version'],
-		'timestamp'  : new Date().format('yyyy-MM-dd HH:mm:ss'),
-		'buildNumber': project.properties['buildNumber'] == null ? 'n. a.' : project.properties['buildNumber']
-        ])
+	filesMatching('**/*.properties') {
+		filter(ReplaceTokens, tokens: [
+			'name'       : projectInfo.name,
+			'version'    : projectInfo.version,
+			'timestamp'  : new Date().format('yyyy-MM-dd HH:mm:ss'),
+			'buildNumber': projectInfo.buildNumber ?: 'n. a.'
+		])
 	}
 }
 
 application {
-    mainClass = 'org.cip4.bambi.server.BambiServer'
+	mainClass = 'org.cip4.bambi.server.BambiServer'
 }
 
-tasks.register('startScriptsHeadless', CreateStartScripts) {
-    outputDir = file('build/scripts')
-    mainClass = 'org.cip4.bambi.server.BambiService'
-    applicationName = 'bambi-headless'
-    classpath = files(tasks.named('jar').map { it.outputs.files }, project.configurations.runtimeClasspath)
+tasks.register("startScriptsHeadless", JavaExec) {
+	group = "application"
+	classpath = sourceSets["main"].runtimeClasspath
+	mainClass = application.mainClass
+	jvmArgs("-Djava.awt.headless=true")
 }
-installDist.dependsOn(startScriptsHeadless)
 
 dependencies {
-    implementation 'org.apache.logging.log4j:log4j-jcl:2.26.0'
-    implementation 'org.apache.logging.log4j:log4j-core:2.26.0'
- 	implementation ('org.cip4.lib.jdf:JDFLibJ:2.2.8.+'){
+	implementation 'org.apache.logging.log4j:log4j-jcl:2.26.0'
+	implementation 'org.apache.logging.log4j:log4j-core:2.26.0'
+	implementation ('org.cip4.lib.jdf:JDFLibJ:2.2.8.+'){
 		exclude group: 'xml-apis'
 	}
-   implementation 'org.cip4.tools.jdfutility:JDFUtility:2.8.+'
-    implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:2.0.+'
+	implementation 'org.cip4.tools.jdfutility:JDFUtility:2.8.+'
+	implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:2.0.+'
 	implementation ('xerces:xercesImpl:2.12.2'){transitive=false}
-	
-    implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
-    implementation 'org.eclipse.jetty:jetty-server:12.1.10'
-    implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.10'
-    implementation ('com.googlecode.json-simple:json-simple:1.1.1'){transitive=false}
-    implementation 'commons-logging:commons-logging-api:1.1'
-    implementation 'org.apache.commons:commons-lang3:3.20.0'
-    implementation 'commons-io:commons-io:2.22.0'
- 	implementation 'com.sun.mail:jakarta.mail:2.0.2'
+
+	implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+	implementation 'org.eclipse.jetty:jetty-server:12.1.10'
+	implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.10'
+	implementation ('com.googlecode.json-simple:json-simple:1.1.1'){transitive=false}
+	implementation 'commons-logging:commons-logging-api:1.1'
+	implementation 'org.apache.commons:commons-lang3:3.20.0'
+	implementation 'commons-io:commons-io:2.22.0'
+	implementation 'com.sun.mail:jakarta.mail:2.0.2'
 	implementation 'net.sf.saxon:Saxon-HE:13.0'
 
-	
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.mockito:mockito-core:4.11.0'
+	testImplementation 'junit:junit:4.13.2'
+	testImplementation 'org.mockito:mockito-core:4.11.0'
 }
 
 runtime {
-    jpackage {
-        modules = [
-		'jdk.xml.dom',
-		'java.logging',
-		'java.naming',
-		'java.desktop',
-		'java.management',
-		'jdk.unsupported',
-		'jdk.accessibility'
-        ]
-        imageOptions = [
-		"--copyright", "CIP4 Organization",
-		"--vendor", "CIP4 Organization"
-        ]
-        def currentOs = org.gradle.internal.os.OperatingSystem.current()
-        def icon = "src/main/dist/bambi.ico"
-        if (currentOs.macOsX) {
-            imageOptions += [
-			"--mac-sign",
-			"--mac-signing-key-user-name", "CIP4 Organization (4DL5XX9SG8)",
-			"--mac-package-identifier", "org.cip4.bambi"
-            ]
-            icon = "src/main/dist/bambi.icns"
-		}
-        if (currentOs.windows) {
-            installerOptions += [
-			"--win-dir-chooser",
-			"--win-menu",
-			"--win-upgrade-uuid", "6278b5c0-f8f8-487a-9b0e-71326583a798",
+	jpackage {
+		modules = [
+			'jdk.xml.dom',
+			'java.logging',
+			'java.naming',
+			'java.desktop',
+			'java.management',
+			'jdk.unsupported',
+			'jdk.accessibility'
+		]
+		imageOptions = [
+			"--copyright", "CIP4 Organization",
 			"--vendor", "CIP4 Organization"
-            ]
+		]
+		def currentOs = org.gradle.internal.os.OperatingSystem.current()
+		def icon = "src/main/dist/bambi.ico"
+		if (currentOs.macOsX) {
+			imageOptions += [
+				"--mac-sign",
+				"--mac-signing-key-user-name", "CIP4 Organization (4DL5XX9SG8)",
+				"--mac-package-identifier", "org.cip4.bambi"
+			]
+			icon = "src/main/dist/bambi.icns"
 		}
-        imageOptions += ["--icon", icon]
-        int ts = (int) (Instant.now().toEpochMilli() / 100_000) % 65_535
-        appVersion = project.version == "development" ? "1.0." + ts : project.version
+		if (currentOs.windows) {
+			installerOptions += [
+				"--win-dir-chooser",
+				"--win-menu",
+				"--win-upgrade-uuid", "6278b5c0-f8f8-487a-9b0e-71326583a798",
+				"--vendor", "CIP4 Organization"
+			]
+		}
+		imageOptions += ["--icon", icon]
+		int ts = (int) (Instant.now().toEpochMilli() / 100_000) % 65_535
+		appVersion = project.version == "development" ? "1.0." + ts : project.version
 	}
 }
 
 test {
-       def currentOs = org.gradle.internal.os.OperatingSystem.current()
-    dependsOn(jre)
-    if (currentOs.windows) {
+	def currentOs = org.gradle.internal.os.OperatingSystem.current()
+	dependsOn(jre)
+	if (currentOs.windows) {
 		executable = jre.getJreDir().dir("bin").file("java.exe").getAsFile().getAbsolutePath()
 	}
 	else
@@ -126,17 +128,16 @@ test {
 	}
 }
 
-
 run {
-    dependsOn(jre)
-    executable = jre.getJreDir().dir("bin").file("java").getAsFile().getAbsolutePath()
+	dependsOn(jre)
+	executable = jre.getJreDir().dir("bin").file("java").getAsFile().getAbsolutePath()
 }
 
 java {
-base.archivesName = simpleProjectName
-sourceCompatibility = 17
-targetCompatibility = 17
+	base.archivesName = simpleProjectName
+	sourceCompatibility = 17
+	targetCompatibility = 17
 }
 startScripts {
-    applicationName = simpleProjectName
+	applicationName = simpleProjectName
 }
