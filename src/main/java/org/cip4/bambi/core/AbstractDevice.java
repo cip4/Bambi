@@ -996,7 +996,12 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	public String toString()
 	{
 		final String propName = (_devProperties == null) ? "null" : _devProperties.getClass().getSimpleName();
-		return (getClass().getName() + (isSynchronous ? " synchronous" : " asynchronous") + " Properties=" + propName);
+		return getClass().getName() + (isSynchronous ? " synchronous" : " asynchronous") + " Properties=" + propName;
+	}
+
+	public String shortString()
+	{
+		return getClass().getSimpleName() + " " + getDeviceType() + " " + getDeviceID();
 	}
 
 	/**
