@@ -214,6 +214,18 @@ public class MultiDevicePropertiesTest extends BambiTestCaseBase
 		}
 
 		@Test
+		public void testString()
+		{
+			final XMLDoc d = new XMLDoc("application", null);
+			d.setOriginalFileName("foo");
+			final KElement root = d.getRoot();
+			final MultiDeviceProperties p = new MultiDeviceProperties(d);
+			final DeviceProperties dp = p.createDeviceProps(root.appendElement("dev"));
+			assertNotNull(dp.toString());
+			assertNotNull(dp.shortString());
+		}
+
+		@Test
 		public void testSubClassNull()
 		{
 			final XMLDoc d = new XMLDoc("application", null);

@@ -172,13 +172,15 @@ public class BambiTestDevice extends WorkerDevice
 	@Override
 	public SignalDispatcher getSignalDispatcher()
 	{
-		return Mockito.mock(SignalDispatcher.class);
+		return createSignalDispatcher();
 	}
 
 	@Override
 	public SignalDispatcher createSignalDispatcher()
 	{
-		return Mockito.mock(SignalDispatcher.class);
+		final SignalDispatcher mock = Mockito.mock(SignalDispatcher.class);
+		when(mock.getDevice()).thenReturn(this);
+		return mock;
 	}
 
 }

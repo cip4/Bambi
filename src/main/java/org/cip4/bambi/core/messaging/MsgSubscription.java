@@ -2,7 +2,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2025 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -38,6 +38,7 @@
  */
 package org.cip4.bambi.core.messaging;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -172,12 +173,11 @@ public class MsgSubscription implements Cloneable
 	 */
 	protected JDFJMF getSignal()
 	{
-		if (!(theMessage instanceof JDFQuery))
+		if (!(theMessage instanceof JDFQuery jmfQuery))
 		{
 			log.error("registrations not supported: " + theMessage.getType());
 			return null;
 		}
-		JDFQuery jmfQuery = (JDFQuery) theMessage;
 		final JDFJMF jmfResponse = jmfQuery.createResponse();
 		jmfResponse.setMaxVersion(jdfVersion);
 		jmfResponse.setVersion(jdfVersion);
@@ -251,36 +251,33 @@ public class MsgSubscription implements Cloneable
 	 * @param jmfOut
 	 * @return
 	 */
-	private JDFJMF filterSenders(final JDFJMF jmfOut)
+	JDFJMF filterSenders(final JDFJMF jmfOut)
 	{
-		if (jmfOut == null)
+		final VElement v = jmfOut == null ? null : jmfOut.getMessageVector(EnumFamily.Signal, null);
+		if (ContainerUtil.isEmpty(v))
 		{
 			return null;
 		}
-		final VElement v = jmfOut.getMessageVector(EnumFamily.Signal, null);
-		final int siz = ContainerUtil.size(v);
-		if (siz == 0)
+		int i = 0;
+		for (final KElement e : new ArrayList<>(v))
 		{
-			return null;
-		}
-		for (int i = 0; i < siz; i++)
-		{
-			final JDFSignal s = (JDFSignal) v.get(i);
-			if (!StringUtil.matchesSimple(s.getSenderID(), jmfDeviceID) || signalDispatcher.device.deleteSignal(s))
+			final JDFSignal s = (JDFSignal) e;
+			if (s != null && (!StringUtil.matchesSimple(s.getSenderID(), jmfDeviceID) || signalDispatcher.getDevice().deleteSignal(s)))
 			{
-				if (s != null)
-				{
-					s.deleteNode();
-				}
+				s.deleteNode();
 				v.remove(i);
 			}
+			else if (s == null)
+			{
+				v.remove(i);
+			}
+
+			i++;
 		}
-		return v.isEmpty() ? null : jmfOut;
+		return ContainerUtil.isEmpty(v) ? null : jmfOut;
 	}
 
 	/**
-	 *
-	 *
 	 * @return
 	 */
 	public String getURL()
@@ -289,8 +286,6 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 *
-	 *
 	 * @see java.lang.Object#clone()
 	 */
 	@Override
@@ -312,7 +307,6 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 *
 	 * @param parent
 	 * @param details
 	 * @param pos
@@ -331,7 +325,6 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 *
 	 * @param sub
 	 * @param details
 	 * @param pos
@@ -376,9 +369,13 @@ public class MsgSubscription implements Cloneable
 	EWatchFormat getWatchFormat()
 	{
 		if (isJSON)
+		{
 			return EWatchFormat.JSON;
+		}
 		if (!EnumUtil.aLessThanB(jdfVersion, EnumVersion.Version_2_0))
+		{
 			return EWatchFormat.XJMF;
+		}
 		return EWatchFormat.JMF;
 	}
 
@@ -415,11 +412,9 @@ public class MsgSubscription implements Cloneable
 
 	/**
 	 * creates a MsgSubscription
-	 *
 	 * - must be maintained in synch with @see setXML (duh...)
 	 *
 	 * @param signalDispatcher TODO
-	 *
 	 */
 	MsgSubscription(final SignalDispatcher signalDispatcher)
 	{
@@ -440,7 +435,6 @@ public class MsgSubscription implements Cloneable
 
 	/**
 	 * creates a MsgSubscription from an XML element
-	 *
 	 * - must be maintained in synch with @see setXML (duh...)
 	 *
 	 * @param sub
@@ -453,7 +447,6 @@ public class MsgSubscription implements Cloneable
 
 	/**
 	 * creates a MsgSubscription from an XML element
-	 *
 	 * - must be maintained in synch with @see setXML (duh...)
 	 *
 	 * @param sub
@@ -492,11 +485,10 @@ public class MsgSubscription implements Cloneable
 	@Override
 	public boolean equals(final Object obj)
 	{
-		if (!(obj instanceof MsgSubscription))
+		if (!(obj instanceof final MsgSubscription msg))
 		{
 			return false;
 		}
-		final MsgSubscription msg = (MsgSubscription) obj;
 		if (repeatAmount != msg.repeatAmount || repeatTime != msg.repeatTime)
 		{
 			return false;
@@ -511,7 +503,9 @@ public class MsgSubscription implements Cloneable
 			final int max = jdfVersion == null ? 0 : jdfVersion.getMajorVersion();
 			final int omax = msg.jdfVersion == null ? 0 : msg.jdfVersion.getMajorVersion();
 			if (max != omax)
+			{
 				return false;
+			}
 		}
 		if (!ContainerUtil.equals(jmfDeviceID, msg.jmfDeviceID))
 		{
@@ -569,7 +563,6 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 *
 	 * @return the query message
 	 */
 	public JDFMessage getQuery()
@@ -588,7 +581,6 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public IConverterCallback getConverterCallback()
@@ -597,7 +589,6 @@ public class MsgSubscription implements Cloneable
 	}
 
 	/**
-	 *
 	 * @param converterCallback
 	 */
 	public void setConverterCallback(final IConverterCallback converterCallback)
@@ -638,8 +629,8 @@ public class MsgSubscription implements Cloneable
 	public String toString()
 	{
 		return "MsgSubscription [" + getMessageType() + (channelID != null ? " channelID=" + channelID + ", " : "") + "isJson=" + isJSON + ", "
-				+ (url != null ? "url=" + url + ", " : "") + (jdfVersion != null ? "version=" + jdfVersion + ", " : "") + "lastTime=" + timeLastSubmission + ", lastTry="
-				+ timeLastSubmissionTry + ", repeatTime=" + repeatTime + ", " + (jmfDeviceID != null ? "jmfDeviceID=" + jmfDeviceID : "") + "]";
+				+ (url != null ? "url=" + url + ", " : "") + (jdfVersion != null ? "version=" + jdfVersion + ", " : "") + "lastTime=" + timeLastSubmission
+				+ ", lastTry=" + timeLastSubmissionTry + ", repeatTime=" + repeatTime + ", " + (jmfDeviceID != null ? "jmfDeviceID=" + jmfDeviceID : "") + "]";
 	}
 
 	public String shortString()

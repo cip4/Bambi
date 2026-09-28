@@ -54,23 +54,23 @@ tasks.register("startScriptsHeadless", JavaExec) {
 }
 
 dependencies {
-	implementation 'org.apache.logging.log4j:log4j-jcl:2.26.0'
-	implementation 'org.apache.logging.log4j:log4j-core:2.26.0'
-	implementation ('org.cip4.lib.jdf:JDFLibJ:2.2.8.+'){
+    implementation 'org.apache.logging.log4j:log4j-jcl:2.26.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.26.1'
+ 	implementation ('org.cip4.lib.jdf:JDFLibJ:2.2.8.+'){
 		exclude group: 'xml-apis'
 	}
 	implementation 'org.cip4.tools.jdfutility:JDFUtility:2.8.+'
 	implementation 'org.cip4.lib.jdf:JDFLibJ-JSON:2.0.+'
 	implementation ('xerces:xercesImpl:2.12.2'){transitive=false}
-
-	implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
-	implementation 'org.eclipse.jetty:jetty-server:12.1.10'
-	implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.10'
-	implementation ('com.googlecode.json-simple:json-simple:1.1.1'){transitive=false}
-	implementation 'commons-logging:commons-logging-api:1.1'
-	implementation 'org.apache.commons:commons-lang3:3.20.0'
-	implementation 'commons-io:commons-io:2.22.0'
-	implementation 'com.sun.mail:jakarta.mail:2.0.2'
+	
+    implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+    implementation 'org.eclipse.jetty:jetty-server:12.1.10'
+    implementation 'org.eclipse.jetty.ee10:jetty-ee10-servlet:12.1.11'
+    implementation ('com.googlecode.json-simple:json-simple:1.1.1'){transitive=false}
+    implementation 'commons-logging:commons-logging-api:1.1'
+    implementation 'org.apache.commons:commons-lang3:3.20.0'
+    implementation 'commons-io:commons-io:2.22.0'
+ 	implementation 'com.sun.mail:jakarta.mail:2.0.2'
 	implementation 'net.sf.saxon:Saxon-HE:13.0'
 
 	testImplementation 'junit:junit:4.13.2'

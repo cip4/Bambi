@@ -257,6 +257,7 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 	{
 		final BambiTestDevice device = new BambiTestDevice(false);
 		assertNotNull(device.toString());
+		assertNotNull(device.shortString());
 	}
 
 	/**
