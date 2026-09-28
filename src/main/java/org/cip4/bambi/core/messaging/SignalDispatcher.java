@@ -922,7 +922,7 @@ public class SignalDispatcher
 			subscriptionMap.put(sub.channelID, sub);
 		}
 		storage.persist();
-		sub.setConverterCallback(device.getCallback(url, sub));
+		sub.setConverterCallback(getDevice().getCallback(url, sub));
 		return sub.channelID;
 	}
 
@@ -1391,5 +1391,10 @@ public class SignalDispatcher
 			}
 		}
 		return false;
+	}
+
+	public AbstractDevice getDevice()
+	{
+		return device;
 	}
 }

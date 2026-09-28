@@ -1,9 +1,9 @@
 /*
  *
  * The CIP4 Software License, Version 1.0
- * 
  *
- * Copyright (c) 2001-2024 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
+ *
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of Processes in Prepress, Press and Postpress (CIP4). All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
  *
@@ -44,9 +44,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.bambi.BambiTestDevice;
+import org.cip4.bambi.core.AbstractDevice;
 import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
+import org.cip4.jdflib.auto.JDFAutoDeviceFilter.EnumDeviceDetails;
+import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.extensions.MessageHelper;
@@ -159,6 +164,21 @@ public class MsgSubscriptionTest extends BambiTestCaseBase
 		final JDFJMF jmf = new JMFBuilder().buildStatusSubscription("abc", 0, 0, null);
 		final MsgSubscription s = new MsgSubscription(null, jmf.getQuery(0));
 		assertEquals("Status", s.getMessageType());
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testFilter()
+	{
+		final AbstractDevice dev = new BambiTestDevice(true);
+		final MsgSubscription s = new MsgSubscription(dev.getSignalDispatcher(), new JMFBuilder().buildStatusSubscription("abc", 0, 0, null).getQuery(0));
+
+		final JDFJMF jmf = new JMFBuilder().buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		assertNotNull(s.filterSenders(jmf));
+		assertNull(s.filterSenders(null));
+		assertNull(s.filterSenders((JDFJMF) JDFElement.createRoot(ElementName.JMF)));
 	}
 
 	/**
