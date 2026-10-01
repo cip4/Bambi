@@ -61,7 +61,6 @@ import org.cip4.jdflib.jmf.JDFStatusQuParams;
 import org.cip4.jdflib.jmf.JDFSubscription;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -104,6 +103,64 @@ public class SignalDispatcherTest extends BambiTestCase
 		s.setRepeatTime(5.0);
 		q.setID("1234");
 		assertNotNull(dispatcher.addSubscription(q, null));
+		dispatcher.shutdown();
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testTrigger()
+	{
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Resource);
+		final JDFQuery q = jmf.getQuery(0);
+		final JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(0);
+		s.setURL("http://localhost:8080/httpdump/");
+		final String channelID = dispatcher.addSubscription(q, null);
+		assertNotNull(channelID);
+		assertNotNull(dispatcher.triggerChannel(channelID, -1, true, true));
+		dispatcher.shutdown();
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testGetTrigger()
+	{
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Resource);
+		final JDFQuery q = jmf.getQuery(0);
+		final JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(0);
+		s.setURL("http://localhost:8080/httpdump/");
+		final String channelID = dispatcher.addSubscription(q, null);
+		assertNotNull(channelID);
+		final Trigger t = dispatcher.triggerChannel(channelID, -1, true, true);
+		assertNotNull(t);
+		assertEquals(t, dispatcher.getTrigger(channelID));
+		assertEquals(t, dispatcher.getTrigger(t));
+		dispatcher.shutdown();
+	}
+
+	/**
+	 *
+	 */
+	@Test
+	public void testGetTriggerSubs()
+	{
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Resource);
+		final JDFQuery q = jmf.getQuery(0);
+		final JDFSubscription s = q.appendSubscription();
+		s.setRepeatTime(0);
+		s.setURL("http://localhost:8080/httpdump/");
+		final String channelID = dispatcher.addSubscription(q, null);
+		assertNotNull(channelID);
+		final Trigger t = dispatcher.triggerChannel(channelID, -1, true, true);
+		assertEquals(t, dispatcher.getTrigger(t));
+		assertNotNull(t);
+		assertEquals(dispatcher.getSubscription(channelID), dispatcher.getDispatcher().getTriggerSubscriptions().get(0));
+		assertNull(dispatcher.getTrigger(t));
 		dispatcher.shutdown();
 	}
 
@@ -325,32 +382,6 @@ public class SignalDispatcherTest extends BambiTestCase
 		final Vector<MsgSubscription> vr = dispatcher.removeSubScriptions("http://localhost:8080/httpdump/", "Resource");
 		assertEquals(vr.size(), 1);
 		assertEquals(2, dispatcher.getChannels(null, null, null).size());
-		dispatcher.shutdown();
-	}
-
-	/**
-	 *
-	 */
-	@Ignore
-	@Test
-	public void testWaitQueued()
-	{
-		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownMessages);
-		final JDFQuery q = jmf.getQuery(0);
-		final JDFSubscription s = q.appendSubscription();
-		s.setRepeatTime(1.0);
-		s.setURL("http://localhost:8080/httpdump/");
-		assertNotNull(dispatcher.addSubscription(q, null));
-		assertNull(dispatcher.addSubscription(q, null));
-		s.setRepeatTime(5.0);
-		q.setID("1234");
-		assertNotNull(dispatcher.addSubscription(q, null));
-		final Trigger[] ts = dispatcher.triggerQueueEntry(null, null, -1, null);
-		assertNotNull(ts);
-		final long t0 = System.currentTimeMillis();
-		Trigger.waitQueued(ts, 4000);
-		final long t1 = System.currentTimeMillis();
-		assertTrue(t1 - t0 < 3000);
 		dispatcher.shutdown();
 	}
 

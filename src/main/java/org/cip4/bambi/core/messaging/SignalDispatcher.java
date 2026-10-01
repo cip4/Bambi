@@ -1002,7 +1002,7 @@ public class SignalDispatcher
 		return ret;
 	}
 
-	private Trigger getTrigger(final String channelID)
+	Trigger getTrigger(final String channelID)
 	{
 		for (final Trigger trigger : triggers)
 		{
@@ -1092,6 +1092,23 @@ public class SignalDispatcher
 	}
 
 	/**
+	 * @param channelID
+	 * @param queueEntryID
+	 * @param nodeIdentifier
+	 * @param amount
+	 * @param last
+	 * @param ignoreIfTime
+	 * @deprecated Use {@link #triggerChannel(String,int,boolean,boolean)} instead
+	 * @return
+	 */
+	@Deprecated
+	public Trigger triggerChannel(final String channelID, final String queueEntryID, final NodeIdentifier nodeIdentifier, final int amount, final boolean last,
+			final boolean ignoreIfTime)
+	{
+		return triggerChannel(channelID, amount, last, ignoreIfTime);
+	}
+
+	/**
 	 * trigger a subscription based on slave ChannelID
 	 *
 	 * @param channelID      the channelid of the channel to trigger
@@ -1102,34 +1119,31 @@ public class SignalDispatcher
 	 * @param last           if true this is the last call and we notify the mutex
 	 * @return the Trigger
 	 */
-	public Trigger triggerChannel(final String channelID, final String queueEntryID, final NodeIdentifier nodeIdentifier, final int amount, final boolean last,
-			final boolean ignoreIfTime)
+	public Trigger triggerChannel(final String channelID, final int amount, final boolean last, final boolean ignoreIfTime)
 	{
 		final MsgSubscription subscription = getSubscription(channelID);
 		Trigger tNew = null;
-		if ((subscription != null) && (!ignoreIfTime || subscription.repeatTime <= 0))
+		if ((subscription != null) && (!ignoreIfTime || subscription.repeatTime <= 0 || amount <= 0))
 		{
-			tNew = new Trigger(queueEntryID, nodeIdentifier, channelID, amount);
+			tNew = new Trigger(channelID, amount);
 			synchronized (triggers)
 			{
-				final Trigger t = getTrigger(tNew);
+				final Trigger existingTrigger = getTrigger(channelID);
 
-				if (t == null)
+				if (existingTrigger == null)
 				{
 					triggers.add(tNew);
 				}
-				else if (amount >= 0 && t.amount >= 0) // -1 always forces a trigger
+				else if (amount >= 0 && existingTrigger.amount >= 0)
 				{
-					t.amount += amount;
-					tNew = t;
+					existingTrigger.amount += amount;
 				}
-				else if (t.amount > 0 && amount < 0)
+				else if (amount < 0)// -1 always forces a trigger
 				{
-					t.amount = amount;
-					tNew = t;
-				}
-				else if (t.amount < 0 && amount < 0)// always add a trigger if amount<0
-				{
+					if (existingTrigger.amount > 0)
+					{
+						tNew = existingTrigger;
+					}
 					triggers.add(tNew);
 				}
 			}
@@ -1155,7 +1169,7 @@ public class SignalDispatcher
 	 * @param newTrigger
 	 * @return
 	 */
-	private Trigger getTrigger(final Trigger newTrigger)
+	Trigger getTrigger(final Trigger newTrigger)
 	{
 		if (triggers == null || newTrigger == null)
 		{
@@ -1183,20 +1197,20 @@ public class SignalDispatcher
 
 	public Trigger[] triggerQueueEntry(final String queueEntryID, final NodeIdentifier nodeID, final int amount, final String msgType)
 	{
-		final Vector<MsgSubscription> v = ContainerUtil.toValueVector(subscriptionMap, false);
-		final int size = v == null ? 0 : v.size();
-		if (size == 0 || v == null)
+		final List<MsgSubscription> v = ContainerUtil.toValueVector(subscriptionMap, false);
+		if (ContainerUtil.isEmpty(v))
 		{
 			return null;
 		}
-		Trigger[] triggers = new Trigger[size];
+		final int size = v.size();
+		Trigger[] newTriggers = new Trigger[size];
 		int n = 0;
 		for (int i = 0; i < size; i++)
 		{
 			final MsgSubscription sub = v.get(i);
 			if (sub.matchesType(msgType))
 			{
-				triggers[n++] = triggerChannel(sub.channelID, queueEntryID, nodeID, amount, i + 1 == size, false);
+				newTriggers[n++] = triggerChannel(sub.channelID, amount, i + 1 == size, false);
 			}
 		}
 		if (n == 0)
@@ -1205,9 +1219,9 @@ public class SignalDispatcher
 		}
 		if (n < size)
 		{
-			triggers = Arrays.copyOf(triggers, n);
+			newTriggers = Arrays.copyOf(newTriggers, n);
 		}
-		return triggers;
+		return newTriggers;
 	}
 
 	/**

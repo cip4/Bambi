@@ -45,17 +45,26 @@ import org.cip4.jdflib.util.thread.MyMutex;
 
 public class Trigger
 {
-	protected String queueEntryID;
-	protected NodeIdentifier nodeIdentifier;
 	protected String channelID;
 	protected int amount;
 	private MyMutex mutex;
 
+	/**
+	 * @param _queueEntryID
+	 * @param _workStepID
+	 * @param _channelID
+	 * @param _amount
+	 * @deprecated use Trigger(String _channelID, int _amount) instead
+	 */
+	@Deprecated
 	public Trigger(final String _queueEntryID, final NodeIdentifier _workStepID, final String _channelID, final int _amount)
 	{
+		this(_channelID, _amount);
+	}
+
+	public Trigger(final String _channelID, final int _amount)
+	{
 		super();
-		queueEntryID = _queueEntryID;
-		nodeIdentifier = _workStepID;
 		channelID = _channelID;
 		amount = _amount;
 		mutex = new MyMutex();
@@ -67,37 +76,29 @@ public class Trigger
 	@Override
 	public boolean equals(final Object t1)
 	{
-		if (!(t1 instanceof Trigger))
+		if (!(t1 instanceof final Trigger t))
 		{
 			return false;
 		}
-		final Trigger t = (Trigger) t1;
-		boolean b = ContainerUtil.equals(channelID, t.channelID);
-		b = b && ContainerUtil.equals(queueEntryID, t.queueEntryID);
-		b = b && ContainerUtil.equals(nodeIdentifier, t.nodeIdentifier);
-		return b;
+		return ContainerUtil.equals(channelID, t.channelID);
 	}
 
 	/**
-	 *
-	 *
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString()
 	{
-		return "Trigger: queueEntryID: " + queueEntryID + " nodeIdentifier: " + nodeIdentifier + " amount: " + amount + nodeIdentifier + " slaveChannelID: " + channelID;
+		return "Trigger amount:" + amount + " channelID: " + channelID;
 	}
 
 	/**
-	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode()
 	{
-		return super.hashCode() + ((channelID == null) ? 0 : channelID.hashCode()) + ((queueEntryID == null) ? 0 : queueEntryID.hashCode())
-				+ ((nodeIdentifier == null) ? 0 : nodeIdentifier.hashCode());
+		return super.hashCode() + ((channelID == null) ? 0 : channelID.hashCode());
 	}
 
 	/**
@@ -125,7 +126,9 @@ public class Trigger
 		for (final Trigger trigger : triggers)
 		{
 			if (!trigger.waitQueued(milliseconds))
+			{
 				return false;
+			}
 		}
 		return true;
 	}

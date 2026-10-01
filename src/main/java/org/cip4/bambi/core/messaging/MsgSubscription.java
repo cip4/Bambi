@@ -91,7 +91,7 @@ public class MsgSubscription implements Cloneable
 	protected long repeatTime;
 	protected JDFMessage theMessage = null;
 	protected FastFiFo<JDFJMF> lastSentJMF;
-	protected Trigger trigger = null;
+	protected Trigger trigger;
 	protected int sentMessages = 0;
 	protected String jmfDeviceID = null; // the senderID of the incoming (subscribed) jmf
 	private IConverterCallback converterCallback;
@@ -127,8 +127,8 @@ public class MsgSubscription implements Cloneable
 		repeatAmount = jmfSubscription.getRepeatStep();
 		repeatTime = (long) jmfSubscription.getRepeatTime();
 		theMessage = (JDFMessage) m;
-		trigger = new Trigger(null, null, null, 0);
-		// TODO observation targets
+		trigger = new Trigger(null, 0);
+
 		if (repeatTime == 0 && repeatAmount == 0 && EnumType.Status.equals(theMessage.getEnumType())) // reasonable default
 		{
 			repeatAmount = 100;
@@ -138,7 +138,6 @@ public class MsgSubscription implements Cloneable
 		jmfDeviceID = (ownerJMF != null) ? ownerJMF.getDeviceID() : null;
 		if (StringUtil.isEmpty(jmfDeviceID) || signalDispatcher != null && ContainerUtil.equals(jmfDeviceID, signalDispatcher.device.getDeviceID()))
 		{
-			// zapp any filters to myself - they represent all my kids
 			jmfDeviceID = null;
 		}
 

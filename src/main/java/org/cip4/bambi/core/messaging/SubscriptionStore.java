@@ -62,7 +62,6 @@ public class SubscriptionStore
 	private final Log log;
 
 	/**
-	 *
 	 * @param signalDispatcher
 	 * @param dir
 	 */
@@ -102,12 +101,12 @@ public class SubscriptionStore
 						else if (sub.channelID != null)
 						{
 							signalDispatcher.subscriptionMap.put(sub.channelID, sub);
-							log.info("reloading " + sub.shortString());
+							log.info("reloading " + sub);
 							JMFFactory.getInstance().getCreateMessageSender(sub.url);
 						}
 						else
 						{
-							log.warn("cannot reload subscription without channelID to: " + sub.url);
+							log.warn("cannot reload subscription without channelID to: " + sub.url + " " + sub);
 						}
 					}
 				}

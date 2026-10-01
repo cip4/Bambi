@@ -439,7 +439,8 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				final boolean last = i + 1 == mi.length;
 				if (!StringUtil.isEmpty(mi[i].misChannelID))
 				{
-					dispatcher.triggerChannel(mi[i].misChannelID, qeID, null, -1, last, true);
+					final String channelID = mi[i].misChannelID;
+					dispatcher.triggerChannel(channelID, -1, last, true);
 				}
 			}
 		}
@@ -610,7 +611,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			final boolean sameStatusSignal = comparator != null && comparator.isSameStatusSignal(inSignal, lastSignal);
 			if (!StringUtil.isEmpty(mi.misChannelID))
 			{
-				getDispatcher().triggerChannel(mi.misChannelID, qeID, null, -1, false, sameStatusSignal);
+				getDispatcher().triggerChannel(mi.misChannelID, -1, false, sameStatusSignal);
 			}
 			if (lastSent != null)
 			{
