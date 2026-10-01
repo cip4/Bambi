@@ -44,7 +44,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
 import org.cip4.bambi.core.AbstractDevice;
+import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.queues.QueueProcessor;
 import org.cip4.bambi.proxy.AbstractProxyDevice;
@@ -86,6 +88,7 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 {
+	private static final Log log = BambiLogFactory.getLog(JMFBufferHandler.class);
 
 	protected final StringArray ignoreSenderIDs;
 	private int logCounter;
@@ -106,7 +109,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 * @param dev
 	 * @param _type
 	 * @param _families
-	 * @param device the device that this buffer handles - used to dispatch qe specific subscriptions
+	 * @param device    the device that this buffer handles - used to dispatch qe specific subscriptions
 	 */
 	public JMFBufferHandler(final AbstractDevice dev, final EnumType _type, final EnumFamily[] _families, final AbstractDevice device)
 	{
@@ -328,8 +331,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 				}
 			}
 
-			final JDFJMF cleanup = (isResponse || jmf == null) ? null : cleanup(jmf, messageIdentifiers, nSig);
-			return cleanup;
+			return (isResponse || jmf == null) ? null : cleanup(jmf, messageIdentifiers, nSig);
 		}
 	}
 
@@ -353,12 +355,9 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		{
 			return null;
 		}
-		else if (nSig > 1)
+		else if ((nSig > 1) && (multiCounter++ < 10 || ((multiCounter % 100) == 0) || nSig > 4))
 		{
-			if (multiCounter++ < 10 || ((multiCounter % 100) == 0) || nSig > 4)
-			{
-				log.info("generated " + nSig + " signal jmf #" + multiCounter);
-			}
+			log.info("generated " + nSig + " signal jmf #" + multiCounter);
 		}
 		return jmf;
 	}
@@ -368,7 +367,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 * works on the copy. Thus any overwriting methods should or may modify signal
 	 *
 	 * @param inputMessage the query to check against
-	 * @param signal the signal to check
+	 * @param signal       the signal to check
 	 * @return true if matches; if false, the copy of signal will be deleted
 	 */
 	protected boolean isMySignal(final JDFMessage inputMessage, final JDFSignal signal)
@@ -392,8 +391,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 	 */
 	protected Set<MessageIdentifier> getMessageIdentifierSet()
 	{
-		final Set<MessageIdentifier> keySet = messageMap.keySet();
-		return keySet;
+		return messageMap.keySet();
 	}
 
 	/**
@@ -488,7 +486,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		 * return true if the signal corresponds to the input query
 		 *
 		 * @param inputMessage the query to check against
-		 * @param signal the signal to check
+		 * @param signal       the signal to check
 		 * @return true if matches
 		 */
 		@Override
@@ -513,27 +511,24 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			}
 
 			final JDFDeviceInfo di = signal.getDeviceInfo(0);
-			if (di != null)
+			if ((di != null) && !sqpIdentifier.equals(new NodeIdentifier()))
 			{
-				if (!sqpIdentifier.equals(new NodeIdentifier()))
+				final List<JDFJobPhase> vjp = di.getChildArrayByClass(JDFJobPhase.class, false, 0);
+				boolean bMatch = false;
+				if (vjp != null)
 				{
-					final List<JDFJobPhase> vjp = di.getChildArrayByClass(JDFJobPhase.class, false, 0);
-					boolean bMatch = false;
-					if (vjp != null)
+					for (final JDFJobPhase jp : vjp)
 					{
-						for (final JDFJobPhase jp : vjp)
+						if (jp.getIdentifier().matches(sqp.getIdentifier()) || ContainerUtil.equals(sqp.getQueueEntryID(), jp.getQueueEntryID()))
 						{
-							if (jp.getIdentifier().matches(sqp.getIdentifier()) || ContainerUtil.equals(sqp.getQueueEntryID(), jp.getQueueEntryID()))
-							{
-								bMatch = true;
-								break;
-							}
+							bMatch = true;
+							break;
 						}
 					}
-					if (!bMatch)
-					{
-						return false;
-					}
+				}
+				if (!bMatch)
+				{
+					return false;
 				}
 			}
 			updateQueue(sqp, signal);

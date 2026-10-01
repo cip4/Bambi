@@ -255,7 +255,8 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 	{
 		protected String messageType;
 		protected EnumFamily[] families;
-		protected final Log log;
+
+		private static final Log log = BambiLogFactory.getLog(AbstractHandler.class);
 
 		/**
 		 * Custom constructor. Accepting multiple params for initializing.
@@ -265,7 +266,6 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		 */
 		public AbstractHandler(final EnumType messageType, final EnumFamily[] families)
 		{
-			log = BambiLogFactory.getLog(getClass());
 			this.messageType = messageType == null ? "*" : messageType.getName();
 			this.families = families;
 		}
@@ -278,7 +278,6 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		 */
 		public AbstractHandler(final String messageType, final EnumFamily[] families)
 		{
-			log = BambiLogFactory.getLog(getClass());
 			this.messageType = messageType;
 			this.families = families;
 		}
