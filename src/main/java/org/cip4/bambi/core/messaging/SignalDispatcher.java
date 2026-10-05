@@ -102,6 +102,7 @@ public class SignalDispatcher
 	protected final Dispatcher theDispatcher;
 	private String ignoreURL;
 	private static final Log log = LogFactory.getLog(SignalDispatcher.class);
+	private final boolean synch;
 
 	/**
 	 * set the case insensitive url pattern to be ignored for subscriptions
@@ -761,6 +762,7 @@ public class SignalDispatcher
 	 */
 	public SignalDispatcher(final AbstractDevice dev)
 	{
+		synch = true;
 		device = dev;
 		if (dev == null)
 		{
@@ -1241,10 +1243,17 @@ public class SignalDispatcher
 	public void startup()
 	{
 		final String deviceID = device.getDeviceID();
-		final Thread thread = new Thread(theDispatcher, "SignalDispatcher_" + deviceID);
-		thread.setDaemon(true);
-		thread.start();
-		log.info("dispatcher thread 'SignalDispatcher_" + deviceID + "' started");
+		if (synch)
+		{
+			log.info("no dispatcher thread for " + deviceID + " started in synch mode");
+		}
+		else
+		{
+			final Thread thread = new Thread(theDispatcher, "SignalDispatcher_" + deviceID);
+			thread.setDaemon(true);
+			thread.start();
+			log.info("dispatcher thread 'SignalDispatcher_" + deviceID + "' started");
+		}
 		storage.load();
 	}
 
@@ -1363,7 +1372,14 @@ public class SignalDispatcher
 	 */
 	public void flush()
 	{
-		ThreadUtil.notifyAll(mutex);
+		if (synch)
+		{
+			theDispatcher.flush();
+		}
+		else
+		{
+			ThreadUtil.notifyAll(mutex);
+		}
 	}
 
 	/**
@@ -1374,7 +1390,7 @@ public class SignalDispatcher
 	public String toString()
 	{
 		final String deviceID = device == null ? "" : device.getDeviceID();
-		return "SubscriptionMap; device= " + deviceID + " : " + subscriptionMap;
+		return "SubscriptionMap; device= " + deviceID + " synch= " + synch + " :" + subscriptionMap;
 	}
 
 	/**

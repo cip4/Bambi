@@ -485,9 +485,10 @@ public class MessageDetails
 	{
 		try
 		{
-			if (callback != null && getJMFInputStream() == null)
+			final InputStream jmfInputStream = getJMFInputStream();
+			if (callback != null && jmfInputStream == null)
 			{
-				log.info("Skipping unsupported jmf " + getName());
+				log.warn("Skipping unsupported jmf " + this);
 			}
 			else
 			{
@@ -502,7 +503,7 @@ public class MessageDetails
 				}
 				else if (jmf != null)
 				{
-					return getJMFInputStream();
+					return jmfInputStream;
 				}
 				else
 				{
