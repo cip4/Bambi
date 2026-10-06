@@ -19,7 +19,7 @@ RUN apk add --no-cache dos2unix
 WORKDIR /work
 
 RUN dos2unix gradlew
-RUN ./gradlew -i startScriptsHeadless installDist -PprojectVersion=${VERSION} -PbuildNumber=${BUILD_NUMBER} --no-daemon >/dev/null
+RUN ./gradlew -i installDist -PprojectVersion=${VERSION} -PbuildNumber=${BUILD_NUMBER} --no-daemon >/dev/null
 
 # create final image
 FROM amazoncorretto:17-alpine
@@ -45,7 +45,8 @@ RUN addgroup -S cip4 && adduser -S cip4 -G cip4 && \
 COPY --chown=cip4:cip4 --from=java-builder ["/work/build/install/CIP4 Bambi", "/app"]
 
 USER cip4
+WORKDIR /app
 
 EXPOSE 8080
 
-ENTRYPOINT ["/app/bin/bambi-headless"]
+ENTRYPOINT ["/app/bin/Bambi"]

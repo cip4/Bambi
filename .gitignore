@@ -7,3 +7,8 @@ target/
 .gradle
 build
 ID_42
+
+# Ignore files produced by application and tests
+config/
+foo
+JMFStore/
