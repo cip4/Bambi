@@ -138,8 +138,8 @@ public class SignalDispatcherTest extends BambiTestCase
 		assertNotNull(channelID);
 		final Trigger t = dispatcher.triggerChannel(channelID, -1, true, true);
 		assertNotNull(t);
-		assertEquals(null, dispatcher.getTrigger(channelID));
-		assertEquals(null, dispatcher.getTrigger(t));
+		assertEquals(t, dispatcher.getTrigger(channelID));
+		assertEquals(t, dispatcher.getTrigger(t));
 		dispatcher.shutdown();
 	}
 
@@ -157,9 +157,9 @@ public class SignalDispatcherTest extends BambiTestCase
 		final String channelID = dispatcher.addSubscription(q, null);
 		assertNotNull(channelID);
 		final Trigger t = dispatcher.triggerChannel(channelID, -1, true, true);
-		assertEquals(null, dispatcher.getTrigger(t));
+		assertEquals(t, dispatcher.getTrigger(t));
 		assertNotNull(t);
-		assertNull(dispatcher.getTrigger(t));
+		assertEquals(t, dispatcher.getTrigger(t));
 		dispatcher.shutdown();
 	}
 

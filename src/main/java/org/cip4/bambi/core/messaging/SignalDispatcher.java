@@ -762,7 +762,7 @@ public class SignalDispatcher
 	 */
 	public SignalDispatcher(final AbstractDevice dev)
 	{
-		synch = false;
+		synch = false; // TODO revive when the deadlock is found and fixed
 		device = dev;
 		if (dev == null)
 		{
