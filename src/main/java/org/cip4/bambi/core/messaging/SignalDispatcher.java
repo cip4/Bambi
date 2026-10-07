@@ -762,7 +762,7 @@ public class SignalDispatcher
 	 */
 	public SignalDispatcher(final AbstractDevice dev)
 	{
-		synch = true;
+		synch = false;
 		device = dev;
 		if (dev == null)
 		{
