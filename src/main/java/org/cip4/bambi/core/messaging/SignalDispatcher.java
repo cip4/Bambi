@@ -102,7 +102,6 @@ public class SignalDispatcher
 	protected final Dispatcher theDispatcher;
 	private String ignoreURL;
 	private static final Log log = LogFactory.getLog(SignalDispatcher.class);
-	private final boolean synch;
 
 	/**
 	 * set the case insensitive url pattern to be ignored for subscriptions
@@ -762,7 +761,6 @@ public class SignalDispatcher
 	 */
 	public SignalDispatcher(final AbstractDevice dev)
 	{
-		synch = false; // TODO revive when the deadlock is found and fixed
 		device = dev;
 		if (dev == null)
 		{
@@ -771,7 +769,7 @@ public class SignalDispatcher
 		subscriptionMap = new ConcurrentHashMap<>();
 		storage = new SubscriptionStore(this, dev == null ? null : dev.getDeviceDir());
 		triggers = new Vector<>();
-		mutex = new MyMutex();
+		mutex = null; // new MyMutex();
 		theDispatcher = getDispatcher();
 		doShutdown = false;
 		lastCalled = 0;
@@ -1156,11 +1154,8 @@ public class SignalDispatcher
 		}
 		if (last && lastCalled > 0)
 		{
-			synchronized (mutex)
-			{
-				flush();
-				lastCalled = 0;
-			}
+			flush();
+			lastCalled = 0;
 		}
 		return tNew;
 	}
@@ -1243,7 +1238,7 @@ public class SignalDispatcher
 	public void startup()
 	{
 		final String deviceID = device.getDeviceID();
-		if (synch)
+		if (mutex == null)
 		{
 			log.info("no dispatcher thread for " + deviceID + " started in synch mode");
 		}
@@ -1372,7 +1367,7 @@ public class SignalDispatcher
 	 */
 	public void flush()
 	{
-		if (synch)
+		if (mutex == null)
 		{
 			theDispatcher.flush();
 		}
@@ -1390,7 +1385,7 @@ public class SignalDispatcher
 	public String toString()
 	{
 		final String deviceID = device == null ? "" : device.getDeviceID();
-		return "SubscriptionMap; device= " + deviceID + " synch= " + synch + " :" + subscriptionMap;
+		return "SubscriptionMap; device= " + deviceID + " synch= " + (mutex == null) + " :" + subscriptionMap;
 	}
 
 	/**

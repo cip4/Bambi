@@ -811,6 +811,16 @@ public class MessageSender implements Runnable, IPersistable
 				+ messageFiFo.size());
 	}
 
+	static class EmptyStreamException extends IllegalArgumentException
+	{
+		private static final long serialVersionUID = 1L;
+
+		EmptyStreamException(final String message)
+		{
+			super(message);
+		}
+	}
+
 	/**
 	 * Send a message via http.
 	 *
@@ -829,6 +839,11 @@ public class MessageSender implements Runnable, IPersistable
 		{
 			final HttpURLConnection connection = sendDetails(messageDetails);
 			return processResponse(messageDetails, connection);
+		}
+		catch (final EmptyStreamException e)
+		{
+			sLog.info("Skipping empty stream " + messageDetails.getName());
+			return SendReturn.removed;
 		}
 		catch (final IllegalArgumentException e)
 		{
@@ -970,13 +985,17 @@ public class MessageSender implements Runnable, IPersistable
 		{
 			throw new IllegalArgumentException("sending null message");
 		}
-
 		final String url = messageDetails.url;
+		if (StringUtil.isEmpty(url))
+		{
+			throw new IllegalArgumentException("no url message");
+		}
+
 		final String contentType = messageDetails.getContentType();
 		final InputStream is = messageDetails.getInputStream();
-		if (is == null || StringUtil.isEmpty(url))
+		if (is == null)
 		{
-			throw new IllegalArgumentException(messageDetails + ": sending null input message stream to " + url);
+			throw new EmptyStreamException("no input stream for message " + messageDetails.getName() + " to: " + url);
 		}
 
 		final HTTPDetails httpDetails = messageDetails.mimeDet == null ? null : messageDetails.mimeDet.httpDetails;

@@ -145,9 +145,9 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		device.updateWatchURL("http://dummy.com", EWatchFormat.JSON.name());
 		assertEquals(EWatchFormat.JSON, device.getProperties().getWatchFormat());
 		assertEquals("http://dummy.com", device.getProperties().getWatchURL());
-		device.updateWatchURL("", EWatchFormat.JSON.name());
+		device.updateWatchURL("http://dummy.com", EWatchFormat.JSON.name());
 		assertEquals("http://dummy.com", device.getProperties().getWatchURL());
-		device.updateWatchURL("", EWatchFormat.JSON.name());
+		device.updateWatchURL("http://dummy.com", EWatchFormat.JSON.name());
 		assertEquals("http://dummy.com", device.getProperties().getWatchURL());
 		assertEquals(EWatchFormat.JSON, device.getProperties().getWatchFormat());
 		device.updateWatchURL("http://dummy.com", EWatchFormat.NONE.name());
@@ -221,6 +221,8 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		assertEquals("http://dummy.com", device.getProperties().getWatchURL());
 		final XMLDevice xd = device.getXMLDevice(false, new ContainerRequest());
 		assertEquals(EWatchFormat.JSON.name(), xd.getRoot().getAttribute("WatchFormat"));
+		device.updateWatchURL(null, null);
+		assertEquals(null, device.getProperties().getWatchURL());
 	}
 
 	/**

@@ -1585,7 +1585,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 
 		final IDeviceProperties properties = getProperties();
 		final EWatchFormat oldFormat = properties.getWatchFormat();
-		final EWatchFormat format = StringUtil.isEmpty(newWatchFormat) ? oldFormat : EWatchFormat.getEnum(newWatchFormat);
+		final EWatchFormat format = EWatchFormat.getEnum(newWatchFormat);
 		final String oldWatchURL = properties.getWatchURL();
 		if (!ContainerUtil.equals(oldWatchURL, newWatchURL) || !format.equals(oldFormat))
 		{
@@ -1594,12 +1594,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 				log.info("removing watch subscriptions to: " + oldWatchURL);
 				_theSignalDispatcher.removeSubScriptions(oldWatchURL, null);
 			}
-			if (StringUtil.isEmpty(newWatchURL))
-			{
-				newWatchURL = oldWatchURL;
-			}
 			newWatchURL = StringUtil.getNonEmpty(newWatchURL);
-
 			// explicit empty strings must be handled
 			if (EWatchFormat.NONE.equals(format))
 			{
