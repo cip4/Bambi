@@ -6,6 +6,10 @@ updates:
     package-ecosystem: gradle
     assignees:
       - MichelHartmann
+    groups:
+      jetty:
+        patterns:
+          - "org.eclipse.jetty*"
     ignore:
       - dependency-name: org.mockito:mockito-core
         versions: [ "4.x" ]
