@@ -12,10 +12,11 @@ class XMLConsoleDevice extends XMLWorkerDevice
 
 	/**
 	 * XML representation of this simDevice for use as html display using an XSLT
+	 *
 	 * @param bProc
 	 * @param request
 	 */
-	public XMLConsoleDevice(WorkerDevice workerDevice, final boolean bProc, final ContainerRequest request)
+	public XMLConsoleDevice(final WorkerDevice workerDevice, final boolean bProc, final ContainerRequest request)
 	{
 		super(workerDevice, bProc, request);
 		final boolean bSetup = request.getBooleanParam("setup");

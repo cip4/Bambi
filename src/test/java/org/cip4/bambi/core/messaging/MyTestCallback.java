@@ -42,7 +42,7 @@ public class MyTestCallback extends ConverterCallback
 	}
 
 	@Override
-	public String getJMFContentType(EnumVersion v, boolean json)
+	public String getJMFContentType(final EnumVersion v, final boolean json)
 	{
 		return UrlUtil.VND_JMF;
 	}

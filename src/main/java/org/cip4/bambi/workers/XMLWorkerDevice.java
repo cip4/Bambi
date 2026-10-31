@@ -17,11 +17,12 @@ public class XMLWorkerDevice extends XMLDevice
 
 	/**
 	 * XML representation of this simDevice fore use as html display using an XSLT
-	 * @param addProcs if true, add processor elements
+	 *
+	 * @param addProcs     if true, add processor elements
 	 * @param request
 	 * @param workerDevice TODO
 	 */
-	public XMLWorkerDevice(WorkerDevice workerDevice, final boolean addProcs, final ContainerRequest request)
+	public XMLWorkerDevice(final WorkerDevice workerDevice, final boolean addProcs, final ContainerRequest request)
 	{
 		super(workerDevice, addProcs, request);
 		final KElement deviceRoot = getRoot();
@@ -32,7 +33,7 @@ public class XMLWorkerDevice extends XMLDevice
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	private void addKnownEmployees()
 	{
@@ -46,7 +47,7 @@ public class XMLWorkerDevice extends XMLDevice
 			boolean bAdd = true;
 			if (vEmpLoggedIn != null)
 			{
-				for (JDFEmployee employee : vEmpLoggedIn)
+				for (final JDFEmployee employee : vEmpLoggedIn)
 				{
 					if (knownEmp.matches(employee))
 					{
@@ -78,7 +79,6 @@ public class XMLWorkerDevice extends XMLDevice
 	}
 
 	/**
-	 * 
 	 * @see org.cip4.bambi.core.XMLDevice#getParentDevice()
 	 */
 	@Override

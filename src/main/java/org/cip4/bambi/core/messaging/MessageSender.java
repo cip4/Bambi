@@ -48,8 +48,8 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiContainer;
+import org.cip4.bambi.core.HTTPResponse;
 import org.cip4.bambi.core.IConverterCallback;
-import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.messaging.IMessageOptimizer.optimizeResult;
 import org.cip4.bambi.core.messaging.JMFFactory.CallURL;
 import org.cip4.jdflib.core.AttributeName;
@@ -1201,7 +1201,7 @@ public class MessageSender implements Runnable, IPersistable
 	public String toString()
 	{
 		return "MessageSender - URL: " + callURL.url + " size: " + messageFiFo.size() + " total: " + sent + " last queued at "
-				+ XMLResponse.formatLong(timeLastQueued) + " last sent at " + XMLResponse.formatLong(timeLastSent);
+				+ HTTPResponse.formatLong(timeLastQueued) + " last sent at " + HTTPResponse.formatLong(timeLastSent);
 	}
 
 	/**
@@ -1223,9 +1223,9 @@ public class MessageSender implements Runnable, IPersistable
 			messageSenderXml.setAttribute("NumRemoveFireForget", removedFireForget, null);
 			messageSenderXml.setAttribute("NumRemoveError", removedError, null);
 
-			messageSenderXml.setAttribute("LastQueued", XMLResponse.formatLong(timeLastQueued), null);
-			messageSenderXml.setAttribute("LastSent", XMLResponse.formatLong(timeLastSent), null);
-			messageSenderXml.setAttribute(AttributeName.CREATIONDATE, XMLResponse.formatLong(timeCreated), null);
+			messageSenderXml.setAttribute("LastQueued", HTTPResponse.formatLong(timeLastQueued), null);
+			messageSenderXml.setAttribute("LastSent", HTTPResponse.formatLong(timeLastSent), null);
+			messageSenderXml.setAttribute(AttributeName.CREATIONDATE, HTTPResponse.formatLong(timeCreated), null);
 
 			messageSenderXml.setAttribute("pause", isPaused, null);
 			messageSenderXml.setAttribute("idle", idle, null);
@@ -1335,7 +1335,7 @@ public class MessageSender implements Runnable, IPersistable
 	 * @param pos
 	 * @return
 	 */
-	public MessageDetails getOldDetails(int pos)
+	public MessageDetails getOldDetails(final int pos)
 	{
 		return fastFiFoMessageDetails.peek(pos);
 	}

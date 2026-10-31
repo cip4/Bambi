@@ -45,7 +45,7 @@ import java.util.zip.ZipEntry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.messaging.JMFFactory;
-import org.cip4.jdflib.core.JDFConstants;
+import org.cip4.jdflib.core.JDFCoreConstants;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.extensions.XJDFConstants;
@@ -131,7 +131,7 @@ public abstract class ServletContainer extends BambiLogFactory
 	 */
 	public XMLResponse processError(final String requestURI, final EnumType messageType, final int returnCode, final String notification)
 	{
-		log.warn("processError- rc: " + returnCode + " " + ((notification == null) ? JDFConstants.EMPTYSTRING : notification), new BambiException());
+		log.warn("processError- rc: " + returnCode + " " + ((notification == null) ? JDFCoreConstants.EMPTYSTRING : notification), new BambiException());
 		final JDFJMF error = JDFJMF.createJMF(EnumFamily.Response, messageType);
 		final JDFResponse r = error.getResponse(0);
 		r.setReturnCode(returnCode);
@@ -290,7 +290,7 @@ public abstract class ServletContainer extends BambiLogFactory
 			if (e2 != null)
 			{
 				final String rootName = e2.getName();
-				if (rootName.endsWith(JDFConstants.SLASH) && name != null && name.startsWith(rootName))
+				if (rootName.endsWith(JDFCoreConstants.SLASH) && name != null && name.startsWith(rootName))
 				{
 					zipReader.setRootEntry(rootName);
 					log.info("Updating XML root: " + rootName);

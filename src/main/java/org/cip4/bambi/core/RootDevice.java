@@ -648,8 +648,9 @@ public class RootDevice extends AbstractDevice
 
 		listTemplates(listRoot);
 
-		deviceList.setXSLTURL(getXSLT(request));
-		return new XMLResponse(listRoot);
+		final XMLResponse resp = new XMLResponse(listRoot);
+		resp.setXSLT(getXSLTDoc(request));
+		return resp;
 	}
 
 	protected void listTemplates(final KElement listRoot)

@@ -563,7 +563,7 @@ public class MessageDetailsTest extends BambiTestCaseBase
 	{
 
 		@Override
-		public JDFDoc updateJMFForExtern(JDFDoc doc)
+		public JDFDoc updateJMFForExtern(final JDFDoc doc)
 		{
 			return null;
 		}

@@ -46,7 +46,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension.EPackageType;
-import org.cip4.jdflib.core.JDFConstants;
+import org.cip4.jdflib.core.JDFCoreConstants;
 import org.cip4.jdflib.core.StringArray;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
@@ -114,7 +114,7 @@ public class ContainerRequest
 				String s = strings[0];
 				for (int i = 1; i < strings.length; i++)
 				{
-					s += JDFConstants.COMMA + strings[i];
+					s += JDFCoreConstants.COMMA + strings[i];
 				}
 				s = StringUtil.getNonEmpty(s);
 				if (s != null)
@@ -146,7 +146,7 @@ public class ContainerRequest
 			final VString v = new VString(e);
 			if (v.size() > 0)
 			{
-				map.put(header, StringUtil.setvString(v, JDFConstants.COMMA, null, null));
+				map.put(header, StringUtil.setvString(v, JDFCoreConstants.COMMA, null, null));
 			}
 		}
 		return map.size() == 0 ? null : map;
@@ -209,7 +209,7 @@ public class ContainerRequest
 	 *
 	 * @param packageType
 	 */
-	public void setPackageType(EPackageType packageType)
+	public void setPackageType(final EPackageType packageType)
 	{
 		if (this.packageType == null)
 		{
@@ -351,7 +351,7 @@ public class ContainerRequest
 		{
 			v2.add(v.get(i));
 		}
-		return StringUtil.setvString(v2, JDFConstants.SLASH, null, null);
+		return StringUtil.setvString(v2, JDFCoreConstants.SLASH, null, null);
 	}
 
 	/**
@@ -361,9 +361,9 @@ public class ContainerRequest
 	@Override
 	public String toString()
 	{
-		return getClass().getSimpleName() + ((name != null) ? " Name=" + name : JDFConstants.EMPTYSTRING) + " URL=" + requestURI
-				+ ((contentType != null) ? " Content Type=" + contentType : JDFConstants.EMPTYSTRING) + " Method=" + getMethod()
-				+ (parameterMap.isEmpty() ? "" : " Parameters: {" + parameterMap.showKeys(JDFConstants.BLANK) + "}");
+		return getClass().getSimpleName() + ((name != null) ? " Name=" + name : JDFCoreConstants.EMPTYSTRING) + " URL=" + requestURI
+				+ ((contentType != null) ? " Content Type=" + contentType : JDFCoreConstants.EMPTYSTRING) + " Method=" + getMethod()
+				+ (parameterMap.isEmpty() ? "" : " Parameters: {" + parameterMap.showKeys(JDFCoreConstants.BLANK) + "}");
 	}
 
 	/**
@@ -375,7 +375,7 @@ public class ContainerRequest
 		String ret = getClass().getSimpleName() + " URL=" + requestURI + " Content Type=" + contentType + " Method=" + getMethod();
 		if (!ContainerUtil.isEmpty(parameterMap))
 		{
-			ret += " Params: " + parameterMap.showKeys(JDFConstants.BLANK);
+			ret += " Params: " + parameterMap.showKeys(JDFCoreConstants.BLANK);
 		}
 		return ret;
 	}
@@ -564,7 +564,7 @@ public class ContainerRequest
 	 */
 	public String getContext()
 	{
-		return StringUtil.token(requestURI, 2 + 1, JDFConstants.SLASH);
+		return StringUtil.token(requestURI, 2 + 1, JDFCoreConstants.SLASH);
 	}
 
 	/**
@@ -572,7 +572,7 @@ public class ContainerRequest
 	 */
 	public String getContextRoot()
 	{
-		return JDFConstants.SLASH + StringUtil.token(requestURI, 2, JDFConstants.SLASH);
+		return JDFCoreConstants.SLASH + StringUtil.token(requestURI, 2, JDFCoreConstants.SLASH);
 	}
 
 	/**
@@ -603,7 +603,7 @@ public class ContainerRequest
 	 * @param param
 	 * @return true if the parameter is"true", else false
 	 */
-	public boolean getBooleanParam(final String param, boolean def)
+	public boolean getBooleanParam(final String param, final boolean def)
 	{
 		final String val = StringUtil.getNonEmpty(getParameter(param));
 		return StringUtil.parseBoolean(val, def);

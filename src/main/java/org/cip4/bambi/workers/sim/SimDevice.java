@@ -120,7 +120,7 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 			}
 		}
 
-		JDFAttributeMap getNSMap(JDFJMF respCopy)
+		JDFAttributeMap getNSMap(final JDFJMF respCopy)
 		{
 			final JDFAttributeMap map = new JDFAttributeMap();
 			final VElement v = respCopy.getChildrenByTagName(null);
@@ -162,7 +162,7 @@ public class SimDevice extends UIModifiableDevice implements IGetHandler
 			return true;
 		}
 
-		void updateNamespaces(JDFMessage m)
+		void updateNamespaces(final JDFMessage m)
 		{
 			for (final Entry<String, String> e : nsMap.entrySet())
 			{

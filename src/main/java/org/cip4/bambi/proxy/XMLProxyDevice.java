@@ -53,9 +53,9 @@ public class XMLProxyDevice extends XMLDevice
 
 	/**
 	 * XML representation of this simDevice fore use as html display using an XSLT
-	 * 
-	 * @param addProcs - always ignored
-	 * @param request BambiServletRequest http context in which this is called
+	 *
+	 * @param addProcs            - always ignored
+	 * @param request             BambiServletRequest http context in which this is called
 	 * @param abstractProxyDevice TODO
 	 */
 	public XMLProxyDevice(final AbstractProxyDevice parentDevice, final boolean addProcs, final ContainerRequest request)
@@ -66,7 +66,7 @@ public class XMLProxyDevice extends XMLDevice
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected void updateSlaveProperties()
 	{
@@ -76,7 +76,9 @@ public class XMLProxyDevice extends XMLDevice
 		{
 			String slaveURL = getParentDevice().getSlaveURL();
 			if (StringUtil.getNonEmpty(slaveURL) == null)
+			{
 				slaveURL = "Please Add";
+			}
 			deviceRoot.setAttribute("SlaveURL", slaveURL);
 			deviceRoot.setAttribute("MaxPush", proxyProperties.getMaxPush(), null);
 			deviceRoot.setAttribute("DeviceURLForSlave", proxyProperties.getDeviceURLForSlave());
@@ -97,7 +99,6 @@ public class XMLProxyDevice extends XMLDevice
 	}
 
 	/**
-	 * 
 	 * @see org.cip4.bambi.core.XMLDevice#getParentDevice()
 	 */
 	@Override

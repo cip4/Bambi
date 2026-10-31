@@ -63,9 +63,8 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 	private static final Log log = LogFactory.getLog(DataRequestHandler.class);
 
 	/**
-	 * @param dev the parent device
+	 * @param dev       the parent device
 	 * @param dataToken the token in the path to check for data
-	 *
 	 */
 	public DataRequestHandler(final AbstractDevice dev, final String dataToken)
 	{
@@ -154,9 +153,8 @@ public class DataRequestHandler extends BambiLogFactory implements IGetHandler
 	}
 
 	/**
-	 *
 	 * get the data directory based on the request
-	 * 
+	 *
 	 * @param request
 	 * @return
 	 */

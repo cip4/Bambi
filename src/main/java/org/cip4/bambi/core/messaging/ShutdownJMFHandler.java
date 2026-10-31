@@ -141,7 +141,7 @@ public class ShutdownJMFHandler extends AbstractHandler
 	/**
 	 * @param device
 	 */
-	public ShutdownJMFHandler(AbstractDevice device)
+	public ShutdownJMFHandler(final AbstractDevice device)
 	{
 		super(EnumType.ShutDown, new EnumFamily[] { EnumFamily.Command });
 		this.device = device;
@@ -152,7 +152,7 @@ public class ShutdownJMFHandler extends AbstractHandler
 	 * @see org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler#handleMessage(org.cip4.jdflib.jmf.JDFMessage, org.cip4.jdflib.jmf.JDFResponse)
 	 */
 	@Override
-	public boolean handleMessage(JDFMessage inputMessage, JDFResponse response)
+	public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 	{
 		final JDFShutDownCmdParams scp = inputMessage.getShutDownCmdParams(0);
 		final EnumShutDownType shutDownType = scp == null ? EnumShutDownType.StandBy : scp.getShutDownType();
@@ -184,7 +184,7 @@ public class ShutdownJMFHandler extends AbstractHandler
 	 *
 	 * @param bZapp if true; die MF die!
 	 */
-	public void setKillContainer(boolean bZapp)
+	public void setKillContainer(final boolean bZapp)
 	{
 		this.killContainer = bZapp;
 	}

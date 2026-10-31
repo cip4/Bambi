@@ -66,7 +66,6 @@ import jakarta.servlet.http.HttpServletResponse;
  * Entrance point for Bambi servlets note that most processing has been moved to the servlet independent class @see BambiContainer
  *
  * @author boegerni
- *
  */
 public final class BambiServlet extends HttpServlet
 {
@@ -78,7 +77,6 @@ public final class BambiServlet extends HttpServlet
 	private static final long serialVersionUID = 1926504814491033980L;
 
 	/**
-	 *
 	 * @param bambiServer
 	 */
 	public BambiServlet(final BambiServer bambiServer)
@@ -118,7 +116,6 @@ public final class BambiServlet extends HttpServlet
 	}
 
 	/**
-	 *
 	 * getContextPath is new in servlet api 2.5
 	 *
 	 * @return the context
@@ -163,9 +160,13 @@ public final class BambiServlet extends HttpServlet
 		{
 			final File dumpFile;
 			if (UrlUtil.isRelativeURL(dump) && dump.indexOf(":\\") < 0)
+			{
 				dumpFile = FileUtil.getFileInDirectory(baseDir, new File(dump));
+			}
 			else
+			{
 				dumpFile = new File(dump);
+			}
 			dump = dumpFile.getAbsolutePath();
 
 			log.info("initializing http dump directory: " + dump);
@@ -190,17 +191,27 @@ public final class BambiServlet extends HttpServlet
 	{
 		dump = StringUtil.getNonEmpty(dump);
 		if (dump == null || !dump.startsWith("%"))
+		{
 			return dump;
+		}
 		int posS = dump.indexOf('/');
 		int posB = dump.indexOf('\\');
 		if (posS < 0)
+		{
 			posS = 999999;
+		}
 		if (posB < 0)
+		{
 			posB = 999999;
+		}
 		if (posS > posB)
+		{
 			posS = posB;
+		}
 		if (posS == 999999)
+		{
 			return dump;
+		}
 		final String env = dump.substring(1, posS);
 		final String newBase = PlatformUtil.getProperty(env);
 		if (newBase == null)
@@ -215,7 +226,7 @@ public final class BambiServlet extends HttpServlet
 	/**
 	 * Handles the HTTP <code>POST</code> method.
 	 *
-	 * @param request servlet request
+	 * @param request  servlet request
 	 * @param response servlet response
 	 * @throws IOException
 	 */
@@ -235,7 +246,7 @@ public final class BambiServlet extends HttpServlet
 	/**
 	 * @param request
 	 * @param response
-	 * @param bPost only used for dumping
+	 * @param bPost    only used for dumping
 	 * @throws IOException
 	 */
 	public boolean doGetPost(final HttpServletRequest request, final HttpServletResponse response, final boolean bPost)
@@ -284,7 +295,8 @@ public final class BambiServlet extends HttpServlet
 				rootDev.endWork();
 				if (serviced++ < 10 || (serviced % 1000) == 0)
 				{
-					log.info("Processed " + request.getMethod() + " for URL: " + request.getRequestURL().toString() + " #" + serviced + " dt=" + (System.currentTimeMillis() - t0));
+					log.info("Processed " + request.getMethod() + " for URL: " + request.getRequestURL().toString() + " #" + serviced + " dt="
+							+ (System.currentTimeMillis() - t0));
 				}
 			}
 		}
@@ -361,7 +373,6 @@ public final class BambiServlet extends HttpServlet
 	}
 
 	/**
-	 *
 	 * dump the incoming stuff
 	 *
 	 * @param request
@@ -398,7 +409,6 @@ public final class BambiServlet extends HttpServlet
 	}
 
 	/**
-	 *
 	 * @see jakarta.servlet.http.HttpServlet#doGet(jakarta.servlet.http.HttpServletRequest, jakarta.servlet.http.HttpServletResponse)
 	 * @param request
 	 * @param response
@@ -427,7 +437,9 @@ public final class BambiServlet extends HttpServlet
 		try
 		{
 			if (!doGetPost(request, response, false))
+			{
 				super.doHead(request, response);
+			}
 		}
 		catch (final Exception x)
 		{
@@ -444,7 +456,9 @@ public final class BambiServlet extends HttpServlet
 		try
 		{
 			if (!doGetPost(request, response, false))
+			{
 				super.doPut(request, response);
+			}
 		}
 		catch (final Exception x)
 		{
@@ -461,7 +475,9 @@ public final class BambiServlet extends HttpServlet
 		try
 		{
 			if (!doGetPost(request, response, false))
+			{
 				super.doDelete(request, response);
+			}
 		}
 		catch (final Exception x)
 		{
@@ -478,7 +494,9 @@ public final class BambiServlet extends HttpServlet
 		try
 		{
 			if (!doGetPost(request, response, false))
+			{
 				super.doOptions(request, response);
+			}
 		}
 		catch (final Exception x)
 		{
@@ -495,7 +513,9 @@ public final class BambiServlet extends HttpServlet
 		try
 		{
 			if (!doGetPost(request, response, false))
+			{
 				super.doTrace(request, response);
+			}
 		}
 		catch (final Exception x)
 		{

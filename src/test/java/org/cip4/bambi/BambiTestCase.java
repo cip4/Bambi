@@ -202,7 +202,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 		_theGT = new MISFinGoldenTicket(1, null, 1, 2, null);
 		_theGT.addSheet("Sheet1");
 		_theGT.addSheet("Sheet2");
-		((MISFinGoldenTicket) _theGT).setCategory(MISFinGoldenTicket.MISFIN_STITCHFIN);
+		_theGT.setCategory(MISFinGoldenTicket.MISFIN_STITCHFIN);
 	}
 
 	/**

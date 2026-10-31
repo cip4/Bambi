@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:strip-space elements="*" />
-	<xsl:output method="html" cdata-section-elements="jdf:JMF jdf:Query" />
+	<xsl:output method="xhtml" omit-xml-declaration="yes" cdata-section-elements="jdf:JMF jdf:Query" />
 	<xsl:template match="/SubscriptionList">
 		<xsl:variable name="context" select="@Context" />
 		<html>
@@ -18,10 +18,10 @@
 					</a>
 
 					<!-- left -->
-					<ul class="navbar-nav mr-auto"></ul>
+					<ul class="navbar-nav mr-auto" />
 
 					<!-- right -->
-					<ul class="navbar-nav"></ul>
+					<ul class="navbar-nav" />
 				</nav>
 
 

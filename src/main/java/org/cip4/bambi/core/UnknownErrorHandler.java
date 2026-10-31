@@ -77,7 +77,6 @@ import org.cip4.jdflib.core.XMLDoc;
  * handler for final handler for any non-handled url
  *
  * @author prosirai
- *
  */
 public class UnknownErrorHandler implements IGetHandler
 {
@@ -93,7 +92,6 @@ public class UnknownErrorHandler implements IGetHandler
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.core.IGetHandler#handleGet(org.cip4.bambi.core.ContainerRequest)
 	 * @param request
 	 * @return
@@ -123,9 +121,9 @@ public class UnknownErrorHandler implements IGetHandler
 	/**
 	 * display an error on error.jsp
 	 *
-	 * @param errorMsg short message describing the error
+	 * @param errorMsg     short message describing the error
 	 * @param errorDetails detailed error info
-	 * @param request required to forward the page
+	 * @param request      required to forward the page
 	 * @return
 	 */
 	protected XMLResponse showErrorPage(final String errorMsg, final String errorDetails, final ContainerRequest request)

@@ -42,6 +42,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import javax.xml.XMLConstants;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.KElement;
@@ -54,6 +63,8 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public class XMLResponse extends HTTPResponse
 {
+	private final static Log log = LogFactory.getLog(XMLResponse.class);
+
 	/**
 	 * @param theXML the xml to write - may be null
 	 */
@@ -69,7 +80,6 @@ public class XMLResponse extends HTTPResponse
 	}
 
 	/**
-	 *
 	 * @param r
 	 * @param contentType
 	 */
@@ -82,6 +92,7 @@ public class XMLResponse extends HTTPResponse
 	}
 
 	private KElement theXML;
+	private XMLDoc xslt;
 
 	/**
 	 * @return
@@ -89,6 +100,22 @@ public class XMLResponse extends HTTPResponse
 	public KElement getXML()
 	{
 		return theXML;
+	}
+
+	/**
+	 * @return the xslt used for server-side transformation
+	 */
+	public XMLDoc getXSLT()
+	{
+		return xslt;
+	}
+
+	/**
+	 * @param xslt the optional xslt used for server-side transformation
+	 */
+	public void setXSLT(final XMLDoc xslt)
+	{
+		this.xslt = xslt;
 	}
 
 	public void ensureJDF()
@@ -108,9 +135,13 @@ public class XMLResponse extends HTTPResponse
 	public OutputStream getOutputStream()
 	{
 		if (theXML != null)
+		{
 			return null;
+		}
 		if (theBuffer == null)
+		{
 			theBuffer = new ByteArrayIOStream();
+		}
 		return theBuffer;
 	}
 
@@ -119,7 +150,8 @@ public class XMLResponse extends HTTPResponse
 	 */
 	public XMLDoc getXMLDoc()
 	{
-		return theXML == null ? null : (theXML instanceof JDFElement) ? ((JDFElement) theXML).getOwnerDocument_JDFElement() : theXML.getOwnerDocument_KElement();
+		return theXML == null ? null
+				: (theXML instanceof JDFElement) ? ((JDFElement) theXML).getOwnerDocument_JDFElement() : theXML.getOwnerDocument_KElement();
 	}
 
 	/**
@@ -144,15 +176,7 @@ public class XMLResponse extends HTTPResponse
 			final XMLDoc d = getXMLDoc();
 			if (d != null)
 			{
-				theBuffer = new ByteArrayIOStream();
-				try
-				{
-					d.write2Stream(theBuffer, 2, false);
-				}
-				catch (final IOException x)
-				{
-					theBuffer = null;
-				}
+				theBuffer = serializeDoc(d);
 				theXML = null;
 			}
 		}
@@ -165,16 +189,61 @@ public class XMLResponse extends HTTPResponse
 		final XMLDoc d = getXMLDoc();
 		if (d != null)
 		{
-			theBuffer = new ByteArrayIOStream();
+			theBuffer = serializeDoc(d);
+			theXML = null;
+		}
+	}
+
+	private ByteArrayIOStream serializeDoc(final XMLDoc d)
+	{
+		if (d == null)
+		{
+			return null;
+		}
+
+		if (xslt != null)
+		{
+			final ByteArrayIOStream transformedBuffer = new ByteArrayIOStream();
 			try
 			{
-				d.write2Stream(theBuffer, 2, false);
+				final TransformerFactory factory = TransformerFactory.newInstance();
+				factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+				final DOMSource styleSource = new DOMSource(xslt.getMemberDocument());
+				final String styleSystemID = xslt.getOriginalFileName();
+				if (styleSystemID != null && !styleSystemID.isEmpty())
+				{
+					// systemId lets xsl:include resolve relative to the stylesheet location
+					styleSource.setSystemId(styleSystemID);
+				}
+				final Transformer transformer = factory.newTransformer(styleSource);
+				transformer.transform(new DOMSource(d.getMemberDocument()), new StreamResult(transformedBuffer));
+				if (transformedBuffer.size() > 0)
+				{
+					setContentType(UrlUtil.TEXT_HTML);
+					return transformedBuffer;
+				}
+				log.warn("XSLT transform returned empty output - falling back to raw XML serialization");
 			}
-			catch (final IOException x)
+			catch (final TransformerException x)
 			{
-				theBuffer = null;
+				log.warn("error applying XSLT transform - falling back to raw XML serialization", x);
 			}
-			theXML = null;
+			catch (final RuntimeException x)
+			{
+				log.warn("unexpected XSLT transform error - falling back to raw XML serialization", x);
+			}
+			setContentType(UrlUtil.TEXT_XML);
+		}
+
+		final ByteArrayIOStream rawBuffer = new ByteArrayIOStream();
+		try
+		{
+			d.write2Stream(rawBuffer, 2, false);
+			return rawBuffer;
+		}
+		catch (final IOException x)
+		{
+			return null;
 		}
 	}
 }

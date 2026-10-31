@@ -18,10 +18,10 @@
 					</a>
 
 					<!-- left -->
-					<ul class="navbar-nav mr-auto"></ul>
+					<ul class="navbar-nav mr-auto" />
 
 					<!-- right -->
-					<ul class="navbar-nav"></ul>
+					<ul class="navbar-nav" />
 				</nav>
 
 

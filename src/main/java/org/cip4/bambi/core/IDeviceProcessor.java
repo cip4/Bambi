@@ -77,7 +77,6 @@ import org.cip4.jdflib.node.JDFNode;
 
 /**
  * @author prosirai
- *
  */
 public interface IDeviceProcessor extends Runnable
 {
@@ -92,13 +91,14 @@ public interface IDeviceProcessor extends Runnable
 	 * process a queue entry
 	 *
 	 * @param node the JDF node to process
-	 * @param qe the JDF queueentry that corresponds to this
+	 * @param qe   the JDF queueentry that corresponds to this
 	 * @return EnumQueueEntryStatus the final status of the queuentry
 	 */
 	public abstract EnumQueueEntryStatus processDoc(JDFNode node, JDFQueueEntry qe);
 
 	/**
 	 * initialize the IDeviceProcessor
+	 *
 	 * @param queueProcessor the queueprocessor
 	 * @param statusListener the status listener
 	 * @param devProperties  device properties

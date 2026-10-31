@@ -39,7 +39,7 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.cip4.bambi.core.BambiLogFactory;
-import org.cip4.bambi.core.XMLResponse;
+import org.cip4.bambi.core.HTTPResponse;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
@@ -290,7 +290,7 @@ public class JobPhase implements Cloneable
 	 * @param partMap
 	 * @return The output speed.
 	 */
-	public double getOutputSpeed(final String resourceName, JDFAttributeMap partMap)
+	public double getOutputSpeed(final String resourceName, final JDFAttributeMap partMap)
 	{
 		final PhaseAmount phaseAmount = findPhaseAmount(resourceName);
 		return phaseAmount == null ? 0 : phaseAmount.getOutputSpeed(partMap);
@@ -316,7 +316,7 @@ public class JobPhase implements Cloneable
 	 * @param partMap
 	 * @return The number of waste being produced of a given resource after a given time.
 	 */
-	public double getOutputWasteAfterTime(final String resourceName, final int durationMillis, JDFAttributeMap partMap)
+	public double getOutputWasteAfterTime(final String resourceName, final int durationMillis, final JDFAttributeMap partMap)
 	{
 		if (getOutputAmountIsGood(resourceName))
 		{
@@ -334,7 +334,7 @@ public class JobPhase implements Cloneable
 	 * @param partMap
 	 * @return The number of waste being produced of a given resource after a given time.
 	 */
-	public double getOutputGood(final String resourceName, final int durationMillis, JDFAttributeMap partMap)
+	public double getOutputGood(final String resourceName, final int durationMillis, final JDFAttributeMap partMap)
 	{
 		if (!getOutputAmountIsGood(resourceName))
 		{
@@ -352,7 +352,7 @@ public class JobPhase implements Cloneable
 	 * @param partMap
 	 * @return The number of waste being produced of a given resource after a given time.
 	 */
-	double getOutputAfterTime(final String resourceName, final int durationMillis, JDFAttributeMap partMap)
+	double getOutputAfterTime(final String resourceName, final int durationMillis, final JDFAttributeMap partMap)
 	{
 		if (durationMillis <= 0)
 		{
@@ -489,8 +489,8 @@ public class JobPhase implements Cloneable
 				}
 			}
 
-			XMLResponse.addOptionList(deviceStatus, EnumDeviceStatus.getEnumList(), xmlPhase, "DeviceStatus");
-			XMLResponse.addOptionList(nodeStatus, EnumNodeStatus.getEnumList(), xmlPhase, "NodeStatus");
+			HTTPResponse.addOptionList(deviceStatus, EnumDeviceStatus.getEnumList(), xmlPhase, "DeviceStatus");
+			HTTPResponse.addOptionList(nodeStatus, EnumNodeStatus.getEnumList(), xmlPhase, "NodeStatus");
 		}
 		else
 		{
@@ -596,7 +596,7 @@ public class JobPhase implements Cloneable
 			return splitPart;
 		}
 
-		void setSplitPart(boolean splitPart)
+		void setSplitPart(final boolean splitPart)
 		{
 			this.splitPart = splitPart;
 		}
@@ -622,7 +622,7 @@ public class JobPhase implements Cloneable
 			splitPart = false;
 		}
 
-		public double getOutputSpeed(JDFAttributeMap partMap)
+		public double getOutputSpeed(final JDFAttributeMap partMap)
 		{
 			if (randomPercent > 0)
 			{
@@ -736,7 +736,7 @@ public class JobPhase implements Cloneable
 			return randomPercent > 0;
 		}
 
-		void setRandomPercent(int randomPercent)
+		void setRandomPercent(final int randomPercent)
 		{
 			this.randomPercent = randomPercent;
 		}

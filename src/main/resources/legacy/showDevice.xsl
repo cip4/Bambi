@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:strip-space elements="*" />
-	<xsl:output method="html" />
+	<xsl:output method="xhtml" omit-xml-declaration="yes" />
 	<xsl:template match="/XMLDevice">
 		<html>
 			<xsl:variable name="deviceID" select="@DeviceID" />
@@ -30,10 +30,10 @@
 					</a>
 
 					<!-- left -->
-					<ul class="navbar-nav mr-auto"></ul>
+					<ul class="navbar-nav mr-auto" />
 
 					<!-- right -->
-					<ul class="navbar-nav"></ul>
+					<ul class="navbar-nav" />
 				</nav>
 
 
@@ -352,7 +352,7 @@
 			<xsl:value-of select="@Duration" />
 			; new time to go:
 			<input name="Duration" type="text" size="30" maxlength="30">
-				<xsl:attribute name="value"></xsl:attribute>
+				<xsl:attribute name="value" />
 			</input>
 			<hr />
 			<h3>Resource Simulation Speed Setup</h3>

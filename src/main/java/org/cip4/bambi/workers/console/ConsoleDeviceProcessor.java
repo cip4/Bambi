@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2009 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2009 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.workers.console;
 
@@ -91,9 +91,8 @@ import org.cip4.jdflib.util.thread.MyMutex;
 
 /**
  * parent class for console device processors,
- * 
+ *
  * @author Rainer Prosi
- * 
  */
 public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 {
@@ -105,10 +104,9 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * added to ensure a consistent hierarchy
-	 * 
+	 *
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 * 
-	 * Oct 1, 2009
+	 *         Oct 1, 2009
 	 */
 	protected class XMLConsoleProcessor extends XMLWorkerProcessor
 	{
@@ -132,7 +130,7 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 		}
 
 		/**
-		 * 
+		 *
 		 */
 		private void addActions(final KElement processor)
 		{
@@ -159,7 +157,7 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	private void resetPhase()
 	{
@@ -170,6 +168,7 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * initialize the IDeviceProcessor
+	 *
 	 * @param queueProcessor
 	 * @param statusListener
 	 * @param devProperties
@@ -183,8 +182,8 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * process a queue entry
-	 * 
-	 * @param n the JDF node to process
+	 *
+	 * @param n  the JDF node to process
 	 * @param qe the JDF queueentry that corresponds to this
 	 * @return EnumQueueEntryStatus the final status of the queuentry
 	 */
@@ -195,7 +194,9 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 		while (!bStopJob)
 		{
 			if (!ThreadUtil.wait(completeMutex, 10000))
+			{
 				break;
+			}
 			if (currentPhase != null)
 			{
 				setNextPhase(currentPhase, null);
@@ -206,9 +207,9 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 
 	/**
 	 * proceed to the next job phase
-	 * 
+	 *
 	 * @param nextPhase the next job phase to process.<br>
-	 * Phase timeToGo is ignored in this class, it is advancing to the next phase solely by doNextPhase().
+	 *                  Phase timeToGo is ignored in this class, it is advancing to the next phase solely by doNextPhase().
 	 * @param request
 	 */
 	public void doNextPhase(final JobPhase nextPhase, final ContainerRequest request)
@@ -225,7 +226,8 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 	private void setNextPhase(final JobPhase phase, final ContainerRequest request)
 	{
 		final int nextAction = request == null ? currentAction : request.getIntegerParam("pos");
-		_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(), request != null);
+		_statusListener.signalStatus(phase.getDeviceStatus(), phase.getDeviceStatusDetails(), phase.getNodeStatus(), phase.getNodeStatusDetails(),
+				request != null);
 		currentPhase = phase;
 		endStatus = phase.getNodeStatus();
 		currentAction = nextAction;
@@ -257,7 +259,6 @@ public class ConsoleDeviceProcessor extends UIModifiableDeviceProcessor
 	}
 
 	/**
-	 * 
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#initializeProcessDoc(org.cip4.jdflib.node.JDFNode, org.cip4.jdflib.jmf.JDFQueueEntry)
 	 * @param node
 	 * @param qe

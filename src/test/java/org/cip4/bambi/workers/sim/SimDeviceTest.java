@@ -136,7 +136,7 @@ public class SimDeviceTest extends BambiTestCaseBase
 		assertNotNull(KElement.parseString(r.toXML()));
 	}
 
-	public static BambiTestDevice getDevice(String devID) throws IOException
+	public static BambiTestDevice getDevice(final String devID) throws IOException
 	{
 		final BambiTestDevice rootDev = (BambiTestDevice) getDevice(true, true);
 		rootDev.setSim(true);

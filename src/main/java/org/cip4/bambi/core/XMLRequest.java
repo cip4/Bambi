@@ -116,7 +116,9 @@ public class XMLRequest extends ContainerRequest
 	{
 		this(theDoc == null ? null : theDoc.getRoot());
 		if (theDoc == null)
+		{
 			log.error("constructor for null xml document " + super.toString());
+		}
 	}
 
 	public void ensureJDF()
@@ -189,7 +191,6 @@ public class XMLRequest extends ContainerRequest
 	}
 
 	/**
-	 *
 	 * update name based on data type of the xml
 	 */
 	private void updateName()
@@ -220,7 +221,8 @@ public class XMLRequest extends ContainerRequest
 	 */
 	public XMLDoc getXMLDoc()
 	{
-		return theXML == null ? null : (theXML instanceof JDFElement) ? ((JDFElement) theXML).getOwnerDocument_JDFElement() : theXML.getOwnerDocument_KElement();
+		return theXML == null ? null
+				: (theXML instanceof JDFElement) ? ((JDFElement) theXML).getOwnerDocument_JDFElement() : theXML.getOwnerDocument_KElement();
 	}
 
 	/**

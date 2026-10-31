@@ -1187,7 +1187,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 	 * @param pos the device index
 	 * @return a IDeviceProperties parsed from the element
 	 */
-	public DeviceProperties createDeviceProps(int pos)
+	public DeviceProperties createDeviceProps(final int pos)
 	{
 		return createDeviceProps(ContainerUtil.get(getDevices(), pos));
 	}
@@ -1244,7 +1244,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 		return (appDir == null ? pathInToolPath : appDir.toPath().resolve(pathInToolPath)).toFile();
 	}
 
-	protected Path getToolPath()
+	public Path getToolPath()
 	{
 		return toolPath == null ? Paths.get(new UserDir(BambiServer.BAMBI).getToolPath()) : toolPath;
 	}

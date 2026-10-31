@@ -126,7 +126,7 @@ public abstract class BambiTestCaseBase
 	 * @param synch TODO
 	 * @return
 	 */
-	protected static AbstractDevice getDevice(boolean spy, boolean synch)
+	protected static AbstractDevice getDevice(final boolean spy, final boolean synch)
 	{
 
 		final BambiTestDevice bambiTestDevice = new BambiTestDevice(synch);

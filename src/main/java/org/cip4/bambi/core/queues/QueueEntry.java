@@ -47,7 +47,6 @@ import org.cip4.jdflib.node.JDFNode;
  * simple QueueEntry / JDF pair
  *
  * @author Rainer Prosi
- *
  */
 public class QueueEntry implements IQueueEntry
 {

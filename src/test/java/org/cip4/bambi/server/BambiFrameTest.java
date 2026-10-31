@@ -51,7 +51,7 @@ public class BambiFrameTest extends BambiTestCaseBase
 		{
 			assertEquals("Bambi", new BambiFrame(BambiServer.getBambiServer()).getFrameName().substring(0, 5));
 		}
-		catch (Exception x)
+		catch (final Exception x)
 		{
 			// nop - does not work on dokker containers
 		}

@@ -100,7 +100,7 @@ public class BambiTestDevice extends WorkerDevice
 	private EnumQueueEntryStatus finalStatus;
 	QueueEntry currentEntry;
 
-	public IQueueEntry setCurrentEntry(JDFNode n)
+	public IQueueEntry setCurrentEntry(final JDFNode n)
 	{
 		final JDFQueueEntry qe = mock(JDFQueueEntry.class);
 		when(qe.getQueueEntryID()).thenReturn(n.getJobID(true));
@@ -123,7 +123,7 @@ public class BambiTestDevice extends WorkerDevice
 	/**
 	 * @param synch TODO
 	 */
-	public BambiTestDevice(boolean synch)
+	public BambiTestDevice(final boolean synch)
 	{
 		super(new BambiTestProp(synch));
 		sim = false;

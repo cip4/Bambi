@@ -74,7 +74,6 @@ package org.cip4.bambi.core;
  * interface that handles doGet() and also additional methods
  *
  * @author prosirai
- *
  */
 public interface IGetHandler
 {

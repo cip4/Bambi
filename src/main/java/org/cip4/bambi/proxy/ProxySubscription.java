@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2011 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2011 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,24 +56,24 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.proxy;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.cip4.bambi.core.BambiNSExtension;
-import org.cip4.bambi.core.XMLResponse;
+import org.cip4.bambi.core.HTTPResponse;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.ifaces.IJMFSubscribable;
@@ -85,7 +85,8 @@ import org.cip4.jdflib.util.StringUtil;
 
 /**
  * class to manage subscriptions to the slave device
-  * @author Rainer Prosi, Heidelberger Druckmaschinen *
+ *
+ * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 class ProxySubscription
 {
@@ -99,15 +100,14 @@ class ProxySubscription
 	final Log log;
 
 	/**
-	 * 
-	 * @param jmf	  
+	 * @param jmf
 	 * @throws IllegalArgumentException
 	 */
-	public ProxySubscription(JDFJMF jmf) throws IllegalArgumentException
+	public ProxySubscription(final JDFJMF jmf) throws IllegalArgumentException
 	{
 		log = LogFactory.getLog(getClass());
 		subscribedJMF = (JDFJMF) jmf.clone();
-		JDFMessage messageElement = subscribedJMF.getMessageElement(null, null, 0);
+		final JDFMessage messageElement = subscribedJMF.getMessageElement(null, null, 0);
 		type = messageElement.getType();
 		channelID = StringUtil.getNonEmpty(jmf.getQuery(0).getID());
 		if (channelID == null)
@@ -124,10 +124,12 @@ class ProxySubscription
 	/**
 	 * @param channelID
 	 */
-	public void setChannelID(String channelID)
+	public void setChannelID(final String channelID)
 	{
 		if (this.channelID.equals(channelID))
-			return; //nop
+		{
+			return; // nop
+		}
 
 		log.info("updating proxy subscription channelID to: " + channelID);
 		this.channelID = channelID;
@@ -136,13 +138,13 @@ class ProxySubscription
 
 	/**
 	 * send a stoppersistantchannel for myself
-	 * @return the jmf element representing the stoppersistantchannel message
 	 *
+	 * @return the jmf element representing the stoppersistantchannel message
 	 */
 	public JDFJMF getStopper()
 	{
-		JMFBuilder builder = JMFBuilderFactory.getJMFBuilder(null);
-		JDFJMF jmf = builder.buildStopPersistentChannel(channelID, null, url);
+		final JMFBuilder builder = JMFBuilderFactory.getJMFBuilder(null);
+		final JDFJMF jmf = builder.buildStopPersistentChannel(channelID, null, url);
 		log.info("generating StopPersistantChannel for ID=" + channelID + " to " + url);
 		return jmf;
 	}
@@ -150,7 +152,7 @@ class ProxySubscription
 	/**
 	 * @see java.lang.Object#toString()
 	 * @return
-	*/
+	 */
 	@Override
 	public String toString()
 	{
@@ -158,7 +160,7 @@ class ProxySubscription
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public void incrementHandled()
 	{
@@ -176,8 +178,8 @@ class ProxySubscription
 		subs.setAttribute(AttributeName.CHANNELID, channelID);
 		subs.setAttribute(AttributeName.URL, url);
 		subs.setAttribute(AttributeName.TYPE, subscribedJMF.getMessageElement(null, null, 0).getType());
-		subs.setAttribute(AttributeName.CREATIONDATE, XMLResponse.formatLong(created));
-		subs.setAttribute("LastReceived", XMLResponse.formatLong(lastReceived));
+		subs.setAttribute(AttributeName.CREATIONDATE, HTTPResponse.formatLong(created));
+		subs.setAttribute("LastReceived", HTTPResponse.formatLong(lastReceived));
 		subs.setAttribute("NumReceived", StringUtil.formatInteger(numReceived));
 	}
 }

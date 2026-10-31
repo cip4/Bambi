@@ -80,9 +80,10 @@ import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
 import org.cip4.jdflib.core.VString;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
-import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.extensions.XJDFConstants;
+import org.cip4.jdflib.extensions.xjdfwalker.jdftoxjdf.JDFToXJDF;
 import org.cip4.jdflib.jmf.JDFDeviceFilter;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -604,25 +605,37 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 	 */
 	protected void copyToCache()
 	{
-		final Vector<File> dirs = getCacheDirs();
+		final List<File> dirs = getCacheDirs();
 		final File baseDir = getBaseDir();
 		for (final File configDir : dirs)
 		{
-			final File cacheDir = new File(baseDir, configDir.getName());
-			log.info("Copying from " + configDir + " to cache: " + cacheDir);
-			final File[] configFiles = configDir.listFiles();
-			final boolean b = configDir.mkdirs();
-			if (b || configDir.isDirectory())
+			copyToCache(baseDir, configDir);
+		}
+	}
+
+	void copyToCache(final File baseDir, final File configDir)
+	{
+		final File cacheDir = new File(baseDir, configDir.getName());
+		log.info("Copying from " + configDir + " to cache: " + cacheDir);
+		final File[] configFiles = configDir.listFiles();
+		final boolean b = configDir.mkdirs();
+		if (b || configDir.isDirectory())
+		{
+			log.info("ensured empty directory exists: " + configDir.getAbsolutePath());
+		}
+		else
+		{
+			log.warn("problems creating empty directory: " + configDir.getAbsolutePath());
+		}
+		if (configFiles != null)
+		{
+			for (final File f : configFiles)
 			{
-				log.info("ensured empty directory exists: " + configDir.getAbsolutePath());
-			}
-			else
-			{
-				log.warn("problems creating empty directory: " + configDir.getAbsolutePath());
-			}
-			if (configFiles != null)
-			{
-				for (final File f : configFiles)
+				if (f.isDirectory())
+				{
+					copyToCache(new File(cacheDir, f.getName()), f);
+				}
+				else
 				{
 					copySingleToCache(cacheDir, f);
 				}
@@ -801,11 +814,11 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		if (EWatchFormat.XJMF.equals(format))
 		{
 			log.info("Setting watch subscription to xjmf");
-			query.getJMFRoot().setMaxVersion(XJDF20.getDefaultVersion());
+			query.getJMFRoot().setMaxVersion(JDFToXJDF.getDefaultVersion());
 		}
 		else if (EWatchFormat.JSON.equals(format))
 		{
-			query.getJMFRoot().setMaxVersion(XJDF20.getDefaultVersion());
+			query.getJMFRoot().setMaxVersion(JDFToXJDF.getDefaultVersion());
 			BambiNSExtension.setContentType(query.getJMFRoot(), UrlUtil.APPLICATION_JSON);
 			log.info("Setting watch subscription to json");
 		}
@@ -1150,6 +1163,49 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			return ((DeviceProperties) _devProperties).getParent().getCSS();
 		}
+	}
+
+	/**
+	 * @param xslUrl URL path to the stylesheet
+	 * @return loaded xsl doc for this device
+	 */
+	public XMLDoc getXSLTDoc(final String xslUrl)
+	{
+		if ((xslUrl == null) || !(_devProperties instanceof DeviceProperties))
+		{
+			return null;
+		}
+		String xslName = xslUrl;
+		final int slash = xslName.lastIndexOf('/');
+		if (slash >= 0)
+		{
+			xslName = xslName.substring(slash + 1);
+		}
+		if (StringUtil.isEmpty(xslName))
+		{
+			return null;
+		}
+		final File xslFile = ((DeviceProperties) _devProperties).getParent().getToolPath().resolve("legacy").resolve(xslName).toFile();
+		if (!xslFile.isFile())
+		{
+			log.warn("missing xsl file: " + xslFile.getAbsolutePath());
+			return null;
+		}
+		final XMLDoc xslDoc = XMLDoc.parseFile(xslFile);
+		if (xslDoc != null)
+		{
+			xslDoc.setOriginalFileName(xslFile.toURI().toString());
+		}
+		return xslDoc;
+	}
+
+	/**
+	 * @param request request
+	 * @return loaded xsl doc for this request
+	 */
+	public XMLDoc getXSLTDoc(final ContainerRequest request)
+	{
+		return getXSLTDoc(getXSLT(request));
 	}
 
 	/**
@@ -1870,8 +1926,9 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			simDevice.getRoot().setAttribute(REFRESH, true, null);
 		}
-
-		return new XMLResponse(simDevice.getRoot());
+		final XMLResponse response = new XMLResponse(simDevice.getRoot());
+		response.setXSLT(getXSLTDoc(request));
+		return response;
 	}
 
 	/**

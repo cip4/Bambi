@@ -121,7 +121,7 @@ public class StreamRedirectListener implements HotFolderListener
 		}
 	}
 
-	boolean processHotfileResponse(HTTPResponse hr)
+	boolean processHotfileResponse(final HTTPResponse hr)
 	{
 		if (!(hr instanceof final XMLResponse xr))
 		{

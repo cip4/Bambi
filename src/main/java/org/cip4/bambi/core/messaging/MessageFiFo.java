@@ -78,7 +78,9 @@ class MessageFiFo
 		final File oldTail = getDumpFile("tail");
 		final List<MessageDetails> v = readSingleFile(oldTail);
 		if (!v.isEmpty())
+		{
 			return v;
+		}
 
 		if (dumps.isEmpty())
 		{
@@ -98,7 +100,6 @@ class MessageFiFo
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	private synchronized List<MessageDetails> readFirstDump()
@@ -117,7 +118,9 @@ class MessageFiFo
 	private List<MessageDetails> removeFromDump()
 	{
 		if (dumps.isEmpty())
+		{
 			return new ArrayList<>();
+		}
 		final File remove = dumps.remove(0);
 		final List<MessageDetails> v = readSingleFile(remove);
 		remove.delete();
@@ -162,7 +165,9 @@ class MessageFiFo
 	{
 		List<File> vDumps = ContainerUtil.toArrayList(FileUtil.listFilesWithExpression(dumpDir, "*.msg.xml"));
 		if (vDumps == null)
+		{
 			vDumps = new ArrayList<>();
+		}
 		Collections.sort(vDumps);
 		if (!vDumps.isEmpty())
 		{
@@ -180,21 +185,23 @@ class MessageFiFo
 	static final int messPerDump = 421;
 
 	/**
-	 *
 	 * @param i
 	 * @return
 	 */
 	public MessageDetails get(final int i)
 	{
 		if (i < head.size())
+		{
 			return head.get(0);
+		}
 		else if (i >= tailStart() && i < size())
+		{
 			return tail.get(i - tailStart());
+		}
 		return null;
 	}
 
 	/**
-	 *
 	 * return a clone of tail so that we can optimize without blocking the head
 	 *
 	 * @return
@@ -202,21 +209,24 @@ class MessageFiFo
 	public synchronized Vector<MessageDetails> getTailClone()
 	{
 		if (tail == null)
+		{
 			return null;
+		}
 		final Vector<MessageDetails> v = new Vector<>();
 		v.addAll(tail);
 		return v;
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public int size()
 	{
 		int s = tailStart();
 		if (s == 0 || head != tail)
+		{
 			s += tail.size();
+		}
 		return s;
 	}
 
@@ -224,12 +234,13 @@ class MessageFiFo
 	{
 		int s = dumps.size() * messPerDump;
 		if (head != tail)
+		{
 			s += head.size();
+		}
 		return s;
 	}
 
 	/**
-	 *
 	 * @param i
 	 * @return
 	 */
@@ -266,7 +277,6 @@ class MessageFiFo
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public boolean isEmpty()
@@ -276,7 +286,6 @@ class MessageFiFo
 
 	/**
 	 * cleans up the metadata - note the files still need to be deleted
-	 *
 	 */
 	public void clear()
 	{
@@ -286,7 +295,6 @@ class MessageFiFo
 	}
 
 	/**
-	 *
 	 * @param messageDetails
 	 */
 	public synchronized void add(final MessageDetails messageDetails)
@@ -299,7 +307,9 @@ class MessageFiFo
 				newTail.add(tail.get(messPerDump));
 			}
 			if (head != tail)
+			{
 				persistTail();
+			}
 			tail = newTail;
 		}
 		tail.add(messageDetails);
@@ -317,7 +327,6 @@ class MessageFiFo
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	private File getNewTail()
@@ -327,14 +336,15 @@ class MessageFiFo
 		{
 			int ii = getPos(f);
 			if (ii >= iPos)
+			{
 				iPos = ++ii;
+			}
 		}
 		final String dumpName = StringUtil.sprintf("%06d.msg", "" + iPos);
 		return getDumpFile(dumpName);
 	}
 
 	/**
-	 *
 	 * @param f
 	 * @return
 	 */
@@ -370,9 +380,13 @@ class MessageFiFo
 		final File tailFile = getDumpFile("tail");
 		tailFile.delete();
 		if (!head.isEmpty())
+		{
 			persistFile(headFile, head);
+		}
 		if (head != tail && !tail.isEmpty())
+		{
 			persistFile(tailFile, tail);
+		}
 	}
 
 	/**
@@ -385,7 +399,6 @@ class MessageFiFo
 	}
 
 	/**
-	 *
 	 * @param messageDetails
 	 * @return
 	 */
@@ -393,9 +406,13 @@ class MessageFiFo
 	{
 		boolean zapped = false;
 		if (tail != null)
+		{
 			zapped = tail.remove(messageDetails);
+		}
 		if (!zapped && head != null && head != tail)
+		{
 			head.remove(messageDetails);
+		}
 		return zapped;
 	}
 }

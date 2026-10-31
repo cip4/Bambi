@@ -84,7 +84,6 @@ public abstract class DispatchHandler extends JMFHandler.AbstractHandler
 {
 
 	/**
-	 * 
 	 * @param _type
 	 * @param _families
 	 */
@@ -94,7 +93,6 @@ public abstract class DispatchHandler extends JMFHandler.AbstractHandler
 	}
 
 	/**
-	 * 
 	 * @param _type
 	 * @param _families
 	 */
@@ -104,8 +102,6 @@ public abstract class DispatchHandler extends JMFHandler.AbstractHandler
 	}
 
 	/**
-	 * 
-	 * 
 	 * @param inputMessage
 	 * @param response
 	 * @param devs
@@ -125,9 +121,9 @@ public abstract class DispatchHandler extends JMFHandler.AbstractHandler
 		final JDFJMF jmfin = inputMessage.getJMFRoot();
 
 		boolean bSignal = false;
-		for (AbstractDevice dev : devs)
+		for (final AbstractDevice dev : devs)
 		{
-			IJMFHandler jmfHandler = dev.getJMFHandler(null);
+			final IJMFHandler jmfHandler = dev.getJMFHandler(null);
 			final IMessageHandler mh = jmfHandler.getMessageHandler(inputMessage.getType(), inputMessage.getFamily());
 			if (mh != null)
 			{

@@ -119,7 +119,6 @@ import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
  *         16.10.2008
  */
 public class ProxyDeviceProcessor extends AbstractProxyProcessor
@@ -231,7 +230,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 		/**
 		 * updates the current status based on the data in the input status signal or response
-		 * 
+		 *
 		 * @param jobPhase the jobphase containing the status information
 		 * @return true if handled
 		 */
@@ -313,7 +312,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * buffered notification handler that distributes notifications
-	 * 
+	 *
 	 * @author Rainer Prosi, Heidelberger Druckmaschinen
 	 */
 	protected class NotificationQueryHandler extends NotificationHandler
@@ -405,7 +404,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * return true if this processor is responsible for processing a given queuentry as specified by qe
-	 * 
+	 *
 	 * @param _qe the queuentry
 	 * @return true if we are processing qe
 	 */
@@ -417,7 +416,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * return true if this processor is responsible for processing a given node as specified by ni
-	 * 
+	 *
 	 * @param ni the NodeIdentifier to match against
 	 * @return true if ni matches this
 	 */
@@ -429,7 +428,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * apply the phase as described by jobPhase and burn it into our listener
-	 * 
+	 *
 	 * @param jobPhase
 	 */
 	protected void applyPhase(final JDFJobPhase jobPhase)
@@ -445,14 +444,15 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 		{
 			statusListener.setPercentComplete(percentCompleted);
 		}
-		log.debug("Node Status :" + jobPhase.getStatus() + " " + jobPhase.getStatusDetails() + " " + deltaAmount + " " + deltaWaste + " completed: " + percentCompleted);
+		log.debug("Node Status :" + jobPhase.getStatus() + " " + jobPhase.getStatusDetails() + " " + deltaAmount + " " + deltaWaste + " completed: "
+				+ percentCompleted);
 	}
 
 	/**
 	 * constructor
-	 * 
-	 * @param device the parent device that this processor does processing for
-	 * @param qProc the devices queueprocessor
+	 *
+	 * @param device      the parent device that this processor does processing for
+	 * @param qProc       the devices queueprocessor
 	 * @param qeToProcess the queueentry that this processor will be working for
 	 * @deprecated use 2-parameter method
 	 */
@@ -464,8 +464,8 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * constructor
-	 * 
-	 * @param device the parent device that this processor does processing for
+	 *
+	 * @param device      the parent device that this processor does processing for
 	 * @param qeToProcess the queueentry that this processor will be working for
 	 */
 	public ProxyDeviceProcessor(final ProxyDevice device, final IQueueEntry qeToProcess)
@@ -559,7 +559,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	/**
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#processDoc(org.cip4.jdflib.node.JDFNode, org.cip4.jdflib.jmf.JDFQueueEntry)
 	 * @param nod the node to process
-	 * @param qe the queueentry of the node to process
+	 * @param qe  the queueentry of the node to process
 	 * @return nothing - this should never be called
 	 * @throws NotImplementedException whenever called...
 	 */
@@ -570,7 +570,6 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 	}
 
 	/**
-	 *
 	 * @see org.cip4.bambi.proxy.AbstractProxyProcessor#submitted(java.lang.String, org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus, java.lang.String, java.lang.String)
 	 * @param devQEID
 	 * @param newStatus
@@ -586,11 +585,13 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 			setupStatusListener(getCurrentJDFNode(), getQueueEntry());
 			if (EnumQueueEntryStatus.Waiting.equals(newStatus))
 			{
-				_statusListener.signalStatus(EnumDeviceStatus.Idle, AbstractProxyDevice.SUBMITTED, EnumNodeStatus.Waiting, AbstractProxyDevice.SUBMITTED, false);
+				_statusListener.signalStatus(EnumDeviceStatus.Idle, AbstractProxyDevice.SUBMITTED, EnumNodeStatus.Waiting, AbstractProxyDevice.SUBMITTED,
+						false);
 			}
 			else
 			{
-				_statusListener.signalStatus(EnumDeviceStatus.Running, AbstractProxyDevice.SUBMITTED, EnumNodeStatus.InProgress, AbstractProxyDevice.SUBMITTED, false);
+				_statusListener.signalStatus(EnumDeviceStatus.Running, AbstractProxyDevice.SUBMITTED, EnumNodeStatus.InProgress, AbstractProxyDevice.SUBMITTED,
+						false);
 			}
 			// this cast is safe - see constructor which guarantees that the parent is a ProxyParent
 			((ProxyDevice) getParent()).cleanupMultipleRunning(getQueueEntryID(), slaveDeviceID);
@@ -712,7 +713,7 @@ public class ProxyDeviceProcessor extends AbstractProxyProcessor
 
 	/**
 	 * removes all direct nodeinfo subscriptions and adds new ones to the proxy if required
-	 * 
+	 *
 	 * @param root the node to update subscriptions in
 	 */
 	@Override

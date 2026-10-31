@@ -97,7 +97,7 @@ import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * a simple data input terminal/console JDF device . <br>
- * 
+ *
  * @author Rainer Prosi
  */
 public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
@@ -111,9 +111,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 	protected Vector<PhaseAction> actions;
 
 	/**
-	 *
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 *
 	 *         Sep 29, 2009
 	 */
 	protected class ActionLoader
@@ -175,7 +173,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 				return null;
 			}
 			actionPath = actionPathLocal;
-			final Vector<PhaseAction> vPA = new Vector<PhaseAction>(v.size());
+			final Vector<PhaseAction> vPA = new Vector<>(v.size());
 			for (int i = 0; i < v.size(); i++)
 			{
 				final PhaseAction pa = new PhaseAction(v.get(i));
@@ -227,9 +225,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 	}
 
 	/**
-	 *
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 *
 	 *         Sep 29, 2009
 	 */
 	protected class PhaseAction
@@ -244,7 +240,6 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 
 		/**
 		 * @param action
-		 *
 		 */
 		public PhaseAction(final KElement action)
 		{
@@ -253,7 +248,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 			deviceStatus = EnumDeviceStatus.getEnum(action.getAttribute("DeviceStatus"));
 			deviceStatusDetails = action.getAttribute("DeviceStatusDetails");
 			name = action.getAttribute(AttributeName.DESCRIPTIVENAME);
-			next = new Vector<PhaseAction>();
+			next = new Vector<>();
 		}
 
 		public KElement addToRoot(final KElement root)
@@ -270,7 +265,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 	}
 
 	/**
-	 * @param bProc if true add processors
+	 * @param bProc   if true add processors
 	 * @param request
 	 * @return
 	 */
@@ -293,7 +288,7 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 
 	/**
 	 * there is no processor for the terminal
-	 * 
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#buildDeviceProcessor()
 	 */
 	@Override
@@ -303,8 +298,6 @@ public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 	}
 
 	/**
-	 *
-	 *
 	 * @param request
 	 * @return
 	 */

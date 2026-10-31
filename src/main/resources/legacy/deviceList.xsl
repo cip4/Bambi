@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:strip-space elements="*" />
-	<xsl:output method="html" />
+	<xsl:output method="xhtml" omit-xml-declaration="yes" />
 	<xsl:template match="/DeviceList">
 		<html>
 			<xsl:variable name="context" select="@Context" />
@@ -19,10 +19,10 @@
 					</a>
 
 					<!-- left -->
-					<ul class="navbar-nav mr-auto"></ul>
+					<ul class="navbar-nav mr-auto" />
 
 					<!-- right -->
-					<ul class="navbar-nav"></ul>
+					<ul class="navbar-nav" />
 				</nav>
 
 

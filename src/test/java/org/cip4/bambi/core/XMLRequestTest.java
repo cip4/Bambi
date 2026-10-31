@@ -76,7 +76,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 
 import org.cip4.bambi.BambiTestCase;
-import org.cip4.jdflib.core.JDFConstants;
+import org.cip4.jdflib.core.JDFCoreConstants;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.extensions.XJDFHelper;
@@ -122,7 +122,7 @@ public class XMLRequestTest extends BambiTestCase
 	{
 		final XMLRequest req = new XMLRequest(new StreamRequest(new ByteArrayInputStream("<JDF/>".getBytes())), true);
 		assertTrue(req.getXML() instanceof JDFNode);
-		assertEquals(JDFConstants.MIME_JDF, req.getContentType(true));
+		assertEquals(JDFCoreConstants.MIME_JDF, req.getContentType(true));
 	}
 
 	/**

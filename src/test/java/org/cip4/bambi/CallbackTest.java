@@ -94,15 +94,13 @@ public class CallbackTest extends BambiTestCase
 
 	/**
 	 * needed here to define the callback class
-	 * 
-	 * @author prosirai
 	 *
+	 * @author prosirai
 	 */
 	protected class MyProp extends BambiTestProp
 	{
 
 		/**
-		 *
 		 * @see org.cip4.bambi.BambiTestProp#getCallBackClass()
 		 * @return
 		 */
@@ -124,7 +122,6 @@ public class CallbackTest extends BambiTestCase
 		}
 
 		/**
-		 *
 		 * @see org.cip4.bambi.BambiTestProp#getDeviceID()
 		 * @return
 		 */
@@ -135,7 +132,6 @@ public class CallbackTest extends BambiTestCase
 		}
 
 		/**
-		 *
 		 * @return
 		 */
 		public String getHotFolderURL()
@@ -146,7 +142,6 @@ public class CallbackTest extends BambiTestCase
 	}
 
 	/**
-	 *
 	 * @throws Exception
 	 */
 	@Test

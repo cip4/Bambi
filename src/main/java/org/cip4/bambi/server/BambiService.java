@@ -73,7 +73,7 @@ import org.cip4.jdfutility.server.JettyService;
 
 /**
  * Standard bambi windows service wrapper
- * 
+ *
  * @author rainer prosi
  * @date Oct 26, 2011
  */
@@ -91,7 +91,7 @@ public class BambiService extends JettyService
 
 	/**
 	 * The applications main entrance point.
-	 * 
+	 *
 	 * @param args Command line arguments as string array.
 	 */
 	public static void main(final String[] args)
@@ -99,7 +99,9 @@ public class BambiService extends JettyService
 
 		LogConfigurator.configureLog(new UserDir("bambi").getLogPath(), "bambi.log");
 		if (theService == null)
+		{
 			theService = new BambiService();
+		}
 		theService.doMain(args);
 	}
 

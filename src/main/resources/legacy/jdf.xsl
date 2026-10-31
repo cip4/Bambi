@@ -15,10 +15,10 @@
 					</a>
 
 					<!-- left -->
-					<ul class="navbar-nav mr-auto"></ul>
+					<ul class="navbar-nav mr-auto" />
 
 					<!-- right -->
-					<ul class="navbar-nav"></ul>
+					<ul class="navbar-nav" />
 				</nav>
 
 
@@ -105,7 +105,7 @@
 													<xsl:attribute name="class">table-success</xsl:attribute>
 												</xsl:when>
 												<xsl:when test="@Status='Waiting'">
-													<xsl:attribute name="class"></xsl:attribute>
+													<xsl:attribute name="class" />
 												</xsl:when>
 												<xsl:when test="@Status='Spawned'">
 													<xsl:attribute name="class">table-warning</xsl:attribute>

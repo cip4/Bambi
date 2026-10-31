@@ -79,26 +79,26 @@ public class ExtensionCallbackTest extends BambiTestCaseBase
 {
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testCopyCtor()
 	{
-		ExtensionCallback cb = new ExtensionCallback();
+		final ExtensionCallback cb = new ExtensionCallback();
 		cb.setFixToBambi(EnumVersion.Version_2_0);
-		ExtensionCallback cb2 = new ExtensionCallback(cb);
+		final ExtensionCallback cb2 = new ExtensionCallback(cb);
 		assertEquals(cb.getFixToBambi(), cb2.getFixToBambi());
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testClone()
 	{
-		ExtensionCallback cb = new ExtensionCallback();
+		final ExtensionCallback cb = new ExtensionCallback();
 		cb.setFixToBambi(EnumVersion.Version_2_0);
-		ExtensionCallback cb2 = cb.clone();
+		final ExtensionCallback cb2 = cb.clone();
 		assertEquals(cb.getFixToBambi(), cb2.getFixToBambi());
 	}
 }

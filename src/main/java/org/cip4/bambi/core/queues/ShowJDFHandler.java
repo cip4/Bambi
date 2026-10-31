@@ -94,8 +94,7 @@ import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
- * 13.01.2009
+ *         13.01.2009
  */
 public class ShowJDFHandler extends ShowHandler
 {
@@ -132,7 +131,7 @@ public class ShowJDFHandler extends ShowHandler
 		final boolean callback = request.getBooleanParam("Callback");
 		final boolean raw = request.getBooleanParam("raw");
 		final boolean repair = request.getBooleanParam("repair");
-		XMLResponse r = new XMLResponse(null);
+		final XMLResponse r = new XMLResponse(null);
 
 		InputStream is = FileUtil.getBufferedInputStream(f);
 		if (repair || !raw || callback && (_parentDevice instanceof AbstractProxyDevice))
@@ -150,14 +149,16 @@ public class ShowJDFHandler extends ShowHandler
 			}
 			if (repair)
 			{
-				JDFNode n = doc.getJDFRoot();
+				final JDFNode n = doc.getJDFRoot();
 				if (n != null)
 				{
 					while (true)
 					{
-						JDFNode unspawned = new JDFSpawn(n).unSpawn(null);
+						final JDFNode unspawned = new JDFSpawn(n).unSpawn(null);
 						if (unspawned == null)
+						{
 							break;
+						}
 					}
 				}
 			}
@@ -173,17 +174,21 @@ public class ShowJDFHandler extends ShowHandler
 		}
 
 		final boolean bJDF = request.getBooleanParam(QueueProcessor.isJDF);
+		if (!bJDF && !raw)
+		{
+			r.setXSLT(_parentDevice.getXSLTDoc(request));
+		}
 		r.setContentType(bJDF ? UrlUtil.VND_JDF : UrlUtil.TEXT_XML);
 		return r;
 	}
 
-	protected void processRaw(XMLResponse r, InputStream is)
+	protected void processRaw(final XMLResponse r, final InputStream is)
 	{
 		try
 		{
 			IOUtils.copy(is, r.getOutputStream());
 		}
-		catch (IOException e)
+		catch (final IOException e)
 		{
 			log.error("Cannot copy to response:", e);
 		}
@@ -224,9 +229,9 @@ public class ShowJDFHandler extends ShowHandler
 	}
 
 	/**
-	 *
 	 * update the activation based on the request parameter
 	 * this is needed in case we serve the JDF of a requestqueueentry via http
+	 *
 	 * @param request
 	 * @param n
 	 */
@@ -234,7 +239,9 @@ public class ShowJDFHandler extends ShowHandler
 	{
 		final EnumActivation activation = EnumActivation.getEnum(request.getParameter("activation"));
 		if (activation != null)
+		{
 			n.setActivation(activation);
+		}
 	}
 
 	/**

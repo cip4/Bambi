@@ -144,7 +144,7 @@ public class JMFFactoryTest extends BambiTestCase
 	@Test
 	public void testToString()
 	{
-		CallURL cu = new CallURL("http://foo/bar?abc");
+		final CallURL cu = new CallURL("http://foo/bar?abc");
 		assertNotNull(cu.toString());
 	}
 
@@ -154,12 +154,12 @@ public class JMFFactoryTest extends BambiTestCase
 	@Test
 	public synchronized void testInstance()
 	{
-		JMFFactory f = JMFFactory.getInstance();
+		final JMFFactory f = JMFFactory.getInstance();
 		f.shutDown(false);
-		MessageSender s = f.getCreateMessageSender("http://foo/bar");
+		final MessageSender s = f.getCreateMessageSender("http://foo/bar");
 		assertEquals(s, f.getMessageSenders("http://foo/bar").get(0));
 		assertEquals(s, f.getMessageSenders(null).get(0));
-		MessageSender s2 = f.getCreateMessageSender("http://foo/bar?a");
+		final MessageSender s2 = f.getCreateMessageSender("http://foo/bar?a");
 		assertEquals(s, s2);
 		f.shutDown(false);
 	}
@@ -170,14 +170,14 @@ public class JMFFactoryTest extends BambiTestCase
 	@Test
 	public void testHash()
 	{
-		CallURL cu = new CallURL("http://foo/bar?abc");
+		final CallURL cu = new CallURL("http://foo/bar?abc");
 		assertNotNull(cu.toString());
-		CallURL cu2 = new CallURL("http://foo/bar?abc");
+		final CallURL cu2 = new CallURL("http://foo/bar?abc");
 		assertEquals(cu, cu2);
 		assertEquals(cu.hashCode(), cu2.hashCode());
-		CallURL cu3 = new CallURL("http://foo/bar2?abc");
+		final CallURL cu3 = new CallURL("http://foo/bar2?abc");
 		assertNotEquals(cu, cu3);
-		CallURL cu4 = new CallURL("http://foo/bar/");
+		final CallURL cu4 = new CallURL("http://foo/bar/");
 		assertEquals(cu, cu4);
 	}
 

@@ -62,13 +62,11 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.FileUtil;
-import org.cip4.jdflib.util.MimeUtil;
+import org.cip4.jdflib.util.UrlUtil;
 import org.junit.Test;
 
 /**
- *
  * @author rainer prosi
- *
  */
 public class SubscriptionStoreTest extends BambiTestCaseBase
 {
@@ -290,7 +288,7 @@ public class SubscriptionStoreTest extends BambiTestCaseBase
 		final SubscriptionStore ss = new SubscriptionStore(dis, dir);
 
 		final XJMFHelper h = new XJMFHelper();
-		BambiNSExtension.setContentType(h.getRoot(), MimeUtil.APPLICATION_JSON);
+		BambiNSExtension.setContentType(h.getRoot(), UrlUtil.APPLICATION_JSON);
 		final MessageHelper mh = h.appendMessage(EnumFamily.Query, EnumType.Status);
 		mh.appendElement(ElementName.SUBSCRIPTION).setAttribute("URL", "http://u2/abc");
 		final JDFDoc d = new ConverterCallback().prepareJMFForBambi(new JDFDoc(h.getRoot().getOwnerDocument()));

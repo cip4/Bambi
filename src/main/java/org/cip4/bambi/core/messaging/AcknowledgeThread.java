@@ -84,7 +84,6 @@ import org.cip4.jdflib.util.thread.MyMutex;
  * this class handles incoming asynchronous requests i.e. outgoing acknowledge messages (extern sent an AcknowledgeURL)
  *
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
  *         June 28, 2009
  */
 public class AcknowledgeThread extends BambiLogFactory implements IMessageHandler
@@ -104,7 +103,7 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 
 	/**
 	 * @param _baseHandler
-	 * @param _device MUST NOT be null !
+	 * @param _device      MUST NOT be null !
 	 * @throws NullPointerException we ALWAYS need a base handler
 	 */
 	public AcknowledgeThread(final IMessageHandler _baseHandler, final AbstractDevice _device)
@@ -123,7 +122,6 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 	 * this is the thread that waits for the handler to finish and then sends the acknowledge
 	 *
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
-	 *
 	 *         June 28, 2009
 	 */
 	protected class RunThread extends Thread
@@ -199,7 +197,6 @@ public class AcknowledgeThread extends BambiLogFactory implements IMessageHandle
 	 * @param response
 	 * @param inputMessage
 	 * @return
-	 *
 	 */
 	private boolean handleWithAcknowledge(final JDFMessage inputMessage, final JDFResponse response)
 	{

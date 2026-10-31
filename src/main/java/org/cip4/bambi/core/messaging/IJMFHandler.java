@@ -73,28 +73,28 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
 
 /**
  * this interface specifies the interface of a message dispatcher/handler
- * 
+ *
  * @author prosirai
- * 
  */
 public interface IJMFHandler
 {
 	/**
 	 * add a message handler
+	 *
 	 * @param handler the handler associated with the event
 	 */
 	public void addHandler(IMessageHandler handler);
 
 	/**
 	 * the big processing dispatcher
-	 * 
+	 *
 	 * @param doc the JDFDoc holding the JMF which is to be processed
 	 * @return the JDFDoc holding the JMF response
 	 */
 	public JDFDoc processJMF(JDFDoc doc);
 
 	/**
-	 * @param typ the message type
+	 * @param typ    the message type
 	 * @param family the family
 	 * @return the IMessageHandler, null if none exists
 	 */

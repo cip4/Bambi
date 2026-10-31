@@ -71,7 +71,7 @@ public class MessageIdentifier implements Cloneable
 	protected String deviceID;
 
 	/**
-	 * @param m the message
+	 * @param m           the message
 	 * @param jmfSenderID the senderID of the jmf package; if null extract if from the message
 	 */
 	public MessageIdentifier(final JDFMessage m, final String jmfSenderID)
@@ -150,11 +150,7 @@ public class MessageIdentifier implements Cloneable
 	 */
 	public boolean matches(final MessageIdentifier msg)
 	{
-		if (msg.deviceID != null && !ContainerUtil.equals(deviceID, msg.deviceID))
-		{
-			return false;
-		}
-		if (msg.misChannelID != null && !ContainerUtil.equals(misChannelID, msg.misChannelID))
+		if ((msg.deviceID != null && !ContainerUtil.equals(deviceID, msg.deviceID)) || (msg.misChannelID != null && !ContainerUtil.equals(misChannelID, msg.misChannelID)))
 		{
 			return false;
 		}
@@ -172,7 +168,8 @@ public class MessageIdentifier implements Cloneable
 	@Override
 	public String toString()
 	{
-		return "MessageIdentifier [misChannelID=" + misChannelID + ", slaveChannelID=" + slaveChannelID + ", msgType=" + msgType + ", senderID=" + deviceID + "]";
+		return "MessageIdentifier [misChannelID=" + misChannelID + ", slaveChannelID=" + slaveChannelID + ", msgType=" + msgType + ", senderID=" + deviceID
+				+ "]";
 	}
 
 	@Override
@@ -185,11 +182,13 @@ public class MessageIdentifier implements Cloneable
 	public boolean equals(final Object obj)
 	{
 		if (this == obj)
+		{
 			return true;
-		if (obj == null)
+		}
+		if ((obj == null) || (getClass() != obj.getClass()))
+		{
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
 		final MessageIdentifier other = (MessageIdentifier) obj;
 		return Objects.equals(deviceID, other.deviceID) && Objects.equals(misChannelID, other.misChannelID) && Objects.equals(msgType, other.msgType)
 				&& Objects.equals(slaveChannelID, other.slaveChannelID);

@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.proxy;
 
@@ -85,7 +85,7 @@ import org.cip4.jdflib.util.ThreadUtil;
 
 /**
  * class to asynchronously subscribe to messages at the slaves
- * 
+ *
  * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class SlaveSubscriber extends Thread
@@ -108,17 +108,17 @@ public class SlaveSubscriber extends Thread
 		return repeatTime;
 	}
 
-	public void setRepeatTime(int repeatTime)
+	public void setRepeatTime(final int repeatTime)
 	{
 		this.repeatTime = repeatTime;
 	}
 
 	/**
-	 * @param waitBefore the time to wait prior to subscribing
+	 * @param waitBefore          the time to wait prior to subscribing
 	 * @param slaveQEID
 	 * @param abstractProxyDevice the device that this subscriber works on
 	 */
-	public SlaveSubscriber(AbstractProxyDevice abstractProxyDevice, final int waitBefore, final String slaveQEID)
+	public SlaveSubscriber(final AbstractProxyDevice abstractProxyDevice, final int waitBefore, final String slaveQEID)
 	{
 		super("SlaveSubscriber_" + abstractProxyDevice.getDeviceID() + "_" + AbstractProxyDevice.slaveThreadCount++);
 		this.abstractProxyDevice = abstractProxyDevice;
@@ -145,8 +145,8 @@ public class SlaveSubscriber extends Thread
 		final String deviceURL = abstractProxyDevice.getDeviceURLForSlave();
 		if (deviceURL == null)
 		{
-			log.error("Device feedback url is not specified in subscription, proxy device " + abstractProxyDevice.getDeviceID() + " is not subscribing at slave device: "
-					+ abstractProxyDevice.getSlaveDeviceID());
+			log.error("Device feedback url is not specified in subscription, proxy device " + abstractProxyDevice.getDeviceID()
+					+ " is not subscribing at slave device: " + abstractProxyDevice.getSlaveDeviceID());
 			return;
 		}
 
@@ -201,7 +201,7 @@ public class SlaveSubscriber extends Thread
 	{
 		if (vJMFS != null)
 		{
-			for (JDFJMF jmf : vJMFS)
+			for (final JDFJMF jmf : vJMFS)
 			{
 				createNewSubscription(jmf);
 			}
@@ -209,12 +209,14 @@ public class SlaveSubscriber extends Thread
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected void cleanup()
 	{
 		if (!ThreadUtil.sleep(30000))
+		{
 			return;
+		}
 
 		synchronized (abstractProxyDevice.waitingSubscribers)
 		{
@@ -223,7 +225,7 @@ public class SlaveSubscriber extends Thread
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	protected void resetSubscriptions()
 	{
@@ -246,7 +248,6 @@ public class SlaveSubscriber extends Thread
 
 	/**
 	 * @param deviceURL
-	 * 
 	 * @return
 	 */
 	protected Vector<JDFJMF> createSubscriptions(final String deviceURL)
@@ -259,16 +260,20 @@ public class SlaveSubscriber extends Thread
 		return vRet.size() > 0 ? vRet : null;
 	}
 
-	protected Vector<JDFJMF> removeUnknown(Vector<JDFJMF> vRet)
+	protected Vector<JDFJMF> removeUnknown(final Vector<JDFJMF> vRet)
 	{
 		if (vRet == null)
+		{
 			return vRet;
+		}
 		for (int i = vRet.size() - 1; i >= 0; i--)
 		{
-			JDFJMF jmf = vRet.elementAt(i);
-			JDFMessage m = jmf.getMessageElement(null, null, 0);
+			final JDFJMF jmf = vRet.elementAt(i);
+			final JDFMessage m = jmf.getMessageElement(null, null, 0);
 			if (!abstractProxyDevice.knownSlaveMessages.knows(m.getType()))
+			{
 				vRet.remove(jmf);
+			}
 		}
 		return vRet;
 	}
@@ -311,7 +316,6 @@ public class SlaveSubscriber extends Thread
 	}
 
 	/**
-	 * 
 	 * @see java.lang.Thread#toString()
 	 */
 	@Override

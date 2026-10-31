@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2023 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2023 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 
 package org.cip4.bambi.proxy;
@@ -101,7 +101,6 @@ import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.ThreadUtil;
 
 /**
- * 
  * @author rainer prosi
  */
 public class ProxyDispatcherProcessor extends AbstractProxyProcessor
@@ -137,7 +136,6 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	int lastbad;
 
 	/**
-	 *
 	 * @return
 	 */
 	@Override
@@ -177,8 +175,6 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	}
 
 	/**
-	 * 
-	 * 
 	 * @author rainer prosi
 	 * @date Jul 13, 2012
 	 */
@@ -204,7 +200,6 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 
 		/**
 		 * @return vector of all jmfs that still need to be sent
-		 * 
 		 */
 		public boolean isOpen()
 		{
@@ -235,7 +230,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 		private long lastClean;
 
 		/**
-		 * 
+		 *
 		 */
 		public OrphanCleaner()
 		{
@@ -245,23 +240,27 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 		}
 
 		/**
-		 * 
+		 *
 		 */
 		protected void cleanOrphans()
 		{
 			final long t = System.currentTimeMillis();
 			if (t - lastClean < 30000)
+			{
 				return;
+			}
 			lastClean = t;
 			/**
 			 * clean up orphaned or duplicate processors
 			 */
-			final HashSet<String> setQE = new HashSet<String>();
+			final HashSet<String> setQE = new HashSet<>();
 			for (int i = 0; true; i++)
 			{
 				final AbstractDeviceProcessor proc = getParent().getProcessor(null, i);
 				if (proc == null)
+				{
 					break;
+				}
 				if (!proc.isActive())
 				{
 					proc.shutdown();
@@ -319,8 +318,6 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	}
 
 	/**
-	 * 
-	 * 
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#stopProcessing(org.cip4.jdflib.core.JDFElement.EnumNodeStatus)
 	 */
 	@Override
@@ -331,7 +328,6 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	}
 
 	/**
-	 * 
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#finalizeProcessDoc(org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus)
 	 */
 	@Override
@@ -371,7 +367,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 
 	/**
 	 * ensure that the queue is alive and accepting entries prior to submitting
-	 * 
+	 *
 	 * @param slaveURL
 	 * @return
 	 */
@@ -432,7 +428,6 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	}
 
 	/**
-	 * 
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#isIdle()
 	 */
 	@Override
@@ -496,8 +491,6 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	}
 
 	/**
-	 * 
-	 * 
 	 * @param doc
 	 * @param retQEParams
 	 * @return
@@ -528,9 +521,8 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 	}
 
 	/**
-	 * 
 	 * repair calculated status
-	 * 
+	 *
 	 * @param queueEntryID
 	 * @param finalStatus
 	 * @return

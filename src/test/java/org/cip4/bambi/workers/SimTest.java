@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 
 package org.cip4.bambi.workers;
@@ -101,14 +101,13 @@ import org.junit.Test;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
- * 
  */
 @Ignore
 public class SimTest extends BambiTestCase
 {
 
 	/**
-	 * 
+	 *
 	 */
 	public SimTest()
 	{
@@ -132,7 +131,7 @@ public class SimTest extends BambiTestCase
 		deviceID = "sim002";
 		workerURLBase = "http://localhost:44482/SimWorker/jmf/simIDP";
 		deviceID = "simIDP";
-		//		deviceID = "root";
+		// deviceID = "root";
 	}
 
 	/**
@@ -142,7 +141,7 @@ public class SimTest extends BambiTestCase
 	protected String getDeviceID()
 	{
 		// return null; // "06-SpeedmasterXL105-1";
-		//	return "sim001";
+		// return "sim001";
 		return "simIDP";
 	}
 
@@ -164,8 +163,8 @@ public class SimTest extends BambiTestCase
 	public void testSubmitQueueEntry_HF() throws Exception
 	{
 		// get number of QueueEntries before submitting
-		//		final JDFQueue q = getQueueStatus(simWorkerUrl);
-		//		assertNotNull(q);
+		// final JDFQueue q = getQueueStatus(simWorkerUrl);
+		// assertNotNull(q);
 		// build SubmitQueueEntry
 		_theGT.devID = null;
 		_theGT.devID = "sim001";
@@ -233,7 +232,7 @@ public class SimTest extends BambiTestCase
 		for (int i = 0; i < 1; i++)
 		{
 			_theGT.devID = null;
-			//			_theGT.devID = "sim001";
+			// _theGT.devID = "sim001";
 			_theGT.assign(null);
 			if (i != 0)
 			{
@@ -326,7 +325,7 @@ public class SimTest extends BambiTestCase
 	@Test
 	public void testSendFileToSim() throws Throwable
 	{
-		JDFDoc d = JDFDoc.parseFile("/data/test.xml");
+		final JDFDoc d = JDFDoc.parseFile("/data/test.xml");
 		submitMimetoURL(d, "http://localhost:8080/SimWorker/jmf/sim003", false);
 	}
 }

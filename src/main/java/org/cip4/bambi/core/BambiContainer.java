@@ -501,7 +501,7 @@ public final class BambiContainer extends ServletContainer
 		final BodyPartHelper bph = new BodyPartHelper(bp[0]);
 		final XMLResponse r;
 		final JDFDoc[] docJDF;
-		if (MimeUtil.isJSONType(bph.getContentType()))
+		if (UrlUtil.isJSONType(bph.getContentType()))
 		{
 			docJDF = getJSONDocs(bp);
 		}
@@ -520,7 +520,7 @@ public final class BambiContainer extends ServletContainer
 			r = processXMLDoc(r2);
 			request.setName(r2.getName());
 		}
-		if (MimeUtil.isJSONType(bph.getContentType()))
+		if (UrlUtil.isJSONType(bph.getContentType()))
 		{
 			final NetResponse nr = new NetResponse(r, bph.getContentType());
 			nr.setJSON(true);
@@ -764,21 +764,21 @@ public final class BambiContainer extends ServletContainer
 	}
 
 	@Override
-	protected XMLResponse processZip(StreamRequest request, ZipReader zipReader)
+	protected XMLResponse processZip(final StreamRequest request, final ZipReader zipReader)
 	{
 		request.setPackageType(EPackageType.ZIP);
 		return super.processZip(request, zipReader);
 	}
 
 	@Override
-	public XMLResponse processJSON(StreamRequest request)
+	public XMLResponse processJSON(final StreamRequest request)
 	{
 		request.setPackageType(EPackageType.RAW);
 		return super.processJSON(request);
 	}
 
 	@Override
-	public XMLResponse processMultiPart(StreamRequest request) throws IOException
+	public XMLResponse processMultiPart(final StreamRequest request) throws IOException
 	{
 		final String contentType = request.getContentType(true);
 		final EPackageType formdata = MimeUtil.isMimeType(contentType, MimeUtil.MULTIPART_FORMDATA) ? EPackageType.MIME_FORM : EPackageType.MIME_MULTIPART;

@@ -149,6 +149,12 @@ public class ShowXJDFHandler extends ShowHandler
 		doc = new JDFDoc(xRoot.getOwnerDocument());
 		doc = prepareRoot(doc, request);
 		final XMLResponse r = new XMLResponse(doc.getRoot());
+		final boolean bJDF = request.getBooleanParam(QueueProcessor.isJDF);
+		final boolean raw = request.getBooleanParam("raw");
+		if (!bJDF && !raw)
+		{
+			r.setXSLT(_parentDevice.getXSLTDoc(request));
+		}
 		return r;
 	}
 
@@ -159,7 +165,7 @@ public class ShowXJDFHandler extends ShowHandler
 	 * @param node
 	 * @return
 	 */
-	protected XJDF20 getViewXJDFConverter(JDFNode nPart)
+	protected XJDF20 getViewXJDFConverter(final JDFNode nPart)
 	{
 		final XJDF20 xjdf20 = new XJDF20();
 		xjdf20.setRetainAll(true);

@@ -574,7 +574,7 @@ public class BambiNSExtension
 		return StringUtil.parseLong(getMyNSAttribute(newQE, docMod), -1);
 	}
 
-	public static int incrementTotal(JDFQueue jdfQueue)
+	public static int incrementTotal(final JDFQueue jdfQueue)
 	{
 		int current = getTotal(jdfQueue);
 		if (jdfQueue != null)
@@ -584,7 +584,7 @@ public class BambiNSExtension
 		return current;
 	}
 
-	public static int getTotal(JDFQueue jdfQueue)
+	public static int getTotal(final JDFQueue jdfQueue)
 	{
 		if (jdfQueue == null)
 		{
@@ -593,27 +593,27 @@ public class BambiNSExtension
 		return StringUtil.parseInt(getMyNSAttribute(jdfQueue, TOTAL_ENTRY_COUNT), jdfQueue.getEntryCount());
 	}
 
-	public static void setJSON(KElement e, boolean b)
+	public static void setJSON(final KElement e, final boolean b)
 	{
 		setMyNSAttribute(e, JSON, Boolean.toString(b));
 	}
 
-	public static boolean isJSON(KElement e)
+	public static boolean isJSON(final KElement e)
 	{
 		return StringUtil.parseBoolean(getMyNSAttribute(e, JSON), false);
 	}
 
-	public static void setHotFolder(KElement e, boolean b)
+	public static void setHotFolder(final KElement e, final boolean b)
 	{
 		setMyNSAttribute(e, HOTFOLDER, Boolean.toString(b));
 	}
 
-	public static boolean isHotFolder(KElement e)
+	public static boolean isHotFolder(final KElement e)
 	{
 		return StringUtil.parseBoolean(getMyNSAttribute(e, HOTFOLDER), false);
 	}
 
-	public static void removeBambiExtensions(JDFDoc doc)
+	public static void removeBambiExtensions(final JDFDoc doc)
 	{
 		if (doc != null)
 		{
@@ -621,22 +621,22 @@ public class BambiNSExtension
 		}
 	}
 
-	public static void setPackageType(KElement e, EPackageType pt)
+	public static void setPackageType(final KElement e, final EPackageType pt)
 	{
 		setMyNSAttribute(e, PACKAGE_TYPE, JavaEnumUtil.getName(pt));
 	}
 
-	public static EPackageType getPackageType(KElement e)
+	public static EPackageType getPackageType(final KElement e)
 	{
 		return JavaEnumUtil.getEnumIgnoreCase(EPackageType.class, getMyNSAttribute(e, PACKAGE_TYPE));
 	}
 
-	public static void setProtocolType(KElement e, URLProtocol p)
+	public static void setProtocolType(final KElement e, final URLProtocol p)
 	{
 		setMyNSAttribute(e, PROTOCOL, JavaEnumUtil.getName(p));
 	}
 
-	public static URLProtocol getProtocolType(KElement e)
+	public static URLProtocol getProtocolType(final KElement e)
 	{
 		return JavaEnumUtil.getEnumIgnoreCase(URLProtocol.class, getMyNSAttribute(e, PROTOCOL));
 	}

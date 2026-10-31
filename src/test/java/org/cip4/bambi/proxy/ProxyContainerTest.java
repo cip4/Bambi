@@ -102,8 +102,6 @@ import org.cip4.jdflib.util.ThreadUtil;
 import org.junit.Test;
 
 /**
- *
- *
  * @author rainer prosi
  * @date Oct 29, 2010
  */
@@ -118,7 +116,6 @@ public class ProxyContainerTest extends BambiTestCase
 	}
 
 	/**
-	 *
 	 * test of generic command proxy
 	 *
 	 * @throws IOException
@@ -134,7 +131,6 @@ public class ProxyContainerTest extends BambiTestCase
 	}
 
 	/**
-	 *
 	 * test rqe to a proxy device
 	 *
 	 * @throws IOException
@@ -162,7 +158,6 @@ public class ProxyContainerTest extends BambiTestCase
 	}
 
 	/**
-	 *
 	 * test rqe to a proxy device
 	 *
 	 * @throws IOException ex
@@ -209,7 +204,6 @@ public class ProxyContainerTest extends BambiTestCase
 	}
 
 	/**
-	 *
 	 * test rqe to a proxy device
 	 *
 	 * @throws IOException ex
@@ -241,7 +235,6 @@ public class ProxyContainerTest extends BambiTestCase
 
 	/**
 	 * @throws IOException if bad things happen
-	 *
 	 */
 	public void presubmit() throws IOException
 	{
@@ -260,7 +253,6 @@ public class ProxyContainerTest extends BambiTestCase
 	}
 
 	/**
-	 *
 	 * test rqe to a proxy device
 	 *
 	 * @throws IOException ex
@@ -303,7 +295,6 @@ public class ProxyContainerTest extends BambiTestCase
 
 	/**
 	 * @return
-	 *
 	 */
 	protected String getProxyURLForSlave()
 	{
@@ -312,7 +303,6 @@ public class ProxyContainerTest extends BambiTestCase
 
 	/**
 	 * @throws Exception
-	 *
 	 */
 	@Override
 	public void setUp() throws Exception

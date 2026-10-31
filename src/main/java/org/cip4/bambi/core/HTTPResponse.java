@@ -80,7 +80,6 @@ public abstract class HTTPResponse extends BambiLogFactory
 	}
 
 	/**
-	 *
 	 * @param r
 	 * @param contentType
 	 */
@@ -129,7 +128,9 @@ public abstract class HTTPResponse extends BambiLogFactory
 	public OutputStream getOutputStream()
 	{
 		if (theBuffer == null)
+		{
 			theBuffer = new ByteArrayIOStream();
+		}
 		return theBuffer;
 	}
 
@@ -167,9 +168,13 @@ public abstract class HTTPResponse extends BambiLogFactory
 	public void setHeader(final String key, final String value)
 	{
 		if (StringUtil.isEmpty(value))
+		{
 			headers.remove(key);
+		}
 		else
+		{
 			headers.put(key, value);
+		}
 	}
 
 	/**
@@ -178,7 +183,9 @@ public abstract class HTTPResponse extends BambiLogFactory
 	public InputStream getInputStream()
 	{
 		if (theBuffer == null)
+		{
 			fillbuffer();
+		}
 		return theBuffer == null ? null : theBuffer.getInputStream();
 	}
 
@@ -215,10 +222,10 @@ public abstract class HTTPResponse extends BambiLogFactory
 	/**
 	 * add a set of options to an xml file
 	 *
-	 * @param e the default enum
-	 * @param l the list of all enums
+	 * @param e      the default enum
+	 * @param l      the list of all enums
 	 * @param parent the parent element to add the list to
-	 * @param name the name of the option list form
+	 * @param name   the name of the option list form
 	 */
 	public static void addOptionList(final ValuedEnum e, final List<? extends ValuedEnum> l, final KElement parent, final String name)
 	{
@@ -240,7 +247,6 @@ public abstract class HTTPResponse extends BambiLogFactory
 	}
 
 	/**
-	 *
 	 * @param sr the servlet response to serialize into
 	 */
 	public void writeResponse(final HttpServletResponse sr)
@@ -308,7 +314,8 @@ public abstract class HTTPResponse extends BambiLogFactory
 	@Override
 	public String toString()
 	{
-		return getClass().getSimpleName() + " [" + (theBuffer != null ? "theBuffer=" + theBuffer + ", " : "") + (contentType != null ? "contentType=" + contentType + ", " : "")
-				+ "httpRC=" + httpRC + ", " + (notification != null ? "notification=" + notification + ", " : "") + "errorRC=" + errorRC + "]";
+		return getClass().getSimpleName() + " [" + (theBuffer != null ? "theBuffer=" + theBuffer + ", " : "")
+				+ (contentType != null ? "contentType=" + contentType + ", " : "") + "httpRC=" + httpRC + ", "
+				+ (notification != null ? "notification=" + notification + ", " : "") + "errorRC=" + errorRC + "]";
 	}
 }

@@ -76,11 +76,11 @@ import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.extensions.xjdfwalker.XJDFToJDFConverter;
+import org.cip4.jdflib.extensions.xjdfwalker.xjdftojdf.XJDFToJDFImpl;
 import org.cip4.jdflib.node.JDFNode;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- * 
  *         Apr 5, 2009
  * @deprecated xjdf already handled by standard Convertercallback
  */
@@ -89,30 +89,32 @@ public class ExtensionCallback extends ConverterCallback
 {
 
 	/**
-	 * 
+	 *
 	 */
+	@Deprecated
 	public ExtensionCallback()
 	{
 		super();
 	}
 
 	/**
-	 * 
 	 * @param other
 	 */
-	public ExtensionCallback(ExtensionCallback other)
+	@Deprecated
+	public ExtensionCallback(final ExtensionCallback other)
 	{
 		super(other);
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	private static final String SUBMIT_VERSION = "SubmitVersion";
 
 	/**
 	 * @see org.cip4.bambi.core.ConverterCallback#prepareJDFForBambi(org.cip4.jdflib.core.JDFDoc)
 	 */
+	@Deprecated
 	@Override
 	public JDFDoc prepareJDFForBambi(JDFDoc doc)
 	{
@@ -121,7 +123,7 @@ public class ExtensionCallback extends ConverterCallback
 		{
 			final XJDFToJDFConverter toJDFConverter = new XJDFToJDFConverter(null);
 			toJDFConverter.setCreateProduct(false);
-			if (toJDFConverter.canConvert(doc.getRoot()))
+			if (XJDFToJDFImpl.canConvert(doc.getRoot()))
 			{
 				doc = toJDFConverter.convert(doc.getRoot());
 				final JDFNode n = doc.getJDFRoot();
@@ -134,6 +136,7 @@ public class ExtensionCallback extends ConverterCallback
 	/**
 	 * @see org.cip4.bambi.core.ConverterCallback#updateJDFForExtern(org.cip4.jdflib.core.JDFDoc)
 	 */
+	@Deprecated
 	@Override
 	public JDFDoc updateJDFForExtern(JDFDoc doc)
 	{
@@ -156,6 +159,7 @@ public class ExtensionCallback extends ConverterCallback
 	/**
 	 * @see org.cip4.bambi.core.ConverterCallback#clone()
 	 */
+	@Deprecated
 	@Override
 	protected ExtensionCallback clone()
 	{

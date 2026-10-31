@@ -96,7 +96,7 @@ import org.junit.Test;
 public class StatusSignalComparatorTest extends BambiTestCase
 {
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testIsSameStatusSignal()
@@ -121,7 +121,7 @@ public class StatusSignalComparatorTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testIsSameStatusSignalActivity()
@@ -139,7 +139,7 @@ public class StatusSignalComparatorTest extends BambiTestCase
 		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
 		final JDFJobPhase jp2 = di2.appendJobPhase();
 		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
-		JDFActivity a = jp.appendActivity();
+		final JDFActivity a = jp.appendActivity();
 		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
 		jp2.appendActivity();
 		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
@@ -148,7 +148,7 @@ public class StatusSignalComparatorTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testIsSameStatusSignalNotification()
@@ -166,7 +166,7 @@ public class StatusSignalComparatorTest extends BambiTestCase
 		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
 		final JDFJobPhase jp2 = di2.appendJobPhase();
 		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
-		JDFNotification a = signal.appendNotification();
+		final JDFNotification a = signal.appendNotification();
 		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
 		signal2.appendNotification();
 		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
@@ -175,7 +175,7 @@ public class StatusSignalComparatorTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testIsSameStatusSignalEvent()
@@ -193,7 +193,7 @@ public class StatusSignalComparatorTest extends BambiTestCase
 		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
 		final JDFJobPhase jp2 = di2.appendJobPhase();
 		assertTrue(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
-		JDFEvent e = di.appendEvent();
+		final JDFEvent e = di.appendEvent();
 		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
 		di2.appendEvent();
 		assertFalse(new StatusSignalComparator().isSameStatusSignal(signal, signal2));
@@ -202,7 +202,7 @@ public class StatusSignalComparatorTest extends BambiTestCase
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Test
 	public void testIsSameStatusSignalIdle()

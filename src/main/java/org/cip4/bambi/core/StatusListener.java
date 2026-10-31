@@ -202,7 +202,7 @@ public class StatusListener implements IPersistable
 	 * @param waste   the number of waste copies, 0 specifies that waste should be ignored
 	 * @param partMap TODO
 	 */
-	public void updateAmount(final String resID, final double good, final double waste, JDFAttributeMap partMap)
+	public void updateAmount(final String resID, final double good, final double waste, final JDFAttributeMap partMap)
 	{
 		theCounter.addPhase(resID, good, waste, true, partMap);
 		if (good + waste > 0)
@@ -258,7 +258,7 @@ public class StatusListener implements IPersistable
 	 * @param waste   if true, this is waste, else it is good
 	 * @param partMap TODO
 	 */
-	public void updateTotal(final String resID, final double amount, final boolean waste, JDFAttributeMap partMap)
+	public void updateTotal(final String resID, final double amount, final boolean waste, final JDFAttributeMap partMap)
 	{
 		theCounter.setTotal(resID, amount, waste, partMap);
 		if (amount > 0)
@@ -390,11 +390,7 @@ public class StatusListener implements IPersistable
 	 */
 	public boolean matchesQuery(final JDFMessage inputMessage)
 	{
-		if (inputMessage == null)
-		{
-			return false;
-		}
-		if (!(inputMessage instanceof final JDFQuery q))
+		if ((inputMessage == null) || !(inputMessage instanceof final JDFQuery q))
 		{
 			return false;
 		}
@@ -543,7 +539,7 @@ public class StatusListener implements IPersistable
 		multiCounter.addModule(statusListener.getStatusCounter());
 	}
 
-	public void setAmountResource(String masterAmountResourceName)
+	public void setAmountResource(final String masterAmountResourceName)
 	{
 		if (!StringUtil.isEmpty(masterAmountResourceName))
 		{
@@ -551,7 +547,7 @@ public class StatusListener implements IPersistable
 		}
 	}
 
-	public void setTotalAmount(double d)
+	public void setTotalAmount(final double d)
 	{
 		if (d > 0)
 		{
@@ -559,7 +555,7 @@ public class StatusListener implements IPersistable
 		}
 	}
 
-	public void incrementTotalAmount(double d)
+	public void incrementTotalAmount(final double d)
 	{
 		if (d > 0)
 		{

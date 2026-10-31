@@ -121,9 +121,8 @@ import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * also used for resubmitqueueentry
- * 
- * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  *
+ * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
  *         before 13.02.2009
  */
 public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
@@ -135,7 +134,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 		/**
 		 * @param refID the command id that is responded to
-		 *
 		 */
 		public SubmitQueueEntryResponseHandler(final String refID)
 		{
@@ -151,7 +149,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 	/**
 	 * get the currently set activation
-	 * 
+	 *
 	 * @return the currently set activation
 	 */
 	public EnumActivation getActivation()
@@ -161,7 +159,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 	/**
 	 * get the currently set activation
-	 * 
+	 *
 	 * @return true if this is a "live" submission rather than informative
 	 */
 	public boolean isLive()
@@ -170,15 +168,16 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	}
 
 	/**
-	 *
 	 * set the activation for submission,
-	 * 
+	 *
 	 * @param activation the activation to set - if null assume Active
 	 */
 	public void setActivation(EnumActivation activation)
 	{
 		if (activation == null)
+		{
 			activation = EnumActivation.Active;
+		}
 		this.activation = activation;
 	}
 
@@ -198,7 +197,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 	/**
 	 * get the JMF Builder for messages to the slave device
-	 * 
+	 *
 	 * @return the JMF Builder for messages to the slave device
 	 */
 	protected JMFBuilder getBuilderForSlave()
@@ -233,9 +232,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	/**
 	 * finalize setup after successful submission to a slave
 	 *
-	 * @param slaveQEID the queentryID at the slave
-	 * @param newStatus the retured status from the slave
-	 * @param slaveURL the URL that was submitted to
+	 * @param slaveQEID     the queentryID at the slave
+	 * @param newStatus     the retured status from the slave
+	 * @param slaveURL      the URL that was submitted to
 	 * @param slaveDeviceID the deviceID as returned from the slave
 	 */
 	protected void submitted(final String slaveQEID, final EnumQueueEntryStatus newStatus, final String slaveURL, final String slaveDeviceID)
@@ -269,8 +268,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 	}
 
 	/**
-	 *
-	 *
 	 * @author rainer prosi
 	 * @date Jan 17, 2013
 	 */
@@ -286,8 +283,6 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 
 		/**
-		 *
-		 *
 		 * @date Dec 12, 2013
 		 */
 		protected class QueueResubmitter
@@ -297,8 +292,8 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			final private JDFNode jdf;
 
 			/**
-			 * @param _jdf the jdf node to resubmit
-			 * @param slaveID the queueentryid in the context of the slave
+			 * @param _jdf      the jdf node to resubmit
+			 * @param slaveID   the queueentryid in the context of the slave
 			 * @param localqeID the queueentryid in the context of bambi
 			 */
 			public QueueResubmitter(final JDFNode _jdf, final String slaveID, final String localqeID)
@@ -486,10 +481,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		}
 
 		/**
-		 *
 		 * copy details from queueentry to queuesubmissionparams
-		 * 
-		 * @param qsp the queuesubmissionparams to fill
+		 *
+		 * @param qsp            the queuesubmissionparams to fill
 		 * @param deviceOutputHF the device output hot folder, if any
 		 */
 		protected void prepareQSP(final JDFQueueSubmissionParams qsp, final File deviceOutputHF)
@@ -605,7 +599,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			{
 				if (hm == null)
 				{
-					hm = new HashMap<String, JDFQueueEntry>();
+					hm = new HashMap<>();
 				}
 				hm.put(newQEID, qe);
 			}
@@ -690,7 +684,7 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 
 	/**
 	 * removes all direct nodeinfo subscriptions and adds new ones to the proxy if required
-	 * 
+	 *
 	 * @param root the node to update subscriptions in
 	 */
 	void updateNISubscriptions(final JDFNode root)
@@ -744,7 +738,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 			getCurrentQE().setJDF(root);
 			final String docFile = getParent().getJDFStorage(getQueueEntryID());
 			if (docFile != null)
+			{
 				root.getOwnerDocument_JDFElement().write2File(docFile, 2, true);
+			}
 			_statusListener.replaceNode(root);
 		}
 		else

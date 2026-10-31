@@ -945,11 +945,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 		@Override
 		public boolean handleMessage(final JDFMessage inputMessage, final JDFResponse response)
 		{
-			if (theStatusListener == null)
-			{
-				return false;
-			}
-			if (!theStatusListener.matchesQuery(inputMessage))
+			if ((theStatusListener == null) || !theStatusListener.matchesQuery(inputMessage))
 			{
 				return false;
 			}

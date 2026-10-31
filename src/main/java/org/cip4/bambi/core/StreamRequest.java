@@ -161,7 +161,7 @@ public class StreamRequest extends ContainerRequest
 		return theStream == null ? null : theStream.getInputStream();
 	}
 
-	public String getStreamString(int pos, int len)
+	public String getStreamString(final int pos, int len)
 	{
 		if (pos > 0)
 		{

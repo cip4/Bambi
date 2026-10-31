@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2010 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2010 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.messenger;
 
@@ -80,7 +80,8 @@ import org.cip4.jdflib.node.JDFNode;
 
 /**
  * pure message only device that has now queue and cannot process jmfs
-  * @author Rainer Prosi, Heidelberger Druckmaschinen *
+ *
+ * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class MessengerDevice extends AbstractDevice
 {
@@ -88,7 +89,7 @@ public class MessengerDevice extends AbstractDevice
 	/**
 	 * @param prop
 	 */
-	public MessengerDevice(IDeviceProperties prop)
+	public MessengerDevice(final IDeviceProperties prop)
 	{
 		super(prop);
 	}
@@ -96,7 +97,7 @@ public class MessengerDevice extends AbstractDevice
 	/**
 	 * @see org.cip4.bambi.core.AbstractDevice#buildDeviceProcessor()
 	 * @return
-	*/
+	 */
 	@Override
 	protected AbstractDeviceProcessor buildDeviceProcessor()
 	{
@@ -105,13 +106,14 @@ public class MessengerDevice extends AbstractDevice
 
 	/**
 	 * messengers can never accept...
+	 *
 	 * @see org.cip4.bambi.core.AbstractDevice#canAccept(org.cip4.jdflib.node.JDFNode, java.lang.String)
 	 * @param jdf
 	 * @param queueEntryID
 	 * @return
-	*/
+	 */
 	@Override
-	public VString canAccept(JDFNode jdf, String queueEntryID)
+	public VString canAccept(final JDFNode jdf, final String queueEntryID)
 	{
 		return null;
 	}
@@ -120,15 +122,15 @@ public class MessengerDevice extends AbstractDevice
 	 * @see org.cip4.bambi.core.AbstractDevice#getNodeFromDoc(org.cip4.jdflib.core.JDFDoc)
 	 * @param doc
 	 * @return
-	*/
+	 */
 	@Override
-	public JDFNode getNodeFromDoc(JDFDoc doc)
+	public JDFNode getNodeFromDoc(final JDFDoc doc)
 	{
 		return null;
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Override
 	protected void addJobHandlers()
@@ -137,7 +139,7 @@ public class MessengerDevice extends AbstractDevice
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	@Override
 	protected void addHandlers()
@@ -147,7 +149,7 @@ public class MessengerDevice extends AbstractDevice
 
 	/**
 	 * @see org.cip4.bambi.core.AbstractDevice#reloadQueue()
-	*/
+	 */
 	@Override
 	protected void reloadQueue()
 	{
@@ -157,6 +159,7 @@ public class MessengerDevice extends AbstractDevice
 
 	/**
 	 * do not build a new QueueProcessor
+	 *
 	 * @return the new queueprocessor
 	 */
 	@Override

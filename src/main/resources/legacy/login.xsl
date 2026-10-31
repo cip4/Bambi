@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:bambi="www.cip4.org/Bambi" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:jdf="http://www.CIP4.org/JDFSchema_1_1">
 	<xsl:strip-space elements="*" />
-	<xsl:output method="html" />
+	<xsl:output method="xhtml" omit-xml-declaration="yes" />
 	<xsl:template match="/XMLDevice">
 		<html>
 			<xsl:variable name="deviceID" select="@DeviceID" />
@@ -20,10 +20,10 @@
 					</a>
 
 					<!-- left -->
-					<ul class="navbar-nav mr-auto"></ul>
+					<ul class="navbar-nav mr-auto" />
 
 					<!-- right -->
-					<ul class="navbar-nav"></ul>
+					<ul class="navbar-nav" />
 				</nav>
 
 
@@ -118,7 +118,7 @@
 										<th class="col-3">Employee ID</th>
 										<th class="col-3">Name</th>
 										<th class="col-3">Roles</th>
-										<th class="col-3"></th>
+										<th class="col-3" />
 									</tr>
 								</thead>
 								<tbody>

@@ -80,6 +80,7 @@ import static org.junit.Assert.fail;
 import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
+import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFException;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -121,7 +122,7 @@ public class BambiNSExtensions_Test extends BambiTestCase
 	@Test
 	public void testQueue()
 	{
-		final JDFQueue q = (JDFQueue) JDFQueue.createRoot(ElementName.QUEUE);
+		final JDFQueue q = (JDFQueue) JDFElement.createRoot(ElementName.QUEUE);
 		assertEquals(1, BambiNSExtension.incrementTotal(q));
 		assertEquals(2, BambiNSExtension.incrementTotal(q));
 	}
@@ -129,7 +130,7 @@ public class BambiNSExtensions_Test extends BambiTestCase
 	@Test
 	public void testQueue2()
 	{
-		final JDFQueue q = (JDFQueue) JDFQueue.createRoot(ElementName.QUEUE);
+		final JDFQueue q = (JDFQueue) JDFElement.createRoot(ElementName.QUEUE);
 		q.appendQueueEntry();
 		assertEquals(2, BambiNSExtension.incrementTotal(q));
 	}

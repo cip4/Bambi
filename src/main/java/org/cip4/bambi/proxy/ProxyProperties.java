@@ -95,7 +95,7 @@ public class ProxyProperties extends MultiDeviceProperties
 	/**
 	 * @param baseDir
 	 */
-	public ProxyProperties(File baseDir)
+	public ProxyProperties(final File baseDir)
 	{
 		super(baseDir);
 	}
@@ -103,7 +103,7 @@ public class ProxyProperties extends MultiDeviceProperties
 	/**
 	 * @param doc
 	 */
-	public ProxyProperties(XMLDoc doc)
+	public ProxyProperties(final XMLDoc doc)
 	{
 		super(doc);
 	}
@@ -314,7 +314,7 @@ public class ProxyProperties extends MultiDeviceProperties
 		 * @param extendMime
 		 */
 		@Override
-		public void setSlaveMIMEExpansion(boolean extendMime)
+		public void setSlaveMIMEExpansion(final boolean extendMime)
 		{
 			setDeviceAttribute("SlaveMIMETransferExpansion", "" + extendMime);
 		}

@@ -92,7 +92,7 @@ import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.queues.QueueProcessor.CanExecuteCallBack;
 import org.cip4.bambi.core.queues.QueueProcessor.QueueEntryReturn;
 import org.cip4.bambi.core.queues.QueueProcessor.SubmitQueueEntryHandler;
-import org.cip4.bambi.proxy.ProxyDevice;
+import org.cip4.bambi.proxy.AbstractProxyDevice;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.AttributeName;
@@ -121,7 +121,7 @@ import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.MimeUtil;
 import org.cip4.jdflib.util.MimeUtil.MIMEDetails;
 import org.cip4.jdflib.util.ThreadUtil;
-import org.cip4.jdflib.util.URLReader;
+import org.cip4.jdflib.util.URLValidator;
 import org.cip4.jdflib.util.URLValidator.EPackage;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.mime.MimeWriter;
@@ -196,11 +196,11 @@ public class QueueProcessorTest extends BambiTestCase
 		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
 		final JDFDoc d1 = qp.getRawDocFromMessage(com, sqep);
 		assertNotNull(d1);
-		final EPackage pm = URLReader.getPackMethod();
-		URLReader.setPackMethod(EPackage.NONE);
+		final EPackage pm = URLValidator.getPackMethod();
+		URLValidator.setPackMethod(EPackage.NONE);
 		final JDFDoc d2 = qp.getRawDocFromMessage(com, sqep);
 		assertNotNull(d2);
-		URLReader.setPackMethod(pm);
+		URLValidator.setPackMethod(pm);
 	}
 
 	/**
@@ -229,13 +229,13 @@ public class QueueProcessorTest extends BambiTestCase
 		assertNotNull(d1);
 		final JDFDoc d11 = qp.getRawDocFromMessage(com, sqep);
 		assertNotNull(d11);
-		final EPackage pm = URLReader.getPackMethod();
-		URLReader.setPackMethod(EPackage.NONE);
+		final EPackage pm = URLValidator.getPackMethod();
+		URLValidator.setPackMethod(EPackage.NONE);
 		final JDFDoc d2 = qp.getRawDocFromMessage(com, sqep);
 		assertNotNull(d2);
 		final JDFDoc d21 = qp.getRawDocFromMessage(com, sqep);
 		assertNotNull(d21);
-		URLReader.setPackMethod(pm);
+		URLValidator.setPackMethod(pm);
 	}
 
 	/**
@@ -841,7 +841,7 @@ public class QueueProcessorTest extends BambiTestCase
 		super.setUp();
 		workerURLBase = "http://localhost:44482/SimWorker/jmf/simIDP";
 		deviceID = "simIDP";
-		URLReader.setPackMethod(EPackage.PACKAGE);
+		URLValidator.setPackMethod(EPackage.PACKAGE);
 
 	}
 
@@ -911,7 +911,7 @@ public class QueueProcessorTest extends BambiTestCase
 
 		assertTrue(c2.canExecute(qe));
 		c2.setCheckSubmitted(true);
-		qe.setStatusDetails(ProxyDevice.SUBMITTED);
+		qe.setStatusDetails(AbstractProxyDevice.SUBMITTED);
 		qe.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
 		assertFalse(c2.canExecute(qe));
 		c2.setCheckSubmitted(false);

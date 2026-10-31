@@ -78,8 +78,7 @@ import org.cip4.jdflib.util.ContainerUtil;
  * class that optimizes multiple status signals in case of network blocks
  *
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
- * August 9, 2009
+ *         August 9, 2009
  */
 public class StatusOptimizer extends BambiLogFactory implements IMessageOptimizer
 {
@@ -98,15 +97,7 @@ public class StatusOptimizer extends BambiLogFactory implements IMessageOptimize
 	@Override
 	public optimizeResult optimize(final JDFMessage newMessage, final JDFMessage oldMessage)
 	{
-		if (newMessage == null || oldMessage == null)
-		{
-			return optimizeResult.noCheck;
-		}
-		if (!EnumType.Status.equals(oldMessage.getEnumType()))
-		{
-			return optimizeResult.noCheck;
-		}
-		if (!ContainerUtil.equals(newMessage.getSenderID(), oldMessage.getSenderID()))
+		if (newMessage == null || oldMessage == null || !EnumType.Status.equals(oldMessage.getEnumType()) || !ContainerUtil.equals(newMessage.getSenderID(), oldMessage.getSenderID()))
 		{
 			return optimizeResult.noCheck;
 		}
@@ -118,7 +109,9 @@ public class StatusOptimizer extends BambiLogFactory implements IMessageOptimize
 		if (ssc.isSameStatusSignal((JDFSignal) newMessage, (JDFSignal) oldMessage))
 		{
 			if (log.isDebugEnabled())
+			{
 				log.debug("removing redundant status signal: " + oldMessage.getID());
+			}
 			ssc.mergeStatusSignal((JDFSignal) newMessage, (JDFSignal) oldMessage);
 			return optimizeResult.remove;
 		}

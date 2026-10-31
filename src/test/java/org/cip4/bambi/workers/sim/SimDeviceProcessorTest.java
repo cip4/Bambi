@@ -126,7 +126,7 @@ public class SimDeviceProcessorTest extends BambiTestCaseBase
 		rootDev.setSim(true);
 		final SimDeviceProcessor p = (SimDeviceProcessor) rootDev.buildDeviceProcessor();
 		p.bActive = true;
-		final JobLoader l = new JobLoader((SimDeviceProcessor) p);
+		final JobLoader l = new JobLoader(p);
 		final List<JobPhase> jobFromFile = l.loadJobFromFile(new File(sm_dirTestData), "config/job_digi001.xml");
 		assertEquals(4, jobFromFile.size());
 		p._jobPhases.addAll(jobFromFile);
@@ -144,7 +144,7 @@ public class SimDeviceProcessorTest extends BambiTestCaseBase
 		rootDev.setSim(true);
 		final SimDeviceProcessor p = (SimDeviceProcessor) rootDev.buildDeviceProcessor();
 		p.bActive = true;
-		final JobLoader l = new JobLoader((SimDeviceProcessor) p);
+		final JobLoader l = new JobLoader(p);
 		final List<JobPhase> jobFromFile = l.loadJobFromFile(new File(sm_dirTestData), "config/job_digi001.xml");
 		assertEquals(4, jobFromFile.size());
 		p._jobPhases.addAll(jobFromFile);
@@ -162,7 +162,7 @@ public class SimDeviceProcessorTest extends BambiTestCaseBase
 		rootDev.setSim(true);
 		final SimDeviceProcessor p = (SimDeviceProcessor) rootDev.buildDeviceProcessor();
 		p.bActive = true;
-		final JobLoader l = new JobLoader((SimDeviceProcessor) p);
+		final JobLoader l = new JobLoader(p);
 		final List<JobPhase> jobFromFile = l.loadJobFromFile(new File(sm_dirTestData), "config/job_digi001.xml");
 		assertEquals(4, jobFromFile.size());
 		p._jobPhases.addAll(jobFromFile);

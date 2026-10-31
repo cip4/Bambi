@@ -58,6 +58,7 @@ import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.bambi.core.BambiNotifyDef;
 import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.DataExtractor;
+import org.cip4.bambi.core.HTTPResponse;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties;
 import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
@@ -78,7 +79,7 @@ import org.cip4.jdflib.auto.JDFAutoSubmissionMethods.EnumPackaging;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFComment;
-import org.cip4.jdflib.core.JDFConstants;
+import org.cip4.jdflib.core.JDFCoreConstants;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.KElement;
@@ -1257,7 +1258,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 			}
 			final JDFQueue root;
 
-			if (request.getBooleanParam("quiet") == false)
+			if (!request.getBooleanParam("quiet"))
 			{
 				root = sortOutput(sortBy, filter);
 				root.setAttribute(AttributeName.CONTEXT, _parentDevice.getContext(request));
@@ -1268,7 +1269,6 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					root.setAttribute("Refresh", true, null);
 				}
 				root.setAttribute("sortby", sortBy, null);
-				root.getOwnerDocument_JDFElement().setXSLTURL(_parentDevice.getXSLT(request));
 				addOptions(root);
 			}
 			else
@@ -1277,6 +1277,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				root = (JDFQueue) doc.getRoot();
 			}
 			final XMLResponse response = new XMLResponse(root);
+			if (!request.getBooleanParam("quiet"))
+			{
+				response.setXSLT(_parentDevice.getXSLTDoc(request));
+			}
 			if (modified)
 			{
 				persist(PERSIST_MS);
@@ -1574,7 +1578,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 					{
 						nextStatusVector.remove(EnumQueueEntryStatus.Running);
 					}
-					XMLResponse.addOptionList(queueEntryStatus, nextStatusVector, qe, QE_STATUS);
+					HTTPResponse.addOptionList(queueEntryStatus, nextStatusVector, qe, QE_STATUS);
 					BambiNSExtension.setMyNSAttribute(qe, "QueueEntryURL", UrlUtil.escape(qe.getQueueEntryID(), true));
 				}
 			}
@@ -2291,7 +2295,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 				{
 					newResponse.setReturnCode(120);
 				}
-				qLog.error("error storing queueentry: " + qeID + JDFConstants.BLANK + rc);
+				qLog.error("error storing queueentry: " + qeID + JDFCoreConstants.BLANK + rc);
 				return null;
 			}
 			_parentDevice.ensureProcessor(newQE, theJDF);
@@ -2302,7 +2306,7 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 		return newQE;
 	}
 
-	public void incrementTotalProductionCounter(double l)
+	public void incrementTotalProductionCounter(final double l)
 	{
 		if (l > 0)
 		{
@@ -3403,10 +3407,10 @@ public class QueueProcessor extends BambiLogFactory implements IPersistable
 
 		final QueueStatistic stat = new QueueStatistic();
 
-		result = StringUtils.replaceOnce(result, "${W}", JDFConstants.EMPTYSTRING + stat.waiting);
-		result = StringUtils.replaceOnce(result, "${R}", JDFConstants.EMPTYSTRING + stat.running);
-		result = StringUtils.replaceOnce(result, "${C}", JDFConstants.EMPTYSTRING + stat.completed);
-		return StringUtils.replaceOnce(result, "${ALL}", JDFConstants.EMPTYSTRING + stat.all);
+		result = StringUtils.replaceOnce(result, "${W}", JDFCoreConstants.EMPTYSTRING + stat.waiting);
+		result = StringUtils.replaceOnce(result, "${R}", JDFCoreConstants.EMPTYSTRING + stat.running);
+		result = StringUtils.replaceOnce(result, "${C}", JDFCoreConstants.EMPTYSTRING + stat.completed);
+		return StringUtils.replaceOnce(result, "${ALL}", JDFCoreConstants.EMPTYSTRING + stat.all);
 	}
 
 	private long getStartTime(final JDFQueueEntry qe)

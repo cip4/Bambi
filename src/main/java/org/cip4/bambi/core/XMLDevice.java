@@ -66,7 +66,7 @@ public class XMLDevice extends XMLDoc
 	/**
 	 * XML representation of this simDevice fore use as html display using an XSLT
 	 *
-	 * @param addProcs if true, add processor elements
+	 * @param addProcs       if true, add processor elements
 	 * @param request
 	 * @param abstractDevice TODO
 	 */
@@ -76,7 +76,6 @@ public class XMLDevice extends XMLDoc
 		parentDevice = abstractDevice;
 		prepare();
 		final KElement deviceRoot = getRoot();
-		setXSLTURL(parentDevice.getXSLT(request));
 		final boolean bModify = request.getBooleanParam("modify");
 		deviceRoot.setAttribute("modify", bModify, null);
 		deviceRoot.setAttribute(AttributeName.CONTEXT, parentDevice.getContext(request));
@@ -91,7 +90,6 @@ public class XMLDevice extends XMLDoc
 	}
 
 	/**
-	 *
 	 * @param request
 	 * @param deviceRoot
 	 */
@@ -158,7 +156,8 @@ public class XMLDevice extends XMLDoc
 			final EnumQueueStatus queueStatus = jdfQueue == null ? null : jdfQueue.getQueueStatus();
 			final int running = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Running);
 			final int waiting = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Waiting) + jdfQueue.numEntries(EnumQueueEntryStatus.Suspended);
-			final int completed = jdfQueue == null ? 0 : jdfQueue.numEntries(EnumQueueEntryStatus.Completed) + jdfQueue.numEntries(EnumQueueEntryStatus.Aborted);
+			final int completed = jdfQueue == null ? 0
+					: jdfQueue.numEntries(EnumQueueEntryStatus.Completed) + jdfQueue.numEntries(EnumQueueEntryStatus.Aborted);
 			final int all = jdfQueue == null ? 0 : BambiNSExtension.getTotal(jdfQueue);
 
 			deviceRoot.setAttribute("QueueStatus", queueStatus == null ? "Unknown" : queueStatus.getName());
@@ -189,7 +188,6 @@ public class XMLDevice extends XMLDoc
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	protected AbstractDevice getParentDevice()

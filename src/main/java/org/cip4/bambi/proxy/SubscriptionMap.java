@@ -3,8 +3,8 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2013 The International Cooperation for the Integration of 
- * Processes in  Prepress, Press and Postpress (CIP4).  All rights 
+ * Copyright (c) 2001-2013 The International Cooperation for the Integration of
+ * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -20,17 +20,17 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
- *        The International Cooperation for the Integration of 
+ *        The International Cooperation for the Integration of
  *        Processes in  Prepress, Press and Postpress (www.cip4.org)"
  *    Alternately, this acknowledgment may appear in the software itself,
  *    if and wherever such third-party acknowledgments normally appear.
  *
- * 4. The names "CIP4" and "The International Cooperation for the Integration of 
+ * 4. The names "CIP4" and "The International Cooperation for the Integration of
  *    Processes in  Prepress, Press and Postpress" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact info@cip4.org.
  *
  * 5. Products derived from this software may not be called "CIP4",
@@ -56,17 +56,17 @@
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
- * individuals on behalf of the The International Cooperation for the Integration 
+ * individuals on behalf of the The International Cooperation for the Integration
  * of Processes in Prepress, Press and Postpress and was
- * originally based on software 
- * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG 
- * copyright (c) 1999-2001, Agfa-Gevaert N.V. 
- *  
- * For more information on The International Cooperation for the 
+ * originally based on software
+ * copyright (c) 1999-2001, Heidelberger Druckmaschinen AG
+ * copyright (c) 1999-2001, Agfa-Gevaert N.V.
+ *
+ * For more information on The International Cooperation for the
  * Integration of Processes in  Prepress, Press and Postpress , please see
  * <http://www.cip4.org/>.
- *  
- * 
+ *
+ *
  */
 package org.cip4.bambi.proxy;
 
@@ -82,7 +82,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JMFBuilder;
 
 /**
-  * @author Rainer Prosi, Heidelberger Druckmaschinen *
+ * @author Rainer Prosi, Heidelberger Druckmaschinen *
  */
 public class SubscriptionMap extends HashMap<EnumType, ProxySubscription>
 {
@@ -90,7 +90,7 @@ public class SubscriptionMap extends HashMap<EnumType, ProxySubscription>
 	private boolean wantShutDown;
 
 	/**
-	 * 
+	 *
 	 */
 	protected SubscriptionMap()
 	{
@@ -100,7 +100,7 @@ public class SubscriptionMap extends HashMap<EnumType, ProxySubscription>
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 
@@ -108,9 +108,9 @@ public class SubscriptionMap extends HashMap<EnumType, ProxySubscription>
 	 * @param refID
 	 * @return true if subscription found
 	 */
-	public boolean incrementHandled(String refID)
+	public boolean incrementHandled(final String refID)
 	{
-		ProxySubscription ps = getSubscription(refID);
+		final ProxySubscription ps = getSubscription(refID);
 		if (ps != null)
 		{
 			ps.incrementHandled();
@@ -123,12 +123,11 @@ public class SubscriptionMap extends HashMap<EnumType, ProxySubscription>
 	}
 
 	/**
-	 * 
 	 * send StopPersistantChannel messages to url
-	 * @param dev 
-	 *  
+	 *
+	 * @param dev
 	 */
-	public void shutdown(AbstractProxyDevice dev)
+	public void shutdown(final AbstractProxyDevice dev)
 	{
 		if (!wantShutDown)
 		{
@@ -136,11 +135,11 @@ public class SubscriptionMap extends HashMap<EnumType, ProxySubscription>
 			return;
 		}
 		log.info("retrieving stoppersistantchannel messages; n=" + size());
-		long t0 = System.currentTimeMillis();
-		Collection<ProxySubscription> v = values();
-		for (ProxySubscription ps : v)
+		final long t0 = System.currentTimeMillis();
+		final Collection<ProxySubscription> v = values();
+		for (final ProxySubscription ps : v)
 		{
-			JDFJMF stopper = ps.getStopper();
+			final JDFJMF stopper = ps.getStopper();
 			dev.sendJMFToSlave(stopper, null);
 		}
 		// and - just in case - a global cleanup
@@ -157,14 +156,14 @@ public class SubscriptionMap extends HashMap<EnumType, ProxySubscription>
 	 * @param refID the refID or type of the message
 	 * @return
 	 */
-	private ProxySubscription getSubscription(String refID)
+	private ProxySubscription getSubscription(final String refID)
 	{
 		if (refID == null)
 		{
 			return null;
 		}
-		Collection<ProxySubscription> v = values();
-		for (ProxySubscription ps : v)
+		final Collection<ProxySubscription> v = values();
+		for (final ProxySubscription ps : v)
 		{
 			if (refID.equals(ps.channelID) || refID.equals(ps.type))
 			{
@@ -177,22 +176,20 @@ public class SubscriptionMap extends HashMap<EnumType, ProxySubscription>
 	/**
 	 * @param deviceRoot
 	 */
-	protected void copyToXML(KElement deviceRoot)
+	protected void copyToXML(final KElement deviceRoot)
 	{
-		Collection<ProxySubscription> v = values();
-		KElement subs = deviceRoot.appendElement("ProxySubscriptions");
-		for (ProxySubscription p : v)
+		final Collection<ProxySubscription> v = values();
+		final KElement subs = deviceRoot.appendElement("ProxySubscriptions");
+		for (final ProxySubscription p : v)
 		{
 			p.copyToXML(subs);
 		}
 	}
 
 	/**
-	 * 
-	 *  
 	 * @param wantShutDown
 	 */
-	public void setWantShutDown(boolean wantShutDown)
+	public void setWantShutDown(final boolean wantShutDown)
 	{
 		this.wantShutDown = wantShutDown;
 	}

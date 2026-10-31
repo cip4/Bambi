@@ -56,6 +56,7 @@ import org.cip4.jdflib.elementwalker.FixVersion;
 import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.extensions.xjdfwalker.XJDFToJDFConverter;
+import org.cip4.jdflib.extensions.xjdfwalker.jdftoxjdf.JDFToXJDF;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
 import org.cip4.jdflib.jmf.JDFSubscription;
@@ -269,8 +270,8 @@ public class ConverterCallback extends BambiLogFactory implements IConverterCall
 				final KElement newRoot = newdoc.getRoot();
 				final FixVersion fv = getFixVersion(newRoot);
 				fv.walkTree(newRoot, null);
-				newRoot.setAttribute(AttributeName.MAXVERSION, XJDF20.getDefaultVersion().getName());
-				BambiNSExtension.setMyNSAttribute(newRoot, AttributeName.MAXVERSION, XJDF20.getDefaultVersion().getName());
+				newRoot.setAttribute(AttributeName.MAXVERSION, JDFToXJDF.getDefaultVersion().getName());
+				BambiNSExtension.setMyNSAttribute(newRoot, AttributeName.MAXVERSION, JDFToXJDF.getDefaultVersion().getName());
 				return newdoc;
 			}
 			else

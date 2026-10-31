@@ -121,7 +121,7 @@ public class BambiLogFactory
 
 	/**
 	 * Custom constructor. Accepting a class for initializing.
-	 * 
+	 *
 	 * @param clazz The class type for initializing.
 	 */
 	public BambiLogFactory(final Class<?> clazz)
@@ -140,7 +140,7 @@ public class BambiLogFactory
 
 	/**
 	 * Returns the total number of created log objects.
-	 * 
+	 *
 	 * @return Total number of created log objects.
 	 */
 	public long getCreated()
@@ -150,7 +150,7 @@ public class BambiLogFactory
 
 	/**
 	 * Returns the total number of deleted (garbage collected) log objects.
-	 * 
+	 *
 	 * @return Total number of deleted log objects.
 	 */
 	public long getDeleted()
@@ -168,7 +168,7 @@ public class BambiLogFactory
 
 	/**
 	 * Returns a global CPUTimer object.
-	 * 
+	 *
 	 * @return The global CPUTimer object.
 	 */
 	protected CPUTimer getGlobalTimer()
@@ -178,7 +178,7 @@ public class BambiLogFactory
 
 	/**
 	 * Returns a local CPUTimer object.
-	 * 
+	 *
 	 * @return The local CPUTimer object.
 	 */
 	protected CPUTimer getLocalTimer()
@@ -188,7 +188,7 @@ public class BambiLogFactory
 
 	/**
 	 * Returns the initialized log object for a class.
-	 * 
+	 *
 	 * @return The initialized log object for a class.
 	 */
 	public Log getLog()
@@ -210,7 +210,7 @@ public class BambiLogFactory
 
 	/**
 	 * This method is called before the garbage collection of this object. The method counts the number of destroyed log objects.
-	 * 
+	 *
 	 * @see java.lang.Object#finalize()
 	 */
 	@Override
@@ -218,7 +218,9 @@ public class BambiLogFactory
 	{
 		countMinus++;
 		if (countMinus % 1000 == 0)
+		{
 			log.debug("destroying: " + this.getClass().getName() + " + " + countPlus + " - " + countMinus + " = " + (countPlus - countMinus));
+		}
 		super.finalize();
 	}
 }

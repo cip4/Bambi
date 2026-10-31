@@ -80,8 +80,7 @@ import org.cip4.jdflib.util.UrlUtil;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
- * 10.02.2009
+ *         10.02.2009
  */
 public class MyTestCallback implements IConverterCallback
 {

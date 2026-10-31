@@ -1,4 +1,4 @@
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:bambi="www.cip4.org/Bambi" >
+<xsl:stylesheet xmlns="http://www.w3.org/1999/xhtml" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0" xmlns:bambi="www.cip4.org/Bambi" >
     <xsl:template name="msg-subscriptions-table">
         <table class="table">
             <thead class="thead-light">
@@ -6,7 +6,7 @@
                     <th>Channel ID</th>
                     <th>Signal Type</th>
                     <th>Subscription Details</th>
-                    <th></th>
+                    <th />
                 </tr>
             </thead>
             <tbody>

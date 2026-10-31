@@ -82,9 +82,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.Multipart;
-
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFParser;
@@ -107,6 +104,9 @@ import org.cip4.jdflib.util.UrlPart;
 import org.cip4.jdflib.util.UrlUtil;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.Multipart;
 
 @Ignore
 public class DeviceServletTest extends BambiTestCase
@@ -135,7 +135,8 @@ public class DeviceServletTest extends BambiTestCase
 		final JDFNode n = doc.getJDFRoot();
 		n.setJobID(jobID);
 		n.setType(EnumType.ColorSpaceConversion);
-		final JDFColorSpaceConversionParams cscp = (JDFColorSpaceConversionParams) n.addResource(ElementName.COLORSPACECONVERSIONPARAMS, null, EnumUsage.Input, null, null, null, null);
+		final JDFColorSpaceConversionParams cscp = (JDFColorSpaceConversionParams) n.addResource(ElementName.COLORSPACECONVERSIONPARAMS, null, EnumUsage.Input,
+				null, null, null, null);
 		final JDFFileSpec fs0 = cscp.appendFinalTargetDevice();
 		fs0.setURL(StringUtil.uncToUrl(sm_dirTestData + File.separator + "test.icc", true));
 		final JDFRunList rl = (JDFRunList) n.addResource(ElementName.RUNLIST, null, EnumUsage.Input, null, null, null, null);
@@ -212,13 +213,13 @@ public class DeviceServletTest extends BambiTestCase
 	}
 
 	// @Test
-	//    public void testCreateDevicesFromFile() {
-	//    	AbstractWorkerServlet s = new SimWorkerServlet();
-	//    	assertEquals( 0,s.getDeviceQuantity() );
-	//    	s.createDevicesFromFile(simConfigDir+"devices.xml");
-	//    	assertEquals( 2,s.getDeviceQuantity() );
+	// public void testCreateDevicesFromFile() {
+	// AbstractWorkerServlet s = new SimWorkerServlet();
+	// assertEquals( 0,s.getDeviceQuantity() );
+	// s.createDevicesFromFile(simConfigDir+"devices.xml");
+	// assertEquals( 2,s.getDeviceQuantity() );
 	//
-	//    	removeDir( new File("nulljmb") );
-	//    }
+	// removeDir( new File("nulljmb") );
+	// }
 
 }

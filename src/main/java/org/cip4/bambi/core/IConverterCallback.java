@@ -137,7 +137,7 @@ public interface IConverterCallback
 	@Deprecated
 	String getJDFContentType();
 
-	default String getJDFContentType(EnumVersion v, boolean isJSON)
+	default String getJDFContentType(final EnumVersion v, final boolean isJSON)
 	{
 		return getJDFContentType();
 	}
@@ -175,7 +175,7 @@ public interface IConverterCallback
 	 * @param v
 	 * @return
 	 */
-	default String getJMFContentType(EnumVersion v, boolean isJSON)
+	default String getJMFContentType(final EnumVersion v, final boolean isJSON)
 	{
 		return getJMFContentType();
 	}

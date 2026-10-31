@@ -195,11 +195,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 				}
 			}
 
-			if (jmfMessage == null)
-			{
-				return false;
-			}
-			if (!EnumFamily.Query.equals(jmfMessage.getFamily()))
+			if ((jmfMessage == null) || !EnumFamily.Query.equals(jmfMessage.getFamily()))
 			{
 				return false;
 			}

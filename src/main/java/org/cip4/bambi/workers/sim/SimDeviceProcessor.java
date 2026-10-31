@@ -237,7 +237,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 		loopPhase(node, phase, all, todoAmount);
 	}
 
-	void loopPhase(JDFNode node, final JobPhase phase, double all, double todoAmount)
+	void loopPhase(final JDFNode node, final JobPhase phase, double all, double todoAmount)
 	{
 		long deltaT = 1000;
 		final JDFResourceLink rlAmount = getAmountLink(node);
@@ -387,7 +387,7 @@ public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 	 * @param n
 	 * @return all amount link s mentioned in the simulation
 	 */
-	protected JDFResourceLink getAmountLink(final JDFNode n, String name)
+	protected JDFResourceLink getAmountLink(final JDFNode n, final String name)
 	{
 		final VElement v = n.getResourceLinks(null);
 		if (v != null)

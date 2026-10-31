@@ -64,7 +64,6 @@ import org.cip4.jdflib.util.thread.MyMutex;
  * trivial response handler that simply grabs the response and passes it back through getResponse() / isHandled()
  *
  * @author Rainer Prosi
- *
  */
 public class MessageResponseHandler implements IResponseHandler
 {
@@ -98,7 +97,6 @@ public class MessageResponseHandler implements IResponseHandler
 
 	/**
 	 * @param _refID the ID of the sent message
-	 *
 	 */
 	public MessageResponseHandler(final String _refID)
 	{
@@ -179,7 +177,6 @@ public class MessageResponseHandler implements IResponseHandler
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	private boolean checkAcknowledge()
@@ -306,9 +303,8 @@ public class MessageResponseHandler implements IResponseHandler
 	}
 
 	/**
-	 * @param wait1 milliseconds to wait for a connection
-	 * @param wait2 milliseconds to wait for the response after the connection has been established
-	 *
+	 * @param wait1  milliseconds to wait for a connection
+	 * @param wait2  milliseconds to wait for the response after the connection has been established
 	 * @param bAbort if true, abort handling after timeout
 	 */
 	@Override
@@ -326,7 +322,9 @@ public class MessageResponseHandler implements IResponseHandler
 			ThreadUtil.wait(myMutex, ww1);
 			myMutex = mutex.get();
 			if (myMutex == null)
+			{
 				break;
+			}
 		}
 		abort = bAbort ? 1 : 0;
 
@@ -339,7 +337,9 @@ public class MessageResponseHandler implements IResponseHandler
 				ThreadUtil.wait(myMutex, ww2);
 				myMutex = mutex.get();
 				if (myMutex == null)
+				{
 					break;
+				}
 			}
 		}
 		if (abort == 1)

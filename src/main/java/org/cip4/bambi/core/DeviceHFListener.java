@@ -49,7 +49,6 @@ import org.cip4.jdflib.util.hotfolder.QueueHotFolderListener;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen
- *
  */
 public class DeviceHFListener extends BambiLogFactory implements QueueHotFolderListener
 {
@@ -59,7 +58,6 @@ public class DeviceHFListener extends BambiLogFactory implements QueueHotFolderL
 	private final AbstractDevice device;
 
 	/**
-	 *
 	 * @param dev
 	 */
 	public DeviceHFListener(final AbstractDevice dev)

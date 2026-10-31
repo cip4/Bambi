@@ -46,7 +46,7 @@ import java.util.Vector;
 import org.apache.commons.logging.Log;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.IConverterCallback;
-import org.cip4.jdflib.core.JDFConstants;
+import org.cip4.jdflib.core.JDFCoreConstants;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.VString;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -100,7 +100,7 @@ public class JMFFactory
 			{
 				inputUrl = StringUtil.removeToken(inputUrl, -1, "/");
 			}
-			if (StringUtil.endsWith(inputUrl, JDFConstants.SLASH))
+			if (StringUtil.endsWith(inputUrl, JDFCoreConstants.SLASH))
 			{
 				inputUrl = StringUtil.leftStr(inputUrl, -1);
 			}
@@ -506,7 +506,7 @@ public class JMFFactory
 	 * @param url the url to match, if null all
 	 * @return Vector of all known message senders matching url; null if none match
 	 */
-	public Vector<MessageSender> getMessageSenders(String url)
+	public Vector<MessageSender> getMessageSenders(final String url)
 	{
 		if (url == null)
 		{

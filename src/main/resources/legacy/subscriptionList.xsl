@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <xsl:stylesheet version="1.0" xmlns="http://www.w3.org/1999/xhtml" xmlns:bambi="www.cip4.org/Bambi" xmlns:xjdf="http://www.CIP4.org/JDFSchema_2_0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:strip-space elements="*" />
-	<xsl:output method="html" />
+	<xsl:output method="xhtml" omit-xml-declaration="yes" />
 	<xsl:template match="/SubscriptionList">
 		<xsl:variable name="context" select="@Context" />
 		<xsl:variable name="deviceID" select="@DeviceID" />
@@ -19,10 +19,10 @@
 					</a>
 
 					<!-- left -->
-					<ul class="navbar-nav mr-auto"></ul>
+					<ul class="navbar-nav mr-auto" />
 
 					<!-- right -->
-					<ul class="navbar-nav"></ul>
+					<ul class="navbar-nav" />
 				</nav>
 
 
@@ -75,7 +75,7 @@
 										<th>Base Url</th>
 										<th>JMF Metrics</th>
 										<th>Time Metrics</th>
-										<th></th>
+										<th />
 									</tr>
 								</thead>
 								<tbody>
@@ -293,7 +293,7 @@
 											<th>Sent Time</th>
 											<th>Processing Status</th>
 											<th>Full URL</th>
-											<th></th>
+											<th />
 										</tr>
 									</thead>
 									<tbody>

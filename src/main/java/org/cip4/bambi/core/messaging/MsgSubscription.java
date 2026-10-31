@@ -44,9 +44,9 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.cip4.bambi.core.BambiLogFactory;
 import org.cip4.bambi.core.ConverterCallback;
+import org.cip4.bambi.core.HTTPResponse;
 import org.cip4.bambi.core.IConverterCallback;
 import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
-import org.cip4.bambi.core.XMLResponse;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -54,8 +54,8 @@ import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.VElement;
-import org.cip4.jdflib.extensions.XJDF20;
 import org.cip4.jdflib.extensions.XJDFConstants;
+import org.cip4.jdflib.extensions.xjdfwalker.jdftoxjdf.JDFToXJDF;
 import org.cip4.jdflib.ifaces.IJMFSubscribable;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage;
@@ -119,7 +119,7 @@ public class MsgSubscription implements Cloneable
 		}
 		if (jdfVersion == null)
 		{
-			jdfVersion = XJDFConstants.XJMF.equals(root.getLocalName()) ? XJDF20.getDefaultVersion() : JDFElement.getDefaultJDFVersion();
+			jdfVersion = XJDFConstants.XJMF.equals(root.getLocalName()) ? JDFToXJDF.getDefaultVersion() : JDFElement.getDefaultJDFVersion();
 		}
 		channelID = m.getID();
 		url = StringUtil.trim(jmfSubscription.getURL(), null);
@@ -340,7 +340,7 @@ public class MsgSubscription implements Cloneable
 		{
 			sub.setAttribute(AttributeName.VERSION, jdfVersion.getName(), null);
 		}
-		sub.setAttribute("LastTime", sentMessages == 0 ? " - " : XMLResponse.formatLong((timeLastSubmission * 1000)));
+		sub.setAttribute("LastTime", sentMessages == 0 ? " - " : HTTPResponse.formatLong((timeLastSubmission * 1000)));
 		if (pos <= 0)
 		{
 			pos = 1;
@@ -484,11 +484,7 @@ public class MsgSubscription implements Cloneable
 	@Override
 	public boolean equals(final Object obj)
 	{
-		if (!(obj instanceof final MsgSubscription msg))
-		{
-			return false;
-		}
-		if (repeatAmount != msg.repeatAmount || repeatTime != msg.repeatTime)
+		if (!(obj instanceof final MsgSubscription msg) || repeatAmount != msg.repeatAmount || repeatTime != msg.repeatTime)
 		{
 			return false;
 		}

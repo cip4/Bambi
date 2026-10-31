@@ -56,9 +56,7 @@ import org.cip4.jdflib.util.StringUtil;
 import org.junit.Test;
 
 /**
- *
  * @author rainer prosi
- *
  */
 public class MessageFiFoTest extends BambiTestCaseBase
 {

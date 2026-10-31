@@ -60,7 +60,7 @@ import org.cip4.bambi.core.XMLResponse;
 import org.cip4.bambi.core.messaging.JMFHandler.AbstractHandler;
 import org.cip4.jdflib.auto.JDFAutoNotification.EnumClass;
 import org.cip4.jdflib.core.AttributeName;
-import org.cip4.jdflib.core.JDFConstants;
+import org.cip4.jdflib.core.JDFCoreConstants;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.StringArray;
 import org.cip4.jdflib.core.VString;
@@ -163,6 +163,7 @@ public class SignalDispatcher
 				zappFirstMessage(request);
 			}
 			final String details = request.getParameter("DetailID");
+			String xslUrl = null;
 
 			final int pos = request.getIntegerParam("pos");
 			if (details == null)
@@ -187,11 +188,11 @@ public class SignalDispatcher
 						listMessageSenders(request, true, pos);
 						if (pos > 0)
 						{
-							setXSLTURL(device.getXSLTBaseFromContext(request.getContextRoot()) + "/subscriptionDetails.xsl");
+							xslUrl = device.getXSLTBaseFromContext(request.getContextRoot()) + "/subscriptionDetails.xsl";
 						}
 						else
 						{
-							setXSLTURL(device.getXSLTBaseFromContext(request.getContextRoot()) + "/subscriptionList.xsl");
+							xslUrl = device.getXSLTBaseFromContext(request.getContextRoot()) + "/subscriptionList.xsl";
 						}
 					}
 				}
@@ -200,15 +201,17 @@ public class SignalDispatcher
 					listChannels(request, details);
 					device.addMoreToXMLSubscriptions(root);
 					listMessageSenders(request, false, -1);
-					setXSLTURL(device.getXSLTBaseFromContext(request.getContextRoot()) + "/subscriptionList.xsl");
+					xslUrl = device.getXSLTBaseFromContext(request.getContextRoot()) + "/subscriptionList.xsl";
 				}
 			}
 			else
 			{
 				showDetails(request, details, pos);
-				setXSLTURL(device.getXSLTBaseFromContext(device.getContext(request)) + "/subscriptionDetails.xsl");
+				xslUrl = device.getXSLTBaseFromContext(device.getContext(request)) + "/subscriptionDetails.xsl";
 			}
-			return new XMLResponse(getRoot());
+			final XMLResponse resp = new XMLResponse(getRoot());
+			resp.setXSLT(device.getXSLTDoc(xslUrl));
+			return resp;
 
 		}
 
@@ -486,8 +489,8 @@ public class SignalDispatcher
 						final MemorySpy memorySpy = new MemorySpy();
 						memorySpy.setWantMega(true);
 						final Map<String, Long> memMap = memorySpy.getSummaryMap();
-						log.info("Sent message# " + sentMessages + " to URL: " + url + JDFConstants.BLANK + timer.getSingleSummary() + JDFConstants.BLANK
-								+ "mem used (MB): " + memMap.get("Current") + JDFConstants.SLASH + memMap.get("Total"));
+						log.info("Sent message# " + sentMessages + " to URL: " + url + JDFCoreConstants.BLANK + timer.getSingleSummary()
+								+ JDFCoreConstants.BLANK + "mem used (MB): " + memMap.get("Current") + JDFCoreConstants.SLASH + memMap.get("Total"));
 					}
 				}
 			}
@@ -938,11 +941,7 @@ public class SignalDispatcher
 			return true;
 		}
 		final String url = sub.getURL();
-		if (url == null)
-		{
-			return true;
-		}
-		if (ignoreURL != null && url.toLowerCase().indexOf(ignoreURL) >= 0)
+		if ((url == null) || (ignoreURL != null && url.toLowerCase().indexOf(ignoreURL) >= 0))
 		{
 			return true;
 		}
@@ -1076,11 +1075,7 @@ public class SignalDispatcher
 		{
 
 			final MsgSubscription sub = e.getValue();
-			if (!allURL && !url.equals(sub.getURL()))
-			{
-				continue; // non-matching URL
-			}
-			if (!allType && !messageType.equals(sub.getType()))
+			if ((!allURL && !url.equals(sub.getURL())) || (!allType && !messageType.equals(sub.getType())))
 			{
 				continue; // non-matching type
 			}

@@ -155,10 +155,10 @@ public class NetResponseTest
 		final KElement e = KElement.createRoot("a", null);
 		e.setAttribute("b", 1, null);
 		final NetResponse r = new NetResponse(e);
-		JSONWriter jw1 = r.setJSON(true);
+		final JSONWriter jw1 = r.setJSON(true);
 		final KElement e2 = KElement.createRoot("a2", null);
 		final NetResponse r2 = new NetResponse(e2);
-		JSONWriter jw2 = r2.setJSON(true);
+		final JSONWriter jw2 = r2.setJSON(true);
 		jw2.addArray("foo");
 		assertFalse(jw1.equals(jw2));
 		assertNull(r2.setJSON(false));

@@ -78,7 +78,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.cip4.jdflib.core.AttributeName;
-import org.cip4.jdflib.core.JDFConstants;
+import org.cip4.jdflib.core.JDFCoreConstants;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.UrlUtil;
@@ -117,14 +117,14 @@ public class NetResponse extends XMLResponse
 
 	/**
 	 * @param isJSON
-	 * @param jwIn a pre configured writer
+	 * @param jwIn   a pre configured writer
 	 */
 	public JSONWriter setJSON(final boolean isJSON)
 	{
 		if (isJSON)
 		{
-			KElement xml = getXML();
-			String localName = xml == null ? null : xml.getLocalName();
+			final KElement xml = getXML();
+			final String localName = xml == null ? null : xml.getLocalName();
 			jw = getJW(localName);
 		}
 		else
@@ -188,7 +188,9 @@ public class NetResponse extends XMLResponse
 	public static JSONWriter getJW(String nodeName)
 	{
 		if (nodeName == null)
-			nodeName = JDFConstants.EMPTYSTRING;
+		{
+			nodeName = JDFCoreConstants.EMPTYSTRING;
+		}
 		nodeName = nodeName.toLowerCase();
 		JSONWriter theJW = theJWs.get(nodeName);
 		if (theJW == null)

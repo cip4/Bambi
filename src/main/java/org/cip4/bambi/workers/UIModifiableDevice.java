@@ -29,9 +29,9 @@
  *
  * This software consists of voluntary contributions made by many individuals on behalf of the The International Cooperation for the Integration of Processes in Prepress, Press and Postpress and was
  * originally based on software copyright (c) 1999-2001, Heidelberger Druckmaschinen AG copyright (c) 1999-2001, Agfa-Gevaert N.V.
- * 
+ *
  * For more information on The International Cooperation for the Integration of Processes in Prepress, Press and Postpress , please see <http://www.cip4.org/>.
- * 
+ *
  *
  */
 package org.cip4.bambi.workers;
@@ -47,7 +47,6 @@ import org.cip4.jdflib.util.StringUtil;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
- *
  *         Sep 29, 2009
  */
 public abstract class UIModifiableDevice extends WorkerDevice
@@ -73,8 +72,9 @@ public abstract class UIModifiableDevice extends WorkerDevice
 	}
 
 	/**
-	 * build a new job phase with info from a given request. JobPhase parameter 'timeToGo' will remain with its default value 0, since it is not used in the context of ManualDevice.doNextJobPhase()
-	 * 
+	 * build a new job phase with info from a given request. JobPhase parameter 'timeToGo' will remain with its default value 0, since it is not used in the context of
+	 * ManualDevice.doNextJobPhase()
+	 *
 	 * @param request request to get the job phase info from
 	 * @return the new JobPhase
 	 */
@@ -95,7 +95,8 @@ public abstract class UIModifiableDevice extends WorkerDevice
 		if (status != null)
 		{
 			newPhase.setNodeStatus(EnumNodeStatus.getEnum(status));
-			if (EnumNodeStatus.Aborted.equals(newPhase.getNodeStatus()) || EnumNodeStatus.Completed.equals(newPhase.getNodeStatus()) || EnumNodeStatus.Suspended.equals(newPhase.getNodeStatus()))
+			if (EnumNodeStatus.Aborted.equals(newPhase.getNodeStatus()) || EnumNodeStatus.Completed.equals(newPhase.getNodeStatus())
+					|| EnumNodeStatus.Suspended.equals(newPhase.getNodeStatus()))
 			{
 				newPhase.setDurationMillis(0);
 			}
@@ -146,7 +147,7 @@ public abstract class UIModifiableDevice extends WorkerDevice
 
 	/**
 	 * handle login/logout of employees
-	 * 
+	 *
 	 * @param request
 	 * @return
 	 */

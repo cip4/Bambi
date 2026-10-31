@@ -108,7 +108,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	/**
 	 * @param bambiTestCase
 	 */
-	public BambiTestProp(boolean synch)
+	public BambiTestProp(final boolean synch)
 	{
 		super();
 		this.devID = "ID_42";
@@ -194,7 +194,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public boolean equals(Object obj)
+	public boolean equals(final Object obj)
 	{
 		return devdelegate.equals(obj);
 	}
@@ -262,24 +262,24 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public void setSlaveInputHF(File hf)
+	public void setSlaveInputHF(final File hf)
 	{
 		devdelegate.setSlaveInputHF(hf);
 	}
 
 	@Override
-	public void setSlaveOutputHF(File hf)
+	public void setSlaveOutputHF(final File hf)
 	{
 		devdelegate.setSlaveOutputHF(hf);
 	}
 
-	public void setCallBackClassName(String callbackName)
+	public void setCallBackClassName(final String callbackName)
 	{
 		devdelegate.setCallBackClassName(callbackName);
 	}
 
 	@Override
-	public void setSlaveErrorHF(File hf)
+	public void setSlaveErrorHF(final File hf)
 	{
 		devdelegate.setSlaveErrorHF(hf);
 	}
@@ -297,7 +297,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public void setSlaveURL(String slaveURL)
+	public void setSlaveURL(final String slaveURL)
 	{
 		devdelegate.setSlaveURL(slaveURL);
 	}
@@ -314,7 +314,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 		return devdelegate.getMaxSlaveRunning();
 	}
 
-	public void setDeviceClassName(String deviceClass)
+	public void setDeviceClassName(final String deviceClass)
 	{
 		devdelegate.setDeviceClassName(deviceClass);
 	}
@@ -325,7 +325,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public void setMaxPush(int push)
+	public void setMaxPush(final int push)
 	{
 		devdelegate.setMaxPush(push);
 	}
@@ -336,7 +336,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 		return devdelegate.getSlaveHTTPChunk();
 	}
 
-	public void setDeviceID(String deviceID)
+	public void setDeviceID(final String deviceID)
 	{
 		devdelegate.setDeviceID(deviceID);
 	}
@@ -366,13 +366,13 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public void setDeviceType(String deviceType)
+	public void setDeviceType(final String deviceType)
 	{
 		devdelegate.setDeviceType(deviceType);
 	}
 
 	@Override
-	public void setSlaveMIMEExpansion(boolean extendMime)
+	public void setSlaveMIMEExpansion(final boolean extendMime)
 	{
 		devdelegate.setSlaveMIMEExpansion(extendMime);
 	}
@@ -390,7 +390,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public void setDescription(String description)
+	public void setDescription(final String description)
 	{
 		devdelegate.setDescription(description);
 	}
@@ -408,7 +408,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public void setSlaveDeviceID(String newSlaveID)
+	public void setSlaveDeviceID(final String newSlaveID)
 	{
 		devdelegate.setSlaveDeviceID(newSlaveID);
 	}
@@ -420,7 +420,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public void setErrorHF(File hf)
+	public void setErrorHF(final File hf)
 	{
 		devdelegate.setErrorHF(hf);
 	}
@@ -432,7 +432,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public void setOutputHF(File hf)
+	public void setOutputHF(final File hf)
 	{
 		devdelegate.setOutputHF(hf);
 	}
@@ -449,7 +449,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public void setInputHF(File hf)
+	public void setInputHF(final File hf)
 	{
 		devdelegate.setInputHF(hf);
 	}
@@ -461,27 +461,27 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public String getDeviceAttribute(String key)
+	public String getDeviceAttribute(final String key)
 	{
 		return devdelegate.getDeviceAttribute(key);
 	}
 
-	public boolean hasDeviceOption(String key, boolean ifNotSet)
+	public boolean hasDeviceOption(final String key, final boolean ifNotSet)
 	{
 		return devdelegate.hasDeviceOption(key, ifNotSet);
 	}
 
-	public String getDeviceAttribute(String key, String ns, String def)
+	public String getDeviceAttribute(final String key, final String ns, final String def)
 	{
 		return devdelegate.getDeviceAttribute(key, ns, def);
 	}
 
-	public void setDeviceAttribute(String key, String val)
+	public void setDeviceAttribute(final String key, final String val)
 	{
 		devdelegate.setDeviceAttribute(key, val);
 	}
 
-	public KElement getDeviceElement(String xpath)
+	public KElement getDeviceElement(final String xpath)
 	{
 		return devdelegate.getDeviceElement(xpath);
 	}
@@ -493,7 +493,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public void setTypeExpression(String exp)
+	public void setTypeExpression(final String exp)
 	{
 		devdelegate.setTypeExpression(exp);
 	}
@@ -547,7 +547,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public void setWatchURL(String watchURL)
+	public void setWatchURL(final String watchURL)
 	{
 		devdelegate.setWatchURL(watchURL);
 	}
@@ -559,7 +559,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public void setQERetrieval(QERetrieval qer)
+	public void setQERetrieval(final QERetrieval qer)
 	{
 		devdelegate.setQERetrieval(qer);
 	}
@@ -580,12 +580,12 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 		return devdelegate.isTemplate();
 	}
 
-	public void setAutoStart(boolean bAutoStart)
+	public void setAutoStart(final boolean bAutoStart)
 	{
 		devdelegate.setAutoStart(bAutoStart);
 	}
 
-	public DeviceProperties activateDeviceProps(String deviceID)
+	public DeviceProperties activateDeviceProps(final String deviceID)
 	{
 		return devdelegate.activateDeviceProps(deviceID);
 	}
@@ -602,7 +602,7 @@ public class BambiTestProp extends BambiTestCaseBase implements IProxyProperties
 	}
 
 	@Override
-	public void setWatchFormat(EWatchFormat f)
+	public void setWatchFormat(final EWatchFormat f)
 	{
 		devdelegate.setWatchFormat(f);
 	}
