@@ -111,7 +111,7 @@ public class JobLoaderTest extends BambiTestCaseBase
 		final WorkerDeviceProcessor p = rootDev.getNewProcessor();
 		final JobLoader l = new JobLoader((SimDeviceProcessor) p);
 		final File destDir = rootDev.getCachedConfigDir();
-		if (!destDir.exists())
+		if (!destDir.exists() || FileUtils.isEmptyDirectory(destDir))
 		{
 			FileUtils.copyDirectory(new File(sm_dirTestData, "config"), destDir);
 		}
