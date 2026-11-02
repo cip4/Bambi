@@ -143,3 +143,26 @@ java {
 startScripts {
 	applicationName = simpleProjectName
 }
+
+// === BEGIN JaCoCo coverage (added for coverage baseline measurement; reversible) ===
+apply plugin: 'jacoco'
+
+jacoco {
+toolVersion = "0.8.12"
+}
+
+// Run tests on the full JDK (the jlink jre omits java.instrument needed by the JaCoCo agent)
+tasks.named('test') {
+executable = org.gradle.internal.jvm.Jvm.current().javaExecutable.absolutePath
+}
+
+jacocoTestReport {
+dependsOn test
+reports {
+xml.required = true
+html.required = true
+}
+}
+
+test.finalizedBy jacocoTestReport
+// === END JaCoCo coverage ===
