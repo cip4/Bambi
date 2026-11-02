@@ -38,9 +38,12 @@
  */
 package org.cip4.bambi.core;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.Transformer;
@@ -212,6 +215,23 @@ public class XMLResponse extends HTTPResponse
 				final String styleSystemID = xslt.getOriginalFileName();
 				if (styleSystemID != null && !styleSystemID.isEmpty())
 				{
+					try
+					{
+						final URI styleURI = new URI(styleSystemID);
+						if ("file".equalsIgnoreCase(styleURI.getScheme()))
+						{
+							final File styleFile = new File(styleURI);
+							final File parentDir = styleFile.getParentFile();
+							if (parentDir != null)
+							{
+								factory.setURIResolver(new SecureStylesheetURIResolver(parentDir));
+							}
+						}
+					}
+					catch (final URISyntaxException x)
+					{
+						log.warn("Could not derive stylesheet base directory for secure include/import resolution", x);
+					}
 					// systemId lets xsl:include resolve relative to the stylesheet location
 					styleSource.setSystemId(styleSystemID);
 				}

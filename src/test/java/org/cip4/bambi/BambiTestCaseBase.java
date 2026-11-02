@@ -90,7 +90,6 @@ import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.datatypes.JDFIntegerRange;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.node.JDFNode;
-import org.cip4.jdflib.resource.JDFResource.EnumResourceClass;
 import org.cip4.jdflib.resource.process.JDFComponent;
 import org.cip4.jdflib.resource.process.JDFContact;
 import org.cip4.jdflib.resource.process.JDFExposedMedia;
@@ -98,6 +97,7 @@ import org.cip4.jdflib.resource.process.JDFMedia;
 import org.cip4.jdflib.resource.process.JDFPerson;
 import org.cip4.jdflib.util.JDFDate;
 import org.cip4.jdflib.util.StringUtil;
+import org.cip4.jdflib.util.xml.XSLTransformHelper;
 import org.cip4.jdfutility.logging.LogConfigurator;
 import org.junit.After;
 import org.junit.Assert;
@@ -249,6 +249,7 @@ public abstract class BambiTestCaseBase
 		mem = getCurrentMem();
 		log = LogFactory.getLog(getClass());
 		new File(sm_dirTestDataTemp).mkdirs();
+		new XSLTransformHelper(KElement.createRoot("a"), null);
 	}
 
 	/**

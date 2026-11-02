@@ -130,7 +130,8 @@ public class XSLTValidityTest extends BambiTestCaseBase
 			{
 				final TransformerFactory factory = TransformerFactory.newInstance();
 				factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-				// StreamSource(File) sets systemId so relative xsl:include resolution works.
+				factory.setURIResolver(new SecureStylesheetURIResolver(legacyDir));
+				// Keep include/import resolution confined to /legacy during compilation.
 				factory.newTransformer(new StreamSource(xslFile));
 			}
 			catch (final Exception x)
