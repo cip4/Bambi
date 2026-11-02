@@ -86,7 +86,7 @@ public class RootDevice extends AbstractDevice
 {
 	static final String XSL = "XSL";
 
-	private final static Log log = LogFactory.getLog(RootDevice.class);
+	private static final Log log = LogFactory.getLog(RootDevice.class);
 
 	public static final String RELEASE_VERSION_STRING = "ReleaseVersionString";
 	public static final String RELEASE_TIMESTAMP_STRING = "ReleaseTimestampString";

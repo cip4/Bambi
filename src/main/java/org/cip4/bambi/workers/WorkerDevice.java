@@ -81,7 +81,7 @@ import org.cip4.jdflib.util.StringUtil;
  */
 public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 {
-	private final static Log log = LogFactory.getLog(WorkerDevice.class);
+	private static final Log log = LogFactory.getLog(WorkerDevice.class);
 
 	protected String _trackResource; // the "major" resource to track
 	protected VString amountResources;
@@ -227,7 +227,7 @@ public abstract class WorkerDevice extends AbstractDevice implements IGetHandler
 	protected class EmployeeLoader
 	{
 		private final File employeeFile;
-		final static String employeeXML = "employees.xml";
+		static final String employeeXML = "employees.xml";
 
 		/**
 		 *

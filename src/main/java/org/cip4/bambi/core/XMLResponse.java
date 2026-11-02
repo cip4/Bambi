@@ -63,7 +63,7 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public class XMLResponse extends HTTPResponse
 {
-	private final static Log log = LogFactory.getLog(XMLResponse.class);
+	private static final Log log = LogFactory.getLog(XMLResponse.class);
 
 	/**
 	 * @param theXML the xml to write - may be null

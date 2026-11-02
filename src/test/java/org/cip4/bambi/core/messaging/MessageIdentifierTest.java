@@ -40,6 +40,7 @@ package org.cip4.bambi.core.messaging;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -88,7 +89,7 @@ public class MessageIdentifierTest
 		final MessageIdentifier mi3 = mi.clone();
 		mi3.msgType = "foo";
 		assertFalse(mi.matches(mi3));
-		assertFalse(mi.equals(mi3));
+		assertNotEquals(mi, mi3);
 		assertFalse(mi.hashCode() == mi3.hashCode());
 	}
 

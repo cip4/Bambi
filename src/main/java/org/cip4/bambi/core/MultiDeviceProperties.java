@@ -86,7 +86,7 @@ public class MultiDeviceProperties extends BambiLogFactory implements IPersistab
 
 	private static final File DEVICES_CONFIG_FILE = new File("config/devices.xml");
 	private Path toolPath;
-	static private final Log log = LogFactory.getLog(MultiDeviceProperties.class);
+	private static final Log log = LogFactory.getLog(MultiDeviceProperties.class);
 
 	/**
 	 * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG

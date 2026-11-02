@@ -61,7 +61,7 @@ public class XMLDevice extends XMLDoc
 	 */
 	private final AbstractDevice parentDevice;
 
-	private final static Log log = LogFactory.getLog(XMLDevice.class);
+	private static final Log log = LogFactory.getLog(XMLDevice.class);
 
 	/**
 	 * XML representation of this simDevice fore use as html display using an XSLT

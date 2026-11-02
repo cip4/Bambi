@@ -63,6 +63,8 @@ import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -70,6 +72,76 @@ import org.junit.Test;
  */
 public class SubscriptionStoreTest extends BambiTestCaseBase
 {
+	private static final String SUBSCRIPTION_FILE_PREFIX = "subscriptions.xml";
+	private static final String TEST_DEVICE_ID = "ID_42";
+
+	@Before
+	@Override
+	public void setUp() throws Exception
+	{
+		super.setUp();
+		cleanupSubscriptionStoreFiles();
+	}
+
+	@After
+	@Override
+	public void tearDown() throws Exception
+	{
+		try
+		{
+			cleanupSubscriptionStoreFiles();
+		}
+		finally
+		{
+			super.tearDown();
+		}
+	}
+
+	private void cleanupSubscriptionStoreFiles()
+	{
+		cleanupKnownSubscriptionStoreDirs();
+		cleanupDeviceSubscriptionStores();
+	}
+
+	private void cleanupKnownSubscriptionStoreDirs()
+	{
+		for (final String dirName : new String[] { "subs", "subs1", "subs2", "subs3", "subs4", "subs5", "subs6" })
+		{
+			FileUtil.deleteAll(new File(sm_dirTestDataTemp + dirName));
+		}
+	}
+
+	private void cleanupDeviceSubscriptionStores()
+	{
+		final File tempRoot = new File(sm_dirTestDataTemp);
+		final File[] baseDirs = tempRoot.listFiles((dir, name) -> name != null && name.startsWith("bambiBase"));
+		if (baseDirs == null)
+		{
+			return;
+		}
+		for (final File baseDir : baseDirs)
+		{
+			deleteSubscriptionFilesInDir(new File(baseDir, TEST_DEVICE_ID));
+		}
+	}
+
+	private void deleteSubscriptionFilesInDir(final File deviceDir)
+	{
+		if (deviceDir == null || !deviceDir.exists())
+		{
+			return;
+		}
+		final File[] files = deviceDir.listFiles((dir, name) -> name != null && name.startsWith(SUBSCRIPTION_FILE_PREFIX));
+		if (files == null)
+		{
+			return;
+		}
+		for (final File file : files)
+		{
+			FileUtil.deleteAll(file);
+		}
+	}
+
 
 	/**
 	 *

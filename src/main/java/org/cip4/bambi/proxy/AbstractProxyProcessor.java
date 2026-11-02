@@ -127,7 +127,7 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 {
-	private final static Log log = LogFactory.getLog(AbstractProxyProcessor.class);
+	private static final Log log = LogFactory.getLog(AbstractProxyProcessor.class);
 
 	protected class SubmitQueueEntryResponseHandler extends MessageResponseHandler
 	{
@@ -287,9 +287,9 @@ public abstract class AbstractProxyProcessor extends AbstractDeviceProcessor
 		 */
 		protected class QueueResubmitter
 		{
-			final private String slaveQEID;
-			final private String myQEID;
-			final private JDFNode jdf;
+			private final String slaveQEID;
+			private final String myQEID;
+			private final JDFNode jdf;
 
 			/**
 			 * @param _jdf      the jdf node to resubmit

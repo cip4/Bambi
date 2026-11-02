@@ -436,6 +436,34 @@ public class BambiContainerTest extends BambiTestCase
 	 * @throws IOException if bad things happen
 	 */
 	@Test
+	public void testHandleGetOverviewDirect() throws IOException
+	{
+		final StreamRequest sr = new StreamRequest((InputStream) null);
+		sr.setMethod(UrlUtil.GET);
+		sr.setRequestURI("http://dummy:8080/war/overview/" + deviceID);
+		final XMLResponse resp = bambiContainer.handleGet(sr);
+		assertNotNull(resp);
+		assertNotNull(resp.getXML());
+	}
+
+	/**
+	 * @throws IOException if bad things happen
+	 */
+	@Test
+	public void testHandleGetUnknownContextDirect() throws IOException
+	{
+		final StreamRequest sr = new StreamRequest((InputStream) null);
+		sr.setMethod(UrlUtil.GET);
+		sr.setRequestURI("http://dummy:8080/war/noSuchContext/" + deviceID);
+		final XMLResponse resp = bambiContainer.handleGet(sr);
+		assertNotNull(resp);
+		assertEquals("BambiError", resp.getXML().getLocalName());
+	}
+
+	/**
+	 * @throws IOException if bad things happen
+	 */
+	@Test
 	public void testSubmit() throws IOException
 	{
 

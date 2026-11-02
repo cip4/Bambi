@@ -75,6 +75,7 @@ package org.cip4.bambi.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -160,7 +161,7 @@ public class NetResponseTest
 		final NetResponse r2 = new NetResponse(e2);
 		final JSONWriter jw2 = r2.setJSON(true);
 		jw2.addArray("foo");
-		assertFalse(jw1.equals(jw2));
+		assertNotEquals(jw1, jw2);
 		assertNull(r2.setJSON(false));
 	}
 

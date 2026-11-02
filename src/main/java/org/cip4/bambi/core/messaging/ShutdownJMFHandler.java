@@ -91,7 +91,7 @@ import org.cip4.jdflib.util.ThreadUtil;
 public class ShutdownJMFHandler extends AbstractHandler
 {
 
-	private final static Log log = BambiLogFactory.getLog(ShutdownJMFHandler.class);
+	private static final Log log = BambiLogFactory.getLog(ShutdownJMFHandler.class);
 
 	private final AbstractDevice device;
 	private boolean killContainer;

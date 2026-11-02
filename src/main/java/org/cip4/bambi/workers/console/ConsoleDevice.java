@@ -102,7 +102,7 @@ import org.cip4.jdflib.util.ThreadUtil;
  */
 public class ConsoleDevice extends UIModifiableDevice implements IGetHandler
 {
-	private final static Log log = LogFactory.getLog(ConsoleDevice.class);
+	private static final Log log = LogFactory.getLog(ConsoleDevice.class);
 
 	/**
 	 *

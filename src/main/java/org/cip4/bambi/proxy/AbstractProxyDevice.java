@@ -126,7 +126,7 @@ import org.cip4.jdflib.util.hotfolder.QueueHotFolder;
  */
 public abstract class AbstractProxyDevice extends AbstractDevice
 {
-	private final static Log log = LogFactory.getLog(AbstractProxyDevice.class);
+	private static final Log log = LogFactory.getLog(AbstractProxyDevice.class);
 
 	protected static int slaveThreadCount = 0;
 	protected HashMap<String, SlaveSubscriber> waitingSubscribers;

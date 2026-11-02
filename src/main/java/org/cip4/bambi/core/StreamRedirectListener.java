@@ -87,7 +87,7 @@ public class StreamRedirectListener implements HotFolderListener
 {
 
 	private final String deviceID;
-	private final static Log log = LogFactory.getLog(StreamRedirectListener.class);
+	private static final Log log = LogFactory.getLog(StreamRedirectListener.class);
 
 	/**
 	 * @param abstractDevice

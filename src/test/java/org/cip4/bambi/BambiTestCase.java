@@ -250,7 +250,7 @@ public class BambiTestCase extends BambiGoldenTicketTest
 
 	protected enumGTType gt = null;
 
-	protected final static String sm_UrlTestData = "File:test/data/";
+	protected static final String sm_UrlTestData = "File:test/data/";
 	protected final String sm_dirContainer = sm_dirTestDataTemp + "ContainerTest/";
 
 	// protected static String simWorkerUrl = "http://localhost:8080/potato/jmf/GreatPotato";

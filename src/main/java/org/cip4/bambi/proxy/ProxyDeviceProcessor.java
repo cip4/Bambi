@@ -123,7 +123,7 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public class ProxyDeviceProcessor extends AbstractProxyProcessor
 {
-	private final static Log log = LogFactory.getLog(ProxyDeviceProcessor.class);
+	private static final Log log = LogFactory.getLog(ProxyDeviceProcessor.class);
 
 	/**
 	 * @see org.cip4.bambi.core.AbstractDeviceProcessor#isActive()

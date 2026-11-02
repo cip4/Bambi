@@ -53,7 +53,7 @@ public class QueueEntry implements IQueueEntry
 
 	private JDFNode _theNode;
 	private JDFQueueEntry _theQueueEntry;
-	private final static Log log = LogFactory.getLog(QueueEntry.class);
+	private static final Log log = LogFactory.getLog(QueueEntry.class);
 
 	/**
 	 * @param node

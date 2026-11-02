@@ -76,7 +76,7 @@ import jakarta.mail.MessagingException;
  */
 public abstract class ServletContainer extends BambiLogFactory
 {
-	private final static Log log = LogFactory.getLog(ServletContainer.class);
+	private static final Log log = LogFactory.getLog(ServletContainer.class);
 
 	/**
 	 * use getCreateInstance from outside

@@ -71,6 +71,9 @@
 package org.cip4.bambi.workers.sim;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -81,6 +84,8 @@ import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
 import org.cip4.bambi.workers.JobPhase;
 import org.cip4.bambi.workers.WorkerDeviceProcessor;
+import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.node.JDFNode;
 import org.junit.Test;
@@ -154,6 +159,46 @@ public class JobLoaderTest extends BambiTestCaseBase
 		final List<JobPhase> jobFromFile = l.loadJobFromFile(new File(sm_dirTestData), "config/job_digi001.xml");
 		assertEquals(4, jobFromFile.size());
 
+	}
+
+	@Test
+	public void testLoadMissingFile()
+	{
+		final BambiTestDevice rootDev = new BambiTestDevice(false);
+		rootDev.setSim(true);
+		final WorkerDeviceProcessor p = rootDev.getNewProcessor();
+		final JobLoader l = new JobLoader((SimDeviceProcessor) p);
+		final List<JobPhase> jobFromFile = l.loadJobFromFile(new File(sm_dirTestData), "config/does_not_exist.xml");
+		assertNull(jobFromFile);
+	}
+
+	@Test
+	public void testLoadXMLContent()
+	{
+		final BambiTestDevice rootDev = new BambiTestDevice(false);
+		rootDev.setSim(true);
+		final WorkerDeviceProcessor p = rootDev.getNewProcessor();
+		final JobLoader l = new JobLoader((SimDeviceProcessor) p);
+		final List<JobPhase> jobFromFile = l.loadJobFromFile(new File(sm_dirTestData), "config/job_sim001.xml");
+
+		assertNotNull(jobFromFile);
+		assertEquals(4, jobFromFile.size());
+
+		final JobPhase setupPhase = jobFromFile.get(0);
+		assertEquals(EnumDeviceStatus.Setup, setupPhase.getDeviceStatus());
+		assertEquals("WarmingUp", setupPhase.getDeviceStatusDetails());
+		assertEquals(EnumNodeStatus.Setup, setupPhase.getNodeStatus());
+		assertEquals(1000L, setupPhase.getDurationMillis());
+
+		final JobPhase wastePhase = jobFromFile.get(1);
+		assertEquals("Waste", wastePhase.getDeviceStatusDetails());
+		assertFalse(wastePhase.getOutputAmountIsGood("Component:Output"));
+		assertEquals(4000.0, wastePhase.getOutputSpeed("Component:Output", null), 0.001);
+		assertEquals(4000.0, wastePhase.getOutputSpeed("Media:Input", null), 0.001);
+
+		final JobPhase runPhase = jobFromFile.get(2);
+		assertEquals(EnumDeviceStatus.Running, runPhase.getDeviceStatus());
+		assertEquals(99999000L, runPhase.getDurationMillis());
 	}
 
 }

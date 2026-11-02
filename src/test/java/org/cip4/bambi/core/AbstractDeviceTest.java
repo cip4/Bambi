@@ -44,15 +44,18 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
 import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
+import org.cip4.bambi.core.messaging.SignalDispatcher;
 import org.cip4.bambi.core.messaging.ShutdownJMFHandler;
 import org.cip4.bambi.core.queues.QueueEntry;
 import org.cip4.bambi.core.queues.QueueProcessor;
@@ -64,11 +67,15 @@ import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.JDFNodeInfo;
 import org.cip4.jdflib.extensions.XJDFHelper;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
+import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
 import org.cip4.jdflib.node.JDFNode.EnumActivation;
+import org.cip4.jdflib.resource.JDFDeviceList;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -459,6 +466,107 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		assertNotNull(device.handleGet(request));
 	}
 
+	@Test
+	public void testHandleGetShowDeviceRouteFromSynchTestDevice() throws Exception
+	{
+		final AbstractDevice device = getDevice(false, true);
+		final ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://localhost:44493/simulator/showDevice/" + device.getDeviceID());
+		final XMLResponse response = device.handleGet(request);
+		assertNotNull(response);
+		assertNotNull(response.getXML());
+		assertEquals("XMLDevice", response.getXML().getLocalName());
+	}
+
+	@Test
+	public void testHandleGetShowSubscriptionsRoutesToDispatcher() throws Exception
+	{
+		final AbstractDevice device = getDevice(false, true);
+		final SignalDispatcher dispatcher = getLinkedDispatcher(device);
+		final ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://localhost:44493/simulator/showSubscriptions/" + device.getDeviceID());
+		final XMLResponse expected = new XMLResponse(JDFElement.createRoot("Subscriptions"));
+		when(dispatcher.handleGet(request)).thenReturn(expected);
+
+		assertSame(expected, device.handleGet(request));
+	}
+
+	@Test
+	public void testHandleGetUnknownContextFallsThrough() throws Exception
+	{
+		final AbstractDevice device = getDevice(false, true);
+		final ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://localhost:44493/simulator/notARealContext/" + device.getDeviceID());
+		assertNull(device.handleGet(request));
+	}
+
+	@Test
+	public void testGetXSLTDocForKnownViewAndXslDisabled() throws Exception
+	{
+		final AbstractDevice device = getDevice();
+		final ContainerRequest request = new ContainerRequest();
+		request.setRequestURI("http://localhost:44493/simulator/showDevice/" + device.getDeviceID());
+		final String xslUrl = device.getXSLT(request);
+		assertNotNull(xslUrl);
+		assertTrue(xslUrl.endsWith("/showDevice.xsl"));
+
+		request.setParameter(RootDevice.XSL, "false");
+		assertNull(device.getXSLT(request));
+		assertNull(device.getXSLTDoc(request));
+	}
+
+	@Test
+	public void testKnownDevicesHandlerBuildsDeviceListResponse() throws Exception
+	{
+		final AbstractDevice device = getDevice(false, true);
+		final AbstractDevice.KnownDevicesHandler handler = device.new KnownDevicesHandler();
+		final JDFJMF q = JDFJMF.createJMF(EnumFamily.Query, EnumType.KnownDevices);
+		final JDFJMF r = JDFJMF.createJMF(EnumFamily.Response, EnumType.KnownDevices);
+		final JDFResponse response = r.getResponse(0);
+
+		assertTrue(handler.handleMessage(q.getQuery(0), response));
+		final JDFDeviceList deviceList = response.getDeviceList(0);
+		assertNotNull(deviceList);
+		assertNotNull(deviceList.getDeviceInfo(0));
+		assertEquals(device.getDeviceID(), deviceList.getDeviceInfo(0).getDeviceID());
+	}
+
+	@Test
+	public void testResourceHandlerGlobalQueryDeletesDefaultResponseNode() throws Exception
+	{
+		final AbstractDevice device = getDevice(false, true);
+		final AbstractDevice.ResourceHandler handler = device.new ResourceHandler();
+		final JDFJMF q = JDFJMF.createJMF(EnumFamily.Query, EnumType.Resource);
+		q.getQuery(0).getCreateResourceQuParams(0).setAttribute(AttributeName.CONTEXT, "Global");
+		final JDFJMF r = JDFJMF.createJMF(EnumFamily.Response, EnumType.Resource);
+		final JDFResponse response = r.getResponse(0);
+
+		assertTrue(handler.handleMessage(q.getQuery(0), response));
+		assertNull(r.getResponse(0));
+	}
+
+	@Test
+	public void testKnownDevicesAndResourceHandlersAreRegistered() throws Exception
+	{
+		final AbstractDevice device = getDevice(false, true);
+		assertNotNull(device.getHandler(EnumType.KnownDevices.getName(), EnumFamily.Query, device.getDeviceURL()));
+		assertNotNull(device.getHandler(EnumType.Resource.getName(), EnumFamily.Query, device.getDeviceURL()));
+	}
+
+	@Test
+	public void testCreateSubmissionJMFUsesResubmitForCompleteUpdate() throws Exception
+	{
+		final BambiTestDevice device = (BambiTestDevice) getDevice(false, true);
+		final JDFNode jdf = JDFNode.createRoot();
+		final ContainerRequest request = new ContainerRequest();
+		request.setParameter(AttributeName.UPDATEMETHOD, "Complete");
+		final XMLRequest xmlRequest = new XMLRequest(jdf);
+		xmlRequest.setContainer(request);
+
+		final JDFJMF jmf = device.createSubmissionJMF(jdf, xmlRequest);
+		assertEquals(EnumType.ResubmitQueueEntry, jmf.getCommand(0).getEnumType());
+	}
+
 	/**
 	 * @throws Exception
 	 */
@@ -498,6 +606,13 @@ public class AbstractDeviceTest extends BambiTestCaseBase
 		final MultiDeviceProperties mp = MultiDeviceProperties.getProperties(resourceAsStream);
 		final RootDevice root = new RootDevice(mp.createDeviceProps(0));
 		return root.createDevice(mp.createDeviceProps(1));
+	}
+
+	private SignalDispatcher getLinkedDispatcher(final AbstractDevice device) throws Exception
+	{
+		final Field f = AbstractDevice.class.getDeclaredField("_theSignalDispatcher");
+		f.setAccessible(true);
+		return (SignalDispatcher) f.get(device);
 	}
 
 }

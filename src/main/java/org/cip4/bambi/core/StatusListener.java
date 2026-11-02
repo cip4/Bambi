@@ -78,7 +78,7 @@ public class StatusListener implements IPersistable
 	final MultiModuleStatusCounter multiCounter;
 	private JDFNode currentNode;
 	private boolean wantPersist;
-	private final static Log log = LogFactory.getLog(StatusListener.class);
+	private static final Log log = LogFactory.getLog(StatusListener.class);
 
 	public boolean isWantPersist()
 	{

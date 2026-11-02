@@ -70,7 +70,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public final class BambiServlet extends HttpServlet
 {
 	public static final String BAMBI_DUMP = "bambiDump";
-	private final static String WWW_AUTHENTICATE = "WWW-Authenticate";
+	private static final String WWW_AUTHENTICATE = "WWW-Authenticate";
 	/**
 	 *
 	 */
@@ -87,7 +87,7 @@ public final class BambiServlet extends HttpServlet
 		serviced = 0;
 	}
 
-	final static Log log = LogFactory.getLog(BambiServlet.class);
+	static final Log log = LogFactory.getLog(BambiServlet.class);
 
 	private boolean dumpGet = false;
 	private boolean dumpEmpty = false;

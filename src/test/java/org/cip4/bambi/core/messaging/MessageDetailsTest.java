@@ -39,6 +39,7 @@
 package org.cip4.bambi.core.messaging;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
@@ -546,6 +547,20 @@ public class MessageDetailsTest extends BambiTestCaseBase
 		final BodyPart bpJDF = bp[1];
 		assertEquals("<TheJDF.jdf>", bpJDF.getHeader("Content-ID")[0]);
 		assertEquals("attachment; filename=TheJDF.jdf", bpJDF.getHeader("Content-Disposition")[0]);
+	}
+
+	@Test
+	public void testFireForgetAndSendReturnAccessors()
+	{
+		final JDFJMF jmf = JMFBuilderFactory.getJMFBuilder(null).buildStatusSignal(EnumDeviceDetails.Full, EnumJobDetails.Full);
+		final MessageDetails md = new MessageDetails(jmf, null, null, null, "http://foo");
+		final boolean initial = md.isFireForget();
+		md.setFireForget(!initial);
+		assertEquals(!initial, md.isFireForget());
+		assertNull(md.getReturn());
+		md.setReturn(MessageSender.SendReturn.sent);
+		assertEquals(MessageSender.SendReturn.sent, md.getReturn());
+		assertFalse(md.getName().isEmpty());
 	}
 
 	class ExtendCallback extends ConverterCallback

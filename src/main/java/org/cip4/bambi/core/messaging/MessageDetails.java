@@ -91,20 +91,20 @@ public class MessageDetails
 	private static final String MESSAGE = "Message";
 	static final String HTTP = "HTTP";
 	static final String MIME = "Mime";
-	static final private Log log = LogFactory.getLog(MessageDetails.class);
-	final protected JDFJMF jmf;
+	private static final Log log = LogFactory.getLog(MessageDetails.class);
+	protected final JDFJMF jmf;
 	protected JDFNode jdf;
 	protected IResponseHandler respHandler;
 	protected MIMEDetails mimeDet;
-	final protected String senderID;
-	final protected String url;
+	protected final String senderID;
+	protected final String url;
 	protected IConverterCallback callback;
-	final protected long createTime;
+	protected final long createTime;
 	protected boolean fireForget;
 
 	private MessageSender.SendReturn sendReturn;
 	private static boolean allSignalsReliable = false;
-	final private String name;
+	private final String name;
 
 	/**
 	 * constructor for a single jmf message

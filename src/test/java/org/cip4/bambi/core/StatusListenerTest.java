@@ -77,6 +77,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.core.messaging.SignalDispatcher;
+import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.node.JDFNode;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -136,6 +138,32 @@ public class StatusListenerTest extends BambiTestCaseBase
 		final StatusListener sl = new StatusListener(disp, null, null);
 		sl.incrementTotalAmount(42);
 		assertEquals(42, sl.getStatusCounter().getTotalCounter(), 0.001);
+	}
+
+	@Test
+	public void testSignalStatusAndSetNode()
+	{
+		final SignalDispatcher disp = Mockito.mock(SignalDispatcher.class);
+		final StatusListener sl = new StatusListener(disp, "device1", null);
+		final JDFNode node = JDFNode.createRoot();
+		sl.setNode("qe1", node, null, "r1");
+		assertEquals("qe1", sl.getStatusCounter().getQueueEntryID());
+		sl.signalStatus(EnumDeviceStatus.Running, "running", EnumNodeStatus.InProgress, "node-running", true);
+		Mockito.verify(disp).triggerQueueEntry(Mockito.eq("qe1"), Mockito.any(), Mockito.eq(-1), Mockito.eq("Status"));
+	}
+
+	@Test
+	public void testUpdateAmountTriggersAndAccumulates()
+	{
+		final SignalDispatcher disp = Mockito.mock(SignalDispatcher.class);
+		final StatusListener sl = new StatusListener(disp, null, null);
+		sl.setNode("qe2", JDFNode.createRoot(), null, "component");
+		sl.updateAmount("component", 2, 3, null);
+		Mockito.verify(disp).triggerQueueEntry(Mockito.eq("qe2"), Mockito.any(), Mockito.eq(5), Mockito.isNull());
+
+		Mockito.clearInvocations(disp);
+		sl.updateAmount("component", 0, 0, null);
+		Mockito.verify(disp, Mockito.never()).triggerQueueEntry(Mockito.anyString(), Mockito.any(), Mockito.anyInt(), Mockito.any());
 	}
 
 }

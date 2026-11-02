@@ -176,7 +176,7 @@ class MessageFiFo
 		return vDumps;
 	}
 
-	final private static Log log = LogFactory.getLog(MessageFiFo.class);
+	private static final Log log = LogFactory.getLog(MessageFiFo.class);
 
 	List<MessageDetails> head;
 	List<MessageDetails> tail;

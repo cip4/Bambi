@@ -75,11 +75,11 @@ import org.cip4.jdflib.util.EnumUtil;
 public class JMFHandler implements IMessageHandler, IJMFHandler
 {
 
-	private final static Log log = BambiLogFactory.getLog(JMFHandler.class);
+	private static final Log log = BambiLogFactory.getLog(JMFHandler.class);
 	/**
 	 * Attribute to ignore warnings for unhandled messages
 	 */
-	public final static String subscribed = "IgnoreSubscribe";
+	public static final String subscribed = "IgnoreSubscribe";
 
 	/**
 	 * Sub class for message types handling.
@@ -288,7 +288,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		 * @see org.cip4.bambi.core.messaging.IMessageHandler#getFamilies()
 		 */
 		@Override
-		final public EnumFamily[] getFamilies()
+		public final EnumFamily[] getFamilies()
 		{
 			return families;
 		}
@@ -297,7 +297,7 @@ public class JMFHandler implements IMessageHandler, IJMFHandler
 		 * @see org.cip4.bambi.core.messaging.IMessageHandler#getMessageType()
 		 */
 		@Override
-		final public String getMessageType()
+		public final String getMessageType()
 		{
 			return messageType;
 		}

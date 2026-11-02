@@ -93,7 +93,7 @@ import org.cip4.jdflib.util.UrlUtil.URLProtocol;
  */
 public class ProxyDevice extends AbstractProxyDevice
 {
-	private final static Log log = LogFactory.getLog(ProxyDevice.class);
+	private static final Log log = LogFactory.getLog(ProxyDevice.class);
 
 	/**
 	 * class that handles merging of messages

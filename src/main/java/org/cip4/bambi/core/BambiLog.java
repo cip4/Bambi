@@ -83,7 +83,7 @@ import org.apache.commons.logging.Log;
 public class BambiLog
 {
 
-	final private Log log;
+	private final Log log;
 
 	private String whoCalledMe()
 	{

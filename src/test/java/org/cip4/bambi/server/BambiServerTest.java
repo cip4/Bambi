@@ -44,10 +44,29 @@ import java.io.File;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.jdflib.util.FileUtil;
+import org.cip4.jdflib.util.file.UserDir;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 public class BambiServerTest extends BambiTestCaseBase
 {
+	private File getBambiToolDir()
+	{
+		return new File(new UserDir(BambiServer.BAMBI).getToolPath());
+	}
+
+	@Before
+	public void cleanSharedToolDirBeforeTest() throws Exception
+	{
+		FileUtil.forceDelete(getBambiToolDir());
+	}
+
+	@After
+	public void cleanSharedToolDirAfterTest() throws Exception
+	{
+		FileUtil.forceDelete(getBambiToolDir());
+	}
 
 	@Test
 	public void testCreate() throws Exception

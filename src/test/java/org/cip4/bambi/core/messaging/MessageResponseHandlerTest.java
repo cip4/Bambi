@@ -45,6 +45,11 @@ import static org.mockito.Mockito.mock;
 
 import java.net.HttpURLConnection;
 
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
+import org.cip4.jdflib.jmf.JDFMessage.EnumType;
+import org.cip4.jdflib.jmf.JDFResponse;
+import org.cip4.jdflib.util.ByteArrayIOStream;
 import org.cip4.jdflib.util.ThreadUtil;
 import org.junit.Test;
 
@@ -150,6 +155,49 @@ public class MessageResponseHandlerTest
 		mrh.waitHandled(3000, 3000, false);
 		assertEquals(1234l, System.currentTimeMillis() - t, 1234l);
 		assertFalse(mrh.isAborted());
+	}
+
+	@Test
+	public void testHandleMessageParsesBufferedResponse() throws Exception
+	{
+		final MessageResponseHandler mrh = new MessageResponseHandler("id-1");
+		final JDFJMF responseJMF = JDFJMF.createJMF(EnumFamily.Response, EnumType.Status);
+		final JDFResponse response = responseJMF.getResponse(0);
+		response.setrefID("id-1");
+		final ByteArrayIOStream stream = new ByteArrayIOStream();
+		responseJMF.getOwnerDocument_JDFElement().write2Stream(stream, 0, true);
+		mrh.setBufferedStream(stream);
+
+		assertTrue(mrh.handleMessage());
+		assertNotNull(mrh.getResponse());
+		assertEquals("id-1", mrh.getResponse().getrefID());
+		assertEquals(mrh.getResponse(), mrh.getFinalMessage());
+	}
+
+	@Test
+	public void testHandleMessageUsesPresetResponseWithoutBlocking()
+	{
+		final MessageResponseHandler mrh = new MessageResponseHandler("id-2");
+		final JDFResponse response = JDFJMF.createJMF(EnumFamily.Response, EnumType.Resource).getResponse(0);
+		response.setrefID("id-2");
+		mrh.resp = response;
+
+		assertTrue(mrh.handleMessage());
+		assertEquals(response, mrh.getResponse());
+		assertEquals(response, mrh.getFinalMessage());
+		assertEquals(0, mrh.getJMFReturnCode());
+	}
+
+	@Test
+	public void testSetMessageAndGetFinalMessage()
+	{
+		final MessageResponseHandler mrh = new MessageResponseHandler("id-3");
+		assertEquals(-1, mrh.getJMFReturnCode());
+		final JDFResponse response = JDFJMF.createJMF(EnumFamily.Response, EnumType.Notification).getResponse(0);
+		response.setReturnCode(12);
+		mrh.setMessage(response);
+		assertEquals(response, mrh.getFinalMessage());
+		assertEquals(12, mrh.getJMFReturnCode());
 	}
 
 }

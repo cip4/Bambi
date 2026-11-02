@@ -100,6 +100,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.util.DumpDir;
+import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.net.HTTPDetails;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -483,6 +484,160 @@ public class MessageSenderTest extends BambiTestCase
 		s.resume();
 
 		return s;
+	}
+
+	private MessageSender getStandaloneSender(final String url, final String folderToken)
+	{
+		final File baseDir = new File(sm_dirTestDataTemp + "msStandalone/" + folderToken);
+		FileUtil.deleteAll(baseDir);
+		MessageSender.setBaseLocation(baseDir);
+		final MessageSender sender = new MessageSender(new JMFFactory.CallURL(url));
+		sender.setJMFFactory(JMFFactory.getInstance());
+		sender.pause();
+		sender.flushMessages();
+		return sender;
+	}
+
+	private JDFJMF createStatusSignal(final String senderID)
+	{
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Signal, EnumType.Status);
+		jmf.setSenderID(senderID);
+		return jmf;
+	}
+
+	@Test
+	public void testQueueMessageBookkeepingStandalone()
+	{
+		final String url = "http://localhost:8080/httpdump/queueBookkeeping?a=1";
+		final MessageSender sender = getStandaloneSender(url, "queueBookkeeping");
+		final JDFJMF jmf = createStatusSignal("QueueBookkeepingSender");
+
+		assertTrue(sender.queueMessage(jmf, null, url, null, null));
+		assertEquals(1, sender.messageFiFo.size());
+		assertNotNull(sender.messageFiFo.get(0));
+		assertTrue(sender.appendToXML(null, 0, false).getLongAttribute("iLastQueued", null, 0) > 0);
+	}
+
+	@Test
+	public void testOptimizeMergeDuplicateQueuedStatusSignals()
+	{
+		final String url = "http://localhost:8080/httpdump/optimizeStatus";
+		final MessageSender sender = getStandaloneSender(url, "optimizeStatus");
+		sender.getJMFFactory().addOptimizer(EnumType.Status, new StatusOptimizer());
+
+		assertTrue(sender.queueMessage(createStatusSignal("OptimizeSender"), null, url, null, null));
+		assertEquals(1, sender.messageFiFo.size());
+
+		sender.getSenderQueueOptimizer().optimize(createStatusSignal("OptimizeSender"));
+
+		assertEquals(0, sender.messageFiFo.size());
+		assertTrue(sender.removedHeartbeat > 0);
+		assertTrue(sender.removedHeartbeatJMF > 0);
+	}
+
+	@Test
+	public void testPersistAndReloadQueuedMessagesFromDisk()
+	{
+		final String url = "http://localhost:8080/httpdump/persistReload?x=42";
+		final File baseDir = new File(sm_dirTestDataTemp + "msStandalone/persistReload");
+		FileUtil.deleteAll(baseDir);
+
+		MessageSender.setBaseLocation(baseDir);
+		final MessageSender first = new MessageSender(new JMFFactory.CallURL(url));
+		first.setJMFFactory(JMFFactory.getInstance());
+		first.pause();
+		first.flushMessages();
+
+		assertTrue(first.queueMessage(createStatusSignal("PersistSender"), null, url, null, null));
+		assertTrue(first.queueMessage(JDFJMF.createJMF(EnumFamily.Signal, EnumType.Resource), null, url, null, null));
+		assertEquals(2, first.messageFiFo.size());
+		first.write2Base(false);
+		assertTrue(first.getPersistLocation(false).exists());
+
+		MessageSender.setBaseLocation(baseDir);
+		final MessageSender reloaded = new MessageSender(new JMFFactory.CallURL(url));
+		reloaded.setJMFFactory(JMFFactory.getInstance());
+
+		assertEquals(2, reloaded.messageFiFo.size());
+		assertNotNull(reloaded.messageFiFo.get(0));
+		assertNotNull(reloaded.messageFiFo.get(1));
+	}
+
+	@Test
+	public void testURLParamHandlingAndMatchesURL()
+	{
+		final String url = "http://localhost:8080/httpdump/urlParam/basePath/child?p=1&q=2";
+		final MessageSender sender = getStandaloneSender(url, "urlParams");
+
+		final String normalized = sender.getCallURL().getURL();
+		assertNotNull(normalized);
+		assertFalse(normalized.contains("?"));
+		assertTrue(sender.matchesURL(normalized + "?newParam=abc"));
+		assertFalse(sender.matchesURL("http://example.org/httpdump/urlParam/basePath"));
+	}
+
+	@Test
+	public void testPauseResumeAndShutdownFlags()
+	{
+		final String url = "http://localhost:8080/httpdump/pauseResumeFlags";
+		final MessageSender sender = getStandaloneSender(url, "pauseResumeFlags");
+
+		sender.pause();
+		assertTrue(sender.appendToXML(null, -1, false).getBoolAttribute("pause", null, false));
+
+		sender.waitKaputt = true;
+		sender.idle = 12;
+		sender.resume();
+		assertFalse(sender.appendToXML(null, -1, false).getBoolAttribute("pause", null, true));
+		assertFalse(sender.waitKaputt);
+		assertEquals(0, sender.idle);
+
+		assertTrue(sender.isRunning());
+		sender.shutDown();
+		assertFalse(sender.isRunning());
+		assertFalse(sender.queueMessage(createStatusSignal("ShutdownSender"), null, url, null, null));
+	}
+
+	@Test
+	public void testCheckDetailsRemovesAbortedMessage()
+	{
+		final String url = "http://localhost:8080/httpdump/aborted";
+		final MessageSender sender = getStandaloneSender(url, "aborted");
+		final IResponseHandler responseHandler = mock(IResponseHandler.class);
+		when(responseHandler.isAborted()).thenReturn(true);
+
+		final MessageDetails messageDetails = new MessageDetails(createStatusSignal("AbortedSender"), responseHandler, null, null, url);
+		assertTrue(sender.queueMessageDetails(messageDetails));
+		assertEquals(SendReturn.removed, sender.checkDetails(sender.messageFiFo.get(0)));
+		assertEquals(SendReturn.removed, messageDetails.getReturn());
+		assertEquals(0, sender.messageFiFo.size());
+	}
+
+	@Test
+	public void testNullQueuedMessageIsTreatedAsEmptyWithoutSendLoop()
+	{
+		final String url = "http://localhost:8080/httpdump/nullQueue";
+		final MessageSender sender = getStandaloneSender(url, "nullQueue");
+
+		sender.messageFiFo.add(null);
+		assertEquals(SendReturn.empty, sender.sendFirstMessage());
+		assertEquals(1, sender.messageFiFo.size());
+		assertNull(sender.messageFiFo.get(0));
+	}
+
+	@Test
+	public void testGetOldDetailsWindowViaAppendToXML()
+	{
+		final String url = "http://localhost:8080/httpdump/oldDetails";
+		final MessageSender sender = getStandaloneSender(url, "oldDetails");
+		final MessageDetails messageDetails = new MessageDetails(createStatusSignal("OldDetailsSender"), null, null, null, url);
+
+		assertTrue(sender.queueMessageDetails(messageDetails));
+		sender.processSuccess(messageDetails);
+
+		assertNotNull(sender.getOldDetails(0));
+		assertNotNull(sender.appendToXML(null, 1, false).getElement("Message", null, 0));
+		assertNull(sender.appendToXML(null, 2, false).getElement("Message", null, 0));
 	}
 
 	/**

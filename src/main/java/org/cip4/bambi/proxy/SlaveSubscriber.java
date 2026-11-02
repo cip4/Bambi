@@ -91,7 +91,7 @@ import org.cip4.jdflib.util.ThreadUtil;
 public class SlaveSubscriber extends Thread
 {
 	protected final AbstractProxyDevice abstractProxyDevice;
-	protected final static Log log = LogFactory.getLog(SlaveSubscriber.class);
+	protected static final Log log = LogFactory.getLog(SlaveSubscriber.class);
 
 	/**
 	 * @param b

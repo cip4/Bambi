@@ -73,6 +73,7 @@ package org.cip4.bambi.core.queues;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -95,6 +96,7 @@ import org.cip4.bambi.core.queues.QueueProcessor.SubmitQueueEntryHandler;
 import org.cip4.bambi.proxy.AbstractProxyDevice;
 import org.cip4.jdflib.auto.JDFAutoQueue.EnumQueueStatus;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
+import org.cip4.jdflib.auto.JDFAutoSubmissionMethods.EnumPackaging;
 import org.cip4.jdflib.core.AttributeName;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
@@ -114,6 +116,7 @@ import org.cip4.jdflib.jmf.JDFQueueSubmissionParams;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JDFResumeQueueEntryParams;
 import org.cip4.jdflib.jmf.JDFReturnQueueEntryParams;
+import org.cip4.jdflib.jmf.JDFSubmissionMethods;
 import org.cip4.jdflib.jmf.JMFBuilder;
 import org.cip4.jdflib.jmf.JMFBuilderFactory;
 import org.cip4.jdflib.node.JDFNode;
@@ -987,5 +990,171 @@ public class QueueProcessorTest extends BambiTestCase
 		qe2.setQueueEntryStatus(EnumQueueEntryStatus.Waiting);
 		BambiNSExtension.setDocURL(qe2, "notthere");
 		assertNull(qp.getIQueueEntry(qe2));
+	}
+
+	@Test
+	public void testAddEntryQueueAndStatusCounts()
+	{
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+		final JDFNode n = JDFNode.createRoot();
+		n.setJobID("job-counts");
+		final JDFQueueEntry qe = qp.addEntry(c, r, n.getOwnerDocument_JDFElement());
+		assertNotNull(qe);
+		qe.setSubmissionTime(new JDFDate());
+		assertEquals(qe, qp.getQueueEntry(qe.getQueueEntryID()));
+		assertTrue(qp.getQueue().numEntries(EnumQueueEntryStatus.Waiting) >= 1);
+		assertTrue(qp.getQueue().numEntries(null) >= 1);
+	}
+
+	@Test
+	public void testUpdateEntryRunningToCompleted()
+	{
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+		final JDFQueueEntry qe = qp.addEntry(c, r, JDFNode.createRoot().getOwnerDocument_JDFElement());
+		assertNotNull(qe);
+		qe.setSubmissionTime(new JDFDate());
+		qp.updateEntry(qe, EnumQueueEntryStatus.Running, null, null, "running now");
+		assertEquals(EnumQueueEntryStatus.Running, qe.getQueueEntryStatus());
+		assertEquals("running now", qe.getStatusDetails());
+		qp.updateEntry(qe, EnumQueueEntryStatus.Completed, null, null, "done");
+		assertEquals(EnumQueueEntryStatus.Completed, qe.getQueueEntryStatus());
+		assertFalse(qe.hasAttribute(AttributeName.DEVICEID));
+		assertEquals("", qe.getDeviceID());
+	}
+
+	@Test
+	public void testUpdateEntryWaitingClearsTimingAndDevice()
+	{
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
+		final JMFBuilder jmfBuilder = new JMFBuilder();
+		final JDFCommand c = jmfBuilder.buildSubmitQueueEntry("url").getCommand(0);
+		final JDFResponse r = jmfBuilder.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse(0);
+		final JDFQueueEntry qe = qp.addEntry(c, r, JDFNode.createRoot().getOwnerDocument_JDFElement());
+		assertNotNull(qe);
+		qe.setQueueEntryStatus(EnumQueueEntryStatus.Running);
+		qe.setStartTime(new JDFDate());
+		qe.setEndTime(new JDFDate());
+		qe.setDeviceID("dev-old");
+		qp.updateEntry(qe, EnumQueueEntryStatus.Waiting, null, null, "retry");
+		assertEquals(EnumQueueEntryStatus.Waiting, qe.getQueueEntryStatus());
+		assertFalse(qe.hasAttribute(AttributeName.DEVICEID));
+		assertEquals("", qe.getDeviceID());
+		assertFalse(qe.hasAttribute(AttributeName.STARTTIME));
+		assertFalse(qe.hasAttribute(AttributeName.ENDTIME));
+	}
+
+	@Test
+	public void testCanExecuteDeviceFilters()
+	{
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
+		final CanExecuteCallBack cb = qp.new CanExecuteCallBack("devA", null);
+		final JDFQueueEntry qe = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
+		BambiNSExtension.setMyNSAttribute(qe, BambiNSExtension.GOOD_DEVICES, "devA devB");
+		qe.setDeviceID("devA");
+		assertTrue(cb.canExecute(qe));
+		qe.setDeviceID("devX");
+		assertFalse(cb.canExecute(qe));
+	}
+
+	@Test
+	public void testReturnQueueEntryNullDocFails()
+	{
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
+		final JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
+		qe.setQueueEntryID("qnullDoc");
+		qe.setSubmissionTime(new JDFDate());
+		qe.setQueueEntryStatus(EnumQueueEntryStatus.Completed);
+		final QueueEntryReturn ret = qp.new QueueEntryReturn(qe, EnumQueueEntryStatus.Completed);
+		assertFalse(ret.returnQueueEntry(new VString(), null));
+	}
+
+	@Test
+	public void testReturnJMFForXJDFFailsWithoutJDFRoot()
+	{
+		final AbstractDevice device = getDevice(false, false);
+		final QueueProcessor qp = device.getQueueProcessor();
+		final JDFQueueEntry qe = qp.getQueue().appendQueueEntry();
+		qe.setQueueEntryID("qxjdfNoJdfRoot");
+		qe.setSubmissionTime(new JDFDate());
+		final QueueEntryReturn ret = qp.new QueueEntryReturn(qe, EnumQueueEntryStatus.Completed);
+		final JDFDoc xjdfDoc = device.getCallback(null).prepareJDFForBambi(JDFElement.createRoot(XJDFConstants.XJDF).getOwnerDocument_JDFElement());
+		final JDFJMF jmf = device.getJMFBuilder().buildReturnQueueEntry(qe.getQueueEntryID());
+		assertFalse(ret.returnJMF(xjdfDoc, jmf));
+	}
+
+	@Test
+	public void testResubmitHandlerMissingParams()
+	{
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.ResubmitQueueEntry);
+		final JDFResponse resp = JDFJMF.createJMF(EnumFamily.Response, EnumType.ResubmitQueueEntry).getResponse();
+		assertTrue(qp.new ResubmitQueueEntryHandler().handleMessage(jmf.getMessage(0), resp));
+		assertEquals(9, resp.getReturnCode());
+	}
+
+	@Test
+	public void testNewJDFQueryMissingJobID()
+	{
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.NewJDF);
+		jmf.getQuery(0).appendElement(ElementName.NEWJDFQUPARAMS);
+		final JDFResponse resp = JDFJMF.createJMF(EnumFamily.Response, EnumType.NewJDF).getResponse();
+		assertFalse(qp.new NewJDFQueryHandler().handleMessage(jmf.getMessage(0), resp));
+		assertEquals(7, resp.getReturnCode());
+	}
+
+	@Test
+	public void testSubmissionMethodsHandler()
+	{
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.SubmissionMethods);
+		final JDFResponse resp = JDFJMF.createJMF(EnumFamily.Response, EnumType.SubmissionMethods).getResponse();
+		assertTrue(qp.new SubmissionMethodsHandler().handleMessage(jmf.getMessage(0), resp));
+		final JDFSubmissionMethods sm = resp.getSubmissionMethods(0);
+		assertNotNull(sm);
+		assertTrue(sm.getPackaging().contains(EnumPackaging.MIME));
+		assertTrue(sm.getURLSchemes().contains("http"));
+	}
+
+	@Test
+	public void testSubmitQueueEntryHandlerMissingSubmissionParams()
+	{
+		final QueueProcessor qp = getDevice(false, false).getQueueProcessor();
+		final SubmitQueueEntryHandler handler = qp.new SubmitQueueEntryHandler();
+		final JDFJMF jmf = JDFJMF.createJMF(EnumFamily.Command, EnumType.SubmitQueueEntry);
+		final JDFResponse resp = JDFJMF.createJMF(EnumFamily.Response, EnumType.SubmitQueueEntry).getResponse();
+		assertFalse(handler.processDoc(jmf.getMessage(0), resp, JDFNode.createRoot().getOwnerDocument_JDFElement()));
+		assertEquals(9, resp.getReturnCode());
+	}
+
+	@Test
+	public void testQueueEntryGettersAndEquality()
+	{
+		final JDFNode n1 = JDFNode.createRoot();
+		n1.setJobID("qeq-1");
+		final JDFQueueEntry qe1 = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
+		qe1.setQueueEntryID("qe-eq-1");
+		final QueueEntry entry1 = new QueueEntry(n1, qe1);
+		assertEquals("qe-eq-1", entry1.getQueueEntryID());
+		assertEquals(n1, entry1.getJDF());
+		assertEquals(qe1, entry1.getQueueEntry());
+		final JDFNode n2 = JDFNode.createRoot();
+		n2.setJobID("qeq-2");
+		entry1.setJDF(n2);
+		assertEquals(n2, entry1.getJDF());
+		final JDFQueueEntry qe2 = (JDFQueueEntry) JDFElement.createRoot(ElementName.QUEUEENTRY);
+		qe2.setQueueEntryID("qe-eq-2");
+		entry1.setQueueEntry(qe2);
+		assertEquals(qe2, entry1.getQueueEntry());
+		final QueueEntry entry2 = new QueueEntry(n2, qe2);
+		assertEquals(entry1, entry1);
+		assertNotEquals(entry1, entry2);
+		assertNotNull(entry1.toString());
 	}
 }

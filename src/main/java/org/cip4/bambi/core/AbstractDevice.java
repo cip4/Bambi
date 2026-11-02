@@ -131,7 +131,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
  */
 public abstract class AbstractDevice extends BambiLogFactory implements IGetHandler
 {
-	private final static Log log = LogFactory.getLog(AbstractDevice.class);
+	private static final Log log = LogFactory.getLog(AbstractDevice.class);
 
 	/**
 	 * @return the queueprocessor of this device

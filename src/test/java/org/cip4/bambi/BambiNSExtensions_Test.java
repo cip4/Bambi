@@ -73,6 +73,7 @@ package org.cip4.bambi;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -196,6 +197,49 @@ public class BambiNSExtensions_Test extends BambiTestCase
 		assertFalse(qe.hasAttributeNS(BambiNSExtension.MY_NS, BambiNSExtension.docURL));
 		assertFalse(qe.hasAttributeNS(BambiNSExtension.MY_NS, BambiNSExtension.returnJMF));
 		assertFalse(qe.hasAttributeNS(BambiNSExtension.MY_NS, BambiNSExtension.returnURL));
+	}
+
+	@Test
+	public void testSlaveQueueEntryIDRoundTripAndNull()
+	{
+		final JDFQueueEntry qe = buildQueueEntry();
+		assertNull(BambiNSExtension.getSlaveQueueEntryID(qe));
+		BambiNSExtension.setSlaveQueueEntryID(qe, "slave-42");
+		assertEquals("slave-42", BambiNSExtension.getSlaveQueueEntryID(qe));
+		BambiNSExtension.setSlaveQueueEntryID(qe, null);
+		assertNull(BambiNSExtension.getSlaveQueueEntryID(qe));
+	}
+
+	@Test
+	public void testDeviceHelpersWithKElement()
+	{
+		final KElement root = KElement.createRoot("AnyRoot", null);
+		assertNull(BambiNSExtension.getDeviceID(root));
+		assertNull(BambiNSExtension.getDeviceURL(root));
+		BambiNSExtension.setDeviceID(root, "dev-k");
+		BambiNSExtension.setDeviceURL(root, "http://device.local/jmf/dev-k");
+		assertEquals("dev-k", BambiNSExtension.getDeviceID(root));
+		assertEquals("http://device.local/jmf/dev-k", BambiNSExtension.getDeviceURL(root));
+	}
+
+	@Test
+	public void testMyNSAttributeHelpers()
+	{
+		final KElement src = KElement.createRoot("Src", null);
+		final KElement dest = KElement.createRoot("Dest", null);
+		BambiNSExtension.setMyNSAttribute(src, "Token", "A");
+		assertEquals("A", BambiNSExtension.getMyNSAttribute(src, "Token"));
+
+		BambiNSExtension.copyMyNSAttribute(dest, "Token", src);
+		assertEquals("A", BambiNSExtension.getMyNSAttribute(dest, "Token"));
+
+		final String joined = BambiNSExtension.appendMyNSAttribute(dest, "Token", "B");
+		assertTrue(joined.contains("A"));
+		assertTrue(joined.contains("B"));
+		assertEquals("bambi:Token", BambiNSExtension.getMyNSString("Token"));
+
+		BambiNSExtension.removeMyNSAttribute(dest, "Token");
+		assertNull(BambiNSExtension.getMyNSAttribute(dest, "Token"));
 	}
 
 }

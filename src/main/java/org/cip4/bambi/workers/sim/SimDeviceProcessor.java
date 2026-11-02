@@ -110,9 +110,9 @@ import org.cip4.jdflib.util.ThreadUtil;
  */
 public class SimDeviceProcessor extends UIModifiableDeviceProcessor
 {
-	private final static Log log = LogFactory.getLog(SimDeviceProcessor.class);
+	private static final Log log = LogFactory.getLog(SimDeviceProcessor.class);
 
-	final protected Vector<JobPhase> _jobPhases;
+	protected final Vector<JobPhase> _jobPhases;
 	protected JobPhase idlePhase;
 	boolean bActive;
 

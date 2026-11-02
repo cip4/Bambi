@@ -70,8 +70,9 @@
  */
 package org.cip4.bambi.workers.sim;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -85,8 +86,11 @@ import org.cip4.bambi.core.ContainerRequest;
 import org.cip4.bambi.core.XMLDevice;
 import org.cip4.bambi.core.messaging.IMessageHandler;
 import org.cip4.bambi.core.queues.IQueueEntry;
+import org.cip4.bambi.workers.JobPhase;
+import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoResourceQuParams;
 import org.cip4.jdflib.core.JDFAudit.EnumAuditType;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.jmf.JDFJMF;
 import org.cip4.jdflib.jmf.JDFMessage.EnumFamily;
@@ -164,6 +168,55 @@ public class SimDeviceTest extends BambiTestCaseBase
 		assertNotNull(auditPool.getAudit(0, EnumAuditType.PhaseTime, null, null));
 		assertNotNull(auditPool.getAudit(0, EnumAuditType.ProcessRun, null, null));
 		assertNotNull(auditPool.getAudit(0, EnumAuditType.ResourceAudit, null, null));
+	}
+
+	@Test
+	public void testXMLSimDeviceCurrentPhase() throws IOException
+	{
+		final JobPhase currentPhase = new JobPhase();
+		currentPhase.setDeviceStatus(EnumDeviceStatus.Running);
+		currentPhase.setDeviceStatusDetails("Printing");
+		currentPhase.setNodeStatus(EnumNodeStatus.InProgress);
+		currentPhase.setNodeStatusDetails("imaging");
+		currentPhase.setDurationMillis(5000);
+		currentPhase.addPhaseAmount("Component:Output", 1234, true).setMasterAmount(true);
+
+		final SimDevice sim = getSimDeviceWithCurrentPhase(currentPhase);
+		final XMLDevice xmlDevice = sim.getXMLDevice(true, new ContainerRequest());
+		final String xml = xmlDevice.toXML();
+
+		assertTrue(xml.contains("<Phase"));
+		assertTrue(xml.contains("DeviceStatus=\"Running\""));
+		assertTrue(xml.contains("NodeStatus=\"InProgress\""));
+		assertTrue(xml.contains("ResourceName=\"Component:Output\""));
+	}
+
+	@Test
+	public void testXMLSimDeviceNoPhase() throws IOException
+	{
+		final SimDevice sim = getSimDeviceWithCurrentPhase(null);
+		final XMLDevice xmlDevice = sim.getXMLDevice(false, new ContainerRequest());
+		final String xml = xmlDevice.toXML();
+
+		assertFalse(xml.contains("<Phase"));
+	}
+
+	private SimDevice getSimDeviceWithCurrentPhase(final JobPhase currentPhase) throws IOException
+	{
+		final SimDevice sim = new SimDevice(new BambiTestProp(true))
+		{
+			@Override
+			public JobPhase getCurrentJobPhase()
+			{
+				return currentPhase;
+			}
+		};
+		final File destDir = sim.getCachedConfigDir();
+		if (!destDir.exists() || destDir.list().length == 0)
+		{
+			FileUtils.copyDirectory(new File(sm_dirTestData, "config"), destDir);
+		}
+		return sim;
 	}
 
 }

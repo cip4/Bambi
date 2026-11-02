@@ -481,7 +481,7 @@ public class JMFBufferHandler extends SignalHandler implements IMessageHandler
 			}
 		}
 
-		final protected HashMap<MessageIdentifier, JDFSignal> lastSent;
+		protected final HashMap<MessageIdentifier, JDFSignal> lastSent;
 
 		/**
 		 * return true if the signal corresponds to the input query

@@ -79,7 +79,7 @@ import org.cip4.jdflib.util.thread.MyMutex;
  */
 public abstract class AbstractDeviceProcessor extends BambiLogFactory implements IDeviceProcessor
 {
-	private final static Log log = LogFactory.getLog(AbstractDeviceProcessor.class);
+	private static final Log log = LogFactory.getLog(AbstractDeviceProcessor.class);
 
 	/**
 	 * for unit tests
@@ -285,7 +285,7 @@ public abstract class AbstractDeviceProcessor extends BambiLogFactory implements
 	 * this is the device processor loop
 	 */
 	@Override
-	final public void run()
+	public final void run()
 	{
 		ThreadUtil.sleep(5555); // wait a few seconds before we start processing
 		log.info("starting new processor thread loop");

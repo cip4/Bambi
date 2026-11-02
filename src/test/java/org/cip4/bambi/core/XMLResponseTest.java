@@ -38,14 +38,22 @@
  */
 package org.cip4.bambi.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.util.UrlUtil;
 import org.junit.Test;
 
 public class XMLResponseTest extends BambiTestCaseBase
@@ -69,6 +77,63 @@ public class XMLResponseTest extends BambiTestCaseBase
 		r.ensureJDF();
 		assertTrue(r.getXML() instanceof JDFJMF);
 		assertTrue(r.getXMLDoc() instanceof JDFDoc);
+	}
+
+	@Test
+	public void testOutputStreamAndContentType() throws IOException
+	{
+		final XMLResponse r = new XMLResponse((KElement) null);
+		assertNull(r.getContentType());
+		r.setContentType(UrlUtil.TEXT_HTML);
+		assertEquals(UrlUtil.TEXT_HTML, r.getContentType());
+		final OutputStream os1 = r.getOutputStream();
+		final OutputStream os2 = r.getOutputStream();
+		assertNotNull(os1);
+		assertSame(os1, os2);
+		os1.write("abc".getBytes());
+		assertTrue(r.getContentLength() > 0);
+	}
+
+	@Test
+	public void testSetXSLTGetter()
+	{
+		final XMLResponse r = new XMLResponse((KElement) null);
+		final XMLDoc xsl = new JDFDoc("JDF");
+		r.setXSLT(xsl);
+		assertSame(xsl, r.getXSLT());
+	}
+
+	@Test
+	public void testSetHttpRCAndNotification()
+	{
+		final XMLResponse r = new XMLResponse((KElement) null);
+		r.setHttpRC(202, "accepted");
+		assertEquals(202, r.getHttpRC());
+		assertEquals("accepted", r.getNotification());
+	}
+
+	@Test
+	public void testCopyConstructorKeepsResponseMeta()
+	{
+		final XMLResponse source = new XMLResponse((KElement) null);
+		source.setContentType(UrlUtil.TEXT_XML);
+		source.setHttpRC(418, "teapot");
+		final XMLResponse copy = new XMLResponse(source, UrlUtil.TEXT_HTML);
+		assertEquals(UrlUtil.TEXT_XML, copy.getContentType());
+		assertEquals(418, copy.getHttpRC());
+		assertEquals("teapot", copy.getNotification());
+	}
+
+	@Test
+	public void testSetXMLClearsBufferAndDisablesOutputStream()
+	{
+		final XMLResponse response = new XMLResponse((KElement) null);
+		assertNotNull(response.getOutputStream());
+		response.setXML(KElement.createRoot("JMF"));
+		assertNotNull(response.getXML());
+		assertNull(response.getOutputStream());
+		assertNotNull(response.getInputStream());
+		assertNull(response.getXML());
 	}
 
 }

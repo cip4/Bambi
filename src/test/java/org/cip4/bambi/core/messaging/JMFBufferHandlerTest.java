@@ -40,18 +40,26 @@ package org.cip4.bambi.core.messaging;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import org.cip4.bambi.core.StatusListener;
 import org.cip4.bambi.core.AbstractDevice.StatusHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationBufferHandler;
+import org.cip4.bambi.core.messaging.JMFBufferHandler.NotificationHandler;
+import org.cip4.bambi.core.messaging.JMFBufferHandler.ResourceBufferHandler;
 import org.cip4.bambi.core.messaging.JMFBufferHandler.StatusBufferHandler;
 import org.cip4.bambi.proxy.ProxyDevice;
 import org.cip4.bambi.proxy.ProxyDeviceTest;
 import org.cip4.jdflib.auto.JDFAutoDeviceFilter.EnumDeviceDetails;
 import org.cip4.jdflib.auto.JDFAutoDeviceInfo.EnumDeviceStatus;
 import org.cip4.jdflib.auto.JDFAutoStatusQuParams.EnumJobDetails;
+import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.cip4.jdflib.jmf.JDFDeviceInfo;
 import org.cip4.jdflib.jmf.JDFJMF;
@@ -61,6 +69,7 @@ import org.cip4.jdflib.jmf.JDFMessage.EnumType;
 import org.cip4.jdflib.jmf.JDFQuery;
 import org.cip4.jdflib.jmf.JDFResponse;
 import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.util.StatusCounter;
 import org.junit.Test;
 
 public class JMFBufferHandlerTest
@@ -90,7 +99,7 @@ public class JMFBufferHandlerTest
 		final MessageIdentifier mi3 = mi.clone();
 		mi3.msgType = "foo";
 		assertFalse(mi.matches(mi3));
-		assertFalse(mi.equals(mi3));
+		assertNotEquals(mi, mi3);
 
 	}
 
@@ -325,6 +334,73 @@ public class JMFBufferHandlerTest
 				assertNull(jmf3);
 			}
 		}
+	}
+
+	@Test
+	public void testResourceQueryConsumesBufferedSignal()
+	{
+		final ProxyDevice dev = ProxyDeviceTest.getDevice();
+		final ResourceBufferHandler bh = new ResourceBufferHandler(dev);
+		final JDFJMF queryJmf = new JMFBuilder().buildResourceQuery(true);
+		final JDFJMF signalJmf = JDFJMF.createJMF(EnumFamily.Signal, EnumType.Resource);
+		signalJmf.getSignal(0).getCreateResourceQuParams(0).setJobID("job-1");
+		signalJmf.getSignal(0).appendResourceInfo().appendResource(ElementName.MISCCONSUMABLE);
+		queryJmf.getQuery(0).getCreateResourceQuParams(0).setJobID("job-1");
+
+		final MessageIdentifier key = new MessageIdentifier(signalJmf.getSignal(0), signalJmf.getSignal(0).getSenderID());
+		bh.putOne(key, signalJmf.getSignal(0));
+
+		final JDFJMF responseJmf = JDFJMF.createJMF(EnumFamily.Response, EnumType.Resource);
+		assertTrue(bh.handleQuery(queryJmf.getQuery(0), responseJmf.getResponse(0)));
+		assertNotNull(responseJmf.getResponse(0).getResourceInfo(0));
+		assertNull(bh.getSignalsFromMap(key));
+	}
+
+	@Test
+	public void testResourceSignalMatchByIdentifier()
+	{
+		final ProxyDevice dev = ProxyDeviceTest.getDevice();
+		final ResourceBufferHandler bh = new ResourceBufferHandler(dev);
+		final JDFJMF queryJmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Resource);
+		queryJmf.getQuery(0).getCreateResourceQuParams(0).setJobID("job-77");
+		final JDFJMF signalJmf = JDFJMF.createJMF(EnumFamily.Signal, EnumType.Resource);
+		signalJmf.getSignal(0).getCreateResourceQuParams(0).setJobID("job-77");
+		assertTrue(bh.isMySignal(queryJmf.getQuery(0), signalJmf.getSignal(0)));
+
+		signalJmf.getSignal(0).getResourceQuParams().setQueueEntryID("q-88");
+		assertTrue(bh.isMySignal(queryJmf.getQuery(0), signalJmf.getSignal(0)));
+
+		signalJmf.getSignal(0).getResourceQuParams().setJobID("job-88");
+		assertFalse(bh.isMySignal(queryJmf.getQuery(0), signalJmf.getSignal(0)));
+	}
+
+	@Test
+	public void testNotificationHandlerReturnsFalseWhenListenerDoesNotMatch()
+	{
+		final ProxyDevice dev = ProxyDeviceTest.getDevice();
+		final StatusListener listener = mock(StatusListener.class);
+		when(listener.matchesQuery(any())).thenReturn(false);
+		final NotificationHandler nh = new NotificationHandler(dev, listener);
+
+		final JDFJMF queryJmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Notification);
+		final JDFJMF responseJmf = JDFJMF.createJMF(EnumFamily.Response, EnumType.Notification);
+		assertFalse(nh.handleMessage(queryJmf.getQuery(0), responseJmf.getResponse(0)));
+	}
+
+	@Test
+	public void testNotificationHandlerHandlesMatchingQueryWithoutNetwork()
+	{
+		final ProxyDevice dev = ProxyDeviceTest.getDevice();
+		final StatusListener listener = mock(StatusListener.class);
+		final StatusCounter counter = mock(StatusCounter.class);
+		when(listener.matchesQuery(any())).thenReturn(true);
+		when(listener.getStatusCounter()).thenReturn(counter);
+		when(counter.getDocJMFNotification(true)).thenReturn(null);
+		final NotificationHandler nh = new NotificationHandler(dev, listener);
+
+		final JDFJMF queryJmf = JDFJMF.createJMF(EnumFamily.Query, EnumType.Notification);
+		final JDFJMF responseJmf = JDFJMF.createJMF(EnumFamily.Response, EnumType.Notification);
+		assertTrue(nh.handleMessage(queryJmf.getQuery(0), responseJmf.getResponse(0)));
 	}
 
 }

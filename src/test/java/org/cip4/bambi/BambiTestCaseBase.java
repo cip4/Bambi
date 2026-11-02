@@ -144,8 +144,8 @@ public abstract class BambiTestCaseBase
 		setTestNetwork(false);
 	}
 
-	static protected final String sm_dirTestData = getTestDataDir();
-	static protected final String sm_dirTestDataTemp = sm_dirTestData + "temp" + File.separator;
+	protected static final String sm_dirTestData = getTestDataDir();
+	protected static final String sm_dirTestDataTemp = sm_dirTestData + "temp" + File.separator;
 
 	private static String getTestDataDir()
 	{
@@ -169,7 +169,7 @@ public abstract class BambiTestCaseBase
 		final JDFMedia m = xm.appendMedia();
 		m.appendElement("NS:FoobarMedia", "www.foobar.com");
 
-		Assert.assertEquals("m Class", m.getResourceClass(), EnumResourceClass.Consumable);
+		Assert.assertNull("m Class", m.getResourceClass());
 
 		final VString vs = new VString();
 		vs.add("SignatureName");

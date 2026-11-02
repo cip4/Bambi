@@ -74,19 +74,37 @@ package org.cip4.bambi.core;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Enumeration;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
 
 import org.cip4.bambi.BambiTestCase;
 import org.cip4.bambi.server.BambiServer;
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JMFBuilder;
+import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.UrlUtil;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -96,6 +114,130 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 public class BambiServletTest extends BambiTestCase
 {
+	@Before
+	public void setUpServletState()
+	{
+		final BambiContainer container = BambiContainer.getInstance();
+		if (container != null)
+		{
+			container.shutDown();
+		}
+		BambiContainer.removeInstance();
+		bambiContainer = null;
+	}
+
+	@After
+	public void tearDownServletState()
+	{
+		final BambiContainer container = BambiContainer.getInstance();
+		if (container != null)
+		{
+			container.shutDown();
+		}
+		BambiContainer.removeInstance();
+		bambiContainer = null;
+	}
+
+	private BambiServer createAuthenticatedServer()
+	{
+		final BambiServer server = mock(BambiServer.class);
+		when(server.isAuthenticated(any(), any())).thenReturn(true);
+		return server;
+	}
+
+	private static class ByteArrayServletInputStream extends ServletInputStream
+	{
+		private final ByteArrayInputStream bis;
+
+		ByteArrayServletInputStream(final byte[] body)
+		{
+			bis = new ByteArrayInputStream(body == null ? new byte[0] : body);
+		}
+
+		@Override
+		public int read()
+		{
+			return bis.read();
+		}
+
+		@Override
+		public boolean isFinished()
+		{
+			return bis.available() <= 0;
+		}
+
+		@Override
+		public boolean isReady()
+		{
+			return true;
+		}
+
+		@Override
+		public void setReadListener(final ReadListener readListener)
+		{
+			// no async reads in unit tests
+		}
+	}
+
+	private static class ByteArrayServletOutputStream extends ServletOutputStream
+	{
+		private final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+		@Override
+		public void write(final int b)
+		{
+			bos.write(b);
+		}
+
+		@Override
+		public boolean isReady()
+		{
+			return true;
+		}
+
+		@Override
+		public void setWriteListener(final WriteListener writeListener)
+		{
+			// no async writes in unit tests
+		}
+
+		String asString()
+		{
+			return new String(bos.toByteArray(), StandardCharsets.UTF_8);
+		}
+	}
+
+	private HttpServletRequest createRequest(final String method, final String requestURL, final String contentType, final byte[] body) throws IOException
+	{
+		final HttpServletRequest request = mock(HttpServletRequest.class);
+		when(request.getMethod()).thenReturn(method);
+		when(request.getRequestURL()).thenReturn(new StringBuffer(requestURL));
+		when(request.getRequestURI()).thenReturn(requestURL);
+		when(request.getPathInfo()).thenReturn(requestURL);
+		when(request.getContentType()).thenReturn(contentType);
+		when(request.getRemoteHost()).thenReturn("localhost");
+		when(request.getScheme()).thenReturn("http");
+		when(request.getLocalPort()).thenReturn(8080);
+		when(request.getHeaderNames()).thenReturn(Collections.emptyEnumeration());
+		when(request.getParameterMap()).thenReturn(new HashMap<>());
+		when(request.getInputStream()).thenReturn(new ByteArrayServletInputStream(body));
+		return request;
+	}
+
+	private HttpServletResponse createResponse(final ByteArrayServletOutputStream out) throws IOException
+	{
+		final HttpServletResponse response = mock(HttpServletResponse.class);
+		when(response.getOutputStream()).thenReturn(out);
+		return response;
+	}
+
+	private byte[] getJMFBody() throws IOException
+	{
+		final JDFJMF jmf = new JMFBuilder().buildKnownMessagesQuery();
+		final ByteArrayIOStream ios = new ByteArrayIOStream();
+		jmf.getOwnerDocument_JDFElement().write2Stream(ios, 0, true);
+		return ios.getBuf();
+	}
 
 	public BambiServletTest()
 	{
@@ -111,56 +253,99 @@ public class BambiServletTest extends BambiTestCase
 	@Test
 	public void testCreate() throws Exception
 	{
-		final BambiServer s = new BambiServer();
+		final BambiServer s = createAuthenticatedServer();
 		assertNotNull(new BambiServlet(s));
 	}
 
-	class Enus implements Enumeration<String>
-	{
-
-		@Override
-		public boolean hasMoreElements()
-		{
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public String nextElement()
-		{
-			// TODO Auto-generated method stub
-			return "";
-		}
-
-	}
-
-	/**
-	 * @throws Exception
-	 * @throws IOException
-	 * @throws Exception
-	 */
 	@Test
-	public void testDoGetPost() throws Exception
+	public void testDoGetOverviewWritesResponse() throws Exception
 	{
 		startContainer();
-		final BambiServer s = new BambiServer();
+		final BambiServer s = createAuthenticatedServer();
 		final BambiServlet bs = new BambiServlet(s);
-		final HttpServletRequest req = mock(HttpServletRequest.class);
-		when(req.getRequestURL()).thenReturn(new StringBuffer(""));
-		when(req.getHeaderNames()).thenReturn(new Enus());
-		assertFalse(bs.doGetPost(req, mock(HttpServletResponse.class), true));
+		final HttpServletRequest req = createRequest("GET", "http://dummy:8080/war/overview/" + deviceID, null, null);
+		final ByteArrayServletOutputStream out = new ByteArrayServletOutputStream();
+		final HttpServletResponse response = createResponse(out);
+
+		bs.doGet(req, response);
+
+		verify(response).setStatus(200);
+		verify(response).setContentType(anyString());
+		verify(response).setContentLength(anyInt());
+		assertTrue(out.asString().length() > 0);
 	}
 
-	/**
-	 * @throws Exception
-	 * @throws IOException
-	 * @throws Exception
-	 */
+	@Test
+	public void testDoGetUnknownContextWrites404ErrorBody() throws Exception
+	{
+		startContainer();
+		final BambiServer s = createAuthenticatedServer();
+		final BambiServlet bs = new BambiServlet(s);
+		final HttpServletRequest req = createRequest("GET", "http://dummy:8080/war/noSuchContext/" + deviceID, null, null);
+		final ByteArrayServletOutputStream out = new ByteArrayServletOutputStream();
+		final HttpServletResponse response = createResponse(out);
+
+		bs.doGet(req, response);
+
+		verify(response).setStatus(404);
+		assertTrue(out.asString().contains("BambiError"));
+	}
+
+	@Test
+	public void testDoGetShowQueueRouteWritesResponse() throws Exception
+	{
+		startContainer();
+		final BambiServer s = createAuthenticatedServer();
+		final BambiServlet bs = new BambiServlet(s);
+		final HttpServletRequest req = createRequest("GET", "http://dummy:8080/war/showQueue/" + deviceID, null, null);
+		final ByteArrayServletOutputStream out = new ByteArrayServletOutputStream();
+		final HttpServletResponse response = createResponse(out);
+
+		bs.doGet(req, response);
+
+		verify(response).setStatus(200);
+		assertTrue(out.asString().length() > 0);
+	}
+
+	@Test
+	public void testDoPostJMFUsesProcessStream() throws Exception
+	{
+		startContainer();
+		final BambiServer s = createAuthenticatedServer();
+		final BambiServlet bs = new BambiServlet(s);
+		final HttpServletRequest req = createRequest("POST", "http://dummy:8080/war/jmf/" + deviceID, UrlUtil.VND_JMF, getJMFBody());
+		final ByteArrayServletOutputStream out = new ByteArrayServletOutputStream();
+		final HttpServletResponse response = createResponse(out);
+
+		bs.doPost(req, response);
+
+		verify(response).setStatus(200);
+		verify(response).setContentType(UrlUtil.VND_JMF);
+		assertTrue(out.asString().contains("JMF"));
+	}
+
+	@Test
+	public void testDoPostUnknownContentTypeReturnsJMFError() throws Exception
+	{
+		startContainer();
+		final BambiServer s = createAuthenticatedServer();
+		final BambiServlet bs = new BambiServlet(s);
+		final HttpServletRequest req = createRequest("POST", "http://dummy:8080/war/jmf/" + deviceID, "text/plain", "junk".getBytes(StandardCharsets.UTF_8));
+		final ByteArrayServletOutputStream out = new ByteArrayServletOutputStream();
+		final HttpServletResponse response = createResponse(out);
+
+		bs.doPost(req, response);
+
+		verify(response).setStatus(200);
+		verify(response).setContentType(UrlUtil.VND_JMF);
+		assertTrue(out.asString().contains("Unknown HTTP ContentType"));
+	}
+
 	@Test
 	public void testAuthMessage() throws Exception
 	{
 		startContainer();
-		final BambiServer s = new BambiServer();
+		final BambiServer s = createAuthenticatedServer();
 		final BambiServlet bs = new BambiServlet(s);
 		final HttpServletRequest req = mock(HttpServletRequest.class);
 		assertEquals("BASIC", bs.getAuthMessage(req).substring(0, 5));
@@ -168,87 +353,37 @@ public class BambiServletTest extends BambiTestCase
 		assertEquals("Not authenticated", bs.getAuthMessage(req));
 	}
 
-	/**
-	 * @throws Exception
-	 * @throws IOException
-	 * @throws Exception
-	 */
 	@Test
-	public void testUnAuth() throws Exception
+	public void testDoGetPostReturnsFalseWithoutContainer() throws Exception
 	{
-		startContainer();
-		final BambiServer s = new BambiServer();
+		final BambiServer s = createAuthenticatedServer();
 		final BambiServlet bs = new BambiServlet(s);
-		final HttpServletRequest req = mock(HttpServletRequest.class);
-		assertTrue(bs.unAuthenticated(req, mock(HttpServletResponse.class)));
-		when(req.getMethod()).thenReturn("Post");
-		assertTrue(bs.unAuthenticated(req, mock(HttpServletResponse.class)));
+		BambiContainer.removeInstance();
+		final HttpServletRequest req = createRequest("GET", "http://dummy:8080/war/overview/" + deviceID, null, null);
+		final ByteArrayServletOutputStream out = new ByteArrayServletOutputStream();
+		final HttpServletResponse response = createResponse(out);
+
+		assertFalse(bs.doGetPost(req, response, false));
+		assertEquals(0, out.asString().length());
 	}
 
-	/**
-	 * @throws Exception
-	 * @throws IOException
-	 * @throws Exception
-	 */
 	@Test
 	public void testAuthResp() throws Exception
 	{
 		startContainer();
-		final BambiServer s = spy(new BambiServer());
+		final BambiServer s = createAuthenticatedServer();
 		when(s.isAuthenticated(any(), any())).thenReturn(false);
 		final BambiServlet bs = new BambiServlet(s);
-		final HttpServletRequest req = mock(HttpServletRequest.class);
-		when(req.getRequestURL()).thenReturn(new StringBuffer("https"));
-		when(req.getHeaderNames()).thenReturn(new Enus());
-		assertTrue(bs.doGetPost(req, mock(HttpServletResponse.class), true));
-		assertTrue(bs.doGetPost(req, mock(HttpServletResponse.class), false));
-	}
+		final HttpServletRequest getReq = createRequest("GET", "http://dummy:8080/war/overview/" + deviceID, null, null);
+		final HttpServletResponse getResp = mock(HttpServletResponse.class);
+		assertTrue(bs.doGetPost(getReq, getResp, false));
+		verify(getResp).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		verify(getResp).setHeader(anyString(), anyString());
 
-	/**
-	 * @throws Exception
-	 * @throws IOException
-	 * @throws Exception
-	 */
-	@Test
-	public void testDoGet() throws Exception
-	{
-		startContainer();
-		final BambiServer s = new BambiServer();
-		final BambiServlet bs = new BambiServlet(s);
-		final HttpServletRequest req = mock(HttpServletRequest.class);
-		when(req.getRequestURL()).thenReturn(new StringBuffer("https"));
-		when(req.getHeaderNames()).thenReturn(new Enus());
-		bs.doGet(req, mock(HttpServletResponse.class));
-	}
-
-	/**
-	 * @throws Exception
-	 * @throws IOException
-	 * @throws Exception
-	 */
-	@Test
-	public void testDoPost() throws Exception
-	{
-		startContainer();
-		final BambiServer s = new BambiServer();
-		final BambiServlet bs = new BambiServlet(s);
-		final HttpServletRequest req = mock(HttpServletRequest.class);
-		when(req.getRequestURL()).thenReturn(new StringBuffer("http"));
-		when(req.getHeaderNames()).thenReturn(new Enus());
-		bs.doPost(req, mock(HttpServletResponse.class));
-	}
-
-	/**
-	 * @throws Exception
-	 * @throws IOException
-	 * @throws Exception
-	 */
-	@Test
-	public void testCreateContainer() throws Exception
-	{
-		final BambiServer s = new BambiServer();
-		assertNotNull(new BambiServlet(s));
-		assertNotNull(BambiContainer.getInstance());
+		final HttpServletRequest postReq = createRequest("POST", "http://dummy:8080/war/jmf/" + deviceID, UrlUtil.VND_JMF, getJMFBody());
+		final HttpServletResponse postResp = mock(HttpServletResponse.class);
+		assertTrue(bs.doGetPost(postReq, postResp, true));
+		verify(postResp).sendError(401, "Not authenticated");
 	}
 
 	/**
@@ -260,6 +395,6 @@ public class BambiServletTest extends BambiTestCase
 		System.setProperty("foo", "/a/b/c");
 		assertEquals(BambiServlet.parseEnv("%foo/bar"), "/a/b/c/bar");
 		assertEquals("/bar", BambiServlet.parseEnv("/bar"));
-		assertEquals(null, BambiServlet.parseEnv(null));
+		assertNull(BambiServlet.parseEnv(null));
 	}
 }

@@ -365,7 +365,7 @@ public class MessageSender implements Runnable, IPersistable
 		return lastLog;
 	}
 
-	final private static int MIN_IDLE = 10;
+	private static final int MIN_IDLE = 10;
 
 	protected long postSendReturn(long lastLog, final SendReturn sendReturn)
 	{

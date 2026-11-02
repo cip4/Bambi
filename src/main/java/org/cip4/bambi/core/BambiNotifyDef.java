@@ -82,7 +82,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class BambiNotifyDef implements BambiNotify
 {
-	private final static Log log = LogFactory.getLog(BambiNotifyDef.class);
+	private static final Log log = LogFactory.getLog(BambiNotifyDef.class);
 
 	private static BambiNotifyDef theInstance;
 	private static BambiNotify notifier;

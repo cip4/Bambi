@@ -42,17 +42,25 @@ package org.cip4.bambi.core;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.BambiTestDevice;
+import org.cip4.bambi.core.queues.IQueueEntry;
 import org.cip4.bambi.core.queues.QueueEntry;
+import org.cip4.jdflib.core.AttributeName;
 import org.cip4.bambi.workers.WorkerDeviceProcessor;
 import org.cip4.jdflib.auto.JDFAutoQueueEntry.EnumQueueEntryStatus;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFElement;
+import org.cip4.jdflib.core.KElement;
+import org.cip4.jdflib.core.VElement;
+import org.cip4.jdflib.jmf.JDFQueue;
 import org.cip4.jdflib.jmf.JDFQueueEntry;
 import org.cip4.jdflib.node.JDFNode;
+import org.cip4.jdflib.core.JDFElement.EnumNodeStatus;
 import org.junit.Test;
 
 public class AbstractDeviceProcessorTest extends BambiTestCaseBase
@@ -135,6 +143,106 @@ public class AbstractDeviceProcessorTest extends BambiTestCaseBase
 			}
 		}
 		assertEquals(3, n);
+	}
+
+	@Test
+	public void testInitAndGetterDefaultsNoQueueProcessor() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice(false);
+		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
+		devProc.init(null, devProc.getStatusListener(), device.getProperties());
+		assertNotNull(devProc.getStatusListener());
+		assertTrue(devProc.isIdle());
+		assertNotNull(devProc.getCurrentQE());
+		assertNotNull(devProc.getQueueEntry());
+		assertEquals(EnumQueueEntryStatus.Waiting, devProc.getQueueEntry().getQueueEntryStatus());
+		assertEquals("", devProc.getQueueEntryID());
+		assertNotNull(devProc.getCurrentJDF());
+		assertEquals("", devProc.getJobID());
+	}
+
+	@Test
+	public void testXMLDeviceProcessorAddsIdleProcessorElement() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice(false);
+		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
+		devProc.init(device.getQueueProcessor(), devProc.getStatusListener(), device.getProperties());
+		final KElement root = KElement.createRoot("Display");
+		devProc.addToDisplayXML(root);
+		final KElement processor = BambiNSExtension.getMyNSElement(root, "Processor", 0);
+		assertNotNull(processor);
+		assertEquals("Idle", processor.getAttribute("DeviceStatus"));
+	}
+
+	@Test
+	public void testXMLDeviceProcessorPhaseFormattingAndFields() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice(false);
+		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
+		devProc.init(device.getQueueProcessor(), devProc.getStatusListener(), device.getProperties());
+
+		final JDFNode node = creatXMDoc().getJDFRoot();
+		final JDFQueue queue = (JDFQueue) JDFElement.createRoot(ElementName.QUEUE);
+		final JDFQueueEntry qe = queue.appendQueueEntry();
+		qe.setQueueEntryID("Q-Phase");
+		devProc.initializeProcessDoc(node, qe);
+		devProc.getStatusListener().setPercentComplete(12.345);
+
+		final KElement root = KElement.createRoot("Display");
+		devProc.addToDisplayXML(root);
+		final KElement processor = BambiNSExtension.getMyNSElement(root, "Processor", 0);
+
+		assertNotNull(processor);
+		assertEquals("Q-Phase", processor.getAttribute(AttributeName.QUEUEENTRYID));
+		assertEquals(node.getType(), processor.getAttribute("Type"));
+		assertEquals(node.getJobID(true), processor.getAttribute("JobID"));
+		assertEquals("12.35", processor.getAttribute(AttributeName.PERCENTCOMPLETED));
+		assertNotNull(processor.getAttribute("NodeStatus"));
+		assertNotNull(processor.getAttribute("NodeStatusDetails"));
+		assertNotNull(processor.getAttribute("PartIDKeys"));
+	}
+
+	@Test
+	public void testGetTrackResourceHeuristicAndExplicitMatch() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice(false);
+		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
+		final JDFNode node = creatXMDoc().getJDFRoot();
+		final VElement vResLinks = node.getResourceLinks(null);
+
+		devProc._trackResource = null;
+		final String heuristicRes = devProc.getTrackResource(vResLinks);
+		assertNotNull(heuristicRes);
+
+		devProc._trackResource = ElementName.COMPONENT;
+		final String explicitRes = devProc.getTrackResource(vResLinks);
+		assertNotNull(explicitRes);
+	}
+
+	@Test
+	public void testProcessQueueEntryNullThenPresentNoRunLoop() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice(false);
+		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
+		devProc.init(device.getQueueProcessor(), devProc.getStatusListener(), device.getProperties());
+
+		assertFalse(devProc.processQueueEntry());
+
+		final IQueueEntry currentEntry = device.setCurrentEntry(JDFNode.createRoot());
+		assertTrue(devProc.processQueueEntry());
+		assertNotNull(devProc.getCurrentQE());
+		assertEquals(currentEntry.getQueueEntryID(), devProc.getQueueEntryID());
+		assertSame(currentEntry.getQueueEntry(), devProc.getQueueEntry());
+	}
+
+	@Test
+	public void testStopProcessingDelegatesFromOverload() throws Exception
+	{
+		final BambiTestDevice device = new BambiTestDevice(false);
+		final WorkerDeviceProcessor devProc = device.buildDeviceProcessor();
+		devProc.setTestQE(JDFNode.createRoot());
+		assertEquals(EnumNodeStatus.Aborted, devProc.stopProcessing(EnumNodeStatus.Aborted, "ignored"));
+		assertEquals(EnumNodeStatus.Aborted, devProc.getQueueEntry().getStatus());
 	}
 
 }

@@ -43,13 +43,23 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.bambi.core.BambiNSExtension.EPackageType;
 import org.cip4.jdflib.datatypes.JDFAttributeMap;
 import org.cip4.jdflib.util.UrlUtil;
 import org.cip4.jdflib.util.UrlUtil.URLProtocol;
 import org.junit.Test;
+import org.mockito.Mockito;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author Dr. Rainer Prosi, Heidelberger Druckmaschinen AG
@@ -57,6 +67,13 @@ import org.junit.Test;
  */
 public class ContainerRequestTest extends BambiTestCaseBase
 {
+	private static class ExposedContainerRequest extends ContainerRequest
+	{
+		void applyRequest(final HttpServletRequest request)
+		{
+			apply(request);
+		}
+	}
 
 	/**
 	 *
@@ -305,6 +322,86 @@ public class ContainerRequestTest extends BambiTestCaseBase
 		req.setParameter("a", "b");
 		req.setParameter("d", "e");
 		assertEquals("http://host/foo/bar/dev?d=e&a=b&C=c0&f=g", req.getCompleteURI("d"));
+	}
+
+	@Test
+	public void testBooleanParamAndContentTypeBranches()
+	{
+		final ContainerRequest req = new ContainerRequest();
+		req.setParameter("enabled", "true");
+		req.setParameter("disabled", "false");
+		assertTrue(req.getBooleanParam("enabled"));
+		assertFalse(req.getBooleanParam("disabled", true));
+		assertTrue(req.getBooleanParam("missing", true));
+		assertFalse(req.getBooleanParam("missing"));
+
+		req.setContentType(" application/xml ; charset=UTF-8 ");
+		assertEquals("application/xml", req.getContentType(true));
+
+		req.setOriginalContentType("application/json; charset=UTF-8");
+		req.setOriginalContentType("text/plain");
+		assertEquals("application/json", req.getOriginalContentType());
+	}
+
+	@Test
+	public void testApplyParsesHeadersAndParams()
+	{
+		final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+		Mockito.when(request.getContentType()).thenReturn("application/xml; charset=UTF-8");
+		Mockito.when(request.getRequestURL()).thenReturn(new StringBuffer("http://host/foo/bar/dev"));
+		Mockito.when(request.getRemoteHost()).thenReturn("remote.host");
+		Mockito.when(request.getMethod()).thenReturn("post");
+
+		Mockito.when(request.getHeaderNames()).thenReturn(Collections.enumeration(Arrays.asList("X-Trace", UrlUtil.AUTHORIZATION)));
+		Mockito.when(request.getHeaders("X-Trace")).thenReturn(Collections.enumeration(Arrays.asList("a", "b")));
+		Mockito.when(request.getHeaders(UrlUtil.AUTHORIZATION)).thenReturn(Collections.enumeration(Arrays.asList("Bearer abc")));
+
+		final Map<String, String[]> parameterMap = new HashMap<>();
+		parameterMap.put("alpha", new String[] { "1", "2" });
+		parameterMap.put("blank", new String[] { "" });
+		parameterMap.put("nullEntry", null);
+		Mockito.when(request.getParameterMap()).thenReturn(parameterMap);
+
+		final ExposedContainerRequest req = new ExposedContainerRequest();
+		req.applyRequest(request);
+
+		assertEquals("application/xml", req.getContentType(true));
+		assertEquals("application/xml", req.getOriginalContentType());
+		assertEquals("a,b", req.getHeader("x-trace"));
+		assertEquals("Bearer abc", req.getHeader(UrlUtil.AUTHORIZATION));
+		assertEquals("1,2", req.getParameter("alpha"));
+		assertNull(req.getParameter("blank"));
+		assertTrue(req.isPost());
+		assertEquals("remote.host", req.getRemoteHost());
+	}
+
+	@Test
+	public void testSetContainerCopiesMeta()
+	{
+		final ContainerRequest source = new ContainerRequest();
+		source.setRequestURI("http://host/foo/bar/dev");
+		source.setContentType("text/plain; charset=UTF-8");
+		source.setOriginalContentType("application/xml; charset=UTF-8");
+		source.setMethod("GET");
+		source.setRemoteHost("hostA");
+		source.setName("source");
+		source.setHeaderMap(new JDFAttributeMap("X-Test", "value"));
+		source.setParameterMap(new JDFAttributeMap("p", "v"));
+		source.setPackageType(EPackageType.RAW);
+
+		final ContainerRequest target = new ContainerRequest();
+		target.setPackageType(EPackageType.JMF);
+		target.setContainer(source);
+
+		assertEquals("http://host/foo/bar/dev", target.getRequestURI());
+		assertTrue(target.getContentType(false).toLowerCase().startsWith("text/plain"));
+		assertEquals("application/xml", target.getOriginalContentType());
+		assertEquals("GET", target.getMethod());
+		assertEquals("hostA", target.getRemoteHost());
+		assertEquals("source", target.getName());
+		assertEquals("value", target.getHeader("x-test"));
+		assertEquals("v", target.getParameter("P"));
+		assertEquals(EPackageType.JMF, target.getPackageType());
 	}
 
 }

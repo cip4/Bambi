@@ -48,6 +48,7 @@ import java.io.InputStream;
 
 import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.bambi.MyTestCallback;
+import org.cip4.bambi.core.BambiNSExtension;
 import org.cip4.jdflib.core.ElementName;
 import org.cip4.jdflib.core.JDFDoc;
 import org.cip4.jdflib.core.JDFElement.EnumVersion;
@@ -383,6 +384,49 @@ public class ConverterCallbackTest extends BambiTestCaseBase
 		cb.setFixToExtern(EnumVersion.Version_2_0);
 		assertNull(cb.exportXJDF(null));
 		assertEquals(XJDFConstants.XJDF, cb.exportXJDF(new JDFDoc(ElementName.JDF)).getRoot().getNodeName());
+	}
+
+	@Test
+	public void testPrepareJDFForBambiIdempotentFromDeviceCallback()
+	{
+		final AbstractDevice device = getDevice(false, false);
+		final IConverterCallback callback = device.getCallback(null);
+		final JDFDoc doc = new JDFDoc(ElementName.JDF);
+		doc.getJDFRoot().setJobID("job-42");
+
+		final JDFDoc first = callback.prepareJDFForBambi(doc);
+		final JDFDoc second = callback.prepareJDFForBambi(first);
+		final String firstJobPartID = first.getJDFRoot().getJobPartID(true);
+		final String secondJobPartID = second.getJDFRoot().getJobPartID(true);
+
+		assertNotNull(first);
+		assertNotNull(second);
+		assertNotNull(first.getJDFRoot());
+		assertNotNull(second.getJDFRoot());
+		assertNotNull(firstJobPartID);
+		assertFalse(firstJobPartID.isEmpty());
+		assertEquals(firstJobPartID, secondJobPartID);
+		assertEquals("job-42", first.getJDFRoot().getJobID(true));
+		assertEquals("job-42", second.getJDFRoot().getJobID(true));
+	}
+
+	@Test
+	public void testXJDFPrepareAndUpdateExtern()
+	{
+		final ConverterCallback cb = new ConverterCallback();
+		cb.setFixToExtern(EnumVersion.Version_2_1);
+		final XJDFHelper xjdf = new XJDFHelper("job-x", "part-x");
+		final JDFDoc incoming = new JDFDoc(xjdf.getRoot().getOwnerDocument_KElement());
+
+		final JDFDoc prepared = cb.prepareJDFForBambi(incoming);
+		assertNotNull(prepared.getJDFRoot());
+		assertEquals("job-x", prepared.getJDFRoot().getJobID(true));
+		BambiNSExtension.setDeviceID(prepared.getRoot(), "dev-x");
+
+		final JDFDoc extern = cb.updateJDFForExtern(prepared);
+		assertNotNull(extern);
+		assertEquals(XJDFConstants.XJDF, extern.getRoot().getLocalName());
+		assertFalse(extern.getRoot().hasAttributeNS(BambiNSExtension.MY_NS, BambiNSExtension.deviceID));
 	}
 
 }

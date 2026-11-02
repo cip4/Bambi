@@ -63,7 +63,7 @@ public class QueueHFListener implements QueueHotFolderListener
 	 */
 	private IConverterCallback _callBack = null;
 	private final QueueProcessor queueProc;
-	private final static Log log = LogFactory.getLog(QueueHFListener.class);
+	private static final Log log = LogFactory.getLog(QueueHFListener.class);
 
 	/**
 	 * @param qProc

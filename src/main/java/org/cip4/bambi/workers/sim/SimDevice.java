@@ -78,7 +78,7 @@ import org.cip4.jdflib.util.ThreadUtil;
  */
 public class SimDevice extends UIModifiableDevice implements IGetHandler
 {
-	private final static Log log = LogFactory.getLog(SimDevice.class);
+	private static final Log log = LogFactory.getLog(SimDevice.class);
 
 	/**
 	 * resource query catalog

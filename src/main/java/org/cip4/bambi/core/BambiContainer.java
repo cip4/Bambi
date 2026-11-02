@@ -81,7 +81,7 @@ import jakarta.mail.BodyPart;
  */
 public final class BambiContainer extends ServletContainer
 {
-	private final static Log log = LogFactory.getLog(BambiContainer.class);
+	private static final Log log = LogFactory.getLog(BambiContainer.class);
 
 	/**
 	 * use getCreateInstance from outside

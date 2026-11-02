@@ -69,7 +69,7 @@ import jakarta.servlet.http.HttpServletRequest;
 public class ContainerRequest
 {
 
-	private final static Log log = LogFactory.getLog(ContainerRequest.class);
+	private static final Log log = LogFactory.getLog(ContainerRequest.class);
 
 	/**
 	 */

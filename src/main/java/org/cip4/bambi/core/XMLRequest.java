@@ -92,7 +92,7 @@ import org.cip4.jdflib.util.UrlUtil;
  */
 public class XMLRequest extends ContainerRequest
 {
-	private final static Log log = LogFactory.getLog(XMLRequest.class);
+	private static final Log log = LogFactory.getLog(XMLRequest.class);
 
 	/**
 	 * @param theXML

@@ -45,12 +45,16 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 
 import org.cip4.bambi.BambiTestCaseBase;
+import org.cip4.bambi.core.IDeviceProperties.QERetrieval;
+import org.cip4.bambi.core.IDeviceProperties.QEReturn;
 import org.cip4.bambi.core.IDeviceProperties.EWatchFormat;
 import org.cip4.bambi.core.MultiDeviceProperties.DeviceProperties;
 import org.cip4.jdflib.core.KElement;
@@ -296,6 +300,107 @@ public class MultiDevicePropertiesTest extends BambiTestCaseBase
 			assertFalse(p.isCompatible(p2));
 			d.getRoot().setAttribute(MultiDeviceProperties.CONFIG_VERSION, "v1");
 			assertTrue(p.isCompatible(p2));
+		}
+
+		@Test
+		public void testDevicePropertiesParseAndURL()
+		{
+			final XMLDoc d = new XMLDoc("application", null);
+			d.setOriginalFileName("foo");
+			final KElement root = d.getRoot();
+			final KElement device = root.appendElement("Device");
+			device.setAttribute("DeviceID", "dev-1");
+			device.setAttribute("DeviceType", "Press");
+			final MultiDeviceProperties p = new MultiDeviceProperties(d);
+			final DeviceProperties dp = p.createDeviceProps(device);
+
+			assertEquals("dev-1", dp.getDeviceID());
+			assertEquals("Press", dp.getDeviceType());
+			dp.setDeviceType("Finishing");
+			dp.setDeviceID("dev-2");
+			assertEquals("Finishing", dp.getDeviceType());
+			assertEquals("dev-2", dp.getDeviceID());
+
+			System.setProperty("CIP4_BAMBI_BASE_URL", "http://example.test");
+			try
+			{
+				assertEquals("http://example.test/null/jmf/dev-2", dp.getDeviceURL());
+			}
+			finally
+			{
+				System.getProperties().remove("CIP4_BAMBI_BASE_URL");
+			}
+		}
+
+		@Test
+		public void testEnumParsingAndDefaults()
+		{
+			final XMLDoc d = new XMLDoc("application", null);
+			d.setOriginalFileName("foo");
+			final KElement root = d.getRoot();
+			final KElement device = root.appendElement("Device");
+			device.setAttribute("PushPull", "not-valid");
+			device.setAttribute("MIMEReturn", "not-valid");
+			device.setAttribute("WatchFormat", "broken");
+			final MultiDeviceProperties p = new MultiDeviceProperties(d);
+			final DeviceProperties dp = p.createDeviceProps(device);
+
+			assertEquals(QERetrieval.PUSH, dp.getQERetrieval());
+			assertEquals(QEReturn.MIME, dp.getReturnMIME());
+			assertEquals(EWatchFormat.JMF, dp.getWatchFormat());
+
+			dp.setQERetrieval(QERetrieval.BOTH);
+			dp.setWatchFormat(EWatchFormat.XJMF);
+			device.setAttribute("MIMEReturn", "HTTP");
+
+			assertEquals(QERetrieval.BOTH, dp.getQERetrieval());
+			assertEquals(EWatchFormat.XJMF, dp.getWatchFormat());
+			assertEquals(QEReturn.HTTP, dp.getReturnMIME());
+		}
+
+		@Test
+		public void testTopLevelParseLookupAndDerivedDirectories()
+		{
+			final String xml = "<application AppDir='" + sm_dirTestDataTemp.replace("\\", "/")
+					+ "' BaseDir='baseRoot' InputHF='rootIn'><Device DeviceID='devA' DeviceType='TypeA'/>"
+					+ "<Device DeviceID='devB' DeviceType='TypeB' InputHF='devBIn'/></application>";
+			final MultiDeviceProperties fromStream = MultiDeviceProperties
+					.getProperties(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+			assertEquals(2, fromStream.count());
+			assertNotNull(findByID(fromStream, "devA"));
+			assertNull(findByID(fromStream, "missing"));
+
+			final XMLDoc d = new XMLDoc("application", null);
+			d.setOriginalFileName("foo");
+			final KElement root = d.getRoot();
+			final File appDir = new File(sm_dirTestDataTemp, "multiDeviceProps");
+			root.setAttribute("AppDir", appDir.getAbsolutePath());
+			root.setAttribute("BaseDir", "baseRoot");
+			root.setAttribute("InputHF", "rootIn");
+			final KElement deviceA = root.appendElement("Device");
+			deviceA.setAttribute("DeviceID", "devA");
+			final KElement deviceB = root.appendElement("Device");
+			deviceB.setAttribute("DeviceID", "devB");
+			deviceB.setAttribute("InputHF", "devBIn");
+			final MultiDeviceProperties p = new MultiDeviceProperties(d, Paths.get("tool"));
+
+			assertEquals(appDir.toPath().resolve(Paths.get("tool").resolve("baseRoot")).toFile(), p.getBaseDir());
+			assertEquals(appDir.toPath().resolve(Paths.get("tool").resolve("rootIn")).toFile(), p.createDeviceProps(deviceA).getInputHF());
+			assertEquals(appDir.toPath().resolve(Paths.get("tool").resolve("devBIn")).toFile(), p.createDeviceProps(deviceB).getInputHF());
+			assertEquals("org.cip4.bambi.workers.sim.SimDevice", p.createDeviceProps(deviceA).getDeviceClassName());
+		}
+
+		private DeviceProperties findByID(final MultiDeviceProperties props, final String deviceID)
+		{
+			for (int i = 0; i < props.count(); i++)
+			{
+				final DeviceProperties dp = props.createDeviceProps(i);
+				if (deviceID.equals(dp.getDeviceID()))
+				{
+					return dp;
+				}
+			}
+			return null;
 		}
 	}
 }

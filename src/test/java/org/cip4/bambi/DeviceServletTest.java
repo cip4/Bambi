@@ -73,6 +73,7 @@ package org.cip4.bambi;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 
@@ -207,7 +208,7 @@ public class DeviceServletTest extends BambiTestCase
 			assertEquals(0, resp.getReturnCode());
 			final String qeid = resp.getQueueEntry(0).getQueueEntryID();
 			assertNotNull(qeid);
-			assertFalse(qeid.equals(""));
+			assertNotEquals("", qeid);
 			qeids.add(qeid);
 		}
 	}

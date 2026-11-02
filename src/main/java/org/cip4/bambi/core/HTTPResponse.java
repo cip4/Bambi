@@ -64,7 +64,7 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 public abstract class HTTPResponse extends BambiLogFactory
 {
-	private final static Log log = LogFactory.getLog(HTTPResponse.class);
+	private static final Log log = LogFactory.getLog(HTTPResponse.class);
 
 	/**
 	 * @param theXML the xml to write - may be null

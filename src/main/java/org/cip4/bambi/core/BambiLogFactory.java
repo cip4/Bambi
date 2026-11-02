@@ -83,7 +83,7 @@ public class BambiLogFactory
 	/**
 	 * @deprecated logs should be static final in their respective class because they otherwise lead to incorrect stack traces when using standard java logging
 	 */
-	final protected Log log;
+	protected final Log log;
 	static long countPlus = 0;
 	static long countMinus = 0;
 

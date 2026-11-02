@@ -105,7 +105,7 @@ import org.cip4.jdflib.util.ThreadUtil;
  */
 public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 {
-	private final static Log log = LogFactory.getLog(ProxyDispatcherProcessor.class);
+	private static final Log log = LogFactory.getLog(ProxyDispatcherProcessor.class);
 
 	private final OrphanCleaner cleaner;
 

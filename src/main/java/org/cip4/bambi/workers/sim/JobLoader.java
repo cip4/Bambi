@@ -99,7 +99,7 @@ class JobLoader
 	 */
 	private final SimDeviceProcessor simDeviceProcessor;
 	private JDFNode node;
-	private final static Log log = LogFactory.getLog(JobLoader.class);
+	private static final Log log = LogFactory.getLog(JobLoader.class);
 
 	protected JobLoader(final SimDeviceProcessor simDeviceProcessor)
 	{
