@@ -38,19 +38,8 @@
  */
 package org.cip4.bambi.core;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import javax.xml.XMLConstants;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -59,7 +48,9 @@ import org.cip4.jdflib.core.JDFElement;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.ByteArrayIOStream;
+import org.cip4.jdflib.util.StreamUtil;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.xml.XSLTransformHelper;
 
 /**
  * @author Rainer Prosi, Heidelberger Druckmaschinen *
@@ -153,8 +144,7 @@ public class XMLResponse extends HTTPResponse
 	 */
 	public XMLDoc getXMLDoc()
 	{
-		return theXML == null ? null
-				: (theXML instanceof JDFElement) ? ((JDFElement) theXML).getOwnerDocument_JDFElement() : theXML.getOwnerDocument_KElement();
+		return theXML == null ? null : (theXML instanceof final JDFElement j) ? j.getOwnerDocument_JDFElement() : theXML.getOwnerDocument_KElement();
 	}
 
 	/**
@@ -197,73 +187,38 @@ public class XMLResponse extends HTTPResponse
 		}
 	}
 
-	private ByteArrayIOStream serializeDoc(final XMLDoc d)
+	ByteArrayIOStream serializeDoc(final XMLDoc d)
 	{
 		if (d == null)
 		{
 			return null;
 		}
+		final ByteArrayIOStream buffer = new ByteArrayIOStream();
 
 		if (xslt != null)
 		{
-			final ByteArrayIOStream transformedBuffer = new ByteArrayIOStream();
-			try
+			final XSLTransformHelper th = new XSLTransformHelper(d, xslt);
+			final XMLDoc e = th.getTransformElement();
+			StreamUtil.write2Stream(e, buffer);
+			updateContentType();
+		}
+		else
+		{
+			StreamUtil.write2Stream(d, buffer);
+		}
+		return buffer.size() == 0 ? null : buffer;
+	}
+
+	void updateContentType()
+	{
+		if (xslt != null)
+		{
+			final String output = xslt.getRoot().getXPathAttribute("xsl:output/@method", null);
+			if ("html".equalsIgnoreCase(output))
 			{
-				final TransformerFactory factory = TransformerFactory.newInstance();
-				factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-				final DOMSource styleSource = new DOMSource(xslt.getMemberDocument());
-				final String styleSystemID = xslt.getOriginalFileName();
-				if (styleSystemID != null && !styleSystemID.isEmpty())
-				{
-					try
-					{
-						final URI styleURI = new URI(styleSystemID);
-						if ("file".equalsIgnoreCase(styleURI.getScheme()))
-						{
-							final File styleFile = new File(styleURI);
-							final File parentDir = styleFile.getParentFile();
-							if (parentDir != null)
-							{
-								factory.setURIResolver(new SecureStylesheetURIResolver(parentDir));
-							}
-						}
-					}
-					catch (final URISyntaxException x)
-					{
-						log.warn("Could not derive stylesheet base directory for secure include/import resolution", x);
-					}
-					// systemId lets xsl:include resolve relative to the stylesheet location
-					styleSource.setSystemId(styleSystemID);
-				}
-				final Transformer transformer = factory.newTransformer(styleSource);
-				transformer.transform(new DOMSource(d.getMemberDocument()), new StreamResult(transformedBuffer));
-				if (transformedBuffer.size() > 0)
-				{
-					setContentType(UrlUtil.TEXT_HTML);
-					return transformedBuffer;
-				}
-				log.warn("XSLT transform returned empty output - falling back to raw XML serialization");
+				setContentType(UrlUtil.TEXT_HTML);
 			}
-			catch (final TransformerException x)
-			{
-				log.warn("error applying XSLT transform - falling back to raw XML serialization", x);
-			}
-			catch (final RuntimeException x)
-			{
-				log.warn("unexpected XSLT transform error - falling back to raw XML serialization", x);
-			}
-			setContentType(UrlUtil.TEXT_XML);
 		}
 
-		final ByteArrayIOStream rawBuffer = new ByteArrayIOStream();
-		try
-		{
-			d.write2Stream(rawBuffer, 2, false);
-			return rawBuffer;
-		}
-		catch (final IOException x)
-		{
-			return null;
-		}
 	}
 }

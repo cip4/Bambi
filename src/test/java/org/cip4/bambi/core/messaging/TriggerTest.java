@@ -46,7 +46,7 @@ public class TriggerTest extends BambiTestCaseBase
 
 		final Thread waiter = new Thread(() -> {
 			started.countDown();
-			waitResult.set(trigger.waitQueued(500));
+			waitResult.set(trigger.waitQueued(42));
 		});
 		waiter.start();
 

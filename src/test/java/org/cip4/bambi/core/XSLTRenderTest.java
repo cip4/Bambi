@@ -23,6 +23,7 @@ import org.cip4.bambi.BambiTestCaseBase;
 import org.cip4.jdflib.core.KElement;
 import org.cip4.jdflib.core.XMLDoc;
 import org.cip4.jdflib.util.UrlUtil;
+import org.cip4.jdflib.util.xml.SecureURIResolver;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -42,6 +43,8 @@ public class XSLTRenderTest extends BambiTestCaseBase
 	public void initLegacyDir() throws URISyntaxException
 	{
 		legacyDir = new File(getClass().getResource("/legacy").toURI());
+		SecureURIResolver.addRoot(legacyDir);
+		System.setProperty("javax.xml.transform.TransformerFactory", "net.sf.saxon.TransformerFactoryImpl");
 	}
 
 	@Test
