@@ -378,7 +378,7 @@ public class ProxyDispatcherProcessor extends AbstractProxyProcessor
 			return false;
 		}
 
-		final MessageChecker knownSlaveMessages = getParent().knownSlaveMessages;
+		final MessageChecker knownSlaveMessages = getParent().getKnownSlaveMessages();
 		knownSlaveMessages.updateKnownMessages();
 		boolean ret = false;
 		if (!knownSlaveMessages.knows(EnumType.KnownMessages))

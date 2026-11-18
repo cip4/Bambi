@@ -151,9 +151,9 @@ public class SlaveSubscriber extends Thread
 		}
 
 		ThreadUtil.sleep(waitBefore); // wait for other devices to start prior to subscribing
-		if (!abstractProxyDevice.knownSlaveMessages.isInitialized())
+		if (!abstractProxyDevice.getKnownSlaveMessages().isInitialized())
 		{
-			abstractProxyDevice.knownSlaveMessages.updateKnownMessages();
+			abstractProxyDevice.getKnownSlaveMessages().updateKnownMessages();
 		}
 		final Vector<JDFJMF> vJMFS = prepare(deviceURL);
 
@@ -176,7 +176,7 @@ public class SlaveSubscriber extends Thread
 		if (createSubscriptions != null)
 		{
 			// remove duplicates
-			if (abstractProxyDevice.knownSlaveMessages.knows(EnumType.KnownSubscriptions))
+			if (abstractProxyDevice.getKnownSlaveMessages().knows(EnumType.KnownSubscriptions))
 			{
 				final KnownSubscriptionsHandler handler = abstractProxyDevice.new KnownSubscriptionsHandler(knownSubscriptions, createSubscriptions);
 				abstractProxyDevice.sendJMFToSlave(knownSubscriptions, handler);
@@ -229,7 +229,7 @@ public class SlaveSubscriber extends Thread
 	 */
 	protected void resetSubscriptions()
 	{
-		if (abstractProxyDevice.knownSlaveMessages.knows(EnumType.StopPersistentChannel))
+		if (abstractProxyDevice.getKnownSlaveMessages().knows(EnumType.StopPersistentChannel))
 		{
 			if (reset)
 			{
@@ -257,7 +257,7 @@ public class SlaveSubscriber extends Thread
 		Vector<JDFJMF> vRet = ContainerUtil.toVector(createSubscriptions);
 		vRet = removeUnknown(vRet);
 
-		return vRet.size() > 0 ? vRet : null;
+		return ContainerUtil.isEmpty(vRet) ? null : vRet;
 	}
 
 	protected Vector<JDFJMF> removeUnknown(final Vector<JDFJMF> vRet)
@@ -270,7 +270,7 @@ public class SlaveSubscriber extends Thread
 		{
 			final JDFJMF jmf = vRet.elementAt(i);
 			final JDFMessage m = jmf.getMessageElement(null, null, 0);
-			if (!abstractProxyDevice.knownSlaveMessages.knows(m.getType()))
+			if (!abstractProxyDevice.getKnownSlaveMessages().knows(m.getType()))
 			{
 				vRet.remove(jmf);
 			}
@@ -311,8 +311,7 @@ public class SlaveSubscriber extends Thread
 		final MessageResponseHandler respHandler = new MessageResponseHandler(jmf);
 		abstractProxyDevice.sendJMFToSlave(jmf, respHandler);
 		respHandler.waitHandled(10000, 30000, false);
-		final int rc = respHandler.getJMFReturnCode();
-		return rc;
+		return respHandler.getJMFReturnCode();
 	}
 
 	/**

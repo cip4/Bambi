@@ -3,7 +3,7 @@
  * The CIP4 Software License, Version 1.0
  *
  *
- * Copyright (c) 2001-2022 The International Cooperation for the Integration of
+ * Copyright (c) 2001-2026 The International Cooperation for the Integration of
  * Processes in  Prepress, Press and Postpress (CIP4).  All rights
  * reserved.
  *
@@ -72,9 +72,13 @@ package org.cip4.bambi.proxy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
+import java.util.Vector;
 
+import org.cip4.jdflib.jmf.JDFJMF;
+import org.cip4.jdflib.jmf.JMFBuilder;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -93,6 +97,8 @@ public class SlaveSubscriberTest
 	{
 		final ProxyDevice proxyDevice = Mockito.mock(ProxyDevice.class);
 		proxyDevice.waitingSubscribers = new HashMap<>();
+		when(proxyDevice.getBuilderForSlave()).thenReturn(new JMFBuilder());
+		when(proxyDevice.getKnownSlaveMessages()).thenReturn(new MessageChecker(proxyDevice));
 		return proxyDevice;
 	}
 
@@ -102,6 +108,16 @@ public class SlaveSubscriberTest
 		final ProxyDevice proxyDevice = getProxy();
 
 		assertNotNull(new SlaveSubscriber(proxyDevice, 42, null).toString());
+	}
+
+	@Test
+	public void testCreateSub()
+	{
+		final ProxyDevice proxyDevice = getProxy();
+
+		final SlaveSubscriber slaveSubscriber = new SlaveSubscriber(proxyDevice, 42, null);
+		final Vector<JDFJMF> subs = slaveSubscriber.createSubscriptions("http://example.com");
+		assertNotNull(subs);
 	}
 
 	@Test

@@ -187,6 +187,17 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	 */
 	protected IConverterCallback _slaveCallback;
 	protected MessageChecker knownSlaveMessages;
+
+	MessageChecker getKnownSlaveMessages()
+	{
+		return knownSlaveMessages;
+	}
+
+	void setKnownSlaveMessages(MessageChecker knownSlaveMessages)
+	{
+		this.knownSlaveMessages = knownSlaveMessages;
+	}
+
 	private JMFHandler _slaveJmfHandler;
 
 	/**
@@ -256,9 +267,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			final VElement v = m == null ? null : m.getChildElementVector(ElementName.MESSAGESERVICE, null);
 			if (v != null)
 			{
-				for (int i = 0; i < v.size(); i++)
+				for (final Object element : v)
 				{
-					final JDFMessageService ms = (JDFMessageService) v.get(i);
+					final JDFMessageService ms = (JDFMessageService) element;
 					final KnownMessageDetails processedMessageService = processMessageService(ms);
 					if (processedMessageService != null)
 					{
@@ -324,9 +335,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 			final VElement v = m == null ? null : m.getChildElementVector(ElementName.SUBSCRIPTIONINFO, null);
 			if (v != null)
 			{
-				for (int i = 0; i < v.size(); i++)
+				for (final Object element : v)
 				{
-					final JDFSubscriptionInfo si = (JDFSubscriptionInfo) v.get(i);
+					final JDFSubscriptionInfo si = (JDFSubscriptionInfo) element;
 					processSubscription(si);
 				}
 			}
@@ -418,12 +429,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		public EnumNodeStatus getFinalStatus()
 		{
 			final JDFMessage response = getFinalMessage();
-			if (response != null)
+			if ((response != null) && (response.getReturnCode() == 0))
 			{
-				if (response.getReturnCode() == 0)
-				{
-					return newStatus;
-				}
+				return newStatus;
 			}
 			return null;
 		}
@@ -458,9 +466,9 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 					synchronized (myQueue)
 					{
 						final VElement vQ = myQueue.getQueueEntryVector();
-						for (int i = 0; i < vQ.size(); i++)
+						for (final Object element : vQ)
 						{
-							final JDFQueueEntry qe = (JDFQueueEntry) vQ.get(i);
+							final JDFQueueEntry qe = (JDFQueueEntry) element;
 							final String slaveQEID = BambiNSExtension.getSlaveQueueEntryID(qe);
 							if (slaveQEID != null)
 							{
@@ -654,14 +662,13 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 		final String key = getKey(slaveQEID);
 		synchronized (waitingSubscribers)
 		{
-			SlaveSubscriber slaveSubscriber = waitingSubscribers.get(key);
+			final SlaveSubscriber slaveSubscriber = waitingSubscribers.get(key);
 			if (slaveSubscriber != null)
 			{
 				log.info("retrieve duplicate slave subscriber for URL: " + slaveURL);
 				return null;
 			}
-			slaveSubscriber = createSlaveSubscriber(waitMillis, slaveQEID);
-			return slaveSubscriber;
+			return createSlaveSubscriber(waitMillis, slaveQEID);
 		}
 	}
 
@@ -803,8 +810,7 @@ public abstract class AbstractProxyDevice extends AbstractDevice
 	public JMFBuilder getBuilderForSlave()
 	{
 		final String deviceURLForSlave = getDeviceURLForSlave();
-		final JMFBuilder builder = JMFBuilderFactory.getJMFBuilder(deviceURLForSlave);
-		return builder;
+		return JMFBuilderFactory.getJMFBuilder(deviceURLForSlave);
 	}
 
 	/**
