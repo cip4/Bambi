@@ -41,7 +41,6 @@ package org.cip4.bambi.core;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -236,10 +235,8 @@ public abstract class HTTPResponse extends BambiLogFactory
 		final KElement list = parent.appendElement(BambiNSExtension.MY_NS_PREFIX + "OptionList", BambiNSExtension.MY_NS);
 		list.setAttribute("name", name);
 		list.setAttribute("default", e.getName());
-		final Iterator<? extends ValuedEnum> it = l.iterator();
-		while (it.hasNext())
+		for (final ValuedEnum ve : l)
 		{
-			final ValuedEnum ve = it.next();
 			final KElement option = list.appendElement(BambiNSExtension.MY_NS_PREFIX + "Option", BambiNSExtension.MY_NS);
 			option.setAttribute("name", ve.getName());
 			option.setAttribute("selected", ve.equals(e) ? "selected" : null, null);
@@ -264,10 +261,10 @@ public abstract class HTTPResponse extends BambiLogFactory
 				{
 					sr.setHeader(e.getKey(), e.getValue());
 				}
-				sr.setStatus(httpRC);
-				sr.setContentType(getContentType());
 				final ServletOutputStream outputStream = sr.getOutputStream();
 				final InputStream inputStream = getInputStream(); // note that getInputStream optionally serializes the XMLResponse xml document
+				sr.setStatus(httpRC);
+				sr.setContentType(getContentType());
 				sr.setContentLength(getContentLength());
 				if (inputStream != null)
 				{
