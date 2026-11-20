@@ -1185,7 +1185,7 @@ public abstract class AbstractDevice extends BambiLogFactory implements IGetHand
 		{
 			return null;
 		}
-		final File xslFile = ((DeviceProperties) _devProperties).getParent().getToolPath().resolve("legacy").resolve(xslName).toFile();
+		final File xslFile = new File(((DeviceProperties) _devProperties).getParent().getAppDir(), "legacy/" + xslName);
 		if (!xslFile.isFile())
 		{
 			log.warn("missing xsl file: " + xslFile.getAbsolutePath());

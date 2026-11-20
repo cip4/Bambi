@@ -84,6 +84,7 @@ import org.cip4.jdflib.util.FileUtil;
 import org.cip4.jdflib.util.MyArgs;
 import org.cip4.jdflib.util.StringUtil;
 import org.cip4.jdflib.util.file.UserDir;
+import org.cip4.jdflib.util.xml.SecureURIResolver;
 import org.cip4.jdfutility.logging.LogConfigurator;
 import org.cip4.jdfutility.server.JettyServer;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
@@ -190,6 +191,7 @@ public class BambiServer extends JettyServer
 			log.fatal(logString);
 			throw new BambiException(logString);
 		}
+		SecureURIResolver.addRoot(new File(toolDir, "legacy"));
 		log.info("starting " + toString());
 	}
 
